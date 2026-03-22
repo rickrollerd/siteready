@@ -794,8 +794,11 @@
       <div class="card-title">Step 1 — Describe the job</div>
 
       <div class="record-area">
-        <button class="btn-record" id="btn-record" title="Voice input coming soon">🎙️</button>
-        <p class="record-label">Voice input — coming soon</p>
+        <button class="btn-record" id="btn-record">🎙️</button>
+        <p class="record-label" id="record-label">Click to record</p>
+        <div id="recording-transcript" style="display:none;margin-top:10px;padding:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);font-size:0.85rem;color:var(--text-muted);">
+          <span>Recording... </span><span id="transcript-preview" style="color:var(--text);font-weight:500;"></span>
+        </div>
       </div>
 
       <div class="divider">or type it out</div>
@@ -1054,10 +1057,68 @@ function startOver() {
   setStep(1);
 }
 
-// Fake record button interaction
-document.getElementById('btn-record').addEventListener('click', () => {
-  alert('🎙️ Voice input is coming soon!\n\nFor this demo, type your job description in the text box below.');
-});
+// =================== WEB SPEECH API (Voice Input) ===================
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const synth = window.speechSynthesis;
+
+if (!SpeechRecognition) {
+  document.getElementById('btn-record').disabled = true;
+  document.getElementById('record-label').textContent = 'Voice not supported in this browser';
+}
+
+let recognition = null;
+let isRecording = false;
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.lang = 'en-NZ';  // Default to NZ English (can auto-detect AU too)
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    document.getElementById('btn-record').textContent = '⏹️';
+    document.getElementById('record-label').textContent = 'Recording... (click to stop)';
+    document.getElementById('recording-transcript').style.display = 'block';
+    document.getElementById('transcript-preview').textContent = '';
+  };
+
+  recognition.onresult = (event) => {
+    let interimTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        document.getElementById('job-description').value += transcript + ' ';
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+    document.getElementById('transcript-preview').textContent = interimTranscript;
+  };
+
+  recognition.onerror = (event) => {
+    console.error('Speech recognition error:', event.error);
+    document.getElementById('record-label').textContent = 'Error: ' + event.error;
+    isRecording = false;
+    document.getElementById('btn-record').textContent = '🎙️';
+    document.getElementById('recording-transcript').style.display = 'none';
+  };
+
+  recognition.onend = () => {
+    isRecording = false;
+    document.getElementById('btn-record').textContent = '🎙️';
+    document.getElementById('record-label').textContent = 'Click to record again';
+    document.getElementById('recording-transcript').style.display = 'none';
+  };
+
+  document.getElementById('btn-record').addEventListener('click', () => {
+    if (!isRecording) {
+      recognition.start();
+    } else {
+      recognition.stop();
+    }
+  });
+}
 
 // =================== RENDER SWMS DOCUMENT ===================
 function renderSWMS(swms) {
