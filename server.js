@@ -7,7 +7,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || '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',
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 // Generate smart follow-up questions based on job description
