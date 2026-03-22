@@ -1,0 +1,16 @@
+{
+  "name": "siteready",
+  "version": "1.0.0",
+  "description": "Voice-to-SWMS safety document generator",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "express": "^5.2.1"
+  }
+}

@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiteReady — SWMS Generator</title>
+  <style>
+    /* ===================== RESET & BASE ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --bg2: #1a1d27;
+      --bg3: #222536;
+      --border: #2e3347;
+      --green: #22c55e;
+      --green-dark: #16a34a;
+      --green-glow: rgba(34, 197, 94, 0.15);
+      --text: #e8eaf0;
+      --text-muted: #8b92a8;
+      --accent: #3b82f6;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ===================== LAYOUT ===================== */
+    .app-shell {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 16px 80px;
+    }
+
+    /* ===================== HEADER ===================== */
+    header {
+      padding: 28px 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 36px;
+    }
+
+    .logo-dot {
+      width: 42px;
+      height: 42px;
+      background: var(--green);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px var(--green-glow);
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    header h1 span {
+      font-size: 1.2rem;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
+
+    header p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    /* ===================== CARDS ===================== */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+    }
+
+    /* ===================== STEPS ===================== */
+    .step-indicator {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .step {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+
+    .step.active { background: var(--green); }
+    .step.done { background: var(--green-dark); }
+
+    /* ===================== FORMS ===================== */
+    textarea, input[type="text"] {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 14px 16px;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-glow);
+    }
+
+    textarea::placeholder, input::placeholder {
+      color: var(--text-muted);
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    .field { margin-bottom: 18px; }
+
+    /* ===================== BUTTONS ===================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: #0a1a10;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #34d672;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    /* ===================== RECORD BUTTON ===================== */
+    .record-area {
+      text-align: center;
+      padding: 20px 0 8px;
+    }
+
+    .btn-record {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid var(--green);
+      background: var(--green-glow);
+      color: var(--green);
+      font-size: 2.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 30px var(--green-glow);
+    }
+
+    .btn-record:hover {
+      background: rgba(34, 197, 94, 0.25);
+      transform: scale(1.05);
+      box-shadow: 0 0 40px rgba(34, 197, 94, 0.4);
+    }
+
+    .record-label {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ===================== QUESTIONS ===================== */
+    .question-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .question-text {
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .question-number {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--green);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    /* ===================== LOADER ===================== */
+    .loader {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===================== SWMS DOCUMENT ===================== */
+    #swms-output {
+      display: none;
+    }
+
+    .swms-doc {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .doc-header {
+      background: linear-gradient(135deg, #0d2818 0%, #1a3a28 100%);
+      border: 1px solid var(--green-dark);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .doc-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--green);
+    }
+
+    .doc-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .doc-brand-dot {
+      width: 24px;
+      height: 24px;
+      background: var(--green);
+      border-radius: 50%;
+    }
+
+    .doc-brand-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .doc-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .doc-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .doc-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .doc-meta-item {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+
+    .doc-meta-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--green);
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .doc-meta-value {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .doc-section {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .doc-section-header {
+      background: var(--bg3);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .doc-section-icon {
+      font-size: 1.1rem;
+    }
+
+    .doc-section-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .doc-section-body {
+      padding: 20px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .info-field label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .info-field p {
+      font-size: 0.9rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Hazards table */
+    .hazard-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .hazard-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: var(--bg3);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hazard-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      color: var(--text);
+    }
+
+    .hazard-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .risk-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .risk-high { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .risk-medium { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .risk-low { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+
+    .control-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .control-list li {
+      padding: 2px 0;
+      padding-left: 16px;
+      position: relative;
+      font-size: 0.83rem;
+    }
+
+    .control-list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--green);
+      font-size: 0.75rem;
+    }
+
+    /* Personnel table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: var(--bg3);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+
+    /* Tag list */
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Emergency box */
+    .emergency-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .emergency-item {
+      background: rgba(239,68,68,0.05);
+      border: 1px solid rgba(239,68,68,0.15);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .emergency-item label {
+      color: #f87171;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .emergency-item p {
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* Sign-off section */
+    .signoff-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .signoff-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .signoff-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+    }
+
+    .signoff-role {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .signoff-line {
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+      margin-top: 32px;
+    }
+
+    .signoff-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* Action bar */
+    .action-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(15,17,23,0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 16px 0;
+      display: none;
+    }
+
+    .action-bar.visible {
+      display: block;
+    }
+
+    .action-bar-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 16px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    /* ===================== ALERTS ===================== */
+    .alert {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      color: #f87171;
+      margin-bottom: 16px;
+    }
+
+    /* ===================== PRINT STYLES ===================== */
+    @media print {
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+      body {
+        background: white !important;
+        color: black !important;
+        font-size: 11pt;
+      }
+
+      header, .step-indicator, #step-1, #step-2, #step-3-controls,
+      .action-bar, .btn-group, .card-title, .no-print { display: none !important; }
+
+      #swms-output { display: block !important; }
+
+      .app-shell { max-width: 100%; padding: 0; margin: 0; }
+
+      .swms-doc { padding: 0; }
+
+      .doc-header {
+        background: #f0fdf4 !important;
+        border: 2px solid #22c55e !important;
+        color: black !important;
+        border-radius: 0 !important;
+        page-break-after: avoid;
+      }
+
+      .doc-header::before { background: #22c55e !important; }
+      .doc-brand-dot { background: #22c55e !important; border-radius: 50% !important; }
+      .doc-brand-name { color: #16a34a !important; }
+      .doc-title { color: #111827 !important; font-size: 18pt; }
+      .doc-subtitle { color: #4b5563 !important; }
+      .doc-meta-label { color: #16a34a !important; }
+      .doc-meta-value { color: #111827 !important; }
+      .doc-meta-item { background: white !important; border: 1px solid #d1fae5 !important; }
+
+      .doc-section {
+        background: white !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 0 !important;
+        page-break-inside: avoid;
+        margin-bottom: 10pt;
+      }
+
+      .doc-section-header {
+        background: #f9fafb !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        page-break-after: avoid;
+      }
+
+      .doc-section-title { color: #374151 !important; }
+      .doc-section-icon { display: none; }
+
+      .info-field p { color: #111827 !important; }
+      .info-field label { color: #6b7280 !important; }
+
+      .data-table td { color: #111827 !important; }
+      .data-table th { background: #f9fafb !important; color: #374151 !important; }
+      .data-table tr:nth-child(even) td { background: #fafafa !important; }
+
+      .hazard-table th { background: #f3f4f6 !important; color: #374151 !important; }
+      .hazard-table td { color: #111827 !important; }
+
+      /* Risk matrix print styles */
+      .doc-section table td, .doc-section table th { border-color: #d1d5db !important; }
+      input[type="file"] { display: none !important; }
+      #logo-preview { display: none !important; }
+
+      .risk-high { background: #fef2f2 !important; color: #dc2626 !important; border-color: #fca5a5 !important; }
+      .risk-medium { background: #fffbeb !important; color: #d97706 !important; border-color: #fcd34d !important; }
+      .risk-low { background: #f0fdf4 !important; color: #16a34a !important; border-color: #86efac !important; }
+
+      .control-list li { color: #111827 !important; }
+      .control-list li::before { color: #16a34a !important; }
+
+      .tag { background: #f9fafb !important; color: #374151 !important; border-color: #d1d5db !important; }
+
+      .emergency-item { background: #fef2f2 !important; border-color: #fca5a5 !important; }
+      .emergency-item label { color: #dc2626 !important; }
+      .emergency-item p { color: #111827 !important; }
+
+      .signoff-item { border-color: #d1d5db !important; }
+      .signoff-name { color: #111827 !important; }
+      .signoff-role { color: #6b7280 !important; }
+      .signoff-labels { color: #9ca3af !important; }
+      .signoff-line { border-color: #d1d5db !important; }
+
+      /* Footer stays visible in print */
+      .swms-doc > div:last-child { color: #6b7280 !important; page-break-before: avoid; }
+
+      /* Page setup */
+      @page {
+        size: A4;
+        margin: 15mm 15mm 15mm 15mm;
+      }
+    }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 600px) {
+      header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      header h1 { font-size: 1.4rem; }
+      .app-shell { padding: 0 12px 80px; }
+      .card { padding: 20px; }
+      .step-indicator { gap: 6px; }
+      .step { height: 3px; }
+      .hazard-table { display: block; overflow-x: auto; }
+      .btn-group { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; font-size: 0.85rem; padding: 10px 20px; }
+      .question-item { padding: 12px; }
+      .doc-meta { grid-template-columns: 1fr; }
+      .signoff-grid { grid-template-columns: 1fr; }
+      .emergency-grid { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ===================== HIDDEN STATES ===================== */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-dot">🟢</div>
+    <div>
+      <h1>SiteReady <span>🟢</span></h1>
+      <p>Voice-to-SWMS — Safety docs that get the green light. First time, every time.</p>
+    </div>
+  </header>
+
+  <!-- Step indicator -->
+  <div class="step-indicator" id="step-indicator">
+    <div class="step active" id="step-dot-1"></div>
+    <div class="step" id="step-dot-2"></div>
+    <div class="step" id="step-dot-3"></div>
+  </div>
+
+  <!-- =================== STEP 1: JOB DESCRIPTION =================== -->
+  <div id="step-1">
+    <div class="card">
+      <div class="card-title">Step 1 — Describe the job</div>
+
+      <div class="record-area">
+        <button class="btn-record" id="btn-record" title="Voice input coming soon">🎙️</button>
+        <p class="record-label">Voice input — coming soon</p>
+      </div>
+
+      <div class="divider">or type it out</div>
+
+      <div class="field">
+        <label for="company-name">Company Name</label>
+        <input type="text" id="company-name" placeholder="e.g. Acme Constructions Ltd" />
+      </div>
+
+      <div class="field">
+        <label for="company-logo">Company Logo (optional)</label>
+        <input type="file" id="company-logo" accept="image/*" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;width:100%;color:var(--text);font-size:0.88rem;" />
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">Logo will appear on the generated SWMS header</div>
+        <div id="logo-preview" style="margin-top:10px;display:none;">
+          <img id="logo-preview-img" src="" alt="Company Logo Preview" style="max-height:60px;max-width:200px;border-radius:6px;border:1px solid var(--border);padding:4px;background:white;" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="job-description">Describe the task in plain language — what you're doing, where, and how</label>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">Include: task, location, plant/equipment, and any known hazards. The more detail, the better your SWMS.</div>
+        <textarea id="job-description" rows="6" style="min-height:120px"
+          placeholder="e.g. We're installing a concrete tilt panel on Level 2 of the new warehouse at 42 Industrial Drive, Penrose. We'll use a 50-tonne crane and two dogmen. The panel is 8 metres wide and 6 tonnes. We're working near the live loading dock."></textarea>
+      </div>
+
+      <div id="step1-error" class="alert hidden"></div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="btn-next-step1">
+          <span>Generate Follow-Up Questions</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== STEP 2: FOLLOW-UP QUESTIONS =================== -->
+  <div id="step-2" class="hidden">
+    <div class="card">
+      <div class="card-title">Step 2 — A few quick questions</div>
+      <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:20px;">
+        Based on your job description, SiteReady needs a few more details to generate a complete SWMS.
+      </p>
+
+      <div id="questions-loader" class="loader">
+        <div class="spinner"></div>
+        <span>Analysing your job description...</span>
+      </div>
+
+      <div id="questions-container"></div>
+
+      <div id="step2-error" class="alert hidden"></div>
+
+      <div class="btn-group" id="step2-actions" style="display:none">
+        <button class="btn btn-primary" id="btn-generate-swms">
+          <span>Generate SWMS</span>
+          <span>⚡</span>
+        </button>
+        <button class="btn btn-secondary" id="btn-back-step2">← Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== STEP 3: SWMS OUTPUT =================== -->
+  <div id="step-3-controls" class="hidden">
+    <div class="card">
+      <div class="card-title">Step 3 — Your SWMS is ready</div>
+      <div id="swms-loader" class="loader hidden">
+        <div class="spinner"></div>
+        <span>Generating your Safe Work Method Statement...</span>
+      </div>
+      <p id="swms-ready-text" style="font-size:0.88rem;color:var(--text-muted);display:none;">
+        Your SWMS has been generated below. Review it, then print or download as PDF.
+      </p>
+      <div class="btn-group" id="swms-actions" style="display:none">
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+        <button class="btn btn-secondary" id="btn-start-over">Start Over</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SWMS DOCUMENT OUTPUT =================== -->
+  <div id="swms-output"></div>
+
+</div><!-- end app-shell -->
+
+<!-- Sticky action bar (shows after SWMS generated) -->
+<div class="action-bar" id="action-bar">
+  <div class="action-bar-inner">
+    <button class="btn btn-secondary no-print" id="btn-start-over-bar">Start Over</button>
+    <button class="btn btn-primary no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  </div>
+</div>
+
+<script>
+// =================== STATE ===================
+let currentStep = 1;
+let jobDescription = '';
+let questions = [];
+let answers = [];
+let companyName = '';
+let companyLogoBase64 = '';
+
+// =================== HELPERS ===================
+function setStep(n) {
+  currentStep = n;
+  document.getElementById('step-1').classList.toggle('hidden', n !== 1);
+  document.getElementById('step-2').classList.toggle('hidden', n !== 2);
+  document.getElementById('step-3-controls').classList.toggle('hidden', n !== 3);
+  document.getElementById('step-indicator').classList.toggle('hidden', n === 3);
+
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById(`step-dot-${i}`);
+    dot.classList.remove('active', 'done');
+    if (i < n) dot.classList.add('done');
+    else if (i === n) dot.classList.add('active');
+  }
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function hideError(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+// =================== LOGO UPLOAD HANDLER ===================
+document.getElementById('company-logo').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) { companyLogoBase64 = ''; document.getElementById('logo-preview').style.display = 'none'; return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    companyLogoBase64 = ev.target.result; // full data URL (base64)
+    document.getElementById('logo-preview-img').src = companyLogoBase64;
+    document.getElementById('logo-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+// =================== STEP 1: GET QUESTIONS ===================
+document.getElementById('btn-next-step1').addEventListener('click', async () => {
+  const desc = document.getElementById('job-description').value.trim();
+  if (!desc) {
+    showError('step1-error', 'Please describe the job before continuing.');
+    return;
+  }
+  hideError('step1-error');
+  jobDescription = desc;
+  companyName = document.getElementById('company-name').value.trim();
+
+  const btn = document.getElementById('btn-next-step1');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Loading...';
+
+  setStep(2);
+  document.getElementById('questions-loader').style.display = 'flex';
+  document.getElementById('step2-actions').style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobDescription })
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Failed to get questions');
+    questions = data.questions;
+    renderQuestions(questions);
+  } catch (err) {
+    showError('step2-error', `Error: ${err.message}`);
+  } finally {
+    document.getElementById('questions-loader').style.display = 'none';
+    document.getElementById('step2-actions').style.display = 'flex';
+    btn.disabled = false;
+    btn.querySelector('span').textContent = 'Generate Follow-Up Questions';
+  }
+});
+
+function renderQuestions(qs) {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  qs.forEach((q, i) => {
+    container.innerHTML += `
+      <div class="question-item">
+        <div class="question-number">Question ${i + 1}</div>
+        <div class="question-text">${q}</div>
+        <textarea id="answer-${i}" rows="3" placeholder="Your answer..." style="margin-top:6px;min-height:80px"></textarea>
+      </div>
+    `;
+  });
+}
+
+// =================== STEP 2: GENERATE SWMS ===================
+document.getElementById('btn-generate-swms').addEventListener('click', async () => {
+  answers = questions.map((q, i) => ({
+    question: q,
+    answer: document.getElementById(`answer-${i}`)?.value.trim() || ''
+  }));
+
+  const btn = document.getElementById('btn-generate-swms');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Generating...';
+
+  setStep(3);
+  document.getElementById('swms-loader').classList.remove('hidden');
+  document.getElementById('swms-ready-text').style.display = 'none';
+  document.getElementById('swms-actions').style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/generate-swms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobDescription, answers, companyName })
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Failed to generate SWMS');
+
+    renderSWMS(data.swms);
+    document.getElementById('swms-ready-text').style.display = 'block';
+    document.getElementById('swms-actions').style.display = 'flex';
+    document.getElementById('action-bar').classList.add('visible');
+    document.getElementById('swms-output').scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    alert(`Error generating SWMS: ${err.message}`);
+    setStep(2);
+  } finally {
+    document.getElementById('swms-loader').classList.add('hidden');
+    btn.disabled = false;
+    btn.querySelector('span').textContent = 'Generate SWMS';
+  }
+});
+
+document.getElementById('btn-back-step2').addEventListener('click', () => setStep(1));
+document.getElementById('btn-start-over').addEventListener('click', startOver);
+document.getElementById('btn-start-over-bar').addEventListener('click', startOver);
+
+function startOver() {
+  document.getElementById('job-description').value = '';
+  document.getElementById('company-name').value = '';
+  document.getElementById('company-logo').value = '';
+  document.getElementById('logo-preview').style.display = 'none';
+  document.getElementById('logo-preview-img').src = '';
+  document.getElementById('questions-container').innerHTML = '';
+  document.getElementById('swms-output').innerHTML = '';
+  document.getElementById('swms-output').style.display = 'none';
+  document.getElementById('action-bar').classList.remove('visible');
+  questions = [];
+  answers = [];
+  companyName = '';
+  companyLogoBase64 = '';
+  setStep(1);
+}
+
+// Fake record button interaction
+document.getElementById('btn-record').addEventListener('click', () => {
+  alert('🎙️ Voice input is coming soon!\n\nFor this demo, type your job description in the text box below.');
+});
+
+// =================== RENDER SWMS DOCUMENT ===================
+function renderSWMS(swms) {
+  const output = document.getElementById('swms-output');
+  output.style.display = 'block';
+
+  const doc = swms.document || {};
+  const proj = swms.projectDetails || {};
+  const task = swms.taskDescription || {};
+  const hrcw = swms.highRiskCategories || [];
+  const hazards = swms.hazardsAndControls || [];
+  const plant = swms.plantAndEquipment || [];
+  const personnel = swms.personnel || [];
+  const emergency = swms.emergencyProcedures || {};
+  const ppe = swms.ppe || [];
+  const refs = swms.references || [];
+  const riskMatrix = swms.riskMatrix || null;
+
+  // Build company branding section
+  const companyBrandingHTML = companyLogoBase64
+    ? `<img src="${companyLogoBase64}" alt="${companyName || 'Company Logo'}" style="max-height:56px;max-width:180px;object-fit:contain;border-radius:4px;" />`
+    : (companyName ? `<span style="font-size:1.1rem;font-weight:700;color:var(--text);">${companyName}</span>` : '');
+
+  // Build risk matrix HTML
+  const riskMatrixHTML = riskMatrix ? `
+    <div class="doc-section">
+      <div class="doc-section-header">
+        <span class="doc-section-icon">📊</span>
+        <span class="doc-section-title">Risk Assessment Matrix</span>
+      </div>
+      <div class="doc-section-body">
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">${riskMatrix.methodology || 'Risk Score = Likelihood × Consequence'}</p>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.78rem;text-align:center;">
+            <thead>
+              <tr>
+                <th style="padding:8px 10px;background:var(--bg3);border:1px solid var(--border);text-align:left;min-width:120px;">Likelihood / Consequence</th>
+                <th style="padding:8px 6px;background:var(--bg3);border:1px solid var(--border);">Insignificant (1)</th>
+                <th style="padding:8px 6px;background:var(--bg3);border:1px solid var(--border);">Minor (2)</th>
+                <th style="padding:8px 6px;background:var(--bg3);border:1px solid var(--border);">Moderate (3)</th>
+                <th style="padding:8px 6px;background:var(--bg3);border:1px solid var(--border);">Major (4)</th>
+                <th style="padding:8px 6px;background:var(--bg3);border:1px solid var(--border);">Catastrophic (5)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${[
+                {l:5,label:'Almost Certain (5)'},
+                {l:4,label:'Likely (4)'},
+                {l:3,label:'Possible (3)'},
+                {l:2,label:'Unlikely (2)'},
+                {l:1,label:'Rare (1)'}
+              ].map(row => `
+                <tr>
+                  <td style="padding:7px 10px;border:1px solid var(--border);background:var(--bg3);font-weight:600;text-align:left;">${row.label}</td>
+                  ${[1,2,3,4,5].map(c => {
+                    const score = row.l * c;
+                    let bg, color, label;
+                    if (score <= 4) { bg='rgba(34,197,94,0.18)'; color='#22c55e'; label='LOW'; }
+                    else if (score <= 9) { bg='rgba(245,158,11,0.18)'; color='#f59e0b'; label='MED'; }
+                    else if (score <= 16) { bg='rgba(239,68,68,0.18)'; color='#f87171'; label='HIGH'; }
+                    else { bg='rgba(220,38,38,0.35)'; color='#dc2626'; label='EXTREME'; }
+                    return `<td style="padding:7px 4px;border:1px solid var(--border);background:${bg};color:${color};font-weight:700;">${score}<br><span style="font-size:0.65rem;">${label}</span></td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:0.78rem;">
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;background:rgba(34,197,94,0.18);border:1px solid #22c55e;border-radius:3px;"></span> LOW (1–4)</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;background:rgba(245,158,11,0.18);border:1px solid #f59e0b;border-radius:3px;"></span> MEDIUM (5–9)</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;background:rgba(239,68,68,0.18);border:1px solid #f87171;border-radius:3px;"></span> HIGH (10–16)</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;background:rgba(220,38,38,0.35);border:1px solid #dc2626;border-radius:3px;"></span> EXTREME (17–25)</span>
+        </div>
+      </div>
+    </div>
+  ` : '';
+
+  output.innerHTML = `
+    <div class="swms-doc">
+
+      <!-- Document Header -->
+      <div class="doc-header">
+        <div class="doc-brand" style="justify-content:space-between;align-items:flex-start;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="doc-brand-dot"></div>
+            <span class="doc-brand-name">SiteReady 🟢</span>
+          </div>
+          ${companyBrandingHTML ? `<div style="padding:4px 8px;background:rgba(255,255,255,0.07);border-radius:8px;border:1px solid rgba(255,255,255,0.12);">${companyBrandingHTML}</div>` : ''}
+        </div>
+        <div class="doc-title">${doc.title || 'Safe Work Method Statement'}</div>
+        <div class="doc-subtitle">${proj.projectName || 'Construction Project'} — ${proj.siteAddress || 'Site Address'}</div>
+        <div class="doc-meta">
+          <div class="doc-meta-item">
+            <div class="doc-meta-label">SWMS Number</div>
+            <div class="doc-meta-value">${doc.swmsNumber || 'SWMS-2026-001'}</div>
+          </div>
+          <div class="doc-meta-item">
+            <div class="doc-meta-label">Date Created</div>
+            <div class="doc-meta-value">${doc.dateCreated || new Date().toLocaleDateString('en-AU')}</div>
+          </div>
+          <div class="doc-meta-item">
+            <div class="doc-meta-label">Review Date</div>
+            <div class="doc-meta-value">${doc.reviewDate || 'Review in 3 months'}</div>
+          </div>
+          <div class="doc-meta-item">
+            <div class="doc-meta-label">Version</div>
+            <div class="doc-meta-value">${doc.version || '1.0'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. Project Details -->
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">🏗️</span>
+          <span class="doc-section-title">1. Project Details</span>
+        </div>
+        <div class="doc-section-body">
+          <div class="info-grid">
+            <div class="info-field"><label>Site Address</label><p>${proj.siteAddress || '[Site Address]'}</p></div>
+            <div class="info-field"><label>Principal Contractor</label><p>${proj.principalContractor || '[Principal Contractor]'}</p></div>
+            <div class="info-field"><label>Contract Number</label><p>${proj.contractNumber || '[Contract Number]'}</p></div>
+            <div class="info-field"><label>Subcontractor</label><p>${proj.subcontractor || '[Subcontractor]'}</p></div>
+            <div class="info-field"><label>Project Manager</label><p>${proj.projectManager || '[Project Manager]'}</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Task Description -->
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">📋</span>
+          <span class="doc-section-title">2. Task Description</span>
+        </div>
+        <div class="doc-section-body">
+          <div class="info-grid">
+            <div class="info-field" style="grid-column:1/-1"><label>Task</label><p>${task.task || '[Task Description]'}</p></div>
+            <div class="info-field"><label>Location on Site</label><p>${task.location || '[Location]'}</p></div>
+            <div class="info-field"><label>Estimated Duration</label><p>${task.duration || '[Duration]'}</p></div>
+            <div class="info-field" style="grid-column:1/-1"><label>Work Methodology</label><p>${task.methodology || '[Methodology]'}</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk Matrix -->
+      ${riskMatrixHTML}
+
+      <!-- 3. High Risk Construction Work -->
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">⚠️</span>
+          <span class="doc-section-title">3. High Risk Construction Work Categories</span>
+        </div>
+        <div class="doc-section-body">
+          <div class="tag-list">
+            ${hrcw.length > 0 ? hrcw.map(h => `<span class="tag">⚠️ ${h}</span>`).join('') : '<span class="tag">None identified</span>'}
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Hazards & Controls -->
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">🛡️</span>
+          <span class="doc-section-title">4. Site-Specific Hazards & Control Measures</span>
+        </div>
+        <div class="doc-section-body" style="padding:0">
+          <table class="hazard-table">
+            <thead>
+              <tr>
+                <th>Hazard</th>
+                <th>Initial Risk</th>
+                <th>Control Measures</th>
+                <th>Residual Risk</th>
+                <th>Responsible</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${hazards.map(h => {
+                const initialScore = h.riskScore || (h.likelihood && h.consequence ? h.likelihood * h.consequence : null);
+                const residualScore = h.residualScore || (h.residualLikelihood && h.residualConsequence ? h.residualLikelihood * h.residualConsequence : null);
+                const initialLabel = initialScore ? ` (${initialScore})` : '';
+                const residualLabel = residualScore ? ` (${residualScore})` : '';
+                return `
+                <tr>
+                  <td><strong>${h.hazard}</strong></td>
+                  <td><span class="risk-badge risk-${(h.risk||'medium').toLowerCase()}">${h.risk || 'Medium'}${initialLabel}</span></td>
+                  <td>
+                    <ul class="control-list">
+                      ${(h.controlMeasures || []).map(c => `<li>${c}</li>`).join('')}
+                    </ul>
+                  </td>
+                  <td><span class="risk-badge risk-${(h.residualRisk||'low').toLowerCase()}">${h.residualRisk || 'Low'}${residualLabel}</span></td>
+                  <td>${h.responsiblePerson || '[Supervisor]'}</td>
+                </tr>
+              `}).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 5. Plant & Equipment -->
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">🏗️</span>
+          <span class="doc-section-title">5. Plant & Equipment</span>
+        </div>
+        <div class="doc-section-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Make / Model</th>
+                <th>Rego / ID</th>
+                <th>Last Inspection</th>
+                <th>Operator</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${plant.length > 0 ? plant.map(p => `
+                <tr>
+                  <td>${p.item}</td>
+                  <td>${p.makeModel || '[Make/Model]'}</td>
+                  <td>${p.rego || '[Rego/ID]'}</td>
+                  <td>${p.inspectionDate || '[Date]'}</td>
+                  <td>${p.operator || '[Operator]'}</td>
+                </tr>
+              `).join('') : '<tr><td colspan="5" style="color:var(--text-muted);font-style:italic">No plant or equipment specified</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 6. Personnel -->
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">👷</span>
+          <span class="doc-section-title">6. Personnel</span>
+        </div>
+        <div class="doc-section-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Licence / Cert. Number</th>
+                <th>Competency</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${personnel.length > 0 ? personnel.map(p => `
+                <tr>
+                  <td>${p.name || '[Name]'}</td>
+                  <td>${p.role || '[Role]'}</td>
+                  <td>${p.licenceNumber || '[Licence Number]'}</td>
+                  <td>${p.competency || '[Competency]'}</td>
+                </tr>
+              `).join('') : '<tr><td colspan="4" style="color:var(--text-muted);font-style:italic">No personnel specified</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 7. PPE -->
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">🦺</span>
+          <span class="doc-section-title">7. Required PPE</span>
+        </div>
+        <div class="doc-section-body">
+          <div class="tag-list">
+            ${ppe.map(item => `<span class="tag">✓ ${item}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Emergency Procedures -->
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">🚨</span>
+          <span class="doc-section-title">8. Emergency Procedures</span>
+        </div>
+        <div class="doc-section-body">
+          <div class="emergency-grid">
+            <div class="emergency-item">
+              <label>Emergency Number</label>
+              <p>${emergency.emergencyPhone || '111 (NZ) / 000 (AU)'}</p>
+            </div>
+            <div class="emergency-item">
+              <label>Nearest Hospital</label>
+              <p>${emergency.nearestHospital || '[Nearest Hospital]'}</p>
+            </div>
+            <div class="emergency-item">
+              <label>Hospital Address</label>
+              <p>${emergency.hospitalAddress || '[Hospital Address]'}</p>
+            </div>
+            <div class="emergency-item">
+              <label>First Aider on Site</label>
+              <p>${emergency.firstAider || '[First Aider Name]'}</p>
+            </div>
+            <div class="emergency-item">
+              <label>First Aider Contact</label>
+              <p>${emergency.firstAiderContact || '[Phone Number]'}</p>
+            </div>
+            <div class="emergency-item">
+              <label>Muster Point</label>
+              <p>${emergency.musterPoint || '[Muster Point Description]'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. References -->
+      ${refs.length > 0 ? `
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">📚</span>
+          <span class="doc-section-title">9. Legislation & References</span>
+        </div>
+        <div class="doc-section-body">
+          <div class="tag-list">
+            ${refs.map(r => `<span class="tag">📄 ${r}</span>`).join('')}
+          </div>
+        </div>
+      </div>` : ''}
+
+      <!-- 10. Worker Sign-Off -->
+      <div class="doc-section">
+        <div class="doc-section-header">
+          <span class="doc-section-icon">✍️</span>
+          <span class="doc-section-title">10. Worker Sign-Off</span>
+        </div>
+        <div class="doc-section-body">
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:18px;">
+            I confirm I have read, understood, and will comply with this Safe Work Method Statement.
+            I understand I must not commence work until I have signed below.
+          </p>
+          <div class="signoff-grid">
+            ${personnel.length > 0 ? personnel.map(p => `
+              <div class="signoff-item">
+                <div class="signoff-name">${p.name || '[Worker Name]'}</div>
+                <div class="signoff-role">${p.role || '[Role]'}</div>
+                <div class="signoff-line">
+                  <div class="signoff-labels">
+                    <span>Signature</span>
+                    <span>Date</span>
+                  </div>
+                </div>
+              </div>
+            `).join('') : `
+              <div class="signoff-item">
+                <div class="signoff-name">[Worker Name]</div>
+                <div class="signoff-role">[Role]</div>
+                <div class="signoff-line"><div class="signoff-labels"><span>Signature</span><span>Date</span></div></div>
+              </div>
+              <div class="signoff-item">
+                <div class="signoff-name">[Worker Name]</div>
+                <div class="signoff-role">[Role]</div>
+                <div class="signoff-line"><div class="signoff-labels"><span>Signature</span><span>Date</span></div></div>
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="text-align:center;padding:20px 0;font-size:0.75rem;color:var(--text-muted);">
+        Generated by SiteReady 🟢 — Safety docs that get the green light. First time, every time.
+        <br>This document must be reviewed and signed by all workers before work commences.
+      </div>
+
+    </div>
+  `;
+}
+</script>
+
+</body>
+</html>
