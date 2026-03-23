@@ -1028,16 +1028,24 @@ function renderQuestions(qs) {
     `;
   });
   
+  // Initialize answer recognition once
+  initAnswerRecognition();
+  
   // Attach voice listeners to each answer button
   qs.forEach((q, i) => {
-    document.getElementById(`voice-btn-${i}`).addEventListener('click', () => recordAnswer(i));
+    const btn = document.getElementById(`voice-btn-${i}`);
+    if (btn) {
+      btn.addEventListener('click', () => recordAnswer(i));
+    }
   });
 }
 
 let answerRecognition = null;
 let answerRecordingIndex = null;
 
-if (SpeechRecognition) {
+function initAnswerRecognition() {
+  if (!SpeechRecognition || answerRecognition) return;
+  
   answerRecognition = new SpeechRecognition();
   answerRecognition.continuous = true;
   answerRecognition.lang = 'en-NZ';
@@ -1045,34 +1053,43 @@ if (SpeechRecognition) {
 
   answerRecognition.onstart = () => {
     const btn = document.getElementById(`voice-btn-${answerRecordingIndex}`);
-    btn.textContent = '⏹️';
-    btn.style.background = 'rgba(239,68,68,0.2)';
+    if (btn) {
+      btn.textContent = '⏹️';
+      btn.style.background = 'rgba(239,68,68,0.2)';
+    }
   };
 
   answerRecognition.onresult = (event) => {
     let interimTranscript = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const transcript = event.results[i][0].transcript;
-      if (event.results[i].isFinal) {
-        document.getElementById(`answer-${answerRecordingIndex}`).value += transcript + ' ';
-      } else {
-        interimTranscript += transcript;
+      const answerField = document.getElementById(`answer-${answerRecordingIndex}`);
+      if (answerField) {
+        if (event.results[i].isFinal) {
+          answerField.value += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
       }
     }
   };
 
   answerRecognition.onend = () => {
     const btn = document.getElementById(`voice-btn-${answerRecordingIndex}`);
-    btn.textContent = '🎙️';
-    btn.style.background = 'var(--bg3)';
+    if (btn) {
+      btn.textContent = '🎙️';
+      btn.style.background = 'var(--bg3)';
+    }
   };
 }
 
 function recordAnswer(index) {
-  if (!answerRecognition) {
+  if (!SpeechRecognition) {
     alert('Voice input not supported in this browser');
     return;
   }
+  initAnswerRecognition();
+  
   if (answerRecordingIndex === null) {
     answerRecordingIndex = index;
     answerRecognition.start();
