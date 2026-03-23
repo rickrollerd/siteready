@@ -824,6 +824,12 @@
           placeholder="e.g. We're installing a concrete tilt panel on Level 2 of the new warehouse at 42 Industrial Drive, Penrose. We'll use a 50-tonne crane and two dogmen. The panel is 8 metres wide and 6 tonnes. We're working near the live loading dock."></textarea>
       </div>
 
+      <div class="field">
+        <label for="site-location">Site Location (auto-detected from description)</label>
+        <input type="text" id="site-location" placeholder="e.g. Level 2, 42 Industrial Drive, Penrose" />
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">If not auto-populated, add it manually — it helps tier-1 contractors identify the site quickly.</div>
+      </div>
+
       <div id="step1-error" class="alert hidden"></div>
 
       <div class="btn-group">
@@ -941,6 +947,22 @@ document.getElementById('company-logo').addEventListener('change', (e) => {
   reader.readAsDataURL(file);
 });
 
+// =================== ADDRESS EXTRACTION ===================
+function extractAddress(text) {
+  // Simple pattern: looks for "at [address]" or "[location]" patterns with street/level info
+  const patterns = [
+    /at\s+([A-Z0-9].*?(?:Street|Drive|Road|Avenue|Lane|Place|Court|Close|View|Crescent|St|Dr|Ave|Rd)[,.]?(?:\s*\w+)*)/gi,
+    /Level\s+\d+.*?(?:Street|Drive|Road|Avenue|Lane|Place|Court|Close|View|Crescent|St|Dr|Ave|Rd)[,.]?/gi,
+    /(\d+\s+[A-Za-z].*?(?:Street|Drive|Road|Avenue|Lane|Place|Court|Close|View|Crescent|St|Dr|Ave|Rd))/gi
+  ];
+  
+  for (let pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) return match[0].trim();
+  }
+  return '';
+}
+
 // =================== STEP 1: GET QUESTIONS ===================
 document.getElementById('btn-next-step1').addEventListener('click', async () => {
   const desc = document.getElementById('job-description').value.trim();
@@ -951,6 +973,15 @@ document.getElementById('btn-next-step1').addEventListener('click', async () => 
   hideError('step1-error');
   jobDescription = desc;
   companyName = document.getElementById('company-name').value.trim();
+  
+  // Auto-extract address if not already filled
+  const locationField = document.getElementById('site-location');
+  if (!locationField.value.trim()) {
+    const extractedAddress = extractAddress(desc);
+    if (extractedAddress) {
+      locationField.value = extractedAddress;
+    }
+  }
 
   const btn = document.getElementById('btn-next-step1');
   btn.disabled = true;
@@ -989,10 +1020,66 @@ function renderQuestions(qs) {
       <div class="question-item">
         <div class="question-number">Question ${i + 1}</div>
         <div class="question-text">${q}</div>
-        <textarea id="answer-${i}" rows="3" placeholder="Your answer..." style="margin-top:6px;min-height:80px"></textarea>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <textarea id="answer-${i}" rows="3" placeholder="Your answer..." style="flex:1;min-height:80px"></textarea>
+          <button class="btn-voice-answer" id="voice-btn-${i}" title="Click to answer by voice" style="padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:1.2rem;width:50px;height:50px;display:flex;align-items:center;justify-content:center;">🎙️</button>
+        </div>
       </div>
     `;
   });
+  
+  // Attach voice listeners to each answer button
+  qs.forEach((q, i) => {
+    document.getElementById(`voice-btn-${i}`).addEventListener('click', () => recordAnswer(i));
+  });
+}
+
+let answerRecognition = null;
+let answerRecordingIndex = null;
+
+if (SpeechRecognition) {
+  answerRecognition = new SpeechRecognition();
+  answerRecognition.continuous = true;
+  answerRecognition.lang = 'en-NZ';
+  answerRecognition.interimResults = true;
+
+  answerRecognition.onstart = () => {
+    const btn = document.getElementById(`voice-btn-${answerRecordingIndex}`);
+    btn.textContent = '⏹️';
+    btn.style.background = 'rgba(239,68,68,0.2)';
+  };
+
+  answerRecognition.onresult = (event) => {
+    let interimTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        document.getElementById(`answer-${answerRecordingIndex}`).value += transcript + ' ';
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+  };
+
+  answerRecognition.onend = () => {
+    const btn = document.getElementById(`voice-btn-${answerRecordingIndex}`);
+    btn.textContent = '🎙️';
+    btn.style.background = 'var(--bg3)';
+  };
+}
+
+function recordAnswer(index) {
+  if (!answerRecognition) {
+    alert('Voice input not supported in this browser');
+    return;
+  }
+  if (answerRecordingIndex === null) {
+    answerRecordingIndex = index;
+    answerRecognition.start();
+  } else {
+    answerRecognition.stop();
+    answerRecordingIndex = null;
+  }
 }
 
 // =================== STEP 2: GENERATE SWMS ===================
