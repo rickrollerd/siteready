@@ -1,58 +1,13 @@
 const express = require('express');
 const Anthropic = require('@anthropic-ai/sdk');
-const OpenAI = require('openai');
 const path = require('path');
-const fs = require('fs');
-const os = require('os');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
-app.use(express.raw({ type: 'audio/*', limit: '25mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Transcribe audio using OpenAI's Whisper API
-app.post('/api/transcribe', async (req, res) => {
-  try {
-    const audioBuffer = req.body;
-    if (!audioBuffer || audioBuffer.length === 0) {
-      return res.status(400).json({ error: 'No audio data provided' });
-    }
-
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ error: 'OpenAI API key not configured' });
-    }
-
-    // Save buffer to temp file
-    const tempFile = path.join(os.tmpdir(), `audio-${Date.now()}.wav`);
-    fs.writeFileSync(tempFile, audioBuffer);
-
-    try {
-      // Transcribe with OpenAI Whisper
-      const transcript = await openai.audio.transcriptions.create({
-        model: 'whisper-1',
-        file: fs.createReadStream(tempFile),
-      });
-
-      // Clean up temp file
-      fs.unlinkSync(tempFile);
-
-      return res.json({ text: transcript.text });
-    } catch (err) {
-      fs.unlinkSync(tempFile);
-      throw err;
-    }
-  } catch (err) {
-    console.error('Transcription error:', err.message);
-    return res.status(500).json({ error: `Transcription failed: ${err.message}` });
-  }
 });
 
 // Generate smart follow-up questions based on job description
