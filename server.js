@@ -125,7 +125,7 @@ app.post('/api/generate-swms', async (req, res) => {
   try {
     const message = await anthropic.messages.create({
       model: 'claude-opus-4-5',
-      max_tokens: 8000,
+      max_tokens: 16000,
       messages: [{
         role: 'user',
         content: `You are a construction safety expert creating a professional SWMS (Safe Work Method Statement) for the NZ/AU construction industry.
