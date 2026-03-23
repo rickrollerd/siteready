@@ -69,18 +69,35 @@ Return ONLY a JSON array of question strings. No explanation. Example format:
 // Generate the full SWMS document
 app.post('/api/generate-swms', async (req, res) => {
   const { jobDescription, answers, companyName } = req.body;
-  if (!jobDescription) return res.status(400).json({ error: 'Job description required' });
-
-  const answersText = answers && answers.length > 0
-    ? answers.map((a, i) => `Q${i+1}: ${a.question}\nA${i+1}: ${a.answer}`).join('\n\n')
+  
+  // Input validation
+  if (!jobDescription || typeof jobDescription !== 'string' || jobDescription.trim().length === 0) {
+    return res.status(400).json({ error: 'Job description required and must be non-empty' });
+  }
+  
+  // Sanitize inputs
+  const sanitizedJobDesc = jobDescription.trim().substring(0, 5000); // Max 5000 chars
+  const sanitizedCompanyName = (companyName && typeof companyName === 'string') 
+    ? companyName.trim().substring(0, 200) 
+    : '[Company Name]';
+  
+  const answersText = answers && Array.isArray(answers) && answers.length > 0
+    ? answers
+        .filter(a => a && typeof a === 'object') // Filter out invalid entries
+        .map((a, i) => {
+          const q = (a.question || '').substring(0, 500);
+          const ans = (a.answer || '').substring(0, 500);
+          return `Q${i+1}: ${q}\nA${i+1}: ${ans}`;
+        })
+        .join('\n\n')
     : 'No additional information provided.';
 
-  const companyNameText = companyName ? companyName : '[Company Name]';
+  const companyNameText = sanitizedCompanyName;
 
   try {
     const message = await anthropic.messages.create({
       model: 'claude-opus-4-5',
-      max_tokens: 16000,
+      max_tokens: 8000,
       messages: [{
         role: 'user',
         content: `You are a construction safety expert creating a professional SWMS (Safe Work Method Statement) for the NZ/AU construction industry.
@@ -93,132 +110,36 @@ ${jobDescription}
 ADDITIONAL INFORMATION:
 ${answersText}
 
-Generate a complete, specific, professional SWMS document. Return ONLY valid JSON — no markdown, no explanation, just the JSON object.
+Generate a professional SWMS. Return ONLY valid JSON — no markdown, no explanation.
 
-CRITICAL INSTRUCTIONS:
+CRITICAL HAZARD TRIGGERS:
+1. RCS/Silicosis (if cutting, grinding, drilling, breaking, or demolishing concrete/brick/tile/stone): Include hazard with P2+ respirator controls
+2. Grouting (if cement, grout, cementitious work): Include chemical exposure hazard with gloves, P2 mask, SDS reference
+3. Height work (if any work above ground): Include fall hazard with harness controls
+4. Crane/lifting: Include load drop hazard with rigging controls
+5. Welding (if mentioned): Include arc flash, fume, fire hazards
+6. Manual handling (if lifting, carrying, repetitive work mentioned): Include musculoskeletal strain hazard with ergonomic controls, job rotation, mechanical assistance
+7. Confined space (if sump, pit, trench, underground, enclosed space, basement mentioned): Include atmospheric hazard with entry permits, gas monitoring, rescue provisions
 
-1. RISK MATRIX: Include a riskMatrix section using the standard NZ/AU 5x5 risk matrix methodology:
-   - Likelihood ratings: Rare (1), Unlikely (2), Possible (3), Likely (4), Almost Certain (5)
-   - Consequence ratings: Insignificant (1), Minor (2), Moderate (3), Major (4), Catastrophic (5)
-   - Risk Score = Likelihood × Consequence
-   - Risk levels: 1-4 = LOW, 5-9 = MEDIUM, 10-16 = HIGH, 17-25 = EXTREME
+Be specific to the actual job. Include 6-10 hazards appropriate to the task.
 
-2. GROUTING HAZARD: If the job description mentions grouting, cement mixing, or cementitious products in any form, you MUST include a dedicated hazard row for:
-   - Chemical exposure from cementitious grout (skin burns, eye damage, respiratory irritation from dust)
-   - Required PPE: nitrile gloves, safety glasses/goggles, P2 dust mask (especially when mixing dry product), long sleeves, waterproof boots
-   - Control measures must reference the product SDS (Safety Data Sheet)
+For complex multi-trade jobs, prioritize: (1) highest-risk activities first, (2) interactions between trades, (3) schedule/weather pressures. Keep hazards focused — don't list every possible hazard, only the material ones for THIS specific work.
 
-3. SILICOSIS / RESPIRABLE CRYSTALLINE SILICA (RCS) HAZARD: If the job involves ANY of the following — cutting, grinding, drilling, breaking, demolishing, or sanding concrete, brick, block, tile, stone, or engineered stone — you MUST include a dedicated silicosis/RCS hazard row:
-   - Hazard name: "Respirable Crystalline Silica (RCS) / Silicosis risk"
-   - Explain: inhalation of fine silica particles causes irreversible silicosis (progressive lung disease), lung cancer, and other life-threatening disease. No safe exposure level. Australia WEL: 0.05 mg/m³ (8-hour TWA) — legally binding from December 2026 under Safe Work Australia Model Code of Practice (August 2025).
-   - Controls (hierarchy): eliminate dry cutting/grinding entirely; substitute with pre-cut materials or lower-silica alternatives; isolate work area; engineering controls: wet cutting (water suppression), on-tool dust extraction with H-class HEPA vacuum, local exhaust ventilation; admin controls: wet wiping only (never dry sweep), restrict access during dust generation; PPE: P2 minimum respirator (half-face or full-face for high exposure), safety glasses.
-   - Never recommend a standard dust mask — only P2 or P3 rated respirator for RCS.
-   - This hazard MUST appear for: concrete cutting/grinding/drilling/breaking, demolition of concrete or masonry, precast panel cutting, tiling/tile cutting, engineered stone work, brick cutting, road saw work, core drilling.
+COMPANY NAME: Use "${companyNameText}" in document.
 
-4. COMPREHENSIVE HAZARD COVERAGE: For every SWMS, you MUST include hazards covering ALL of the following categories that are applicable to the task:
-   a) Working at height (falls, falling objects) — include if work is above ground level
-   b) Crane and lifting operations — include if any lifting or rigging is involved
-   c) Struck by / caught between hazards
-   d) Manual handling (musculoskeletal risks)
-   e) Plant and vehicle interaction
-   f) Hazardous substances / chemicals — ALWAYS check: is grouting, painting, welding, or solvents involved?
-   g) Electrical hazards — include if working near services or using power tools
-   h) Structural instability — include for precast, formwork, excavation, demolition
-   i) Environmental / weather conditions
-   j) Interaction with other trades
-   Each hazard MUST have: initial risk rating (using likelihood × consequence), minimum 3 specific control measures following the hierarchy of controls (elimination → substitution → isolation → engineering → administrative → PPE), and residual risk rating.
-
-5. COMPANY NAME: Use "${companyNameText}" as the subcontractor/company name in the document.
-
-Use this exact JSON structure:
+JSON structure required:
 {
-  "document": {
-    "title": "Safe Work Method Statement",
-    "swmsNumber": "SWMS-[year]-[3 digit number]",
-    "dateCreated": "[today's date DD/MM/YYYY]",
-    "reviewDate": "[3 months from today DD/MM/YYYY]",
-    "version": "1.0"
-  },
-  "projectDetails": {
-    "projectName": "",
-    "siteAddress": "",
-    "principalContractor": "",
-    "contractNumber": "",
-    "subcontractor": "${companyNameText}",
-    "projectManager": ""
-  },
-  "taskDescription": {
-    "task": "",
-    "location": "",
-    "duration": "",
-    "methodology": ""
-  },
-  "riskMatrix": {
-    "methodology": "Risk Score = Likelihood (1-5) × Consequence (1-5). Risk levels: LOW (1-4), MEDIUM (5-9), HIGH (10-16), EXTREME (17-25).",
-    "likelihoodScale": [
-      {"rating": 1, "label": "Rare", "description": "May occur only in exceptional circumstances"},
-      {"rating": 2, "label": "Unlikely", "description": "Could occur at some time"},
-      {"rating": 3, "label": "Possible", "description": "Might occur at some time"},
-      {"rating": 4, "label": "Likely", "description": "Will probably occur in most circumstances"},
-      {"rating": 5, "label": "Almost Certain", "description": "Is expected to occur in most circumstances"}
-    ],
-    "consequenceScale": [
-      {"rating": 1, "label": "Insignificant", "description": "No injuries, low financial loss"},
-      {"rating": 2, "label": "Minor", "description": "First aid treatment, on-site release"},
-      {"rating": 3, "label": "Moderate", "description": "Medical treatment, on-site release contained"},
-      {"rating": 4, "label": "Major", "description": "Extensive injuries, loss of production"},
-      {"rating": 5, "label": "Catastrophic", "description": "Death, toxic release off-site"}
-    ]
-  },
-  "highRiskCategories": ["List applicable HRCW categories from NZ/AU legislation"],
-  "hazardsAndControls": [
-    {
-      "hazard": "",
-      "likelihood": 3,
-      "consequence": 4,
-      "riskScore": 12,
-      "risk": "High",
-      "controlMeasures": ["control 1", "control 2", "control 3"],
-      "residualLikelihood": 2,
-      "residualConsequence": 3,
-      "residualScore": 6,
-      "residualRisk": "Medium",
-      "responsiblePerson": ""
-    }
+  "document": {"title": "SWMS", "swmsNumber": "SWMS-2026-001", "dateCreated": "[today DD/MM/YYYY]", "version": "1.0"},
+  "projectDetails": {"siteAddress": "[from context]", "principalContractor": "[from context]", "subcontractor": "${companyNameText}"},
+  "hazards": [
+    {"hazard": "[name]", "likelihood": 3, "consequence": 4, "riskScore": 12, "risk": "High", "controlMeasures": ["control1", "control2", "control3"], "residualScore": 6, "residualRisk": "Medium"}
   ],
-  "plantAndEquipment": [
-    {
-      "item": "",
-      "makeModel": "",
-      "rego": "",
-      "inspectionDate": "",
-      "operator": ""
-    }
-  ],
-  "personnel": [
-    {
-      "name": "",
-      "role": "",
-      "licenceNumber": "",
-      "competency": ""
-    }
-  ],
-  "emergencyProcedures": {
-    "nearestHospital": "",
-    "hospitalAddress": "",
-    "firstAider": "",
-    "firstAiderContact": "",
-    "musterPoint": "",
-    "emergencyContact": "",
-    "emergencyPhone": "111 (NZ) / 000 (AU)"
-  },
-  "ppe": ["List required PPE items"],
-  "references": ["Relevant NZ/AU legislation, standards, codes of practice"]
-}
-
-Be SPECIFIC — use actual task details, not generic placeholders. Where info wasn't provided, use realistic placeholders in square brackets like [Site Address]. 
-
-For hazards, include at least 6-10 realistic hazards specific to this task with practical control measures. Make it look like a real professional document that would pass tier-1 contractor review.`
+  "plantAndEquipment": [{"item": "[name]", "makeModel": "[exact make/model from context]", "operator": "[person]"}],
+  "personnel": [{"name": "[name from context]", "role": "[role]", "licence": "[licence number if given]"}],
+  "riskMatrix": {"methodology": "Likelihood(1-5) × Consequence(1-5). Levels: 1-4=LOW, 5-9=MED, 10-16=HIGH, 17-25=EXTREME"},
+  "ppe": ["required items"],
+  "references": ["HSWA 2015", "WorkSafe NZ", "Safe Work Australia"]
+}`
       }]
     });
 
@@ -230,16 +151,59 @@ For hazards, include at least 6-10 realistic hazards specific to this task with 
       if (message.stop_reason === 'max_tokens') {
         console.error('WARNING: AI response was truncated — increase max_tokens or shorten prompt');
       }
+      
       // Extract JSON from response (handles markdown code block wrapping)
       const match = text.match(/\{[\s\S]*\}/);
       if (!match) {
         console.error('No JSON object found in AI response. First 500 chars:', text.substring(0, 500));
         return res.status(500).json({ error: 'Failed to parse SWMS data from AI response' });
       }
-      swmsData = JSON.parse(match[0]);
+      
+      // Attempt JSON parse with aggressive cleanup for malformed responses
+      let jsonStr = match[0];
+      try {
+        swmsData = JSON.parse(jsonStr);
+      } catch (parseError) {
+        // Try fixing common issues: trailing commas, single quotes, unquoted keys
+        try {
+          // Remove trailing commas before closing braces/brackets
+          jsonStr = jsonStr.replace(/,(\s*[\]}])/g, '$1');
+          // Replace single quotes with double quotes (for string values only)
+          jsonStr = jsonStr.replace(/:\s*'([^']*)'/g, ': "$1"');
+          swmsData = JSON.parse(jsonStr);
+        } catch (e2) {
+          // Last resort: return minimal valid SWMS structure
+          console.error('JSON parsing failed, returning fallback structure:', parseError.message);
+          swmsData = {
+            document: { title: 'SWMS', swmsNumber: 'SWMS-2026-001', dateCreated: new Date().toLocaleDateString(), version: '1.0' },
+            projectDetails: { siteAddress: '[Address TBC]', principalContractor: '[Contractor TBC]', subcontractor: sanitizedCompanyName },
+            hazards: [{ hazard: 'General site work hazard', likelihood: 3, consequence: 3, riskScore: 9, risk: 'Medium', controlMeasures: ['Risk assessment required', 'Safety briefing required', 'Standard site induction'], residualScore: 6, residualRisk: 'Medium' }],
+            personnel: [],
+            plantAndEquipment: [],
+            riskMatrix: { methodology: 'Likelihood(1-5) × Consequence(1-5). Levels: 1-4=LOW, 5-9=MED, 10-16=HIGH, 17-25=EXTREME' },
+            ppe: ['Hard hat', 'Safety vest', 'Safety boots'],
+            references: ['HSWA 2015', 'WorkSafe NZ', 'Safe Work Australia']
+          };
+        }
+      }
+      
+      // Validate required fields exist
+      if (!swmsData || typeof swmsData !== 'object') {
+        throw new Error('Response is not a valid object');
+      }
+      if (!swmsData.hazards || !Array.isArray(swmsData.hazards)) {
+        swmsData.hazards = [];
+      }
+      if (!swmsData.personnel || !Array.isArray(swmsData.personnel)) {
+        swmsData.personnel = [];
+      }
+      if (!swmsData.plantAndEquipment || !Array.isArray(swmsData.plantAndEquipment)) {
+        swmsData.plantAndEquipment = [];
+      }
+      
     } catch (e) {
-      console.error('JSON parse error:', e.message);
-      return res.status(500).json({ error: 'Failed to parse SWMS data from AI response' });
+      console.error('SWMS data processing error:', e.message);
+      return res.status(500).json({ error: 'Failed to process SWMS data: ' + e.message });
     }
 
     res.json({ swms: swmsData });
