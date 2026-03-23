@@ -1074,12 +1074,18 @@ function initAnswerRecognition() {
     }
   };
 
+  answerRecognition.onerror = (event) => {
+    console.error('Answer recognition error:', event.error);
+    answerRecordingIndex = null;
+  };
+
   answerRecognition.onend = () => {
     const btn = document.getElementById(`voice-btn-${answerRecordingIndex}`);
     if (btn) {
       btn.textContent = '🎙️';
       btn.style.background = 'var(--bg3)';
     }
+    answerRecordingIndex = null;
   };
 }
 
@@ -1090,12 +1096,18 @@ function recordAnswer(index) {
   }
   initAnswerRecognition();
   
-  if (answerRecordingIndex === null) {
-    answerRecordingIndex = index;
-    answerRecognition.start();
-  } else {
+  // Toggle: if already recording this question, stop. Otherwise start.
+  if (answerRecordingIndex === index) {
+    // Currently recording this question — stop
     answerRecognition.stop();
     answerRecordingIndex = null;
+  } else {
+    // Not recording — start
+    if (answerRecordingIndex !== null) {
+      answerRecognition.stop();
+    }
+    answerRecordingIndex = index;
+    answerRecognition.start();
   }
 }
 
