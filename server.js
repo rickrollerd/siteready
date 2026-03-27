@@ -1,20 +1,145 @@
 const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const OpenAI = require('openai');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
-app.use(express.json({ limit: '10mb' }));
+
+// ===================== SECURITY MIDDLEWARE =====================
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://api.deepseek.com"]
+    }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://siteready.nz', 'https://www.siteready.nz']
+    : ['http://localhost:3849', 'http://localhost:3000', 'http://localhost:8080'],
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Rate limiting - 100 requests per 15 minutes per IP
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests from this IP, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
+// Body parsing with reasonable limits
+app.use(express.json({ limit: '1mb' })); // Reduced from 10mb to prevent DoS
+app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'privacy.html')));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Basic API key validation (can be enhanced for production)
+app.use('/api/', (req, res, next) => {
+  // For now, just log API usage
+  console.log(`[API] ${req.method} ${req.path} from ${req.ip} at ${new Date().toISOString()}`);
+  
+  // In production, you might want to add API key validation here
+  // const apiKey = req.headers['x-api-key'];
+  // if (!apiKey || apiKey !== process.env.API_KEY) {
+  //   return res.status(401).json({ error: 'Unauthorized' });
+  // }
+  
+  next();
+});
+
+// ===================== AI CLIENT SETUP =====================
 
 const openai = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY,
   baseURL: 'https://api.deepseek.com',
 });
 
+// ===================== INPUT VALIDATION =====================
+
+function sanitizeInput(input, maxLength = 5000) {
+  if (typeof input !== 'string') return '';
+  // Trim and limit length
+  let sanitized = input.trim().substring(0, maxLength);
+  // Remove potentially dangerous characters (basic XSS prevention)
+  sanitized = sanitized.replace(/[<>]/g, '');
+  return sanitized;
+}
+
+function validateJobDescription(jobDescription) {
+  if (!jobDescription || typeof jobDescription !== 'string') {
+    return { valid: false, error: 'Job description must be a non-empty string' };
+  }
+  
+  const sanitized = sanitizeInput(jobDescription, 5000);
+  if (sanitized.length < 10) {
+    return { valid: false, error: 'Job description must be at least 10 characters' };
+  }
+  
+  if (sanitized.length > 5000) {
+    return { valid: false, error: 'Job description must not exceed 5000 characters' };
+  }
+  
+  return { valid: true, sanitized };
+}
+
+function validateAnswers(answers) {
+  if (!answers || !Array.isArray(answers)) {
+    return { valid: true, sanitized: [] }; // Answers are optional
+  }
+  
+  const sanitized = answers
+    .filter(a => a && typeof a === 'object' && a.question && a.answer)
+    .map(a => ({
+      question: sanitizeInput(a.question, 500),
+      answer: sanitizeInput(a.answer, 500)
+    }))
+    .slice(0, 20); // Limit to 20 Q&A pairs
+  
+  return { valid: true, sanitized };
+}
+
+function validateCompanyName(companyName) {
+  if (!companyName || typeof companyName !== 'string') {
+    return { valid: true, sanitized: '[Company Name]' }; // Default value
+  }
+  
+  const sanitized = sanitizeInput(companyName, 200);
+  return { valid: true, sanitized };
+}
+
+// ===================== API ENDPOINTS =====================
+
 // Generate smart follow-up questions based on job description
 app.post('/api/questions', async (req, res) => {
   const { jobDescription } = req.body;
-  if (!jobDescription) return res.status(400).json({ error: 'Job description required' });
+  
+  // Validate input
+  const validation = validateJobDescription(jobDescription);
+  if (!validation.valid) {
+    return res.status(400).json({ error: validation.error });
+  }
+  
+  const sanitizedJobDesc = validation.sanitized;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -25,7 +150,7 @@ app.post('/api/questions', async (req, res) => {
         content: `You are a construction safety expert helping generate a SWMS (Safe Work Method Statement) for a NZ/AU construction site.
 
 A worker described their job as:
-"${jobDescription}"
+"${sanitizedJobDesc}"
 
 Based on what they said, generate 3-5 targeted follow-up questions to gather the missing information needed for a complete, specific SWMS.
 
@@ -71,29 +196,32 @@ Return ONLY a JSON array of question strings. No explanation. Example format:
 app.post('/api/generate-swms', async (req, res) => {
   const { jobDescription, answers, companyName } = req.body;
   
-  // Input validation
-  if (!jobDescription || typeof jobDescription !== 'string' || jobDescription.trim().length === 0) {
-    return res.status(400).json({ error: 'Job description required and must be non-empty' });
+  // Validate all inputs
+  const jobValidation = validateJobDescription(jobDescription);
+  if (!jobValidation.valid) {
+    return res.status(400).json({ error: jobValidation.error });
   }
   
-  // Sanitize inputs
-  const sanitizedJobDesc = jobDescription.trim().substring(0, 5000); // Max 5000 chars
-  const sanitizedCompanyName = (companyName && typeof companyName === 'string') 
-    ? companyName.trim().substring(0, 200) 
-    : '[Company Name]';
+  const answersValidation = validateAnswers(answers);
+  if (!answersValidation.valid) {
+    return res.status(400).json({ error: answersValidation.error });
+  }
   
-  const answersText = answers && Array.isArray(answers) && answers.length > 0
-    ? answers
-        .filter(a => a && typeof a === 'object') // Filter out invalid entries
-        .map((a, i) => {
-          const q = (a.question || '').substring(0, 500);
-          const ans = (a.answer || '').substring(0, 500);
-          return `Q${i+1}: ${q}\nA${i+1}: ${ans}`;
-        })
+  const companyValidation = validateCompanyName(companyName);
+  if (!companyValidation.valid) {
+    return res.status(400).json({ error: companyValidation.error });
+  }
+  
+  const sanitizedJobDesc = jobValidation.sanitized;
+  const sanitizedAnswers = answersValidation.sanitized;
+  const companyNameText = companyValidation.sanitized;
+  
+  // Format answers text
+  const answersText = sanitizedAnswers.length > 0
+    ? sanitizedAnswers
+        .map((a, i) => `Q${i+1}: ${a.question}\nA${i+1}: ${a.answer}`)
         .join('\n\n')
     : 'No additional information provided.';
-
-  const companyNameText = sanitizedCompanyName;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -210,8 +338,38 @@ JSON structure required:
     res.json({ swms: swmsData });
   } catch (error) {
     console.error('SWMS generation error:', error);
-    res.status(500).json({ error: error.message });
+    // Don't expose internal error details in production
+    const errorMessage = process.env.NODE_ENV === 'production'
+      ? 'An error occurred while generating the SWMS. Please try again.'
+      : error.message;
+    res.status(500).json({ error: errorMessage });
   }
+});
+
+// ===================== ERROR HANDLING MIDDLEWARE =====================
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found' });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  
+  // Don't expose stack traces in production
+  const errorResponse = {
+    error: process.env.NODE_ENV === 'production'
+      ? 'An internal server error occurred'
+      : err.message
+  };
+  
+  // Add stack trace in development
+  if (process.env.NODE_ENV !== 'production') {
+    errorResponse.stack = err.stack;
+  }
+  
+  res.status(err.status || 500).json(errorResponse);
 });
 
 // Prevent uncaught errors from crashing the server
@@ -222,7 +380,12 @@ process.on('unhandledRejection', (reason) => {
   console.error('Unhandled rejection (server kept alive):', reason);
 });
 
+// ===================== SERVER START =====================
+
 const PORT = process.env.PORT || 3849;
 app.listen(PORT, () => {
   console.log(`SiteReady server running on http://localhost:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Security: Rate limiting enabled (100 requests/15min per IP)`);
+  console.log(`Security: CORS configured for ${process.env.NODE_ENV === 'production' ? 'production origins' : 'development origins'}`);
 });
