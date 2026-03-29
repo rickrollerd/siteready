@@ -1430,7 +1430,7 @@ function renderSWMS(swms) {
             <div class="info-field" style="grid-column:1/-1"><label>Task</label><p>${task.task || '[Task Description]'}</p></div>
             <div class="info-field"><label>Location on Site</label><p>${task.location || '[Location]'}</p></div>
             <div class="info-field"><label>Estimated Duration</label><p>${task.duration || '[Duration]'}</p></div>
-            <div class="info-field" style="grid-column:1/-1"><label>Work Methodology</label><p>${task.methodology || '[Methodology]'}</p></div>
+            <div class="info-field" style="grid-column:1/-1"><label>Work Methodology</label><p>${task.workMethodology || task.methodology || '[Methodology]'}</p></div>
           </div>
         </div>
       </div>
