@@ -101,46 +101,77 @@ app.post('/api/generate-swms', async (req, res) => {
       max_tokens: 8000,
       messages: [{
         role: 'user',
-        content: `You are a construction safety expert creating a professional SWMS (Safe Work Method Statement) for the NZ/AU construction industry.
-
-COMPANY: ${companyNameText}
-
-JOB DESCRIPTION:
-${jobDescription}
-
-ADDITIONAL INFORMATION:
-${answersText}
-
-Generate a professional SWMS. Return ONLY valid JSON — no markdown, no explanation.
-
-CRITICAL HAZARD TRIGGERS:
-1. RCS/Silicosis (if cutting, grinding, drilling, breaking, or demolishing concrete/brick/tile/stone): Include hazard with P2+ respirator controls
-2. Grouting (if cement, grout, cementitious work): Include chemical exposure hazard with gloves, P2 mask, SDS reference
-3. Height work (if any work above ground): Include fall hazard with harness controls
-4. Crane/lifting: Include load drop hazard with rigging controls
-5. Welding (if mentioned): Include arc flash, fume, fire hazards
-6. Manual handling (if lifting, carrying, repetitive work mentioned): Include musculoskeletal strain hazard with ergonomic controls, job rotation, mechanical assistance
-7. Confined space (if sump, pit, trench, underground, enclosed space, basement mentioned): Include atmospheric hazard with entry permits, gas monitoring, rescue provisions
-
-Be specific to the actual job. Include 6-10 hazards appropriate to the task.
-
-For complex multi-trade jobs, prioritize: (1) highest-risk activities first, (2) interactions between trades, (3) schedule/weather pressures. Keep hazards focused — don't list every possible hazard, only the material ones for THIS specific work.
-
-COMPANY NAME: Use "${companyNameText}" in document.
-
-JSON structure required:
+        content: `You are a senior NZ/AU construction safety professional with 20+ years experience writing high-quality, compliant SWMS documents for the building, civil and demolition industries.
+Company: ${companyNameText}
+Job Description: ${jobDescription}
+Additional Information: ${answersText}
+Rules:
+- Be highly specific to the actual job. Never add generic or irrelevant hazards.
+- Always apply the Hierarchy of Controls in order for every hazard: ELIMINATE → SUBSTITUTE → ISOLATE → ENGINEERING → ADMINISTRATIVE → PPE.
+- Never use placeholders like [Name], [TBC], [Insert here]. Use realistic values or "As per site register" if information is missing.
+- Include 6-10 material hazards relevant to this exact task.
+- Work methodology must be 8-12 clear numbered steps specific to this job.
+Return ONLY valid JSON. No markdown. No explanations. No extra text.
 {
-  "document": {"title": "SWMS", "swmsNumber": "SWMS-2026-001", "dateCreated": "[today DD/MM/YYYY]", "version": "1.0"},
-  "projectDetails": {"siteAddress": "[from context]", "principalContractor": "[from context]", "subcontractor": "${companyNameText}"},
+  "document": {
+    "title": "Safe Work Method Statement",
+    "swmsNumber": "SWMS-2026-001",
+    "dateCreated": "[today DD/MM/YYYY]",
+    "reviewDate": "[3 months from today DD/MM/YYYY]",
+    "version": "1.0"
+  },
+  "projectDetails": {
+    "siteAddress": "[from context or As per site induction]",
+    "principalContractor": "[from context or As per contract documents]",
+    "subcontractor": "${companyNameText}"
+  },
+  "taskDescription": {
+    "task": "${jobDescription}",
+    "locationOnSite": "[from context]",
+    "estimatedDuration": "[realistic based on task]",
+    "workMethodology": "1. [specific step] 2. [specific step] ... (8-12 numbered steps specific to this job)"
+  },
+  "highRiskCategories": ["list applicable HRCW or None identified"],
   "hazards": [
-    {"hazard": "[name]", "likelihood": 3, "consequence": 4, "riskScore": 12, "risk": "High", "controlMeasures": ["control1", "control2", "control3"], "residualScore": 6, "residualRisk": "Medium"}
+    {
+      "hazard": "Specific hazard for this job",
+      "likelihood": 1-5,
+      "consequence": 1-5,
+      "riskScore": number,
+      "risk": "Low/Medium/High/Extreme",
+      "controlMeasures": [
+        "ELIMINATE/SUBSTITUTE: [specific control]",
+        "ISOLATE/ENGINEERING: [specific control]",
+        "ADMINISTRATIVE: [specific procedure or training]",
+        "PPE: [specific PPE]"
+      ],
+      "residualScore": number,
+      "residualRisk": "Low/Medium/High",
+      "responsible": "Role responsible"
+    }
   ],
-  "plantAndEquipment": [{"item": "[name]", "makeModel": "[exact make/model from context]", "operator": "[person]"}],
-  "personnel": [{"name": "[name from context]", "role": "[role]", "licence": "[licence number if given]"}],
-  "riskMatrix": {"methodology": "Likelihood(1-5) × Consequence(1-5). Levels: 1-4=LOW, 5-9=MED, 10-16=HIGH, 17-25=EXTREME"},
-  "ppe": ["required items"],
-  "references": ["HSWA 2015", "WorkSafe NZ", "Safe Work Australia"]
-}`
+  "plantAndEquipment": [{"item": "name", "makeModel": "from context or As per site register", "operator": "role"}],
+  "personnel": [{"name": "from context", "role": "role", "licence": "if relevant"}],
+  "riskMatrix": {"methodology": "Likelihood (1-5) × Consequence (1-5). 1-4=Low, 5-9=Medium, 10-16=High, 17-25=Extreme"},
+  "ppe": ["specific PPE required for this job"],
+  "emergencyProcedures": {
+    "emergencyNumber": "111 (NZ) / 000 (AU)",
+    "nearestHospital": "[from context or As per site emergency plan]",
+    "hospitalAddress": "[from context or As per site emergency plan]",
+    "firstAider": "[from context or As per site induction records]",
+    "firstAiderContact": "[from context or As per site emergency plan]",
+    "musterPoint": "[from context or As per site emergency plan]"
+  },
+  "references": ["relevant legislation and codes for this specific task"],
+  "workerSignoff": [
+    {"name": "[from context or To be completed on site]", "role": "role"}
+  ]
+}
+TASK-SPECIFIC KNOWLEDGE (apply where relevant):
+FORMWORK & FALSEWORK: Key hazards — collapse during pour, fall from height, manual handling, concrete pressure, struck by falling objects. Controls — engineer-designed drawings, pour rate limits, specified stripping sequence, edge protection.
+PRECAST CONCRETE INSTALLATION: Key hazards — crane lift failure, panel instability before bracing, rigging failure, panel swing. Controls — engineered lift plans, rated precast clutches, temporary bracing per engineer specs before crane hook release, exclusion zones, licensed dogman.
+CRANE & LIFTING: Key hazards — load drop, crane overload, power line contact, ground bearing failure. Controls — lift study, rated rigging with current tags, licensed operator + dogman, ground assessment, exclusion zone.
+Use this knowledge to make the SWMS specific and professional.`
       }]
     });
 
