@@ -1,0 +1,340 @@
+/* SiteReady Mobile Optimizations */
+/* Enhanced touch experience for app store deployment */
+
+/* ===================== TOUCH OPTIMIZATIONS ===================== */
+
+/* Minimum touch target size (Apple HIG: 44x44px) */
+button, 
+input[type="button"],
+input[type="submit"],
+.selectable-item,
+.card,
+.nav-item {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Better touch feedback */
+button:active,
+input[type="button"]:active,
+input[type="submit"]:active {
+  transform: scale(0.98);
+  transition: transform 0.1s;
+}
+
+/* Prevent text selection on interactive elements */
+button, input, .card {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ===================== MOBILE-SPECIFIC LAYOUT ===================== */
+
+@media (max-width: 768px) {
+  /* Improved mobile spacing */
+  .app-shell {
+    padding: 0 12px 60px;
+  }
+  
+  header {
+    padding: 20px 0 16px;
+    margin-bottom: 24px;
+  }
+  
+  /* Stack elements vertically on mobile */
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  /* Larger form inputs for touch */
+  input, textarea, select {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 14px 16px;
+  }
+  
+  /* Better button sizing */
+  .btn-primary, .btn-secondary {
+    padding: 16px 24px;
+    font-size: 17px; /* iOS standard button font size */
+    font-weight: 600;
+  }
+  
+  /* Adjust card layouts */
+  .card {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  
+  /* Improve document view for mobile */
+  .document-container {
+    padding: 16px;
+    font-size: 14px;
+  }
+  
+  /* Risk matrix mobile optimization */
+  .risk-matrix {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better scrolling experience */
+  .scrollable-content {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+}
+
+/* ===================== SAFE AREA INSETS (Notch Devices) ===================== */
+
+@supports (padding: max(0px)) {
+  .safe-area-top {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  
+  .safe-area-left {
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+  
+  .safe-area-right {
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+}
+
+/* ===================== STANDALONE APP MODE ===================== */
+
+/* When installed as PWA or native app */
+.standalone-mode body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.standalone-mode header {
+  padding-top: calc(20px + env(safe-area-inset-top));
+}
+
+/* Hide browser UI elements in standalone mode */
+@media (display-mode: standalone) {
+  /* Add any specific styles for standalone mode */
+}
+
+/* ===================== HAPTIC FEEDBACK SIMULATION ===================== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Touch device styles */
+  .haptic-feedback:active {
+    background-color: rgba(34, 197, 94, 0.1);
+  }
+}
+
+/* ===================== SWIPE GESTURES ===================== */
+
+.swipe-area {
+  touch-action: pan-y;
+}
+
+/* Prevent pull-to-refresh in app mode */
+body.standalone-mode {
+  overscroll-behavior-y: none;
+}
+
+/* ===================== MOBILE PERFORMANCE ===================== */
+
+/* Hardware acceleration for smooth scrolling */
+.hardware-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Reduce animations on low-power devices */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===================== DARK MODE OPTIMIZATION ===================== */
+
+@media (prefers-color-scheme: dark) {
+  /* Already dark themed, but ensure contrast */
+  :root {
+    --text: #f0f2f8;
+    --text-muted: #a0a6c0;
+  }
+}
+
+/* ===================== ACCESSIBILITY ===================== */
+
+/* Larger text for accessibility */
+@media (prefers-contrast: high) {
+  :root {
+    --green: #00ff00;
+    --border: #ffffff;
+  }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion) {
+  .btn-primary, .card {
+    transition: none;
+  }
+}
+
+/* ===================== APP-LIKE BEHAVIORS ===================== */
+
+/* Disable text selection in app mode */
+.app-mode {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Better scrolling momentum */
+.scrollable {
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* ===================== LOADING STATES ===================== */
+
+/* App-like loading spinner */
+.app-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.app-loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: app-spin 1s linear infinite;
+}
+
+@keyframes app-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===================== OFFLINE INDICATOR ===================== */
+
+.offline-indicator {
+  position: fixed;
+  top: env(safe-area-inset-top);
+  left: 0;
+  right: 0;
+  background: var(--danger);
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+  z-index: 1000;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+/* ===================== NATIVE-LIKE COMPONENTS ===================== */
+
+/* iOS-style switches */
+.ios-switch {
+  position: relative;
+  width: 51px;
+  height: 31px;
+  appearance: none;
+  background: #e5e5ea;
+  border-radius: 16px;
+  transition: background 0.3s;
+}
+
+.ios-switch:checked {
+  background: var(--green);
+}
+
+.ios-switch::after {
+  content: '';
+  position: absolute;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: white;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.ios-switch:checked::after {
+  transform: translateX(20px);
+}
+
+/* Android-style switches */
+.android-switch {
+  position: relative;
+  width: 36px;
+  height: 14px;
+  appearance: none;
+  background: rgba(0,0,0,0.38);
+  border-radius: 7px;
+  transition: background 0.3s;
+}
+
+.android-switch:checked {
+  background: rgba(34, 197, 94, 0.5);
+}
+
+.android-switch::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  top: -3px;
+  left: -2px;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.android-switch:checked::after {
+  transform: translateX(20px);
+  background: var(--green);
+}
+
+/* ===================== APP STORE READY ===================== */
+
+/* Ensure content fits within safe areas */
+.app-content {
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/* Status bar background (for installed apps) */
+.status-bar-bg {
+  background: var(--bg);
+  height: env(safe-area-inset-top);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+}
