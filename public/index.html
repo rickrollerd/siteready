@@ -1457,7 +1457,7 @@ function renderSWMS(swms) {
           </div>
           <div class="doc-meta-item">
             <div class="doc-meta-label">Date Created</div>
-            <div class="doc-meta-value">${doc.dateCreated && !doc.dateCreated.includes('['} ? doc.dateCreated : new Date().toLocaleDateString('en-AU')}</div>
+            <div class="doc-meta-value">${(doc.dateCreated && !doc.dateCreated.includes('[')) ? doc.dateCreated : new Date().toLocaleDateString('en-NZ')}</div>
           </div>
           <div class="doc-meta-item">
             <div class="doc-meta-label">Review Date</div>
