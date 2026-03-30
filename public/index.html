@@ -1119,7 +1119,7 @@ document.getElementById('btn-next-step1').addEventListener('click', async () => 
     const resp = await fetch('/api/questions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobDescription })
+      body: JSON.stringify({ jobDescription, siteAddress, selectedPlants })
     });
 
     const data = await resp.json();
