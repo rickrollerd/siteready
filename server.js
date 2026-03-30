@@ -23,103 +23,22 @@ app.post('/api/questions', async (req, res) => {
       messages: [{
         role: 'user',
         content: `You are a senior NZ/AU construction safety professional.
-Site Address: ${siteAddress || "Not specified"}
-Plant: ${selectedPlants ? selectedPlants.join(", ") : "None"}
+Site Address: ${siteAddress || "Not provided"}
+Selected Plants: ${selectedPlants ? selectedPlants.join(", ") : "None"}
 
-Return ONLY valid JSON with this structure (no extra text):
+Return ONLY valid JSON. No other text.
 
 {
-  "document": {"title": "Safe Work Method Statement", "swmsNumber": "SWMS-2026-001", "dateCreated": "[today]", "version": "1.0"},
-  "projectDetails": {"siteAddress": "${siteAddress || "As per site"}", "subcontractor": "${companyNameText || "Subcontractor"}"},
-  "taskDescription": {"task": "${jobDescription}", "workMethodology": "1. Step one... (8-12 numbered steps)"},
+  "document": {"title": "Safe Work Method Statement", "swmsNumber": "SWMS-2026-001", "dateCreated": "DD/MM/YYYY", "version": "1.0"},
+  "projectDetails": {"siteAddress": "${siteAddress || ""}", "subcontractor": "${companyNameText || ""}"},
+  "taskDescription": {"task": "${jobDescription || ""}", "workMethodology": "1. Step one 2. Step two"},
   "hazards": [],
   "plantAndEquipment": [],
   "ppe": [],
   "emergencyProcedures": {"emergencyNumber": "111 (NZ) / 000 (AU)"},
   "workerSignoff": []
 }`
-}]
-    });
 
-    let questions;
-    try {
-      const text = completion.choices[0].message.content.trim();
-      // Extract JSON array from response
-      const match = text.match(/\[[\s\S]*\]/);
-      questions = JSON.parse(match ? match[0] : text);
-    } catch (e) {
-      // Fallback to default questions
-      questions = [
-        "What is the site address and who is the principal contractor?",
-        "What plant or equipment will be used? Include make, model and rego if known.",
-        "Who are the workers on this task? Please list names and roles.",
-        "Are there any other trades working nearby that could create hazards?",
-        "What are the emergency contact details and nearest hospital to the site?"
-      ];
-    }
-
-    res.json({ questions });
-  } catch (error) {
-    console.error('Questions API error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Generate the full SWMS document
-app.post('/api/generate-swms', async (req, res) => {
-  const { jobDescription, answers, companyName } = req.body;
-  
-  // Input validation
-  if (!jobDescription || typeof jobDescription !== 'string' || jobDescription.trim().length === 0) {
-    return res.status(400).json({ error: 'Job description required and must be non-empty' });
-  }
-  
-  // Sanitize inputs
-  const sanitizedJobDesc = jobDescription.trim().substring(0, 5000); // Max 5000 chars
-  const sanitizedCompanyName = (companyName && typeof companyName === 'string') 
-    ? companyName.trim().substring(0, 200) 
-    : '[Company Name]';
-  
-  const answersText = answers && Array.isArray(answers) && answers.length > 0
-    ? answers
-        .filter(a => a && typeof a === 'object') // Filter out invalid entries
-        .map((a, i) => {
-          const q = (a.question || '').substring(0, 500);
-          const ans = (a.answer || '').substring(0, 500);
-          return `Q${i+1}: ${q}\nA${i+1}: ${ans}`;
-        })
-        .join('\n\n')
-    : 'No additional information provided.';
-
-  const companyNameText = sanitizedCompanyName;
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: 'deepseek-chat',
-      max_tokens: 8000,
-      messages: [{
-        role: 'user',
-        content: `You are a senior NZ/AU construction safety professional.
-Site Address: ${siteAddress || "Not specified"}
-Plant: ${selectedPlants ? selectedPlants.join(", ") : "None"}
-
-Return ONLY valid JSON with this structure (no extra text):
-
-{
-  "document": {"title": "Safe Work Method Statement", "swmsNumber": "SWMS-2026-001", "dateCreated": "[today]", "version": "1.0"},
-  "projectDetails": {"siteAddress": "${siteAddress || "As per site"}", "subcontractor": "${companyNameText || "Subcontractor"}"},
-  "taskDescription": {"task": "${jobDescription}", "workMethodology": "1. Step one... (8-12 numbered steps)"},
-  "hazards": [],
-  "plantAndEquipment": [],
-  "ppe": [],
-  "emergencyProcedures": {"emergencyNumber": "111 (NZ) / 000 (AU)"},
-  "workerSignoff": []
-}`
-TASK-SPECIFIC KNOWLEDGE (apply where relevant):
-FORMWORK & FALSEWORK: Key hazards — collapse during pour, fall from height, manual handling, concrete pressure, struck by falling objects. Controls — engineer-designed drawings, pour rate limits, specified stripping sequence, edge protection.
-PRECAST CONCRETE INSTALLATION: Key hazards — crane lift failure, panel instability before bracing, rigging failure, panel swing. Controls — engineered lift plans, rated precast clutches, temporary bracing per engineer specs before crane hook release, exclusion zones, licensed dogman.
-CRANE & LIFTING: Key hazards — load drop, crane overload, power line contact, ground bearing failure. Controls — lift study, rated rigging with current tags, licensed operator + dogman, ground assessment, exclusion zone.
-Use this knowledge to make the SWMS specific and professional.`
       }]
     });
 
