@@ -886,6 +886,29 @@
         <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">If not auto-populated, add it manually — it helps tier-1 contractors identify the site quickly.</div>
       </div>
 
+
+      <div class="field">
+        <label>Site plant operated by others (tick all that apply)</label>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;">These will appear in your SWMS as "As per site register" — you don't need make/model details.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;">
+            <input type="checkbox" id="plant-tower-crane" value="Tower crane"> Tower crane</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;">
+            <input type="checkbox" id="plant-mobile-crane" value="Mobile crane"> Mobile crane</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;">
+            <input type="checkbox" id="plant-hoist" value="Personnel/material hoist"> Personnel / material hoist</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;">
+            <input type="checkbox" id="plant-concrete-pump" value="Concrete pump"> Concrete pump</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;">
+            <input type="checkbox" id="plant-forklift" value="Site forklift"> Site forklift</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;">
+            <input type="checkbox" id="plant-ewp" value="EWP/scissor lift"> EWP / scissor lift</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;">
+            <input type="checkbox" id="plant-agitator" value="Concrete agitator trucks"> Concrete agitator trucks</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:normal;font-size:0.88rem;cursor:pointer;">
+            <input type="checkbox" id="plant-excavator" value="Excavator/earthworks plant"> Excavator / earthworks plant</label>
+        </div>
+      </div>
       <div id="step1-error" class="alert hidden"></div>
 
       <div class="btn-group">
@@ -962,6 +985,50 @@ let jobDescription = '';
 let questions = [];
 let answers = [];
 let companyName = '';
+
+// =================== PERSISTENT STORAGE ===================
+function saveCompanyData() {
+  localStorage.setItem('sr_company_name', document.getElementById('company-name').value || '');
+  if (document.getElementById('company-address')) {
+    localStorage.setItem('sr_company_address', document.getElementById('company-address').value || '');
+  }
+  if (typeof companyLogoBase64 !== 'undefined' && companyLogoBase64) {
+    localStorage.setItem('sr_company_logo', companyLogoBase64);
+  }
+}
+
+function loadCompanyData() {
+  const savedName = localStorage.getItem('sr_company_name');
+  const savedAddress = localStorage.getItem('sr_company_address');
+  const savedLogo = localStorage.getItem('sr_company_logo');
+
+  if (savedName) document.getElementById('company-name').value = savedName;
+  if (savedAddress && document.getElementById('company-address')) {
+    document.getElementById('company-address').value = savedAddress;
+  }
+  if (savedLogo && typeof companyLogoBase64 !== 'undefined') {
+    companyLogoBase64 = savedLogo;
+    const preview = document.getElementById('logo-preview');
+    const previewImg = document.getElementById('logo-preview-img');
+    if (preview && previewImg) {
+      previewImg.src = savedLogo;
+      preview.style.display = 'block';
+    }
+  }
+}
+
+function getNextSwmsNumber() {
+  let counter = parseInt(localStorage.getItem('sr_swms_counter') || '0') + 1;
+  localStorage.setItem('sr_swms_counter', counter);
+  const year = new Date().getFullYear();
+  return `SWMS-${year}-${String(counter).padStart(3, '0')}`;
+}
+
+// Load saved data when page loads
+document.addEventListener('DOMContentLoaded', () => {
+  loadCompanyData();
+});
+
 let companyLogoBase64 = '';
 
 // =================== HELPERS ===================
@@ -1029,6 +1096,7 @@ document.getElementById('btn-next-step1').addEventListener('click', async () => 
   hideError('step1-error');
   jobDescription = desc;
   companyName = document.getElementById('company-name').value.trim();
+  saveCompanyData();
   
   // Auto-extract address if not already filled
   const locationField = document.getElementById('site-location');
@@ -1214,7 +1282,7 @@ document.getElementById('btn-start-over-bar').addEventListener('click', startOve
 
 function startOver() {
   document.getElementById('job-description').value = '';
-  document.getElementById('company-name').value = '';
+  // document.getElementById('company-name').value = '';
   document.getElementById('company-logo').value = '';
   document.getElementById('logo-preview').style.display = 'none';
   document.getElementById('logo-preview-img').src = '';
@@ -1385,7 +1453,7 @@ function renderSWMS(swms) {
         <div class="doc-meta">
           <div class="doc-meta-item">
             <div class="doc-meta-label">SWMS Number</div>
-            <div class="doc-meta-value">${doc.swmsNumber || 'SWMS-2026-001'}</div>
+            <div class="doc-meta-value">${getNextSwmsNumber()}</div>
           </div>
           <div class="doc-meta-item">
             <div class="doc-meta-label">Date Created</div>
