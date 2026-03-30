@@ -988,32 +988,38 @@ let companyName = '';
 
 // =================== PERSISTENT STORAGE ===================
 function saveCompanyData() {
-  localStorage.setItem('sr_company_name', document.getElementById('company-name').value || '');
-  if (document.getElementById('company-address')) {
-    localStorage.setItem('sr_company_address', document.getElementById('company-address').value || '');
-  }
-  if (typeof companyLogoBase64 !== 'undefined' && companyLogoBase64) {
-    localStorage.setItem('sr_company_logo', companyLogoBase64);
+  try {
+    localStorage.setItem('sr_company_name', document.getElementById('company-name').value || '');
+    if (document.getElementById('company-address')) {
+      localStorage.setItem('sr_company_address', document.getElementById('company-address').value || '');
+    }
+    if (typeof companyLogoBase64 !== 'undefined' && companyLogoBase64) {
+      localStorage.setItem('sr_company_logo', companyLogoBase64);
+    }
+  } catch(e) {
+    console.warn('localStorage unavailable:', e);
   }
 }
-
 function loadCompanyData() {
-  const savedName = localStorage.getItem('sr_company_name');
-  const savedAddress = localStorage.getItem('sr_company_address');
-  const savedLogo = localStorage.getItem('sr_company_logo');
-
-  if (savedName) document.getElementById('company-name').value = savedName;
-  if (savedAddress && document.getElementById('company-address')) {
-    document.getElementById('company-address').value = savedAddress;
-  }
-  if (savedLogo && typeof companyLogoBase64 !== 'undefined') {
-    companyLogoBase64 = savedLogo;
-    const preview = document.getElementById('logo-preview');
-    const previewImg = document.getElementById('logo-preview-img');
-    if (preview && previewImg) {
-      previewImg.src = savedLogo;
-      preview.style.display = 'block';
+  try {
+    const savedName = localStorage.getItem('sr_company_name');
+    const savedAddress = localStorage.getItem('sr_company_address');
+    const savedLogo = localStorage.getItem('sr_company_logo');
+    if (savedName) document.getElementById('company-name').value = savedName;
+    if (savedAddress && document.getElementById('company-address')) {
+      document.getElementById('company-address').value = savedAddress;
     }
+    if (savedLogo && typeof companyLogoBase64 !== 'undefined') {
+      companyLogoBase64 = savedLogo;
+      const preview = document.getElementById('logo-preview');
+      const previewImg = document.getElementById('logo-preview-img');
+      if (preview && previewImg) {
+        previewImg.src = savedLogo;
+        preview.style.display = 'block';
+      }
+    }
+  } catch(e) {
+    console.warn('localStorage unavailable:', e);
   }
 }
 
