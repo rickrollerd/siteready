@@ -1261,7 +1261,7 @@ document.getElementById('btn-generate-swms').addEventListener('click', async () 
     const resp = await fetch('/api/generate-swms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobDescription, answers, companyName })
+      body: JSON.stringify({ jobDescription, answers, companyName, siteAddress: document.getElementById("site-location") ? document.getElementById("site-location").value.trim() : "", selectedPlants: Array.from(document.querySelectorAll("input[type=\"checkbox\"][id^=\"plant-\"]")).filter(cb => cb.checked).map(cb => cb.value) })
     });
 
     const data = await resp.json();
