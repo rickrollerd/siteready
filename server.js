@@ -101,72 +101,51 @@ app.post('/api/generate-swms', async (req, res) => {
       max_tokens: 8000,
       messages: [{
         role: 'user',
-        content: `You are a senior NZ/AU construction safety professional with 20+ years experience writing high-quality, compliant SWMS documents for the building, civil and demolition industries.
+        content: `You are a senior NZ/AU construction safety professional with 20+ years experience writing high-quality, compliant SWMS documents.
+
+**DEDICATED CONSTRUCTION KNOWLEDGE BASE** (use this for every SWMS):
+
+**Region Detection (critical):**
+- If site address contains Auckland, Wellington, Christchurch, NZ, New Zealand → use full NZ rules (HSWA 2015, WorkSafe NZ, AS/NZS standards)
+- If site address contains Sydney, Melbourne, Brisbane, AU, Australia → use full AU rules (WHS Act 2011, Safe Work Australia Model Codes)
+
+**Hierarchy of Controls (apply in exact order for every hazard):**
+1. ELIMINATE — remove the hazard completely
+2. SUBSTITUTE — replace with less hazardous option
+3. ISOLATE — physical separation (barriers, exclusion zones)
+4. ENGINEERING — physical controls (guardrails, ventilation, mechanical aids)
+5. ADMINISTRATIVE — procedures, training, permits, supervision
+6. PPE — last resort, task-specific
+
+**High Risk Construction Work (HRCW) categories (AU WHS Reg 291):**
+Fall >2m, tilt-up/precast, demolition, confined space, asbestos, crane/hoist, powered mobile plant, excavation >1.5m, hot works, electrical work, etc.
+
+**Trade-Specific Knowledge (apply where relevant):**
+- Formwork & falsework: collapse, fall from height, concrete pressure — use AS 3610, engineer drawings, pour rate limits, edge protection
+- Precast/tilt-up: crane lift failure, panel instability, rigging failure — engineered lift plan, rated clutches, temporary bracing before hook release, exclusion zones
+- Crane & lifting: load drop, overload, power line contact — lift study, licensed operator + dogman, ground assessment
+- Waterproofing (Mapeproof FBT): chemical exposure, substrate preparation, full bond to concrete — follow manufacturer SDS and technical data sheets
+- Excavation: trench collapse, services strike — Dial Before You Dig, shoring/battering, competent person inspection
+- Working at height: fall from leading edge — perimeter scaffolding or safety mesh BEFORE access, full body harness, rescue plan
+
 Company: ${companyNameText}
 Job Description: ${jobDescription}
 Additional Information: ${answersText}
+Site Address: ${siteAddress || "As per site induction"}
+
 Rules:
-- Be highly specific to the actual job. Never add generic or irrelevant hazards.
-- Always apply the Hierarchy of Controls in order for every hazard: ELIMINATE → SUBSTITUTE → ISOLATE → ENGINEERING → ADMINISTRATIVE → PPE.
-- Never use placeholders like [Name], [TBC], [Insert here]. Use realistic values or "As per site register" if information is missing.
-- Include 6-10 material hazards relevant to this exact task.
-- Work methodology must be 8-12 clear numbered steps specific to this job.
-Return ONLY valid JSON. No markdown. No explanations. No extra text.
+- Be highly specific to the actual job.
+- Never use placeholders.
+- Include 6-10 material hazards.
+- Work methodology must be 8-12 clear numbered steps.
+- Always label controls with Hierarchy level.
+
+Return ONLY valid JSON. No markdown. No explanations.
+
 {
-  "document": {
-    "title": "Safe Work Method Statement",
-    "swmsNumber": "SWMS-2026-001",
-    "dateCreated": "[today DD/MM/YYYY]",
-    "reviewDate": "[3 months from today DD/MM/YYYY]",
-    "version": "1.0"
-  },
-  "projectDetails": {
-    "siteAddress": "[from context or As per site induction]",
-    "principalContractor": "[from context or As per contract documents]",
-    "subcontractor": "${companyNameText}"
-  },
-  "taskDescription": {
-    "task": "${jobDescription}",
-    "locationOnSite": "[from context]",
-    "estimatedDuration": "[realistic based on task]",
-    "workMethodology": "1. [specific step] 2. [specific step] ... (8-12 numbered steps specific to this job)"
-  },
-  "highRiskCategories": ["list applicable HRCW or None identified"],
-  "hazards": [
-    {
-      "hazard": "Specific hazard for this job",
-      "likelihood": 1-5,
-      "consequence": 1-5,
-      "riskScore": number,
-      "risk": "Low/Medium/High/Extreme",
-      "controlMeasures": [
-        "ELIMINATE/SUBSTITUTE: [specific control]",
-        "ISOLATE/ENGINEERING: [specific control]",
-        "ADMINISTRATIVE: [specific procedure or training]",
-        "PPE: [specific PPE]"
-      ],
-      "residualScore": number,
-      "residualRisk": "Low/Medium/High",
-      "responsible": "Role responsible"
-    }
-  ],
-  "plantAndEquipment": [{"item": "name", "makeModel": "from context or As per site register", "operator": "role"}],
-  "personnel": [{"name": "from context", "role": "role", "licence": "if relevant"}],
-  "riskMatrix": {"methodology": "Likelihood (1-5) × Consequence (1-5). 1-4=Low, 5-9=Medium, 10-16=High, 17-25=Extreme"},
-  "ppe": ["specific PPE required for this job"],
-  "emergencyProcedures": {
-    "emergencyNumber": "111 (NZ) / 000 (AU)",
-    "nearestHospital": "[from context or As per site emergency plan]",
-    "hospitalAddress": "[from context or As per site emergency plan]",
-    "firstAider": "[from context or As per site induction records]",
-    "firstAiderContact": "[from context or As per site emergency plan]",
-    "musterPoint": "[from context or As per site emergency plan]"
-  },
-  "references": ["relevant legislation and codes for this specific task"],
-  "workerSignoff": [
-    {"name": "[from context or To be completed on site]", "role": "role"}
-  ]
+  "document": { ... (same JSON structure as before) }
 }
+`
 TASK-SPECIFIC KNOWLEDGE (apply where relevant):
 FORMWORK & FALSEWORK: Key hazards — collapse during pour, fall from height, manual handling, concrete pressure, struck by falling objects. Controls — engineer-designed drawings, pour rate limits, specified stripping sequence, edge protection.
 PRECAST CONCRETE INSTALLATION: Key hazards — crane lift failure, panel instability before bracing, rigging failure, panel swing. Controls — engineered lift plans, rated precast clutches, temporary bracing per engineer specs before crane hook release, exclusion zones, licensed dogman.
