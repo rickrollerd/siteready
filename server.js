@@ -763,13 +763,14 @@ function stepIsEmptyCheck(line) {
 function ensureMethodology(swms, profile) {
   const task = asObject(swms.taskDescription);
   if (profile.crane) {
-    const steps = crewBrief(profile);
+    const steps = crewBrief(profile).map(stripZoneExitOrder).filter(Boolean);
     task.workMethodology = steps.map((line, index) => `${index + 1}. ${line}`).join('\n');
   } else {
     let text = cleanProse(task.workMethodology || '', profile.source, profile);
     if (isPlaceholderMethod(text)) text = '';
     const lines = text.split('\n')
       .map(briefableLine)
+      .map(stripZoneExitOrder)
       .map((line) => line.trim())
       .filter((line) => line && !stepConfirmsMissingFact(line) && !stepIsEmptyCheck(line));
     task.workMethodology = lines.map((line, index) => `${index + 1}. ${stripStepNumber(line)}`).join('\n');
@@ -902,6 +903,7 @@ function ensureHazards(swms, profile) {
     const controls = (hazard.controlMeasures || [])
       .map(settleUnderPanelControl)
       .map(stripAbsoluteZoneBan)
+      .map(stripZoneExitOrder)
       .map((control) => (designInUse ? stripHeldProcedureDenial(control) : control))
       .filter((control) => control && !controlConfirmsMissing(control));
     hazard.controlMeasures = controls;
@@ -922,6 +924,66 @@ function stripAbsoluteZoneBan(control) {
   return parts.filter((line) => !isAbsoluteZoneBan(line)).join(' ');
 }
 
+// "Keep an exclusion zone" means maintain the zone. It is not an order to leave it.
+function zoneExitClause(text) {
+  const line = String(text || '');
+  if (!/\bexclusion zone\b/i.test(line)) return false;
+  return zoneExitPatterns().some((pattern) => pattern.test(line));
+}
+
+function zoneExitPatterns() {
+  const gap = '(?:\\s+(?!exclusion\\b)\\S+){0,8}';
+  return [
+    `\\bkeep(?:s|ing|t)?${gap}\\s+clear of(?:\\s+the)?\\s+exclusion zone\\b`,
+    `\\bstay(?:s|ing|ed)?${gap}\\s+out of(?:\\s+the)?\\s+exclusion zone\\b`,
+    `\\bstay(?:s|ing|ed)?${gap}\\s+outside(?:\\s+(?:of\\s+)?the)?\\s+exclusion zone\\b`,
+    `\\bremain(?:s|ing|ed)?${gap}\\s+outside(?:\\s+(?:of\\s+)?the)?\\s+exclusion zone\\b`,
+    `\\bremain(?:s|ing|ed)?${gap}\\s+out of(?:\\s+the)?\\s+exclusion zone\\b`,
+    `\\bkeep(?:s|ing|t)?${gap}\\s+out of(?:\\s+the)?\\s+exclusion zone\\b`,
+  ].map((pattern) => new RegExp(pattern, 'gi'));
+}
+
+function keepsCrewInstruction(sentence) {
+  return /\bunder the panel\b/i.test(sentence)
+    || /\bunder a raised object\b/i.test(sentence)
+    || /\bdo not work under\b/i.test(sentence)
+    || /\bdirectly involved\b/i.test(sentence)
+    || /\bonly (?:the )?people\b/i.test(sentence)
+    || /\bpeople doing the lift\b/i.test(sentence)
+    || /\bstop the lift\b/i.test(sentence)
+    || /\bpass (?:a load )?over a person\b/i.test(sentence)
+    || /\bkeep an exclusion zone\b/i.test(sentence);
+}
+
+function removeExitPhrase(sentence) {
+  let text = String(sentence || '');
+  for (const pattern of zoneExitPatterns()) text = text.replace(pattern, '');
+  text = text
+    .replace(/\s+(?:and|or)\s+(?=[.,]|$)/gi, '')
+    .replace(/\s+([,.;])/g, '$1')
+    .replace(/,\s*(?=[,.]|$)/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .replace(/^(?:and|or)\s+/i, '')
+    .replace(/(?<=\.\s)(?:and|or)\s+/gi, '');
+  if (!/[a-z]/i.test(text)) return '';
+  if (!/[.!?]$/.test(text)) text += '.';
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function stripZoneExitOrder(control) {
+  const text = String(control || '');
+  if (!zoneExitClause(text)) return text;
+  const parts = text.split(/(?<=\.)\s+/).map((part) => part.trim()).filter(Boolean);
+  const kept = parts.map((sentence) => {
+    if (!zoneExitClause(sentence)) return sentence;
+    if (!keepsCrewInstruction(sentence)) return '';
+    const cleaned = removeExitPhrase(sentence);
+    return cleaned && keepsCrewInstruction(cleaned) ? cleaned : '';
+  }).filter(Boolean);
+  return kept.join(' ');
+}
+
 function isLiftExclusionHazard(hazard) {
   const name = String(hazard.hazard || '').toLowerCase();
   if (/raised object|falling object/.test(name)) return false;
@@ -940,7 +1002,8 @@ function collapseExclusionZones(hazards) {
   };
   for (const zone of zones) {
     for (const control of zone.controlMeasures || []) {
-      if (!isAbsoluteZoneBan(control)) push(control);
+      const cleaned = stripZoneExitOrder(control);
+      if (cleaned && !isAbsoluteZoneBan(cleaned)) push(cleaned);
     }
   }
   const blob = () => controls.join(' ').toLowerCase();
@@ -1200,7 +1263,7 @@ Do not return a schema, a sample, or placeholders.
 ${packComplete(packFlags(profile)) ? 'An erection design was supplied. The method uses it. Do not say that no precast-erection procedure is held, and do not invent a different sequence.' : 'Do not invent a precast-erection procedure. None has been supplied. Do not invent one from the 2002 precast ACOP.'}
 Do not invent worker names, licence numbers, a hospital, a supervisor phone, a working radius, a crane chart, ground bearing, a lifting-anchor type or capacity, a numeric wind stop, overhead or underground services, a brace angle, a brace type, an insert type or layout, a strongback, or a tailing crane.
 If a fact was not supplied, write "Not provided" or leave it out. Do not guess it.
-When the erection design, the centre of gravity, the crane chart at the working radius, or the brace arrangement was not supplied, the method has one hold: the lift does not start until those missing items are in the pack. Do not write separate steps that tell the crew to confirm them, and do not write "do not invent a brace" in place of the brace arrangement. While any of those is still missing, do not describe anyone going under the panel, and do not write a procedure for fitting braces. When the job or the answers contain all four, do not write the hold. Brief how the panels are stood up from the supplied erection design, centre of gravity, chart at the stated radius, and brace arrangement. Do not invent a radius, a brace type, a centre of gravity, or an erection sequence that was not given. Do not send anyone under the panel unless that brace arrangement says so.
+When the erection design, the centre of gravity, the crane chart at the working radius, or the brace arrangement was not supplied, the method has one hold: the lift does not start until those missing items are in the pack. Do not write separate steps that tell the crew to confirm them, and do not write "do not invent a brace" in place of the brace arrangement. While any of those is still missing, do not describe anyone going under the panel, and do not write a procedure for fitting braces. When the job or the answers contain all four, do not write the hold. Brief how the panels are stood up from the supplied erection design, centre of gravity, chart at the stated radius, and brace arrangement. Do not invent a radius, a brace type, a centre of gravity, or an erection sequence that was not given. Do not send anyone under the panel unless that brace arrangement says so. The people doing the lift are inside the exclusion zone. Do not tell the crew to keep clear of, stay out of, or remain outside the exclusion zone. No one goes under the panel.
 For a New Zealand job, do not claim that a document called a SWMS is required, and do not copy an Australian or NSW SWMS form onto the job.
 The crane ACOP and the rigging ACOP are still published by WorkSafe. Both pages say the guidance has not been updated for HSWA 2015. Use them as published practice with that status, not as a current approved code under HSWA.
 Where crane or rigging qualification evidence was not supplied, record that it was not provided. Unit standards 3795 and 3789 are the minimum the crane ACOP table names. The erection supervisor, crane operator, and dogman or rigger are required roles and were not supplied. Do not invent who holds them.
@@ -1234,7 +1297,7 @@ How to write it:
 - ${emergencyRule} Do not name a hospital. Do not invent a supervisor phone. Do not add the words tomorrow or commercial unless that field is a copy of the job sentence.
 - Do not decide the 24-hour notice, and do not tick it done or not done. Do not paste the October 2018 guide back as method steps. Cite it once.
 - Do not invent ground bearing, insert type, brace type, or this panel's working load limit.
-- Hazards have one exclusion-zone rule: only the people doing the lift are inside the zone, stop the lift if anyone else enters, do not pass a load over a person, and no one goes under the panel. Do not also say that no person enters the exclusion zone. Do not write two exclusion-zone hazards. Also include a swinging load, unsuitable slings, people under the load, and unclear signals; power lines, underground services and obstructions looked for, not assumed; wind, acceleration, and braking as toppling forces, with no numeric wind stop; work under a raised object and a falling object.
+- Hazards have one exclusion-zone rule: only the people doing the lift are inside the zone, stop the lift if anyone else enters, do not pass a load over a person, and no one goes under the panel. Do not also say that no person enters the exclusion zone. Do not tell the crew to keep clear of, stay out of, or remain outside the exclusion zone, including on the people-under-the-load hazard and the raised-object hazard. Do not write two exclusion-zone hazards. Also include a swinging load, unsuitable slings, people under the load, and unclear signals; power lines, underground services and obstructions looked for, not assumed; wind, acceleration, and braking as toppling forces, with no numeric wind stop; work under a raised object and a falling object.
 - Each hazard has hazard, risk (Low, Medium, High, or Extreme), residualRisk, controlMeasures, and responsiblePerson. responsiblePerson is "Not provided" when no person was named. Do not invent likelihood numbers.
 - For a New Zealand crane or panel lift, highRiskCategories states the work that applies: work under a raised object and a falling object (GRWM regs 24 and 25). Do not use an Australian high-risk construction work list instead of that.
 - plantAndEquipment lists only plant named in the job. Use the crane words from the job. Do not add "mobile crane". rego, inspection date, and radius are "Not provided" unless stated. chart is the supplied crane-chart words when a chart was given, and "Not provided" when none was given. Do not invent a chart, a radius, or a load. operator is "Not provided" when no person was named. Do not write a role plus "not provided", and do not add brackets.
