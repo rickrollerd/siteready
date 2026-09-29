@@ -5,7 +5,7 @@
 **Prerequisites:**
 - GitHub account (you have `rickrollerd`)
 - Railway account (free, takes 2 min with GitHub OAuth)
-- Anthropic API key (you have this)
+- DeepSeek API key (`DEEPSEEK_API_KEY`)
 - siteready.co.nz domain (or buy from Namecheap)
 
 ### Step 1: Deploy to Railway (5 minutes)
@@ -23,8 +23,8 @@
 In Railway dashboard, go to **Variables**:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-your-actual-key-here
-PORT=3000  (Railway sets this automatically, optional)
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+PORT=3849  (Railway sets this automatically, optional; local default is 3849)
 ```
 
 That's it. App is now live.
@@ -67,9 +67,9 @@ Once app is live and you're ready to accept payments:
 - Railway didn't run `npm install`. Check build logs.
 - Fix: Click **Redeploy**, it should run npm install automatically.
 
-**"ANTHROPIC_API_KEY is undefined"**
+**"DEEPSEEK_API_KEY is not set"**
 - You forgot to add the env variable in Railway.
-- Go to **Variables**, add `ANTHROPIC_API_KEY=sk-ant-...`
+- Go to **Variables**, add `DEEPSEEK_API_KEY` with your DeepSeek key.
 - Redeploy.
 
 **Domain not working**
@@ -84,10 +84,10 @@ To run locally:
 ```bash
 cd /home/maxim/.openclaw/workspace/SiteReady/app
 cp .env.example .env
-# Edit .env and add your actual Anthropic API key
+# Edit .env and add your DeepSeek API key
 npm install
 npm start
-# Opens on http://localhost:3000
+# Opens on http://localhost:3849
 ```
 
 ### Support

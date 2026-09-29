@@ -12,7 +12,7 @@ node server.js
 # or with npm: npm start
 ```
 
-Then open: **http://localhost:3000**
+Then open: **http://localhost:3849**
 
 **For a demo:** Open the app and enter this job description:
 ```
@@ -60,7 +60,7 @@ Approve the questions and watch SiteReady generate a complete, professional SWMS
 - **Backend:** Node.js + Express.js (`server.js`)
   - Two simple endpoints: `/api/questions` and `/api/generate-swms`
   - No database (stateless, suitable for serverless deployment)
-- **AI:** Claude claude-opus-4-5 (Anthropic API)
+- **AI:** DeepSeek `deepseek-flash` (OpenAI-compatible API at `https://api.deepseek.com`)
   - Generates smart follow-up questions
   - Creates detailed, regulation-aware SWMS documents
 - **Output:** Browser-native PDF export via print dialog (no Puppeteer/extra libs)
@@ -196,8 +196,8 @@ The app is ready for serverless deployment (AWS Lambda, Vercel, Railway, etc.):
 
 Example env vars:
 ```bash
-ANTHROPIC_API_KEY=sk-ant-...
-PORT=3000
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+PORT=3849
 ```
 
 ## For Clive
