@@ -360,8 +360,18 @@ function jobProfile(ctx) {
     onlyGroundAndCab: riggersOnGround && operatorInCab && !peopleAtHeightStated,
     qualificationsSupplied: qualificationsWereSupplied(source),
     jobText: String(ctx.jobDescription || ''),
+    answerText: suppliedAnswerText(ctx),
     plantPhrase: statedPlantPhrase(ctx),
   };
+}
+
+function suppliedAnswerText(ctx) {
+  return String(ctx.extraAnswers || '')
+    .split('\n')
+    .filter((line) => /^A\d+:/i.test(line))
+    .map((line) => line.replace(/^A\d+:\s*/i, '').trim())
+    .filter((line) => line && !isUnstated(line))
+    .join('\n');
 }
 
 function panelWeightTonnes(source) {
@@ -620,25 +630,85 @@ function statedPlantPhrase(ctx) {
   return sent || '';
 }
 
-function packHold(profile) {
+function packFlags(profile) {
   const source = profile.source || '';
+  return {
+    erectionDesign: /\berection design\b/.test(source),
+    centreOfGravity: /\b(?:centre|center) of gravity\b/.test(source),
+    chart: /\bchart\b/.test(source),
+    radius: /\bradius\b/.test(source),
+    braceArrangement: /\bbrace arrangement\b/.test(source),
+  };
+}
+
+function packComplete(flags) {
+  return flags.erectionDesign && flags.centreOfGravity && flags.chart && flags.radius && flags.braceArrangement;
+}
+
+function packHold(profile) {
+  const flags = packFlags(profile);
   const items = [];
-  if (profile.panel && !/\berection (?:design|procedure|drawings?)\b/.test(source)) items.push('the erection design');
-  if (!/\b(?:centre|center) of gravity\b/.test(source)) items.push('the centre of gravity');
-  if (!/\bchart\b/.test(source) || !/\bradius\b/.test(source)) items.push('the crane chart at the working radius');
-  if (profile.panel && !/\bbrace (?:arrangement|layout|design)\b/.test(source)) items.push('the brace arrangement');
+  if (profile.panel && !flags.erectionDesign) items.push('the erection design');
+  if (!flags.centreOfGravity) items.push('the centre of gravity');
+  if (!flags.chart || !flags.radius) items.push('the crane chart at the working radius');
+  if (profile.panel && !flags.braceArrangement) items.push('the brace arrangement');
   if (!items.length) return '';
   return `The lift does not start until the pack contains ${joinList(items)}.`;
 }
 
+function suppliedClauses(text) {
+  return String(text || '')
+    .split(/\n+|(?<=\.)\s+|;\s+/)
+    .map((part) => part.trim())
+    .filter((part) => part && !/^not provided$/i.test(part));
+}
+
+function quotedPackClauses(profile) {
+  const text = `${profile.jobText || ''}\n${profile.answerText || ''}`;
+  const patterns = [
+    /\berection design\b/i,
+    /\b(?:centre|center) of gravity\b/i,
+    /\bchart\b/i,
+    /\bradius\b/i,
+    /\bbrace arrangement\b/i,
+  ];
+  const seen = new Set();
+  const quotes = [];
+  for (const clause of suppliedClauses(text)) {
+    if (/does not start until the pack contains/i.test(clause)) continue;
+    if (!patterns.some((pattern) => pattern.test(clause))) continue;
+    const key = clause.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    quotes.push(clause.replace(/[.\s]+$/, ''));
+  }
+  return quotes;
+}
+
+function chartStatesAllowableLoad(profile) {
+  const text = `${profile.jobText || ''}\n${profile.answerText || ''}`;
+  return /\bchart\b/i.test(text) && /\ballowable load\b/i.test(text);
+}
+
+function standUpStep(profile) {
+  const count = profile.panelCount === 2 ? 'two' : (profile.panelCount ? String(profile.panelCount) : 'the');
+  const lead = `Stand these ${count} panels up as the supplied pack says, using the erection design, the centre of gravity, the chart at the stated radius, and the brace arrangement that were given.`;
+  const quotes = quotedPackClauses(profile);
+  if (!quotes.length) return lead;
+  return `${lead} ${quotes.join('. ')}.`;
+}
+
 function crewBrief(profile) {
   const steps = [];
+  const flags = packFlags(profile);
   const hold = packHold(profile);
-  if (hold) steps.push(hold);
+  if (packComplete(flags)) steps.push(standUpStep(profile));
+  else if (hold) steps.push(hold);
   if (profile.panelWeight && profile.panelCount) {
     const combined = Number(profile.panelWeight) * Number(profile.panelCount);
     const count = profile.panelCount === 2 ? 'Two' : String(profile.panelCount);
-    steps.push(`${count} separate ${profile.panelWeight}T lifts. Do not add them into one ${combined}T pick. ${profile.panelWeight}T is the given weight, not a centre of gravity.`);
+    const weightNote = flags.centreOfGravity ? '' : ` ${profile.panelWeight}T is the given weight, not a centre of gravity.`;
+    steps.push(`${count} separate ${profile.panelWeight}T lifts. Do not add them into one ${combined}T pick.${weightNote}`);
   }
   steps.push('One signaller. Anyone may stop the lift. Do not pass a load over a person.');
   if (profile.riggersOnGround || profile.operatorInCab || profile.onlyGroundAndCab) {
@@ -651,7 +721,7 @@ function crewBrief(profile) {
   }
   steps.push('Keep at least 4.0 m from a live overhead line unless the line owner agrees in writing. Underground services are a required check, not a finding. Whether a road is inside the zone is a required check, not a finding.');
   const plant = profile.plantPhrase || (profile.craneClass ? `${profile.craneClass}T` : '');
-  const classRule = profile.craneClass
+  const classRule = profile.craneClass && !chartStatesAllowableLoad(profile)
     ? `${plant} is the crane class, not the chart. `
     : '';
   steps.push(`${classRule}No free-fall with a load.`.trim());
@@ -1041,12 +1111,16 @@ function buildSwmsMessages(ctx) {
     : (profile.au
       ? 'This is an Australian site. emergencyProcedures.emergencyPhone is 000.'
       : 'emergencyProcedures.emergencyPhone is 111 for New Zealand or 000 for Australia, matching the country of the site.');
+  const cogSupplied = /\b(?:centre|center) of gravity\b/.test(profile.source);
   const panelRule = profile.panelWeight && profile.panelCount
-    ? `This job states ${profile.panelCount} panels at ${profile.panelWeight}T each. Each panel is its own ${profile.panelWeight}T lift. Do not add them into one ${Number(profile.panelWeight) * Number(profile.panelCount)}T pick. ${profile.panelWeight}T is the weight given, not a calculated centre of gravity.`
-    : 'If more than one load is named, lift each load on its own. Do not add the stated weights into one pick. A stated weight is not a calculated centre of gravity.';
-  const classRule = profile.craneClass
-    ? `${profile.craneClass}T is the crane class, not the chart.`
-    : 'A stated crane class is not the chart.';
+    ? `This job states ${profile.panelCount} panels at ${profile.panelWeight}T each. Each panel is its own ${profile.panelWeight}T lift. Do not add them into one ${Number(profile.panelWeight) * Number(profile.panelCount)}T pick.${cogSupplied ? '' : ` ${profile.panelWeight}T is the weight given, not a calculated centre of gravity.`}`
+    : `If more than one load is named, lift each load on its own. Do not add the stated weights into one pick.${cogSupplied ? '' : ' A stated weight is not a calculated centre of gravity.'}`;
+  const packReady = packComplete(packFlags(profile));
+  const classRule = chartStatesAllowableLoad(profile)
+    ? 'The supplied chart states the allowable load. Use that. Do not invent a second one.'
+    : (profile.craneClass
+      ? `${profile.craneClass}T is the crane class, not the chart.`
+      : 'A stated crane class is not the chart.');
   const heightRule = profile.onlyGroundAndCab
     ? `The stated height is up to ${profile.heightM || 'the height given'} m. A fall plan applies only if a person can fall. Riggers are on the ground and the crane operator is in the cab. Do not invent a connector, an EWP, or a scaffold. Advancing edges of precast erection are a hazard to consider, not a procedure.`
     : 'A fall plan applies only if a person can fall. Do not place a person at height unless the job says that person is there.';
@@ -1059,7 +1133,7 @@ Do not return a schema, a sample, or placeholders.
 Do not invent a precast-erection procedure. None has been supplied. Do not invent one from the 2002 precast ACOP.
 Do not invent worker names, licence numbers, a hospital, a supervisor phone, a working radius, a crane chart, ground bearing, a lifting-anchor type or capacity, a numeric wind stop, overhead or underground services, a brace angle, a brace type, an insert type or layout, a strongback, or a tailing crane.
 If a fact was not supplied, write "Not provided" or leave it out. Do not guess it.
-When the erection design, the centre of gravity, the crane chart at the working radius, or the brace arrangement was not supplied, the method has one hold: the lift does not start until those missing items are in the pack. Do not write separate steps that tell the crew to confirm them, and do not write "do not invent a brace" in place of the brace arrangement. While the brace arrangement is still in that hold, do not describe anyone going under the panel, and do not write a procedure for fitting braces.
+When the erection design, the centre of gravity, the crane chart at the working radius, or the brace arrangement was not supplied, the method has one hold: the lift does not start until those missing items are in the pack. Do not write separate steps that tell the crew to confirm them, and do not write "do not invent a brace" in place of the brace arrangement. While any of those is still missing, do not describe anyone going under the panel, and do not write a procedure for fitting braces. When the job or the answers contain all four, do not write the hold. Brief how the panels are stood up from the supplied erection design, centre of gravity, chart at the stated radius, and brace arrangement. Do not invent a radius, a brace type, a centre of gravity, or an erection sequence that was not given. Do not send anyone under the panel unless that brace arrangement says so.
 For a New Zealand job, do not claim that a document called a SWMS is required, and do not copy an Australian or NSW SWMS form onto the job.
 The crane ACOP and the rigging ACOP are still published by WorkSafe. Both pages say the guidance has not been updated for HSWA 2015. Use them as published practice with that status, not as a current approved code under HSWA.
 Where crane or rigging qualification evidence was not supplied, record that it was not provided. Unit standards 3795 and 3789 are the minimum the crane ACOP table names. The erection supervisor, crane operator, and dogman or rigger are required roles and were not supplied. Do not invent who holds them.
@@ -1084,7 +1158,7 @@ ${ctx.extraAnswers}
 How to write it:
 - document.title is "Safe Work Method Statement". document.swmsNumber is "SWMS-${today.slice(-4)}-001". document.dateCreated is ${today}. document.version is "1.0". The title is the name of this record. For a New Zealand job, do not say a document called a SWMS is required.
 - projectDetails uses only the site address, principal contractor, and subcontractor given above. Anything missing is "Not provided".
-- taskDescription.workMethodology is one numbered morning brief. Number each step once. The first step is a single hold when the pack is short: the lift does not start until the pack contains the erection design, the centre of gravity, the crane chart at the working radius, and the brace arrangement, naming only the ones this job did not give. Do not split that hold into confirm-steps. Do not tell the crew to confirm an erection procedure, falsework sign-off, centre of gravity, radius, chart, ground bearing, wind stop, or who is competent. Do not write a step that only says a check is required.
+- taskDescription.workMethodology is one numbered morning brief. Number each step once. ${packReady ? 'The erection design, the centre of gravity, the chart and radius, and the brace arrangement were supplied. Do not write the hold. Brief how these panels are stood up using those supplied words. Do not invent a radius, a brace type, a centre of gravity, or an erection sequence that the answer did not give. Do not send anyone under the panel unless the supplied brace arrangement says so.' : 'The first step is a single hold for whichever of the erection design, the centre of gravity, the crane chart at the working radius, and the brace arrangement this job did not give. Do not split that hold into confirm-steps. Do not describe anyone going under the panel. Do not write a step that only says a check is required.'}
 - ${panelRule}
 - One signaller. Anyone may stop the lift. Do not pass a load over a person.
 - Keep at least 4.0 m from a live overhead line unless the line owner agrees in writing. Underground services, and whether a road is inside the zone, are required checks, not findings. One hazard covers overhead lines. Do not add a second overhead-line hazard.
