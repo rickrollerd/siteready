@@ -687,7 +687,13 @@ function quotedPackClauses(profile) {
 
 function chartStatesAllowableLoad(profile) {
   const text = `${profile.jobText || ''}\n${profile.answerText || ''}`;
-  return /\bchart\b/i.test(text) && /\ballowable load\b/i.test(text);
+  if (!/\bchart\b/i.test(text)) return false;
+  if (/\ballowable load\b/i.test(text)) return true;
+  return suppliedClauses(text).some((clause) => {
+    if (!/\bchart\b/i.test(clause)) return false;
+    return /\b(covers?|allows?|rated capacity|capacity)\b/i.test(clause)
+      && /\b(\d+(?:\.\d+)?\s*t(?:onne)?s?|panel|load)\b/i.test(clause);
+  });
 }
 
 function standUpStep(profile) {
@@ -876,23 +882,28 @@ function ensureHazards(swms, profile) {
     );
   }
   blob = covered();
+  const designInUse = packComplete(packFlags(profile));
   if (profile.panel && profile.onlyGroundAndCab && !/advancing edge/.test(blob)) {
-    add(
-      'Advancing edges of precast erection',
-      [
-        'Treat advancing edges as a hazard to consider, not as a procedure',
-        'No precast-erection procedure is held, and none is taken from the 2002 precast ACOP',
-        'Do not place a person at the stated height. Do not use an EWP or a scaffold',
-      ],
-    );
+    const controls = [
+      'Treat advancing edges as a hazard to consider, not as a procedure',
+      designInUse ? '' : 'No precast-erection procedure is held, and none is taken from the 2002 precast ACOP',
+      'Do not place a person at the stated height. Do not use an EWP or a scaffold',
+    ].filter(Boolean);
+    add('Advancing edges of precast erection', controls);
   }
   swms.hazards = collapseOverheadHazards(hazards.filter((hazard) => {
     const controls = (hazard.controlMeasures || [])
       .map(settleUnderPanelControl)
+      .map((control) => (designInUse ? stripHeldProcedureDenial(control) : control))
       .filter((control) => control && !controlConfirmsMissing(control));
     hazard.controlMeasures = controls;
     return true;
   }));
+}
+
+function stripHeldProcedureDenial(control) {
+  const parts = String(control || '').split(/(?<=\.)\s+/).map((part) => part.trim()).filter(Boolean);
+  return parts.filter((line) => !/no precast-erection procedure is held/i.test(line)).join(' ');
 }
 
 function settleUnderPanelControl(control) {
@@ -1117,7 +1128,7 @@ function buildSwmsMessages(ctx) {
     : `If more than one load is named, lift each load on its own. Do not add the stated weights into one pick.${cogSupplied ? '' : ' A stated weight is not a calculated centre of gravity.'}`;
   const packReady = packComplete(packFlags(profile));
   const classRule = chartStatesAllowableLoad(profile)
-    ? 'The supplied chart states the allowable load. Use that. Do not invent a second one.'
+    ? 'The supplied chart states the load. Do not also say the crane class is not the chart. Do not invent a different load.'
     : (profile.craneClass
       ? `${profile.craneClass}T is the crane class, not the chart.`
       : 'A stated crane class is not the chart.');
@@ -1130,7 +1141,7 @@ function buildSwmsMessages(ctx) {
       content: `You write a finished work-method record for the job in the user message.
 Return one JSON object and no other text. Do not wrap it in markdown.
 Do not return a schema, a sample, or placeholders.
-Do not invent a precast-erection procedure. None has been supplied. Do not invent one from the 2002 precast ACOP.
+${packComplete(packFlags(profile)) ? 'An erection design was supplied. The method uses it. Do not say that no precast-erection procedure is held, and do not invent a different sequence.' : 'Do not invent a precast-erection procedure. None has been supplied. Do not invent one from the 2002 precast ACOP.'}
 Do not invent worker names, licence numbers, a hospital, a supervisor phone, a working radius, a crane chart, ground bearing, a lifting-anchor type or capacity, a numeric wind stop, overhead or underground services, a brace angle, a brace type, an insert type or layout, a strongback, or a tailing crane.
 If a fact was not supplied, write "Not provided" or leave it out. Do not guess it.
 When the erection design, the centre of gravity, the crane chart at the working radius, or the brace arrangement was not supplied, the method has one hold: the lift does not start until those missing items are in the pack. Do not write separate steps that tell the crew to confirm them, and do not write "do not invent a brace" in place of the brace arrangement. While any of those is still missing, do not describe anyone going under the panel, and do not write a procedure for fitting braces. When the job or the answers contain all four, do not write the hold. Brief how the panels are stood up from the supplied erection design, centre of gravity, chart at the stated radius, and brace arrangement. Do not invent a radius, a brace type, a centre of gravity, or an erection sequence that was not given. Do not send anyone under the panel unless that brace arrangement says so.
