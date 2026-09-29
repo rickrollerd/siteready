@@ -728,7 +728,6 @@ function ensureHazards(swms, profile) {
         'Only people directly involved in the lift are inside the exclusion zone',
         'Stop the lift if the zone is breached',
         'Loads should not pass over a person',
-        'Workers go under a raised panel only to secure braces, and only when authorised',
         'Whether a road or footpath is inside the zone is a required check, not a finding',
       ],
     );
@@ -780,7 +779,7 @@ function ensureHazards(swms, profile) {
     add(
       'Work under a raised object, and a falling object where the fall cannot be prevented or arrested',
       [
-        'Do not work under a raised object except to secure braces, and only when authorised',
+        'Do not work under a raised object',
         'If a fall cannot be prevented or arrested, keep an exclusion zone',
       ],
     );
@@ -818,10 +817,23 @@ function ensureHazards(swms, profile) {
     );
   }
   swms.hazards = collapseOverheadHazards(hazards.filter((hazard) => {
-    const controls = (hazard.controlMeasures || []).filter((control) => !controlConfirmsMissing(control));
+    const controls = (hazard.controlMeasures || [])
+      .map(settleUnderPanelControl)
+      .filter((control) => control && !controlConfirmsMissing(control));
     hazard.controlMeasures = controls;
     return true;
   }));
+}
+
+function settleUnderPanelControl(control) {
+  const parts = String(control || '').split(/(?<=\.)\s+/).map((part) => part.trim()).filter(Boolean);
+  const kept = parts.map((line) => {
+    if (/\bexcept to secure braces\b/i.test(line)) return 'Do not work under a raised object';
+    if (/\b(go|goes|going|work|works|working) under\b/i.test(line) && /\bbrace/i.test(line)) return '';
+    if (/\bonly to secure braces\b/i.test(line)) return '';
+    return line;
+  }).filter(Boolean);
+  return kept.join(' ');
 }
 
 function controlConfirmsMissing(control) {
@@ -1047,7 +1059,7 @@ Do not return a schema, a sample, or placeholders.
 Do not invent a precast-erection procedure. None has been supplied. Do not invent one from the 2002 precast ACOP.
 Do not invent worker names, licence numbers, a hospital, a supervisor phone, a working radius, a crane chart, ground bearing, a lifting-anchor type or capacity, a numeric wind stop, overhead or underground services, a brace angle, a brace type, an insert type or layout, a strongback, or a tailing crane.
 If a fact was not supplied, write "Not provided" or leave it out. Do not guess it.
-When the erection design, the centre of gravity, the crane chart at the working radius, or the brace arrangement was not supplied, the method has one hold: the lift does not start until those missing items are in the pack. Do not write separate steps that tell the crew to confirm them, and do not write "do not invent a brace" in place of the brace arrangement.
+When the erection design, the centre of gravity, the crane chart at the working radius, or the brace arrangement was not supplied, the method has one hold: the lift does not start until those missing items are in the pack. Do not write separate steps that tell the crew to confirm them, and do not write "do not invent a brace" in place of the brace arrangement. While the brace arrangement is still in that hold, do not describe anyone going under the panel, and do not write a procedure for fitting braces.
 For a New Zealand job, do not claim that a document called a SWMS is required, and do not copy an Australian or NSW SWMS form onto the job.
 The crane ACOP and the rigging ACOP are still published by WorkSafe. Both pages say the guidance has not been updated for HSWA 2015. Use them as published practice with that status, not as a current approved code under HSWA.
 Where crane or rigging qualification evidence was not supplied, record that it was not provided. Unit standards 3795 and 3789 are the minimum the crane ACOP table names. The erection supervisor, crane operator, and dogman or rigger are required roles and were not supplied. Do not invent who holds them.
