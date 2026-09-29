@@ -898,14 +898,60 @@ function ensureHazards(swms, profile) {
     ].filter(Boolean);
     add('Advancing edges of precast erection', controls);
   }
-  swms.hazards = collapseOverheadHazards(hazards.filter((hazard) => {
+  swms.hazards = collapseExclusionZones(collapseOverheadHazards(hazards.filter((hazard) => {
     const controls = (hazard.controlMeasures || [])
       .map(settleUnderPanelControl)
+      .map(stripAbsoluteZoneBan)
       .map((control) => (designInUse ? stripHeldProcedureDenial(control) : control))
       .filter((control) => control && !controlConfirmsMissing(control));
     hazard.controlMeasures = controls;
     return true;
-  }));
+  })));
+}
+
+function isAbsoluteZoneBan(line) {
+  const text = String(line || '');
+  if (/\b(directly involved|only the people|only people)\b/i.test(text)) return false;
+  return /\bexclusion zone\b/i.test(text)
+    && /\bno (?:person|persons|one|body)\b/i.test(text)
+    && /\b(?:enters?|enter|entry|inside|in the)\b/i.test(text);
+}
+
+function stripAbsoluteZoneBan(control) {
+  const parts = String(control || '').split(/(?<=\.)\s+/).map((part) => part.trim()).filter(Boolean);
+  return parts.filter((line) => !isAbsoluteZoneBan(line)).join(' ');
+}
+
+function isLiftExclusionHazard(hazard) {
+  const name = String(hazard.hazard || '').toLowerCase();
+  if (/raised object|falling object/.test(name)) return false;
+  if (/exclusion zone/.test(name)) return true;
+  const controls = (hazard.controlMeasures || []).join(' ').toLowerCase();
+  return /directly involved|no person enters the exclusion zone/.test(controls);
+}
+
+function collapseExclusionZones(hazards) {
+  const zones = hazards.filter(isLiftExclusionHazard);
+  if (!zones.length) return hazards;
+  const primary = zones[0];
+  const controls = [];
+  const push = (line) => {
+    if (line && !controls.some((item) => item.toLowerCase() === line.toLowerCase())) controls.push(line);
+  };
+  for (const zone of zones) {
+    for (const control of zone.controlMeasures || []) {
+      if (!isAbsoluteZoneBan(control)) push(control);
+    }
+  }
+  const blob = () => controls.join(' ').toLowerCase();
+  if (!/directly involved|people doing the lift/.test(blob())) {
+    push('Only people directly involved in the lift are inside the exclusion zone');
+  }
+  if (!/breached|anyone else enters/.test(blob())) push('Stop the lift if the zone is breached');
+  if (!/pass over a person|pass a load over/.test(blob())) push('Loads should not pass over a person');
+  if (!/under the panel|under a raised object/.test(blob())) push('No one goes under the panel');
+  primary.controlMeasures = controls;
+  return hazards.filter((hazard) => hazard === primary || !isLiftExclusionHazard(hazard));
 }
 
 function stripHeldProcedureDenial(control) {
@@ -1188,7 +1234,7 @@ How to write it:
 - ${emergencyRule} Do not name a hospital. Do not invent a supervisor phone. Do not add the words tomorrow or commercial unless that field is a copy of the job sentence.
 - Do not decide the 24-hour notice, and do not tick it done or not done. Do not paste the October 2018 guide back as method steps. Cite it once.
 - Do not invent ground bearing, insert type, brace type, or this panel's working load limit.
-- Hazards have to include: an exclusion zone under the operating and lifting area; a swinging load, unsuitable slings, people under the load, and unclear signals; power lines, underground services and obstructions looked for, not assumed; wind, acceleration, and braking as toppling forces, with no numeric wind stop; work under a raised object and a falling object, with an exclusion zone if the fall cannot be prevented or arrested.
+- Hazards have one exclusion-zone rule: only the people doing the lift are inside the zone, stop the lift if anyone else enters, do not pass a load over a person, and no one goes under the panel. Do not also say that no person enters the exclusion zone. Do not write two exclusion-zone hazards. Also include a swinging load, unsuitable slings, people under the load, and unclear signals; power lines, underground services and obstructions looked for, not assumed; wind, acceleration, and braking as toppling forces, with no numeric wind stop; work under a raised object and a falling object.
 - Each hazard has hazard, risk (Low, Medium, High, or Extreme), residualRisk, controlMeasures, and responsiblePerson. responsiblePerson is "Not provided" when no person was named. Do not invent likelihood numbers.
 - For a New Zealand crane or panel lift, highRiskCategories states the work that applies: work under a raised object and a falling object (GRWM regs 24 and 25). Do not use an Australian high-risk construction work list instead of that.
 - plantAndEquipment lists only plant named in the job. Use the crane words from the job. Do not add "mobile crane". rego, inspection date, and radius are "Not provided" unless stated. chart is the supplied crane-chart words when a chart was given, and "Not provided" when none was given. Do not invent a chart, a radius, or a load. operator is "Not provided" when no person was named. Do not write a role plus "not provided", and do not add brackets.
