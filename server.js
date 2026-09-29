@@ -685,6 +685,13 @@ function quotedPackClauses(profile) {
   return quotes;
 }
 
+function suppliedChartText(profile) {
+  const clauses = suppliedClauses(`${profile.jobText || ''}\n${profile.answerText || ''}`)
+    .filter((clause) => /\bcharts?\b/i.test(clause))
+    .filter((clause) => !/\bnot the chart\b/i.test(clause));
+  return clauses.join(' ').trim();
+}
+
 function chartStatesAllowableLoad(profile) {
   const text = `${profile.jobText || ''}\n${profile.answerText || ''}`;
   if (!/\bchart\b/i.test(text)) return false;
@@ -1074,15 +1081,18 @@ function applyJobLimits(swms, ctx) {
   if (profile.plantPhrase) {
     const items = Array.isArray(swms.plantAndEquipment) ? swms.plantAndEquipment : [];
     const index = items.findIndex((item) => /liebherr|\bcrane\b|\d+\s*t/i.test(`${item.makeModel || ''} ${item.name || ''}`));
+    const chartText = suppliedChartText(profile) || 'Not provided';
     if (index >= 0) {
       items[index].makeModel = profile.plantPhrase;
       items[index].operator = plantOperator(items[index].operator, profile.source);
+      items[index].chart = chartText;
     } else {
       items.unshift({
         makeModel: profile.plantPhrase,
         operator: 'Not provided',
         rego: 'Not provided',
         inspectionDate: 'Not provided',
+        chart: chartText,
       });
     }
     swms.plantAndEquipment = items;
@@ -1181,7 +1191,7 @@ How to write it:
 - Hazards have to include: an exclusion zone under the operating and lifting area; a swinging load, unsuitable slings, people under the load, and unclear signals; power lines, underground services and obstructions looked for, not assumed; wind, acceleration, and braking as toppling forces, with no numeric wind stop; work under a raised object and a falling object, with an exclusion zone if the fall cannot be prevented or arrested.
 - Each hazard has hazard, risk (Low, Medium, High, or Extreme), residualRisk, controlMeasures, and responsiblePerson. responsiblePerson is "Not provided" when no person was named. Do not invent likelihood numbers.
 - For a New Zealand crane or panel lift, highRiskCategories states the work that applies: work under a raised object and a falling object (GRWM regs 24 and 25). Do not use an Australian high-risk construction work list instead of that.
-- plantAndEquipment lists only plant named in the job. Use the crane words from the job. Do not add "mobile crane". rego, inspection date, radius, and chart are "Not provided" unless stated. operator is "Not provided" when no person was named. Do not write a role plus "not provided", and do not add brackets.
+- plantAndEquipment lists only plant named in the job. Use the crane words from the job. Do not add "mobile crane". rego, inspection date, and radius are "Not provided" unless stated. chart is the supplied crane-chart words when a chart was given, and "Not provided" when none was given. Do not invent a chart, a radius, or a load. operator is "Not provided" when no person was named. Do not write a role plus "not provided", and do not add brackets.
 - projectDetails.subcontractor is "Not provided" unless a subcontractor was named. Do not copy the principal contractor into the subcontractor field.
 - personnel lists the roles named in the job. name and licenceNumber are "Not provided" unless supplied. Record that crane and rigging qualification evidence was not provided, and that unit standards 3795 and 3789 are the minimum the crane ACOP table names. Do not invent a person's name.
 - references is an array of strings, never objects. Include HSWA, GRWM regs 24 and 25, the October 2018 precast good practice guidelines, the crane ACOP and the rigging ACOP as published WorkSafe practice that the pages say has not been updated for HSWA 2015, and the working-at-height guideline with its HSWA status not confirmed. State Health and Safety in Employment Regulations 1995 reg 26 as a check that is not decided. Do not tick the 24-hour notice.
