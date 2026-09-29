@@ -280,6 +280,20 @@ function stripAddedFacts(text, source) {
   return out.replace(/\s{2,}/g, ' ').replace(/\s+([,.;])/g, '$1').replace(/,\s*(?=,|$)/g, '').trim();
 }
 
+function stripInjectedWords(text, jobText) {
+  if (typeof text !== 'string' || !text) return text;
+  const job = String(jobText || '').toLowerCase();
+  const trimmed = text.trim().toLowerCase();
+  if (trimmed && job.includes(trimmed)) return text;
+  return text
+    .replace(/\btomorrow\b/gi, '')
+    .replace(/\bcommercial\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.;])/g, '$1')
+    .replace(/,\s*(?=,|$)/g, '')
+    .trim();
+}
+
 function statedPrincipal(job) {
   const text = String(job || '');
   const labelled = text.match(/principal contractor(?:\s+is|:)?\s+([^.\n]+)/i);
@@ -345,6 +359,8 @@ function jobProfile(ctx) {
     operatorInCab,
     onlyGroundAndCab: riggersOnGround && operatorInCab && !peopleAtHeightStated,
     qualificationsSupplied: qualificationsWereSupplied(source),
+    jobText: String(ctx.jobDescription || ''),
+    plantPhrase: statedPlantPhrase(ctx),
   };
 }
 
@@ -554,6 +570,7 @@ function cleanProse(text, source, profile) {
       part = redactInventedPhones(part, source);
       if (profile.nz) part = stripAuEmergency(part);
       part = stripAddedFacts(part, source);
+      part = stripInjectedWords(part, profile.jobText || '');
       if (!part.trim() || /^\d+$/.test(part.trim()) || shouldDropLine(part, source, profile)) continue;
       parts.push(part.trim());
     }
@@ -589,63 +606,95 @@ function briefableLine(line) {
   return sentences.join(' ').trim();
 }
 
-function briefableGaps(existing, profile) {
-  if (!profile.crane) return [];
-  const text = existing.toLowerCase();
-  const has = (pattern) => pattern.test(text);
-  const gaps = [];
-  const weight = profile.panelWeight;
-  const combined = weight && profile.panelCount ? Number(weight) * Number(profile.panelCount) : null;
-  const plant = [profile.craneClass ? `${profile.craneClass}T` : '', /\bliebherr\b/.test(profile.source) ? 'Liebherr' : '']
-    .filter(Boolean)
-    .join(' ');
-  if (weight && profile.panelCount) {
-    if (!has(new RegExp(`\\b${weight}\\s*t`)) || !has(/\beach panel\b|\bits own\b|\bseparate\b|\bone at a time\b/)) {
-      gaps.push(`Lift each ${weight}T panel on its own. There are ${profile.panelCount} lifts.`);
-    }
-    if (!has(/\bnot added\b|\bdo not add\b/)) {
-      gaps.push(`Do not add the panels into one ${combined}T pick.`);
-    }
+function joinList(items) {
+  if (items.length <= 1) return items[0] || '';
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+}
+
+function statedPlantPhrase(ctx) {
+  const job = String(ctx.jobDescription || '');
+  const match = job.match(/\b\d+(?:\.\d+)?\s*T(?:onne)?s?\s+Liebherr\b/);
+  if (match) return match[0];
+  const sent = (ctx.selectedPlants || []).map((item) => String(item || '').trim()).find(Boolean);
+  return sent || '';
+}
+
+function packHold(profile) {
+  const source = profile.source || '';
+  const items = [];
+  if (profile.panel && !/\berection (?:design|procedure|drawings?)\b/.test(source)) items.push('the erection design');
+  if (!/\b(?:centre|center) of gravity\b/.test(source)) items.push('the centre of gravity');
+  if (!/\bchart\b/.test(source) || !/\bradius\b/.test(source)) items.push('the crane chart at the working radius');
+  if (profile.panel && !/\bbrace (?:arrangement|layout|design)\b/.test(source)) items.push('the brace arrangement');
+  if (!items.length) return '';
+  return `The lift does not start until the pack contains ${joinList(items)}.`;
+}
+
+function crewBrief(profile) {
+  const steps = [];
+  const hold = packHold(profile);
+  if (hold) steps.push(hold);
+  if (profile.panelWeight && profile.panelCount) {
+    const combined = Number(profile.panelWeight) * Number(profile.panelCount);
+    const count = profile.panelCount === 2 ? 'Two' : String(profile.panelCount);
+    steps.push(`${count} separate ${profile.panelWeight}T lifts. Do not add them into one ${combined}T pick. ${profile.panelWeight}T is the given weight, not a centre of gravity.`);
   }
-  if (!has(/balanced/) || !has(/\bhook\b/)) {
-    gaps.push('Before a panel leaves the ground, it is balanced and stable, with the hook over the centre of gravity.');
-  }
-  if ((profile.riggersOnGround || profile.operatorInCab) && (!has(/on the ground/) || !has(/\bcab\b/))) {
+  steps.push('One signaller. Anyone may stop the lift. Do not pass a load over a person.');
+  if (profile.riggersOnGround || profile.operatorInCab || profile.onlyGroundAndCab) {
     const where = [
       profile.riggersOnGround ? 'Riggers stay on the ground' : '',
       profile.operatorInCab ? 'the operator stays in the cab' : '',
     ].filter(Boolean).join(', and ');
-    if (where) gaps.push(`${where}.`);
+    const height = profile.heightM ? ` Do not place a person at ${profile.heightM} m.` : '';
+    steps.push(`${where ? `${where}.` : ''}${height} Do not use an EWP or a scaffold.`.replace(/\s+/g, ' ').trim());
   }
-  if (!has(/exclusion zone/) || !has(/signal/)) {
-    gaps.push('One designated person signals, and anyone may call stop. Only people directly involved in the lift are inside the exclusion zone. Stop the lift if the zone is breached. Loads should not pass over a person.');
-  }
-  if (!has(/4(?:\.0)?\s*m/) || !has(/underground/)) {
-    gaps.push('Check the swing area for overhead power lines and other obstructions, and plan for underground services. Keep at least 4.0 m from live overhead lines unless the line owner gives written consent for less. This check is not a finding that a service is there.');
-  }
-  if (plant && (!has(/design limits/) || !has(/not the chart/))) {
-    gaps.push(`Operate the ${plant} within its design limits, with the rating sheets and the manual available to the operator. ${profile.craneClass ? `${profile.craneClass}T is the crane class, not the chart.` : 'The stated class is not the chart.'}`);
-  }
-  if (!has(/free-?fall/)) gaps.push('No free-fall with a load.');
-  if (!has(/\bwind\b/) || !has(/\blean\b/)) {
-    gaps.push('Treat wind, acceleration, and braking as toppling forces. A tag line is for light winds. If a worker has to lean and lug, do not lift.');
-  }
-  if (profile.panel && !has(/falsework|erection design should/)) {
-    gaps.push('A competent person for erection design should agree the procedure before work starts and should sign off falsework.');
-  }
-  if (profile.nz && !has(/\b111\b/)) gaps.push('Have first aid on site. The emergency number is 111.');
-  return gaps;
+  steps.push('Keep at least 4.0 m from a live overhead line unless the line owner agrees in writing. Underground services are a required check, not a finding. Whether a road is inside the zone is a required check, not a finding.');
+  const plant = profile.plantPhrase || (profile.craneClass ? `${profile.craneClass}T` : '');
+  const classRule = profile.craneClass
+    ? `${plant} is the crane class, not the chart. `
+    : '';
+  steps.push(`${classRule}No free-fall with a load.`.trim());
+  if (profile.nz) steps.push('The emergency number is 111.');
+  return steps;
+}
+
+function stepConfirmsMissingFact(line) {
+  const text = stripStepNumber(line);
+  if (/does not start until the pack contains/i.test(text)) return false;
+  if (/\b(falsework|sign off|sign-off)\b/i.test(text)) return true;
+  if (/\b(erection (?:design|procedure)|competent person|who is competent)\b/i.test(text)) return true;
+  if (/\b(?:centre|center) of gravity\b/i.test(text) && !/\bnot a centre of gravity\b/i.test(text)) return true;
+  if (/\b(rating sheets?|ground bearing|bearing value|wind stop|wind limit|wind speed|tag line|lean and lug)\b/i.test(text)) return true;
+  if (/\b(working radius|crane chart)\b/i.test(text) && !/\bnot the chart\b/i.test(text)) return true;
+  if (/\bdo not invent a brace\b/i.test(text)) return true;
+  return false;
+}
+
+function stepIsEmptyCheck(line) {
+  const text = stripStepNumber(line);
+  if (!/\bcheck is required\b/i.test(text)) return false;
+  return !/\b(underground|overhead|power line|road|footpath|4(?:\.0)?\s*m)\b/i.test(text);
 }
 
 function ensureMethodology(swms, profile) {
   const task = asObject(swms.taskDescription);
-  let text = cleanProse(task.workMethodology || '', profile.source, profile);
-  if (isPlaceholderMethod(text)) text = '';
-  const lines = text.split('\n').map(briefableLine).filter(Boolean);
-  const gaps = briefableGaps(lines.join('\n'), profile).map(briefableLine).filter(Boolean);
-  const steps = [...lines, ...gaps];
-  task.workMethodology = steps.map((line, index) => `${index + 1}. ${stripStepNumber(line)}`).join('\n');
-  if (task.task) task.task = stripAddedFacts(task.task, profile.source);
+  if (profile.crane) {
+    const steps = crewBrief(profile);
+    task.workMethodology = steps.map((line, index) => `${index + 1}. ${line}`).join('\n');
+  } else {
+    let text = cleanProse(task.workMethodology || '', profile.source, profile);
+    if (isPlaceholderMethod(text)) text = '';
+    const lines = text.split('\n')
+      .map(briefableLine)
+      .map((line) => line.trim())
+      .filter((line) => line && !stepConfirmsMissingFact(line) && !stepIsEmptyCheck(line));
+    task.workMethodology = lines.map((line, index) => `${index + 1}. ${stripStepNumber(line)}`).join('\n');
+  }
+  const job = String(profile.jobText || '');
+  if (task.task && !job.toLowerCase().includes(String(task.task).trim().toLowerCase())) {
+    task.task = stripAddedFacts(stripInjectedWords(task.task, job), profile.source);
+  }
   swms.taskDescription = task;
 }
 
@@ -680,7 +729,7 @@ function ensureHazards(swms, profile) {
         'Stop the lift if the zone is breached',
         'Loads should not pass over a person',
         'Workers go under a raised panel only to secure braces, and only when authorised',
-        'If a footpath or road is inside the zone, the public and traffic stay out until the panels are fully secured. Do not say the road at this address is inside the zone. The check is required',
+        'Whether a road or footpath is inside the zone is a required check, not a finding',
       ],
     );
   }
@@ -689,22 +738,29 @@ function ensureHazards(swms, profile) {
     add(
       'Swinging load, unsuitable slings, a person under the load, or an unclear signal',
       [
-        'Only trained people rig',
-        'One designated person signals, and anyone may call stop',
-        'Before the load leaves the ground it is balanced and stable, with the hook over the centre of gravity',
-        'Loads should not pass over a person',
+        'One signaller. Anyone may stop the lift',
+        'Do not pass a load over a person',
       ],
     );
   }
   blob = covered();
-  if (!(/underground/.test(blob) && /4(?:\.0)?\s*m/.test(blob) && /not provided|do not assume|not a finding|required check/.test(blob))) {
+  const overhead = hazards.find(isOverheadHazard);
+  if (overhead) {
+    const controls = Array.isArray(overhead.controlMeasures) ? overhead.controlMeasures : [];
+    const joined = controls.join(' ');
+    if (!/4(?:\.0)?\s*m/.test(joined)) {
+      controls.push('Keep at least 4.0 m from a live overhead line unless the line owner agrees in writing');
+    }
+    if (!/underground/.test(joined.toLowerCase())) {
+      controls.push('Underground services are a required check, not a finding');
+    }
+    overhead.controlMeasures = controls;
+  } else if (!(/underground/.test(blob) && /4(?:\.0)?\s*m/.test(blob))) {
     add(
-      'Overhead power lines, underground services, and other obstructions, which have to be looked for and not assumed',
+      'Overhead power lines and underground services',
       [
-        'Planning must cover overhead power lines and underground services. That is a required check, not a finding that a line or service is there',
-        'Check the swing area for power lines and other obstructions before the lift',
-        'Keep at least 4.0 m from live overhead lines unless the line owner gives written consent for less',
-        'This is a check, not a finding that a line or service is there',
+        'Keep at least 4.0 m from a live overhead line unless the line owner agrees in writing',
+        'Underground services are a required check, not a finding',
       ],
     );
   }
@@ -747,7 +803,6 @@ function ensureHazards(swms, profile) {
       [
         'Erection documents have to show temporary supports. The minimum is two restraints unless the erection design clearly says otherwise',
         'Brace footings must have reached the specified strength first. Base restraint against sliding is required, and the panel weight may not provide it',
-        'Do not invent a brace, a strongback, or a tailing crane',
       ],
     );
   }
@@ -758,18 +813,68 @@ function ensureHazards(swms, profile) {
       [
         'Treat advancing edges as a hazard to consider, not as a procedure',
         'No precast-erection procedure is held, and none is taken from the 2002 precast ACOP',
-        'Do not invent a connector, an EWP, or a scaffold. Whether any employee may fall more than 3 metres was not stated. The check is required',
+        'Do not place a person at the stated height. Do not use an EWP or a scaffold',
       ],
     );
   }
-  swms.hazards = hazards;
+  swms.hazards = collapseOverheadHazards(hazards.filter((hazard) => {
+    const controls = (hazard.controlMeasures || []).filter((control) => !controlConfirmsMissing(control));
+    hazard.controlMeasures = controls;
+    return true;
+  }));
+}
+
+function controlConfirmsMissing(control) {
+  const text = String(control || '');
+  if (/\bdo not invent a brace\b/i.test(text)) return true;
+  if (/\b(?:centre|center) of gravity\b/i.test(text) && !/\bnot a centre of gravity\b/i.test(text)) return true;
+  if (/\bfalsework\b|\bcompetent person\b/i.test(text)) return true;
+  if (/\bcheck is required\b/i.test(text) && !/\b(underground|overhead|road|footpath|4(?:\.0)?\s*m)\b/i.test(text)) return true;
+  return false;
+}
+
+function isOverheadHazard(hazard) {
+  return /overhead|power line/.test(`${hazard.hazard || ''} ${(hazard.controlMeasures || []).join(' ')}`.toLowerCase());
+}
+
+function collapseOverheadHazards(hazards) {
+  const overheads = hazards.filter(isOverheadHazard);
+  if (overheads.length <= 1) return hazards;
+  const primary = overheads[0];
+  const controls = Array.isArray(primary.controlMeasures) ? primary.controlMeasures : [];
+  for (const extra of overheads.slice(1)) {
+    for (const control of extra.controlMeasures || []) {
+      if (!controls.includes(control)) controls.push(control);
+    }
+  }
+  primary.controlMeasures = controls;
+  return hazards.filter((hazard) => hazard === primary || !isOverheadHazard(hazard));
+}
+
+function citationKey(line) {
+  const text = String(line || '').toLowerCase();
+  if (/\b3795\b|\b3789\b/.test(text)) return 'quals';
+  if (/crane acop/.test(text) || (/crane/.test(text) && /\bacop\b|approved code of practice/.test(text) && !/rigging/.test(text))) return 'crane-acop';
+  if (/rigging acop/.test(text) || (/rigging/.test(text) && /\bacop\b|approved code of practice/.test(text))) return 'rigging-acop';
+  if (/grwm/.test(text) || (/reg(?:ulation)?s?\s*24\b/.test(text) && /\b25\b/.test(text))) return 'grwm';
+  if (/reg(?:ulation)?\s*26\b/.test(text)) return 'reg26';
+  if (/reg(?:ulation)?\s*21\b/.test(text)) return 'reg21';
+  if (/precast|october 2018/.test(text)) return 'precast';
+  if (/working[- ]at[- ]height/.test(text)) return 'height';
+  if (/health and safety at work act|\bhswa\b/.test(text)) return 'hswa';
+  if (/safe work australia/.test(text)) return 'swa';
+  return `other:${text}`;
 }
 
 function ensureReferences(swms, profile) {
-  const refs = Array.isArray(swms.references) ? swms.references.map(citationText).filter(Boolean) : [];
-  const have = refs.join('\n').toLowerCase();
+  const incoming = Array.isArray(swms.references) ? swms.references.map(citationText).filter(Boolean) : [];
+  const refs = [];
+  const seen = new Set();
   const add = (line) => {
-    if (!have.includes(line.toLowerCase())) refs.push(line);
+    const key = citationKey(line);
+    if (seen.has(key)) return;
+    seen.add(key);
+    refs.push(line);
   };
   if (profile.nz) {
     add('Health and Safety at Work Act 2015 (HSWA). This record does not claim that a document called a SWMS is required in New Zealand.');
@@ -783,7 +888,7 @@ function ensureReferences(swms, profile) {
       add('Crane and rigging qualification evidence was not provided. Unit standards 3795 and 3789 are the minimum the crane ACOP table names.');
     }
     add('Health and Safety in Employment Regulations 1995, reg 26: written notice at least 24 hours before notifiable work. Whether this lift is notifiable is not decided, and the notice is not ticked as done or not done.');
-    add('Health and Safety in Employment Regulations 1995, reg 21: means to prevent a fall where any employee may fall more than 3 metres. Whether any employee may fall more than 3 metres was not stated. The check is required.');
+    add('Health and Safety in Employment Regulations 1995, reg 21: means to prevent a fall where any employee may fall more than 3 metres. Whether any employee may fall more than 3 metres was not stated.');
   }
   if (profile.panel) {
     add('WorkSafe Good Practice Guidelines, Safe work with precast concrete (October 2018). Advice: must is a legal requirement and should is recommended. Its factors are guidance, not this panel\'s working load limit. No panel procedure is taken from the 2002 precast ACOP.');
@@ -791,13 +896,33 @@ function ensureReferences(swms, profile) {
   if (profile.heightM || profile.crane) {
     add('Working-at-height guideline: status under the current HSWA is not confirmed.');
   }
+  for (const line of incoming) add(line);
   swms.references = refs.filter((line) => {
+    if (/\[object Object\]/.test(line)) return false;
     if (/^(crane|rigging) acop: status under the current hswa is not confirmed\.?$/i.test(line.trim())) return false;
     if (!profile.nz) return true;
     if (/^safe work australia$/i.test(line.trim())) return false;
     if (/\b(nsw|new south wales)\b/i.test(line) && !/\b(not applied|are not|does not)\b/i.test(line)) return false;
     return true;
   });
+}
+
+function hazardCallsForPpe(item, blob) {
+  const label = String(item || '').toLowerCase().trim();
+  if (!label) return false;
+  if (blob.includes(label)) return true;
+  const words = label.split(/[^a-z0-9]+/).filter((word) => word.length > 3 && !/^(safety|protective|standard|personal)$/.test(word));
+  return words.length > 0 && words.every((word) => blob.includes(word));
+}
+
+function ensurePpe(swms) {
+  const hazards = Array.isArray(swms.hazards) ? swms.hazards : [];
+  const blob = hazards.map((hazard) => [hazard.hazard, ...(hazard.controlMeasures || [])].join(' ')).join('\n').toLowerCase();
+  const items = Array.isArray(swms.ppe) ? swms.ppe : [];
+  swms.ppe = items
+    .map((item) => (typeof item === 'string' ? item : String(item && (item.item || item.name) || '')))
+    .map((item) => item.trim())
+    .filter((item) => hazardCallsForPpe(item, blob));
 }
 
 function ensurePersonnel(swms, profile) {
@@ -834,8 +959,8 @@ function ensurePersonnel(swms, profile) {
 function applyJobLimits(swms, ctx) {
   const profile = jobProfile(ctx);
   const task = asObject(swms.taskDescription);
-  task.location = scrubUnstated(stripAddedFacts(task.location, profile.source), profile.source);
-  task.duration = scrubUnstated(stripAddedFacts(task.duration, profile.source), profile.source);
+  task.location = scrubUnstated(stripInjectedWords(stripAddedFacts(task.location, profile.source), profile.jobText), profile.source);
+  task.duration = scrubUnstated(stripInjectedWords(stripAddedFacts(task.duration, profile.source), profile.jobText), profile.source);
   swms.taskDescription = task;
 
   swms.hazards = (Array.isArray(swms.hazards) ? swms.hazards : []).map((hazard) => ({
@@ -849,12 +974,25 @@ function applyJobLimits(swms, ctx) {
   if (Array.isArray(swms.plantAndEquipment)) {
     swms.plantAndEquipment = swms.plantAndEquipment.map((item) => ({
       ...item,
-      makeModel: stripAddedFacts(cleanProse(item.makeModel, profile.source, profile) || scrubUnstated(item.makeModel, profile.source), profile.source),
+      makeModel: stripInjectedWords(stripAddedFacts(cleanProse(item.makeModel, profile.source, profile) || scrubUnstated(item.makeModel, profile.source), profile.source), profile.jobText),
       operator: plantOperator(item.operator, profile.source),
     }));
   }
-  if (profile.onlyGroundAndCab && Array.isArray(swms.ppe)) {
-    swms.ppe = swms.ppe.filter((item) => !/\b(harness|lanyard|fall arrest|ewp|scaffold)\b/i.test(String(item)));
+  if (profile.plantPhrase) {
+    const items = Array.isArray(swms.plantAndEquipment) ? swms.plantAndEquipment : [];
+    const index = items.findIndex((item) => /liebherr|\bcrane\b|\d+\s*t/i.test(`${item.makeModel || ''} ${item.name || ''}`));
+    if (index >= 0) {
+      items[index].makeModel = profile.plantPhrase;
+      items[index].operator = plantOperator(items[index].operator, profile.source);
+    } else {
+      items.unshift({
+        makeModel: profile.plantPhrase,
+        operator: 'Not provided',
+        rego: 'Not provided',
+        inspectionDate: 'Not provided',
+      });
+    }
+    swms.plantAndEquipment = items;
   }
 
   const emergency = asObject(swms.emergencyProcedures);
@@ -869,6 +1007,7 @@ function applyJobLimits(swms, ctx) {
 
   ensureMethodology(swms, profile);
   ensureHazards(swms, profile);
+  ensurePpe(swms);
   ensureReferences(swms, profile);
   ensurePersonnel(swms, profile);
   swms.workerSignoff = [];
@@ -894,8 +1033,8 @@ function buildSwmsMessages(ctx) {
     ? `This job states ${profile.panelCount} panels at ${profile.panelWeight}T each. Each panel is its own ${profile.panelWeight}T lift. Do not add them into one ${Number(profile.panelWeight) * Number(profile.panelCount)}T pick. ${profile.panelWeight}T is the weight given, not a calculated centre of gravity.`
     : 'If more than one load is named, lift each load on its own. Do not add the stated weights into one pick. A stated weight is not a calculated centre of gravity.';
   const classRule = profile.craneClass
-    ? `${profile.craneClass}T is the crane class given, not the allowable load at the working radius.`
-    : 'A stated crane class is not the allowable load at the working radius.';
+    ? `${profile.craneClass}T is the crane class, not the chart.`
+    : 'A stated crane class is not the chart.';
   const heightRule = profile.onlyGroundAndCab
     ? `The stated height is up to ${profile.heightM || 'the height given'} m. A fall plan applies only if a person can fall. Riggers are on the ground and the crane operator is in the cab. Do not invent a connector, an EWP, or a scaffold. Advancing edges of precast erection are a hazard to consider, not a procedure.`
     : 'A fall plan applies only if a person can fall. Do not place a person at height unless the job says that person is there.';
@@ -908,6 +1047,7 @@ Do not return a schema, a sample, or placeholders.
 Do not invent a precast-erection procedure. None has been supplied. Do not invent one from the 2002 precast ACOP.
 Do not invent worker names, licence numbers, a hospital, a supervisor phone, a working radius, a crane chart, ground bearing, a lifting-anchor type or capacity, a numeric wind stop, overhead or underground services, a brace angle, a brace type, an insert type or layout, a strongback, or a tailing crane.
 If a fact was not supplied, write "Not provided" or leave it out. Do not guess it.
+When the erection design, the centre of gravity, the crane chart at the working radius, or the brace arrangement was not supplied, the method has one hold: the lift does not start until those missing items are in the pack. Do not write separate steps that tell the crew to confirm them, and do not write "do not invent a brace" in place of the brace arrangement.
 For a New Zealand job, do not claim that a document called a SWMS is required, and do not copy an Australian or NSW SWMS form onto the job.
 The crane ACOP and the rigging ACOP are still published by WorkSafe. Both pages say the guidance has not been updated for HSWA 2015. Use them as published practice with that status, not as a current approved code under HSWA.
 Where crane or rigging qualification evidence was not supplied, record that it was not provided. Unit standards 3795 and 3789 are the minimum the crane ACOP table names. The erection supervisor, crane operator, and dogman or rigger are required roles and were not supplied. Do not invent who holds them.
@@ -932,19 +1072,14 @@ ${ctx.extraAnswers}
 How to write it:
 - document.title is "Safe Work Method Statement". document.swmsNumber is "SWMS-${today.slice(-4)}-001". document.dateCreated is ${today}. document.version is "1.0". The title is the name of this record. For a New Zealand job, do not say a document called a SWMS is required.
 - projectDetails uses only the site address, principal contractor, and subcontractor given above. Anything missing is "Not provided".
-- taskDescription.workMethodology is a numbered morning brief for this job. Number each step once. ${panelRule} Before a panel leaves the ground it is balanced and stable, with the hook over the centre of gravity. Do not write a step that only says an input was not provided.
-- State the slinging method and the gear on hand only if they were supplied. Do not write a step that only says they were not provided.
-- The swing area is checked for power lines and other obstructions. Keep at least 4.0 m from live overhead lines unless the line owner gives written consent for less. Whether any overhead service exists at this address is unknown. Leave that unknown. Do not assume lines are present or absent.
-- Design is not this record. A competent person for erection design should agree the procedure before work starts and should sign off falsework. Do not invent the sequence, a brace type, a brace angle, a strongback, or a tailing crane.
-- Do not paste the October 2018 precast guide back as method steps. Cite it once in references. Do not write a step whose only content is that an input was not provided. Unknowns stay "Not provided" in the fields.
-- Do not describe the crane as a mobile crane, and do not call it self-propelled, unless the job used those words. Do not call the site commercial. Do not say tomorrow. Those words change whether the lift is notifiable. Do not decide the notice and do not tick it.
-- Only trained people rig. One designated person signals, and anyone may call stop. Only people directly involved in the lift are inside the exclusion zone. Stop the lift if it is breached. Loads should not pass over a person. Workers go under a raised panel only to secure braces, and only when authorised. If a footpath or road is inside the zone, public and traffic stay out until the panels are fully secured. Do not say the road at this address is inside the zone. Say the check is required.
-- Planning must cover overhead power lines and underground services. That is a required check, not a finding that a line is there. Keep at least 4.0 m from live overhead lines unless the line owner gives written consent for less.
-- Set the crane up to the manufacturer's specification on ground that can support the crane and the suspended load. Operate within design limits, with the rating sheets and the manual available. ${classRule} Do not invent a chart, a radius, or ground bearing.
-- No free-fall with a load. Panel erection is not an exception.
-- Wind, acceleration and braking are toppling forces. A large panel can mean the lift waits until the wind drops. A tag line is for light winds. If a worker has to lean and lug, do not lift. Do not state a wind speed.
+- taskDescription.workMethodology is one numbered morning brief. Number each step once. The first step is a single hold when the pack is short: the lift does not start until the pack contains the erection design, the centre of gravity, the crane chart at the working radius, and the brace arrangement, naming only the ones this job did not give. Do not split that hold into confirm-steps. Do not tell the crew to confirm an erection procedure, falsework sign-off, centre of gravity, radius, chart, ground bearing, wind stop, or who is competent. Do not write a step that only says a check is required.
+- ${panelRule}
+- One signaller. Anyone may stop the lift. Do not pass a load over a person.
+- Keep at least 4.0 m from a live overhead line unless the line owner agrees in writing. Underground services, and whether a road is inside the zone, are required checks, not findings. One hazard covers overhead lines. Do not add a second overhead-line hazard.
+- ${classRule} No free-fall with a load. Do not describe the crane as a mobile crane unless the job used those words. plantAndEquipment.makeModel is exactly the plant string from the job.
 - ${heightRule}
-- ${emergencyRule} Have first aid and an emergency plan. Do not name a hospital. Do not invent a supervisor phone. Do not write "no hospital was named" as a method step.
+- ${emergencyRule} Do not name a hospital. Do not invent a supervisor phone. Do not add the words tomorrow or commercial unless that field is a copy of the job sentence.
+- Do not decide the 24-hour notice, and do not tick it done or not done. Do not paste the October 2018 guide back as method steps. Cite it once.
 - Do not invent ground bearing, insert type, brace type, or this panel's working load limit.
 - Hazards have to include: an exclusion zone under the operating and lifting area; a swinging load, unsuitable slings, people under the load, and unclear signals; power lines, underground services and obstructions looked for, not assumed; wind, acceleration, and braking as toppling forces, with no numeric wind stop; work under a raised object and a falling object, with an exclusion zone if the fall cannot be prevented or arrested.
 - Each hazard has hazard, risk (Low, Medium, High, or Extreme), residualRisk, controlMeasures, and responsiblePerson. responsiblePerson is "Not provided" when no person was named. Do not invent likelihood numbers.
@@ -953,7 +1088,7 @@ How to write it:
 - projectDetails.subcontractor is "Not provided" unless a subcontractor was named. Do not copy the principal contractor into the subcontractor field.
 - personnel lists the roles named in the job. name and licenceNumber are "Not provided" unless supplied. Record that crane and rigging qualification evidence was not provided, and that unit standards 3795 and 3789 are the minimum the crane ACOP table names. Do not invent a person's name.
 - references is an array of strings, never objects. Include HSWA, GRWM regs 24 and 25, the October 2018 precast good practice guidelines, the crane ACOP and the rigging ACOP as published WorkSafe practice that the pages say has not been updated for HSWA 2015, and the working-at-height guideline with its HSWA status not confirmed. State Health and Safety in Employment Regulations 1995 reg 26 as a check that is not decided. Do not tick the 24-hour notice.
-- ppe lists only PPE this job needs for the people who are actually there. workerSignoff is empty.
+- ppe lists an item only when a hazard in this record names that item. Do not attach a default kit. workerSignoff is empty.
 
 An empty hazards list, or a methodology that does not describe these lifts, is an invalid reply.`,
     },
