@@ -54,9 +54,23 @@ async function loadStates() {
       </label>
     </li>
   `).join('');
-  document.getElementById('fall-explanation').textContent = data.fallExplanation || '';
+  stateList = data.states;
   const first = statesEl.querySelector('input:not(:disabled)');
   if (first) first.checked = true;
+  statesEl.querySelectorAll('input').forEach((input) => input.addEventListener('change', showFallExplanation));
+  showFallExplanation();
+}
+
+let stateList = [];
+
+// A No shows what a fall from height is, in the chosen state's law, in case the question was not clear.
+function showFallExplanation() {
+  const chosen = document.querySelector('input[name="state"]:checked');
+  const state = stateList.find((item) => chosen && item.id === chosen.value);
+  const el = document.getElementById('fall-explanation');
+  el.textContent = (state && state.fallExplanation) || '';
+  const no = document.querySelector('input[name="fallRisk"]:checked')?.value === 'no';
+  el.classList.toggle('hidden', !no || !el.textContent);
 }
 
 document.getElementById('start').addEventListener('submit', async (event) => {
@@ -99,12 +113,8 @@ document.getElementById('start').addEventListener('submit', async (event) => {
   factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-// A No shows what a fall from height is, in case the question was not clear.
 document.querySelectorAll('input[name="fallRisk"]').forEach((input) => {
-  input.addEventListener('change', () => {
-    const no = document.querySelector('input[name="fallRisk"]:checked')?.value === 'no';
-    document.getElementById('fall-explanation').classList.toggle('hidden', !no);
-  });
+  input.addEventListener('change', showFallExplanation);
 });
 
 document.getElementById('back').addEventListener('click', () => {

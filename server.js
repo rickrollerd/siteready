@@ -4,7 +4,7 @@ const cors = require('cors');
 const { rateLimit } = require('express-rate-limit');
 const path = require('path');
 const { listStates } = require('./legislation');
-const { questionsFor, prepareDraft, FALL_EXPLANATION } = require('./draft');
+const { questionsFor, prepareDraft } = require('./draft');
 const { draftToDocx } = require('./docx-draft');
 
 require('dotenv').config();
@@ -88,7 +88,7 @@ function draftBody(body) {
 }
 
 app.get('/api/states', (_req, res) => {
-  res.json({ states: listStates(), fallExplanation: FALL_EXPLANATION });
+  res.json({ states: listStates() });
 });
 
 app.post('/api/draft/questions', (req, res) => {

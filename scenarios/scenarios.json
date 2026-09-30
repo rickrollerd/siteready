@@ -1,0 +1,142 @@
+[
+  {
+    "id": "roof-resheet",
+    "title": "Roof re-sheeting on a two storey house",
+    "task": "Remove and replace the corrugated iron roof sheets on a two storey house. Work is on the roof at about 7 m above the ground.",
+    "fallRisk": "yes",
+    "facts": {
+      "fallControl": "A perimeter guardrail scaffold is installed around the roof edge before work starts, and safety mesh is fixed under the new sheets."
+    },
+    "expect": {
+      "missing": ["Fall control"],
+      "highRisk": ["fall"],
+      "hazards": ["Fall from height"]
+    }
+  },
+  {
+    "id": "sewer-trench",
+    "title": "Sewer connection trench beside a road",
+    "task": "Excavate a trench 2.4 m deep in the road reserve to connect a sewer line, using a 5 tonne excavator. The trench runs along the footpath next to a road open to traffic.",
+    "fallRisk": "yes",
+    "facts": {
+      "trenchSupport": "A trench shield rated for 3.0 m depth is installed as the excavation proceeds, as designed by the supplier's engineer.",
+      "fallControl": "Temporary fencing is placed 1 m back from the trench edge on all sides, and no one works at the open edge."
+    },
+    "expect": {
+      "missing": ["Trench support", "Fall control"],
+      "highRisk": ["fall", "trench", "road", "plant"],
+      "hazards": ["Trench or excavation collapse", "Fall from height", "Traffic", "Moving plant"]
+    }
+  },
+  {
+    "id": "precast-panels",
+    "title": "Precast wall panel erection with a mobile crane",
+    "task": "Erect six precast concrete wall panels, each 9 tonnes, using a 100 tonne mobile crane. Riggers stay on the ground and the crane operator is in the cab.",
+    "fallRisk": "no",
+    "facts": {
+      "craneChart": "Rated capacity 11.2 t at 16 m radius from the crane chart.",
+      "erectionDesign": "Erection design drawing ED-01 revision B by the project engineer.",
+      "centreOfGravity": "Centre of gravity is marked on each panel shop drawing, 1.2 m above the base.",
+      "braceArrangement": "Two braces per panel, fixed to the slab with chemical anchors as shown on drawing ED-02."
+    },
+    "expect": {
+      "missing": ["Crane chart", "Erection design", "Centre of gravity", "Brace arrangement"],
+      "highRisk": ["precast", "plant"],
+      "hazards": ["Dropped load", "Tilt-up or precast concrete", "Moving plant"]
+    }
+  },
+  {
+    "id": "asbestos-eaves",
+    "title": "Asbestos eaves sheet removal",
+    "task": "Remove bonded asbestos cement eaves sheets from a single storey house, about 12 square metres in total.",
+    "fallRisk": "no",
+    "facts": {
+      "asbestosArrangement": "A licensed asbestos removalist removes the sheets under an asbestos removal control plan."
+    },
+    "expect": {
+      "missing": ["Asbestos arrangement"],
+      "highRisk": ["asbestos"],
+      "hazards": ["Asbestos"]
+    }
+  },
+  {
+    "id": "tank-entry",
+    "title": "Entry into an underground water tank",
+    "task": "Enter a 3 m deep underground water storage tank through the access hatch to inspect and repair the inlet valve. The tank is a confined space.",
+    "fallRisk": "yes",
+    "facts": {
+      "fallControl": "Access is by a fixed ladder with a full body harness attached to a retrieval tripod over the hatch."
+    },
+    "expect": {
+      "missing": ["Fall control"],
+      "highRisk": ["fall", "confined"],
+      "hazards": ["Fall from height", "Confined space"]
+    }
+  },
+  {
+    "id": "wall-demolition",
+    "title": "Demolition of a load-bearing wall with propping",
+    "task": "Demolish a load-bearing internal brick wall on the ground floor of an office building to form an opening. Temporary propping supports the floor above until the new steel beam is installed.",
+    "fallRisk": "no",
+    "facts": {},
+    "expect": {
+      "missing": [],
+      "highRisk": ["demolition", "temporary"],
+      "hazards": ["Demolition of a load-bearing structure", "Temporary support"]
+    }
+  },
+  {
+    "id": "carport-hiab",
+    "title": "Carport steelwork lifted by a crane truck near power lines",
+    "task": "Install a new steel-framed carport beside a house, using a crane truck to lift the roof beams into place. Overhead power lines run along the front boundary about 5 m from the work area.",
+    "fallRisk": "no",
+    "facts": {
+      "craneChart": "Rated capacity 1.5 t at 6 m radius from the crane truck load chart."
+    },
+    "expect": {
+      "missing": ["Crane chart"],
+      "highRisk": ["electrical", "plant"],
+      "hazards": ["Dropped load", "Energised electrical service", "Moving plant"]
+    }
+  },
+  {
+    "id": "solvent-painting",
+    "title": "Solvent-based painting in a ground floor shop",
+    "task": "Paint the interior walls of a ground floor shop with solvent-based enamel paint using brushes and rollers.",
+    "fallRisk": "no",
+    "facts": {
+      "safetyDataSheet": "Safety data sheet for the enamel paint: flammable liquid, use with ventilation, wear gloves and eye protection, keep ignition sources away."
+    },
+    "expect": {
+      "missing": ["Safety data sheet"],
+      "highRisk": [],
+      "hazards": ["Hazardous substance"]
+    }
+  },
+  {
+    "id": "facade-scaffold",
+    "title": "Facade scaffold over a public footpath",
+    "task": "Erect a tube and fitting scaffold 4 lifts high, about 8 m, on the front facade of a commercial building above a public footpath.",
+    "fallRisk": "yes",
+    "facts": {
+      "fallControl": "Scaffolders install each lift with advance guardrails before stepping up, and the working deck is fully planked."
+    },
+    "expect": {
+      "missing": ["Fall control"],
+      "highRisk": ["fall"],
+      "hazards": ["Fall from height"]
+    }
+  },
+  {
+    "id": "jetty-decking",
+    "title": "Jetty decking replacement over a tidal river",
+    "task": "Replace timber decking boards on a jetty over a tidal river. Workers kneel on the jetty deck about 1.5 m above the water.",
+    "fallRisk": "no",
+    "facts": {},
+    "expect": {
+      "missing": [],
+      "highRisk": ["water"],
+      "hazards": ["Water or other liquid"]
+    }
+  }
+]

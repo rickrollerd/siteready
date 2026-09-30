@@ -54,9 +54,18 @@ function isCraneOrLift(text) {
   return false;
 }
 
+// Precast and tilt-up panels are lifted, erected, stood up or placed under any of these
+// words. Other panels (solar, wall linings) count only when a crane or a lift is named.
 function isPanelLift(text) {
-  return /\b(panel|precast|tilt-?up)\b/i.test(text) && /\blift/i.test(text);
+  const source = String(text || '');
+  const concrete = /\b(precast|tilt-?up|concrete (?:wall )?panels?)\b/i.test(source);
+  if (concrete && /\b(lift\w*|erect\w*|stand\w*|stood|install\w*|plac\w*|crane\w*)\b/i.test(source)) return true;
+  return /\bpanels?\b/i.test(source) && /\b(lift\w*|crane\w*)\b/i.test(source);
 }
+
+const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
+const ROAD = /\b(road\s?works?|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane)\b/i;
+const WATER = /\b(drown(?:ing)?|in or near water|(?:over|into|beside|next to) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall)\b/i;
 
 function isScaffoldErection(text) {
   return /\bscaffold\w*\b/i.test(text) && /\berect\w*\b/i.test(text);
@@ -216,9 +225,13 @@ function fallAnswer(value) {
   return FALL_ANSWERS.includes(text) ? text : '';
 }
 
-// The user's Yes counts. A No does not override a task that describes work at height.
+// The user's answer decides. A No is accepted even when the wording mentions height,
+// because a scaffold, parapet or edge protection may already remove the risk.
+// The wording is only used when there is no answer.
 function fallRiskFor(text, answer) {
-  return answer === 'yes' || fallRisk(text);
+  if (answer === 'yes') return true;
+  if (answer === 'no') return false;
+  return fallRisk(text);
 }
 
 function fallControlText(text) {
@@ -267,7 +280,7 @@ function highRiskMatches(text, answer) {
   const checks = {
     fall: fallRiskFor(text, answer),
     tower: mentioned(text, /\btelecommunication tower\b/i),
-    demolition: mentioned(text, /\bdemolition\b/i) && mentioned(text, /\b(load-bearing|load bearing|structure)\b/i),
+    demolition: mentioned(text, DEMOLITION) && mentioned(text, /\b(load-bearing|load bearing|structur\w*)\b/i),
     asbestos: mentioned(text, /\basbestos\b/i),
     temporary: mentioned(text, /\b(temporary support|propping|structural alteration)\b/i),
     confined: mentioned(text, /\bconfined space\b/i),
@@ -278,10 +291,10 @@ function highRiskMatches(text, answer) {
     electrical: mentioned(text, /\b(energised|energized|overhead (?:power )?lines?|live electrical|electrical services?)\b/i),
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i),
     precast: mentioned(text, /\b(tilt-?up|precast)\b/i),
-    road: mentioned(text, /\b(road\s?work|traffic control|traffic management|on the road|adjacent to (?:a |the )?road|carriageway|railway|shipping lane)\b/i),
+    road: mentioned(text, ROAD),
     plant: mentioned(text, /\b(powered mobile plant|excavators?|forklifts?|trucks?|cranes?|loaders?|liebherr)\b/i),
     temperature: mentioned(text, /\bartificial extremes of temperature\b/i),
-    water: mentioned(text, /\b(drown(?:ing)?|in or near water)\b/i),
+    water: mentioned(text, WATER),
     diving: mentioned(text, /\bdiving\b/i),
   };
   return HIGH_RISK.filter((item) => checks[item.id]);
@@ -464,7 +477,7 @@ function controlsFor(task, facts, pack) {
     push('Isolate or engineer', 'People stay clear of moving plant.');
   }
 
-  if (mentioned(source, /\b(road\s?work|traffic control|traffic management|on the road|adjacent to (?:a |the )?road|carriageway)\b/i)) {
+  if (mentioned(source, ROAD)) {
     push('Isolate or engineer', 'Separate the work from passing traffic before the task starts.');
   }
 
@@ -473,7 +486,7 @@ function controlsFor(task, facts, pack) {
   }
 
   if (mentioned(source, /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i)) {
-    push('Isolate or engineer', OVERHEAD_LINE_CONTROL);
+    push('Isolate or engineer', pack.state.overheadLineControl);
   }
 
   const fallLine = fallControlText(acceptedText(source)) || keptFact(facts.fallControl);
@@ -551,7 +564,7 @@ function hazardsFor(task, facts, pack) {
   if (/\b(relocat\w*|house removal|raising (?:a |the )?house|lowering (?:a |the )?house)\b/i.test(source)) {
     add('Structure moving', 'A person is struck or crushed.');
   }
-  if (mentioned(source, /\b(road\s?work|traffic control|on the road|adjacent to (?:a |the )?road|carriageway)\b/i)) {
+  if (mentioned(source, ROAD)) {
     add('Traffic', 'A person or a vehicle is struck.');
   }
   if (fallRiskFor(source, pack && pack.fallAnswer)) add('Fall from height', 'A person falls more than 2 metres.');
@@ -608,32 +621,24 @@ function methodSteps(task, facts, site, pack) {
   return withoutOpposites(dedupe([...fromTask, ...fromFacts, ...fromSite]));
 }
 
-// Electrical Safety Regulation 2026 (Qld), which replaced the 2013 regulation on 1 September 2026
-// with no policy change. 3.0 m is the exclusion zone for untrained persons and operating plant
-// near lines up to 132 kV; higher voltages need more.
-const OVERHEAD_LINE_CONTROL = 'Keep people and operating plant outside the minimum distance for the line voltage under the Electrical Safety Regulation 2026 (Qld). For a line up to 132 kV this is 3.0 m. Use a safety observer when plant could come within that distance.';
-
 const REVIEW = 'The controls are put in place before the task starts. They are checked while the task is underway. They are reviewed before the task starts again, and if the task changes.';
 
-// Plain wording for a user who is not sure what a fall from height is.
-const FALL_EXPLANATION = 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulation 2011 (Qld), section 291, work where a person could fall more than 2 metres is high risk construction work. Section 299 says high risk construction work needs a safe work method statement before it starts.';
+const FALL_WARNING = 'You answered No, but the task mentions work at height, such as a roof, a scaffold, an upper storey, or a height above 2 metres. Check that no one can fall more than 2 metres, for example because a scaffold, parapet or edge protection is already in place. If someone can, go back and answer Yes.';
 
-const FALL_WARNING = 'You answered No, but the task describes work at height, such as a roof, a scaffold, an upper storey, or a height above 2 metres. A fall control is still required. If no one can fall more than 2 metres, say how in the fall control box, for example that the work is done from the ground.';
-
-function fallCheck(task, answer) {
+function fallCheck(task, answer, state) {
   const detected = fallRisk(task);
   return {
     answer,
     detected,
-    treatedAsYes: answer === 'yes' || detected,
+    treatedAsYes: answer === 'yes',
     warning: answer === 'no' && detected ? FALL_WARNING : '',
-    explanation: FALL_EXPLANATION,
+    explanation: state.fallExplanation,
   };
 }
 
 function fallRecord(check) {
   if (check.answer === 'yes') return 'Yes';
-  if (check.detected) return 'Answered No. Treated as Yes because the task describes work at height.';
+  if (check.detected) return 'No. The task mentions work at height, and the user confirmed no one can fall more than 2 metres.';
   return 'No';
 }
 
@@ -653,7 +658,7 @@ function questionsFor(input) {
   if (!task) return { kind: 'error', message: 'Write the task.' };
   const answer = fallAnswer(input.fallRisk);
   if (!answer) {
-    return { kind: 'error', message: 'Answer the fall from height question.', explanation: FALL_EXPLANATION };
+    return { kind: 'error', message: 'Answer the fall from height question.', explanation: state.fallExplanation };
   }
   return {
     kind: 'questions',
@@ -665,7 +670,7 @@ function questionsFor(input) {
       section: state.section,
     },
     task,
-    fall: fallCheck(task, answer),
+    fall: fallCheck(task, answer, state),
     required: requiredFactsFor(task, answer),
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
   };
@@ -686,6 +691,7 @@ function prepareDraft(input) {
     subcontractor: input.subcontractor,
     task,
     fallAnswer: fallAnswer(input.fallRisk),
+    state,
   };
   const missing = missingFacts(task, facts, pack.fallAnswer);
   const status = packIsTest(input)
@@ -707,7 +713,7 @@ function prepareDraft(input) {
     firstAider: keptFact(input.firstAider),
     musterPoint: keptFact(input.musterPoint),
     task,
-    fallRisk: fallRecord(fallCheck(task, pack.fallAnswer)),
+    fallRisk: fallRecord(fallCheck(task, pack.fallAnswer, state)),
     date: cleanLine(input.date),
     status,
     test: packIsTest(input),
@@ -776,5 +782,4 @@ module.exports = {
   blankName,
   HIERARCHY,
   REVIEW,
-  FALL_EXPLANATION,
 };
