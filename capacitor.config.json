@@ -34,8 +34,8 @@
     }
   },
   "android": {
-    "allowMixedContent": true,
-    "webContentsDebuggingEnabled": true
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
   },
   "ios": {
     "contentInset": "automatic",

@@ -1,4 +1,4 @@
-#!/home/maxim/.openclaw/workspace/SiteReady/app/venv/bin/python3
+#!/usr/bin/env python3
 """
 VibeVoice / Faster-Whisper transcription with deep ANZ construction jargon support
 """
