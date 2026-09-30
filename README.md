@@ -73,3 +73,22 @@ The native app loads `public/` from the device, so it must be told where the ser
 ## Legislation references
 
 The Queensland references in `legislation.js` and `draft.js` must be checked against the current compilation on legislation.qld.gov.au before release, and again when the regulation changes.
+
+## Daily legislation check
+
+`.github/workflows/legislation-watch.yml` runs every morning at 06:17 Brisbane time. It reads the version shown on the official legislation page for each state and territory's WHS (or Victorian OHS) Act and Regulation, and the Queensland Electrical Safety Act and Regulation. The pages are listed in `legislation-watch/sources.json`.
+
+- When a version changes, it opens a GitHub issue and sends an email. The app then needs updating and the update signed off.
+- When a page cannot be read, it reports that once, when it starts, so a change is not missed silently.
+- The NSW site refuses automated requests from GitHub, so the NSW pages are reported for a manual check.
+- The versions last seen are kept in `legislation-watch/state.json`.
+
+The check runs from the default branch (`main`). Email needs three repository secrets (Settings, Secrets and variables, Actions):
+
+| Secret | Value |
+|---|---|
+| `ALERT_EMAIL` | The address that receives the alerts |
+| `SMTP_USERNAME` | The Gmail address that sends them |
+| `SMTP_PASSWORD` | A Gmail app password for that address (needs 2-Step Verification) |
+
+Without them, the issue is still opened and GitHub notifies the repository owner.
