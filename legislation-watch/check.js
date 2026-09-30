@@ -54,12 +54,12 @@ function versionDate(text, pattern) {
 
 async function fetchPage(url) {
   let lastError = '';
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
       const response = await fetch(url, {
         headers: { 'User-Agent': 'SiteReady legislation check (github.com/rickrollerd/siteready)' },
         redirect: 'follow',
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(20000),
       });
       if (response.ok) return { ok: true, html: await response.text() };
       lastError = `HTTP ${response.status}`;
@@ -97,8 +97,10 @@ async function main() {
   const recorded = [];
   let failures = 0;
 
-  for (const source of sources) {
-    const result = await check(source);
+  // Every page is read at once so one slow site does not hold up the rest.
+  const results = await Promise.all(sources.map(check));
+  sources.forEach((source, index) => {
+    const result = results[index];
     const before = state[source.id] || {};
     const label = `${source.jurisdiction}: ${source.title}`;
     console.log(`${result.status === 'ok' ? 'OK  ' : 'FAIL'} ${label} | ${result.version || result.detail} | ${source.url}`);
@@ -108,7 +110,7 @@ async function main() {
       // Report a problem once, when it starts, so a site that is down does not email every day.
       if (before.status !== 'unreadable') problems.push(`- **${label}**: ${result.detail}\n  ${source.url}`);
       state[source.id] = { ...before, status: 'unreadable' };
-      continue;
+      return;
     }
     if (before.version && before.version !== result.version) {
       changes.push(`- **${label}**: version changed from ${before.version} to ${result.version}.\n  ${source.url}`);
@@ -120,7 +122,7 @@ async function main() {
     }
     // No check date here, so state.json only changes when something changed.
     state[source.id] = { version: result.version, status: 'ok' };
-  }
+  });
 
   if (dryRun) {
     if (failures) {
