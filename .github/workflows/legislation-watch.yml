@@ -65,7 +65,8 @@ jobs:
             echo "Subject: SiteReady legislation check: action needed"
             echo "Content-Type: text/plain; charset=UTF-8"
             echo
-            cat legislation-watch/report.md
+            # The issue keeps the Markdown. The email drops headings, bold and code marks.
+            sed -e 's/^#\+ //' -e 's/\*\*//g' -e 's/`//g' legislation-watch/report.md
             echo
             echo "Details: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/issues"
           } > mail.txt
