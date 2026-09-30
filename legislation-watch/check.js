@@ -3,6 +3,7 @@
 //
 //   node legislation-watch/check.js            record changes in state.json and write report.md
 //   node legislation-watch/check.js --dry-run  read every page and fail if one cannot be read
+//   add --show                                 print the version wording of a page whose date was not found
 //
 // A change or a page that cannot be read is written to report.md. The workflow
 // turns that report into a GitHub issue and an email.
@@ -87,7 +88,9 @@ async function check(source) {
   const page = await fetchPage(source.url);
   if (!page.ok) return { status: 'unreadable', detail: `The page could not be read (${page.error}).` };
   const text = pageText(page.html);
-  const found = versionDate(text, source.versionPattern);
+  // Some sites only give the version date in a link, not in the page text.
+  const inHtml = source.htmlPattern ? page.html.match(new RegExp(source.htmlPattern)) : null;
+  const found = source.htmlPattern ? (inHtml ? inHtml[1] : '') : versionDate(text, source.versionPattern);
   if (!found && process.argv.includes('--show')) {
     console.log(`--- ${source.id} (${text.length} characters): ${text.slice(0, 300)}`);
     const words = /.{0,80}(current as at|as at|reprint|in force|version|republication|compilation|currency).{0,80}/gi;

@@ -4,28 +4,28 @@
     "jurisdiction": "Queensland",
     "title": "Work Health and Safety Act 2011",
     "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2011-018",
-    "versionPattern": "Current as at:?\\s*(\\d{1,2} [A-Za-z]+ \\d{4})"
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/act-2011-018"
   },
   {
     "id": "qld-whs-reg",
     "jurisdiction": "Queensland",
     "title": "Work Health and Safety Regulation 2011",
     "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2011-0240",
-    "versionPattern": "Current as at:?\\s*(\\d{1,2} [A-Za-z]+ \\d{4})"
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2011-0240"
   },
   {
     "id": "qld-es-act",
     "jurisdiction": "Queensland",
     "title": "Electrical Safety Act 2002",
     "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2002-042",
-    "versionPattern": "Current as at:?\\s*(\\d{1,2} [A-Za-z]+ \\d{4})"
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/act-2002-042"
   },
   {
     "id": "qld-es-reg",
     "jurisdiction": "Queensland",
     "title": "Electrical Safety Regulation 2026",
     "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2026-0113",
-    "versionPattern": "Current as at:?\\s*(\\d{1,2} [A-Za-z]+ \\d{4})"
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2026-0113"
   },
   {
     "id": "nsw-whs-act",
