@@ -33,7 +33,7 @@ jobs:
 
       - name: Check every page can be read
         if: github.event_name == 'push'
-        run: node legislation-watch/check.js --dry-run
+        run: node legislation-watch/check.js --dry-run --show
 
       - name: Check for changes
         if: github.event_name != 'push'
