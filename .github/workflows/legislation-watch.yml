@@ -1,0 +1,85 @@
+name: Legislation check
+
+on:
+  schedule:
+    # 20:17 UTC is 06:17 in Brisbane.
+    - cron: '17 20 * * *'
+  workflow_dispatch:
+  # A change to the list of pages is checked before it is merged.
+  push:
+    paths:
+      - 'legislation-watch/check.js'
+      - 'legislation-watch/sources.json'
+      - '.github/workflows/legislation-watch.yml'
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: legislation-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check every page can be read
+        if: github.event_name == 'push'
+        run: node legislation-watch/check.js --dry-run
+
+      - name: Check for changes
+        if: github.event_name != 'push'
+        run: node legislation-watch/check.js
+
+      - name: Open an issue
+        if: github.event_name != 'push' && hashFiles('legislation-watch/report.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "Legislation check $(date -u +%Y-%m-%d): action needed" \
+            --body-file legislation-watch/report.md
+
+      - name: Send an email
+        if: github.event_name != 'push' && hashFiles('legislation-watch/report.md') != ''
+        env:
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+        run: |
+          if [ -z "$SMTP_USERNAME" ] || [ -z "$SMTP_PASSWORD" ] || [ -z "$ALERT_EMAIL" ]; then
+            echo "::warning::Email is not set up. The issue was opened, and GitHub notifies the repository owner."
+            exit 0
+          fi
+          {
+            echo "From: SiteReady <$SMTP_USERNAME>"
+            echo "To: $ALERT_EMAIL"
+            echo "Subject: SiteReady legislation check: action needed"
+            echo "Content-Type: text/plain; charset=UTF-8"
+            echo
+            cat legislation-watch/report.md
+            echo
+            echo "Details: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/issues"
+          } > mail.txt
+          curl --silent --show-error --ssl-reqd \
+            --url 'smtps://smtp.gmail.com:465' \
+            --user "$SMTP_USERNAME:$SMTP_PASSWORD" \
+            --mail-from "$SMTP_USERNAME" \
+            --mail-rcpt "$ALERT_EMAIL" \
+            --upload-file mail.txt
+
+      - name: Save what was seen
+        if: github.event_name != 'push'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898269+github-actions[bot]@users.noreply.github.com'
+          git add legislation-watch/state.json
+          git diff --cached --quiet || git commit -m 'Record the legislation check'
+          git push
