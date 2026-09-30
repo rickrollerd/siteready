@@ -83,21 +83,17 @@ function readJson(file, fallback) {
   }
 }
 
-// Wording near a date, printed with --show so a page's version wording can be found.
-function dateContext(text) {
-  const regex = new RegExp(`.{0,90}${DATE}.{0,40}`, 'gi');
-  return (text.match(regex) || []).slice(0, 8);
-}
-
 async function check(source) {
   const page = await fetchPage(source.url);
   if (!page.ok) return { status: 'unreadable', detail: `The page could not be read (${page.error}).` };
   const text = pageText(page.html);
-  if (process.argv.includes('--show')) {
-    console.log(`--- ${source.id} (${text.length} characters): ${text.slice(0, 200)}`);
-    for (const line of dateContext(text)) console.log(`    ${line}`);
+  const found = versionDate(text, source.versionPattern);
+  if (!found && process.argv.includes('--show')) {
+    console.log(`--- ${source.id} (${text.length} characters): ${text.slice(0, 300)}`);
+    const words = /.{0,80}(current as at|as at|reprint|in force|version|republication|compilation|currency).{0,80}/gi;
+    for (const line of (text.match(words) || []).slice(0, 10)) console.log(`    ${line}`);
   }
-  const version = versionDate(text, source.versionPattern);
+  const version = found;
   if (!version) return { status: 'unreadable', detail: 'The page was read but no version date was found. The page layout may have changed.' };
   return { status: 'ok', version };
 }
