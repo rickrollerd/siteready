@@ -122,7 +122,10 @@ async function main() {
     console.log(`${result.status === 'ok' ? 'OK  ' : 'FAIL'} ${label} | ${result.version || result.detail} | ${source.url}`);
 
     if (result.status !== 'ok') {
-      failures += 1;
+      // A site known to refuse automated requests does not fail the push check,
+      // but it is still reported once so it is checked by hand.
+      if (source.knownBlocked) result.detail = `${result.detail} ${source.knownBlocked}`;
+      else failures += 1;
       // Report a problem once, when it starts, so a site that is down does not email every day.
       if (before.status !== 'unreadable') problems.push(`- **${label}**: ${result.detail}\n  ${source.url}`);
       state[source.id] = { ...before, status: 'unreadable' };

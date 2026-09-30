@@ -31,13 +31,15 @@
     "id": "nsw-whs-act",
     "jurisdiction": "New South Wales",
     "title": "Work Health and Safety Act 2011",
-    "url": "https://legislation.nsw.gov.au/view/html/inforce/current/act-2011-010"
+    "url": "https://legislation.nsw.gov.au/view/html/inforce/current/act-2011-010",
+    "knownBlocked": "The NSW legislation site refuses automated requests from GitHub (HTTP 403). Check this one by hand."
   },
   {
     "id": "nsw-whs-reg",
     "jurisdiction": "New South Wales",
     "title": "Work Health and Safety Regulation 2025",
-    "url": "https://legislation.nsw.gov.au/view/html/inforce/current/sl-2025-0440"
+    "url": "https://legislation.nsw.gov.au/view/html/inforce/current/sl-2025-0440",
+    "knownBlocked": "The NSW legislation site refuses automated requests from GitHub (HTTP 403). Check this one by hand."
   },
   {
     "id": "vic-ohs-act",
