@@ -100,14 +100,14 @@
     "jurisdiction": "Northern Territory",
     "title": "Work Health and Safety (National Uniform Legislation) Act 2011",
     "url": "https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-ACT-2011",
-    "versionPattern": "Reprint No:?\\s*([A-Z]+\\d+)"
+    "versionPattern": "Reprint(?: No)?:?\\s*([A-Z]+\\d+)"
   },
   {
     "id": "nt-whs-reg",
     "jurisdiction": "Northern Territory",
     "title": "Work Health and Safety (National Uniform Legislation) Regulations 2011",
     "url": "https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011",
-    "versionPattern": "Reprint No:?\\s*([A-Z]+\\d+)"
+    "versionPattern": "Reprint(?: No)?:?\\s*([A-Z]+\\d+)"
   },
   {
     "id": "act-whs-act",

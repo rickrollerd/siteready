@@ -92,6 +92,8 @@ async function check(source) {
     console.log(`--- ${source.id} (${text.length} characters): ${text.slice(0, 300)}`);
     const words = /.{0,80}(current as at|as at|reprint|in force|version|republication|compilation|currency).{0,80}/gi;
     for (const line of (text.match(words) || []).slice(0, 10)) console.log(`    ${line}`);
+    const raw = page.html.slice(0, 60000).replace(/\s+/g, ' ');
+    for (const line of (raw.match(/.{0,100}\d{4}-\d{2}-\d{2}.{0,60}/g) || []).slice(0, 8)) console.log(`    html: ${line}`);
   }
   const version = found;
   if (!version) return { status: 'unreadable', detail: 'The page was read but no version date was found. The page layout may have changed.' };
