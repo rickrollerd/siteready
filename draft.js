@@ -58,6 +58,119 @@ function isPanelLift(text) {
   return /\b(panel|precast|tilt-?up)\b/i.test(text) && /\blift/i.test(text);
 }
 
+function isScaffoldErection(text) {
+  return /\bscaffold\w*\b/i.test(text) && /\berect\w*\b/i.test(text);
+}
+
+// A sentence that says an item is missing does not supply that item.
+function isDenialLine(line) {
+  return /\b(not supplied|not provided|is missing|are missing|was missing|were missing|not held|not marked|not given|do not have|don't have|none was|none were|was not stated|were not stated|not the chart)\b/i.test(line);
+}
+
+function acceptedText(text) {
+  return sentences(text).filter((line) => !isDenialLine(line)).join(' ');
+}
+
+function keptFact(value) {
+  const text = blankName(value);
+  if (!text) return '';
+  if (sentences(text).every(isDenialLine)) return '';
+  return text;
+}
+
+function packIsTest(input) {
+  const blob = [
+    input.principalContractor,
+    input.company,
+    input.subcontractor,
+    input.scaffoldSupervisor,
+    input.task,
+    input.jobDescription,
+  ].map(cleanLine).join('\n');
+  return /\btest only\b/i.test(blob) || /\btest number\b/i.test(blob);
+}
+
+function scaffoldBrief(task, site, pack) {
+  const text = acceptedText([
+    task,
+    site && site.publicInterface,
+    site && site.otherTrades,
+    site && site.ground,
+    pack && pack.scaffoldSupervisor,
+  ].filter(Boolean).join('\n'));
+  const bays = text.match(/\b(\d+)\s*bays?\s*by\s*(\d+)\b/i);
+  const height = text.match(/\btop working platform at\s*(\d+(?:\.\d+)?)\s*m(?:etre|eter)?s?\b/i);
+  const supervisor = keptFact(pack && pack.scaffoldSupervisor);
+  return {
+    bays: bays ? [bays[1], bays[2]] : null,
+    height: height ? height[1] : '',
+    modular: /\bmodular scaffold\b/i.test(text),
+    ties: /\bties to the slab edge at every lift\b/i.test(text),
+    slab: /\bexisting concrete slab\b/i.test(text),
+    hoarded: /\bpublic footpath below is hoarded\b/i.test(text),
+    clearElevation: /\bno other trade on the elevation\b/i.test(text),
+    supervisor,
+  };
+}
+
+function scaffoldMethod(brief) {
+  const steps = [];
+  if (brief.supervisor) {
+    steps.push(`The scaffold supervisor erects the scaffold: ${brief.supervisor.replace(/[.]+$/, '')}.`);
+  }
+  if (brief.bays) {
+    const kind = brief.modular ? 'modular scaffold' : 'scaffold';
+    const ground = brief.slab ? ' on the existing concrete slab' : '';
+    steps.push(`Set out the ${kind}${ground}, ${brief.bays[0]} bays by ${brief.bays[1]}.`);
+  }
+  if (brief.height) {
+    steps.push(`Erect the scaffold to the top working platform at ${brief.height} m.`);
+  }
+  if (brief.ties) {
+    steps.push('Tie the scaffold to the slab edge at every lift.');
+  }
+  if (brief.hoarded) {
+    steps.push('The public footpath below stays hoarded.');
+  }
+  if (brief.clearElevation) {
+    steps.push('No other trade is on the elevation while the scaffold is going up.');
+  }
+  return steps;
+}
+
+function scaffoldControls(brief) {
+  const items = [];
+  if (brief.ties) items.push(control('Isolate or engineer', 'Ties to the slab edge at every lift.'));
+  if (brief.hoarded) items.push(control('Isolate or engineer', 'Public footpath below is hoarded.'));
+  if (brief.supervisor) {
+    items.push(control('Administrative', `Scaffold supervisor: ${brief.supervisor.replace(/[.]+$/, '')}.`));
+  }
+  if (brief.clearElevation) {
+    items.push(control('Administrative', 'No other trade is on the elevation.'));
+  }
+  return items;
+}
+
+function statedSite(task) {
+  const text = acceptedText(task);
+  const stated = {};
+  if (/\bpublic footpath below is hoarded\b/i.test(text)) stated.publicInterface = 'Public footpath below is hoarded.';
+  if (/\bno other trade on the elevation\b/i.test(text)) stated.otherTrades = 'No other trade on the elevation.';
+  if (/\bground is the existing concrete slab\b/i.test(text) || /\bexisting concrete slab\b/i.test(text)) {
+    stated.ground = 'Ground is the existing concrete slab.';
+  }
+  return stated;
+}
+
+function siteFromPack(task, site) {
+  const stated = statedSite(task);
+  const merged = { ...(site || {}) };
+  for (const id of Object.keys(stated)) {
+    if (!supplied(merged[id])) merged[id] = stated[id];
+  }
+  return merged;
+}
+
 function needsSafetyDataSheet(text) {
   return /\b(paints?|solvents?|adhesives?|resins?|acids?|thinners?|fuels?|petrol|diesel|chemicals?|sealants?|epox(?:y|ies)|hazardous substances?)\b/i.test(text);
 }
@@ -161,16 +274,21 @@ function combinedFacts(task, facts) {
   ].map(supplied).filter(Boolean).join('\n');
 }
 
+function topicSupplied(task, fieldValue, pattern) {
+  if (keptFact(fieldValue)) return true;
+  return sentences(task).some((line) => pattern.test(line) && !isDenialLine(line));
+}
+
 function missingFacts(task, facts) {
   return requiredFactsFor(task).filter((item) => {
-    if (item.id === 'fallControl' && fallControlText(combinedFacts(task, facts))) return false;
-    if (item.id === 'asbestosArrangement' && asbestosArrangement(combinedFacts(task, facts))) return false;
-    if (item.id === 'craneChart' && /\bcharts?\b/i.test(task) && !/\bnot the chart\b/i.test(task)) return false;
-    if (item.id === 'erectionDesign' && /\berection design\b/i.test(task)) return false;
-    if (item.id === 'centreOfGravity' && /\b(?:centre|center) of gravity\b/i.test(task)) return false;
-    if (item.id === 'braceArrangement' && /\bbrace arrangement\b/i.test(task)) return false;
-    if (item.id === 'safetyDataSheet' && /\b(safety data sheet|sds)\b/i.test(task)) return false;
-    return !supplied(facts[item.id]);
+    if (item.id === 'fallControl' && fallControlText(acceptedText(combinedFacts(task, facts)))) return false;
+    if (item.id === 'asbestosArrangement' && asbestosArrangement(acceptedText(combinedFacts(task, facts)))) return false;
+    if (item.id === 'craneChart') return !topicSupplied(task, facts.craneChart, /\bcharts?\b/i);
+    if (item.id === 'erectionDesign') return !topicSupplied(task, facts.erectionDesign, /\berection design\b/i);
+    if (item.id === 'centreOfGravity') return !topicSupplied(task, facts.centreOfGravity, /\b(?:centre|center) of gravity\b/i);
+    if (item.id === 'braceArrangement') return !topicSupplied(task, facts.braceArrangement, /\bbrace arrangement\b/i);
+    if (item.id === 'safetyDataSheet') return !topicSupplied(task, facts.safetyDataSheet, /\b(safety data sheet|sds)\b/i);
+    return !keptFact(facts[item.id]);
   });
 }
 
@@ -191,21 +309,25 @@ function control(level, text) {
   return { level, text: cleanLine(text).replace(/[.]+$/, '.') };
 }
 
-function controlsFor(task, facts) {
+function controlsFor(task, facts, pack) {
   const source = combinedFacts(task, facts);
   const items = [];
   const push = (level, text) => {
     const line = cleanLine(text);
-    if (!line) return;
+    if (!line || isDenialLine(line)) return;
     items.push(control(level, line));
   };
 
-  if (isCraneOrLift(source)) {
+  if (isScaffoldErection(task)) {
+    for (const item of scaffoldControls(scaffoldBrief(task, pack && pack.site, pack))) {
+      push(item.level, item.text);
+    }
+  } else if (isCraneOrLift(source)) {
     const under = isPanelLift(source) ? 'No one goes under the panel.' : 'No one goes under the load.';
     push('Isolate or engineer', `Only the people doing the lift are inside the exclusion zone. Stop the lift if anyone else enters. Do not pass a load over a person. ${under}`);
     push('Administrative', 'No free-fall with a load.');
     for (const field of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement']) {
-      const line = supplied(facts[field]);
+      const line = keptFact(facts[field]);
       if (line) push('Administrative', line);
     }
   } else if (mentioned(source, /\b(powered mobile plant|excavators?|forklifts?|trucks?|loaders?)\b/i)) {
@@ -224,8 +346,8 @@ function controlsFor(task, facts) {
     push('Isolate or engineer', 'Keep at least 4.0 m from a live overhead line unless the line owner agrees in writing.');
   }
 
-  const fallLine = supplied(facts.fallControl) || fallControlText(source);
-  if (fallRisk(source) && fallLine) {
+  const fallLine = keptFact(facts.fallControl) || (isScaffoldErection(task) ? '' : fallControlText(source));
+  if (fallRisk(source) && fallLine && !isScaffoldErection(task)) {
     const ppe = /\b(harness|fall arrest)\b/i.test(fallLine);
     const engineered = /\b(edge protection|guard\s?rails?|scaffold|elevating work platform|\bewp\b)\b/i.test(fallLine);
     const eliminated = /\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(fallLine);
@@ -237,10 +359,10 @@ function controlsFor(task, facts) {
     } else push('Administrative', fallLine);
   }
 
-  const asbestos = supplied(facts.asbestosArrangement) || asbestosArrangement(source);
-  if (asbestos) push('Administrative', asbestos);
+  const asbestos = keptFact(facts.asbestosArrangement) || asbestosArrangement(source);
+  if (asbestos && !isDenialLine(asbestos)) push('Administrative', asbestos);
 
-  const sheet = supplied(facts.safetyDataSheet);
+  const sheet = keptFact(facts.safetyDataSheet);
   if (sheet) {
     for (const line of sentences(sheet)) push('Administrative', line);
   }
@@ -267,7 +389,7 @@ function controlsFor(task, facts) {
   });
 }
 
-function hazardsFor(task, facts) {
+function hazardsFor(task, facts, pack) {
   const source = combinedFacts(task, facts);
   const rows = [];
   const add = (hazard, risk) => rows.push({ hazard, risk });
@@ -279,6 +401,9 @@ function hazardsFor(task, facts) {
     add('Traffic', 'A person or a vehicle is struck.');
   }
   if (fallRisk(source)) add('Fall from height', 'A person falls more than 2 metres.');
+  if (isScaffoldErection(task) && scaffoldBrief(task, pack && pack.site, pack).hoarded) {
+    add('Public footpath below', 'A person on the footpath is below the scaffold.');
+  }
   if (mentioned(source, /\basbestos\b/i)) add('Asbestos', 'A person is exposed to asbestos.');
   if (mentioned(source, /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i)) {
     add('Energised electrical service', 'A person contacts live electricity.');
@@ -300,14 +425,15 @@ function siteLines(site) {
   });
 }
 
-function methodSteps(task, facts, site) {
-  const fromTask = sentences(task).filter((line) => !LIFT_BLEED.test(line) || isCraneOrLift(task));
+function methodSteps(task, facts, site, pack) {
+  if (isScaffoldErection(task)) return scaffoldMethod(scaffoldBrief(task, site, pack));
+  const fromTask = sentences(task).filter((line) => !isDenialLine(line) && (!LIFT_BLEED.test(line) || isCraneOrLift(task)));
   const fromFacts = [];
   for (const id of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement']) {
-    const line = supplied(facts[id]);
+    const line = keptFact(facts[id]);
     if (!line) continue;
     if (sentences(task).some((item) => item.toLowerCase() === sentences(line).join(' ').toLowerCase())) continue;
-    fromFacts.push(...sentences(line));
+    fromFacts.push(...sentences(line).filter((part) => !isDenialLine(part)));
   }
   const fromSite = siteLines(site)
     .filter((field) => field.text)
@@ -352,8 +478,19 @@ function prepareDraft(input) {
   const state = findState(input.state);
   const task = cleanLine(input.task || input.jobDescription);
   const facts = input.facts || {};
-  const site = input.site || {};
+  const site = siteFromPack(task, input.site || {});
+  const pack = {
+    site,
+    scaffoldSupervisor: input.scaffoldSupervisor,
+    principalContractor: input.principalContractor,
+    company: input.company,
+    subcontractor: input.subcontractor,
+    task,
+  };
   const missing = missingFacts(task, facts);
+  const status = packIsTest(input)
+    ? 'Not approved. Not signed. A test, not a site record.'
+    : 'Not approved. Not signed.';
   const header = {
     state: state.name,
     instrument: state.instrument,
@@ -361,10 +498,18 @@ function prepareDraft(input) {
     section: state.section,
     sectionTitle: state.sectionTitle,
     contents: state.contents,
+    principalContractor: keptFact(input.principalContractor),
     subcontractor: blankName(input.company || input.subcontractor),
     workplace: blankName(input.workplace || input.siteAddress),
+    siteManager: keptFact(input.siteManager),
+    scaffoldSupervisor: keptFact(input.scaffoldSupervisor),
+    hospital: keptFact(input.hospital),
+    firstAider: keptFact(input.firstAider),
+    musterPoint: keptFact(input.musterPoint),
     task,
-    date: input.date || '',
+    date: cleanLine(input.date),
+    status,
+    test: packIsTest(input),
   };
 
   if (missing.length) {
@@ -383,8 +528,8 @@ function prepareDraft(input) {
     };
   }
 
-  let steps = methodSteps(task, facts, site);
-  const built = controlsFor(task, facts);
+  let steps = methodSteps(task, facts, site, pack);
+  const built = controlsFor(task, facts, pack);
   const controlText = built.map((item) => item.text);
   if (controlText.some((line) => /\b(people doing the lift are inside|inside the exclusion zone)\b/i.test(line))) {
     steps = steps.filter((line) => !/\b(keep clear of the exclusion zone|stay out of the exclusion zone|remain outside the exclusion zone|no person enters the exclusion zone)\b/i.test(line));
@@ -399,7 +544,7 @@ function prepareDraft(input) {
     missing: [],
     statement: '',
     highRisk: highRiskMatches(combinedFacts(task, facts)).map((item) => item.label),
-    hazards: hazardsFor(task, facts),
+    hazards: hazardsFor(task, facts, pack),
     controls: dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
       const splitAt = key.indexOf('|');
       return { level: key.slice(0, splitAt), text: key.slice(splitAt + 1) };

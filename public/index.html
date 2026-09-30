@@ -116,12 +116,40 @@
         <ul class="states" id="states"></ul>
       </div>
       <div class="field">
+        <label for="principal">Principal contractor</label>
+        <input id="principal" type="text" autocomplete="organization">
+      </div>
+      <div class="field">
         <label for="company">Subcontractor</label>
         <input id="company" type="text" autocomplete="organization">
       </div>
       <div class="field">
         <label for="workplace">Workplace</label>
         <input id="workplace" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="site-manager">Site manager</label>
+        <input id="site-manager" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="scaffold-supervisor">Scaffold supervisor</label>
+        <input id="scaffold-supervisor" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="hospital">Hospital</label>
+        <input id="hospital" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="first-aider">First aider</label>
+        <input id="first-aider" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="muster-point">Muster point</label>
+        <input id="muster-point" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="draft-date">Date of the draft</label>
+        <input id="draft-date" type="text" autocomplete="off">
       </div>
       <div class="field">
         <label for="task">Task
@@ -168,11 +196,22 @@
       const site = {};
       document.querySelectorAll('[data-fact]').forEach((el) => { facts[el.dataset.fact] = el.value.trim(); });
       document.querySelectorAll('[data-site]').forEach((el) => { site[el.dataset.site] = el.value.trim(); });
+      const value = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+      };
       return {
         state: state ? state.value : '',
-        task: document.getElementById('task').value.trim(),
-        company: document.getElementById('company').value.trim(),
-        workplace: document.getElementById('workplace').value.trim(),
+        task: value('task'),
+        company: value('company'),
+        workplace: value('workplace'),
+        principalContractor: value('principal'),
+        siteManager: value('site-manager'),
+        scaffoldSupervisor: value('scaffold-supervisor'),
+        hospital: value('hospital'),
+        firstAider: value('first-aider'),
+        musterPoint: value('muster-point'),
+        date: value('draft-date'),
         facts,
         site,
       };
@@ -237,15 +276,22 @@
     });
 
     function render(draft) {
+      const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
       const head = `
         <h3>Safe work method statement</h3>
         <p class="meta">${esc(draft.instrument)} · ${esc(draft.compilation)} compilation · section ${esc(draft.section)}</p>
-        <p class="status">Not approved. Not signed.</p>
+        <p class="status">${esc(draft.status || 'Not approved. Not signed.')}</p>
         <table>
           <tbody>
             <tr><th>State</th><td>${esc(draft.state)}</td></tr>
+            ${row('Principal contractor', draft.principalContractor)}
             <tr><th>Subcontractor</th><td>${esc(draft.subcontractor)}</td></tr>
             <tr><th>Workplace</th><td>${esc(draft.workplace)}</td></tr>
+            ${row('Site manager', draft.siteManager)}
+            ${row('Scaffold supervisor', draft.scaffoldSupervisor)}
+            ${row('Hospital', draft.hospital)}
+            ${row('First aider', draft.firstAider)}
+            ${row('Muster point', draft.musterPoint)}
             <tr><th>Task</th><td>${esc(draft.task)}</td></tr>
             <tr><th>Date</th><td>${esc(draft.date)}</td></tr>
           </tbody>
