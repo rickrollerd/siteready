@@ -1,7 +1,7 @@
 {
   "name": "siteready",
   "version": "1.0.0",
-  "description": "Queensland safe work method statement drafting aid",
+  "description": "Safe work method statement drafting aid for Australian states",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

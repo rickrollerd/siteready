@@ -1,6 +1,6 @@
 # SiteReady
 
-A writing aid for a Queensland safe work method statement (SWMS) for one task. It prepares a draft from the facts the user gives. The subcontractor checks, finishes and signs it. The draft is marked "Not approved. Not signed."
+A writing aid for a safe work method statement (SWMS) for one task, for the states whose legislation is loaded. It prepares a draft from the facts the user gives. The subcontractor checks, finishes and signs it. The draft is marked "Not approved. Not signed."
 
 ## Run it
 
@@ -17,7 +17,7 @@ npm test
 
 ## How it works
 
-1. Pick the state, write the task, and answer Yes or No to "Could a person fall more than 2 metres during this task?". Only Queensland is loaded. Other states are shown but cannot be chosen. A No shows a short explanation of what a fall from height is. If the task wording mentions work at height and the answer is No, the user is warned and asked to check, but the No stands, because a scaffold, parapet or edge protection may already remove the risk. The draft records the answer.
+1. Pick the state, write the task, and answer Yes or No to "Could a person fall more than 2 metres during this task?". Queensland and New South Wales are loaded. Other states are shown but cannot be chosen. A No shows a short explanation of what a fall from height is. If the task wording mentions work at height and the answer is No, the user is warned and asked to check, but the No stands, because a scaffold, parapet or edge protection may already remove the risk. The draft records the answer.
 2. The app asks for the facts the task needs, for example:
    - crane chart: rated capacity in tonnes at the working radius in metres
    - erection design, centre of gravity and brace arrangement for a panel lift
@@ -37,7 +37,7 @@ The draft is built by fixed rules in `draft.js`. No AI service is called, and no
 |---|---|
 | `server.js` | Express server and API routes |
 | `draft.js` | Rules that build the draft or stand the task down |
-| `legislation.js` | Queensland WHS Regulation 2011 references and the section 291 categories |
+| `legislation.js` | Each loaded state's regulation, section 291 categories, fall explanation and overhead line control |
 | `docx-draft.js` | Word file output |
 | `public/` | Web page (`index.html`, `app.js`), manifest and icons |
 | `test/` | Tests (`npm test`) |
@@ -76,7 +76,11 @@ The native app loads `public/` from the device, so it must be told where the ser
 
 ## Legislation references
 
-The Queensland references in `legislation.js` and `draft.js` must be checked against the current compilation on legislation.qld.gov.au before release, and again when the regulation changes.
+- Queensland: Work Health and Safety Regulation 2011 (Qld), current as at 29 March 2026. Overhead line distance from the Electrical Safety Regulation 2026 (Qld).
+- New South Wales: Work Health and Safety Regulation 2025 (NSW), current version for 3 July 2026, checked against the official PDF. Section 166 sets no overhead line distance, so none is given.
+
+
+The references in `legislation.js` must be checked against the current compilation on legislation.qld.gov.au before release, and again when the regulation changes.
 
 ## Daily legislation check
 
