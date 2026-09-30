@@ -1,1 +1,72 @@
-{}
+{
+  "qld-whs-act": {
+    "version": "2026-08-03",
+    "status": "ok"
+  },
+  "qld-whs-reg": {
+    "version": "2026-03-29",
+    "status": "ok"
+  },
+  "qld-es-act": {
+    "version": "2026-03-27",
+    "status": "ok"
+  },
+  "qld-es-reg": {
+    "version": "2026-09-01",
+    "status": "ok"
+  },
+  "nsw-whs-act": {
+    "status": "unreadable"
+  },
+  "nsw-whs-reg": {
+    "status": "unreadable"
+  },
+  "vic-ohs-act": {
+    "version": "6 Aug 2025 045",
+    "status": "ok"
+  },
+  "vic-ohs-reg": {
+    "version": "29 July 2026 017",
+    "status": "ok"
+  },
+  "sa-whs-act": {
+    "version": "01 December 2024 - 30 June 2025",
+    "status": "ok"
+  },
+  "sa-whs-reg": {
+    "version": "01 July 2025 - 30 June 2026",
+    "status": "ok"
+  },
+  "wa-whs-act": {
+    "version": "28 May 2026 Current 00-h0-02",
+    "status": "ok"
+  },
+  "wa-whs-reg": {
+    "version": "1 Jul 2026 Current 01-c0-00",
+    "status": "ok"
+  },
+  "tas-whs-act": {
+    "version": "2025-07-02",
+    "status": "ok"
+  },
+  "tas-whs-reg": {
+    "version": "2025-07-02",
+    "status": "ok"
+  },
+  "nt-whs-act": {
+    "version": "REPW025",
+    "status": "ok"
+  },
+  "nt-whs-reg": {
+    "version": "REPW025",
+    "status": "ok"
+  },
+  "act-whs-act": {
+    "version": "R30 (current) 26 November 2025",
+    "status": "ok"
+  },
+  "act-whs-reg": {
+    "version": "R47 (current) 29 November 2025",
+    "status": "ok"
+  }
+}
