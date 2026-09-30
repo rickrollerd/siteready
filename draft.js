@@ -209,6 +209,18 @@ function fallRisk(text) {
   return false;
 }
 
+const FALL_ANSWERS = ['yes', 'no'];
+
+function fallAnswer(value) {
+  const text = cleanLine(value).toLowerCase();
+  return FALL_ANSWERS.includes(text) ? text : '';
+}
+
+// The user's Yes counts. A No does not override a task that describes work at height.
+function fallRiskFor(text, answer) {
+  return answer === 'yes' || fallRisk(text);
+}
+
 function fallControlText(text) {
   const lines = sentences(text).filter((line) => {
     // The scaffold being put up is the work, not the control for a fall during that work.
@@ -251,9 +263,9 @@ function mentioned(text, pattern) {
   return pattern.test(String(text || ''));
 }
 
-function highRiskMatches(text) {
+function highRiskMatches(text, answer) {
   const checks = {
-    fall: fallRisk(text),
+    fall: fallRiskFor(text, answer),
     tower: mentioned(text, /\btelecommunication tower\b/i),
     demolition: mentioned(text, /\bdemolition\b/i) && mentioned(text, /\b(load-bearing|load bearing|structure)\b/i),
     asbestos: mentioned(text, /\basbestos\b/i),
@@ -275,7 +287,7 @@ function highRiskMatches(text) {
   return HIGH_RISK.filter((item) => checks[item.id]);
 }
 
-function requiredFactsFor(task) {
+function requiredFactsFor(task, answer) {
   const facts = [];
   if (isCraneOrLift(task)) {
     facts.push({
@@ -298,7 +310,7 @@ function requiredFactsFor(task) {
       prompt: 'Safety data sheet.',
     });
   }
-  if (fallRisk(task) && !fallControlText(task)) {
+  if (fallRiskFor(task, answer) && !fallControlText(task)) {
     facts.push({
       id: 'fallControl',
       label: 'Fall control',
@@ -400,8 +412,8 @@ function factState(item, task, facts) {
   return hasSubstance(item.id, field) ? 'supplied' : 'vague';
 }
 
-function missingFacts(task, facts) {
-  return requiredFactsFor(task)
+function missingFacts(task, facts, answer) {
+  return requiredFactsFor(task, answer)
     .map((item) => ({ ...item, state: factState(item, task, facts) }))
     .filter((item) => item.state !== 'supplied');
 }
@@ -465,7 +477,7 @@ function controlsFor(task, facts, pack) {
   }
 
   const fallLine = fallControlText(acceptedText(source)) || keptFact(facts.fallControl);
-  if (fallRisk(source) && fallLine) {
+  if (fallRiskFor(source, pack && pack.fallAnswer) && fallLine) {
     const ppe = /\b(harness|fall arrest)\b/i.test(fallLine);
     const engineered = /\b(edge protection|guard\s?rails?|scaffold|elevating work platform|\bewp\b)\b/i.test(fallLine);
     const eliminated = /\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(fallLine);
@@ -542,7 +554,7 @@ function hazardsFor(task, facts, pack) {
   if (mentioned(source, /\b(road\s?work|traffic control|on the road|adjacent to (?:a |the )?road|carriageway)\b/i)) {
     add('Traffic', 'A person or a vehicle is struck.');
   }
-  if (fallRisk(source)) add('Fall from height', 'A person falls more than 2 metres.');
+  if (fallRiskFor(source, pack && pack.fallAnswer)) add('Fall from height', 'A person falls more than 2 metres.');
   if (isScaffoldErection(task) && scaffoldBrief(task, pack && pack.site, pack).hoarded) {
     add('Public footpath below', 'A person on the footpath is below the scaffold.');
   }
@@ -556,7 +568,7 @@ function hazardsFor(task, facts, pack) {
   }
   // Every high risk construction work category found in the task has a hazard row.
   const named = rows.map((row) => row.hazard);
-  for (const item of highRiskMatches(source)) {
+  for (const item of highRiskMatches(source, pack && pack.fallAnswer)) {
     const row = HRCW_HAZARDS[item.id];
     if (row && !named.includes(row[0])) {
       add(row[0], row[1]);
@@ -603,6 +615,28 @@ const OVERHEAD_LINE_CONTROL = 'Keep people and operating plant outside the minim
 
 const REVIEW = 'The controls are put in place before the task starts. They are checked while the task is underway. They are reviewed before the task starts again, and if the task changes.';
 
+// Plain wording for a user who is not sure what a fall from height is.
+const FALL_EXPLANATION = 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulation 2011 (Qld), section 291, work where a person could fall more than 2 metres is high risk construction work. Section 299 says high risk construction work needs a safe work method statement before it starts.';
+
+const FALL_WARNING = 'You answered No, but the task describes work at height, such as a roof, a scaffold, an upper storey, or a height above 2 metres. A fall control is still required. If no one can fall more than 2 metres, say how in the fall control box, for example that the work is done from the ground.';
+
+function fallCheck(task, answer) {
+  const detected = fallRisk(task);
+  return {
+    answer,
+    detected,
+    treatedAsYes: answer === 'yes' || detected,
+    warning: answer === 'no' && detected ? FALL_WARNING : '',
+    explanation: FALL_EXPLANATION,
+  };
+}
+
+function fallRecord(check) {
+  if (check.answer === 'yes') return 'Yes';
+  if (check.detected) return 'Answered No. Treated as Yes because the task describes work at height.';
+  return 'No';
+}
+
 function questionsFor(input) {
   const state = findState(input.state);
   if (!state) {
@@ -617,6 +651,10 @@ function questionsFor(input) {
   }
   const task = cleanLine(input.task || input.jobDescription);
   if (!task) return { kind: 'error', message: 'Write the task.' };
+  const answer = fallAnswer(input.fallRisk);
+  if (!answer) {
+    return { kind: 'error', message: 'Answer the fall from height question.', explanation: FALL_EXPLANATION };
+  }
   return {
     kind: 'questions',
     state: {
@@ -627,7 +665,8 @@ function questionsFor(input) {
       section: state.section,
     },
     task,
-    required: requiredFactsFor(task),
+    fall: fallCheck(task, answer),
+    required: requiredFactsFor(task, answer),
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
   };
 }
@@ -646,8 +685,9 @@ function prepareDraft(input) {
     company: input.company,
     subcontractor: input.subcontractor,
     task,
+    fallAnswer: fallAnswer(input.fallRisk),
   };
-  const missing = missingFacts(task, facts);
+  const missing = missingFacts(task, facts, pack.fallAnswer);
   const status = packIsTest(input)
     ? 'Not approved. Not signed. A test, not a site record.'
     : 'Not approved. Not signed.';
@@ -667,6 +707,7 @@ function prepareDraft(input) {
     firstAider: keptFact(input.firstAider),
     musterPoint: keptFact(input.musterPoint),
     task,
+    fallRisk: fallRecord(fallCheck(task, pack.fallAnswer)),
     date: cleanLine(input.date),
     status,
     test: packIsTest(input),
@@ -703,7 +744,7 @@ function prepareDraft(input) {
     ...header,
     missing: [],
     statement: '',
-    highRisk: highRiskMatches(combinedFacts(task, facts)).map((item) => item.label),
+    highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer).map((item) => item.label),
     hazards: hazardsFor(task, facts, pack),
     controls: dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
       const splitAt = key.indexOf('|');
@@ -735,4 +776,5 @@ module.exports = {
   blankName,
   HIERARCHY,
   REVIEW,
+  FALL_EXPLANATION,
 };

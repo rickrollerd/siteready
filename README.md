@@ -17,7 +17,7 @@ npm test
 
 ## How it works
 
-1. Pick the state and write the task. Only Queensland is loaded. Other states are shown but cannot be chosen.
+1. Pick the state, write the task, and answer Yes or No to "Could a person fall more than 2 metres during this task?". Only Queensland is loaded. Other states are shown but cannot be chosen. A No shows a short explanation of what a fall from height is. If the task wording describes work at height, a No is treated as Yes, the user is told why, and a fall control is still required.
 2. The app asks for the facts the task needs, for example:
    - crane chart: rated capacity in tonnes at the working radius in metres
    - erection design, centre of gravity and brace arrangement for a panel lift

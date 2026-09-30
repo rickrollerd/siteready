@@ -1,8 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { prepareDraft } = require('../draft');
+const { prepareDraft, questionsFor } = require('../draft');
 
-const draft = (task, extra = {}) => prepareDraft({ state: 'qld', task, ...extra });
+// Most tests answer No so the task wording check is what is being tested.
+const draft = (task, extra = {}) => prepareDraft({ state: 'qld', task, fallRisk: 'no', ...extra });
 const FALL = 'Risk of a person falling more than 2 metres';
 
 test('scaffold erection to 6 m stands down until a fall control is given', () => {
@@ -69,4 +70,37 @@ test('overhead lines use the Queensland distance', () => {
   assert.ok(line);
   assert.match(line.text, /3\.0 m/);
   assert.doesNotMatch(line.text, /4\.0 m/);
+});
+
+test('the fall question must be answered', () => {
+  const asked = questionsFor({ state: 'qld', task: 'Replace a 3m length of fence.' });
+  assert.equal(asked.kind, 'error');
+  assert.match(asked.explanation, /more than 2 metres/);
+  assert.equal(prepareDraft({ state: 'qld', task: 'Replace a 3m length of fence.' }).kind, 'error');
+});
+
+test('Yes requires a fall control even when the wording does not show height', () => {
+  const task = 'Replace a 3m length of fence.';
+  assert.deepEqual(draft(task, { fallRisk: 'yes' }).missing, ['Fall control']);
+  const done = draft(task, { fallRisk: 'yes', facts: { fallControl: 'The work is done from the ground.' } });
+  assert.equal(done.kind, 'draft');
+  assert.ok(done.highRisk.includes(FALL));
+  assert.ok(done.hazards.some((row) => row.hazard === 'Fall from height'));
+  assert.ok(done.controls.some((item) => item.level === 'Eliminate'));
+  assert.equal(done.fallRisk, 'Yes');
+});
+
+test('No with work at height warns and still requires a fall control', () => {
+  const task = 'Replace roof sheets on a two storey house.';
+  const asked = questionsFor({ state: 'qld', task, fallRisk: 'no' });
+  assert.match(asked.fall.warning, /still required/);
+  assert.ok(asked.required.some((item) => item.id === 'fallControl'));
+  const done = draft(task, { facts: { fallControl: 'Edge protection is installed around the roof perimeter first.' } });
+  assert.match(done.fallRisk, /Treated as Yes/);
+});
+
+test('No on a task at ground level is recorded as No with no warning', () => {
+  const asked = questionsFor({ state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no' });
+  assert.equal(asked.fall.warning, '');
+  assert.equal(draft('Replace a 3m length of fence.').fallRisk, 'No');
 });

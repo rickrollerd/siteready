@@ -42,7 +42,7 @@ test('security headers and rate limit headers are set', async () => {
 });
 
 test('a draft and its Word file are prepared', async () => {
-  const body = { state: 'qld', task: 'Replace a 3m length of fence.' };
+  const body = { state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no' };
   const draft = await post('/api/draft', body);
   assert.equal(draft.status, 200);
   assert.equal((await draft.json()).kind, 'draft');

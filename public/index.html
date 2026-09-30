@@ -94,6 +94,12 @@
     }
     .sign { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
     .sign div { border: 1px solid #d5dbe3; min-height: 64px; padding: 7px 9px; font-size: 13px; font-weight: 600; }
+    .choice { border: 0; padding: 0; }
+    .choice legend { font-size: 14px; font-weight: 600; margin-bottom: 6px; padding: 0; }
+    .choice label { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; margin: 0 18px 0 0; }
+    .note, .warning { font-size: 14px; border-radius: 6px; padding: 10px 12px; margin: 10px 0 0; }
+    .note { background: #f4f6f8; border: 1px solid #d5dbe3; }
+    .warning { background: #fdf3e3; border: 1px solid #e3b76b; margin: 0 0 14px; }
     .hidden { display: none; }
     @media (max-width: 640px) {
       .wrap { padding: 18px 12px 48px; }
@@ -159,6 +165,12 @@
         </label>
         <textarea id="task" required></textarea>
       </div>
+      <fieldset class="field choice" id="fall-question">
+        <legend>Could a person fall more than 2 metres during this task?</legend>
+        <label><input type="radio" name="fallRisk" value="yes" required> Yes</label>
+        <label><input type="radio" name="fallRisk" value="no"> No</label>
+        <p class="note hidden" id="fall-explanation"></p>
+      </fieldset>
       <div class="actions">
         <button type="submit" id="continue">Continue</button>
       </div>
@@ -166,6 +178,7 @@
     </form>
 
     <form id="facts" class="panel hidden">
+      <p class="warning hidden" id="fall-warning"></p>
       <h2>Facts</h2>
       <div id="required-block"></div>
       <h2 style="margin-top:18px">Site-specific</h2>

@@ -26,6 +26,7 @@ function payload() {
   };
   return {
     state: state ? state.value : '',
+    fallRisk: (document.querySelector('input[name="fallRisk"]:checked') || {}).value || '',
     task: value('task'),
     company: value('company'),
     workplace: value('workplace'),
@@ -53,6 +54,7 @@ async function loadStates() {
       </label>
     </li>
   `).join('');
+  document.getElementById('fall-explanation').textContent = data.fallExplanation || '';
   const first = statesEl.querySelector('input:not(:disabled)');
   if (first) first.checked = true;
 }
@@ -72,6 +74,9 @@ document.getElementById('start').addEventListener('submit', async (event) => {
     return;
   }
   questions = data;
+  const warning = document.getElementById('fall-warning');
+  warning.textContent = (data.fall && data.fall.warning) || '';
+  warning.classList.toggle('hidden', !warning.textContent);
   const required = data.required || [];
   document.getElementById('required-block').innerHTML = required.length
     ? `<p class="lede" style="margin-bottom:12px">If a required fact is blank, the task is stood down. A method is not written.</p>` + required.map((item) => {
@@ -92,6 +97,14 @@ document.getElementById('start').addEventListener('submit', async (event) => {
   `).join('');
   factsForm.classList.remove('hidden');
   factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+// A No shows what a fall from height is, in case the question was not clear.
+document.querySelectorAll('input[name="fallRisk"]').forEach((input) => {
+  input.addEventListener('change', () => {
+    const no = document.querySelector('input[name="fallRisk"]:checked')?.value === 'no';
+    document.getElementById('fall-explanation').classList.toggle('hidden', !no);
+  });
 });
 
 document.getElementById('back').addEventListener('click', () => {
@@ -117,6 +130,7 @@ function render(draft) {
         ${row('First aider', draft.firstAider)}
         ${row('Muster point', draft.musterPoint)}
         <tr><th>Task</th><td>${esc(draft.task)}</td></tr>
+        ${row('Fall of more than 2 metres', draft.fallRisk)}
         <tr><th>Date</th><td>${esc(draft.date)}</td></tr>
       </tbody>
     </table>`;
