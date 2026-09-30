@@ -486,7 +486,7 @@ function controlsFor(task, facts, pack) {
   }
 
   if (mentioned(source, /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i)) {
-    push('Isolate or engineer', OVERHEAD_LINE_CONTROL);
+    push('Isolate or engineer', pack.state.overheadLineControl);
   }
 
   const fallLine = fallControlText(acceptedText(source)) || keptFact(facts.fallControl);
@@ -621,26 +621,18 @@ function methodSteps(task, facts, site, pack) {
   return withoutOpposites(dedupe([...fromTask, ...fromFacts, ...fromSite]));
 }
 
-// Electrical Safety Regulation 2026 (Qld), which replaced the 2013 regulation on 1 September 2026
-// with no policy change. 3.0 m is the exclusion zone for untrained persons and operating plant
-// near lines up to 132 kV; higher voltages need more.
-const OVERHEAD_LINE_CONTROL = 'Keep people and operating plant outside the minimum distance for the line voltage under the Electrical Safety Regulation 2026 (Qld). For a line up to 132 kV this is 3.0 m. Use a safety observer when plant could come within that distance.';
-
 const REVIEW = 'The controls are put in place before the task starts. They are checked while the task is underway. They are reviewed before the task starts again, and if the task changes.';
-
-// Plain wording for a user who is not sure what a fall from height is.
-const FALL_EXPLANATION = 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulation 2011 (Qld), section 291, work where a person could fall more than 2 metres is high risk construction work. Section 299 says high risk construction work needs a safe work method statement before it starts.';
 
 const FALL_WARNING = 'You answered No, but the task mentions work at height, such as a roof, a scaffold, an upper storey, or a height above 2 metres. Check that no one can fall more than 2 metres, for example because a scaffold, parapet or edge protection is already in place. If someone can, go back and answer Yes.';
 
-function fallCheck(task, answer) {
+function fallCheck(task, answer, state) {
   const detected = fallRisk(task);
   return {
     answer,
     detected,
     treatedAsYes: answer === 'yes',
     warning: answer === 'no' && detected ? FALL_WARNING : '',
-    explanation: FALL_EXPLANATION,
+    explanation: state.fallExplanation,
   };
 }
 
@@ -666,7 +658,7 @@ function questionsFor(input) {
   if (!task) return { kind: 'error', message: 'Write the task.' };
   const answer = fallAnswer(input.fallRisk);
   if (!answer) {
-    return { kind: 'error', message: 'Answer the fall from height question.', explanation: FALL_EXPLANATION };
+    return { kind: 'error', message: 'Answer the fall from height question.', explanation: state.fallExplanation };
   }
   return {
     kind: 'questions',
@@ -678,7 +670,7 @@ function questionsFor(input) {
       section: state.section,
     },
     task,
-    fall: fallCheck(task, answer),
+    fall: fallCheck(task, answer, state),
     required: requiredFactsFor(task, answer),
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
   };
@@ -699,6 +691,7 @@ function prepareDraft(input) {
     subcontractor: input.subcontractor,
     task,
     fallAnswer: fallAnswer(input.fallRisk),
+    state,
   };
   const missing = missingFacts(task, facts, pack.fallAnswer);
   const status = packIsTest(input)
@@ -720,7 +713,7 @@ function prepareDraft(input) {
     firstAider: keptFact(input.firstAider),
     musterPoint: keptFact(input.musterPoint),
     task,
-    fallRisk: fallRecord(fallCheck(task, pack.fallAnswer)),
+    fallRisk: fallRecord(fallCheck(task, pack.fallAnswer, state)),
     date: cleanLine(input.date),
     status,
     test: packIsTest(input),
@@ -789,5 +782,4 @@ module.exports = {
   blankName,
   HIERARCHY,
   REVIEW,
-  FALL_EXPLANATION,
 };
