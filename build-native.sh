@@ -2,7 +2,6 @@
 
 echo "🚀 Building SiteReady Native Apps"
 echo "================================="
-echo "Target: Complete by 12:00 PM, March 27"
 echo "Current: $(date '+%H:%M %Z')"
 echo ""
 
@@ -103,21 +102,11 @@ echo "Timestamp: $(date)"
 echo "Status: $(if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then echo "ANDROID READY"; else echo "IN PROGRESS"; fi)"
 echo ""
 
-echo "📱 NATIVE FEATURES STATUS"
-echo "-------------------------"
-echo "Camera: ✅ Implemented (native + fallback)"
-echo "GPS: ✅ Implemented (native + fallback)"
-echo "Offline Storage: ✅ Implemented (Preferences + Filesystem)"
-echo "Notifications: ✅ Configured (push ready)"
-echo "Build System: ✅ Automated scripts"
-echo ""
-
-echo "🎯 DELIVERY CHECKLIST (12:00 PM)"
+echo "🎯 CHECKLIST"
 echo "--------------------------------"
 echo "[$(if [ -d "android" ]; then echo "✅"; else echo " "; fi)] Android project initialized"
 echo "[$(if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then echo "✅"; else echo " "; fi)] Android APK built"
 echo "[$(if [ -d "ios" ]; then echo "✅"; else echo " "; fi)] iOS project initialized"
-echo "[$(if [ -f "public/native-features.js" ]; then echo "✅"; else echo " "; fi)] Native features implemented"
 echo "[$(if [ -f "capacitor.config.json" ]; then echo "✅"; else echo " "; fi)] Capacitor configured"
 echo "[$(if npx cap --version &> /dev/null; then echo "✅"; else echo " "; fi)] Build system working"
 echo ""
@@ -130,7 +119,6 @@ done
 
 if [ ! -f "android/app/build/outputs/apk/debug/app-debug.apk" ] && [ ! -d "ios" ]; then
   echo "  📄 capacitor.config.json - Configuration"
-  echo "  📄 public/native-features.js - Native feature library"
   echo "  📄 build-native.sh - Build automation"
 fi
 
@@ -144,9 +132,5 @@ echo "4. Start beta testing program"
 echo "5. Prepare app store assets"
 
 echo ""
-echo "✅ STEP 1: CAPACITOR NATIVE INTEGRATION"
-echo "   Status: 90% COMPLETE"
-echo "   Deadline: 12:00 PM TODAY"
-echo "   Confidence: HIGH"
-echo ""
-echo "Progress tracking: ~/SiteReady/APP_STORE_PROGRESS.md"
+echo "The native app calls the server named in <meta name=\"siteready-api\"> in public/index.html."
+echo "Set it to the deployed server address before a release build."

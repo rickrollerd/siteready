@@ -175,16 +175,61 @@ function needsSafetyDataSheet(text) {
   return /\b(paints?|solvents?|adhesives?|resins?|acids?|thinners?|fuels?|petrol|diesel|chemicals?|sealants?|epox(?:y|ies)|hazardous substances?)\b/i.test(text);
 }
 
+const HEIGHT_CONTEXT = /\b(height|high|fall|falls|falling|roof|roofs|roofing|above|up to|platform|scaffold\w*|storey|stories|storeys|level|deck|edge|ladder|mezzanine|ewp|elevat\w*|parapet|gutter|eaves)\b/i;
+
+// A stated height only counts when the sentence is about working at that height.
+function statedHeights(text) {
+  const heights = [];
+  for (const line of sentences(text)) {
+    if (!HEIGHT_CONTEXT.test(line)) continue;
+    const pattern = /\b(\d+(?:\.\d+)?)\s*m(?:etre|eter)?s?\b/gi;
+    let match;
+    while ((match = pattern.exec(line))) {
+      const after = line.slice(match.index + match[0].length, match.index + match[0].length + 12);
+      if (/^\s*(deep|long|wide|length|width|away|from|clear)\b/i.test(after)) continue;
+      heights.push(Number(match[1]));
+    }
+  }
+  return heights;
+}
+
 function fallRisk(text) {
-  if (/\bfall(?:ing)? (?:more than )?(?:2|two)\b/i.test(text)) return true;
-  if (/\b(on the roof|working at height)\b/i.test(text)) return true;
-  const match = String(text || '').match(/\b(\d+(?:\.\d+)?)\s*m(?:etre|eter)?s?\b/i);
-  if (!match) return false;
-  return Number(match[1]) > 2 && /\b(height|fall|roof|above|up to)\b/i.test(text);
+  const source = String(text || '');
+  if (/\bfall(?:ing)? (?:of )?(?:more than )?(?:2|two)\b/i.test(source)) return true;
+  if (/\b(working at height|work at height)\b/i.test(source)) return true;
+  const heights = statedHeights(source);
+  if (heights.some((height) => height > 2)) return true;
+  if (heights.length) return false;
+  // No height was stated. Roof work, work above ground floor and scaffold
+  // erection are treated as a fall of more than 2 metres until a height says otherwise.
+  if (/\b(roofs?|roofing|rooftop)\b/i.test(source)) return true;
+  if (/\b(two|three|four|five|2|3|4|5|multi)[- ]?(?:storey|story|level)\b/i.test(source)) return true;
+  if (/\b(upper floor|upper level|second storey|second floor|first floor)\b/i.test(source)) return true;
+  if (isScaffoldErection(source) || /\b(dismantl\w*|strik\w*)\b[^.]{0,40}\bscaffold/i.test(source)) return true;
+  return false;
+}
+
+const FALL_ANSWERS = ['yes', 'no'];
+
+function fallAnswer(value) {
+  const text = cleanLine(value).toLowerCase();
+  return FALL_ANSWERS.includes(text) ? text : '';
+}
+
+// The user's Yes counts. A No does not override a task that describes work at height.
+function fallRiskFor(text, answer) {
+  return answer === 'yes' || fallRisk(text);
 }
 
 function fallControlText(text) {
-  const lines = sentences(text).filter((line) => /\b(do not place a person|stay(?:s|ing)? on the ground|from the ground|edge protection|guard\s?rails?|harness|scaffold|elevating work platform|\bewp\b|fall arrest|fall prevention|no one (?:goes|works) at)\b/i.test(line));
+  const lines = sentences(text).filter((line) => {
+    // The scaffold being put up is the work, not the control for a fall during that work.
+    const scaffoldIsWork = /\bscaffold\w*\b/i.test(line) && /\b(erect\w*|dismantl\w*|strik\w*|alter\w*)\b/i.test(line);
+    const pattern = scaffoldIsWork
+      ? /\b(do not place a person|stay(?:s|ing)? on the ground|from the ground|edge protection|guard\s?rails?|harness|elevating work platform|\bewp\b|fall arrest|fall prevention|no one (?:goes|works) at|advance guard\s?rail|platform (?:is )?(?:fully )?decked)\b/i
+      : /\b(do not place a person|stay(?:s|ing)? on the ground|from the ground|edge protection|guard\s?rails?|harness|scaffold|elevating work platform|\bewp\b|fall arrest|fall prevention|no one (?:goes|works) at)\b/i;
+    return pattern.test(line);
+  });
   return lines.join(' ');
 }
 
@@ -193,19 +238,40 @@ function asbestosArrangement(text) {
   return lines.join(' ');
 }
 
+function trenchDepths(text) {
+  const depths = [];
+  const pattern = /\b(\d+(?:\.\d+)?)\s*m(?:etre|eter)?s?\s+deep\b|\bdepth of\s+(\d+(?:\.\d+)?)\s*m\b|\bdeep(?:er)? than\s+(\d+(?:\.\d+)?)\s*m\b/gi;
+  let match;
+  while ((match = pattern.exec(String(text || '')))) depths.push(Number(match[1] || match[2] || match[3]));
+  return depths;
+}
+
+// A trench, shaft or tunnel counts unless every stated depth is 1.5 m or less.
+function deepExcavation(text) {
+  if (/\btunnel\w*\b/i.test(text)) return true;
+  if (!/\b(trench\w*|shaft)\b/i.test(text)) return false;
+  const depths = trenchDepths(text);
+  return !depths.length || depths.some((depth) => depth > 1.5);
+}
+
+function trenchSupportText(text) {
+  const lines = sentences(text).filter((line) => /\b(shor(?:e|ed|ing)|bench(?:ed|ing)|batter(?:ed|ing)?|trench (?:box|shield)|shields?|engineer\w*)\b/i.test(line));
+  return lines.join(' ');
+}
+
 function mentioned(text, pattern) {
   return pattern.test(String(text || ''));
 }
 
-function highRiskMatches(text) {
+function highRiskMatches(text, answer) {
   const checks = {
-    fall: fallRisk(text),
+    fall: fallRiskFor(text, answer),
     tower: mentioned(text, /\btelecommunication tower\b/i),
     demolition: mentioned(text, /\bdemolition\b/i) && mentioned(text, /\b(load-bearing|load bearing|structure)\b/i),
     asbestos: mentioned(text, /\basbestos\b/i),
     temporary: mentioned(text, /\b(temporary support|propping|structural alteration)\b/i),
     confined: mentioned(text, /\bconfined space\b/i),
-    trench: mentioned(text, /\b(trench|shaft|tunnel)\b/i),
+    trench: deepExcavation(text),
     explosives: mentioned(text, /\bexplosives?\b/i),
     gas: mentioned(text, /\b(gas main|pressuri[sz]ed gas)\b/i),
     chemicalLine: mentioned(text, /\b(fuel line|refrigerant line|chemical line)\b/i),
@@ -221,13 +287,13 @@ function highRiskMatches(text) {
   return HIGH_RISK.filter((item) => checks[item.id]);
 }
 
-function requiredFactsFor(task) {
+function requiredFactsFor(task, answer) {
   const facts = [];
   if (isCraneOrLift(task)) {
     facts.push({
       id: 'craneChart',
       label: 'Crane chart',
-      prompt: 'Crane chart at the working radius.',
+      prompt: 'From the crane chart: the rated capacity in tonnes at the working radius in metres.',
     });
   }
   if (isPanelLift(task)) {
@@ -244,11 +310,18 @@ function requiredFactsFor(task) {
       prompt: 'Safety data sheet.',
     });
   }
-  if (fallRisk(task) && !fallControlText(task)) {
+  if (fallRiskFor(task, answer) && !fallControlText(task)) {
     facts.push({
       id: 'fallControl',
       label: 'Fall control',
       prompt: 'How a fall of more than 2 metres is prevented.',
+    });
+  }
+  if (deepExcavation(task) && !trenchSupportText(task)) {
+    facts.push({
+      id: 'trenchSupport',
+      label: 'Trench support',
+      prompt: 'How the sides are secured: shoring, benching or battering, and who designed it.',
     });
   }
   if (/\basbestos\b/i.test(task) && !asbestosArrangement(task)) {
@@ -271,25 +344,82 @@ function combinedFacts(task, facts) {
     facts.safetyDataSheet,
     facts.fallControl,
     facts.asbestosArrangement,
+    facts.trenchSupport,
   ].map(supplied).filter(Boolean).join('\n');
 }
 
-function topicSupplied(task, fieldValue, pattern) {
-  if (keptFact(fieldValue)) return true;
-  return sentences(task).some((line) => pattern.test(line) && !isDenialLine(line));
+// Words that say a fact exists without stating it.
+const FILLER = new Set(('supplied provided attached given included available received done ok okay yes see as per '
+  + 'the a an is are was were has have been be in on at of to and it its this that with for by from our we will '
+  + 'pack file files document documents doc drawing drawings sheet sheets chart charts design centre center gravity '
+  + 'brace braces arrangement crane erection safety data sds checked confirmed approved fine all good sorted '
+  + 'tbc na n/a copy copies here there on-site onsite site kept held office folder email emailed').split(' '));
+
+function meaningfulWords(text) {
+  return cleanLine(text)
+    .toLowerCase()
+    .split(/[^a-z0-9./-]+/)
+    .map((word) => word.replace(/^[./-]+|[./-]+$/g, ''))
+    .filter((word) => word && (word.length > 1 || /\d/.test(word)) && !FILLER.has(word));
 }
 
-function missingFacts(task, facts) {
-  return requiredFactsFor(task).filter((item) => {
-    if (item.id === 'fallControl' && fallControlText(acceptedText(combinedFacts(task, facts)))) return false;
-    if (item.id === 'asbestosArrangement' && asbestosArrangement(acceptedText(combinedFacts(task, facts)))) return false;
-    if (item.id === 'craneChart') return !topicSupplied(task, facts.craneChart, /\bcharts?\b/i);
-    if (item.id === 'erectionDesign') return !topicSupplied(task, facts.erectionDesign, /\berection design\b/i);
-    if (item.id === 'centreOfGravity') return !topicSupplied(task, facts.centreOfGravity, /\b(?:centre|center) of gravity\b/i);
-    if (item.id === 'braceArrangement') return !topicSupplied(task, facts.braceArrangement, /\bbrace arrangement\b/i);
-    if (item.id === 'safetyDataSheet') return !topicSupplied(task, facts.safetyDataSheet, /\b(safety data sheet|sds)\b/i);
-    return !keptFact(facts[item.id]);
-  });
+// A crane chart fact states the rated capacity and the working radius.
+function statesChartValues(text) {
+  const source = String(text || '');
+  const load = /\b\d+(?:\.\d+)?\s*(?:t|tonnes?|kg)\b/i.test(source);
+  const radius = /\b\d+(?:\.\d+)?\s*m(?:etre|eter)?s?\b/i.test(source) && /\bradius\b/i.test(source);
+  return load && radius;
+}
+
+function hasSubstance(id, text) {
+  const value = acceptedText(text);
+  if (!value) return false;
+  if (id === 'craneChart') return statesChartValues(value);
+  return meaningfulWords(value).length >= 2;
+}
+
+// The clause of the task that names the topic, so a bare "design supplied" does not count.
+function topicClauses(task, pattern) {
+  return String(task || '')
+    .split(/(?<=[.;])\s+|\n+|,\s+/)
+    .map(cleanLine)
+    .filter((clause) => clause && pattern.test(clause) && !isDenialLine(clause));
+}
+
+function topicState(id, task, fieldValue, pattern) {
+  const field = keptFact(fieldValue);
+  if (field) return hasSubstance(id, field) ? 'supplied' : 'vague';
+  const clauses = topicClauses(task, pattern);
+  if (!clauses.length) return 'missing';
+  return clauses.some((clause) => hasSubstance(id, clause)) ? 'supplied' : 'vague';
+}
+
+const TOPIC_PATTERNS = {
+  craneChart: /\bcharts?\b/i,
+  erectionDesign: /\berection design\b/i,
+  centreOfGravity: /\b(?:centre|center) of gravity\b/i,
+  braceArrangement: /\bbrace arrangement\b/i,
+  safetyDataSheet: /\b(safety data sheet|sds)\b/i,
+};
+
+function factState(item, task, facts) {
+  if (item.id === 'fallControl' && fallControlText(acceptedText(combinedFacts(task, facts)))) return 'supplied';
+  if (item.id === 'asbestosArrangement' && asbestosArrangement(acceptedText(combinedFacts(task, facts)))) return 'supplied';
+  if (item.id === 'trenchSupport' && trenchSupportText(acceptedText(combinedFacts(task, facts)))) return 'supplied';
+  if (TOPIC_PATTERNS[item.id]) return topicState(item.id, task, facts[item.id], TOPIC_PATTERNS[item.id]);
+  const field = keptFact(facts[item.id]);
+  if (!field) return 'missing';
+  return hasSubstance(item.id, field) ? 'supplied' : 'vague';
+}
+
+function missingFacts(task, facts, answer) {
+  return requiredFactsFor(task, answer)
+    .map((item) => ({ ...item, state: factState(item, task, facts) }))
+    .filter((item) => item.state !== 'supplied');
+}
+
+function missingLabel(item) {
+  return item.state === 'vague' ? `${item.label} (the text given does not state it)` : item.label;
 }
 
 function contradicts(line, others) {
@@ -343,11 +473,11 @@ function controlsFor(task, facts, pack) {
   }
 
   if (mentioned(source, /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i)) {
-    push('Isolate or engineer', 'Keep at least 4.0 m from a live overhead line unless the line owner agrees in writing.');
+    push('Isolate or engineer', OVERHEAD_LINE_CONTROL);
   }
 
-  const fallLine = keptFact(facts.fallControl) || (isScaffoldErection(task) ? '' : fallControlText(source));
-  if (fallRisk(source) && fallLine && !isScaffoldErection(task)) {
+  const fallLine = fallControlText(acceptedText(source)) || keptFact(facts.fallControl);
+  if (fallRiskFor(source, pack && pack.fallAnswer) && fallLine) {
     const ppe = /\b(harness|fall arrest)\b/i.test(fallLine);
     const engineered = /\b(edge protection|guard\s?rails?|scaffold|elevating work platform|\bewp\b)\b/i.test(fallLine);
     const eliminated = /\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(fallLine);
@@ -361,6 +491,9 @@ function controlsFor(task, facts, pack) {
 
   const asbestos = keptFact(facts.asbestosArrangement) || asbestosArrangement(source);
   if (asbestos && !isDenialLine(asbestos)) push('Administrative', asbestos);
+
+  const trench = trenchSupportText(acceptedText(source)) || keptFact(facts.trenchSupport);
+  if (deepExcavation(source) && trench) push('Isolate or engineer', trench);
 
   const sheet = keptFact(facts.safetyDataSheet);
   if (sheet) {
@@ -389,6 +522,27 @@ function controlsFor(task, facts, pack) {
   });
 }
 
+const HRCW_HAZARDS = {
+  fall: ['Fall from height', 'A person falls more than 2 metres.'],
+  tower: ['Telecommunication tower', 'A person falls from the tower.'],
+  demolition: ['Demolition of a load-bearing structure', 'A person is struck or crushed by a collapse.'],
+  asbestos: ['Asbestos', 'A person is exposed to asbestos.'],
+  temporary: ['Temporary support', 'A structure collapses onto a person.'],
+  confined: ['Confined space', 'A person is overcome by the atmosphere or trapped.'],
+  trench: ['Trench or excavation collapse', 'A person is buried or crushed.'],
+  explosives: ['Explosives', 'A person is injured by a blast.'],
+  gas: ['Pressurised gas main or piping', 'A gas release, fire or explosion injures a person.'],
+  chemicalLine: ['Chemical, fuel or refrigerant line', 'A person is exposed to a release.'],
+  electrical: ['Energised electrical service', 'A person contacts live electricity.'],
+  atmosphere: ['Contaminated or flammable atmosphere', 'A person is overcome or burned.'],
+  precast: ['Tilt-up or precast concrete', 'A panel falls or topples onto a person.'],
+  road: ['Traffic', 'A person or a vehicle is struck.'],
+  plant: ['Moving plant', 'A person is struck by plant.'],
+  temperature: ['Artificial extremes of temperature', 'A person suffers heat or cold illness.'],
+  water: ['Water or other liquid', 'A person drowns.'],
+  diving: ['Diving work', 'A person drowns or is injured under water.'],
+};
+
 function hazardsFor(task, facts, pack) {
   const source = combinedFacts(task, facts);
   const rows = [];
@@ -400,7 +554,7 @@ function hazardsFor(task, facts, pack) {
   if (mentioned(source, /\b(road\s?work|traffic control|on the road|adjacent to (?:a |the )?road|carriageway)\b/i)) {
     add('Traffic', 'A person or a vehicle is struck.');
   }
-  if (fallRisk(source)) add('Fall from height', 'A person falls more than 2 metres.');
+  if (fallRiskFor(source, pack && pack.fallAnswer)) add('Fall from height', 'A person falls more than 2 metres.');
   if (isScaffoldErection(task) && scaffoldBrief(task, pack && pack.site, pack).hoarded) {
     add('Public footpath below', 'A person on the footpath is below the scaffold.');
   }
@@ -411,6 +565,15 @@ function hazardsFor(task, facts, pack) {
   if (needsSafetyDataSheet(source)) add('Hazardous substance', 'A person is exposed to the substance.');
   if (mentioned(source, /\b(powered mobile plant|excavators?|forklifts?|trucks?|loaders?|cranes?)\b/i) && !isCraneOrLift(source)) {
     add('Moving plant', 'A person is struck by plant.');
+  }
+  // Every high risk construction work category found in the task has a hazard row.
+  const named = rows.map((row) => row.hazard);
+  for (const item of highRiskMatches(source, pack && pack.fallAnswer)) {
+    const row = HRCW_HAZARDS[item.id];
+    if (row && !named.includes(row[0])) {
+      add(row[0], row[1]);
+      named.push(row[0]);
+    }
   }
   return dedupe(rows.map((row) => `${row.hazard}|${row.risk}`)).map((key) => {
     const [hazard, risk] = key.split('|');
@@ -426,10 +589,14 @@ function siteLines(site) {
 }
 
 function methodSteps(task, facts, site, pack) {
-  if (isScaffoldErection(task)) return scaffoldMethod(scaffoldBrief(task, site, pack));
+  if (isScaffoldErection(task)) {
+    const fall = keptFact(facts.fallControl);
+    const fallSteps = fall ? sentences(fall).filter((part) => !isDenialLine(part)) : [];
+    return dedupe([...scaffoldMethod(scaffoldBrief(task, site, pack)), ...fallSteps]);
+  }
   const fromTask = sentences(task).filter((line) => !isDenialLine(line) && (!LIFT_BLEED.test(line) || isCraneOrLift(task)));
   const fromFacts = [];
-  for (const id of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement']) {
+  for (const id of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport']) {
     const line = keptFact(facts[id]);
     if (!line) continue;
     if (sentences(task).some((item) => item.toLowerCase() === sentences(line).join(' ').toLowerCase())) continue;
@@ -441,7 +608,34 @@ function methodSteps(task, facts, site, pack) {
   return withoutOpposites(dedupe([...fromTask, ...fromFacts, ...fromSite]));
 }
 
+// Electrical Safety Regulation 2026 (Qld), which replaced the 2013 regulation on 1 September 2026
+// with no policy change. 3.0 m is the exclusion zone for untrained persons and operating plant
+// near lines up to 132 kV; higher voltages need more.
+const OVERHEAD_LINE_CONTROL = 'Keep people and operating plant outside the minimum distance for the line voltage under the Electrical Safety Regulation 2026 (Qld). For a line up to 132 kV this is 3.0 m. Use a safety observer when plant could come within that distance.';
+
 const REVIEW = 'The controls are put in place before the task starts. They are checked while the task is underway. They are reviewed before the task starts again, and if the task changes.';
+
+// Plain wording for a user who is not sure what a fall from height is.
+const FALL_EXPLANATION = 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulation 2011 (Qld), section 291, work where a person could fall more than 2 metres is high risk construction work. Section 299 says high risk construction work needs a safe work method statement before it starts.';
+
+const FALL_WARNING = 'You answered No, but the task describes work at height, such as a roof, a scaffold, an upper storey, or a height above 2 metres. A fall control is still required. If no one can fall more than 2 metres, say how in the fall control box, for example that the work is done from the ground.';
+
+function fallCheck(task, answer) {
+  const detected = fallRisk(task);
+  return {
+    answer,
+    detected,
+    treatedAsYes: answer === 'yes' || detected,
+    warning: answer === 'no' && detected ? FALL_WARNING : '',
+    explanation: FALL_EXPLANATION,
+  };
+}
+
+function fallRecord(check) {
+  if (check.answer === 'yes') return 'Yes';
+  if (check.detected) return 'Answered No. Treated as Yes because the task describes work at height.';
+  return 'No';
+}
 
 function questionsFor(input) {
   const state = findState(input.state);
@@ -457,6 +651,10 @@ function questionsFor(input) {
   }
   const task = cleanLine(input.task || input.jobDescription);
   if (!task) return { kind: 'error', message: 'Write the task.' };
+  const answer = fallAnswer(input.fallRisk);
+  if (!answer) {
+    return { kind: 'error', message: 'Answer the fall from height question.', explanation: FALL_EXPLANATION };
+  }
   return {
     kind: 'questions',
     state: {
@@ -467,7 +665,8 @@ function questionsFor(input) {
       section: state.section,
     },
     task,
-    required: requiredFactsFor(task),
+    fall: fallCheck(task, answer),
+    required: requiredFactsFor(task, answer),
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
   };
 }
@@ -486,8 +685,9 @@ function prepareDraft(input) {
     company: input.company,
     subcontractor: input.subcontractor,
     task,
+    fallAnswer: fallAnswer(input.fallRisk),
   };
-  const missing = missingFacts(task, facts);
+  const missing = missingFacts(task, facts, pack.fallAnswer);
   const status = packIsTest(input)
     ? 'Not approved. Not signed. A test, not a site record.'
     : 'Not approved. Not signed.';
@@ -507,6 +707,7 @@ function prepareDraft(input) {
     firstAider: keptFact(input.firstAider),
     musterPoint: keptFact(input.musterPoint),
     task,
+    fallRisk: fallRecord(fallCheck(task, pack.fallAnswer)),
     date: cleanLine(input.date),
     status,
     test: packIsTest(input),
@@ -516,7 +717,7 @@ function prepareDraft(input) {
     return {
       kind: 'stand-down',
       ...header,
-      missing: missing.map((item) => item.label),
+      missing: missing.map(missingLabel),
       statement: 'This task is stood down. It does not start.',
       method: [],
       hazards: [],
@@ -543,7 +744,7 @@ function prepareDraft(input) {
     ...header,
     missing: [],
     statement: '',
-    highRisk: highRiskMatches(combinedFacts(task, facts)).map((item) => item.label),
+    highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer).map((item) => item.label),
     hazards: hazardsFor(task, facts, pack),
     controls: dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
       const splitAt = key.indexOf('|');
@@ -575,4 +776,5 @@ module.exports = {
   blankName,
   HIERARCHY,
   REVIEW,
+  FALL_EXPLANATION,
 };

@@ -5,7 +5,6 @@
 **Prerequisites:**
 - GitHub account (you have `rickrollerd`)
 - Railway account (free, takes 2 min with GitHub OAuth)
-- DeepSeek API key (`DEEPSEEK_API_KEY`)
 - siteready.co.nz domain (or buy from Namecheap)
 
 ### Step 1: Deploy to Railway (5 minutes)
@@ -18,16 +17,9 @@
 6. Railway auto-detects Node.js, builds, deploys
 7. You get a live URL like: `https://siteready.railway.app`
 
-### Step 2: Add Environment Variables
+### Step 2: Environment variables
 
-In Railway dashboard, go to **Variables**:
-
-```
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
-PORT=3849  (Railway sets this automatically, optional; local default is 3849)
-```
-
-That's it. App is now live.
+No API key is needed. Railway sets `PORT`. The optional settings are in `.env.example`.
 
 ### Step 3: Custom Domain (siteready.co.nz)
 
@@ -44,17 +36,6 @@ That's it. App is now live.
 7. Wait 5-10 minutes for DNS to propagate
 8. Visit https://siteready.co.nz — live
 
-### Step 4: Stripe Setup (Optional, for Payments)
-
-Once app is live and you're ready to accept payments:
-
-1. Go to **https://stripe.com**, sign up
-2. Get API keys from Stripe dashboard
-3. In Railway, add env variables:
-   - `STRIPE_SECRET_KEY=sk_live_...`
-   - `STRIPE_PUBLISHABLE_KEY=pk_live_...`
-4. Henry will implement the billing endpoint
-
 ### Monitoring
 
 - Railway dashboard shows logs, CPU, memory, uptime
@@ -67,11 +48,6 @@ Once app is live and you're ready to accept payments:
 - Railway didn't run `npm install`. Check build logs.
 - Fix: Click **Redeploy**, it should run npm install automatically.
 
-**"DEEPSEEK_API_KEY is not set"**
-- You forgot to add the env variable in Railway.
-- Go to **Variables**, add `DEEPSEEK_API_KEY` with your DeepSeek key.
-- Redeploy.
-
 **Domain not working**
 - DNS might not have propagated yet (wait 10 min)
 - Check CNAME record in Namecheap is correct
@@ -82,10 +58,9 @@ Once app is live and you're ready to accept payments:
 To run locally:
 
 ```bash
-cd /home/maxim/.openclaw/workspace/SiteReady/app
 cp .env.example .env
-# Edit .env and add your DeepSeek API key
 npm install
+npm test
 npm start
 # Opens on http://localhost:3849
 ```
@@ -96,4 +71,4 @@ If something breaks on Railway:
 1. Check build logs in Railway dashboard
 2. Check runtime logs (Settings → View Logs)
 3. Redeploy from dashboard
-4. If still stuck, check server.js for syntax errors: `node --check server.js`
+4. If still stuck, run `npm test` locally

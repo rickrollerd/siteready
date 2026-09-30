@@ -1,16 +1,16 @@
 {
   "name": "siteready",
   "version": "1.0.0",
-  "description": "Voice-to-SWMS safety document generator",
-  "main": "index.js",
+  "description": "Queensland safe work method statement drafting aid",
+  "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.80.0",
     "@capacitor/android": "^8.3.0",
     "@capacitor/app": "^8.1.0",
     "@capacitor/camera": "^8.0.2",
@@ -29,7 +29,6 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
-    "helmet": "^8.1.0",
-    "openai": "^6.33.0"
+    "helmet": "^8.1.0"
   }
 }
