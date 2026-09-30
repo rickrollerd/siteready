@@ -144,18 +144,27 @@ function workerTable() {
   });
 }
 
+function metaRows(draft) {
+  const rows = [['State', draft.state]];
+  if (draft.principalContractor) rows.push(['Principal contractor', draft.principalContractor]);
+  rows.push(['Subcontractor', draft.subcontractor || ' ']);
+  rows.push(['Workplace', draft.workplace || ' ']);
+  if (draft.siteManager) rows.push(['Site manager', draft.siteManager]);
+  if (draft.scaffoldSupervisor) rows.push(['Scaffold supervisor', draft.scaffoldSupervisor]);
+  if (draft.hospital) rows.push(['Hospital', draft.hospital]);
+  if (draft.firstAider) rows.push(['First aider', draft.firstAider]);
+  if (draft.musterPoint) rows.push(['Muster point', draft.musterPoint]);
+  rows.push(['Task', draft.task]);
+  rows.push(['Date', draft.date || ' ']);
+  return rows;
+}
+
 function childrenFor(draft) {
   const blocks = [
     para('Safe work method statement', { bold: true, size: 36, before: 0, after: 40 }),
     para(`${draft.instrument}  ·  ${draft.compilation} compilation  ·  section ${draft.section}`, { size: 20, color: MUTED, after: 40 }),
-    para('Not approved. Not signed.', { size: 20, before: 0, after: 160 }),
-    metaTable([
-      ['State', draft.state],
-      ['Subcontractor', draft.subcontractor || ' '],
-      ['Workplace', draft.workplace || ' '],
-      ['Task', draft.task],
-      ['Date', draft.date || ' '],
-    ]),
+    para(draft.status || 'Not approved. Not signed.', { size: 20, before: 0, after: 160 }),
+    metaTable(metaRows(draft)),
   ];
 
   if (draft.kind === 'stand-down') {
