@@ -1,7 +1,7 @@
 {
   "name": "SiteReady - Safety Document Generator",
   "short_name": "SiteReady",
-  "description": "AI-powered voice-to-SWMS generator for construction safety compliance in NZ/AU",
+  "description": "A writing aid for one task. Queensland statements use the March 2026 compilation.",
   "start_url": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],

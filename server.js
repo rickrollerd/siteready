@@ -1,6 +1,9 @@
 const express = require('express');
 const OpenAI = require('openai');
 const path = require('path');
+const { listStates } = require('./legislation');
+const { isCraneOrLift, questionsFor, prepareDraft, stripLiftBleedText, blankName } = require('./draft');
+const { draftToDocx } = require('./docx-draft');
 
 require('dotenv').config();
 
@@ -133,6 +136,11 @@ function todayDdMmYyyy(date = new Date()) {
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const yyyy = date.getFullYear();
   return `${dd}/${mm}/${yyyy}`;
+}
+
+function longDate(date = new Date()) {
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 function sourceCorpus(ctx) {
@@ -760,9 +768,13 @@ function stepIsEmptyCheck(line) {
   return !/\b(underground|overhead|power line|road|footpath|4(?:\.0)?\s*m)\b/i.test(text);
 }
 
+function isCraneOrLiftTask(profile) {
+  return isCraneOrLift(`${profile.jobText || ''}\n${profile.answerText || ''}\n${profile.source || ''}`);
+}
+
 function ensureMethodology(swms, profile) {
   const task = asObject(swms.taskDescription);
-  if (profile.crane) {
+  if (isCraneOrLiftTask(profile)) {
     const steps = crewBrief(profile).map(stripZoneExitOrder).filter(Boolean);
     task.workMethodology = steps.map((line, index) => `${index + 1}. ${line}`).join('\n');
   } else {
@@ -774,6 +786,7 @@ function ensureMethodology(swms, profile) {
       .map((line) => line.trim())
       .filter((line) => line && !stepConfirmsMissingFact(line) && !stepIsEmptyCheck(line));
     task.workMethodology = lines.map((line, index) => `${index + 1}. ${stripStepNumber(line)}`).join('\n');
+    task.workMethodology = stripLiftBleedText(task.workMethodology);
   }
   const job = String(profile.jobText || '');
   if (task.task && !job.toLowerCase().includes(String(task.task).trim().toLowerCase())) {
@@ -790,7 +803,7 @@ function hazardBlob(hazards) {
 }
 
 function ensureHazards(swms, profile) {
-  if (!profile.crane) return;
+  if (!isCraneOrLiftTask(profile)) return;
   const hazards = Array.isArray(swms.hazards) ? swms.hazards.filter((hazard) => {
     return hazard && !/general site work hazard/i.test(String(hazard.hazard || ''));
   }) : [];
@@ -1090,7 +1103,7 @@ function ensureReferences(swms, profile) {
     add('GRWM regs 24 and 25: work under a raised object, and a falling object.');
     swms.highRiskCategories = ['Work under a raised object and a falling object (GRWM regs 24 and 25).'];
   }
-  if (profile.crane) {
+  if (isCraneOrLiftTask(profile)) {
     add('Crane ACOP: still published by WorkSafe. The page says the guidance has not been updated for HSWA 2015. Use it as published practice with that status, not as a current approved code under HSWA.');
     add('Rigging ACOP: still published by WorkSafe. The page says the guidance has not been updated for HSWA 2015. Use it as published practice with that status, not as a current approved code under HSWA.');
     if (!profile.qualificationsSupplied) {
@@ -1135,7 +1148,7 @@ function ensurePpe(swms) {
 }
 
 function ensurePersonnel(swms, profile) {
-  if (!profile.crane) return;
+  if (!isCraneOrLiftTask(profile)) return;
   const qualificationNote = 'Crane and rigging qualification evidence was not provided. Unit standards 3795 and 3789 are the minimum the crane ACOP table names.';
   const people = Array.isArray(swms.personnel) ? swms.personnel : [];
   const roles = [
@@ -1223,6 +1236,55 @@ function applyJobLimits(swms, ctx) {
   ensureReferences(swms, profile);
   ensurePersonnel(swms, profile);
   swms.workerSignoff = [];
+  return clearLiftBleed(swms, profile);
+}
+
+function clearGluedName(value) {
+  const text = String(value || '').trim();
+  if (!text) return text;
+  if (/\bwas not provided\b/i.test(text)) return 'Not provided';
+  if (/\bnot provided\b/i.test(text) && !/^not provided$/i.test(text)) return 'Not provided';
+  return text;
+}
+
+function clearLiftBleed(swms, profile) {
+  for (const person of swms.personnel || []) {
+    if (!person) continue;
+    person.name = clearGluedName(person.name);
+  }
+  for (const item of swms.plantAndEquipment || []) {
+    if (!item) continue;
+    item.operator = clearGluedName(item.operator);
+  }
+  if (isCraneOrLiftTask(profile)) return swms;
+  const task = asObject(swms.taskDescription);
+  const stripped = stripLiftBleedText(task.workMethodology || '')
+    .split('\n')
+    .map((line) => line.replace(/^\d+\.\s*/, '').trim())
+    .filter(Boolean);
+  const seen = new Set();
+  const steps = [];
+  for (const line of stripped) {
+    const key = line.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    steps.push(line);
+  }
+  const fallback = String(profile.jobText || '')
+    .split(/(?<=[.])\s+|\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const method = steps.length ? steps : fallback;
+  task.workMethodology = method.map((line, index) => `${index + 1}. ${line.replace(/^\d+\.\s*/, '')}`).join('\n');
+  swms.taskDescription = task;
+  const bleedName = /\b(exclusion zone|signaller|slings?|lift crew|under the panel|swinging load)\b/i;
+  swms.hazards = (Array.isArray(swms.hazards) ? swms.hazards : []).map((hazard) => {
+    const controlMeasures = (hazard.controlMeasures || [])
+      .map((control) => stripLiftBleedText(String(control)))
+      .map((control) => control.trim())
+      .filter(Boolean);
+    return { ...hazard, controlMeasures };
+  }).filter((hazard) => hazard.hazard && !bleedName.test(hazard.hazard) && hazard.controlMeasures.length);
   return swms;
 }
 
@@ -1230,9 +1292,55 @@ function applyJobLimits(swms, ctx) {
 // arrays and placeholder steps. Describe the document in prose and reject a template reply.
 // Crane and rigging limits below are the constraints Clive's specialist stated. They are not
 // a precast-erection procedure, and none is invented here.
+function buildPlainTaskMessages(ctx) {
+  const today = todayDdMmYyyy();
+  const correction = ctx.correction
+    ? 'The previous reply was rejected. It was a blank template or it added facts the job did not state. Write the finished record now.\n\n'
+    : '';
+  return [
+    {
+      role: 'system',
+      content: `You write a finished work-method record for the one task in the user message.
+Return one JSON object and no other text. Do not wrap it in markdown.
+Write only the task that was stated. Do not add plant, roles, or zones the job did not name.
+Do not invent worker names, licence numbers, a hospital, or plant details.
+If a name was not supplied, leave the name field blank. Do not attach a missing-fact phrase to a name.
+Do not return a schema, a sample, or placeholders.
+workerSignoff must be an empty list because nobody has signed.`,
+    },
+    {
+      role: 'user',
+      content: `${correction}Write the work-method record as JSON for this one task.
+
+Site address: ${ctx.siteAddress || ''}
+Subcontractor: ${blankName(ctx.companyNameText)}
+dateCreated: ${today}
+
+Task:
+${ctx.jobDescription}
+
+Additional information, and only where an answer states a fact:
+${ctx.extraAnswers}
+
+How to write it:
+- document.title is "Safe work method statement". document.dateCreated is ${today}.
+- taskDescription.workMethodology is a numbered method for this task only. Number each step once. Do not repeat a sentence.
+- Hazards and controls come from this task. Put controls in this order when more than one kind is used: eliminate, substitute, isolate or engineer, administrative, PPE.
+- Name a PPE item only when this task names it.
+- Leave site-specific facts out when they were not stated.
+- personnel name fields stay blank when no person was named.
+- references is an array of strings.
+- workerSignoff is empty.
+
+A methodology that does not describe this task is an invalid reply.`,
+    },
+  ];
+}
+
 function buildSwmsMessages(ctx) {
   const today = todayDdMmYyyy();
   const profile = jobProfile(ctx);
+  if (!isCraneOrLiftTask(profile)) return buildPlainTaskMessages(ctx);
   const correction = ctx.correction
     ? 'The previous reply was rejected. It was a blank template, it invented facts that were not supplied, or it did not describe this job. Write the finished record now.\n\n'
     : '';
@@ -1526,6 +1634,66 @@ app.post('/api/generate-swms', async (req, res) => {
   }
 });
 
+function draftBody(body) {
+  const facts = body.facts && typeof body.facts === 'object' ? body.facts : {};
+  const site = body.site && typeof body.site === 'object' ? body.site : {};
+  const field = (value, max) => textField(value, max);
+  return {
+    state: field(body.state, 80),
+    task: field(body.task || body.jobDescription, 5000),
+    company: field(body.company || body.companyName, 200),
+    workplace: field(body.workplace || body.siteAddress, 500),
+    date: longDate(),
+    facts: {
+      craneChart: field(facts.craneChart, 2000),
+      erectionDesign: field(facts.erectionDesign, 2000),
+      centreOfGravity: field(facts.centreOfGravity, 2000),
+      braceArrangement: field(facts.braceArrangement, 2000),
+      safetyDataSheet: field(facts.safetyDataSheet, 4000),
+      fallControl: field(facts.fallControl, 2000),
+      asbestosArrangement: field(facts.asbestosArrangement, 2000),
+    },
+    site: {
+      liveServices: field(site.liveServices, 1000),
+      publicInterface: field(site.publicInterface, 1000),
+      otherTrades: field(site.otherTrades, 1000),
+      ground: field(site.ground, 1000),
+      access: field(site.access, 1000),
+    },
+  };
+}
+
+app.get('/api/states', (_req, res) => {
+  res.json({ states: listStates() });
+});
+
+app.post('/api/draft/questions', (req, res) => {
+  const result = questionsFor(draftBody(req.body || {}));
+  if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
+  res.json(result);
+});
+
+app.post('/api/draft', (req, res) => {
+  const result = prepareDraft(draftBody(req.body || {}));
+  if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
+  res.json(result);
+});
+
+app.post('/api/draft.docx', async (req, res) => {
+  try {
+    const result = prepareDraft(draftBody(req.body || {}));
+    if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
+    const buffer = await draftToDocx(result);
+    const filename = result.kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(Buffer.from(buffer));
+  } catch (error) {
+    console.error('Draft document error:', error.message);
+    res.status(500).json({ error: 'The Word file could not be prepared.' });
+  }
+});
+
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception (server kept alive):', err.message);
 });
@@ -1546,4 +1714,6 @@ module.exports = {
   looksLikeUnfinishedSwms,
   groundSwms,
   publicEmergencyNumber,
+  prepareDraft,
+  questionsFor,
 };
