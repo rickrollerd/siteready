@@ -79,8 +79,7 @@ The native app loads `public/` from the device, so it must be told where the ser
 - Queensland: Work Health and Safety Regulation 2011 (Qld), current as at 29 March 2026. Overhead line distance from the Electrical Safety Regulation 2026 (Qld).
 - New South Wales: Work Health and Safety Regulation 2025 (NSW), current version for 3 July 2026, checked against the official PDF. Section 166 sets no overhead line distance, so none is given.
 
-
-The references in `legislation.js` must be checked against the current compilation on legislation.qld.gov.au before release, and again when the regulation changes.
+The references in `legislation.js` must be checked against each state's official legislation site before release, and again when a regulation changes.
 
 ## Daily legislation check
 
