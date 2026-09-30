@@ -1,7 +1,8 @@
 // Runs every scenario in every state and territory and compares the result
 // with what the scenario expects.
 //
-//   node scenarios/run.js       print the results and write scenarios/results.md
+//   node scenarios/run.js           print the results, and fail if any run fails
+//   node scenarios/run.js --write   also write scenarios/results.md
 
 const fs = require('fs');
 const path = require('path');
@@ -83,6 +84,6 @@ const passed = rows.filter((row) => row.state.loaded && !row.problems.length).le
 const loadedRuns = rows.filter((row) => row.state.loaded).length;
 const report = `# Scenario results\n\n${passed} of ${loadedRuns} runs in a loaded state passed. States without loaded legislation should refuse.\n\n${table.join('\n')}\n\n${details.length ? `## Failures\n\n${details.join('\n\n')}\n` : ''}`;
 
-fs.writeFileSync(path.join(__dirname, 'results.md'), report);
+if (process.argv.includes('--write')) fs.writeFileSync(path.join(__dirname, 'results.md'), report);
 console.log(report);
 process.exitCode = failures.length ? 1 : 0;

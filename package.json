@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test && node scenarios/run.js > /dev/null",
+    "scenarios": "node scenarios/run.js --write"
   },
   "keywords": [],
   "author": "",

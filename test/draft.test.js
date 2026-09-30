@@ -8,20 +8,23 @@ const FALL = 'Risk of a person falling more than 2 metres';
 
 test('scaffold erection to 6 m stands down until a fall control is given', () => {
   const task = 'Erect a modular scaffold 4 bays by 2, top working platform at 6 m, ties to the slab edge at every lift.';
-  const stood = draft(task);
+  assert.match(questionsFor({ state: 'qld', task, fallRisk: 'no' }).fall.warning, /mentions work at height/);
+  const stood = draft(task, { fallRisk: 'yes' });
   assert.equal(stood.kind, 'stand-down');
   assert.deepEqual(stood.missing, ['Fall control']);
 
-  const done = draft(task, { facts: { fallControl: 'Erect from a fully decked platform with advance guardrails at each lift.' } });
+  const done = draft(task, { fallRisk: 'yes', facts: { fallControl: 'Erect from a fully decked platform with advance guardrails at each lift.' } });
   assert.equal(done.kind, 'draft');
   assert.ok(done.highRisk.includes(FALL));
   assert.ok(done.hazards.some((row) => row.hazard === 'Fall from height'));
   assert.ok(done.method.some((step) => /advance guardrails/.test(step)));
 });
 
-test('roof work on a two storey house is a fall risk', () => {
-  assert.deepEqual(draft('Replace roof sheets on a two storey house.').missing, ['Fall control']);
+test('roof work on a two storey house is recognised as work at height', () => {
+  assert.ok(questionsFor({ state: 'qld', task: 'Replace roof sheets on a two storey house.', fallRisk: 'no' }).fall.detected);
+  assert.deepEqual(draft('Replace roof sheets on a two storey house.', { fallRisk: 'yes' }).missing, ['Fall control']);
   const done = draft('Replace roof sheets on a two storey house.', {
+    fallRisk: 'yes',
     facts: { fallControl: 'Edge protection is installed around the roof perimeter first.' },
   });
   assert.ok(done.highRisk.includes(FALL));
@@ -90,13 +93,15 @@ test('Yes requires a fall control even when the wording does not show height', (
   assert.equal(done.fallRisk, 'Yes');
 });
 
-test('No with work at height warns and still requires a fall control', () => {
+test('No with work at height warns, and the No stands', () => {
   const task = 'Replace roof sheets on a two storey house.';
   const asked = questionsFor({ state: 'qld', task, fallRisk: 'no' });
-  assert.match(asked.fall.warning, /still required/);
-  assert.ok(asked.required.some((item) => item.id === 'fallControl'));
-  const done = draft(task, { facts: { fallControl: 'Edge protection is installed around the roof perimeter first.' } });
-  assert.match(done.fallRisk, /Treated as Yes/);
+  assert.match(asked.fall.warning, /go back and answer Yes/);
+  assert.ok(!asked.required.some((item) => item.id === 'fallControl'));
+  const done = draft(task);
+  assert.equal(done.kind, 'draft');
+  assert.ok(!done.highRisk.includes(FALL));
+  assert.match(done.fallRisk, /user confirmed no one can fall more than 2 metres/);
 });
 
 test('No on a task at ground level is recorded as No with no warning', () => {

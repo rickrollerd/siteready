@@ -17,7 +17,7 @@ npm test
 
 ## How it works
 
-1. Pick the state, write the task, and answer Yes or No to "Could a person fall more than 2 metres during this task?". Only Queensland is loaded. Other states are shown but cannot be chosen. A No shows a short explanation of what a fall from height is. If the task wording describes work at height, a No is treated as Yes, the user is told why, and a fall control is still required.
+1. Pick the state, write the task, and answer Yes or No to "Could a person fall more than 2 metres during this task?". Only Queensland is loaded. Other states are shown but cannot be chosen. A No shows a short explanation of what a fall from height is. If the task wording mentions work at height and the answer is No, the user is warned and asked to check, but the No stands, because a scaffold, parapet or edge protection may already remove the risk. The draft records the answer.
 2. The app asks for the facts the task needs, for example:
    - crane chart: rated capacity in tonnes at the working radius in metres
    - erection design, centre of gravity and brace arrangement for a panel lift
@@ -54,6 +54,10 @@ The draft is built by fixed rules in `draft.js`. No AI service is called, and no
 | `POST /api/draft.docx` | The same, as a Word file |
 
 `/api` routes are rate limited per client address.
+
+## Scenarios
+
+`scenarios/scenarios.json` holds ten work scenarios with the result each should give. `npm test` runs them in every state and territory; `npm run scenarios` also writes `scenarios/results.md`. A state without loaded legislation must refuse.
 
 ## Settings
 
