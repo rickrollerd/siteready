@@ -3,25 +3,29 @@
     "id": "qld-whs-act",
     "jurisdiction": "Queensland",
     "title": "Work Health and Safety Act 2011",
-    "url": "https://www.legislation.qld.gov.au/view/html/inforce/current/act-2011-018"
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2011-018",
+    "versionPattern": "Current as at:?\\s*(\\d{1,2} [A-Za-z]+ \\d{4})"
   },
   {
     "id": "qld-whs-reg",
     "jurisdiction": "Queensland",
     "title": "Work Health and Safety Regulation 2011",
-    "url": "https://www.legislation.qld.gov.au/view/html/inforce/current/sl-2011-0240"
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2011-0240",
+    "versionPattern": "Current as at:?\\s*(\\d{1,2} [A-Za-z]+ \\d{4})"
   },
   {
     "id": "qld-es-act",
     "jurisdiction": "Queensland",
     "title": "Electrical Safety Act 2002",
-    "url": "https://www.legislation.qld.gov.au/view/html/inforce/current/act-2002-042"
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2002-042",
+    "versionPattern": "Current as at:?\\s*(\\d{1,2} [A-Za-z]+ \\d{4})"
   },
   {
     "id": "qld-es-reg",
     "jurisdiction": "Queensland",
     "title": "Electrical Safety Regulation 2026",
-    "url": "https://www.legislation.qld.gov.au/view/html/inforce/current/sl-2026-0113"
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2026-0113",
+    "versionPattern": "Current as at:?\\s*(\\d{1,2} [A-Za-z]+ \\d{4})"
   },
   {
     "id": "nsw-whs-act",
@@ -39,72 +43,84 @@
     "id": "vic-ohs-act",
     "jurisdiction": "Victoria",
     "title": "Occupational Health and Safety Act 2004",
-    "url": "https://www.legislation.vic.gov.au/in-force/acts/occupational-health-and-safety-act-2004"
+    "url": "https://www.legislation.vic.gov.au/in-force/acts/occupational-health-and-safety-act-2004",
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} \\d{3}) In force"
   },
   {
     "id": "vic-ohs-reg",
     "jurisdiction": "Victoria",
     "title": "Occupational Health and Safety Regulations 2017",
-    "url": "https://www.legislation.vic.gov.au/in-force/statutory-rules/occupational-health-and-safety-regulations-2017"
+    "url": "https://www.legislation.vic.gov.au/in-force/statutory-rules/occupational-health-and-safety-regulations-2017",
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} \\d{3}) In force"
   },
   {
     "id": "sa-whs-act",
     "jurisdiction": "South Australia",
     "title": "Work Health and Safety Act 2012",
-    "url": "https://www.legislation.sa.gov.au/lz?path=%2Fc%2Fa%2Fwork+health+and+safety+act+2012"
+    "url": "https://www.legislation.sa.gov.au/lz?path=%2Fc%2Fa%2Fwork+health+and+safety+act+2012",
+    "versionPattern": "Historical \\((\\d{1,2} [A-Za-z]+ \\d{4} - \\d{1,2} [A-Za-z]+ \\d{4})"
   },
   {
     "id": "sa-whs-reg",
     "jurisdiction": "South Australia",
     "title": "Work Health and Safety Regulations 2012",
-    "url": "https://www.legislation.sa.gov.au/lz?path=%2Fc%2Fr%2Fwork+health+and+safety+regulations+2012"
+    "url": "https://www.legislation.sa.gov.au/lz?path=%2Fc%2Fr%2Fwork+health+and+safety+regulations+2012",
+    "versionPattern": "Historical \\((\\d{1,2} [A-Za-z]+ \\d{4} - \\d{1,2} [A-Za-z]+ \\d{4})"
   },
   {
     "id": "wa-whs-act",
     "jurisdiction": "Western Australia",
     "title": "Work Health and Safety Act 2020",
-    "url": "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a147282.html"
+    "url": "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a147282.html",
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} Current \\S+)"
   },
   {
     "id": "wa-whs-reg",
     "jurisdiction": "Western Australia",
     "title": "Work Health and Safety (General) Regulations 2022",
-    "url": "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_s53267.html"
+    "url": "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_s53267.html",
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} Current \\S+)"
   },
   {
     "id": "tas-whs-act",
     "jurisdiction": "Tasmania",
     "title": "Work Health and Safety Act 2012",
-    "url": "https://www.legislation.tas.gov.au/view/html/inforce/current/act-2012-001"
+    "url": "https://www.legislation.tas.gov.au/view/html/inforce/current/act-2012-001",
+    "versionPattern": "Authorised Versions (\\d{4}-\\d{2}-\\d{2})"
   },
   {
     "id": "tas-whs-reg",
     "jurisdiction": "Tasmania",
     "title": "Work Health and Safety Regulations 2022",
-    "url": "https://www.legislation.tas.gov.au/view/html/inforce/current/sr-2022-109"
+    "url": "https://www.legislation.tas.gov.au/view/html/inforce/current/sr-2022-109",
+    "versionPattern": "Authorised Versions (\\d{4}-\\d{2}-\\d{2})"
   },
   {
     "id": "nt-whs-act",
     "jurisdiction": "Northern Territory",
     "title": "Work Health and Safety (National Uniform Legislation) Act 2011",
-    "url": "https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-ACT-2011"
+    "url": "https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-ACT-2011",
+    "versionPattern": "Reprint No:?\\s*([A-Z]+\\d+)"
   },
   {
     "id": "nt-whs-reg",
     "jurisdiction": "Northern Territory",
     "title": "Work Health and Safety (National Uniform Legislation) Regulations 2011",
-    "url": "https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011"
+    "url": "https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011",
+    "versionPattern": "Reprint No:?\\s*([A-Z]+\\d+)"
   },
   {
     "id": "act-whs-act",
     "jurisdiction": "Australian Capital Territory",
     "title": "Work Health and Safety Act 2011",
-    "url": "https://www.legislation.act.gov.au/a/2011-35/"
+    "url": "https://www.legislation.act.gov.au/a/2011-35/",
+    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})"
   },
   {
     "id": "act-whs-reg",
     "jurisdiction": "Australian Capital Territory",
     "title": "Work Health and Safety Regulation 2011",
-    "url": "https://www.legislation.act.gov.au/sl/2011-36/"
+    "url": "https://www.legislation.act.gov.au/sl/2011-36/",
+    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})"
   }
 ]

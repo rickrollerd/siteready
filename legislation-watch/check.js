@@ -57,7 +57,11 @@ async function fetchPage(url) {
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'SiteReady legislation check (github.com/rickrollerd/siteready)' },
+        headers: {
+          'User-Agent': 'SiteReady legislation check (github.com/rickrollerd/siteready)',
+          Accept: 'text/html,application/xhtml+xml',
+          'Accept-Language': 'en-AU,en;q=0.9',
+        },
         redirect: 'follow',
         signal: AbortSignal.timeout(20000),
       });
