@@ -17,6 +17,8 @@ const SOURCES = {
   falls: ['Managing the risk of falls at workplaces Code of Practice (model code, SafeWork SA copy, June 2020)', 'https://www.safework.sa.gov.au/__data/assets/pdf_file/0004/136273/Managing-the-risk-of-falls-at-workplaces.pdf'],
   plant: ['Model Code of Practice: Managing the risks of plant in the workplace (Safe Work Australia, November 2024)', 'https://www.safeworkaustralia.gov.au/sites/default/files/2024-11/model_code_of_practice-managing_the_risks_of_plant_in_the_workplace-nov24.pdf'],
   ozoneRegs: ['Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth), latest', 'https://www.legislation.gov.au/F1996B02085/latest/text'],
+  ozoneDownloads: ['Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth), downloads page', 'https://www.legislation.gov.au/F1996B02085/latest/downloads'],
+  refrigerantCode: ['Australia and New Zealand Refrigerant Handling Code of Practice 2025, Part 2 (ARC)', 'https://www.arctick.org/media/29167/air018-refrigerant-handling-codes-of-practice-2025_part-2_web_final_singles.pdf'],
   manual: ['Model Code of Practice: Hazardous manual tasks (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-hazardous-manual-tasks-v2.pdf'],
 };
 const CHUNK_SIZE = 550000;
