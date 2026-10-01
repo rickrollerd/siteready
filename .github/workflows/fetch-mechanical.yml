@@ -20,6 +20,10 @@ jobs:
       matrix:
         include:
           - { source: ozonePdf, chunk: 0 }
+          - { source: ozonePdf, chunk: 1 }
+          - { source: ozonePdf, chunk: 2 }
+          - { source: ozonePdf, chunk: 3 }
+          - { source: ozonePdf, chunk: 4 }
     name: ${{ matrix.source }} ${{ matrix.chunk }}
     steps:
       - uses: actions/checkout@v5
@@ -31,3 +35,4 @@ jobs:
         env:
           SOURCE: ${{ matrix.source }}
           CHUNK: ${{ matrix.chunk }}
+          CHUNK_SIZE: 150000

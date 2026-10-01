@@ -23,7 +23,7 @@ const SOURCES = {
   refrigerantCode: ['Australia and New Zealand Refrigerant Handling Code of Practice 2025, Part 2 (ARC)', 'https://www.arctick.org/media/29167/air018-refrigerant-handling-codes-of-practice-2025_part-2_web_final_singles.pdf'],
   manual: ['Model Code of Practice: Hazardous manual tasks (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-hazardous-manual-tasks-v2.pdf'],
 };
-const CHUNK_SIZE = 550000;
+const CHUNK_SIZE = Number(process.env.CHUNK_SIZE || 550000);
 const BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
 function html(text) {
