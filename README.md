@@ -57,6 +57,12 @@ The draft is built by fixed rules in `draft.js`. No AI service is called, and no
 
 The server runs one worker per processor core and replaces a worker that stops. Each worker keeps its own rate limit count, so with several workers the effective limit per address is higher than the figure set.
 
+## Job steps and PPE
+
+Each draft lays the job out as the regulators' templates do: job steps, each with its hazards and controls, and a Who column. `activities.js` holds the steps for common work (roofing, scaffolding, trenches, roads, power lines, cranes, precast panels, propping and demolition, asbestos, confined spaces, work over water, painting with solvents), always opened by a Before starting step and closed by a Finish and clean up step. The user's facts go into the step they belong to. Work the library does not know gets one step built from the task. The PPE list ticks the site minimum plus what the work needs (for example a P2 respirator and coveralls for asbestos, a life jacket over water, sunscreen unless the task is indoors), and every item can be changed in Word. A Responsibilities section covers the works manager and phone, who ensures compliance, who reviews the controls, the review date and whether workers were consulted.
+
+Confined spaces, propping or load-bearing demolition, overhead power lines and work over water each stand down until their key fact is given: the entry permit and rescue, the temporary support design, the electrical safety arrangement, and the drowning controls.
+
 ## Sign-off
 
 Every statement ends with a Prepared by section, a Principal contractor review (date received, reviewed by, Accepted / Accepted with changes / Not accepted, comments, signature, date) and Worker sign-on pages. The sign-on starts on a new page with a short declaration and 44 lines for name, company, signature and date, over about two pages, with the heading row repeated on each page. A stood-down task has none of these, because it has no method to sign onto.

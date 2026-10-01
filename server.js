@@ -97,6 +97,12 @@ function draftBody(body) {
     hospital: field(body.hospital, 500),
     firstAider: field(body.firstAider, 300),
     musterPoint: field(body.musterPoint, 300),
+    worksManager: field(body.worksManager, 300),
+    worksManagerPhone: field(body.worksManagerPhone, 60),
+    complianceResponsible: field(body.complianceResponsible, 300),
+    reviewer: field(body.reviewer, 300),
+    reviewDate: field(body.reviewDate, 80),
+    ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {
       craneChart: field(facts.craneChart, 2000),
@@ -109,6 +115,13 @@ function draftBody(body) {
       trenchSupport: field(facts.trenchSupport, 2000),
       controlsConsidered: field(facts.controlsConsidered, 2000),
       regulatorNotified: field(facts.regulatorNotified, 1000),
+      confinedSpace: field(facts.confinedSpace, 2000),
+      temporarySupport: field(facts.temporarySupport, 2000),
+      electricalSafety: field(facts.electricalSafety, 2000),
+      drowningControls: field(facts.drowningControls, 2000),
+      formworkDesign: field(facts.formworkDesign, 2000),
+      jumpformProcedure: field(facts.jumpformProcedure, 2000),
+      stressingProcedure: field(facts.stressingProcedure, 2000),
     },
     site: {
       liveServices: field(site.liveServices, 1000),
@@ -175,9 +188,12 @@ function start() {
   const server = app.listen(PORT, () => {
     if (workers <= 1) console.log(`SiteReady server running on http://localhost:${PORT}`);
   });
-  // A client that sends a request slowly is cut off, so it cannot hold connections open.
-  server.headersTimeout = 20000;
-  server.requestTimeout = 30000;
+  // Idle connections are kept longer than a proxy keeps its own, so the server
+  // never closes a connection the proxy is about to reuse (a source of 502 errors).
+  // A client that sends a request slowly is still cut off.
+  server.keepAliveTimeout = 65000;
+  server.headersTimeout = 66000;
+  server.requestTimeout = 70000;
 }
 
 if (require.main === module) start();

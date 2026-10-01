@@ -1,4 +1,5 @@
 const { HIERARCHY, SITE_FIELDS, findState, highRiskList } = require('./legislation');
+const { jobStepsFor, ppeFor } = require('./activities');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
 
@@ -64,7 +65,7 @@ function isPanelLift(text) {
 }
 
 const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
-const ROAD = /\b(road\s?works?|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane)\b/i;
+const ROAD = /\b(road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane)\b/i;
 const WATER = /\b(drown(?:ing)?|in or near water|(?:over|into|beside|next to) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall)\b/i;
 
 function isScaffoldErection(text) {
@@ -316,7 +317,7 @@ function highRiskMatches(text, answer, state) {
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i),
     precast: mentioned(text, /\b(tilt-?up|precast)\b/i),
     road: mentioned(text, ROAD) || /\blight rail\b/i.test(String(text || '')),
-    plant: mentioned(text, /\b(powered mobile plant|excavators?|forklifts?|trucks?|cranes?|loaders?|liebherr)\b/i),
+    plant: mentioned(text, /\b(powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|telehandlers?|excavators?|forklifts?|trucks?|cranes?|loaders?|liebherr)\b/i),
     temperature: mentioned(text, /\bartificial extremes of temperature\b/i),
     water: mentioned(text, WATER),
     diving: mentioned(text, /\bdiving\b/i),
@@ -334,16 +335,75 @@ function highRiskMatches(text, answer, state) {
 }
 
 function fallLineFor(source, facts) {
-  return fallControlText(acceptedText(source)) || keptFact(facts.fallControl);
+  return keptFact(facts.fallControl) || fallControlText(acceptedText(source));
 }
 
 // Where a fall control sits in the hierarchy.
 function fallControlLevel(line) {
   if (/\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(line)) return 'Eliminate';
-  if (/\b(edge protection|guard\s?rails?|scaffold|elevating work platform|\bewp\b|safety mesh|catch platform|fenc\w*|barriers?|barricad\w*|hoarding|covers?|covered)\b/i.test(line)) return 'Isolate or engineer';
+  if (/\b(edge protection|guard\s?rails?|handrails?|scaffold|elevating work platform|\bewp\b|safety mesh|catch platform|perimeter screens?|edge screens?|screens|full height gates?|fenc\w*|barriers?|barricad\w*|hoarding|covers?|covered)\b/i.test(line)) return 'Isolate or engineer';
   if (/\b(harness|fall arrest|lanyard|restraint)\b/i.test(line)) return 'PPE';
   return 'Administrative';
 }
+
+const FORMWORK = /\b(formwork|falsework|formply|deck forms?|table forms?|backprop\w*)\b/i;
+const JUMPFORM = /\b(jump ?forms?|self[- ]climbing (?:form\w*|system)|climbing form\w*)\b/i;
+const PT = /\b(post[- ]?tension\w*|pt slabs?|pt tendons?|stressing)\b/i;
+const ENERGISED = /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i;
+
+const CATEGORY_FACTS = [
+  {
+    id: 'confinedSpace',
+    label: 'Confined space entry',
+    prompt: 'The entry permit, atmosphere testing, the standby person outside, and how a person is rescued.',
+    level: 'Administrative',
+    applies: (text) => mentioned(text, /\bconfined space\b/i),
+  },
+  {
+    id: 'temporarySupport',
+    label: 'Temporary support design',
+    prompt: 'The engineer\'s design for the propping or temporary support, and who checks it is in place before any load-bearing part is removed.',
+    level: 'Isolate or engineer',
+    applies: (text) => mentioned(text, /\b(temporary support|propping|structural alteration)\b/i)
+      || (mentioned(text, DEMOLITION) && mentioned(text, /\b(load-bearing|load bearing)\b/i)),
+  },
+  {
+    id: 'electricalSafety',
+    label: 'Electrical safety arrangement',
+    prompt: 'How far the work and plant stay from the lines, the network operator\'s requirements or permit, and the safety observer.',
+    level: 'Isolate or engineer',
+    applies: (text) => mentioned(text, ENERGISED),
+  },
+  {
+    id: 'formworkDesign',
+    label: 'Formwork design',
+    prompt: 'The formwork, falsework and backpropping design, who designed it, and who inspects the formwork before the pour.',
+    level: 'Isolate or engineer',
+    // A jumpform is not slab formwork: it has its own climbing procedure.
+    applies: (text) => FORMWORK.test(String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '')),
+  },
+  {
+    id: 'jumpformProcedure',
+    label: 'Jumpform climbing procedure',
+    prompt: 'The supplier\'s climbing procedure, its wind limits, and who is trained to climb the jumpform.',
+    level: 'Administrative',
+    applies: (text) => JUMPFORM.test(text),
+  },
+  {
+    id: 'stressingProcedure',
+    label: 'Stressing procedure',
+    prompt: 'The engineer\'s stressing sequence and the concrete strength needed, who does the stressing, and the exclusion zone at the jacks.',
+    level: 'Administrative',
+    applies: (text) => /\b(stress(?:ing)? (?:the )?tendons?|stressing)\b/i.test(text),
+  },
+  {
+    id: 'drowningControls',
+    label: 'Drowning controls',
+    prompt: 'How a person is kept from falling into the water, and the rescue plan: life jackets, rescue equipment and who does the rescue.',
+    level: 'Administrative',
+    applies: (text) => mentioned(text, WATER),
+  },
+];
 
 function requiredFactsFor(task, answer, state) {
   const facts = [];
@@ -394,6 +454,10 @@ function requiredFactsFor(task, answer, state) {
       label: 'Trench support',
       prompt: 'How the sides are secured: shoring, benching or battering, and who designed it.',
     });
+  }
+  // Facts the high risk categories below cannot be done safely without.
+  for (const item of CATEGORY_FACTS) {
+    if (item.applies(task)) facts.push({ id: item.id, label: item.label, prompt: item.prompt });
   }
   if (/\basbestos\b/i.test(task) && !asbestosArrangement(task)) {
     facts.push({
@@ -530,14 +594,11 @@ function controlsFor(task, facts, pack) {
     }
   } else if (isCraneOrLift(source)) {
     const under = isPanelLift(source) ? 'No one goes under the panel.' : 'No one goes under the load.';
-    push('Isolate or engineer', `Only the people doing the lift are inside the exclusion zone. Stop the lift if anyone else enters. Do not pass a load over a person. ${under}`);
-    push('Administrative', 'No free-fall with a load.');
-    for (const field of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement']) {
-      const line = keptFact(facts[field]);
-      if (line) push('Administrative', line);
-    }
-  } else if (mentioned(source, /\b(powered mobile plant|excavators?|forklifts?|trucks?|loaders?)\b/i)) {
-    push('Isolate or engineer', 'People stay clear of moving plant.');
+    push('Administrative', `Only the people doing the lift are inside the exclusion zone. Stop the lift if anyone else enters. Do not pass a load over a person. ${under}`);
+    // Free-fall lowering is a mobile crane feature.
+    if (!/\btower cranes?\b/i.test(source)) push('Administrative', 'No free-fall with a load.');
+  } else if (mentioned(source, /\b(powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|telehandlers?|excavators?|forklifts?|trucks?|loaders?)\b/i)) {
+    push('Administrative', 'People stay clear of moving plant.');
   }
 
   if (mentioned(source, ROAD)) {
@@ -570,6 +631,15 @@ function controlsFor(task, facts, pack) {
       if (value) push('Administrative', `${item.label}: ${value.replace(/[.]+$/, '')}.`);
     }
     for (const [level, text] of state.panelControls || []) push(level, text);
+  }
+
+  for (const item of CATEGORY_FACTS) {
+    const value = keptFact(facts[item.id]);
+    if (value && item.applies(source)) {
+      for (const line of sentences(value)) {
+        push(/\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?)\b/i.test(line) ? 'Administrative' : item.level, line);
+      }
+    }
   }
 
   const asbestos = keptFact(facts.asbestosArrangement) || asbestosArrangement(source);
@@ -648,7 +718,7 @@ function hazardsFor(task, facts, pack) {
     add('Energised electrical service', 'A person contacts live electricity.');
   }
   if (needsSafetyDataSheet(source)) add('Hazardous substance', 'A person is exposed to the substance.');
-  if (mentioned(source, /\b(powered mobile plant|excavators?|forklifts?|trucks?|loaders?|cranes?)\b/i) && !isCraneOrLift(source)) {
+  if (mentioned(source, /\b(powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|telehandlers?|excavators?|forklifts?|trucks?|loaders?|cranes?)\b/i) && !isCraneOrLift(source)) {
     add('Moving plant', 'A person is struck by plant.');
   }
   // Every high risk construction work category found in the task has a hazard row.
@@ -683,7 +753,7 @@ function methodSteps(task, facts, site, pack) {
   }
   const fromTask = sentences(task).filter((line) => !isDenialLine(line) && (!LIFT_BLEED.test(line) || isCraneOrLift(task)));
   const fromFacts = [];
-  for (const id of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport']) {
+  for (const id of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport', ...CATEGORY_FACTS.map((item) => item.id)]) {
     const line = keptFact(facts[id]);
     if (!line) continue;
     if (sentences(task).some((item) => item.toLowerCase() === sentences(line).join(' ').toLowerCase())) continue;
@@ -812,6 +882,11 @@ function prepareDraft(input) {
     hospital: keptFact(input.hospital),
     firstAider: keptFact(input.firstAider),
     musterPoint: keptFact(input.musterPoint),
+    worksManager: keptFact(input.worksManager),
+    worksManagerPhone: keptFact(input.worksManagerPhone),
+    complianceResponsible: keptFact(input.complianceResponsible),
+    reviewer: keptFact(input.reviewer),
+    reviewDate: keptFact(input.reviewDate),
     task,
     fallRisk: fallRecord(fallCheck(task, pack.fallAnswer, state)),
     fallMetres: fallMetres(state),
@@ -847,18 +922,28 @@ function prepareDraft(input) {
     .filter((item) => (isCraneOrLift(task) || !LIFT_BLEED.test(item.text)) && !contradicts(item.text, controlText))
     .sort((a, b) => HIERARCHY_RANK[a.level] - HIERARCHY_RANK[b.level]);
 
+  const finalControls = dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
+    const splitAt = key.indexOf('|');
+    return { level: key.slice(0, splitAt), text: key.slice(splitAt + 1) };
+  });
+  const hazards = hazardsFor(task, facts, pack);
+
   return {
     kind: 'draft',
     ...header,
+    jobSteps: jobStepsForTask(task, facts, hazards, finalControls),
+    ppe: ppeFor(
+      workFlags(task, facts),
+      input.ppe,
+      /\b(harness|fall arrest|elevating work platform|ewp|boom lift)\b/i.test(combinedFacts(task, facts)),
+      /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task),
+    ),
     missing: [],
     statement: '',
     highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer, state)
       .map((item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label)),
-    hazards: hazardsFor(task, facts, pack),
-    controls: dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
-      const splitAt = key.indexOf('|');
-      return { level: key.slice(0, splitAt), text: key.slice(splitAt + 1) };
-    }),
+    hazards,
+    controls: finalControls,
     review: REVIEW,
     site: siteLines(site),
     method: steps,
@@ -866,6 +951,63 @@ function prepareDraft(input) {
     signed: false,
     approved: false,
   };
+}
+
+// The kinds of work in the task, which choose the job steps and the PPE.
+function workFlags(task, facts = {}) {
+  const scaffold = isScaffoldErection(task);
+  return {
+    road: mentioned(task, ROAD),
+    power: mentioned(task, ENERGISED),
+    scaffold,
+    // Roofing work, not a roof beam or a job under a roof.
+    roof: /\b(roof(?:ing)? sheets?|roofing|re-?roof\w*|roof tiles?|on (?:the|a) roof|roof work|roof repairs?)\b/i.test(task) && !scaffold,
+    trench: deepExcavation(task) || /\b(excavat\w*|trench\w*)\b/i.test(task),
+    propping: CATEGORY_FACTS.find((item) => item.id === 'temporarySupport').applies(task),
+    demolition: mentioned(task, DEMOLITION),
+    towerCrane: /\btower cranes?\b/i.test(task),
+    crane: isCraneOrLift(task) && !/\btower cranes?\b/i.test(task),
+    loadOut: /\b(load(?:ing)?[- ]?out|loading platforms?|landing platforms?)\b/i.test(task),
+    forklift: /\b(forklifts?|telehandlers?)\b/i.test(task),
+    formwork: FORMWORK.test(task.replace(new RegExp(JUMPFORM.source, 'gi'), '')),
+    reo: /\b(reo|reinforc\w*|rebar|steel fixing)\b/i.test(task),
+    ptTendons: PT.test(task) && /\b(place|placing|install\w*|lay\w*|fix\w*)\b/i.test(task) && /\b(ducts?|tendons?|strand)\b/i.test(task),
+    concrete: /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(task),
+    stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing)\b/i.test(task),
+    jumpform: JUMPFORM.test(task),
+    ptSlab: PT.test(task),
+    ewp: /\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(combinedFacts(task, facts)),
+    precast: isPanelLift(task),
+    asbestos: /\basbestos\b/i.test(task),
+    confined: /\bconfined space\b/i.test(task),
+    water: mentioned(task, WATER),
+    painting: needsSafetyDataSheet(task) && /\b(paint\w*|enamel|coating)\b/i.test(task),
+  };
+}
+
+function asSentence(text) {
+  const line = cleanLine(text);
+  return line && !/[.!?]$/.test(line) ? `${line}.` : line;
+}
+
+// Job steps, each with its hazards and controls. Work the library does not know
+// gets one middle step built from the task, its hazards and its controls.
+function jobStepsForTask(task, facts, hazards, controls) {
+  const source = acceptedText(combinedFacts(task, facts));
+  const factText = (id) => {
+    const given = keptFact(facts[id]);
+    if (given) return asSentence(given);
+    if (id === 'fallControl') return asSentence(fallControlText(source));
+    if (id === 'trenchSupport') return asSentence(trenchSupportText(source));
+    if (id === 'asbestosArrangement') return asSentence(asbestosArrangement(source));
+    return '';
+  };
+  const [first] = sentences(task);
+  return jobStepsFor(workFlags(task, facts), factText, {
+    step: asSentence(first || task),
+    hazards: hazards.map((row) => `${row.hazard}: ${row.risk}`),
+    controls: controls.map((item) => item.text),
+  });
 }
 
 function stripLiftBleedText(text) {

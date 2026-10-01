@@ -62,13 +62,13 @@ test('a fact that only says it was supplied does not count', () => {
 });
 
 test('each high risk category found has a hazard row', () => {
-  const done = draft('Install a pump in a confined space.');
+  const done = draft('Install a pump in a confined space.', { facts: { confinedSpace: 'Entry permit issued, air tested before and during entry, standby person at the hatch with rescue gear.' } });
   assert.ok(done.highRisk.some((item) => /confined space/i.test(item)));
   assert.ok(done.hazards.some((row) => row.hazard === 'Confined space'));
 });
 
 test('overhead lines use the Queensland distance', () => {
-  const done = draft('Relocate the switchboard near the overhead power lines.');
+  const done = draft('Relocate the switchboard near the overhead power lines.', { facts: { electricalSafety: 'Plant and people stay 4 m from the lines, with a safety observer watching.' } });
   const line = done.controls.find((item) => /overhead|line voltage/i.test(item.text));
   assert.ok(line);
   assert.match(line.text, /3\.0 m/);
@@ -114,6 +114,7 @@ test('New South Wales uses its own regulation, wording and power line rule', () 
   const done = prepareDraft({
     state: 'nsw',
     task: 'Relocate the switchboard near the overhead power lines.',
+    facts: { electricalSafety: 'Plant and people stay 4 m from the lines, with a safety observer watching.' },
     fallRisk: 'no',
   });
   assert.equal(done.kind, 'draft');
@@ -148,14 +149,14 @@ test('Victoria uses regulation 322 and 327 and its own SWMS contents', () => {
   assert.ok(tunnel.highRisk.includes('Involving a tunnel'));
   assert.ok(!tunnel.highRisk.some((item) => /trench or shaft/.test(item)));
 
-  const lines = prepareDraft({ state: 'vic', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no' });
+  const lines = prepareDraft({ state: 'vic', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no', facts: { electricalSafety: 'Plant and people stay 4 m from the lines, with a safety observer watching.' } });
   const line = lines.controls.find((item) => /overhead electric lines/.test(item.text));
   assert.match(line.text, /set no distance/);
   assert.match(questionsFor({ state: 'vic', task: 'Replace a 3m length of fence.', fallRisk: 'no' }).fall.explanation, /regulation 322/);
 });
 
 test('South Australia uses its regulations and gives no power line distance', () => {
-  const done = prepareDraft({ state: 'sa', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no' });
+  const done = prepareDraft({ state: 'sa', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no', facts: { electricalSafety: 'Plant and people stay 4 m from the lines, with a safety observer watching.' } });
   assert.equal(done.instrument, 'Work Health and Safety Regulations 2012 (SA)');
   assert.equal(done.sectionRef, 'regulation 299');
   assert.ok(done.highRisk.includes('Is carried out on or near energised electrical installations or services'));
@@ -193,7 +194,7 @@ test('Queensland section 299(4): a harness alone needs the other controls consid
 });
 
 test('Western Australia: danger zones, and the regulator notice for tilt-up work', () => {
-  const lines = prepareDraft({ state: 'wa', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no' });
+  const lines = prepareDraft({ state: 'wa', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no', facts: { electricalSafety: 'Plant and people stay 4 m from the lines, with a safety observer watching.' } });
   assert.equal(lines.instrument, 'Work Health and Safety (General) Regulations 2022 (WA)');
   const line = lines.controls.find((item) => /danger zone/.test(item.text));
   assert.match(line.text, /0\.5 m .* 1\.0 m .* 3\.0 m .* 6\.0 m .*regulation 166A/);
@@ -216,7 +217,7 @@ test('Western Australia: danger zones, and the regulator notice for tilt-up work
 });
 
 test('Tasmania uses its regulations and gives no power line distance', () => {
-  const done = prepareDraft({ state: 'tas', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no' });
+  const done = prepareDraft({ state: 'tas', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no', facts: { electricalSafety: 'Plant and people stay 4 m from the lines, with a safety observer watching.' } });
   assert.equal(done.instrument, 'Work Health and Safety Regulations 2022 (Tas)');
   assert.equal(done.sectionRef, 'regulation 299');
   const line = done.controls.find((item) => /electric line/.test(item.text));
@@ -259,4 +260,47 @@ test('Northern Territory: 3 metres for residential construction work, 2 metres o
   assert.equal(shop.fallMetres, 2);
   // Other states do not ask.
   assert.equal(prepareDraft({ state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no' }).residential, '');
+});
+
+test('confined spaces, propping, power lines and water stand down without their key fact', () => {
+  const cases = [
+    ['Install a pump in a confined space.', 'Confined space entry'],
+    ['Demolish a load-bearing wall with propping.', 'Temporary support design'],
+    ['Paint the fascia near the overhead power lines.', 'Electrical safety arrangement'],
+    ['Replace boards on a jetty over a tidal river.', 'Drowning controls'],
+  ];
+  for (const [task, label] of cases) {
+    const done = draft(task);
+    assert.equal(done.kind, 'stand-down', task);
+    assert.ok(done.missing.includes(label), `${task}: ${done.missing}`);
+  }
+});
+
+test('a draft has job steps with hazards and controls, and a PPE list', () => {
+  const done = draft('Remove and replace the iron roof sheets on a house, about 7 m up.', {
+    fallRisk: 'yes',
+    facts: { fallControl: 'Perimeter guardrail scaffold around the roof edge.', controlsConsidered: 'Guardrail is in place.' },
+  });
+  const names = done.jobSteps.map((step) => step.step);
+  assert.equal(names[0], 'Before starting');
+  assert.equal(names[names.length - 1], 'Finish and clean up');
+  assert.ok(names.includes('Remove old roofing'));
+  const access = done.jobSteps.find((step) => step.step === 'Set up roof access and fall protection');
+  assert.ok(access.controls.some((line) => /Perimeter guardrail scaffold/.test(line)), 'the fall control goes in its step');
+  const ticked = done.ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
+  assert.ok(['hardHat', 'boots', 'hivis', 'longs', 'gloveCut', 'sunscreen'].every((id) => ticked.includes(id)));
+});
+
+test('roof beams are not roofing, and indoor work gets no sunscreen', () => {
+  const beams = draft('Lift the carport roof beams into place with a crane truck.', { facts: { craneChart: '1.5 t at 6 m radius.' } });
+  assert.ok(!beams.jobSteps.some((step) => step.step === 'Remove old roofing'));
+  const paint = draft('Paint the interior walls of a shop with solvent-based enamel paint.', { facts: { safetyDataSheet: 'Flammable liquid, ventilate, gloves and eye protection.' } });
+  const ticked = paint.ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
+  assert.ok(!ticked.includes('sunscreen'));
+  assert.ok(ticked.includes('gloveChemical'));
+});
+
+test('unknown work still gets job steps from the task', () => {
+  const done = draft('Replace a 3m length of fence.');
+  assert.deepEqual(done.jobSteps.map((step) => step.step), ['Before starting', 'Replace a 3m length of fence.', 'Finish and clean up']);
 });

@@ -1,0 +1,204 @@
+{
+  "title": "50 storey tower, Brisbane CBD: structure",
+  "state": "qld",
+  "workplace": "50 storey tower, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the project's own designs and procedures.",
+  "swms": [
+    {
+      "id": "load-out",
+      "title": "Floor load-out, tower crane lifts and forklifts",
+      "task": "Load out each floor of the 50 storey tower using the two tower cranes and the loading platforms, and move materials on the floor with a forklift. Deliveries are unloaded from the street loading zone next to the road, open to traffic, with traffic controllers. The floors are post-tensioned slabs. Work is at the slab edge, more than 2 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts.",
+        "fallControl": "Loading platforms have full height gates and side screens, and the slab edge has perimeter screens on every level being worked."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "road",
+          "plant"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Plan the tower crane lifts",
+          "Rig, lift and land loads with the tower crane",
+          "Load out floors and use loading platforms",
+          "Operate forklifts"
+        ],
+        "missing": [
+          "Crane chart",
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "formwork",
+      "title": "Slab formwork, falsework, stripping and backpropping",
+      "task": "Erect the slab formwork and falsework for each post-tensioned floor of the 50 storey tower, lay the deck, form penetrations, install edge protection, then strip the formwork and install backprops. Materials are lifted with the tower cranes. Work is at the slab edge and up to 4 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "formworkDesign": "Formwork, falsework and backpropping designed by the formwork engineer, drawings FW-100 to FW-120. The formwork supervisor inspects and signs the pre-pour checklist before every pour.",
+        "fallControl": "Perimeter screens are installed on the levels being formed, decks are laid from inside the edge protection, and penetrations are covered as they are formed.",
+        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Plan the tower crane lifts",
+          "Erect falsework and shores",
+          "Install edge protection and lay the deck",
+          "Form penetrations and voids",
+          "Inspect before the pour",
+          "Strip formwork and backprop"
+        ],
+        "missing": [
+          "Crane chart",
+          "Formwork design"
+        ]
+      }
+    },
+    {
+      "id": "reo-pt",
+      "title": "Reo fixing and post-tensioning tendon placement",
+      "task": "Lift reo bundles onto the deck with the tower cranes, place and tie the reinforcement, and place the post-tensioning ducts and tendons for each floor slab of the 50 storey tower. Work is at the slab edge, more than 2 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts.",
+        "fallControl": "Work is done inside the perimeter screens, and no one works outside the edge protection."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Plan the tower crane lifts",
+          "Lift reo onto the deck",
+          "Place and tie reo",
+          "Place post-tensioning ducts and tendons"
+        ],
+        "missing": [
+          "Crane chart",
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "concrete",
+      "title": "Concrete pumping, placing and finishing",
+      "task": "Pump concrete with a concrete pump truck in the street loading zone and a placing boom on the slab, then place and finish the concrete for each post-tensioned floor slab of the 50 storey tower. Work is at the slab edge, more than 2 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Perimeter screens stay in place during the pour, and the deck is complete with penetrations covered before the pour starts."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant",
+          "road"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Set up the concrete pump and placing boom",
+          "Pump and place concrete",
+          "Finish concrete"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "stressing",
+      "title": "Post-tensioning stressing and grouting",
+      "task": "Stress the post-tensioning tendons on each floor slab of the 50 storey tower once the concrete reaches the engineer's strength, grout the ducts and cut the tendon tails. Stressing is done at the slab edge, more than 2 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "stressingProcedure": "Stressing follows the post-tensioning engineer's sequence on drawing PT-200, once cylinder tests show the strength the engineer requires. The post-tensioning subcontractor's trained crew does the stressing. Exclusion zones behind each jack and along the tendon line are barricaded and signed.",
+        "fallControl": "Stressing is done from inside the perimeter screens, which stay in place until stressing is complete."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Stress the tendons",
+          "Cut tails and grout"
+        ],
+        "missing": [
+          "Stressing procedure",
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "jumpform",
+      "title": "Core jumpform climbing and core wall construction",
+      "task": "Climb the jumpform on the core walls of the 50 storey tower with its hydraulic climbing system, then fix reo and pour the core walls from the jumpform platforms, more than 2 m above the floor below. The tower cranes lift materials to the jumpform.",
+      "fallRisk": "yes",
+      "facts": {
+        "jumpformProcedure": "Climbing follows the jumpform supplier's climbing procedure JF-OPS revision 3, including its wind limit. Only the climbing crew trained and assessed by the supplier climbs the jumpform.",
+        "fallControl": "The jumpform platforms have full perimeter screens and guardrails, and the gaps to the wall are closed with hinged flaps.",
+        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Plan the tower crane lifts",
+          "Prepare to climb the jumpform",
+          "Climb the jumpform",
+          "Work on the jumpform platforms",
+          "Fix reo and set the wall forms from the platforms",
+          "Pour the core walls"
+        ],
+        "missing": [
+          "Crane chart",
+          "Fall control",
+          "Jumpform climbing procedure"
+        ]
+      }
+    },
+    {
+      "id": "precast",
+      "title": "Precast column and blade wall installation",
+      "task": "Install precast concrete columns and blade walls with the tower cranes, lifting them from trucks in the street loading zone, stand them on shims, brace them, then grout the base. The floors are post-tensioned slabs. Work is at the slab edge of the 50 storey tower, more than 2 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts.",
+        "erectionDesign": "Precast erection design and sequence drawings PC-300 to PC-305 by the precast engineer.",
+        "centreOfGravity": "The centre of gravity is marked on each element's shop drawing.",
+        "braceArrangement": "Two braces per column and three per blade wall, fixed to the slab with cast-in ferrules as shown on drawing PC-310.",
+        "fallControl": "Work is done from inside the perimeter screens, and rigging at height is released from an elevating work platform."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "precast",
+          "plant",
+          "road"
+        ],
+        "steps": [
+          "Plan the tower crane lifts",
+          "Rig, lift and land loads with the tower crane",
+          "Stand and brace the precast elements",
+          "Grout the base and remove the braces",
+          "Use an elevating work platform"
+        ],
+        "missing": [
+          "Crane chart",
+          "Erection design",
+          "Centre of gravity",
+          "Brace arrangement",
+          "Fall control"
+        ]
+      }
+    }
+  ]
+}
