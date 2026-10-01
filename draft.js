@@ -1569,6 +1569,8 @@ function stripLiftBleedText(text) {
 
 module.exports = {
   isCraneOrLift,
+  workFlags,
+  highRiskMatches,
   questionsFor,
   prepareDraft,
   stripLiftBleedText,

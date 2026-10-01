@@ -3300,4 +3300,4 @@ function ppeFor(flags, chosen, mentionsHarness, indoors) {
   }));
 }
 
-module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM };
+module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM, ACTIVITIES };

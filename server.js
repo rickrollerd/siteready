@@ -17,6 +17,8 @@ const billing = require('./billing');
 const admin = require('./admin');
 const { record, recordError } = require('./events');
 const { TRADES, answersFor } = require('./presets');
+const { scopeText } = require('./scope-text');
+const { tasksFromScope } = require('./scope');
 
 require('dotenv').config();
 
@@ -50,9 +52,12 @@ app.post('/api/billing/webhook', ...billing.webhook);
 // The Word file and the company profile can carry the logo, so those routes accept a larger body.
 const WORD_ROUTE = '/api/draft.docx';
 const LARGE_BODY = new Set([WORD_ROUTE, '/api/draft.pdf', '/api/company']);
+// A scope of works can be a Word file or PDF with drawings in it.
+const SCOPE_ROUTE = '/api/scope';
 const smallJson = express.json({ limit: '100kb' });
 const wordJson = express.json({ limit: '1mb' });
-app.use((req, res, next) => (LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
+const scopeJson = express.json({ limit: '15mb' });
+app.use((req, res, next) => (req.path === SCOPE_ROUTE ? scopeJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(auth.readSession);
 
@@ -94,6 +99,18 @@ app.post('/api/draft/questions', (req, res) => {
   // Standard answers the user can pick, then change.
   result.required = (result.required || []).map((item) => (item.choices ? item : { ...item, suggestions: answersFor(item.id) }));
   res.json(result);
+});
+
+// Reading a scope takes more work than a draft, so it has a lower limit.
+app.use(SCOPE_ROUTE, limiter(positiveNumber(process.env.RATE_LIMIT_SCOPE_REQUESTS, 60)));
+app.post(SCOPE_ROUTE, async (req, res, next) => {
+  try {
+    const text = await scopeText(req.body || {});
+    record('scope', req.company && req.company.id);
+    res.json(tasksFromScope(text));
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post('/api/draft', (req, res) => {

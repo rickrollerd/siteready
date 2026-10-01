@@ -1,0 +1,343 @@
+THE BUILDER
+MANAGEMENT SYSTEM DOCUMENT
+qa MANAGEMENT PLAN
+
+		
+MANAGEMENT SYSTEM DOCUMENT
+General Scope – All Trades
+
+GENERAL SCOPE – ALL TRADES
+<<Insert general description of the project including building function, construction type, complexity, quality, location and any other relevant descriptions or construction context. The main contract documents / tender documents / PPRs may provide such wording>>
+The Subcontractor shall supply all labour, materials, tools, plant, equipment, supervision, detailing, supply, installation, testing, commissioning and defects liability maintenance required to perform and complete the Subcontract Works as described in, but not limited to this General Scope, the <<Insert Trade>> Trade Specific Scope, the Main Contractor’s Supplier Code of Conduct and in accordance with all other documentation forming the Subcontract including all such other work and materials as may not be specifically described but is necessary and incidental to the carrying out of the work under the Subcontract.    	 	
+Miscellaneous Items
+1. The Subcontractor shall provide all works not specifically mentioned that would normally form part of a subcontract for works of this nature including responsibility for all penetrations, core holes, cutting and chasing, plinths, built-in and cast-in items, inserts, anchors, fixings, adhesives, acoustic, smoke sealing, thermal and fire insulation and ratings to NCC and all regulatory requirements, all caulking, sealing and interfaces with adjoining surfaces or trades and any other miscellaneous scope required for the works. 
+Materials Handling and Site Management
+2. Site services and facilities will be provided by the Main Contractor or Subcontractor in accordance with the Services and Facilities Schedule below. All other transportation, materials handling, scaffolding, cranage, access equipment & electrical hoisting required to for the works not identified in the Services and Facilities Schedule (including packing, handling, unloading, carting, shifting and storing of materials and distribution to all work areas) both horizontally and vertically shall be provided by the Subcontractor. 
+Services and Facilities Schedule: 
+Services or facilities for which the Main Contractor is responsible under the Services and Facilities Schedule or such other services or facilities which the Main Contractor may provide, will be provided on a non-exclusive shared basis. The Subcontractor must comply with the Main Contractor’s planning schedules in respect of their use.
+The Main Contractor does not warrant that anything it provides will have any particular capabilities, capacity or availability and the Subcontractor will have no claim in the event that anything provided by the Main Contractor is not available for any reason including that it is being serviced, is subject to an industrial dispute, is affected by inclement weather, is temporarily withdrawn or causes any delay or disruption whatsoever.
+	(a) Electricity	
+(ensure when completing this section for the Electrical SC it aligns with their SOW including provision of any temporary services)
+
+	(i) Installation of 240 volts:
+
+	Supply shall be provided by the Main Contractor at the following points:
+	<<To sub-boards at each floor of the building structure.  Should the draw-off of any Subcontractor’s equipment be beyond the capacity of the sub-board supplied, it will be the Subcontractor’s responsibility to provide auxiliary power as required>>
+
+	Supply shall be provided by the Subcontractor at the following points:
+	<<All other required locations>
+
+	(ii) Installation of 415 volts:
+
+	Supply shall be provided by the Main Contractor at the following points
+	<<Not provided>>
+
+	Supply shall be provided by the Subcontractor at the following points:
+	<<All required locations>>
+
+	(iii) Cost of Electricity provided to the Subcontractor shall be borne by the:
+	<<Main Contractor / Subcontractor>>
+
+	(iv) Cost of connection to the power supply shall be borne by the:
+	<<Main Contractor / Subcontractor>>
+
+	NOTE: The Subcontractor shall provide leads for the Subcontractor's own use.	
+
+	(b) Lighting 	
+(ensure when completing this section for the Electrical SC it aligns with their SOW including provision of temporary services)
+
+	(i) General access, egress and emergency lighting:
+	<<Main Contractor / Subcontractor>>
+
+	(ii) Task lighting and/or special requirements beyond general access lighting (including  all temporary electrical distribution required to carry out WUS such as cabling, distribution boards, leads and lead stands and the provision of light bulbs):
+	<<Main Contractor / Subcontractor>>
+
+	(c) Scaffolding		
+
+	(i) General floor access scaffolding (including access to the roof) shall be provided by the:
+	<<Main Contractor / Subcontractor>>
+
+	(ii) Access to the Subcontractor’s trade specific work areas including scaffold, platforms and ladders shall be provided by the:
+	<<Main Contractor / Subcontractor>>
+
+	(iii) Initial supply and erection and final removal of scaffolding at the following locations:
+	<<Specify locations>> 
+
+	shall be provided by and at the cost of the:
+	<<Main Contractor / Subcontractor>>
+
+	(iv) Adjustment and moving of scaffolding or planks or both shall be carried out by and at the cost of:
+	<<Main Contractor / Subcontractor>>
+
+	(v) Cost of the provision or hire of scaffolding or planks shall be borne by the:
+	<<Main Contractor / Subcontractor>>
+
+	(vi) Perimeter screens in the following locations:
+	<<Specify locations>> 
+
+	shall be provided by and at the cost of the:
+	<<Main Contractor / Subcontractor>>
+
+	Any scaffolding required to be provided by the Subcontractor may be provided by the Main Contractor and the cost recovered by the Main Contractor as a debt due from the Subcontractor to the Main Contractor.
+The Subcontractor must ensure that any scaffold it provides is in a safe condition and is constructed in accordance with the manufacturer’s specifications, relevant regulations, codes and Australian Standards.
+The contracted scaffold supplier and/or the scaffold erection contractor is to conduct a full inspection of the scaffold monthly and provide a documented report on the condition of the scaffold to site management (Handover Certificate)  If the scaffold or any section of scaffold is not suitable for use appropriate signage (scaffold incomplete, do not use or similar) is to be displayed to prevent any further use until necessary rectification has been carried out.
+When the fall height is greater than 4m, scaffolds are to be erected by a licensed scaffolder. All other scaffolds are to be erected by a competent person.
+Use of any scaffold provided by the Main Contractor or hoisting equipment is entirely at the Subcontractor’s risk and the Subcontractor releases, and shall have no claim against, the Main Contractor in respect of the use of the Main Contractor’s scaffold.
+
+	(d) Temporary Handrails		
+
+	(i) All temporary perimeter and other temporary handrails shall be provided by the:
+	<<Main Contractor / Subcontractor>>
+
+	(ii) Adjustment and moving of any temporary handrails shall be carried out by and at the cost of:
+	<<Main Contractor / Subcontractor>>
+
+	(iii) Cost of the provision or hire of temporary handrails shall be borne by the:
+	<<Main Contractor / Subcontractor>>
+
+	Any temporary handrails required to be provided by the Subcontractor may be provided by the Main Contractor and the cost recovered by the Main Contractor as a debt due from the Subcontractor to the Main Contractor.
+The Subcontractor must ensure that all temporary handrails it provides are in a safe condition and is constructed in accordance with the manufacturer’s specifications, relevant regulations, codes and Australian Standards.
+
+	(e) Cranage and hoisting
+
+	(i) Cranage facilities (including provision of qualified operators) shall be borne by the:
+	<<Main Contractor / Subcontractor>>
+
+	Description of cranage facilities if provided by the Main Contractor:	
+	<<Site dependent to be confirmed by Construction Manager and Subcontract Superintendent>>	
+
+	Description of craneage facilities if provided by Subcontractor:
+	<<Any additional requirements to those listed above as necessary to complete the WUS / Subcontract Works>>
+
+	(ii) Hoisting facilities shall be provided by the:
+	<<Main Contractor / Subcontractor>>
+
+	Description of hoisting facilities if provided by the Main Contractor:	
+	<<Site dependent to be confirmed by Construction Manager and Subcontract Superintendent>>	
+
+	Description of hoisting facilities if provided by Subcontractor:
+	<<Any additional requirements to those listed above as necessary to complete the WUS / Subcontract Works>>
+
+	(iii) Materials handling:
+
+	Labour to handle materials to be lifted by crane shall be provided by the:
+	<<Main Contractor / Subcontractor>>
+
+	Labour to handle materials to be lifted by hoist shall be provided by the:
+	<<Main Contractor / Subcontractor>>
+
+	(iv) Access and Notifications:
+
+	If materials are to be lifted by craneage provided by the Main Contractor, lifting shall be between the following times of each day as are allocated to the Subcontractor by the Main Contractor from time to time at the Main Contractor’s sole discretion:
+	<<Insert access times / periods / details / MINIMUM NOTIFCATION 48 HOURS RECOMMENDED>>
+
+	If materials are to be hoisted by the Main Contractor, hoisting shall be between the following times of each day as are allocated to the Subcontractor by the Main Contractor from time to time at the Main Contractor’s sole discretion:
+	<<Insert access times / periods / details / MINIMUM NOTIFCATION 48 HOURS RECOMMENDED>>
+
+	(v) Craneage and Hoisting Charges:
+
+	If craneage or hoisting facilities are provided on-site by the Main Contractor the Subcontractor shall pay the Main Contractor the current trade hire nominated by the Main Contractor below for the use of those facilities unless otherwise agreed with the Main Contractor:
+
+	Charge for cranage facilities
+	<<$ per hour>> 
+
+	Charge for hoisting facilities
+	<<$ per hour>> 
+
+	(ii) Builders Lift/s shall be provided by the Main Contractor as follows:
+(ensure when completing this section for the Lift SC it aligns with their SOW including any provision of builders lifts)
+	<<if provided, insert description here including number of, weight, size, operational hours, access, personnel & materials limitations, etc.>>
+
+	The Subcontract must ensure all materials are appropriately contained, strapped and secured (i.e. brick cages, racks, stillages, grillages, lifting frames, etc.). All lifting equipment must meet all legislative requirements and a lifting register must be provided to the Main Contractor.
+Use of any craneage or hoisting equipment (including builder’s lifts) provided by the Main Contractor is entirely at the Subcontractor’s risk and the Subcontractor releases, and shall have no claim against, the Main Contractor in respect of the use of the Main Contractor’s cranage or hoisting equipment.
+
+	(f) Other plant or equipment
+
+	(i) Access equipment to complete Subcontract Works (including scissor lifts, boom lifts, etc.) shall be provided by:
+	<<Main Contractor / Subcontractor>>
+
+	(ii) Other items of plant or equipment to be provided or made available by the Main Contractor for the use of the Subcontractor shall be as follows:
+	<<Insert details>>
+
+	(iii) The date of provision or available of such other items of plant or equipment shall be:
+	<<Insert dates>>
+
+	(iv) A qualified / competent operator for such plant or equipment shall be provided by the:
+	<<Main Contractor / Subcontractor>>
+
+	(v) Such other items of plant or equipment shall be returned by the Subcontractor on the following date or dates:
+	<<Insert dates>>
+
+	NOTE: The cost of cleaning or repair (other than due to fair wear and tear) of other items of plant or equipment provided by the Main Contractor and used by the Subcontractor shall be charged to the Subcontractor.
+
+	(g) Telephones and fax	
+
+	All telephone services or facsimile machines are to be provided by the Subcontractor at its own cost including all applications, connections, installation, hire costs, disconnections and removals.  
+The Main Contractor is not required to provide any telephone services for use of the Subcontractor or any of its employees, secondary subcontractors or agents. 
+If a telephone service or facsimile machine provided by the Main Contractor is used by the Subcontractor, the Subcontractor shall pay for all outward calls or transmissions.	
+
+	(h) General	
+(ensure when completing this section for the Hydraulic Contractor it aligns with their SOW including provision of any temporary services)	
+
+	(i) Space for the erection of the Subcontractor's sheds and storage facilities shall be provided by the Main Contractor subject to the availability of space at the Main Contractor’s sole discretion. The Subcontractor is responsible for all shed/s installation, relocation and removal costs and all temporary services.
+
+	(ii) Toilet accommodation and washing facilities shall be provided by the Main Contractor.
+
+	(iii) Adequate water and boiling water for drinking purposes shall be provided by the Main Contractor.
+
+	(iv) Adequate water and hot water for cleaning and trade wash down purposes shall be provided by the Main Contractor at the following locations:
+	<<Insert Locations>>
+
+	The Subcontractor must keep all site amenities provided by the Main Contractor and used by its employees in a clean and tidy state at all times and provide sufficient cleaning labour as required.
+
+	(j) Other services and facilities
+
+	(i) Personal protective equipment to be supplied by the:
+	<<Main Contractor / Subcontractor>>
+
+	(ii) Safety equipment and training provide by the:
+	<<Main Contractor / Subcontractor>>
+
+	(iii) Lead stands to be supplied & installed by the:
+	<<Main Contractor / Subcontractor>>
+
+	(iv) Off-site storage facilities to be provided by the:
+	<<Main Contractor / Subcontractor>>
+
+
+3. The Subcontractor shall provide all traffic management and access controls required for the Subcontract Works (including deliveries and vehicle movements) in accordance with the project traffic management plan and as otherwise directed by the Main Contractor including personnel, road closures, signage, barriers, plant and equipment as and when required, including traffic management at entries, exits and on-site. The Subcontractor shall provide a specific traffic management plan if required or as otherwise directed by the Main Contractor. Site access will be available as directed by the Main Contractor and may change at any time at the Main Contractor’s sole discretion.
+4. The Subcontractor shall coordinate all deliveries to compliment the sequencing / timing of other works and the construction program. No costs will be allowed for returns or reloading and the Main Contractor may reject any deliveries if adequate prior notice <<insert specific notice periods if required>> is not given by the Subcontractor in accordance with the Main Contractor’s construction program or instructions or the delivery is unsafe to travel, load or unload on-site for any reason determined by the Main Contractor. 
+5. The Main Contractor reserves the right to prioritise any lifting requirements and has no liability for any delay encountered by the Subcontractor, their suppliers, agents or the like arising out of site deliveries. No costs will be accepted by the Main Contractor for returns, standing time or reloading.
+6. Any materials brought to the Site by the Subcontractor requiring storage will be subject to the Site limitations, floor mass capacities and space availability as directed by the Main Contractor. The Subcontract includes for all off-site storage and handling costs and any repacking / load breakdown costs as may be required due to any such site limitations or any program amendments or delays. The Subcontractor must check floor mass capacities with the Main Contractor prior to the storage of bulk materials on structural slabs.
+7. The Subcontractor shall protect the works and materials brought to the Site and adequately store and safely secure all tools, equipment and materials against conditions of the elements including inclement weather and high winds. The Subcontractor shall make good any damage as required and must notify the Main Contractor of any damage it has caused to other trade works/material on-site. Any rectification and/or replacement of damaged Subcontract or other contractor’s trade works or materials will be the responsibility and cost of the Subcontractor.
+8. The Subcontractor shall provide all temporary works necessary including ongoing modifications, adjustments and all incidental items and provide all temporary bracing, propping, strutting and the like including removal and making good to the works on completion to the satisfaction of the Main Contractor. All bracing, propping and strutting must be adequately protected from the impact of mobile plant.
+9. The Subcontractor shall be fully responsible for the safekeeping of all their tools, plant and equipment. Any losses due to fire, theft, etc. which may not be covered by the Subcontractor’s insurances remain at the Subcontractor’s sole risk, responsibility and liability. No claims for such losses will be accepted by the Main Contractor.
+10. The Subcontractor shall protect (and clean as necessary) all Site and external infrastructure, footpaths, gutters, roadways, etc. while unloading plant and moving plant around the Site and adjacent areas, including washing down vehicles (including tyres) before exiting the Site. All such protection and cleanup works shall be to the relevant authority requirements and as directed by the Main Contractor. Any rectification/cleaning works caused by the Subcontractor and completed by others will be backcharged to the Subcontractor.
+11. The Subcontractor shall dewater all work areas and workfaces immediately after any inclement weather and provide adequate resources as instructed by the Main Contractor to assist in the dewatering of general access walkways, traffic zones, etc. and any other workfaces that may delay the project works. 
+12. The Subcontractor shall progressive daily clean all work areas and remove trade waste (non-packaging materials) to bins where provided and directed by the Main Contractor at its sole discretion. Should no bins be provided by the Main Contractor, the Subcontractor shall be responsible for the removal of all waste from the Site. Any packing or packaging material used in the Subcontract Works shall be removed from Site and not be placed in any onsite bins or rubbish receptacles. Any cleaning or removal of trade waste (or any removal of packaging materials) performed by others will be backcharged the Subcontractor.
+13. There will be no on-site car parking available.	
+14. The Main Contractor is entitled to restrict the performance of any noisy or disruptive Subcontract Works to suit the requirements of the Main Contractor and in consideration of adjoining neighbours or other subcontractors working on the Site. The Subcontractor is deemed to have included for any and all restrictions and must provide all equipment necessary to muffle noisy plant and take all necessary preventative measures to reduce noise and airborne pollutants.
+15. The Subcontractor shall not permit the playing of any music, use of loud hailers, external phone call bells or the like nor allow the use of outlandish, abusive, crude or offensive language to occur on or surrounding the Site by its employees, subcontractors, suppliers or any other personnel. The Main Contractor may instruct the Subcontractor to remove from the Site any personnel due to such misconduct, incompetence or any other negligent act at the main Contractor’s sole discretion.
+16. The Subcontractor shall ensure that personnel do not commence work on the Site earlier than or continue to work after the permitted hours in any authority approval and as otherwise directed by the Main Contractor.
+17. Upon completion of the Subcontract Works the Subcontractor shall ensure all work areas on the Site are left free of defects, in a clean and tidy state and free of all waste or rubbish. No items, goods or materials shall be left stored or kept on-site. Removal of any such waste or rubbish or any required cleanup shall be at the Subcontractors cost.
+Safety and Environmental
+18. The Subcontract Works are to be completed in accordance with the relevant Occupational Health and Safety Legislation, Acts, Regulations, Industry Standards, Codes of Practice etc.
+19. The Main Contractor is ISO certified and the Subcontractor shall comply and adhere to all requirements, processes, documentation, systems and any other obligations required to ensure the Main Contractor maintains and complies with the ISO certification.
+20. The Subcontractor shall provide an Occupational Health and Safety Management Plan prior to the commencement of the Subcontract Works on-site. 
+21. The Subcontractor confirms that their organisation (and all employees and subcontractors) will comply with the Occupational Health and Safety requirements as instructed during the Site safety induction program as directed by the Main Contractor as well as their own safety management plan and the Site WHSE Plan of the Main Contractor.
+22. The Subcontractor and its employees and other workers shall comply with the Main Contractor’s Drug and Alcohol Policy and Drug and Alcohol Management Plan and the Subcontractor must ensure:
+· employees and other workers engaged by it and by Secondary Subcontractors are made aware of the requirements for drug and alcohol testing and are educated in drug and alcohol awareness;
+· support is made available to all employees and workers in respect of drug and alcohol issues; and
+· assistance is provided to employees and workers to ensure that they are transported home safely in the event of a non-negative test on site.
+23. All of the Subcontractor’s employees (including subcontractors) shall have completed the Construction Industry Basic Induction Training Course (provided by a registered training organisation RTO) before undertaking the Site specific induction program or attending the Site.
+24. The Subcontractor has allowed for appropriately qualified representative of their company to attend the Site safety committee meetings and participate in the safety wall and has allowed to immediately address any issues pertinent to their trade identified during the safety walk.	
+25. The Subcontractor has allowed for work to be carried out in accordance with all appropriate Acts, Regulations and Codes applicable to Project, Site and Subcontract Works. Submission of Safe Work Method Statements (SWMS’s) and supporting documentation to the satisfaction of the Main Contractor must occur prior to commencement of the Subcontract Works. All SWMS must meet the following requirements:
+· Safe Work Method Statements (SWMS) must be provided for all high risk tasks being undertaken on the Site. 
+· The SWMS must be specific to the job being undertaken and developed in consultation with workers in the company. 
+· The Main Contractor does not require individual SWMS for ladder use, hand tool use etc. These are known as standard operating procedures (SOPs). 
+· Where the online safety system is utilised on the project, all workers must complete an online induction on that system (or in any alternate system provided by the Main Contractor). The Subcontractor’s Supervisor is responsible for ensuring that their workers have been consulted and understand the requirements of each SWMS relevant to their works. A pre start meeting will be held by the Subcontractor prior to commencing any high risk activities at which time the SWMS will be reviewed.
+· The Subcontractor’s supervision personnel will review the SWMS with the workgroup weekly or as the task changes.
+· The Subcontractor and its personnel will be fully aware of the SWMS contents and follow it at all times.
+26. The Subcontractor shall ensure all incidents are reported immediately to the Main Contractor and an incident report is completed within 24 hours and provided to the Main Contractor.
+27. The online safety system is used as an online safety system for our projects and it is the Subcontractors supervisors responsibility to maintain the online safety system on behalf of the subcontractor. This includes completing Pre start meetings each day, Toolbox talks, upload of SWMS’s, SDS, Safety Plans and SOP, ensure personnel inductions are complete prior to arrival on site, plant inductions are uploaded prior to bring plant to site, safety items raised via safety walks or task interactions are closed out, permits are completed as required, pre commencement checklist are signed off prior to commencement and insurances are kept up to date. Subcontractors must ensure that all workers sign into the online safety system at the beginning of each shift. If not done by the worker, the subcontractor must manually input this into the online safety system and provide a register to the PM/SM to verify manpower numbers for each shift.
+28. The Subcontractor has allowed for all safety barriers, signage, access and safety equipment required for the complete installation to the standards required by the Main Contractor or the appropriate statutory body for public protection including protection of penetrations, props, bracing, struts, excavations, pits, etc.  	
+29. Subcontractor accepts that all plant will undergo an induction process where the following information must be provided; plant log book, servicing and maintenance records, a plant risk assessment, operations manual, applicable operators certificates and test certificates. All cranes and piling rigs must have a green sticker.  If all aforementioned documentation has not been provided and requirements of the relevant state legislation have not been met, the Plant must not be used and will be required to be replaced at no cost and with no extension of time.
+30. For any transportation of goods to site Subcontractors must take all reasonable steps to comply with the National Heavy Vehicle National Law and Regulation, or equivalent, as applicable in each jurisdiction. The subcontractor must ensure the safe conduct of all transport activities including ensuring the following:
+0. Drivers comply with all applicable road laws
+0. All vehicles are maintain in good condition
+0. Loads are adequately secured
+0. A SWMS is available for the loading and offloading procedure and that the driver/operator has been inducted into it
+0. Safe plant and equipment
+0. A procedure is available to manage driver fatigue
+0. Development and compliance of COR (Chain of Responsibility) and COC (chain of custody) 
+0. Training in NHVL
+Evidence of the compliance with this scope requirement is to be provided to the Main Contractor prior to commencement and during the completion of the works.
+
+Also please note for all WA & NT projects, although the HVNL has not commenced in Western Australia or the Northern Territory at this time, the HVNL applies equally to vehicles from those jurisdictions when they cross into one of the states or territories where the HVNL applies. In some cases, drivers may also need to comply with certain aspects of the HVNL before they cross the border (eg. work diary requirements).
+31. The Subcontractor shall observe the following rules when working at heights:
+•	“A” frame ladders are not allowed to be used on the Site without the prior approval of the Main Contractor’s site management. A frame ladders may only be used where all other options have been ruled out. The use of scissor lifts, scaffolding or platform ladders must be utilised wherever possible.
+· All working at heights must be done with fall prevention or fall restrain controls in place
+· Any persons required to operate a scissor lift must have a statement of competency from a registered training organisation (RTO)
+· Any persons required to operate a boom EWP which has the capacity to extend over 11m must hold a high risk license.	
+· Any persons required to operate a boom EWP under 11m must hold a statement of competency from a registered training organisation (RTO).
+· The Subcontractor will provide a Harness register to the Main Contractor.
+· The Subcontractor must ensure, as far a reasonably practicable, all falling objects are eliminated. This will include the use of lanyards to secure tools, mesh, webbing, exclusion zones, permits, etc.
+32. The Subcontractor has allowed for all resources, training, procedures, equipment and any other requirements for working in confined areas in accordance with statutory regulations and the Main Contractor’s OHS requirements.
+33. The Subcontractor accepts that all substances (gas, liquid, solid) brought onto the Site must be accompanied with a Safety Data Sheet (SDS) produced within the last 5 years, and be provided prior to delivery and / or uploaded to the online safety system (or any alternate system provided by the Main Contractor) as relevant. Correct storage of all substances is the responsibility of the Subcontractor and must be in accordance with the SDS. Where the substance is classified as hazardous a risk assessment shall be undertaken by the Subcontractor.
+34. The Subcontractor shall coordinate, provide and ensure full compliance with any Dangerous Goods Assessments required for the project relating to any required storage segregation, fire protection, construction and ventilation requirements, safety considerations and electrical hazardous area zonings within the Subcontract Works that will be utilised by any end users including but not limited to the provision of all Dangerous Goods Reports within the concept design and incorporation of these into the detailed design documentation. 
+35. No fuel shall be stored on the Site without prior approval and arrangement with the Main Contractor.
+36. It is noted that Australia has a nationwide ban on the importation of any materials that contain asbestos. Any materials that enter Australia are required by law to contain NO asbestos. The Subcontractor shall only supply materials to the Site that contain NO asbestos.
+37. Respirable Crystalline Silica
+To maintain compliance with the amendments to Occupational Health and Safety Act and Regulations 2017,  all subcontractors and suppliers must comply with the statutory laws, including but not limited to:
+· An understanding of all products that you work with and the percentage of Crystalline Silica content of the product, develop and submit SWMS or procedures on how to reduce/control the risk of exposure.
+· As applicable have the appropriate health monitoring undertaken as per Occupational Health and Safety Amendments (crystalline Silica) Regulations 2021, regulation 163 section 319ZD.
+· Include provision for air monitoring for the activity that has the potential risk of exposure to employees (over the exposure limit of 0.05mg/m3)
+· When attending site induction, workers need to provide verification of training  (Silica Awareness training ) 
+· Allow for scheduled toolbox talks and information sessions on Respirable Crystalline Silica awareness when required. 
+· All subcontractors and suppliers are to provide tools and equipment specifically for the use of silica including but not limited to M or H class vacuum extraction fitted to tools  (compliant to AS/NZS 60335.2.69:2017)
+· Have the appropriate respiratory equipment provided, including training on ‘how to use the equipment’, face fit tested and provisions for monitoring the use of masks, e.g.  employees are clean shaven (AS/NZS 1715:2009)
+· Conduct adequate supervision, monitoring of control effectiveness and measurement of employee’s compliance e.g., weekly inspections, real time monitoring systems
+· Include extra time for cleaning to not create risk to subcontract employees including vacuuming areas, wetting dust, and putting in bags. Etc
+· Include extra time for proper disposal of Silica dust in designated locations where supplied by the builder's site management
+· Complete a risk assessment / crystalline silica hazard control statement  (exposure activities) allow to launder/provide change of clothes/provide protective equipment / clothing that may be affected by the presence of respirable dust.
+· commence on Tuesday 15 November 2022. From this date, all subcontractors / suppliers / installers working with engineered stone must hold a licence and suppliers cannot supply / install engineered stone to businesses who require a licence but do not have one.
+The ongoing group of companies will be regularly monitoring these controls and have the provisions to cease work for non-compliances.
+38. The Main Contractor will provide a first aider and first aid facilities on the Site. The Subcontractor will allow for a person with level two / senior first aid qualification.	
+39. The Subcontractor accepts that the protective equipment requirements for the site are compulsory and must be worn at all times whilst on site; hard hats, steel capped boots, high visibility clothing/vest. Other PPE i.e. safety glasses, gloves for manual tasks, hearing protection, face shield etc will be required based on a task specific risk assessment and/or as specified in the approved SWMS/JSEA.  All PPE must be in good condition and provided by the Subcontractor to all workers. The Subcontractor must ensure that each worker is trained in the use of the PPE provided to them. All workers must follow the approved SWMS/JSEA in regard to the use of PPE.   
+40. The Main Contractor has implemented a three stage warning system for breaches of company policies, which is clearly outlined in our induction procedure. While the third stage allows for the removal of an offender from the Site, the Main Contractor reserves the right to remove any person from the Site immediately for a serious breach of safety. Subcontractor accepts this process.
+41. If the Subcontractor fails to complete their works to a safe standard acceptable to the Main Contractor, the Main Contractor will take any action deemed necessary with all costs backcharged to the Subcontractor.
+42. The Subcontractor will provide written evidence that all OH&S and environmental monitoring and measuring devices used by the Subcontractor (or their subcontractors) have been adequately calibrated, verified and maintained in accordance with the requirements of relevant Legislation, Acts, Regulations, Industry Standards, Codes of Practice, etc.
+43. The Subcontractor shall have systems in place to meet the return to work obligations under the relevant legislation and will be proactive in providing suitable alternate duties in accordance with any medical advice received.
+44. The Subcontractor’s Supervisor has the responsibility for ensuring the health and safety of their employees and their subcontractors employees. The Subcontractor’s Supervisor will participate in the Main Contractors Supervisor’s Onboarding process prior to commencing any Subcontract Works on-site.
+45. The Subcontractor has allowed for all necessary task lighting to carry out all Subcontract Works in a safe manner.
+46. The Subcontractor has allowed for all their electrical equipment to be tested and tagged as per AS/NZS3012 Electrical Installations – Construction and Demolition Sites. In the event that any Subcontractor’s equipment is not tagged, the Main Contractor may complete the tagging and backcharge the Subcontractor or remove any untagged items from the Site. 
+47. The Subcontractor shall participate as required by any other regulatory authority applicable to the project or Subcontract Works.
+48. The Subcontractor shall ensure that additional supervision and mentoring is provided to all new workers to the construction industry. The Subcontractor’s supervisor will be required to inform the Main Contractor of their New Worker Program during the Supervisor Onboarding Process.
+49. The Subcontractor agrees that their organisation (and all employees and subcontractors) will comply with all project Environmental Management requirements as laid out in any Project Environmental Management Plan and as instructed during the Site safety and environmental induction program and as otherwise directed by the Main Contractor.
+Program, Time and Resources
+50. The Subcontractor shall meet all dates in the Main Contractor’s construction program (including staging or phasing of the works, milestones and revisions of the program throughout the project) inclusive of all overtime as required and ensure all Subcontract variation works are incorporated to meet the Main Contractor’s construction program.
+51. Where and within the time directed by the Main Contractor, the Subcontractor shall submit a program depicting submission of any shop drawings, procurement, manufacture, installation, start / finish dates, commissioning and required resources to complete the Subcontract Works. 
+52. The Subcontractor shall allow for a six-day week to the current industry working day calendar. All Saturdays in this calendar are compulsory. The Subcontractor has further allowed for all working hours as per the Site opening hours <<insert specific site working days / time if applicable>> and had made provision for overtime as required to meet pre-determined program target dates.
+53. The Subcontract shall provide a competent full time supervisor to undertake the Subcontract Works and provide sufficient and experienced workers any other supervision or other resources on-site to carry out the works safely and meet the Main Contractor’s construction program (including the provision of spotters as required). 
+54. The Subcontractor shall co-ordinate all required penetrations with other trades as applicable and provide details (including fully marked up plans) of all penetrations, plinths, etc. and deliver to the Site and the workface all built-in and cast-in items, inserts, anchors, fixings and the like in sufficient time for them to be incorporated into the works and shall be responsible for all later costs, modifications and installation as a result of any failure to comply with this requirement. The Subcontractor remains responsible for all set out and installation required.
+55. All day labour works conducted by the Subcontractor must have dockets signed daily by the Main Contractor. No variations or payments will be approved for any unsigned dockets nor for any signed day labour dockets that contain works forming part of the Subcontract scope. All labour rates are subject to the Main Contractor’s approval at its sole discretion and are deemed inclusive of the Subcontractor’s administration, overheads & profit.		
+56. The Subcontractor shall provide sufficient plant and equipment to service the project and meet the requirements of the Main Contractor’s construction program and will provide extra resources upon demand, if requested by the Main Contractor. 
+57. The Subcontractor will manage their own industrial relations in accordance with their industrial agreement, enterprise agreement or relevant award to ensure there are no stoppages on the project. The Subcontractor agrees to inform the Main Contractor of any grievances and disputes associated with their own industrial relations relating to this project. In the event of any Site stoppages, the Main Contractor will not be liable for any costs.	
+58. The Subcontractor confirms there is no provision in their current industrial agreement, enterprise agreement or relevant award (if applicable) for protected action to be taken during the life of the agreement.	
+59. The Subcontract includes all applicable allowances in accordance with the Subcontractor’s industrial agreement, enterprise agreement or relevant award and includes any other specific allowances required for the completion of the Subcontract Works.
+60. All Subcontract employees are to be registered with the appropriate Superannuation Funds, Long Service and redundancy funds in accordance with their workplace agreement, enterprise agreement or relevant award. The Subcontractor is to provide scheme no.’s and proof of payment 3 days prior to starting on site.
+QA, Inspections, Tests, Samples, Setting Out
+61. The Subcontractor shall comply with the quality requirements of the project and is responsible for achieving all specified quality standards including completing any document outlining their commitment to quality achievement on the project and the methods they will follow to ensure quality is achieved. 
+62. The Subcontractor confirms that they are aware of and have allowed for the Main Contractor’s certification to the following standards:
+· AS / NZS ISO 9001 Quality Management Systems
+· AS / NZS 4801 Occupational Health & Safety Management Systems
+· AS / NSZ ISO 14001 Environmental Management Systems	
+63. The Subcontractor shall include for all miscellaneous detail resolution and site measuring as required for the Subcontract Works and to complete the Subcontract Works in accordance with all tolerances to meet the applicable standards and the specification. 
+64. Where execution of the Subcontract Works is dependent upon or affected by the quality or completeness of any work carried out by others (“Prior Work”) the Subcontractor must inspect such Prior Work and the general area around it prior to starting work and notify the Main Contractor immediately in writing of any defects, problems or other matters it discovers which may affect the Subcontract Works. The Subcontractor will be fully liable for such Prior Work and have no claims against the Main Contractor if it fails to comply with the notification requirements.
+65. The Subcontractor agrees that the Main Contractor is the sole judge of whether the quality of whether any finished work is to the standard required for the project and the Subcontractor will rectify any quality issues at their cost where directed by the Main Contractor. The Subcontractor accepts that the Main Contractor can withhold payment if issues pertinent to quality are not addressed/rectified to its satisfaction.
+66. Prior to commencement of the project the Subcontractor shall identify all as built drawings, shop drawings, samples, warranties, guarantees, submissions, authority approvals, maintenance manuals, quality records and the like required by the Specifications or Subcontract and submit schedules of these to the Main Contractor.	
+67. The Subcontractor shall include the engagement of a qualified draftsperson to prepare any required shop drawings which shall be site specific and sufficiently detailed showing all interface details with other trades and structures. Any generic Shop Drawings provided will be rejected. The Subcontractor must also:
+(i) issue all shop drawings to the Main Contractor for reference and checking prior to completion
+(ii) not commence the applicable works until the shop drawings have been approved by the Main Contractor and / or the appropriate consultant.
+(iii) upload the shop drawings to the document management system (or any alternative document management system used on the project) for    review and approval by the Main Contractor and consultants. The uploaded documents must remain current and use the naming and numbering conventions as directed by the Main Contractor.
+(iv) allow for the management and provision of their own copies of the current construction Drawings, Specifications, etc on-site. The Main Contractor will issue Drawings (and any construction information) in electronic form only.
+68. The Subcontract includes the provision of all samples and prototypes as specified. Where alternate products or substitutions are proposed, the Subcontractor shall submit all relevant information including the proposed cost savings, details, technical data and written evidence of adherence with Australian Standards to the Main Contractor for approval prior to delivery to the Site or use in any Subcontract Works. The Main Contractor may at its sole discretion, direct the removal and replacement of any unapproved substitutions incorporated into the works at the Subcontractor’s cost.
+69. The Subcontractor shall provide for and progressively submit for the Main Contractor’s review, Inspection and Test Plans (ITP’s) relevant to the works to be undertaken. Completed ITP’s are to be provided to the Main Contractor along with copies of relevant documents. The Subcontractor shall complete any quality checklist provided by the Main Contractor. The Main Contractor reserves the right to withhold payment if any ITP’s have not been received.
+70. The Subcontractor will provide written evidence that all Monitoring and Measuring devices supplied or used by the Subcontractor (or their subcontractors) have been adequately calibrated, verified and maintained in accordance with the relevant Legislation, Acts, Regulations, Industry Standards, Codes of Practice, etc.	
+71. The Subcontract works include provision for all survey, set out and levels required to complete the works from base grids provided by the Main Contractor. <<Insert project specific setout provided and Subcontract obligations>>
+72. The Subcontract Works include the provision of a schedule and photographic record of all fire and smoke penetrations including final certifications from an accredited and suitably qualified installer or third party certifier. If any Subcontract Works are found to be defective, the Subcontractor will be responsible for all rectification works including removal and reinstatement of any other contractor’s works required to enable the reinspection, rectification and replacement of the defective works.
+73. The Subcontract includes all inspections and tests as required by standards applicable to the works and as detailed in the specification(s), including all independent certifications.  The Subcontractor has included for inspections of the Subcontract Works at critical points and in logically defined areas as the project proceeds (including coordination with all consultants) and will provide a plan to the Main Contractor of the areas and critical inspection points 10 days prior to commencing work. The Subcontractor shall bear all costs arising from use of material or work not in compliance with the documentation, including non-compliance which becomes evident from test results.
+74. The Subcontractor shall provide all records confirming that the works comply with the Drawings and Specifications for completed areas of work in accordance with the project plans and program. These must be submitted to the Main Contractor for sign-off of the completed area prior to completion.
+75. Prior to practical completion and any required Essential Services Maintenance and in accordance with the contract documents, the Subcontractor shall provide all statutory sign-offs, warranties, compliance certificates, as-built drawings, manuals, etc as required by the specifications and Subcontract including the provision of maintenance manuals for review and comment by the Main Contractor as per the requirements of the Occupancy Permit.	
+Project Specific Items
+76. INSERT <<item>>
+77. INSERT <<item>>
+78. INSERT <<item>>
+
+	Rev 11
+	____
+	Page 13 of 13
+
+
+
+

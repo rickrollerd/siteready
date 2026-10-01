@@ -1,0 +1,830 @@
+ – Scope of Works Description
+Scope of Works
+The Subcontractor agrees that:
+(a) where an item, approach or option is expressed in terms such as "should", "may be", "recommended", "suggested", "desirable" or "advisable", the item, approach or option referred to shall be deemed to be a mandatory requirement; and
+(b) Notwithstanding the order of precedence set out in Schedule A, in the case of any ambiguity, discrepancy or inconsistency within this Schedule G and/or between this Schedule G and any of the specifications and drawings forming part of the Subcontract, the higher standard, quality or quantum will prevail in all instances.
+
+The Scope of Works generally comprises the Formwork, Reinforcement & Pour (FRP) works associated with the delivery of the project works as defined and in accordance with the requirements of:
+(c) This Scope of Works,
+(d) The Drawings, Specifications and other documents contained in Schedule G of the Subcontract, and
+(e) The Subcontract.
+
+The Work Scope generally involves all work necessary to complete the Work under the Contract in accordance with the Contract, including (as relevant to or as required for the performance of such work):
+(f) complying with the technical documents identified in this Subcontract Agreement,
+(g) performing any design services expressly required by the Contract, and
+(h) except to the extent (if any) expressly stated otherwise in the Contract:
+(i) performing all necessary temporary works (including the design thereof); and
+(ii) providing all necessary vehicles, plant, equipment, materials, goods, items, tools, supervision, overheads, administration, taxes, wages, allowances, Site facilities and any other incidental cost whatsoever and services for personnel, safety and protective clothing, consumables and other things.
+
+The Works that are to be handed over to the builder include:
+(i) The permanent works described in this Schedule G; and
+(j) Compliance certification as specified;
+(k) Completion and as constructed drawings.
+
+Unless specifically excluded herein the Scope of Works includes all labour, supervisions, materials and equipment necessary for the execution of the Works.
+N.B.: No one part of this Scope of Works shall be read in isolation. Each section shall be read in conjunction with others listed herein.
+N.B. Any reference to revision numbers within this Scope of Works are for information purposes only, it is the Subcontractors responsibility to confirm they are working with up to date revisions of the contract documentation.
+1.1. Scope of Works Overview
+a) Design Obligations
+i. Formwork for suspended concrete slabs including edge protection.
+b) Trade Specific Works
+i. Formwork – on ground and sSuspended works
+ii. Steel Reinforcement installation
+iii. Concrete placement and finish works
+iv. Steel Reinforcement supply and installation
+c) Specific Delivery Requirements;
+d) General Requirements;
+e) Completion Requirements;
+f) Exclusions.
+
+1.2. Scope of Works – Detail
+A. Design Obligations
+
+1. Temporary Works Engineering 
+The Subcontractor shall submit any design developed or carried out by the Subcontractor in accordance with any program for the Works that has been approved by the builder and in any event, within sufficient time to allow reasonable times for:
+The builder to comment upon that design; and
+re-design work or amended design work if required by the builder so that any re-design work or amended design work can be carried out by the Subcontractor without causing any delay in the progress of the works.
+The Subcontractor shall not be entitled to any Claim if required to carry out any re-design work or amended design work, pursuant to this clause.
+The Subcontractor has made provision for a temporary works engineer for design and signoff of temporary work systems (including but not limited to formwork, propping and handrails) in accordance with the provisions of relevant Health & Safety, Construction and Engineering Regulations, the builder GMR’s, Statutes and/or Standards.  
+All approvals shall be obtained, and written evidence given to the builder of these approvals prior to concrete being poureddecks being loaded and used by following trades.
+The Subcontractor is responsible for the design, engineering and signoff of all temporary works by a qualified person as required for propping, bracing, strong backs and additional footing supports;
+It is the Subcontractors responsibility to verify the structural integrity of any concrete slabs that is intended to bear the loads of temporary works;
+Temporary systems shall be used in accordance with the supplier or manufacturers recommendations and load limits. Temporary works to be fixed to permanent works footings and if unable, the Subcontractor must make appropriate allowances;
+The Subcontractor will utilise a qualified person for the design of all necessary temporary concrete slabs/footings as required;
+The Subcontractor will provide the builder with temporary works designs and calculations (including, but not limited to, any in-service loads such as precast moulds and gantry cranes) pertaining to temporary concrete slabs/footings for independent review by the builder prior to casting these slabs.
+, Temporary works design, validation and installation must be carried out as per the builder's procedure “Temporary Works Design and Implementation”
+The Subcontractor has allowed for all onsite engineering including onsite inspections and sign-off of reinforcement for concrete slabs.of formwork decks, formwork stairs and edge protection installed by the Subcontractor.
+Prior to the erection of any proposed handrail system to be provided by the Subcontractor, the Subcontractor has allowed to provide engineering certification and assembly documentation for the handrail system for review and approval by the builder. 
+B. Trade Specific Works
+1) Formwork & Support Systems
+0. The Subcontractor has allowed for the supply, installation & fixing of all formwork, required for the place and finish of the in-situ concrete works including but not limited to suspended slabs, concrete stairs, beams, upstand beams, returns, steps, setdowns, rebates, penetrations, folds, landings etc.
+The Subcontractor has allowed for the Supply, installation and removal (when deemed safe by the builder  to do sofor removal) of Temporary Handrails to all leading edges,  and exposed penetrations and stairs.post completion of the installation zone prior to other trades accessing the work area. The Handrail system will be provided by the Subcontractor and shallmust include as a minimum; Posts, Top/Mid/Bottom Rails and Toe Boards. All handrails used must be either an engineered item designed and approved by a qualified person or a priority system used in its entirety. Where exclusion zones/drop zones cannot be set up below work areas the handrail must include shade cloth or like reduce the risk of falling objects.
+The subcontractor has allowed stripping of formwork and re-shoring/back propping of concrete elements including for major construction plant and slab penetrations, etc. 
+The subcontractor shall allow for all fillets and drip grooves as required. Fillets & drip grooves to be good quality timber.
+The subcontractor shall allow to attend and make secure, re-plumb and re-level formwork prior to and during concrete pours.
+The Subcontractor is to include for all detailed survey and set out works as required, including slab perimeter, penetrations, columns, beams, stairs etc. The builder will provide 1 x benchmark and 4 x gridlines in each direction for all suspended slabs over 400m2 and 1 x benchmark and 2 x gridlines in each direction for all suspended slabs less than 400m2.
+The Subcontractor shall allow to grind down any sharp edges formed at fillets, drip grooves, beam soffits, beam side junctions and the like after stripping.
+The Subcontractor must allow for all relevant Concrete joints that are specified in the design documentation including installation of mastic to finish the joints.
+The Subcontractor shall be responsible for all dimensional checks and coordination of the Subcontract documents and site dimensions. Any discrepancy shall be brought to the builder's attention prior to installation.
+The Subcontractor has made provision for all barricades, flagging, signage, task lighting, ladders, aluminium scaffold, elevated work platforms etc required to carry out the works.
+The Subcontractor has allowed to cover all penetrations in slabs as required as per the builder's procedure “Penetrations, Risers & Shafts”.
+The Subcontractor has allowed to form up all penetrations. Refer to All drawings to ensure that all penetrations, openings and recesses are incorporated into the works. The Subcontractor must liaise and coordinate with all services trades for the provision of all penetrations, openings and recesses to ensure all items are captured prior to pour.
+The Subcontractor has allowed for the forming and isolating of in-situ concrete elements from all other built elements.
+The subcontractor has allowed to coordinate installation of all in slab services.
+Formwork to be cleaned, de-nailed and stacked in areas designated by the builder in a tidy and safe manner once stripped.
+The Subcontractor acknowledges the stripping of formwork cannot occur prior to concrete strengths being achieved as per the design documentation. The Subcontractor must seek approval for all stripping works by the builder prior to stripping works being undertaken. 
+The subcontractor shall allow to patch and make good concrete finish after stripping to level of finish defined/required in specification.
+If leakage of cement paste occurs through formwork during concreting. The Subcontractor shall allow to clean up all such leakage from finished concrete surfaces and all other finished surfaces no later than the following day.
+Clean out using compressed air, vacuum cleaners and magnets of all formed structural members, decks etc following the completion of all trade work (Inc. reo fix and services) immediately prior to the placement of concrete. The Subcontractor shall allow for enough labour in the Subcontract sum to undertake this work. Provide adequate “blow out” holes in strategic areas to facilitate cleaning out of forms prior to pouring. Use of a magnet on a handle for hard to reach areas. 
+
+2) Steel Reinforcing (Reo)
+0. Supply all labour, plant and equipment necessary to complete the reinforcement placement and associated works in accordance with the drawings, specifications, construction programme and relevant Australian Standards, Statutory requirements and professional standards.
+0. The works will include but not not limited to:
+· Place, tie and chair all reinforcing steel (including bar and mesh) for the following:
+ 
+· Suspended slabs.
+· Stairs and landings.
+· All concrete works being formed, placed and finished by the Subcontractor.
+
+0. Reo schedules are to be reviewed by the subcontractor and all necessary changes and additions brought to the attention of the builder prior to manufacturing and delivery.
+All deliveries of reo are to be booked in by the Subcontractor with the builder.  Ample time must be allowed for scheduling, review of schedules, changes to schedules, manufacturing and delivery. If the Subcontractor fails to book in deliveries in time the Subcontractor shall not be entitled to any Claim pursuant to late deliveries which subsequently delay The Works.
+Storage and laydown areas are limited onsite and delivery of reo should be arranged for just in time to meet the Construction Programme.
+The Subcontractor has allowed for handling of reo once delivered to site. 
+Reo shall be laid strictly in accordance with the drawings to the spacing and covers nominated. Reo shall be laid to minimise lapping where possible and shall include for all cutting of mesh sheets as required and the removal of wastage.  Include for all lapping and splicing and bar laying sequence as documented.
+The Subcontractor has allowed for the cleaning of reinforcement and formwork decks prior to commencement of concrete pour; 
+The Subcontractor to allow to book in all pre pour inspections prior to placement of any concrete.
+The Subcontractor has allowed for all movement and relocation of reinforcement on site to allow for concrete and other Subcontractors works; 
+The Subcontractor has allowed for all trimming and alterations to reinforcement to allow for penetrations and cast in services; 
+The Subcontractor has allowed for the supplying and fitting of capping to starter bars and any other exposed reinforcement; 
+The Subcontractor has allowed for the supply and install of cast in elements including but not limited to; dowels, ferrules, sleeves, hold down bolts and all connections.
+The Subcontractor has made allowance for sundry works as follows;
+· All construction joints, joint filling, compressible joint filler, and isolation from other elements as required, including allowance for re-visits to fill joints after slab shrinkage (time to be determined by the builder);
+· Movement gaps / separation detailing as required;
+· Greasing of all dowels before pouring as required;
+· The Subcontractor acknowledges that the full extent of jointing and other sundry items may not be completely documented, the Subcontractor is expected to be experienced in their work and have made suitable allowances. 	Comment by reviewer: To cover scope growth
+
+No steel of any sort can be left in the ground after works are complete. A thorough clean up must be carried out at all works areas. All steel left in the ground by the Subcontractor and subsequently cleaned up by the builder and the cost to do so will be backcharged to the Subcontractor.
+
+3) Concrete Place and Finish
+0. The Subcontractor has allowed to place, finish and curing all in-situ concrete works including but not limited to:
+i. Suspended Slabs,
+ii. Plinths, hobs, beams, folds, returns, setdowns
+iii. In-situ balcony and walkway slabs,
+iv. Stairs, etc
+The Subcontractor has allowed for all tools and equipment necessary to place and finish concrete including but not limited to:
+· Concrete pumps (two pumps may be required for larger single pours).
+· Hand tools.
+· Vibrators and generators.
+· Concrete trowel helicopters.
+· Spray bottles.
+
+The Subcontractor is responsible for placement of concrete (and all associated elements) to areas indicated in the documentation. The Subcontractor will not be entitled to any variation claims for additional concrete to those areas.  	Comment by reviewer: 
+The Subcontractor has made provision for a quality controller to attend site for every pour.
+The Subcontractor has allowed to supply all relevant paperwork/dockets etc that are required as part of the Environmentally Sustainable Design requirements. 
+Concrete will be supplied by the builder to the Subcontractor. The Subcontractor acknowledges they are to supply 7-day forecasts for all scheduled concrete pours as a minimum. Orders for concrete to be placed 48 hours prior to pour, the order must include time and location of delivery, quantity and mix specification.
+The Subcontractor has allowed to achieve concrete cover as per the structural documentation & Australian Standards.
+The Subcontractor has allowed to make good defective concrete work due to defects in formwork including grinding, patching, etc as required to achieve specified finish. 
+No pouring to occur in the rain, any damage to slab surface because of rain to me made good by the Subcontractor at their expense. 
+Any skim coats are to be colour matched to surrounding concrete. Allow to fill ferrule holes, honeycomb and air pockets in exposed concrete to receive applied finishes, including rubbing down to remove nibs and ridges to leave a smooth flush surface.
+The Subcontractor has allowed to adhere to the defect rectification time frame from identification of the issue deemed by the builder. The subcontractor notes that rectification of defects not complete within the specified time frame will be undertaken by a third-party rectification team at the Subcontractors expense, via contract sum reduction plus administration cost. 
+The subcontractor has an obligation to review, list and advise of all identified defects and repairing sequences for each identified area prior to the builder carrying out their quality review of completed works.
+The Subcontractor has made allowance for all concrete vibrating to be carried out by a competent and trained construction worker.
+Temperature range for concrete placement (unless otherwise approved) to be as specified in the design documentation and Australian Standards.
+The Subcontractor has allowed for all detailing and working of in-situ concrete to falls with provision of all set downs required.
+The Subcontractor has allowed for all finish types as specified (including but not limited to) steel trowel finish and wood float finish.
+The Subcontractor has allowed for all concrete surfaces to be finished to the Class type indicated in the design documentation, where no Class finish is specified notify the builder for direction. A class 3 finish cannot be carried unless approved with the builder prior.
+The Subcontractor has allowed for concrete finish level tolerances to be within the acceptable range as specified in the design documentation. At minimum, tolerances must conform with Australian Standards guidelines;
+The Subcontractor has allowed for any screeding, grinding and levelling compounds required to rectify damage or out of tolerance floors. All rectification works to be approved by the builder prior to commencement; 
+The Subcontractor has allowed for all surface treatments to exposed slab surfaces as detailed in design documentation. Details of any chemicals to be used on site (including but not limited to; curing compounds and formwork release agents) are required to be submitted to the builder for review prior to use. The Subcontractor is to ensure compatibility of curing compounds with the mix and all intended floor finishes to be affixed (direct stick carpet, epoxy & vinyl);
+The Subcontractor is to allow for slip joints between interfaces of walls and suspended slabs as required; 
+The Subcontractor has allowed for all works to be clear of any concrete slurry or dags.
+The Subcontractor has allowed for all saw cutting of slabs in accordance with the drawings and specification- must be carried out within 24 hours. Allow to caulk all joints and saw cuts.
+The Subcontractor has allowed to scabble and prepare face of concrete at joints, allow to clean and remove all waste generated by preparation works.
+The Subcontractor is responsible for protection of any services supplied and installed by others, from damage that could be caused during by their subsequent works.	Comment by reviewer: .  
+The Subcontractor has allowed to take excess concrete to the batch plant recycling area onsite. Concrete must be clean and free of debris and reo etc.
+The Subcontractor acknowledges they will be responsible for the cost of any concrete wastage over and above the percentages detailed in the table below.
+	Slab type / condition 
+	Allowable wastage
+
+	On ground – Raft Slab
+	5%
+
+	On ground – Waffle Slab
+	2%
+
+	Suspended slabs
+	2%
+
+
+
+The Subcontractor has made provision for back up plant and equipment to be on site during pours (including but not limited to - vibrators, screeds, fuel and motorised trowels,) in the event of break down, to allow continuity and quality of concrete pours and slabs.
+4) Vertical Lifting 
+0. The Subcontractor must allow for all vertical and horizontal lifting of formwork, reinforcement and the like to achieve their scope.
+The Subcontractor must allow for all associated cranage for the installation of stair forms or other item associated with concrete works.
+All cranes, dogmen, riggers, operators, and other site workers to have the relevant tickets, certifications, qualifications and VOC (verification of competency) and to provide evidence of this during site induction.
+The subcontractor has allowed for vertical lifting for vibrators and concrete choppers / helicopter machines for finishing and the likes.
+C. Specific Delivery Requirements
+0. The Subcontractor is responsible for the management, receiving, loading and unloading of all deliveries associated with the Works;
+The Subcontractor has allowed to deliver to site all materials as per the Construction Program and not as per Subcontractors and / or manufacturers storage and handling capacities including allowance for offsite storage as required and any transport and handling costs. Note: The builder is to be made aware of and approve all major deliveries prior to deliveries taking place’
+Any storage and laydown locations to be confirmed with the builder prior to placement;
+0. The delivery of reinforcement steel to come with all associated documentation including schedules and marking plans;
+0. The Subcontractor acknowledges and has made specific allowance for safe access onto delivery trucks for loading and unloading of reinforcement or formwork elements by means of compliant handrail systems and access steps or the likes. For clarification, no person is to access the back of a truck without a safe/compliant means of access (wearing of harnesses will not be accepted);
+0. The Subcontractor acknowledges and has made specific allowances for the provision of all necessary tie downs, restraints etc…required for the safe delivery of FRP elements to site;
+0. The Subcontractor has allowed for the supply and ongoing operation and maintenance of materials handling equipment required for the execution of the works.
+D. General Requirements
+1. The Subcontractor has allowed for the supply of all materials, labour, plant, equipment, tools, supervision overheads, administration, taxes, escalation, royalties, foreign exchange rates, international customs and levys required to complete and deliver the works;
+2. Obvious work: Work of an obvious nature may not be documented. Any item or method of construction which is usual and proper, but not specifically mentioned shall be deemed to be included in the works;
+3. The Subcontractor has allowed for adequate procurement times for materials. The Subcontractor is responsible for all delays to Construction Program due to late materials
+4. The Subcontractor has allowed to provide a warranty for a period as specified in the attached tender documents.
+5. The Subcontractor has made allowed to undertake survey and setout of the works based on the survey provided by others prior to commencing at a work area. All Survey works must ensure the design and RL’s are maintained as per the contract documentation; 
+For buildings - the builder Surveyor will provide gridlines (maximum of 8 grids) and a datum at both completion of bulk earthworks, and each suspended floor level.
+6. The subcontractor shall ensure that all the available working hours are to be utilised to progress the works if and as requested by the builder;
+7. The Subcontractor shall progress and complete the Works in accordance with (or earlier than) the Construction Program, see Section 5 for requirements;
+8. The Subcontractor shall allow for all out of sequence works and return visits necessary to complete the Works;
+9. The Subcontractor shall make provision for return visits and out of sequence work upon hoist, crane and other temporary works removal;
+10. The Subcontractor shall comply with and work in accordance with the builder Procedures and Plans including but limited to those listed in Section 6;
+11. The Subcontractor shall co-ordinate and co-operate with the builder and all Other Contractors during the Works. No claims related to lack of co-ordination and co-operation will be accepted;
+12. The Subcontractor shall use the document management system for all project communication and document control and transfer; 
+13. The Subcontractor shall provide all set out required for the Works and be responsible for all dimension checks and coordination of the subcontract documents and Site dimensions. Any discrepancy shall be bought to the builder's attention prior to fabrication;
+14. The Subcontractor shall provide all access equipment necessary for safe access of man and materials to complete the Works including but not limited to cranes, scissor lifts, boom lifts and mobile scaffolding;
+15. The Subcontractor is responsible for the movement of all materials associated with the Works (including both horizontal and vertical movement) other than that set out in Schedule H Facilities;
+16. The Subcontractor shall clean up all waste & debris generated by the works and place in the site bins daily;
+17. The Subcontractor shall remove from site all recyclable material;
+18. The Subcontractor shall remove from site all pallets and bulk packaging;
+19. The Subcontractor shall provide any temporary power (e.g. generators & fuel), lead stands and task lighting required to complete the Works;
+20. The Subcontractor shall be responsible for the protection of the Works until the Date of Completion;
+21. The Subcontractor shall be solely responsible always for the security of his plant, goods and equipment;
+22. The Subcontractor shall protect adjoining works (including works by other subcontractors) from damage, cleaning and removing debris generated by the Subcontractor and bear the responsibility for the cost of repairing & replacing any damaged adjoining surfaces;
+23. The Subcontractor shall undertake site visits as required to familiarise themselves with the site and to take any measurements or dimensions required, and to assess performance or production of their work team;
+24. The Subcontractor shall supply all material data records to the builder as required;
+25. The Subcontractor’s establishment, mobilisations and demobilisations are included in the Subcontractors rates and as such form part of the contract sum;
+26. The Subcontractor shall take the lead role in the co-ordination process of the trade packages with all the other trades (including but not limited to any other concrete subcontractor, earthworks/civil subcontractor, services subcontractors) including the resolution of intra-trade conflicts without additional costs to the Contractor, the Contract Administrator or the Client. The Subcontractor shall attend regular and special project meetings as required by the Contractor including but not limited to Design, Co-ordination and/or Subcontractor Meetings;
+27. The Subcontractor acknowledges that access to and possession of the work areas shall not be exclusive to the Subcontractor, but only enable him to carry out the works concurrently with the execution of the works by others;
+28. The Subcontractor acknowledges that their works will be undertaken concurrently on numerous work faces and / or out of sequence and that appropriate resources will be provided to maintain the Contractor’s program as amended from time to time;
+29. Where there is an ambiguity, discrepancy or inconsistency in the Documents, the higher standard, quality or quantum will prevail but if this does not resolve the ambiguity, discrepancy or inconsistency the Subcontract will prevail;
+30. The Subcontractor shall maintain sufficient labour, plant, equipment and any other resources required to complete the Works in accordance with the Head Contract program (as amended).  No claims will be accepted for the cost of overtime or penalty rates for out of hours work required by the Subcontractor to meet the Head Contract program;
+31. All dogmen, riggers, operators, and other site workers to have the relevant tickets, qualifications and VOC (verification of competency) and to provide evidence of this prior to site induction.
+32. The Subcontractor shall remove all installed temporary protection measures upon completion of the works and leave the works clean and free from any defects;
+33. Items shown on the drawings but not specified or vice versa shall be deemed to be included in the works;
+34. The Subcontractor shall allow for the final trade cleaning of the complete installation before handover to the builder;
+35. The Subcontractor shall provide qualified site supervisor/s for the duration of the Works;
+36. The fixing of signage on site is not permitted (statutory signage excepted);
+37. The Subcontractor is to provide any required traffic control/ management associated with their works;
+38. The cost of any tools of trade or any item of plant and equipment provided to the Subcontractor by the builder and which are deemed necessary for the Subcontractor to execute and complete their package of work, will be paid for by the Subcontractor. This cost will be charged at commercial hire rates for the equipment used and will also include a builder administration, overhead and profit charge. The cost of any repairs due to any damage caused by the Subcontractor’s employees through either their negligence or misuse of the item provided to the subcontract, will also be payable by the Subcontractor;
+39. The Subcontractor shall give at least two working days’ notice for all engineering inspections;
+40. The Subcontractor acknowledges that any drilling/penetrating of structural elements that maybe required due to rectification works caused by the Subcontractor will require certification by the structural engineer prior to undertaking such works. All costs associated with such reviews/certification will be borne by the Subcontractor;
+41. The Subcontractor must keep records of all concrete pours including delivery dockets, which are to be supplied to the builder; 
+42. The Subcontractor is to provide schedule of plant and equipment that includes but is not limited to:
+a. Weekly dry hire rate, duration, mobilisation, demobilisation, servicing and operational costs,
+b. List of all cranes, heavy vehicles, earthmoving equipment, concrete placing equipment as well as any other lift and shift or high risk plant,
+c. Advise if plant is owned or externally hired;
+43. The Subcontractor’s works shall comply with relevant documentation including but not limited to; Relevant Australian Standards, Building Code of Australia, Industry Best Practice, Local Codes ,Safework NSW Codes of Practice and Guidelines and NSW / Victorian Cell and Fire Safety Guidelines;
+44. Quality inspections are to be undertaken on every FRP element and records are to be kept referencing dimension checks, cover, concrete mix, test report details, reinforcement size and positioning and concrete placement.  Records are to be submitted to the builder on the completion of each element in a format to be agreed by the builder. The builder maintains the right to withhold acceptance and or ultimately payment for FRP elements that do not meet this requirement.
+e) Exclusions
+For the avoidance of doubt, only those items listed hereunder are excluded from this Subcontract Agreement. Any other aspect required to provide a fully functioning system as per the documentation is included in the subcontract and associated works;
+i. Concrete supply.
+ii. Steel reinforcing supply.
+iii. Architectural cast in items.
+iv. Setting out of service penetrations.
+v. Temporary access stairs to suspended works.
+vi. Handrails to precast parapets that are higher than SFL of suspended slabs.
+vii. Nil.
+
+
+
+1. Specification
+The Subcontract Technical Specification and Other Documents are provided in electronic format via the document management system References  document ____ and document ____
+Documents include but are not limited to:
+· Technical Specifications 
+· Geotechnical reports 
+· the builder Management Plans
+Copies of Australian Standards and Codes of Practice and the like as referenced in the Scope of Works are not included in this Subcontract, however, they remain integrated with the Scope of Works.  These documents can be provided upon the request of the Subcontractor.
+If the Tendered Technical Specification has been altered during the Request for Tender period and prior to Award of Subcontract, the Price for the alterations is deemed to be included in the Price Schedule and the Subcontractor shall have no entitlement to a variation claim or to extend the Date for Completion.
+
+	Document Name
+	Reference
+
+	Output Specification (Schedule S)
+	The project – Schedule 3 – Execution Version
+
+	The Design Proposal (Schedule U)
+	Annexure A – Design Proposal
+
+	Operator Brief (Schedule T)
+	Operator Brief (document ____)
+
+	Civil Engineering Part A Specification
+	document ____
+
+	Civil Engineering Part B Specification
+	document ____
+
+	Structural Engineering Specification
+	document ____
+
+	
+	
+
+
+
+
+
+Drawings 
+The Subcontract Drawings are provided in electronic format via the document management system Reference document ____ 
+
+If Tendered Drawings have been altered during the Request for Tender period and prior to Award of Subcontract, the Price for the alterations is deemed to be included in the Price Schedule and the Subcontractor shall have no entitlement to a variation claim or to extend the Date for Completion.
+
+Document No	Title	Rev
+		
+		
+		
+		
+		
+		
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+Other Documents
+
+Builder Management Plans
+Project Management Plan				document ____
+WHS Management Plan				document ____
+Quality Assurance Plan				document ____
+Design Management Plan				document ____
+Environmental Management Plan			document ____
+Waste Management Plan				document ____
+Soil and Water Management Plan			document ____
+Flora & Fauna Management Plan			document ____
+Construction Management Plan			document ____
+Construction Traffic Management Plan		document ____
+Air Quality Management Plan			document ____
+Noise & Vibration Management Plan			document ____
+Risk Management Plan				document ____
+Workplace Relations Management Plan		document ____
+Communications and Community Relations Plan	document ____
+Aboriginal Participation Plan				document ____
+Training and Apprenticeships Plan			document ____
+Bushfire Management Plan				document ____
+Electrical Works Management Plan			document ____
+Workplace Emergency Response Plan		document ____
+Aboriginal Cultural Heritage Management Plan	document ____
+Site Access and Interface Protocols			document ____
+Document Naming Convention			document ____
+
+
+
+Pricing Schedule (Bill of quantities; Schedule of Prices or rates)
+0. Schedule of Pricing
+The whole of the work under the Subcontract is priced as Lump Sum Items.
+The Pricing Schedule has been provided separately.
+Only enter values into those cells where able.
+Totals for each building/area have been formatted automatically.
+The costs provided need to include all costs, charges, and mark-ups, including all the obligations in the Subcontract, of whatever nature whether stated or implied.
+The description of work in Pricing Schedule is not necessarily complete in all respects and reference should be made to the documents referred to in the Subcontract that are to be read in conjunction with this schedule.
+The Pricing Schedule shall be deemed to include, but not be limited to, the following:
+· All labour and supervision
+· All plant, equipment and machinery
+· All materials
+· Customs Duty where applicable, and like charges
+· All consumables
+· All fees, licenses and royalties 
+· All statutory on-costs, insurances and fixed costs
+· All profit and overheads
+· All other costs associated with the work under the Subcontract
+
+
+
+
+
+
+
+
+
+
+
+0. Schedule of Rates
+Table G1 – Schedule of labour and mark-up rates (for variations and/or contra charges) 
+
+	Item
+	Description
+	Rate
+(Excluding GST)
+	Unit
+
+	1. 
+	Insitu Concrete
+	
+	
+
+	1.1. 
+	Project Manager
+	$____
+	/hour
+
+	1.1. 
+	Supervisor
+	$____
+	/hour
+
+	1.2. 
+	Labour – unskilled labourer
+	$____
+	/hour
+
+	1.3. 
+	Labour – skilled labourer / concretor
+	$____
+	/hour
+
+	1.4. 
+	Labour - steelfixer
+	$____
+	/hour
+
+	1.5. 
+	Labour - formworker
+	$____
+	/hour
+
+
+
+Site Labour Rate to include for all costs, overhead and profit in connection therewith.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ Table G2 – Rates for variations 
+
+	Item
+	Description
+	Rate
+(Excluding GST)
+	Unit
+
+	2. 
+	Insitu Concrete
+	$
+	
+
+	
+	Formwork
+	
+	
+
+	2.1. 
+	· Class 2 edge board to slabs or footings 
+	
+	/m2
+
+	2.2. 
+	· Class 3 edge board to slabs or footings
+	
+	/m2
+
+	2.3. 
+	· Class 2 formwork to soffits of suspended slabs (incl. propping)
+	
+	/m2
+
+	2.4. 
+	· Class 3 formwork to soffits of suspended slabs (incl. propping)
+	
+	/m2
+
+	2.5. 
+	· Supply and place of plastic membrane
+	
+	/m2
+
+	
+	Reinforcement
+	
+	
+
+	2.6. 
+	· Supply of SL72 mesh
+	
+	/m2
+
+	2.7. 
+	· Supply of SL81 mesh
+	
+	/m2
+
+	2.8. 
+	· Supply of reinforcing bar
+	
+	/tonne
+
+	2.9. 
+	· Reinforcement fix (mesh)
+	
+	/m2
+
+	2.10. 
+	· Reinforcement fix (bar)
+	
+	/tonne
+
+	
+	Concrete Place 
+	
+	
+
+	2.11. 
+	· Strip footing
+	
+	/m3
+
+	2.12. 
+	· Edge beam
+	
+	/m3
+
+	2.13. 
+	· Internal Beam
+	
+	/m3
+
+	2.14. 
+	· Pad footing
+	
+	/m3
+
+	2.15. 
+	· Slab & beams
+	
+	/m3
+
+	2.16. 
+	· Walls
+	
+	/m3
+
+	2.17. 
+	· Columns
+	
+	/m3
+
+	2.18. 
+	· Stairs & landings
+	
+	/m3
+
+	2.19. 
+	· Core filling to block walls
+	
+	/m3
+
+	2.20. 
+	· Topping Slabs 
+	
+	/m2
+
+	2.21. 
+	· Concrete finishing (steel trowel)
+	
+	/m2
+
+	2.22. 
+	· Concrete finishing (wood float)
+	
+	/m2
+
+	2.23. 
+	· Concrete finishing (broom finish)
+	
+	/m2
+
+	2.24. 
+	· Supply and place curing compound
+	
+	/m2
+
+
+
+The rates for variations in Table G2 may not form part of this subcontract, however may be used by the builder to value variations under this subcontract.
+Notwithstanding that any bill of quantity or schedule of rates, including the rates for variations in Table G2, may be in error in that it may contain an item which should not have been included therein or may omit an item which should have been included therein or that it contains any other error, ambiguity, inconsistency or omission, the subcontractor:
+· will have no claim against the builder with respect thereto;
+· hereby releases the builder from any claim, demand, suit, cause of action or proceeding in connection with any bill of quantity or schedule of rates, including the rates for variations in Table G2.
+Each item of the bill of quantity or schedule of rates, including the rates for variations in Table G2 will, without limiting the generality thereof, be deemed to be priced to include:
+· labour and all costs and on costs in connection therewith;
+· all plant, equipment (including access equipment) and machinery;
+· materials and goods, and all costs in connection with handling, conveyance, delivery, unloading, storing, returning, packaging, hoisting and the like;
+· waste of material;
+· establishment costs, overhead costs and profits; and
+· all necessary attendance (including, without limiting the generality, taking delivery; unloading and assistance in unloading; getting in; storing; protecting; providing all necessary labour in relation to; provision of water and electricity; providing scaffolding in position for all purposes; and all sanitary and messing accommodation).
+The builder will have no liability to the subcontractor by reason of any acceptance, approval or other endorsement of whatever nature in connection with any bill of quantity or schedule of rates, including the rates for variations in Table G2, and the subcontractor will have no claim in connection with the same.
+Quantities in a bill of quantity or schedule of rates, including the rates for variations in Table G2, are estimated quantities only.
+The builder is not required to give a direction by reason of the actual quantity of an item required to perform this subcontract being greater or less than the quantity shown in a bill of quantity or schedule of rates, including the rates for variations in Table G2.
+Neither the supply by the builder of any bill of quantity or schedule of rates, including the rates for variations in Table G2, for tender purposes nor anything in, or in relation to, any such bill of quantity or schedule of rates, including the rates for variations in Table G2, will prevent the builder from requiring the subcontract works to be varied.
+
+
+
+
+
+0. Payment Claim Requirements
+Payment claims must be submitted in the format below, which the builder will provide to the Subcontractor in MS Excel format. Payment claims submissions are required to be followed with an MS Excel version emailed through to the builder's nominated personnel.
+Similarly, variation claims must be in the variation format below with required information, particularly the mandatory Site Instruction reference.
+Addition conditions precedent to the Subcontractor’s entitlement to make a Payment Claim (Clause 12.6):
+· Submission of Payment Claims and Variations according to the above requirements; 
+· Submission of conformance requirements/certificates;
+· OHS & Quality requirements as required;
+· Provision of Bank Guarantee(s) if these are a form of Retention under the Subcontract;
+· ITP’s are to be submitted progressively with progress claims;
+· Progressive sign-off of defective works is a progress claim requirement;
+· Administration Cost of (minimum) $____ will be charged by the builder for all non-conformances issued.
+Payment Claim format
+
+
+Variation Claim Format
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Programming Requirements
+Within 30 days of award of the Subcontract, the Subcontractor shall submit a draft programme for the Works.
+ 
+Within 30 days of submission of the draft programme, the Subcontractor shall submit a final detailed programme for the Works.
+
+The Subcontractor must ensure that the programme:
+Is based on the Construction programme referred to in clause 10.2 
+Is accompanied by a calendar specific to the construction of the Works, showing all Working Days as well as weekends, public and statutory holidays, rostered days off as generally recognised by the building industry in NSW and the Christmas, and Easter period close downs;
+Shows the sequence and duration of activities constituting the critical path and the inter-relationship between activities including float for activities not on the critical path.
+Is the base programme for the construction of the Works and is the document by which:
+Information about the construction of the Works is conveyed to the builder; and the Subcontractor’s progress towards meeting the Date for Completion is measured;
+Contains sufficient detail of administrative and trade activity to describe the Subcontractor’s planning of the construction of the Works and the method of achieving completion by the Date for Defects Free Completion; and,
+	a)	is updated, and provided to the builder, 
+	b)	in accordance with and within the times stipulated in the written request of the builder.
+The Subcontractor’s programme will show:
+The dates by which or the times within which the various parts of the Works are to be executed.
+Access dates as  required by the builder programme
+All activities identified by location, grid reference, level or such other way as to permit ready identification of tasks. 
+All activity dependencies
+Proposed labour for activities and major plant and equipment
+Critical path activities 
+Early and late start and finish date for each activity
+Total float for each activity
+Both on site and off site activities, including programmed award of all major subcontracts and procurement lead times
+Preparation of shop drawings, including a period for review and comment on shop drawings
+Site delivery dates for all major items
+All relevant approvals by Authorities.
+Commissioning by the Subcontractor
+Defects inspections
+Defects rectification and final clean
+Dates by which information, instruction or documentation is required to be provided.	
+The Subcontractor shall update the programme at least once a month. Each update of the programme must include details of the changes from the last update.
+The Subcontractor acknowledges that the programme will be used:
+to assess the progress of the Works; and
+to assess the time implications of delays to the progress of the construction of the works.
+The Subcontractor acknowledges that the builder has the benefit of the float in respect of non-critical activities.
+
+The Subcontractor shall comply with the programme but this obligation shall not relieve the Subcontractor of any obligation under this Subcontract, including, without limitation, the obligation to bring the Works to Completion by the Date for Completion. The Subcontractor shall remain responsible for all construction means, methods, techniques, sequences and procedures employed or to be employed by him in and about the execution of the Works and for coordinating all portions of and the execution of all portions of the Works. 
+
+Without limiting any other provision of the Subcontract, the Subcontractor shall maintain sufficient resources at all times during the continuance of the Subcontract, and carry out work under the Subcontract to ensure progress of the Works in accordance with the current programme.
+
+Failure of the Subcontractor to maintain the progress scheduled in the current programme shall be sufficient cause for the builder to direct the Subcontractor to increase the labour force, equipment, shifts and hours of work and to make all other special expediting arrangements necessary. The Subcontractor shall maintain the labour force and all other resources at the level directed by the builder until the scheduled progress is regained, at no additional cost to the builder.
+
+The Subcontractor shall submit a detailed commissioning and handover programme for the Works under the Subcontract at least six months prior to the date of completion.
+
+In addition to the above programmes the Subcontractor may be required to provide:
+Trend graphs as requested by the builder
+Four weekly look ahead programmes
+Three monthly look ahead programmes
+
+ 
+
+
+
+
+
+Warranty Schedule (as required)
+In the below Warranty Schedule, the following terms are defined as:-
+· Warranty Item means an item specified in the column of the below table headed Warranty Item; and 
+· Warranty Period the period specified for a Warranty Item in the column of the below table headed Warranty Period (commencing from the Date of Technical Completion).
+
+	System
+	Warranty Item
+	Warranty Period
+
+	Communications
+	Communication Installations
+	25 Year Certification on cabling. 
+
+	Electrical
+	Luminaires
+	5 years 
+
+	Electrical
+	Major Electrical Items
+	2 Year 
+
+	Electrical
+	UPS batteries
+	5 Years 
+
+	Electrical
+	UPS Controls
+	5 Years 
+
+	External Finishes
+	Automatic Doors
+	1 Year on auto operating equipment and motor. 
+
+	External Finishes
+	External Doors
+	10 years on Aluminium Doors.
+
+	External Finishes
+	External Pre‐Cast Concrete
+Finishes
+	10 Year on applied finishes. 20 year warranty on integral finishes. 
+
+	External Finishes
+	Glazing Frames and
+Sunshades
+	10 Year for powder coat film integrity.
+10 years colour retention of powder coat film.
+
+	External Finishes
+	Glazing Sealants
+	10 years for material performance.
+
+	External Finishes
+	Glazing Systems
+	10 years for system watertightness
+
+	External Finishes 
+	Hot Dipped Galvanising
+	7 years for material performance.
+
+	External Finishes 
+	Roof Sheeting
+	25 years against corrosion or perforation by weathering.
+
+	Fire Service 
+	Fire Services
+	3 years on installation.
+
+	Fire Service 
+	FIP
+	3 Year
+
+	Floor Finishes
+	Carpet
+	10 years 
+
+	Floor Finishes
+	Ceramic Tiles
+	10 years for material performance.
+
+	Floor Finishes 
+	Vinyl
+	15 years for material performance.
+
+	Hydraulics 
+	Sanitary Fittings 
+	5 years.
+
+	Hydraulics 
+	Sanitary Fittings - Tap ware
+	5 years.
+
+	Hydraulics 
+	Sanitary Fittings - Vitreous China
+	3 years
+
+	Internal Finishes 
+	Aluminium Doors
+	5 years for frame and fitting performance.
+
+	Internal Finishes 
+	Built in Joinery and Fittings
+	5 years.
+
+	Internal Finishes 
+	Ceiling Finishes
+	10 years on materials.
+
+	Internal Finishes 
+	Door Furniture
+	5 years on materials.
+
+	Internal Finishes 
+	Internal Doors
+	5 years.
+
+	Internal Finishes 
+	Internal Glazing
+	3 year.
+
+	Internal Finishes 
+	Internal Powder coat Finishes
+	10 years on coating colour retention.
+
+	Internal Finishes 
+	Internal Walls
+	5 years.
+
+	Internal Finishes 
+	Laminate Toilet Partitions
+	5 years for material performance.
+
+	Mechanical
+	BMS
+	3 years for equipment performance 
+
+	Security
+	Security System
+	5 years.
+
+	Security
+	System Parts
+	10 years 
+
+
+

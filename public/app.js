@@ -178,12 +178,13 @@ preparedEl.addEventListener('change', () => {
   try { localStorage.setItem(PREPARED_KEY, preparedEl.value.trim()); } catch { /* not kept */ }
 });
 
-// Large Australian head contractors, each named in at least two published 2025-26
-// rankings (Hubexo Construction League, company revenue lists). Checked October 2026.
+// Large Australian head contractors named in published 2025-26 rankings (Hubexo
+// Construction League, company revenue lists). Checked October 2026.
 const BUILDERS = [
-  'ADCO Constructions', 'BESIX Watpac', 'BMD', 'Buildcorp', 'Built', 'CPB Contractors', 'Downer',
-  'FDC Construction & Fitout', 'Hansen Yuncken', 'Hickory', 'Hutchinson Builders', 'Icon', 'John Holland',
-  'Kane Constructions', 'Kapitol', 'Laing O\'Rourke', 'Lendlease', 'Multiplex', 'Richard Crookes Constructions',
+  'Acciona', 'ADCO Constructions', 'BESIX Watpac', 'BMD', 'Buildcorp', 'Built', 'CPB Contractors', 'Downer',
+  'FDC Construction & Fitout', 'Fulton Hogan', 'Georgiou', 'Hansen Yuncken', 'Hickory', 'Hutchinson Builders', 'Icon',
+  'John Holland', 'Kane Constructions', 'Kapitol', 'Laing O\'Rourke', 'Lendlease', 'Lipman', 'Mainbrace Constructions',
+  'McConnell Dowell', 'Mirvac', 'Multiplex', 'Richard Crookes Constructions',
 ];
 
 // Principal contractors used before, and those on saved sites, are suggested as you type,
@@ -566,6 +567,7 @@ window.SiteReady = Object.assign(window.SiteReady || {}, {
 });
 
 addPrincipals([], false);
+document.getElementById('principal').addEventListener('change', (event) => addPrincipals([event.target.value], true));
 
 loadStates().catch(() => {
   document.getElementById('start-error').textContent = 'The state list could not be loaded.';
