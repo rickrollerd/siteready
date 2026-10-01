@@ -16,7 +16,8 @@
         "highRisk": [],
         "steps": [
           "Prepare to paint",
-          "Paint"
+          "Paint",
+          "Reach high walls and ceilings"
         ],
         "missing": [
           "Safety data sheet"
@@ -36,8 +37,7 @@
           "atmosphere"
         ],
         "steps": [
-          "Prepare to paint",
-          "Paint",
+          "Reach high walls and ceilings",
           "Spray paint with airless sprayers",
           "Control solvent-based paint"
         ],
@@ -53,8 +53,7 @@
       "fallRisk": "yes",
       "facts": {
         "safetyDataSheet": "Safety data sheets for the water-based paints are kept at the work area: avoid skin contact, wear gloves and eye protection.",
-        "fallControl": "Painters work from boom lifts with harnesses clipped to the platform anchor point.",
-        "controlsConsidered": "Scaffolding the podium walls was considered but would block the footpath and entries; boom lifts with guardrails are used, with harnesses clipped to the platform anchor."
+        "fallControl": "Painters work from elevating work platforms (boom lifts) with guardrails, and harnesses clipped to the platform anchor point."
       },
       "expect": {
         "highRisk": [
@@ -78,7 +77,6 @@
     {
       "swms": [
         "internal",
-        "spray",
         "external"
       ],
       "phrase": "Use water-based paint instead of solvent-based paint where possible",

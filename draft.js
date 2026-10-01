@@ -75,6 +75,12 @@ const FLOOR_WORK = /\b(carpet\w*|vinyl|floor coverings?|timber floor\w*|engineer
 const GLAZING_WORK = /\b(glass balustrades?|balustrades?|shower screens?|internal glazing|glass partitions?|mirrors?)\b/i;
 const STONE_WORK = /\b(benchtops?|stone (?:slabs?|vanit\w*)|splashbacks?)\b/i;
 
+const FIRE_SERVICES = /\b(sprinklers?|hydrants?|fire services?|fire mains?|fire pumps?|fire pipework|fire hose reels?)\b/i;
+const LIFT_WORK = /\b(install\w*[^.]{0,30}\blifts?\b(?!\s+pits?)|lift (?:shafts?|wells?|cars?|rails?|motor rooms?|machines?|landing doors?)|car tops?|landing doors?)\b/i;
+const PASSIVE_FIRE = /\b(fire stopping|firestopping|fire[- ]stop\w*|passive fire|fire collars?|penetration seal\w*)\b/i;
+const LANDSCAPE = /\b(landscap\w*|planters?|planting|mulch|turf|paving|pavers?|irrigation)\b/i;
+const CLEANING = /\b(builders'? clean|final clean|cleaning|cleaners?)\b/i;
+
 // Waterproofing membranes.
 const WATERPROOFING = /\b(waterproof\w*|membranes?|tanking|torch[- ]on)\b/i;
 
@@ -394,7 +400,7 @@ const ENTERED_SPACE = /\b(?:enter\w*|entry|inside|work in|working in)\b[\w\s,-]{
 const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|welding)\b/i;
 const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air test\w*)\b/i;
 const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?)\b/i;
-const SILICA_WORK = /\b(cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?))\b/i;
+const SILICA_WORK = /\b((?:concrete|saw)[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?))\b/i;
 
 const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply)|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
 
@@ -453,7 +459,7 @@ const REFRIGERANT = /\b(refrigerant|refrigeration|split systems?|condensing unit
 const PLUMBING_ONLY_WORDS = /\b(plumb\w*|sanitary|sewer\w*|drain\w*|hot water|cold water|tapware|toilets?|basins?)\b/i;
 function isPlumbing(text) {
   const source = String(text || '');
-  return PLUMBING_WORK.test(source) && (!(MECHANICAL_WORK.test(source) || WATERPROOFING.test(source)) || PLUMBING_ONLY_WORDS.test(source));
+  return PLUMBING_WORK.test(source) && (!(MECHANICAL_WORK.test(source) || WATERPROOFING.test(source) || FIRE_SERVICES.test(source)) || PLUMBING_ONLY_WORDS.test(source));
 }
 const PLUMBING_WORK = /\b(plumb\w*|hydraulic (?:services|risers?|pipework|pipes?|stacks?)|drain\w*|sewer\w*|sanitary|pipes?|pipework|sleeves?|puddle flanges?|hot water|cold water|tapware|toilets?|basins?|pump rooms?|sumps?|ejection pits?|water tanks?)\b/i;
 
@@ -1320,11 +1326,12 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     masonryWork: MASONRY_WORK.test(task),
     masonryCut: MASONRY_WORK.test(task) && /\b(cut\w*|saws?)\b/i.test(task),
     masonryLay: MASONRY_WORK.test(task) && /\b(lay\w*|build\w*|walls?)\b/i.test(task),
+    masonryMortar: MASONRY_WORK.test(task) && /\bmortar\b/i.test(task) && !/\b(grout\w*|core[- ]fill\w*)\b/i.test(task),
     masonryGrout: MASONRY_WORK.test(task) && /\b(grout\w*|core[- ]fill\w*)\b/i.test(task),
     masonryEdge: MASONRY_WORK.test(task) && /\b(slab edges?|edges?|perimeter)\b/i.test(task),
     plasterWork: PLASTER_WORK.test(task),
     plasterSheets: PLASTER_WORK.test(task) && /\b(sheets?|fix\w*|hang\w*)\b/i.test(task),
-    plasterHeight: PLASTER_WORK.test(task) && /\b(ceilings?|bulkheads?|scaffolds?|ladders?|platforms?|trestles?)\b/i.test(task),
+    plasterHeight: PLASTER_WORK.test(task),
     plasterSanding: PLASTER_WORK.test(task) && /\b(sand\w*|set\w*|cut\w*|stopping)\b/i.test(task),
     paintSpray: /\b(paint\w*|coating)\b/i.test(task) && /\b(spray\w*|airless)\b/i.test(task),
     paintExternal: /\bpaint\w*\b/i.test(task) && /\b(external\w*|outside|facade|fa[cç]ade|ewps?|elevating work platforms?|boom lifts?)\b/i.test(task),
@@ -1362,6 +1369,23 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     pileConcrete: PILING_WORK.test(task) && /\b(concrete|tremie|grout\w*)\b/i.test(task) && /\b(plac\w*|pour\w*|pump\w*|tremie)\b/i.test(task),
     pileTrim: PILING_WORK.test(task) && /\b(trim\w*|crop\w*|break\w* (?:down )?(?:the )?pile(?: heads?|s))\b/i.test(task),
     retentionWall: PILING_WORK.test(task) && /\b(secant|contiguous|retention walls?|sheet pil\w*|shoring walls?|bulk excavat\w*)\b/i.test(task),
+    fireWork: FIRE_SERVICES.test(task),
+    fireAtHeight: FIRE_SERVICES.test(task) && /\b(install\w*|ceilings?|risers?|at height|pipework)\b/i.test(task),
+    fireGrooving: FIRE_SERVICES.test(task) && /\b(groov\w*|thread\w*|cut\w*)\b/i.test(task),
+    fireLive: FIRE_SERVICES.test(task) && /\b(live|isolat\w*|impair\w*|pump rooms?|connect\w*|commission\w*)\b/i.test(task),
+    liftWork: LIFT_WORK.test(task) && !BULK_EXCAVATION.test(task),
+    liftShaft: LIFT_WORK.test(task) && !BULK_EXCAVATION.test(task) && /\b(shafts?|wells?|landing doors?)\b/i.test(task),
+    liftLifting: LIFT_WORK.test(task) && !BULK_EXCAVATION.test(task) && /\b(machines?|rails?|motor rooms?|lift\w* (?:the )?(?:machine|equipment))\b/i.test(task),
+    liftCar: LIFT_WORK.test(task) && !BULK_EXCAVATION.test(task) && /\b(car tops?|pits?|commission\w*)\b/i.test(task),
+    passiveFire: PASSIVE_FIRE.test(task),
+    siteEstablish: /\b(hoardings?|gantr(?:y|ies)|site fenc\w*|site sheds?|site establishment|temporary fenc\w*)\b/i.test(task),
+    sitePlant: /\b(traffic controllers?|traffic management|site gate|separat\w* (?:plant|people|pedestrians))\b/i.test(task),
+    sawCut: /\b(concrete cutt\w*|saw[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*)\b/i.test(task),
+    landscape: LANDSCAPE.test(task) && /\b(soil|mulch|plant\w*|turf|planters?|landscap\w*)\b/i.test(task),
+    paving: /\b(paving|pavers?)\b/i.test(task),
+    podiumEdge: LANDSCAPE.test(task) && /\b(podium edges?|edges?|street)\b/i.test(task),
+    cleaning: CLEANING.test(task),
+    cleaningHeight: CLEANING.test(task) && /\b(windows?|balcon\w*|glass)\b/i.test(task),
     glazingWork: GLAZING_WORK.test(task),
     balustradeEdge: /\bbalustrades?\b/i.test(task) && /\b(balcon\w*|edges?|terraces?)\b/i.test(task),
     glassHandle: GLAZING_WORK.test(task) && /\b(glass|glazing|mirrors?|screens?)\b/i.test(task),
@@ -1411,7 +1435,8 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     asbestos: /\basbestos\b/i.test(task),
     confined: /\bconfined space\b/i.test(task) || choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined',
     water: mentioned(task, WATER),
-    painting: (needsSafetyDataSheet(task) || /\bpaint\w*\b/i.test(task)) && /\b(paint\w*|enamel|coating)\b/i.test(task),
+    painting: (needsSafetyDataSheet(task) || /\bpaint\w*\b/i.test(task)) && /\b(paint\w*|enamel|coating)\b/i.test(task) && !(/\b(spray\w*|airless)\b/i.test(task) && !/\b(brush\w*|roll(?:er|ers|ing))\b/i.test(task)),
+    paintAccess: /\bpaint\w*\b/i.test(task) && /\b(walls?|ceilings?|interior|internal)\b/i.test(task) && !/\b(external\w*|outside|ewps?|elevating work platforms?|boom lifts?|swing stages?)\b/i.test(task),
     paintSolvent: /\b(paint\w*|enamel|coating)\b/i.test(task) && /\b(solvent[- ]based|solvents?|enamel|oil[- ]based|two[- ]pack|2[- ]pack)\b/i.test(task),
     paintSwing: /\bpaint\w*\b/i.test(task) && /\bswing stages?\b/i.test(task),
   };

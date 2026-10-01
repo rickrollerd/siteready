@@ -13,7 +13,8 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Move and fix plasterboard sheets"
+          "Move and fix plasterboard sheets",
+          "Work at the upper wall and ceiling line"
         ],
         "missing": []
       }
@@ -22,16 +23,22 @@
       "id": "ceilings",
       "title": "Suspended ceilings and bulkheads",
       "task": "Install suspended ceiling grids and fix plasterboard ceiling sheets in the apartments and corridors, using sheet lifters and mobile scaffolds.",
-      "fallRisk": "no",
-      "facts": {},
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Mobile scaffolds have full guardrails and toe boards on every platform, and internal ladders."
+      },
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "fall"
+        ],
         "steps": [
           "Use mobile scaffolds",
           "Move and fix plasterboard sheets",
-          "Fix ceilings and bulkheads at height"
+          "Work at the upper wall and ceiling line"
         ],
-        "missing": []
+        "missing": [
+          "Fall control"
+        ]
       }
     },
     {
@@ -43,6 +50,7 @@
       "expect": {
         "highRisk": [],
         "steps": [
+          "Work at the upper wall and ceiling line",
           "Cut, set and sand"
         ],
         "missing": []

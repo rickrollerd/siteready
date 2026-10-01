@@ -46,6 +46,7 @@
         "steps": [
           "Cut blocks and bricks",
           "Lay blocks and bricks",
+          "Mix mortar",
           "Work near slab edges"
         ],
         "missing": [
