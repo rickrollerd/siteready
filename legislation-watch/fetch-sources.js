@@ -87,10 +87,9 @@ async function pdfSource(source) {
     flat = text(buffer.toString('utf8'));
   }
   console.log(flat.slice(0, 700));
-  for (const marker of [/high risk construction work means/g, /Safe work method statement required for high risk construction work \(1\)/g, /A safe work method statement must/g, /Overhead and underground electric lines/g, /electric\s+line/g, /unsafe/g]) {
-    const all = [...flat.matchAll(marker)];
-    const at = all.length ? all[all.length - 1].index : -1;
-    console.log(`\n--- ${marker}\n${at < 0 ? 'not found' : flat.slice(Math.max(0, at - 300), at + 2300)}`);
+  // Every place an electric line is mentioned, to find the Territory's regulation 166.
+  for (const match of [...flat.matchAll(/electric\s+line/gi)].slice(0, 12)) {
+    console.log(`\n--- at ${match.index}\n${flat.slice(Math.max(0, match.index - 500), match.index + 900)}`);
   }
 }
 
