@@ -30,6 +30,19 @@ Without `DATABASE_URL` the app still drafts and previews, but signing in, downlo
 
 Face ID works in Safari and Chrome on the web address. In the iOS app wrapper it also needs the domain added as an associated domain (webcredentials), which is set up when the app is signed for the App Store.
 
+### Step 2b: Subscriptions (Stripe)
+
+1. Create a Stripe account and complete the business details (ABN, bank account).
+2. **Product catalogue** → add a product "SiteReady", with a recurring price of A$49 a month. Copy the price id (`price_...`).
+3. **Developers** → **API keys**: copy the secret key (`sk_live_...`).
+4. **Developers** → **Webhooks** → add an endpoint `https://YOUR-DOMAIN/api/billing/webhook` with the events `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` and `customer.subscription.deleted`. Copy the signing secret (`whsec_...`).
+5. **Settings** → **Billing** → **Customer portal**: switch it on, allowing customers to update cards, see invoices and cancel.
+6. In Railway, set `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` and `STRIPE_WEBHOOK_SECRET`.
+
+Use test keys (`sk_test_...`) first, and subscribe with Stripe's test card 4242 4242 4242 4242 to check it end to end.
+
+Set `ADMIN_EMAILS` to your email to see sign-ups, trials, paying companies, actions and recent errors at `/admin.html`. `/api/health` reports whether the database is reachable, for an uptime monitor.
+
 ### Step 3: Custom Domain (siteready.co.nz)
 
 1. Buy domain from Namecheap or similar

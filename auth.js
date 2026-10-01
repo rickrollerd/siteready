@@ -8,6 +8,7 @@ const {
 } = require('@simplewebauthn/server');
 const db = require('./db');
 const { sendMail } = require('./mailer');
+const { record } = require('./events');
 
 const TRIAL_DAYS = 14;
 const LINK_MINUTES = 20;
@@ -69,6 +70,7 @@ async function userForEmail(email, companyId) {
     company = newId();
     await db.query('INSERT INTO companies (id, email, trial_ends_at, created_at) VALUES ($1, $2, $3, $4)',
       [company, email, later(TRIAL_DAYS * DAY), new Date()]);
+    await record('trial_started', company);
   }
   const id = newId();
   await db.query('INSERT INTO users (id, company_id, email, created_at) VALUES ($1, $2, $3, $4)', [id, company, email, new Date()]);
@@ -85,7 +87,8 @@ async function finishLogin(token) {
 
 function hasAccess(company) {
   if (!company) return false;
-  if (['active', 'trialing'].includes(company.plan_status)) return true;
+  // A failed card payment keeps access while Stripe retries it.
+  if (['active', 'trialing', 'past_due'].includes(company.plan_status)) return true;
   return company.plan_status === 'trial' && new Date(company.trial_ends_at) > new Date();
 }
 

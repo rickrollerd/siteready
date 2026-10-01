@@ -13,6 +13,9 @@ const { draftToPdf } = require('./pdf-draft');
 const db = require('./db');
 const auth = require('./auth');
 const accounts = require('./accounts');
+const billing = require('./billing');
+const admin = require('./admin');
+const { record, recordError } = require('./events');
 const { TRADES, answersFor } = require('./presets');
 
 require('dotenv').config();
@@ -41,6 +44,9 @@ const trustProxy = Number(process.env.TRUST_PROXY ?? 1);
 app.set('trust proxy', Number.isInteger(trustProxy) && trustProxy >= 0 ? trustProxy : 1);
 app.use(helmet());
 app.use(cors({ origin: allowedOrigins() }));
+// Stripe's webhook is checked against the raw body, so it comes before the JSON reader.
+app.post('/api/billing/webhook', ...billing.webhook);
+
 // The Word file and the company profile can carry the logo, so those routes accept a larger body.
 const WORD_ROUTE = '/api/draft.docx';
 const LARGE_BODY = new Set([WORD_ROUTE, '/api/draft.pdf', '/api/company']);
@@ -93,6 +99,7 @@ app.post('/api/draft/questions', (req, res) => {
 app.post('/api/draft', (req, res) => {
   const result = prepareDraft(draftBody(req.body || {}));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
+  record(req.user ? 'preview_signed_in' : 'preview', req.company && req.company.id);
   res.json(result);
 });
 
@@ -120,6 +127,7 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     const result = prepareDraft(signedInBody(req));
     if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
     const buffer = await draftToPdf(result, { logo: readLogo((req.company && req.company.logo) || (req.body && req.body.logo)), note: draftedNote(confirmation) });
+    record('download_pdf', req.company && req.company.id);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${result.kind === 'stand-down' ? 'SiteReady-stood-down.pdf' : 'SiteReady.pdf'}"`);
     res.send(buffer);
@@ -136,6 +144,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   const result = prepareDraft(signedInBody(req));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   const buffer = await draftToDocx(result, { logo: readLogo((req.company && req.company.logo) || (req.body && req.body.logo)), confirmation });
+  record('download_word', req.company && req.company.id);
   const filename = result.kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -143,19 +152,27 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
 });
 
 app.get('/api/config', (_req, res) => {
-  res.json({ accounts: db.enabled(), trialDays: auth.TRIAL_DAYS });
+  res.json({ accounts: db.enabled(), trialDays: auth.TRIAL_DAYS, billing: billing.enabled(), price: process.env.PRICE_LABEL || 'A$49 a month' });
+});
+
+app.get('/api/health', async (_req, res) => {
+  let database = 'off';
+  if (db.enabled()) database = await db.query('SELECT 1').then(() => 'ok').catch(() => 'failing');
+  res.status(database === 'failing' ? 503 : 200).json({ ok: database !== 'failing', database });
 });
 
 app.use('/api', accounts.router);
+app.use('/api', billing.router);
+app.use('/api', admin.router);
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ kind: 'error', message: 'Not found.' });
 });
 
 // Details go to the log. The client gets a plain message.
-app.use((error, _req, res, _next) => {
+app.use((error, req, res, _next) => {
   const status = error.status || error.statusCode || 500;
-  if (status >= 500) console.error('Request error:', error);
+  if (status >= 500) recordError(`${req.method} ${req.path}`, error);
   const message = error.publicMessage && error.message ? error.message : status < 500 ? 'The request could not be read.' : 'The statement could not be prepared.';
   res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message });
 });
@@ -192,6 +209,8 @@ function start() {
   server.headersTimeout = 66000;
   server.requestTimeout = 70000;
 }
+
+process.on('unhandledRejection', (error) => recordError('unhandledRejection', error));
 
 if (require.main === module) start();
 
