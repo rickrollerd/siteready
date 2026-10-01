@@ -26,13 +26,14 @@
           "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Load out floors and use loading platforms",
-          "Operate forklifts"
+          "Operate forklifts",
+          "Separate plant and people on site"
         ],
         "missing": [
           "Crane company and lift plan",
           "Fall control",
-          "System and supplier instructions",
-          "Load limits"
+          "Load limits",
+          "System and supplier instructions"
         ]
       }
     },
@@ -56,6 +57,7 @@
         ],
         "steps": [
           "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
           "Erect falsework and shores",
           "Install edge protection and lay the deck",
           "Load ply onto the deck while it is being laid",
@@ -66,9 +68,9 @@
         "missing": [
           "Crane company and lift plan",
           "Formwork design",
-          "System and supplier instructions",
+          "Load limits",
           "How the deck is laid",
-          "Load limits"
+          "System and supplier instructions"
         ]
       }
     },
@@ -89,6 +91,7 @@
         ],
         "steps": [
           "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
           "Lift reo onto the deck",
           "Place and tie reo",
           "Place post-tensioning ducts and tendons"
@@ -111,8 +114,8 @@
       "expect": {
         "highRisk": [
           "fall",
-          "plant",
-          "road"
+          "road",
+          "plant"
         ],
         "steps": [
           "Set up traffic management",
@@ -143,8 +146,8 @@
           "Cut tails and grout"
         ],
         "missing": [
-          "Stressing procedure",
-          "Fall control"
+          "Fall control",
+          "Stressing procedure"
         ]
       }
     },
@@ -165,6 +168,7 @@
         ],
         "steps": [
           "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
           "Prepare to climb the jumpform",
           "Climb the jumpform",
           "Work on the jumpform platforms",
@@ -194,15 +198,16 @@
         "highRisk": [
           "fall",
           "precast",
-          "plant",
-          "road"
+          "road",
+          "plant"
         ],
         "steps": [
+          "Set up traffic management",
           "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
+          "Use an elevating work platform",
           "Stand and brace the precast elements",
-          "Grout the base and remove the braces",
-          "Use an elevating work platform"
+          "Grout the base and remove the braces"
         ],
         "missing": [
           "Crane company and lift plan",

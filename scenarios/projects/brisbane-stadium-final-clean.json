@@ -1,0 +1,28 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: final clean",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "clean",
+      "title": "Final clean of the stands and concourses",
+      "task": "Final clean of the seats, concourses and amenities with cleaning chemicals.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the cleaning products are kept at the work area: never mix products, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Clean the stands and aisles",
+          "Clean with chemicals"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

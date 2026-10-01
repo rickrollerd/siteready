@@ -11,12 +11,11 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Edge protection is installed around the roof perimeter and the enclosure roof edges before work starts, with safety mesh under the sheets.",
-        "craneCompany": "Lifts are done by the crane company under its lift plan; its dogman slings and releases the sheet bundles, and our crew receives them on the roof."
+        "craneCompany": "Lifts are done by the crane company under its lift plan LP-07 (revision B); its dogman slings and releases the sheet bundles, and our crew receives them on the roof."
       },
       "expect": {
         "highRisk": [
-          "fall",
-          "plant"
+          "fall"
         ],
         "steps": [
           "Set up roof access and fall protection",
@@ -37,7 +36,7 @@
       "swms": [
         "plant-roof"
       ],
-      "phrase": "Safety mesh does not protect edges or holes",
+      "phrase": "safety mesh is used, it does not protect edges or holes",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 78, s 306F",
       "quote": "Safety mesh does not prevent falls from the edge of a roof or through holes in a roof"
     }

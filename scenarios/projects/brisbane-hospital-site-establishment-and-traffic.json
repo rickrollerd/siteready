@@ -1,0 +1,52 @@
+{
+  "title": "New hospital building, Brisbane: site establishment and traffic",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "hoarding",
+      "title": "Hoardings next to the live hospital",
+      "task": "Erect the site fencing and hoardings between the site and the live hospital entrance and car park, with materials delivered by truck, and set up the site sheds, lifted into place by the crane company's mobile crane.",
+      "fallRisk": "no",
+      "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines."
+      },
+      "expect": {
+        "highRisk": [
+          "plant"
+        ],
+        "steps": [
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
+          "Erect fencing, hoardings and gantries",
+          "Set up site sheds",
+          "Work next to the live hospital"
+        ],
+        "missing": [
+          "Crane company and lift plan"
+        ]
+      }
+    },
+    {
+      "id": "traffic",
+      "title": "Traffic management on the hospital campus",
+      "task": "Traffic controllers manage trucks, concrete trucks and mobile plant deliveries at the site gate on the hospital campus road next to the live hospital, open to traffic, keeping ambulance routes clear.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [
+          "road",
+          "plant"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Separate plant and people on site",
+          "Work next to the live hospital"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": []
+}

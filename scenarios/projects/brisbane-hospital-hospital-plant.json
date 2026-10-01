@@ -1,0 +1,66 @@
+{
+  "title": "New hospital building, Brisbane: hospital plant",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "boilers",
+      "title": "Boilers and hot water plant",
+      "task": "Install and commission the steam boilers and calorifiers in the plant room, with the units lifted in by the crane company's mobile crane.",
+      "fallRisk": "no",
+      "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines."
+      },
+      "expect": {
+        "highRisk": [
+          "plant",
+          "temperature"
+        ],
+        "steps": [
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
+          "Install and commission boilers and pressure vessels"
+        ],
+        "missing": [
+          "Crane company and lift plan"
+        ]
+      }
+    },
+    {
+      "id": "generators",
+      "title": "Standby generators",
+      "task": "Install the standby generators, lifted in by the crane company's mobile crane, and connect their diesel fuel lines and day tanks in the generator room.",
+      "fallRisk": "no",
+      "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
+        "safetyDataSheet": "Safety data sheets for the diesel fuel are kept at the work area. Keep ignition sources away."
+      },
+      "expect": {
+        "highRisk": [
+          "chemicalLine",
+          "plant"
+        ],
+        "steps": [
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
+          "Install generators and fuel systems"
+        ],
+        "missing": [
+          "Crane company and lift plan",
+          "Safety data sheet"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "boilers"
+      ],
+      "phrase": "standard or advanced boiler operation licence",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 81, schedule 3",
+      "quote": "26 Standard boiler operation ... 27 Advanced boiler operation"
+    }
+  ]
+}

@@ -7,27 +7,25 @@ const fs = require('fs');
 const path = require('path');
 
 const PROJECTS = path.join(__dirname, 'scenarios', 'projects');
-const TRADE_ORDER = ['site establishment and traffic', 'piling', 'excavation', 'structure', 'scaffolding and hoists', 'structural steel', 'concrete cutting', 'waterproofing', 'masonry', 'electrical', 'plumbing', 'mechanical', 'fire services', 'ICT and security', 'lifts', 'facade', 'roofing', 'passive fire', 'carpentry fit-out', 'plasterboard and ceilings', 'glazing and balustrades', 'joinery and stone', 'tiling', 'painting', 'flooring', 'landscaping', 'final clean'];
-const TRADE_NAMES = { 'site establishment and traffic': 'Site establishment and traffic', 'concrete cutting': 'Concrete cutting', 'fire services': 'Fire services', lifts: 'Lifts', roofing: 'Roofing', 'passive fire': 'Passive fire', 'glazing and balustrades': 'Glazing and balustrades', 'joinery and stone': 'Joinery and stone benchtops', landscaping: 'Landscaping', 'final clean': 'Final clean', 'scaffolding and hoists': 'Scaffolding and hoists', 'structural steel': 'Structural steel', masonry: 'Masonry', 'plasterboard and ceilings': 'Plasterboard and ceilings', painting: 'Painting', flooring: 'Flooring', excavation: 'Excavation (basement)', waterproofing: 'Waterproofing', 'carpentry fit-out': 'Carpentry fit-out', tiling: 'Tiling', piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
+const TRADE_ORDER = ['site establishment and traffic', 'earthworks', 'piling', 'excavation', 'structure', 'precast seating', 'scaffolding and hoists', 'structural steel', 'concrete cutting', 'waterproofing', 'masonry', 'electrical', 'plumbing', 'mechanical', 'medical gases', 'hospital plant', 'fire services', 'ICT and security', 'pneumatic tube', 'lifts', 'facade', 'roofing', 'helipad', 'sports lighting and screens', 'live hospital connections', 'passive fire', 'carpentry fit-out', 'plasterboard and ceilings', 'radiation shielding', 'glazing and balustrades', 'joinery and stone', 'tiling', 'painting', 'flooring', 'seating', 'pitch', 'landscaping', 'final clean'];
+const TRADE_NAMES = { 'medical gases': 'Medical gases', 'hospital plant': 'Hospital plant (boilers, generators)', helipad: 'Helipad', 'live hospital connections': 'Connections into the live hospital', 'pneumatic tube': 'Pneumatic tube system', 'radiation shielding': 'Radiation shielding (lead)', earthworks: 'Earthworks', 'precast seating': 'Precast seating tiers', 'sports lighting and screens': 'Sports lighting and screens', seating: 'Seating', pitch: 'Pitch and turf', 'site establishment and traffic': 'Site establishment and traffic', 'concrete cutting': 'Concrete cutting', 'fire services': 'Fire services', lifts: 'Lifts', roofing: 'Roofing', 'passive fire': 'Passive fire', 'glazing and balustrades': 'Glazing and balustrades', 'joinery and stone': 'Joinery and stone benchtops', landscaping: 'Landscaping', 'final clean': 'Final clean', 'scaffolding and hoists': 'Scaffolding and hoists', 'structural steel': 'Structural steel', masonry: 'Masonry', 'plasterboard and ceilings': 'Plasterboard and ceilings', painting: 'Painting', flooring: 'Flooring', excavation: 'Excavation (basement)', waterproofing: 'Waterproofing', 'carpentry fit-out': 'Carpentry fit-out', tiling: 'Tiling', piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
 
+// Projects that share a trade (the tower and the stadium both have piling) give
+// one trade with the tasks of both.
 function loadTrades() {
-  return fs.readdirSync(PROJECTS)
-    .filter((name) => name.endsWith('.json'))
-    .map((name) => JSON.parse(fs.readFileSync(path.join(PROJECTS, name), 'utf8')))
-    .map((project) => {
-      const trade = project.title.split(': ').pop();
-      return {
-        id: trade,
-        name: TRADE_NAMES[trade] || trade,
-        tasks: project.swms.map((swms) => ({
-          title: swms.title,
-          task: swms.task,
-          fallRisk: swms.fallRisk,
-          crane: swms.crane === 'own' ? 'own' : 'company',
-        })),
-      };
-    })
-    .sort((a, b) => TRADE_ORDER.indexOf(a.id) - TRADE_ORDER.indexOf(b.id));
+  const trades = new Map();
+  for (const name of fs.readdirSync(PROJECTS).filter((file) => file.endsWith('.json')).sort()) {
+    const project = JSON.parse(fs.readFileSync(path.join(PROJECTS, name), 'utf8'));
+    const id = project.title.split(': ').pop();
+    if (!trades.has(id)) trades.set(id, { id, name: TRADE_NAMES[id] || id, tasks: [] });
+    const { tasks } = trades.get(id);
+    for (const swms of project.swms) {
+      if (tasks.some((item) => item.task === swms.task)) continue;
+      tasks.push({ title: swms.title, task: swms.task, fallRisk: swms.fallRisk, crane: swms.crane === 'own' ? 'own' : 'company' });
+    }
+  }
+  const order = (id) => (TRADE_ORDER.includes(id) ? TRADE_ORDER.indexOf(id) : TRADE_ORDER.length);
+  return [...trades.values()].sort((a, b) => order(a.id) - order(b.id));
 }
 
 const TRADES = loadTrades();
@@ -46,6 +44,7 @@ const ANSWERS = {
   ],
   craneCompany: [
     ['Crane company lift plan', 'Lifts are done by ____ (crane company) under its lift plan. The crane company\'s dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.'],
+    ['Steel or precast', 'Lifts are done by ____ (crane company) under its lift plan. The crane company\'s dogman slings the loads, and our licensed riggers (basic rigging or higher) receive, place and secure them.'],
   ],
   craneChart: [
     ['Chart duty', 'Rated capacity from the crane chart: ____ t at ____ m radius. Heaviest gross load (load, lifting gear and rigging) is ____ t at ____ m radius.'],
@@ -87,13 +86,19 @@ const ANSWERS = {
     ['Permit entry', 'Entry only under a confined space entry permit, with atmospheric testing before and during entry, a standby person at the opening, and a practised rescue plan.'],
   ],
   erectionSequence: [
-    ['Designer\'s sequence', 'Steel is erected to the designer\'s sequence on drawing ____ (revision ____), with temporary bracing as shown, and ____ checks the structure is stable before connections are released.'],
+    ['Designer\'s sequence', 'Steel is erected to the designer\'s sequence on drawing ____ (revision ____), with temporary bracing as shown, and ____ checks the structure is stable before the crane slings are released.'],
+  ],
+  serviceShutdown: [
+    ['Hospital shutdown permit', 'Each connection is done under the hospital\'s shutdown permit ____, approved by ____ (hospital engineering), in the agreed window of ____. The ward and clinical staff are told beforehand, and ____ (backup supply, such as cylinders or a temporary feed) keeps patients supplied.'],
+  ],
+  tierErection: [
+    ['Engineer\'s erection design', 'Units are placed to the engineer\'s erection design ____ (revision ____): bearing pads and fixings as detailed, placed in the sequence shown, with temporary propping where the design shows it, checked by ____ before the hook is released.'],
   ],
   excavationPlan: [
     ['Geotechnical design', 'Excavation follows the geotechnical design ____ (revision ____) in stages to the levels shown, with batters no steeper than ____, and plant and trucks follow the site traffic management plan ____.'],
   ],
   rigExclusionZone: [
-    ['Fenced radius', 'Each rig has a fenced and signed exclusion zone of ____ m radius (at least the mast height plus ____ m). Only the rig crew enters, with the operator\'s agreement, controlled by the piling supervisor.'],
+    ['Fenced radius', 'Each rig has a fenced and signed exclusion zone of ____ m radius. Only the rig crew enters, with the operator\'s agreement, controlled by the piling supervisor.'],
   ],
   pilingPlatform: [
     ['Engineer\'s certificate', 'The working platform is designed by ____ (geotechnical engineer) for the ____ rig, with a maximum plant loading of ____ kPa. The platform certificate is given to the rig operator before the rig goes on it.'],

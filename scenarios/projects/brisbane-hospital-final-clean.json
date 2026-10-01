@@ -1,0 +1,27 @@
+{
+  "title": "New hospital building, Brisbane: final clean",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "clean",
+      "title": "Final clean of the wards",
+      "task": "Final clean of the wards and corridors with cleaning chemicals.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the cleaning products are kept at the work area. Never mix products."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Clean with chemicals"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

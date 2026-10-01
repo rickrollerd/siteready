@@ -1,0 +1,38 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: earthworks",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "bowl",
+      "title": "Bulk earthworks for the bowl and pitch",
+      "task": "Cut and fill the stadium bowl and pitch with dozers, graders, excavators and rollers, with trucks carting spoil off site.",
+      "fallRisk": "no",
+      "facts": {
+        "excavationPlan": "Earthworks follow the geotechnical design G-201 (revision C) in stages to the levels shown, with batters no steeper than 1 in 2, and plant and trucks follow the site traffic management plan TMP-03."
+      },
+      "expect": {
+        "highRisk": [
+          "plant"
+        ],
+        "steps": [
+          "Run earthmoving plant"
+        ],
+        "missing": [
+          "Excavation and traffic plan"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "bowl"
+      ],
+      "phrase": "Manage the risks of plant overturning",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 214, s 215",
+      "quote": "(a) the plant overturning; (b) things falling on the operator of the plant; (c) the operator being ejected from the plant; (d) the plant colliding with any person or thing"
+    }
+  ]
+}

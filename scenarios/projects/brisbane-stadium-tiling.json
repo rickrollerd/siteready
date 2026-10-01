@@ -1,0 +1,31 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: tiling",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "amenities",
+      "title": "Amenities tiling",
+      "task": "Tile the public amenities floors and walls, cutting tiles on site with a wet saw, and grouting with epoxy grout.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the tile adhesive and epoxy grout are kept at the work area: skin sensitiser, wear chemical resistant gloves and eye protection.",
+        "silicaControls": "Drilling and cutting are done with on-tool dust extraction or wet methods. Fit tested P2 respirators are worn while drilling or cutting. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Cut tiles and stone",
+          "Mix and apply adhesives, grouts, screeds and sealers",
+          "Lay tiles"
+        ],
+        "missing": [
+          "Safety data sheet",
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

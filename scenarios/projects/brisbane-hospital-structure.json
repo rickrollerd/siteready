@@ -1,0 +1,50 @@
+{
+  "title": "New hospital building, Brisbane: structure",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "formwork",
+      "title": "Formwork, reo and post-tensioned slabs",
+      "task": "Form, reinforce and pour the post-tensioned floor slabs of the new hospital building next to the live hospital, working on formwork decks more than 2 m above the floor below, with concrete placed by a boom pump.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Edge protection is installed around every open deck edge before work starts, and no one works outside it.",
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "formworkDesign": "Formwork and falsework are to the engineer's design FW-210 (revision B), checked and signed off by the formwork engineer before each pour.",
+        "loadLimits": "Loads are placed only in the areas marked on the structural engineer's drawing S-402 (3 kPa), checked by the site engineer before loading starts.",
+        "deckMethod": "below",
+        "systemInstructions": "The formwork system is erected to the supplier's instructions (document FS-2, revision 4) by a crew trained by the supplier."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Erect falsework and shores",
+          "Install edge protection and lay the deck",
+          "Load ply onto the deck while it is being laid",
+          "Form penetrations and voids",
+          "Inspect before the pour",
+          "Strip formwork and backprop",
+          "Lift reo onto the deck",
+          "Place and tie reo",
+          "Set up the concrete pump and placing boom",
+          "Pump and place concrete",
+          "Finish concrete",
+          "Work next to the live hospital"
+        ],
+        "missing": [
+          "Fall control",
+          "Formwork design",
+          "Load limits",
+          "How the deck is laid",
+          "System and supplier instructions"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

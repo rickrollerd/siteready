@@ -1,0 +1,30 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: landscaping",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "forecourt",
+      "title": "Forecourt paving",
+      "task": "Lay and cut pavers on the stadium forecourt next to the street.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Drilling and cutting are done with on-tool dust extraction or wet methods. Fit tested P2 respirators are worn while drilling or cutting. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [
+          "road"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Lay and cut pavers"
+        ],
+        "missing": [
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

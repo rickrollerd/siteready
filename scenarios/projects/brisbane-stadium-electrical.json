@@ -1,0 +1,40 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: electrical",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "concourse",
+      "title": "Concourse cable trays and cabling",
+      "task": "Install cable trays and pull cables through the concourses and plant rooms from scissor lifts more than 2 m above the floor, and terminate the cables at the new switchboards before they are energised.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m, and platform ladders only for work below 2 m.",
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "isolationProcedure": "Circuits are isolated, locked with personal locks and danger tagged, and tested de-energised by a licensed electrician before work. Each worker holds their own lock.",
+        "energisedWork": "none"
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "electrical",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Install cable tray, containment and cabling at height",
+          "Pull cables and handle cable drums",
+          "Isolate and prove de-energised",
+          "Work on or near energised parts"
+        ],
+        "missing": [
+          "Fall control",
+          "Isolation and testing procedure",
+          "Work on or near energised parts"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

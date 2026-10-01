@@ -11,7 +11,7 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Gantry decks have edge protection with mesh infill before anyone works on them.",
-        "systemInstructions": "The gantry is to the engineer's design GN-01 (revision B), erected by licensed intermediate scaffolders."
+        "systemInstructions": "The gantry is to the engineer's design GN-01 (revision B) for 10 kPa on its overhead platform, plus the site sheds on it, erected by licensed intermediate scaffolders."
       },
       "expect": {
         "highRisk": [
@@ -20,7 +20,8 @@
         ],
         "steps": [
           "Set up traffic management",
-          "Erect fencing, hoardings and gantries"
+          "Erect fencing, hoardings and gantries",
+          "Set up site sheds"
         ],
         "missing": [
           "Fall control"
@@ -59,9 +60,25 @@
       "swms": [
         "hoarding"
       ],
-      "phrase": "light the footpath to 50 lux",
+      "phrase": "lit to at least 50 lux",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 315K",
       "quote": "have natural or other lighting of at least 50 lux"
+    },
+    {
+      "swms": [
+        "hoarding"
+      ],
+      "phrase": "cannot tip over or rotate",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 315K",
+      "quote": "not tip over or rotate if a force that could reasonably be expected to be applied to it is applied to it"
+    },
+    {
+      "swms": [
+        "hoarding"
+      ],
+      "phrase": "before digging or driving footings",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 304",
+      "quote": "take all reasonable steps to obtain current underground essential services information"
     }
   ]
 }

@@ -1,0 +1,41 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: seating",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "seats",
+      "title": "Seat installation",
+      "task": "Drill the precast seating tiers and fix the seats with brackets, on the sloping bowl next to the tier edges more than 2 m above the level below.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Tier edges have edge protection with mesh where the bowl is steeper than 26 degrees, installed before seat fixing starts, and no one works outside it.",
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "silicaControls": "Drilling and cutting are done with on-tool dust extraction or wet methods. Fit tested P2 respirators are worn while drilling or cutting. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Drill the tiers and fix seats"
+        ],
+        "missing": [
+          "Fall control",
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "seats"
+      ],
+      "phrase": "If it cannot be determined, treat it as high risk",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529B, s 529C, s 529CA",
+      "quote": "is taken to be reasonably likely to result in a risk to the health of a person"
+    }
+  ]
+}

@@ -18,11 +18,13 @@
           "fall"
         ],
         "steps": [
-          "Install balustrades at balcony edges",
+          "Install balustrades at open edges",
           "Handle and install glass panels",
+          "Handle glass in the wind",
           "Seal glazing"
         ],
         "missing": [
+          "Safety data sheet",
           "Fall control"
         ]
       }
@@ -30,15 +32,23 @@
     {
       "id": "screens",
       "title": "Shower screens and internal glazing",
-      "task": "Install shower screens and mirrors in the apartments.",
+      "task": "Install shower screens and mirrors in the apartments, drilling into the tiled walls for fixings and sealing with silicone.",
       "fallRisk": "no",
-      "facts": {},
+      "facts": {
+        "silicaControls": "Tile drilling is done with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS.",
+        "safetyDataSheet": "Safety data sheets for the silicone sealant are kept at the work area: avoid skin contact, wear gloves."
+      },
       "expect": {
         "highRisk": [],
         "steps": [
-          "Handle and install glass panels"
+          "Handle and install glass panels",
+          "Drill tiled walls for fixings",
+          "Seal glazing"
         ],
-        "missing": []
+        "missing": [
+          "Safety data sheet",
+          "Silica dust controls"
+        ]
       }
     }
   ],

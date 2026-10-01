@@ -16,11 +16,11 @@
       "expect": {
         "highRisk": [
           "fall",
-          "trench",
-          "road",
-          "plant",
           "confined",
-          "atmosphere"
+          "trench",
+          "atmosphere",
+          "road",
+          "plant"
         ],
         "steps": [
           "Set up traffic management",
@@ -31,8 +31,8 @@
           "Connect to the live sewer"
         ],
         "missing": [
-          "Trench support",
-          "Fall control"
+          "Fall control",
+          "Trench support"
         ]
       }
     },
@@ -71,11 +71,11 @@
         ],
         "steps": [
           "Plan core holes",
-          "Core drill through the slab"
+          "Core drill through the slab or wall"
         ],
         "missing": [
-          "Silica dust controls",
-          "Fall control"
+          "Fall control",
+          "Silica dust controls"
         ]
       }
     },
@@ -93,8 +93,8 @@
           "plant"
         ],
         "steps": [
-          "Install risers and pipework at height",
-          "Use an elevating work platform"
+          "Use an elevating work platform",
+          "Install risers and pipework at height"
         ],
         "missing": [
           "Fall control"
@@ -114,16 +114,18 @@
       "expect": {
         "highRisk": [
           "fall",
-          "atmosphere"
+          "atmosphere",
+          "plant"
         ],
         "steps": [
+          "Use an elevating work platform",
           "Braze and solder pipe joints (hot work)",
           "Join PVC pipe with primer and solvent cement"
         ],
         "missing": [
+          "Safety data sheet",
           "Fall control",
-          "Hot work permit and fire watch",
-          "Safety data sheet"
+          "Hot work permit and fire watch"
         ]
       }
     },
@@ -144,8 +146,9 @@
         "steps": [
           "Prepare to enter the confined space",
           "Enter and work",
-          "Leave and close up",
-          "Pressure test and commission"
+          "Pressure test and commission",
+          "Commission hot water",
+          "Leave and close up"
         ],
         "missing": [
           "Pits, tanks, sumps or manholes entered",
@@ -165,7 +168,7 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Rough-in and fit-off in the apartments"
+          "Plumbing rough-in and fit-off"
         ],
         "missing": [
           "Silica dust controls"
@@ -208,8 +211,8 @@
       "swms": [
         "drainage"
       ],
-      "phrase": "Secure the trench area from unauthorised",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 306(1)",
+      "phrase": "is secured from unauthorised and inadvertent entry",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306",
       "quote": "secured from unauthorised access (including inadvertent entry)"
     },
     {
@@ -370,7 +373,7 @@
         "core-drill",
         "fit-off"
       ],
-      "phrase": "wear fit tested P2 respirators",
+      "phrase": "wears a fit tested respirator",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 529B",
       "quote": "is provided with respiratory protective equipment; and wears the respiratory protective equipment"
     },
@@ -378,9 +381,9 @@
       "swms": [
         "core-drill"
       ],
-      "phrase": "Health monitoring for workers at significant risk from crystalline silica",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 368, schedule 14",
-      "quote": "schedule 14 item 7 crystalline silica"
+      "phrase": "have health monitoring supervised by a registered medical practitioner",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 50, s 368, s 371, s 529CE, schedule 14",
+      "quote": "must ensure that the health monitoring of a worker mentioned in section 368 is carried out by or under the supervision of a registered medical practitioner"
     },
     {
       "swms": [
@@ -414,7 +417,6 @@
     },
     {
       "swms": [
-        "core-drill",
         "fit-off"
       ],
       "phrase": "Health monitoring for workers at significant risk from crystalline silica",

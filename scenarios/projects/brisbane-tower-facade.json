@@ -17,11 +17,12 @@
       },
       "expect": {
         "highRisk": [
-          "fall",
-          "plant"
+          "fall"
         ],
         "steps": [
           "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
+          "Load out floors and use loading platforms",
           "Load panels onto the floors and move them to the work face"
         ],
         "missing": [
@@ -50,7 +51,8 @@
         ],
         "steps": [
           "Set up and use the floor crane or monorail",
-          "Lift panels with the floor crane or monorail"
+          "Lift panels with the floor crane or monorail",
+          "Handle glass and panels"
         ],
         "missing": [
           "Crane chart",
@@ -94,7 +96,9 @@
           "fall"
         ],
         "steps": [
-          "Work from a swing stage"
+          "Handle glass and panels",
+          "Work from a swing stage",
+          "Fix, seal and finish"
         ],
         "missing": [
           "Fall control"
@@ -120,6 +124,7 @@
           "Fix, seal and finish"
         ],
         "missing": [
+          "Safety data sheet",
           "Silica dust controls"
         ]
       }

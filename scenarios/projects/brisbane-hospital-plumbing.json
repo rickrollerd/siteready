@@ -1,0 +1,23 @@
+{
+  "title": "New hospital building, Brisbane: plumbing",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "fitoff",
+      "title": "Ward bathrooms fit-off",
+      "task": "Fit off the toilets, basins and tapware in the ward bathrooms.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Plumbing rough-in and fit-off"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": []
+}

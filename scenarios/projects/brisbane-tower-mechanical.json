@@ -97,8 +97,9 @@
           "chemicalLine"
         ],
         "steps": [
-          "Install plant and equipment on the roof",
-          "Braze refrigerant pipework"
+          "Braze and solder pipe joints (hot work)",
+          "Braze refrigerant pipework",
+          "Install plant and equipment on the roof"
         ],
         "missing": [
           "Fall control",
@@ -109,7 +110,7 @@
     {
       "id": "car-park-fans",
       "title": "Basement car park jet fans and exhaust",
-      "task": "Install jet fans and car park exhaust ductwork in the 3 basement levels, drilling into the slabs for hanger anchors, working from scissor lifts more than 2 m above the floor, while other trades' vehicles use the car park.",
+      "task": "Install jet fans and car park exhaust ductwork in the 3 basement levels, drilling into the post-tensioned slabs for hanger anchors, working from scissor lifts more than 2 m above the floor, while other trades' vehicles use the car park.",
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Scissor lifts with guardrails are used for all work above 2 m.",
@@ -122,6 +123,7 @@
         ],
         "steps": [
           "Use an elevating work platform",
+          "Install ductwork, pipework and units at height",
           "Install car park fans over traffic areas"
         ],
         "missing": [
@@ -141,14 +143,16 @@
       },
       "expect": {
         "highRisk": [
-          "fall"
+          "fall",
+          "plant"
         ],
         "steps": [
+          "Use an elevating work platform",
           "Insulate ductwork and pipework"
         ],
         "missing": [
-          "Fall control",
-          "Safety data sheet"
+          "Safety data sheet",
+          "Fall control"
         ]
       }
     },
@@ -164,12 +168,14 @@
       },
       "expect": {
         "highRisk": [
+          "fall",
           "chemicalLine",
-          "atmosphere",
           "electrical",
-          "fall"
+          "atmosphere",
+          "plant"
         ],
         "steps": [
+          "Use an elevating work platform",
           "Evacuate, charge and recover refrigerant",
           "Isolate plant before work on it",
           "Commission and balance the system"
@@ -313,7 +319,7 @@
       ],
       "phrase": "21 kN for two",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 306I",
-      "quote": "if 2 persons are using the anchorage point\u201421kN"
+      "quote": "if 2 persons are using the anchorage point—21kN"
     },
     {
       "swms": [

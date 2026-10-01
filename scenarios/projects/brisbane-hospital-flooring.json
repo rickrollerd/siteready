@@ -1,0 +1,28 @@
+{
+  "title": "New hospital building, Brisbane: flooring",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "vinyl",
+      "title": "Ward vinyl flooring",
+      "task": "Lay and weld the vinyl flooring in the wards and corridors, using flooring adhesive.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the flooring adhesive are kept at the work area: use with ventilation, keep away from ignition sources, wear gloves."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Apply flooring adhesives",
+          "Lay floor coverings"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

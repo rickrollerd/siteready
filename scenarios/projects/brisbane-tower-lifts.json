@@ -32,11 +32,13 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "The car top has its guardrail fitted before anyone stands on it, and the pit is entered by its fixed ladder.",
-        "plantIsolation": "The lift is isolated at the main switch and locked out with personal padlocks, the car is put on car top inspection control, and only the person on the car top operates it."
+        "plantIsolation": "For work that does not need the car to move, the lift is isolated at the main switch and locked out with personal padlocks. Where the car must move, it runs only on car top inspection control, operated only by the person doing the work."
       },
       "expect": {
         "highRisk": [
-          "fall"
+          "fall",
+          "confined",
+          "electrical"
         ],
         "steps": [
           "Work on the car top and in the pit"
@@ -52,9 +54,9 @@
       "swms": [
         "car"
       ],
-      "phrase": "is not commissioned until it is registered",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 234, schedule 5",
-      "quote": "must not commission an item of plant that is stated in schedule 5, part 2"
+      "phrase": "registered before it is commissioned for use",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 231, s 233, s 234, schedule 5",
+      "quote": "must not commission an item of plant that is stated in schedule 5, part 2 ... unless that item of plant is registered; Nothing in subsection (2) prevents a person from performing any necessary adjustments, tests or inspections as part of the commissioning process"
     },
     {
       "swms": [
@@ -63,6 +65,22 @@
       "phrase": "DANGER HOLE BENEATH",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 78, s 306E, s 306F",
       "quote": "must be made safe immediately after being formed"
+    },
+    {
+      "swms": [
+        "shaft"
+      ],
+      "phrase": "Secure barriers stop anyone but the people working in the lift well",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 236",
+      "quote": "secure barriers are provided to prevent access to openings into the lift well by someone other than a person who is performing work in the lift well"
+    },
+    {
+      "swms": [
+        "car"
+      ],
+      "phrase": "a written entry permit from a competent person",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 66, s 67, s 69",
+      "quote": "A confined space entry permit must (a) be completed by a competent person; and (b) be in writing"
     }
   ]
 }
