@@ -7,8 +7,8 @@ const fs = require('fs');
 const path = require('path');
 
 const PROJECTS = path.join(__dirname, 'scenarios', 'projects');
-const TRADE_ORDER = ['structure', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade'];
-const TRADE_NAMES = { structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
+const TRADE_ORDER = ['piling', 'structure', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade'];
+const TRADE_NAMES = { piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
 
 function loadTrades() {
   return fs.readdirSync(PROJECTS)
@@ -85,6 +85,9 @@ const ANSWERS = {
   ],
   confinedSpace: [
     ['Permit entry', 'Entry only under a confined space entry permit, with atmospheric testing before and during entry, a standby person at the opening, and a practised rescue plan.'],
+  ],
+  pilingPlatform: [
+    ['Engineer\'s certificate', 'The working platform is designed by ____ (geotechnical engineer) for the ____ rig, with a maximum plant loading of ____ kPa. The platform certificate is given to the rig operator before the rig goes on it.'],
   ],
   trenchSupport: [
     ['Trench shield', 'Trenches 1.5 m deep or more are shored with a trench shield rated for ____ m, as designed by the supplier\'s engineer.'],

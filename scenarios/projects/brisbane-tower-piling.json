@@ -1,0 +1,235 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: piling",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "platform",
+      "title": "Piling rig delivery, assembly and working platforms",
+      "task": "Deliver, assemble and dismantle the CFA and bored piling rigs, and build and maintain the piling working platform in the basement excavation.",
+      "fallRisk": "no",
+      "facts": {
+        "pilingPlatform": "The working platform is designed by the project geotechnical engineer for the 90 t CFA rig and the 100 t bored pile rig, with a maximum plant loading of 250 kPa. The platform certificate is given to each rig operator before the rig goes on it."
+      },
+      "expect": {
+        "highRisk": [
+          "plant"
+        ],
+        "steps": [
+          "Prepare the piling working platform",
+          "Deliver, assemble and dismantle the rig"
+        ],
+        "missing": [
+          "Working platform design and certificate"
+        ]
+      }
+    },
+    {
+      "id": "cfa",
+      "title": "CFA piling",
+      "task": "Drill and install CFA piles for the tower foundations with the CFA piling rig, pumping concrete through the auger and placing the reinforcement cages with our service crawler crane.",
+      "fallRisk": "no",
+      "crane": "own",
+      "facts": {
+        "pilingPlatform": "The working platform is designed by the project geotechnical engineer for the 90 t CFA rig and the 100 t bored pile rig, with a maximum plant loading of 250 kPa. The platform certificate is given to each rig operator before the rig goes on it.",
+        "craneChart": "Service crawler crane rated capacity chart: 8 t at 12 m radius. Heaviest gross load is a 4.5 t cage with spreader bar and slings (4.8 t gross) at 10 m radius."
+      },
+      "expect": {
+        "highRisk": [
+          "plant"
+        ],
+        "steps": [
+          "Drill and install piles",
+          "Lift, pitch and lower reinforcement cages",
+          "Place concrete in the piles"
+        ],
+        "missing": [
+          "Crane chart",
+          "Working platform design and certificate"
+        ]
+      }
+    },
+    {
+      "id": "bored",
+      "title": "Bored piles, open bores and cages",
+      "task": "Drill bored piles up to 25 m deep for the tower core, lift and lower the reinforcement cages into the open bores with our service crawler crane, and place concrete by tremie.",
+      "fallRisk": "yes",
+      "crane": "own",
+      "facts": {
+        "pilingPlatform": "The working platform is designed by the project geotechnical engineer for the 90 t CFA rig and the 100 t bored pile rig, with a maximum plant loading of 250 kPa. The platform certificate is given to each rig operator before the rig goes on it.",
+        "craneChart": "Service crawler crane rated capacity chart: 8 t at 12 m radius. Heaviest gross load is a 6.2 t cage with spreader bar and slings (6.5 t gross) at 10 m radius.",
+        "fallControl": "Each open bore is covered with a fixed, marked cover or fenced with a pile hole guard with a footplate as soon as the auger is withdrawn."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "trench",
+          "plant"
+        ],
+        "steps": [
+          "Protect open bores",
+          "Lift, pitch and lower reinforcement cages",
+          "Place concrete in the piles"
+        ],
+        "missing": [
+          "Crane chart",
+          "Fall control",
+          "Working platform design and certificate"
+        ]
+      }
+    },
+    {
+      "id": "retention",
+      "title": "Secant pile retention wall and staged excavation",
+      "task": "Install the secant pile retention wall around the basement with the CFA piling rig, then excavate in stages in front of the wall to the 3 basement levels, next to the neighbouring buildings and the street.",
+      "fallRisk": "yes",
+      "facts": {
+        "pilingPlatform": "The working platform is designed by the project geotechnical engineer for the 90 t CFA rig and the 100 t bored pile rig, with a maximum plant loading of 250 kPa. The platform certificate is given to each rig operator before the rig goes on it.",
+        "temporarySupport": "The secant wall and its temporary props are to the engineer's design (drawing ____, revision ____), with each excavation stage approved by the engineer before it starts.",
+        "fallControl": "Edge protection is installed along the top of the retention wall before excavation goes below 2 m, and no one works outside it."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Drill and install piles",
+          "Excavate in front of the retention wall"
+        ],
+        "missing": [
+          "Fall control",
+          "Working platform design and certificate"
+        ]
+      }
+    },
+    {
+      "id": "trim",
+      "title": "Pile trimming",
+      "task": "Break down the pile heads to cut-off level with hydraulic pile croppers and breakers, in the basement.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Pile heads are broken with hydraulic pile croppers and water suppression. Fit tested P2 respirators are worn while breaking. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Trim pile heads"
+        ],
+        "missing": [
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "platform",
+        "cfa",
+        "bored",
+        "retention",
+        "trim"
+      ],
+      "phrase": "white card",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 317",
+      "quote": "the worker holds a general construction induction training card"
+    },
+    {
+      "swms": [
+        "platform"
+      ],
+      "phrase": "geotechnical engineer, designs the working platform",
+      "source": "Piling industry standard (WorkSafe Victoria and PFSF, 2014, Victorian guidance) s 3.12",
+      "quote": "ensure a competent person (eg a geotechnical engineer) designs the working platform"
+    },
+    {
+      "swms": [
+        "platform"
+      ],
+      "phrase": "Smaller rigs often have higher bearing pressures",
+      "source": "Piling industry standard (WorkSafe Victoria and PFSF, 2014, Victorian guidance) s 4.3",
+      "quote": "smaller rigs often have higher bearing pressures than larger rigs"
+    },
+    {
+      "swms": [
+        "cfa",
+        "bored",
+        "retention"
+      ],
+      "phrase": "Isolate the rig before cleaning the auger",
+      "source": "Piling industry standard (WorkSafe Victoria and PFSF, 2014, Victorian guidance) s 3.6",
+      "quote": "entanglement in the rotating parts of the PF rigs"
+    },
+    {
+      "swms": [
+        "cfa",
+        "bored",
+        "retention"
+      ],
+      "phrase": "Write the exclusion zone",
+      "source": "Piling industry standard (WorkSafe Victoria and PFSF, 2014, Victorian guidance) s 4.5, s 4.6",
+      "quote": "The exclusion zone must be included and described (eg radius or area) in the relevant SWMS."
+    },
+    {
+      "swms": [
+        "cfa",
+        "bored",
+        "retention"
+      ],
+      "phrase": "Treat powerlines as live",
+      "source": "Piling industry standard (WorkSafe Victoria and PFSF, 2014, Victorian guidance) s 4.7",
+      "quote": "considered 'live' unless the asset owner confirms in writing that electricity has been isolated"
+    },
+    {
+      "swms": [
+        "cfa",
+        "bored"
+      ],
+      "phrase": "No one stands under a suspended cage",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 219",
+      "quote": "no loads are suspended or travel over a person"
+    },
+    {
+      "swms": [
+        "bored"
+      ],
+      "phrase": "DANGER HOLE BENEATH",
+      "source": "Model Code: Managing the risk of falls s 4.2",
+      "quote": "Holes, penetrations and openings must be made safe immediately after being formed"
+    },
+    {
+      "swms": [
+        "retention"
+      ],
+      "phrase": "No one works ahead of the support",
+      "source": "Model Code: Excavation work s 6.2",
+      "quote": "They should not work ahead of the shoring protection"
+    },
+    {
+      "swms": [
+        "retention"
+      ],
+      "phrase": "Neighbouring buildings are protected before digging",
+      "source": "Model Code: Excavation work s 3.4",
+      "quote": "Excavation work must not commence until steps are taken to prevent the collapse or partial collapse of any potentially affected building or structure."
+    },
+    {
+      "swms": [
+        "trim"
+      ],
+      "phrase": "Breaking concrete with power tools or plant is processing crystalline silica",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529B, s 529C",
+      "quote": "the use of a power tool or mechanical plant to carry out an activity that involves ... crushing, cutting ... or trimming"
+    },
+    {
+      "swms": [
+        "trim"
+      ],
+      "phrase": "Assess in writing before breaking",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529CA",
+      "quote": "recorded in writing"
+    }
+  ]
+}
