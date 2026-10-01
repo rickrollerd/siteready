@@ -1,0 +1,43 @@
+name: Fetch plumbing sources
+
+# Reads the WHS regulation, plumbing law and model codes behind SiteReady's
+# plumbing job steps, one job per source and chunk so each log can be read back.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'legislation-watch/fetch-source.js'
+      - '.github/workflows/fetch-plumbing.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { source: whsReg, chunk: 0 }
+          - { source: whsReg, chunk: 1 }
+          - { source: whsReg, chunk: 2 }
+          - { source: whsReg, chunk: 3 }
+          - { source: plumbingAct, chunk: 0 }
+          - { source: confined, chunk: 0 }
+          - { source: excavation, chunk: 0 }
+          - { source: welding, chunk: 0 }
+          - { source: falls, chunk: 0 }
+          - { source: manual, chunk: 0 }
+    name: ${{ matrix.source }} ${{ matrix.chunk }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - run: node legislation-watch/fetch-source.js
+        env:
+          SOURCE: ${{ matrix.source }}
+          CHUNK: ${{ matrix.chunk }}
