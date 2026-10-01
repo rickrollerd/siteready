@@ -24,7 +24,7 @@ const SOURCES = {
 // How each state was checked by hand when no source here can be read automatically.
 const CHECKED_BY_HAND = {
   nsw: 'Official PDF (3 July 2026) and the model WHS Regulations (5 December 2025).',
-  vic: 'Authorised PDF (version 017) and AustLII copies of regulations 322, 324 and 327.',
+  vic: 'Authorised PDF (version 017) and WorkSafe Victoria\'s Safe Work Method Statements (SWMS) page (retrieved 1 October 2026).',
   sa: 'Authorised PDF (1 July 2026) and the model WHS Regulations (5 December 2025).',
 };
 
