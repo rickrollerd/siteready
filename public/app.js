@@ -50,7 +50,7 @@ function shrinkLogo(file) {
       const image = new Image();
       image.onerror = () => reject(new Error('The logo could not be read. Use a PNG or JPEG.'));
       image.onload = () => {
-        const scale = Math.min(600 / image.width, 200 / image.height, 1);
+        const scale = Math.min(900 / image.width, 300 / image.height, 1);
         const canvas = document.createElement('canvas');
         canvas.width = Math.max(1, Math.round(image.width * scale));
         canvas.height = Math.max(1, Math.round(image.height * scale));
@@ -318,7 +318,8 @@ function render(draft) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
   const logo = profile.logo ? `<img class="sheet-logo" src="${esc(profile.logo)}" alt="">` : '';
   const company = draft.companyDetails ? `<p class="meta">${esc(draft.companyDetails)}</p>` : '';
-  const head = `${logo}${company}
+  const name = draft.subcontractor ? `<p class="sheet-company">${esc(draft.subcontractor)}</p>` : '';
+  const head = `${logo || name || company ? `<div class="sheet-head"><div>${name}${company}</div>${logo}</div>` : ''}
     <h3>Safe work method statement</h3>
     <p class="meta">${esc(draft.instrument)} · ${esc(draft.versionLabel)} · ${esc(draft.sectionRef)}</p>
     <p class="status">${esc(draft.status || 'Not approved. Not signed.')}</p>
