@@ -1,0 +1,52 @@
+{
+  "title": "Houses and renovations, Brisbane: bathroom renovation",
+  "state": "qld",
+  "workplace": "Houses and renovations around Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "strip",
+      "title": "Bathroom strip-out in an older house",
+      "task": "Strip out the bathroom of a 1970s house, removing the wall and floor tiles and the fibro wall sheets, then waterproof the floor and walls and re-tile, cutting tiles with a wet saw.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Tiles are removed and cut with wet methods and on-tool extraction. Fit tested P2 respirators are worn. The written silica assessment is done before work starts and attached to this SWMS.",
+        "asbestosArrangement": "The fibro wall sheets were sampled and tested by an occupational hygienist (report AS-221): they contain asbestos. A licensed asbestos removalist removes them before the strip-out starts, and gives a clearance certificate before other work begins."
+      },
+      "expect": {
+        "highRisk": [
+          "asbestos"
+        ],
+        "steps": [
+          "Check for asbestos before starting",
+          "Strip out the room",
+          "Cut tiles and stone",
+          "Lay tiles",
+          "Apply primers and liquid membranes"
+        ],
+        "missing": [
+          "Silica dust controls",
+          "Asbestos arrangement"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "strip"
+      ],
+      "phrase": "all asbestos likely to be disturbed is identified",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 457",
+      "quote": "all asbestos that is likely to be disturbed by the refurbishment is identified; and (b) so far as is reasonably practicable, that the asbestos is removed before the refurbishment is commenced"
+    },
+    {
+      "swms": [
+        "strip"
+      ],
+      "phrase": "except for 10 m2 or less of non-friable asbestos",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 458",
+      "quote": "(a) 10m 2 or less of non-friable asbestos"
+    }
+  ]
+}

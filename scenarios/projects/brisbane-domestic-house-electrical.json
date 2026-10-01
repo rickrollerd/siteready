@@ -1,0 +1,32 @@
+{
+  "title": "Houses and renovations, Brisbane: house electrical",
+  "state": "qld",
+  "workplace": "Houses and renovations around Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "rewire",
+      "title": "Rewire a house",
+      "task": "Rewire a house: run new cables in the ceiling space and walls, and replace the switchboard.",
+      "fallRisk": "no",
+      "facts": {
+        "isolationProcedure": "The supply is isolated at the main switch and the meter fuse is pulled by the distributor where needed. Circuits are locked and danger tagged, and tested de-energised by the licensed electrician before work. Each worker holds their own lock.",
+        "energisedWork": "none"
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Rough-in and fit-off",
+          "Isolate and prove de-energised",
+          "Work on or near energised parts",
+          "Work in the roof space"
+        ],
+        "missing": [
+          "Isolation and testing procedure",
+          "Work on or near energised parts"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

@@ -1,0 +1,38 @@
+name: Fetch state WHS regulations
+
+# Fetches the NSW, Victorian and WA regulations in full and commits the text to
+# the state-sources branch, so SiteReady's citations for those states can be
+# checked against them.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fetch-state-regs.yml'
+      - 'legislation-watch/fetch-state-regs.js'
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - run: npm install --no-save playwright@1 && npx playwright install --with-deps chromium > /dev/null
+      - run: |
+          node legislation-watch/fetch-state-regs.js
+          ls -la state-sources
+      - name: Commit the texts to the state-sources branch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan state-sources-tmp
+          git rm -rqf --cached .
+          git add state-sources
+          git commit -qm "State regulation texts, fetched $(date -u +%Y-%m-%d)"
+          git push -f origin HEAD:refs/heads/state-sources

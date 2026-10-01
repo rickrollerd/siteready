@@ -1,0 +1,35 @@
+name: Fetch Queensland codes of practice
+
+# Reads WorkSafe Queensland's approved codes of practice with a real browser and
+# commits the text to the qld-codes branch, to check code references against them.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fetch-qld-codes.yml'
+      - 'legislation-watch/fetch-qld-codes.js'
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - run: npm install --no-save playwright@1 && npx playwright install --with-deps chromium > /dev/null
+      - run: node legislation-watch/fetch-qld-codes.js && ls -la qld-codes
+      - name: Commit the texts to the qld-codes branch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan qld-codes-tmp
+          git rm -rqf --cached .
+          git add qld-codes
+          git commit -qm "Queensland codes of practice, fetched $(date -u +%Y-%m-%d)" || echo "nothing fetched"
+          git push -f origin HEAD:refs/heads/qld-codes || echo "nothing pushed"

@@ -1,0 +1,32 @@
+{
+  "title": "Houses and renovations, Brisbane: house painting",
+  "state": "qld",
+  "workplace": "Houses and renovations around Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "exterior",
+      "title": "Paint the outside of a two storey house",
+      "task": "Paint the outside walls, eaves and gutters of a two storey house with water-based paint from a mobile scaffold and ladders, after sanding and filling.",
+      "fallRisk": "yes",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the water-based paints and fillers are kept at the work area. Avoid skin contact. Wear gloves and eye protection.",
+        "controlsConsidered": "Edge protection and scaffolds were considered first for every task, and an elevating work platform where they cannot be fixed."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Paint the outside of the building at height",
+          "Prepare to paint",
+          "Paint"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

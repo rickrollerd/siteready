@@ -28,7 +28,11 @@ const SOURCES = {
   constructionCode: ['Model Code of Practice: Construction work (Safe Work Australia, November 2024)', 'https://www.safeworkaustralia.gov.au/sites/default/files/2024-11/model_code_of_practice-construction_work-nov24.pdf'],
   noiseCode: ['Model Code of Practice: Managing noise and preventing hearing loss at work (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1810/model-cop-managing-noise-and-preventing-hearing-loss-at-work.pdf'],
   chemicalsCode: ['Model Code of Practice: Managing risks of hazardous chemicals in the workplace (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1702/managing_risks_of_hazardous_chemicals2.pdf'],
+  nswReg: ['Work Health and Safety Regulation 2025 (NSW), current', 'https://legislation.nsw.gov.au/view/html/inforce/current/sl-2025-0440'],
+  vicReg: ['Occupational Health and Safety Regulations 2017 (Vic), current', 'https://www.legislation.vic.gov.au/in-force/statutory-rules/occupational-health-and-safety-regulations-2017', /href="([^"]+\.pdf[^"]*)"/i],
+  waReg: ['Work Health and Safety (General) Regulations 2022 (WA), current', 'https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_s53267.html', /href="([^"]+\.pdf[^"]*)"/i],
   manual: ['Model Code of Practice: Hazardous manual tasks (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-hazardous-manual-tasks-v2.pdf'],
+  electricalCode: ['Model Code of Practice: Managing electrical risks in the workplace (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-managing-electrical-risks_in_the_workplace-v3.pdf'],
 };
 const CHUNK_SIZE = Number(process.env.CHUNK_SIZE || 550000);
 const BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
@@ -65,6 +69,13 @@ function html(text) {
     text = execFileSync('pdftotext', ['-layout', file, '-'], { maxBuffer: 128 * 1024 * 1024 }).toString();
   } else {
     text = html(buffer.toString('utf8'));
+  }
+  // OUT writes the whole text to a file, for a workflow that commits it.
+  if (process.env.OUT) {
+    fs.mkdirSync(path.dirname(process.env.OUT), { recursive: true });
+    fs.writeFileSync(process.env.OUT, `${name}\n${url}\n\n${text}`);
+    console.log(`Wrote ${text.length} characters of ${name} to ${process.env.OUT}`);
+    return;
   }
   const part = text.slice(chunk * CHUNK_SIZE, (chunk + 1) * CHUNK_SIZE);
   console.log(`@@@@@ ${name} | chunk ${chunk} of ${Math.ceil(text.length / CHUNK_SIZE)}\n${url}\nHTTP ${response.status}, ${text.length} characters`);

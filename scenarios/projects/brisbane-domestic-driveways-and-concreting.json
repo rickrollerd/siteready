@@ -1,0 +1,29 @@
+{
+  "title": "Houses and renovations, Brisbane: driveways and concreting",
+  "state": "qld",
+  "workplace": "Houses and renovations around Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "driveway",
+      "title": "Concrete driveway and path",
+      "task": "Form and pour a concrete driveway and path at a house, with the concrete truck and a line pump in the street, open to traffic.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [
+          "road",
+          "plant"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Set up the concrete pump and placing boom",
+          "Pump and place concrete",
+          "Finish concrete"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": []
+}

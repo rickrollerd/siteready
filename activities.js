@@ -16,6 +16,7 @@ const CPR = (section) => `Telecommunications (Cabling Provider) Rules 2025 (Cth)
 const SPA = (section) => `Security Providers Act 1993 (Qld) ${section}`;
 const ARC = (section) => `Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 ${section}`;
 const src = (text, source) => ({ text, source });
+const { localSource, localText } = require('./citations');
 
 const BEFORE = {
   step: 'Before starting',
@@ -82,6 +83,11 @@ const BEFORE_EXTRA = [
   { when: 'sportsLighting', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'temporaryTowers', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'dualLift', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'stripOut', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'deckBuild', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'houseFraming', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'fenceBuild', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'roofSpace', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'stoneWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'paving', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'mobileScaffold', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
@@ -1626,7 +1632,7 @@ const ACTIVITIES = [
   {
     when: 'carpLoad',
     steps: [{
-      step: 'Move materials and joinery to the floors',
+      step: 'Move materials and joinery into place',
       hazards: ['Back and shoulder strain carrying sheets, studs, doors and cabinets.', 'Wind catches large sheets.'],
       controls: [
         src('Move materials between levels with the materials hoist, not by hand.', MODEL('Construction work', 's 3.3')),
@@ -2799,6 +2805,118 @@ const ACTIVITIES = [
     }],
   },
   {
+    when: 'asbestosCheck',
+    steps: [{
+      step: 'Check for asbestos before starting',
+      hazards: ['Asbestos in fibro, eaves, wall and floor linings, or vinyl tiles is disturbed and its fibres breathed in.'],
+      controls: [
+        { fact: 'asbestosArrangement' },
+        src('Before refurbishing a house, all asbestos likely to be disturbed is identified, and removed so far as is reasonably practicable before the work starts.', WHS('s 457')),
+        src('Buildings built before 31 December 1989 are checked for asbestos before demolition or refurbishment. Where there is no asbestos register, a competent person inspects first. Material that cannot be identified, but a competent person believes is asbestos, is treated as asbestos.', WHS('s 422, s 447, s 451')),
+        src('Asbestos is removed by a licensed asbestos removalist, except for 10 m2 or less of non-friable asbestos removed under the regulation.', WHS('s 458')),
+        src('No high-pressure water spray or compressed air on asbestos, and no power tools or brooms on it unless their use is controlled. Exposure to airborne asbestos is eliminated so far as is reasonably practicable.', WHS('s 420, s 446')),
+        'If material that may be asbestos is found during the work, stop, keep people away, and do not restart until it has been identified.',
+      ],
+    }],
+  },
+  {
+    when: 'stripOut',
+    steps: [{
+      step: 'Strip out the room',
+      hazards: ['Dust, including silica from tiles and render.', 'Cuts from broken tiles, glass and sheet edges.', 'Back strain carrying waste.', 'Hidden live cables or water pipes.', 'Noise from breakers and grinders.'],
+      controls: [
+        src('Water, power and gas to the room are isolated by the licensed trades before strip-out. Check walls for hidden services before cutting or breaking.', MODEL('Construction work', 'appendix K')),
+        src('Removing tiles and render with power tools is processing a crystalline silica substance: use wet methods or on-tool extraction, with respirators for anyone still at risk.', WHS('s 529A, s 529B, s 529C')),
+        src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak, with hearing protection when breakers and grinders run.', WHS('s 56, s 57, s 58')),
+        src('Carry waste in small loads or use a chute or barrow to the skip, and rotate tasks.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5')),
+        'Cut resistant gloves and eye protection when breaking tiles and sheets. Keep the floor clear of broken material.',
+      ],
+    }],
+    ppe: ['p2', 'earMuffs', 'gloveCut', 'goggles'],
+  },
+  {
+    when: 'deckBuild',
+    steps: [
+      {
+        step: 'Set out and dig post holes',
+        hazards: ['Striking buried power, gas, water or sewer services.', 'Strain from digging and lifting posts.'],
+        controls: [
+          src('Get the underground services information before digging, and locate services on site.', WHS('s 304')),
+          src('Use a post hole digger or auger with its guards in place, and two people for hand-held augers.', `${WHS('s 208')}; ${MODEL('Hazardous manual tasks', 's 4.5')}`),
+          'Barricade open holes until the posts are set.',
+        ],
+      },
+      {
+        step: 'Build the deck frame and lay the decking',
+        hazards: ['A fall from the edge of the deck frame or between joists.', 'Cuts and kickback from saws.', 'Back strain lifting bearers, joists and boards.', 'Timber dust.'],
+        controls: [
+          { fact: 'fallControl' },
+          src('Work from the ground, a platform or a scaffold where possible. Where a person could fall, prevent it with edge protection or work platforms before using fall arrest.', WHS('s 78, s 79, s 306C, s 306D')),
+          src('Saws have their guards in place. Cut on a stable bench, not on the deck frame.', WHS('s 208')),
+          src('Two people carry long bearers and joists, or use mechanical aids. Rotate kneeling work.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
+          src('Keep timber dust below the exposure standard: cut outside or with extraction, and wear a dust mask when cutting treated timber.', WHS('s 49')),
+        ],
+      },
+    ],
+    ppe: ['earPlugs', 'glassesClear', 'gloveGeneral'],
+  },
+  {
+    when: 'houseFraming',
+    steps: [
+      {
+        step: 'Stand and brace wall frames',
+        hazards: ['A frame falls over before it is braced.', 'A fall from the top plate or a ladder.', 'Nail gun injuries.', 'Back strain lifting frames.'],
+        controls: [
+          { fact: 'fallControl' },
+          src('Brace and secure each frame as it is stood, to the frame drawings, before letting go of it.', MODEL('Construction work', 'appendix K')),
+          src('Housing construction: where a person could fall 3 m or more, prevent the fall with edge protection, scaffolds or work platforms before using fall arrest.', WHS('s 306D, s 306E')),
+          src('Ladders are industrial, rated for at least 120 kg, secured, and not used for work that needs two hands or a high degree of leverage.', `${WHS('s 306L, s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
+          'Nail guns are used with the safety contact trip, never carried with a finger on the trigger, and disconnected before clearing a jam.',
+          src('Lift frames with enough people or a crane, not alone. Rotate lifting tasks.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
+        ],
+      },
+      {
+        step: 'Fix roof trusses',
+        hazards: ['A fall from the top plate, the trusses or the roof edge.', 'Trusses fall like dominoes before they are braced.', 'A truss load strikes a worker.'],
+        controls: [
+          src('Trusses are fixed from inside the edge protection or scaffold, with temporary bracing fitted as each truss is placed, to the truss supplier\'s bracing layout.', `${WHS('s 306D, s 306E')}; ${MODEL('Construction work', 'appendix K')}`),
+          src('Truss bundles are lifted by the crane company, kept under control, never over people, and landed only on supports that can take them.', WHS('s 219')),
+          src('No one works below the trusses while they are lifted or placed.', WHS('s 55')),
+        ],
+      },
+    ],
+    ppe: ['harness', 'earPlugs', 'glassesClear'],
+  },
+  {
+    when: 'fenceBuild',
+    steps: [{
+      step: 'Dig post holes and build the fence',
+      hazards: ['Striking buried services.', 'Entanglement in a post hole auger.', 'Back strain from posts, sheets and concrete bags.', 'Cement burns.', 'Neighbours or the public near the work.'],
+      controls: [
+        src('Get the underground services information before digging, and locate services on site. Dial before you dig.', WHS('s 304')),
+        src('Augers are used with guards in place and loose clothing secured. Two people handle a two-person auger.', WHS('s 208')),
+        src('Use barrows and trolleys for posts, sheets and concrete bags, order smaller bags where possible, and rotate tasks.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5')),
+        'Wear gloves and eye protection when mixing concrete. Wash cement off skin straight away.',
+        src('Keep the public and neighbours out of the work area with barriers, and cover or fence open holes.', WHS('s 298')),
+      ],
+    }],
+    ppe: ['gloveGeneral', 'glassesClear'],
+  },
+  {
+    when: 'roofSpace',
+    steps: [{
+      step: 'Work in the roof space',
+      hazards: ['Heat stress in the roof space.', 'A fall through the ceiling.', 'Insulation fibres and dust.', 'Contact with live cables.'],
+      controls: [
+        src('Work in an enclosed roof cavity is work in artificial extremes of temperature: work early in the day, limit time in the roof, take breaks, and drink water.', MODEL('Construction work', 'appendix C, appendix K')),
+        'Walk only on the ceiling joists or on crawl boards laid across them, never on the ceiling sheets.',
+        'Wear a dust mask, long sleeves and gloves when moving insulation.',
+        'Treat all cables in the roof space as live until they are proved de-energised.',
+      ],
+    }],
+    ppe: ['p2', 'longs'],
+  },
+  {
     when: 'cleaning',
     steps: [{
       step: 'Clean with chemicals',
@@ -3118,11 +3236,15 @@ const PPE_IDS = new Set(PPE.flatMap((group) => group.items.map(([id]) => id)));
 
 // A fact control may carry `otherwise`, a line used only when the fact is not given.
 // A choice control gives the lines for the option the user chose.
-function expand(control, factText, cite = true) {
+// cite is the state: its own sources are printed after each control, where they
+// have been checked (see citations.js). Unchecked sources are left off.
+function expand(control, factText, cite = 'qld') {
   if (typeof control === 'string') return [control];
-  // A control taken from a regulation or code carries its source, printed after it.
-  // The sources are Queensland's, so other states get the control without them.
-  if (control.text) return [control.source && cite ? `${control.text} (${control.source})` : control.text];
+  if (control.text) {
+    const source = cite && control.source ? localSource(control.source, cite) : '';
+    const text = localText(control.text, cite);
+    return [source ? `${text} (${source})` : text];
+  }
   if (control.choice) return (control.options[factText(control.choice)] || []).flatMap((item) => expand(item, factText, cite));
   const text = factText(control.fact);
   if (text) return [text];
@@ -3140,6 +3262,16 @@ function jobStepsFor(flags, factText, fallback) {
   // Work done inside a confined space happens before the permit is closed.
   const close = middle.filter((step) => step.step === 'Leave and close up');
   middle = [...middle.filter((step) => step.step !== 'Leave and close up'), ...close];
+  // Asbestos is checked, and the room stripped out, before anything new goes in.
+  const FIRST = ['Check for asbestos before starting', 'Strip out the room'];
+  middle = [...FIRST.flatMap((name) => middle.filter((step) => step.step === name)), ...middle.filter((step) => !FIRST.includes(step.step))];
+  // Old roofing comes off once the roof access and fall protection are set up.
+  const strip = middle.find((step) => step.step === 'Remove old roofing');
+  const setUp = middle.findIndex((step) => step.step === 'Set up roof access and fall protection');
+  if (strip && setUp >= 0) {
+    middle = middle.filter((step) => step !== strip);
+    middle.splice(setUp + 1, 0, strip);
+  }
   const before = {
     ...BEFORE,
     controls: [...BEFORE.controls, ...new Set(BEFORE_EXTRA.filter((item) => flags[item.when]).flatMap((item) => expand(item.text, factText, flags.cite)))],

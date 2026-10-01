@@ -6,6 +6,7 @@
 const path = require('path');
 const { prepareDraft } = require('../draft');
 const { STATES, highRiskLabel } = require('../legislation');
+const { localSource } = require('../citations');
 
 // Every project set in scenarios/projects, the tower first.
 const first = (name) => (name === 'brisbane-tower.json' ? '' : name);
@@ -93,7 +94,11 @@ for (const rule of project.rules || []) {
     const text = JSON.stringify(done.jobSteps || []);
     const line = (done.jobSteps || []).flatMap((step) => step.controls).find((item) => item.includes(rule.phrase));
     if (!text.includes(rule.phrase)) fail(`${project.state} ${id}`, `rule missing: ${rule.phrase} (${rule.source})`);
-    else if (!line || !rule.source.split(/,|;/)[0].trim().split(' s ')[0].split(' ').every((word) => line.includes(word))) fail(`${project.state} ${id}`, `rule not cited: ${rule.phrase} (${rule.source})`);
+    else {
+      // The rule's source as the state prints it, such as a Queensland code in place of the model code.
+      const source = localSource(rule.source, project.state);
+      if (!line || !source.split(/,|;/)[0].trim().split(' s ')[0].split(' ').every((word) => line.includes(word))) fail(`${project.state} ${id}`, `rule not cited: ${rule.phrase} (${source})`);
+    }
   }
 }
 
