@@ -1,0 +1,1348 @@
+First aid in the workplace code of practice 2021
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0019/72631/first-aid-in-the-workplace-cop-2021.pdf
+
+First aid in the workplace
+
+Code of Practice
+
+
+
+2021
+PN12655
+ISBN Creative Commons
+This copyright work is licensed under a Creative Commons Attribution-Noncommercial 4.0
+International licence. To view a copy of this licence, visit creativecommons.org/licenses. In essence,
+you are f ree to copy, communicate and adapt the work f or non-commercial purposes, as long as you
+attribute the work to Saf e Work Australia and abide by the other licence terms.
+     Contents
+     Foreword................................................................................................................................... 4
+     1. Introduction ........................................................................................................................ 5
+        1.1   Who has health and safety duties in relation to first aid? ....................................... 5
+        1.2   What is required in providing first aid? .................................................................... 6
+     2. How to determine first aid requirements for your workplace ...................................... 9
+        2.1     The nature of the work and workplace hazards ...................................................... 9
+        2.2     Size and location of the workplace........................................................................ 10
+        2.3     The number and composition of workers and others at the workplace ................ 11
+     3. First aid equipment, facilities and training ................................................................... 12
+       3.1    First aid kits ............................................................................................................ 12
+       3.2    First aid signs......................................................................................................... 13
+       3.3    Other first aid equipment ....................................................................................... 14
+       3.4    First aid facilities .................................................................................................... 15
+       3.5    First aiders ............................................................................................................. 16
+       3.6    First aid procedures ............................................................................................... 18
+       3.7    Providing first aid information ................................................................................ 20
+       3.8    Reviewing your first aid requirements ................................................................... 20
+     Appendix A–Glossary............................................................................................................ 22
+     Appendix B—First aid and the risk management process ............................................... 24
+     Appendix C – Summary of recommended first aid requirements ................................... 25
+     Appendix D—Example of a first aid assessment............................................................... 26
+       Nature of the work being carried out and the nature of the hazards at the workplace..... 27
+     Appendix E—Example of contents for first aid kits .......................................................... 29
+       Outdoor module ................................................................................................................. 31
+       Remote module.................................................................................................................. 31
+       Burn module ....................................................................................................................... 31
+     Appendix F—Standard precautions for infection control................................................. 32
+          Providing first aid safely ..................................................................................................... 32
+          Contaminated items ........................................................................................................... 32
+          Cleaning spills .................................................................................................................... 33
+
+
+
+
+First aid in the workplace Code of Practice 2021                                                                                  Page 3 of 33
+     Foreword
+     This Code of Practice on first aid in the workplace is an approved code of practice under
+     section 274 of the Work Health and Safety Act 2011 (the WHS Act).
+
+     An approved code of practice is a practical guide to achieving the standards of health, safety
+     and welfare required under the WHS Act and the Work Health and Safety Regulation 2011
+     (the WHS Regulation).
+
+     Under section 26A of the WHS Act duty holders must comply with an approved code
+     of practice or follow another method, such as a technical or industry standard, if it
+     provides an equivalent or higher standard of work health and safety than the standard
+     required in this code.
+
+     A code of practice applies to anyone who has a duty of care in the circumstances described
+     in the code. In most cases, following an approved code of practice would achieve
+     compliance with the health and safety duties in the WHS Act, in relation to the subject matter
+     of the code. Like regulations, codes of practice deal with particular issues and do not cover
+     all hazards or risks that may arise. The health and safety duties require duty holders to
+     consider all risks associated with work, not only those for which regulations and codes of
+     practice exist.
+
+     Codes of practice are admissible in court proceedings under the WHS Act and WHS
+     Regulation. Courts may regard a code of practice as evidence of what is known about a
+     hazard, risk or control and may rely on the code in determining what is reasonably
+     practicable in the circumstances to which the code relates.
+
+     An inspector may refer to an approved code of practice when issuing an improvement or
+     prohibition notice. This may include issuing an improvement notice for failure to comply with
+     a code of practice where equivalent or higher standards of work health and safety have not
+     been demonstrated.
+
+     Scope and application
+     This code is intended to be read by a person conducting a business or undertaking (PCBU).
+     It provides practical guidance to PCBUs on how to effectively provide first aid in the
+     workplace. It includes information on first aid kits, procedures, facilities and training for
+     first aiders.
+
+     This code may be a useful reference for other persons interested in the duties under the
+     WHS Act and WHS Regulation.
+
+     This Code applies to all types of work and all workplaces covered by the WHS Act.
+
+     How to use this Code of Practice
+     This code includes references to legal requirements under the WHS Act and WHS
+     Regulation. These are included for convenience only and should not be relied on in place of
+     the full text of the WHS Act or WHS Regulation. The words ‘must’, ‘requires’ or ‘mandatory’
+     indicate a legal requirement exists that must be complied with.
+
+     The word ‘should’ is used in this Code to indicate a recommended course of action, while
+     ‘may’ is used to indicate an optional course of action.
+
+
+
+First aid in the workplace Code of Practice 2021                                         Page 4 of 33
+     1. Introduction
+     Providing immediate and effective first aid to workers or others who have been injured or
+     become ill at the workplace may reduce the severity of the injury or illness. In some cases it
+     could mean the difference between life and death.
+
+     1.1 Who has health and safety duties in relation to first
+         aid?
+     Duty holders who have a role in first aid include:
+     • persons conducting a business or undertaking (PCBUs)
+     • designers, manufacturers, importers, suppliers and installers of plant, substances or
+        structures
+     • officers.
+
+     Workers and other persons at the workplace also have duties under the WHS Act, such as
+     the duty to take reasonable care for their own health and safety at the workplace.
+     A person can have more than one duty and more than one person can have the same duty
+     at the same time.
+
+     Early consultation and identification of risks can allow for more options to eliminate or
+     minimise risks and reduce the associated costs.
+
+     Person conducting a business or undertaking (PCBU)
+     PCBUs have the primary duty under the WHS Act. In general terms this duty requires
+     PCBUs to ensure, so far as is reasonably practicable, that workers and other persons are
+     not exposed to health and safety risks arising from the business or undertaking.
+
+
+     WHS Regulation section 42
+     Duty to provide first aid
+
+
+     A PCBU must ensure:
+     • provision of first aid equipment
+     • each worker at the workplace has access to the equipment
+     • access to facilities for administering first aid
+     • an adequate number of workers are trained to administer first aid, or workers have
+        access to an adequate number of other people who have been trained to administer first
+        aid (see section 3.5 of this Code).
+
+     A PCBU may not need to provide first aid equipment or facilities if these are already
+     provided by another duty holder at the workplace and they are adequate and easily
+     accessible at the times the workers carry out work.
+
+     Designers, manufacturers, importers and suppliers of plant, substances
+     or structures
+     WHS Act Part 2 Division 3
+     Further duties of persons conducting businesses or undertakings
+
+
+
+
+First aid in the workplace Code of Practice 2021                                           Page 5 of 33
+     Designers, manufacturers, importers and suppliers of plant or substances or structures used
+     in the workplace must ensure, so far as is reasonably practicable, the plant, substance or
+     structure they design, manufacture, import or supply is without risks to health and safety.
+     This duty includes carrying out testing and analysis as well as providing specific information
+     about the plant or substance.
+
+     To assist in meeting these duties, the WHS Regulation require:
+     • manufacturers to consult with designers of the plant
+     • importers to consult with designers and manufacturers of plant
+     • the person who commissions construction work to consult with the designer of
+        the structure.
+
+     Officers
+     WHS Act section 27
+     Duty of officers
+
+
+     Officers, for example company directors, have a duty to exercise due diligence to ensure the
+     PCBU complies with the WHS Act and WHS Regulation. This includes taking reasonable
+     steps to ensure the business or undertaking has and uses appropriate processes f or
+     complying with the duty to provide first aid.
+
+     Workers
+     WHS Act section 28
+     Duties of workers
+
+
+     Workers have a duty to take reasonable care for their own health and safety and to not
+     adversely affect the health and safety of other persons. Workers must comply with
+     reasonable instructions, as far as they are reasonably able, and cooperate with reasonable
+     health and safety policies or procedures, that have been notified to workers, for example
+     procedures for first aid and for reporting injuries and illnesses.
+
+     Other persons in the workplace
+     WHS Act section 29
+     Duties of other persons at the workplace
+
+
+     Other persons at the workplace, like visitors, must take reasonable care for their own health
+     and safety and must take care not to adversely affect other people’s health and safety. They
+     must comply, so far as they are reasonably able, with reasonable instructions given by the
+     PCBU to allow that person to comply with the WHS Act.
+
+     1.2 What is required in providing first aid?
+     First aid requirements will vary from one workplace to the next, depending on the nature of
+     the work, the types of hazards, the workplace size and location, as well as the number of
+     people at the workplace. These factors must be taken into account when deciding what first
+     aid arrangements are provided.
+     This Code provides information on using a risk management approach to tailor first aid to
+     suit the circumstances of your workplace, while also providing guidance on the number of
+
+
+
+
+First aid in the workplace Code of Practice 2021                                         Page 6 of 33
+     first aid kits, their contents and the number of trained first aiders appropriate for some types
+     of workplaces.
+
+     The risk management approach involves the following four steps, summarised in
+     Appendix B:
+     • identifying hazards that could result in work-related injury or illness
+     • assessing the type, severity and likelihood of injuries and illness
+     • providing the appropriate first aid equipment, facilities and training
+     • reviewing your first aid requirements on a regular basis or as circumstances change.
+
+     Guidance on the general risk management process is available in the How to manage work
+     health and safety risks Code of Practice.
+
+     Consulting workers
+     WHS Act section 47
+     Duty to consult workers
+
+
+     A PCBU must consult, so far as is reasonably practicable, with workers who carry out work
+     for the business or undertaking and who are (or are likely to be) directly affected by a health
+     and safety matter.
+
+     This duty to consult is based on the recognition that worker input and participation improves
+     decision-making about health and safety matters.
+
+     The broad definition of a ‘worker’ under the WHS Act means a PCBU must consult, so far as
+     is reasonably practicable, with contractors and subcontractors and their employees, on-hire
+     workers, outworkers, apprentices, trainees, work experience students, volunteers and other
+     people who are working for the PCBU and who are, or are likely to be, directly affected by a
+     health and safety matter.
+
+     Workers are entitled to take part in consultations and to be represented in consultations by a
+     health and safety representative who has been elected to represent their work group.
+
+
+     WHS Act section 48
+     Nature of consultation
+
+
+     If the workers are represented by a health and safety representative, the consultation must
+     involve that representative.
+
+     You must consult your workers when making decisions about what equipment and facilities
+     are needed for administering first aid. Consultation should include:
+     • the number, location and contents of first aid kits and other equipment
+     • the type of first aid facilities that may be needed
+     • first aid procedures
+     • the number of first aiders.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                            Page 7 of 33
+     Consulting, cooperating and coordinating activities with other duty
+     holders
+     WHS Act section 46
+     Duty to consult with other duty holders
+
+
+     The WHS Act requires a PCBU to consult, cooperate and coordinate activities with all other
+     persons who have a work health or safety duty in relation to the same matter, so far as is
+     reasonably practicable.
+
+     There is often more than one business or undertaking with responsibility for the same health
+     and safety matters, either because they are involved in the same activities or share the
+     same workplace.
+
+     In these situations, each duty holder should exchange information to find out who is doing
+     what and work together in a cooperative and coordinated way.
+
+     For example, if a PCBU provides labour hire workers as part of its business, both it and the
+     host business have a duty of care. In these situations, the duty holder must discuss the
+     hazards and risks associated with the work and ensure the host business has appropriate
+     first aid arrangements the workers can access.
+
+     If the workplace is shared with other businesses that have first aiders, the PCBU may be
+     able to ensure its workers have access to these first aiders instead of training their own
+     workers. In these circumstances, it will be necessary to:
+     • consult the other business operators to work out what first aid arrangements are needed
+     • cooperate with each other in sharing first aid equipment and facilities
+     • coordinate access to the first aiders.
+
+     Further guidance on consultation is available in the Work health and safety consultation,
+     cooperation and coordination Code of Practice.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                        Page 8 of 33
+   2. How to determine first aid requirements for
+      your workplace
+     WHS Regulation section 42(3)
+     Duty to provide first aid
+
+
+     To meet your duty as a person conducting a business or undertaking (PCBU) to provide
+     access to first aid equipment, facilities and trained first aiders you must have regard to all
+     relevant matters, including the following:
+     • the nature of the work being carried out at the workplace
+     • the nature of the hazards at the workplace
+     • the size and location of the workplace
+     • the number and composition of the workers and other persons at the workplace.
+
+     Appendix C summarises the requirements for first aid kits, first aiders and first aid rooms.
+
+     2.1 The nature of the work and workplace hazards
+     Certain work environments have greater risk of injury and illness due to the nature of work
+     being carried out and the nature of the hazards at the workplace. For example, workers in
+     factories, motor vehicle workshops and forestry operations are at greater risk of injury
+     requiring immediate medical treatment than workers in offices or libraries. These workplaces
+     will therefore require different first aid arrangements.
+
+     Table 1 Injuries associated with common workplace hazards that may require first aid
+       Hazard                         Potential harm
+
+       Manual tasks                   Overexertion can cause muscular strain.
+
+       Working at height or           Slips, trips and f alls can cause f ractures, bruises, lacerations, dislocations,
+       on uneven or                   concussion.
+       slippery surfaces
+
+       Electricity                    Potential ignition source—could cause injuries f rom f ire. Exposure to live
+                                      electrical wires can cause shock, burns and cardiac arrest.
+
+       Machinery and                  Being hit by moving vehicles, or being caught by moving parts of
+       equipment                      machinery can cause f ractures, amputation, bruises, lacerations,
+                                      dislocations.
+
+       Hazardous                      Toxic or corrosive chemicals may be inhaled or may contact skin or eyes
+       chemicals                      causing poisoning, chemical burns, irritation.
+                                      Flammable chemicals could result in injuries f rom f ire or explosion.
+
+       Extreme                        Hot surf aces and materials can cause burns.
+       temperatures                   Working in extreme heat can cause heat-related illness. It can also
+                                      increase risks by reducing concentration and increasing f atigue and
+                                      chemical uptake into the body.
+                                      Exposure to extreme cold can cause hypothermia and f rostbite.
+
+       Radiation                      Welding arc f lashes, ionising radiation and lasers can cause burns.
+                                      Ultraviolet (UV) radiation f rom the sun can cause sunburn, skin cancers
+                                      and eye damage.
+
+
+
+First aid in the workplace Code of Practice 2021                                                            Page 9 of 33
+       Hazard                         Potential harm
+
+       Violence                       Behaviours including intimidation and physical assault can cause both
+                                      physical and psychological injuries.
+
+       Biological                     Inf ection, allergic reactions
+
+       Animals                        Bites, stings, kicks, crush injuries, scratches
+
+
+     Records of injuries, illnesses, ‘near miss’ incidents and other information will be useful when
+     making decisions about first aid requirements.
+
+     You should check the safety data sheets (SDS) for hazardous chemicals handled, used or
+     stored at your workplace. The SDS provides information about the chemical, possible health
+     effects, controls that may be used to reduce exposure and first aid requirements.
+
+     Under the WHS Regulation suppliers of hazardous chemicals must provide the current SDS
+     to a person at the workplace if the person asks for it.
+
+     2.2 Size and location of the workplace
+     In relation to the size and location of the workplace, you should take into account:
+     • the distance between different work areas, and
+     • the response times for emergency services.
+
+     First aid equipment and facilities should be located at convenient points and in areas where
+     there is a higher risk of an injury or illness occurring.
+
+     A large workplace may require first aid to be available in more than one location if:
+     • work is being carried out a long distance from emergency services
+     • workers are dispersed over a wide area
+     • access to a part of the workplace is difficult, or
+     • the workplace has more than one floor level.
+
+     Where there are separate work areas, for example multiple buildings on a site or multiple
+     floors in an office building, it may be appropriate to locate first aid facilities centrally and
+     provide first aid kits in each work area. This may include portable first aid kits in motor
+     vehicles and other separate work areas.
+
+     The distance of the workplace from ambulance services, hospital and medical centres
+     should be taken into account when determining your first aid requirements. For example, if
+     life-threatening injuries or illnesses could occur and timely access to emergency services
+     cannot be assured, a person trained in more advanced first aid techniques, for example
+     providing oxygen, should be considered.
+
+     Extra first aid considerations may be necessary for workers in remote or isolated areas. For
+     example, where access is difficult due to travel time, poor roads or weather conditions,
+     arrangements should include aerial evacuation.
+
+     In minimising the risks to health and safety associated with remote or isolated work, you
+     must provide a safe system of work including effective communication with the worker. This
+     will assist in enabling an immediate response in an emergency. Further guidance about
+     working in remote or isolated areas is available in the Managing the work environment and
+     facilities Code of Practice.
+
+
+First aid in the workplace Code of Practice 2021                                                     Page 10 of 33
+     2.3 The number and composition of workers and
+         others at the workplace
+     When considering the size of your workforce, you should include contractors, subcontractors
+     and volunteers you engage. This may mean the size of your workforce may vary over time.
+     For the purposes of deciding who requires access to first aid, you should consider the
+     maximum number of workers you may engage at one time. Generally, a larger workforce
+     requires more first aid resources.
+
+     You should also consider:
+     • the particular needs of workers who have a disability or a known health concern for
+        example asthma or allergies, and
+     • others at your workplace who are not your workers, for example:
+        − students in schools and education facilities
+        − clients under care
+        − members of the public in places involving exercise, leisure and entertainment for
+           example gyms, cinemas, fairgrounds and shopping centres.
+
+     Appendix D provides an example of how to determine first aid requirements.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                      Page 11 of 33
+     3. First aid equipment, facilities and training
+     The information provided in this chapter may be used as a guide to determine the first aid
+     equipment, facilities, first aiders and procedures that you as a person conducting a business
+     or undertaking (PCBU), need to provide in various workplaces.
+
+     First aid equipment, facilities and first aiders must be accessible to workers whenever they
+     work including those working night shifts or overtime.
+
+     Appendix C summarises the requirements for first aiders, first aid kits and first aid rooms.
+
+     3.1 First aid kits
+     All workers must be able to access a first aid kit. This will require at least one first aid kit to
+     be provided at their workplace.
+
+     Contents
+     The first aid kit should provide basic equipment for administering first aid for injuries
+     including:
+     • cuts, scratches, punctures, grazes and splinters
+     • muscular sprains and strains
+     • minor burns
+     • amputations and/or major bleeding wounds
+     • broken bones
+     • eye injuries
+     • shock.
+
+     The contents of first aid kits should be based on a risk assessment. For example, there may
+     be higher risk of eye injuries and a need for more eye pads in a workplace in which work
+     involves machinery or chemicals. For example, where:
+     • chemical liquids or powders are handled in open containers
+     • spraying, hosing or abrasive blasting operations are carried out
+     • there is a possibility of flying particles causing eye injuries
+     • there is a risk of splashing or spraying of infectious materials, or
+     • welding, cutting or machining operations are carried out.
+
+     Extra equipment may be needed in remote workplaces, for example for serious burns,
+     breathing difficulties or allergic reactions.
+
+     The recommended contents of a typical first aid kit and information on extra equipment is
+     provided in Appendix E.
+
+     Design of kits
+     First aid kits can be any size, shape or type to suit your workplace, but each kit should:
+     • be large enough to contain the necessary items
+     • be immediately identifiable with a white cross on green background prominently
+         displayed on the outside
+     • contain a list of the contents for that kit
+     • be made of material that will protect the contents from dust, moisture and contamination.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                               Page 12 of 33
+     Location
+     In the event of a serious injury or illness, quick access to the kit is vital. First aid kits should
+     be kept in a prominent, accessible location where they can be retrieved quickly. All workers
+     must have access to first aid equipment including in security-controlled workplaces.
+
+     First aid kits should be located close to areas where there is a higher risk of injury or illness.
+     For example, a school with a science laboratory or carpentry workshop should have first aid
+     kits located in these areas. If the workplace occupies several floors in a multistorey building,
+     at least one kit should be located on every second floor. Emergency floor plans displayed in
+     the workplace should include the location of first aid kits.
+
+     A portable first aid kit should be provided in the vehicles of mobile workers if that is their
+     workplace, for example couriers, taxi drivers, sales representatives, bus drivers and
+     inspectors. These kits should be safely located so as not to become a projectile in a
+     collision.
+
+     Restocking and maintaining kits
+     A person in the workplace, usually a first aid officer, should be nominated to maintain the
+     first aid kit and should:
+     • monitor usage of the first aid kit and ensure items used are replaced as soon as
+          practicable after use
+     • carry out regular checks, after each use or, if the kit is not used, at least once every 12
+          months, to ensure the kit contains a complete set of the required items. An inventory list
+          in the kit should be signed and dated after each check
+     • ensure items are in working order, have not deteriorated, are within their expiry dates
+          and sterile products are sealed and have not been tampered with.
+
+     3.2 First aid signs
+     Displaying well-recognised first aid signs will assist in easily locating first aid equipment and
+     facilities (see Figure 1 below). Further information on the design and use of signs is available
+     in AS 1319: Safety Signs for the Occupational Environment.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                               Page 13 of 33
+     Figure 1 First aid signs
+
+
+     3.3 Other first aid equipment
+     In addition to first aid kits, you should consider whether other first aid equipment is
+     necessary to treat the injuries or illnesses that could occur as a result of a hazard at
+     your workplace.
+
+     Automated external defibrillators
+     Providing an automated external defibrillator (AED) can reduce the risk of fatality from
+     cardiac arrest. While cardiopulmonary resuscitation (CPR) can prolong life, defibrillation is
+     the only way to restore a heart with a fatal heart rhythm back to a normal heart rhythm.
+     You should consider providing an AED if there is a risk to workers at your workplace from
+     electrocution, if there would be a delay in ambulance services arriving at the workplace, or
+     where there are large numbers of members of the public.
+
+     AEDs are designed to be used by trained or untrained people. They provide audible step-by-
+     step instruction on how to use them and how to perform CPR. They can detect whether they
+     have been applied correctly and will instruct whether defibrillation is appropriate. Most AEDs
+
+
+
+
+First aid in the workplace Code of Practice 2021                                           Page 14 of 33
+     will also keep records once they are activated including some vital signs and whether shocks
+     have been recommended and administered.
+     They should be located in an area clearly visible, accessible and not exposed to extreme
+     temperatures. They should be clearly signed and maintained according to the
+     manufacturer’s specifications.
+
+     Eye wash and shower equipment
+     Emergency eye wash equipment should be provided where there is a risk of hazardous
+     chemicals or infectious substances causing eye injuries.
+
+     Immediate access should be provided to emergency shower equipment in workplaces where
+     there is a risk of:
+     • exposure to hazardous chemicals resulting in skin absorption or contamination from
+         infectious substances, or
+     • serious burns to a large area of the face or body, including chemical or electrical burns or
+         burns that are deep, in sensitive areas or larger than a 20 cent piece.
+
+     Shower facilities can consist of:
+     • a deluge facility
+     • a permanently rigged hand-held shower hose, or
+     • a portable plastic or rubber shower hose designed to be easily attached to a tap spout—
+        for small, relatively low risk workplaces where a fixed deluge facility would not be
+        reasonably practicable, but the risk of serious burns is still foreseeable, for example a
+        fish and chip shop.
+
+     Eye wash and shower equipment may be permanently fixed or portable, depending on
+     the workplace. Portable, self-contained eye wash or shower units have their own flushing
+     fluid to flush chemicals, foreign objects or substances from the eyes or body. They need to
+     be refilled or replaced after use.
+
+     Further guidance is available in AS 4775: Emergency eyewash and shower equipment.
+
+     3.4 First aid facilities
+     A risk assessment will help determine the type of first aid facilities needed. For example, a
+     clean, quiet area within the workplace affording privacy to an injured or ill person may be
+     suitable and practicable for some workplaces.
+
+     Access to a telephone for contacting emergency services or an emergency call system
+     should be provided as part of first aid facilities.
+
+     First aid rooms
+     A first aid room should be established at the workplace if a risk assessment indicates it
+     would be difficult to administer first aid unless a first aid room is provided.
+
+     For example, workplaces where there is a higher risk of serious injury or illness occurring,
+     requiring immediate first aid and possible further treatment by an emergency service, may
+     benefit from having access to a dedicated first aid room.
+
+     A first aid room is recommended for:
+     • low risk workplaces with 200 workers or more, or
+     • high risk workplaces with 100 workers or more.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                          Page 15 of 33
+     The contents of a first aid room should suit the hazards specific to the workplace. The
+     location and size of the room should allow easy access and movement of injured people,
+     noting they may need to be supported or moved by stretcher or wheelchair.
+
+     The following items should be provided in the room:
+     • a first aid kit appropriate for the workplace
+     • hygienic hand cleanser and disposable paper towels
+     • an examination couch with waterproof surface and disposable sheets
+     • a cupboard for storage
+     • a container with disposable lining for soiled waste
+     • a container for the safe disposal of sharps
+     • a bowl or bucket, minimum 2 litres capacity
+     • electric power points
+     • a chair and a table or desk
+     • a telephone and/or emergency call system
+     • the names and contact details of first aiders and emergency organisations.
+
+     A first aid room should:
+     • be located within easy access to a sink with hot and cold water (where this is not
+         provided in the room) and toilet facilities
+     • offer privacy via screening or a door
+     • have entrances and corridors leading to and from the first aid room that are wide enough
+         to permit transport of injured or ill persons supported by a stretcher, wheelchair and
+         carrying chair, and other people
+     • be well lit and ventilated
+     • have an appropriate floor area, refer to the Building Code of Australia
+     • have an entrance that is clearly marked with first aid signage (see part 3.2 of this Code).
+
+     Maintaining a first aid room should be allocated to a trained occupational first aider, except
+     where this room is part of a health centre or hospital.
+
+     Health centres
+     Health centres staffed by a registered health practitioner (a doctor or nurse or paramedic)
+     can provide emergency medical treatment and cater to the types of hazards in high risk
+     workplaces. A health centre may be established in the workplace, or, if readily available,
+     external emergency services may be used.
+
+     If a health centre is located at the workplace, the facility should:
+     • be self-contained
+     • be located at ground level where possible in a quiet, clean area, a safe distance from
+          hazardous operations and clear of general thoroughfares
+     • be convenient and accessible to workers at the times they work and have an entrance
+          clearly marked with health centre signage
+     • have walls, floors and ceilings made of easy-to-clean impervious materials
+     • have enough space to accommodate first aid equipment.
+
+     3.5 First aiders
+
+     WHS Regulation section 42(2)
+     Duty to provide first aid
+
+
+
+
+First aid in the workplace Code of Practice 2021                                          Page 16 of 33
+     As a PCBU you must ensure an adequate number of workers are trained to administer first
+     aid at the workplace or workers have access to an adequate number of other people who
+     have been trained to administer first aid.
+
+     First aid in the workplace can be provided in two ways:
+     1. training one or more of your own workers to administer first aid, or
+     2. arranging for a person who does not work for you to administer first aid to your workers
+          provided they have been trained to do so.
+
+     Through consultation with other duty holders, you may identify there are trained first aiders
+     of other businesses who share your workplace, or other people who are qualified to
+     administer first aid. You could seek to cooperate and coordinate with these other duty
+     holders to ensure your workers have access to first aiders at the times when your workers
+     carry out work, for example taking into account shift work and overtime.
+
+     If your first aiders move around the workplace during their shift you should ensure they are
+     easy to locate and identify—for example on a construction site your first aiders could be
+     identified by a high visibility vest of a particular colour or you could display a contact number
+     for first aid in prominent locations.
+
+     Types of first aid training
+     As a minimum first aiders should hold nationally recognised Statement/s of Attainment
+     issued by a Registered Training Organisation (RTO) for the nationally endorsed first aid unit
+     of competency Provide First Aid or a course providing equivalent skills. A higher level or
+     additional training may be required to ensure your first aiders have appropriate skills for the
+     risks you have identified in your workplace.
+
+     For example, additional training may be required where:
+     • work is remote or isolated
+     • there are risks from dangerous substances such as cyanide or arsenic
+     • specialist first aid equipment or first aid room is installed in the workplace
+     • children are present in the workplace
+     • you have identified psychological risks, or
+     • workers have existing medical conditions which may require first aid.
+
+     Where workers or others at the workplace have known existing medical conditions, first
+     aiders should be trained to respond to these conditions if the topic has not been covered in
+     previous first aid training.
+
+     Frequency of training for first aiders
+     First aiders should attend training on a regular basis to refresh their first aid knowledge and
+     skills and to confirm their competence to provide first aid. Refresher training in CPR should
+     be carried out annually and first aid qualifications should be renewed every three years.
+
+     Number of trained first aiders
+     The following ratios are recommended:
+     • low risk workplaces—one first aider for every 50 workers
+     • high risk workplaces—one first aider for every 25 workers
+     • remote high-risk workplaces—one first aider for every 10 workers.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                            Page 17 of 33
+     The number and type of trained first aiders can be further refined by following the five-step
+     guide below.
+
+     Step 1:
+     Identify the maximum number of workers at the workplace at one time.
+
+     Step 2:
+     Consider the nature of the work being carried out at the workplace and determine if your
+     workers are at high risk of being exposed to hazards requiring immediate first aid treatment.
+
+     Step 3:
+     Determine if the workplace is remote or if access to emergency services is difficult. High risk
+     workplaces that do not have timely access to medical and ambulance services should have
+     at least one first aider for every 10 workers.
+
+     Step 4:
+     Consider the variety of ways your workers carry out work. For example, a worker may:
+     • spend most, if not all, of their time working alone or in transit, for example couriers, taxi
+        drivers, sales representatives, door-to-door charity collectors and inspectors
+     • work in a variety of locations on a regular basis and often work without supervision, for
+        example tradespeople, construction workers in the housing industry, farmhands
+        and cleaners
+     • sometimes work alone for relatively short periods of time, for example when opening or
+        closing a business for trade or working back late to meet a deadline.
+
+     In these situations it may not be practicable to have a first aider available at all times at the
+     workplace. However, these workers must be able to access first aid assistance, for example
+     by ensuring they are provided with:
+     • an effective means of accessing emergency services or first aiders
+     • information, instruction and training on how to respond if a serious injury or
+          illness occurs.
+
+     Step 5:
+     Before finalising the number of first aiders your workers require access to, consider if there
+     are other factors indicating your workplace needs more first aiders, for example:
+     • work arrangements, for example shift work or overtime
+     • seasonal work, where there may be a sudden and significant increase or decrease in the
+         number of workers
+     • where there are large numbers of other people present on a regular basis, for example
+         schools, shopping centres, hotels and function centres
+     • workplaces with unique hazards, for example fitness centres, amusement rides and dive
+         schools
+     • access during times when a first aider is absent, for example on annual leave.
+
+     3.6 First aid procedures
+     You should develop and implement first aid procedures to ensure workers have a clear
+     understanding of first aid in their workplace. The procedure should cover:
+     • the work areas and shifts allocated to each first aider, their names and contact details
+     • the types of first aid kits and where they are located
+     • the location of first aid facilities like first aid rooms
+     • who is responsible for the first aid kits and facilities and how frequently they should be
+        checked and maintained
+
+
+
+First aid in the workplace Code of Practice 2021                                            Page 18 of 33
+     •    how to establish and maintain communication systems, including equipment and
+          procedures, to ensure rapid emergency communication with first aiders and emergency
+          services
+     •    the communication equipment and systems to be used when first aid is required,
+          especially for remote and isolated workers. These procedures should contain information
+          about how to locate the communication equipment, who is responsible for the equipment
+          and how it should be maintained
+     •    arrangements to ensure first aiders receive appropriate training
+     •    arrangements for ensuring workers receive information, instruction and training for
+          first aid
+     •    seeking information when a worker starts work about first aid needs requiring specific
+          treatment in a medical emergency, for example asthma, diabetes, heart conditions or
+          severe allergies. Information about a worker’s health must be kept confidential and only
+          provided to first aiders with the worker’s consent
+     •    how to report injuries and illnesses occurring in the workplace
+     •    precautions to avoid exposure to blood and body substances. Refer to Appendix F
+     •    what to do when a worker or other person is too injured or ill to stay at work, for example
+          if they require assistance with transport to a medical service, home or somewhere else
+          where they can rest and recover
+     •    access to debriefing or counselling services to support first aiders and workers after a
+          serious workplace incident.
+
+     Record-keeping
+     A record of first aid treatment given should be kept by the first aider and reported to
+     managers on a regular basis to assist reviewing first aid arrangements. First aid treatment
+     records are subject to requirements under Health Records legislation. Further information is
+     available from the Office of the Australian Information Commissioner.
+
+     Procedures and plans for managing an emergency
+     WHS Regulation section 43(1)
+     Duty to prepare, maintain and implement emergency plan
+
+
+     You must ensure an emergency plan is prepared for the workplace, including:
+     • an effective response to an emergency
+     • evacuation procedures
+     • notifying emergency service organisations at the earliest opportunity
+     • medical treatment and assistance
+     • effective communication between the person you have authorised to coordinate the
+        emergency response and all persons at the workplace.
+
+     You may incorporate your first aid procedures into your emergency planning procedures.
+     Emergency procedures should specify the role of first aiders according to their level of
+     qualification and competence. In particular, first aiders should be instructed not to exceed
+     their training and expertise in first aid. Other staff including supervisors should be instructed
+     not to direct first aiders to exceed their first aid training and expertise.
+
+     Further guidance on emergency plans and preparing emergency procedures is available in
+     the Managing the work environment and facilities Code of Practice.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                            Page 19 of 33
+     3.7 Providing first aid information
+     You must provide your workers with any information necessary to protect their health and
+     safety while carrying out work. This should include information about where and how to
+     access first aid so they know what to do and who to contact if they are sick or injured.
+     Information should be easy to understand, accessible and should take into account the
+     language and literacy levels of your workers. Information may be given using verbal
+     methods, for example explanations and demonstrations or visual methods, for example
+     videos and posters.
+
+     The information and instruction on first aid should include:
+     • the location of first aid equipment and facilities
+     • the names and location of people trained to administer first aid
+     • the procedures to be followed when first aid is required.
+
+     The information and instruction should be provided as part of workers’ induction training and
+     when there are changes, for example in the location of first aid facilities or in the names,
+     locations or contact details of first aiders.
+
+     3.8 Reviewing your first aid requirements
+     As a person conducting a business or undertaking (PCBU), you should regularly review your
+     first aid arrangements in consultation with your workers to ensure they remain adequate and
+     effective.
+
+     Check the people who have responsibilities under your first aid procedures are familiar
+     with them.
+
+     If the way work is performed is changed, or new work practices introduced, review your first
+     aid against the new risk assessment to ensure the arrangements are still adequate.
+     Organise a mock first aid emergency to confirm first aid procedures are effective. Check kits
+     and first aid rooms are easily accessible and suit the hazards unique to your workplace.
+     If an incident has occurred requiring first aid, evaluate the effectiveness of the first aid
+     provided and make changes if necessary.
+
+     If new information is obtained about a previously unidentified hazard, review the first aid
+     measures you have in place.
+
+     The questions in Table 2 can assist you to review first aid and assess whether improvement
+     is needed.
+
+     Table 2 Questions to assist in reviewing first aid
+       Question                                                                 Yes           No
+
+       Do all workers have access to first aiders and first aid kits?            ☐             ☐
+
+       Are more first aid kits required?                                         ☐             ☐
+
+       Are more first aiders needed?                                             ☐             ☐
+
+       Do workers have access to first aiders at all times?                      ☐             ☐
+
+
+
+
+First aid in the workplace Code of Practice 2021                                          Page 20 of 33
+       Question                                                            Yes       No
+
+       Do the first aid kits and modules suit the hazards at your          ☐          ☐
+       workplace?
+
+       Are first aid kits well maintained and identifiable to workers?     ☐          ☐
+
+       Is a first aid room or health centre required?                      ☐          ☐
+
+       Are first aid facilities well maintained?                           ☐          ☐
+
+       Do first aiders have skills, training and competencies to provide   ☐          ☐
+       first aid in your workplace and are their skills up to date?
+
+       Do workers know how to access first aid?                            ☐          ☐
+
+       Is there easy access for emergency services, like parking for an    ☐          ☐
+       ambulance?
+
+
+
+
+First aid in the workplace Code of Practice 2021                                 Page 21 of 33
+     Appendix A–Glossary
+       Term                            Description
+
+       Duty holder                     Any person who owes a work health and saf ety duty under the WHS Act
+                                       including a person conducting a business or undertaking, a designer,
+                                       manuf acturer, importer, supplier, installer of products or plant used at
+                                       work (upstream duty holder), of f icer or a worker.
+
+       First aid                       The immediate treatment or care given to a person suf f ering f rom an
+                                       injury or illness until more advanced care is provided or the person
+                                       recovers.
+
+       First aider                     A person who has successf ully completed a nationally accredited training
+                                       course or an equivalent level of training that has given them the
+                                       competencies required to administer f irst aid.
+
+       First aid equipment             Includes f irst aid kits and other equipment used to treat injuries and
+                                       illnesses.
+
+       First aid facilities            Include f irst aid rooms, health centres, clean water supplies and other
+                                       f acilities needed f or administering f irst aid.
+
+       Hazard                          A situation or thing that has the potential to harm a person. Hazards at
+                                       work may include noisy machinery, a moving f orklift, chemicals,
+                                       electricity, working at heights, a repetitive job, bullying and violence at
+                                       the workplace.
+
+       High risk workplace             A workplace where workers are exposed to hazards that could result in
+                                       serious injury or illness and would require f irst aid. Examples of
+                                       workplaces that may be considered high risk are ones in which workers:
+                                       •     use hazardous machinery, f or example mobile plant, chainsaws,
+                                             power presses and lathes
+                                       •     use hazardous substances, f or example chemical manuf acture,
+                                             laboratories, horticulture, petrol stations and f ood manuf acturing
+                                       •     are at risk of f alls that could result in serious injury, f or ex ample
+                                             construction and stevedoring
+                                       •     carry out hazardous f orms of work, f or example, working in conf ined
+                                             spaces, welding, demolition, electrical work and abrasive blasting
+                                       •     are exposed to the risk of physical violence, f or example working
+                                             alone at night, cash handling or having customers who are f requently
+                                             physically aggressive, or
+                                       •     work in or around extreme heat or cold, f or example, f oundries and
+                                             prolonged outdoor work in extreme temperatures.
+
+       Low risk workplace              A workplace where workers are less likely to b e exposed to hazards that
+                                       could result in serious injury or illness. For example, of f ices, shops and
+                                       libraries. Work-related injuries and illnesses requiring f irst aid are likely to
+                                       be minor in nature.
+
+       May                             ‘May’ indicates an optional course of action.
+
+       Module                          An add-on to a standard f irst aid kit to address specif ic risks at a
+                                       workplace.
+
+       Must                            ‘Must’ indicates a legal requirement exists that must be complied with.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                                             Page 22 of 33
+       Term                            Description
+
+       Officer                         An of f icer under the WHS Act includes:
+                                       •     an of ficer under section 9 of the Corporations Act 2001 (Cth)
+                                       •     an of ficer of the Crown within the meaning of section 247 of the WHS
+                                             Act, and
+                                       •     an of ficer of a public authority within the meaning of section 252 of
+                                             the WHS Act.
+
+                                       A partner in a partnership or an elected member of a local authority is not
+                                       an of ficer while acting in that capacity.
+
+       Person conducting a             A PCBU is an umbrella concept which intends to capture all types of
+       business or                     working arrangements or relationships.
+       undertaking (PCBU)
+                                       A PCBU includes a:
+                                       • company
+                                       • unincorporated body or association
+                                       • sole trader or self -employed person.
+                                       Individuals who are in a partnership that is conducting a business will
+                                       individually and collectively be a PCBU.
+
+                                       A volunteer association (def ined under the WHS Act, see below) or
+                                       elected members of a local authority will not be a PCBU.
+
+       Remote                          Remote or isolated work is work that is isolated f rom the assistance of
+                                       other people because of the location, time or nature of the work being
+                                       done. Assistance f rom other people includes rescue, medical assistance
+                                       and emergency services.
+
+       Remote high                     A workplace that satisf ies the def initions of being both a remote and a
+       risk workplace                  high risk workplace.
+
+       Risk                            The possibility harm (death, injury or illness) might occur when exposed
+                                       to a hazard.
+
+       Should                          ‘Should’ indicates a recommended course of action.
+
+       Volunteer association           A group of volunteers working together f or one or more community
+                                       purposes where none of the volunteers, whether alone or jointly with any
+                                       other volunteers, employs any person to carry out work f or the volunteer
+                                       association.
+
+       Worker                          Any person who carries out work f or a person conducting a business or
+                                       undertaking, including work as an employee, contractor or subcontractor
+                                       (or their employee), self -employed person, outworker, apprentice or
+                                       trainee, work experience student, employee of a labour hire company
+                                       placed with a 'host employer' or a volunteer.
+
+       Workplace                       Any place where work is carried out f or a business or undertaking and
+                                       includes any place where a worker goes, or is likely to be, while at work.
+                                       This may include of f ices, factories, shops, constructio n sites, vehicles,
+                                       ships, aircraf t or other mobile structures on land or water.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                                         Page 23 of 33
+     Appendix B—First aid and the risk
+     management process
+              Step 1—Identify potential causes of workplace injury and illness
+
+          •       Does the nature of the work being carried out pose a risk to people’s health and safety?
+          •       Have these risks been identified in work that is being carried out?
+          •       Do any workers or others have pre-existing medical conditions?
+          •       Has incident, injury and illness data been reviewed?
+          •       Have you consulted with workers and their health and safety representatives?
+          •       Is specialist or external assistance required?
+
+
+
+
+              Step 2—Assess the risk of workplace injury and illness
+
+
+          •       How often does a risk have the potential to cause harm?
+          •       What types of injuries or illnesses would the risks cause?
+          •       How serious are the injuries or illnesses?
+          •       Does the number and composition of workers and other people affect how first aid should be provided?
+          •       Could the size or location of the workplace affect how first aid is provided?
+
+
+
+
+              Step 3—What first aid is required?
+
+
+
+
+           First aiders                            First aid kits and facilities                  First aid procedures
+
+              •    How many first aiders are       •   What kits/modules are needed and           •   What procedures
+                   needed?                             where should they be located?                  are needed for the
+                                                                                                      workplace?
+              •    What competencies do            •   Is other first aid equipment needed?
+                   they require?
+                                                   •   Who is responsible for maintaining
+              •    What training do                    the kits?
+                   they need?
+                                                   •   Is a first aid room or health
+                                                       centre required?
+
+
+
+
+                                                                   Step 4—
+                                               Review first aid to ensure effectiveness
+
+
+     Figure 2 First aid and the risk management process
+
+
+
+
+First aid in the workplace Code of Practice 2021                                                              Page 24 of 33
+     Appendix C – Summary of recommended first aid requirements
+       Workplace                           First aiders                  First aid kits                                                    First aid rooms
+
+       Low risk workplaces                 One f irst aider f or every   Basic f irst aid kit                                              Recommended f or 200 workers
+                                           50 workers                                                                                      or more
+
+       High risk workplaces                One f irst aider f or every   Basic f irst aid kit plus additional equipment identif ied f or   Recommended f or 100 workers
+                                           25 workers                    specif ic risks                                                   or more
+
+       Remote high-risk                    One f irst aider f or every   In addition to the basic f irst aid kit                           NA
+       workplaces                          10 workers                    •   a heavy duty 10 cm crepe bandage f or snake bites
+                                                                         •   large clean sheeting, f or covering burns
+                                                                         •   thermal blanket, f or treating shock
+                                                                         •   whistle f or attracting attention
+                                                                         •   torch/f lashlight, and
+                                                                         •   any equipment identif ied f or specific risks.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                                         Page 25 of 33
+     Appendix D—Example of a first aid assessment
+     This assessment of first aid requirements is included as an example only. It does not reflect the consultative processes that must occur or detail
+     the assessment of each identified hazard.
+       ABC Company—Office and manufacturing operation
+
+       The size and location of the workplace
+
+       Number of f loors                                      2
+
+       Access between f loors                                 Lif ts and stairs
+
+       Nearest hospital                                       6 kilometres
+
+       Nearest medical or occupational health service         2 kilometres
+
+       Maximum time to medical service                        15 minutes
+
+       The number and composition of the workers and other
+       people at the workplace
+
+       Number of workers                                      80 (15 of fice/65 f actory) per shif t
+
+       Number of other people                                 2 to 5 visitors per day
+
+       Shif ts                                                3
+
+       Overtime worked                                        Yes—regularly
+
+       Remote or isolated workers                             None
+
+       Injuries, illnesses and incidents
+
+       Last 12 months claims data                             5 × abrasions
+                                                              3 × f alls
+
+       Incidents not resulting in injury                      Incident where a trolley carrying disinf ectants overturned
+
+
+
+First aid in the workplace Code of Practice 2021                                              Page 26 of 33
+       ABC Company—Office and manufacturing operation
+
+       Other                                                               Worker handling a solvent reported symptom of breathing dif ficulty, eye irritation and
+                                                                           dizziness
+
+
+     Nature of the work being carried out and the nature of the hazards at the workplace
+       Hazards                    How the hazard could cause harm          Likelihood of occurrence and degree of harm                    First aid implications
+
+       Hazardous                  Respiratory illnesses, f or example      Possible risk of daily exposure to hazardous chemicals         Saf ety data sheets and labels
+       chemicals:                 an asthma emergency, cancers             f or 2 cleaners. Good ventilation is provided. Protective      instruct to rinse cautiously with
+       Solvents                   and dermatitis                           equipment like gloves and aprons used by workers.              water f or several minutes.
+       Disinfectants                                                                                                                      Eye wash equipment required.
+
+       Noise                      Hearing damage                           Possible risk of daily exposure to noise f or 65 f actory      First aid only required in
+                                                                           workers. Low noise emitting machines have been                 extreme situations.
+                                                                           purchased. Protective equipment like ear plugs used by
+                                                                           workers.
+
+       Manual handling            Muscular strain                          Low risk of daily exposure to manual handling risks.           Possible strains and sprains
+                                                                           Mechanical aids, workstation alterations and systems of        requiring ice packs, slings and
+                                                                           work signif icantly eliminate and minimise risk.               compression bandages.
+
+
+       Required first aid
+
+       Number of first aiders needed                         9—minimum three per shif t, including one f or the of f ice and two f or the f actory
+
+       Training and competencies for first aiders            Provide First Aid: providing competencies to recognise and respond to common lif e-threatening injuries or
+                                                             illnesses using cardiopulmonary resuscitation (CPR) and other f irst aid procedures and provide
+                                                             appropriate f irst aid f or a range of injuries and illnesses.
+
+       Number and location of kits                           Five kits: one on the of f ice floor and f our on the f actory f loor
+
+       Contents of first aid kits and modules                Standard workplace kit
+
+       Kit maintenance                                       Tasked to f ive f irst aiders, one kit each
+
+
+
+First aid in the workplace Code of Practice 2021                                                            Page 27 of 33
+       Required first aid
+
+       Additional equipment                        Emergency eye wash equipment
+
+
+
+
+First aid in the workplace Code of Practice 2021                                  Page 28 of 33
+     Appendix E—Example of contents for first aid
+     kits
+     For most workplaces, a first aid kit should include the following items.
+     Instructions for providing first aid – including Cardio-Pulmonary Resuscitation (CPR) flow
+     chart
+     Adhesive strips (assorted sizes) for minor wound dressing.
+     Splinter probes (single use, disposable).
+     Hypo-allergenic adhesive tape for securing dressings and strapping.
+     Eye pads to protect eye injuries.
+     Triangular bandage for slings, support and/or padding.
+     Crepe and conforming bandage to hold dressings in place and provide support and
+     compression.
+     Wound/combine dressings to control bleeding and for covering wounds.
+     Non-adherent dressings/pads for wound dressing.
+     Safety pins to secure bandages and slings.
+     Scissors for cutting dressings or clothing.
+     Kidney dish for holding dressings and instruments.
+     Small dressings’ bowl for holding liquids.
+     Gauze squares for cleaning wounds.
+     Forceps/tweezers for removing foreign bodies.
+     Disposable nitrile, latex or vinyl examination gloves for infection control.
+     Sharps disposal container for infection control and disposal purposes.
+     Sterile saline solution or sterile water for emergency eye wash or for irrigating eye
+     wounds. The solution must be discarded after opening.
+     Resuscitation mask to be used by qualified personnel for resuscitation purposes.
+     Antiseptic solution for cleaning wounds and skin.
+     Plastic bags for waste disposal.
+     Note pad and pen/pencil for recording the injured or ill person’s condition and treatment
+     given.
+     Re-usable ice-pack for the management of strains, sprains and bruises.
+     Emergency rescue blanket for shock or hypothermia
+     Instant eye pack for the treatment of soft tissue injuries and some stings
+     Access to 20 minutes of clean running water or, if this is not available, hydrogel sachets for
+     managing burns
+
+
+
+
+First aid in the workplace Code of Practice                                             Page 29 of 33
+     Medication including analgesics like paracetamol and aspirin should not be included in first
+     aid kits because of their potential to cause adverse health effects in some people including
+     pregnant women and people with medical conditions like asthma. The supply of these
+     medications may also be controlled by drugs and poisons laws. Workers requiring
+     prescribed and over-the-counter medications should carry their own medication for their
+     personal use as necessary.
+
+     However, workplaces may consider including an asthma-relieving inhaler and a spacer to
+     treat asthma attacks and epinephrine auto-injector for the treatment of anaphylaxis or severe
+     allergies. These should be stored according to the manufacturers’ instructions and first
+     aiders should be provided with appropriate training. Queensland Health regulates the
+     purchase and administration of emergency first aid medicines and should be contacted for
+     more information.
+
+     Some types of workplaces may require extra items to treat specific types of injuries or
+     illnesses. These may also require your first aiders to have additional training.
+
+
+
+First aid in the workplace Code of Practice 2021                                        Page 30 of 33
+     Outdoor module
+     If work is performed outside and there is a risk of insect or plant stings or snake bites,
+     assess whether a first aid kit should include:
+     • a heavy duty 10 cm crepe bandage for snake bites
+     • sting relief cream, gel or spray.
+
+     Remote module
+     Where people work in remote locations, a first aid kit should include:
+     • a heavy duty 10 cm crepe bandage for snake bites
+     • large clean sheeting, for covering burns
+     • thermal blanket, for treating shock
+     • whistle, for attracting attention
+     • torch/flashlight.
+
+     The appropriate contents will vary according to the nature of the work and its
+     associated risks.
+
+     Burn module
+     If workers are at risk of receiving burns, a first aid kit should include:
+     • burn treatment instructions on two waterproof instruction cards: one for the first aid kit
+         and the other to be located on the wall next to the emergency shower or water supply
+     • hydrogel, 8 x 3.5 gram sachets
+     • hydrogel dressings
+     • clean polythene sheets, small, medium and large
+     • 7.5 cm cotton conforming bandage.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                           Page 31 of 33
+     Appendix F—Standard precautions for
+     infection control
+     When providing first aid to an injured or ill person, first aiders could come into contact with
+     blood or body substances. These can transfer infections to the first aider or other people
+     they treat.
+
+     First aiders should assume they could be exposed to infection and take standard
+     precautions when exposed to blood and body substances to protect themselves and others
+     from infection risk. Standard precautions are work practices applied to all patients and their
+     blood and body substances, regardless of their infectious status, to ensure a basic level of
+     infection prevention and control. Standard precautions include hand hygiene, use of
+     personal protective equipment (PPE), handling and disposal of sharps and waste, cleaning
+     techniques and managing spills of blood and body substances.
+
+     Providing first aid safely
+     First aiders should wash their hands with soap and water or apply alcohol-based hand rub
+     before and after administering first aid. First aiders should also wear PPE, including
+     disposable gloves, to prevent contact with blood and body substances . Eye protection, a
+     mask and protective clothing may also be necessary if splashes of blood or body substances
+     are likely to occur.
+
+     You should establish procedures to protect first aiders and others from infection risk from the
+     provision of first aid and contact with blood or body substances. Procedures could include:
+     • proper hand hygiene practices
+     • how to handle and dispose of sharps
+     • how to clean surfaces and reusable equipment
+     • how to manage spills and soiled laundry
+     • how to handle and dispose of waste
+     • when to use PPE, for example using resuscitation masks for cardiopulmonary
+        resuscitation (CPR).
+
+     First aiders should be aware of what to do if they have accidental contact with blood or body
+     substances, a sharps injury or contact with a person known to have a contagious illness. Any
+     part of the body that comes in contact with blood or body substances should be washed with
+     soap and water immediately. Prompt medical advice should be obtained.
+
+     Where there is a risk of disease, first aiders should be offered vaccinations in line with the
+     Department of Health Australian Immunisation Handbook.
+
+     Contaminated items
+     Items soiled with blood or body substances should be placed in plastic bags and tied
+     securely. Waste disposal must comply with state or local government requirements.
+     Sharps including needles, syringes and disposable probes should be disposed of in a rigid-
+     walled, puncture-resistant sharps container by the person who used them. Guidance on the
+     design, construction, colour and markings of sharps containers is provided in:
+     • AS 4031: Non-reusable containers for the collection of sharp medical items used in
+         health care areas
+     • AS/NZS 4261: Reusable containers for the collection of sharp items used in human and
+         animal medical applications.
+
+     Reusable items contaminated with blood and body substances should be washed and
+     disinfected by a competent person or disposed of safely.
+
+
+First aid in the workplace Code of Practice 2021                                            Page 32 of 33
+     If a first aider sustains a sharps injury or thinks they are at risk of infection from blood or
+     body substances, they should seek prompt medical advice.
+
+     Cleaning spills
+     Cleaning should start as soon as possible after an incident involving blood or body
+     substances. First aiders should wear disposable gloves when cleaning spills and if splashes
+     of blood or body substances may occur, extra protective equipment like eye protection,
+     plastic aprons and masks should be worn. Surfaces contaminated with blood or body
+     substances should be wiped with paper towelling and cleaned with warm soapy water. It is
+     generally unnecessary to use sodium hypochlorite (chlorine bleach) for managing spills but it
+     may be used in specific circumstances, for example if the surface is hard to clean.
+
+
+
+
+First aid in the workplace Code of Practice 2021                                              Page 33 of 33
+

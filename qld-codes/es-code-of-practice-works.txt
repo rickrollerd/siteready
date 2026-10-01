@@ -1,0 +1,1206 @@
+Electrical safety code of practice 2020 - Works
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0019/18343/es-code-of-practice-works.pdf
+
+Electrical Safety Code of Practice 2020
+
+Works
+This Queensland code of practice has been approved by the Minister for Education and Minister
+for Industrial Relations under section 44 of the Electrical Safety Act 2002.
+
+This code commenced on 2 January 2020.
+
+
+
+
+ESOPDF028
+
+© The State of Queensland 2020
+
+Copyright protects this document. The State of Queensland has no objection to this material being
+reproduced but asserts its right to be recognised as author of the original material and the right to
+have the material unaltered.
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                 Page 2 of 26
+Contents
+ Legislative framework .............................................................................................................................5
+ Foreword .................................................................................................................................................5
+ Scope and application ............................................................................................................................6
+   What is the works of an electricity entity? ..............................................................................................6
+   What is an electricity entity? ..................................................................................................................6
+ 1   Introduction ....................................................................................................................................7
+ 1.1     What are electrical risks? ...........................................................................................................7
+ 1.2     Who must manage electrical risks? ............................................................................................ 7
+ 1.3     What is required to manage the electrical risks?......................................................................... 8
+ 1.4     Information, training, instruction and supervision ........................................................................ 9
+ 2   The risk management process ......................................................................................................9
+ 2.1    Identify the hazards ....................................................................................................................9
+ 2.2    Assess the risks ....................................................................................................................... 10
+ 2.3    Control the risks ....................................................................................................................... 10
+ 2.4    Review the control measures ................................................................................................... 11
+ 3    Protective earthing .......................................................................................................................11
+ 3.1      Scope .......................................................................................................................................11
+ 3.2      Requirements under the Electrical Safety Regulation 2013 ...................................................... 11
+ 3.3      Earthing system requirements .................................................................................................. 12
+   3.3.1 The Multiple Earthed Neutral (MEN) system .............................................................................12
+   3.3.2 Earthing of LV distribution centres ............................................................................................13
+   3.3.3 Exposed conductive parts within 2.4m above ground associated with high voltage in a MEN
+          system ......................................................................................................................................13
+   3.3.4 The Common Multiple Earthed Neutral (CMEN) system ........................................................... 13
+   3.3.5 Earthing at a distribution centre (CMEN) ..................................................................................14
+   3.3.6 Exposed conductive parts within 2.4m above ground associated with high voltage in a CMEN
+          system ......................................................................................................................................14
+   3.3.7 The Single Wire Earth Return (SWER) system ......................................................................... 14
+   3.3.8 Exposed conductive parts within 2.4m above ground associated with high voltage in a SWER
+          system ......................................................................................................................................15
+   Exposed conductive parts that may reasonably be expected to become energised from the electricity
+          supply system if there is an insulation failure or contact with a conductor, should be insulated.15
+   3.3.9 Earthing of high voltage distribution centres .............................................................................15
+   3.3.10 Exposed conductive parts within 2.4m above ground associated with high voltage transmission
+          systems ....................................................................................................................................15
+   3.3.11 Exposed conductive parts within 2.4m above ground associated with low voltage only ............ 15
+   3.3.12 Induced voltage on the sheath of underground electric lines ..................................................... 15
+   3.3.13 Exposed conductive parts higher than 2.4m above ground ....................................................... 15
+ 3.4      Earthing Conductors ................................................................................................................. 16
+   3.4.1 Minimum size of earthing conductors........................................................................................16
+   3.4.2 Materials for earthing conductors .............................................................................................16
+   3.4.3 Mechanical protection of earthing conductors ........................................................................... 16
+   3.4.4 Materials for earthing electrodes...............................................................................................16
+   3.4.5 Test links ..................................................................................................................................16
+   3.4.6 Earth fault currents ...................................................................................................................16
+ 3.5      Prospective touch and step voltages ........................................................................................ 16
+   3.5.1 Prospective touch voltages – special locations ......................................................................... 16
+   3.5.2 Prospective touch voltages – frequented locations ................................................................... 16
+   3.5.3 Remote locations......................................................................................................................16
+   3.5.4 Prospective step voltages .........................................................................................................17
+   3.5.5 Testing and maintenance of earthing systems .......................................................................... 17
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                                                        Page 3 of 26
+  3.6         Relevant Documents ................................................................................................................ 17
+ 4    Design and installation of underground electric cable systems .............................................. 17
+ 4.1     Scope and application .............................................................................................................. 17
+ 4.2     Compliance with Standards ...................................................................................................... 17
+ 4.3     Selection of cables ................................................................................................................... 18
+   4.3.1 General ....................................................................................................................................18
+   4.3.2 Conductors ...............................................................................................................................18
+   4.3.3 High voltage cables ..................................................................................................................18
+   4.3.4 Low voltage cables ...................................................................................................................18
+   4.3.5 Neutral connections ..................................................................................................................18
+   4.3.6 Route selection.........................................................................................................................18
+ 4.4     Installation ................................................................................................................................ 19
+   4.4.1 General ....................................................................................................................................19
+   4.4.2 Cable depths ............................................................................................................................19
+   4.4.3 Laying of cables .......................................................................................................................19
+   4.4.4 Separation of cables .................................................................................................................19
+ 4.5     Protection of cables .................................................................................................................. 19
+   4.5.1 Identification of underground cables .........................................................................................19
+   4.5.2 Protection general ....................................................................................................................20
+   4.5.3 Protection – mechanical ...........................................................................................................20
+   4.5.4 Protection–above ground..........................................................................................................21
+   4.5.5 Protective earthing of cables .....................................................................................................21
+   4.5.6 Records ....................................................................................................................................21
+ 4.6     References ............................................................................................................................... 21
+   4.6.1 Cable selection .........................................................................................................................21
+   4.6.2 Route selection and cable selection accessories ...................................................................... 22
+ 5    Maintenance of supporting structures for lines ......................................................................... 22
+ 5.1      Scope and application .............................................................................................................. 22
+ 5.2      Serviceability determination ...................................................................................................... 22
+   5.2.1 Frequency of inspection .............................................................................................................23
+ 5.3      Marking of poles ....................................................................................................................... 23
+   5.3.1 General ....................................................................................................................................23
+   5.3.2 Marking scheme .......................................................................................................................23
+   5.3.3 Removal of markings ................................................................................................................23
+   5.3.4 Resultant action and timeframes ...............................................................................................23
+   5.3.5 Pole records .............................................................................................................................23
+ Appendix A–Meaning of terms used in this code ...............................................................................24
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                                                     Page 4 of 26
+Legislative framework
+The Electrical Safety Act 2002 (the ES Act) is directed at eliminating the human cost to individuals,
+families and the community of death, injury and destruction that can be caused by electricity. The ES Act
+establishes a legislative framework for preventing persons from being killed or injured by electricity, and
+preventing property from being destroyed or damaged by electricity. The ES Act places the primary
+electrical safety duty on a person conducting a business or undertaking, who must ensure the business
+or undertaking is conducted in a way that is electrically safe. Duties are also placed on officers of a
+person conducting a business or undertaking, workers and other persons at a workplace, as well as
+electricity entities, designers, manufacturers, importers, suppliers, installers, repairers and persons in
+control of electrical equipment.
+The Work Health and Safety Act 2011 (WHS Act) requires persons who have a duty to ensure health
+and safety to ‘manage risks’ by eliminating health and safety risks so far as is reasonably practicable,
+and if it is not reasonably practicable to do so, to minimise those risks so far as is reasonably practicable.
+The WHS Act provides a framework to protect the health, safety and welfare of all workers at work. It
+also protects the health and safety of all other people who might be affected by the work. The WHS Act
+places the primary health and safety duty on a person conducting a business or undertaking, who must
+ensure, so far as is reasonably practicable, the health and safety of workers at the workplace. Duties are
+also placed on officers of a person conducting a business or undertaking, workers and other persons at a
+workplace.
+In terms of electrical safety, where the ES Act and the WHS Act both apply, the ES Act takes
+precedence.
+
+Foreword
+This Code of Practice on how to manage risks associated with electricity entity works is made under
+section 44 of the ES Act.
+A code of practice is a practical guide to achieving the standards of electrical safety required under the
+ES Act and the Electrical Safety Regulation 2013 (the ES Regulation).
+A code of practice applies to anyone who has an electrical safety duty in the circumstances described
+in the code. In most cases, following a code of practice would achieve compliance with the electrical
+safety duties in the ES Act, in relation to the subject matter of the code. Like regulations, codes of
+practice deal with particular issues and do not cover all hazards or risks that may arise. Health and
+safety and electrical safety duties require duty holders to consider all risks associated with work, not
+only those for which regulations and codes of practice exist.
+Codes of practice are admissible in court proceedings under the ES Act and ES Regulation. Courts
+may regard a code of practice as evidence of what is known about a hazard, risk or control and may
+rely on the code in determining what is reasonably practicable in the circumstances to which the code
+relates.
+Compliance with the ES Act and ES Regulation may be achieved by following another method, such as
+a technical or an industry standard, if it provides an equivalent or higher standard of electrical safety
+than the code.
+An inspector may refer to a code of practice when issuing an improvement or electrical safety
+protection notice.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                   Page 5 of 26
+Scope and application
+This Code gives practical advice on ways for an electricity entity to manage electrical safety risks
+associated with earthing systems, underground cable systems, and supporting structures for overhead
+lines forming parts of the works of an electricity entity.
+What is the works of an electricity entity?
+Under section 25 of the ES Act, works, of an electricity entity means the electrical equipment, and
+electric line associated equipment, controlled or operated by the entity to generate, transform, transmit
+or supply electricity. An example of the works of an electricity entity is an overhead distribution system
+of a distribution entity, including transformers and switches. Examples of what is not works of an
+electricity entity are appliances or fixed wiring in an electricity entity’s workshop or offices.
+What is an electricity entity?
+An electricity entity is defined in Schedule 2 of the ES Act as:
+• a generation entity, transmission entity or distribution entity
+• a special approval holder that is authorised under the Electricity Act 1994 to do something that a
+    generation entity, transmission entity or distribution entity may do under that Act
+• a railway manager, or light rail manager for a light rail, that is exempted by the Electricity Act 1994,
+    section 20Q or 20QA, from the requirements of section 88A of that Act
+• the Authority under the Queensland Rail Transit Authority Act 2013
+• Airtrain Citylink Limited ACN 066 543 315.
+How to use this Code of Practice
+This Code should be read in conjunction with the ES Act, the ES Regulation, the WHS Act, the Work
+Health and Safety Regulation 2011 (the WHS Regulation) and other relevant codes of practice.
+In providing guidance, the word ‘should’ is used in this Code to indicate a recommended course of
+action, while ‘may’ is used to indicate an optional course of action. The terms ‘health and safety’ and
+‘work health and safety’ are used in this Code to indicate a wider application than just ‘electrical safety’.
+However, ‘electrical safety’ should be taken as being included when the terms ‘health and safety’ and
+‘work health and safety’ are used.
+This Code also includes various references to provisions of the ES Act, the ES Regulation, the WHS
+Act and the WHS Regulation which set out the legal requirements. These references are not
+exhaustive. The words ‘must’, ‘requires’ or ‘mandatory’ indicate that a legal requirement exists and
+must be complied with.
+This Code also includes various references to standards (using the designated ‘AS’) and joint
+standards (using the designated ‘AS/NZS’). In this Code, unless otherwise stated, a reference to a
+standard (or joint standard) is a reference to that standard (or joint standard) as in force from time to
+time under that designation. For example, ‘AS/NZS 3100’ is a reference to the joint standard that is
+currently in force under that designation.
+Key terms used in this Code are defined at Appendix A.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                    Page 6 of 26
+1 Introduction
+1.1 What are electrical risks?
+Electrical risks are risks of death, electric shock or other injury caused directly or indirectly by electricity.
+The most common electrical risks and causes of injury associated with electricity entity works are:
+• electric shock causing injury or death. The electric shock may be received by direct or indirect
+    contact, tracking through or across a medium, or by arcing. For example, electric shock may result
+    from indirect contact where a conductive part that is not normally energised becomes energised due
+    to a fault.
+• arcing, explosion or fire causing burns. The injuries are often suffered because arcing or explosion
+    or both occur when high fault currents are present
+• electric shock from ‘step-and-touch’ potentials
+• toxic gases causing illness or death. Burning and arcing associated with electrical equipment may
+    release various gases and contaminants
+• fire resulting from an electrical fault.
+
+1.2 Who must manage electrical risks?
+A person conducting a business or undertaking has the primary duty under the ES Act to ensure
+the person’s business or undertaking is conducted in a way that is electrically safe. This duty includes:
+• ensuring that all electrical equipment used in the conduct of the person’s business or undertaking is
+    electrically safe
+• if the person’s business or undertaking includes the performance of electrical work, ensuring the
+    electrical safety of all persons and property likely to be affected by the electrical work
+• if the person’s business or undertaking includes the performance of work, whether or not electrical
+    work, involving contact with, or being near to, exposed parts, ensuring persons performing the work
+    are electrically safe.
+The ES Regulation includes more specific requirements for managing electrical risks associated with
+electricity entity works.
+Electricity entities have a duty to ensure its works are electrically safe and are operated in a way that
+is electrically safe. This includes the requirement that electricity entities inspect, test and maintain its
+works.
+Officers, such as company directors, have a duty to exercise due diligence to ensure the business or
+undertaking complies with the ES Act and ES Regulation. This includes taking reasonable steps to
+ensure the business or undertaking has and uses appropriate resources and processes to eliminate or
+minimise risks associated with working near overhead and underground electric lines.
+Workers have a duty to take reasonable care for their own electrical safety and to not adversely affect
+other people’s electrical safety. Workers must co-operate with reasonable policies or procedures
+relating to electrical safety at the workplace and comply, so far as they are reasonably able, with
+reasonable instructions.
+Other persons at the workplace, like visitors, must take reasonable care for their own electrical safety
+and must take reasonable care not to adversely affect other people’s electrical safety. They must comply,
+so far as they are reasonably able, with reasonable instructions given by the person conducting the
+business or undertaking to allow that person to comply with the ES Act.
+Duty holders will have additional legal duties under the WHS Act and the WHS Regulation.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                      Page 7 of 26
+1.3 What is required to manage the electrical risks?
+  ES Regulation s11 A person conducting a business or undertaking must manage risks to health and
+  safety associated with electrical risks at the workplace in accordance with the WHS Regulation, chapter
+  3, part 3.1.
+  WHS Regulation s34-38 In order to manage risk, a duty holder must:
+  • identify reasonably foreseeable hazards that could give rise to the risk
+  • eliminate the risk, so far as is reasonably practicable
+  • if it is not reasonably practicable to eliminate the risk, minimise the risk so far as is reasonably
+    practicable by implementing control measures
+  • maintain the implemented control measure so that it remains effective
+  • review, and if necessary revise, all risk control measures so as to maintain, so far as is reasonably
+    practicable, a work environment that is without risks to health and safety.
+  The hierarchy of risk control is described at Chapter 2 of this Code.
+
+Part 9 of the ES Regulation includes a range of specific technical requirements to ensure the electrical
+safety of the works of an electricity entity.
+  ES Regulation s195 A person, including an electricity entity, who designs, builds, maintains or operates
+  works of an electricity entity must ensure that the requirements of Part 9 of the ES Regulation for the
+  works of an electricity entity are complied with.
+
+
+Under section 198 of the ES Regulation, the following requirements apply for the works of an electricity
+entity:
+(a) the works must be able to perform under the service conditions and the physical environment in
+     which the works operate
+(b) the works must have enough thermal capacity to pass the electrical load for which they are designed,
+     without reduction of electrical or mechanical properties to a level below that at which safe operational
+     performance can be provided
+(c) to the greatest practicable extent, the works must have enough capacity to pass short circuit
+     currents to allow protective devices to operate correctly
+(d) the works must have enough mechanical strength to withstand anticipated mechanical stresses
+     caused by environmental, construction or electrical service conditions
+(e) the works must be:
+     i) designed and constructed to restrict unauthorised access by a person to live exposed parts
+     ii) operated in a way that restricts unauthorised access by a person to live exposed parts.
+(f) design, construction, operation and maintenance records necessary for the electrical safety of the
+     works must be kept in an accessible form
+(g) parts of the works whose identity or purpose is not obvious must be clearly identified by labels, and
+     the labels must be updated as soon as possible after any change is made to the works
+(h) electrical equipment intended to form part of the works of an electricity entity must undergo
+     commissioning tests and inspection to verify that the electrical equipment is suitable for service and
+     can be operated safely when initially installed or altered.
+This Code provides guidance to ensure the electricity entity’s works are designed and maintained in
+accordance with applicable standards. This Code does not provide guidance for managing the risk
+associated with the carrying out of work on or associated with the works of the electricity entity.
+Guidance on the general risk management process is available in the How to manage work health and
+safety risks code of practice 2011.
+Guidance on the risk management processes for electrical work is available in the Managing electrical
+risks in the workplace code of practice 2013.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                 Page 8 of 26
+1.4 Information, training, instruction and supervision
+ WHS Act s19 A person conducting a business or undertaking must ensure, so far as is reasonably
+ practicable, the provision of any information, training, instruction or supervision that is necessary to
+ protect all persons from risks to their health and safety arising from work carried out.
+ WHS Regulation s39 You must ensure that information, training and instruction provided to a worker is
+ suitable and adequate having regard to:
+ • the nature of the work carried out by the worker
+ • the nature of the risks associated with the work at the time the information, training or instruction is
+     provided
+ • the control measures implemented.
+ You must ensure, so far as is reasonably practicable, that the information, training and instruction is
+ provided in a way that is readily understandable by any person to whom it is provided.
+
+
+Formal or on-the-job training may be appropriate depending on the circumstances. Examples of training
+include:
+• induction training—to ensure new starters or workers new to a job are trained on safe systems
+     of work and other relevant health and safety matters;
+• supervisor and management training—to ensure that safety issues are appropriately
+     managed at the workplace;
+• work-specific training—to ensure that workers carrying out particular work are trained on
+     any electrical and other risks specific to the work, as appropriate;
+• ongoing or refresher training—to ensure that any training on work health and safety
+     matters is repeated as appropriate on a periodic basis;
+• emergency procedure training—to ensure workers know what to do in the event of an
+     emergency, for example procedures to follow if a person receives an electric shock;
+• first aid training—to ensure appropriate procedures are followed for administering first aid,
+     for example proper treatment for electric shock; and
+• electrical rescue and resuscitation training for safety observers.
+Special needs of workers should be taken into account in deciding the structure, content and delivery of
+training, including literacy levels, work experience and specific skills required to carry out the work.
+
+2 The risk management process
+2.1 Identify the hazards
+Identifying hazards involves finding all of the tasks, situations and sequences of events that could
+potentially cause harm.
+Hazards arising from electrical equipment or the works of an electricity entity may arise from:
+• the design, construction, installation, operation, maintenance and testing of electrical equipment
+   or the works of an electricity entity
+• design change or modification
+• inadequate or inactive electrical protection
+• where and how electrical equipment is used. Electrical equipment may be subject to operating
+   conditions that are likely to result in damage to the equipment or a reduction in its expected life
+   span
+• electrical equipment being used in an area in which the atmosphere presents a risk to health and
+   safety from fire or explosion, for example confined spaces
+• the age of electrical equipment and the works of an electricity entity.
+Exposure to high electromagnetic fields may also present a potential hazard for workers with some
+medical conditions, for example pace makers. You must inform workers and other persons at the
+workplace of any potential electromagnetic hazards at the workplace that may affect a medical condition.
+You must also manage risks to health and safety arising out of electromagnetic hazards, including
+eliminating the risk so far as is reasonably practicable. If that is not reasonably practicable you must
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                 Page 9 of 26
+minimise the risk so far as is reasonably practicable.
+Potential electrical hazards may be identified in a number of different ways including:
+• talking to workers and observing where and how electrical equipment is used;
+• regularly inspecting and testing electrical equipment and entity’s works as appropriate;
+• talking to manufacturers, suppliers, industry associations, and health and safety specialists; and
+• reviewing incident reports.
+
+2.2 Assess the risks
+Risk assessment involves considering what could happen if someone is exposed to a hazard
+(consequence) and the likelihood of it happening.
+A risk assessment can help determine:
+• the severity of an electrical risk
+• whether existing control measures are effective
+• what action you should take to control an electrical risk
+• how urgently the action needs to be taken.
+To assess the risk associated with electrical hazards consider:
+• What is the potential impact of the hazard?
+    - How severe could the electrical hazard be? For example, direct contact causing electrocution,
+        fire or explosion causing serious burns or death.
+    - How many people are exposed to the hazard?
+• How likely is the hazard to cause harm?
+• Could it happen at any time or would it be a rare event?
+• How frequently are workers exposed to the hazard?
+Other factors that may affect consequence and likelihood include:
+• the conditions under which the electrical equipment is used, for example wet conditions outdoors or
+    confined spaces
+• work practices and procedures, for example isolation, to carry out maintenance
+• the capability, skill and experience of relevant workers.
+
+2.3 Control the risks
+Once hazards have been identified and the risks assessed, appropriate control measures must be put
+in place.
+The ways of controlling risks are ranked from the highest level of protection and reliability to the lowest.
+This ranking is known as the hierarchy of risk control. You must work through this hierarchy to choose
+the control that most effectively eliminates or minimises the risk in the circumstances, so far as is
+reasonably practicable. This may involve a single control measure or a combination of two or more
+different controls.
+Elimination
+The most effective control measure is to remove the hazard or hazardous work practice. By designing-
+in or designing-out certain features, hazards may be eliminated.
+Substitution
+Replacing uninsulated overhead lines situated near construction, agricultural or farming works with
+insulated overhead lines.
+Isolation
+Preventing workers from coming into contact with the source of an electrical hazard will reduce the
+relevant risks.
+Engineering controls
+Use engineering control measures to minimize the risk of contact with overhead lines, for example
+raising overhead lines to a point where it cannot be reached by machinery.
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                  Page 10 of 26
+Administrative controls
+Administrative controls involve the use of safe work practices to control the risk, for example
+establishing exclusion zones, use of permits and warning signs.
+Personal protective equipment (PPE)
+PPE includes protective eyewear, insulated gloves, hard hats, aprons and breathing protection. Most
+forms of PPE are not relevant to minimising electrical risks in workplaces, except in relation to
+energised electrical work.
+Administrative controls and PPE do nothing to change the hazard itself. They rely on people behaving
+as expected and require a high level of supervision. Exclusive reliance on administrative controls and
+PPE must only occur where other measures are not reasonably practicable or as an interim control
+while the preferred control measure is being implemented.
+You should check that your chosen control measure does not introduce new hazards.
+
+2.4 Review the control measures
+The controls that are put in place to protect health and safety must be reviewed regularly to make sure
+they work effectively.
+A person conducting a business or undertaking must review and as necessary revise a control measure
+in the following circumstances:
+• when the control measure does not control the risk it was implemented to control so far as is
+     reasonably practicable
+• before a change at the workplace that is likely to give rise to a new or different risk to health or
+     safety that the measure may not effectively control
+• if a new relevant hazard or risk is identified
+• if the results of consultation indicate that a review is necessary
+• if a health and safety representative requests a review.
+The following questions will help you evaluate how well you are currently managing electrical risks in
+your workplace:
+• Do you talk to your workers about electrical safety?
+• Do any relevant new work methods or equipment have the potential to make work safer in your
+    workplace?
+• Are procedures for identifying electrical hazards in the workplace effective?
+• Are electrical safety procedures followed?
+• Do you encourage your workers to report electrical hazards?
+• Do you regularly inspect and maintain your electrical equipment to identify safety problems?
+• Do you fix or rectify identified electrical hazards in a timely manner?
+
+3 Protective earthing
+3.1 Scope
+This chapter sets down the principles for the protective earthing of electrical equipment that forms part
+of the works of an electricity entity. The principles reflect established design principles used in the
+electricity supply industry.
+Fundamental performance criteria are provided for ensuring permanent protective earthing systems are
+operated correctly. This is to ensure the correct operation of electrical protection systems so that
+exposed conductive parts of electrical equipment do not become energised to a potentially dangerous
+level.
+
+3.2 Requirements under the Electrical Safety Regulation 2013
+Systems of earthing
+Under section 196 of the ES Regulation:
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                Page 11 of 26
+(1) The works of an electricity entity must incorporate an earthing and protection system, to a
+    recognised electricity supply industry standard capable of ensuring the following:
+    (a) reliable passage of fault current
+    (b) reliable passage of single wire earth return load currents to ground or source
+    (c) reliable operation of circuit protection devices
+    (d) safe step, touch and transfer potentials for all electrical equipment
+    (e) appropriate coordination with the earthing and protection systems of other electricity entities
+    (f) protection against likely mechanical damage, inadvertent interference and chemical
+        deterioration
+    (g) mechanical stability and integrity of connections.
+(2) Without limiting subsection (1), the following specific requirements apply for the works of an
+    electricity entity:
+    (a) to stop, as far as practicable, a person suffering electric shock:
+        (i) if the Multiple Earthed Neutral system of earthing is used, the neutral conductor of the
+              system must be effectively earthed; and
+        (ii) each non-current carrying exposed conductive part of an electric line or generating
+              plant must be effectively earthed;
+    (b) each non-current carrying exposed conductive part of a substation must be effectively earthed;
+    (c) a system of earthing must be tested as soon as practicable after its installation to prove its
+        effectiveness; and
+    (d) a high voltage electric line must be protected by a suitable fuse, circuit-breaker or equivalent
+        device.
+(3) Earthing is not required under subsection (2)(a)(ii) or (b) in circumstances where the electricity
+    entity, in accordance with a recognized practice in the electricity industry, considers that for safety
+    reasons earthing is not appropriate.
+Connection of high voltage circuit to earth
+Under section 197 of the ES Regulation:
+(1) Each distinct high voltage system included in the works of an electricity entity must be connected to
+    earth by direct connection or through a resistance or a reactance.
+(2) All reasonable precautions must be taken to ensure that, for the circumstances in which the system
+    is to operate, fuses or circuit-breakers in the system will operate during fault conditions.
+Insulation of stay wire
+•    Under section 199 of the ES Regulation: If a stay wire attached to a pole or structure supporting an
+     overhead electric line forming part of the works of an electricity entity does not form part of an earthing
+     system, the wire must be insulated to prevent, as far as practicable, any person suffering an electric
+     shock.
+Protection of earth conductors
+Under section 200 of the ES Regulation:
+• To prevent, as far as practicable, any person suffering an electric shock, earthing conductors
+   installed on the outside of a pole or structure supporting an overhead electric line forming part of the
+   works of an electricity entity must be, from ground level to a height of at least 2.4m:
+   (a) insulated or suitably covered by a nonconductive material
+   (b) protected from mechanical damage.
+
+3.3 Earthing system requirements
+3.3.1 The Multiple Earthed Neutral (MEN) system
+Where a MEN earthing system is used, the following conditions should be met:
+• The neutral conductor should be earthed at or near each LV distribution centre
+• where necessary, the neutral should be earthed at other points along the distribution system
+• the earthing should be arranged so as to ensure that resistance of neutral to earth at any location
+   does not exceed 10 ohms.
+In the MEN system the high voltage and low voltage earthing systems should be kept separate if
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                    Page 12 of 26
+resistance to ground of 1 ohm cannot be achieved (Separate Earthing System).
+The high voltage earthing system provides an earth return path for the high voltage system. The
+earthing system protects plant and equipment capable of being energised by the high voltage system
+e.g. surge arrester or transformer tank. This earth should always be insulated from the low voltage
+earth.
+Where the LV distribution centre is in a remote location, permanently electrically isolated from other
+distribution centres and is rated at not more than 63 kVA, the limit of 10 ohms may be increased
+provided that:
+• where there are bare high voltage conductors above the low voltage conductors of an overhead
+     electric line, the low voltage conductors must be insulated with 0.6/1 kV grade insulation; and
+• the high voltage protection will clear any high voltage to low voltage fault in less than 0.2 seconds.
+
+3.3.2 Earthing of LV distribution centres
+If a MEN system is used, the low voltage earthing system should be separate and distinct from the high
+voltage earthing system for the distribution centre. The earthing systems should be designed and
+installed to prevent any significant portion of the high voltage system voltage gradient being
+superimposed on the low voltage earthing system and as a result, transferred to the customer’s
+electrical installation through the MEN system.
+When the two earthing systems are located where a person may make contact between the earthed
+exposed conductive parts or conductors connected to the earthing systems, adequate separation or
+insulation should be provided between the exposed conductive parts or conductors or both.
+The following should be connected to the high voltage earthing system:
+• Transformer tank or tanks;
+• HV surge protection devices;
+• HV cable sheaths/screens/guards;
+• Exposed conductive parts of all other high voltage (HV) equipment. The design and impedance to
+    remote earth of the high voltage earthing system should be arranged so that:
+    - the HV protection system will operate in the event of a high voltage to exposed conductive parts
+         fault
+    - the prospective touch voltage on uninsulated conductive parts up to 2.4 metres above ground
+         level and prospective step voltages meet requirements set down in the prospective touch and
+         step voltages section.
+The low voltage earthing system should be bonded to:
+• the neutral terminal of the distribution transformer
+• any earth leads of low voltage surge protection devices at the distribution centre.
+The impedance to remote earth of the low voltage earthing system should not exceed the value for the
+high voltage earthing system except in the case of some SWER applications which may require a HV
+earth resistance value below 10 ohms.
+
+3.3.3 Exposed conductive parts within 2.4m above ground associated
+   with high voltage in a MEN system
+Exposed conductive parts that may become energised from the electricity supply system if there is an
+insulation failure or contact with a conductor, should be:
+• insulated; or
+• earthed to a separate and distinct earthing system from the high voltage earthing system; the
+    impedance to remote earth should allow the HV protection system to operate in the event of a high
+    voltage to exposed conductive part fault; and
+• be designed so that the prospective touch and step voltages meet the requirements set down in the
+    prospective touch and step voltages section.
+
+3.3.4 The Common Multiple Earthed Neutral (CMEN) system
+If an electricity entity uses a CMEN system, the low voltage neutral conductor, and the low voltage
+earthing system, should be connected to the high voltage earthing system. This requirement includes the
+earthing system of transformer stations, zone substations and at poles carrying exposed conductive
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                               Page 13 of 26
+parts associated with high voltages.
+The CMEN system should only to be used for distribution voltages up to and including 33 kV and where
+the design limits prospective touch voltages – including within any part of the associated LV installations.
+The resistance to ground of the LV neutral at any location should be no greater than 1.0 ohm.
+
+3.3.5 Earthing at a distribution centre (CMEN)
+If a CMEN system of earthing is used at a distribution centre the following should be connected to it:
+• the transformer tank and any high voltage surge protection devices
+• the low voltage neutrals and earth leads of low voltage surge protection devices
+• any exposed conductive parts that may reasonably be expected to become energised from the
+     electricity supply system if there is an insulation failure or contact with a conductor
+• a separate earthing system with a resistance to earth that will ensure the HV protection system
+     operates in the event of a high voltage to exposed conductive parts fault and where the low voltage
+     neutral may be disconnected.
+
+3.3.6 Exposed conductive parts within 2.4m above ground associated
+   with high voltage in a CMEN system
+Exposed conductive parts that may reasonably be expected to become energised from the electricity
+supply system if there is an insulation failure or contact with a conductor, should be:
+• insulated
+• bonded to the CMEN system low voltage neutral.
+
+3.3.7 The Single Wire Earth Return (SWER) system
+If an electricity entity uses the single wire earth return earthing system, a separate high voltage earthing
+system and low voltage earthing system should be used. Thus, for each installation, there will be only a
+low voltage earth electrode system at the transformer and an earth electrode at the customer’s premises
+earthing the low voltage neutral.
+The high voltage and low voltage earthing systems should be separated to avoid any significant portion
+of the SWER earthing system voltage gradient being superimposed on the low voltage earthing system
+and as a result, transferred to the customer’s electrical installation through the MEN system.
+Where the two earthing systems are located so that personal contact may be made between the
+earthed exposed conductive parts or conductors connected to the earthing systems, adequate
+separation or insulation should be provided between the exposed conductive parts or conductors or
+both. This does not apply to spark gap devices fitted to protect the transformer against lightning
+damage.
+The earthing of SWER distribution centres should be designed for continuous passage of electric
+current, in addition to protective earthing.
+For a SWER distribution centre, two separate and distinct earthing systems should be provided:
+• a SWER earthing system
+• a low voltage earthing system.
+The following exposed conductive parts should be connected to the SWER Earthing System:
+• transformer tank or tanks
+• HV earth bushing
+• HV surge protection devices
+• exposed metalwork of all other HV equipment.
+The SWER earthing system should be designed so that:
+• at least two earthing conductors are installed with maximum separation. The conductors should:
+    - be connected to an inter connected earthing system that consists of at least three earthing
+       electrodes not less than three metres apart; and
+    - arranged so that in the event of one or two earthing conductors between two electrodes being
+       severed, at least one earth path will remain.
+• any joint in the SWER earthing conductors between the transformer terminals and the earth
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                 Page 14 of 26
+     electrodes should not be disconnectable;
+•    at a SWER LV distribution centre, earthing conductors within 2.4m of the ground should be
+     insulated with 0.6/1.1 kV grade insulation and must be mechanically protected; and
+•    the maximum voltage on the earth lead with respect to remote earth under operating conditions
+     resulting in maximum continuous earth current, should not exceed 20 Volts.
+The low voltage earthing system should be bonded to:
+• the low voltage neutral terminal of the transformer; and
+• any earth leads of low voltage surge protection devices at the distribution centre.
+The design and impedance to remote earth of the low voltage earthing system should be arranged so
+that the MEN system complies as documented in the MEN section.
+
+3.3.8 Exposed conductive parts within 2.4m above ground associated
+   with high voltage in a SWER system
+Exposed conductive parts that may reasonably be expected to become energised from the electricity
+supply system if there is an insulation failure or contact with a conductor, should be insulated.
+
+3.3.9 Earthing of high voltage distribution centres
+Earthing of exposed conductive parts of HV distribution centres including external metal fences should
+comply with the ENA EG1-2006: Substation Earthing Guide and the Institute of Electrical and
+Electronics Engineers Guide for Safety in AC Substation Grounding – IME Std. No. 80. Earthing of
+Works other than distribution centres.
+
+3.3.10 Exposed conductive parts within 2.4m above ground associated
+   with high voltage transmission systems
+Exposed conductive parts that may reasonably be expected to become energised from the electricity
+transmission system in the event of failure of insulation or contact with a conductor, should be designed
+so that the prospective touch and step voltages do not exceed the allowable prospective touch and step
+voltages.
+
+3.3.11 Exposed conductive parts within 2.4m above ground associated
+   with low voltage only
+Exposed conductive parts that may reasonably be expected to become energised from the electricity
+supply system in the event of failure of insulation or contact with a conductor, should be either insulated
+or bonded to the low voltage neutral of the system.
+
+3.3.12 Induced voltage on the sheath of underground electric lines
+Cable sheaths or screens should be earthed to ensure that the prospective touch voltages that may
+appear on any accessible exposed conductive parts of the underground electric line for both load and
+fault current conditions, meet the requirements set down in the prospective touch and step voltages
+section.
+
+3.3.13 Exposed conductive parts higher than 2.4m above ground
+Non-current carrying exposed conductive parts located 2.4m or higher above ground and not exposed
+to personal contact need not be earthed. If these parts are associated with high voltage or low voltage
+works or both and are required by the electricity entity to be earthed, these parts should be earthed in
+accordance with sections on high voltage in a MEN system, CMEN system or low voltage only
+systems.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                Page 15 of 26
+3.4 Earthing Conductors
+3.4.1 Minimum size of earthing conductors
+Earthing conductors should have sufficient cross-sectional area and mechanical strength to be capable
+of carrying, without sustaining damage or deterioration, any currents that may reasonably be expected.
+
+3.4.2 Materials for earthing conductors
+The material for earthing conductors should be suitable for site conditions.
+
+3.4.3 Mechanical protection of earthing conductors
+In locations controlled by an electricity entity and where a suitable enclosure prevents unauthorised
+access, the following apply:
+• the entity should effectively protect an earthing conductor against mechanical damage to a height of
+     2.4m above ground level; and
+• where the earthing conductor is installed below ground level, it should be buried to a minimum
+     depth of 0.5m. Where necessary, this can be done by installing the earthing conductor in a channel
+     chased in the rock and covered with concrete at least 50mm thick.
+
+3.4.4 Materials for earthing electrodes
+Earthing electrodes should be made from metals that will not be materially affected by any corrosive or
+other adverse influences.
+
+3.4.5 Test links
+If test links are inserted in earthing conductors connected to earthing electrodes, the test links should
+be arranged so that the opening of any one link does not interfere with earth connections, other than
+the one under test. Links should not be installed in a SWER earthing system.
+
+3.4.6 Earth fault currents
+Earthing electrodes should be capable of carrying, without sustaining damage, any earth fault currents
+that may reasonably be expected.
+
+3.5 Prospective touch and step voltages
+3.5.1 Prospective touch voltages – special locations
+Electric shock risk associated with prospective step and touch voltages shall be assessed and suitably
+controlled in accordance with safe design principles and best practice standards and guidelines.
+
+3.5.2 Prospective touch voltages – frequented locations
+Electric shock risk associated with prospective step and touch voltages shall be assessed and
+suitably controlled in accordance with safe design principles and best practice standards and
+guidelines.
+
+3.5.3 Remote locations
+Aside from ensuring positive primary protection operation, it is not necessary to make specific
+provisions for limiting prospective touch and step voltages on exposed conductive parts. However, in
+the case of pole-mounted equipment that may be operated from the ground in remote locations, you
+should consider limiting step and touch voltages to the levels recommended for frequented locations.
+To protect workers working near exposed conductive parts in remote locations, special operating
+procedures such as temporary earth rods or portable equipotential mats and gloves may be used.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                 Page 16 of 26
+3.5.4 Prospective step voltages
+Prospective step voltages should not exceed twice the value of the prospective touch voltage
+determined for the corresponding location as outlined in the sections, Prospective touch voltages –
+special locations and Prospective touch voltages – frequented locations.
+
+3.5.5 Testing and maintenance of earthing systems
+All earthing systems should be tested and assessed for suitability with testing requirements based on
+a risk based assessment which includes the following factors:
+• Changes in system fault levels or protection operations.
+• Changes in operating conditions.
+• Environmental influences.
+• Construction type.
+• Climatic conditions.
+
+3.6 Relevant Documents
+Institute of Electrical and Electronics Engineers Guide for Safety in AC Substation Grounding – IEEE
+Std. No. 80.
+Institute of Electrical and Electronics Engineers Recommended Guide for Measuring Ground
+Resistance and Potential Gradients in the Earth - IEEE Std. No. 81.
+ENA EG1 – 2006 Substation Earthing Guide.ENA DOC 025-2010 EG-0 Power System Earthing Guide
+AS 2067:2016 Substations and high voltage installations exceeding 1 kV a.c.
+AS/NZS 7000:2016 Overhead line design
+
+4 Design and installation of underground electric
+  cable systems
+4.1 Scope and application
+This chapter sets down the principles for the mechanical and electrical design of underground electric
+lines, other than those operating at voltages normally not exceeding 50 volts alternating current or 120
+volts ripple-free direct current.
+The requirements have been based on recognised industry standards. They represent the minimum
+standards necessary to meet an electricity entity’s obligations.
+Unless otherwise expressly stated, this chapter does not apply to:
+• any underground earthing conductor not specifically associated with an underground electric line or
+    with an underground control cable
+• underground electric lines or underground control cables fully or partly constructed in places owned
+    only by an electricity entity and where a substation enclosure prevents unauthorised access
+• submarine cables
+• fibre optic cables.
+
+4.2 Compliance with Standards
+Underground electric cable systems should be designed in accordance with an appropriate Australian
+Standard or ENA Guideline. Where there is no appropriate Australian Standard, an appropriate IEC
+Standard should be used.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                               Page 17 of 26
+4.3 Selection of cables
+4.3.1 General
+Cables used in underground cable systems should comply with an appropriate Australian Standard.
+In addition, consideration should be given to the following:
+  • safety
+  • environmental conditions
+  • life cycle assessment
+  • insect or vermin attack
+  • vibration
+  • ultraviolet degradation
+  • economic, security and reliability factors
+  • forces incurred during installation
+  • forces incurred during the service life of the cable
+  • corrosion protection of armouring and sheathing.
+
+4.3.2 Conductors
+When selecting the cross-sectional area of the conductors of an underground electric cable, keep in
+mind the:
+• prospective load
+• voltage drop
+• fault currents
+• fault clearing times
+• proximity of other heat sources, e.g. cables
+• thermal properties of the surrounding environment.
+
+4.3.3 High voltage cables
+High voltage underground cables should have integral metallic conducting screens or sheathing or
+both.
+
+4.3.4 Low voltage cables
+All conductors including the neutral should be insulated to the full voltage rating of the cable. Bare
+neutral conductors should not be used.
+
+4.3.5 Neutral connections
+The connections between neutral conductors should be designed and installed to ensure the
+connections maintain the required conductivity during the service life of conductors.
+
+4.3.6 Route selection
+Cable route selection shall consider practical risks associated with construction, operational,
+maintenance and decommissioning activities, including:
+• mechanical stresses due to installation
+• mechanical stress due to fault conditions
+• joint requirements
+• probability of inadvertent damage
+• probability of public risk exposure
+• EMF mitigation
+• environmental impact.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                 Page 18 of 26
+4.4 Installation
+4.4.1 General
+Underground electric cables and underground control cables should be installed having regard to
+system reliability, ease of future maintenance and safety. Consideration should also be given to
+minimising damage to underground assets.
+Safe design principles should apply to the installation process to ensure that operational and safety risks
+are adequately assessed and addressed.
+
+4.4.2 Cable depths
+The depth of cover for underground electric cables and underground control cables should not be less
+than:
+For open trench construction:
+• 750mm below the surface of a roadway for any cable installed under a roadway
+• 600mm below the finished ground surface for cables installed in other locations.
+Where physical obstructions such as other services make it impossible to achieve these depths,
+additional mechanical protection should be provided by means of a minimum cover of 100mm of 20
+MPa concrete or equivalent. Any additional mechanical protection should be marked with the words
+electric cable or similar along its length.
+For trenchless construction:
+• 900mm below the finished ground surface.
+This clause does not apply to that part of an underground cable or an underground control cable
+entering or leaving the ground vertically or fixed above the ground to a secure structure, so long as
+adequate mechanical protection is provided.
+
+4.4.3 Laying of cables
+The technique used for installing underground cables should ensure that damage to the cables is
+negligible. Consideration should be given to:
+• maximum hauling tensions;
+• minimum bending and setting radii;
+• cable side wall pressures; and
+• cable abrasion avoidance.
+
+4.4.4 Separation of cables
+When determining minimum separation from telecommunication plant in a shared trench, refer to HB
+100-2000 (CJC 4): Coordination of power and telecommunications - Manual for the establishment of
+safe work practices and the minimization of operational interference between power systems and
+paired cable telecommunications systems.
+Consult the authority concerned about separation from other services sharing the trench, keeping in
+mind:
+• worker and public safety
+• potential cable damage due to failure of other services
+• future access for repairs/maintenance.
+
+4.5 Protection of cables
+4.5.1 Identification of underground cables
+The presence of buried underground electric cables and underground control cables should be
+identified. Accepted methods of identification include:
+Where the depth of cover is between 600mm and 900mm:
+• laying a strip of bright orange polyvinyl chloride or polyethylene or similar marker tape above the
+   cable. The tape is to have the words electric cable or similar, boldly printed on the upper side
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                Page 19 of 26
+       continuously along its length
+•      where appropriate, using on-ground or above ground marker systems.
+The position of marker tape should provide effective warning to anyone engaged in manual or machine
+excavation.
+Where the depth of cover is 900mm or greater, it is not a requirement to place cable protection covers
+or marker tape above the cable or conduits. However, the location of cables should be marked with
+permanent on-ground or above ground cable marker systems.
+
+4.5.2 Protection general
+An electricity entity should have procedures in place to protect people and prevent damage to
+underground cables during excavation near underground cables.
+These procedures should include but are not limited to:
+• maintenance of ‘as installed’ records of underground cables by an electricity entity
+• provision at the worksite of ‘as installed’ underground cable records to anyone concerned with
+    planning, organising and supervising excavation work
+• the use of records and other locating methods to positively identify the position of underground
+    cables
+• exercising care during subsequent excavation.
+
+4.5.3 Protection – mechanical
+In addition to the principles outlined in parts 4.5.1 and 4.5.2 of this Code, mechanical protection should
+be provided to minimise the risk of injury to anyone digging by hand near underground cables by
+providing the minimum requirement for mechanical protection of underground cables in accordance with
+the table below.
+           Cable location                                      Minimum requirement
+    Where the underground               Install the cable in a suitable conduit for application under roads,
+    electric cables and                 and LD Class electrical conduit for application in the electricity
+    underground control cables          footpath allocation. For application outside the electricity footpath
+    are installed with a depth of       allocation LD Class electrical conduit with a polymeric cable
+    cover between 600mm and             protection cover complying with AS4702 not less than 75mm
+    900mm.                              above the cable or, polyethylene orange coloured pressure pipe
+                                        of minimum rating PN10 for PE80 Class pipe complying with
+                                        AS/NZS4130.
+                                        or
+                                        A polymeric cable protection cover complying with AS4702, not
+                                        less than 75mm above the cable.
+                                        or
+                                        Approved bricks manufactured especially for the protection of
+                                        electric cables. Assess the risk for each location type to determine
+                                        the method of mechanical protection.
+ Where the depth of cover               No additional mechanical protection is required.
+ for any underground electric
+ cables and underground
+ control cables is 900mm or
+ greater.
+Note: Polymeric cable protection cover and approved bricks provide superior protection. These
+should be considered for locations where cables would not normally be found e.g. parklands or
+unsealed walkway easements. Also consider using armoured or metallic sheathed cable buried
+according to cable depths in this chapter.
+For cable circuits requiring high security or where the risk of excavation is high, increased protection
+should be provided by:
+• using a combination of the above provisions for mechanical protection; or
+• the use of a heavier duty conduit
+• encasing the cables in concrete.
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                        Page 20 of 26
+Where there is a risk of cable or duct damage by excavating plant or vibration, increased protection
+   should be provided by:
+• laying the cable at a greater depth
+• selecting a less exposed cable route.
+
+4.5.4 Protection–above ground
+Looping, linking and servicing connections made above ground should be housed in pillars or pits that
+   must:
+• be externally marked to include the words electric, electrical, or electricity
+• be secured using a special tool or key
+• when enclosing switchgear, be constructed to prevent water from accumulating, unless the
+   switchgear is specifically designed for operation when submerged
+• be designed so that an object (defined as a standard test finger by AS/NZS 3100) cannot be
+   inserted into the interior and come into contact with or within arcing distance of live parts
+• be installed in places where vehicles are not likely to damage them.
+Where an underground electric cable or underground control cable is located between the laying depth
+prescribed in this chapter and a distance of 2.4m above ground, the cable must be suitably protected so
+that the cable will withstand, without undue damage, any impact that might normally be expected at that
+location.
+
+4.5.5 Protective earthing of cables
+When earthing single core cables, consider the special bonding arrangements used to minimise sheath
+losses and induced sheath voltages.
+
+4.5.6 Records
+Records should be current for all cable installations using maps, plans or computer databases. When
+preparing a record system, consider the following details:
+• alignments
+• cable depths
+• number of cables
+• cable details
+• specialised backfill
+• reduced levels
+• direct buried or ducted
+• service history
+• position of joints
+• date of installation.
+
+4.6 References
+4.6.1 Cable selection
+ AS/NZS 1026: 2004                      Electric cables – Impregnated paper insulated – Working voltages
+                                        up to and including 19/33 (36) kV.
+ AS 1049 – 2014                         Telecommunication cables – Insulation, sheath and jacket –
+                                        materials.
+ AS 1049.2:2008                         Telecommunication cables – Insulation, sheath and jacket – test
+                                        methods
+ AS/NZS 1429.1:2006                     Electric cables – Polymeric insulated – For working voltages
+                                        1.9/3.3 (3.6) kV up to and including 19/33 (36) kV.
+ AS/NZS 1429.2 :2009                    Electric cables – Polymeric insulated – For working voltages
+                                        above 19/33 (36) kV up to and including 87/150 (170) kV.
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                     Page 21 of 26
+ AS/NZS 5000.1:2005                     Electric cables - Polymeric insulated - For working voltages up to
+                                        and including 0.6/1 kV.
+ AS/NZS 4961:2003                       Electric cables - Polymeric insulated - For distribution and service
+                                        applications.
+ AS/NZS 4026:2008                       Electric cables – For underground residential distribution systems.
+ Electrical Safety Regulation           Section 6
+ 2013
+4.6.2 Route selection and cable selection accessories
+ HB 100-2000 (CJC 4)                    Coordination of power and telecommunications - Manual for the
+                                        establishment of safe work practices and the minimization of
+                                        operational interference between power systems and paired cable
+                                        telecommunications systems.
+ AS/NZS 2053                            Conduits and fittings for electrical installations.
+ AS 4702: 2000                          Polymeric cable protection covers.
+ AS/NZS 3100:2017                       Approval and test specification - General requirements for
+                                        electrical equipment.
+ AS/NZS 4130:2017                       Polythene (PE) pipes for pressure applications.
+ Electrical Safety Regulation           Section 6
+ 2013
+
+5 Maintenance of supporting structures for lines
+5.1 Scope and application
+This chapter sets down the principles and minimum requirements for maintaining the supporting
+structures for overhead lines.
+An electricity entity should have a maintenance system that achieves a minimum three-year moving
+average reliability against the incidence of failure of 99.99 per cent a year.
+Special consideration should be given to poles in areas of higher risk, such as cities and towns.
+
+5.2 Serviceability determination
+Provisions of this Code should be accompanied by responsibly developed and documented procedures
+for inspecting, assessing, marking and maintaining poles and structures that support overhead lines.
+Such procedures should be supported by appropriate work practices, and competency training and
+assessment.
+The serviceability of a pole shall be determined by its:
+• above ground condition
+• ground line and below condition
+• strength in its ‘as is’ condition.
+An electricity entity should develop a periodic maintenance program to deliver the reliability level set out
+at the beginning of this chapter. This program should include an inspection system to verify structural
+integrity, both above and below ground.
+Where appropriate for the supporting structure, the inspection should also determine the bending
+strength of a pole for comparison with its design load and an applied factor of safety.
+Pole strength may be determined by:
+• measuring physical dimensions and calculation
+• proof testing
+• non-destructive evaluation.
+Where resultant pole top forces result in a bending moment at ground line of equal to or close to zero
+e.g. a fully supported pole situation, the following requirements should be satisfied:
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                       Page 22 of 26
+•       the conductors and attachments should be capable of continuing to support the pole top loading
+        conditions; and
+•       a minimum pole tip loading should be adopted to ensure the groundline shear strength of the pole is
+        adequate.
+Poles should be classified as either serviceable, suspect or unserviceable.
+
+5.2.1 Frequency of inspection
+An electricity entity’s inspection program should ensure the entity meets its safety obligations. Each
+pole should be inspected at intervals deemed appropriate by the entity. The intervals may be based on
+documented knowledge of the durability rating, preservation type, inspection procedures, age,
+performance of the poles, fungal decay, termite risk and so on.
+In the absence of documented knowledge of pole performance, poles should be inspected at least
+every five years.
+
+5.3 Marking of poles
+5.3.1 General
+An electricity entity should mark poles assessed as suspect or unserviceable. All markings should be
+about 1.5m above ground line and on the side of the pole to which the pole identification record is fixed
+e.g. pole number. Markings should be in white or yellow paint and bold enough to be easily identifiable,
+even when visibility is poor. Any suspect or unserviceable poles shall be appropriately marked before
+the inspector leaves the site.
+
+5.3.2 Marking scheme
+    •   Serviceable poles – No marking required.
+    •   Suspect Poles – A single diagonal stripe ’/‘.
+    •   Unserviceable poles – A single ‘X’.
+
+5.3.3 Removal of markings
+Where it is necessary to remove the suspect or unserviceable mark, the painted cross or diagonal slash
+should, on the authority of a responsible officer, be either over-painted with a dark coloured paint or
+removed.
+
+5.3.4 Resultant action and timeframes
+Once a pole’s serviceability has been determined, the following action and timeframes should apply:
+• serviceable pole – no further action
+• suspect pole – assess pole within three months
+• unserviceable pole – replace or reinstate pole within six months.
+When a pole, at the time of inspection or assessment, is considered to present a high risk of injury or
+damage to property, immediate remedial action should be taken.
+
+5.3.5 Pole records
+An electricity entity should develop a reference system for supporting structures, to establish inspection
+and maintenance records.
+Pole records should enable an electricity entity to:
+• demonstrate that the entity’s pole reliability objective is achieved
+• compile statistics to determine the service performance of poles
+• determine future policies from a better knowledge of pole performance, maintenance and
+    preservation methods
+• demonstrate that this chapter’s requirements have been complied with
+• programme the inspection and maintenance of poles.
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                Page 23 of 26
+Appendix A–Meaning of terms used in this code
+CMEN means Common Multiple Earthed Neutral.
+Design load means the calculated load imposed upon a pole under the loading conditions
+(calculated maximum service load) adopted by the electricity entity.
+Distribution system means a system operating at a nominal voltage not exceeding 33 kV.
+Earth connection means a connection to the general mass of earth by means of an earthing
+electrode or earthing electrodes electrically connected at a given location.
+Earth resistance, in relation to an earth connection, means the resistance to the general mass of
+earth measured in ohms.
+Earthing conductor means a conductor connecting any portion of the earthing system to
+works required to be earthed, or to any other portion of the earthing system.
+Earthing electrode means a metal rod, tube, pipe, plate or other conductor buried in or driven into
+the ground and used for making a connection to the general mass of earth.
+Earthing values means values measured with an earth resistance tester.
+Earthing system means all conductors, piping, electrodes, clamps and other connections
+whereby conductors or other works are earthed.
+Electricity footpath allocation means the corridor in the footpath allocated by the local authority
+for installation of electric cables and plant.
+EMF means Electro Magnetic Field.
+Exposed conductive parts includes electrical equipment that can be touched by the standard
+test finger as specified in AS/NZS 3100 and is not live but can become live if basic insulation fails.
+The term includes reinforced concrete work or reinforced concrete parts but excludes minor
+fastenings, wood pole identification discs and street lights.
+Factor of safety means the ratio of assessed pole bending strength to its design bending strength.
+Failed pole means a pole which, due to loss of strength has broken off or become incapable of
+standing without mechanical means of support other than permanent reinstatement. The
+following exclusions apply:
+• weather more severe than design conditions allowed for at that location e.g. lightning,
+     severe storms and so on;
+• impact loads contacting poles or their attachments, e.g. vehicles, falling trees or wind-borne
+     objects;
+• unforeseeable changes in ground conditions e.g. flooding or earthworks;
+• bush fires and grassfires; and
+• vandalism.
+Fault duration means the time during which a fault current may flow before being cleared by
+the primary protection of a distribution or transmission system.
+Frequented location means any urban area associated with a city or town other than special
+locations.
+Fully supported pole means a pole in which resultant pole-top forces are countered by changed
+tensions in conductors or stay wires or both (other than service lines). This support ensures little or
+no bending moment at ground line.
+HV distribution centre means any substation or generating station other than a low
+voltage distribution centre including high voltage switching stations;
+IEC Standard means a standard rule, code or specification of the International
+Electrotechnical Commission.
+Insulated means separated from adjoining conducting material by a non-conducting substance
+which provides resistance to the passage of current, or to disruptive discharges through or over the
+surface of the substance at the operating voltage, and to obviate danger of shock or injurious
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                  Page 24 of 26
+leakage of current.
+LV distribution centre means any substation or generating station from which electricity is or can
+be supplied directly at low voltage to a distribution system or to a consumer’s electrical installation. A
+Single Wire Earth Return (SWER) isolating transformer substation and compact standalone
+distribution switchgear shall be classed as LV distribution centres for the purposes of this Code. An
+LV distribution centre may consist of one or more transformers on a pole, on or under the ground or
+in a building, or it may consist of one or more low voltage generating sets. A low voltage distribution
+centre may be located in a generating station or in a zone substation.
+MEN means Multiple Earthed Neutral.
+Non-destructive evaluation means an assessment in which the strength of a pole is verified
+by validated non-destructive techniques.
+Pole means an overhead line or street light support structure, excluding attachments e.g. x-arms.
+Proof testing means an assessment in which the strength of a pole is verified by validated
+application of a mechanical load to simulate the design load multiplied by the factor of safety.
+Prospective step voltage means the voltage that may appear between any two points on the
+surface of the ground one metre apart. This voltage is defined as an open circuit voltage measured
+using a high impedance voltmeter.
+Prospective touch voltage means the voltage that may appear between any point of contact with
+exposed conductive parts within 2.4 metres of the ground, and within a radius of 1.0m at ground
+level. This voltage, too, is defined as an open circuit voltage measured using a high impedance
+voltmeter.
+Reinstated pole means a pole in which the original foundation has been supplemented or replaced
+by a structurally effective support system.
+Remote location means an area not defined as either special or frequented.
+Roadway means that part of a road intended for use by vehicles but not including a driveway
+crossing a footpath.
+Serviceable pole means a pole in service which, at the time of inspection and assessment, is
+considered capable of bearing its design load with the relevant Factor of Safety (FOS). The FOS
+for wood poles is equal to or greater than 2.
+Special locations mean a location within a school’s grounds or within a children’s playground,
+or within a public swimming pool area, or at popular beach or water recreation area, or in a
+public thoroughfare within 100 metres of any of the above locations.
+Step voltage means the voltage drop caused by a current flowing through the body between
+both feet, in contact with the ground one metre apart.
+Suspect pole means a pole in service which, at the time of inspection, is considered to
+require further assessment to determine whether or not it is serviceable.
+SWER means Single Wire Earth Return.
+The ES Act means the Electrical Safety Act 2002.
+The ES Regulation means the Electrical Safety Regulation 2013.
+Touch voltage means the voltage drop caused by a current flowing through the body between both
+hands and both feet. In this instance, the hands are in contact with an earthed conductive part within
+2.4 metres of the ground. The feet are within a radius of 1.0m at ground level.
+Transmission system means a system operating at a nominal voltage above 33kV and includes a
+sub transmission system.
+Trenchless construction means the technique of installing cables and ducting by means of
+directional drilling and systems with minimum excavation.
+Underground cable means one or more insulated conductors encased in a protective sheath or
+enclosure and forming part of an underground electric circuit.
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                                  Page 25 of 26
+Underground control cable means an auxiliary cable with one or more insulated conductors
+encased in a protective sheath or enclosure and forming part of a measuring, control, protection or
+communication circuit.
+Unserviceable pole means a pole in service which, at the time of inspection and assessment, is
+considered incapable of bearing its design load with the relevant Factor of Safety (FOS). The FOS
+for wood poles is equal to or greater than 2.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Works (ESOPDF028)                              Page 26 of 26
+

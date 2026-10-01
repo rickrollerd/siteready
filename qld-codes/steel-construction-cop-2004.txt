@@ -1,0 +1,2507 @@
+Steel construction code of practice 2004
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0017/19115/steel-construction-cop-2004.pdf
+
+Steel construction
+
+Code of Practice 2004
+This Queensland code of practice was preserved as a code of practice under section
+284 of the Work Health and Safety Act 2011.
+
+This code was varied by the Minister for Education and Industrial Relations on
+27 November 2011 and published in the Queensland Government Gazette on
+2 December 2011.
+
+It was further varied by the Minister for Education and Minister for Industrial Relations
+on 1 July 2018.
+
+This preserved code commenced on 1 January 2012.
+
+
+
+
+PN11187
+
+© The State of Queensland 2018
+Copyright protects this document. The State of Queensland has no objection to this material
+being reproduced, but asserts its right to be recognised as author of the original material and
+the right to have the material unaltered.
+The material presented in this publication is distributed by the Queensland Government as an
+information source only. The State of Queensland makes no statements, representations, or
+warranties about the accuracy or completeness of the information contained in this
+publication, and the reader should not rely on it. The Queensland Government disclaims all
+responsibility and all liability (including, without limitation, liability in negligence) for all
+expenses, losses, damages and costs you might incur as a result of the information being
+inaccurate or incomplete in any way, and for any reason.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                               Page 2 of 54
+Contents
+  1 Introduction ........................................................................................................ 5
+     How is the code organised ................................................................................................ 5
+     Who has duties? ............................................................................................................... 5
+     1.1 Risk and steel construction ...................................................................................... 6
+     1.2 What is steel construction work?.............................................................................. 6
+  2 Control of risk through planning .......................................................................... 7
+     2.1 Planning to control risk ............................................................................................. 7
+     2.2 Work Health and Safety (WHS) management plans and safe work method
+     statements......................................................................................................................... 7
+     2.3 Who must prepare WHS management plans and safe work method statements? . 7
+     2.4 Factors to be considered in planning ....................................................................... 7
+     2.5 Designers ................................................................................................................. 8
+     2.6 Principal contractors ................................................................................................. 8
+     2.7 Fabricators ............................................................................................................... 9
+     2.8 Erectors .................................................................................................................... 9
+  3 Work systems ................................................................................................... 10
+     3.1 Prioritise control measures ..................................................................................... 10
+     3.2 Working at heights.................................................................................................. 10
+     3.3 Risk of a person falling from one level to another .................................................... 10
+     3.4 Controls to prevent falls from heights ....................................................................... 10
+     3.5 Work platforms .......................................................................................................... 11
+     3.6 Fall-prevention device ............................................................................................... 14
+     3.7 Fall-arrest systems.................................................................................................... 14
+     3.8 Emergency recovery ................................................................................................. 17
+     3.9 Edge protection systems........................................................................................... 18
+     3.10 Fall protection covers .............................................................................................. 18
+  4 Falling objects .................................................................................................. 18
+     4.1 Tool lanyards ............................................................................................................ 18
+     4.2 Lift boxes ................................................................................................................... 19
+     4.3 Securing the load ...................................................................................................... 19
+     4.4 Containment sheeting ............................................................................................... 23
+     4.5 Toeboards ................................................................................................................. 23
+     4.6 Exclusion zones ........................................................................................................ 23
+  5. Structure integrity ............................................................................................ 23
+     5.1 Building stability ........................................................................................................ 24
+     5.2 Bracing ...................................................................................................................... 24
+     5.3 Column stability ......................................................................................................... 24
+     5.4 Beam stability ............................................................................................................ 25
+     5.5 Alignment of bolts ..................................................................................................... 25
+     5.6 Post-installed anchors ............................................................................................... 25
+     5.7 Paint touch up when erecting steel components ...................................................... 26
+  6. Cranes............................................................................................................. 26
+     6.1 Outriggers - crane set up .......................................................................................... 26
+     6.2 Operating signals ...................................................................................................... 27
+     6.3 Lifting loads ............................................................................................................... 27
+     6.4 Lifting loads near persons ......................................................................................... 27
+     6.5 Crane types ............................................................................................................... 28
+     6.6 Precautions when travelling and manoeuvring with a load ....................................... 28
+     6.7 Multiple crane lifts ..................................................................................................... 28
+     6.8 Precautions with lattice boom cranes ....................................................................... 29
+     6.9 Precautions with hydraulic boom cranes .................................................................. 29
+     6.10 Loading of cranes ................................................................................................... 29
+     6.11 Load charts and indicators ...................................................................................... 29
+  Appendix 1: Risk management in steel construction – falls from heights ............. 31
+     A1.1 The process of risk management ........................................................................... 31
+     A1.2 Hazard identification ............................................................................................... 31
+     A1.3 Risk assessment .................................................................................................... 31
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                                                                  Page 3 of 54
+     A1.4 Risk control ............................................................................................................. 32
+     A1.5 Monitor and review control measures .................................................................... 32
+  Appendix 2: Erection procedure for portal frame buildings ................................... 33
+     A2.1 General ................................................................................................................... 33
+     A2.2 Type of main frame................................................................................................. 35
+     A2.3 Erection procedure for main frame with the braced located within the building ..... 35
+     A2.4 Erection procedure for main frame with braced bay located in the end bay .......... 38
+     A2.5 Erection of remaining building components ........................................................... 41
+  Appendix 3: Published technical standards ......................................................... 43
+     Standards ........................................................................................................................ 43
+  Appendix 4: Duties .............................................................................................. 44
+     Work health and safety duties......................................................................................... 44
+  Appendix 5: Dictionary......................................................................................... 48
+  Appendix 6: Safety checklist – Steel erection ...................................................... 49
+  Appendix 7: Sample of engineer’s certification letter for the use of rigger’s posts 54
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                                                                  Page 4 of 54
+1 Introduction
+This Steel construction Code of Practice 2004 is an approved code of practice under
+section 274 of the Work Health and Safety Act 2011 (the WHS Act).
+
+An approved code of practice is a practical guide to achieving the standards of
+health, safety and welfare required under the WHS Act and the Work Health and
+Safety Regulation 2011 (the WHS Regulation).
+
+From 1 July 2018, duty holders are required to comply either with an approved code
+of practice under the WHS Act or follow another method, such as a technical or an
+industry standard, if it provides an equivalent or higher standard of work health and
+safety to the standard required in the code.
+
+A code of practice applies to anyone who has a duty of care in the circumstances
+described in the code. In most cases, following an approved code of practice would
+achieve compliance with the health and safety duties in the WHS Act, in relation to
+the subject matter of the code. Like regulations, codes of practice deal with particular
+issues and do not cover all hazards or risks which may arise. The health and safety
+duties require duty holders to consider all risks associated with work, not only those
+for which regulations and codes of practice exist.
+
+Codes of practice are admissible in court proceedings under the WHS Act and WHS
+Regulation. Courts may regard a code of practice as evidence of what is known
+about a hazard, risk or control and may rely on the code in determining what is
+reasonably practicable in the circumstances to which the code relates.
+
+An inspector may refer to an approved code of practice when issuing an
+improvement or prohibition notice. This may include issuing an improvement notice
+for failure to comply with a code of practice where equivalent or higher standards of
+work health and safety have not been demonstrated.
+
+
+How is the code organised
+In providing guidance, the word ‘should’ is used in this code to indicate a
+recommended course of action, while ‘may’ is used to indicate an optional course of
+action.
+
+This code also includes various references to provisions of the WHS Act and WHS
+Regulation which set out the legal requirements. These references are not
+exhaustive. The words ‘must’, ‘requires’ or ‘mandatory’ indicate that a legal
+requirement exists and must be complied with.
+
+Who has duties?
+A person conducting a business or undertaking (PCBU) has the primary duty
+under the WHS Act to ensure, as far as reasonably practicable, that workers and
+other persons are not exposed to health and safety risks arising from the business or
+undertaking.
+
+Officers, such as company directors, have a duty to exercise due diligence to ensure
+that the business or undertaking complies with the WHS Act and WHS Regulation.
+This includes taking reasonable steps to ensure that the business or undertaking has
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                        Page 5 of 54
+and uses appropriate resources and processes to provide and maintain a safe work
+environment.
+
+Workers have a duty to take reasonable care for their own health and safety and that
+they do not adversely affect the health and safety of other persons. Workers must
+comply with any reasonable instruction and cooperate with any reasonable policy or
+procedure relating to health and safety at the workplace.
+
+Consulting workers
+Consultation involves sharing of information, giving workers a reasonable opportunity
+to express views and taking those views into account before making decisions on
+health and safety matters.
+
+The WHS Act requires that you consult, so far as is reasonably practicable, with
+workers who carry out work for you who are (or are likely to be) directly affected by a
+work health and safety matter.
+
+If the workers are represented by a health and safety representative, the consultation
+must involve that representative.
+
+You must consult your workers when proposing any changes to the work that may
+affect their health and safety.
+
+Consulting, cooperating and coordinating activities with other duty
+holders
+The WHS Act requires that you consult, cooperate and coordinate activities with all
+other persons who have a work health or safety duty in relation to the same matter,
+so far as is reasonably practicable.
+
+Sometimes you may share responsibility for a health and safety matter with other
+business operators who are involved in the same activities or who share the same
+workplace. In these situations, you should exchange information to find out who is
+doing what and work together in a cooperative and coordinated way so that all risks
+are eliminated or minimised as far as reasonably practicable.
+
+Further guidance on consultation is available in the Work health and safety
+consultation, co-ordination and co-operation Code of Practice.
+
+
+1.1 Risk and steel construction
+This code of practice provides advice aimed at preventing the risk of injury or death
+to persons undertaking steel construction and other persons at the workplace.
+
+1.2 What is steel construction work?
+Steel construction is any work to erect assembled portions and single components of
+structural steel, such as:
+ columns
+ beams
+ bracing
+ rafters
+ purlins
+ girts
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                       Page 6 of 54
+   bridging and fly bracing
+   trusses
+   other related steelwork, for example, free standing structures.
+
+2 Control of risk through planning
+2.1 Planning to control risk
+Planning is an effective control measure for preventing the risk of injury or death
+arising from steel construction. Designers, principal contractors, erectors and
+fabricators have an important role in planning the work.
+
+2.2 Work Health and Safety (WHS) management
+plans and safe work method statements
+Chapter 6 of the WHS Regulation sets out the requirements for preparing WHS
+management plans and safe work method statements. The contents of a WHS
+management plan are listed in Chapter 6 of the WHS Regulation. A WHS
+management plan must be prepared before any construction work starts. The
+contents of a safe work method statement are listed in Chapter 6 of the WHS
+Regulation. A safe work method statement must be prepared before any high risk
+construction work starts. Chapter 6 of the WHS Regulation define what is meant by
+‘high risk construction work’ and ‘construction work’.
+
+2.3 Who must prepare WHS management plans
+and safe work method statements?
+Chapter 6 of the WHS Regulation prescribes the requirements for who must prepare
+WHS management plans and safe work method statements. A principal contractor
+must ensure that a WHS management plan is prepared before work on the project
+commences. A PCBU must, before high risk construction work commences, prepare
+or direct the preparation of a safe work method statement for the high risk
+construction work.
+
+This code of practice may be used to help persons identify what control measures
+need to be written into the WHS management plan or safe work method statement
+when a risk of injury arising from steel construction has been identified.
+
+2.4 Factors to be considered in planning
+The designer, principal contractor, fabricator and the erector must consult, cooperate
+and coordinate with each other about the structure to be erected.
+
+Consultation should address the hazards, associated risks and control measures that
+will be implemented during the steel construction work and cover all phases of the
+project. In addition to the risks of falls from heights, falling objects and the stability of
+structure, the consultation should consider other factors such as the sequence and
+the method of erection, in particular:
+(a) access to work areas where erection is taking place
+(b) location of other trades relative to the erection work
+(c) restricted areas and the need for barricades
+(d) criteria for safety (e.g. sequential erection).
+
+Further details, is in ‘Appendix 1 - Example of risk management in steel
+construction - Falls from heights’.
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                            Page 7 of 54
+2.5 Designers
+It is critical that the designer considers the safe erection of the steel structure and
+provides guidance to the steel erector. This is particularly important with modern
+designs where ‘limit state’ design techniques are used by the designer. In this system
+the design engineer considers the structure in its completed form with all the
+members and bracing installed. The structure can then withstand much higher loads
+(e.g. wind and other live loads), than when the structure is in the construction stage.
+With this in mind it is necessary for the designer to provide guidance to the steel
+erector on how the structure will remain standing as it is built.
+
+An effective planning process enables a designer to eliminate risks at the design
+stage before steel construction work starts. Designers should, for example, take into
+account the safe work methods to be used during erection. Areas that should be
+considered at each design stage include:
+(a) The stability at all stages of erection of the assembled portions and single
+    components.
+(b) Maximum permissible wind speed for erecting the steel structure.
+(c) The effect of the erection sequence on stability.
+(d) An assessment of loadings at all stages of construction.
+(e) The safe access and working environment.
+(f) The ease of connecting components, for example the provision of landing cleats.
+(g) Clear instructions for the requirement of temporary bracing. Where it is
+    recognised by the design engineer that temporary bracing will be required, it
+    should be detailed on the drawings so that the erector can make provision for
+    such bracing and riggers do not have to access an unstable structure.
+(h) The handling, lifting, storing, stacking and transportation of components
+    depending on their size, shape and weight. Identifiable lifting points and
+    component weights should be specified. For sub-assemblies, it is critical that
+    overall weight and lifting points are identified on all drawings for example, design
+    drawings and as-built drawings.
+(i) The requirement for specific lifting arrangements to be detailed on structural
+    member drawings to facilitate safe lifting.
+(j) The information required for safe erection of the structure. This information
+    should include any special conditions. Special conditions relating to the safe
+    erection of the structure should be highlighted on all documentation at the pre-
+    contract stage, for example, the need for temporary bracing/guying or the use of
+    mobile access platforms.
+(k) If the erection technique involves the use of a ‘rigger’s post system’, verification
+    that the structure can withstand the loadings that may be applied by these.
+(l) The grades of steel including bolts and means for fabrication of components such
+    as welding, are in accordance with relevant ‘Standards’
+    and
+(m) Consider the option of assembling the unit on the ground to reduce the number
+    of fixings or connections made when working at heights.
+
+2.6 Principal contractors
+Factors that should be considered by the principal contractor when planning the
+project include:
+(a) The number of contractors. Where a number of contractors are to be employed
+    on the project and there is a likelihood of injury because of the actions of any one
+    contractor, planning should provide for sufficient physical or time separation to
+    ensure the work by each contractor can be carried out safely.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                       Page 8 of 54
+(b) The scheduled time frames for steel construction. The scheduled time frames
+    should provide enough time for the steel to be constructed in a safe manner.
+(c) The frequency of site meetings to discuss health and safety issues on site. The
+    timing of site meetings should ensure safe working practices are developed,
+    implemented and maintained by all contractors as the various phases of the
+    project are reached.
+(d) How any modifications to the structural building layout, or any other additions,
+    substitutions or remedial work considered necessary, will affect the WHS
+    management plan, and
+(e) How the accuracy of each PCBU’s work will be reviewed to determine if it
+    complies with the required level of safety specified in the WHS management
+    plan. Where the accuracy is not specifically detailed, the tolerances to the
+    relevant code should be used. Failure to ensure the integrity of each PCBU’s
+    work could lead to unsafe working conditions by other contractors working on the
+    project and may compromise the stability of the building or its component parts
+    especially during erection.
+
+2.7 Fabricators
+A fabricator is a PCBU who fabricates structural steel components for buildings and
+other structures. When planning the work the fabricator should take into account:
+(a) The sequence for delivery of each stage of the structural steel
+(b) The need for locating numbers to be clearly marked on steel components. This
+    will allow the components to be easily identified for the sequence of erection.
+    Consideration should also be given to identifying the lifting points on steel
+    components to allow loads to be lifted in a safe manner
+(c) How members will be supported and their ends tied and held to prevent
+    uncontrolled movement of the steel while it is being loaded, transported,
+    unloaded, moved and located, and
+(d) Marking of steel members with their mass - steel to be marked should be
+    determined after consultation between the steel erector and the steel fabricator.
+
+2.8 Erectors
+An erector is a PCBU who erects structural steel components for buildings, and
+employs a person experienced in the erection of structural steel, licensed as a
+‘rigger’. When planning the work, the erector should take into account:
+(a) The method to be used when erecting the structure. The method should be
+     developed in accordance with the drawings, specification following discussions
+     with the designer and the principal contractor.
+(b) How the structure will be erected paying particular attention to bracing bays and
+     temporary bracing.
+(c) Plant to be used for the work. Consideration should be given to indicating the
+     size, type, position and coverage of the proposed erection crane(s) on a site
+     plan. In addition, locations such as unloading points and storage areas (if any)
+     should be shown. Consideration should be given to the required crane usage in
+     the overall plan including access, working radii and boom clearances.
+(d) The stability requirements for all components of the structure.
+(e) The proposed methods for handling components.
+(f) The possibility for pre-assembly, on the ground, of members prior to installation
+     and the movement and location of heavy members, and
+(g) That ground conditions are suitable to allow plant to be moved and used in a safe
+     manner at the workplace. For example, in muddy conditions an operator may
+     lose control of a mobile crane when driving to a new location at the site.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 9 of 54
+3 Work systems
+3.1 Prioritise control measures
+The primary risks to the health and safety of persons involved in steel construction
+work are falls from heights, falling objects, collapse of the structure and plant
+engaged in the steel construction work. Risk management plays an important role in
+the management of workplace health and safety. It is a logical and systematic
+approach which can result in a reduction in the incidence of injury and illness.
+Appendix 1 – ‘Risk management in steel construction – falls from heights’,
+provides detailed information on this issue.
+
+The control measures implemented to address these risks should be implemented in
+priority order. This is called the ‘hierarchy of control’.
+
+The primary task is to determine whether the risk can be eliminated. Where this is not
+possible, substitution for a less hazardous method should be considered. If this is not
+possible, consideration should be given to each of the other controls,
+isolation/engineering controls, administrative controls and as a last resort; the use of
+personal protective equipment (PPE). These should be considered in turn, starting
+with substitution and working down to the use of PPE. This should occur until a
+control or combination of controls are identified which can then achieve the required
+reduction in risk.
+
+3.2 Working at heights
+The WHS Regulation prescribes the requirements for controls to be in place where a
+person can fall from one level to another that is reasonably likely to cause injury to
+the person or to any other person (see part 4.4 and chapter 6 of the WHS
+Regulation).
+
+3.3 Risk of a person falling from one level to
+another
+A person may be exposed to the risk of injury and death from a fall of any height and
+principal contractors, PCBUs, and workers all have duties under the WHS Act where
+a person can fall from one level to another (see part 2 of the WHS Act).
+
+3.4 Controls to prevent falls from heights
+The control measures to prevent death or injury from a fall should be in place before
+work commences. Persons carrying out steel construction at a height may be
+exposed to the risk of death or injury from falling. Several control measures are
+available in these circumstances, and more than one control measure may be
+necessary. Ground level prefabrication should be considered as a fall prevention
+strategy. To reduce the need to work at heights, some alternative means of erection
+are:
+(a) Construct as much of the steelwork as possible at ground level or from erected
+     floor slabs or decks in the structure. This should be taken into consideration
+     when planning the work
+(b) Where possible, the lifting sling or device should be released from floor level by
+     the use of long slings, remote release shackles or other suitable devices (refer to
+     Figure 5 in section 4.3.5, ‘Erecting steel components – Columns’)
+    and
+ The use of fall-arrest harnesses is not the preferred control measure for persons
+    working on steel construction as these do not actually prevent a fall from
+
+
+Steel construction - Code of Practice 2004 - PN11187                       Page 10 of 54
+   occurring. Wherever possible and practicable the use of a method which reduces
+   the risk of a person falling (e.g. perimeter guardrail, elevating work platforms),
+   should be selected.
+
+Control measures that may prevent the risk of death or injury from falls from heights
+include:
+(a) work platforms
+(b) fall prevention device
+(c) fall arrest system
+(d) edge protection systems
+(e) fall protection covers.
+
+3.5 Work platforms
+3.5.1 Fabricated working platforms
+These platforms can be used in many locations as they can be designed to fit a
+variety of beam and column configurations.
+
+A work platform should be secured against uplift or displacement to a structure and
+installed with edge protection systems. The area of the platform should be of a size
+and strength to carry the tools, materials and persons required to work from it.
+
+Working platforms should be designed by an engineer and should not be less than
+450 mm in width or length.
+
+3.5.2 Elevating work platforms (EWPs)
+An elevating work platform means a telescoping, scissor or articulating device or any
+combination thereof used to position personnel, equipment and materials at work
+locations, and to provide a working area for persons elevated by and working from
+the platform.
+
+EWPs include scissor lifts, boom lifts and truck mounted EWPs (travel towers).
+EWPs are primarily designed so that a person may work at an elevated position, on a
+structure from within the confines of the EWP platform or basket.
+
+EWPs are regularly used for steel construction. They provide an efficient access
+system and are preferable to other methods that involve the use of fall-arrest
+systems, because they reduce the risk of a fall occurring. Both boom lifts and scissor
+lifts are used in steel erection.
+
+EWPs are used as access for workers to help position steelwork as it is being lifted
+by a crane. They are also used by workers when installing and tightening bolts.
+EWPs are not specifically designed for a person to move from the platform to gain
+access onto another elevated surface, although they are sometimes used in this
+application instead of other more conventional forms of access, such as scaffold stair
+access towers.
+
+In some situations EWPs may not be suitable for providing access/egress onto a roof
+or structure due to factors such as the following:
+ The number of workers required to access the roof/structure may be in excess of
+    what an EWP could safely transport in the event of having to provide emergency
+    evacuation from the roof/structure.
+ The platform on the EWP can move as the person gets in and out with the
+    potential for the person to fall through the gap – when the platform is beside the
+    roof/structure.
+
+
+Steel construction - Code of Practice 2004 - PN11187                     Page 11 of 54
+   There is a possibility that the EWP can be removed from the access area while
+    persons are located at height.
+   The stability of the unit relies on firm and level ground. This is not the case on
+    some construction sites, and
+   In comparison with stair access, an EWP is not available for access at all times
+    because it takes time to raise and lower persons. This issue becomes a greater
+    problem when more workers are required to work on the roof or structure.
+
+Where an EWP has been selected to provide access for workers onto a
+roof/structure the system of access should be safe. Factors that should be ensured
+include the following:
+ The EWP should not be used for any other purpose and should not be driven
+     away from the building.
+ The area around the EWP should be free of vehicular traffic.
+ The ground condition should be suitable for the use of the EWP.
+ The EWP should not be used near live electrical power lines.
+ Boom-type EWPs with a boom length of 11 metres or more require a licensed
+     operator to operate the unit, or the operator should be directly supervised by the
+     holder of a licence.
+ All operators of EWPs should be competent and adequately trained.
+ A competent person should be available at ground level to lower the platform in
+     case of malfunction.
+ Where the EWP platform is raised so that it is next to the roof/structure edge, the
+     gap between the landing and the platform should not exceed 100 mm.
+ The platform should be secured against sideways movement as necessary (i.e.
+     the platform should not move as workers get on and off – this may be more of an
+     issue with smaller EWPs). Where the platform is secured, it is preferable to use a
+     restraint system that does not snag on the building when the platform is lowered
+     and
+ Safe access and egress should be provided by either one of the following:
+    (a) A guardrail system at roof/structure level that extends at least 1.5 metres
+        either side of the gate on the platform of the EWP. The gate on the EWP
+        should be inward opening so that workers are not required to climb over the
+        top of the guardrail.
+    (b) The use of a safety harness by workers, or a system that will prevent a
+        worker, who is entering or leaving the EWP, from falling off or through the
+        structure. This may require the use of a ‘double lanyard’ system. On a steep
+        roof workers should be provided with a means to prevent them sliding down
+        and/or off the roof.
+
+All persons in boom-type EWPs should wear a full body harness and energy
+absorber type lanyard attached to an anchorage point in the basket of the EWP.
+
+In some situations EWPs may be used to lift lighter steelwork (e.g. purlins, girts and
+bridging), where the EWP manufacturer states that this is an acceptable practice.
+
+The following points should be noted when lifting steelwork with an EWP.
+ Total load on the EWP including workers and materials must not exceed the
+   ‘rated capacity’, sometimes referred to as ‘safe working load’ (SWL), of the
+   platform.
+ Steelwork must not be loaded so that it will damage the EWP in any way or
+   become imbalanced.
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 12 of 54
+   Where an EWP is used to lift steel components, the steelwork should not be
+    loaded onto the EWP guardrails, as this may damage the guardrails or allow the
+    steelwork to roll off the platform. A ‘purpose built’ cradle to hold the steelwork
+    should be used. Cradles should be designed by a competent person and not
+    make the operation of the EWP unsafe in any way.
+   A ‘purpose built’ cradle, used in conjunction with a crane, should be considered
+    to install steelwork.
+   The EWP must never be used to force the steelwork into place, this places
+    excessive load on the unit.
+   The working surface for the EWP must be level, firm, have clear access and no
+    step up or step down on the floor slab.
+   EWPs used for steel erection must be rated for outdoor use and the effects of
+    wind loading must be considered.
+   Workers in boom type EWPs must use full-body harness with an energy
+    absorber type lanyard attached to an anchorage point in the basket of the EWP.
+
+3.5.3 Temporary working platforms
+These platforms can be fitted to members at ground level before erection or lifted into
+position following the erection of steelwork.
+
+3.5.4 Work boxes
+A work box is a personnel-carrying device designed to be suspended from a crane,
+which provides an elevated working area for persons working from the box. Persons
+using a workbox should be attached, at all times, by a full body safety harness,
+lanyard and energy absorber to a suitable anchorage point located within the
+workbox or to the main sling ring above the workers heads. Fall arrest attachments
+must not be placed in the throat of the lift hook. Where a workbox is used, at least
+one person in the workbox must be competent in crane signals, for example a
+dogger.
+
+3.5.5 Design
+Workboxes should be specifically designed for that purpose and:
+(a) have slings permanently attached by locked shackles or a hammer lock device
+(b) have a factor of safety of each suspension sling of at least 8 for chains and 10 for
+    wire rope
+(c) be marked with the SWL, tare mass and design registration number of the
+    workbox (e.g. on a data plate)
+(d) have sides with a height of at least one metre in height
+(e) if provided with a door, should be inward opening only, self closing and be
+    provided with a latch to prevent accidental opening
+(f) should only be used to lift persons and their equipment.
+
+3.5.6 Lifting of work box
+Where a crane is used to lift work boxes, the crane should:
+(a) be fitted with a hook that has a spring loaded operable latch to prevent
+    inadvertent release of the load
+(b) be fitted with a functioning over hoisting device such as an anti-two-block
+(c) be equipped with a dead-man control on power lowering to produce self-centring
+    and automatic brake engagement
+(d) be equipped with a lockout control on the crane free fall function to prevent free
+    fall of the lift box and its contents
+(e) at the maximum radius of the task to be performed, have a minimum ‘rated
+    capacity’ of 1000kg, and
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 13 of 54
+(f) have a minimum ‘rated capacity’ of at least twice the total load of the workbox
+    and its contents, at the maximum radius for the task to be performed.
+
+3.5.7 Crane operator
+Where a crane is used to lift work boxes, the crane operator should:
+(a) remain at the controls of the crane at all times while the work box is occupied by
+    a person
+(b) ensure that the work box and its contents are moved under powered conditions,
+    at all times.
+
+Guidance on the design and safe use of workboxes and cranes is also provided in
+AS 1418.17 Cranes (including hoists and winches) – Design and construction of
+workboxes and AS 2550.1 Cranes, hoists and winches – Safe use – General
+requirements.
+
+3.6 Fall-prevention device
+Personal fall-prevention devices that do not allow a person to get into a falling
+situation are preferred over those that arrest a person once the person has fallen.
+These are travel restraint devices where a person is tethered to an anchorage point
+to restrain the person from reaching an unprotected edge. The anchorage points
+should be capable of supporting the load.
+
+
+
+
+Figure 1. Fall arrest harness with rescue straps attached.
+
+3.7 Fall-arrest systems
+A fall-arrest system is designed to arrest the fall of a person. It consists of a full fall-
+arrest harness connected to a lanyard assembly and attached to a fall-arrest static
+line or an anchorage point where there is a risk of free fall.
+
+The use of fall-arrest harnesses is not the preferred control measure for persons
+working on steel construction as these do not actually prevent a fall from occurring.
+Where ever possible and practicable select a method which reduces the risk of a
+person falling (e.g. perimeter guardrail, EWPs).
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                            Page 14 of 54
+The Managing the risk of falls at workplaces Code of Practice states the
+requirements for construction work where there is a risk a person could fall, including
+the requirements for the use of ‘travel restraint’ and ‘fall-arrest harness’ systems.
+
+Australian/New Zealand Standard series AS/NZS 1891 Industrial fall-arrest systems
+and devices provides guidance on all aspects of fall-arrest systems and should be
+consulted before installing or using any fall-arrest system.
+
+The use of a fall-arrest harness system has limitations.
+ There can be difficulties finding or designing anchorage points that will have
+   adequate capacity to resist fall-arrest loads. Individual fall-arrest anchorages
+   require a capacity of at least 15 kN (i.e. suspending a load of 1.5 tonne), and
+   static lines require anchorages with higher strengths.
+ Locating fall-arrest anchorages points on frames is not ideal because the frame is
+   usually the highest part of the building. As anchorage points generally cannot be
+   located directly above head height, the distance a person falls will be greater.
+ Most manufacturers of fall-arrest inertia reels state that the reel is to be located
+   directly above head height, with the user working in a small arc below the device
+   – this can rarely be achieved on steelwork.
+ In the event of a fall, the fall-arrest line can sometimes come in contact with an
+   edge, and may fail in some situations.
+ The system requires substantial clearance distances below the working surface
+   to ensure that the worker does not hit the ground or other obstruction prior to the
+   fall being arrested.
+ The system requires high levels of training and supervision to ensure its safe use.
+   It will also require the active participation and co-operation of users to operate
+   effectively.
+ Ropes and lanyards can become entangled and snagged on obstructions. This
+   can be a particular problem when a number of workers are on the work area.
+ It can be difficult to have an effective rescue procedure to ensure users are
+   rescued before injury occurs, without putting others at risk. Persons suspended in
+   harnesses after falling can lose consciousness or suffer modified cardiac rhythm
+   if not rescued promptly.
+ Even when a system is set up correctly, a person using it may be injured. The
+   system does not prevent a fall from occurring – rather, it prevents the user from
+   colliding with the ground or an obstruction underneath. The user may still receive
+   some injury as a result of the fall due to factors such as:
+   (a) swinging into an obstruction prior to the fall being arrested
+   (b) falling in an unusual manner (e.g. sideways) so that the fall-arrest force is not
+        transmitted to the body in the best possible manner
+        and
+   (c) the harness not operating as designed because the user is in an irregular
+        shape (e.g. obsess).
+
+Fall protection may be provided by the use of fall-arrest harnesses where other
+control measures cannot be used. Fall-arrest harnesses, lanyards and static lines
+provide a degree of fall protection, provided the following points are taken into
+account:
+(a) All persons who may be exposed to the risk of falling (e.g. riggers, should be
+     properly trained and supervised in the use of the equipment).
+(b) All persons who may be exposed to the risk of falling (e.g. riggers using fall
+     protection such as a fall-arrest harness, should not work in isolation).
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 15 of 54
+(c) A lanyard assembly should be as short as possible and the working slack length
+    not more than 2 metres, to minimise the pendulum effect.
+(d) The fall-arrest anchorage point should be located so that the lanyard can be
+    attached before the user moves into a position where they would be at risk from
+    a fall. Anchorage points should have a force capacity of 15kN for a single person.
+    Static line anchorages require greater capacities.
+(e) Travelling anchorages should also be located so that the lanyard can be attached
+    to a travelling anchorage before the user moves into position.
+    and
+(f) The components of a fall-arrest system should be compatible. The use of non-
+    compatible components could lead to ineffective equipment that presents a risk
+    of the user being injured from a fall.
+
+3.7.1 ‘Rigger’s post’ systems
+‘Rigger’s post’ is a term used to describe posts that are used as anchorages for a
+horizontal fall arrest line (static line). These are often set up along the top of portal
+frame steel structures and are intended to arrest any potential falls from the
+steelwork. There has been an increase in the use of riggers posts with some systems
+being fabricated by steel erection companies. These systems should be verified as
+‘fit for purpose’ as there may be a risk of failure of such systems or the supporting
+structure in the event of a fall occurring.
+
+Fall arrest loadings on end anchorages can be extremely high due to shock loading
+that can result when a user has a ‘free fall’ and due to other factors such as
+triangulation of the load.
+
+In addition to high loadings a fall arrest line must stop a person’s fall before hitting the
+ground or another obstruction. Although systems that use synthetic rope or webbing
+reduce end anchorage loadings, they require greater vertical clearances underneath
+the line because of extra stretch and can cause additional bounce. In some situations
+more than 8 metres may be required underneath the line.
+
+Prior to using a rigger’s post fall arrest system on a building under construction the
+building designer should be consulted to determine if the structure is strong enough
+to support the system, while the building is being erected. The designer should be
+made aware of the proposed locations of the rigger’s posts and at what stages of
+construction these are to be installed.
+
+If the designer states the structure cannot safely support the rigger’s post system,
+alternative methods of construction such as the use of elevating work platforms
+should be considered.
+
+Static line systems should be verified by a competent person to be safe and without
+risk to health when used properly. Any verification should include all parts of the fall
+arrest system, as used on site, and not parts in isolation. For instance, a rigger’s post
+may be very strong in itself, but if the supporting framework or method of attachment
+is structurally inadequate the system may fail when a person falls.
+
+Verification should include the:
+ design of the rigger’s post and the method of attaching the static line to the post
+ method of attaching posts to the supporting structure
+ minimum strength of the supporting structure (the designer may wish to specify a
+   minimum steel section size for attaching the posts – support provided to the steel
+   section would also need to be considered)
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                         Page 16 of 54
+   specification of the static line – material type, size, pre-tension etc
+   maximum span of the line between posts
+   minimum amount of vertical clearance required underneath the line
+   maximum number of persons to be using the line at any one time.
+
+Australian/New Zealand Standard AS/NZS 1891.2 Industrial fall-arrest systems and
+devices – Horizontal lifeline and rail systems, provides guidance on the design and
+testing of static lines. One means of verification would be for a suitably qualified
+engineer to verify the design of the rigger’s post and static line system complies with
+the requirements of the Australian Standard.
+
+Where testing is selected to verify the system, it should reflect the way the static line
+is set up and used on site and be severe enough to demonstrate that the system will
+not cause injury to the user. It is advisable for testing to be undertaken by an
+independent testing organisation that has experience in fall arrest equipment.
+
+Any testing should demonstrate that the system does not fail in such a manner that a
+user will hit the ground or an obstruction.
+
+Workplace health and safety inspectors may require verification for rigger’s post or
+static line systems when visiting workplaces. It is advisable that documentation
+verifying the safe design of these systems is available on site.
+
+When working with an extended line such as a fall-arrest system, there is a concern
+that if a worker fell and was suspended, injuries may result because the ‘pendulum
+effect’. Where it can be anticipated that the work may have to be undertaken with the
+use of a fall-arrest system, planned anchorage points should be in place to help
+reduce the length of line that is to be connected to the rigger.
+
+
+
+
+Figure 2. Pendulum effect
+
+Figure 2 also shows the fall arrest line contacting an edge and in some situations the
+line may also fail.
+
+3.8 Emergency recovery
+A system must be in place to quickly retrieve fallen workers whenever a fall-arrest
+harness is used. Persons with responsibilities should ensure that adequate training
+and supervision are provided to allow effective recovery when required.
+
+Research indicates that persons can lose consciousness or suffer modified cardiac
+rhythm in two-to 12 minutes.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                          Page 17 of 54
+3.9 Edge protection systems
+Edge protection consists of a system of rails, mesh, sheeting or other material used
+to prevent persons falling off a platform or other surface. Edge protection should
+consist of components designed to withstand the forces imposed upon them if a
+person fell against it, it should have a top rail or edge at least 900 mm above the
+platform or other surface.
+
+Where mid-rails are used they should be placed between the top rail and the platform
+or other surface so that no more than 450mm exists between adjacent rails and must
+have either a:
+ bottom rail fitted no more than 250mm or less than 150mm above the platform
+    or
+ toeboard for the platform that is at least 150mm high.
+
+3.10 Fall protection covers
+All holes and openings, other than lift shafts and stairwells should be protected to
+prevent persons falling. A fall protection cover is a protective structure placed over a
+hole or opening to prevent a person from falling through the hole or opening. A fall
+protection cover should be capable of supporting the impact of a person falling onto
+it.
+
+Where a fall protection cover is used on an opening, it should be secured against
+movement and should not be used as a working platform. An example is metal mesh
+spread on top of purlins or battens to prevent persons from falling between the
+purlins or battens, the metal mesh should not be used as a working platform.
+
+4 Falling objects
+Work activities, such as working at heights and lifting loads over work areas are likely
+to produce falling objects. Work should not commence until controls are put in place
+to prevent the risk of injury to workers and other persons from falling objects. Refer to
+part 3.2 of the WHS Regulation for the requirements for protection of the public from
+falling objects.
+
+Control measures that should be used to prevent or control the risk of falling objects,
+and resultant injuries, in steel construction are:
+(a) tool lanyards
+(b) lift boxes
+(c) securing the load
+(d) containment sheeting
+(e) toeboards.
+(f) exclusion zones.
+
+4.1 Tool lanyards
+A tool lanyard is a short rope or webbing used to secure tools and equipment to an
+anchorage point to reduce the risk of injury from a falling object. The tool lanyard may
+be attached to an anchorage point such as the person using the tool (see Figure 3),
+or around a column or beam.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                       Page 18 of 54
+Figure 3. Tool attached by lanyard to wrist.
+
+A lanyard should be made from material such as synthetic fibre, natural fibre or steel
+rope or webbing which will maintain the required strength and resistance to abrasion
+under harsh conditions. Consideration should be given to the length of rope or
+webbing used to secure a tool, especially if the tool is to be used near the edge of a
+working platform and other persons are working below. For example, a tool lanyard
+attached at the wrist should have a length no longer than 300mm. This will ensure
+that if the tool is dropped, the lanyard would not allow the tool to hit a person working
+below. The length of the lanyard should also be kept to a minimum to reduce the risk
+of the line snagging as the worker moves about.
+
+For example, a rigger who is erecting steel may secure working tools to his or her
+body by a lanyard to prevent a person below from being hit by a dropped tool.
+
+4.2 Lift boxes
+A lift box is a container suspended from a crane or hoist to transport plant and/or
+materials. It should be fully sheeted and enclose the load.
+
+4.3 Securing the load
+4.3.1 Wire ropes, chains and lifting slings
+Chains and auxiliary fittings should be thoroughly cleaned and periodically inspected
+to determine whether any defects exist. Guidance on inspection criteria and intervals
+between inspections is provided in Australian Standards. A chain, ring, shackle,
+swivel, wire rope or similar gear should not be used for lifting any load if:
+ the wear on any part exceeds an amount specified by the manufacturer
+    or
+ any part is deformed, nicked, cracked, split or otherwise damaged.
+
+Wire ropes should not be exposed to high temperatures because of the potential for
+heat to adversely affect the core. All lifting equipment should be stored according to
+the manufacturer’s instructions.
+
+4.3.2 Safe storage and handling of steelwork
+Steelwork should be stored on site in such a way that it cannot fall on workers or
+cause damage to buildings or plant. Where steelwork is stacked, the stacks should
+be stable and safe access should be available when workers are required to sling a
+load.
+
+The effect of wind and the potential for mobile plant to come into contact with the
+stored steelwork should also be considered when deciding how and where steelwork
+is to be stored.
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                        Page 19 of 54
+Where steelwork is strapped together caution should be exercised when releasing
+the strapping. The strapping may whip back and cause an injury or the bundle can
+fall apart and injure workers.
+4.3.3 Lifting steelwork
+Consideration should be given to the marking of the mass of steel members together
+with their protective coatings, if any, by the fabricator. This is particularly important
+where it is difficult to estimate the mass of the steel member and will enable the
+erector to select correctly designed lifting gear of appropriate capacity as well as the
+selection of a crane with adequate capacity. In situations where the material
+thickness cannot be easily determined (e.g. pipe that has its ends covered), the
+weight should be marked on by the fabricator.
+
+Before lifting any steelwork, the rigger/dogger should sling the load to be lifted and,
+where appropriate, fix tag lines (see figure 4) to the ends of the load. When
+transferring lifts from a horizontal to a vertical position, care should be taken to avoid
+unrestrained movement of the lower end. The use of lifting beams may be necessary
+during lifting and positioning of some members to ensure member stability.
+
+
+
+
+Figure 4. Tag line.
+
+4.3.4 Lifting bundles of steelwork
+The lifting of more than one steel member or bundles of steel at the same time, to
+one or more levels should only be undertaken where:
+ lifting slings are designed to avoid steel members becoming entangled or
+   dislodged from a bundle
+   or
+ cradles for bundles of steel or decking are used.
+4.3.5 Erecting steel components – columns
+Free standing single columns or column assemblies should be secured by bolting the
+column base plate onto the column footing. Once the column has been securely
+anchored and is in as close to perpendicular position as possible and stabilised
+against overturning, the column lifting gear can be released.
+
+Where possible, the lifting sling or device should be released from floor level by the
+use of long slings, remote release shackles or other suitable devices (see Figure 5).
+The use of an EWP may also be considered.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                        Page 20 of 54
+Figure 5. Remote release shackles
+4.3.6 Erecting steel components – rafters
+To minimise the potential for collapse, a rafter spanning between adjacent columns
+should ideally be erected in one length involving one crane and a single lift. However,
+where this is not possible, the rafter will need to be erected by using two or more
+cranes. The erector should consider the lifting stresses imposed on steelwork during
+erection. Where it is proposed to erect a rafter in a:
+ ‘single lift’ - the rafter should be first bolted together on the ground at the ridge
+   joint or possibly an intermediate joint. The rafter should then be fitted into position
+   and bolted to the portal columns and end wall columns by riggers working from
+   an elevating work platform
+   or
+ ‘multiple lift’- where the rafter needs to be joined while in position at its apex or an
+   intermediate rafter position then the rafter to column connections can be made by
+   the rigger working from an elevating work platform.
+
+When lifting rafters consideration should be given to the use of lifting brackets
+(designed and certified by an engineer) attached to rafters, in preference to the use
+of chains or slings around the steel.
+4.3.7 Erecting steel components – purlins
+The preferred method for erecting purlins is by the use of riggers working from
+EWPs. Where this is not practicable and the method chosen requires riggers to work
+from the rafter steelwork this could be carried out with the use of a recognised,
+correctly installed and tested fall-arrest system, (e.g. a rigger’s post system) (see
+section Fall-arrest system). Where it is chosen to work from the rafter steelwork
+(normally on buildings with a short frame spacing), individual purlins can be carried
+into position from the purlin bundle previously deposited at the base of the rafter
+slope. Purlins should always be carried up the rafter slope rather than down, as this
+is both easier and safer. Carrying purlins into position will normally involve two
+riggers, each attached to a fall-arrest system, working from adjacent rafters.
+Alternatively, where purlins cannot be safely carried into position, individual purlins
+may be lifted into position using mechanical equipment.
+
+Where purlins cannot be erected directly from the rafter steelwork, an alternate
+method such as a crane can be used to raise and place them on the rafter beams.
+With this method, there is no need to unsling the bundle; each purlin can be lifted off
+individually at each cleat location so that there is no need to carry individual purlins
+along the rafter tops, riggers can then locate and attach the purlins working from an
+EWP or purlin cradle (see Figure 6).
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                        Page 21 of 54
+Figure 6. Example of purlin and girt cage/cradle
+4.3.8 Erecting steel components – girts
+Girts should be erected by a rigger working from within an EWP or combined access
+and lifting cradle (see Figure 6). Individual girts should not be carried by hand; rather
+they should be lifted into position by mechanical equipment.
+
+To prevent girts falling from the structure, mobile scaffold towers or a combined
+access and lifting cradle should be used. With the latter, the crane or hoist will need
+to have a cradle designed for the intended load and be suitable for a person to ride.
+A crane or hoist used in this manner should be:
+(a) fitted with a hook that has a spring loaded operable latch to prevent inadvertent
+    release of the load
+(b) fitted with a functioning over hoisting device that stops the relevant crane motions
+    (e.g. motion cut-out anti-two-block). The AS 1418 Cranes, hoists and winches set
+    provides guidance on over hoisting devices. Note: This standard consists of a
+    number of parts
+(c) equipped with a ‘dead-man’ control on power lowering to produce self-centring
+    and automatic brake engagement
+    and
+(d) be equipped with a lockout control on the crane free fall function to prevent free
+    fall of the lift box and its contents.
+
+Clearly marked working load limits should be displayed at each end of the cradle,
+preferably in terms of the number of workers and the total mass of girts allowed, as
+well as the total working load limit in kilograms.
+
+4.3.9 Erecting steel components – bridging
+Girt and purlin bridging and any associated sag rods may be erected from an
+elevating work platform. Bridging should be lifted from the ground by the rigger using
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                       Page 22 of 54
+mechanical equipment. Care should be taken to ensure it does not get tangled while
+being lifted.
+
+4.3.10 Erecting steel components - roof and wall bracing
+A crane should be used to lift bracing members. Bracing should be assembled on the
+ground when this is possible. The weight of a bracing member may permit it to be
+safely lifted by hand. The rigger should do this:
+(a) while working from an elevating work platform, preferably, or the steelwork, with
+    suitable controls in place to prevent falls from heights
+(b) using a hand line to lift the bracing from the ground.
+
+In the case of wall bracing, where it can be safely lifted by hand, this should be done
+by the rigger working from an elevating work platform and using a hand line to lift the
+bracing member from the ground.
+
+4.4 Containment sheeting
+Containment sheeting is fixed to the perimeter of the structure or working surface to
+prevent a person or objects, such as building materials from falling into an area
+accessed by persons at or near the workplace. The working surface/structure is
+usually sheeted with:
+(a) timber or plywood
+(b) metal or synthetic sheets
+    or
+(c) metal or synthetic mesh.
+
+Where containment sheeting is used the sheeting should extend to a height that will
+prevent falling objects. When selecting containment sheeting, consider:
+(a) whether the sheeting capable of supporting the loads likely to be imposed on it
+(b) whether the sheeting capable of containing materials and equipment
+(c) the pattern and frequency of fixing points
+(d) the degree of protection required from rain
+(e) the likely forces that will be imposed on the structure from wind effects.
+
+4.5 Toeboards
+A toeboard is a vertical barrier to prevent the fall of tools or materials. Toeboards
+may be used to prevent objects falling into an area accessed by persons at or near a
+workplace. Toeboards may be fully sheeted with timber or metal or made from mesh.
+They should be securely fixed adjacent to the work surface and extended a minimum
+of 150mm above the work surface. The height of the toeboard should increase as the
+size and height of the materials or equipment stored near the edge increases. The
+gap between the toeboard and the work surface should not be greater than 10mm.
+
+4.6 Exclusion zones
+Bunting or barricades and suitable signage may be erected around the perimeter of
+an exclusion zone to exclude personnel from the area under which the riggers are
+erecting steelwork, reducing the risk of being hit by falling objects.
+
+5. Structure integrity
+In order to prevent the risk of death or injury from collapse of a structure, the need for
+stability at all stages of steel construction work should be understood by all those
+undertaking the work. See an example of an erection procedure for a typical frame
+building at Appendix 2.
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                        Page 23 of 54
+Control measures to prevent the risk of death or injury from the collapse of structures
+during construction are:
+(a) ensuring inherent designed stability of the structure
+(b) temporary bracing
+(c) maintenance of column stability during erection
+(d) maintenance of beam stability during erection
+(e) ensuring proper installation of post-installed anchors.
+
+5.1 Building stability
+The erection of any component or subassembly should start only when the
+necessary equipment to ensure stability of the structure is available and stability of
+the structure can be maintained at all times. This would include temporary guys or
+bracing to ensure the stability of all parts of the structure as well as the structure as a
+whole. All temporary guys or bracing should be securely anchored. Anchor points
+should be constructed so that they are able to resist any force likely to be imposed on
+them. The movement of an anchor should be reported to the erector and action taken
+immediately.
+
+Guys should be clearly identified by coloured bunting or similar to avoid accidents. In
+areas of plant and vehicle movement adequate visual barriers should be located
+between guys, plant and vehicle movement areas.
+
+During erection, the stability of the structure should be verified by the person
+identified in the WHS management plan as the verifier, in the following
+circumstances:
+(a) at the end of the workday or during temporary cessations of work. The
+    effectiveness of temporary guys, bracing and supports should also be inspected
+    at the beginning of each shift
+(b) when fastenings may be incomplete, for example, during lining up and
+    adjustment of level procedures
+(c) during high winds or when high winds are forecast
+(d) when the structure or parts of it may be subject to construction loads. For
+    example, the stacking of parts and lifting or freeing of components which may
+    have become inadvertently wedged in position.
+
+5.2 Bracing
+Where required by design, erection should start in a nominated braced bay in order
+that the structure can be plumbed and made self-supporting. This stable and self-
+supporting bay can then be used to support the erection of further steelwork.
+
+If it is not possible to commence erection at a braced bay, consideration of, and a
+decision on, the extent of temporary support should be made prior to any work being
+carried out. This should be considered when preparing the WHS management plan,
+see section 2.
+
+5.3 Column stability
+Footings for support of columns during erection should be checked to ensure
+adequate structural capacity for the erection conditions, such as wind loadings on
+columns to prevent rotation of column in the footing.
+
+Column splices should be capable of supporting the standing column until it is tied
+together, or the column should have temporary guys attached to ensure its stability at
+height. The erector should use tightly fitted steel packers or steel wedges driven
+under the edges of the column base plate to provide added stability.
+
+
+Steel construction - Code of Practice 2004 - PN11187                         Page 24 of 54
+A common form of ‘setting’ the height for the fixings of columns is by the use of
+‘jacking nuts’ that are levelled on the threads of the cast-in fixings. The column is
+placed on these and the top nuts, washers etc. installed to secure the column.
+
+5.4 Beam stability
+The erector should ensure that all beams are secured before releasing the slings.
+
+5.5 Alignment of bolts
+The stability of the steel structure relies upon effective bolted connections both from
+the concrete slab to the columns and between the columns and all the individual
+steel components. If the bolts are bent to line up with holes or the holes in the
+steelwork are enlarged to align with the bolts, the integrity of the structure can be
+adversely affected and this can increase the risk of collapse. Bent bolts are more
+likely to fail and also cause uneven load distribution to the steelwork. Enlarged holes
+in the steelwork reduce the ability of the steelwork to effectively transfer loads and
+can also result in tearing of the steelwork.
+
+Wherever holes do not line up with bolts or other holes, the building design engineer
+is to be consulted and should provide technical guidance to the steel erector. Written
+verification from the engineer is to be provided that details any changes or alterations
+that can be made to bolts or holes in the steelwork. The engineer should ensure this
+certification complies with safe structural design and bolting principals.
+
+5.6 Post-installed anchors
+An in-situ connection, for instance cast-in bolts/threaded studs, for a bolted
+connection or cast-in steel plate, for a welded connection, is the preferred method for
+anchorage.
+
+In some cases post-installed anchors (e.g. chemical, expansion or ‘screw bolt’ type
+anchors) are sometimes used to secure structural steel to a concrete slab. With the
+use of these anchors a hole is initially drilled in the concrete slab and the anchor
+inserted in the hole. The strength of fixing of the anchor is achieved through a variety
+of means including mechanical action, chemical reaction or a thread cut in the
+concrete.
+
+Post-installed anchors are sometimes used where a cast-in anchor (e.g. a cast-in bolt
+or steel plate has been placed in the wrong position). However in some situations all
+anchors have been of the post-installed type.
+
+This is discouraged for the following reasons:
+ difficulty experienced in drilling holes to the correct diameter, depth and location
+   due to the presence of re-enforcing steel in the slab
+ potential problems in ensuring the correct setting torque is applied
+ reliance on friction or bonding strength to maintain the anchors’ integrity
+ difficulty in verifying the chemical reaction is complete and the correct bonding
+   strength has been reached.
+
+Where post-installed anchor connections are to be used, they should be installed in
+accordance with manufacturer’s recommendations. The erector should ensure that
+the concrete in both walls and floors has reached the specified strength into which
+the anchor is to be installed.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                        Page 25 of 54
+5.7 Paint touch up when erecting steel components
+When assembling components of structural steel the protective coating may be
+damaged and require touch up. The more common paint types for this purpose are
+‘alkyd primers’ or ‘ethyl silicate zinc packs’.
+
+When handling any paint materials, personal contact with paint materials should be
+avoided and a high degree of personal hygiene encouraged. Full details of health
+and safety precautions can be found on the paint container or in the material safety
+data sheet.
+
+6. Cranes
+There are a number of administrative control measures relating to work practices that
+require persons to observe certain safe work practices. These control measures, to
+prevent the collapse of cranes should be in place before steel construction work
+commences. In some circumstances, more than one control measure will be
+necessary. Control measures which should be considered include:
+(a) ensuring outriggers are properly set up
+(b) correct positioning of boom to ensure loads are lifted vertically
+(c) Precautions when manoeuvring (e.g. avoidance of overhead power lines)
+(d) ensuring accurate load distribution when using multiple crane lifts
+(e) preventing lateral loadings being applied to the boom
+(f) preventing over-loading of cranes by accurate determination of the mass to be
+    lifted
+(g) providing the appropriate load rating charts and correctly calibrated moment
+    limiters
+(h) ensuring the correct counterweight has been fitted for the load chart being used
+(i) ensuring the bolting of boom sections have been correctly tensioned.
+
+6.1 Outriggers - crane set up
+Where ground conditions are suspect regarding bearing capacity, the following
+should be considered:
+(a) The principal contractor should supply to the erector all necessary information on
+    the location of trenches and backfilled trenches/services, to enable the crane to
+    be positioned and erected safely.
+(b) Before ‘setting up’ the crane, carry out a full evaluation of potential overhead,
+    underground and jobsite hazards. Visually inspect ground conditions to
+    determine the type and amount of packing required under the crane's outriggers
+    to support the proposed loads.
+(c) When placed in position the outrigger extensions should be locked or pinned in
+    position as recommended by the manufacturer, and
+(d) Footpads or hydraulic pads which form part of the outriggers should be placed
+    upon adequate footing and the crane levelled. Check the footing frequently
+    during the crane's operation to make sure it is always in place. All packing used
+    should be of a substantial nature. Hardwood timber should be at least 200mm x
+    75mm and the length determined by calculating the required area.
+
+Packing should always be laid in a ‘pigsty’ configuration (see Figure 7). It should not
+be laid in a parallel manner. Beware of underground services (cable tunnels, drains,
+cellars, etc.). Before setting up on structures or suspended floors, find out if the
+structure is capable of supporting the imposed loading and will retain a sufficient
+margin of strength in service.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 26 of 54
+Figure 7. ‘Pigsty’ configuration
+
+6.2 Operating signals
+Only one person should give visual and/or audible signals at any one time. If there is
+a loss of contact using 2-way radio control, stop work immediately. If there are 2-way
+radios operational in close proximity but located on different work sites, the
+‘Spectrum Management Agency of the Commonwealth Department of
+Communications and the Arts’ should be consulted to allocate correct radio
+frequencies.
+
+6.3 Lifting loads
+Before starting to hoist a free load, the crane operator or dogger should make sure
+that the hoist rope hangs vertically over the load (see Figure 8). Avoid swinging the
+load when the lift is taken. When lowering loads or when the load is suspended,
+make sure the load is under control. When handling maximum or near maximum
+loads, the following precautions should be taken after the load has been lifted a few
+centimetres:
+ test the hoist brakes
+ check the weight recorded on the load weight indicator
+ recheck the load chart.
+
+Except in the case of an emergency, do not leave the cabin or control room while a
+load is suspended from the crane.
+
+
+
+
+Figure 8. Correct slinging
+
+6.4 Lifting loads near persons
+Avoid carrying loads over persons. This should never be done when using devices
+that function by friction, fluid pressure, partial vacuum, and magnets or local
+indentation of surfaces. Crane operators should give audible warning before lifting
+loads near persons.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                     Page 27 of 54
+6.5 Crane types
+The placement of steelwork is a process that can utilise any of the available crane
+types. A tractor type crane can be used to transport steel around the workplace.
+Positioning the smaller or lighter pieces can be carried out with an articulating truck
+type crane. Larger mobile cranes such as truck mounted lattice boom or hydraulic
+boom cranes can be used to position heavier components that require a much further
+reach. On high rise steel construction the use of tower cranes would also be a
+consideration.
+
+6.6 Precautions when travelling and manoeuvring
+with a load
+When operating in congested areas post a ‘safety observer’ to warn of potential for
+collision with adjacent structures and overhead electrical power cables. Always use a
+dogger when travelling and keep loads close to the ground. In some cases swinging
+loads can be roped off to control the swing. Always travel with the load facing up the
+slope.
+
+When moving a load in the ‘pick and carry’ mode the dogger should remain in sight of
+the crane operator and not walk in the path of the crane.
+
+The operator of a mobile crane should ensure that:
+(a) the slew brake is applied at all times other than when the slew motion is being
+    used
+(b) when travelling a mobile crane, be aware of uneven road surfaces when loaded
+    or unloaded, as an undulation in the road surface may move the crane into a
+    zone of instability
+(c) the slewing brake or lock is applied when travelling with a load
+(d) a rope luffed mobile crane is not moved up hill with an unloaded boom in the
+    near vertical position.
+
+6.7 Multiple crane lifts
+If possible, avoid hoisting a load with more than one crane. However, where it is
+necessary to lift a load using more than one crane, the following steps should be
+taken:
+(a) one person should be designated to be in overall control of the lift
+(b) an accurate assessment should be made of:
+     (a) the share of the load which is to be carried by each crane
+     (b) how the load sharing is to be proportioned, and
+     (iii) how the proportioning is to be maintained
+(c) the instructions to each crane driver and other persons involved should be clear
+     and the operation should be rehearsed wherever possible
+(d) cranes of equal capacity and similar characteristics should be used
+(e) when using tractor type cranes in the ‘pick and carry’ mode, make sure that both
+     cranes are aligned in the same direction
+(f) luffing up should be used in preference to luffing down.
+
+6.7.1 Calculated share of the load
+Where multiple hoisting operations are not designed by an engineer, the following
+minimum capacity requirements for each crane shall apply:
+(a) For two cranes, 20 per cent greater than the calculated share of the load.
+(b) For three cranes, 33 per cent greater than the calculated share of the load.
+(c) For four cranes, 50 per cent greater than the calculated share of the load.
+
+
+Steel construction - Code of Practice 2004 - PN11187                     Page 28 of 54
+6.8 Precautions with lattice boom cranes
+The top of the extended boom should not be lowered to a point below the horizontal
+plane that passes through its base pivot pin. If the boom tips below this plane, the
+angle of pull of the boom luffing ropes could cause the boom to buckle before the
+boom begins to lift.
+
+When changing boom sections on lattice boom cranes, an intermediate or advanced
+rigger should take special care to prevent collapse of the boom, adequate support
+should be provided under each section before removing the joint pins or bolts. When
+joint pins or bolts are replaced they should be provided with properly fitted split pins
+or a locking device. Joint pins should be fitted so that they can be removed while the
+operator is standing on the ground on the outside of the boom or jib.
+
+The crane should not be operated with the boom:
+ an angle greater than that shown on the load chart
+   or
+ hard against the boom backstop. In this position serious damage could be caused
+   to structural members of the boom. Regard the boom backstop as a safety device
+   only.
+
+6.9 Precautions with hydraulic boom cranes
+When extending the boom on hydraulically operated cranes, ensure that the boom
+sections are extended or retracted in accordance with the manufacturer's
+recommendations. Boom sections have failed through being extended contrary to
+recommendations.
+
+The crane should not be operated with the boom at an angle greater than that shown
+in the load chart.
+
+6.10 Loading of cranes
+A crane should not be subjected to a greater load or manner of loading than is
+marked on the crane load chart. Where the mass of the load is cause for concern,
+the rigger should verify if the stamped mass on the load is correct.
+
+Cranes should not be operated in wind speeds exceeding those specified for safe
+use by the manufacturer. When lifting loads with a large surface area the wind speed
+can be further reduced. The decision to lift a load rests with the crane operator;
+however, if the operator believes it is unsafe to lift the load guidance should be
+obtained from the crane manufacturer or a suitably qualified engineer. Where the
+wind speed reaches this figure, either retract the boom (hydraulic boom) or lower the
+boom to a safe position (lattice boom).
+
+6.11 Load charts and indicators
+Each crane should have attached a permanent notice indicating its working load limit.
+An additional notice should also list the condition, incidence and manner of
+application of the load or use of the crane. This notice should be placed in a position
+where it can be easily read by the crane operator and where possible, the dogger.
+
+All cranes should be provided with a load chart and be equipped with a radius
+indicator. This will enable the driver to determine the working load limit for any given
+working radius. Load indicators to be fitted to all mobile cranes with a rated capacity
+of 15 tonnes and greater. This requirement should also apply to mobile cranes
+manufactured since 1996 with a ‘rated capacity’ equal to or greater than 5 tonnes.
+
+
+Steel construction - Code of Practice 2004 - PN11187                       Page 29 of 54
+‘Rated capacity’ means the maximum load that may be attached and handled by the
+crane, and may not include the weight of the hook block, falls of rope, slings and
+rigging hardware. The load to be raised must include the weight of all lifting
+appliances that are not permanently attached to the crane. The crane’s load chart will
+provide guidance on any deductions that may need to be made. In the case of mobile
+cranes, the load ratings shown on the load chart referring to pick up and carry
+operations apply only when the crane is standing on level or firm ground with the
+tyres inflated to the manufacturer's recommendations and where applicable,
+outriggers correctly placed.
+
+The manufacturers load chart of a mobile crane should be divided into two sections
+by a heavy horizontal line at various locations on the load chart. The load ratings
+indicated above this line are based on structural strength of the boom while the load
+ratings indicated below the line are based on crane stability.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                     Page 30 of 54
+Appendix 1: Risk management in steel
+construction – falls from heights
+A1.1 The process of risk management
+Risk management is the process of identifying what can cause an injury (falls from
+heights), making an assessment of what could happen as a result (injury to persons
+at or near the workplace), and controlling those risks.
+
+A1.2 Hazard identification
+Prior to commencing the steel construction work, all hazards related to falls from
+heights should be identified. There are a number of ways of identifying potential
+sources of injury including:
+a. using consultation - this is one of the easiest and most effective means of
+    identifying hazards. Designers, fabricators, erectors and workers are usually
+    aware of what can go wrong and why, based on their experience
+b. contacting specialist practitioners, representatives of industry associations, trade
+    unions and government bodies who may be of assistance in gathering health and
+    safety information relevant to falls from heights.
+
+Factors which can cause a person to fall include:
+ moving from one surface to another
+ capability of a surface to support a load
+ openings or holes not identified or protected
+ open edges that are not protected
+ slippery surfaces
+ equipment, tools or rubbish obstructing work areas
+ incorrect or inappropriate use of ladders
+ struck by a moving or falling object
+ fall-arrest systems and devices not being provided or not used correctly.
+
+A1.3 Risk assessment
+A risk assessment allows appropriate control measures to be developed. Once
+hazards have been identified, they should be assessed in terms of their potential to
+do harm. To assess risk, consideration should be given to the:
+ likelihood that harm will occur
+ severity of the harm, should it occur.
+
+Factors to consider when assessing the likelihood and severity of risk include:
+ potential sources of injury and illness
+ number of people who may be exposed
+ location of the work area
+ location of access routes
+ type of steel construction work to be carried out
+ work practices to be used
+ scheduling of work
+ type of plant and equipment to be used
+ training and experience of persons carrying out the work.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 31 of 54
+A1.4 Risk control
+Risk control is the process of preventing or minimising risk. The control or prevention
+of risk is undertaken by implementing the control measures identified in the
+assessment. A hierarchy of control measures is a list of control measures, in priority
+order, that can be used to prevent or minimise exposure to a risk.
+
+Application of the hierarchy of control measures involves:
+ firstly assessing whether the risk can be eliminated
+ where this is not possible, substitution should be considered
+ if this is not possible, consideration should be given to each of the other control
+   measures (e.g. isolation, engineering controls, safe work practices and the use of
+   personal protective equipment).
+
+A1.5 Monitor and review control measures
+The risk identification, assessment and control process requires regular monitoring to
+ensure that any control measure implemented performs as originally intended. One
+of the ways to undertake the review is to re-do the first 2 steps of the risk
+management process. This involves identifying the hazards and assessing the risks.
+Methods that can be used to review the control measures in place include:
+ consulting with workers
+ referring to specialist practitioners and representatives of industry associations,
+    unions and government bodies.
+
+A written record, detailing when control measures were reviewed, should be kept.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 32 of 54
+Appendix 2: Erection procedure for portal
+frame buildings
+A2.1 General
+A2.1.1 Portal frame buildings
+This erection procedure is for portal frame buildings with conventional bracing in the
+buildings longitudinal direction. The bracing will usually be located near the ends of
+the building at the end bay or the bay adjacent to the end bay. The end wall of the
+building may be either a portal frame or of braced construction. Bracing locations
+covered are indicated in Figures A1 to A4. Long buildings may have additional
+braced bays along their length. This procedure is based on, braced bays being no
+more than seven bays apart and the portal frames being lifted in one piece.
+
+
+
+
+Figure A1. Building bracing location – internal bay
+
+
+
+
+Figure A2. Alternative wall bracing location
+
+
+
+
+Figure A3. Building bracing location – end bay
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 33 of 54
+Figure A3. Building wall bracing location
+
+A2.1.2 Bracing systems
+The bracing systems may be of the following types:
+(a) cross bracing roof and walls. See Figures A5 and A6
+(b) rigid frame (or moment frame) bracing walls. See Figure A7
+    or
+(c) tension bracing roof and walls. See Figures A8 and A9.
+
+
+
+
+Figure A5. Roof cross bracing
+
+
+
+
+Figure A6. Wall cross bracing
+
+
+
+
+Figure A7. Wall right frame bracing
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187             Page 34 of 54
+Figure A8. Roof tension bracing
+
+
+
+
+Figure A9. Wall tension bracing
+
+A2.2 Type of main frame
+The erection procedure described covers main frames of the following types:
+(a) The braced bay is located within the building (see Figures A1 and A2). These
+    contain cross bracing and the walls have either cross bracing or rigid frame
+    bracing. Section A2.4 details the erection procedure
+    and
+(b) The braced bay is located in the end bay (see Figures A3 and A4). The roof
+    contains cross bracing or single acting tension bracing. The walls have either
+    cross bracing, rigid frame bracing or single action tension bracing. Section 5
+    details the erection procedure.
+
+Preferred sequence A2.3.1, A2.3.2, A2.3.4, A2.3.5 and A2.3.6
+
+A2.3 Erection procedure for main frame with the
+braced located within the building
+A2.3.1 Erection of first braced bay
+The braced bay will usually be located adjacent to the end bay in this case as shown
+in Figures A1 and A2. However this section applies if the braced bay is towards the
+centre of the building.
+
+The procedure is as follows:
+Erect a pair of braced bay columns on one side of the building. If the wall bracing is
+offset from the braced bay, as in Figure A4, erect the third main wall column.
+Complete with wall bracing and horizontal strut(s) between them including strut in
+unbraced bay if required. Level and plumb, tighten holding down bolts, bracing and
+strut(s) end bolts or tie rods.
+(a) Repeat (a) for the columns on the other side of the building.
+(b) Position and bolt up the two parts of the two portal rafters on the ground to
+    enable easy lifting. This operation may be done before (a) and (b) if there is
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 35 of 54
+    sufficient access to the outside walls of the building. If the portal rafter is
+    fabricated in one piece this step will not be required.
+(c) Erect the first rafter and bolt to the columns. If the span of the portal is such that
+    the free standing frame could be unstable then the portal is to be guyed from the
+    apex in opposite directions before detaching the crane hook(s). It would be
+    expected that this would certainly be the case for frame spans of 30 metres and
+    over.
+(d) Erect the second rafter and bolt to the columns. Again if the span of the portal is
+    such that the free standing portal frame could be unstable, then the portal frame
+    is to be stabilised at the apex by connecting a purlin to the previously erected
+    frame, before detaching the crane hook(s).
+(e) Erect the entire roof bracing in the bay including the struts. See Figures A5 and
+    A6. The erection of this roof bracing should proceed from each outside wall
+    towards the apex.
+(f) Re-plumb the structure erected so far if necessary, tension all tie rods and/or
+    tighten all bolts. There will now be a stable frame from which to attach the
+    remaining building structure
+    and
+(g) The guys attached to the apex can now be removed.
+
+A.2.3.2 Erection of end bay
+If the end wall is a portal frame:
+(a) Erect the columns and eave struts or top wall girts, at each side of the building.
+(b) Erect the previously bolted up portal and connect with a purlin at the apex before
+     releasing the crane hook(s).
+(c) Erect one stabilising purlin at each roof bracing strut position. See Figure A10
+(d) Erect remaining end wall columns.
+
+
+
+
+Figure A10. Building end wall
+
+If the end wall is a braced frame:
+(e) Starting erection from the corner nearest the end wall bracing, erect and bolt the
+     corner column and the eaves strut or top wall girt.
+(f) Continue erection and bolting of the remaining end wall columns, rafters and
+     bracing from the corner column. As the erection proceeds across the end wall the
+     completed bolted frame must be secured back to the previously erected portal
+     frames with roof purlins at bracing strut members. See Figure A10
+     and
+(g) Erect the remaining eaves strut or top wall girt at the other side of the building.
+
+Proceed to A2.3.4
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                         Page 36 of 54
+Alternate sequence if end bay needs or has to be erected first A2.3.3, A2.3.4, A2.3.5,
+and A2.3.6 (This will generally be required where access is limited or to improve
+working area on site).
+
+A2.3.3 Erection of end frame with first braced
+If the end frame is a portal frame:
+(a) follow the procedure as described in Paragraph A2.3.1 (a) to (d)
+     and
+(b) erect the remaining end wall columns.
+
+Proceed to (g) below
+If the end frame is a braced frame:
+(c) Start erection from the corner nearest the end wall bracing.
+(d) Erect this corner column and the next two main wall columns next to it.
+     Complete with wall bracing and horizontal strut(s) between them including strut in
+     unbraced bay. Level and plumb, tighten holding down bolts, bracing and strut(s)
+     end bolts or tie rods.
+(e) Continue erection and bolting of the remaining end wall columns, rafters and
+     bracing from the corner column. As the erection proceeds across the end wall the
+     completed bolted frame must be guyed from the apex in opposite directions. If
+     there is the potential for the end wall to be unstable before the apex is reached
+     addition guys in opposite directions will be progressively required.
+(f) Erect main wall columns etc. on the other side of the building as in (d).
+(g) Position and bolt up the two parts of the portal rafters on the ground to enable
+     easy lifting. This operation may be done before (c) to (f) above if there is sufficient
+     access to the outside walls of the building. If the portal rafters are fabricated in
+     one piece this step will not be required.
+(h) Erect the first rafter and bolt to the columns. If the span of the portal is such that
+     the free standing portal frame could be unstable then erect a purlin between the
+     apexes of the portals before detaching the crane hook(s). It would be expected
+     that this would certainly be the case for frame spans of 30 metres and over.
+(i) Erect one stabilising at each roof-bracing strut position (See Figure A10) to
+     provide stability for the truss.
+(j) Erect the next rafter as in (h) above. Erect the entire roof bracing in the bay
+     including the struts. (See Figures A5 and A6). The erection of this roof bracing
+     should proceed from each outside wall towards the apex.
+(k) Re-plumb the structure erected so far if necessary, tension tie rods and/or tighten
+     all bolts. There now exists a stable frame from which to attach the remaining
+     building structure
+     and
+(l) The guys attached to the apex can now be removed.
+
+A2.3.4 Erection of additional portals
+(a) Erect wall columns and tie back to the stable frame with the eaves strut or top
+    wall girt. Erect wall bracing in bays required. Level, plumb and tighten holding
+    down and other bolts.
+(b) Position and bolt up both parts of the portal rafters on the ground to enable easy
+    lifting. This operation may be done before (a) above if there is sufficient access to
+    the outside walls of the building. If the portal rafter is fabricated in one piece this
+    step will not be required.
+(c) Erect the first rafter and bolt to the columns. If the span of the portal is such that
+    the free standing portal frame could be unstable then erect a purlin between the
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                         Page 37 of 54
+    apexes of the portals before detaching the crane hook(s). It would be expected
+    that this would certainly be the case for frame spans of 30 metres or over.
+(d) Erect sufficient stabilising purlins at the roof bracing struts located at the ends of
+    the roof cross bracing to provide stability for the truss (See Figure A11). The
+    number of purlins required at each location is shown in Table 1. The purlins
+    closest to the node points are to be used.
+
+
+
+
+Figure A11. Erection of additional portals
+
+(e) Erect purlin fly braces to each side of each portal. This may require additional
+    purlins to be erected. The fly bracing erection can lag one portal behind to allow
+    easy installation of lapped purlins. Ensure that all bolts are installed and tightened
+    and
+(f) Proceed to erect additional portal rafters by following steps (b) to (e) in sequence.
+    Continue to erect down the building in the same manner to the next braced bay.
+
+Table 1 - Stabilising requirements
+(See Figures A5 and A8)
+Number of purlins required
+Bracing strut spacing (mm)      At eaves                      At strut locations within
+                                                              buildings
+Up to 6000                      One                           One
+6000 – 9000                     One                           Two
+9000 – 12000                    Two                           Three
+A2.3.5 Erection of next braced bay
+a. When the portals each side of the braced bay have been erected. Erect the entire
+   roof bracing in the bay including the struts (See Figures A5 and A6). The erection
+   of the roof bracing should proceed from each outside wall to the apex
+   and
+b. Tension all tie rods and/or tighten all bolts.
+A2.3.6 Erection of last end bay
+The erection of this bay is identical to section 3.2.
+
+Follow Paragraphs A2.3.2(b) to A2.3.2(d) or A2.3.2(e) to A2.3.2(g).
+
+Proceed to section 5
+
+A2.4 Erection procedure for main frame with braced
+bay located in the end bay
+A2.4.1 Erection of first braced
+(a) Follow the procedures as described in Section A2.3.1.
+    and
+
+
+Steel construction - Code of Practice 2004 - PN11187                         Page 38 of 54
+(b) erect Erect the remaining end wall columns.
+
+If the end frame is a portal frame:
+(c) Start the erection from the corner nearest the end wall bracing.
+(d) Erect this corner column and main wall column next to it. If the wall bracing is
+     offset from the braced bay as in Figure A4 erect the next main wall column.
+     Complete with wall bracing and horizontal strut(s) between them including strut in
+     unbraced bay if required. If building has single action tension bracing, supply and
+     erect a temporary brace or guy from the top of the corner column to the bottom of
+     the next main wall column. This will form cross bracing in this bay (See Figure
+     A12.). Level and plumb, tighten holding down bolts, bracing and strut(s) end bolts
+     or tie rods.
+
+
+
+
+Figure A12. Wall temporary tension brace.
+
+(e) Continue erection and bolting of the remaining end wall columns, rafters and
+    bracing from the corner column. As the erection proceeds across the end wall the
+    completed bolted frame shall be guyed from the apex in opposite directions. If
+    end wall could be unstable before the apex is reached additional guys in opposite
+    direction will be progressively required.
+(f) Erect main wall column etc. on the other side of the building as in (d) above.
+(g) Position and bolt up two ports of the portal rafter on the ground in a position to
+    enable easy lifting. This operation may be done before (c) to (f) if there is
+    sufficient access to the outside walls of the building. If the portal rafter is
+    fabricated in one piece this step will not be required.
+(h) Erect the rafter and bolt to the columns. If the span of the portal is such that the
+    free standing portal frame could be unstable then the portal is to be guyed from
+    the apex in opposite directions before detaching the crane hook(s). It would be
+    expected that this would certainly be the case for frame spans of 30 metres and
+    over.
+(i) Erect the entire roof bracing in the bay including the struts (See Figures A5 and
+    A8). The erection of this roof bracing should proceed from each outside wall
+    towards the apex. (If building has single action tension bracing proceed to Step (j)
+    below).
+(j) Re-plum the structure as necessary, tension tie rods and/or tighten all bolts. A
+    stable frame now exists from which to attach the remaining building structure.
+(k) The guys attached to the apex can now be removed. (The following Steps (I) and
+    (m) are only for buildings with single action tension bracing).
+(l) Erect temporary roof cross bracing or a guy has been installed from the apex at
+    the end of the building to a secure ground anchor within the building (see Figure
+    A13). This bracing or guy is to be tightened with the roof bracing and left in place
+    until the bracing at the other end of the building is complete
+    and
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 39 of 54
+(m) Re-plumb the structure erected as necessary, tension tie rods and/or tighten all
+    bits. A stable frame now exists from which to attach the remaining building
+    structure. Remove temporary guys other than the one identified in step (1).
+
+
+
+
+Figure A13. Temporary roof tension bracing.
+
+A2.4.2 Erection of additional portals
+(a) Erect wall columns and tie back to the stable frame with the eaves strut or top
+    wall girt. Erect wall bracing in bays as required. Tighten holding down and other
+    bolts.
+(b) Position and bolt up the two parts of the portal rafters on the ground to enable
+    easy lifting. This operation may be done before (a) if there is sufficient access to
+    the outside walls of the building. If the portal rafter is fabricated in one piece this
+    step will not be required.
+(c) Erect the first rafter and bolt to the columns. If the span of the portal is such that
+    the free standing portal frame could be unstable then erect a purlin between the
+    apexes of the portals before detaching the crane hook(s). It would be expected
+    that this would be the case for frame spans of 30 metres and over.
+(d) Erect sufficient stabilising purlins at the roof bracing struts (see Figure A11). The
+    number of purlins required at each location is shown in Table 1. The purlins
+    closest to the node points are to be used.
+(e) Erect purlin fly braces to each side of each portal. This may require additional
+    purlins to be erected. The fly bracing erection can lag one portal behind to allow
+    easy installation of lapped purlins. Ensure that all bolts are installed and
+    tightened, and
+(f) Proceed to erect additional portal rafters by following Steps (b) to (e) in
+    sequence. Continue to erect down the building in the same manner to the next
+    braced bay.
+
+A2.4.3 Erection of next braced bay
+Ensure all portal frames up to and including the braced bay have been erected. If the
+braced bay is an internal bay, or if the end frame is a portal frame, follow steps in
+Section A2.3.5.
+
+If an end bay is a braced frame follow the steps below:
+a. starting erection from the corner nearest the end wall bracing, erect and bolt the
+    corner column and the eaves strut or top wall girt.
+b. Continue erection and bolting of the remaining end wall columns, rafters and
+    bracing from the corner column. As the erection proceeds across the end wall the
+    completed bolted frame shall be secured back to the previously erected frames
+    with the bracing strut members (see Figure A13).
+c. Erect the eaves strut or top wall girt to the top of this column.
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                          Page 40 of 54
+d. Erect the entire roof bracing in the bay including the struts (see Figures A5 and
+   A8). The erection of this roof bracing should proceed from each outside wall
+   towards the apex. Tension all tie rods and/or tighten all bolts
+   and
+(Following step (e) is only for buildings with single acting tension bracing)
+e. Remove the temporary wall and apex guys and/or temporary wall and roof
+   bracing from the other end of the building.
+Proceed to section A2.5
+
+A2.5 Erection of remaining building components
+A2.5.1 Purlins
+The remaining purlins can be loaded onto the erected structure provided the
+following conditions are satisfied:
+a. the initial braced bay has been completed
+b. purlin packs are limited to purlins for the remaining half-bay
+c. packs must be located on the roof bay near the sidewall (see Figure A4), and
+d. packs can be loaded onto the various bays as follows:
+        i.  braced bay, when completed as described in section A2.3.1, A2.3.3,
+            A2.3.5, A2.4.1, or A2.4.3
+       ii.  end wall bay, when completed as described in section A2.3.2, A2.3.3 or
+            A2.3.6
+            and
+      iii.  intermediate bay, after stabilising purlins have been finally bolted and will
+            not be unbolted for attachment of continuing lapped stabilising purlins.
+
+Erection of the remaining purlins may proceed at any time after they have been
+loaded on the roof.
+
+
+
+
+Figure A14. Location of purlin packs.
+
+A2.5.2 Girts
+Long wall girts may be erected with columns or in bays as for purlins (i.e. condition
+as stated in section A2.5.1).
+
+End wall girts may be erected after the end wall structure erection has been
+completed.
+
+A2.5.3 Roof sheeting
+Packs of roof sheeting may only be loaded on to the structure when purlins and their
+bridging have been completed to the end of the building or up to the second braced
+bay when purlins and their bridging have been completed to that bay.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                        Page 41 of 54
+Roof sheeting packs must be loaded near portal rafter or end frame. Roof sheet pack
+sizes should not be greater than a bay coverage. The sheet packs should be placed
+at each portal or end frame (see Figure A15).
+
+
+
+
+Figure A15. Location of sheeting packs.
+
+A2.5.4 Wall sheeting or tilt-up panels
+Wall sheeting and tilt up panels can only be attached to the frame after the whole
+structure or a section containing two braced bays, has been completed including roof
+purlins, purlin fly bracing and bridging.
+
+
+
+
+Figure A16. View of typical building showing arrangement of components.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                      Page 42 of 54
+Appendix 3: Published technical standards
+Standards
+   AS 1418 Set - Cranes, hoists and winches set
+   AS / NZS 1554 Set - Structural steel welding set
+   AS / NZS 1576.1 - Scaffolding – General requirements
+   AS 1657 - Fixed platforms, walkways, stairways, and ladders - Design,
+    construction and installation
+   AS / NZS 1891 Series - Industrial fall-arrest systems and devices
+   AS / NZS 1892 Series - Portable ladders
+   AS 2550 Set - Cranes, hoists and winches - Safe use set
+   AS 2759 - Steel wire rope – Use, operation and maintenance
+   AS 3828 - Guidelines for the erection of building steelwork
+   AS 3990 - Mechanical equipment - Steelwork
+   AS 4100 - Steel structures
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                  Page 43 of 54
+Appendix 4: Duties
+Work health and safety duties
+(Part 2 – the WHS Act, Division 2 and Division 3)
+
+Duties of persons conducting business or undertaking (PCBUs)
+Section 19 of the WHS Act
+1. A PCBU must ensure, so far as is reasonably practicable, the health and safety
+   of:
+    a. workers engaged, or caused to be engaged by the person
+       and
+    b. workers whose activities in carrying out work are influenced or directed by the
+       person
+   while the workers are at work in the business or undertaking.
+
+2. A PCBU must ensure, so far as is reasonably practicable, that the health and
+   safety of other persons is not put at risk from work carried out as part of the
+   conduct of the business or undertaking.
+
+Example of duties under this section-
+A PCBU contracts with a supplier of labour to obtain the services of the supplier’s
+workers to perform a work activity for the purposes of the business or undertaking.
+As well as any duty the person may have under section 19 to ensure the health and
+safety of the PCBU’s own workers, if any, the PCBU also has, under this section, a
+duty to ensure the health and safety of labour hire workers while they are performing
+the work activity.
+
+Duties of principal contractors
+Section 314 of the WHS Regulation
+This section specifies that the principal contractor for a construction project must put
+in place arrangements for ensuring compliance at the workplace with the provisions
+in the WHS Regulation about:
+ the general working environment (division 2 of part 3.2)
+ first aid (division 3 of part 3.2)
+ emergency plans (division 4 of part 3.2)
+ personal protective equipment (division 5 of part 3.2)
+ managing risks from airborne contaminants (division 7 of part 3.2)
+ hazardous atmospheres (division 8 of part 3.2)
+ storage of flammable or combustible substances (division 9 of part 2.2)
+ falling objects (division 10 of part 3.2)
+ falls (part 4.4).
+
+A note to this section states that all PCBUs at the construction project workplace
+have these same duties (see part 3.2 of this regulation and section 19(3)(e) of the
+WHS Act). Section 16 of the WHS Act provides for situations in which more than one
+person has the same duty.
+
+Section 315 of the Regulations
+This section provides that the principal contractor for a construction project must
+manage risks to health and safety in relation to the matters stated in this clause.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                       Page 44 of 54
+The principal contractor for a construction project must in accordance with part 3.1
+manage risks to health and safety associated with the following:
+ the storage, movement and disposal of construction materials and waste at the
+   workplace
+ the storage at the workplace of plant that is not in use
+ traffic in the vicinity of the workplace that may be affected by construction work
+   carried out in connection with the construction project
+ essential services at the workplace.
+
+Duties of designers of plant
+Section 22 of the WHS Act
+1. This section applies to a person (the designer) who is a PCBU that designs:
+    plant that is to be used, or could reasonably be expected to be used, as, or at,
+      a workplace
+      or
+    a substance that is to be used, or could reasonably be expected to be used,
+      at a workplace
+      or
+    a structure that is to be used, or could reasonably be expected to be used, as,
+      or at, a workplace.
+2. The designer must ensure, so far as is reasonably practicable, that the plant,
+   substance or structure is designed to be without risks to the health and safety of
+   person in relation to 2(a) to (f), (3), (4) and (5) of this section.
+
+Duties of manufacturers of plant
+Section 23 of the WHS Act
+1. This section applies to a person (the manufacturer) who conducts a PCBU that
+   manufactures:
+    plant that is to be used, or could reasonably be expected to be used, as, or at,
+       a workplace
+       or
+    a substance that is to be used, or could reasonably be expected to be used,
+       at a workplace
+       or
+    a structure that is to be used, or could reasonably be expected to be used, as,
+       or at, a workplace.
+2. The manufacturer must ensure, so far as is reasonably practicable, that the plant,
+   substance or structure is manufactured to be without risks to the health and
+   safety of persons in relation to 2(a) to (f), (3), (4) and (5).
+
+Duties of suppliers of plant
+Section 25 of the WHS Act
+1. This section applies to a PCBU (the supplier) who supplies:
+    plant that is to be used, or could reasonably be expected to be used, as, or at,
+      a workplace
+      or
+    a substance that is to be used, or could reasonably be expected to be used,
+      at a workplace
+      or
+    a structure that is to be used, or could reasonably be expected to be used, as,
+      or at, a workplace.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                     Page 45 of 54
+2. The supplier must ensure, so far as is reasonably practicable, that the plant,
+   substance or structure is without risks to the health and safety of persons in
+   relation to 2(a) to (f), (3), (4) and (5).
+
+Duties of erectors and installers of plant
+Section 26 of the WHS Act
+1. This section applies to a PCBU that installs, constructs or commissions plant or a
+structure that is to be used, or could reasonably be expected to be used, as, or at, a
+workplace.
+2. The person must ensure, so far as is reasonably practicable, that the way in
+    which the plant or structure is installed, constructed or commissioned ensures
+    that the plant or structure is without risks to the health and safety of persons:
+     who install or construct the plant or structure at a workplace
+        or
+     who use the plant or structure at a workplace for a purpose for which it was
+        installed, constructed or commissioned
+        or
+     who carry out any reasonably foreseeable activity at a workplace in relation to
+        the proper use, decommissioning or dismantling of the plant or demolition or
+        disposal of the structure
+        or
+     who are at or in the vicinity of a workplace and whose health or safety may be
+        affected by a use or activity mentioned in paragraph (a), (b) or (c).
+
+Duties of owners of plant
+Section 21 of the WHS Act
+In this section, person with management or control of fixtures, fittings or plant
+at a workplace means a PCBU to the extent that the business or undertaking
+involves the management or control of fixtures, fittings or plant, in whole or in part, at
+a workplace, but does not include:
+ the occupier of a residence, unless the residence is occupied for the purposes of,
+    or as part of, the conduct of a business or undertaking
+    or
+ a prescribed person.
+The person with management or control of fixtures, fittings or plant at a workplace
+must ensure, so far as is reasonably practicable, that the fixtures, fittings and plant
+are without risks to the health and safety of any person.
+
+Duties of workers
+Section 28 of the WHS Act
+While at work, a worker must:
+ take reasonable care for his or her own health and safety
+   and
+ take reasonable care that his or her acts or omissions do not adversely affect the
+   health and safety of other persons
+   and
+ comply, so far as the worker is reasonably able, with any reasonable instruction
+   that is given by the PCBU to allow the person to comply with this Act
+   and
+ cooperate with any reasonable policy or procedure of PCBU relating to health or
+   safety at the workplace that has been notified to workers.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                        Page 46 of 54
+Duties of other persons at the workplace
+Section 29 of the WHS Act
+A person at a workplace, whether or not the person has another duty under this part,
+must:
+ take reasonable care for his or her own health and safety
+   and
+ take reasonable care that his or her acts or omissions do not adversely affect the
+   health and safety of other persons
+   and
+ comply, so far as the person is reasonably able, with any reasonable instruction
+   that is given by the PCBU to allow the PCBU to comply with this Act.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                   Page 47 of 54
+Appendix 5: Dictionary
+For the purpose of this advisory standard the following definitions apply.
+
+‘access platform’ means a platform that is only used or intended to be used to
+provide access for persons, or for persons and materials to or from places of work.
+
+‘civil construction work’ means work to:
+ construct a road or highway or erect associated works
+ construct a railway or erect associated works
+ construct or erect a harbour or associated works
+ construct or erect a water storage or supply system or associated works
+ construct a sewerage or drainage system or associated works
+ construct or erect an electricity or gas generation, transmission or distribution
+    structure or associated works
+ construct a park or recreation ground, including, for example, a golf course,
+    playing field, racecourse or swimming pool or associated works
+ erect a telecommunications structure or associated works
+ construct production, storage and distribution facilities for heavy industry,
+    refineries, pumping stations, or mines or associated works, or
+ construct or structurally alter a bridge or associated works.
+
+‘construction work’ is defined in the Work Health and Safety Regulation 2011.
+
+‘person conducting a business or undertaking’ is defined in the Work Health and
+Safety Act 2011.
+
+‘principal contractor’ for construction work is defined in the Work Health and Safety
+Regulation 2011.
+
+‘structure’ is defined in the Work Health and Safety Regulation 2011.
+
+‘worker’ is defined in the Work Health and Safety Act 2011.
+
+‘working load limit’ means the maximum working load that may be applied to any
+component or system.
+
+‘working platform’ means a platform that is intended to support persons, materials
+and equipment.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                         Page 48 of 54
+Appendix 6: Safety checklist – Steel
+erection
+Project:                   Rigging            Fabrication           Date:
+                           Contractor         Contractor:
+Principal Contractor:      Steel Const.       Engineer:
+                           Foreman:
+It is the subcontractor’s responsibility to have all sections checked off as the item is
+completed. The checklist is to be completed each day when portal steel members are
+being installed. The completed form must be given to the principal contractor when all
+items are completed.
+The crossed areas in the ‘Inspection By’ column identify who is responsible for each
+item. The responsible party initials this section as each item is inspected/actioned.
+Item No. and         Acceptance Criteria                        Checked Inspection by
+Description                                                                 Principal
+                                                                            Contractor,
+                                                                            Subcontractor,
+                                                                            Engineer
+                                                                            PC. SC. En.
+1. Drawings          Certified engineer’s drawings exist for
+Required             all of the following:
+
+                    Steelwork design – position of
+                    members, braces and bracing points,
+                    steel content.
+
+                    Permanent and temporary bracing
+                    design – types of braces required
+                    (primary, knee, lateral, end), brace
+                    angles.
+
+                    Workmanship and materials in
+                    accordance with AS 4100, AS 3828,
+                    AS 1554 Set, AS 3678.
+
+                    Steel layout and erection sequence.
+
+                    Design engineer specification on bolt
+                    torque.
+
+                    Sign off by engineer on erection
+                    method prior to erection.
+
+                    Lifting point on large items.
+
+                    Drawings to note any special
+                    conditions.
+2.                  The following documentation has been
+Subcontractors’     provided prior to work commencing:
+safety
+documentation       Rigging/erection contractors safe work
+                    method statement (SWMS). (PC’s
+                    SWMS where tower crane is used)
+
+
+Steel construction - Code of Practice 2004 - PN11187                     Page 49 of 54
+                    Crane/rigging contractors’ SWMS/lift
+                    plan showing crane set-up.
+
+                    Locations, location of obstacles,
+                    hazards and existing structures in
+                    proximity to the crane (especially
+                    temporary braces), rigging procedures
+                    and equipment, spotters duties,
+                    method of communication between
+                    crane operator and dogger, references
+                    to erection sequence, procedure for
+                    release of steel after securing and
+                    bolting off.
+3. Other safety     Other documentation provides
+documentation       evidence of the following:
+
+                    SWMS approved and discussed with
+                    and signed off by workers.
+
+                    Risk assessments/SWMS completed
+                    for all tasks to be undertaken.
+
+                    Unloading procedures and safe
+                    storage areas.
+
+                    Layout and erection sequence.
+
+                    Rescue procedure for work at heights
+                    including falls from heights in safety
+                    harness equipment.
+
+                    Access to work at height
+                    arrangements.
+
+                    Inspection requirements for steel
+                    structure (engineer consultation).
+
+                    Proof of training in safe use of safety
+                    harness and lanyard.
+
+                    Record of EWP and other plant
+                    training.
+
+                    Wind loads permissible on structure
+                    during erection.
+4. Licensing        Steel erection supervised by a person
+issues              with a minimum of basic rigger’s
+                    qualification.
+
+                    Crane operator and riggers/doggers
+                    have appropriate licences.
+
+                    Dual lifts to be supervised by a person
+                    with intermediate rigger qualification.
+
+
+Steel construction - Code of Practice 2004 - PN11187          Page 50 of 54
+                    Licences for work platforms or training
+                    evidence for EWPs.
+
+                    Visual verification for all occupational
+                    licences.
+
+                    Photocopy of all licences to be kept on
+                    file.
+
+                    Qualified welder to perform welding.
+
+                    Qualified engineer to sign off
+                    documentation.
+
+                    Crane use complies with AS 2550.1.
+
+                    Elevating work platform use complies
+                    with AS 2550.10.
+
+                    Fall-arrest harnesses comply with AS
+                    1891 Series.
+5. Pre-erection     Weight of steel members to be
+checks              known/marked on steel. (Where it is
+                    difficult to estimate the weight of steel
+                    members it should be marked).
+
+                    Crane is capable of lifting weights, all
+                    checks and servicing done.
+
+                    Field bolted beams bolted together,
+                    during storage, to prevent rolling on
+                    ground (e.g. diagonal brace bolted to
+                    main member to prevent main
+                    member rolling).
+
+                    Rigging configuration used meets load
+                    requirements of code (dual lifts).
+
+                    All slings have SWL and current
+                    inspection tags displayed.
+
+                    Ground conditions suitable for
+                    supporting crane (level and
+                    compacted surface, outriggers used –
+                    slewing cranes only, no penetrations
+                    or pits in proximity).
+                    47
+
+                    Site access is adequate.
+
+                    Proximity to overhead powerlines
+                    considered and appropriate action
+                    taken (safety observer where
+                    required).
+
+
+Steel construction - Code of Practice 2004 - PN11187            Page 51 of 54
+                    Exclusion zone installed.
+
+                    Exclusion zones have been
+                    barricaded and signed to keep non-
+                    essential personnel away during
+                    erection and rigging.
+
+                    Wind conditions are not detrimental to
+                    lifting.
+
+                    Chains and slings checked.
+
+                    Crane radius checked.
+
+                    Tag lines supplied.
+
+                    Crane fitted with safety hook, over-
+                    hoisting device, dead-man control on
+                    power lowering and lock-out control to
+                    prevent free-fall.
+6. Erection         Double wrap chains where applicable.
+checklist
+                    No ‘suicide lifting’ i.e. lifting in such a
+                    way that if the rigging fails, the steel
+                    will strike the crane and/or the
+                    operator.
+
+                    Bolts and washers of the correct size,
+                    type and number.
+
+                    Welds as per engineering drawings
+                    and AS 1554 Set.
+
+                    Hand flame cutting prohibited as per
+                    AS 4100, check detail if task is
+                    required to be performed.
+
+                    Bolts pitched at least one thread clear
+                    of nut connection.
+
+                    Connections using high-strength bolts
+                    identified as either – bearing type or
+                    the preferred friction type.
+
+                    Check type of washers to be used.
+
+                    Use of steel packers only for column.
+
+                    Check tensioning sequence and
+                    pattern. It may be necessary to re-
+                    tension bolts after installation.
+
+                    Tolerances correct for column base.
+
+
+
+Steel construction - Code of Practice 2004 - PN11187              Page 52 of 54
+                    Work area isolated for safety.
+
+                    Grout to baseplate prior to installing
+                    cladding.
+
+                    Contractor to sign-off in accordance
+                    with drawing.
+
+                    Guys clearly identified with bunting.
+7. Permanent        All bracing or supporting structure
+structure           fixing points have been installed and
+capable of          fixed as per shop drawings and
+supporting          engineer’s requirements.
+imposed loads
+prior to final      The supporting is adequately braced
+loading             and structurally sound (engineer to
+                    inspect and confirm that the structure
+                    can adequately support loads imposed
+                    upon it).
+
+                    Introduce extra temporary wind
+                    bracing if required.
+8. Ongoing          Daily inspections and documented
+monitoring of       weekly checklist to be undertaken on
+steel and           steel and temporary support systems.
+support
+systems             Competent person to sign-off at days
+                    end, at completion of each day’s
+                    erection sequence.
+9. Training and     A toolbox talk to be undertaken with all
+communication       relevant parties prior to work
+                    commencing each day.
+10. Additional
+items as
+required
+
+Note: (Acceptance Criteria) always include the relevant approved drawings, Australian
+Standards, engineers instructions, client specifications or manufacturers instructions.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                     Page 53 of 54
+Appendix 7: Sample of engineer’s
+certification letter for the use of rigger’s
+posts
+19 June 2004
+
+
+Hector Smith
+21 Concrete Drive
+Urbanville Qld
+
+
+Dear Mr Smith
+
+Pineapple Industrial Estate Project – Spiky Road, Golden Beach
+
+Structural adequacy of steel during erection and use of rigger’s post fall-arrest
+system.
+
+I certify that the steel structure: (insert type of structure, i.e. portal frame structure)
+will support the rigger’s post system detailed below.
+
+I reach this conclusion based upon the loadings and information supplied to me in
+regard to the rigger’s post system by: (name of the steel erector).*
+
+* Steel erector to provide rigger’s post loadings that are engineer verified.
+
+Conditions
+
+        (examples of conditions that maybe applied by the engineer)
+
+Monitor wind speed during steel erection, wind speed not to exceed _____ km/h.
+
+Maximum number of workers to be attached to static line at any one time.
+
+Minimum number and type of anchors per column.
+
+
+Yours faithfully
+
+
+Signature
+
+Engineer’s Name
+RPEQ No.
+
+
+
+
+Steel construction - Code of Practice 2004 - PN11187                            Page 54 of 54
+

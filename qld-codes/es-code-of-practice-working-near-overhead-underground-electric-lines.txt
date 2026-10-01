@@ -1,0 +1,1680 @@
+Electrical Safety Code of Practice 2020 - Working near overhead and underground electric lines
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0022/27670/es-code-of-practice-working-near-overhead-underground-electric-lines.pdf
+
+Electrical Safety Code of Practice 2020
+
+Working near overhead and underground
+electric lines
+This Queensland code of practice has been approved by the Minister for Education and Minister
+for Industrial Relations under section 44 of the Electrical Safety Act 2002.
+
+This code commenced on 2 January 2020.
+
+
+
+
+ESOPDF029
+
+© The State of Queensland 2024
+
+Copyright protects this document. The State of Queensland has no objection to this material being
+reproduced but asserts its right to be recognised as author of the original material and the right to
+have the material unaltered.
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 2 of 36
+Contents
+Legislative framework ................................................................................................................. 5
+Foreword ...................................................................................................................................... 5
+Scope and application ................................................................................................................. 5
+ How to use this Code of Practice ................................................................................................ 6
+1         Introduction ......................................................................................................................... 7
+    1.1     What are electrical risks? ................................................................................................... 7
+    1.2     Who must manage electrical risks? .................................................................................... 7
+    1.3     What is required to manage electrical risks? ...................................................................... 7
+    1.4     Information, training, instruction and supervision ................................................................ 8
+2         The risk management process ........................................................................................... 9
+    2.1    Identify the hazards ............................................................................................................ 9
+    2.2    Assess the risks ................................................................................................................. 9
+    2.3    Control the risks ............................................................................................................... 10
+    2.4    Reviewing the control measures....................................................................................... 12
+3         Unsafe distances............................................................................................................... 13
+    3.1    What is an unsafe distance for an overhead electric line? ................................................ 13
+    3.2    What is an exclusion zone? .............................................................................................. 13
+    3.3    A guide to exclusion zones ............................................................................................... 14
+    3.4    Which exclusion zone applies? ........................................................................................ 14
+4      Operating plant near overhead electric lines .................................................................. 15
+    4.1 Scope ............................................................................................................................... 15
+    4.2 Risk management process for operating plant working near overhead electric lines ........ 15
+    4.3 Working in the safety observer zone ................................................................................ 16
+       4.3.1 What is the safety observer zone? .......................................................................... 16
+       4.3.2 Special provisions for working in the safety observer zone ..................................... 17
+    4.4 Working in the authorisation zone .................................................................................... 18
+       4.4.1 What is the authorisation zone?............................................................................... 18
+       4.4.2 Special provisions for working in the authorisation zone ......................................... 18
+    4.5 Personnel in contact with the crane, load or operating plant ............................................ 19
+5      Work near low voltage overhead electric lines near buildings and structures ............ 19
+    5.1  Scope ............................................................................................................................... 19
+    5.2  The no-touch and exclusion zones for low voltage lines near buildings and
+         structures ......................................................................................................................... 20
+       5.2.1 Exclusion zones for low voltage overhead lines near buildings and structures ......... 20
+    5.3 Risk management process for work near low voltage overhead electric lines near
+         buildings and structures ................................................................................................... 20
+6         Clearing vegetation near overhead electric lines ........................................................... 21
+    6.1    Scope ............................................................................................................................... 21
+    6.2    Requirements for untrained persons ................................................................................ 22
+    6.3    Risk management process for clearing vegetation near overhead electric lines ............... 22
+7         Agricultural work near overhead electric lines ............................................................... 23
+    7.1    Scope ............................................................................................................................... 23
+    7.2    Risk management process for agricultural work near overhead electric lines ................... 23
+8         Transportation of high loads near overhead electric lines ........................................... 24
+    8.1     Scope ............................................................................................................................... 24
+    8.2     Meaning of particular terms used in this chapter .............................................................. 24
+    8.3     Transport requirements for high load categories .............................................................. 25
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)                           Page 3 of 36
+       8.3.1 What is a high load and what requirements apply? .................................................. 25
+    8.4 Responsibilities–electrical safety ...................................................................................... 26
+       8.4.1 Electricity entity....................................................................................................... 26
+       8.4.2 Escort service provider–electrical safety ................................................................. 26
+       8.4.3 Road transport operator (RTO)–electrical safety..................................................... 26
+       8.4.4 Scoping service provider or network assessor–electrical safety............................... 27
+9         Work near underground electric lines ............................................................................. 28
+    9.1    Scope ............................................................................................................................... 28
+    9.2    Risk management ............................................................................................................ 28
+    9.3    WHS requirements for excavation work............................................................................ 28
+Appendix A–Meaning of key terms ........................................................................................... 30
+Appendix B–Exclusion zones for overhead electric lines ...................................................... 31
+Appendix C – Incidents involving live overhead electric lines ............................................... 35
+ C.1 Mobile crane operation ..................................................................................................... 35
+ C.2 Scaffolding work ............................................................................................................... 35
+ C.3 Farm machinery ............................................................................................................... 35
+ C.4 Irrigation pipes on a rural property .................................................................................... 35
+ C.5 Tip truck operation............................................................................................................ 36
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)                            Page 4 of 36
+Legislative framework
+The Electrical Safety Act 2002 (the ES Act) is directed at eliminating the human cost to individuals,
+families and the community of death, injury and destruction that can be caused by electricity. The
+ES Act establishes a legislative framework for preventing persons from being killed or injured by
+electricity, and preventing property from being destroyed or damaged by electricity. The ES Act
+places the primary electrical safety duty on a person conducting a business or undertaking (PCBU),
+who must ensure the business or undertaking is conducted in a way that is electrically safe. Duties
+are also placed on officers of a PCBU, workers and other persons at a workplace, as well as
+electricity entities, designers, manufacturers, importers, suppliers, installers, repairers and persons
+in control of electrical equipment.
+The Work Health and Safety Act 2011 (WHS Act) requires persons who have a duty to ensure
+health and safety to ‘manage risks’ by eliminating health and safety risks so far as is reasonably
+practicable, and if it is not reasonably practicable to do so, to minimise those risks so far as is
+reasonably practicable. The WHS Act provides a framework to protect the health, safety and
+welfare of all workers at work. It also protects the health and safety of all other people who might be
+affected by the work. The WHS Act places the primary health and safety duty on a PCBU, who
+must ensure, so far as is reasonably practicable, the health and safety of workers at the workplace.
+Duties are also placed on officers of a PCBU, workers and other persons at a workplace.
+In terms of electrical safety, where the ES Act and the WHS Act both apply, the ES Act takes
+precedence.
+
+Foreword
+This Code of Practice on managing risks when working near overhead and underground electric
+lines is made under section 44 of the ES Act.
+A code of practice is a practical guide to achieving the standards of electrical safety required under
+the ES Act and the Electrical Safety Regulation 2013 (the ES Regulation).
+A code of practice applies to anyone who has an electrical safety duty in the circumstances
+described in the code. In most cases, following a code of practice would achieve compliance with
+the electrical safety duties in the ES Act, in relation to the subject matter of the code. Like
+regulations, codes of practice deal with particular issues and do not cover all hazards or risks that
+may arise. Health and safety and electrical safety duties require duty holders to consider all risks
+associated with work, not only those for which regulations and codes of practice exist.
+Codes of practice are admissible in court proceedings under the ES Act and ES Regulation. Courts
+may regard a code of practice as evidence of what is known about a hazard, risk or control and
+may rely on the code in determining what is reasonably practicable in the circumstances to which
+the code relates.
+Compliance with the ES Act and ES Regulation may be achieved by following another method,
+such as a technical or an industry standard, if it provides an equivalent or higher standard of
+electrical safety than the code.
+An inspector may refer to a code of practice when issuing an improvement or electrical safety
+protection notice.
+
+Scope and application
+This Code provides practical guidance for persons conducting a business or undertaking on
+managing electrical risks when working near energised (live) overhead or underground electric
+lines. It should be used by persons conducting a business or undertaking to ensure, so far as is
+reasonably practicable, that no person, plant or thing at the workplace comes within an unsafe
+distance of an overhead or underground electric line.
+This Code should be read in conjunction with the Electrical safety Code of Practice – Managing
+electrical risks in the workplace, which provides guidance on managing general workplace electrical
+risks, risks associated with working around exposed energised parts and risks associated with
+electrical work.
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 5 of 36
+This Code applies to a range of persons including but not limited to plant operators, painters, sign
+makers, persons erecting (or working on) scaffolds, and persons working with irrigation pipes near
+energised electric lines.
+This Code does not apply to:
+• Electrical work on or near energised (live) electrical equipment.
+• Mobile plant or vehicles operating on a public road where the design envelope is not greater
+    than the transit envelope and is also not greater than 4.6 metres in height. For example, a side
+    loading waste collection vehicle collecting waste bins from the side of a public road under
+    overhead electric lines.
+• A crane or mobile plant when they are retracted and correctly stowed for travelling on a public
+    road.
+• Work carried out by emergency services personnel, including state emergency services, fire,
+    police, volunteer rescue associations and ambulance personnel during a declared emergency
+    or other local emergency incident.
+• Work involving low flying aircraft like crop dusting, pesticide or herbicide spraying.
+How to use this Code of Practice
+This Code should be read in conjunction with the ES Act, the ES Regulation, the WHS Act, the
+Work Health and Safety Regulation 2011 (the WHS Regulation) and other relevant codes of
+practice.
+In providing guidance, the word ‘should’ is used in this Code to indicate a recommended course of
+action, while ‘may’ is used to indicate an optional course of action. The terms ‘health and safety’
+and ‘work health and safety’ are used in this Code to indicate a wider application than just ‘electrical
+safety’. However, ‘electrical safety’ should be taken as being included when the terms ‘health and
+safety’ and ‘work health and safety’ are used.
+This Code also includes various references to provisions of the ES Act, the ES Regulation, the
+WHS Act and the WHS Regulation which set out the legal requirements. These references are not
+exhaustive. The words ‘must’, ‘requires’ or ‘mandatory’ indicate that a legal requirement exists and
+must be complied with.
+This Code also includes various references to standards (using the designated ‘AS’) and joint
+standards (using the designated ‘AS/NZS’). In this Code, unless otherwise stated, a reference to a
+standard (or joint standard) is a reference to that standard (or joint standard) as in force from time
+to time under that designation. For example, ‘AS/NZS 3760’ is a reference to the joint standard that
+is currently in force under that designation.
+Key terms used in this Code are defined at Appendix A.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 6 of 36
+1 Introduction
+1.1 What are electrical risks?
+Electrical risks are risks of death, electric shock or other injury caused directly or indirectly by
+electricity. The most common electrical risks and causes of injury associated with working near
+overhead or underground electric lines are:
+• electric shock causing injury or death. The electric shock may be received by direct or indirect
+    contact, tracking through or across a medium, or by arcing
+• arcing, explosion or fire causing burns. The injuries are often suffered because arcing or
+    explosion or both occur when high fault currents are present
+• electric shock from ‘step-and-touch’ potentials
+• fire resulting from an electrical fault
+• induction from overhead electric lines.
+Contact with overhead or underground electric lines can be fatal, whether the lines are carrying a
+voltage as high as 330,000 volts or as low as 230 volts.
+Contact with overhead electric lines is not necessary for an electric shock to occur. A close
+approach to the line conductors may allow a ‘flashover’ or arc to take place. The risk of flashover
+increases as the line voltage increases.
+
+1.2 Who must manage electrical risks?
+A person conducting a business or undertaking (PCBU) has the primary duty under the ES Act
+to ensure the person’s business or undertaking is conducted in a way that is electrically safe. This
+duty includes:
+• ensuring that all electrical equipment used in the PCBU is electrically safe; and
+• if the person’s business or undertaking includes the performance of electrical work, ensuring
+    the electrical safety of all persons and property likely to be affected by the electrical work; and
+• if the person’s business or undertaking includes the performance of work, whether or not
+     electrical work, involving contact with, or being near to, exposed parts, ensuring persons
+     performing the work are electrically safe.
+The ES Regulation includes more specific requirements for managing electrical risks, including to
+ensure, so far as is reasonably practicable, that no person, plant or thing at the workplace comes
+within an unsafe distance of an overhead or underground electric line.
+Officers, such as company directors, have a duty to exercise due diligence to ensure the business
+or undertaking complies with the ES Act and ES Regulation. This includes taking reasonable steps
+to ensure the business or undertaking has and uses appropriate resources and processes to
+eliminate or minimise risks associated with working near overhead and underground electric lines.
+Workers have a duty to take reasonable care for their own electrical safety and to not adversely
+affect other people’s electrical safety. Workers must co-operate with reasonable policies or
+procedures relating to electrical safety at the workplace and comply, so far as they are reasonably
+able, with reasonable instructions.
+Other persons at the workplace, like visitors, must take reasonable care for their own electrical
+safety and must take reasonable care not to adversely affect other people’s electrical safety. They
+must comply, so far as they are reasonably able, with reasonable instructions given by the PCBU to
+allow that person to comply with the ES Act.
+Duty holders will have additional legal duties under the WHS Act and the WHS Regulation.
+
+1.3 What is required to manage electrical risks?
+ES Regulation s11 A PCBU must manage risks to health and safety associated with electrical
+risks at the workplace in accordance with the WHS Regulation, chapter 3, part 3.1.
+WHS Regulation s34-38 In order to manage risk, a duty holder must:
+• identify reasonably foreseeable hazards that could give rise to the risk
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 7 of 36
+•   eliminate the risk, so far as is reasonably practicable
+•   if it is not reasonably practicable to eliminate the risk, minimise the risk so far as is reasonably
+    practicable by implementing control measures
+•   maintain the implemented control measure so that it remains effective
+•   review, and if necessary revise, all risk control measures so as to maintain, so far as is
+    reasonably practicable, a work environment that is without risks to health and safety.
+The hierarchy of risk control is described at Chapter 2.3 of this Code.
+
+This Code includes guidance on how to manage electrical risks associated with working near
+overhead and underground electric lines by following a systematic process that involves:
+• identifying hazards
+• if necessary, assessing the risks associated with these hazards
+• implementing and maintaining risk control measures (e.g. inspecting and testing specified
+    electrical equipment, using safety switches)
+• reviewing risk control measures.
+Guidance on the general risk management process is available in the How to manage work health
+and safety risks Code of Practice.
+
+1.4 Information, training, instruction and supervision
+WHS Act s19 A PCBU must ensure, so far as is reasonably practicable, the provision of any
+information, training, instruction or supervision that is necessary to protect all persons from risks to
+their health and safety arising from work carried out.
+WHS Regulation s39 You must ensure that information, training and instruction provided to a
+worker is suitable and adequate having regard to:
+• the nature of the work carried out by the worker
+• the nature of the risks associated with the work at the time the information, training or
+   instruction is provided
+• the control measures implemented.
+You must ensure, so far as is reasonably practicable, that the information, training and instruction is
+provided in a way that is readily understandable by any person to whom it is provided.
+
+Formal or on-the-job training may be appropriate depending on the circumstances. Examples of
+training are:
+• induction training—to ensure new starters or workers new to a job are trained on safe systems
+     of work and other relevant health and safety matters
+• supervisor and management training—to ensure that safety issues are appropriately managed
+     at the workplace
+• work-specific training—to ensure that workers carrying out particular work are trained on any
+     electrical and other risks specific to the work, as appropriate
+• ongoing or refresher training—to ensure that any training on work health and safety matters is
+     repeated as appropriate on a periodic basis
+• emergency procedure training—to ensure workers know what to do in the event of an
+     emergency, for example procedures to follow if a person receives an electric shock
+• first aid training—to ensure appropriate procedures are followed for administering first aid, for
+     example proper treatment for electric shock
+• electrical rescue and resuscitation training for safety observers.
+
+Special needs of workers should be taken into account in deciding the structure, content and
+delivery of training, including literacy levels, work experience and specific skills required to carry out
+the work.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 8 of 36
+2 The risk management process
+A PCBU must manage risks by identifying reasonably foreseeable hazards that could give rise to a
+risk, eliminating those risks so far as is reasonably practicable, or if that is not possible, minimising
+those risks by implementing control measures.
+
+2.1 Identify the hazards
+Identifying hazards involves finding all of the tasks, situations and sequences of events that could
+potentially cause harm.
+Before carrying out work near overhead or underground electric lines, a worksite inspection should
+be conducted to identify potential hazards including energised overhead electric lines or associated
+electrical equipment and the whereabouts of any underground electric lines.
+Hazards from overhead or underground electric lines may arise from:
+• a person or something the person is holding, or is in contact with, coming closer than the
+   relevant exclusion zone distance to an overhead electric line
+• operating plant coming closer than the relevant exclusion zone distance to an overhead electric
+   line
+• damage to overhead electric lines or related equipment
+• damage to underground electric lines exposing live parts
+• building structures near overhead electric lines.
+Exposure to high electromagnetic fields may also present a potential hazard for workers with some
+medical conditions, for example pace makers. You must inform workers and other persons at the
+workplace of any potential electromagnetic hazards at the workplace that may affect a medical
+condition. You must also manage risks to health and safety arising out of electromagnetic hazards,
+including eliminating the risk so far as is reasonably practicable. If that is not reasonably practicable
+you must minimise the risk so far as is reasonably practicable.
+Potential electrical hazards may be identified in a number of different ways including:
+• talking to workers and observing where overhead electric lines are located
+• getting advice regarding the location of any underground electric lines (e.g. by contacting
+    “Before You Dig Australia” by phoning 1100 or online via the website at www.byda.com.au.)
+• talking to electricity entities regarding electric lines the entity is responsible for
+• reviewing incident reports.
+Electric lines must be treated as live until they have been:
+• proven to be de-energised
+• isolated so that they cannot be inadvertently re-energised
+• if a high voltage line, effectively earthed.
+The PCBU should obtain written confirmation from the person with management or control of the
+electric line that the line is de-energised before commencing work.
+
+2.2 Assess the risks
+Risk assessment involves considering what could happen if someone is exposed to a hazard
+(consequence) and the likelihood of it happening.
+For work near overhead or underground electric lines, this determines the risk of:
+• injury to a worker
+• damage to property, plant or equipment
+• coming within an unsafe distance for an electric line.
+This step will help to determine the level of associated risk for each task and in selecting control
+measures based on that risk level. A copy of the assessment should be kept for future reference.
+The risk assessment should consider:
+• the location, height, arrangement and visibility of overhead electric lines and supporting
+    structures like poles, towers and stay wires
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 9 of 36
+•    the voltage of electric lines and exposed energised parts and whether electric lines and parts
+     are insulated or bare
+•    the likelihood of induction arising from working near high voltage overhead electric lines
+•    possible sway or sag of the electric line caused by wind or temperature changes
+•    environmental conditions like storm activity, heavy rain or lightning in the area
+•    site conditions including:
+     - prevailing or unexpected winds, their strength and direction
+     - the terrain and possibility of unexpected ground surface movement under plant
+     - vehicular traffic, pedestrians or livestock that could interfere with the work.
+•    the type of plant and machinery required including:
+     - their design envelope, inherent stability and that of a suspended load
+     - their dimensions and their operating characteristics, ease of maneuverability and
+          conductivity if they are earthed
+     - the minimum clearance distances from the closest part of the plant to electric lines
+     - the possibility they may become energised by proximity to high voltage lines.
+•    nature, size and shape of loads to be moved:
+     - load stability, dimensions and surface area facing the wind
+     - whether loads are conductive—all materials should be treated as such unless a competent
+          person can confirm otherwise
+     - non-conductive material may become conductive when in contact with high voltage
+          material
+     - how loads are secured and if any part of the load may move and enter within an unsafe
+          distance
+     - whether loads being carried above electric lines may accidentally fall onto them e.g. when
+          moving a swimming pool from the street over energised electric lines into the yard of a
+          home.
+•    the type of work activities required and the frequency of the work tasks
+•    qualifications, competency, skill and experience of the people doing the work
+•    setting up and packing up processes
+•    work practices and procedures, with input from workers conducting specific tasks.
+
+2.3 Control the risks
+The hierarchy of control measures
+Once hazards have been identified and the risks assessed, appropriate control measures must be
+put in place.
+The ways of controlling risks are ranked from the highest level of protection and reliability to the
+lowest. This ranking is known as the hierarchy of risk control. You must work through this hierarchy
+to choose the control that most effectively eliminates or minimises the risk in the circumstances, so
+far as is reasonably practicable. This may involve a single control measure or a combination of two
+or more different controls.
+Elimination
+The most effective control measure is to remove the hazard or hazardous work practice. By
+designing-in or designing-out certain features, hazards may be eliminated.
+This is the most effective control measure and must always be considered before anything else.
+The best way of eliminating these hazards is to prevent people, plant, equipment and materials
+from coming close enough to energised overhead electric lines for direct contact or flash over to
+occur.
+This may include:
+• de-energising the electric line during work
+• isolating and earthing the line (or equivalent for low voltage or rail) so it is not live during work
+• re-routing the electric line away from the work area
+• replacing existing overhead electric lines with underground electric cables.
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 10 of 36
+Note: de-energising or moving electric lines should be arranged with the electricity entity as soon
+as possible because, depending on the circumstances, it may take some time to arrange.
+If eliminating the risk is not reasonably practicable, you must consider using substitution, isolation
+or engineering controls, or a combination of these control measures, to minimise the risk.
+Substitution
+Minimise the risk by substituting or replacing a hazard or hazardous work practice with a safer one.
+This may include performing the work another way, for example:
+• using alternative plant which cannot enter an exclusion zone
+• using non-conductive tools designed to reduce the possibility of direct contact with the
+    overhead electric line
+• using ultrasonic measuring devices instead of the mechanical types for measuring heights of
+    overhead lines.
+Isolation
+Minimise the risk by isolating or separating the hazard or hazardous work practice from people. For
+example, erecting a physical barrier to prevent any part of the plant or equipment from entering an
+unsafe distance, or, similarly, to prevent a person, anything held by a person, or anything attached
+to a person from entering an unsafe distance. A physical barrier should consist of non-conductive
+material like wood or plastic. The barrier should be erected safely which may entail isolating the
+electricity supply while the barrier is installed.
+Engineering controls
+Engineering controls are physical control measures to minimise risk, for example:
+• limiting movement of plant with mechanical stops
+• fitting plant with programmable zone limiting devices
+• mechanically limiting slew speed of a crane to slow
+• using electrically insulated plant and equipment.
+If a risk then remains, the duty holder must minimise the remaining risk, so far as is reasonably
+practicable, by using administrative controls.
+Administrative controls
+Administrative controls should only be considered when other higher order control measures are
+not reasonably practicable, or to increase protection from the hazard. These are work methods or
+procedures designed to minimise exposure to a hazard, for example:
+• Fitting proximity sensors and a warning device to plant to alert operators when they are about
+     to enter an unsafe distance.
+• Making hazards more visible by:
+     - using warning signs to indicate the location of overhead electric lines and defined work
+         areas
+     - arranging for the electricity entity to identify exposed energised low voltage conductors, up
+         to and including 1000 volts and fitting them with approved visual indicators like sheeting or
+         sleeves e.g. tiger tails
+         - a competent person should inspect visual indicators each day before starting plant
+               operations
+         - if visual indicators have moved or been damaged the electricity entity should be
+               contacted so they are replaced or located in the correct position.
+• Managing and supervising the work to ensure:
+     - safe work practices and procedures are followed
+     - safe work method statements (SWMS) are developed where required
+     - appropriately trained and qualified people are authorised to carry out the work
+     - emergency equipment is provided and readily accessible on site, including first aid kits and
+         fire-fighting equipment suitable for electrical fire, and workers are trained in the correct
+         usage and application in the event off an emergency (as per section 1.4)
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 11 of 36
+     -     emergency plan and rescue procedures are followed if there is contact with overhead
+           electric lines, and workers are trained in the correct usage and application in the event off
+           an emergency (as per section 1.4)
+     -     an emergency plan including contact with energised electric lines is developed and
+           documented with input from workers performing specific tasks
+     -     it is done very carefully and in an un-hurried, considered manner, as haste can be
+           dangerous
+     -     a safety observer is used to warn people and plant operators when they are likely to come
+           closer within an unsafe distance of an electric line
+     -     exclusion zone distances are strictly maintained.
+Any remaining risk must be minimised, as far as is reasonably practicable, by providing and
+ensuring the use of personal protective equipment.
+Personal protective equipment
+Personal protective equipment (PPE) is the lowest order control measure in the hierarchy of
+controls. PPE should only be considered when other higher order control measures are not
+reasonably practicable or to increase protection from the hazard. Examples of PPE include:
+• insulating gloves which are effectively electrically tested
+• rubber soled boots
+• safety helmets
+• standing on a rubber insulating mat
+• standing on an equipotential conductive mat
+• dry clothes especially in wet or humid conditions.
+Administrative controls and PPE do nothing to change the hazard itself. They rely on people
+behaving as expected and require a high level of supervision. Exclusive reliance on administrative
+controls and PPE must only occur where other measures are not reasonably practicable or as an
+interim control while the preferred control measure is being implemented.
+Implementing control measures
+Control measures when developing a plan should be done in consultation with workers performing
+specific tasks and consideration of necessary training they may require or already have as per
+section 1.4.
+When implementing control measures, you should develop a plan that:
+• specifies the preferred control measures
+• sets out the steps that need to be taken to implement the control measures
+• identifies and allocates the resources necessary to implement the control measures (i.e. time
+   and expenses)
+• allocates responsibilities and accountabilities (i.e. who does what and when)
+• sets the timeframe for implementation (i.e. when it is to be completed by)
+• sets a date for reviewing the control measures.
+You should check that your chosen control measure does not introduce new hazards.
+
+2.4 Reviewing the control measures
+The controls that are put in place to ensure electrical safety must be reviewed regularly to make
+sure they work effectively.
+WHS Regulation s38 A PCBU must review and as necessary revise a control measure in the
+following circumstances:
+• when the control measure does not control the risk it was implemented to control so far as is
+     reasonably practicable
+• before a change at the workplace that is likely to give rise to a new or different risk to health or
+     safety that the measure may not effectively control
+• if a new relevant hazard or risk is identified
+• if the results of consultation indicate that a review is necessary
+• if a health and safety representative requests a review.
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 12 of 36
+The following questions will help you evaluate how well you are currently managing electrical risks
+in your workplace:
+• Do you talk to your workers about electrical safety? Do any relevant new work methods or
+     equipment have the potential to make work safer in your workplace?
+• Are procedures for identifying electrical hazards in the workplace effective?
+• Are electrical safety procedures followed? Do you encourage your workers to report electrical
+     hazards?
+• Do you fix or rectify identified electrical hazards in a timely manner?
+
+
+
+3 Unsafe distances
+ES Regulation s68 A PCBU at a workplace must ensure, so far as is reasonably practicable, that
+no person, plant or thing at the workplace comes within an unsafe distance of an overhead or
+underground electric line.
+If it is not reasonably practicable to ensure a safe distance; the person must ensure that a risk
+assessment is conducted for the proposed work and control measures implemented are consistent
+with the risk assessment and, if an electricity entity is responsible for the electric line, any
+requirements of the electricity entity.
+
+3.1 What is an unsafe distance for an overhead electric
+   line?
+ES Regulation s69 A person comes within an unsafe distance of an overhead electric line if the
+person is within the exclusion zone for the person for the line.
+Any operating plant, or a vehicle, comes within an unsafe distance of an overhead electric line if the
+operating plant or vehicle is within the exclusion zone for the operating plant or vehicle for the line.
+A person includes any article of clothing worn by the person, and any conductive object the person
+is handling.
+Operating plant includes anything the operating plant is handling (other than a person or a hand
+held object the person is handling).
+A vehicle includes anything the vehicle is carrying or otherwise handling.
+However, the person, operating plant or vehicle does not include an object that alone or with
+another object, or objects, is an extension from the person, operating plant or vehicle if the object is
+insulated and the object has been tested and found to be safe for use on and near the electric line.
+For example, a specifically designed insulated tool which has been tested and found to be safe for
+use on and near the electric line.
+
+3.2 What is an exclusion zone?
+ES Regulation s69 An exclusion zone, for a person, operating plant or vehicle for an overhead
+electric line, means the distance from the line stated for the person, plant or vehicle in Schedule 2
+of the ES Regulation.
+The exclusion zone distances from Schedule 2 of the ES Regulation are replicated in Appendix B of
+this Code.
+An exclusion zone is a safety envelope around an overhead electric line. No part of a worker,
+operating plant or vehicle should enter an exclusion zone while the overhead electric line is
+energised (live).
+Exclusion zones keep people, operating plant and vehicles a safe distance from energised
+overhead lines.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 13 of 36
+You must keep yourself and anything associated with the work activity out of the exclusion zone
+(i.e. a safe distance) unless it is not reasonably practicable to do so; and the PCBU complies with
+the requirements of section 68(2) of the ES Regulation in relation to:
+• conducting a risk assessment
+• implementing control measures
+• adhering to any requirements of an electricity entity responsible for the line.
+
+3.3 A guide to exclusion zones
+Exclusion zones apply whenever you need to carry out work, or operate plant or a vehicle, around a
+live overhead electric line and you cannot eliminate the risk by turning off the power.
+Exclusion zones extend in all directions, not just sideways. The exclusion zone will vary depending
+on the:
+• voltage of the line
+• whether the line is insulated or bare
+• the level of competence, training and authorisation of the person carrying out the work.
+Voltage of the line
+Higher voltage electric lines carry greater risk. For this reason it is important to determine what the
+voltage is present on the line. Where there is more than one electric line it is important to determine
+the voltage of each line as there may be low voltage and high voltage lines present on the same
+pole.
+Whether the line is insulated or not
+Different approach distances apply if an electric line is insulated. Before work is carried out near an
+insulated line, the insulation must be inspected by a competent person as insulation can deteriorate
+over time. Insulation that looks intact may fail if accidently touched exposing a previously insulated
+part of the line. Where insulation has not been determined as safe the line must be treated as
+uninsulated.
+Competence and training of the person carrying out the work
+A person who has received additional skills and training relevant to the type of work performed may
+be able to work within a closer distance to an energised line than an untrained person. The
+exclusion zones in Appendix B of this code (see also Schedule 2 of the ES Regulation) provide
+different distances for persons working near energised electric lines depending on whether they are
+untrained, authorised or instructed.
+
+3.4 Which exclusion zone applies?
+Different exclusion zones apply depending on the level of competence, training and skills of the
+worker and whether the worker has been authorised by the owner or person in control of the
+electric line to work within a closer distance. In some cases the applicable exclusion zone will also
+depend on whether a safety observer or “spotter” is utilised.
+Untrained person
+An untrained person, for an electric line, means a person who is not an authorised person or an
+instructed person for the electric line. The greatest exclusion zone distances apply to untrained
+persons.
+Authorised person
+An authorised person, for an electric line, means a person who:
+• has enough technical knowledge and experience to do work that involves contact with, or being
+   near to, the electric line
+• has been approved by the person in control of the electric line to do work that involves contact
+   with, or being near to, the electric line, or is authorised to act for the person in control of the
+   electric line.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 14 of 36
+In order to authorise a worker, the PCBU must first gain approval from the person in control of the
+electric line to do the work that involves being near to the electric line. The PCBU would need to
+ensure that the worker has enough technical skill and knowledge to carry out the work.
+In many instances, approval would need to be sought from an electricity entity. However, if it is a
+private electric line, the owner would need to approve the person to work near the line. For
+example, if the private electrical line is on a farm, the PCBU would need to seek approval from the
+farm owner before the worker can be authorised. Once the approval is gained from the person in
+control, the PCBU would need to authorise the worker to carry out the work.
+Instructed person
+An instructed person, for an overhead electric line, means a person who is acting under the
+supervision of an authorised person for the electric line.
+Authorised and instructed persons can work at closer exclusion zone distances than untrained
+persons.
+Safety observer
+A safety observer or “spotter”, for the operation of operating plant, means a person who:
+• observes the operating plant
+• advises the operator of the operating plant if it is likely that the operating plant will come within
+   an exclusion zone for the operating plant for an overhead electric line.
+Typically, this is a person who has undergone specific training and is competent to perform the role
+in observing, warning and communicating effectively with the operator of the operating plant.
+
+4 Operating plant near overhead electric lines
+4.1 Scope
+This chapter applies to persons operating plant near live overhead electric lines. It can sometimes
+be difficult for crane or plant operators to see these lines and to judge distances from them. It is
+also easy for an operator to be distracted as they are often concentrating closely on the activity
+they are carrying out and can forget about the closeness of an overhead line.
+Operating plant
+Operating plant means plant being operated for its intended purpose unless the operation of the
+plant can not materially affect the distance between the plant and any electric line in relation to
+which there is an exclusion zone.
+Examples of operating plant:
+• a tip truck tipping a load
+• a fixed crane operating at a building site
+• a vehicle that includes an elevated work platform being used for clearing vegetation from
+   around overhead electric lines
+• a concrete pumping truck pumping concrete
+• a harvester with height changeable attachments being used to transfer grain to a truck.
+Example of plant that is not operating plant:
+• a furniture removal van under an electric line raising or lowering the electrically or hydraulically
+   operated platform located at the rear of the van, if neither the platform nor anything on the
+   platform rises above the roof of the van.
+
+4.2 Risk management process for operating plant working
+   near overhead electric lines
+This chapter should be read in conjunction with Chapter 2 of this Code.
+Before setting up operating plant near overhead electric lines, the PCBU should conduct an
+inspection to identify the presence of overhead electric lines that may pose a risk. Consultation
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 15 of 36
+regarding the work and the related risks should occur between the PCBU and the crane or
+operating plant operator. Electric lines should always be treated as live.
+The most effective way to eliminate any risk of electric shock is by turning off the power. The
+PCBU, principal contractor or the operating plant owner should discuss options for de-energising or
+re-routing the electricity supply with the relevant electricity entity. These options are the most
+effective control measures and should be considered before anything else. The PCBU, principal
+contractor or the operating plant owner should also consult with each other to ensure the electricity
+entity has been contacted.
+De-energising or re-routing powerlines should be arranged with the electricity entity as quickly as
+possible as this can take some time to arrange. Where overhead powerlines have been de-
+energised, confirmation should be sought from the person in control of the powerline before
+undertaking any work.
+If it is not reasonably practicable to turn off the power or re-route the powerline, the most effective
+control measure to reduce the risk is to establish “exclusion zones” that prevent people, plant,
+equipment and materials from coming close enough to energised overhead powerlines for direct
+contact or flash-over to occur.
+The PCBU should conduct a written risk assessment to determine the risk of encroaching on the
+exclusion zone. A copy of this assessment should be kept for future reference.
+In assessing the risk, the PCBU should consider:
+• Identifying the minimum clearance distance from the closest part of the crane or other
+     operating plant to the powerline;
+• In the case of a crane, the nature of the load to be moved, e.g. dimensions and whether the
+     load is conductive. When in contact with high voltage material that would normally be non-
+     conductive, the crane may become conductive. All materials should be assumed to be
+     conductive unless a competent person can confirm otherwise;
+• Whether the load is being carried above the electric lines and may accidentally fall onto the live
+     lines e.g. moving a swimming pool from the street over live electric lines into the yard of a
+     home;
+• Unexpected movement of the terrain, ground or surface upon which the crane or other plant is
+     located, possibly resulting in a corresponding surge or sudden movement towards live electric
+     lines;
+• Prevailing or unexpected wind strength and direction and other weather conditions;
+• The possibility of sway and sag of the overhead powerlines (sway of overhead powerlines is
+     usually caused by wind, while sag may vary as temperatures vary);
+• In the case of a crane, the size and shape of the load, particularly the surface area facing the
+     wind;
+• Functional behaviour of the crane, load or other plant that could result in inadvertent contact
+     with electric lines;
+• Possibility of crane or other plant becoming live through voltage induced by adjacent electric
+     lines, especially high voltage lines; and
+• How the load being carried by a crane is secured and whether any part of the load may
+     inadvertently move during the operation and encroach on the exclusion zone.
+The outcome is a priority list of control measures based on risk levels.
+
+4.3 Working in the safety observer zone
+4.3.1 What is the safety observer zone?
+A crane or plant is considered to be in the safety observer zone when, by the position the crane or
+plant is located, it is possible that any of the following could enter the exclusion zone of live electric
+lines during operation:
+• any part of the crane or operating plant
+• any person on or working on an EWP
+• any hand tools or other equipment held by anyone involved with the operation
+• the load being moved.
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 16 of 36
+The safety observer zone concept is designed:
+• to encourage operating plant operators to locate their equipment away from the possibility of
+    encroaching into the exclusion zone
+• when that is not possible, adopt other suitable precautions to prevent encroachment.
+A crane or operating plant is not operating in a safety observer zone when:
+• high voltage electric lines have been de-energised and earthed
+• limiting devices have been installed to warn the operator or prevent any part of the crane, plant
+    or load being moved from entering the exclusion zone
+• any part of the crane, plant or load being moved is prevented from entering the exclusion zone
+    by physical barriers.
+The safety observer zone for overhead electric lines is illustrated in Figure 1. While this figure
+illustrates a crane operating, the example applies to all operating plant.
+
+
+
+
+                                                           The crane or plant is operating in
+                                                           the safety observer zone when
+                                                           any part of the crane or load
+                                                           COULD enter the exclusion zone.
+                                                           Encroachment into the exclusion
+                                                           zone is still strictly forbidden.
+
+
+
+
+Figure 1: Safety observer zone for overhead electric lines
+
+
+4.3.2 Special provisions for working in the safety observer zone
+Safety observer for the safety observer zone
+A safety observer should be employed when a crane or operating plant is operating within the
+safety observer zone as defined in 4.3.1 above.
+The following special provisions apply:
+• The PCBU is responsible for appointing a safety observer. If any part of the crane or plant or
+    load is about to enter the exclusion zone, the safety observer should warn the operator.
+    Encroachment into the exclusion zone is strictly forbidden.
+• The operator should not operate a crane or plant without a safety observer in situations where
+    an observer is required (see 4.4 for further information).
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 17 of 36
+•    The safety observer should not carry out any other work or function that compromises their role
+     as a safety observer.
+•    The safety observer should not be required to observe more than one crane or operating plant
+     at a time.
+•    The safety observer should be able to communicate effectively with the operator of the crane or
+     operating plant at all times and should warn the operator about the approach to the exclusion
+     zone. Specialist communication equipment may be necessary where there is a barrier to
+     communication.
+•    Except where rail mounted elevating work platforms are being used for working on rail traction
+     electrical apparatus, the safety observer should not be located on the work basket of an
+     elevating work platform.
+•    The safety observer should be trained to perform the role.
+•    The safety observer should have the authority to stop the operation of the crane or operating
+     plant.
+•    The safety observer should mark the border of the exclusion zone with suitable markers e.g.
+     red warning tapes, which can be easily viewed by the crane or plant operator.
+
+4.4 Working in the authorisation zone
+4.4.1 What is the authorisation zone?
+A crane or other operating plant is in the authorisation zone when it is operated by an authorised or
+instructed person.
+When a crane or other operating plant is in the authorisation zone, or when it is intended to operate
+in the authorisation zone, a safety observer or another safe system of work must be used which will
+prevent contact with the overhead line.
+Another safe system of work may include one or more of the following precautions:
+• Use of limit switches to prevent the crane or operating plant from contacting the line.
+• Positioning and design of the crane or operating plant which will prevent the plant from
+    contacting the line.
+Note: for operating plant operated by an authorised person or instructed person who does not have
+a safety observer or another safe system as required under the schedule, the authorised person or
+instructed person must be taken to be an untrained person.
+
+4.4.2 Special provisions for working in the authorisation zone
+Safety observer for the authorisation zone
+A safety observer should be used when a crane or other operating plant is operating within the
+authorisation zone as defined in 4.4.1 above.
+The following special provisions apply:
+• The PCBU is responsible for appointing a safety observer. If any part of the crane or operating
+    plant or load is about to contact the line, the observer should warn the operator.
+• The crane or operating plant must not be operated in the authorisation zone without a safety
+    observer or another safe system of work that prevents contact with the line.
+• The safety observer should not carry out any other work or function that compromises their role
+    as a safety observer.
+• The safety observer should not be required to observe more than one crane or operating plant
+    at a time.
+• The safety observer should be able to communicate effectively with the operator of the crane or
+    operating plant at all times. Specialist equipment may be necessary where there is a barrier to
+    communication.
+• The safety observer should have the authority to stop the operation of the crane or operating
+    plant.
+• Except where rail mounted elevating work platforms are being used for working on rail traction
+    electrical apparatus, the safety observer should not be located on the work basket of an
+    elevating work platform.
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 18 of 36
+•     The safety observer should be trained to perform the role.
+•     The safety observer should mark the border of the exclusion zone with suitable markers e.g.
+      red warning tapes, which can be easily viewed by the crane or plant operator.
+
+4.5 Personnel in contact with the crane, load or operating
+    plant
+When the crane or operating plant is operating in the safety observer zone or authorisation zone,
+only the following persons should be allowed to touch any part of the crane, plant or load being
+moved:
+    • The operator, while not in contact with an electrical earth, e.g. operator remaining in the
+        cabin instead of standing on the ground beside the crane or plant.
+    • The operator, while standing on the ground or while in contact with an earthed situation,
+        may operate the crane or operating plant under any of the following conditions, when used
+        appropriately:
+            - the controls are effectively insulated1
+            - the operator wears insulating gloves¹ where the voltage of any of the overhead
+                electric lines does not exceed 1000 volts
+            - the operator stands on an equipotential metallic mat, which is electrically connected
+                to all metalwork associated with the controls.
+Other personnel who are essential to the particular operation of the crane or operating plant e.g.
+dogger, crane chaser or other worker helping to set up the crane or operating plant, are permitted
+to work within the safety observer zone, provided these persons are not required to have direct
+contact with any part of the crane, operating plant or load. However, where direct contact is
+necessary:
+• suitable insulating gloves¹ should be worn; or
+• such contact should be via a non-conductive object e.g. pole or tail rope used to control load
+    movement.
+
+
+5 Work near low voltage overhead electric lines
+  near buildings and structures
+5.1 Scope
+This chapter applies to:
+• painting or maintenance work near a low voltage overhead line
+• erecting scaffolding near a low voltage overhead line
+• building work near a low voltage overhead line
+• any other non-electrical work where there is a risk of contact with a low voltage overhead line.
+Electric lines covered by this chapter are:
+• electricity distributors’ low voltage overhead lines including service lines
+• low voltage overhead lines forming part of consumers’ installations
+• any low voltage overhead line within the jurisdiction of the ES Regulation.
+Please refer to Appendix C for examples/case studies of work near overhead electric lines near
+buildings and structures.
+
+
+
+
+1
+ Insulation must at least be effective against the maximum voltage of the particular overhead electric line. The person conducting a
+business or undertaking operating the crane is responsible for ensuring the effectiveness of the insulation in accordance with the relevant
+Australian Standard.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)                 Page 19 of 36
+5.2 The no-touch and exclusion zones for low voltage lines
+    near buildings and structures
+Guidance in this chapter, taken from Appendix B, is based on no-touch and exclusion zone
+concepts, defined as follows.
+For an authorised person, a no-touch zone applies to an insulated low voltage overhead line that
+has been examined for visible defects. You may go as close to the line as you need to but do not
+touch the line. (See ES Regulation 2013, Schedule 2 – “no exclusion zone prescribed”)
+
+5.2.1 Exclusion zones for low voltage overhead lines near buildings
+      and structures
+For an untrained person, the exclusion zone for low voltage overhead lines near buildings and
+structures is as follows:
+• Without consultation, the exclusion zone is three metres from the lines
+• With consultation, the exclusion zone is specified in Appendix B. The purpose of the
+     consultation is to determine the voltage of the line and inform the owner of the line that you are
+     carrying out work near the line
+• The exclusion zone applies to bare or covered low voltage and insulated lines not examined for
+     visual defects.
+The following table illustrates exclusion and no touch zones for low voltage lines near buildings and
+structures.
+Table 1: Exclusion zones and no-touch guidance for low voltage lines near buildings and
+structures.
+ Types of electrical       Insulated low        Covered low          Insulated low voltage Bare low voltage
+ service lines near        voltage              voltage              lines - no visual
+   buildings and           (examined for                             examination
+    structures             visual defect)                            conducted
+ Designated zones          No-touch zone.       Without consultation* with electricity entity, exclusion zone is
+                           Go as close as       3000mm from the live electrical line.
+                           you need to but      With consultation*, refer to Appendix B for allowable safe
+                           do not touch.        approach distances.
+* Note: the purpose of the consultation is to determine the voltage of the line and inform the person in control
+  of the electric line that you are carrying out work near the line.
+
+5.3 Risk management process for work near low voltage
+   overhead electric lines near buildings and structures
+This chapter should be read in conjunction with Chapter 2 of this Code.
+Before carrying out work where a person might unintentionally encroach into the exclusion zone,
+the PCBU should inspect to identify any potential risks. This step will help to determine the level of
+risk and establish a priority list based on that risk. A copy of the assessment should be kept for
+future reference.
+Risks may include:
+• bare exposed live lines
+• broken down insulation
+• deterioration of earthing of exposed conductive parts that are required to be earthed
+• voltage of the line is higher than the expected low voltage
+• possibility of equipment, such as a portable powered saw, contacting exposed live parts.
+Note:
+1. If the overhead line is found to be a high voltage line, this chapter of the Code does not apply.
+2. If the voltage of the line cannot be determined, the line should be deemed as a high voltage
+    line and note 1 will apply.
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 20 of 36
+3.   If you cannot determine whether the line is effectively insulated, the line should be treated as
+     being bare.
+If a risk involving electric lines has been identified, a written assessment should then be conducted
+to determine the risk to a person (or something he or she is carrying, or something attached to that
+person) encroaching into the exclusion zone. This step will help to determine the level of associated
+risk and establish a priority list based on that risk level. A copy of the assessment should be kept
+for future reference.
+The following factors may be included in a risk assessment:
+• Type of work being carried out, tools or equipment being used, and the risk of mechanical
+    damage to the line if contact were made. Examples may include:
+    - handling a sheet of roofing material where loss of control could occur and the material
+         could come within the exclusion zones
+    - using a cutting or grinding tool where loss of control of the tool is a risk and where the tool
+         could come within exclusion zones through loss of control or from inadvertent movement
+    - using a heavy electric disc sander to sand timber near the point of attachment of a service
+         line may impose a high risk of encroaching the no-touch zone if control were lost. The risk
+         of damage to and contact with the line and consequent electric shock is high if the sander
+         touched the line. Manual sanding should be considered.
+• Proximity of the work to the overhead line.
+• Environmental conditions, such as rain, wind or uneven terrain, which may bring a risk of
+    unexpected movement of tools or equipment held by workers.
+Visual examination of low voltage overhead line
+An insulated low voltage overhead electric line should be examined for visible defects. The line is
+generally divided into two portions:
+(a) The overhead, aerial line portion of the overhead line up to, but not including, the point of
+    connection to the fixed wiring of the structure to which the overhead line connects.
+(b) The means of connection e.g. mains connection box or line clamps insulated with tape or heat-
+    shrink or other means, and where applicable, the fixed wiring tails of the circuit to which the line
+    is connected.
+The following assessment procedure should be adopted to ensure that an overhead line has no
+defects as assessed visually. If the line is part of a customer’s installation, a licensed electrical
+worker should assess the line. If the line is the property of an electricity entity, either an electrical
+worker with relevant experience or the entity should be engaged to have the line assessed.
+The line is visually checked to ensure that:
+• the insulation is intact, with no tears, cracks or other physical defects and there are no exposed
+    live parts along the line
+• there are no exposed live parts anywhere on the line.
+
+
+6 Clearing vegetation near overhead electric
+lines
+6.1 Scope
+This chapter of the Code applies to untrained persons who cut and trim or treat with chemicals or
+other processes, trees and other foliage near overhead electric lines where:
+• the person or something the person is holding or is in contact with, could come within the
+    exclusion zone of an overhead electric line
+• the work creates risk of damage to electric lines or apparatus.
+Examples of untrained persons performing vegetation management near electric lines include:
+• a local government work crew (other than those who are authorised persons for clearing of
+   vegetation around electric lines) performing vegetation clearing or planting or vegetation
+   treatment
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 21 of 36
+•    a building or road construction contractor performing vegetation clearing or trimming work
+•    a person employed to pick fruit from trees.
+Please refer to Appendix C for examples/case studies of work near overhead electric lines.
+
+6.2 Requirements for untrained persons
+An untrained person must not allow any part of their body or anything they are handling or wearing
+to go into the relevant exclusion zones. The only exception is if the person is handling an insulated
+device which has been tested and found to be safe for use on and near the electrical part.
+A person should not undertake tree trimming or vegetation management where any part of the tree
+or vegetation to be treated or cut or otherwise worked on is within the exclusion zones.
+A person should not undertake tree trimming or vegetation management where any part of the tree
+or vegetation could fall or otherwise be carried within the exclusion zones.
+
+6.3 Risk management process for clearing vegetation near
+   overhead electric lines
+This chapter should be read in conjunction with Chapter 2 of this Code.
+Before carrying out any vegetation management work, the PCBU should identify potential risks of
+the task. If a risk involving overhead electric lines has been identified, a written risk assessment
+should then be conducted to determine the risk to a person (or something he or she is carrying, or
+something attached to that person) encroaching into the exclusion zone. This step will help to
+determine the level of associated risk and establish a priority list based on that risk level. A copy of
+the risk assessment should be kept for future reference.
+Risks to be considered include, but are not limited to, the following:
+• Proximity of vegetation and proposed work activity to electric lines. For example:
+    - the vegetation involved is located within exclusion zones
+    - that vegetation or part of the vegetation may fall or otherwise be carried into the area
+         within exclusion zones
+    - carrying out the task would cause a person or anything a person may be handling, or in
+         contact with, to intrude into exclusion zones
+    - wind causing intermittent encroachment of vegetation into the exclusion zone or wet
+         weather making the situation more dangerous.
+•   Operational characteristics of equipment. Some examples of operational characteristics that
+    may present a risk are:
+    - knuckle boom EWPs where convenient placement of the basket can have part of the boom
+        intruding into roadways or other hazardous areas
+    - cutting equipment such as chain saws, which may ’kick back’, causing equipment to move
+        inadvertently
+    - site conditions such as weather (wind), terrain, vehicular and other traffic. For example,
+        heavy traffic on an adjacent roadway could prevent safe access to vegetation.
+If a risk involving overhead electric lines has been identified, a written risk assessment should then
+be conducted to determine the risk to a person (or something he or she is handling, or something
+attached to that person) or plant or equipment coming into contact with electric lines. This step will
+help to determine the level of risk associated with the identified risks and establish a priority list
+based on that risk level. A copy of the assessment should be kept for future reference.
+The following factors may be included in a risk assessment:
+• voltage of the exposed live part e.g. electric line
+• height of the lines
+• whether the lines are insulated or bare
+• proximity of vegetation
+• insulating properties of the tools (devices) and whether the devices have been tested and
+    found to be electrically safe
+• heights of any tools, equipment or machinery to be used, placed or operated near the line
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 22 of 36
+•    size of equipment being operated near the line and the equipment’s operating characteristics,
+     ease of manoeuvrability and conductivity
+•    location of overhead electric line supporting structures such as poles and towers in relation to
+     the work to be performed, e.g. vegetation may have attached itself to a pole
+•    particular arrangement of supporting structures, e.g. there may be stay wires that are hard to
+     see
+•    unexpected movement of the terrain, ground or surface upon which the equipment or plant is
+     located, perhaps resulting in a corresponding surge or sudden movement of the load towards
+     live electric lines
+•    prevailing weather, e.g. strong wind or water affecting the movement of the plant or its parts
+•    visibility of the overhead lines and their associated support structures, such as poles, and
+     particularly stay wires on poles.
+
+
+7 Agricultural work near overhead electric lines
+7.1 Scope
+This chapter is for agricultural workers working near overhead electric lines. Examples of such work
+include:
+• handling irrigation pipes under or near an overhead electric line
+• using lifting or elevating plant or equipment such as grain augers, hay bale elevators, travelling
+     irrigators or harvesters near or under an overhead electric line
+• any other work that involves the risk of a person or anything attached to or held by a person,
+     coming into contact with overhead electric lines.
+Please refer to Appendix C for examples/case studies of work near overhead electric lines.
+
+7.2 Risk management process for agricultural work near
+   overhead electric lines
+This chapter should be read in conjunction with Chapter 2 of this Code.
+Before carrying out any agricultural work near overhead electric lines, a person should identify
+potential risks of the task. If a risk involving overhead electric lines has been identified, a written risk
+assessment should then be conducted to determine potential risks relating to a person or plant
+encroaching into the exclusion zone. This step will help to determine the level of associated risk
+and establish a priority list based on that risk level. A copy of the assessment should be kept for
+future reference.
+Risks for agricultural work near live overhead electric lines occur when people are:
+• working nearby and in the process may come into contact with signs, scaffolding or machinery
+   such as augers and elevating work platforms near electric lines
+• moving or rearranging long aluminum irrigation pipes
+• operating high machinery or machinery with height changeable attachments in paddocks where
+   electric lines exist.
+If a risk involving overhead electric lines has been identified, a written assessment should then be
+conducted to determine the risk to a person (or something he or she is carrying, or something
+attached to that person) or plant or equipment coming into contact with electric lines. This step will
+help to determine the level of risk associated with the identified risks and establish a priority list
+based on that risk level. A copy of the assessment should be kept for future reference.
+The following factors may be included in a risk assessment:
+• voltage of the electric line
+• height of the line
+• whether the lines are insulated or bare
+• height of any tools, equipment or machinery to be used, placed or operated near the line
+• size of equipment being operated near the line and the equipment’s operating characteristics,
+    ease of manoeuvrability and conductivity
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 23 of 36
+•    proximity of stationary or fixed plant and equipment to overhead lines, e.g. grain silos and stock
+     crate gantries
+•    location of overhead electric line supporting structures such as poles and towers in relation to
+     the work to be performed e.g. a pole may be located where a large self propelled machine,
+     such as a harvester, is required to reverse or turn
+•    the possibility of sway and sag of the overhead powerlines (sway of overhead powerlines is
+     usually caused by wind, while sag may vary as temperatures vary)
+•    particular arrangement of supporting structures, e.g. there may be stay wires that are hard to
+     see
+•    unexpected movement of the terrain, ground or surface upon which the equipment or plant is
+     located, perhaps resulting in a corresponding surge or sudden movement of the load towards
+     live electric lines
+•    prevailing weather, e.g. strong wind or water affecting the movement of the plant or its parts
+•    visibility of the overhead lines and their associated support structures, such as poles, and
+     particularly stay wires on poles.
+
+
+8 Transportation of high loads near overhead
+  electric lines
+8.1 Scope
+This chapter has been drawn up for road transport operators exposed to the risk of contacting live
+overhead electric lines, e.g. when moving a high load with a vehicle near electric lines of an
+electricity entity. The chapter provides guidance on responsibilities and safe procedures to these
+operators, their workers and others.
+Apart from electrical risks, there may be other obstacles or risks associated with transporting such
+loads e.g. clearance from trees and traffic lights. This Code does not cover such risks. This Code
+also does not cover permits and other requirements in relation to the transport of over dimension
+loads from other authorities, e.g. local council, Queensland Rail, or the Department of Transport
+and Main Roads.
+
+8.2 Meaning of particular terms used in this chapter
+Assessing
+Checking the suitability of and the requirements necessary for, safe transport of a proposed high
+load by reference to the electricity entity’s records. If this is not possible, scoping should be
+undertaken.
+Escorting
+Facilitating safe passage of a high load through an electricity entity’s network, including any
+activities necessary to achieve safety.
+Escort service provider
+A person or company providing services to escort a vehicle in accordance with an electricity entity’s
+electrical safety precautions.
+Notification
+Road transport operator’s advice to the electricity entity of the intended route and specification of a
+high load.
+Road transport operator (RTO)
+A person or company transporting a load more than 4.6 metres high.
+Scoping
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 24 of 36
+Checking the suitability of, and the requirements necessary for, safe transport of a proposed high
+load by physically checking the intended route. Allowances should be made for changes in the road
+profile e.g. dips and the distance between front and rear wheel axles. (Refer to Figure 2 for an
+example of a problem caused by changes to the road profile.) Scoping may not be required where
+the suitability for transporting a high load over a particular route can be determined by assessment.
+Scoping service provider
+ice provider
+An electricity entity, a person or a company who carries out scoping or assessing in accordance
+with an electricity entity’s requirements.
+Qualified person
+A person who has successfully completed a high load transportation scoping course or its
+equivalent provided or authorised by an electricity entity. The evaluation of the person’s
+qualification will be made by the relevant electricity entity.
+
+
+
+
+Figure 2: Illustration on how a dip in the road profile can affect the clearance height of over
+dimension loads
+
+
+8.3 Transport requirements for high load categories
+Electricity entities have certain requirements that must be met before high loads can be moved with
+a vehicle near electric lines of an electricity entity’s network. The rest of Chapter 8 is devoted to
+these requirements.
+
+8.3.1 What is a high load and what requirements apply?
+There are four categories of high load. The transport requirements of high loads depend on the
+height of the load above the roads. Three of these categories have special requirements.
+Categories and requirements are set out in Table 2 below.
+Table 2: Categories and requirements for high loads being transported
+ Category no.        Maximum transport               Transport requirements
+                     height of load above
+                     road
+ 1                   Up to 4.6 metres                Transport can be carried out without any notification.
+ 2                   Over 4.6 metres, but            •   Notification to the electricity entity is required.
+                     not exceeding 5.0               •   The route should be scoped / assessed by a
+                     metres                              qualified person taking into account the electricity
+                                                         entity’s safety advice.
+                                                     •   Generally no escorting will be required, depending
+                                                         on the outcome of scoping / assessment.
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 25 of 36
+ 3                   Over 5.0 metres, but            •    Notification to the electricity entity is required.
+                     not exceeding 5.5               •    The route should be scoped / assessed by a
+                     metres                               qualified person taking into account the electricity
+                                                          entity’s safety advice.
+                                                     •    An escort may be required in accordance with the
+                                                          electricity entity’s requirements or depending on
+                                                          outcome of scoping/assessment.
+ 4                   Exceeding 5.5 metres            •    Notification to the electricity entity is required.
+                                                     •    The route should be scoped / assessed by a
+                                                          qualified person taking into account the electricity
+                                                          entity’s safety advice.
+                                                     •    An escort is required.
+
+Category 1 (height of 4.6m or less): Transport can be carried out without any notification to the
+electricity entity.
+Category 2, 3, 4: Notification must be forwarded to the electricity entity. Notification about
+transporting a high load should contain the following:
+• Dimensions of the load. The maximum travel height of the load should be determined by
+    combining the height of the object and the vehicle used for transportation. If unable to
+    predetermine the exact measurement, the maximum possible height should be used for
+    scoping or assessing purposes.
+• Route specification.
+• Time or times during which transport is required to take place.
+• Details of the service provider responsible for facilitating the transport of the high load and
+    providing safety precautions.
+Copies of the notification form can be obtained directly from the electricity entity or their website.
+
+8.4 Responsibilities–electrical safety
+8.4.1 Electricity entity
+The electricity entity’s responsibilities regarding transport of high loads include:
+• provide relevant electricity network information to transport operators and escort service
+    providers
+• advise precautions for scoping/assessing high loads and escorting high loads, which address
+    the electricity risks of these activities
+• provide authorisation in writing.
+
+8.4.2 Escort service provider–electrical safety
+The escort service provider’s responsibilities in relation to the transport of high loads include:
+• understand exclusion zone concepts and their application
+• ensure that only persons with appropriate training are engaged to perform relevant activities
+    associated with escorting the high load
+• inform the electricity entity if load and route do not conform to the notification details
+• use only specialised equipment, especially where the equipment may and can come into
+    contact with exposed live parts
+• notify electricity entity of operational electrical safety problems that have been identified, e.g.
+    damage to network assets
+• direct road transport operators to ensure electrical safety is maintained.
+
+8.4.3 Road transport operator (RTO)–electrical safety
+Road transport operators’ responsibilities in relation to the transport of high loads include:
+• notify the electricity entity of the intention to move a high load near network assets
+• provide accurate information about high loads to electricity entity
+• comply with precautions required by the electricity entity
+• comply with directions of escort provider
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 26 of 36
+•    where an escort service provider is not required, the RTO must contact the electricity entity
+     about operational matters affecting electrical safety.
+An example of an operational matter, which would affect electrical safety, would be if the high load
+transport encountered electric lines lower than the minimum clearance prescribed in the regulation.
+See section 207 and schedule 4(1) and (3) of the ES Regulation.
+
+8.4.4 Scoping service provider or network assessor–electrical safety
+The scoping service provider’s or network assessor’s responsibility in relation to the transport of
+high loads is to provide accurate information about the network through which the high load is to be
+transported.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 27 of 36
+9 Work near underground electric lines
+9.1 Scope
+This chapter applies to any work that involves risk of contact with energised underground electric
+lines. Examples of such work include:
+• a builder excavating a trench as part of construction work
+• a fencing contractor digging holes where an electrical cable could be a buried
+• rural workers driving star pickets into the ground
+
+9.2 Risk management
+This chapter should be read in conjunction with Chapter 2 of this Code, and the WHS Regulation.
+Before carrying out any work such as digging, excavation or tunnelling near an underground
+electric line, a PCBU should identify any potential risks associated with the work. A PCBU must
+also comply with any requirements under the WHS Regulation in relation to the work (e.g.
+Excavation work—underground essential services).
+Where a risk has been identified, a risk assessment should be conducted to determine the risk to a
+person (or something the person is carrying, or something attached to that person) being exposed
+to an electrical risk from the underground electric line.
+The assessment should consider:
+• The risk of tools damaging cables or apparatus, for example:
+    - When digging, driving equipment or excavating where buried electrical cables may be
+        present.
+• The risk of cables or apparatus being concealed in a work location:
+    - If it is not known whether cables, conduits, apparatus or situations form an electrical safety
+        risk, you should either assume that the risk exists, or have a qualified person investigate
+        and report.
+    - If excavating in a public place, suitable means must be used to identify any electrical
+        cables that could be present. Suitable means may include:
+        (i) Call Before You Dig Australia, a free enquiry service for information on underground
+             assets anywhere in Australia. This organisation will advise if electrical cables owned
+             by one or more of its contributory members are located near your worksite. In addition,
+             definite cable locations can be determined by special arrangement with the
+             organisations. For further information, contact Before You Dig Australia by any of the
+             following methods:
+             - phone 1100
+             - submit an enquiry online at www.byda.com.au/ .
+        (ii) Contact relevant authorities about any cables they may have placed near the
+             excavation. Authorities may include:
+             (a) electricity entities such as Energex or Ergon
+             (b) communication companies such as Optus and Telstra
+             (c) local government authorities
+             (d) water authorities.
+In some instances, customers of electricity entities have authority to place electricity cables in
+public places. If excavating on private property, you should first contact the owner or occupier of the
+premises about buried cables.
+
+9.3 WHS requirements for excavation work
+The WHS Regulation has specific requirements relating to excavation work near underground
+essential services (which includes underground electric lines).
+Where excavation work is being carried out at a workplace the person with management or control
+of the workplace must take all reasonable steps to obtain current underground essential services
+information before directing or allowing the excavation work to commence. The person with
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 28 of 36
+management or control of the workplace must provide this information to any person engaged by
+the person to carry out the excavation work.
+The person with management or control of the workplace and any PCBU who is given the
+information must have regard to the information when carrying out or directing or allowing the
+carrying out of the excavation work.
+Additional legislative requirements relating to the essential services may also impose duties on the
+PCBU and the persons carrying out the work.
+The person with control or management of the workplace must ensure that this information is
+available for inspection until the excavation work is completed. However, if a notifiable incident (see
+section 35 of the WHS Act) occurs in connection with the excavation work, it must be available for
+at least two years after the incident occurs.
+For further guidance, refer to the Excavation work code of practice.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 29 of 36
+Appendix A–Meaning of key terms
+Another safe system, for the operation of operating plant, means a system of work that—
+• has been developed in consultation with persons who are broadly representative of industrial
+  organisations of employees whose members commonly operate operating plant of the operating
+  plant’s type; and
+• provides, for persons and property, the same level of electrical safety as, or a greater level of
+  electrical safety than, the level of electrical safety provided with a safety observer.
+Authorised person, see Chapter 3.4 of this Code.
+Competent person (Schedule 9 of the ES Regulation), in relation to a task, means a person who
+has acquired, through training, qualifications, experience or a combination of these, the knowledge
+and skill to carry out the task.
+Note: for the purpose of working near overhead or underground electric lines, the competent
+person should have sufficient knowledge about relevant Australian Standards, relevant codes of
+practice, and other relevant legislation.
+Earthed means connected to the general mass of the earth (see Schedule 9 of the ES Regulation).
+Elevating work platform means a telescoping device, scissor device, or articulating device or any
+combination of those devices used to move and position personnel, equipment and materials to
+and from or at work locations above or below the support surface.
+Essential services (Schedule 19 of the WHS Regulation) means the supply of:
+• gas, water, sewerage, telecommunications, electricity and similar services
+• chemicals, fuel and refrigerant in pipes or lines.
+Excavation (Schedule 19 of the WHS Regulation) means a trench, tunnel or shaft, but does not
+include:
+• a mine
+• a water bore to which the Water Act 2000 applies
+• a trench for use as a place of interment.
+Excavation work (Schedule 19 of the WHS Regulation) means work to:
+• make an excavation; or
+• fill or partly fill an excavation.
+Exclusion zone, see Chapter 3.2 of this Code.
+High voltage (Schedule 2 of the ES Act) means voltage greater than low voltage.
+Instructed person, see Chapter 3.4 of this Code.
+Low voltage (Schedule 2 of the ES Act) means voltage greater than extra low voltage, but not
+more than 1000V AC RMS or 1500V ripple-free DC.
+Operating plant, see Chapter 4.1 of this Code.
+Safety observer, see Chapter 3.4 of this Code.
+Tiger tails (Torapoli pipes) are plastic pipe type cable covers, used as a warning to visually
+indicate the position of overhead powerlines or stay wires. Tiger tails do not insulate wires.
+Underground essential services (Section 304(7) of the WHS Regulation) means essential
+services that use pipes, cables or other associated plant located underground.
+Underground essential services information (Section 304(7) of the WHS Regulation), in relation
+to proposed excavation work, means the following information about underground essential
+services that may be affected by the excavation:
+• the essential services that may be affected
+• the location, including the depth, of any pipes, cables or other plant associated with the affected
+    essential services
+• any conditions on the proposed excavation work.
+Untrained person, see Chapter 3.4 of this Code.
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 30 of 36
+Appendix B–Exclusion zones for overhead
+electric lines
+These tables are reproductions from Schedule 2, Parts 2 and 3 of the ES Regulation.
+Part 2 - Overhead uninsulated (exposed) electric lines
+Division 1 - Exclusion zones for untrained persons
+ Nominal phase to                  Untrained            Operating plant
+                                                                                          Vehicle operated by
+ phase voltage of                  person for           operated by
+                                                                                          untrained person for
+ overhead uninsulated              the electric         untrained person for
+                                                                                          the electric line (mm)
+ electric line                     line (mm)            the electric line (mm)
+ low voltage (with
+ consultation with
+                                         1000                        3000                              600
+ person in control of
+ exposed electric line)
+ low voltage (without
+ consultation with
+                                         3000                        3000                              600
+ person in control of
+ exposed electric line)
+ above low voltage, up
+ to 33kV (with
+ consultation with                       2000                        3000                              900
+ person in control of
+ exposed electric line)
+ above low voltage, up
+ to 33kV (without
+ consultation with                       3000                        3000                              900
+ person in control of
+ exposed electric line)
+ above 33kV up to
+                                         3000                        3000                             2100
+ 132kV
+ above 132kV up to
+                                         4500                        6000                             2900
+ 220kV
+ above 220kV up to
+                                         5000                        6000                             2900
+ 275kV
+ above 275kV up to
+                                         6000                        6000                             3400
+ 330kV
+ above 330kV up to
+                                         6000                        8000                             4400
+ 500kV
+                                   Untrained            Operating plant
+ Nominal pole to earth                                                                    Vehicle operated by
+                                   person for           operated by
+ dc voltage of                                                                            untrained person for
+                                   the electric         untrained person for
+ exposed electric line                                                                    the electric line (mm)
+                                   line (mm)            the electric line (mm)
+ +/– 25kV                               3000                     3000                                 900
+ +/– 85kV                               3000                     3000                                 2100
+ +/– 150kV                              3000                     3000                                 2100
+ +/– 270kV                              4500                     6000                                 2900
+ +/– 350kV                              5000                     6000                                 2900
+ +/– 400kV                              6000                     6000                                 3400
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 31 of 36
+Part 2 - Overhead uninsulated (exposed) electric lines
+Division 2 - Exclusion zones for authorised or instructed persons
+                                                        Operating plant operated               Vehicle operated
+ Nominal phase             Authorised
+                                                        by authorised person or                by authorised
+ to phase voltage          person or
+                                                        instructed person for the              person or
+ of overhead               instructed person
+                                                        electric line, with safety             instructed person
+ uninsulated               for the electric
+                                                        observer or another safe               for the electric
+ electric line             line (mm)
+                                                        system (mm)                            line (mm)
+ low voltage                (No exclusion zone
+                                                                       1000                                  600
+                               prescribed)
+ above low
+ voltage, up to                       700                              1200                                  700
+ 33kV
+ above 33kV up to
+                                      750                              1300                                  750
+ 50kV
+ above 50kV up to
+                                     1000                              1400                              1000
+ 66kV
+ above 66kV up to
+                                     1000                              1800                              1000
+ 110kV
+ above 110kV up
+                                     1200                              1800                              1200
+ to 132kV
+ above 132kV up
+                                     1800                              2400                              1800
+ to 220kV
+ above 220kV up
+                                     2300                              3000                              2300
+ to 275kV
+ above 275kV up
+                                     3000                              3700                              3000
+ to 330kV
+ above 330kV up
+                                     3300                              4000                              3300
+ to 400kV
+ above 400kV up
+                                     3900                              4600                              3900
+ to 500kV
+                                                        Operating plant operated               Vehicle operated
+                           Authorised
+ Nominal pole to                                        by authorised person or                by authorised
+                           person or
+ earth dc voltage                                       instructed person for the              person or
+                           instructed person
+ of exposed                                             electric line, with safety             instructed person
+                           for the electric
+ electric line                                          observer or another safe               for the electric
+                           line (mm)
+                                                        system (mm)                            line (mm)
+ +/– 25kV                            700                            1200                               700
+ +/– 85kV                            1000                           1800                               1000
+ +/– 150kV                           1200                           1800                               1200
+ +/– 270kV                           1800                           2400                               1800
+ +/– 350kV                           2500                           3200                               2500
+ +/– 400kV                           2900                           3600                               2900
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)         Page 32 of 36
+Part 3 - Overhead insulated electric lines
+Division 1 - Exclusion zones for untrained persons
+ Nominal phase to                    Untrained               Operating plant                   Vehicle operated
+ phase voltage of                    person for the          operated by                       by untrained
+ overhead insulated                  electric line           untrained person for              person for the
+ electric line                       (mm)                    the electric line (mm)            electric line (mm)
+ low voltage (with
+ consultation with, and                (No exclusion
+ with insulation verified                  zone                          1000                                300
+ by, an authorised person               prescribed)
+ for the electric line)
+ low voltage (without
+ consultation with, and
+ without insulation verified                3000                         3000                                600
+ by, an authorised person
+ for the electric line)
+ above low voltage, up to
+ 33kV (with consultation
+                                            2000                         3000                                900
+ with person in control of
+ electric line)
+ above low voltage, up to
+ 33kV (without
+                                            3000                         3000                                900
+ consultation with person
+ in control of electric line)
+ above 33kV up to 66kV                     3000                       3000                             2100
+                                     Untrained               Operating plant                   Vehicle operated
+ Nominal pole to earth
+                                     person for the          operated by                       by untrained
+ dc voltage of electric
+                                     electric line           untrained person for              person for the
+ line
+                                     (mm)                    the electric line (mm)            electric line (mm)
+ +/– 25kV                                  3000                       3000                             900
+ +/– 85kV                                  3000                       3000                             2100
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)         Page 33 of 36
+Part 3 - Overhead insulated electric lines
+Division 2 - Exclusion zones for authorised or instructed persons
+                                   Authorised           Operating plant operated               Vehicle operated
+ Nominal phase to                  person or            by authorised person or                by authorised
+ phase voltage of                  instructed           instructed person for the              person or
+ overhead insulated                person for           electric line, with safety             instructed person
+ electric line                     the electric         observer or another safe               for the electric
+                                   line (mm)            system (mm)                            line (mm)
+ low voltage (with
+ consultation with, and
+                                   (No exclusion
+ with insulation verified                                     (No exclusion zone                (No exclusion zone
+                                       zone
+ by, an authorised                                               prescribed)                       prescribed)
+                                    prescribed)
+ person for the electric
+ line)
+ low voltage (without
+ consultation with, and
+                                   (No exclusion
+ without insulation                                           (No exclusion zone
+                                       zone                                                                  600
+ verified by, an                                                 prescribed)
+                                    prescribed)
+ authorised person for
+ the electric line)
+ above low voltage, up
+ to 33kV (with or without
+ consultation with                        700                           700                                  700
+ person in control of
+ electric line)
+ above 33kV up to 50kV                   750                        750                                750
+ above 50kV up to 66kV                  1000                        1000                               1000
+                                   Authorised           Operating plant operated               Vehicle operated
+                                   person or            by authorised person or                by authorised
+ Nominal pole to earth
+                                   instructed           instructed person for the              person or
+ dc voltage of electric
+                                   person for           electric line, with safety             instructed person
+ line
+                                   the electric         observer or another safe               for the electric
+                                   line (mm)            system (mm)                            line (mm)
+ +/– 25kV                                700                        700                                700
+ +/– 85kV                               1000                        1000                               1000
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)         Page 34 of 36
+Appendix C – Incidents involving live overhead
+electric lines
+C.1 Mobile crane operation
+A mobile crane contacted a 132,000 volt overhead electric line located adjacent to a worksite. At
+the time of the incident the crane driver had slewed the boom of the crane towards the line, which
+resulted in the lifting chains swinging outwards, contacting the line.
+No persons were injured; however, the crane sustained extensive damage to the tyres, lifting rope
+and electrical system on the crane.
+Contributing factors
+Failure to:
+• maintain exclusion zone distances for the line and take account of the possibility of the lifting
+     chains swinging towards the lines when the crane was operated
+• carry out an adequate risk assessment of the worksite and implement suitable control
+     measures
+• use a safety observer to observe the crane operations near the powerlines.
+
+C.2 Scaffolding work
+A worker died and three apprentice roof plumbers were injured when attempting to move an 8.9-
+metre-high aluminium scaffold at a construction site. At the time of the incident the workers were
+moving the mobile scaffold over soft sand when the castor wheels located at the base of the
+scaffold sunk into the sand causing it to fall and contact 33,000 volt overhead electric lines that
+were located adjacent to the construction site.
+Contributing factors
+Failure to:
+• carry out an adequate risk assessment of the worksite to account of the ground conditions at
+     the worksite
+• implement suitable control measures.
+
+C.3 Farm machinery
+A farmer operating a harvester on his property received a fatal electric shock when the raised
+delivery chute contacted 11,000 volt overhead electric lines. The farmer was aware of the lines and
+had previously warned others to stay clear.
+Contributing factors
+Failure to:
+• maintain exclusion zone distances for the lines,
+• carry out an adequate risk assessment of the worksite and implement suitable control
+     measures to ensure exclusion zones were maintained.
+
+C.4 Irrigation pipes on a rural property
+While attempting to remove vermin from metal irrigation pipes, a farmer working in a field received
+a fatal electric shock when he raised an irrigation pipe, into 22,000-volt overhead lines above trying
+to shake out the vermin blocking the pipe. The line height was correct.
+Contributing factors
+Failure to:
+• identify the risk of raising objects around the overhead electric lines,
+• carry out a risk assessment of the worksite and implement suitable control measures.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 35 of 36
+C.5 Tip truck operation
+A tip truck contacted an 11,000 volt overhead electric line, causing the line to break and fall to the
+ground striking a worker who was at the worksite. At the time of the incident the tip truck was
+delivering a load of granulated bitumen to the worksite when the tip tray of the truck was raised
+upwards into the overhead lines.
+Contributing factors
+Failure to:
+• plan the work and identify the risk of the overhead lines
+• maintain the relevant approach distance to the overhead lines and take account of the height of
+     the raised tray when the load was dumped at the worksite
+• carry out a risk assessment and implement suitable control measures
+• use a safety observer to observe the truck operations near the powerlines.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Working near overhead and underground electric lines (ESOPDF029)   Page 36 of 36
+

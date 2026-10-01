@@ -1,0 +1,1291 @@
+Traffic management for construction or maintenance work code of practice 2008
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0018/22158/traffic-management-construction-cop-2008.pdf
+
+Traffic management for construction or
+maintenance work
+Code of Practice 2008
+       This Queensland code of practice was preserved as a code of practice under section 284 of the
+       Work Health and Safety Act 2011.
+
+       This code was varied by the Minister for Education and Industrial Relations on 27 November
+       2011 and published in the Queensland Government Gazette on 2 December 2011.
+
+       This preserved code commenced on 1 January 2012.
+       This code was varied by the Minister for Education and Industrial Relations on 1 July 2018.
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 2 of 28
+       Contents
+       1. Introduction ...................................................................................................... 5
+       1.1 Purpose ............................................................................................................. 6
+       1.2 What is this code of practice about? ................................................................. 6
+       1.3 Scope of application .......................................................................................... 6
+       1.4 Legislation ......................................................................................................... 7
+       2. Construction and maintenance work ............................................................. 7
+       2.1 Introduction ....................................................................................................... 7
+       2.2 Principal contractors for construction projects ................................................... 8
+       2.3 PCBUs for construction work ............................................................................ 8
+       2.4 PCBUs for maintenance work ........................................................................... 8
+       2.5 Workers and other persons ............................................................................... 8
+       3. Risk management ............................................................................................ 9
+       3.1 Introduction ....................................................................................................... 9
+       3.2 Risk management ............................................................................................. 9
+       4. Traffic management ......................................................................................... 9
+       4.1 Introduction ....................................................................................................... 9
+       4.2 Manual of Uniform Traffic Control Devices Part 3 (MUTCD Part 3) ................ 10
+       4.3 Responsibilities ............................................................................................... 10
+       4.4 Planning .......................................................................................................... 10
+       4.5 Traffic plans..................................................................................................... 11
+          4.5.1     Traffic demand .................................................................................................................... 11
+          4.5.2     Traffic routing ...................................................................................................................... 11
+          4.5.3     Traffic control ...................................................................................................................... 12
+          4.5.4     Other road users ................................................................................................................. 12
+          4.5.5     Special vehicle requirements .............................................................................................. 12
+       5. Roles and responsibilities of traffic controllers and associated persons 12
+       5.1 Function of a traffic controller .......................................................................... 12
+       5.2 Responsibilities of a traffic controller ............................................................... 12
+       5.3 Responsibilities of PCBUs who employ traffic controllers ............................... 13
+       5.4 Responsibilities of approved traffic controller training providers ...................... 14
+       6. Training and accreditation ............................................................................ 14
+       6.1 Introduction ..................................................................................................... 14
+       6.2 General construction safety induction training................................................. 14
+       6.3 Level of MUTCD Part 3 training ...................................................................... 14
+       7. Record keeping .............................................................................................. 15
+       7.1 Records ........................................................................................................... 15
+       7.2 Daily routine tasks ........................................................................................... 15
+       7.3 General ........................................................................................................... 15
+       7.4 Before work starts ........................................................................................... 15
+       7.5 During work hours ........................................................................................... 15
+       7.6 Closing down at the end of the day ................................................................. 16
+       7.7 After hours....................................................................................................... 16
+       8. General hazards and risks ............................................................................ 16
+       8.1 Introduction ..................................................................................................... 16
+       8.2 Working in low light or at night time ................................................................. 16
+       8.3 Sun and heat ................................................................................................... 17
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)                                                   Page 3 of 28
+       8.4 Fatigue ............................................................................................................ 17
+       8.5 Slips, trips and falls ......................................................................................... 18
+       8.6 Noise ............................................................................................................... 19
+       8.7 Recycled water ................................................................................................ 19
+       8.8 Inclement weather ........................................................................................... 20
+       8.9 Hazardous manual tasks ................................................................................. 20
+       Appendix 1: Dictionary ......................................................................................... 22
+       Appendix 2: Sample safe work method statement ............................................. 24
+       Appendix 3: Example of a road signing checklist .............................................. 27
+       Appendix 4: Standards ......................................................................................... 28
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)                            Page 4 of 28
+       1.       Introduction
+       The Traffic management for construction or maintenance work Code of Practice is an approved
+       code of practice under section 274 of the Work Health and Safety Act 2011 (the WHS Act).
+
+       An approved code of practice is a practical guide to achieving the standards of health, safety
+       and welfare required under the WHS Act and the Work Health and Safety Regulation 2011 (the
+       WHS Regulation).
+
+       From 1 July 2018 duty holders are required to comply either with an approved code of practice
+       under the WHS Act or follow another method, such as a technical or an industry standard, if it
+       provides an equivalent or higher standard of work health and safety to the standard required in
+       the code.
+
+       A code of practice applies to anyone who has a duty of care in the circumstances described in
+       the code. In most cases, following an approved code of practice would achieve compliance with
+       the health and safety duties in the WHS Act, in relation to the subject matter of the code. Like
+       regulations, codes of practice deal with particular issues and do not cover all hazards or risks
+       which may arise. The health and safety duties require duty holders to consider all risks
+       associated with work, not only those for which regulations and codes of practice exist.
+
+       Codes of practice are admissible in court proceedings under the WHS Act and WHS
+       Regulation. Courts may regard a code of practice as evidence of what is known about a hazard,
+       risk or control and may rely on the code in determining what is reasonably practicable in the
+       circumstances to which the code relates.
+
+       An inspector may refer to an approved code of practice when issuing an improvement or
+       prohibition notice. This may include issuing an improvement notice for failure to comply with a
+       code of practice where equivalent or higher standards of work health and safety have not been
+       demonstrated.
+
+       How the code is organised
+       In providing guidance, the word ‘should’ is used in this Code to indicate a recommended course
+       of action, while ‘may’ is used to indicate an optional course of action.
+
+       This code also includes various references to provisions of the WHS Act and WHS Regulation
+       which set out the legal requirements. These references are not exhaustive. The words ‘must’,
+       ‘requires’ or ‘mandatory’ indicate that a legal requirement exists and must be complied with.
+
+       Who has duties?
+       A person conducting a business or undertaking (PCBU) has the primary duty under the
+       WHS Act to ensure, as far as reasonably practicable, that workers and other persons are not
+       exposed to health and safety risks arising from the business or undertaking.
+
+       Officers, such as company directors, have a duty to exercise due diligence to ensure that the
+       business or undertaking complies with the WHS Act and WHS Regulation. This includes taking
+       reasonable steps to ensure that the business or undertaking has and uses appropriate
+       resources and processes to provide and maintain a safe work environment.
+
+       Workers have a duty to take reasonable care for their own health and safety and that they do
+       not adversely affect the health and safety of other persons. Workers must comply with any
+       reasonable instruction and cooperate with any reasonable policy or procedure relating to health
+       and safety at the workplace.
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 5 of 28
+       Consulting workers
+       Consultation involves sharing of information, giving workers a reasonable opportunity to
+       express views and taking those views into account before making decisions on health and
+       safety matters.
+
+       The WHS Act requires that you consult, so far as is reasonably practicable, with workers who
+       carry out work for you who are (or are likely to be) directly affected by a work health and safety
+       matter.
+       If the workers are represented by a health and safety representative, the consultation must
+       involve that representative.
+
+       You must consult your workers when proposing any changes to the work that may affect their
+       health and safety.
+
+       Consulting, cooperating and coordinating activities with other duty holders
+       The WHS Act requires that you consult, cooperate and coordinate activities with all other
+       persons who have a work health or safety duty in relation to the same matter, so far as is
+       reasonably practicable.
+
+       Sometimes you may share responsibility for a health and safety matter with other business
+       operators who are involved in the same activities or who share the same workplace. In these
+       situations, you should exchange information to find out who is doing what and work together in
+       a cooperative and coordinated way so that all risks are eliminated or minimised as far as
+       reasonably practicable.
+
+       Further guidance on consultation is available in the Work health and safety consultation, co-
+       ordination and co-operation Code of Practice.
+
+       1.1 Purpose
+       The purpose of this code is to assist persons to manage workplace health and safety risks
+       posed by traffic to workers and other persons while construction or maintenance work is
+       occurring on, or adjacent to, roads.
+
+       1.2 What is this code of practice about?
+       This code of practice:
+       •  provides information about some of the hazards and risks associated with traffic
+          management for construction or maintenance work
+       •  provides information on traffic control measures
+       •  clarifies the roles and responsibilities of traffic controllers and associated persons, and
+       •  provides recommendations for training in the application of the Manual of Uniform Traffic
+          Control Devices Part 3 (MUTCD Part 3) for persons associated with construction or
+          maintenance work on, or adjacent to, a road.
+
+       1.3 Scope of application
+       This code applies to traffic management for construction or maintenance work on, or adjacent
+       to, a road.
+
+       The following examples are provided as a guide, and should not be considered as an
+       exhaustive list.
+       Construction work includes:
+       • building a new road
+       • repairing a road
+       • resealing or resurfacing a road
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 6 of 28
+       •   resheeting a gravel road
+       •   laying drainage pipes
+       •   repairing footpaths
+       •   excavation and landscaping associated with the previous activities.
+
+       Maintenance work includes:
+       •  mowing the median strip of a road
+       •  trimming trees on a median strip or footpath
+       •  undertaking work on underground or overhead services or utilities.
+
+       The code does not apply to activities performed by persons that do not relate to construction or
+       maintenance work, such as:
+       •  police officers performing rostered duty, overtime or special duties
+       •  the driver of a tow truck retrieving a broken down vehicle
+       •  a garbage truck driver picking up rubbish
+       •  or a taxi carrying passengers.
+
+       1.4 Legislation
+       In order to understand relevant workplace health and safety requirements for work associated
+       with construction or maintenance work on roads, a person must consider and understand the
+       following legislation:
+       •    Work Health and Safety Act 2011 (the WHS Act)
+       •    Work Health and Safety Regulation 2011 (the WHS Regulation)
+       •    Electrical Safety Act 2002
+       •    Electrical Safety Regulation 2013
+       •    Transport Operations (Road Use Management) Act 1995
+            - s 72a Way to install official traffic sign
+            - s 166(2) Official traffic sign approvals
+       •    Transport Operations (Road Use Management-Accreditation and Other Provisions)
+            Regulation 2015
+       •    How to manage work health and safety risks Code of Practice
+       •    Hazardous manual tasks Code of Practice
+       •    Plant Code of Practice
+       •    Managing noise and preventing hearing loss at work Code of Practice
+       •    Concrete pumping Code of Practice
+       •    Mobile crane Code of Practice
+       •    Tower crane Code of Practice
+       •    Tilt-up and pre-cast construction Code of Practice
+       •    Formwork Code of Practice
+
+       2.       Construction and maintenance work
+       2.1 Introduction
+       The the WHS Regulation defines construction work on, or adjacent to, a road, as high risk
+       construction work. A project that involves construction work where the cost is more than $250
+       000 is a construction project. A person conducting a business or undertaking (PCBU) that
+       commissions a construction project is the principal contractor for the project. However, this
+       person may choose to appoint another PCBU as principal contractor for the construction project
+       and authorise that person to have management or control of the workplace and to discharge the
+       duties of a principal contractor. The principal contractor has additional requirements under the
+       WHS Regulation to those of a PCBU conducting high risk construction work. The information
+       contained in this section will assist principal contractors and PCBUs to identify these
+       requirements.
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 7 of 28
+       2.2 Principal contractors for construction projects
+       The following list of requirements is not exhaustive, and reference should be made to the WHS
+       Act and the WHS Regulation for all the duties of principal contractors. As a principal contractor
+       is also a PCBU, the principal contractor must also comply with the duties of a PCBU.
+
+       Principal contractors performing construction work on roads or road-related areas must:
+       •   prepare a written WHS management plan, in accordance with the WHS Regulation before
+           work on the project starts
+       •   ensure that each person who is to carry out construction work in connection with the project
+           is informed about the WHS management plan
+       •   keep a copy of the WHS plan for the project in accordance with the WHS Regulation
+       •   take all reasonable steps to obtain a copy of the safe work method statement relating to
+           high risk construction work before the high risk construction work starts.
+
+       The preparation of a traffic management plan or traffic guidance scheme, in accordance with
+       the requirements and recommendations of the MUTCD Part 3, should form part of, or an
+       attachment to, the WHS management plan.
+
+       2.3 PCBUs for construction work
+       A PCBU for high risk construction work must ensure a safe work method statement is prepared
+       for the work. The safe work method statement is a written statement prepared by, or under the
+       direction of, the PCBU, that in part:
+       •    identifies work that is high risk construction work
+       •    specifies hazards relating to high risk construction work and risks to health and safety
+            associated with those hazards
+       •    describes the measures to be implemented to control the risks
+            (Example of a control measure to be used - the relevant person will, when working on or
+            near a road, comply with the MUTCD Part 3)
+       •    describes how the control measures will be implemented, monitored and reviewed.
+
+       A safe work method statement for high risk construction work may be a generic safe work
+       method statement prepared for workplaces, where the activity is to be performed in the same
+       way, in the same or similar circumstances. As traffic controllers are performing high risk
+       construction work, a safe work method statement must also be prepared for that work.
+       Reference should also be made to the WHS Regulation that outlines the requirements for safe
+       work method statements. A sample safe work method statement for work on, or adjacent to, a
+       road, is contained in Appendix 2.
+
+       2.4 PCBUs for maintenance work
+       The PCBU is not required to complete safe work method statements for work other than
+       construction work on roads or road-related areas, but is still required to manage the health and
+       safety of their workers.
+
+       A PCBU has a duty to ensure the health and safety of workers, so far as is reasonably
+       practicable. PCBUs also have the same duty of care to any other people who may be at risk
+       from work carried out by the business.
+
+       The How to manage work health and safety risks Code of Practice provides practical guidance
+       for persons who have duties under the WHS Act to manage risks to health and safety.
+
+       2.5 Workers and other persons
+       Workers and other persons at a workplace also have the following duties at work under the
+       WHS Act:
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 8 of 28
+       •   to take reasonable care for their own health and safety and that of others who may be
+           affected by their actions or omissions
+       •   to comply and cooperate with any reasonable instructions given by the PCBU and any
+           reasonable policy or procedure of the PCBU to comply with the WHS Act or WHS
+           Regulation.
+
+       3.       Risk management
+       3.1 Introduction
+       The most obvious hazard to persons undertaking construction work or maintenance activities
+       on, or adjacent to, a road, is the risk of death or injury resulting from coming into contact with
+       vehicular traffic or moving plant. Appropriate control measures for these risks are outlined in
+       sections 4-7 of this code. In addition, there are other hazards and risks identified in section 8 of
+       this code that may be relevant to the work.
+
+       Nonetheless, the risk management process outlined in the WHS Regulation and the How to
+       manage work health and safety risks Code of Practice must be followed in order to identify all
+       hazards and risks.
+
+       3.2 Risk management
+       Risk management involves the identification and analysis of all hazards likely to arise during
+       work on roads, including the setting up, operating, changing and ultimate dismantling of a traffic
+       guidance scheme, followed by the determination of appropriate measures to manage exposure
+       to the risks. The process is appropriate at all levels of planning and operation, including when
+       preparing:
+       •   standardised plans and procedures for the conduct of minor routine and mobile work, and
+       •   traffic guidance schemes for more extensive or complex work, where site-specific risks will
+           assume importance.
+
+       In each case, the process should be carried out by first identifying all the hazards likely to arise,
+       and evaluating them for the likelihood of occurrence and adverse consequences, using
+       historical data, experience or other means. The proposed procedural statement or traffic
+       guidance scheme should then be checked in detail to ensure that adequate means of
+       controlling or reducing those risks found to be significant, are in place.
+
+
+       4.       Traffic management
+       4.1 Introduction
+       In busy built-up areas, speeding motorists, cyclists, pedestrians and workers all interact with
+       construction vehicles, heavy equipment, attenuator trucks and road pavers within the road
+       construction site. In more remote areas, it is not uncommon for a road worker to be working
+       alone, often not visible, protected only by traffic cones and speed signs.
+
+       There are numerous ways to control the risks associated with working on roads or road-related
+       areas. Following are some examples of a number of traffic control measures that may be
+       considered:
+       •  road closures
+       •  footpath closures
+       •  detours
+       •  signing
+       •  traffic controllers.
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)    Page 9 of 28
+       When considering control measures such as road or footpath closures, advice and approvals
+       should be obtained from relevant authorities, including the local council, where the work is to be
+       conducted, or the Queensland Police Service.
+
+       4.2 Manual of Uniform Traffic Control Devices Part 3
+           (MUTCD Part 3)
+       The MUTCD Part 3 provides the technical background and guidance for the placement of
+       temporary traffic control signs and devices used at road works. The MUTCD Part 3 also
+       provides standard diagrams for traffic guidance schemes across a range of work activities and
+       worksites. Selection processes are provided that use tables of key site information including:
+       •  lane configuration
+       •  traffic volume
+       •  approach speed
+       •  type of work.
+
+       These selection processes are used to guide a principal contractor or relevant person to select
+       the most appropriate traffic guidance scheme for a particular situation. However, it should be
+       noted that the traffic guidance schemes provided in the MUTCD Part 3 may not be appropriate
+       for every situation, and it may be necessary to design a scheme that is suitable for the
+       individual worksite in question.
+
+       4.3 Responsibilities
+       There is a primary duty to provide a safe workplace environment that minimises the risk of injury
+       to workers within, or adjacent to, the work area. Principal contractors or PCBUs responsible for
+       construction or maintenance work, in accordance with the MUTCD Part 3, need to be aware of
+       their responsibilities for the potential for injury to road users, or damage to property, as a result
+       of this work.
+
+       It is the responsibility of a principal contractor or PCBUs, in accordance with the MUTCD Part 3,
+       to ensure that:
+       •    all signs and traffic control devices for construction work or maintenance activities are
+            erected, and
+       •    the placement of speed restriction signing and protective barriers are erected.
+
+       Steps should be taken to warn the public of adverse conditions, and to guard, delineate, and,
+       where necessary, illuminate work, which may pose a hazard to road users. Care should also be
+       taken to avoid, wherever possible, long delays or detours which may cause unnecessary
+       inconvenience to road users. Principal contractors and PCBUs carrying out construction or
+       maintenance work on roads that require the use of a traffic guidance scheme should:
+       •   be mindful of their responsibility to provide a safe workplace for personnel and plant under
+           their control, and safe and convenient travelling conditions for road users
+       •   ensure that all personnel at a worksite are aware of their responsibilities, and that traffic
+           controllers are appropriately trained and informed of their duties, and
+       •   be familiar with, and act in accordance with, the provisions of the MUTCD Part 3.
+
+       4.4 Planning
+       Careful consideration should be given to the signing of the worksite, no matter how brief the
+       occupation of the site may be. This should include:
+       •  protection of workers
+       •  provision of adequate warning of changes in surface condition, and the presence of
+          personnel or plant engaged in work on the road
+       •  adequate instruction of road users and their safe guidance through, around or past the
+          worksite, and
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)    Page 10 of 28
+       •   safe access and egress to and from the worksite.
+
+       Five important basic principles, to be observed, are as follows:
+       (i)   Signs and devices shall be appropriate to the conditions at the worksite, and shall be used
+             in accordance with the MUTCD Part 3, unless a risk assessment by a competent person
+             indicates that an alternative arrangement is satisfactory.
+       (ii) Signs and devices shall be erected and displayed before work commences at a worksite.
+       (iii) Signs and devices shall be regularly checked and maintained in a satisfactory condition.
+       (iv) Signs and devices shall be removed from a worksite as soon as practicable. However,
+             appropriate signs should remain in place until all work (including loose stone removal and
+             line marking following bituminous surfacing) has been completed.
+       (v) Records shall be kept of all work’s signing and delineation at roadway or part-roadway
+             closures.
+       An example of a road signing checklist is outlined in Appendix 3.
+
+       4.5 Traffic plans
+       A variety of standard plans/diagrams are provided for selection in the MUTCD Part 3, designed
+       to illustrate the application of traffic control devices as they apply to various worksite situations
+       and circumstances.
+
+       These diagrams indicate the appropriate positions of the signs and devices required to guide
+       traffic safely around, through or past the worksite. Worksite situations should be designed
+       according to the principles outlined in the MUTCD Part 3.
+       Plans should be prepared for:
+       •    Short-term and mobile work. Planning in these cases should comprise the development of
+            procedures and the provision of appropriate sets of signs and devices to cover all of the
+            routine tasks the workers will encounter.
+       •    Work involving relatively simple part-roadway closures. Planning in these cases should
+            comprise a minimum requirement to sketch the protective devices and delineation required
+            on a road construction or similar plan, and to prepare a list of devices required for the job.
+       •    Complex traffic arrangements. Planning in these cases should comprise:
+            - plans showing temporary traffic paths, their delineation and the position of traffic control
+                or warning devices, or on multi-stage works, a separate set of plans for each stage
+            - details of after hours traffic arrangements, on separate plans, if required, and
+            - all necessary instructions for the installation, operation, between-stage rearrangement
+                and ultimate removal of devices at the conclusion of the job, planned well before the job
+                starts, or before the start of the stage to which they apply, so that there is enough time
+                to obtain any special devices or approvals needed.
+
+       All essential aspects of traffic plans are to be considered in the following order, and
+       incorporated into the plan, if relevant.
+
+       4.5.1 Traffic demand
+       Determine the capacity required to accommodate traffic demand at an acceptable level of
+       service and convenience to road users and to decide on the amount of road space which must
+       remain open, and where applicable, the times of day when greater amounts of road space are
+       needed to handle higher traffic volumes (e.g. urban peak periods).
+
+
+       4.5.2 Traffic routing
+       Select the appropriate means of routing traffic at the site, i.e. through, around or past the site, or
+       a combination of these, and ensuring that all required traffic movements are provided for.
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)     Page 11 of 28
+       4.5.3 Traffic control
+       Determine the need for traffic control by:
+       •  traffic controller
+       •  traffic signals (portable or permanent)
+       •  police
+       •  other means.
+
+       4.5.4 Other road users
+       Determine the need to make provisions for road users, other than vehicular traffic, including:
+       •  pedestrians, including people with disabilities, where appropriate
+       •  bicycles
+       •  school children
+       •  local residents
+       •  emergency vehicles.
+
+
+       4.5.5 Special vehicle requirements
+       Determine the need to provide for vehicles, such as:
+       •  buses, including stops and terminals
+       •  over-dimensional vehicles (e.g. vehicles which, together with their load, are wider or longer
+          than standard)
+       •  restricted vehicles (e.g. vehicles which, although within legal limits, are permitted to use only
+          specified routes).
+       Depending on circumstances, movement of traffic may be achieved in one of the following
+       ways:
+       •  through the work area, by intermingling with workers or plant
+       •  past the work area by means of a delineated path alongside, but clear of the work area, and
+       •  around the work area by a detour, which may be via a side track, or an existing road.
+
+
+       5.       Roles and responsibilities of traffic
+                controllers and associated persons
+       5.1 Function of a traffic controller
+       The function of a traffic controller is to direct traffic in a way stated in the following:
+       •  Manual of Uniform Traffic Control Devices Part 3 (MUTCD Part 3)
+       •  Traffic Controller Accreditation Scheme – Approved Procedure (TCASAP)
+       •  Transport Operations (Road Use Management – Accreditation and Other Provisions)
+          Regulation 2015 (TORUM Regulation).
+
+       A traffic controller shall direct traffic at and/or through a worksite, or other event in a manner
+       specified in the approved operating procedure for the safety of all road users and road workers.
+
+       5.2 Responsibilities of a traffic controller
+       Accredited traffic controllers are required to operate at the highest standards and to comply with
+       the statutory conditions of their appointment.
+
+       A traffic controller must:
+       •   maintain a zero percent blood/alcohol concentration while performing traffic control
+           functions
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 12 of 28
+       •   not perform traffic control functions while adversely affected by a drug or other medication
+           causing functional impairment
+       •   not direct traffic through a worksite, unless the worksite has an approach speed of 60 km/hr
+           or less, as specified in the MUTCD Part 3
+       •   ensure that the Traffic Controller Ahead/PREPARE TO STOP sign is erected correctly, at
+           the beginning of the shift, and direct traffic at and/or through a worksite, or other event as
+           specified in the approved operating procedure for traffic
+       •   only use equipment specified in the MUTCD Part 3 to direct or divert traffic through a
+           worksite, and
+       •   ensure that the Traffic Controller Ahead/PREPARE TO STOP sign is removed when work is
+           suspended throughout a shift, or completed for the day.
+
+       Mobile phones should not be used in any circumstances while directing traffic control
+       operations.
+
+       To remain a traffic controller, a person must:
+       •   carry out the functions of a traffic controller as specified in this code of practice and the
+           TCASAP
+       •   comply with the conditions and responsibilities outlined in this code of practice and the
+           TCASAP
+       •   carry their Queensland Transport and Main Roads issued Traffic Controller Accreditation
+           Scheme accreditation identity card at all times while working as a traffic controller
+       •   present their accreditation identity card, upon request, to any:
+           -   Police Officer
+           -   Transport Inspector
+           -   Workplace Health and Safety Queensland Inspector
+           -   Department of Transport and Main Roads Safety Officer/Coordinator
+           -   supervisor
+           -   person in control of the workplace where the traffic controller is working.
+       •   comply with the dress code provisions outlined in the TCASAP
+       •   be polite and courteous at all times when interacting with other road users as part of their
+           duties
+       •   renew their accreditation by the expiry date after having completed an approved traffic
+           controller refresher training course delivered by an approved traffic controller training
+           provider.
+
+       5.3 Responsibilities of PCBUs who employ traffic
+           controllers
+       PCBUs who employ traffic controllers must use only accredited traffic controllers to perform
+       traffic control duties.
+
+       PCBUs who employ traffic controllers must not ask a traffic controller to do anything that may
+       cause the person to:
+       •  breach the statutory conditions of their appointment/accreditation
+       •  breach the conditions of appointment stated in the person’s instrument of appointment
+       •  breach the terms and conditions of the TCASAP
+       •  breach the requirements of this code of practice, and
+       •  operate in unsafe conditions.
+
+       PCBUs who employ traffic controllers should ensure that workers not only have the required
+       accreditation to perform traffic control duties, but they also have sufficient experience to operate
+       safely and efficiently in the traffic control area in which they are allocated.
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 13 of 28
+       5.4 Responsibilities of approved traffic controller training
+           providers
+       Traffic controller training providers are approved by the Department of Transport and Main
+       Roads to deliver traffic controller training.
+
+       Approved traffic controller training providers are responsible for:
+       •  delivering the Department of Transport and Main Roads approved traffic controller training
+          course
+       •  assessing traffic control competencies of course attendants
+       •  certifying that training requirements have been met
+       •  maintaining a register of course attendees
+       •  maintaining the original course assessments for auditing purposes.
+
+       The Department of Transport and Main Roads may conduct random and triggered desktop and
+       onsite audits of approved traffic controller training providers, to ensure that contracted traffic
+       controller training is delivered to an acceptable standard.
+
+       If, as a result of a Department of Transport and Main Roads audit or investigation, it is
+       considered that the standard of training and/or delivery methods fail to meet accepted industry
+       standards, the Department of Transport and Main Roads may initiate proceedings against the
+       approved traffic controller training provider, to show cause why their contract to deliver traffic
+       control training should not be terminated.
+
+       Where it is proven that the standard of training and/or delivery methods fail to meet accepted
+       industry standards, the Department of Transport and Main Roads may terminate an approved
+       traffic controller training provider’s contract to deliver traffic controller training courses.
+
+
+       6.       Training and accreditation
+       6.1 Introduction
+       Where legislative requirements dictate that a licence or accreditation is required to perform a
+       specific activity, a person must comply with those requirements. All other people who are
+       required to perform duties associated with road works should have suitable training to perform
+       those duties.
+
+       6.2 General construction safety induction training
+       All PCBUs and workers doing construction work in Queensland must have successfully
+       completed a general construction safety induction training course, recognised by Queensland
+       law. All workers should be also be provided with site-specific induction for the workplace before
+       they start construction work.
+
+       6.3 Level of MUTCD Part 3 training
+       Workers working on, or adjacent to, a road should be provided with training in the basic
+       application of the MUTCD Part 3. . The training package that provides this information in
+       Queensland is the online Working in Proximity to Traffic course Parts 1 and Part 2 available
+       from the Department of Transport and Main Roads.
+
+       Persons required to implement a traffic management plan should be trained in the application of
+       the MUTCD Part 3, provided by approved training providers. The training package that provides
+       this information in Queensland is Traffic Management Implement course.
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 14 of 28
+       Persons required to design a traffic management plan and associated traffic guidance schemes
+       should be trained in temporary traffic management planning and the application of the MUTCD
+       Part 3, provided by approved training providers. The training package that provides this
+       information in Queensland is the Traffic Management Design course.
+
+
+       7.       Record keeping
+       7.1 Records
+       Supervisory personnel engaged in construction or maintenance work which requires the use of
+       a traffic guidance scheme, should keep the following records:
+       •   Daily records of the sign arrangement, or traffic guidance scheme should be kept in a diary
+           or in work sheets. Special attention should be given to recording the installation, alteration
+           and removal of all regulatory signs and devices, including speed restriction signs. For short-
+           term construction or maintenance work, reference to a traffic guidance scheme which
+           applies to the layout used, or to a documented procedure, will usually be sufficient. The
+           records should include the hours of operation and surface condition of the road. Any
+           significant changes or additions to, the signs and devices included in the relevant
+           diagram(s) should also be noted.
+       •   In the case of accidents, either witnessed or reported, involving the public or from which
+           legal proceedings might arise, the actual type, size and location of signs and devices in use
+           at the time of the accident should be recorded, and the sign arrangement photographed for
+           subsequent reporting. Details of the actual width and condition of the travelled path and
+           weather conditions should also be recorded.
+
+       7.2 Daily routine tasks
+       The following sets out recommended procedures and guidelines for the daily routine tasks and
+       inspections required for the overall safety and smooth operation of a traffic guidance scheme.
+
+       7.3 General
+       Supervisory personnel should establish a daily routine, allocating specific tasks to workers and
+       supervisors, so that:
+       •  loss of production time is minimised
+       •  plant operations are not disrupted
+       •  signing at all times is adequate for the safety of workers and traffic, and
+       •  the surface of the travelled path is maintained in a satisfactory condition.
+
+       A supervisor’s role in this routine procedure is coordination, inspection and correction.
+
+       7.4 Before work starts
+       The following routine should be undertaken before work starts each day:
+       •  inspect all traffic signs and devices and make a note of signs out of place or damaged
+          during the night, for subsequent rectification
+       •  inspect all water-ballasted safety barrier or containment fence modules and make a note of
+          any out of position modules, low water levels and damaged modules, for subsequent
+          rectification
+       •  check for safety and effectiveness by an inspection drive through job after adjustments have
+          been made to the traffic management provisions for the day, and make a record of the signs
+          erected and their locations.
+
+       7.5 During work hours
+       The following routine should be followed while work is in progress:
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 15 of 28
+       •   periodically drive through the worksite to check that all signs, markings and delineation
+           devices, as seen by other road users, are satisfactory and in their correct position
+       •   attend to any minor problems, as they occur
+       •   move personnel clear of the work area during work breaks (e.g. tea breaks); park plant clear
+           of traffic lanes, and remove from view or cover inappropriate signs such as Traffic Controller
+           Ahead/PREPARE TO STOP or Workers (symbolic), if workers leave the site or cannot be
+           seen
+       •   instruct traffic controllers to remain on the job and relieve them as necessary, where there
+           are traffic hazards, or where only one lane is open to traffic
+       •   reposition barriers, signs and tapers as necessary (e.g. adjust the length of single lane
+           traffic operation, as necessary, to keep it to a minimum), keep records of changes made,
+           and the time these occurred
+       •   coordinate maintenance of the travelled path with other job operations.
+
+       7.6 Closing down at the end of the day
+       The following action is required at the end of the day’s work:
+       •  carry out pre-closedown inspection, allowing time for urgent maintenance to the travelled
+          path
+       •  remove Traffic Controller Ahead/PREPARE TO STOP, Workers (symbolic) and other
+          inappropriate signs
+       •  affix and light lamps on advance signs, if appropriate
+       •  drive through the worksite to confirm that signs and devices are in position and operating
+          before leaving the site
+       •  record any changes that have been made to the previously recorded sign arrangement or
+          traffic guidance scheme.
+
+       7.7 After hours
+       During the hours when work is suspended:
+       •  make arrangements for workers to check lamps after dark and to maintain the lamp system
+          during weekends and holidays
+       •  provide after hours contact so that arrangements can be made to replace damaged signs,
+          delineators or barriers
+       •  ensure that a record is kept of signs found damaged, missing or out of place (and their
+          location) at night, weekend or holiday inspections
+       •  carry out periodic after dark inspections on low headlight beam to ensure that all devices
+          are visible and working properly.
+
+       8.       General hazards and risks
+       8.1 Introduction
+       This section illustrates some of the general hazards and risks that may be encountered while
+       performing construction or maintenance work on, or adjacent to, a road.
+
+       8.2 Working in low light or at night time
+       Workers required to work at night, or in low light, may be exposed to a number of risks
+       including:
+       •   being struck by moving vehicles
+       •   slipping, tripping and falling.
+
+       Examples of controlling the hazards and risks when working at night or in low light include:
+       •  having at least two workers working at any time
+       •  providing additional lighting
+       •  wearing fluorescent and/or retroreflective clothing including vests and gaiters.
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 16 of 28
+       8.3 Sun and heat
+       People who spend a lot of time in the sun risk developing:
+       •  skin cancer
+       •  other skin disorders
+       •  eye injuries
+       •  heat stress
+       •  heat-related illnesses.
+
+       Every workplace should carry out its own assessment of sun exposure, identify tasks that place
+       workers at risk, and control workers’ sun exposure.
+
+       Heat stress occurs when heat is absorbed from the environment faster than the body can get rid
+       of it. Several factors may contribute to heat stress, such as the:
+       •    type of work activity
+       •    surrounding air temperature/humidity level
+       •    physical condition of the individual.
+
+       Some examples of controlling exposure to sun and heat are:
+       • wearing personal protection (e.g. sunscreen, sunglasses, and suitable clothing)
+       • taking precautions and setting time limits spent working in the sun during summer’s highest
+         risk time – between 9 am and 3 pm
+       • reorganising work schedules so that outdoor tasks are done early in the morning or late in
+         the day
+       • rotating or job-share tasks that involve direct sun exposure
+       • implementing easy ‘sun smart’ policies, such as a directive that workers drive with their
+         vehicle windows up between 9 am and 3 pm
+       • planning the work around the movement of the sun, (e.g. do outdoor work on the western
+         and northern side of a building in the morning, and work on the eastern and southern sides
+         in the afternoon)
+       • taking rest or meal breaks in shady areas
+       • drinking plenty of cool water
+       • adjusting the workload gradually when starting or returning to work in hot conditions;
+         generally, the process takes about a week
+       • wearing specialised liquid or air-cooled clothing in extreme conditions
+       • screening workers for heat tolerance
+       • following a doctor’s advice before working in hot conditions if you are on any medication
+         such as:
+         -    sedatives
+         -    tranquilisers
+         -    antidepressants
+         -    amphetamines
+         -    antispasmodics
+         -    diuretics
+         -    medication affecting blood pressure
+       • having a plan in place for treating heat affected workers.
+       Information on sun safety and heat stress is available on www.worksafe.qld.gov.au.
+
+       8.4 Fatigue
+       Fatigue is mental or physical exhaustion that prevents a person functioning normally. However,
+       fatigue is more than just feeling tired or drowsy.
+
+       Fatigue is caused by prolonged periods of physical and/or mental exertion without enough time
+       to rest and recover. The level of fatigue varies and depends on factors such as:
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 17 of 28
+       •   workload
+       •   length of shift
+       •   previous hours and days worked
+       •   time of day or night worked.
+
+       The effects of fatigue include:
+       •  a decrease in performance and productivity
+       •  an increase in the potential for incidents and injuries to occur.
+
+       Examples of controlling risks associated with fatigue include:
+       •  limiting shift work to core duties that must be completed at night
+       •  redesigning work practices so routine administrative tasks are minimised for night shift
+          workers
+       •  scheduling later start times, so that the worker has a maximum nights sleep before starting
+          work, but without affecting the night shift workers
+       •  scheduling low risk work during periods of high fatigue
+       •  scheduling complex tasks to be performed only during the day
+       •  providing sufficient supervision, particularly during periods of high fatigue, and especially for
+          hazardous work
+       •  having contingency plans to remove fatigued workers from work activities, where there is a
+          considerable risk to workplace health and safety
+       •  having effective emergency responses in place
+       •  implementing strict controls and procedures for workers performing hazardous work during
+          high fatigue periods
+       •  rotating jobs particularly for repetitive tasks, or work that involves heavy physical demands
+       •  providing workers with information on the symptoms of fatigue
+       •  encouraging all workers to identify the early signs of fatigue in workmates.
+       Information on fatigue is available on www.worksafe.qld.gov.au.
+
+       8.5 Slips, trips and falls
+       There are a number of factors that can contribute to the risk of slips, trips and falls, including:
+       •  contaminants
+       •  floor surfaces
+       •  cleaning
+       •  obstacles and other trip hazards
+       •  environment
+       •  people and activity
+       •  footwear.
+
+       It is usually a combination of these factors that create the risk of a slip or trip. Slips usually
+       occur when there is a loss of grip between the shoe and the ground surface. This commonly
+       occurs when there is a contaminant between the shoe and the surface.
+
+       Trips occur when a person’s foot hits a low obstacle in the person’s path, causing a loss of
+       balance. Often the obstacle is not easily visible or noticed.
+
+       Examples of controlling risks associated with slips, trips and falls include:
+       •  removing slip and trip hazards at the design stage
+       •  limiting access to high risk areas
+       •  marking clearly any changes in ground surface
+       •  implementing good housekeeping practices, such as clear access ways and prompt spills
+          management
+       •  wearing suitable footwear
+       •  providing adequate control measures for people working on steep batters
+       •  providing adequate lighting for the task.
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)     Page 18 of 28
+       Information on slips, trips and falls can be found in the Workplace Health and Safety
+       Queensland Guide to preventing slips, trips and falls available on www.worksafe.qld.gov.au.
+
+       8.6 Noise
+       Excessive noise is unwanted sound which may damage a person’s hearing. Excessive noise is
+       made up of two parts – the period of time you are exposed to the noise and the loudness of the
+       noise. Continuous noise exposure above 85 decibels during an eight-hour day is considered to
+       be excessive noise.
+
+       A noise assessment should be carried out when workers and others may be exposed to
+       excessive noise levels. The general aim of a noise assessment is to:
+       •  identify all people likely to be exposed to excessive noise
+       •  obtain information on noise sources and associated work practices
+       •  check the effectiveness of measures taken to reduce noise exposure
+       •  choose appropriate personal hearing protectors for persons exposed to risks from excessive
+          noise, and
+       •  define hearing protection areas at work.
+
+       Examples of controlling noise in the workplace are:
+       •  obtaining specifications relating to noise level emissions from the suppliers of plant so
+          appropriate levels of noise protection can be provided
+       •  redesigning machinery power sources to give quiet speed regulation
+       •  repairing loose and rotating parts, replacing worn bearings and gears, and regular
+          maintenance
+       •  reducing noise at the source, where appropriate, by adding:
+          -   noise barriers
+          -   noise enclosures
+          -   vibration isolation mountings
+          -   laggings
+          -   mufflers
+          -   silencers
+       •  organising schedules, so noisy work is done during a particular part of the shift, or when as
+          few people as possible are present
+       •  notifying people in advance when noisy work is to be carried out to limit their exposure to it,
+          and
+       •  providing hearing protection for workers.
+       Information on noise can be found in the Managing noise and preventing hearing loss at work
+       Code of Practice available on www.worksafe.qld.gov.au.
+
+       8.7 Recycled water
+       Water is used on roads and road-related areas for various purposes, including dust control and
+       filling plastic traffic barriers during construction work and maintenance activities.
+
+       Workplaces usually obtain water for various processes from the drinking water (potable water)
+       supply mains. However, workplaces may also obtain water from a variety of non-potable water
+       sources including:
+       •  recycled water from sewage and waste water treatment plants
+       •  stormwater storages, including from dams, creeks, and rainwater tanks
+       •  greywater from showers and laundries
+       •  industrial processes, and
+       •  agricultural irrigation (e.g. run-off water).
+
+       The quality of non-potable water will vary, depending on its source and the level of treatment
+       applied and may contain biological hazards, such as:
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 19 of 28
+       •   bacteria
+       •   viruses
+       •   protozoa
+       •   helminths (e.g. worms)
+       •   chemical and metal residues.
+
+       Non-potable water, including recycled water, is considered to be a substance under the WHS
+       Act. Under the WHS Act, manufacturers, suppliers and users of non-potable water in a
+       workplace have a duty to prevent death, injury or illness being caused by the substance (i.e.
+       non-potable water).
+       Information on recycled water can be found in the Guide to the workplace use of non-potable
+       water including recycled waters available on www.worksafe.qld.gov.au.
+
+       8.8 Inclement weather
+       Provided work is arranged to minimise hazards associated with wet weather, and safe systems
+       of work are followed, work at construction workplaces can continue safely. The main factors
+       which affect safe construction work in wet weather are:
+       •   slippery, wet floor surfaces, steps and footholds
+       •   excavations caving in
+       •   electrical hazards - wet electrical cords, cables, sockets, power points and power equipment
+       •   slippery tools, handles and other hand grip surfaces
+       •   reduced manual dexterity in some tasks
+       •   lightning strikes during thunderstorms, and
+       •   contamination from flooded sewerage systems.
+
+       If the weather is excessively cold, workers may be affected by reduced feeling and function in
+       the hands or feet, which could lead to inattentiveness and distraction, increasing the risk of
+       unsafe practices.
+
+       Wet, windy or cold weather does not necessarily make construction work unsafe, provided safe
+       systems of work can be implemented. These can include:
+       •   monitoring weather forecasts, so alternative tasks can be planned a day or more ahead,
+           and
+       •   ensuring all electric cables are raised to a safe height above the ground.
+
+       When planning long-term jobs, consider programming work, which could be affected by rain, for
+       drier months.
+
+       Special note should be made of the consequences that can result from lightning strikes during
+       thunderstorms. These lightning strikes have the ability to cause death or serious injury to
+       workers caught out in the open, especially to those workers interacting with metal objects. A
+       prime example is the traffic controller holder a metal stop/go sign that can act as a lightning
+       conductor.
+       Information on lightning protection can be found in AS/NZS 1768:2007.
+
+       8.9 Hazardous manual tasks
+       The Hazardous Manual Tasks Code of Practice provides practical guidance to PCBUs on how
+       to manage the risk of musculoskeletal disorders arising from hazardous manual tasks in the
+       workplace. It applies to all types of work and all workplaces where manual tasks are carried out.
+
+       Manual tasks include activities requiring a person to:
+       • grasp
+       • manipulate
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 20 of 28
+       •   strike
+       •   throw
+       •   carry
+       •   move (lift, lower, push, pull)
+       •   hold or restrain an object, load or body part.
+
+       Examples of controlling risks associated with hazardous manual tasks include:
+       •  bending at the knees when lifting objects
+       •  obtaining the assistance of another worker
+       •  modifying the handling task.
+       Information on hazardous manual tasks can be found in the Hazardous manual tasks Code of
+       Practice available on www.worksafe.qld.gov.au.
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 21 of 28
+       Appendix 1: Dictionary
+       Associated persons means a PCBU or approved traffic controller training provider of a traffic
+       controller.
+       Authorised officer means a person who holds an appointment as an authorised officer under
+       Part 2 Section 20 of the Transport Operations (Road Use Management) Act 1995, i.e. police
+       officer, officers and employees of the public service as appointed by the Chief Executive, other
+       persons prescribed under a regulation.
+       Competent person means, for performing an inspection or other task for a control measure, a
+       person who has acquired, through training, qualifications or experience, the knowledge and
+       skills to do the task in a safe way including knowledge of:
+       (a) relevant Australian Standards; and
+       (b) relevant codes of practice; and
+       (c) other relevant legislation.
+       Construction work is defined in the Work Health and Safety Regulation 2011.
+       Daytime means any time between sunrise and sunset on the same day, providing there is
+       sufficient daylight to see a person or vehicle clearly at a distance of 150 metres.
+       During hours of darkness means the period between sunset on a day and sunrise on the next
+       day, or when a person or vehicle in natural light cannot be seen clearly at a distance of 150
+       metres.
+       Duty holder means a person who has a duty under Part 2 of the Work Health and Safety Act
+       2011.
+       High risk construction work is defined in the Work Health and Safety Regulation 2011.
+       Must means a mandatory condition.
+       MUTCD Part 3 means the Manual of Uniform Traffic Control Devices Part 3. This is the
+       document administered by the Department of Main Roads outlining principles of signing at road
+       works, describing signs and devices used to effect traffic guidance, planning and designing
+       traffic guidance schemes, including the installation, operation and removal of traffic guidance
+       schemes.
+       Night time means during hours of darkness.
+       Principal contractor for construction work is defined in the Work Health and Safety Regulation
+       2011.
+       Road includes:
+       (a) a bus way under the Transport Infrastructure Act 1994; and
+       (b) an area that is:
+           (i) open to or used by the public and is developed for or has as one of its uses, the driving
+                or riding of motor vehicles, whether on the payment of a fee or otherwise; or
+           (ii) dedicated to public use as a road; and
+       (c) a road-related area; but
+       (d) does not include an area declared under regulation not to be a road.
+       Road-related area means:
+       (a) an area that divides a road; and
+       (b) a footpath or nature strip adjacent to a road; and
+       (c) an area that is not a road and that is open to the public and designated for use by cyclists
+           or animals; and
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 22 of 28
+       (d) an area that is not a road and that is open to or used by the public for driving, riding or
+           parking vehicles.
+       Safe work method statement is defined in the Work Health and Safety Regulation 2011.
+       Should means an advisory, recommended, but not mandatory condition.
+       TCASAP means the Traffic Controller Accreditation Scheme Approved Procedure.
+       Traffic means all vehicles, persons or animals travelling on a road.
+       WHS management plan is defined in the Work Health and Safety Regulation 2011.
+       Work area means an area where construction work is being done.
+       Worksite means an area which includes the work area(s) and any additional length of road
+       required for advance signing, tapers, side-tracks or other areas needed for associated
+       purposes.
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)    Page 23 of 28
+       Appendix 2: Sample safe work method
+       statement
+
+                 Safe work method statement                       ABN
+
+
+
+                 High risk construction work                      Working on, or adjacent to, a road
+
+
+       If your work procedure or activity identifies the need to work on, or adjacent to, a road, then it is
+       high risk construction work, and you will need to develop a safe work method statement.
+
+       The following is a generic safe work method statement. It cannot be used as a safe work
+       method statement onsite, unless the project specific section has been completed.
+
+       It must be reviewed prior to undertaking the activity, and all site-specific details must be
+       documented.
+
+
+             Control measures          How to use control measures         Monitor and review         Responsible
+                                                                                                        officer
+        1. Road work signs will be     A road works signing layout       Daily inspections to        Sup
+           erected prior to work       will be developed.                be carried out and
+           commencing.                                                   documented in project
+                                       All signs will be in              records.
+                                       accordance with the MUTCD         Signing layout to be        PM
+                                       Part 3.                           approved before work
+                                                                         commences.
+        2. All workers will have       General safety induction          All training records to     Sup
+           general safety              cards will be sighted and         be checked.
+           induction training and a    recorded for all workers.
+           site-specific induction
+           before starting work.       All workers, including sub-       Safety audits to            Safety
+                                       contractors, will be given a      include check on            Coordinator
+                                       site-specific induction.          training and induction
+                                                                         records.
+                                       Site-specific induction
+                                       records will be kept for all
+                                       inductions.
+        3. Traffic controllers to be   All traffic controllers will be   All traffic controller      Sup
+           used as required.           accredited by Queensland          tickets are to be
+                                       Transport.                        checked and
+                                                                         recorded.
+                                       Traffic control will be
+                                       conducted in accordance
+                                       with the approved procedure.
+        4. Work zone and               Work zones will be                Traffic Management          PM
+           separation distances to     delineated in accordance          Plan to be reviewed
+           be delineated.              with the Traffic Management       and approved before
+                                       Plan.                             work commences.
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)         Page 24 of 28
+             Control measures            How to use control measures             Monitor and review          Responsible
+                                                                                                               officer
+
+                                         All workers will remain within        Supervisor to                Sup
+                                         the work zone, unless traffic         constantly check on
+                                         has been stopped by traffic           workers and take
+                                         controllers.                          appropriate action.
+
+                                         Note: In the site-specific
+                                         section, detail traffic control
+                                         devices such as barriers.
+        5. All workers will wear         All workers will wear high            Supervisor to                PM/Sup
+           appropriate personal          visibility clothing, safety           constantly check and
+           protective clothing and       footwear, wide brim hat and           take appropriate
+           equipment.                    any other equipment                   action for breaches.
+                                         identified in the risk
+                                         assessment.
+        6. All control measures                                                Signs will be checked        Sup
+           detailed above will be                                              before work starts each
+           monitored and                                                       day and at regular
+           reviewed regularly                                                  intervals during the day.
+           during the work.
+                                                                               These inspections are
+                                                                               to be recorded.
+                                                                                                            Sup
+                                                                               Daily pre-start meetings
+                                                                               will be held to ensure all
+                                                                               workers are informed of      Sup
+                                                                               control measures.
+
+                                                                               Any failure of a control
+                                                                               measure will be
+                                                                               reported to the
+                                                                               supervisor immediately
+                                                                               for action.                  All
+       Tick relevant boxes to indicate all occupational licences and certificates employed for this
+       activity on this project.
+        Cranes or hoists         
+
+        Loadshifting equipment
+        Backhoe       Excavator                     Roller                      Grader             Dozer      
+        Forklift      Skid steer loader             Front end loader            Scraper       
+
+        Riggers
+        Advanced         Intermediate             Basic   
+
+        Dogger       
+
+        Scaffolder
+        Advanced         Intermediate             Basic   
+
+
+       Approved by manager:                         _____________________            _____/_____/____
+       (Safety and Risk Management)                 Signature                        Date
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)              Page 25 of 28
+          Project:                              Project manager:
+                                                    How to use control          Monitor and              Resp.
+                 Control measures
+                                                         measures               review                   officer
+        Describe the work activity where        Either use a control            If using a project
+        working on, or adjacent to, a road      measure from the generic        specific control
+        is required.                            section above or develop a      measure, the
+                                                project specific control        method of monitor
+                                                measure.                        and review must be
+                                                                                documented, as
+                                                                                well as the
+                                                                                responsible officer.
+
+
+
+
+       Project specific details
+       The following instructions are in addition to the standard safe work method statement
+       instructions above and are specific to this project only. This section must be developed after a
+       project specific risk assessment has been conducted and must take into account all hazards
+       associated with the activity.
+
+       For further assistance/information contact your local Safety Coordinator/Officer.
+
+       For generic safe work method statements, the only section that can be edited is the project
+       specific details. If instructions in the generic section are not being followed, this should be
+       outlined in the project specific details and an alternative method must be documented.
+
+       Approved by Project manager: _____________________                    _____/_____/____
+                                    Signature                                Date
+
+
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)   Page 26 of 28
+       Appendix 3: Example of a road signing
+                  checklist
+       Site signing record
+        Date:                               Road:                                 Suburb:
+        Time installed:       am/pm         Time removed:        am/pm            Chainage:
+        Lane closed: Left / Centre / Right                   Direction: In bound / Out bound
+        Lane closure changes required: Yes / No      Lane changed to: Left / Centre / Right Time:
+        am/pm
+        Visibility: Good / Poor       Weather conditions: Fine / Dry / Wet / Cloudy / Fog / Night / Ice /
+                                      Smoke
+       Note: For night conditions traffic cones must have retroreflective bands fitted.
+
+       Signs and devices not listed below may be added to page 2
+        Position                                        Number Distance from                Time checked
+                            Sign description
+           no                                          installed previous sign          1      2    3    4
+                  ROADWORK 1 km AHEAD
+                  ROADWORK AHEAD
+                  NIGHT - Supplementary plate for
+                  night work
+                  80 kph - Speed reduction sign
+                  ROAD PLANT AHEAD
+                  WORKERS AHEAD
+                  60 kph - Speed reduction sign (1.2 m
+                  to 3.0 m)
+                  REDUCE SPEED
+                  40 kph - Speed reduction sign (less
+                  than 1.2 m)
+                  TWO LANE STATUS
+                  THREE LANE STATUS
+                  FOUR LANE STATUS
+                  LATERAL SHIFT MARKERS
+                  TRAFFIC CONTROLLER AHEAD
+                  STOP/SLOW BAT
+                  PREPARE TO STOP
+                  TRAFFIC SIGNALS AHEAD
+                  STOP HERE ON RED SIGNAL
+                  PORTABLE TRAFFIC SIGNALS
+                  TRAFFIC CONES - 700 mm
+                  TRAFFIC CONES - 450 mm
+                  TRAFFIC CONES - 300 mm
+                  (linemarking only)
+                  END ROADWORK
+                  SPEED SIGN - restored to
+                  appropriate limit
+                  TRACTOR/SLASHER AHEAD -
+                  (symbolic)
+                  PROBABLE DELAY 15 MINUTES
+                  SIGNALS UNDER REPAIR
+                  POLICE CONTROL AHEAD
+                  VARIABLE MESSAGE SIGN
+                  ARROW BOARD
+                  BARRIER BOARD
+
+                  Signature: _________________________________              Date: _____/_____/________
+                  (Person in control of the worksite)
+
+
+Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)        Page 27 of 28
+           Appendix 4: Standards
+           AS/NZS 1158.4 - Lighting for roads and public spaces – Part 4: Lighting of pedestrian crossings
+           AS1743 - Road signs – Specifications
+           AS/NZS 1768 - Lightning protection
+           AS/NZS 1906 - Retroreflective materials and devices for road traffic control purposes
+           AS/NZS 1906.1 - Retroreflective materials and devices for road traffic control purposes – Part 1:
+           Retroreflective sheeting
+           AS/NZS 1906.2 - Retroreflective materials and devices for road traffic control purposes – Part 2:
+           Retroreflective devices (non-pavement application)
+           AS/NZS 1906.3 - Retroreflective materials and devices for road traffic control purposes – Part 3:
+           Raised pavement markers (retroreflective and non-retroreflective)
+           AS 2601 – The demolition of structures
+           AS/NZS 3845 - Road safety barrier systems and devices
+           AS 4191 - Portable traffic signal systems
+           AS 4192 - Illuminated flashing arrow signs
+           AS/NZS 4602 - High visibility safety garments
+
+
+
+
+Workplace Health and Safety Queensland                                    www.worksafe.qld.gov.au                               1300 362 128
+The material presented in this publication is distributed by the Queensland Government for information only and is subject to change without notice.
+The Queensland Government disclaims all responsibility and liability (including liability in negligence) for all expenses, losses, damages and costs
+incurred as a result of the information being inaccurate or incomplete in any way and for any reason. © State of Queensland 2018. PN11191
+
+
+
+
+ Traffic management for construction or maintenance work - Code of Practice 2008 (PN11191)                                  Page 28 of 28
+

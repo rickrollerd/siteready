@@ -1,0 +1,2555 @@
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0025/72637/managing-electrical-risks-in-the-workplace-cop-2021.pdf
+
+Electrical Safety Code of Practice 2021
+
+Managing electrical risks in the workplace
+            PN12643
+            ISBN Creative Commons
+            This copyright work is licensed under a Creative Commons Attribution-Noncommercial 4.0 International
+            licence. To view a copy of this licence, visit creativecommons.org/licenses. In essence, you are free to copy,
+            communicate and adapt the work for non-commercial purposes, as long as you attribute the work to Safe
+            Work Australia and abide by the other licence terms.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                    Page 2 of 56
+            Table of contents
+            Legislative framework....................................................................................................... 5
+            Foreword ............................................................................................................................ 5
+            1.      Introduction ................................................................................................................ 7
+                 1.1 What are electrical risks? ........................................................................................... 7
+                 1.2 What is electrical work? ............................................................................................. 7
+                 1.3 Who must manage electrical risks? ........................................................................... 8
+                 1.4 What is involved in managing electrical risks at the workplace? .............................. 11
+            2.      The risk management process................................................................................ 12
+                 2.1 Identifying the hazards ............................................................................................. 12
+                 2.2 Assessing the risks .................................................................................................. 13
+                 2.3 Controlling the risks ................................................................................................. 15
+                 2.4 Maintaining and reviewing control measures ........................................................... 16
+            3.      Specific hazards and control measures ................................................................. 17
+                 3.1 Unsafe electrical equipment and electrical installations at the workplace ................ 17
+                 3.2 Inspecting and testing electrical equipment ............................................................. 17
+                 3.3 Safety switches ........................................................................................................ 19
+            4.      Working de-energised ............................................................................................. 24
+                 4.1 General principles—verification of de-energised electrical equipment..................... 24
+                 4.2 Work on cables (including cutting cables) ................................................................ 25
+            5.      Isolation, locking off and access ............................................................................ 25
+                 5.1 Securing the isolation .............................................................................................. 26
+                 5.2 Altering isolation for testing, fault finding and re-energising..................................... 30
+                 5.3 Restoring power....................................................................................................... 30
+                 5.4 Leaving unfinished work .......................................................................................... 31
+            6.      Electrical work on or near energised electrical equipment .................................. 31
+                 6.1 Prohibition of electrical work on or near energised electrical equipment ................. 31
+                 6.2 Planning and preparation ......................................................................................... 32
+                 6.3 Carrying out energised electrical work ..................................................................... 33
+                 6.4 Particular energised electrical work—testing and fault finding ................................. 37
+            7.      Tools and equipment ............................................................................................... 38
+                 7.1 Maintenance and inspection .................................................................................... 38
+                 7.2 Ladders, scaffolds and similar equipment ................................................................ 38
+                 7.3 Insulating barriers and insulating mats .................................................................... 39
+                 7.4 Test instruments ...................................................................................................... 39
+                 7.5 Personal protective equipment ................................................................................ 40
+            8.      High voltage electrical work .................................................................................... 42
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                                        Page 3 of 56
+               8.1 Additional risks associated with high voltage ........................................................... 42
+               8.2 Planning for high voltage installation work ............................................................... 42
+            Appendix A—Glossary ................................................................................................... 43
+            Appendix B—Advantages and disadvantages of non-portable and portable safety
+            switches ........................................................................................................................... 46
+               Non-portable safety switches ......................................................................................... 46
+               Non-portable safety switches installed at the main switchboard .................................... 46
+               Non-portable safety switches installed at a socket outlet............................................... 46
+               Portable safety switches ................................................................................................ 47
+               Portable safety switches—portable plug type ................................................................ 47
+               Portable safety switches —portable stand-alone unit .................................................... 47
+            Appendix C—Risks associated with electrical work .................................................... 49
+            Appendix D—Preventative actions checklist ................................................................ 55
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                                        Page 4 of 56
+            Legislative framework
+            The Electrical Safety Act 2002 (the ES Act) is directed at eliminating the human cost to individuals,
+            families and the community of death, injury and destruction that can be caused by electricity. The
+            ES Act establishes a legislative framework for preventing persons from being killed or injured by
+            electricity, and preventing property from being destroyed or damaged by electricity. The ES Act
+            places the primary electrical safety duty on a person conducting a business or undertaking
+            (PCBU), who must ensure the business or undertaking is conducted in a way that is electrically
+            safe. Duties are also placed on officers of a PCBU, workers and other persons at a workplace, as
+            well as electricity entities, designers, manufacturers, importers, suppliers, installers, repairers and
+            persons in control of electrical equipment.
+            The Work Health and Safety Act 2011 (WHS Act) requires persons who have a duty to ensure
+            health and safety to ‘manage risks’ by eliminating health and safety risks so far as is reasonably
+            practicable, and if it is not reasonably practicable to do so, to minimise those risks so far as is
+            reasonably practicable. The WHS Act provides a framework to protect the health, safety and
+            welfare of all workers at work. It also protects the health and safety of all other people who might
+            be affected by the work. The WHS Act places the primary health and safety duty on a PCBU, who
+            must ensure, so far as is reasonably practicable, the health and safety of workers at the
+            workplace. Duties are also placed on officers of a PCBU, workers and other persons at a
+            workplace.
+            In terms of electrical safety, where the ES Act and the WHS Act both apply, the ES Act takes
+            precedence.
+
+            Foreword
+            This Code of Practice on how to manage electrical risks in workplaces is made under section 44 of
+            the ES Act. A code of practice is a practical guide to achieving the standards of electrical safety
+            required under the ES Act and the Electrical Safety Regulation 2013 (the ES Regulation). A code
+            of practice applies to anyone who has an electrical safety duty in the circumstances described in
+            the code. In most cases, following a code of practice would achieve compliance with the electrical
+            safety duties in the ES Act, in relation to the subject matter of the code. Like regulations, codes of
+            practice deal with particular issues and do not cover all hazards or risks that may arise.
+            Health and safety and electrical safety duties require duty holders to consider all risks associated
+            with work, not only those for which regulations and codes of practice exist. Codes of practice are
+            admissible in court proceedings under the ES Act and ES Regulation. Courts may regard a code of
+            practice as evidence of what is known about a hazard, risk or control and may rely on the code in
+            determining what is reasonably practicable in the circumstances to which the code relates.
+            Compliance with the ES Act and ES Regulation may be achieved by following another method,
+            such as a technical or an industry standard, if it provides an equivalent or higher standard of
+            electrical safety than the code. An inspector may refer to a code of practice when issuing an
+            improvement or electrical safety protection notice. This Code of Practice is based on the model
+            code of practice of the same name developed by Safe Work Australia under the Council of
+            Australian Governments’ Inter-Governmental Agreement for Regulatory and Operational Reform in
+            Occupational Health and Safety for adoption by the Commonwealth, state and territory
+            governments.
+            Scope and application
+            This Code is intended to be read by a PCBU. It provides practical guidance to PCBUs on
+            managing electrical risks in the workplace. It applies to all workplaces where a PCBU:
+            • has management or control of electrical equipment, including electrical installations
+            • carries out electrical work on or near energised electrical equipment, including electrical
+                installations.
+            This Code does not apply to:
+            • electrical work on extra-low voltage electrical equipment, including extra-low voltage electrical
+                installations
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace              Page 5 of 56
+            •    electrical work on high voltage equipment after switching, isolation, short circuiting and
+                 earthing, subject to summary guidance in Chapter 8 of this Code
+            •    the manufacture of electrical equipment
+            •    automotive electrical work
+            •    work that is not electrical work carried out on telephone, communication and data systems
+            •    repair of consumer electrical equipment when unplugged from any electrical socket outlet.
+            Extra-low voltage means voltage that does not exceed 50 volts alternating current (50 V A.C.) or
+            120 volts ripple-free direct current (120 V ripple free D.C).
+            How to use this Code of Practice
+            This Code should be read in conjunction with the ES Act, the ES Regulation, the WHS Act, the
+            Work Health and Safety Regulation 2011 (the WHS Regulation) and other relevant codes of
+            practice.
+            In providing guidance, the word ‘should’ is used in this Code to indicate a recommended course of
+            action, while ‘may’ is used to indicate an optional course of action. The terms ‘health and safety’
+            and ‘work health and safety’ are used in this Code to indicate a wider application than just
+            ‘electrical safety’. However, ‘electrical safety’ should be taken as being included when the terms
+            ‘health and safety’ and ‘work health and safety’ are used.
+            This Code also includes various references to provisions of the ES Act, the ES Regulation, the
+            WHS Act and the WHS Regulation which set out the legal requirements. These references are not
+            exhaustive. The words ‘must’, ‘requires’ or ‘mandatory’ indicate that a legal requirement exists and
+            must be complied with.
+            This Code also includes various references to standards (using the designated ‘AS’) and joint
+            standards (using the designated ‘AS/NZS’). In this Code, unless otherwise stated, a reference to a
+            standard (or joint standard) is a reference to that standard (or joint standard) as in force from time
+            to time under that designation. For example, ‘AS/NZS 3000’ is a reference to the joint standard
+            that is currently in force under that designation.
+            Key terms used in this Code are defined at Appendix A.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace             Page 6 of 56
+            1. Introduction
+            1.1 What are electrical risks?
+            Electrical risks are risks of death, shock or other injury caused directly or indirectly by electricity.
+            The most common electrical risks and causes of injury are:
+            • electric shock causing injury or death. The electric shock may be received by direct or indirect
+               contact, tracking through or across a medium, or by arcing. For example, electric shock may
+               result from indirect contact where a conductive part that is not normally energised (such as a
+               metal toaster body or a fence) becomes energised due to a fault
+            • fire (such as fire resulting from an electrical fault), arcing or explosion causing burns. These
+               injuries are often suffered because arcing or explosion or both occur when high fault currents
+               are present
+            • electric shock from ‘step-and-touch’ potentials
+            • toxic gases causing illness or death. Burning and arcing associated with electrical equipment
+               may release various gases and contaminants.
+            Even the briefest contact with electricity at 50 volts for alternating current (V A.C.) or 120 volts for
+            direct current (V D.C.) can have serious consequences for a person’s health and safety. High
+            voltage shocks (involving more than 1000 V A.C. or 1500 V D.C.) can cause contact burns and
+            damage to internal organs.
+            Electric shocks may also lead to other injuries, including falls from ladders, scaffolds or other
+            elevated work platforms. Other injuries or illnesses may include muscle spasms, palpitations,
+            nausea, vomiting, collapse and unconsciousness.
+            Workers using electricity may not be the only ones at risk—faulty electrical equipment and poor
+            electrical installations can lead to fires that may also cause death or injury to others.
+
+            1.2 What is electrical work?
+
+            ES Act section 18
+            Meaning of electrical work
+
+            Electrical work means:
+            • connecting electricity supply wiring to electrical equipment or disconnecting electricity supply
+               wiring from electrical equipment; or
+            • manufacturing, constructing, installing, removing, adding, testing, replacing, repairing, altering
+               or maintaining electrical equipment or an electrical installation
+            Electrical work does not include:
+            •    work that involves connecting electrical equipment to an electricity supply by means of a
+                 flexible cord plug and socket outlet
+            •    work on a non-electrical component of electrical equipment, if the person carrying out the work
+                 is not exposed to an electrical hazard
+            •     replacing electrical equipment or a component of electrical equipment if that task can be safely
+                 performed by a person who does not have expertise in carrying out electrical work
+            •     assembling, making, modifying or repairing electrical equipment in a workplace under the
+                 Work Health and Safety Act 2011 that is prescribed under a regulation for this paragraph, if
+                 that is the principal manufacturing process at the workplace, and arrangements are in place,
+                 and are detailed in written form, for ensuring that:
+                 - the work is done safely and competently
+                 - the equipment is tested to ensure compliance with relevant standards;
+            •    building or repairing ducts, conduits or troughs (channels) where electrical wiring will be or is
+                 installed, if:
+            •    the channels are not intended to be earthed; and
+            •    wiring installed in the channels is not energised; and
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                Page 7 of 56
+            •    the work is done under the supervision of a person licensed to perform electrical installation
+                 work
+            •    locating or mounting electrical equipment, or fixing electrical equipment in place, if this task is
+                 not performed in relation to the connection of electrical equipment to an electricity supply
+            •    assisting a licensed electrical worker to carry out electrical work, on electrical equipment under
+                 the direct supervision of the electrical worker, if the assistance does not involve physical
+                 contact with any energised electrical equipment
+            •    carrying out electrical work, other than work on energised electrical equipment, in order to meet
+                 eligibility requirements in relation to becoming a licensed electrical worker and only if the work
+                 is prescribed under a regulation for this paragraph
+            •    building, under the supervision of an electricity entity, an overhead electric line on structures
+                 that do not already carry an energised overhead electric line
+            •    laying, cutting or sealing underground cables that are part of the works of an electricity entity
+                 before the initial connection of the cables to an electricity source;
+            •    recovering underground cables that are part of the works of an electricity entity after
+                 disconnection from an electricity source
+            •    altering, repairing, maintaining or recovering an overhead electric line that is part of the works
+                 of an electricity entity, if the work is performed under the entity's supervision and:
+                 - if the line is not on supports supporting another electric line—the line has been isolated
+                     from an electricity source so that the closure of a switch cannot energise the section of the
+                     line where work is being done; or
+                 - if the line is on supports supporting another electric line—both lines have been isolated
+                     from an electricity source so that the closure of a switch cannot energise the section of the
+                     line where the work is being done or an adjacent section of the other line
+            •    erecting structures for the support of electrical equipment;
+            •     locating, mounting or fixing in place electrical equipment, other than:
+                 - making or terminating electrical connections to the equipment; or
+                 - installing supply conductors that will connect the equipment to a supply of electricity
+            •    maintaining the structural parts of the electrical traction system on a railway, other than
+                 overhead electric lines, that forms part of the works of an electrical entity, if the work is
+                 structural work performed under a safe system of work
+            •    connecting an item of prescribed electrical equipment to existing equipment if—
+                 - that task can be safely performed by a person who does not have expertise in carrying out
+                     electrical work; and
+                 - after they are connected, the item of prescribed electrical equipment and the existing
+                     equipment remain—
+                     o controlling, generating, supplying, transforming or transmitting electricity at extra low
+                           voltage; or
+                     o operating by electricity at extra low voltage; and
+                 - the prescribed electrical equipment is not located in an area in which the atmosphere
+                     presents a risk to health and safety from fire or explosion; and
+                 - the prescribed electrical equipment is not, and is not part of, a cathodic protection system;
+            •    disconnecting an item of prescribed electrical equipment from existing equipment if—
+                     - that task can be safely performed by a person who does not have expertise in carrying
+                           out electrical work; and
+                     - before they were disconnected, the item of prescribed electrical equipment and the
+                           existing equipment were—
+                     o controlling, generating, supplying, transforming or transmitting electricity at extra low
+                           voltage; or
+                     o operated by electricity at extra low voltage; and
+                 - the prescribed electrical equipment is not located in an area in which the atmosphere
+                     presents a risk to health and safety from fire or explosion; and
+                 - the prescribed electrical equipment is not, and is not part of, a cathodic protection system.
+
+
+            1.3 Who must manage electrical risks?
+            There are a number of duty holders who have a role in managing electrical risks. These include:
+            • PCBUs
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace              Page 8 of 56
+            •    persons in control of electrical equipment, designers, manufacturers, importers, installers and
+                 suppliers of electrical equipment, substances or structures
+            •    officers.
+            Workers and other persons at the workplace also have duties under the WHS Act, such as the
+            duty to take reasonable care for their own electrical safety at the workplace.
+            A person can have more than one duty and more than one person can have the same duty at the
+            same time.
+            Early consultation and identification of risks can allow for more options to eliminate or minimise
+            risks and reduce the associated costs.
+            Person conducting a business or undertaking
+
+            ES Act section 30
+            Primary duty of care
+            ES Regulation section 11
+            Risk management
+
+            A PCBU has the primary duty under the ES Act to ensure the person’s business or undertaking is
+            conducted in a way that is electrically safe.
+            This duty includes:
+            • ensuring that all electrical equipment used in the conduct of the person’s business or
+                undertaking is electrically safe
+            • if the person’s business or undertaking includes the performance of electrical work, ensuring
+                the electrical safety of all persons and property likely to be affected by the electrical work
+            • if the person’s business or undertaking includes the performance of work, whether or not
+                electrical work, involving contact with, or being near to, exposed parts, ensuring persons
+                performing the work are electrically safe.
+            The ES Regulation includes more specific requirements for PCBUs to manage the risks of hazards
+            associated with electrical risks at the workplace. The ES Regulation also specifies safety switch
+            requirements for certain type of work at a workplace (e.g. for manufacturing work).
+            PCBUs carrying out electrical work must comply with the prohibition on electrical work on or near
+            energised electrical equipment subject to the defined exceptions. PCBUs should ensure electrical
+            installation work is carried out by qualified licensed persons and testing and compliance
+            requirements are met.
+            PCBUs have a duty to consult workers about work health and safety and may also have duties to
+            consult, cooperate and coordinate with other duty holders.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace             Page 9 of 56
+            Designers, manufacturers, importers, suppliers and installers
+              ES Act section 31
+              Duty of PCBU that designs electrical equipment or an electrical installation
+              ES Act section 32
+              Duty of PCBU that manufactures electrical equipment
+              ES Act section 33
+              Duty of PCBU that imports electrical equipment structures
+              ES Act section 34
+              Duty of PCBU that supplies electrical equipment
+              ES Act section 35
+              Additional duties of designer, manufacturer, importer or supplier or electrical equipment
+              ES Act section 36
+              Duty of installer of electrical equipment or electrical installation
+
+            Designers of electrical equipment or electrical installations must ensure the electrical equipment
+            or electrical installation is designed to be electrically safe.
+            Manufacturers of electrical equipment must ensure that the electrical equipment, when made, is
+            electrically safe This duty includes examining and testing the electrical equipment to ensure it is
+            electrically safe.
+            Importers of electrical equipment must ensure the electrical equipment is electrically safe. The
+            duty includes ensuring the electrical equipment is designed to be electrically safe and is tested and
+            examined to ensure it is electrically safe.
+            Suppliers of electrical equipment must ensure that when the electrical equipment leaves the
+            supplier, it is accompanied by information about the way the electrical equipment must be used to
+            ensure its use is electrically safe.
+            Installers of electrical equipment and installations must ensure the way in which the electrical
+            equipment or electrical installation is installed is electrically safe. The duty includes ensuring the
+            electrical equipment or electrical installation is electrically safe following installation (this includes
+            testing and examination).
+            Persons in control of electrical equipment must ensure the electrical equipment is electrically
+            safe.
+            Officers
+
+            ES Act section 38A
+            Duty of officers
+
+            Officers (e.g. company directors), have a duty to exercise due diligence to ensure the PCBU
+            complies with the ES Act and ES Regulation. This includes taking reasonable steps to ensure that
+            the business or undertaking has and uses appropriate resources and processes to eliminate or
+            minimise electrical risks at the workplace.
+            Workers
+
+            ES Act section 39
+            Duties of worker
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                 Page 10 of 56
+            Workers have a duty to take reasonable care for their own electrical safety and to not adversely
+            affect the electrical safety of other persons. Workers must comply with reasonable instructions, as
+            far as they are reasonably able, and cooperate with reasonable electrical safety policies or
+            procedures that have been notified to workers. This means that if electrical equipment or personal
+            protective equipment (PPE) is provided by the PCBU, the worker must use it, so far as they are
+            reasonably able, in accordance with the information, instruction and training provided about its
+            use.
+            Other persons in the workplace
+
+            ES Act section 40
+            Duties of other persons at the workplace
+
+
+            Other persons at the workplace, like visitors, must take reasonable care for their own electrical
+            safety and must take care not to adversely affect other people’s electrical safety. They must
+            comply, so far as they are reasonably able, with reasonable instructions given by the PCBU to
+            allow that person to comply with the ES Act.
+
+            Duty holders may also have other legal obligations under Commonwealth, state or territory
+            electrical safety legislation.
+
+
+            1.4 What is involved in managing electrical risks at the
+            workplace?
+            ES Regulation section 11
+            Risk Management
+            WHS Regulation section 34
+            Duty to identify hazards
+            WHS Regulation section 35
+            Managing risks to health and safety
+            WHS Regulation section 36
+            Hierarchy of control measures
+            WHS Regulation section 37
+            Maintenance of control measures
+            WHS Regulation section 38
+            Review of control measures
+
+
+            This Code provides guidance on how to manage electrical risks in the workplace using the
+            following systematic process:
+            • Identify hazards—find out what could cause harm.
+            • Assess risks, if necessary—understand the nature of the harm that could be caused by the
+                 hazard, how serious the harm could be and the likelihood of it happening. This step may not be
+                 necessary if you are dealing with a known risk with known controls.
+            • Eliminate risks so far as is reasonably practicable.
+            • Control risks—if it is not reasonably practicable to eliminate the risk, implement the most
+                 effective control measures that are reasonably practicable in the circumstances in accordance
+                 with the hierarchy of control measures, and ensure they remain effective over time.
+            • Review control measures to ensure they are working as planned.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace           Page 11 of 56
+            Further guidance on the general risk management process is in the How to manage work health
+            and safety risks Code of Practice.
+            Information, training, instruction and supervision
+
+            WHS Act section 19
+            Primary duty of care
+            WHS Regulation section 39
+            Provision of information, training and instruction
+
+            The WHS Act requires a PCBU to, so far as is reasonably practicable, provide information,
+            training, instruction or supervision that is necessary to protect all persons from risks to their health
+            and safety arising from work carried out as part of the conduct of the business or undertaking.
+            The PCBU must ensure that information, training and instruction provided to a worker are suitable
+            and adequate having regard to:
+            • the nature of the work carried out by the worker
+            • the nature of the risks associated with the work at the time of the information, training and
+               instruction
+            • the control measures implemented.
+            The PCBU must also ensure, so far as is reasonably practicable, that the information, training and
+            instruction are provided in a way that is readily understood by the people to whom it is provided.
+            Workers must be trained and have the appropriate skills to carry out a particular task safely.
+            Training should be provided to workers by a competent person. Formal or on-the-job training may
+            be required or appropriate, depending on the circumstances.
+            Examples of training are:
+            • induction training—to ensure new starters or workers new to a job are trained on safe systems
+               of work and other relevant health and safety matters
+            • supervisor and management training—to ensure that safety issues are appropriately managed
+               at the workplace
+            • work-specific training—to ensure that workers carrying out particular work are trained on any
+               electrical and other risks specific to the work, as appropriate
+            • ongoing or refresher training—to ensure that any training on work health and safety matters is
+               repeated as appropriate on a periodic basis
+            • emergency procedure training—to ensure workers know what to do in the event of an
+               emergency (e.g. procedures to follow if a person receives an electric shock)
+            • first aid training—to ensure appropriate procedures are followed for administering first aid (e.g.
+               proper treatment for electric shock)
+            • electrical rescue and resuscitation training for safety observers.
+            Special needs of workers should be taken into account in deciding the structure, content and
+            delivery of training, including literacy levels, work experience and specific skills required to carry
+            out the work.
+
+
+            2. The risk management process
+            A PCBU must manage risks by identifying reasonably foreseeable hazards that could give rise to
+            risk, eliminating those risks so far as is reasonably practicable, or if that is not possible, minimising
+            those risks by implementing control measures.
+
+            2.1 Identifying the hazards
+            WHS Regulation section 34
+            Duty to identify hazards
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace              Page 12 of 56
+            The first step in the risk management process is to identify all hazards involved with electrical
+            work. This involves finding things and situations that could potentially cause harm to people.
+            Hazards generally arise from the following aspects of work and their interaction:
+            • physical work environment
+            • equipment, materials and substances used
+            • work tasks and how they are performed
+            • work design and management.
+            Hazards may be identified by looking at the workplace and how work is carried out. It is also useful
+            to talk to workers, manufacturers, suppliers and health and safety specialists and review relevant
+            information, records and incident reports.
+            Hazards associated with electrical equipment or installations may arise from:
+            • the design, construction, installation, maintenance and testing of electrical equipment or
+               electrical installations
+            • design change or modification
+            • inadequate or inactive electrical protection
+            • where and how electrical equipment is used. Electrical equipment may be subject to operating
+               conditions that are likely to result in damage to the equipment or a reduction in its expected life
+               span. For example, equipment may be at greater risk of damage if used outdoors or in a
+               factory or workshop environment
+            • electrical equipment being used in an area in which the atmosphere presents a risk to health
+               and safety from fire or explosion (e.g. confined spaces)
+            • the type of electrical equipment. For example, ‘plug in’ electrical equipment that is moved
+               around from site to site, including extension leads, is particularly liable to damage
+            • the age of electrical equipment and electrical installations
+            • work carried out on or near electrical equipment or electrical installations, including electric
+               overhead lines or underground electric services (e.g. work carried out in a confined space
+               connected to plant or services).
+            Exposure to high electromagnetic fields may also present a potential hazard for workers with some
+            medical conditions (e.g. pacemakers). You must inform workers and other persons at the
+            workplace of any potential electromagnetic hazards at the workplace that may affect a medical
+            condition. You must also manage risks to health and safety arising out of electromagnetic hazards,
+            including eliminating the risk so far as is reasonably practicable. If that is not reasonably
+            practicable you must minimise the risk so far as is reasonably practicable.
+            You can identify potential electrical hazards in a number of different ways including:
+            • talking to workers and observing where and how electrical equipment is used
+            • regularly inspecting and testing electrical equipment and electrical installations as appropriate
+            • reading product labels and manufacturers’ instruction manuals
+            • talking to manufacturers, suppliers, industry associations, and electrical safety specialists
+            • reviewing incident reports.
+
+            2.2 Assessing the risks
+            A risk assessment involves considering what could happen if someone is exposed to a hazard and
+            the likelihood of it happening. A risk assessment can help you determine:
+            • how severe a risk is
+            • whether any existing control measures are effective
+            • what action you should take to control the risk
+            • how urgently the action needs to be taken.
+            Hazards have the potential to cause different types and severities of harm, ranging from minor
+            discomfort to a serious injury or death.
+            Many hazards and their associated risks are well known and have well established and accepted
+            effective control measures. In these situations, the second step in the process identified in section
+            1.4 of this Code (to formally assess the risk) is not required. If after identifying a hazard you
+            already know the risk and how to control it effectively, you may simply implement the controls.
+            In some circumstances, a risk assessment will assist to:
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 13 of 56
+            •    identify which workers are at risk of exposure
+            •    determine what sources and processes are causing the risk
+            •    identify if and what kind of control measures should be implemented
+            •    check the effectiveness of existing control measures.
+            It may be possible to re-use a risk assessment in situations where all the hazards, tasks, things or
+            circumstances are the same as for a previous risk assessment, and no worker or other person will
+            be exposed to greater, additional or different risks.
+            To assess the nature and severity of risks associated with electrical hazards consider:
+            • What is the potential impact of the hazard?
+               - How severe could the electrical hazard be? For example, direct contact causing
+                  electrocution, fire or explosion causing serious burns or death.
+               - How many people are exposed to the hazard?
+            • How likely is the hazard to cause harm?
+               - Could it happen at any time or would it be a rare event?
+               - How frequently are workers exposed to the hazard?
+            Factors to consider when assessing the risks associated with electrical work are:
+            • the sources of electrical risks, including energy levels at the workplace
+            • the properties of electricity; electricity is particularly hazardous because electrical currents are
+               not visible and do not have any smell or sound
+            • work practices and procedures and the nature of the electrical work to be carried out. (e.g.
+               isolation to carry out maintenance)
+            • the competence, skill and experience of the person(s) carrying out the electrical work
+            • potential or actual high fault current levels (i.e. risks associated with arc flash)
+            • availability of isolation points
+            • the type of plant, machinery and equipment to be used
+            • availability of suitable test instruments
+            • availability of properly rated personal protective equipment (PPE)
+            • the workplace and working environment, for example:
+               - in and around trenches, pits and underground ducts
+               - ladders, scaffolds, portable pole platforms, elevating work platforms, poles and towers
+               - confined spaces or atmospheres that present a risk to health and safety from fire or
+                   explosion
+               - the conditions (e.g. wet weather)
+               - ability to safely rescue people.
+            Also consider individual workers’ needs, for example:
+            • Is the worker experienced in, and have they been properly trained for the working conditions?
+            • Is the worker physically fit for the proposed work (e.g. are they able to climb to heights to work
+               on an overhead conductor; are they mentally alert and not fatigued)?
+            • Does the worker have a visual or hearing impairment (e.g. do they have a visual colour
+               deficiency or hearing loss)?
+            • Does the worker take medication that may increase their vulnerability when working in
+               electrical environments?
+            • Is the worker working excessively long hours?
+            • Does the worker suffer from claustrophobia?
+            Appendix C may be used to assist with identifying hazards and assessing risks in carrying out
+            electrical work.
+            Further guidance on the risk management process and the hierarchy of control measures is
+            available in the How to manage work health and safety risks Code of Practice.
+            Risk assessment and working on or near energised equipment
+
+            ES Regulation section 22
+            How work is to be carried out
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace             Page 14 of 56
+            For work on or near energised electrical equipment, as a PCBU you must ensure that a risk
+            assessment is conducted by a competent person and recorded prior to work commencing.
+            For more information about energised electrical work see Chapter 6 of this Code.
+
+            2.3 Controlling the risks
+            WHS Regulation section 36
+            Hierarchy of control measures
+
+            Once hazards have been identified and the risks assessed, appropriate control measures must be
+            put in place.
+            Hierarchy of control measures
+            The WHS Regulations require duty holders to work through the hierarchy of control measures
+            when managing certain risks; however, it can be applied to any risk. The hierarchy ranks control
+            measures from the highest level of protection and reliability to the lowest. Further guidance on the
+            risk management process and the hierarchy of control measures is in the How to manage work
+            health and safety risks Code of Practice.
+            Eliminating the risk
+            You must always aim to eliminate the risk. For example, you can eliminate significant electrical
+            risks by designing-in or designing-out certain features to eliminate hazards and working de-
+            energised rather than energised. That is why the ES Regulation prohibits energised electrical work
+            subject to certain exceptions.
+            If eliminating the hazards and associated risks is not reasonably practicable, you must minimise
+            the risk by one or more of the following:
+            • Substitution—minimise the risk by substituting or replacing a hazard or hazardous work
+                 practice with something that gives rise to a lesser risk. For example, it may be reasonably
+                 practicable to use extra-low voltage electrical equipment such as a battery-operated tool rather
+                 than a tool that is plugged in to mains electricity.
+            • Isolation—minimise the risk by isolating or separating the hazard or hazardous work practice
+                 from any person exposed to it. For example, it may not be reasonably practicable to eliminate
+                 energised electrical work altogether; however, even if it is necessary (for one of the legally
+                 permissible reasons) to work on an energised electrical part, it may be possible to de-energise
+                 the surrounding parts.
+            • Engineering controls—engineering controls are physical control measures to minimise risk.
+                 For example, insulation, guarding, and installing RCDs (commonly referred to as safety
+                 switches) to reduce the risk of receiving a fatal electric shock.
+            If risk remains, it must be minimised by implementing administrative controls, so far as is
+            reasonably practicable. Administrative controls involve the use of safe work practices to control the
+            risk, for example by providing suitable and adequate training; establishing exclusion zones; and
+            use of permits and warning signs.
+            Any remaining risk must be minimised with suitable PPE (e.g. protective eyewear, insulated
+            gloves, hard hats, aprons and breathing protection). The PPE should be rated for the work to be
+            done. If working on or near energised equipment, the PPE must be able to protect the user from
+            the maximum expected energy available at the work site.
+            Administrative control measures and PPE do not control the hazard at the source. They rely on
+            human behaviour and supervision and used on their own tend to be the least effective in
+            minimising risks. Reliance on administrative controls and PPE should only occur where other
+            measures are not reasonably practicable or as an interim control while the preferred control
+            measure is being implemented.
+            However, administrative controls such as procurement and personnel policies and procedures are
+            important in relation to electrical risks, as they will help to ensure that electrical work is carried out
+            by a worker with appropriate and current licence for the work as required by law.
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                Page 15 of 56
+            You should check that your chosen control measure does not introduce new hazards. The control
+            measures you apply may change the way work is carried out. In these situations, you must consult
+            your workers and develop safe work procedures, and provide your workers with training,
+            instruction, information and supervision on the changes.
+            Chapters 3–5 of this Code provide information on control measures when working de-energised,
+            and Chapter 6 on energised electrical work.
+
+
+            2.4 Maintaining and reviewing control measures
+            WHS Regulation section 38
+            Review of control measures
+
+            Control measures must be maintained so they remain fit for purpose, suitable for the nature and
+            duration of work, and installed, set up and used correctly.
+            The control measures put in place to ensure electrical safety should be regularly reviewed to make
+            sure they are effective. If the control measure is not working effectively it must be revised to
+            ensure it is effective in controlling the risk.
+            You must review and as necessary revise a control measure so as to maintain, so far as is
+            reasonably practicable, a work environment that is without risks to health or safety. For example:
+            • when the control measure does not control the risk so far as is reasonably practicable
+            • before a change at the workplace that is likely to give rise to a new or different risk to health or
+               safety that the measure may not effectively control
+            • when a new relevant hazard or risk is identified
+            • when the results of consultation indicate that a review is necessary
+            • when a health and safety representative requests a review if that person reasonably believes
+               that:
+                o a circumstance in any of the above points affects or may affect the health and safety of a
+                     member of the work group represented by the health and safety representative
+                o the control measure has not been adequately reviewed in response to the circumstance.
+            Common review methods include workplace inspection, consultation, testing and analysing
+            records and data.
+            You can use the same methods as in the initial hazard identification step to check control
+            measures. You must also consult your workers and their health and safety representatives.
+
+            The following questions will help you evaluate how well you are currently managing electrical risks
+            in your workplace:
+            • Do you talk to your workers about electrical safety?
+            • Do any relevant new work methods or equipment have the potential to make work safer in your
+                workplace? Are procedures for identifying electrical hazards in the workplace effective?
+            • Are electrical safety procedures followed?
+            • Do you encourage your workers to report electrical hazards?
+            • Do you regularly inspect and maintain your electrical equipment to identify safety problems?
+            • Do you fix or rectify identified electrical hazards in a timely manner?
+            If problems are found, go back through the risk management steps, review your information and
+            make further decisions about risk control.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 16 of 56
+            3. Specific hazards and control measures
+            As a PCBU there is a range of things you should do to manage the risks to health and safety
+            associated with electrical risks at the workplace. These include the following:
+            • ensure power circuits are protected by the appropriate rated fuse or circuit breaker to prevent
+               overloading
+            • if the circuit keeps overloading, do not increase the fuse rating as this creates a fire risk due to
+               overheating; instead, ensure the circuit is not re-energised until the reason for the overload has
+               been determined by a competent person
+            • ensuring that leads, including cord extension sets and flexible cables, are arranged so they will
+               not be damaged. For example, avoid running leads across the floor or ground, through
+               doorways and over sharp edges, and use lead stands or insulated cable hangers to keep leads
+               off the ground. In many heavy industries, cable protection ramps are used to protect cables
+            • not using leads and tools in damp or wet conditions unless they are specially designed for
+               those conditions
+            • ensuring circuits where portable electrical equipment can be connected are protected by
+               appropriate safety switches (as required by the ES Regulation) that are properly tested and
+               maintained
+            • if safety switches, circuit breakers or other over current protective devices including fuses are
+               triggered into operation, ensuring circuits are not re-energised until the reason for the operation
+               has been determined by a competent person
+            • ensuring safety switches provide an effective control by regularly testing them.
+
+            3.1 Unsafe electrical equipment and electrical installations
+            at the workplace
+            ES Regulation section 101
+             Unsafe electrical equipment
+
+            As a PCBU at a workplace, you must ensure that any unsafe electrical equipment at the workplace
+            is disconnected or isolated from its electricity supply and, once disconnected, is not reconnected
+            until it is repaired or tested by a competent person and found to be safe, or is replaced or
+            permanently removed from use.
+            Electrical equipment is unsafe if there are reasonable grounds for believing it to be unsafe.
+            You should implement a safe system of work to deal with potentially unsafe electrical equipment at
+            the workplace. This may include:
+            • requiring workers, if competent to do so, to undertake a check of the physical condition of the
+                electrical equipment, including the lead and plug connections, prior to use
+            • taking the electrical equipment out of service if in doubt as to its safe condition, including at any
+                time during use
+            • putting reporting arrangements in place to ensure, so far as is reasonably practicable, that
+                supervisors or line managers are advised if a worker takes electrical equipment out of service
+                for safety reasons
+            • regular visual inspection can identify obvious damage, wear or other conditions that might
+                make electrical equipment unsafe. Many electrical defects are detectable by visual inspection.
+
+            Unsafe electrical equipment should be labelled indicating it is unsafe and must not be used. This is
+            to prevent inadvertent use before the electrical equipment has been tested, repaired or replaced.
+            3.2 Inspecting and testing electrical equipment
+            Regular visual inspection of electrical equipment helps determine whether it is electrically safe.
+            Visual inspection of electrical equipment may involve, in part:
+            • looking for obvious damage, defects or modifications to the electrical equipment, including
+               accessories, connectors, plugs or cord extension sockets
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 17 of 56
+            •    looking for discolouration that may indicate exposure to excessive heat, chemicals or moisture
+            •    checking that flexible cords are effectively anchored to equipment, plugs, connectors and cord
+                 extension sockets
+            •    looking for damage to flexible cords
+            •    checking that operating controls are in good working order i.e. they are secure, aligned and
+                 appropriately identified
+            •    checking that covers, guards, etc are secured and working in the manner intended by the
+                 manufacturer or supplier
+            •    checking that ventilation inlets and exhausts are unobstructed
+            •    checking that the current rating of the plug matches the current rating of the associated
+                 electrical equipment.
+            The nature and frequency of these inspections will vary depending on the nature of the work
+            carried out in the workplace.
+            Inspection and testing
+            The ES Regulation requires certain items of electrical equipment to be inspected and tested (i.e.
+            tested and tagged) at specific intervals. The interval required and the type of electrical equipment
+            that must be inspected and tested depends on the nature of the work being carried out. The types
+            of work include:
+            • construction work
+            • manufacturing work
+            • amusement work
+            • service/office work
+            • rural industry work.
+            ES Regulation, Part 6, Division 6 Specifies requirements for workplace electrical installations,
+            including requirements for the inspection and testing of electrical equipment.
+            In addition to regular testing, electrical equipment should also be tested:
+            • after a repair or servicing that could affect the electrical safety of the equipment (i.e.
+                undertaken by the person carrying out the repair or servicing before the return to service)
+            • before its first use if bought second hand.
+            New equipment
+            Brand new electrical equipment that has never been put into use (i.e. other than second-hand
+            equipment) does not have to be tested before first use. It should, however, still be visually
+            inspected to ensure that no damage occurred during transport, delivery, installation or
+            commissioning.
+            If the electrical equipment is required to be tested regularly, take the necessary steps to ensure
+            that it does not miss required tests. For example, by attaching a tag stating the date when the first
+            electrical safety test is due.
+            Hire equipment
+            If you are hiring out electrical equipment you should ensure the equipment is inspected and tested
+            in accordance with the requirements under the ES Regulation.
+            ES Regulation section 194 Specifies requirements for persons conducting a business or
+            undertaking hiring out electrical equipment.
+            Competency requirements for those carrying out inspection and testing of
+            electrical equipment
+            Inspection and testing of electrical equipment must be carried out by a person who has acquired
+            through training, qualification or experience, the knowledge and skills to carry out the task (i.e. be
+            a ‘competent person’).
+            The competent person should also have the relevant test instruments to carry out inspection and
+            testing and be competent to interpret the test results of any test instruments they use.
+            A competent person for inspecting and testing of electrical equipment should be able to:
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace             Page 18 of 56
+            •    use the relevant test equipment safely and effectively
+            •    understand electrical risks and appreciate the role that inspection and testing play in ensuring
+            •    electrical safety
+            •    understand AS/NZS 3760 In-service safety inspection and testing of electrical equipment and
+                 RCDs
+            •    understand AS/NZS 3012 Electrical installations – Construction and demolition sites (if testing
+                 equipment for construction work)
+            •    understand the legal requirements relevant to the work.
+            Some kinds of electrical testing must only be carried out by a licensed electrician. For example,
+            testing requiring the dismantling of electrical equipment should only be carried out by a licensed
+            electrical worker.
+            ES Regulation section 66
+            An electrical licence is not required under the ES Act for the following testing:
+            • the testing of electrical equipment by a competent person required under section 194 or Part 6,
+               Division 6 of the ES Regulation
+            • the testing of electrical equipment by a person, other than testing mentioned above, if the
+               testing does not interfere with the integrity of the electrical equipment.
+            For example:
+            • a person using an appropriate voltmeter to measure voltage.
+
+            Additional or different competencies may be required for more complex kinds of testing outside the
+            scope of AS/NZS 3760.
+            If in doubt over who is qualified to inspect or test equipment, advice should be obtained from a
+            person qualified and experienced in electrical equipment testing (e.g. a licensed, electrical
+            contractor or the regulator).
+
+            3.3 Safety switches
+            Electric shocks often result from people making contact with unprotected energised parts of
+            electrical equipment and earth. Contact with energised parts may occur by touching:
+            • bare conductors
+            • internal parts of electrical equipment
+            • external parts of electrical equipment that have become energised because of an internal fault
+            • metallic or other conductive equipment that has inadvertently become live.
+            Contact with earth occurs through normal body contact with the ground or earthed metal parts.
+            Serious injuries and fatalities may be prevented by the use of properly installed and maintained
+            safety switches. A safety switch is an electrical safety device designed to immediately switch off
+            the supply of electricity when electricity ‘leaking’ to earth is detected at harmful levels. Safety
+            switches offer high levels of personal protection from serious electric shock.
+
+            Safety switches work by continuously comparing the current flow in both the active (supply) and
+            neutral (return) conductors of an electrical circuit. If the current flow becomes sufficiently
+            unbalanced, some of the current in the active conductor is not returning through the neutral
+            conductor and is leaking to earth. Safety switches are designed to quickly disconnect the electricity
+            supply when they sense harmful leakage, typically when it reaches 30 milliamps or a lesser
+            amount. This ensures an electrical leak is detected and the electricity supply is disconnected
+            before it can cause serious injury or damage.
+            When safety switches must be provided for use in workplaces
+
+            ES Regulation, Part 6, Division 6 Specifies requirements for workplace electrical installations
+            including when safety switches must be provided.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 19 of 56
+            Additional safety switch requirements may be included in other sections of the ES Regulation
+            AS/NZS 3000 Electrical Installations (also known as Australian/News Zealand Wiring Rules), and
+            AS/NZS 3012.
+             ‘Appropriate’ safety switches
+            In the situations outlined above and subject to the exceptions listed, you must ensure, so far as is
+            reasonably practicable, that any electrical risk associated with the supply of electricity to the
+            electrical equipment through a socket outlet is minimised by the use of an appropriate safety
+            switch.
+            The most ‘appropriate’ safety switch will depend on the workplace environment.
+            You may need to seek technical advice from a competent person about the kinds of safety
+            switches that are appropriate for your workplace.
+            Non-portable (‘fixed’) and portable safety switches
+            Non-portable (‘fixed’) safety switches are safety switches that are installed at either the
+            switchboard (see Figure 1) or a fixed socket outlet (see Figure 2).
+            Non-portable safety switches installed at the main switchboard protect the wiring connected to the
+            safety switch and electrical equipment plugged into the protected circuit.
+            Non-portable safety switches installed at a fixed socket outlet provide protection to electrical
+            equipment plugged into the outlet.
+
+
+
+
+            Figure 1: Switchboard safety switch unit
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace             Page 20 of 56
+            Figure 2: Fixed socket outlet safety switch unit
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace   Page 21 of 56
+            Portable RCDs (Figures 3 and 4) are generally plugged into a socket outlet and, depending on
+            design, may protect one or more items of electrical equipment.
+
+
+
+
+            Figure 3: Portable RCD fitted directly to power cable
+
+
+
+
+            Figure 4: Portable safety switch protected power board
+
+
+            To assist with proper selection, further information about the advantages and disadvantages of
+            different kinds of non-portable and portable safety switches is included in Appendix B—
+            Advantages and disadvantages of non-portable and portable safety switches.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace        Page 22 of 56
+            Classes of safety switches
+            Safety switches are classified in AS/NZS 3190 Approval and test specification – Residual current
+            devices (current-operated earth-leakage devices).
+            The two relevant types of safety switch are described in Table 1 below.
+            Table 1 Classes of safety switches—type, description and general guidance for use
+
+
+              Type          Description                                       General guidance – Use
+
+              Type I        Type I safety switches have a                     Type I safety switches are the most
+                            residual current rating not exceeding             sensitive and are required for electrical
+                            10 milliamps and a tripping time                  equipment that is directly connected to
+                            within 40 milliseconds.                           people (e.g. patients in hospitals or dental
+                                                                              practices).
+
+              Type II       Type II safety switches have a                    Type II safety switches are most suitable for
+                            residual current rating greater than              personal protection against injury including
+                            10 milliamps but not exceeding 30                 electric shock.
+                            milliamps and a tripping time within
+                            300 milliseconds.
+
+
+            Construction and demolition sites
+            For construction and demolition sites you must comply with AS/NZS 3012 Electrical installations –
+            Construction and demolition sites.
+            Other legal requirements
+            Additional requirements for the installation of non-portable safety switches may also apply under
+            local building and Queensland Electrical Safety Laws as set out in AS/NZS 3000 Electrical
+            installations (known as the Australian/New Zealand Wiring Rules).
+            Inspecting and testing safety switches
+
+            ES Regulation, Part 6, Division 6 Specifies requirements for workplace electrical installations
+            including when and how safety switches must be inspected and tested.
+
+            If a safety switch is tested and found to be faulty, the PCBU must ensure a durable tag is
+            immediately attached to the safety switch that warns people not to use the safety switch, and the
+            safety switch is immediately withdrawn from use.
+            Testing new portable safety switches
+            A new portable safety switch unit should be tested by pressing the ‘trip test’ button to ensure the
+            safety switch is effective.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                       Page 23 of 56
+            4. Working de-energised
+            Electrical work, whether energised or de-energised, must only be carried out by appropriately
+            licensed or otherwise authorised person under the ES Act.
+            For more information about the applicable electrical licensing laws, contact the regulator.
+            ES Act section 55
+            Electrical work (whether energised or de-energised), must only be carried out by a person if the
+            person is the holder of an appropriate electrical licence authorising the work; or the person is
+            otherwise authorised to perform the work under the ES Act.
+
+            4.1 General principles—verification of de-energised
+            electrical equipment
+            ES Regulation section 13-16 A PCBU must ensure that electrical work is not carried out on or
+            near electrical equipment while the equipment is energised, subject to the prescribed exceptions
+            discussed in Chapter 6 of this Code.
+
+            A PCBU carrying out electrical work must ensure that, before electrical work is carried out on or
+            near electrical equipment, the equipment is tested by a competent person to determine whether or
+            not it is energised.
+
+            The PCBU must ensure that:
+            • each exposed part is treated as energised until it is isolated and determined not to be
+               energised
+            • each high-voltage exposed part is earthed after being de-energised.
+            A PCBU must ensure that electrical equipment that has been de-energised to allow for electrical
+            work to be carried out cannot be inadvertently re-energised.
+            As a PCBU, you must ensure that electrical work is not carried out on or near electrical equipment
+            while the equipment is energised, subject to the prescribed exceptions discussed in section 6.1 of
+            this Code.
+
+
+            Testing to determine whether equipment is energised or not
+            You must ensure that, before electrical work is carried out on or near electrical equipment, the
+            equipment is tested by a competent person to determine whether or not it is energised.
+            Testing to determine whether or not electrical equipment is energised, is energised electrical work
+            and subject to the requirements for electrical work on or near energised electrical equipment (see
+            Chapter 6).
+            You must ensure that:
+            • each exposed part is treated as energised until it is isolated and determined not to be
+               energised
+            • each high voltage exposed part is earthed after being de-energised.
+            You must ensure that electrical equipment that has been de-energised to allow for electrical work
+            to be carried out cannot be inadvertently re-energised.
+            In short, apply the principle ‘TEST FOR ‘DEAD’ BEFORE YOU TOUCH’ at all times (i.e. test the
+            tester on a known live source, test the equipment to be worked on, and then confirm the tester is
+            still functional by retesting the tester on a known live source).
+            Even if the electricity supply is believed to have been isolated, it must be assumed that all
+            conductors and electrical components are energised until they have been proven to have been de-
+            energised.
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace           Page 24 of 56
+            Testing for ‘dead’ must be undertaken each time before electrical work is carried out. Testing is
+            undertaken prior to touching, taking into account all relevant factors including the nature of the
+            conductor, nature of the isolation, nature of work, if there has been a change or if the area has
+            been left idle (unattended) for a period.
+            The testing method, including the tester used, must be safe and effective. The electrical worker
+            carrying out the testing must understand testing procedures and be competent in the use of the
+            tester.
+            Panel voltmeters should not be used as the only method of determining whether an electrical part
+            is de-energised.
+            If voltage testers are used, they should be tested for correct operation immediately before use and
+            again after use to confirm that the instrument is still working. This check should be considered to
+            be part of the ‘TEST FOR ‘DEAD’ BEFORE YOU TOUCH’ safe work principle.
+            If there are any exposed conductors in the immediate work area they should be separated by
+            design or segregated and protected with insulated barricades, insulated shrouding or insulated
+            material to prevent against inadvertent or direct contact.
+            For more information about testing instruments see section 7.4 of this Code.
+
+
+            4.2 Work on cables (including cutting cables)
+            Where work is to be carried out on a cable, the cable should be de-energised and the isolation
+            point secured by tagging and locking out.
+            Cables must be treated as energised and the procedures for working on or near energised
+            electrical equipment must be followed, including testing by a competent person to determine
+            whether or not they are energised (see section 4.1 above).
+            If the cable’s connections are exposed, the connections and attached energised parts (live parts)
+            should be proved to be de-energised and identified before work starts.
+            Cutting cables presents particular risks. Both ends of the cable should be checked for isolation
+            prior to cutting. Schematic diagrams or ‘as built’ diagrams should be checked carefully to establish
+            secondary or metering circuits in multi-cored cables prior to cutting.
+            Additional precautions should be taken to ensure insulated or covered cables are de-energised,
+            whether the cables are low voltage, high voltage or control cables. For example, the action of
+            cutting a multi-core control cable is likely to create a risk if secondary current from a current
+            transformer is present. This risk may not be initially apparent; that is, the cable cutters may not be
+            damaged when the cable is cut. A high voltage may develop across the open-circuited secondary
+            winding causing an electric shock, arcing or a fault at a later stage.
+            Depending on the situation, alternative precautions may include:
+            • using a cable spiking or stabbing device that is fit for purpose
+            • a combination of proving it is de-energised and physically tracing the cable.
+
+
+            5. Isolation, locking off and access
+            To ensure electrical equipment or circuits remain de-energised while working, the electrical
+            equipment or circuits should be effectively isolated from all relevant sources of electricity supply.
+            This may be done using opening switches, removing fuses or links, opening circuit breakers or
+            removing circuit connections.
+            The standard steps for isolation are:
+            Consultation
+            Consult with the person with management or control of the workplace (e.g. in relation to the timing
+            of the work) and notify any other affected persons as appropriate.
+            Isolation
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace             Page 25 of 56
+            Identify the circuit(s) requiring isolation.
+            Disconnect active conductors from the relevant source(s), noting there may be multiple sources
+            and stand-by systems, generators or photovoltaic systems as well as auxiliary supplies from other
+            boards.
+            If a removable or rack out circuit breaker or combined fuse switch is used it should, if reasonably
+            practicable, be racked out or removed and then locked open and danger tagged.
+            Securing the isolation
+            Lock the isolating switch(es) where practicable or remove and tie back relevant conductors to
+            protect the person(s) carrying out the electrical work.
+            Tagging
+            Tag the switching points where possible to provide general information to people at the workplace.
+            Testing
+            Test to confirm the relevant circuits and any other relevant conductors in the work area have been
+            de-energised.
+            Re-testing as necessary
+            For example, if the person carrying out the work temporarily leaves the immediate area, tests must
+            be carried out on their return to ensure that the electrical equipment being worked on is still not
+            energised, to safeguard against inadvertent reconnection by another person.
+            For example, to see if a wire has changed its status when cut, which can occur because it is lifted
+            from earth.
+            The effectiveness of isolation procedures relies on:
+            • isolation points being readily available, accessible and being suitable for the type of isolation
+               (switching) being conducted
+            • the necessary hardware
+            • having isolation procedures documented and accessible to electrical workers in the workplace
+            • the provision of instruction, information and training of electrical workers involved with the
+               electrical equipment
+            • appropriate supervision to ensure safe work procedures, including the isolation procedures,
+               are followed.
+            Safe isolation procedures, including the use of locks and tags as discussed below, should be
+            developed in consultation with relevant workers.
+
+
+            5.1 Securing the isolation
+            ES Regulation section 16 A PCBU must ensure that electrical equipment that has been de-
+            energised to allow electrical work to be carried out on or near the equipment is not inadvertently
+            re-energised while the work is being carried out.
+            As a PCBU, you must ensure that each exposed part is treated as energised until it is isolated and
+            determined not to be energised, and each high-voltage exposed part is earthed after being de-
+            energised.
+            You must also ensure that electrical equipment that has been de-energised to allow electrical work
+            to be carried out on or near the equipment is not inadvertently re-energised while the work is being
+            carried out.
+            For work on or near electrical equipment or circuits, ensure:
+            • that the correct point of isolation is identified
+            • an appropriate means of isolation is used
+            • the supply cannot be inadvertently re-energised while the work is carried out.
+            It is fundamental that the point of isolation should be under the control of the person who is
+            carrying out the work on the isolated conductors.
+            Tagging systems should also be used at the point(s) of isolation, where possible, to provide
+            general information.
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 26 of 56
+            The isolation should be secured by locking off and tagging the electrical equipment as outlined
+            below.
+            Instruction, information, training and supervision
+            You must ensure instruction, information, training and supervision are provided, so far as is
+            reasonably practicable, to ensure that electrical equipment that has been de-energised to allow
+            electrical work to be carried out is not inadvertently re-energised. This includes appropriate
+            instruction, information and training on isolation procedures.
+            Locking off
+            Isolation points should be fitted with control mechanisms that prevent the electrical equipment from
+            being inadvertently re-energised. The control mechanism should require a deliberate action to
+            engage or disengage the device. It should be able to withstand conditions that could lead to the
+            isolation failing (e.g. vibration). This may include switches with a built-in lock, and lock-outs for
+            switches, circuit breakers, fuses and safety lock-out jaws (sometimes called ‘hasps’).
+            All circuit breakers, switches and combined fuse switch units should be locked off to secure the
+            isolation where possible. See Figures 5 and 6 below for examples of locking-off methods
+            incorporating danger tags.
+            Alternative controls may include an additional component (e.g. a clip, screw, bolt or pin) that can
+            be inserted to prevent a switch from being operated. These types of controls should be used in
+            conjunction with additional control measures, such as danger tags and permit systems.
+            If more than one person is working on or near the same de-energised electrical installation,
+            individuals should ensure their own personal lock is applied to the isolation point, otherwise the
+            principles of tagging apply (see below).
+            No-one should operate an isolator or knowingly use equipment where the isolator has a control
+            mechanism attached.
+            In situations where isolation points are accessible by other persons at the workplace, you should
+            ensure, so far as is reasonably practicable, that the isolation method or system is not able to be
+            inadvertently or easily compromised.
+
+
+
+
+            Figure 5: Locking off methods incorporating danger tags—danger tagged locking-off hasp
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace             Page 27 of 56
+            Figure 6: Locking off methods incorporating danger tags—danger tagged circuit breaker locking-off devices
+
+
+
+            Tagging systems
+            Danger tags
+            Isolation involves using suitable warning or safety signs as well as locks or other controls to secure
+            the isolation.
+            Where possible, a tag should be attached to normal locks (as shown in Figure 5) at all points of
+            isolation used to de-energise electrical equipment from its electricity supply.
+            A tag does not, by itself, perform the isolation function.
+            Danger tags are not required when using dedicated personal isolation locks.
+            Danger tags (see Figure 7) are used for the duration of the electrical work to warn persons at the
+            workplace that:
+            • the electrical equipment is isolated or out of service
+            • the electricity supply must not be switched back on or reconnected
+            • reconnecting electricity may endanger the life of the electrical worker(s) working on the
+               equipment.
+            The danger tag should:
+            • be durable and securely fixed to the isolator
+            • clearly state the warning, including any warning about specific hazards relating to the isolation
+               (e.g. multiple points of supply)
+            • be dated and signed by the worker or workers involved in carrying out the work or, where
+               appropriate, by the supervisor in charge of the workers
+            • be attached in a prominent position on each isolation point (i.e. the point or one of many points
+               used to isolate electrical parts) or device
+            • only be removed by the signatories to the tag. If unavailable and unable to return, measures
+               must be put in place to manage risks associated with removing the lock or tag (e.g. thorough
+               investigation to ensure all workers and others at the workplace are safe).
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace               Page 28 of 56
+            If the work is incomplete, for example at a change of shift, the last person removes their danger
+            tag or lock and replaces it with a warning tag, for example out-of-service or caution tag.
+            When work is resumed, the person in charge of the work removes the warning (out-of-service or
+            caution) tag and each person then applies their danger tag and/or lock.
+            When work is finally completed, each person removes their danger tag and/or lock.
+            Where a formal permit system is used, all reasonable steps should be taken to ensure that the
+            designated sign-on and tagging procedures are followed.
+            Tagging systems - Out-of-service tags
+            Out-of-service or caution tags (see Figure 8) are used to identify electrical equipment that is not
+            safe to use or fit for purpose. The out-of-service or caution tag should:
+            • be durable and securely attached
+            • clearly state the nature of the defect or reason why the electrical equipment is unsafe
+            • be attached on a prominent position on each isolation point
+            • only be removed by a competent person after fixing or rectifying the defect and making the
+                electrical equipment safe, or replacing with a danger tag in preparation to work on the
+                equipment.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 29 of 56
+            Figure 7: Example of a danger tag
+
+
+
+
+            Figure 8: Example of an out-of-service tag
+
+
+
+
+            Testing
+            Testing of electrical equipment must be carried out to confirm:
+            • the relevant circuits have been de-energised
+            • the status of any other relevant conductors in the work area.
+            Bonding conductors
+            For guidance on bonding conductors if electrical equipment is isolated at a remote location or there
+            is a risk of induced voltage being present, see AS/NZS 4836 Safe working on or near low-voltage
+            and extra-low voltage electrical installations and equipment.
+
+            5.2 Altering isolation for testing, fault finding and re-
+                energising
+            It may be necessary to change an isolation point to allow for testing or fault finding on energised
+            parts. For example, testing may be required before returning electrical equipment to service and
+            commissioning new electrical equipment.
+            Any testing or fault finding on energised parts must be carried out in accordance with requirements
+            for energised electrical work, which are discussed in section 6 of this Code.
+            If electricity supply is to be restored to part of the circuit then safe procedures for restoring
+            electricity supply should be followed, as described in the next section.
+
+            5.3 Restoring power
+            You should ensure, so far as is reasonably practicable, that restoring electricity supply following
+            isolation does not pose risks to health and safety at the workplace. For example:
+            • appropriately terminate all conductors
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace               Page 30 of 56
+            •    carry out appropriate testing on any new, altered or repaired electrical equipment, for example,
+                 tests for insulation resistance, earth continuity, polarity, correct connection and function testing
+            •    remove safeguards, including temporary bonds and short-circuiting devices
+            •    notify all workers working on the electrical equipment and other affected workers at the
+                 workplace that electricity is to be restored
+            •    take precautions as appropriate to ensure that other electrical equipment is not inadvertently
+                 energised
+            •    follow procedures for removing any locks or other control mechanisms, tags, notices and safety
+                 signs
+            •    carry out a visual inspection to ensure that all tools, surplus material and waste have been
+                 removed from the workplace.
+            When electricity is restored, tests should be carried out to confirm that polarity is correct, actives
+            are switched and, where applicable, phase sequences are correct before electrical equipment is
+            used. For further information refer to AS/NZS 3017 Electrical installations – Verification by
+            inspection and testing.
+
+            5.4 Leaving unfinished work
+            If work is left unfinished, you must ensure that the workplace is left in a safe state, so far as is
+            reasonably practicable. For example:
+            • terminate any exposed conductors
+            • physically secure any exposed conductors or surrounding metal work
+            • tag and tape off the electrical equipment and the workplace area
+            • inform affected persons at the workplace the work is not complete and advise of potential
+                hazards
+            • take any necessary precautions to ensure that electrical equipment cannot become
+                inadvertently re-energised
+            • ensure that the status of switchboards and electrical equipment are clearly and correctly
+                labelled
+            • hand over adequate information to workers taking up the unfinished work to allow them to
+                continue the work safely.
+
+
+            6. Electrical work on or near energised electrical
+               equipment
+            6.1 Prohibition of electrical work on or near energised
+                 electrical equipment
+            ES Regulation section 14(1)
+            A PCBU carrying out electrical work must ensure the work is not carried out on or near energised
+            electrical equipment unless:
+            • it is necessary in the interests of health and safety that the electrical work is carried out while
+                the equipment is energised (e.g. it may be necessary for life-saving equipment to remain
+                energised and operating while electrical work is carried out on the equipment)
+            • it is necessary that the electrical equipment is energised in order for the work to be carried out
+                properly
+            • it is necessary for testing the electrical equipment is under section 15 (1) (to determine whether
+                electrical equipment is energised or not)
+            • there is no reasonable alternative means of carrying out the work.
+            ES Regulation section 12
+            Near, in relation to electrical equipment, means within 3 meters of an exposed energised part of
+            the equipment.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace               Page 31 of 56
+            Energised electrical work is electrical work carried out in circumstances where the part of electrical
+            equipment being worked on or near is connected to electricity or ‘energised’.
+            Energised electrical work is generally prohibited unless one or more of the exceptions under the
+            ES Regulation (as outlined above) applies and the work is carried out in accordance with the ES
+            Regulation.
+            These requirements in relation to energised electrical work do not apply to work carried out by or
+            on behalf of electricity supply authorities on the electrical equipment, including electric line-
+            associated equipment, controlled or operated by the authority to transform, transmit or supply
+            electricity. These authorities may be covered by separate electrical safety requirements.
+            Electrical work must not be carried out on or near electrical equipment while energised for the
+            reason of it being merely more convenient for the electrical equipment to stay energised while the
+            work is being carried out.
+            Energised electrical work must not be carried out unless the safety risk to those persons directly
+            affected by a supply interruption is higher than the risk to the licensed or registered electrical
+            workers proposed to carry out the energised electrical work. Only in extremely rare circumstances
+            would it be possible to justify that it is not practicable to have a short break in supply. Most
+            electrical installations suffer no harm through unplanned interruptions of this kind to the network
+            supply. In some cases a short break may allow for the insertion (and removal) of insulated barriers.
+            A PCBU requiring electrical work to be carried out may provide to the person they are seeking to
+            do the work operational reasons appearing to justify energised electrical work. Requiring electrical
+            work to be carried out while the equipment is energised when it could be avoided places an
+            onerous responsibility on the business or undertaking carrying out the work to minimise the risks. If
+            an incident occurs as a result of carrying out energised electrical work, the business or undertaking
+            carrying out the work is at risk of being found not to have provided a safe workplace. This could
+            contravene the primary duty of care under the ES Act.
+
+
+            6.2 Planning and preparation
+              ES Regulation section 19
+                 If electrical work is to be carried out on or near energised electrical equipment a PCBU
+                 must ensure before the work commences that:
+              • a risk assessment is conducted by a competent person in relation to the proposed work
+                 and recorded
+              • the area where the electrical work is to be carried out is clear of obstructions so as to
+                 allow for easy access and exit
+              • point at which the electrical equipment can be disconnected or isolated from its
+                 electricity supply is:
+                 - clearly marked or labelled
+                 - cleared of obstructions so as to allow for easy access and exit by the worker who is
+                      to carry out the electrical work or any other competent person
+                 - capable of being operated quickly
+              • the person authorises the electrical work after consulting with the person with
+                 management or control of the workplace.
+
+
+            Requirements relating to the point of supply under the third dot point above do not apply if the work
+            is to be carried out on the supply side of the main switch on the main switchboard for the
+            equipment and the point at which the equipment can be disconnected from its electricity supply is
+            not reasonably accessible from the work location.
+            Risk assessments
+            See section 2.2 of this Code for information on assessing the risks.
+            In addition to the considerations listed in section 2.2, the assessment should be designed to check
+            compliance with the legislative requirements described above.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 32 of 56
+            For energised electrical work, any significant findings should be recorded, reviewed from time to
+            time and revised if necessary. See section 2.4 of this Code for a description of triggers for review.
+            Consultation between duty holders
+            When electrical work is being carried out at a workplace all PCBUs at the workplace—not just
+            those carrying out the electrical work—have a duty to manage electrical risks.
+            Electrical work will often be carried out at a place that is not under the management or control of
+            the PCBU carrying out the electrical work. For example, the place where work is carried out may
+            be under the management or control of:
+            • if the place is a permanent workplace—the PCBU from that workplace
+            • if the place is a public place—the relevant local or state authority.
+            These persons will also have duties in relation to the health and safety of the electrical worker(s)
+            and other persons at the place where the electrical work is being carried out.
+            If duty holders have a duty in relation to the same matter under the WHS Act, all duty holders
+            must, so far as is reasonably practicable, consult, cooperate and coordinate activities with each
+            other in relation to this matter.
+            In addition to the general duty to consult, the PCBU carrying out the electrical work must ensure
+            the electrical work is only authorised (among other things) after consulting with the person with
+            management or control of the workplace.
+            Consultation should ensure that all relevant persons are aware of any scheduled electrical work to
+            be carried out and also of any relevant risks to health and safety arising from that work.
+            Arrangements should also be put in place to ensure, so far as is reasonably practicable, that all
+            persons at the workplace receive suitable and adequate information and instruction (e.g. about the
+            need to comply with warning or safety signs and to stay out of any ‘no go’ zones).
+            Residential premises
+            Occupiers of residential premises must take reasonable care that their acts or omissions do not
+            adversely affect the health or safety of other persons while work is being performed at the
+            premises. This includes electrical workers at their premises.
+
+            6.3 Carrying out energised electrical work
+              ES Regulation section 22
+              A PCBU must ensure that electrical work carried out on or near energised electrical
+              equipment is carried out:
+              • by a competent person who has tools, testing equipment and PPE that are suitable for
+                 the work, have been properly tested and are maintained in good working order
+              • in accordance with a safe work method statement prepared for the work
+              • subject to the exception explained below—with a safety observer present who is
+                 competent:
+                 - to implement the control measures in an emergency
+                 - to rescue the worker who is carrying out the work if necessary
+                 - has been assessed in the previous 12 months as competent to rescue and
+                     resuscitate a person.
+              A safety observer is not required if the work consists only of testing and the risk
+              assessment shows there is no serious risk associated with the proposed work.
+
+
+            PCBUs have responsibilities to ensure that electrical work on or near energised electrical
+            equipment, is carried out in accordance with the legislation.
+            You must ensure that electrical work on or near energised electrical equipment is carried out:
+            • by a competent person who has tools, testing equipment and PPE that are suitable for the
+               work, have been properly tested and are maintained in good working order
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 33 of 56
+            •    in accordance with a safe work method statement prepared for the work (see the following
+                 section)
+            •    subject to the exception explained below—with a safety observer present who is competent:
+                 - to implement control measures in an emergency
+                 - to rescue and resuscitate the worker who is carrying out the work if necessary
+                 - has been assessed in the previous 12 months as competent to rescue and resuscitate a
+                     person.
+            A safety observer is not required if the work consists only of testing and the risk assessment
+            shows there is no serious risk associated with the proposed work.
+            You must ensure, so far as is reasonably practicable, that the person who carries out the electrical
+            work uses the tools, testing equipment and PPE properly.
+            Additionally, you:
+            • must provide workers carrying out the electrical work with suitable and adequate information,
+               instruction and training, for example in:
+               - planning and preparation requirements for the carrying out of energised electrical work
+               - safe work procedures, particularly those documented in safe work method statements
+               - proper use of the relevant tools, testing equipment and PPE.
+            • must ensure the person with management or control of the workplace is consulted before the
+               electrical work is authorised
+            • should ensure energised conductors are insulated where necessary to prevent inadvertent
+               contact or flashovers
+            • should ensure unauthorised persons are prevented from entering the work area, for example
+               through the use of barriers and signage.
+
+            Many of these requirements and recommendations require consultation, cooperation and
+            coordination between multiple duty holders at the workplace.
+
+
+            Safe work method statements
+
+            ES Regulation section 22
+            A PCBU must ensure that electrical work on or near energised electrical equipment is carried out
+            in accordance with a safe work method statement.
+
+            You must ensure that electrical work on or near energised electrical equipment is carried out in
+            accordance with a safe work method statement (SWMS).
+            SWMS document a process for identifying and controlling health and safety hazards and risks.
+            They may also incorporate a risk assessment.
+            SWMS are also required in relation to prescribed ‘high risk construction work’ which includes
+            construction work carried out on or near energised electrical installations or services.
+            SWMS should be developed in consultation with relevant workers.
+            SWMS must:
+            • identify the electrical work
+            • specify the hazards associated with that electrical work and risks to health and safety
+              associated with those hazards
+            • describe the measures to be implemented to control the risks
+            • describe how the control measures are to be implemented, monitored and reviewed
+            • may include the risk assessment prepared for the relevant work.
+            SWMS must be written in a way that is readily understandable by the workers who are to use
+            them.
+            A copy must be readily accessible to any worker who is to carry out the electrical work covered by
+            the statement.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace           Page 34 of 56
+            You must ensure that SWMS are reviewed and, as necessary, revised if relevant control measures
+            are revised under the WHS Regulation. They must, for example, be revised if a decision is made
+            to change relevant safe work procedures at the workplace.
+            Appendix D—Preventative actions checklist may help you to identify hazards associated with
+            electrical work and assist you to develop safe work methods.
+            Record keeping requirements
+            ES Regulation section 23
+             A PCBU carrying out energised electrical work must keep:
+            • a copy of the risk assessment until at least 28 days after the work to which it relates is
+                completed
+            • a copy of the safe work method statement until the work to which it relates is completed.
+            A PCBU carrying out energised electrical work must keep:
+            • a copy of the risk assessment until at least 28 days after the work to which it relates is
+               completed
+            • a copy of the safe work method statement until the work to which it relates is completed.
+
+            If a ‘serious electrical incident’ or ‘dangerous electrical event’ as defined under sections 11 and 12
+            of the ES Act occurs in connection with the work to which the assessment or statement relates, the
+            person must keep the assessment or statement (as the case requires) for at least two years after
+            the incident occurs.
+
+            Safety observers
+
+            ES Regulation section 22
+            How the work is to be carried out
+
+            A competent safety observer must be present when work is carried out on or near energised
+            electrical equipment, unless the work consists only of testing and a risk assessment shows that
+            there is no serious risk associated with the proposed work.
+            The role of the safety observer should be clearly communicated and understood. The safety
+            observer must:
+            • be competent to implement the control measures in an emergency
+            • be competent to rescue and resuscitate the worker who is carrying out the work if necessary
+            • must have been assessed in the previous 1 year as competent to rescue and resuscitate a
+               person.
+            The safety observer should:
+            • not carry out any other work or function that compromises their role (e.g. they should not be
+               required to observe more than one task at a time)
+            • not be situated in the work basket of the elevating work platform from which the electrical work
+               is being carried out
+            • be able to communicate quickly and effectively with the electrical worker(s) carrying out the
+               work, specialist equipment may be necessary if there is a barrier to communication
+            • not have any known temporary or permanent disabilities that would adversely affect their role
+               and performance.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace           Page 35 of 56
+            Hazards indirectly caused by electricity—conductive materials
+            Persons can be exposed to electrical risks, including risks of electric shock, arcing and explosion,
+            without directly contacting exposed energised parts of electrical equipment. Other conductive
+            materials can provide current paths for the electric shock, fault current or both.
+            All materials should be regarded as conductive unless proved otherwise. Gases and liquids should
+            be regarded as conductive. Particular care should be taken when exposed energised parts are
+            near earthed situations.
+            The electric shock path to earth can be via conductive materials such as concrete, timber with a
+            high moisture content, or water. For example, ladders that are damp or dirty may become
+            conductive and create a potential hazard.
+            When working near exposed energised parts or working energised, use tools and equipment that
+            are non-conductive or insulated. This applies, for example, to:
+            • torches
+            • telescopic devices
+            • rulers and tape measures
+            • insulated hand tools (e.g. screwdrivers, pliers, cable cutters, spanners and crimpers)
+            • electrical or hydraulic powered tools.
+            Metallic personal items including watches and watchbands should not be worn by workers carrying
+            out work near exposed energised parts. Metal objects worn on or close to the body increase the
+            risk of electric shock. Electrical burns can be more serious because these objects retain heat and
+            provide contact points for current to flow.
+            Other examples of metallic personal items include jewellery, body piercings and metal spectacle
+            frames.
+            Tools and equipment
+            All workers should be competent in the safe use of their tools and equipment, including PPE. For
+            more information about maintaining and inspecting tools and equipment, including testing and
+            fault-finding instruments, see section 7 of this Code.
+            Work position
+            You must ensure that, while electrical work is being carried out on or near energised electrical
+            equipment, all persons are prevented from inadvertently making contact with an exposed
+            energised component of the equipment. Electrical work should be carried out from a position that
+            minimises the risk of inadvertent contact with exposed energised parts and also the risk of an
+            electric shock path being created.
+            For example, safe work method statements should require, so far as is reasonably practicable, that
+            electrical workers position themselves so that:
+            • an involuntary action like sneezing would not cause them to touch exposed energised parts
+            • no electric shock path can be created due to working in an awkward position, for example,
+                testing components towards the rear of a washing machine via the front panel
+            • no electric shock path can be created when carrying out phase sequencing or rotation testing
+                on overhead mains or at an underground pillar.
+            Safety barriers and signs
+            Barriers and signs may be designed, erected or installed to:
+            • protect electrical workers from inadvertently contacting energised exposed parts
+            • ensure that access to and egress from the work location of energised electrical work (live work)
+               allows for clear, unobstructed passage
+            • warn others and direct people away from dangerous work areas.
+
+            Different kinds of safety barriers may be required for different purposes. For example:
+            • to protect electrical workers from inadvertently contacting energised exposed parts, a physical
+                safety barrier should consist of a non-conductive material such as wood or plastic or,
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace           Page 36 of 56
+                 alternatively, correctly earthed steel. It should be strong enough to withstand the impact of
+                 falling objects or loose material
+            •    to exclude persons generally from a work area where there is a risk of energised exposed
+                 parts, secure housings, enclosures, doors and rooms may provide appropriate safety barriers.
+            A risk assessment should be carried out by a competent person to advise on whether a barrier is
+            appropriate to address the relevant risks, including whether it is of appropriate design and correct
+            materials.
+            You must ensure, so far as is reasonably practicable, that the barrier is erected safely. This may
+            require switching off or isolating the electricity supply while the barrier is installed.
+            A barrier may be temporary or permanent and, if applicable, should clearly designate the safe work
+            area by defining the approach path to the relevant piece of equipment.
+            Emergency planning
+            You must ensure that an emergency plan for the workplace is prepared, maintained so that it
+            remains effective, and implemented in the event of an emergency.
+            For the purpose of preparing and maintaining the plan, you must consider all relevant matters,
+            including:
+            • the nature of the work being carried out at the workplace
+            • the nature of the hazards at the workplace
+            • the size and location of the workplace
+            • the number and composition of the workers
+            • other persons at the workplace.
+            Quick action after an electrical incident that has caused injury can save a life or significantly
+            reduce the severity of the injury. Any person who is involved in an electrical incident involving an
+            electric shock should receive medical attention.
+            Even if an electrical incident does not appear to have caused injury at the time, there may be
+            delayed effects.
+            A well prepared emergency response will assist in managing the severity of the injury where an
+            incident has occurred, while also taking into account the health and safety of those required to
+            respond to the incident. For example, in an exposed energised high voltage situation, the plan may
+            include isolating the electricity supply and proving it is de-energised before carrying out a rescue.
+            Special consideration should also be given in relation to other higher risk workplaces including
+            confined spaces, working at heights, use of elevating work platforms, workplaces with hazardous
+            atmospheres which present a risk to health or safety from fire or explosion, and trenches, shafts
+            and tunnels.
+            A ‘serious electrical incident’ or ‘dangerous electrical event’ as defined under sections 11 and 12 of
+            the ES Act must be notified to the regulator.
+
+            6.4 Particular energised electrical work—testing and fault
+            finding
+            De-energised testing methods should be used before energised testing
+            methods
+            Fault finding should first be attempted in a de-energised environment using de-energised testing
+            methods. If unsuccessful, energised testing methods may be used subject to meeting the
+            requirements of the ES Regulation for working energised.
+            Planning and preparation
+            Before starting any testing or fault finding in an energised environment:
+            • identify exposed conductive parts that could become energised while using test instruments
+            • install temporary or fixed barriers to prevent electrical workers from inadvertently contacting
+               exposed conductive parts
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 37 of 56
+            •    carry out checks to ensure that the test instruments to be used are appropriate and functioning
+                 correctly
+            •    ensure that only authorised persons may enter the immediate area where the work is to be
+                 carried out.
+            When testing or fault finding in an energised environment:
+            • use only appropriate insulated and rated tools, test instruments and test probes
+            • use only appropriately rated PPE
+            • use a safety observer, if required by the risk assessment conducted for the work
+            • carry out a regular review of the work situation to ensure that no new hazards are created
+              during the process.
+            When testing or fault finding is completed, restore circuits and equipment to a safe condition. For
+            example, disconnected conductors should be reconnected and left in a safe state with covers
+            replaced and accessories and equipment properly secured.
+            Coordination procedures, such as procedures for switching circuits or equipment on and off during
+            the fault-finding or testing process, should be implemented and maintained at all times.
+
+
+            7. Tools and equipment
+            7.1 Maintenance and inspection
+            Tools, instruments and equipment that are poorly maintained, inappropriately used or not fit for
+            purpose can cause injuries. Examples of these include:
+            • inadequately insulated tools and test instruments
+            • incorrectly rated instruments.
+
+            Unrestrained tools may fall into energised switchboards and compromise the integrity and safety of
+            the equipment. The use of lanyards around wrists, tool holders, and restraints such as tool
+            pouches and baskets may be used to address these risks.
+            The tools, instruments and equipment used by electrical workers often have special design
+            characteristics (e.g. many are insulated). All insulated tools and equipment should be suitable for
+            the work and be maintained in good working order, including regular maintenance, inspection and
+            testing. Inadequate maintenance may lead to serious electrical risks, for example an insulating
+            medium might conceal a mechanical defect that could cause an open circuit in a testing device.
+            Where any doubt exists about the adequacy of the insulation of tools and equipment they should
+            not be used.
+            Maintenance and inspection should be carried out according to the manufacturer’s instructions.
+
+            7.2 Ladders, scaffolds and similar equipment
+            Consider eliminating the use of metallic, wire reinforced or otherwise conductive ladders. These
+            types of ladders should be avoided for any kind of electrical work and should not be used in close
+            proximity to equipment where an electrical hazard may result from their use.
+            Metallic or wire reinforced ladders and scaffolds are conductive and may create an electric shock
+            path, for example:
+            • a ladder slipping while work is being carried out on it, causing the worker on the ladder to touch
+               exposed energised parts (e.g. grabbing a mains box)
+            • a gust of wind blowing an extension ladder into nearby overhead powerlines
+            • in switchrooms and switchyards—conductive devices such as aluminium ladders and scaffolds
+               creating electric shock paths and current paths to earth, for example a metal wire reinforced
+               ladder causing a fault to ground if the ladder touches a live 33 kV busbar
+            • in cases where lines are carrying large currents, conductive scaffolds may become subject to
+               induction.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace           Page 38 of 56
+            Also consider the electrical risks posed when using ladders, scaffolds and similar equipment,
+            including that:
+            • workers are more likely to touch open wiring such as overhead lines
+            portable scaffolds may damage insulation when moved if the scaffold strikes conductors or leads.
+
+            Other effective control measures may include:
+            • identify if there are exposed energised parts nearby and consider control measures such as
+               de-energising, fitting covers, using a safety observer, or a combination of these employ safe
+               work practices, including:
+               - in switchyards and switch rooms if long devices need moving, use two or more people to
+                   carry the device in a position below shoulder height
+               - in windy conditions use two people to handle extension ladders
+               - use head ropes or footropes or both to restrain ladders
+               - if practicable use a platform-style step ladder.
+            • if conductive scaffolding is used within high voltage enclosures or in situations where there is
+               induction, bond the structure to the earthing system. Depending on the construction of the
+               scaffold, a number of sections may need to be bonded to ensure an equipotential state.
+
+            7.3 Insulating barriers and insulating mats
+            Insulating covers and mats used for electrical safety purposes should comply with AS/NZS
+            IEC 61111 Live Working - Electrical insulating mats.
+            Insulated barriers should be of suitable material to effectively separate electrical workers from
+            adjacent energised equipment.
+            Insulated covers and mats should be visually inspected for possible defects before each use.
+
+            7.4 Test instruments
+
+            ES Regulation section 22
+            How the work is to be carried out
+
+            As a PCBU, you must ensure that the person carrying out energised electrical work has tools,
+            testing equipment and PPE that are suitable for work, that have been properly tested and that are
+            maintained in good working order.
+            Workers carrying out electrical testing must be appropriately trained and competent in test
+            procedures and in the use of testing instruments and equipment. This includes:
+            • being able to use the device safely and in the manner for which it was intended
+            • being able to determine, by inspection, that the device is safe for use, for example, the device
+               is not damaged and is fit for purpose
+            • understanding the limitations of the equipment, for example, when testing to prove an
+               alternating current circuit is de-energised—whether the device indicates the presence of
+               hazardous levels of direct current
+            • being aware of the electrical safety implications for others when the device is being used, for
+               example, whether the device causes the electric potential of the earthing system to rise to a
+               hazardous level
+            • knowing what to do to ensure electrical safety when an inconclusive or incorrect result is
+               obtained.
+            Checks carried out on test instruments
+            Test instruments that are to be used or connected to electrical equipment should meet the
+            following conditions:
+            • be suitable for the work in terms of their function, operating range and accuracy
+            • be in good condition and working order, clean and have no cracked or broken insulation.
+                 Particular care must be taken regarding the condition of the insulation on leads, probes and
+                 clips of test equipment
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 39 of 56
+            •    pose no danger of electrocution to workers or damage to the electrical equipment during
+                 testing
+            •    have suitably insulated leads and connection probes that enable connection or contact with
+                 energised parts to be made with minimal risk to the electrical worker
+            •    provide suitable protection against hazards arising from over-voltages that may arise from or
+                 during the testing or measurement process.
+
+            AS 61010.1Safety requirements for electrical equipment for measurement, control and laboratory
+            use – General requirements provides a classification for instruments on the basis of their immunity
+            to over-voltage, which may be experienced in different parts of electrical equipment. Instruments
+            should be rated as Category III or IV to enable their use on all parts of the equipment.
+
+            Test probes and other equipment should be designed and selected so that they cannot
+            inadvertently short circuit between live conductors or live conductors and earth. The terminals of
+            test equipment should be shrouded and all other test sockets on measuring instruments should be
+            designed to prevent inadvertent contact with any live test socket or conductor when equipment is
+            in use. Where appropriate, test leads and testing devices need to be provided with suitable fuse
+            protection. Testing equipment, where used in hazardous flammable areas, should be designed
+            and clearly marked as being suitable for use in these conditions.
+
+            Testing equipment used for detecting an energised source should be checked to prove that it is
+            functioning correctly immediately before and after the test has taken place. The standard test
+            regime is to test a known source of energy, test the de-energised circuit for zero volts, and then
+            test the known source again.
+            Proximity voltage testers
+            To confirm a positive indication and to establish the circuit voltage, the use of an alternative test
+            instrument that incorporates a visual display should be used before starting electrical work on the
+            equipment.
+            Testers for detecting an electric field surrounding an energised conductor may not be suitable for
+            testing cables that are surrounded by a metallic screen, enclosed in a metallic pipe or duct,
+            carrying direct current, and some other circumstances.
+            Proximity voltage testers are not reliable in proving that equipment is de-energised and should only
+            be treated as an indicator. To confirm that the instrument is working correctly, a proximity voltage
+            tester should be tested for correct operation immediately before use and again immediately after
+            use, particularly if the test result indicates zero voltage.
+
+            7.5 Personal protective equipment
+            Personal protective equipment (PPE) for electrical work, including testing and fault finding, must be
+            suitable for the work; properly tested and maintained in good working order. The PPE must be able
+            to withstand the energy at the point of work when working energised.
+            A PCBU who directs the carrying out of work must provide the workers with information, training
+            and instruction on the proper use and wearing of the PPE.
+            Depending on the type of work and the risks involved, the following PPE should be considered.
+            Face Protection
+            Use of a suitably arc rated full face shield may be appropriate when working where there is
+            potential for high current and arcing.
+            Eye Protection
+            Metal spectacle frames should not be worn.
+            Gloves
+            Use gloves insulated to the highest potential voltage expected for the work being undertaken.
+            Leather work gloves may be considered for de-energised electrical work.
+            Clothing
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 40 of 56
+            Use non-synthetic, flame resistant clothing of non-fusible material. Clothing made from conductive
+            material or containing metal threads should not be worn.
+            Footwear
+            Use non-conductive footwear (e.g. steel toe cap boots or shoes manufactured to a suitable
+            standard).
+            Safety belt/harness
+            Safety belts and harnesses should be checked and inspected each time before use with particular
+            attention being paid to buckles, rings, hooks, clips and webbing.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace         Page 41 of 56
+            8. High voltage electrical work
+            Requirements for electrical work on high voltage equipment after switching, isolation, short
+            circuiting and earthing are specialised requirements. Only competent electrical workers who have
+            received appropriate training in high voltage electrical work are permitted to work on high voltage
+            electrical equipment.
+            For more information you should seek further advice about working on or near high voltage
+            electrical installations from a specialist electrical contractor or the local electricity entity.
+
+            8.1 Additional risks associated with high voltage
+            The electrical risks and consequences of an electrical incident involving high voltage may be
+            significantly higher than with low voltage. Under fault conditions, the higher voltages (potentials)
+            and fault current levels release massive quantities of energy.
+
+            8.2 Planning for high voltage installation work
+            A PCBU that has a high voltage electrical installation should prepare an installation safety
+            management plan for their workplace. The plan should address the risks associated with the
+            operation and maintenance of the high voltage installation. This may include:
+            • a single line diagram for the installation, showing all switches and circuit breakers and their
+               identifying labels or numbers
+            • site-specific operating rules covering all aspects of operating the high voltage installation,
+               including procedures for arranging isolation of the installation from the local electricity network
+            • procedures for identifying hazardous areas including any confined spaces associated with the
+               installation
+            • competency requirements for persons who may be permitted to operate or work on the high
+               voltage installation, including appropriate requirements for re-training, re-testing and re-
+               accreditation
+            • induction procedures for new contractors
+            • regular inspection and maintenance programs to ensure the installation remains serviceable
+               and safe
+            • procedures for ensuring there is no extension or alteration of the installation without permission
+               from the local electricity supply authority
+            • procedures for the safe handling of insulating oils and other substances that may be required
+               for maintenance or repair
+            •    procedures including warning signs for ensuring that no parts of the high voltage installation
+                 (e.g. underground cables and high voltage overhead powerlines) are damaged by heavy
+                 vehicles or other mobile plant, for example mobile cranes.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace              Page 42 of 56
+            Appendix A—Glossary
+              Term                           Description
+
+              Competent person               In relation to a task, means:
+                                             • A person who has acquired, through training , qualifications,
+                                                 experience or a combination of these , the knowledge and
+                                                 skills to carry out the task.
+                                             • Note: electrical work may only be performed by a person if
+                                                 the person:
+                                                 - is the holder of an appropriate electrical licence
+                                                      authorising the work
+                                                 - is otherwise authorised to perform the work under the ES
+                                                      Act.
+
+              Duty holder                    Any person who owes a work health and safety duty under the
+                                             WHS Act including a person conducting a business or
+                                             undertaking, a designer, manufacturer, importer, supplier,
+                                             installer of products or plant used at work (upstream duty
+                                             holder), officer or a worker.
+
+              De-energised                   Separated from all sources of supply but not necessarily
+                                             isolated, earthed, discharged or out of commission.
+
+              Electrical equipment           Any apparatus, appliance, cable, conductor, fitting, insulator,
+                                             material, meter or wire that:
+                                             • is used for controlling, generating, supplying, transforming or
+                                                transmitting electricity at a voltage greater than extra-low
+                                                voltage
+                                             • is operated by electricity at a voltage greater than extra-low
+                                                voltage
+                                             • is part of an electrical installation located in an area in which
+                                                the atmosphere presents a risk to health and safety from fire
+                                                or explosion
+                                             • is, or is part of a cathodic protection system .
+                                             • is prescribed electrical equipment.
+                                             Electrical equipment does not include any apparatus, appliance,
+                                             cable, conductor, fitting, insulator, material, meter or wire that is
+                                             part of a vehicle if:
+                                             • the equipment is part of a unit of the vehicle that provides
+                                                 propulsion for the vehicle
+                                             • the electricity source for the equipment is a unit of the vehicle
+                                                 that provides propulsion to the vehicle.
+                                             However, prescribed electrical equipment is electrical equipment
+                                             even if it forms part of a vehicle.
+
+              Electrical installation        A group of items of electrical equipment that:
+                                             • are permanently electrically connected together; and
+                                             • can be supplied with electricity from —
+                                                - the works of an electricity entity; or
+                                                - a generating source; or
+                                                - a battery or other storage technology; and
+                                             • do not include items that are works of an electricity entity.
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                   Page 43 of 56
+              Term                           Description
+
+                                             Also, an electrical installation is a group of items of electrical
+                                             equipment that—
+                                             • are permanently electrically connected together; and
+                                             • are used to generate electricity at a voltage greater than
+                                                extra low voltage; and
+                                             • do not include items that are works of an electricity entity.
+
+              Energised (live)               Connected to a source of electrical supply or subject to
+                                             hazardous induced or capacitive voltages.
+
+              Energised electrical           Refers to electrical work on or near energised electrical
+              work                           equipment.
+
+              Hazard                         A situation or thing that has the potential to harm a person.
+                                             Hazards at work may include noisy machinery, a moving forklift,
+                                             chemicals, electricity, working at heights, a repetitive job,
+                                             bullying and violence at the workplace.
+
+              Isolated                       Disconnected from all possible sources of electricity supply and
+                                             thereby rendered incapable of being made energised without
+                                             premeditated and deliberate action.
+
+              May                            ‘May’ indicates an optional course of action.
+
+              Must                           ‘Must’ indicates a legal requirement exists that must be complied
+                                             with.
+
+              Near                           In relation to electrical equipment, means within 3 meters of an
+                                             exposed energised part of the equipment.
+
+              Person conducting a            A PCBU is an umbrella concept which intends to capture all
+              business or                    types of working arrangements or relationships. A PCBU
+              undertaking (PCBU)             includes a:
+                                             • company
+                                             • unincorporated body or association
+                                             • sole trader or self-employed person.
+                                             Individuals who are in a partnership that is conducting a
+                                             business will individually and collectively be a PCBU.
+
+
+
+              Risk                           The possibility harm (death, injury or illness) might occur when
+                                             exposed to a hazard.
+
+              Safety switch                  A safety switch means a device intended to isolate supply to
+                                             protected circuits, socket outlets or electrical equipment in the
+                                             event of a current flow to earth that exceeds a predetermined
+                                             value. The safety switch may be fixed or portable.
+
+              Should                         ‘Should’ indicates a recommended course of action.
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                    Page 44 of 56
+              Term                           Description
+
+              Socket outlet                  A device for detachably connecting electrically operated
+                                             equipment to a power supply. The term ‘socket outlet’ includes a
+                                             cord-extension socket attached to a flexible cord that is
+                                             permanently connected to installation wiring.
+
+              Voltage                        Voltage means the difference of potential normally existing
+                                             between conductors and conductors and earth as follows:
+                                             • Extra-low voltage means voltage that does not exceed 50
+                                                 volts root mean square (RMS) alternating current (50 V AC
+                                                 RMS) or 120 volts ripple-free direct current (120 V ripple-free
+                                                 DC ).
+                                             • Low voltage means voltage that exceeds extra-low voltage
+                                                 and does not exceed 1000 volts RMS alternating current
+                                                 (1000 V AC RMS.) or 1500 volts ripple free direct current
+                                                 (1500 V ripple free DC.).
+                                             • High voltage means voltage that exceeds low voltage.
+
+              Volunteer                      A group of volunteers working together for one or more
+              association                    community purposes where none of the volunteers, whether
+                                             alone or jointly with any other volunteers, employs any person to
+                                             carry out work for the volunteer association.
+
+              Work group                     A group of workers established to facilitate the representation of
+                                             workers by one or more health and safety representatives. A
+                                             work group may be all workers at a workplace but it may also be
+                                             appropriate to split a workplace into multiple work groups where
+                                             workers share similar work conditions or are exposed to similar
+                                             risks and hazards (e.g. all workers on night shift).
+
+              Worker                         Any person who carries out work for a person conducting a
+                                             business or undertaking, including work as an employee,
+                                             contractor or subcontractor (or their employee), self-employed
+                                             person, outworker, apprentice or trainee, work experience
+                                             student, employee of a labour hire company placed with a 'host
+                                             employer' or a volunteer.
+
+              Workplace                      Any place where work is carried out for a business or
+                                             undertaking and includes any place where a worker goes, or is
+                                             likely to be, while at work. This may include offices, factories,
+                                             shops, construction sites, vehicles, ships, aircraft or other mobile
+                                             structures on land or water.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                  Page 45 of 56
+            Appendix B—Advantages and disadvantages of
+            non-portable and portable safety switches
+            Non-portable safety switches
+            Non-portable (or ‘fixed’) safety switches are installed at either the switchboard or a fixed socket
+            outlet.
+
+            Non-portable safety switches installed at the main
+            switchboard
+            Non-portable safety switches installed at the switchboard will protect all the wiring and electrical
+            equipment plugged into the relevant circuit(s).
+            Advantages
+            •    Provide permanent and secure protection against electrical faults, including protection against
+                 fixed-wiring faults as well as electrical equipment faults.
+            •    Are more secure as they are usually inaccessible except to any person who holds the key to
+                 the switchboard.
+            •    May be cost-effective if the existing switchboard can accept the installation without major
+                 modification and safety switch protection is required on circuits supplied from the main
+                 switchboard.
+            •    Are usually adaptable as these safety switches can be installed in new, modified or existing
+                 electrical installations.
+            Disadvantages
+            •    A fault in one piece of equipment may unnecessarily shut down entire operations. In some
+                 cases this could create greater risks associated with uncontrolled cessation of a work process.
+            •    Fault detection and isolation may be complex because the safety switch protects all sockets
+                 past the point where it is installed and may be tripped at any point.
+            •    Installation may be costly if the pre-existing switchboard requires modification.
+
+            Non-portable safety switches installed at a socket outlet
+            These non-portable safety switches are installed at selected locations and provide protection to
+            electrical equipment plugged into the outlet.
+            Socket outlets protected by non-portable safety switches should be labelled (e.g. by stating ‘safety
+            switch Protected’ or similar). This will indicate to the person using the socket outlet that a non-
+            portable safety switch is fitted.
+            Advantages
+            •    Protection against electrical shock is permanent.
+            •    Suitable for areas where the work environment is used in many different ways or difficult to
+                 control, including public places.
+            •    Readily accessible for testing and re-setting. This can be a safe and cost-effective alternative if
+                 the switchboard option is not reasonably practical.
+            •    Adaptable, as these safety switches can be installed at any fixed socket outlet where the
+                 electrical equipment requiring safety switch protection is used.
+            •    Potentially the most cost-effective option because it is permanent, protects everything plugged
+                 into it and is easily identified by the user.
+            Disadvantages
+            •    Fixed-wiring protection only applies to wiring past that socket on the circuit.
+            •    Fault detection and isolation might be complicated as the safety switch may be tripped by a
+                 fault at any point past the safety switch on the circuit.
+            •    Damage to the socket outlet will require the safety switch to be replaced.
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace              Page 46 of 56
+            Relevant considerations in deciding between options for non-portable devices
+            In deciding between options for non-portable safety switches, you should consider the size of the
+            building or site, its use, and any plans to refurbish, refit or rewire the building.
+            It may be safer and more cost-effective to ensure all circuits are protected by one or more safety
+            switches rather than selectively installing individual safety switches at some socket outlets to
+            accommodate your current workplace needs, which may change.
+            Queensland building and electrical safety laws apply when you install new circuits or modify pre-
+            existing circuits – for example protecting those circuits with a safety switch consistent with
+            AS/NZS 3000 Electrical installations (known as the Australian/New Zealand Wiring Rules), which
+            is subject to some exemptions.
+
+            Portable safety switches
+            These safety switches protect the electrical equipment that is plugged into them.
+            In some circumstances the most appropriate safety switches may be portable safety switches,
+            particularly to protect mobile workers who do not have fixed places of work and whose PCBU, may
+            have little control over electrical installations where they work.
+            Workers using hand-held or portable electrical equipment should be advised as to whether the
+            outlets they use are adequately protected by safety switches. If in doubt you should ensure that
+            portable safety switches are provided to these workers and you should take all reasonable steps to
+            ensure they are used.
+            The use of a portable safety switch in a circuit already protected by a non-portable safety switch
+            has no detrimental effect on the operation of either safety switch.
+
+            Portable safety switches—portable plug type
+            Portable plug-type safety switches can be plugged into a socket outlet to protect a single piece of
+            equipment.
+            They can be incorporated into a power cable or can be the safety switch unit alone, without a cord.
+            Advantages
+            •    Provide safety switch protection for electrical equipment used in workplaces where users may
+                 be unsure as to whether there is safety switch protection.
+            •    Can be allocated to users rather than to all electrical equipment.
+            •    Can be plugged into existing installations where the electrical equipment requiring protection is
+                 to be used.
+            Disadvantages
+            •    Provide no protection from faults in fixed-wiring.
+            •    May be subject to abuse, so frequent testing is required.
+            •    If not incorporated into a single appliance’s power cord, will require additional administrative
+                 controls to ensure that workers use them.
+            •    May be very difficult to test if plug-type safety switches are installed directly onto electrical
+                 equipment connection cords. For this reason they are not generally recommended.
+
+            Portable safety switches —portable stand-alone unit
+            Portable stand-alone units are safety switches incorporated into a power board. They provide
+            multiple protected socket outlets and can provide safety switch protection to multiple items of
+            electrical equipment from one power board.
+            Advantages
+            •    Provide safety switch protection for electrical equipment used in workplaces where users may
+                 be unsure as to whether there is safety switch protection.
+            •    Can be allocated to users rather than to all electrical equipment.
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace               Page 47 of 56
+            •    Provide a number of protected socket outlets from the one safety switch unit.
+            •    Can be plugged into existing installations where the electrical equipment requiring protection is
+                 to be used.
+
+            Disadvantages
+            •    Provide no protection from faults in fixed-wiring.
+            •    May be subject to abuse, so frequent testing is required.
+            •    Rely on administrative controls to ensure that workers use the stand-alone units.
+            •    Can be less economical if many items of electrical equipment require protection.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace            Page 48 of 56
+            Appendix C—Risks associated with electrical
+            work
+              Activity                    Risks
+
+              Isolation
+                                          •   Correctly isolating supply but not discharging residual energy (e.g. a
+              and access
+                                              capacitive charge may be present in power supplies, single-phase
+                                              motors or high power factor fluorescent fittings).
+                                          •   Insulation and equipment failing or partially breaking down.
+                                          •   Earth connection failing to stop an electric shock in earthed
+                                              conductive parts when step and touch potentials exist.
+                                          •   Carrying out the task causes a person, something a person may be
+                                              handling or something a person is in contact with to intrude into
+                                              minimum safe approach distances.
+                                          •   A power system conducting fault current or being subject to high
+                                              inrush currents.
+                                          •   Instructions or markings on the parts being inadequate, incorrect or
+                                              both.
+                                          •   Using equipment not designed for, or incapable of, an operation(e.g.
+                                              opening a ‘no load – bus tie’ under load conditions or relying on an
+                                              open circuit breaker as an isolation point).
+                                          •   Another person energising circuits while a worker is working on them,
+                                              or a vehicle hitting a pole.
+                                          •   Natural elements (e.g. lightning or wind) causing static charges,
+                                              overhead mains to clash or a high voltage circuit to fall onto a low-
+                                              voltage circuit.
+                                          •   The inter-core capacitive effects of long multi-phase cables.
+                                          •   Changes to wiring not being reflected in drawings i.e. the drawings
+                                              are not ‘as built’ (e.g. a live control or supervision circuit being present
+                                              though the drawing indicates otherwise).
+                                          •   If there has been an error in wiring, opening the isolator may not de-
+                                              energise the switchboard (e.g. if incorrect connection (incorrect
+                                              polarity) occurred in the service to an installation, opening the main
+                                              switch will open the neutral circuit rather than the active circuit).
+                                          •   Intentionally disabling an interlock to perform a task (e.g. opening the
+                                              shutter of a ‘rackable’ circuit breaker for testing to prove it has been
+                                              de-energised in the orifice).
+                                          •   Inadvertently disabling an interlock while performing a task (e.g. in a
+                                              switchboard with an integrated circuit breaker, isolator and earth
+                                              switch, the operator accidentally moving the isolator into the earthed
+                                              position).
+                                          •   Poor direction and insufficient knowledge. For example a worker is
+                                              instructed to apply a set of earths and short circuits at a Ring Main
+                                              Unit (RMU). The worker correctly observes the isolator is open,
+                                              however, they assume the earth switch can be closed because the
+                                              isolator is open. As most RMUs are configured so the earth switch
+                                              earths the cable, not the busbar, the worker could be earthing and
+                                              short-circuiting a live circuit.
+                                          •   When applying a set of portable earths and short-circuits, accidental
+                                              or inadvertent contact is made with live parts. If this occurs, the
+                                              worker is using a device that is conducting fault current.
+                                          •   The threshold value (lowest level of indication or reading) of a test
+                                              device causing a misleading interpretation of a test to prove it is de-
+                                              energised. Depending on the device used, an indication that parts are
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                    Page 49 of 56
+              Activity                    Risks
+
+                                              not energised in a high voltage situation does not mean that low-
+                                              voltage and direct current voltages are absent.
+                                          •   Application of earthing and short-circuiting devices that depend on a
+                                              conductive path through a fuse or circuit breaker that is not fit for
+                                              purpose.
+                                          •   Ineffective connection to the general mass of the earth (e.g. the
+                                              electrode, grid or temporary electrode that the earth and short circuits
+                                              relies upon in a situation where a single phase becomes energised).
+                                          •   Application of the short circuit portion of portable earthing devices
+                                              prior to the earth tail being connected to the earth.
+                                          •   Arcing and splattering associated with the application of earths and
+                                              short circuits. The arcing or splattering may result from using the
+                                              device in situations that range from energised conductors to residual
+                                              energy such as capacitance. If the parts are energised, the worker
+                                              can draw the arc from one phase to the other, causing a phase-to-
+                                              phase fault.
+                                          •   A potential electric shock path existing once the earth tail is
+                                              connected to earth. A worker may touch another live part and the
+                                              earthed connector at the same time (e.g. in a Common Multiple
+                                              Earthed Neutral (CMEN) area). Even when working on high voltage,
+                                              contact between the earthed connector and a low-voltage phase can
+                                              cause an electric shock.
+
+              Working near                Arcs, explosions and electrical faults can cause burns. Workers should
+              sources of arcing,          be protected from the effects of burns. Examples of situations where
+              explosion or fires          arcs, explosions and electrical faults can cause burns include:
+                                          • materials providing a conductive path between sources of potential,
+                                             (e.g. uninsulated tools falling across busbars)
+                                          • abnormal conditions on circuits such as:
+                                             - lightning striking mains
+                                             - circuits of different voltages touching each other (e.g. high voltage
+                                                  contacting low-voltage circuits)
+                                             - high voltage in the secondary circuit of a current transformer if an
+                                                  open circuit occurs when current is flowing in the primary circuit.
+                                          • abnormally high voltages when synchronising different supplies. For
+                                             example if the waveforms are 180° out of phase, twice the peak-to-
+                                             peak voltage may be imposed.
+                                          • voltage multiplication effects, including:
+                                              -    ferro-resonance where the capacitive and inductive components
+                                                   of underground cables and transformers can significantly increase
+                                                   voltages when single-phasing occurs
+                                              - re-strike can occur if capacitors are energised, de-energised and
+                                                   re-energised in rapid succession.
+                                          •   leakage or electrical discharge causing insulation to be compromised
+                                              (e.g. a combination of a build-up of contaminants on insulators, wet
+                                              weather or tracking through air voids in pitch filled insulating
+                                              chambers).
+                                          •   failure of insulating mediums.
+
+              Working in unsafe           After faults and fires, often in emergencies, electrical workers may be
+              atmospheres                 exposed to unsafe atmospheres. Toxic gases and lack of oxygen can
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                 Page 50 of 56
+              Activity                    Risks
+
+                                          cause illness and death. General workplace health and safety control
+                                          measures should be used in these situations.
+
+                                          The method of extinguishing fires should be addressed. Typically, carbon
+                                          dioxide or powder type devices are used against electrical fires.
+                                          Extinguishers including water, foam and wet chemical should not be used
+                                          as they significantly increase the risk of electric shock.
+
+              Modifying or                •   Electrical drawings/tables not reflecting ‘as installed’ installations.
+              repairing existing          •   More than one source of supply or energised circuit available on the
+              low-voltage                     premises or at the equipment.
+              electrical                  •   The supply becoming energised during the work.
+              installations
+                                          •   Machinery starting automatically after supply is restored.
+                                          •   Managing metallic shavings (swarf) ingress into conductive parts of
+                                              equipment.
+                                          •   A conductor considered to be de-energised is found to be energised.
+                                          •   Old installations (e.g. where several modifications have been made,
+                                              circuits have not been identified, or insulation has deteriorated).
+                                          •   Voltages on disconnected conductors, particularly neutrals.
+                                          •   The rise in the earth potential due to a high impedance return path to
+                                              the distribution neutral in installations where the Multiple Earthed
+                                              Neutral (MEN) system is used,
+                                          •   Lack of information about isolation, sources of supply or the location
+                                              of electrical conductors.
+                                          •   Lack of clear safe access to locate electric cables (other hazards may
+                                              be present such as exposed conductors).
+                                          •   Damage to conductors in metallic conduits where earthing continuity
+                                              of the conduit has not been maintained.
+                                          •   Equipment located in hazardous areas, which includes bolt-on or
+                                              screw-on covers, can be dangerous if opened without obtaining
+                                              specialist advice.
+                                          •   Working alone on energised equipment.
+                                          •   Drilling into switchboards/electrical enclosures.
+                                          •   Contact with cables in walls, floors or roof spaces.
+                                          •   Contact with cables during excavation work or cutting/drilling
+                                              concrete.
+                                          •   Exposure to asbestos material/switchboards.
+                                          •   Variable frequency devices.
+                                          •   Multiple circuits located within the one conduit.
+                                          •   Use of conductive/flammable cleaning solvents creating an explosive
+                                              atmosphere.
+
+              Testing and fault   Risks arise as it is difficult to find faults or malfunctions in electrical
+              finding low-voltage equipment when the circuits are not energised or when the equipment is
+              equipment and       not operating, especially if feedback circuits or sensors are involved.
+              installations
+                                          Risks can include:
+                                          • electrical drawings/tables not reflecting ‘as installed’ installations
+                                          • exposed energised terminals or conductors
+                                          • terminals or conductors being energised under different conditions of
+                                             operation of the equipment
+                                          • loose or disconnected test leads or wiring becoming energised
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                Page 51 of 56
+              Activity                    Risks
+
+                                          •   test equipment and leads bringing electrical hazards closer to the
+                                              worker
+                                          •   test equipment inappropriate for the task (particularly test probes)
+                                          •   inadequate test points
+                                          •   inadvertent attempts by other people to start machinery
+                                          •   incorrect or poorly maintained testing instruments
+                                          •   inadequate knowledge of equipment or causes of faults
+                                          •   lack of information about circuits or equipment
+                                          •   equipment located in hazardous areas, which includes bolt-on or
+                                              screw-on covers, can be dangerous if opened without obtaining
+                                              specialist advice
+                                          •   testing or fault finding alone on energised equipment
+                                          •   testing or fault finding in cramped or restricted work situations
+                                          •   rotating or moving machinery (crush hazards)
+                                          •   overriding interlocks or forcing control equipment
+                                          •   re-setting protective devices in energised switchboards
+                                          •   electrical installations where unauthorised electrical work has been
+                                              undertaken.
+
+              High fault currents         When working, testing or fault finding on energised electrical equipment,
+              —working, testing           a fault current of up to 20 times the rated current of the supply
+              or fault finding            transformer can flow for a short duration during fault conditions.
+              energised
+                                          Arcs can have the energy to cause an explosion and/or melt metallic
+                                          switchboard cubicles and equipment. Arcs may cause severe burns to
+                                          the skin and flash burns to the face and eyes. Inhaled hot gases and
+                                          molten particles can cause serious internal burns to the throat and lungs.
+                                          Injury can also occur through the impact from flying debris and dislodged
+                                          components. Circuit protection devices may not operate in such
+                                          circumstances.
+
+              Testing, fault              •   Voltages between phases and between phases and neutral.
+              finding or working          •   Voltages between phases and earth.
+              on or near low              •   Voltages across open switch contacts (e.g. voltage across a light
+              voltage equipment               switch on an incandescent lighting circuit or the voltage across a bus
+                                              tie where one side is de-energised).
+                                          •   Voltages on disconnected conductors (particularly neutrals).
+                                          •   Voltages from sources near the work being performed, for example:
+                                              - working on a remote area power supply where both a.c. and d.c.
+                                                  voltages may be present
+                                              - repairing lights on a shop fascia when overhead powerlines are
+                                                  nearby
+                                              - working on transducer circuits when other a.c. and d.c. circuits are
+                                                  present
+                                              - working on a power system with multiple circuits that may be of
+                                                  multiple potentials.
+                                          •   Voltages on the circuit being worked on from other sources including:
+                                              - illegal connections or reconnections
+                                              - uninterruptible power supplies (UPS) and backup supplies
+                                              - motor generators or alternators
+                                              - d.c. on a.c. circuits or a.c. on d.c. circuits
+                                              - harmonics (e.g. 3rd harmonic 150 Hz in neutrals and earths
+                                                  where there is a large fluorescent light load and switch mode
+                                                  power supplies)
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                Page 52 of 56
+              Activity                    Risks
+
+                                              -   back Electromotive Forces (EMF) from collapsing magnetic fields
+                                                  or rotating machinery
+                                              - solar panels or photovoltaic.
+                                          •   Voltages across undischarged capacitors.
+                                          •   Voltages across the secondary terminals of transformers, including
+                                              current transformers.
+                                          •   Voltages caused by static electricity, leakage or discharge, or
+                                              lightning.
+                                          •   Voltages between energised exposed conductors and the
+                                              surrounding environment (including metalwork, damp situations, other
+                                              conductive surfaces and persons nearby).
+                                          •   Voltages between parts, or open-circuited parts of one earth system,
+                                              or voltages between different earthing systems.
+                                          •   Induced voltages from sources other than the circuit being worked on,
+                                              (e.g. nearby circuits or radio frequency transmitters).
+                                          •   Multiple supply sources (more than one source of supply or energised
+                                              circuit may be available on the premises), for example ‘essential
+                                              services’ on a switchboard, emergency backup generators or UPS.
+                                          •   Electrical testing or operating equipment with open enclosures in
+                                              hazardous areas, as defined by AS/NZS 3000: Electrical installations
+                                              (known as the Australian/New Zealand Wiring Rules).
+                                          •   The potential (voltage) between parts of the earth in MEN systems
+                                              can change, sometimes causing electric shocks. The changing earth
+                                              potential can be due to a number of causes including a high
+                                              impedance return path to the low-voltage distribution neutral, faults on
+                                              other parts of the power system or lightning strikes.
+                                          •   Incorrect wiring connections (e.g. transposing active and neutral,
+                                              commonly referred to as incorrect polarity).
+                                          •   Switched off circuits becoming energised.
+                                          •   Faulty equipment (e.g. the frame of faulty equipment becoming
+                                              energised).
+                                          •   Step and touch potentials and transferred earth potentials.
+                                              Transferred earth potentials often result from system faults.
+                                          •   Hygroscopic materials that become conductive (e.g. fertiliser dust).
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                 Page 53 of 56
+              Activity                    Risks
+
+              Other hazards               •   Working at heights and danger of falling objects.
+                                          •   Removal of cover plates near energised equipment (e.g. escutcheon
+                                              plates).
+                                          •   Confined spaces (where there may be a hazardous atmosphere).
+                                          •   Inadequate light to work safely.
+                                          •   Lack of ventilation leading to uncomfortable, hot and humid working
+                                              conditions.
+                                          •   Excessive worker fatigue (e.g. due to pressure of deadlines or other
+                                              factors).
+                                          •   Obstacles to getting the equipment switched off.
+                                          •   Using a gas flame near exposed electrical conductors (a flame is a
+                                              conductor).
+                                          •   Using conductive or flammable cleaning solvents.
+                                          •   Temperature rise as a result of combustion.
+                                          •   Cramped working conditions, including cable trenches and cable pits.
+                                          •   Explosive atmospheres.
+                                          •   Use of conductive tools and equipment (e.g. metallic tape measures
+                                              and rulers).
+                                          •   Electric tools and equipment (e.g. hand lamps, drills, saws, torches
+                                              and test instruments).
+                                          •   Personal effects (e.g. rings, jewellery, watches, pens, cigarette
+                                              lighters, matches, hearing aids, mobile phones and pagers, transistor
+                                              radios and similar).
+                                          •   General work activities (e.g. welding, cutting, brazing, using hand
+                                              saws, drilling of all types, hammering and chiselling).
+                                          •   Hot metal surfaces due to drilling, grinding or welding.
+                                          •   Excavation associated with electrical work.
+                                          •   Molten metal from arcs.
+                                          •   Asbestos material/switchboards.
+                                          •   Polychlorinated biphenyl (PCB) in transformers, capacitors, electric
+                                              motors.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace               Page 54 of 56
+            Appendix D—Preventative actions checklist
+            This checklist will help you to identify hazards associated with electrical work and to develop safe
+            work methods.
+
+            If you answer ‘NO’ to any question you are not following best practice and may be in breach of
+            your ES duties.
+
+              Part 1: Initial assessment                                                         Yes         No
+
+              Can the work be undertaken while the electrical equipment you are working on       ☐           ☐
+              or near is de-energised?
+
+              If Yes, go to Part 2. If No, is it:                                                ☐
+              necessary in the interests of health and safety that the electrical work is
+              carried out on or near the equipment while the equipment is energised?
+
+
+              Or                                                                                 ☐
+              necessary that the electrical equipment is energised in order for the work to be
+              carried out properly?
+
+
+              Or                                                                                 ☐
+              is it necessary for the purposes of electrical testing required under section 15
+              of the ES Regulation?
+
+
+              Or                                                                                 ☐
+              are there no reasonable alternative means of carrying out the work?
+
+
+              If your answer to any of these is ‘yes’ go to Part 3 after considering whether
+              part of the installation or equipment may be de-energised while the work is
+              carried out.
+              If you cannot answer ‘yes’ to any of these go to Part 2—you must work de-
+              energised.
+
+              Part 2: Work de-energised                                                          Yes         No
+
+              Do you have approved test instruments suitable for the task?                       ☐           ☐
+
+              Have you checked that the test instruments are functioning correctly?              ☐           ☐
+
+              Have you isolated the supply, for example by switching off?                        ☐           ☐
+
+              Have you conclusively tested that the equipment is de-energised?                   ☐           ☐
+
+              Note: testing to ensure the equipment is de-energised is considered
+              ‘energised electrical work’ and must be carried out in accordance with the
+              requirements for such work.
+              Go to Part 4.
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                   Page 55 of 56
+              Part 3: Work on or near energised equipment                                         Yes         No
+
+              Has a risk assessment been conducted by a competent person which                    ☐           ☐
+              identifies all electrical hazards and non-electrical hazards, both actual and
+              potential?
+
+              Is the work area clear of obstructions to allow for easy access and exit?           ☐           ☐
+
+              Is the isolation point clearly marked or labelled, clear of obstructions so as to   ☐           ☐
+              allow for easy access, and capable of being operated quickly?
+
+              Has the person with management or control of the workplace been consulted           ☐           ☐
+              about the proposed electrical work?
+
+              Do you have a safe work method statement for the task at hand? This should          ☐           ☐
+              state the control measures required to eliminate or minimise the risks.
+
+              Have you ensured the person carrying out the work is a competent person?            ☐           ☐
+
+              Have you ensured that the person carrying out the work has tools that are           ☐           ☐
+              suitable for the work, properly tested and maintained in good working order?
+
+              Have you ensured that the person carrying out the work has testing                  ☐           ☐
+              equipment that is suitable for the work, properly tested, and maintained in
+              good working order?
+
+              Have you ensured that the person carrying out the work has PPE that is              ☐           ☐
+              suitable for the work, properly tested and in good working order? (e.g. safety
+              helmet and boots, insulating gloves).
+
+              Do you have the appropriate insulating mats and sheeting?                           ☐           ☐
+
+              Is a safety observer present?                                                       ☐           ☐
+              Note: a safety observer is not required for electrical work if it only involves
+              testing and the risk assessment shows that there is no serious risk associated
+              with the work.
+
+              Are the necessary first aid facilities provided and accessible and are              ☐           ☐
+              unauthorised persons prevented from entering the work area?
+
+              Remember:
+              •   Do the work very carefully.
+              •   Follow the safe work procedures.
+              •   Assume all exposed conductors are energised.
+
+
+              Part 4: After completing the work                                                       Yes        No
+
+              Have the installations/circuits/equipment been restored to a safe and operable      ☐          ☐
+              condition?
+
+              Have all tags and locking-off devices been removed?                                 ☐          ☐
+
+
+
+
+Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace                    Page 56 of 56
+

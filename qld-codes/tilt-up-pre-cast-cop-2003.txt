@@ -1,0 +1,1679 @@
+Tilt-up and pre-cast construction code of practice 2003
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0015/18060/tilt-up-pre-cast-cop-2003.pdf
+
+Tilt-up and pre-cast construction
+
+Code of Practice 2003
+PN11189
+This Queensland code of practice was preserved as a code of practice under section 284 of the
+Work Health and Safety Act 2011.
+
+This code was varied by the Minister for Education and Industrial Relations on
+27 November 2011 and published in the Queensland Government Gazette on
+2 December 2011.
+
+This preserved code commenced on 1 January 2012.
+
+This code was varied by the Minister for Education and Minister for Industrial Relations on 1 July
+2018.
+© The State of Queensland 2018
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)         Page 2 of 39
+Contents
+1.      Scope ..................................................................................................................................................... 4
+2.      Introduction .......................................................................................................................................... 4
+3. Panel design ................................................................................................................................................. 5
+   3.1     Cast–in lifting and bracing inserts ...................................................................................................... 5
+   3.2     Concrete strength and curing time ..................................................................................................... 6
+4.      Drawings ............................................................................................................................................... 7
+   4.1     Panel drawings ................................................................................................................................... 7
+   4.2     Panel erection drawings ..................................................................................................................... 7
+5.      Braces ................................................................................................................................................... 8
+6.      Wind loading ......................................................................................................................................... 9
+7.      Deadman design ................................................................................................................................ 10
+8.      Post installed anchors ....................................................................................................................... 12
+   8.1     Post installed anchors for brace connections .................................................................................. 12
+   8.2     Anchor setting torque ....................................................................................................................... 13
+   8.3     Post installed anchors for lifting ....................................................................................................... 13
+9.      Engineer and verification issues ...................................................................................................... 13
+   9.1     Engineer certification ........................................................................................................................ 13
+   9.2     On–site verification ........................................................................................................................... 14
+   9.3     Variations from the design ............................................................................................................... 15
+10.     Non–standard panels ......................................................................................................................... 16
+11.     Delivery and storage of panels and elements ................................................................................. 16
+   11.1 Transport to site ............................................................................................................................... 16
+   11.2 Unloading from the truck .................................................................................................................. 17
+   11.3 Slinging the load ............................................................................................................................... 17
+   11.4 Storage of panels ............................................................................................................................. 17
+12.     Crane issues ....................................................................................................................................... 18
+   12.1 Lift plan ............................................................................................................................................. 18
+   12.2 Crane capacity ................................................................................................................................. 18
+   12.3 ‘Pick and carry’ cranes ..................................................................................................................... 19
+   12.4 Slewing cranes on outriggers ........................................................................................................... 20
+   12.5 Ground slope and condition ............................................................................................................. 20
+   12.6 Safe support of cranes on outriggers ............................................................................................... 21
+   12.7 Lifting gear........................................................................................................................................ 21
+13.     Work systems ..................................................................................................................................... 22
+   13.1 Exclusion zones for tilt–up panel erection ........................................................................................ 22
+   13.2 Lifting pre–cast elements over workers ........................................................................................... 23
+14.     Panel lifting and erection .................................................................................................................. 24
+   14.1 General ............................................................................................................................................. 24
+   14.2 Lifting of tilt–up panels ..................................................................................................................... 25
+   14.3 Rotation of pre-cast panels .............................................................................................................. 26
+15.     Operation of plant near braces and panels ..................................................................................... 28
+16.     Working at height ............................................................................................................................... 29
+   16.1 Elevating work platforms (EWPs)..................................................................................................... 29
+   16.2 Scaffolding ........................................................................................................................................... 30
+   16.3 Ladders ............................................................................................................................................ 30
+17.     Proximity to overhead powerlines ................................................................................................... 31
+18.     Licensing issues ................................................................................................................................ 32
+Appendix A: Sample of engineer’s certification letters ............................................................................. 34
+Appendix B: Panel checklist ......................................................................................................................... 36
+Appendix C: Panel lifting and temporary bracing checklist ...................................................................... 37
+Appendix D: Qualification register for panel erection ............................................................................... 39
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)                                                          Page 3 of 39
+1. Scope
+This code of practice applies to the principal safety issues associated with tilt-up and pre-cast
+construction. It includes basic guidance on casting of panels, panel lifting and rigging systems,
+propping and securing of panels and work at height associated with panels and other pre-cast
+concrete elements. It does not consider all issues in this type of construction but focuses on the
+primary safety issues. This code of practice does not discuss pre-tensioning and post-tensioning of
+concrete elements.
+
+
+2. Introduction
+The Tilt-up and precast construction Code of Practice is an approved code of practice under
+section 274 of the Work Health and Safety Act 2011 (the WHS Act).
+
+An approved code of practice is a practical guide to achieving the standards of health, safety and
+welfare required under the WHS Act and the Work Health and Safety Regulation 2011 (the WHS
+Regulation).
+
+From 1 July 2018 duty holders are required to comply either with an approved code of practice
+under the WHS Act or follow another method, such as a technical or an industry standard, if it
+provides an equivalent or higher standard of work health and safety to the standard required in the
+code.
+
+A code of practice applies to anyone who has a duty of care in the circumstances described in the
+code. In most cases, following an approved code of practice would achieve compliance with the
+health and safety duties in the WHS Act, in relation to the subject matter of the code. Like
+regulations, codes of practice deal with particular issues and do not cover all hazards or risks
+which may arise. The health and safety duties require duty holders to consider all risks associated
+with work, not only those for which regulations and codes of practice exist.
+
+Codes of practice are admissible in court proceedings under the WHS Act and WHS Regulation.
+Courts may regard a code of practice as evidence of what is known about a hazard, risk or control
+and may rely on the code in determining what is reasonably practicable in the circumstances to
+which the code relates.
+
+An inspector may refer to an approved code of practice when issuing an improvement or
+prohibition notice. This may include issuing an improvement notice for failure to comply with a
+code of practice where equivalent or higher standards of work health and safety have not been
+demonstrated.
+
+How is the code organised
+In providing guidance, the word ‘should’ is used in this Code to indicate a recommended course of
+action, while ‘may’ is used to indicate an optional course of action.
+This Code also includes various references to provisions of the WHS Act and WHS Regulation
+which set out the legal requirements. These references are not exhaustive. The words ‘must’,
+‘requires’ or ‘mandatory’ indicate that a legal requirement exists and must be complied with.
+
+Who has duties?
+A person conducting a business or undertaking (PCBU) has the primary duty under the WHS
+Act to ensure, as far as reasonably practicable, that workers and other persons are not exposed to
+health and safety risks arising from the business or undertaking.
+
+Officers, such as company directors, have a duty to exercise due diligence to ensure that the
+business or undertaking complies with the WHS Act and WHS Regulation. This includes taking
+reasonable steps to ensure that the business or undertaking has and uses appropriate resources
+and processes to provide and maintain a safe work environment.
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)         Page 4 of 39
+Workers have a duty to take reasonable care for their own health and safety and that they do not
+adversely affect the health and safety of other persons. Workers must comply with any reasonable
+instruction and cooperate with any reasonable policy or procedure relating to health and safety at
+the workplace.
+
+Consulting workers
+Consultation involves sharing of information, giving workers a reasonable opportunity to express
+views and taking those views into account before making decisions on health and safety matters.
+
+The WHS Act requires that you consult, so far as is reasonably practicable, with workers who carry
+out work for you who are (or are likely to be) directly affected by a work health and safety matter.
+
+If the workers are represented by a health and safety representative, the consultation must involve
+that representative.
+
+You must consult your workers when proposing any changes to work that may affect their health
+and safety.
+
+Consulting, cooperating and coordinating activities with other duty holders
+The WHS Act requires that you consult, cooperate and coordinate activities with all other persons
+who have a work health or safety duty in relation to the same matter, so far as is reasonably
+practicable.
+
+Sometimes you may share responsibility for a health and safety matter with other business
+operators who are involved in the same activities or who share the same workplace. In these
+situations, you should exchange information to find out who is doing what and work together in a
+cooperative and coordinated way so that all risks are eliminated or minimised as far as reasonably
+practicable.
+
+Further guidance on consultation is available in the Work health and safety consultation, co-
+ordination and co-operation Code of Practice.
+
+
+
+3. Panel design
+Tilt-up and pre-cast panels must be designed for both erection loads and for loadings experienced
+when they make up part of the completed building or structure (i.e. ‘in-service loads’). The loads
+applied to the panel during lifting off the casting bed and while the panels are temporarily braced,
+are different from loads experienced as part of the final structure. The design engineer(s) must
+therefore design the panel for both types of loading.
+
+Where a panel is particularly large or has cut-outs, the use of ‘strongbacks’ may be specified by
+the engineer to prevent failure of the panel when it is being lifted. It is extremely important that
+strongbacks are bolted so that they are hard up against the panel, or they may not be able to
+adequately resist the bending moment applied to the panel and the panel will be damaged.
+
+3.1 Cast–in lifting and bracing inserts
+The following should apply to the design and installation of lifting and bracing inserts:
+ a factor of safety of not less than 2.5 against failure
+ compliance with the manufacturer’s specifications for minimum edge distances, depth,
+   concrete strength and additional reinforcement
+ installation of an adequate number of inserts, in the correct locations, to ensure the inserts are
+   not overloaded and to ensure the panel is suspended as near to vertical as possible.
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)           Page 5 of 39
+AS 3850 specifies a factor of safety of 2.5 to 1 on lifting inserts for the particular application that
+the anchors are used. For example, the factor of safety is to be applied to the following:
+ type of loading the insert experiences, i.e. whether it is a tensile or shear load or a combination
+    of the two
+ strength of the surrounding concrete
+ maximum load that may be experienced by the insert.
+
+The maximum load experienced by the insert usually occurs when the panel is lifted from its
+horizontal position and the bond with the casting bed is broken. The proper application of a quality
+bond breaker will greatly reduce the bond strength that has to be overcome by the lifting force.
+
+All inserts require a minimum distance from the edge of the panel to develop their maximum
+strength. Some inserts also require tying to reinforcement steel. The insert type and the other
+information mentioned above must be clearly specified on the panel drawings and certified by an
+engineer (or a certification letter with a list of drawings should be supplied).
+
+3.2 Concrete strength and curing time
+Tilt-up panels should only be lifted when the concrete has cured long enough for the panel to be
+safely lifted and the 2.5 factor of safety can be maintained on the lifting inserts. The minimum
+concrete strength at which this can be achieved, for most proprietary brand lifting inserts is 25
+MPa. Some inserts may require a higher strength than 25 MPa. Tilt-up panels are usually cast in
+stacks so the panels cannot be lifted until the last panel to be cast, on top of the stack, has
+reached adequate strength.
+
+As a general rule concrete will usually achieve its maximum strength, for practicable purposes,
+after a period of 28 days. However, even after this period concrete can still increase in strength to
+a small degree.
+
+In some situations the panel erector may cast the last panels on the stack with higher strength
+concrete (e.g. 40 - 50 MPa, 28 day strength) so the top panels can be lifted after a shorter period
+of time while ensuring the panels do not fail as they are lifted.
+
+Water is sometimes added to the concrete to make it easier to work. This will weaken the concrete
+and affect its potential to reach design strength grade. It is therefore very important to strictly
+control the amount of water added to the mix.
+
+The panel erector should provide written documentation to verify the concrete has reached the
+minimum acceptable strength. There should be a sampling and concrete testing procedure in
+place to verify concrete meets its design specification. Guidance on sampling and testing systems
+for concrete is provided in AS 1379 - Specification and supply of concrete.
+
+It should be noted that the compressive strength of laboratory cured test specimens may differ
+from the actual compressive strength achieved on site due to factors such as temperature and
+humidity on site, poor curing techniques and the addition of water to the mix. Some panel erectors
+may therefore choose to have test samples on site to give an indication of the variation between
+‘on site’ tests and laboratory tests.
+
+Much of the concrete supplied for casting concrete panels is designated as ‘special class
+concrete’. However, irrespective of whether the concrete mix is a special or normal mix, a
+sampling and testing program should be implemented.
+
+Documentation verifying the following should be available on site:
+ concrete specification of concrete supplied on site for use in panels
+ minimum final concrete strength (i.e. 28 day strength) of concrete delivered to site
+ minimum concrete strength to be achieved prior to lifting of panels (information for the inserts
+   should be available that specifies the minimum concrete strength required for using the insert)
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)           Page 6 of 39
+    results of a sampling program that demonstrates the concrete is of an appropriate strength,
+     and
+    casting dates for each panel and earliest date when the panel can be lifted (each panel should
+     be numbered and written records made).
+
+
+4. Drawings
+Detailed drawings should be provided that includes information on the following areas:
+ design of the panel itself for the in-situ application as part of the final structure
+ design of the panel for lifting and other installation loads
+ design and location of footings and slab for the building or structure
+ layout of the panels during construction of the building or structure with temporary bracing
+   installed
+ layout of the building or structure in its completed form with temporary bracing removed and
+   permanent connections detailed.
+
+The builder and/or panel erector will often determine how many groups of drawings are to be
+provided for the project. However, all of the information above should be clearly shown on the
+drawings and is to be checked by a suitably qualified engineer.
+
+4.1 Panel drawings
+Drawings for the panel design should include the following information:
+ date and issue number of the drawing
+ location, orientation and depth of lifting and other inserts
+ project location
+ surface finish
+ panel number and panel mass
+ dimensional tolerances
+ panel dimensions and centre of mass
+ type and brand of lifting inserts
+   - type, size and location of steel or other reinforcement
+   - required concrete cover for reinforcement steel
+   - strongback details (where required)
+   - strongback fixing inserts details
+   - concrete strength required both for lifting and as part of structure, in accordance with AS
+      3600 - Concrete structures
+   - additional instructions for lifting inserts - such as edge distance and proximity of
+      reinforcement.
+
+4.2 Panel erection drawings
+Drawings for the erection of the panels should include details on how the panels are to be placed
+and secured into position. Information to be shown on these drawings include:
+ date and issue number of the drawing
+ project location
+ position of brace connection points on the panel and the ground
+ brace specifications and/or required capacities1
+ levelling pad details
+ relative locations of panels
+ details for brace footings including dimensions, location, anchor type, and concrete strength at
+   time of erection
+
+1 If only the required brace capacities are specified on the drawing the panel erector should be able to demonstrate the
+
+braces being used have adequate capacity for the brace extension being used (the brace manufacturer may supply this
+information but there should be engineering input into the brace design).
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)                          Page 7 of 39
+   details on knee and lateral bracing (if applicable).
+
+
+
+5. Braces
+The safe erection of concrete panels relies on the integrity of braces and their correct installation.
+The different types of bracing for wall panels are illustrated in Diagram 1.
+
+
+
+
+Diagram 1 – Bracing types
+
+The following factors relating to the design and use of braces should be ensured:
+ Braces should be permanently marked with the manufacturer’s name or trademark, the model
+   type and the working load limit for maximum and minimum extensions.
+ Engineering computations or certification should be available and braces should be designed
+   to have adequate strength and stiffness and allowance for wind loadings. Drawings and
+   specifications which clearly show the type, position, method of fixing and installation angle
+   should be on site.
+ Braces should be designed to provide a factor of safety of two against failure.
+ Braces should be as specified by the manufacturer and not have parts interchanged with other
+   makes or models of brace (i.e. feet changed, smaller pins or bolts used, different tube wall
+   thickness used).
+ Prior to use all braces should be inspected to check there is no damage and to verify the
+   braces are complete and functional (i.e. extendable and foot length can be adjusted).
+ Bolts or nuts used to secure the brace to the footing or panel should be provided with washers
+   of the correct grade and size.
+ The anchor bolt and washer combination on the foot of the brace should have adequate
+   bearing capacity. Sometimes the bolt head and washer are too small for the slot size on the
+   brace foot. This can cause the washer to collapse and the panel to move. As a general
+   principle the slot width on the brace foot should not exceed the diameter of the thread or
+   sleeve on the anchor bolt by more than 2 mm - unless otherwise stated by the anchor supplier.
+   In addition, the head of the anchor bolt should be large enough to be able to apply adequate
+   load to the foot of the brace. If there is doubt about the ability of the bolt head to do this, the
+   anchor supplier should be contacted and requested to supply guidance, such as the use of a
+   suitable structural washer. Diagram 2 illustrates the issue.
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 8 of 39
+    Diagram 2 – Adequate bearing capacity should be provided by the bolt head and washer
+
+
+   Adjustable feet on braces should have stops on the threads to prevent over extension.
+   Locking pins should be provided with retaining devices to prevent unintentional dislodgement
+    of the locking pin. Consideration should be given to using retaining devices that require a tool
+    to remove them to help prevent unauthorised persons tampering with the brace - this is of
+    greater importance where such persons can gain access and/or where the locking pin can be
+    reached by a person standing on the ground.
+   A minimum of two braces should be secured to each panel unless specified by the engineer
+    and indicated on the erection drawings. Where only one brace is used there should be a
+    minimum of two fixings at each end (this may be difficult to achieve because of the lack of
+    suitable feet and the need to maintain adequate separation distances for anchors), and
+   Where knee bracing and/or lateral bracing is required by the engineer, it should be installed as
+    soon as possible after the panels have been placed in position and the primary braces
+    secured.
+
+
+6. Wind loading
+Wind loading on panels will vary depending on the size of panel, wind speed and wind direction.
+The location shall also have a bearing on the severity of the wind. In built up or hilly areas the wind
+effect may be less than on open plains. The area in Queensland will also have an effect - in
+cyclone prone areas the potential wind loading applied to panels will be higher.
+
+
+Basic wind speeds for different zones in Australia are specified in AS/NZS 1170.2 Structural
+design actions - Wind actions. Diagram 3 shows the zones for Queensland. Three regions apply to
+Queensland as follows:
+ Region A (normal) – covers most of the State but no coastal areas (includes Toowoomba, Mt
+    Isa).
+ Region B (intermediate) – includes coastal areas south of Bundaberg and a narrow band
+    behind region C (includes Brisbane, all of Gold Coast and Sunshine Coast).
+ Region C (tropical cyclones) – includes all coastal areas north of, and including, Bundaberg.
+
+In addition to the area in Queensland, AS 1170.2 also specifies four different terrain categories
+that should be taken into consideration by the engineer.
+For the purposes of designing restraint for tilt-up panels, categories 2 or 3 will often be used by the
+engineer. Category 2 applies to open terrain with few nearby obstructions, while Category 3 is
+applied when there are numerous obstructions between three and five metres high. The effect of
+the wind is more severe in wind Category 2 areas, which as an example might be near an airport.
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)           Page 9 of 39
+Diagram 3 – Basic wind speed zones for Queensland
+
+There are a number of other factors that need to be applied by the engineer when calculating wind
+pressure on a panel and the resultant number of braces and size of deadmen required. However, it
+should be noted that the number of braces required is not directly proportionate to the basic wind
+speed. The dynamic wind pressure (qz) is calculated using the following equation:
+
+qz = 0.6Vz²x 10-³
+(Vz is wind speed in metres per second and qz is in kilopascals).
+
+It can be seen from this equation that the wind pressure will vary directly to the square of the wind
+speed. Therefore a small increase in the wind speed will result in a much larger increase in the
+pressure and a much larger increase in the number of braces required or size of deadman
+required.
+
+With the above in mind the number of braces required for a tilt-up panel in a coastal tropical area
+will often be greater than that required close to Brisbane.
+
+
+7. Deadman design
+Buried concrete blocks ‘deadmen’ are commonly used to anchor braces and prevent panels falling
+over due to wind loads or other factors. An example of a deadman is shown in Diagram 4.
+
+A deadman relies both on its mass and cohesion with the ground to resist wind loads tending to
+pull the deadman out of the ground (i.e. wind blowing on to the back face of the panel). Wind
+blowing onto the front face of the panel will result in a compressive force in the brace which will
+tend to push the deadman further into the ground. Of the two different loading cases the case
+where the wind tends to pull the deadman out of the ground is the more critical. It should also be
+noted that with this load situation there is a horizontal component of the force that will tend to pull
+the deadman through the ground, but this will usually not be the critical factor in the design of the
+deadman.
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)             Page 10 of 39
+Soil that is stiffer will provide greater degrees of cohesion, and will be better to resist pull out loads,
+than sandy soils. Therefore stiff clay will have better cohesive properties than gravel. Sand will
+provide very little cohesion and the size of the deadman will therefore need to be larger.
+
+Because the adequacy of the deadman to resist wind loads is based on both its mass and
+cohesion with the ground, the mass of the deadman is not directly proportionate to the surface
+area of a panel. The cohesion is based on the surface area of the block in contact with the soil and
+the effect of this will vary at a different rate to a variation caused by the mass of the block (e.g.
+when the mass of a cubic block is doubled its vertical surface area will not be doubled). It is
+therefore not a simple process to estimate the size of a deadman block for a particular panel
+based on the calculated size of a block for a smaller panel. It should also be noted that the
+effectiveness of the cohesion of the block with the ground will depend on an effective contact
+between the two solids. For instance, in clay there will not be effective cohesion where the ground
+has been disturbed at the top of the hole.
+
+
+
+
+Diagram 4 – Deadman for anchoring braces
+
+A deadman is usually provided with a cast-in reinforcement bar to connect the brace foot to the
+concrete block. The bar will often be bent at right angles in the deadman and this greatly assists
+the strength of the bond between the steel and concrete. Sometimes the steel bar is not bent but is
+simply a straight bar that is pushed into the wet concrete. In this situation it is critical to ensure the
+engineer has checked the design of the steel insert and the correct section of steel is inserted to
+the minimum required depth during construction of the deadman. If the steel is not inserted
+correctly it can either pull out of the deadman or cause cone failure of the concrete when loads are
+applied.
+
+Deadmen are typically cast using low strength concrete (e.g. 20 - 25MPa) and there will usually be
+a need to leave them for a substantial amount of time to ensure the cast-in or drill-in type anchors
+do not pull out.
+
+The following information should be available on site:
+ drawings that show deadman dimensions, concrete strength, steel content and location (if
+   applicable), terrain category (for wind), and soil type
+ documentation that verifies each of the deadmen have been constructed in accordance with
+   the drawings and the concrete has obtained its minimum required strength prior to installation
+   of the braces and/or installation of post installed anchors
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)              Page 11 of 39
+   documentation that verifies anchors comply with the minimum edge distances specified by the
+    engineer or the anchor manufacturer
+   verification that the deadmen are able to resist wind loadings on the panels in accordance with
+    AS/NZS 1170.2
+
+The verification should either be in the form of an engineer’s written certification for that particular
+site or in the form of test results. The engineer’s written certification should state that the deadmen
+can adequately withstand wind loadings specified in ASNZS 1170.2. Where the verification is in
+the form of test results there must be correlation between the test results and the actual conditions
+on site. The test should be performed by an independent competent person. Where test results are
+used as verification, evidence of the following should be provided:
+the ground compressive strength on site to be at least equal to the conditions where the test was
+carried out (ground type and water content have a large effect on ground strength)
+the dimensions of the deadmen to be the same or greater than those of the test deadman, and
+the resisting force of the deadmen to be greater than the maximum load applied by the panel to
+the brace and to incorporate a suitable factor of safety (specified by the engineer). The load
+applied to the brace is to be specified by an engineer and should be calculated in accordance with
+AS 1170.
+
+In some situations panels may be erected in locations where solid rock exists. In such locations
+alternative methods of anchoring the braces to the ground may be used, but these should be
+specified and certified by an engineer.
+
+
+8. Post installed anchors
+8.1 Post installed anchors for brace connections
+The use of cast-in inserts is preferable to the use of post installed anchors to fix tilt-up braces.
+Most anchors require a minimum concrete strength of between 20 and 25MPa to achieve their
+specified capacities. Where post installed anchors are used these may be of the following type:
+ Undercut type anchor that does not rely on friction to function.
+ Expansion anchors of the high-load slip, torque controlled type. These anchors have a working
+   load of at least 60 percent of the first slip load and are generally suitable for structural tensile
+   loads, or
+ Coil bolts - it should be noted that the correct operation of these bolts is very dependent on
+   their correct installation in accordance with the manufacturer’s specifications (e.g. drilling the
+   correct size hole and applying the correct torque in concrete of adequate strength).
+
+In relation to expansion anchors and coil bolts it should be noted that the permissible load on the
+anchor should not exceed 0.65 of the first slip load. If the capacity of the anchor is quoted as the
+first slip load, this figure will need to be multiplied by 0.65 (reduced by 35 percent) to find its
+permissible load. The first slip load is the load applied that will cause the anchor to move 0.1 mm
+when the anchor is installed in accordance with the manufacturer’s specifications.
+
+Data supplied by the anchor manufacturer on the first slip load and the maximum working loads
+should be available on site.
+It should also be noted that the capacity of the anchor is restricted by the slot size (fixing hole) on
+the foot of the brace. The slot on most brace feet is not wide enough for anchors in excess of 20-
+22mm outside sleeve diameter. This will often mean that the largest expansion anchor that can be
+used will incorporate an M12 size bolt. The permissible tensile load on a high-load slip, torque
+controlled anchor incorporating an M12 bolt will generally not exceed about 12 - 14 kN.
+This capacity may be less than the capacity of the brace, which may be in excess of 20 kN. In
+some instances the anchor will therefore limit the permissible capacity of the brace. In such
+instances the engineer will either have to:
+      specify the use of an anchor with higher capacity (such as an undercut anchor)
+      increase the number of braces used on the panel, or
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 12 of 39
+       specify the use of more than one expansion anchor on the brace foot and specify a foot
+        that is both large enough and has the ability to have two anchors attached.
+The following types of post installed anchors should not be used for anchoring braces:
+ deformation controlled expansion anchors
+ drop–in type anchors
+ low-load slip deformation controlled anchors. These anchors may sometimes be known as
+   wedge anchors, usually have thin shields, and do not reliably retain more than 20 - 40 percent
+   of the initial pre-load
+ self-drilling anchors.
+
+Chemical anchors should not be used unless each fixing is individually proof tested to the working
+load limit and documentation verifying this is available on site.
+
+
+
+8.2 Anchor setting torque
+Verification of setting torque for all post installed anchors should be documented and available on
+site. Torque controlled type anchors depend on correct torque setting to operate correctly.
+Manufacturers of these anchors will not guarantee the anchors if the setting torque is incorrect.
+Under-torquing the anchors will mean their maximum pull out strength cannot be achieved and
+over-torquing the anchors may damage them (i.e. strip the thread).
+
+The setting torque of the high-load slip, torque controlled type anchors using M12 bolts typically
+ranges between 60 and 80 Newton-metres (Nm). The setting torque of 19mm coil bolts typically
+ranges between 220 and 360 Nm. The torque for coil bolts is very high and it is extremely difficult
+for a worker to apply such torque with a shifting spanner (i.e. a bigger lever arm is usually
+required).
+
+Drill-in type anchors should have their torque set using an appropriate torque wrench or another
+reliable method that will verify the torque (i.e. a calibrated ‘rattle gun’). Written records verifying the
+setting torque for all drill-in type anchors should be available on site.
+
+8.3 Post installed anchors for lifting
+In some situations it may be intended to use post installed anchors for lifting panels - this may be
+the case where the cast-in insert is defective or placed in the wrong position, or where older panels
+are being lifted. Lifting with post installed anchors is not the preferable method of lifting panels due
+to the following reasons:
+ difficulty experienced in drilling holes of the correct depth and location due to the presence of
+     steel in the panel
+ potential problems in ensuring the correct setting torque is applied
+ the reliance on friction or bonding strength to maintain the anchors’ integrity.
+
+Where post installed anchors are used for lifting panels, in tension or partial tension, every anchor
+should be proof loaded. The proof loading should be a direct ‘pull out’ load and be equivalent to
+the load to be experienced when lifting takes place (a factor of safety of at least 2.5 should apply to
+the anchor). Records of the proof testing should be documented.
+
+
+9. Engineer and verification issues
+9.1 Engineer certification
+Persons providing design certification should be Professional Engineers with suitable experience.
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)              Page 13 of 39
+Engineers should provide specific signed statements about the compliance of the system with AS
+3850.
+
+The following documentation and certification should be provided on site:
+ Certification for the panel design for in-situ loading, wind loads and erection loads - (i.e. loads
+   applied when panel is lifted off the casting bed).
+ Specifications for the concrete footings used to support concrete panels in their final position
+   (e.g. footings for the walls). The principal contractor will supply this information.
+ Drawings for the panel design, temporary bracing layout, final building layout and footing
+   details (see section 4 ‘Drawings’). The drawings should be signed by an engineer or be
+   accompanied by a certification letter that lists the panel drawings and drawing revision
+   numbers.
+ Design certification for the temporary support system. This should include certification for:
+   - brace specification including capacity, type, extension, installation angle
+   - anchor bolt specification, type, and capacity, and
+   - deadman block or footing/slab design including steel content, concrete strength and
+       minimum edge distances for cast-in inserts or post installed type anchors.
+ Any other instructions that may be required to ensure the safe erection and securing of the
+   panels - i.e. the engineer may need to endorse the procedure for brace removal and
+   connecting the panels to the building’s structural steel, particularly if the steel structure is not
+   complete prior to removal of the braces.
+
+Two examples of engineers’ certification statements are included in Appendix A. One statement
+refers to the strength of a panel to resist lifting and in-situ loading while the other refers to the
+temporary bracing of panels and their ability to resist wind loading.
+
+9.2 On–site verification
+The total design of the panel erection system should be overseen by engineer(s). This includes
+design of the panels, temporary bracing systems and securing of panels prior to removal of
+braces. An appropriate system that verifies compliance with the design should be implemented.
+On-site audits will assist to verify factors such as the following:
+ the correct grade of concrete is being used and panels are being left to cure for the
+    appropriate amount of time prior to lifting
+ use of the correct type and number of concrete inserts and installation in accordance with the
+    manufacturer’s specifications
+ installation of reinforcement steel in accordance with the drawings - both in the panels and
+    deadmen
+ installation of panel braces in accordance with the engineer’s and manufacturer’s
+    specifications.
+
+Persons on-site may be delegated to verify and document that the design has been complied with.
+This decision is sometimes made for cases where the construction process is of a repetitive
+nature.
+
+Should the person on-site not be an engineer, this person should only verify that the engineer’s
+specifications and drawings have been complied with. This person should not authorise variations
+to the design unless he or she is a suitably qualified and experienced engineer. However, it should
+be noted that the person verifying compliance with the engineer’s specifications would need to be
+experienced in tilt-up construction and be competent in reading drawings.
+
+Two checklists that may be used for on-site verification are included in Appendix B and C. The
+“Panel checklist” relates to the structural integrity of the concrete panels themselves both for in-situ
+and lifting loads during erection. This checklist may be used for either pre-cast or tilt-up panels and
+should be completed prior to panels being lifted. In the case of pre-cast panels, the completed
+checklist would usually be supplied when panels are delivered to the site. The “Panel lifting and
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 14 of 39
+temporary bracing checklist” applies both to the safety of the lifting system used by the panel
+erectors and to the integrity of the temporary bracing system. The first part of the checklist under
+the ‘panel lifting’ section should be completed before lifting takes place when the crane is on-site.
+The second part can be filled out as the panels are being erected and should be completed prior to
+the panel erector leaving the site on that particular day.
+
+It is considered that the appropriate design engineer should at least carry out some on-site audits,
+to assist compliance with the design specifications and to help the engineer become familiar with
+difficulties experienced on site. It may be advisable for the engineer to visit the site during the
+following phases of construction:
+ casting of the wall footings or other footings used to support tilt-up or pre-cast elements
+ pouring of the deadman or footing/slab design to which panel braces will be attached
+ pouring of tilt-up or pre-cast panels
+ temporary bracing of panels on site
+ just prior to the removal of temporary braces from the panels (after panels have been attached
+      to the building’s internal structure).
+
+Prior to removal of temporary bracing from the panels an inspection of the building should be
+made by a competent person to ensure that all permanent structural members and brackets have
+been attached to the panels in accordance with the engineer’s instructions. A sign off procedure
+should be implemented to verify that this has been done and temporary braces can be removed.
+
+
+
+9.3 Variations from the design
+All variations from the design, relating both to the panel and support system, should be checked by
+the engineer and either be:
+ certified by the engineer as being acceptable (i.e. complying with AS 3850) in writing, if the
+     engineer can verify this is the case
+     or
+ altered in accordance with the engineer’s written directions so as to comply with AS 3850,
+     within a time frame specified by the engineer.
+
+Some of the variations that may apply include:
+ Two braces anchored to one deadman when the engineer’s original specifications state that
+   each brace is to have a separate deadman (note: this cannot be done unless the deadman is
+   substantially larger because of the minimum separation and edge distances required between
+   cast-in or post installed anchors).
+ The brace angle in the vertical plane is not within the range specified in the erection drawings.
+ The brace angle in the horizontal plane exceeds 5 degrees from the perpendicular.
+ The absence of knee and/or lateral bracing when this had been specified originally by the
+   engineer.
+ Only one brace is provided on narrow panels, when AS 3850 states there should be a
+   minimum of two (note: AS 3850 permits the use of one brace if the engineer specifies this to
+   be the case. However, the standard also states that two anchors are to be provided on each
+   end of the brace. This cannot be done on brace feet that only have provision for using one
+   anchor
+ Removal of braces from panels prior to all permanent structural members being attached to
+   the panels.
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)         Page 15 of 39
+10.            Non–standard panels
+The erection of non-standard panels may require the use of specialised lifting and bracing
+techniques. This may be the case when there are special architectural features on the building or
+cut-outs in the panel. Specific instructions highlighting special erection and support procedures to
+be followed should be endorsed by the engineer and available on site. Two examples of where
+specific procedures may need to be followed are as follows:
+ A panel in the shape of an inverted ‘L’ is to be lifted and placed in position. The panel may
+    require strongbacks to ensure it does not fail when lifted (see Diagram 5). The position of the
+    lifting inserts and rigging set-up will need to be specified so that the panel hangs vertically and
+    not on an angle (i.e. with bottom edge horizontal). To ensure the panel will not fall over it may
+    need to be suitably propped under its unsupported side, and
+ A panel has braces attached so that one or more braces has to be removed prior to the panel
+    being attached to structural steelwork. A work system will have to be used that will ensure the
+    panel does not become unstable when the braces are removed.
+
+
+
+
+Diagram 5. Unstable panel requiring method of support
+
+11.      Delivery and storage of panels and elements
+11.1     Transport to site
+Pre-cast concrete panels and elements should be transported to site in a safe manner and loaded
+on trucks so that the panels will not fall off the semi-trailer, make the vehicle difficult to drive or
+make the panels difficult to unload. Panels should be restrained on the trailer by a system that
+ensures the load is evenly distributed and withstands movement of the panels during transport.
+Panels should also be loaded and secured such that they will not become unstable when the
+restraint system is released on site (i.e. on an A-frame the panels lean inwards against the frame
+when the chains are undone).
+
+Guidance on suitable methods of restraining loads on road transport vehicles is provided in the
+following guides:
+ “Load Restraint Guide”, produced by the National Transport Commission.
+
+The truck driver should be adequately trained and experienced in the transport of concrete
+elements. Permits for over-sized loads should be obtained prior to the semi-trailer travelling to site.
+When selecting the route from the pre-cast yard to the construction site the following issues should
+be considered:
+ low bridges
+ height of power and other lines
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 16 of 39
+   train lines
+   roundabouts and reverse camber corners.
+
+
+11.2           Unloading from the truck
+When unloading panels the semi-trailer should be located on firm, level ground. The side slope
+should be minimal and not exceed 2 degrees (2 degrees is usually just discernable to the human
+eye). It is advisable to chock the wheels of the vehicle, in addition to applying the park brake. The
+trailer should be unloaded in a progressive manner that ensures any tilt of the trailer is kept to a
+minimum. For example, on an A-frame where there is more than one panel on each side, one
+panel should be removed from one side then one removed from the other side. If panels are
+removed so that the trailer tilts, other panels on the trailer may fall off. It may be necessary to lower
+the front support legs of the semi-trailer prior to removing the panels - this will help to reduce
+movement of the trailer.
+
+The semi-trailer should never be moved after the restraint system is released.
+
+During unloading, only persons involved in the unloading should be in the area around the vehicle,
+and others should be excluded. No persons should stand beside the vehicle in an area where they
+would be struck by a panel if the vehicle were to be knocked or move.
+
+11.3           Slinging the load
+Pre-cast panels will normally be provided with lifting inserts on the top edge of the panel delivered
+to the site. This could mean that the dogger slinging the load is required to work more than two
+metres above the ground. The use of ladders to sling the load could be unacceptable because the
+dogger needs both hands free to sling the load and because it is difficult to secure the ladder. The
+provision of a work platform for the dogger to work from should therefore be provided. Some of the
+alternatives for providing safe access for the dogger are as follows:
+ a walkway along the length of the A-frame that prevents a fall occurring (i.e. the dogger has a
+     barrier at least 900mm high on both sides of the A-frame) - in this instance access could be
+     provided to the walkway by a secured ladder at the rear of the trailer)
+ pre-attached slings on the panels that can be reached by the dogger while standing on the
+     ground (these would have to be set up so that they could not snag on any obstructions)
+ a boom type elevating work platform where the basket can be moved close to the sling
+     connection points on the panel
+ a mobile scaffolding provided with edge protection and safe access
+ a loading bay beside the semi-trailer.
+11.4     Storage of panels
+Where concrete panels and elements are not lifted directly into position, they should be stored so
+that they are stable even in windy conditions. The following factors should be considered when
+storing concrete elements:
+ An engineer may need to provide guidance on storing panels as the loadings applied to the
+     panel when moving it into the storage position may be very different than those applied as part
+     of a wall.
+ Where laid out flat, concrete elements should not be stored directly on the ground as this can
+     damage the element or make it very difficult to lift. A minimum of two support points, such as
+     timber bearers, should be provided under the panel (more supports may be required for larger
+     panels to prevent the panel cracking).
+ When panels are stacked horizontally on top of each other the support points should be
+     directly above each other unless otherwise specified by the engineer.
+ The stacked height of elements should be limited to ensure the ground bearers and lowest
+     elements can support the load.
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 17 of 39
+   The stack height should not be higher than twice the element width unless specifically
+    documented by a competent person.
+   Where an element is stored on a suspended floor slab, this should be approved in writing by
+    the design engineer of the suspended slab.
+   Panels should be stored in a location where it is unlikely they will be struck by vehicles (i.e. not
+    next to roads).
+
+12. Crane issues
+The information relating to cranes in this document relates specifically to the use of cranes for tilt-
+up and precast panel erection.
+
+The selection of an appropriate crane, preparation of the site and correct location of the crane are
+crucial in ensuring the safe erection of concrete panels. Mobile cranes used for this type of
+construction are usually required to work close to their maximum capacity and with high luff angles
+and boom length due to the large size and mass of concrete panels. These factors increase the
+likelihood of the crane overturning, particularly if the ground is not level.
+
+12.1           Lift plan
+A lift plan should be prepared prior to lifting tilt-up or pre-cast panels. The plan should show a
+dimensioned site plan with the following information detailed:
+ crane set-up position(s) on site
+ locations where the panels are to be lifted from and to, with the operating radius of the crane
+     shown
+ areas on site where obstacles such as walls or braces may be in the travelling or slew path of
+     the crane, and
+ areas where the crane cannot be set up (i.e. trenches and covered penetrations on site).
+
+The lift plan should specify the type and set up of lifting gear to be used. Responsibilities for
+rigging, dogging and spotting duties (i.e. ensuring the crane does not contact obstacles) should be
+specified.
+
+12.2           Crane capacity
+The crane capacity must be adequate for the largest panel mass, radius and boom length that is
+used. It should be remembered that a mobile or tower crane’s maximum rated capacity rarely
+gives a practical indication of the load the crane can actually lift as this capacity is taken at a
+distance very close to the slew centre of the crane.
+
+When lifting a panel using face lifters the panel’s centre of gravity will be at a greater radius than
+the bottom edge of the panel. The crane being used should therefore have adequate capacity to
+safely suspend the panel at the greater radius. Diagram 6 illustrates the point. As a general guide,
+at least 1.5 metres should be added to the working radius of the crane. This may need to be
+increased for very tall panels.
+
+As a general guide, mobile cranes used on tilt-up construction usually have a maximum rated
+capacity of at least three times the mass of the heaviest panel to be lifted. As an example, with a
+tilt-up panel of 20 tonnes mass a mobile crawler crane with a maximum rated capacity of 60
+tonnes will generally have adequate capacity. It should be remembered that this is a guide only. In
+some situations it may be acceptable to use a smaller crane and in some cases a larger crane
+may be required. For instance, a much larger crane may be required where the crane cannot be
+positioned close to the casting bed or final position of the panels. The crane operator should be
+able to show the load being lifted is within the capacity specified in the load chart. The load to be
+lifted includes the panel weight, lifting gear weight and dynamic factors. When a mobile crane is
+used the hook block weight should also be added - unless the load chart specifies otherwise.
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 18 of 39
+Diagram 6 – Increased crane operating radius for lifting tilt-up panels
+
+Note: The true working radius from the centre of rotation to the hook will depend on actual details
+
+
+
+12.3            ‘Pick and carry’ cranes
+There are basically three types of pick and carry mobile cranes – lattice boom crawler cranes,
+articulated non-slewing cranes and rough terrain hydraulic slewing. Rough terrain cranes can also
+be used on outriggers but are not used very often on tilt-up construction.
+
+Lattice boom crawler cranes are used on the majority of tilt-up jobs due to their large lifting
+capacity and good stability characteristics.
+
+Articulated non-slewing cranes are also used on some smaller panel jobs. The use of these cranes
+in tilt-up construction has increased since the introduction of larger capacity cranes.
+
+Although the use of rubber tyred articulated cranes may be acceptable for lifting panels in some
+situations, these cranes are generally not suited for reasons including the following:
+ The lifting capacity is generally too low for most panel jobs (the largest crane of this type has a
+    maximum capacity of 25 tonnes and will usually only be suitable for lifting smaller panels of
+    say 8 tonnes or less).
+ These cranes are more prone to overturning than are crawler cranes due to:
+    - being articulated
+    - supported by rubber tyres that compress
+    - having wheels that are more prone to enter ground depressions than are tracks
+    - having hydraulic booms that are heavier than lattice booms.
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 19 of 39
+The load chart for pick and carry mode should be based on 66.6 per cent of tipping where travel
+speed is greater than 0.4 m/s (1.44 km/h). A load chart based on 75 per cent of tipping is
+acceptable where the travel speed is less than 0.4 m/s (for further information refer to section 9,
+AS 1418.5 – Cranes, hoists and winches – Mobile cranes).
+
+12.4           Slewing cranes on outriggers
+Slewing cranes set up on outriggers are being used to an increasing extent for tilt-up construction
+due to the availability of larger capacity cranes and ‘all terrain’ type cranes that can more readily
+gain access onto site. Cranes of this type being used for panel work usually have hydraulic booms
+although there are still some older lattice boom models being used. The drawback with using this
+type of crane is that they must remain in one position while performing a lift, unlike a pick and carry
+crane. A crane on outriggers therefore has to be located so that the casting bed and final position
+of the panel are within the safe operating radius of the crane for the particular panel being lifted.
+
+When using mobile cranes on outriggers for tilt-up construction, it is particularly important to
+ensure the crane is set up in the best location where the potential risk of the crane causing
+damage to the structure is minimised. The crane should be positioned so that the counterweight
+cannot contact any obstructions, including panels and panel braces, when the crane slews. If this
+cannot be achieved, suitable control measures should be implemented to prevent the
+counterweight contacting obstructions (see section 15 “Operation of plant near braces and
+panels”).
+
+The use of a larger capacity crane will reduce the necessity for repositioning the crane between
+lifts. However, it should be noted that using larger cranes may increase the likelihood of the
+counterweight contacting braces and panels. A larger crane will also be more difficult to safely
+manoeuvre around site.
+
+12.5           Ground slope and condition
+The ground condition and slope are critical factors that will affect crane stability particularly when
+the boom is at its full length and maximum luff angle (minimum operating radius). This situation is
+often the case with tilt-up construction.
+
+Where the ground slope is greater than 1 degree, written evidence that the crane can safely ‘walk’
+a load for the particular gradient should be provided. The crane manufacturer or a competent
+person such as an engineer with relevant experience may be able to provide guidance on this.
+
+Mobile plant operators are not qualified to calculate how much to de-rate the capacity of a crane or
+how much a boom is to be lowered, when traversing sloping ground.
+
+A minimal ground slope can be a major factor in causing the crane to overturn. A side slope of only
+2 or 3 degrees can have a drastic affect on the stability of the crane when walking panels. As an
+example, tests carried out by one manufacturer for a particular model of pick and carry crane
+indicated the crane’s capacity should be de-rated by more than 70 percent when operating on a
+side angle of 5 degrees (with maximum boom extension, luff angle and steering articulation). Soft
+ground, pneumatic tyres, ground depressions and spring movement (where lockouts are not fitted)
+will also tend to increase the side angle of the crane and make the risk of overturning greater.
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 20 of 39
+Diagram 7 – Rubber tyred pick and carry crane overturned
+
+Side gradients will generally be more critical than gradients in the direction of travel, but any
+gradient will have an effect on the maximum capacity of a crane.
+
+Where there is doubt about the ground strength, it may be necessary to request verification on the
+ground’s bearing capacity by a competent person (i.e. geotechnical or soil engineer) from the
+person in control of the site. This could be the case:
+ where the ground has not been compacted
+ in muddy or very wet conditions
+ where the crane and or panels are particularly heavy (e.g. panels over 25 tonne)
+ where the working radius of the crane is large
+ where underground services or cavities are identified
+ due to a combination of the above.
+
+12.6             Safe support of cranes on outriggers
+Where the crane is set up on outriggers the following should be ensured:
+ Timbers are correctly pig stied under the outrigger pads. Timbers should be robust and be of a
+   minimum size and strength specified by the crane manufacturer.
+ The crane is not set up next to excavations or over ground cavities that are covered. Prior to
+   setting up a crane on site, information on excavations and underground services should be
+   provided by site management.
+ The crane is set up so that it is level to within a tolerance of 1 degree or less - a level indicator
+   (‘bubble gauge’ or electronic) should be provided to show the crane is level, and
+ The area of the outrigger timbers or steel plate is adequate for the loadings and bearing
+   capacity of the ground. Particular caution should be taken on soft ground and the minimum
+   bearing area required for outrigger support should be calculated by the crane operator, where
+   there is doubt about the ground strength.
+
+12.7             Lifting gear
+Guidance on the use and inspection of chains, wire ropes and synthetic slings is provided in
+Australian Standards2 and in “A Guide for Doggers” (Workplace Health and Safety Queensland).
+The basic items that should be checked are as follows:
+ the lifting gear is tagged and all relevant information listed (such as in the case of a chain sling
+   – grade of chain, safe working load, manufacturer, chain size)
+
+2 AS 2759 – Steel wire rope – Use, operation and maintenance
+
+ AS 3775 – Chain slings – Grade T
+ AS 4497.2 – Roundslings – Synthetic fibre – Care and use
+ AS 1353.2 – Flat synthetic-webbing slings – Care and use
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 21 of 39
+   lifting hooks are provided with operable safety latches
+   shackles are prevented from unscrewing
+   lifting eyes and inserts are compatible and the same proprietary brand
+   lifting slings are not damaged (for example: excessive wear, damaged strands, cracks,
+    deformation, severe corrosion)
+   the sling is appropriate for loads being lifted - including adequate capacity and protection from
+    sharp edges.
+
+
+13.            Work systems
+13.1           Exclusion zones for tilt–up panel erection
+Only persons directly involved with the erection of panels should be located in the area while lifting
+is taking place and such persons should avoid being in a position where they could be struck in the
+event of a crane or panel falling over.
+
+In any type of lifting activity the crane operator should avoid lifting the load over persons. However,
+with tilt–up construction the risk to persons is greater for the following reasons:
+ Panels can be very susceptible to wind loads because of their shape and size.
+ If a panel falls over or an insert fails, while the panel is attached to the crane, it is very likely
+    that the crane will overturn. Other panels may also be struck and fall over. The potential
+    consequences of an incident are therefore usually more serious than when other items are
+    lifted.
+ There is usually greater risk when lifting a concrete element (i.e. than a steel object) because
+    the integrity of the load relies on a number of factors such as concrete strength, steel content
+    and position, lifting insert integrity and correct operation of the lifting clutch. Due to the greater
+    number of variables there is a greater risk of an error being made
+ It is generally impractical to provide an effective secondary back-up lifting system for a tilt-up
+    panel (i.e. it is too difficult to place a lifting sling around the panel because the panel is cast on
+    the ground).
+
+In view of the above, all persons not involved in the erection of the panels should be prevented
+from accessing the erection zone. Workers should not be located where they could be struck by
+the panel in the event of lifting gear failure or strong winds. An exclusion zone should be set up
+that prevents unauthorised persons gaining access. On some jobs this may necessitate the
+erection of para-webbing, signage and/or fencing depending on the ease of access and the likely
+presence of persons, either workers or members of the public. The exclusion zone should be set
+up so that it includes an area where persons cannot be struck either by:
+ the crane falling over
+ the panel being lifted falling over
+ another structural element failing and falling to the ground as a result of being struck by the
+     crane or the panel being lifted.
+
+The exclusion zone should be maintained during panel lifting until braces have been secured and
+the lifting slings removed.
+
+Where a road or other vehicular access way is located in the exclusion zone, traffic should be
+prevented from passing through the zone while panels are being lifted and prior to securing of the
+panels with braces.
+
+Adjacent buildings that may collapse in the event of a panel falling should have persons removed
+from risk areas. If this cannot be ensured, panel lifting on that part of the job should be performed
+out of hours when persons are not located in the building.
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)             Page 22 of 39
+13.2           Lifting pre–cast elements over workers
+Similar hazards apply to the erection of pre-cast elements as tilt-up panels.
+The same principles therefore apply to the setting up of exclusion zones both for members of the
+public and workers. However, it is acknowledged that in some situations it can be extremely
+difficult to set up exclusion zones for workers during the erection and installation of precast
+elements. This may be the case for installation of pre-cast wall panels on high-rise projects or
+where pre-cast floor planks are installed on large projects with multiple crane operation (i.e. the
+cranes’ operating radii overlap). With this in mind it is considered that the lifting of pre-cast
+elements over workers can be performed providing the following conditions are followed:
+ An effective back-up lifting system is provided for the element in the event of failure of the
+     primary lifting system.
+ The back-up system is designed and certified by a suitably qualified engineer.
+ The primary and back-up lifting systems are not removed until the concrete element is secured
+     in place and is no longer suspended by the crane.
+ Measures are implemented to ensure that any lifting over workers is kept to a minimum.
+ The crane is inspected prior to lifting and all parts and safety features of the crane are
+     operating in accordance with the manufacturer’s specifications - this includes load indicators,
+     overload cut-off systems and braking systems.
+ Lifting gear, including spreaders, chain, wire ropes, hooks, lifting eyes and equalizing sheaves
+     have been inspected prior to lifting and are not damaged or worn. All lifting slings should be
+     tagged in compliance with the relevant Australian Standard and proof testing within the
+     previous 12 months is recommended.
+ Lifting is not performed in windy conditions. This will be at the discretion of the crane operator.
+     However, it is recommended that the lifting of concrete elements should not continue under
+     any circumstances when the wind speed exceeds 45km/hr (12.5m/s). In practice, wind speed
+     lower than this figure can be unsafe depending on the surface area of the pre-cast element.
+
+An effective back-up lifting system should be able to:
+ withstand the additional impact loading as it takes up any slack in between the primary and
+    secondary lifting systems, and
+ effectively contain the load in the event of the failure of the primary lifting system (i.e. prevent
+    any part of the load falling to the ground).
+
+One example of a back-up system for lifting pre-cast floor planks is illustrated in Diagram 8.
+
+It should be noted that although lifting of pre-cast panels over workers is permitted in limited
+situations, it is not a preferable method, and other erection methods should be investigated prior to
+its acceptance.
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 23 of 39
+Diagram 8 – One example of a back–up lifting system for a pre–cast floor plank.
+
+
+14.             Panel lifting and erection
+14.1            General
+The actual lifting of the panels is the time when potential for disaster is highest. Due to their large
+surface area and mass a great deal of care needs to be taken when lifting, moving and securing
+panels into position. The likelihood for fatalities when a panel falls over is considerable because
+the ground area covered by a falling panel is very high and the area in which the panel will fall
+cannot be controlled. Increasing the risk is the fact that the mobile crane will also fall over and
+other panels that are struck by the crane or falling panel are also likely to collapse. A domino effect
+can occur and workers often will not have time to get out of the way before they are struck. With
+these factors in mind it is extremely important that both the panel erection crew and crane operator
+are highly skilled and experienced in the erection of panels.
+
+Pre-cast panels are generally smaller than tilt-up panels because they are transported from the
+pre-cast yard to site by road transport, whereas tilt-up panels are cast on site. The availability of
+large capacity cranes has meant that larger panels of around 30 tonne are sometimes specified in
+tilt-up construction. The disadvantage with larger panels is that they are more difficult to handle
+and greater care needs to be taken to ensure the panels do not strike braces or other panels when
+they are being moved.
+
+Irrespective of the type of panels being lifted the following should also be ensured:
+ Prior to lifting, the panel mass is to be clearly marked on the panel (this can be found on the
+     panel drawing).
+ Panels are suspended with the face as near to vertical as practicable, so that the panel is not
+     too difficult to place in its final position as part of a wall (usually 5-15 degrees off vertical).
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)               Page 24 of 39
+   Braces - whenever possible should be attached to the concrete panel prior to lifting (reduces
+    need for persons to work at height and minimises the time the panel is supported by the
+    crane).
+   The bottom edges of panels to be horizontal such that a bottom corner is not noticeably lower
+    than the other corner.
+   No persons are located underneath the panel while it is being lifted and moved (except in the
+    case of pre-cast elements in limited situations - see section 13.2 “Lifting pre-cast elements
+    over workers”).
+   Lifting clutch release lines are fitted so that the clutches can be disengaged without the need
+    for workers to climb on top of the panel (see Diagram 9).
+   Dowel pins are fitted into the bottom edge of the panels or into the footings prior to lowering.
+    Dowel pins help to correctly locate the panel and also assist the panel to effectively resist wind
+    loads.
+   Crane support to be maintained until all braces have been installed and effectively secured to
+    the panel and footings (i.e. hoist rope and lifting slings not to become slack until this is
+    achieved).
+   Levelling shims should not exceed 40 mm height (this will assist in maintaining panel stability).
+
+
+
+
+    Diagram 9 – Lifting clutch release lines
+
+
+14.2            Lifting of tilt–up panels
+Tilt-up panels are cast on a casting bed and face lifting inserts are generally used to lift the panels
+off the bed. The number of face lifters will depend on the capacity of the lifters and the size of the
+panel but usually ranges between 4 and 8 lifters. It should be noted that it is sometimes difficult to
+insert the lifters in the exact position specified on the panel drawing due to reinforcement steel
+being in the way. A slight variation from the drawing on this issue should not be critical providing
+the insert is inserted in accordance with the manufacturer’s specification (e.g. tied to or in close
+proximity to reinforcement) and the panel is suspended such that the bottom edge of the panel is
+basically horizontal. The following should also be ensured when the panel is being lifted:
+ When lifting a panel off the bed, the force required to overcome panel suction should not be
+     excessive. If the panel does not come free when the crane indicator registers the combined
+     weight of the panel, rigging and other suspended dead load (e.g. strongbacks), lifting should
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 25 of 39
+    be stopped. Any wedging or jacking of the panel to assist release should be approved by the
+    engineer.
+   Lifting clutches to be fully engaged prior to lifting occurring.
+   Lifting gear and sheaves shall be operable and in good condition, and not to become tangled
+    as the crane hook is hoisted up.
+
+Each tilt-up panel should be lifted so that, while suspended, it leans away from the crane. The term
+‘suicide lifting’ is sometimes used in industry to describe the situation when the panel tilts towards
+the crane. If part of the lifting system fails, in this situation, the panel will fall against the crane and
+generally cause the crane to overturn. Due to the high risk of injury in these situations, suicide
+lifting should be avoided.
+
+
+
+
+Diagram 10 – Common rigging configurations
+
+Notes:
+   1. Dimensions on slings are total length through pulley
+   2. The lifting insert supplier may specify a maximum value for this angle
+
+
+14.3            Rotation of pre-cast panels
+Where positioned on an A-frame, edge lifting inserts will be cast into the panels, usually two lifters
+cast into the top edge and two or four in the side edge. The panel is lifted off the truck using the
+inserts on the side edge. In order to move the panel into its vertical position, the panel needs to be
+rotated through an arc of 90 degrees, and this can be achieved using one or two cranes. This
+procedure requires a great deal of skill on the part of the crane driver(s). Even though the panel
+will be suspended by two hoist ropes, more than 50 percent of the panel weight will be applied to
+one of the hoist ropes due to the cantilever (see Diagram 12).
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)               Page 26 of 39
+Diagram 11 – Rotation of a pre-cast panel
+
+An engineer can be approached to provide guidance on the minimum required capacity of the
+crane(s) used for rotating panels. However, the rule below in general use by industry may be used
+where such advice is not provided as long as the conditions are complied with.
+
+Rule: Where one crane is used the capacity of the auxiliary winch should have a minimum
+capacity of 75 percent of the panel mass. Where two cranes are used the crane handling the
+lesser load should also have a minimum capacity of at least 75 percent of the panel mass.
+Conditions to be complied with:
+ The distance from the auxiliary winch rope lifting point to the end of the panel is not to exceed
+    1/4 of the panel length.
+ The included angle between the main hoist rope and auxiliary hoist rope is not to exceed 45
+    degrees.
+ Panels are to be rotated such that the panel is suspended in its rotated position by the main
+    winch (if one crane used), or the larger capacity crane (if two cranes used).
+ The combined weight of the auxiliary hook block and lifting gear is not to exceed 200kg.
+ Where one crane is used the main winch and auxiliary winch drives should be independent
+    (i.e. have separate clutches).
+ There are to be no cut outs in the half of the panel closest to the main winch rope panel lifting
+    point.
+ The panel is to be adequately reinforced to withstand the lifting stresses.
+
+If the conditions above cannot be complied with an engineer should verify the minimum required
+capacity of the hoist ropes.
+
+‘Rooster sheaves’ is the name given to the short boom extension and sheave set-up attached to
+the boom head of the crane when panels are rotated. Rooster sheaves and the associated rigging
+on the boom head should be designed and certified by an engineer.
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)         Page 27 of 39
+Diagram 12 – Initial position of panel prior to rotation
+
+
+15.    Operation of plant near braces and
+panels
+The use of mobile plant close to panel braces can be extremely hazardous due to the risk of the
+braces being struck and panels collapsing. Braces are designed to resist wind loads applied to
+panels and not to resist impact loadings with moving plant or their moving parts. When a collision
+with a brace occurs, and the brace is bent, the panel will be pulled towards the side on which the
+braces are located. The braces are then exposed to part of the dead-weight of the panel and are
+not designed to resist such high loadings. The situation is made worse by the fact that the brace
+has been ‘kinked’ and will have a much lower compressive strength than in its undamaged
+condition.
+
+Braces that are struck by mobile plant are likely to collapse in a very rapid and uncontrolled
+fashion and there can be a very high risk of fatalities occurring both to persons operating the plant
+and to other persons located in the area. A falling panel is also likely to strike other panels and a
+‘domino’ effect can occur.
+
+This hazard can apply to all types of plant including backhoes, mobile cranes, excavators and
+elevating work platforms (EWPs). In particular, it can apply when a crane is being used to erect the
+structural steelwork that will tie the panels together. In this situation controls must be implemented
+to prevent parts of the crane and the suspended load from contacting the braces and panels.
+
+The use of a spotter to assist with preventing contact may not be an effective control measure,
+when used alone, due to noise on site, delay in the plant operator acting on the spotter’s signals
+and incorrect interpretation of the spotter’s signals.
+
+Mobile plant should generally not be operated or travel close to, erected panels and braces unless
+there is a very good reason for the plant being there (i.e. the use of a boom lift EWP to assist in the
+installation or removal of braces).
+
+Where plant is operated in close proximity to braces and panels, control measures should be
+implemented to prevent any part of the plant contacting a brace or panel. Under no circumstances
+should mobile plant actually be permitted to make contact with an installed brace. Some control
+measures that may be used to reduce the risk of mobile plant contacting braces or panels include:
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)           Page 28 of 39
+   The use of a spotter to signal the plant operator to stop the plant in the event of any part of the
+    plant approaching a brace or panel. Such a system would have to ensure that the
+    communication method between the spotter and operator was effective and took into account
+    factors such as noise on site and the spotter possibly being out of view of the operator.
+   Use of hazard tape, ‘para-webbing’ and/or signage to make the brace position obvious,
+    particularly where access areas are located
+   The use of plant that reduces the risk of contact with panels or braces. Two examples are:
+    - the use of mobile cranes that do not have to be located where slewing contact with a brace
+       is possible, and
+    - the use of boom type EWPs instead of scissor lifts (note: this may not always improve the
+       situation).
+
+Mobile plant travelling from one area on site to another should not travel close to braces if it is
+possible to travel by an alternative route. It would be extremely unlikely that there would be a
+legitimate reason for mobile plant to be driven underneath an installed brace.
+
+
+16.            Working at height
+In tilt-up and pre-cast construction, persons are required to work at height to perform the following
+activities:
+ attaching the panels to one another or to structural steelwork prior to removal of the braces
+ attachment and removal of braces to and from panels
+ application of caulking to the vertical joints between panels
+ patching work.
+Most work at height on tilt-up construction should either be performed from platforms with edge
+protection - including the use of EWPs or mobile scaffolding. Ladders should not be used unless
+the height is not excessive and the work is of short duration and of a light duty nature. The removal
+of braces from panels using ladders could be unacceptable for the following two reasons:
+ The possible need for the person on the ladder to support the end of the brace after it is
+      unbolted and lowered to the ground. The person would have to step down the ladder with the
+      end of the brace in one hand.
+ The height of the ladder would be excessive for larger panels creating significant risks for
+      working from a ladder (i.e. the ladder would flex and be more difficult to secure).
+
+In some situations, the panel erector may be able to justify the use of ladders to remove braces by
+ensuring that the person on the ladder only undoes the bolt securing the brace and the brace is
+slowly lowered by workers on the ground who ensure the foot remains in contact with the vertical
+panel as the brace is lowered. This procedure would only be acceptable where the weight of the
+brace is not excessive and the brace can be lowered in a controlled manner.
+
+16.1           Elevating work platforms (EWPs)
+On tilt-up jobs boom lift type EWPs are usually preferable to scissor lifts because they have
+superior reach to access more awkward areas and do not have to be driven right next to an
+erected panel in order to get access. There are also more ‘rough terrain’ type boom lifts available,
+than there are with scissor lifts, and these can be driven over poor ground conditions.
+
+All EWPs used on site should comply with AS 1418.10 Cranes, hoists and winches – Mobile
+elevating work platforms. This standard requires that EWPs be stability tested on a 5 degree
+gradient. Many EWPs operating in the industry are either fitted with an audible warning device or a
+motor cut-out that operates when the unit is driven on a side gradient exceeding 5 degrees.
+
+The following should be noted in relation to EWPs:
+ The EWP should be fitted with a manufacturer’s identification plate that includes:
+   - unit make, model number and serial number, and
+   - a statement that the unit complies with AS 1418.10.
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)            Page 29 of 39
+   Persons in boom type EWPs are to wear full body fall arrest harnesses complying with
+    AS/NZS 1891.1 Industrial fall-arrest systems and devices – Harnesses and ancillary
+    equipment. The lanyard should include a personal energy absorber and be attached to a fall
+    arrest anchor in the basket rated at 15kN.
+   There should be evidence that the EWP has been maintained so as to be safe.
+   The basket or platform on the EWP has its maximum capacity or safe working load clearly
+    marked and is not being overloaded.
+   EWPs are only to be operated in accordance with the manufacturer’s specifications. Some
+    units may only be driven around the site with the boom lowered so that it is just above ground
+    level.
+
+Further guidance on the safe use of elevating work platforms is included in AS 2550.10 Cranes,
+hoists and winches - Safe use – Mobile elevating work platforms.
+
+
+
+
+Diagram 13 – Boom type EWP.
+
+
+16.2           Scaffolding
+Guidance is also provided in the Scaffolding Code of Practice. Some of the issues relating to the
+scaffolding itself are:
+ Free standing height of scaffolding to the work platform should be no higher than three times
+    the least base width.
+ Access on mobile scaffolding to be provided internally (i.e. with a trapdoor).
+ Standards to be provided with base plates or sole boards to distribute point loading.
+ Damaged tube and components not to be used - this is particularly important with aluminium
+    scaffolding using thin walled, high tensile strength tube because dents in the tube can have a
+    major effect on its strength.
+ Scaffolding where a person or object could fall four metres or more to be erected by a licensed
+    scaffolder.
+
+16.3           Ladders
+Guidance on ladders is available in the Managing the risk of falls at workplaces Code of Practice:
+ Ladders not to be used for work other than “permitted work”, which is work where:
+   - the material or equipment being carried does not restrict movement or cause the loss of
+      balance, for example, power tools that are easily operated one-handed
+   - the trunk of the body remains centred on the ladder – tasks should not require overreaching
+   - equipment can be used with one hand (unless a control to prevent a fall is used).
+ Single ladders not to exceed 6.1 metres. Extension ladders not to exceed 7.5 metres.
+ Ladders to be industrial ladders with a load rating of at least 120kg.
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)        Page 30 of 39
+   Ladders to be secured against movement.
+   Single and extension ladders to be placed at an angle of between 70 degrees and 80 degrees
+    to the horizontal.
+
+In addition to the regulatory requirements, issues regarding the safe use of ladders should be
+considered when undertaking risk management as required by the WHS Regulation. Some of
+these issues include:
+ A person’s feet should not be higher than 900mm to the top of the ladder. In the case of step
+    ladders, a person’s feet should be no higher than the third tread from the top plate.
+ Step ladders should only be used in the fully opened position with the locking spreader
+    engaged. Chain or rope spreaders should not be used.
+ Ladders should be set up on a firm, level surface and not used on scaffolding or EWPs to gain
+    extra height.
+ Ladders should not be used in access ways, to avoid persons being located under the ladder
+    and to avoid plant colliding with the ladder.
+ Ladders should not be handled or used where it is possible for the ladder or user to contact
+    electrical power lines. Metal or metal reinforced ladders should not be used in the vicinity of
+    live electrical equipment (timber ladders often have metal running along their length).
+
+
+17.            Proximity to overhead powerlines
+Contact with overhead powerlines can pose a major risk on tilt-up sites due to the height of the
+panels, the use of mobile cranes and other plant and because workers are required to work at a
+height where contact with power lines may be more likely.
+
+The Electrical Safety Regulation 2013 regulates work around overhead power lines. Practical
+advice on such work is also provided in the Electrical Safety Code of Practice - Working near
+overhead and underground electric lines. One of the requirements is that workers and plant should
+maintain an “exclusion zone” of 3 metres around live overhead power lines. Greater “exclusion
+zones” apply to high voltage lines (6 and 8 metres depending on the voltage). (In certain limited
+situations there may be exceptions to this - for details see the Electrical Safety Regulation 2013
+and the Electrical Safety Code of Practice - Working near overhead and underground electric
+lines.)
+
+
+
+
+When operating plant near power lines a number of factors must be considered when
+implementing systems to maintain the “exclusion zone” from overhead power lines. These include
+the following:
+ Identify the minimum clearance distance from the closest part of the crane or suspended load
+    to the power line.
+ Allowances for sway and sag of the overhead lines should be made. Sway is usually caused
+    by wind and sag occurs when the temperature of the line fluctuates.
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)        Page 31 of 39
+   Persons operating plant and vehicles must stay outside the “exclusion zone” at all times, and
+   The Electrical Safety Code of Practice – Working near overhead and underground electric
+    lines requires a “safety observer” when the crane or plant could enter into the “exclusion
+    zone”.
+
+The exclusion zones for Queensland Rail power lines and those of some power authorities may
+differ. It is the responsibility of the crane owner and builder to check with the person in control of
+the overhead electric line.
+
+There are a number of devices available that either assist in preventing contact with power lines,
+or reduce the degree of risk in the event of contact. Such devices include the following:
+ The use of ‘tiger tails’ on power lines act as a visual aid that assists in preventing contact by
+     highlighting the location of the power line. Only low voltage lines (under 1000 volts) can be
+     continuously covered with tiger tails, which leaves the higher lines on power poles (usually at
+     least 11 000 volts) exposed. Note: tiger tails are not designed to insulate the wires and
+     therefore the “exclusion zone” must be maintained.
+ Limiting devices to prevent the crane jib or load from entering the exclusion zone or warning
+     the operator before the jib enters the “exclusion zone”. These devices are generally more
+     suitable for tower cranes rather than mobile cranes. If a limiting device is used, the system
+     should be designed to “fail safe” or should at least meet category 4 reliability in accordance
+     with AS 4024.1501 Safety of machinery - General principles
+ Electronic proximity devices that audibly warn the crane operator when the minimum
+     clearance distance is being approached.
+
+Irrespective of whether safety devices are being used, the “exclusion zone” must not to be
+encroached.
+
+Further information may be obtained in the Electrical Safety Regulation 2013 and the Electrical
+Safety Code of Practice 2010 - Working near overhead and underground electric lines or on the
+Electrical Safety Office website https://www.worksafe.qld.gov.au/electricalsafety .
+
+
+
+
+18.            Licensing issues
+The panel erection crew must be holders of intermediate rigging (RI) or advanced rigging (RA)
+licence classes or be trainees. Trainees must be supervised and logbooks showing previous
+training must be kept.
+
+Crane operators and persons performing dogging duties must hold appropriate licences.
+Occupational licences issued under previous legislation, and by other State authorities, may be
+used provided the competencies required by the particular operation are within the scope of that
+licence.
+
+The relevant licence classes for mobile crane operators, other than vehicle loading cranes, are as
+follows:
+ CN Non–slewing mobile crane with a capacity of more than 3 tonne.
+ C2 Slewing mobile crane with a capacity of 20 tonne or less.
+ C6 Slewing mobile crane with a capacity of 60 tonne or less.
+ C1 Slewing mobile crane with a capacity of 100 tonne or less.
+ C0 Slewing mobile crane with a capacity of more than 100 tonnes.
+
+Any person with a dogger licence class or a rigger licence class is permitted to perform dogging
+duties.
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)             Page 32 of 39
+Any person operating a boom type EWP with a boom length of 11 metres or more must hold a WP
+type licence class.
+
+Persons erecting scaffolding where a person or object could fall 4 metres or greater must hold at
+least a Basic Scaffolding SB licence class or be trainees.
+
+A qualification register for persons involved in panel erection is included in Appendix D.
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)          Page 33 of 39
+Appendix A: Sample of engineer’s certification
+letters
+Date
+
+Hector Smith
+Hector Panel Erections Pty Ltd
+21 Concrete Drive
+Urbanville QLD
+
+Dear Mr Smith
+
+Pineapple Waters Project – Spiky Road, Golden Beach
+
+I certify that the concrete panels detailed below, have been designed in accordance with Australian
+Standards AS 3850 - Tilt-up concrete construction and AS 3600 - Concrete structures, for both in-
+situ loads and erection loads.
+
+               Panel number                                  Drawing number
+                    P-1                                       302 – 1 Rev 1
+                    P-2                                       302 – 2 Rev 2
+
+
+
+
+The lifting inserts have a minimum factor of safety of 2.5 provided the inserts are used in
+accordance with the manufacturer’s specifications and the concrete has reached a minimum
+strength of _____ MPa (as recommended by the insert manufacturer).
+The panels will be suitable for lifting when the concrete strength has reached ___ MPa.
+
+Yours faithfully
+
+Signature
+Engineer’s name
+RPEQ No.
+
+                               Sample letter for lifting and in-situ loads.
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)           Page 34 of 39
+Date
+
+Hector Smith
+Hector Panel Erections Pty Ltd
+21 Concrete Drive
+Urbanville QLD
+
+Dear Mr Smith
+
+Pineapple Waters Project – Spiky Road, Golden Beach
+
+I certify that the temporary bracing layout as detailed in the drawings listed below has been
+checked for wind loading and complies with Australian Standards AS 3850 Tilt–up concrete
+construction and AS 1170.2 Structural design actions – Wind actions.
+
+           Drawing description                             Drawing number
+ Site plan showing panel locations              SP - 107
+ Brace configurations (i.e. showing brace       BC – 1 to 23
+ types, angles, extensions, etc)
+ Deadmen                                        DM – 1, DM 2, DM 3.
+
+I have checked the capacity of braces, deadmen anchor blocks (or slab design), panel inserts and
+anchors used between the brace foot and deadmen.
+
+I have selected the following parameters from AS/NZS 1170.2 in determining the adequacy of the
+temporary bracing system:
+Region:                _______
+Terrain category:      _______
+Return period:         _______
+
+Yours faithfully
+
+Signature
+Engineer’s name
+RPEQ No.
+
+                        Sample letter for temporary bracing and wind loading
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)         Page 35 of 39
+Appendix B: Panel checklist
+Job address: __________________ Panel manufacturer: ________________
+Principal contractor: _____________ Panel erector: ____________________
+
+ Panel    Casting    Drawing     Concrete       Constructed as          Date     Verifiers   Initials
+number     date        no.      spec (MPa)       per drawing          suitable    name         and
+                                                                          for                 date
+                                                                       lifting
+                                  For      @    Dimensio    Lifting
+                                lifting   28     ns and    inserts
+                                          day     steel
+                                           s     content
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)                   Page 36 of 39
+Appendix C: Panel lifting and temporary bracing
+checklist
+Job address: ___________________ Panel manuf. and ABN: __________
+PC and ABN: ___________________ Panel erector and ABN: __________
+Panel lifting
+Crane
+ Item                                         Result Initials  Comment
+ Crane has adequate capacity (if tilt-up, add
+ lean distance to radius)
+ Lift plan completed – includes site plan and
+ lifting locations
+ Ground condition and slope (no more than
+ 1 degree for ‘pick and carry’ cranes –
+ cranes on outriggers adequate packing
+ under pads – no penetrations or covered
+ pits in area)
+ Crane safety features operational (load
+ indicator, anti two block, boom angle
+ indicator, hook safety catch)
+ Crane maintenance log book complete and
+ up to date
+
+Lifting gear
+ Item                                             Result        Initials   Comment
+ Lifting clutches compatible with inserts
+ Lifting clutches and inserts marked with
+ manufacturer’s ID
+ Lifting gear sheaves operational
+ Lifting slings suitably marked with ID
+ Lifting gear test/inspection results available
+ Remote release lines fitted
+
+Other items
+ Item                                             Result        Initials   Comment
+ Panel checklist completed (panels okay for
+ lifting)
+ Certification – crane operator, panel
+ erectors (intermediate rigger to be present
+ and supervising panel placement)
+ Bond breaker functioning
+ Workers not in potential crush zone (from
+ crane or falling panels)
+ Workers wearing high visibility clothing
+ Exclusion zone for members of public and
+ other buildings set up
+ Power lines – adequate clearance – check
+ legislation
+
+Temporary bracing
+Certifying engineer: ________________________ ABN: ________________
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)         Page 37 of 39
+Deadmen or floor slab
+ Item                                             Result        Initials   Comment
+ Drawing showing layout of panels and
+ temporary bracing prepared
+ Deadmen / slab has been constructed in
+ accordance with engineer’s specifications
+ Deadmen / slab concrete has reached
+ strength specified by engineer
+ Cast in anchors are as specified by
+ engineer (size, type and depth)
+
+Braces
+ Item                                        Result    Initials   Comment
+ Braces as specified by engineer or with
+ capacity exceeding minimum specified by
+ engineer
+ Brace condition
+ Marked with identification plate
+ Correct number of braces used
+ Braces installed in accordance with
+ engineer’s specifications
+ Brace locking pins fitted with retaining
+ device
+ Where access by members of public likely
+ retaining device has key to unlock
+ Anchor head and washer size suitable for
+ brace slot size (i.e. large enough)
+ Suitable access for workers at height
+Checklist completed by (name and signature): _________________________
+
+Post installed anchors
+ Item                                         Result   Initials   Comment
+ Anchor type suitable (drop-in, low-load slip
+ and self-drilling anchors not permitted)
+ Anchors as specified by engineer or with
+ capacity exceeding minimum specified by
+ engineer
+ Documentation starting setting torque
+ available
+ Verification that correct torque has been
+ applied (i.e. torque wrench readings)
+ Chemical anchors – documentation
+ verifying every anchor proof loaded
+Checklist completed by (name and signature): _________________________
+
+
+
+
+Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)         Page 38 of 39
+            Appendix D: Qualification register for panel
+            erection
+            Project name and address: ______________________________________
+            Licensing register (Licence holders)
+
+                       Name                     Licence class                Licence number                Activity involved
+                                                                                                                  in*
+
+
+
+
+            *i.e. crane operation, supervision, panel securing, etc.
+
+            Trainee register
+                Trainee name                     Activity               Trainee            Supervisor              Period of
+                                               involved in             logbook                                   experience in
+                                                                       supplied                                     activity
+
+
+
+
+Workplace Health and Safety Queensland                                          www.worksafe.qld.gov.au                                     1300 362 128
+The material presented in this publication is distributed by the Queensland Government for information only and is subject to change without notice.
+The Queensland Government disclaims all responsibility and liability (including liability in negligence) for all expenses, losses, damages and costs incurred
+as a result of the information being inaccurate or incomplete in any way and for any reason. © State of Queensland 2018. PN11189
+
+            Tilt-up and pre-cast construction - Code of Practice 2003 (PN11189)                                      Page 39 of 39
+

@@ -1,0 +1,3114 @@
+Tower crane code of practice 2017
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0021/20991/tower-crane-code-of-practice-2017.pdf
+
+Tower crane
+
+Code of Practice 2017
+This Queensland code of practice has been approved by the Minister for Employment and
+Industrial Relations, Minister for Racing and Minister for Multicultural Affairs under section
+274 of the Work Health and Safety Act 2011.
+
+This code commenced on 1 July 2017, with the exception of the criteria for crane-lifted first
+aid boxes under Section 7.5.2 which commenced on 1 January 2018.
+
+This code was varied by the Minister for Education and Industrial Relations on 1 July 2018.
+
+
+
+
+Workplace Health and Safety Queensland                                  www.worksafe.qld.gov.au                            1300 362 128
+
+The material presented in this publication is distributed by the Queensland Government for information only and is subject to change
+without notice.
+The Queensland Government disclaims all responsibility and liability (including liability in negligence) for all expenses, losses, damages and
+costs incurred as a result of the information being inaccurate or incomplete in any way and for any reason.
+© State of Queensland 2018 PN12040
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                                                                 Page 2 of 65
+Contents
+Foreword……………………………………………………………………………………....6
+Scope and Application………………………………………………………………………..6
+1.          Introduction .............................................................................................................. 6
+     1.1     What is a tower crane? .......................................................................................... 6
+     1.2 Who has health and safety duties in relation to tower cranes?..................................... 7
+     1.2 What is involved in managing risks associated with tower cranes? .............................. 8
+     1.3 Safe work method statements ..................................................................................... 9
+     1.4 Information, training, instruction and supervision ........................................................10
+2.          Safe design of tower cranes ..................................................................................11
+     2.1 Design registration of tower cranes.............................................................................12
+     2.1.1 Design registration of tower crane base ...................................................................12
+     2.2 Crane stability .............................................................................................................13
+     2.2.1 Stabilising and overturning moments ......................................................................13
+     2.2.2 Footings and foundations ........................................................................................13
+     2.2.3 Crane ties ...............................................................................................................14
+     2.2.4 Wind conditions.......................................................................................................14
+     2.3 Limiting and indicating devices ...................................................................................15
+     2.3.1 Reliability of devices ...............................................................................................15
+     2.3.2 Rated capacity limiters ............................................................................................15
+     2.3.3 Motion limiting devices ............................................................................................16
+     2.3.4 Working radius indicator..........................................................................................16
+     2.3.5 Dual braking systems ..............................................................................................16
+     2.4 Signs on tower cranes ................................................................................................16
+3. Planning and coordinating tower crane operations .....................................................17
+     3.1 Selecting the crane .....................................................................................................18
+     3.2 Crane crew .................................................................................................................18
+     3.3 Crane siting ................................................................................................................19
+     3.3.1 Crane standing........................................................................................................19
+     3.3.2 Collision between the crane with other plant or structures.......................................19
+     3.3.3 Location of access areas ........................................................................................20
+     3.4 Communication...........................................................................................................20
+     3.5 Emergency plan..........................................................................................................20
+     3.6 Lighting .......................................................................................................................21
+4. Minimising risk of injury from collision ........................................................................21
+     4.1 Working near overhead electric lines (powerlines) ......................................................21
+     4.1.1    Electrical safety laws .........................................................................................21
+     4.1.2 Planning for work near overhead powerlines ...........................................................22
+     4.1.3 Exclusion zones for operating a tower crane near overhead powerlines .................22
+     4.2 Working near other plant (including other cranes and concrete placement booms) ....25
+     4.2.1 Ways to minimise risk of injury from a collision with other plant ...............................25
+5. Erecting and dismantling tower cranes ........................................................................26
+     5.1 Responsibilities for persons erecting or dismantling tower cranes ..............................26
+     5.2 Minimising risk of injury from crane collapse ...............................................................26
+     5.2.1 Erecting and dismantling—ways to minimise risk of injury from crane collapse .......26
+     5.2.2 Climbing tower cranes - ways to minimise risk of injury from crane collapse ...........27
+     5.3 Minimising risk of injury from falling from a height .......................................................27
+     5.3.1 Edge protection systems .........................................................................................28
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                                                             Page 3 of 65
+     5.3.2 Travel restraint systems ..........................................................................................28
+     5.3.3 Fall-arrest harness systems ....................................................................................29
+     5.4 Minimising risk of injury from falling objects ................................................................29
+     5.4.1 Exclusion zones persons are prohibited from entering ............................................30
+     5.4.2 Tool lanyards ..........................................................................................................30
+     5.4.3 Scheduling of work ..................................................................................................31
+     5.4.4 Restraining systems for crane components.............................................................31
+6.          Commissioning tower cranes ................................................................................31
+     6.1 Responsibilities of persons who commission tower cranes .........................................31
+7.          Operational issues ..................................................................................................32
+     7.1 Roles and responsibilities associated with tower crane operations .............................32
+     7.1.1 Person conducting a business or undertaking .........................................................32
+     7.1.2 The crane owner .....................................................................................................32
+     7.1.3 The crane operator .................................................................................................33
+     7.1.4 Dogger ....................................................................................................................34
+     7.2 Minimising risk of injury from lifting loads ....................................................................34
+     7.2.1 Control measures to maintain the integrity of lifting gear .........................................35
+     7.2.2 Control measures to minimise risk of injury from crane overload .............................37
+     7.2.3 Control measures to minimise risk of injury from unsecured and dropped loads .....38
+     7.3 Safe access on tower cranes ......................................................................................39
+     7.3.1 Tower ladders .........................................................................................................39
+     7.3.2 Internal guardrail on tower landings ........................................................................39
+     7.3.3 Guardrails on machine deck and A-frame platform .................................................40
+     7.3.4 A-frame ladder cage ...............................................................................................40
+     7.3.5 Cantilevered and hanging platforms ........................................................................40
+     7.3.6 Crane jib access—non-self-erecting types ..............................................................40
+     7.4 Leaving the crane unattended ....................................................................................40
+     7.5 Work boxes and first aid boxes ...................................................................................41
+     7.5.1 Features and use of work boxes .............................................................................41
+     7.5.2 Features and use of first aid boxes .........................................................................42
+     7.5.3 Features of a crane when using work boxes and first aid boxes ..............................43
+8. Additional requirements for self-erecting tower cranes ..............................................43
+     8.1 Operation of self-erecting tower cranes ......................................................................44
+     8.1.1 Remote operation ...................................................................................................44
+     8.1.2 Erection of barricade around self-erecting tower cranes..........................................44
+9. Training and supervision ...............................................................................................45
+     9.1 Responsibilities for training and supervision ...............................................................45
+     9.2 Familiarisation training ................................................................................................45
+     9.3 Refresher training .......................................................................................................46
+     9.3.1 Frequency of refresher training ...............................................................................46
+     9.3.2 Record of refresher training.....................................................................................46
+10. Inspecting, testing, maintaining and repairing tower cranes ....................................46
+     10.1 ‘Competent person’ for inspecting tower cranes .......................................................47
+     10.1.1 Inspecting specific parts of a crane .......................................................................47
+     10.1.2 Inspecting a complete crane .................................................................................47
+     10.1.3 Altering a crane .....................................................................................................48
+     10.2 Requirements for non-destructive testing ..................................................................48
+     10.2.1 Crack testing of slew ring bolts ..............................................................................49
+     10.2.2 Crack testing of tower bolts ...................................................................................49
+     10.2.3 Chord thickness testing .........................................................................................49
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                                                           Page 4 of 65
+   10.3 Independent third party inspections of tower cranes at commissioning .....................50
+   10.3.1 Definition of independent third party ......................................................................50
+   10.3.2 Pre-erection inspections and tests ........................................................................50
+   10.3.3 Commissioning inspections and tests ...................................................................51
+   10.4 Pre-operational inspection ........................................................................................51
+   10.5 Routine inspection and maintenance ........................................................................52
+   10.6 Annual inspections (when tower cranes in place for 12 months or longer) ................52
+   10.7 Major inspection of tower crane ................................................................................53
+   10.7.1 Key inspection items for a major inspection ..........................................................53
+   10.7.2 Action following a major inspection .......................................................................56
+   10.8 Records of inspections and maintenance .................................................................57
+   10.9 Tower crane maintenance ........................................................................................57
+   10.10 Tower crane repair..................................................................................................57
+   10.11 Second-hand imported tower cranes ......................................................................58
+Appendix 1: Dictionary ......................................................................................................59
+Appendix 2: Relevant technical standards .......................................................................61
+Appendix 3: Familiarisation training checklists ...............................................................62
+Appendix 4: Example - Annual crane safety certificate ...................................................64
+Appendix 5: Example - Crane safety certificate – major inspection ...............................65
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                                                   Page 5 of 65
+Foreword
+This Tower Crane Code of Practice 2017 is an approved code of practice under section 274
+of the Work Health and Safety Act 2011 (the WHS Act).
+
+An approved code of practice is a practical guide to achieving the standards of health, safety
+and welfare required under the WHS Act and the Work Health and Safety Regulation 2011
+(the WHS Regulation).
+
+From 1 July 2018 duty holders are required to comply with an approved code of practice
+under the Act. Duty holders may, for the subject matter in the code, follow another method,
+such as a technical or an industry standard, if it provides an equivalent or higher standard of
+work health and safety to the standard required in the code.
+
+A code of practice applies to anyone who has a duty of care in the circumstances described
+in the code. In most cases, following an approved code of practice would achieve compliance
+with the health and safety duties in the WHS Act, in relation to the subject matter of the code.
+Like regulations, codes of practice deal with particular issues and do not cover all hazards or
+risks which may arise. The health and safety duties require duty holders to consider all risks
+associated with work, not only those for which regulations and codes of practice exist.
+
+Codes of practice are admissible in court proceedings under the WHS Act and the WHS
+Regulation. Courts may regard a code of practice as evidence of what is known about a
+hazard, risk or control and may rely on the code in determining what is reasonably
+practicable in the circumstances to which the code relates.
+
+An inspector may refer to an approved code of practice when issuing an improvement notice.
+This may include issuing an improvement notice for failure to comply with a code of practice
+where equivalent or higher standards of work health and safety have not been demonstrated.
+
+Scope and application
+This code provides practical guidance to persons conducting a business or undertaking on
+how to comply with their health and safety duties when carrying out work with tower cranes.
+
+How to use this code of practice
+In providing guidance, the word ‘should’ is used in this Code to indicate a recommended
+course of action, while ‘may’ is used to indicate an optional course of action.
+This Code also includes various references to provisions of the WHS Act and the WHS
+Regulation which set out the legal requirements. These references are not exhaustive. The
+words ‘must’, ‘requires’ or ‘mandatory’ indicate that a legal requirement exists and must be
+complied with.
+
+
+
+   1. Introduction
+1.1 What is a tower crane?
+A crane is an item of plant intended for raising or lowering a load and moving it horizontally
+including the supporting structure of the crane and its foundations. The three general types of
+crane typically referred to as tower cranes used in Australia are:
+ luffing
+ hammerhead (including topless)
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 6 of 65
+ self-erecting.
+Under the WHS Regulation:
+ tower crane means a crane that has a boom or jib mounted on a tower structure.
+   -   For high risk work licensing purposes, a tower crane, if a jib crane, may be a
+       horizontal or luffing jib type and the tower structure may be demountable or
+       permanent, but ‘tower crane’ does not include a self-erecting tower crane.
+ self-erecting tower crane means a crane that is not disassembled into a tower element
+  and a boom or jib element in the normal course of use, and where erecting and
+  dismantling processes are an inherent part of the crane’s function.
+
+1.2 Who has health and safety duties in relation to tower
+cranes?
+A person conducting a business or undertaking (PCBU) has the primary duty to ensure,
+so far as is reasonably practicable, that workers and other persons are not exposed to health
+and safety risks arising from the business or undertaking.
+The duty of the person is to eliminate or minimise (so far as is reasonably practicable) health
+and safety risks, and ensure the:
+ provision and maintenance of safe plant including cranes
+ safe use, handling, storage and transport of plant.
+The WHS Regulation includes specific duties for a person conducting a business or
+undertaking with management or control of plant, and plant that lifts or suspends loads.
+If you own a crane you are the person with management or control of that plant. If you hire or
+lease a crane, you have management or control of that plant for the period you have hired it.
+Both you and the person you have hired or leased it from will have duties to eliminate or
+minimise the risks associated with the plant, so far as is reasonably practicable. For
+example, duties include ensuring that construction or commissioning of the crane is
+completed by a competent person and ensuring that maintenance, inspection and testing of
+the crane is carried out by a competent person.
+Designers, manufacturers, suppliers and importers of plant must ensure, so far as is
+reasonably practicable, the plant they design, manufacture, import or supply is without risks
+to health and safety. This duty includes carrying out analysis, testing or an examination and
+providing specific information about the plant. Information must, so far as is reasonably
+practicable, be passed on from the designer through to the manufacturer and supplier to the
+end user.
+Suppliers must provide a purchaser of a crane which requires plant design registration with
+the design registration number.
+Officers, such as company directors, have a duty to exercise due diligence to ensure that
+the business or undertaking complies with the WHS Act and the WHS Regulation. This
+includes taking reasonable steps to ensure that the business or undertaking has and uses
+appropriate resources and processes to eliminate or minimise risks from plant.
+Workers and other people at the workplace must take reasonable care for their own
+health and safety, co-operate with reasonable policies, procedures and instructions and not
+adversely affect other people’s health and safety.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 7 of 65
+1.2 What is involved in managing risks associated with
+tower cranes?
+Tower crane operations may present a risk of injury to persons from:
+ structural failure
+ collapse
+ contact or collision with other plant and structures
+ arcing or flashover when crane boom comes close to energised electric line
+ falling objects
+ falling from a height – see the Managing the risk of falls at workplaces Code of Practice
+  2011
+ noise – see the Managing noise and preventing hearing loss at work Code of Practice
+  2011
+ fatigue.
+ WHS Regulation section 35: In managing risks to health and safety, a duty holder must:
+  eliminate risks to health and safety so far as is reasonably practicable
+  if it is not reasonably practicable to eliminate risks to health and safety—minimise those
+   risks, so far as is reasonably practicable.
+To properly manage these health and safety risks, duty holders must use the following steps:
+  1. Identify hazards. The following can help identify potential hazards:
+        Observe the workplace to identify areas where cranes operate and how they
+         interact with vehicles, pedestrians and fixed structures like overhead electric lines
+        Ask the crane operator, crane crew, and others about any problems they
+         encounter at the workplace.
+        Review inspection, test and maintenance records (e.g. log books, and incident and
+         injury records including near misses).
+  2. Assess the risk. People who work with or near cranes are most at risk. A risk
+     assessment can help determine what action to take and how urgently to take action.
+  3. Take action to control the risk. If it is not reasonably practicable to completely
+     eliminate a risk, you should minimise the risk by using one or more of the following
+     approaches:
+       substitute the hazard for something safer (e.g. replace a crane operating cabin that
+         has a restricted field of vision with one that has a clear field of vision or use a
+         remote control such as a pendant control)
+       isolate the hazard from people (e.g. use concrete barriers to create exclusion zone
+         to separate crane operations from workers and powered mobile plant)
+       use engineering controls (e.g. enclosing the operator with a falling objects
+         protective structure to minimise risk of operator being hit by a falling object).
+       If after implementing the above control measures a risk still remains, then consider
+       the following approaches:
+        use of administrative controls (e.g. schedule crane operations to avoid/reduce the
+           need for pedestrians and vehicles to interact with crane in area of operation)
+        use of personal protective equipment (PPE) (e.g. gloves, hard hats, high visibility
+           vests, ear plugs/muffs and eye protection).
+       You need to consider all possible control measures and make a decision about which
+       are reasonably practicable for your workplace. A combination of controls may be
+       appropriate to minimise risks.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                      Page 8 of 65
+  4. Check your control measures. Control measures need to be regularly reviewed to
+     make sure they are effective, taking into consideration any changes, the nature and
+     duration of work and that the system is working as planned.
+Guidance on the general risk management process is available in the How to manage work
+health and safety risks Code of Practice.
+
+
+Consulting workers
+WHS Act section 47(1): The PCBU must, so far as is reasonably practicable, consult with
+workers who carry out work for the business or undertaking who are, or are likely to be,
+directly affected by a matter relating to work health or safety.
+WHS Act section 48(2): If the workers are represented by a health and safety
+representative, the consultation must involve that representative.
+Consultation involves sharing of information, giving workers a reasonable opportunity to
+express views and taking those views into account before making decisions on health and
+safety matters.
+Consultation with workers and their health and safety representatives is required at each
+step of the risk management process. By drawing on the experience, knowledge and ideas of
+your workers, you are more likely to identify all hazards and choose effective control
+measures.
+You should encourage your workers to report any hazards and health and safety problems
+immediately so that risks can be managed before an incident occurs, and you must consult
+your workers when proposing any changes to the work that may affect their health and
+safety.
+Consulting, cooperating and coordinating activities with other duty holders
+WHS Act section 46: If more than one person has a duty in relation to the same matter,
+each person with the duty must, so far as is reasonably practicable, consult, cooperate and
+coordinate activities with all other persons who have a duty in relation to the same matter.
+Sometimes you may share responsibility for a health and safety matter with other business
+operators who are involved in the same activities or who share the same workplace. In these
+situations, you must exchange information to find out who is doing what and work together in
+a cooperative and coordinated way so that all risks are eliminated or minimised as far as
+reasonably practicable.
+Further guidance on consultation is available in the Work health and safety consultation, co-
+ordination and co-operation Code of Practice.
+
+1.3 Safe work method statements
+WHS Regulation section 299: When carrying out high risk construction work, a PCBU must
+ensure that a safe work method statement is prepared or has already been prepared by
+another person.
+A safe work method statement (SWMS) must be prepared for high risk construction work
+before the work starts.
+High risk construction includes work:
+ involving a risk of a person falling more than two metres
+ carried out on a telecommunication tower
+ involving demolition of an element of a structure that is load-bearing or otherwise related
+   to the physical integrity of the structure
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 9 of 65
+ involving or likely to involve the disturbance of asbestos
+ involving structural alterations or repairs that require temporary support to prevent
+  collapse
+ carried out in or near a confined space
+ carried out in or near –
+   - a shaft or trench with an excavated depth greater than 1.5 metres
+   - a tunnel
+ involving the use of explosives
+ carried out on or near pressurised gas distribution mains or piping
+ carried out on or near chemical, fuel or refrigerant lines
+ carried out on or near energised electrical installations or services
+ carried out in an area that may have a contaminated or flammable atmosphere
+ involving tilt-up or precast concrete
+ carried out on, in or adjacent to a road, railway, shipping lane or other traffic corridor that
+  is in use by traffic other than pedestrians
+ carried out at a workplace in which there is movement of powered mobile plant
+ carried out in an area in which there are artificial extremes of temperature
+ carried out in or near water or other liquid that involves a risk of drowning
+ involving diving work.
+The SWMS must:
+ identify the type of high risk construction work being done
+ specify the health and safety hazards and risks arising from the work
+ describe how the risks will be controlled
+ describe how the control measures will be implemented, monitored and reviewed.
+A SWMS must be developed in consultation with workers and their representatives who are
+carrying out the high risk work.
+
+1.4 Information, training, instruction and supervision
+WHS Act section 19(3)(f): A PCBU must ensure, so far as is reasonably practicable, the
+provision of any information, training, instruction or supervision that is necessary to protect all
+persons from risks to their health and safety arising from work carried out as part of the
+conduct of the business or undertaking.
+WHS Regulation section 39(2) and (3): A PCBU must ensure that information, training and
+instruction provided to a worker is suitable and adequate having regard to:
+ the nature of the work carried out by the worker
+ the nature of the risks associated with the work at the time the information, training or
+    instruction is provided
+ the control measures implemented.
+The person must ensure, so far as is reasonably practicable, that the information, training
+and instruction is provided in a way that is readily understandable by any person to whom it
+is provided.
+WHS Regulation section 317(1): A PCBU must not direct or allow a worker to carry out
+construction work unless the worker has successfully completed general construction
+induction training and, if the worker completed the training more than two years previously,
+the worker has carried out construction work in the preceding two years.
+
+All people exposed to work health and safety risks should be provided with information
+about:
+ work health and safety legislation
+ their organisation’s work health and safety policy or program
+ risk management processes
+ control measures in place to minimise exposure to workplace hazards
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                         Page 10 of 65
+ safe work procedures
+ how to use and maintain equipment
+ any special safety information needs.
+Adequate and appropriate training is a way of managing the risks associated with hazards.
+Training should be appropriate to the type of work to be performed. In some cases, formal
+training will be required, in others, on-the-job training may be more appropriate. The special
+needs of workers should be taken into account in deciding on the structure, content and
+delivery of training. This assessment should include literacy levels, work experience and
+specific skills required for a job.
+Section 9 of this code provides specific advice on the training requirements for tower crane
+operations.
+
+   2. Safe design of tower cranes
+The safe design of tower cranes involves using the design process to eliminate or minimise
+risks to health and safety throughout the lifecycle of the crane. A designer of a tower crane is
+a PCBU involved in preparing sketches, plans or models of tower cranes to be used, or could
+reasonably be expected to be used at a workplace including variations to a plan or changes
+to the crane. Designers can also be those who make decisions, for incorporation into a
+design, which may affect the health or safety of people who manufacture, use or carry out
+activities with the crane.
+Designers should identify potential hazards and design solutions as a tower crane is
+manufactured, transported, installed, commissioned, used, maintained, repaired, de-
+commissioned, dismantled, disposed of or recycled.
+ WHS Act section 22: A person (the designer) who conducts a business or undertaking that
+ designs plant or a structure that is to be used, or could reasonably be expected to be used,
+ as, or at, a workplace must ensure, so far as is reasonably practicable, that the plant or
+ structure is designed to be without risks to the health and safety of persons who:
+  use the plant or structure at a workplace for the purpose for which it was designed
+  store the plant
+  construct the structure
+  carry out any reasonably foreseeable activity at a workplace in relation to the
+     manufacture, assembly or use of the plant or structure for a purpose for which it was
+     designed, or the proper storage, decommissioning, dismantling or disposal of the plant
+     or structure, or
+  are at or in the vicinity of the workplace and who are exposed to the plant or structure at
+     the workplace or whose health or safety may be affected by one of the above uses or
+     activities.
+ The designer must:
+  carry out, or arrange the carrying out of, any calculations, analysis, testing or
+    examination that may be necessary to ensure, so far as is reasonably practicable, that
+    the plant or structure is designed to be without risks to the health and safety of persons
+  give adequate information to each person who is provided with the design for the
+    purpose of giving effect to it
+  on request, so far as is reasonably practicable, give current relevant information to a
+    person using the plant or structure for a purpose for which it was designed or when
+    carrying out a reasonably foreseeable activity using the plant.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 11 of 65
+2.1 Design registration of tower cranes
+WHS Regulation section 243: The design of specified items of plant must be registered.
+Schedule 5, Part 1 lists the specific items of plant requiring design registration, which
+includes tower cranes (including self-erecting tower cranes).
+WHS Regulation section 244: An altered design of an item of plant must be registered if the
+alteration may affect health or safety. However, this does not apply to tower cranes if the
+crane is relocated for use in a different workplace and the design for the supporting structure
+of foundations of the crane is altered in accordance with a site-specific design prepared for
+the safe operation of the crane and the design is not altered in any other way.
+WHS Regulation section 245: A design of an item of plant is not required to be registered if
+the design is registered under a corresponding WHS law.
+Tower cranes must be designed by an engineer in accordance with acceptable engineering
+principles and relevant technical standards, to ensure the tower crane is without risk to health
+and safety.
+An application for a certificate of registrable plant design must be accompanied by:
+ a design verification statement
+ representational drawings of the crane
+ the appropriate fee.
+A design verification statement must be written and signed by an eligible design verifier for
+the design and state that the design was produced in accordance with relevant technical
+standards or engineering principles.
+The following people are not eligible to be a design verifier:
+    a person who is involved in the production of the design
+    a person who was engaged by the PCBU that produced the design at the time the
+        design was produced.
+A certificate of registrable plant design stops having effect if the design is changed in a way
+that requires new measures to control risk. The following is an example of a change in
+design causing the certificate to stop having effect:
+ A certificate of registrable plant design is in force for the design of a tower crane. The
+  tower crane’s reach is increased by fitting a longer boom than that listed in the original
+  design registration submission. This increases the stress in the boom. The certificate
+  stops being in force because of the change.
+The following is an example of a change in design not causing the certificate to stop having
+effect:
+ A certificate of registrable plant design is in force for the design of the tower crane. The
+  tower crane is fitted with a shorter boom than that listed in the original design registration
+  submission, but the boom is of the same basic construction and material type as the
+  original boom. The certificate does not stop being in force because of the change.
+
+2.1.1 Design registration of tower crane base
+A tower crane base forms part of the crane. When a new base is designed for a tower crane
+installation, the tower crane base must also be design registered. An engineer must design
+all tower crane bases.
+The size and design of tower crane bases will vary according to factors such as:
+    tower height
+    wind speed
+    terrain type
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 12 of 65
+       ground type and bearing capacity
+       boom length and crane lifting capacity.
+Detailed drawings showing the crane base along with the operating configuration of the
+crane form part of the design registration application. These detailed drawings are verified by
+an engineer.
+In some situations a tower crane can be located on a ‘static’ crane base. A static base is the
+term given to a base that relies on the dead weight of the base for its stability. In other words,
+the base is not structurally bolted to, or embedded in, the ground or another structure.
+The design for a static base should be submitted when the design registration for the tower
+crane is originally obtained. If this is done, there is no need to require a new design
+registration number every time the crane is erected on a static base. However, engineering
+design input for the design of the support system for the static base is still required.
+
+2.2 Crane stability
+Stability is a crucial safety issue for tower cranes. Failing to maintain stability may lead to a
+serious incident through mechanical or structural failure, or crane collapse. A tower crane
+should be designed to be stable, and without risk of overturning, falling or moving
+unexpectedly during erecting and dismantling, and under all operating conditions.
+Tower crane stability depends on:
+ the stabilising moment of the crane—the crane counterweight generally provides the
+   primary stabilising moment
+ the overturning moment applied by the suspended load and wind
+ the footings and foundations designed for the specific crane installation
+ the design, number and location of crane ties
+ wind conditions—stability will vary according to the size and shape of the suspended load
+   and crane boom.
+2.2.1 Stabilising and overturning moments
+Load charts
+Load charts, also called rated capacity charts, identify what the crane is able to lift safely.
+The load chart is specified for the crane by the crane manufacturer. During the design
+registration process, the design verifier is to site and verify that the load chart is the correct
+one.
+Load charts must be written in English, and use metric units. Lifting operations should not
+take place unless the load chart is fixed in the operator’s cabin in a clearly visible location.
+The load chart must be available for the crane operator to verify that the crane is not being
+overloaded.
+The lifting capacities specified on a load chart must never be exceeded, except during testing
+of the crane, by a competent person, under controlled conditions or in emergency situations.
+Counterweights
+Tower crane counterweights are critical in ensuring crane stability. A counterweight that is
+too light for a load and boom configuration may cause the crane to overturn in the direction of
+the suspended load. A counterweight that is too heavy for the load and boom configuration
+may cause the crane to fall over backwards.
+Counterweights must be secured to the crane in the manner specified by the crane
+manufacturer.
+2.2.2 Footings and foundations
+Footings and foundations for a tower crane installation must be designed by an engineer in
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                           Page 13 of 65
+accordance with engineering principles or relevant technical standards. This design must
+consider the results of geo-technical inspections specific to the location of the crane
+installation.
+2.2.3 Crane ties
+Crane ties play a critical part in ensuring the stability of a tower crane as the height of the
+crane increases. Crane ties must be secured to the supporting structure at set intervals in
+accordance with the instructions specified by the crane manufacturer and the designer of the
+crane installation.
+The design and detail of the crane ties must be verified by an engineer taking into account
+the structural adequacy and any potential movement or deformation of the supporting
+structure.
+2.2.4 Wind conditions
+Operational wind speeds
+Strong winds will impose additional loads on a crane and may affect the crane’s stability. A
+maximum permissible operational wind speed of 54km/hour (15 metres/second) has been
+traditionally specified for tower crane operations in Queensland, and applies when a crane
+operator is at the controls, and in the process of lifting a load.
+A number of tower crane installations are now being designed for a maximum operational
+wind speed of 72km/hour (20 metres/second) as specified in AS 1418.4: Cranes, hoists and
+winches – Tower cranes. Although the tower crane base and crane ties may have been
+designed for this higher operational wind speed, crane operators should not operate the
+crane in wind speeds they consider to be unsafe.
+A crane manufacturer will generally only specify a maximum wind speed in which to operate
+the crane, ignoring the type of load to be lifted. In some cases, there may not be a maximum
+wind speed specified for the crane itself. The effect of wind gusts will also have a different
+effect on the crane than a constant wind. A crane operator must base the decision to make a
+lift on information provided by the crane manufacturer, and prior experience as a crane
+operator. If the operator believes a specific crane operation is hazardous, the operator may
+choose not to operate the crane. Guidance should be sought from the crane manufacturer or
+a competent person regarding the conditions under which a lift can take place safely.
+Ensuring stability of tower cranes
+Tower cranes must be operated within their engineered design capacity. To ensure the
+stability of a tower crane in windy conditions, the following factors should be addressed:
+ The crane manufacturer should state the maximum wind speed that the crane may be
+    operated in. However, such maximum operating wind speeds as stated by the
+    manufacturer may in particular circumstances be excessive, especially when the crane
+    boom and loads have large surface areas.
+ An anemometer (wind gauge) is to be fixed on each tower crane, in an appropriate
+    location, to provide an accurate wind speed reading. The placement of the anemometer
+    should not be shielded from the wind, and will vary according to the type of crane. For
+    example, anemometers should be fixed on:
+    - the top of the A-frame on luffing tower cranes, or
+    - either the A-frame or machine deck hand-rail on non-luffing tower cranes.
+ Where a non-standard lift with a suspended load or large surface area is to be
+    undertaken in windy conditions, the competent person should provide written advice on
+    safe lifting conditions.
+Climbing operations should not proceed where wind speed exceeds 36km/hour (10
+metres/second). However, it should be noted that this is a maximum wind speed, and
+performing the climbing operation is up to the discretion of the rigging crew.
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                      Page 14 of 65
+Operating tower cranes in wind speeds greater than 54 km/hour
+If a tower crane must be operated in wind speeds greater than 54km/hour, a documented
+risk assessment must be carried out to determine:
+ the types of loads that can be lifted under these conditions
+ the control measures that need to be applied.
+The risk assessment should involve a consultative process between the principal contractor,
+crane owner and operator, and other members of the crane crew. Matters to be considered
+during this consultative process include:
+ load surface area
+ size to weight ratio (density) (e.g. a timber wall form will be more easily affected by the
+    wind than a concrete panel of the same frontal area)
+ boom length and surface area of the boom, including any attachments
+ the ability of the crane’s slew motors and brakes to operate safely in high winds
+ the ability of doggers to control load movement, particularly when it is being slung or
+    unloaded
+ the ability of the crane operator to see the load, particularly when the load is being slung
+    or unloaded
+ the effect of wind on crane movement (e.g. slewing against wind or luffing down against
+    wind), which may present a risk of rope bunching on the drum and the boom dropping on
+    rope luffing tower cranes.
+Only tower cranes that have been designed to operate in wind speeds greater than
+54km/hour may be operated under these conditions.
+Using a first aid box
+Please refer to Section 7.5.2 for information on wind speeds when using a first aid box.
+
+2.3 Limiting and indicating devices
+Limiting and indicating devices must be fitted to tower cranes as required by either AS
+1418.4: Cranes, hoists and winches – Tower cranes or other relevant technical standards.
+The purpose of limiting devices is to stop a specific crane motion before the crane moves out
+of its limits into an unsafe situation. Indicating devices are used to visually or audibly warn
+the crane operator that the crane may be approaching its set limits or an unsafe situation.
+These devices may be used individually, or together, for specific crane motions.
+2.3.1 Reliability of devices
+Limiting and indicating devices are intended as an aid to crane operators. The devices
+should not be relied upon to replace the use of the crane’s load chart and operating
+instructions under any circumstances. Sole reliance on these devices in place of good
+operating practices may cause an accident.
+Where limiting and indicating devices are to be installed on a tower crane, the safety circuits
+of these devices should generally meet either:
+ a reliability level of Category 4 under AS 4024: Safety of machinery
+ a safety integrity level of 3 under AS 62061: Safety of machinery – Functional safety of
+    safety-related electrical, electronic and programmable electronic control systems.
+These categories of reliability level and safety integrity level are related to the concept of ‘fail-
+safe’.
+2.3.2 Rated capacity limiters
+A rated capacity limiter prevents overloading of the crane by stopping all relevant crane
+functions when an overload is detected. Rated capacity means the maximum gross load that
+may be applied to the crane while in a particular working configuration. The load to be raised
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                           Page 15 of 65
+must include the weight of all lifting appliances that are not permanently attached to the
+crane. Deductions should be made in accordance with the manufacturer’s instructions. The
+crane’s load chart will also provide instruction on any deductions that may need to be made.
+Rated capacity limiters must be provided on all tower cranes regardless of the age of the
+crane. The limiter should prevent:
+ hoisting a load exceeding 110 per cent of the maximum rated capacity
+ the radius being increased when the load exceeds 100 per cent at the particular radius.
+All tower cranes are to be fitted with load indicators and rated capacity limiters.
+2.3.3 Motion limiting devices
+Motion limiting devices are used to prevent physical damage to the crane or part of the crane
+due to movement of the crane or part of the crane past its designed range of motion.
+Motion limiting devices must be fitted to tower cranes to prevent motion out of their service
+limits. These devices cause braking, including deceleration where appropriate and stopping,
+when the following extreme permissible positions have been reached:
+ the highest position of the hook
+ the lowest position of the hook when persons are lowered in a workbox into a shaft
+ the extreme permissible operating positions of the jib (luff limiter) where a luffing motion
+     is part of normal working operations
+ the end positions of the trolley track on the jib
+ the end positions of horizontally telescoping or movable jibs
+ the end position of the tracks for rail-mounted travelling tower cranes.
+2.3.4 Working radius indicator
+A radius indicator must be fitted on all tower cranes. A radius indicator displays the radius of
+the suspended load generally measured from the centre of the slew ring. The working radius
+should be displayed in metres and be accurate to +10 per cent and -3 per cent of the actual
+radius. Where the crane is operated by remote control, and the jib is horizontal and fully
+visible to the operator, the indicator may consist of one metre graduations marked on the jib
+with numbers written at intervals that are not excessive (e.g. every five metres).
+2.3.5 Dual braking systems
+Dual braking systems must be used in accordance with the requirements of either AS
+1418.1: Cranes, hoists and winches – General requirements or other relevant technical
+design standards. Dual braking systems must be provided on the luff function of all rope
+luffing tower cranes, and any other function specified by the crane manufacturer.
+
+2.4 Signs on tower cranes
+Signs, regardless of their size, can impact the effective day-to-day operation of a crane,
+particularly in windy conditions. Signs on crane booms can significantly slow down the slew
+speed when slewing against the wind and increase the speed when slewing with the wind.
+Signs also make applying the slew brake more hazardous. There is also a risk that signs that
+are inappropriately attached to the boom could detach during crane operations, and result in
+injury to persons in the vicinity of the crane.
+For these reasons, signs should not be attached to tower crane booms. However, signs may
+be used on machine (rear) decks, but these must be certified by an engineer prior to being
+installed. Certification from an engineer must state that the design of the sign and its
+attachments are ‘fit for purpose’. This includes ensuring that maintenance on the sign will not
+be required for as long as the crane is on site.
+Flexible signs should be made of an ultraviolet (UV) resistant material that will not deteriorate
+over the life of the crane installation. Flexible signs should be securely attached using an
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                           Page 16 of 65
+appropriate tying system that will withstand potential wind loadings.
+Solid signs should be attached by bolted connections. An appropriate means of locking the
+nuts on the bolts must be used. When attaching solid signs you should not:
+ drill holes into the crane structure
+ weld joints on to the crane structure
+ use strapping and cable ties
+Signs may also be appropriate to be attached to wind sails in certain circumstances. Wind
+sails may be mandated by manufacturers in certain circumstances to counteract wind effects
+on the machine deck (i.e. in unusual circumstances such as when a short boom is fitted to a
+hammerhead tower crane). In these circumstances, wind sails assist with the operation of the
+crane. There are also reduced safety risks associated with the use of fabric wind sails, given
+their flexibility in windy conditions and reduced risk of injury if they detach. The design
+engineer for a tower crane installation must be aware of any requirement to attach wind sails
+to the boom in order to make any allowances for the size and weight of the sail. This
+information must be included and allowed for in any crane base drawing.
+
+3. Planning and coordinating tower crane
+operations
+Planning is the first step in ensuring that work is done safely. Planning for tower crane
+operations should start as early as possible in the development of any work or project to help
+eliminate many of the associated health and safety risks. In order for planning to be
+successful, it should involve consultation with all persons engaged in the work. Such persons
+include the principal contractor, crane owner, crane supplier, electricity entity, designer, and
+project manager.
+Effective planning will help identify ways to protect persons who are:
+ erecting, climbing, commissioning and dismantling a tower crane
+ directly involved in the lifting operation, such as the crane operator and dogger
+ performing other work activities at the workplace
+ in an area adjacent to a tower crane, including a public area.
+Some issues to be considered when planning for tower crane operations include:
+ liaising with electrical entities regarding the safe supply of electricity and control
+  measures for working around existing power supply
+ consideration of proximity to overhead powerlines and appropriate control measures to
+  prevent or minimise risks (refer to Section 4.1.2)
+ determining crane requirements, including loading bays and site access, at the project
+  design stage
+ minimising the number of tower cranes on site to reduce the likelihood of collision
+  between cranes and other plant
+ ensuring that each tower crane can be installed at an acceptable distance away from
+  other tower cranes and concrete placement booms.
+ ensuring there is at least a two metre distance between the highest extremity of the
+  building worksite to the bottom of a slung load, unless not reasonably practicable, and
+ ensuring the tower crane boom remains an appropriate distance above the concrete
+  placement boom.
+ ensuring that an emergency plan has been prepared for each workplace where the crane
+  will operate (refer to Section 3.5).
+ consideration of additional doggers or crane coordinators, depending on the size and
+  complexity of the work.
+Other matters to be considered during the planning stage are listed in AS 2550.4: Cranes,
+hoists and winches – Safe use – Tower cranes.
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 17 of 65
+An acceptable distance between tower cranes and concrete placement booms will be when
+there are sufficient clearances to minimise the risk of contact between parts of the cranes,
+crane loads and booms. When cranes operate on adjacent sites and share the same air
+space, negotiations should be conducted between worksites to formulate systems of work to
+ensure sufficient clearances are maintained between the cranes.
+Persons conducting a business or undertaking should ensure that there is at least a two
+metre distance between the highest extremities of the building worksite to the bottom of a
+slung load, unless not reasonably practicable. This is to minimise the risk of the load of the
+crane colliding with or striking either the building or persons working in the vicinity of the
+crane.
+
+3.1 Selecting the crane
+Matters to be considered in the selection of cranes are outlined in AS 2550.4: Cranes, hoists
+and winches – Safe use – Tower cranes.
+There are basically three types of tower cranes operating in Queensland – luffing (see figure
+1 below), hammerhead (see figure 2 below) and self-erecting tower cranes (see figure 3 on
+page 49). Each type of tower crane has advantages and disadvantages, and the best crane
+type should be selected for the job to be undertaken.
+
+
+
+
+           Figure 1 – Luffing tower crane             Figure 2 – Hammerhead tower crane
+Self-erecting tower cranes are discussed in more detail under Section 8 Additional
+requirements for self-erecting cranes.
+
+3.2 Crane crew
+The number of persons in the crane crew should be determined by a risk assessment. The
+risk assessment should address the following risks:
+ collision between cranes and other plant and coordination of multiple cranes
+ loads contacting structures (including neighbouring property and temporary structures
+   such as scaffolding) or obstructing walkways and other workers
+ overhead powerlines
+ ability of the crane crew to maintain visibility of the load, safely load and unload materials,
+   and assess work areas before unloading deliveries.
+If a risk assessment identifies that the crane crew cannot maintainvisibility of the load at any
+point in time during the lift process due to one or more of the following risk factors, then
+additional control measures may be required during the lift process.
+ positioning of the proposed crane crew
+ size or complexity of the site or structure
+ proximity of collision hazards
+ the lift process or procedure.
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 18 of 65
+Examples of additional control measures may include (but are not limited to):
+ re-design of the proposed lift or alternative crane
+ isolation of area during the lift
+ anti-collision devices and systems
+ flagging and insulated covers on suspended powerlines
+ use of a safety observer or ‘spotter’
+ use of an additional dogger
+ cameras fitted to the crane, crane hook or structure.
+In instances where additional control measures are required, any re-design of the lift
+process, use of additional personnel, or inclusion of new technology that has not already
+been identified at the start of the project should be undertaken in consultation between the
+principal contractor or persons in control of the workplace, the relevant PCBU and the crane
+crew.
+The role of a dogger is outlined at section 7.1.4. A crane operator should not undertake their
+own dogging work (i.e. on a remote control tower crane) or supervise a trainee dogger, even
+if the operator is also a licensed dogger.
+
+3.3 Crane siting
+The siting of a tower crane may present a risk of injury to persons, including workers and
+members of the public in the vicinity of the crane from:
+ the crane collapsing due to failure of the crane to withstand the forces likely to be imposed
+  on it
+ collision between the crane with other plant and structures at the workplace.
+The siting of tower cranes should occur after careful consideration of the above factors and
+consultation with relevant persons engaged in the work, including the principal contractor,
+crane owner, crane supplier and project manager.
+3.3.1 Crane standing
+The crane standing must conform to the crane manufacturer’s instructions, and be capable of
+withstanding the forces likely to be imposed on it by the crane while in-service, out-of-
+service, and during erecting and dismantling. These forces include:
+ dead weight of the crane
+ dead weight of the load and any lifting attachments
+ dynamic forces caused by movements of the crane
+ wind loadings
+ other loads as required by the designer of the crane standing.
+When a crane is to be supported on, or tied to, a permanent or temporary structure, the
+design of the structure should be capable of withstanding the forces likely to be imposed on it
+by the crane. Adequate precautions should also be taken to ensure the stability of the crane,
+when it is known that the crane will be sited in the vicinity of underground services,
+excavations or embankments. A competent person should verify the design of the structure.
+
+3.3.2 Collision between the crane with other plant or structures
+The siting of a tower crane must consider hazards such as:
+ overhead powerlines
+ nearby structures
+ other cranes or concrete placement booms (including those on adjacent sites)
+ the vicinity of aerodromes and aircraft flight paths.
+For further information on control measures to minimise the risk of injury from collision, refer
+to section 4 of this code.
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 19 of 65
+3.3.3 Location of access areas
+When siting a tower crane, consider the location of:
+ common access areas for workers and other persons at the workplace
+ public access areas, such as footpaths, roadways and railways in the vicinity of the
+  crane.
+
+3.4 Communication
+A reliable method of communication between a crane operator and other persons is essential
+for safe crane operation. Failure to implement a reliable method of communication between
+the crane operator and other persons will lead to unsafe crane operations, and may
+contribute to injury to persons from:
+ dropped loads
+ collision with other plant and structures.
+Only one dogger should give visual and audible signals at any time. When more than one
+dogger is involved in a lift, each dogger should understand when responsibility for their part
+of the lifting operation should be handed over to another dogger.
+The use of radio communication is common practice in the tower crane industry. Persons
+using radio equipment should be familiar with the manufacturer’s operating instructions. A
+dedicated radio frequency should be selected for the duration of the crane operations to
+prevent interference to or from other radio equipment being used in the vicinity of the crane.
+All persons using radios should be aware of the risk of interference and signals from other
+radio equipment. Work should stop immediately if there is a loss of radio communication.
+The safe use of radio communication usually involves:
+ the crane operator and dogger performing an operating safety check to ensure the radios
+   are dry, handled with care and performing satisfactorily, and that a fully charged battery
+   and spare are available
+ ensuring operators are familiar with the specific procedures for using radio
+   communication for that workplace
+ adopting a constant talk method between radio users so that all involved persons are
+   aware of the progress of the lifting operations at all times
+ ensuring the crane operator normally takes radio instructions from one person only,
+   unless special circumstances exist that require specific arrangements to be in place for
+   the use of more than two radios.
+Where radio communication is not or cannot be used, other forms of communication, such as
+hand, whistle, bell and buzzer signals, which comply with AS 2550.1: Cranes, hoists and
+winches – Safe use – General requirements should be used.
+Mobile phones should not be used to direct tower crane operations.
+
+3.5 Emergency plan
+WHS Regulation section 43: A PCBU at a workplace must ensure that an emergency plan
+is prepared for the workplace that provides for emergency procedures, testing of the
+emergency procedures and information, training and instruction to relevant workers.
+An emergency plan must be tested in the workplace and include emergency procedures
+such as effective responses and evacuation, notifying emergency services and medical
+treatment. Emergency procedure training must be provided to workers. Contact numbers for
+emergency services should be easily seen or found. Workers should know what systems are
+in place to contact emergency services and how to use it.
+Rescue equipment should be available and easily accessible so an injured worker including
+the crane operator can be removed quickly. Relevant fire-fighting equipment such as fire
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 20 of 65
+extinguishers and fire blankets should also be in place and operational. Signs displaying
+evacuation locations should be placed where they are easily seen by workers and others at
+the workplace.
+The emergency plan should also include how these procedures will apply to people who are
+near the crane as well as those people who are operating the crane (e.g. procedures for
+evacuating the workplace).
+
+3.6 Lighting
+WHS Regulation section 40: A PCBU at a workplace must ensure, so far as is reasonably
+practicable, that lighting enables each worker to carry out work without risk to their health
+and safety, persons can move within the workplace without risk to their health and safety,
+and safe evacuation in an emergency.
+It is important that crane operators have adequate lighting when climbing and accessing
+tower cranes. If tower cranes are to be accessed outside of daylight hours, appropriate
+artificial light sources should be used or provided. This could include the use of personal
+lighting on crane crew such as headlamps or the installation of permanent lighting in tower
+sections. Appropriate lighting may also be provided from other sources on the worksite such
+as lighting attached to a structure in close proximity to the tower crane.
+
+
+4. Minimising risk of injury from collision
+Failure to maintain sufficient clearance between tower cranes and other plant and structures
+may result in a risk of injury from a collision between the crane or its load with other plant or
+structures. This may lead to:
+ damage to crane components, such as the boom, which may seriously weaken them or
+    lead to structural collapse
+ injury to persons in the vicinity of the crane, including workers and members of the public.
+The risk of injury from collision is higher when the regular working zone of the tower crane is
+next to another structure. Mobile plant may present a greater risk of injury from collision with
+a tower crane than a fixed structure, as its position may change.
+
+4.1 Working near overhead electric lines (powerlines)
+4.1.1 Electrical safety laws
+Information about requirements for working near overhead powerlines is provided in the
+following:
+ Electrical Safety Act 2002 (ES Act) – outlines general electrical safety duties
+ Electrical Safety Regulation 2013 (ES Regulation) – states exclusion zones for working
+    near overhead powerlines (note that consultation regarding the risks of the work should
+    occur with the relevant electricity entity and other relevant parties)
+ Electrical safety code of practice 2010 – Working near overhead and underground electric
+    lines – provides practical advice on safe systems of work and exclusion zones.
+ES Act section 30: A PCBU must ensure its business is conducted in a way that is
+electrically safe. If the work involves working near overhead powerlines the PCBU must
+ensure persons performing the work are electrically safe. This includes potential contact with
+overhead powerlines when operating a tower crane.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 21 of 65
+4.1.2 Planning for work near overhead powerlines
+Contact with overhead powerlines can pose a risk of electric shock or electrocution when
+operating a tower crane. It can be difficult for crane operators to see powerlines and to judge
+distances from them.
+Before setting up a tower crane near overhead powerlines, the PCBU should conduct an
+inspection to identify the presence of overhead powerlines that may pose a risk. Consultation
+regarding the risks of the work should occur with all relevant parties involved in the work.
+Once the risks associated with overhead powerlines have been identified and assessed,
+appropriate control measures must be put in place.
+The most effective way to eliminate any risk of electric shock is by turning off the power. The
+person conducting a business or undertaking (PCBU), principal contractor (PC) or the crane
+owner should discuss options for de-energising or re-routing the electricity supply with the
+relevant electricity entity. These options are the most effective control measures and should
+be considered before anything else. The PCBU, PC and crane owner should also consult
+with each other to ensure the electricity entity has been contacted.
+De-energising or re-routing powerlines should be arranged with the electricity entity as
+quickly as possible as this can take some time to arrange. Where overhead powerlines have
+been de-energised, confirmation should be sought from the person in control of the powerline
+before undertaking any work.
+If it is not reasonably practicable to turn off the power or re-route the powerline, the most
+effective control measure to reduce the risk is to establish “exclusion zones” that prevent
+people, plant, equipment and materials from coming close enough to energised overhead
+powerlines for direct contact or flash-over to occur.
+This could be achieved in a number of ways, such as:
+ setting up the crane in a position that keeps it outside the exclusion zone (see Section
+   4.1.3 for more information on exclusion zones)
+ erecting a physical barrier, made of non-conductive materials, to prevent any part of the
+   crane or person entering an unsafe distance. This may require isolating the electricity
+   supply while the barrier is installed
+ engineering controls such as mechanical stops or constraints to prevent the crane
+   entering the exclusion zone.
+Lower order administrative controls should only be considered when other higher order
+control measures are not reasonably practicable, or to increase protection from a hazard.
+Administrative controls include:
+ warning signs to indicate the location of overhead powerlines
+ tiger tails or line markers on overhead powerlines to act as a visual aid to highlight the
+   location of the powerline. (Note: tiger tails do not insulate wires)
+ warning devices to warn the crane operator before the boom enters the exclusion zone.
+
+4.1.3 Exclusion zones for operating a tower crane near overhead
+powerlines
+ES Regulation section 68: A PCBU must ensure, so far as is reasonably practicable, that
+no person, plant or thing at the workplace comes within an unsafe distance of an overhead or
+underground powerline.
+If it is not reasonably practicable to ensure a safe distance, the person must ensure that a
+risk assessment is conducted for the proposed work and control measures implemented are
+consistent with:
+ the risk assessment
+ if an electricity entity is responsible for the electric line, any requirements of the electricity
+      entity.
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                          Page 22 of 65
+ES Regulation section 69: A person or operating plant comes within an unsafe distance of
+an overhead electric line if the person or operating plant is within the exclusion zone for the
+person or operating plant for the line.
+A PCBU must ensure, so far as is reasonably practicable, that any person, part of the crane
+or the crane’s load does not enter into the exclusion zone.
+PCBUs should ensure that workers and the tower crane (and the load) stay at least three
+metres away from overhead powerlines, for voltages up to 132kV, with greater distances
+applying for voltages above that. These distances apply to any part of the crane including the
+load it is lifting.
+A number of factors must be considered when implementing a system to maintain the
+exclusion zone, these include:
+ identifying the minimum clearance distance from the closest part of the crane and its
+   suspended load to the powerline, such as:
+   - the maximum travel distance of the crane boom
+   - the size and shape of any load to be lifted
+   - the possibility of “overshoot” of the load after the crane boom comes to rest
+ allowing for sway or sag of the powerlines (sway is usually caused by wind, while sag
+   may vary as the temperature of the line varies)
+ using a safety observer (commonly known as a ‘spotter’) who observes the operation of
+   the tower crane and advises the operator if it is likely the tower crane will enter into the
+   exclusion zone.
+The identified minimum clearance distance may need to be greater than the prescribed
+exclusion zone distance to ensure there is no breach of the exclusion zone (e.g. to take into
+account the load swinging once the crane stops moving).
+Working at closer distances
+If it is not reasonably practicable to maintain the exclusion zone (e.g. at least three metres
+away from overhead powerlines, for voltages up to 132kV), a risk assessment must be
+completed for the proposed work and consultation should occur with relevant parties
+including the electricity entity. Control measures must then be implemented consistent with:
+ the risk assessment
+ if the line is owned by an electricity entity, any requirements of the entity.
+The electricity entity can advise of the voltage of the line and whether it is insulated or
+uninsulated. In addition, they can also verify the integrity of the insulation.
+The electricity entity may implement control measures such as placing tiger tails or aerial
+marker flags on the powerline and provide advice on what needs to be done before work can
+be safely carried out at a closer distance. For example they may require:
+ the powerlines to have visual markers fitted
+ the crane operator to undertake specific training
+ all work to be carried out under the control of a safety observer.
+Unless all conditions are met, work cannot be carried out at closer distances.
+In addition, persons operating a tower crane at a closer distance are required to be an
+authorised or instructed person under the ES Regulation.
+It is important to note that the electricity entity may also specify a greater distance than the
+smaller exclusion zones provided in Schedule 2 of the ES Regulation, if they consider the
+risk warrants it.
+Safety observers
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                         Page 23 of 65
+A safety observer or ‘spotter’ is a person who is trained and competent to observe and
+advise the crane operator if the crane or any part of a load it is carrying is likely to come
+within an exclusion zone of an overhead powerline.
+The safety observer zone concept is designed:
+ to encourage plant such as tower cranes to be located away from the possibility of
+   encroaching into the exclusion zone
+ when that is not possible, adopt other suitable precautions to prevent encroachment.
+A tower crane is not operating in a safety observer zone when:
+ powerlines have been de-energised and steps taken to ensure they cannot be
+    inadvertently re-energised (high voltage powerlines should also be earthed),
+ limiting devices have been installed to prevent any part of the crane, plant or load being
+    moved from entering the exclusion zone, or
+ any part of the crane, plant or load being moved is prevented from entering the exclusion
+    zone by physical barriers.
+Figure 3 below illustrates the safety observer zone concept. As the crane and its load is likely
+to enter the exclusion zone, the person in control could re-locate the crane to the right far
+enough to ensure that the crane or its load cannot enter the exclusion zone. If the crane
+cannot be moved, the entity may require the powerline to be fitted with visual markers and
+require the crane to operate under the direction of a safety observer.
+
+
+
+
+                Figure 3: Safety observer zone for working near overhead powerlines
+Safety observers must not carry out other tasks, such as dogging duties, at the time of
+observing crane operations. All workers on a worksite should be able to clearly identify
+persons carrying out duties as a safety observer. This ensures that workers do not distract
+safety observers while they are carrying out spotting duties.
+For more information, refer to the Electrical Safety Code of Practice 2010 - Working near
+overhead and underground electric lines available at worksafe.qld.gov.au.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                           Page 24 of 65
+4.2 Working near other plant (including other cranes and
+concrete placement booms)
+A tower crane colliding with other plant may cause injury to persons present in the vicinity of
+the crane from:
+ dropped loads
+ crane collapse
+ failed crane components, such as boom sections.
+A risk of injury from collision may exist where:
+ a concrete placement boom is working within the tower crane’s operating radius
+ tower cranes located on adjacent sites are operating in the same air space.
+The risk of injury from a collision between a tower crane and other plant is greater where the
+crane crew is not able to communicate directly with the other plant operators, or where the
+operators have different tasks to perform.
+
+4.2.1 Ways to minimise risk of injury from a collision with other plant
+Where a tower crane may collide with other plant, a documented procedure, such as a
+SWMS, must be established early in the planning process to ensure controls are in place to
+minimise the risk of injury from a collision. This procedure should identify the person who is
+responsible for the implementation of the SWMS. All persons involved in operating tower
+cranes and other plant are to be aware of and trained in the procedure.
+The procedure should address issues such as:
+ siting cranes to minimise the need for other plant to operate within the crane’s operating
+   radius
+ siting cranes and other plant with counterweights so that the counterweights cannot
+   collide during slewing operations
+ the method of communication between the crane crew and other plant operators
+ scheduling of work to minimise the time the crane and other items of plant are required to
+   work in the same area, or at the same height
+ the tower crane’s climbing procedure to ensure the crane remains as far above any
+   structure or plant (e.g. jump forms) as practicable
+ the frequency of regular meetings to monitor and review the effectiveness of control
+   measures and who should attend such meetings.
+All tower cranes should be fitted with an audible warning device. This will help to warn
+persons who may be at risk from the movement of the plant. There are a number of warning
+devices that can be fitted to moving plant to alert the operator and others in the workplace.
+More information on warning devices can be found in the Managing risks of plant in the
+workplace Code of Practice.
+Where separate tower cranes share the same air space but are sited on adjacent
+workplaces, the principal contractor from each workplace should negotiate and implement
+documented systems of work (e.g. within the construction safety plan) that includes a
+procedure to ensure sufficient clearances are maintained between cranes, minimising the
+risk of contact between parts of the cranes and crane loads. The procedure should include
+the name of a crane coordinator from each site that is responsible for implementation of the
+work system. An effective means of communication is to be provided to ensure the crane
+operators on the separate tower cranes can avoid collision between the cranes.
+Where tower cranes are set up in flight paths (e.g. near aerodromes), the local aerodrome
+operator must be contacted to ensure the requirements of the Civil Aviation Safety Authority
+(CASA) are met (see the website at www.casa.gov.au). Where necessary, aircraft warning
+lights should be fitted to the highest part of the crane.
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 25 of 65
+5. Erecting and dismantling tower cranes
+Failure to erect or dismantle tower cranes in accordance with the crane designer’s or crane
+manufacturer’s instructions may result in injury to persons from:
+ crane collapse
+ falls from heights
+ falling objects.
+
+5.1 Responsibilities for persons erecting or dismantling
+tower cranes
+The process of erecting or dismantling a tower crane must minimise the risks to health and
+safety.
+Documented procedures such as a SWMS for the high risk construction work of erecting or
+dismantling a tower crane must be prepared and consider the following:
+ the crane designer’s or crane manufacturer’s instructions
+ technical standards relevant to access and egress
+ the crane’s stability
+ any adverse effects on other plant, structures or work processes at the workplace
+ the use of special tools, jigs and appliances necessary to minimise the risk of injury
+ control measures for securing crane components
+ the interaction of the crane with other plant
+ environmental factors, such as wet or windy conditions
+ all relevant electrical installations associated with the crane comply with AS 3000:
+    Electrical installations.
+
+5.2 Minimising risk of injury from crane collapse
+5.2.1 Erecting and dismantling—ways to minimise risk of injury from
+crane collapse
+Tower crane components should be inspected and tested prior to being delivered to the
+workplace. For further information on pre-erection inspections and tests, refer to section
+10.3.2 of this code.
+Written instructions about erecting and dismantling activities are to be readily available on
+site. Tower cranes must not be erected or dismantled in conditions exceeding the crane
+manufacturer’s specifications, or where the wind is such that components may become
+uncontrollable when suspended. Wind loading must be considered during all erecting and
+dismantling, including increased wind loads caused by funnelling effects between adjacent
+buildings or structures, and the wind effect on large sections.
+Erecting and dismantling activities should be supervised by a competent person. Precautions
+must be taken to maintain the stability of the crane during erecting and dismantling in
+accordance with AS 1418.4: Cranes, hoists and winches – Tower cranes or any other
+relevant technical standard.
+Duty holders should ensure that the crane manufacturer’s instructions are followed for the
+assembly of components in the correct sequence, and that the correct equipment and tools
+are used. Crane manufacturers may require sequential installation or removal of counterjib,
+counterweights and boom components.
+Only parts and components that meet the specifications of either the crane manufacturer or a
+competent person should be used when erecting a tower crane. Tower sections should be
+clearly and permanently identified with their model type and serial number. Tower sections of
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 26 of 65
+the correct model, or a model of greater strength, must be used. The tower sections used
+must be the same as those specified on the engineer’s crane base drawing.
+When erecting a tower crane, precautions must be taken to ensure:
+ only the correct type and grade of tower bolts are used when connecting tower sections
+ bolts and pins used to connect tower sections are compatible with crane components,
+  and are not defective
+ tower bolts are correctly torqued to ensure normal operating conditions do not cause
+  them to become loose or fatigued—over tightening of bolts can be as potentially
+  dangerous as insufficient tightening
+ crane ties are installed in accordance with instructions specified by the crane
+  manufacturer and designer of the crane installation.
+
+5.2.2 Climbing tower cranes - ways to minimise risk of injury from crane
+collapse
+The risk of serious or fatal injury from crane collapse is very high during tower crane climbing
+operations. The climbing frame as a whole has to cope with significant static and dynamic
+forces involved in climbing.
+Risks from crane collapse during climbing operations can be minimised by:
+ conducting climbing operations where practicable outside of normal work hours to
+   minimise the potential for persons to be at risk
+ excluding all unnecessary persons from the workplace during climbing operations
+ maintaining an exclusion zone of sufficient size to contain structural failure
+ prohibiting persons from entering the area directly behind the tower crane (under the
+   counterweights) during climbing operations
+ avoiding slew operations at all times during climbing operations
+ conducting a physical inspection of the counterweight trolleys, including side plates,
+   bolting and pins, safety gear, ropes and turnbuckles, prior to commencing climbing
+   operations.
+All persons involved in climbing operations must receive thorough training and instruction in
+the climbing procedure for the particular model and type of crane involved in the climbing
+sequence.
+The climbing sequence must be carried out in strict accordance with the crane
+manufacturer’s instructions. Climbing operations should not be attempted at wind speeds
+greater than 36 km/hour. However, this does not preclude the crane rigging crew from
+ceasing work at their discretion if they think safety will be compromised at a lesser wind
+speed. Climbing operations should not commence if either the recommended maximum wind
+speed or the actual wind speed is unknown.
+Precautions for certain tower cranes with moving counterweights
+Some tower cranes are provided with moving counterweights on rails that slope downwards
+away from the crane (e.g. Favco 1500 and Favco STD 1000). These types of tower cranes
+require the counterweight to be positioned at the top of the counterweight rail during the
+climbing process. The counterweight is kept in position by means of a latch that locks onto a
+lug on the bottom of the rail. To help prevent inadvertent release of the latch, a secondary
+means of securing the latch in place should be provided (e.g. connecting the latch lever to
+the machine deck with a rope or chain).
+
+5.3 Minimising risk of injury from falling from a height
+ WHS Regulation section 291: High risk construction work includes construction work that
+ involves a risk of a person falling more than two metres.
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 27 of 65
+ WHS Regulation section 299: A PCBU that includes the carrying out of high risk
+ construction work must, before the high risk construction work commences, ensure that a
+ SWMS is prepared or has already been prepared by another person. A SWMS must identify
+ the work that is high risk construction work, state hazards relating to the work and risks to
+ health and safety, and describe measure to be implemented to control the risks and how the
+ control measures are to be implemented, monitored and reviewed.
+ WHS Regulation sections 306C and 306D: Where there is a risk of a person falling less
+ than 3 metres in housing construction work or less than 2 metres in non-housing
+ construction work, a PCBU must ensure each hazard is identified and assessed, and must
+ use control measures to prevent or minimise risks. Control measures must be used to
+ prevent a person falling any distance or arrest a person’s fall.
+
+Persons associated with erecting and dismantling tower cranes will be exposed to the risk of
+falling when working at a height. These persons must be provided with an effective means of
+fall protection.
+The PCBU must use control measures to prevent a person falling or if prevention is not
+practicable, to arrest a person’s fall and prevent or minimise the risk of death or injury to the
+person. Examples of control measures to prevent a person from falling include:
+ edge protection systems
+ travel restraint systems
+ fall-arrest harness systems.
+
+5.3.1 Edge protection systems
+WHS Regulation section 306E: Edge protection used as a control measure must be
+erected in accordance with the instructions of the manufacturer or supplier (if the
+manufacturer or supplier has given instructions about its installation) or otherwise by an
+engineer or competent person.
+Edge protection provides a barrier to prevent a person falling erected along the edge of:
+ a building or other structure
+ an opening in a surface of a building or other structure
+ a fall arresting platform, or
+ the surface from which work is to be done.
+Edge protection consists of a system of rails, mesh, sheeting or other material used to
+prevent persons from falling off a platform or other surface. Edge protection consists of
+components designed to withstand the forces imposed on it if a person fell against it.
+Where possible, tower crane sections should be designed so that edge protection is already
+in place prior to the tower section being installed. However, it is generally recognised that
+many edge protection systems need to be installed during the actual erection phase of the
+tower crane. In these instances, other means of fall protection, such as workboxes and travel
+restraint systems, must be used.
+
+5.3.2 Travel restraint systems
+WHS Regulation section 306G: A travel restraint system used as a control measure must
+be installed by a competent person and have an anchorage point with a capacity to withstand
+any load that could be exerted on it to restrain a person who may reasonably be expected to
+use the system.
+A PCBU must ensure, that at least every six months, a competent person inspects the
+system and gives the person a written record of the inspection.
+Travel restraint systems consist of a harness or belt, attached to one or more lanyards, each
+of which is attached to a static line or anchorage point. The system is designed to restrict the
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                         Page 28 of 65
+travelling range of a person wearing the harness or belt so that the person cannot get into a
+position where the person could fall off an edge of a surface or through a surface.
+Travel restraint systems are preferred over those that arrest a person once the person has
+fallen. Static lines or anchorage points must be capable of supporting the load.
+Static lines and anchorage points should comply with:
+    AS 1891.2 Industrial fall-arrest systems and devices – Horizontal lifeline and rail
+         systems and
+    AS 1891.4 Industrial fall-arrest systems and devices – Selection, use and
+         maintenance.
+
+5.3.3 Fall-arrest harness systems
+WHS Regulation section 306I: Each anchorage point of a fall arrest harness system used
+as a control measure must be designed by an engineer for the purpose for which it is
+intended to be used, or inspected and approved by a competent person before the
+anchorage point is first used by any person. This section outlines the specific requirements
+for the safe use of fall-arrest harness systems.
+A fall-arrest harness system is designed to arrest a person’s fall and eliminate or minimise
+the risk of injury to the person as the fall is arrested. It consists of a fall-arrest harness that is
+attached to either:
+ a device to absorb the energy of the falling person, attached to a lanyard that is attached
+   to a static line or anchorage point
+ a line that has a device that automatically locks the line, and absorbs the energy of the
+   falling person, and is attached to a static line or anchorage point
+ a lanyard that has a device that travels along a line or rail, automatically locks onto the
+   line or rail, and absorbs the energy of the falling person, and is attached to a static line or
+   anchorage point.
+The use of a fall-arrest harness is not recommended as an acceptable control measure
+against the risk of a fall as it does not actually prevent a fall from occurring. Wherever
+possible and practicable, an alternative method should be selected which minimises the risk
+of a person falling (e.g. an edge protection system).
+Should a fall-arrest harness system be used, a written procedure must describe how a
+person can be safely retrieved after a fall. A first aid box suitable for emergency retrieval
+must be readily available.
+
+5.4 Minimising risk of injury from falling objects
+ WHS Regulation section 54: A PCBU at a workplace must manage risks to health and
+ safety associated with an object falling on a person if the falling object is reasonably likely to
+ injure the person.
+ WHS Regulation section 55: A PCBU must minimise the risk of an object falling on a
+ person by providing adequate protection against the risk. Adequate protection includes
+ preventing an object from falling freely, so far as is reasonably practicable, or providing a
+ system to arrest the fall of a falling object if it is not reasonably practicable to prevent an
+ object from falling. Examples of systems include secure barriers, providing a safe means of
+ raising and lowering objects, and providing an exclusion zone persons are prohibited from
+ entering.
+
+Erecting, climbing and dismantling activities should not commence until controls are in place
+to prevent the risk of injury to workers and other persons from falling objects.
+The following are examples of control measures that may be used to prevent or minimise the
+risk of being hit by falling objects during erecting, climbing and dismantling operations:
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                             Page 29 of 65
+   exclusion zones
+   tool lanyards
+   scheduling of work
+   restraining systems.
+These control measures are examples only and should be implemented based on the
+specific items which may fall. It may be necessary to use a combination of these control
+measures. The requirements for selected control measures must be written into the SWMS
+for the work activity. All workers involved in the work activity must be made aware of these
+requirements.
+When lifting loads, a person with management or control of a tower crane must ensure that
+loads are lifted in a way that ensures the load remains under control. They must also ensure
+that the activity is carried out with lifting attachments that are suitable for the load being lifted
+and within safe working limits of the crane.
+
+5.4.1 Exclusion zones persons are prohibited from entering
+Before work starts on erecting or dismantling a tower crane, an exclusion zone must be
+established around the crane. The exclusion zone must be based on a risk assessment and
+include where practicable:
+ a radius of at least 20 metres from the base of the tower crane
+ a footprint relative to the size of the boom.
+An exclusion zone must also be established in the area around the crane before work starts
+to climb a tower crane. The exclusion zone for climbing operations includes a radius of at
+least 12 metres where practicable from the base of the crane.
+The exclusion zone for climbing operations must be in place prior to the installation of crane
+ties. However, as the health and safety risk associated with installing crane ties is usually
+lower than that associated with climbing operations, the size of the exclusion zone may be
+reduced where justified and evidenced by the outcome of a risk assessment.
+Where practicable, the exclusion zone needs to be of sufficient size to contain any structural
+failure. Where public footpaths and roadways form part of the exclusion zone, permission to
+close off these areas must be obtained from the appropriate local authority.
+Only persons immediately involved in erecting, climbing or dismantling activities may be
+permitted within the exclusion zone. All unauthorised persons must be excluded from the
+area.
+These exclusion zones are distinct from the safe approach distances (exclusion zones)
+discussed in section 4.1.3, which apply when operating a tower crane near overhead
+powerlines.
+
+5.4.2 Tool lanyards
+A tool lanyard is a short rope or webbing used to secure tools and equipment to an
+anchorage point to reduce the risk of injury from a falling object. An anchorage point may be
+the person using the tool, a column or beam. If the lanyard is attached to a person, the
+weight of the tool secured to the lanyard should not impose any additional risks to the
+person.
+Tool lanyards allow workers to work at height while minimising the potential of dropping tools.
+Tools become dangerous objects if dropped from height.
+A lanyard should be made from material such as synthetic or natural fibre, steel rope or
+webbing, which will maintain the required strength and resistance to abrasion under harsh
+conditions. The length of rope or webbing required to secure a tool must be considered,
+especially if the tool is to be used near the edge of a working platform, and other persons are
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                            Page 30 of 65
+working below. For example, a tool lanyard attached at the wrist should have a length no
+longer than 300 millimetres. This will ensure that if the tool is dropped, the lanyard would not
+allow the tool to hit a person working below. The length of the lanyard should also be kept to
+a minimum to reduce the risk of the line snagging as the worker moves about.
+
+5.4.3 Scheduling of work
+Erecting, dismantling and climbing operations should take place at appropriate times to
+minimise the risk to persons, such as members of the public from falling objects. For
+example, consideration should be given to doing the work outside of normal working hours if
+the crane is next to an office building, or doing the work during normal working hours if the
+crane is next to a residential building.
+The erection, dismantling, climbing and maintenance of cranes at a worksite should be
+programmed into the project’s schedule of work.
+
+5.4.4 Restraining systems for crane components
+While erecting, dismantling and climbing activities are being carried out, control measures to
+restrain individual crane components (such as packers or shims) from falling should be
+implemented. An example of a restraint may include a short chain that is attached to both the
+crane component and the crane structure.
+
+
+6. Commissioning tower cranes
+WHS Regulation section 201: A person who conducts a business or undertaking that
+commissions plant that is to be used, or could reasonably be expected to be used at a
+workplace, must ensure the plant is commissioned having regard to the information provided
+by the designer, manufacturer, importer or supplier of the plant, or the instructions provided
+by a competent person to the extent that those instructions relate to health and safety.
+Failure to commission tower cranes in accordance with the crane manufacturer or supplier’s
+specifications may lead to decreased safety and efficiency in the operation of the tower
+crane.
+Commissioning tower cranes involves performing necessary adjustments, tests and
+inspections to ensure the crane is in full working order to specified requirements before the
+crane is used. The person who commissions cranes should ensure that the commissioning
+sequence is in accordance with the design specifications and tests are carried out to check
+the crane will perform within design specifications.
+An independent third party should undertake the relevant inspections and tests prior to the
+commissioning of the crane. Refer to section 10.3 of this code for further information
+regarding independent third party inspections at the commissioning stage.
+Written instructions regarding the commissioning of a tower crane should be available to all
+persons conducting a business or undertaking at the workplace. The commissioning of
+cranes must be carried out in accordance with these written instructions.
+If rated capacity limiters, overload cut-outs or motion switches have been bypassed or
+disconnected during erection, they are to be reconnected and tested in accordance with a
+written procedure before the crane is put into operation.
+
+6.1 Responsibilities of persons who commission tower
+cranes
+A person who commissions tower cranes should ensure that:
+ the crane is inspected, to determine whether it has been erected in accordance with
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 31 of 65
+    design specifications
+   commissioning methods are in accordance with specifications of the crane manufacturer
+    or supplier
+   the commissioning sequence has been developed and implemented according to risk
+    management principles (i.e. hazards identified, risks assessed and controls
+    implemented)
+   an erection plan is developed to cover such things as the sequence of operations, and
+    the safety procedures to be carried out during commissioning
+   tests are carried out to ensure the crane will perform within design specifications (e.g.
+    dummy runs)
+   stresses which exceed design specifications are not imposed on the crane
+   the crane owner is notified of commissioning results and provided with appropriate
+    documentation.
+The commissioner of the tower crane should provide the following information to the crane
+owner:
+ any problems identified during commissioning that indicate the crane is not performing
+    safely
+ confirmation that the crane will perform the functions for which it has been
+    commissioned.
+
+
+7. Operational issues
+7.1 Roles and responsibilities associated with tower
+crane operations
+7.1.1 Person conducting a business or undertaking
+WHS Act section 19: A PCBU must ensure, so far as is reasonably practicable, the health
+and safety of workers engaged, or caused to be engaged by the person, and workers whose
+activities in carrying out work are influenced or directed by the person.
+The general role and responsibilities of a person conducting a business or undertaking
+(PCBU) is outlined under section 1.2. The WHS Regulation also includes specific duties for
+PCBUs with management or control of plant, and plant that lifts or suspends loads. As a
+principal contractor is a PCBU, these duties can also apply to principal contractors.
+Persons who own, hire or lease tower cranes will have duties to eliminate or minimise risks
+associated with the crane, so far as is reasonably practicable. This includes ensuring that
+construction or commissioning of the crane is completed by a competent person and
+ensuring that maintenance, inspection and testing of the crane is carried out by a competent
+person.
+A PCBU must also not direct a worker to carry out high risk work, such as tower crane
+operation, to carry out this work unless they have seen written evidence that the worker has
+the relevant high risk work licence.
+
+7.1.2 The crane owner
+WHS Act section 21: A person with management or control of plant at a workplace must
+ensure, so far as is reasonably practicable, that the plant is without risks to the health and
+safety of any person.
+Prior to commissioning a tower crane, a crane owner must establish that the crane is, so far
+as is reasonably practicable, without risks to the health and safety of any person. They must
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 32 of 65
+ensure that the construction or commissioning of the crane is completed by a competent
+person. Crane owners may conduct a site visit and inspection to ensure that an appropriate
+crane is supplied for the construction work and to understand the characteristics of the job,
+site conditions and any hazards.
+Additionally, the crane owner must take all reasonable steps to ensure that all health and
+safety features and warning devices of the crane are used in accordance with the relevant
+instructions and training.
+A crane owner who employs crane operators should also ensure that operators have
+undergone appropriate training and obtained the relevant high risk work licence.
+A crane owner must ensure that all information obtained from the manufacturer of the crane
+is supplied and readily available to those who need it (e.g. the crane manufacturer’s
+operating manual should be kept on the crane, and maintenance staff should have access to
+all current crane maintenance manuals). The crane owner should ensure the design, load
+chart, maintenance records and all inspection reports of the crane are all available and
+signed off before deployment of the crane for use.
+A crane owner must ensure that the maintenance, inspection and testing of a tower crane is
+carried out by a competent person. The maintenance, inspection and testing must be carried
+out in accordance with the manufacturer’s recommendations, or if this is not reasonably
+practicable, the competent person’s recommendations. Where the crane is stored and not
+used an annual inspection may not be required. However, prior to the crane being used, pre-
+erection and commissioning inspections should be carried out by an independent third party.
+Refer to Section 10.3 for further information on independent third party inspections.
+The person with management or control of plant at a workplace must also ensure, so far as
+is reasonably practicable, that cranes that are not in use are left in a state that does not
+create any risks to the health and safety of other persons. This could include restricting
+access to ensure other persons cannot climb onto the crane. Refer to Section 7.4 for
+information on leaving a crane unattended.
+
+7.1.3 The crane operator
+A tower crane operator is required to hold a high risk work licence, as specified under
+Schedule 3 of the WHS Regulation.
+A crane operator must always exercise proper diligence and operate the crane safely. If the
+crane operator has reason to believe that a lift may be dangerous or unsafe, the operator
+must refuse to proceed until the concern has been reported, relevant risks have been
+managed and safe conditions have been confirmed.
+Tower crane operators are required to know:
+ the particular model of crane to be operated, its characteristics, functions and limitations
+ the information in the crane’s operating manual
+ the crane’s load chart, including all notes and warnings, and how to calculate or
+   determine the crane’s actual net capacity in every possible configuration
+ proper inspection and maintenance procedures to be followed in accordance with the
+   guidelines of the manufacturer and owner
+ any site conditions that may affect crane operations, including the presence of overhead
+   powerlines, nearby structures, other cranes and concrete placement booms
+ basic slinging techniques.
+Before and during crane operations, the crane operator must:
+ check unauthorised persons are not present on the crane
+ check each crane motion is safe and without risk
+ complete the daily inspection checklist, including filling out the crane logbook.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                      Page 33 of 65
+7.1.4 Dogger
+A dogger is required to hold a high risk work licence for dogging work, as specified under
+Schedule 3 of the WHS Regulation.
+The primary role of a dogger is to assist the crane operator in the safe and efficient operation
+of the crane. This includes the application of slinging techniques, including the selection and
+inspection of lifting gear, and the directing of the crane operator when a load is out of the
+operator’s view. The use of a dogger is crucial when the crane operator’s vision is obscured
+or when operating in high risk areas. Doggers must be positioned to safely observe the entire
+lifting operation that they are responsible for. However, a dogger should not be used to also
+perform the role of a ‘spotter’ when the crane is operating close to overhead powerlines.
+A dogger must be in control of the load from the time it is hoisted until it is placed in position.
+If a load is being controlled by more than one dogger, the different doggers must know what
+part of the lifting operation they are responsible for.
+Doggers are required to know how to:
+ use the various types of ropes, slings, chains and lifting accessories
+ determine the safe working loads (SWL) of any rope, sling or chain to be used for lifting
+ assess the weights of loads to be lifted
+ safely sling loads of different weights and sizes
+ direct a crane or hoist operator in the movement of a load when the load is out of the
+   operator’s view
+ give appropriate directions when directing loads.
+Before directing the crane operator to raise a load, the dogger must ensure:
+ each lifting attachment, sling and shackle has a SWL, or working load limit greater than
+    or equal to that of the load. These attachments must be suitable for safely handling the
+    load
+ the hoisting apparatus is correctly applied to the load and the crane hook
+ no part of the load is loose
+ the load is properly balanced
+ the load is not snagged
+ the load will not contact any object or constitute a hazard to any person when it is lifted.
+
+7.2 Minimising risk of injury from lifting loads
+WHS Regulation sections 315L: A principal contractor must ensure that, before
+construction work starts, adjoining areas where loads are being lifted over are closed under
+section 315M at least to the extent necessary to prevent objects falling on or hitting persons
+in the adjoining area. Alternatively, a principal contractor must ensure a gantry is erected that
+provides adequate protection to persons in the adjoining area against falling objects if the
+load were to fall.
+WHS Regulation section 315M: A principal contractor must, before construction work starts,
+ensure written approval is obtained from the relevant authority or person who controls the
+adjoining area, and if an authority controls the area, use any measures for the closure
+required by the authority (such as physical barriers, signs, traffic controllers etc.).
+Lifting loads may present a risk to the health and safety of persons in the vicinity of the tower
+crane from:
+ damaged lifting gear
+ crane overload
+ unsecured and dropped loads (falling objects).
+Some tower cranes also may be remotely operated by either hard-wired pendant controls or
+wireless controls. Further information on remote operation of these tower cranes, as well as
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                          Page 34 of 65
+self-erecting tower cranes, is provided at Section 8.1.1.
+
+7.2.1 Control measures to maintain the integrity of lifting gear
+Guidance on the use and inspection of chains, wire ropes and synthetic slings is provided in
+the following publications:
+ AS 2759: Steel wire rope – Use, operation and maintenance
+ AS 3775.2: Chain slings – Grade T – Care and use
+ AS 4497.2: Round slings – Synthetic fibre – Care and use
+ AS 1353.2: Flat synthetic-webbing slings – Care and use
+ AS 4991: Lifting devices
+ A guide for doggers (published by Workplace Health and Safety Queensland).
+Basic items that should be checked include:
+ the lifting gear is tagged and all relevant information listed (e.g. relevant information for a
+   chain sling includes grade of chain, SWL, manufacturer, chain size and Australian
+   Standard marking)
+ lifting hooks are provided with operable safety latches
+ shackles are prevented from unscrewing (e.g. mousing or similar)
+ lifting eyes and inserts are compatible and the same proprietary brand
+ lifting slings are not damaged (e.g. excessive wear, damaged strands, cracks,
+   deformation, severe corrosion)
+ the sling is appropriate for loads being lifted, including adequate capacity and protection
+   from sharp edges.
+The manufacturer’s requirements for lifting gear should be followed including using protective
+sleeves and corner pieces. Although the edges of a load may not appear to be sharp, a sling
+may become damaged when it is placed under tension.
+Slings should be placed around a load so that the sling is not crossed or twisted to ensure
+that the load is balanced and stable. If possible, the point of the lift should be located directly
+above the centre of gravity of the load. This will prevent the loads from toppling or falling out
+during the lift.
+Synthetic slings should only be used for appropriate lifts. For example, it is recommended
+that round (sausage) slings only be used for round loads as sharp edged loads may damage
+or tear this type of sling.
+The following photographs provide examples of correct use of slinging techniques:
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                          Page 35 of 65
+The following photographs provide examples of incorrect use of slinging techniques:
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                  Page 36 of 65
+All lifting gear, including slings, hooks and material boxes, should be periodically inspected
+for damage and wear by a competent person. The period between inspections will depend
+on the severity of use, but should not exceed 12 months. The inspection of synthetic slings
+should be carried out at three-monthly intervals (see AS 1353.2: Flat synthetic-webbing
+slings – Care and use and AS 4497.2: Round slings – Synthetic fibre – Care and use for
+further information). All lifting gear should be tagged to identify the date of the lifting gear’s
+last inspection. Documented maintenance records for the lifting gear should be available on
+site.
+
+7.2.2 Control measures to minimise risk of injury from crane overload
+A tower crane must be operated within its load chart.
+Before hoisting a load, the crane operator or dogger should make sure that the hoist rope
+hangs vertically over the load. Care should be taken to ensure that the load does not swing
+once it is lifted. The crane operator should ensure the load is always under control. When
+handling maximum or near maximum loads, the crane operator should take the following
+precautions after the load has been lifted a few centimetres:
+ test the hoist brakes
+ check the mass recorded on the load indicator
+ recheck the load chart.
+Except in an emergency, the crane operator must not leave the cabin or control room while a
+load is suspended from the crane.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                          Page 37 of 65
+7.2.3 Control measures to minimise risk of injury from unsecured and
+dropped loads
+    WHS Regulation section 55: A PCBU must minimise the risk of an object falling on a
+    person by providing adequate protection against the risk. Adequate protection includes
+    preventing an object from falling freely, so far as is reasonably practicable, or providing a
+    system to arrest the fall of a falling object if it is not reasonably practicable to prevent an
+    object from falling. Examples of systems include secure barriers, providing a safe means
+    of raising and lowering objects, and providing an exclusion zone persons are prohibited
+    from entering.
+    WHS Regulation section 219: The person with management or control of plant must
+    ensure, so far as is reasonably practicable, that no loads are suspended or travel over a
+    person unless the plant is specifically designed for that purpose. The person must also
+    ensure that loads are lifted or suspended in a way that ensures the load remains under
+    control during the activity.
+
+Extreme care must be exercised when lifting loads in the vicinity of other persons, including
+other workers and members of the public. All workers must be clear of the load to be lifted,
+especially when adjacent materials or objects can be displaced.
+Where possible, handling loads over public access areas such as footpaths, roads,
+highways, railways, waterways and buildings must be avoided. Where this is necessary,
+control measures must be implemented to prevent or minimise the risk of injury from falling
+objects.
+Lifting materials
+Crane-lifted loads should be slung and secured so that the load (or any part of it) cannot fall.
+To ensure safe lifting of loads, the following should occur:
+      Material boxes
+       - The tare mass and SWL should be clearly marked on all material boxes. A distinct
+         identification number on the box that can be cross referenced to the design drawing or
+         certificate for the box will assist to verify this.
+       - Material boxes should be appropriate for the material being lifted, and be engineer-
+         designed and certified.
+       - Four chains (one in each corner) should be attached to material boxes during lifting.
+       - Specifically designed material boxes should be used to lift smaller components. Boxes
+         should have enclosed sides or robust mesh, with openings less than the minimum
+         size of materials being lifted.
+       - Material boxes should be inspected and maintained, and inspection records kept.
+       - Loads within material boxes should be secured against movement.
+       - Materials should not be stacked higher than the side of the material box unless they
+         are adequately secured, but at no time should the material box become top heavy.
+      General lifting
+       - Formwork frames should be either tied together or lifting slings should be wrapped
+         around the load.
+       - Loads of joists or bearers should be strapped together before lifting.
+       - Timber sheeting should be strapped together and lifted in a flat position.
+       - Sheets of plasterboard should be lifted in a specifically designed material box. If a
+         material box is not used, then the lifting system must:
+         o be certified by an engineer
+         o specify the minimum and maximum number of sheets
+         o specify number and locations of lifting slings
+         o specify the capacity of lifting slings.
+       - Tag lines should be used as required to control loads.
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                             Page 38 of 65
+    - All loads should be supported where possible with dunnage, with the load uniformly
+      distributed over the supporting surface.
+    - Basket hitches should not be used wherever persons may be located near a lifted
+      load, unless the sling is positively restrained from sliding along the load.
+    - Lifting multiple loads at the same time (commonly known as high/low loads) should be
+      avoided due to the difficulty in ensuring the dogger is not underneath the loads.
+
+7.3 Safe access on tower cranes
+Failure to provide safe access for crane operators and other persons carrying out inspection
+and maintenance work on a tower crane will place these persons at risk of falling from a
+height.
+
+7.3.1 Tower ladders
+The type of ladder access in tower cranes is sometimes determined by available space in the
+tower. AS 1418.4: Cranes, hoists and winches – Tower cranes provides information on
+minimum requirements for such ladders. Landings, with changes in direction of the ladder,
+should be provided where there is available space in the tower. This system will minimise
+injury to workers, in the event of them falling off the ladder. It also allows workers to take rest
+breaks while climbing.
+Where practicable, the vertical distance between landings should not exceed six metres.
+However, where the crane manufacturer has designed otherwise, the length of the lowest
+ladder in the tower may be up to 12.5 metres, and subsequent ladders may be up to 10
+metres in accordance with AS 1418.4: Cranes, hoists and winches – Tower cranes.
+Tower cranes with cabins—continuous vertical ladders
+The use of continuous vertical ladders for accessing the total length of the tower is not
+recommended. However, where it is impractical to provide anything but a continuous vertical
+ladder, a fall-arrest system that does not require the person to constantly hook on and off
+must be provided. The system may incorporate a vertical rail or rope with a locking cam
+device. The risk of injury to a person falling off a ladder can be reduced by ensuring the
+length of lanyard between the person and the vertical rail or rope, does not exceed 300
+millimetres. Any ladder fall-arrest system is to comply with the requirements for ‘Type 1’ fall-
+arrest devices specified in AS/NZS 1891 Series: Industrial fall-arrest systems and devices.
+Vertical ropes should be manufactured from a material that is not prone to UV degradation or
+corrosion (e.g. suitable grade of stainless steel).
+The provision of rest platforms beside a vertical ladder is not an adequate control measure
+on its own to reduce the potential fall distance of the person. The use of fold-down type
+platforms is also not recommended because they can hinder rescue procedures, and
+increase the risk of a person falling down the ladder.
+Self-erecting tower cranes without cabins
+Generally, the towers on most self-erecting tower cranes do not have to be climbed by
+persons while in use. Instead, any maintenance required on the crane can often be carried
+out by collapsing the crane. However, some self-erecting tower cranes are provided with
+ladders on the towers for maintenance access. If a ladder is provided for maintenance
+activities only, the ladder can be vertical and a permanent vertical rail or rope does not have
+to be provided. However, any person climbing the ladder must be provided with a fall-arrest
+system. The use of work platforms, such as elevating work platforms, should be considered
+for performing maintenance activities.
+
+7.3.2 Internal guardrail on tower landings
+Internal guardrails on tower landings minimise the risk of a person falling internally down or
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                         Page 39 of 65
+off the tower. Some tower cranes are provided with an internal guardrail to tower landings to
+protect people from falling down the access hole. For example, either a guardrail on the
+internal side of the access hole or a rail that extends around the back of the access hole
+could be installed. It may be impractical to provide an internal guardrail on the top tower
+landing as slewing of the crane may cause the lower end of the ladder to strike and damage
+the internal guardrail, and entrapment of people on the top tower landing.
+
+7.3.3 Guardrails on machine deck and A-frame platform
+All tower cranes should be provided with perimeter edge protection that extends around the
+machine deck to prevent the crane operator and maintenance workers from falling. The edge
+protection should consist of a top rail between 900 millimetres and 1100 millimetres high, a
+mid-rail and a toeboard at least 100 millimetres high. The guardrail should comply with AS
+1657: Fixed platforms, walkways, stairways and ladders – Design, construction and
+installation.
+
+7.3.4 A-frame ladder cage
+A ladder cage should be provided on the A-frame to ensure that if a person falls off the
+ladder, the person will be confined within the cage and fall onto the machine deck, not off the
+tower crane. The lowest part of the ladder cage should be between 2 metres and 2.2 metres
+above the lower deck. The horizontal spacing between the vertical bars on the ladder cage
+should not exceed 150 millimetres. Mesh infill may be used instead of vertical bars.
+
+7.3.5 Cantilevered and hanging platforms
+Small access platforms may be needed on tower cranes with moving counterweights or to
+gain access to the slew ring. These platforms are provided to ensure access for riggers
+during the erection process, and for persons carrying out maintenance. Safe access is
+required to these platforms – workers should not be required to climb over handrails to obtain
+access.
+Two examples of safe access to these platforms is by providing either a trapdoor in the
+machine deck, or a ladder cage on the platform ladder. This platform should also be provided
+with a top rail, mid-rail and toeboard.
+
+7.3.6 Crane jib access—non-self-erecting types
+Tower cranes requiring riggers and crane operators to access the jibs while erecting,
+inspecting and maintaining the crane should be fitted with a rigger’s run and static lines that
+extend for the complete length of the jib. People should use the static line, and appropriate
+fall arrest lanyards to ensure they are attached to the crane at all times.
+Some non-luffing tower cranes are fitted with trolley platforms for inspection and
+maintenance purposes. These platforms are to remain on the crane.
+
+7.4 Leaving the crane unattended
+WHS Regulation section 207: The person with management or control of plant at a
+workplace must ensure, so far as is reasonably practicable, that plant that is not in use is left
+in a state that does not create a risk to the health or safety of any person.
+Failure to take adequate safety precautions to secure an unattended tower crane may
+encourage unauthorised use of the crane by persons who are not competent to operate it.
+A tower crane should not be left unattended unless the following actions have been taken:
+ all loads are removed from the hook
+ the hook has been raised to a position where it is safely clear of other operation
+ all powered motions have been disabled
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 40 of 65
+ the keys have been removed from the crane
+ there are adequate systems in place to prevent unauthorised access to the tower crane
+  base.
+Where there is no risk of the tower crane boom contacting other structures, the crane should
+be left to weathervane when unattended in accordance with the crane manufacturer’s
+instructions. For tower cranes with a luffing boom, the crane manufacturer’s instructions
+should specify the correct boom angle.
+Where it is necessary to restrict the movement of the boom of a tower crane, the method of
+tethering (i.e. securing the boom to prevent slewing) is to comply with instructions provided
+by the crane manufacturer. The strength of the tethering system, including its anchorages, is
+to be checked and certified by an engineer.
+
+7.5 Work boxes and first aid boxes
+7.5.1 Features and use of work boxes
+A work box is a personnel carrying device designed to be suspended from a crane to provide
+a working area for a person elevated by and working from the device.
+Crane-lifted workboxes may be used by workers to gain access to elevated work areas that
+are otherwise difficult to reach to perform minor work of short duration. Generally, crane-lifted
+workboxes do not provide a level of safety equivalent to properly erected scaffolding,
+elevating work platforms and other specifically designed access systems. A crane-lifted
+workbox can, however, provide a higher level of safety than fall-arrest harness systems.
+Before workboxes are selected as a means of access, a risk assessment should be
+undertaken and recorded demonstrating that the use of other means of access, such as
+scaffolding or elevating work platforms, is impractical.
+Crane-lifted workboxes should meet the following criteria:
+ The work box is to be design registered.
+ Correctly tagged lifting slings must be supplied with the work box and attached to lifting
+   points by means of hammerlocks or moused shackles.
+ The factor of safety for each suspension sling must be at least eight for chains and ten for
+   wire rope.
+ Have fall-arrest anchorage points.
+ The SWL, tare mass and design registration number of the workbox must be clearly
+   marked (e.g. on a data plate).
+ If the workbox is provided with a door, this should be inward opening only, self-closing
+   and provided with a latch to prevent accidental opening.
+ The sides of the work box must be at least one metre high.
+ A handrail should be provided that runs around the inside of the box perimeter. This
+   handrail helps to prevent injury to occupants’ hands in the event of the box contacting
+   other obstructions.
+ All persons in the work box must wear full body fall-arrest harnesses at all times.
+   Harnesses must be attached to fall-arrest anchorage points in the work box or to the
+   main sling ring above the workers’ heads. Energy absorbers must be provided on the
+   lanyards (see AS/NZS 1891 Series: Industrial fall-arrest systems and devices for further
+   information).
+ At least one person in the work box must hold a dogger’s licence class or equivalent to
+   ensure correct directions are communicated to and from the crane operator.
+Further guidance on the design and safe use of work boxes and cranes is provided in:
+    AS 1418.17: Cranes (including hoists and winches) – Design and construction of
+       workboxes and
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 41 of 65
+      AS 2550.1: Cranes, hoists and winches – Safe use – General requirements.
+
+7.5.2 Features and use of first aid boxes
+First aid boxes are a type of crane-lifted work box and must only be used for the retrieval of
+injured persons.
+A crane-lifted first aid box may be required in emergency response and retrieval situations.
+First aid boxes should be readily accessible on the site to ensure that an effective emergency
+response can be initiated if they are required.
+Crane-lifted first aid boxes should meet the following criteria:
+ The first aid box is to be design registered.
+ First aid boxes should be clearly identified and marked as first aid boxes.
+ Boxes are to be provided with sides and a roof except that a horizontal gap may be
+   provided around all sides of the box.
+ The sides of the box are to be at least 1 metre high, up to a horizontal gap which is not to
+   exceed 250 millimetres in vertical distance.
+ The minimum internal height of the box is to be 2.2 metres.
+ The minimum internal width of the box is to be 1.2 metres.
+ The minimum internal length of the box is to be 2.8 metres.
+ The maximum mesh size of the box is not to exceed 50 millimetres x 50 millimetres (i.e.
+   openings which exceed 0.0025 metres2).
+ A grab rail is to be provided along the sides of the box and to be recessed to minimise
+   the risk of crush injuries.
+ If the first aid box is provided with a door this may be provided with outward opening
+   doors, but the door is to be lockable to help prevent inadvertent opening.
+ Persons in the first aid box are not required to use fall arrest harnesses as the first aid
+   box is enclosed.
+ Correctly tagged lifting slings must be supplied with the first aid box and attached to lifting
+   points by means of hammerlocks or moused shackles.
+ The factor of safety for each suspension sling must be at least eight for chains and ten for
+   wire rope.
+ The SWL, tare mass and design registration number of the first aid box must be marked
+   on the first aid box.
+ At least one person in the first aid box must hold a dogger’s licence class or equivalent to
+   ensure correct directions are communicated to and from the crane operator.
+ When using first aid boxes, emergency retrieval arrangements should be put in place
+   before the lift so that workers can safely exit the work box in the event of crane failure.
+An example of a compliant first aid box under this section can be seen below:
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 42 of 65
+                                  Figure 12 – compliant first aid box
+Strong winds may affect the safe use of first aid boxes in emergency situations. It is
+recommended that first aid boxes not be used when wind speeds exceed 54km/hr or in
+adverse weather conditions such as electrical storms. The use of first aid boxes is more
+suitable in locations which are less susceptible to windy conditions, such as the side of a
+building structure which is not as exposed to high winds. First aid boxes should be lifted
+away from structures to avoid collision.
+When wind speeds exceed 54km/hr, alternative emergency retrieval means should be used
+such as hoists.
+
+7.5.3 Features of a crane when using work boxes and first aid boxes
+When using a crane-lifted work box or a first aid box, the crane must meet the following
+criteria:
+ Where reasonably practicable, be equipped with a secondary back-up system that will
+     prevent the load from falling if the primary lifting device fails.
+ The crane must have a minimum SWL of at least twice the total load of the workbox and
+     its contents, at the maximum radius for the task to be performed and not less than 1000
+     kilograms.
+ The crane must be fitted with an upper hoist limit that stops operation of the hoist and luff
+     functions of the crane.
+ The crane’s levers and foot pedals must be fitted with a constant pressure system that
+     stops the crane’s motions when the operator removes pressure from the controls.
+ The crane must not be capable of free fall.
+
+
+8. Additional requirements for self-erecting
+tower cranes
+The use of self-erecting tower cranes (see Figure 3) is increasing in Queensland, particularly
+on small to mid-sized building sites. As the name suggests, self-erecting tower cranes can
+be erected on site without using a mobile crane. Self-erecting tower cranes are generally
+made up of a horizontal boom that folds out during erection, and can include a telescopic
+boom. The counterweight is provided at the base of the crane.
+
+
+
+
+Figure 13 – Self-erecting tower crane
+Unlike most other tower cranes, self-erecting tower cranes do not require fixing to a crane
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 43 of 65
+base. Footings and foundations for the installation of a self-erecting tower crane must be
+designed in accordance with engineering principles or relevant technical standards. The
+design must consider the results of geo-technical inspections specific to the location of the
+crane installation.
+On both hammerhead and luffing tower cranes, the operator’s cabin is typically located at an
+elevated position, close to the butt of the boom. However, self-erecting tower cranes are
+rarely provided with a cabin and instead are operated by remote control. While this feature
+can sometimes be an advantage, as it allows the operator to walk around the site, it has also
+led to incidents where the crane has collided with powerlines or other obstacles because the
+operator was not located in the best position.
+
+8.1 Operation of self-erecting tower cranes
+Self-erecting tower cranes should be operated from a designated area. At all times during the
+lifting operations, the crane operator should:
+ remain in close proximity to the crane
+ maintain good visibility of the load.
+Where it is not possible for the operator to keep the load in sight, a dogger should report to
+the operator on the position of the load to ensure safe operation. A crane operator should not
+undertake their own dogging work (i.e. on a remote control tower crane) or supervise a
+trainee dogger, even if the operator is also a licensed dogger.
+
+8.1.1 Remote operation
+Self-erecting tower cranes and some tower cranes may be remotely operated by either:
+ hard-wired or pendant controls
+ wireless controls.
+The reliability of the circuits on the controls should be the same as that achieved by controls
+in a cabin. Wireless remotes must be uniquely coded to avoid corruption of signals and
+interference from other devices.
+Remotely operated tower cranes including self-erecting tower cranes should have a
+dedicated operator who is available to operate the crane. A number of doggers should be
+available to safely complete the lifts especially where there are multiple drop-off and pick-up
+points that are out of sight of the operator. The crane operator should follow the direction of
+the dogger at all times. This is particularly important when the load is out of sight of the crane
+operator.
+The crane operator should remain stationary when the load is in motion. If the operator has
+to move to a different location, the crane should not be operated while moving and the
+operator’s travel path should be free from obstacles, penetrations and other hazards.
+Crane operators should not undertake their own dogging work. If the crane operator needs to
+undertake other tasks, the remote control should be turned off and secured to prevent
+unintended activation of remote functions or other people using the crane, and effective
+communications should be maintained between the crane operator and other personnel.
+When the self-erecting tower crane is not in use, appropriate control measures must be in
+place to prevent unauthorised operation of the crane.
+
+8.1.2 Erection of barricade around self-erecting tower cranes
+Counterweights on self-erecting tower cranes are located at the base of the crane. Persons
+who encroach into the slewing arc of the counterweights face the risk of being hit by them.
+An 1800 millimetre high barricade (e.g. mesh fence), should be erected around the base of
+self-erecting tower cranes to prevent people from entering this area, and being hit by the
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                         Page 44 of 65
+crane’s counterweights. The barricade should be positioned to provide enough room to avoid
+entrapment between the barricade and the counterweights.
+
+
+9. Training and supervision
+9.1 Responsibilities for training and supervision
+The duties for providing information, instruction and training are outlined in section 1.5 of this
+code.
+Information, instruction and training for tower crane operations should cover at least:
+ SWMS to be used in setting up and for safe operation of tower crane activities
+ the method for inspection and maintenance of tower cranes
+ knowledge of the crane manufacturer’s operation and service manuals
+ the correct use, care and storage of PPE
+ the correct use, care and storage of tools and equipment to be used
+ observance of electrical safety practice
+ procedures to be adopted in the event of accident or injury.
+Supervision must:
+ ensure only those workers who have received instruction and training are authorised to
+   carry out that work
+ include sufficient monitoring of all work to ensure that agreed safe work practices are
+   being adhered to, including the use of all safety procedures and systems and PPE.
+
+9.2 Familiarisation training
+Tower cranes can be fundamentally different in their design, mode of operation, control
+layout and configuration. This is particularly the case when comparing tower cranes across
+the three basic categories—luffing, hammerhead and self-erecting tower cranes.
+Before a person is allowed to work as a crane operator, the PCBU of the person should
+either:
+ assess the person’s knowledge and understanding of safe crane operation
+ seek further evidence of competence
+ provide additional training, prior to allowing the person to work.
+Familiarisation training provides crane operators with an opportunity to become familiar with
+the design, layout and operating functions of a specific tower crane. It should be provided to
+crane operators prior to commencing work for a new PCBU or prior to working with a crane
+that has been newly acquired by their PCBU. This process may require the presence of a
+representative from the tower crane supplier or manufacturer, particularly when the crane is
+new. The representative from the tower crane supplier or manufacturer should have detailed
+knowledge of the operational and safety features of the crane in question. The representative
+from the tower crane supplier or manufacturer should also be endorsed by the crane supplier
+or manufacturer as being competent to provide familiarisation training.
+A record of familiarisation training must be made and kept by the PCBU of the crane
+operator. A copy of the training record is also to be given to and kept by the crane operator.
+Both the crane operator and the PCBU, or a representative of the PCBU must sign the
+record.
+The record of familiarisation training should take the format of a checklist. Crane operators
+must demonstrate that they understand how to safely operate the crane based on this
+checklist. Refer to Appendix 3 for a list of some items that can be included in a familiarisation
+training checklist.
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                         Page 45 of 65
+9.3 Refresher training
+PCBUs must ensure that persons who work as part of a crane crew (e.g. crane operators,
+doggers and riggers) receive refresher training. Refresher training may be provided by:
+    the PCBU
+    an independent consultant
+    a third party (e.g. registered training organisation).
+Refresher training should be made available to these persons on an ongoing basis. The
+purpose of refresher training is to ensure that crane operators, doggers and riggers maintain
+the competencies originally achieved in the relevant licence class for performing high risk
+work. It is particularly relevant for persons who have not continuously performed work in a
+class of high risk work.
+Refresher training should reflect issues such as:
+ the application of new technology, particularly for those persons who obtained their
+   licence class while working on more basic cranes
+ information in this code
+ any relevant changes to work health and safety legislation and Australian Standards
+   which may have an impact on safe crane operations
+ safe crane operation.
+Refresher training may include:
+ conducting a training needs analysis to identify the particular training needs of individual
+   workers
+ providing theoretical information, where required
+ providing practical demonstration and supervision.
+
+9.3.1 Frequency of refresher training
+The interval between refresher training courses should not exceed three years. Crane
+operators, doggers and riggers must undergo refresher training between two and a half and
+three years after either being issued with their initial licence for a class of high risk work, or
+since attending their most recent refresher training, whichever is the shorter time frame.
+
+9.3.2 Record of refresher training
+Crane operators, doggers and riggers must keep a documented record of refresher training
+they have undertaken. This record must be kept in a logbook.
+The record should consist of the following information:
+ the person’s name, address and signature
+ the person’s relevant classes of high risk work and licence numbers
+ the name and signature of the person conducting the training
+ the dates and times of the training
+ details of the training, including where appropriate, the type of equipment used or
+   operated and the outcomes achieved.
+Each training record must be verified and signed by the PCBU, or a representative of the
+PCBU. The PCBU must also keep a copy of the training record.
+
+
+10. Inspecting, testing, maintaining and
+repairing tower cranes
+Failure to carry out appropriately planned inspections, tests and preventative maintenance
+programs may lead to decreased safety and efficiency in the operation of the tower crane.
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                          Page 46 of 65
+Inspection and appropriate testing must be carried out at sufficiently frequent intervals to
+ensure:
+ the parts of the crane subject to deterioration through corrosion, damage, wear and
+    abrasion are replaced before they become unserviceable
+ the crane is maintained in a safe and serviceable condition.
+The inspection and testing regime for tower cranes consists of the following:
+ pre-erection inspection and tests
+ commissioning inspection and tests
+ pre-operational inspection
+ routine inspection and maintenance
+ annual inspection (when tower cranes in place for 12 months or longer)
+ major inspection.
+
+10.1 ‘Competent person’ for inspecting tower cranes
+The Work Health and Safety Act 2011 includes duties for persons conducting a business or
+undertaking, owners and suppliers of plant. A duty holder who owns a crane may engage a
+competent person to inspect the crane to determine whether the condition of the crane poses
+a risk to safety.
+The definition of a ‘competent person’ is provided in Appendix 1.
+A competent person can be:
+ the owner of the crane
+ a person employed by the owner of the crane (i.e. where the owner is also a PCBU), or
+ an independent consultant or third party.
+
+10.1.1 Inspecting specific parts of a crane
+A competent person who has been engaged to inspect a specific part of a crane should have
+suitable experience and knowledge in the inspection of that part of the crane. This person
+may not necessarily need experience in inspecting the complete crane.
+For example:
+(a) A competent person inspecting welding on a crane should have suitable knowledge and
+    experience in the inspection and testing of welds, including knowledge of non-destructive
+    testing methods, and AS/NZS 1554: Structural steel welding.
+(b) A competent person inspecting hydraulic systems and circuitry on the crane should have
+    suitable knowledge and experience in the inspection and testing of hydraulic systems.
+(c) The inspection of electrical systems on the crane should be completed by persons who
+    have knowledge and experience in electrical systems, including the ability to read circuit
+    diagrams and understand relevant technical standards. Any electrical work where the
+    voltage of the electrical system is greater than 50 volts alternating current or 115 volts
+    direct current must be done by a qualified and licensed electrical worker.
+(d) A competent person carrying out non-destructive testing on tower crane components
+    should have suitable knowledge and experience in non-destructive testing methods. This
+    person must be accredited by the National Association of Testing Authorities (NATA).
+In these instances, the competent person would make a statement that the particular part of
+the crane (e.g. the welding, hydraulic system or electrical system) complies with the relevant
+technical standards. It would not be appropriate for this person to state that the complete
+crane complies with a relevant technical standard or is in a safe condition.
+
+10.1.2 Inspecting a complete crane
+A competent person who has been engaged to inspect the complete crane should have
+suitable knowledge of and experience in the inspection of cranes. This person should be able
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 47 of 65
+to make a judgement about the maximum allowable amount of wear and deformation in
+mechanical and structural components, and the associated pass/fail criteria.
+The person should also be able to demonstrate experience in the inspection of the specific
+crane type.
+The decisions of the competent person should be based on information contained in the
+manufacturer’s instructions, relevant technical standards, sound engineering principles or a
+combination of all these.
+For major inspections, a competent person means someone who:
+    complies with both of the following
+           - has acquired through training, qualification or experience, the knowledge and
+              skills to carry out a major inspection of the crane;
+           - is registered under a law that provides for the registration of professional
+              engineers; or
+    is determined by the regulator to be a competent person.
+In forming their opinion, competent persons may use the advice of other competent persons
+involved in the crane inspection who are not engineers.
+
+10.1.3 Altering a crane
+Where an alteration has been made to the design of a crane, the competent person must be
+an engineer with suitable knowledge and experience. It is likely that the competent person
+will need to perform engineering calculations on the crane design to determine that it
+complies with relevant technical standards.
+
+10.2 Requirements for non-destructive testing
+Non-destructive testing (NDT) is the testing of materials to detect internal, surface and
+concealed defects or discontinuities, using methods that do not damage or destroy the
+material under test. NDT of specific tower crane components must take place at set intervals
+(e.g. pre-erection tests and major inspection). Table 1 specifies the minimum frequency of
+NDT for particular crane components.
+All NDT must be carried out by a competent person who has been accredited by the NATA.
+The results of NDT must be available at the workplace where the crane is erected.
+When using NDT for the detection of cracks in metals, the paint must be removed from the
+metal surface.
+Table 1: Frequency of NDT testing for specific tower crane components
+          Component tested                       NDT description           NDT frequency
+ Band brake welds (where applicable)       Crack test                    Pre-erection
+ Slew ring bolts (where slew ring has      Comply with crane             Pre-erection
+ to be split at disassembly)               manufacturer’s instructions
+                                           (may require 100% bolts).
+                                           Otherwise crack test
+                                           minimum 10% bolts*
+ Tower bolts                               Crack test minimum 10%        Pre-erection
+                                           bolts*
+ Aluminium sheaves                         Crack test                    Pre-erection
+ Slew ring bolts (all slew rings)          Crack test all bolts          5 years
+ Boom chord thickness                      Material thickness testing    10 years
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 48 of 65
+ Slew ring                                Crack test                      10 years
+ Boom lacing welds                        Crack test minimum 10%          10 years
+ A-frame (all connector welds on          Crack test                      10 years
+ primary chords)
+ A-frame lacing welds                     Crack test minimum 10%          10 years
+ Hook                                     Crack test                      10 years
+ Welds on hook trolley                    Crack test                      10 years
+*Note: where any defective bolts are located, all of the remaining bolts are to be crack tested.
+
+
+
+10.2.1 Crack testing of slew ring bolts
+The integrity of slew ring bolts is critical for ensuring both the machine deck and boom
+remain attached to the tower. Slew ring bolts may become damaged, and their effective life
+reduced if bolts are either under or over-torqued.
+For tower cranes where the slew ring must be split each time the crane is moved (e.g. Favco
+1500), 10 per cent of slew ring bolts must undergo NDT. Bolts to be tested are to be selected
+from the slew ring by a competent person. If any cracks are detected, all bolts must be
+tested.
+All slew ring bolts on tower cranes, including self-erecting tower cranes, must undergo NDT
+at least every five years. The preferred system of testing is to completely remove the bolts
+from the slew ring and examine them by magnetic particle testing.
+
+10.2.2 Crack testing of tower bolts
+Tower bolts are a critical part of the crane, and permit the effective transfer of load from the
+crane boom to the crane base. Tower bolts may become damaged from job to job. Their
+effective life may also be reduced if the bolts are either under or over-torqued. While all tower
+bolts are high tensile bolts, some are made from extremely high grade steel and may be
+more susceptible to cracking.
+A minimum of 10 per cent of tower bolts must be crack tested by NDT prior to each crane
+erection. If any cracks are found, all tower bolts must be crack tested.
+A system that ensures all tower bolts are tested over time is preferred, however a random
+system of testing may also be used. A crane owner may decide to test more than 10% of
+bolts where deemed necessary (e.g. due to a history of cracking). The tested bolts should be
+identified by a method that does not damage the bolt.
+
+10.2.3 Chord thickness testing
+Lattice-type tower crane booms are constructed from steel. The components of these may be
+prone to internal and external corrosion affecting the thickness of the boom. The thickness of
+the chord wall may also be reduced through abrasive blasting of the boom.
+All main chord sections on tower crane booms should undergo thickness testing at intervals
+not exceeding ten years. Ultrasonic thickness testing is one method of verifying whether
+there is adequate strength in the chords of the boom.
+Chord sections must be reviewed for structural adequacy when the thickness is shown by
+testing to be 90 per cent or less than 90 per cent of the original thickness.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 49 of 65
+10.3 Independent third party inspections of tower cranes
+at commissioning
+An independent third party should carry out inspections and tests of tower cranes prior to
+commissioning and before the crane has been put into service. It is also advisable for an
+independent third party to carry out inspections and tests prior to the crane being delivered to
+the workplace.
+
+10.3.1 Definition of independent third party
+An independent third party is a person who:
+ has acquired through training, qualification or experience the knowledge and skills to carry
+  out the task
+ is not associated with the ongoing general repair and maintenance of a particular crane
+  (whether directly or indirectly or through an associated company, including companies
+  who hire or lease a crane).
+
+10.3.2 Pre-erection inspections and tests
+Tower crane components should be inspected and tested prior to being delivered to the
+workplace. It is advisable for an independent third party to undertake these inspections and
+tests. This will ensure any faults identified with the crane can be fixed and resolved before
+the crane has been erected.
+These inspections and tests should include the following:
+ NDT of tower bolts
+ NDT of slew ring bolts
+ NDT of aluminium sheaves
+ the condition of the power supply cable where used
+ the condition of motor brakes
+ the condition of the slew ring gear and pinions
+ air controls and associated valves
+ the condition of ropes and sheaves (e.g. erection, hoisting, counterweight and trolley)
+   and correct rope tracking
+ the condition of limit switches and limiting devices
+ the condition of counterweights
+ the condition and fitment of machinery guarding
+ brake systems, which must be dismantled and inspected for wear and damage according
+   to the following criteria:
+   - dry brakes—prior to each erection or more frequently if directed by the manufacturer
+   - wet brakes—prior to each erection, after 5 000 hours of crane operation or as directed
+       by the manufacturer
+ all normal service items, including items supplied by the crane manufacturer (e.g.
+   temperature control units and adequate seating) being maintained in a serviceable
+   condition according to the crane manufacturer’s instructions
+ other tests specified by the manufacturer.
+Once the tower crane components have been delivered to the workplace, they should be
+inspected for any possible damage and wear during transport.
+Inspections should also be made of:
+ the crane base design and engineer’s report
+ crane ties and structure to support them where used
+ the power supply and earthing.
+A pre-erection inspection and test report should be developed which satisfies the
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 50 of 65
+requirements of this code and relevant Australian Standards. It should also reflect the
+specific type and model of crane and reference all relevant design drawings and test
+certificates.
+
+10.3.3 Commissioning inspections and tests
+Commissioning inspections and tests should be carried out by an independent third party
+once a crane has been erected but before it is put into service. Once the performance of the
+crane has been satisfactorily verified by the commissioning inspections and tests, the crane
+may be placed into service. A commissioning inspection should occur each time a crane is
+erected regardless of when an annual inspection of that particular crane has taken place.
+Commissioning inspections and tests should include:
+ crane electricity supply where used
+ crane base weights or ballast where used
+ tower section identification and access
+ ensuring tower bolts are correctly torqued (i.e. by checking documentation)
+ climbing frame and connection
+ jib connection pins and retainers
+ A-frame connections and retainers
+ jib and deck pendant pins and retainers where used
+ machinery guarding
+ leakage in lines, tanks, valves, pumps, and other parts of air or hydraulic systems
+ confirmation of no significant accumulation of oil, grease, litter or other combustibles in
+   the machine deck and cabin
+ the condition of the ropes and sheaves (e.g. erection, hoisting, trolley and counterweight)
+   and correct rope tracking
+ isolating switches
+ the condition and phase of the power supply cable
+ verification that the crane wiring complies with AS/NZS 3000: Electrical installations
+ effective operation of controls including interlocks
+ effective operation of indicating devices
+ effective operation of travel deceleration switches
+ effective operation of hoist upper and lower (where required) working limit switches
+ effective operation of warning devices
+ effective operation of the hoist and travel brakes when the crane is laden to the
+   maximum rated capacity
+ effective operation of the rescue controlled descent device
+ verification of installation and wiring of electric signs (builder’s logos)
+ effective operation of slew brake to allow for weathervaning
+ other tests specified by the crane manufacturer.
+A commissioning report should be developed which satisfies the requirements of this code
+and relevant Australian Standards. It should reflect the specific type and model of crane, and
+reference all relevant design drawings and test certificates.
+
+10.4 Pre-operational inspection
+The crane operator before the commencement of each work shift must carry out a visual
+inspection and function test of the crane. This should include inspection and testing of the
+following:
+ all relevant items indicated in the operations manual
+ operating and emergency controls
+ brakes
+ safety switches and interlocks, including limiting and indicating devices
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 51 of 65
+   visual inspection of the structure
+   wire ropes to ensure they are on the drum and correctly reeved on the sheave
+   wire ropes for obvious damage.
+The results of the inspection must be entered into a logbook and kept with the crane.
+All PPE should be inspected to ensure it is functioning correctly. All safety-related problems
+should be recorded and rectified prior to crane use.
+
+10.5 Routine inspection and maintenance
+A program of routine inspection and maintenance should be carried out by a competent
+person in accordance with the crane manufacturer’s instructions. It should include a visual
+inspection of those relevant items that can be safely done while the crane is erected.
+Routine inspection and maintenance should include the following:
+ all functions and their controls for speed, smoothness of operation and limits of motion
+ all emergency and safety switches and interlocks, including limiting and indicating
+   devices
+ lubrication of all moving parts and inspection of filter elements and fluid levels
+ visual inspection and measurements as necessary of structural members and other
+   critical components such as brakes, gears, fasteners, pins, shafts, wire ropes, sheaves,
+   locking devices and electrical contactors
+ signage, including warning signs and control markings
+ wear on wheels and rails
+ additional items nominated in the crane manufacturer’s instructions.
+All replacement parts and components must be identical or equivalent to the original parts or
+components. A written report must be provided upon completion of the inspection.
+
+10.6 Annual inspections (when tower cranes in place for
+12 months or longer)
+Where a crane is erected and has been in place for 12 months or longer, an annual
+inspection should be carried out by a competent person.
+The on-site annual inspection should include all items specified by the crane manufacturer
+for annual inspections, as well as relevant items included in the routine inspection and
+maintenance programs.
+Annual inspections include:
+ all relevant items in the pre-erection inspection and tests that can be safely completed
+   while the crane is erected
+ the effective functioning and calibration of all limiting and indicating devices
+ detailed visual inspection and tolerance checking of all critical structural and wear
+   components
+ checking of tolerances for wear limit
+ a detailed visual check for corrosion
+ a detailed visual examination of critical areas for evidence of cracking.
+A written report must be provided upon completion of the inspection.
+An example of an ‘Annual crane safety certificate’ is provided in Appendix 4. This document
+may be used as evidence that the crane has received an annual safety inspection by a
+competent person.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 52 of 65
+10.7 Major inspection of tower crane
+WHS Regulation section 235: A person with management or control of a registered tower
+crane must ensure that a major inspection of the crane is carried out:
+(a) at the end of the design life recommended by the manufacturer for the crane; or
+(b) if there are no manufacturer’s recommendations—in accordance with the
+    recommendations of a competent person; or
+(c) if it is not reasonably practicable to comply with paragraph (a) or (b)—every 10 years
+    from the date that the crane was first commissioner or first registered, whichever
+    occurred first.
+A major inspection carried out under an equivalent provision of a corresponding WHS law is
+taken to be a major inspection.
+A major inspection means an examination of all critical components of the crane. It may be
+necessary to strip down the crane and remove paint, grease and corrosion to allow a
+thorough examination of each critical component. A major inspection also means checking
+the effective and safe operation of the crane.
+The parameters of the major inspection should be considerably more comprehensive than
+the annual inspection, due to the amount and severity of operation that a tower crane will be
+exposed to after longer periods of time. Even if the crane has not been exposed to regular
+operation, the crane may have deteriorated due to the way it has been stored or the
+environment in which it has operated in (e.g. dirty or corrosive environments). The major
+inspection must be certified by an engineer who has experience, training and qualification in
+the inspection of tower cranes. The engineer may use the advice of other competent persons
+when preparing the inspection report.
+An example of a crane safety certificate for a major inspection is provided in Appendix 5. An
+engineer may use this document as evidence that the crane has received its major
+inspection.
+A major inspection involves the examination (usually stripping down unless otherwise
+determined by an engineer) of all working components of the crane. All covers and cladding
+must be removed where necessary to enable the major inspection to be carried out. A major
+inspection requires particular attention to be given to the following:
+ structural, mechanical, electrical, instrumentation, control and operational anomalies
+ non-destructive testing examination to an appropriate standard
+ controls and emergency stop
+ braking systems
+ manufacturer’s safety upgrades
+ adequacy of safety instructions and manuals
+ the capacity and viability of upgrading the crane to the requirements of the latest relevant
+    technical standard.
+
+10.7.1 Key inspection items for a major inspection
+The following items, where appropriate, must be included in a major inspection for tower
+cranes:
+ slew ring
+ hydraulic motors
+ hydraulic pumps
+ valve blocks (bodies)
+ hoist and luff drums
+ braking systems
+ rope sheaves
+ hydraulic luffing cylinder
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                     Page 53 of 65
+   gear boxes and drive shafts
+   boom
+   A-frame
+   pins with moving parts (e.g. boom heel pins, ram pins)
+   static pins
+   steel wire ropes
+   electrical systems
+   control systems
+   electric motors
+   alignment of the drive shaft between the motor and gear box (where applicable)
+   hook trolley (non-luffing cranes)
+   hook assembly.
+Note that this list only specifies some of the generic items requiring inspection. Some of the
+items may not be applicable to some types of tower cranes because the feature will not exist
+on the crane. The full list of items to be inspected must be determined by the competent
+person.
+Completion of a major inspection does not indicate that the components inspected will have
+a further 10 year life. It should not be assumed that the items included in the list only require
+inspection at 10-yearly intervals. All items will require some type of inspection and
+maintenance at more frequent intervals (i.e. at annual and other inspection intervals) in
+accordance with the crane manufacturer’s instructions. Section 10.2.1 also requires slew ring
+bolts to be crack tested by NDT, or replaced by new bolts, every five years.
+Where there is documented evidence that the appropriate inspecting and testing has been
+carried out on a certain item within a reasonable preceding period (as determined by a
+competent person), this item does not have to be stripped down in the major inspection.
+However, the competent person must still inspect the safe operation of the item to certify that
+it is operating safely. This requirement applies to the following items:
+ slew ring
+ hydraulic motors
+ hydraulic pumps
+ valve blocks
+ hoist and luff drums
+ pins with moving parts.
+Slew ring
+ Remove the slew ring bolts and split the slew ring.
+ Measure the wear in the slew ring.
+ Replace worn bearings and spacers.
+ Carry out NDT and repair of bearing race.
+ Measure the backlash and teeth width in the pinion drives and ring drive to ensure they
+   are within the manufacturer’s specifications.
+ Ensure all slew ring bolts are crack tested by NDT, or replaced with new bolts.
+Hydraulic motors
+ Remove, strip down and inspect all hydraulic motors.
+ Replace all worn valves and other components.
+ Ensure tolerances comply with manufacturer’s specifications prior to reassembly.
+ Ensure motors are pressure and performance tested prior to re-entering service.
+Hydraulic pumps
+ Remove, strip down and inspect all hydraulic pumps.
+ Replace all worn valves and other components.
+ Ensure tolerances comply with manufacturer’s specifications prior to reassembly.
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                        Page 54 of 65
+   Ensure pumps are pressure and performance tested prior to re-entering service.
+Valve blocks (bodies)
+ Remove, strip down and inspect all valve blocks.
+ Replace all worn valves and other components.
+ Ensure tolerances comply with crane manufacturer’s specifications prior to reassembly.
+ Ensure valves are pressure and performance tested prior to re-entering service.
+Hoist and luff drums
+ Remove luff drums and replace drive shaft bearings as required.
+ Inspect grooves on the luff drum.
+ Inspect the drive pinions for wear and correct allowable backlash.
+ Replace drive pinions if the tolerances are outside of the manufacturer’s specifications.
+ Inspect rope anchor points to ensure they are correct for rope dimensions.
+Braking systems
+ Remove and dismantle all brakes from the crane.
+ Check pins, springs and bushes for correct tolerance.
+ Replace rubber seals.
+ Check pistons for correct operation.
+ Ensure welds in braking systems are crack tested by NDT.
+ Inspect hydraulic systems for leaks prior to reassembly on the crane.
+ Inspect wear limits on brake linings.
+Rope sheaves
+ Remove all rope sheaves and replace bearings as necessary.
+ Check sheave groove size and replace the sheave if it is outside of the manufacturer’s
+   specifications.
+ Inspect sheaves for cracking, alignment and damage.
+ Replace synthetic sheaves if recommended to do so by the sheave manufacturer.
+Hydraulic luffing cylinder
+ Remove cylinder and ram from the crane and strip the cylinder and valve blocks.
+ Ensure gland nuts are crack tested and threads are checked for wear.
+ Replace seals and re-chrome ram where necessary.
+ Ensure the reassembled cylinder is pressure tested and checked for operation and leaks.
+ Ensure welds on rod ends and caps are crack tested by NDT.
+Gear boxes and drive shafts
+ Remove and dismantle gear boxes, drive shafts and flexible couplings to the extent that
+   a thorough inspection is possible.
+ Replace worn and damaged bearings and gears.
+ Align the drive shafts.
+Boom
+ Ensure all NDT on boom components required in the pre-erection tests is carried out.
+ Ensure ultrasonic chord thickness of boom is performed.
+ Ensure a minimum of 10 per cent of lacing welds on each boom section are crack tested
+   by NDT. If any cracks are found, ensure all lacing welds on the boom section are tested.
+A-frame
+ Remove all pins.
+ Ensure NDT is carried out on all connector welds on primary chords.
+ Ensure a minimum of 10 per cent of lacing welds are crack tested by NDT.
+Pins with moving parts (e.g. boom heel pins, ram pins)
+ Remove and inspect all pins with moving parts.
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                    Page 55 of 65
+   Measure the diameter of the pin and bush to ensure it is within the manufacturer’s
+    tolerance. If not, the pin must be remachined or replaced and the bush replaced.
+   Inspect restraint systems (i.e. cheek plates) and grease nipples.
+Static pins
+ Remove and inspect all static pins.
+ Repair pins if necessary.
+Steel wire ropes
+ Inspect all ropes for wear, including hoist, luff, pendant, trolley and counterweight ropes,
+   to ensure they do not exceed the discard criteria specified in AS 2759: Steel wire rope –
+   Use, operation and maintenance. If the competent person considers that the rope will
+   require replacing within the next three months, replace the rope with one that passes the
+   inspection criteria of AS 2759: Steel wire rope – Use, operation and maintenance.
+ Ensure ropes are only replaced with the type of rope specified by the crane manufacturer
+   unless a professional engineer specifies otherwise.
+ Inspect pins and terminations on pendant ropes.
+Electrical systems (hazardous voltage)
+ Ensure a qualified and licenced electrician inspects switchboards, wiring, motors and
+    other electrical components in accordance with the applicable parts of AS 60204.1:
+    Safety of machinery – Electrical equipment of machines – General requirements and AS
+    3000: Electrical installations.
+ Replace damaged or worn components.
+ Ensure sign-off is provided by the electrician.
+Control systems (non-hazardous voltage)
+ Ensure electrical control systems and components are inspected by a competent person.
+ Replace damaged or worn components.
+ Ensure sign-off is provided by the competent person.
+Electric motors
+ Remove and dismantle electric motors from the crane.
+ Inspect brushes, bearings, switches and motor wiring for damage and wear.
+ Inspect splines and shaft keyways for wear and cracks.
+ Ensure sign-off is provided by the competent person.
+Hook trolley (non-luffing cranes)
+ Inspect hook trolley wheels for damage and wear.
+ Replace hook trolley wheels if necessary.
+ Ensure welds on the trolley are crack tested by NDT.
+Hook assembly
+ Dismantle and dimensionally inspect the hook assembly to ensure it is within the
+  manufacturer’s specifications.
+ Ensure the hook is crack tested by NDT.
+
+10.7.2 Action following a major inspection
+Following a major inspection, the crane must be upgraded to comply with:
+ the current version of AS 1418.4: Cranes, hoists and winches – Tower cranes or other
+    relevant technical standards, or
+ the recommendations of the competent person who has assessed the crane and
+    determined what needs to be done to provide a level of safety equivalent to that which
+    would be achieved by AS 1418.4: Cranes, hoists and winches – Tower cranes or other
+    relevant technical standards.
+A written report detailing the result of the major inspection must be provided to the crane
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 56 of 65
+owner.
+
+10.8 Records of inspections and maintenance
+A crane service record, such as a maintenance logbook, of the significant events concerning
+the safety and operation of the crane must be kept and readily available. The records must
+be easily understood, and written in plain English. Records may be kept in any suitable
+format, and must be transferred with ownership of the crane. All entries in the maintenance
+logbook are to:
+ clearly describe the work undertaken and parts replaced
+ be dated
+ note the name of the person carrying out the work
+ be signed by the person carrying out the work.
+Documentation stating that the crane has been inspected by a competent person, and is in a
+safe and satisfactory condition, should be readily available.
+The checks, adjustments, replacement of parts, repairs and inspections performed, and all
+irregularities or damage concerning the unit’s safe use, must be recorded.
+In addition, all complete routine, annual inspection and major inspection reports must be
+maintained and made available for examination as required.
+
+10.9 Tower crane maintenance
+A tower crane preventative maintenance program should be established based on the
+working environment and the frequency and severity of use of the crane. The following items
+should form part of an effective maintenance program:
+ replacement parts and components should be identical or equivalent to the original
+    equipment parts and components
+ a specific rectification program should be carried out where past experience has shown
+    particular problems with a crane
+ all safety-related malfunctions and problems should be corrected before the crane is
+    returned to service.
+The owner of the tower crane must ensure that:
+ the necessary facilities and systems of work are provided and maintained so as to
+   minimise the risks to health and safety of persons maintaining, inspecting, repairing or
+   cleaning the crane
+ inspections, maintenance and cleaning are carried out having regard to procedures
+   recommended by the crane designer and manufacturer, or the relevant Australian
+   Standard, or as developed by a competent person
+ repair, inspection and, where necessary, testing is carried out by a competent person
+ all safety features and warning devices of the crane are maintained and tested
+ when the crane has been damaged to the extent that its function or condition is impaired,
+   resulting in increased risk to health or safety, a competent person assesses the damage
+   and advises the owner of:
+   -   the nature of the damage
+   -   whether the crane is able to be repaired, and if so, what repairs must be carried out
+       to minimise risks to health and safety
+ repairs to the crane are carried out so as to retain the crane within its design limits
+ annual maintenance, repair and inspection records are kept for the crane.
+
+10.10 Tower crane repair
+All worn or damaged parts of a crane that constitute a hazard, impair the operation of the
+crane, or may constitute a hazard before the next routine inspection, are to be repaired or
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                      Page 57 of 65
+replaced. All repaired or new parts must comply with the crane manufacturer’s
+recommendations or specifications. Where these are not available, the repaired or new parts
+must comply with the recommendations of a competent person, taking into account the
+design requirements of AS 1418.4: Cranes, hoists and winches – Tower cranes or any other
+relevant technical standard.
+
+10.11 Second-hand imported tower cranes
+The importance of the maintenance history of second-hand imported tower crane from
+overseas cannot be underestimated. Before a second-hand imported tower crane can be
+operated for the first time, the owner of the crane should ensure the crane is subject to
+inspection by an independent third party (refer to Section 10.3), or a major inspection if the
+crane is at least 10 years old or there is no documented evidence that shows the crane’s
+history of use or maintenance records. In addition, where the safety of the crane cannot be
+verified by documentation, it should be subject to a major inspection overseen by an
+engineer.
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                       Page 58 of 65
+Appendix 1: Dictionary
+‘Anemometer’ means an instrument for measuring wind speed.
+‘Common plant’ means plant provided by the principal contractor for use by any person at
+the workplace for a purpose other than discharging a work health and safety duty. For
+example, tower cranes may be provided for the use of all persons at the workplace as
+common plant.
+‘Competent person’
+For the purpose of conducting major inspections under Section 10.7:
+        means a person who either—
+             has the skills, qualifications, competence and experience to inspect the plant;
+                and is registered under a law that provides for the registration of professional
+                engineers; or
+             is determined by the regulator to be a competent person.
+For all other references in the code:
+        means a person who—
+             has acquired through training, qualification or experience the knowledge and
+                skills to carry out the task.
+‘Dedicated radio frequency’ means a specific radio frequency that has been provided by
+the Spectrum Management Agency.
+‘Design verification statement’ means a statement that—
+ is written and signed by a person who is eligible to be a design verifier for the design
+ states that the design was produced in accordance with published technical standards or
+   engineering principles specified in the statement
+ includes—
+   -   the name, business address and qualifications (if applicable) of the design verifier;
+       and
+   -   if applicable, the name and business address of the organisation for which the
+       design verifier works.
+‘Design verifier’ for a design of plant, means a person who has the skills, qualifications,
+competence and experience to design the plant or verify the design.
+‘Engineer’, in relation to the performance of a task means a person who─
+ is a registered professional engineer under the Professional Engineers Act 2002
+ is competent to perform the task.
+A person must not carry out professional engineering services in Queensland unless they are
+a registered professional engineer under the Professional Engineers Act 2002. For more
+information, refer to the Board of Professional Engineers of Queensland.
+‘Engineering principles’ means principles stated or outlined in an engineering,
+mathematical or scientific text, relevant to safe plant design, commonly used in professional
+engineering practice.
+‘Fail-safe’ means that when partial or total failure of plant occurs, the plant fails in a manner
+which leaves the plant in a safe condition and which does not introduce any additional
+condition which is unsafe.
+‘Independent third party’, for the purpose of conducting pre-erection inspections and tests
+under Section 10.3.2 and conducting commissioning inspections and tests under Section
+10.3.3, is a person who:
+     has acquired through training, qualification or experience the knowledge and skills to
+        carry out the task
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                         Page 59 of 65
+      is not associated with the ongoing general repair and maintenance of a particular
+       crane (whether directly or indirectly or through an associated company, including
+       companies who hire or lease a crane).
+‘Load chart’ means a notice supplied by the crane manufacturer that is fitted on a crane and
+specifying the rated capacities as supplied by the manufacturer.
+‘Reliability level’ means a category of reliability covered in AS 4024: Safety of machinery,
+and is a measure of the ability of the safety-related control circuit to provide a safety
+mechanism (e.g. electronic cut-off of power) even if the safety circuit itself is damaged. For
+example, a category 4 safety-related control circuit must either bring the crane motion to a
+safe condition after the occurrence of the first fault or, in the event of additional foreseeable
+faults, must not cause the designed safety function of the control circuit to be lost.
+‘Representational drawing’ means a general arrangement drawing showing leading
+dimensions and material specifications.
+‘Safety integrity level’ (SIL) means a safety integrity level covered in AS 61508: Functional
+safety of electrical/electronic/programmable electronic safety-related systems, and is used
+where a control circuit employs programmable electronics. For example, a SIL 3
+microprocessor-based system will provide an equivalent level of reliability to Category 4
+under AS 4024: Safety of machinery, however due to the complexity of the circuits involved
+in programmable electronics, the SIL is determined based on the probability of component
+failure, software errors and external influences rather than foreseeable fault conditions.
+‘Stabilising moment’ is the moment that tends to keep the crane upright. Overturning
+moment is the moment that tends to tip the crane over. When the overturning moment
+exceeds the stabilising moment, the crane will overturn. ‘Moment’ is the engineering
+calculation of force multiplied by the perpendicular distance between the force and the
+turning point.
+‘Technical standard’ for a design of plant, means a standard published by either:
+(a) the chief executive
+(b) Standards Australia
+(c) another organisation that publishes standard(s) about the design of plant.
+   Examples of paragraph (c):
+    American National Standards Institute.
+    American Society of Mechanical Engineers.
+    Canadian Standards Association.
+    International Standards Organisation.
+    Europaische Norm (European Standard).
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                         Page 60 of 65
+Appendix 2: Relevant technical standards
+  Technical standard                                    Title
+ AS 1353.2                Flat synthetic-webbing slings – Care and use
+
+ AS1418.1                 Crane, hoists and winches – General requirements
+
+ AS 1418.4                Cranes, hoists and winches – Tower cranes
+
+ AS 1418.17               Cranes (including hoists and winches) – Design and
+                          construction of workboxes
+
+ AS/NZS 1554 (Series)     Structural steel welding
+
+ AS 1657                  Fixed platforms, walkways, stairways and ladders – Design,
+                          construction and installation
+
+ AS/NZS 1891 (Series)     Industrial fall-arrest systems and devices
+
+ AS 2550.1                Cranes, hoists and winches – Safe use – General requirements
+
+ AS 2550.4                Cranes, hoists and winches – Safe use – Tower cranes
+
+ AS 2550.20               Cranes, hoists and winches – Safe use – Self-erecting tower
+                          cranes
+
+ AS 2759                  Steel wire rope – Use, operation and maintenance
+
+ AS/NZS 3000              Electrical installations (Australian/New Zealand Wiring Rules)
+
+ AS 3775.2                Chain slings for lifting purposes – Grade T(80) and V(100) –
+                          Care and use
+
+ AS/NZS 4024 (Series)     Safety of machinery
+
+ AS 4497.2                Round slings – Synthetic fibre – Care and use
+
+ AS 4991                  Lifting devices
+
+ AS 60204.1               Safety of machinery – Electrical equipment of machines –
+                          General requirements
+
+ AS 62061                 Safety of machinery – Functional safety of safety-related
+                          electrical, electronic and programmable electronic control
+                          systems
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                     Page 61 of 65
+Appendix 3: Familiarisation training checklists
+Electric tower crane
+Crane make and model used for training: __________________________________
+The operator demonstrated the ability to correctly perform and operate the following on the first or on
+the second (or follow up) occasion:
+                                                 1st   2nd                                                       1st   2nd
+Seat adjustment                                               Hoist limiter
+Control identification (levers and                            Slew lock pin
+switches) and operation
+Warning devices (including horn)                              Anti-collision device operation (where
+                                                              fitted)
+Slew lock                                                     Maximum wind speed
+                                                              Electricity isolating switch
+Load charts
+Load chart (capacity at radius)                               Safety inspection:
+Load chart (variations for different boom                         ropes
+lengths)                                                          rams
+Load chart (variations for different rope                         wire rope wear of pads/sheaves
+falls)                                                            boom
+                                                                  grease points
+Rated capacity limiter                                            fluid leaks
+Rated capacity limiter – features                                 fluid levels
+Rated capacity limiter – set up and                               brakes
+operation                                                         cabin visibility
+Rated capacity limiter – relationship to                          lights
+load chart                                                        tower bolts
+Rated capacity limiter – override                                 slew ring bolts
+procedures                                                        fall-arrest harness and lanyard
+Rated capacity limiter – digital display                          boom pins and retainers
+
+Slew function
+Luff function (where applicable)
+Trolley function (where applicable)                           Platform and tower edge protection
+Hoist function                                                Cable drum and cable guide
+Slew brake                                                    Hoist, travel and trolley brakes
+Slewing ring ball races                                       Fluid couplings
+Slipring unit
+Wheel bogies                                                  Fire control procedures and equipment
+Worker statement:
+      I have received instruction in the operation, maintenance, inspection and safe use of this crane.
+      I understand its safety features and how to carry out pre-operation, daily routine and logbook checks.
+      I understand the manufacturer’s instructions and guidelines for the safe operation and driving of this
+       crane.
+      I confirm I am able to safely operate this crane and I agree to comply with safety instructions.
+      In the event of being unsure of a task, I will request further training or instruction before performing the
+       task.
+Worker name: _____________________________________________________________________
+
+Worker signature: ___________________________                                       Date: __________________
+PCBU representative name: __________________________________________________________
+Signature: _________________________________               Date: __________________
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                                         Page 62 of 65
+   Diesel hydraulic tower crane
+   Crane make and model used for training: __________________________________
+   The operator demonstrated the ability to correctly perform and operate the following on the
+   first or on the second (or follow up) occasion:
+                                                 1st   2nd                                                               1st   2nd
+Seat adjustment                                              Re-fuelling procedure
+Gauge and indicator function                                 Anti-collision device operation (where fitted)
+Control identification (levers and                           Grease applications for ropes, pinions, slew
+switches) and operation                                      rings and sheaves
+Warning devices (including horn)                             Engine/gearbox/hydraulic tank levels and site
+                                                             gauges
+Slew lock                                                    Isolator switches locations and functions
+Free slew procedure                                          Weather vane radius (based on engineer
+                                                             design drawings and other possible plant)
+Load charts
+Load chart (capacity at radius)                              Safety inspection:
+Load chart (variations for different boom                             ropes
+lengths)                                                              rams
+Load chart (variations for different rope                             wire rope wear pads/rollers
+falls)                                                                boom
+Rated capacity limiter                                                grease points
+Rated capacity limiter – features                                     fluid leaks
+                                                                      fluid levels
+Rated capacity limiter – set up and
+                                                                      brakes
+operation
+                                                                      cabin visibility
+Rated capacity limiter – relationship to
+                                                                      lights
+load chart
+                                                                      tower bolts
+Rated capacity limiter – override
+                                                                      slew ring bolts
+procedures
+                                                                      boom pins and retainers
+Rated capacity limiter – digital display
+
+Slew function                                                Maximum wind speed
+Luff function                                                Anti-cavitation switch, operations and functions
+Luff brake                                                   Platform and tower edge protection
+Hoist function                                               Fire control procedures and equipment
+Slew brake                                                   Hoist/luff decal and ultimate limit functions
+                                                             (radius and height they are set at)
+Operation and control of slew brake                          Cabin control panel annunciator functions and
+controls, luffing lever controls, hoisting                   warning signals
+lever and winch clutches
+Hoist limiter                                                Sludge tank taps and functions
+   Worker statement:
+         I have received instruction in the operation, maintenance, inspection and safe use of this crane.
+         I understand its safety features and how to carry out pre-operation, daily routine and logbook checks.
+         I understand the manufacturer’s instructions and guidelines for the safe operation and driving of this
+          crane.
+         I confirm I am able to safely operate this crane and I agree to comply with safety instructions.
+         In the event of being unsure of a task, I will request further training or instruction before performing the
+          task.
+   Worker name: _____________________________________________________________________
+
+   Worker signature: ___________________________                                       Date: __________________
+   PCBU representative name: __________________________________________________________
+   Signature: _________________________________               Date: __________________
+
+
+
+   Tower Crane Code of Practice 2017 (PN12040)                                                         Page 63 of 65
+Appendix 4: Example - Annual crane safety
+certificate
+Certificate no.: _____________________________
+
+Crane type:______________________             Crane manufacturer:
+______________________
+
+Crane serial no.: ___________________         Design registration no.: ___________________
+
+WHSQ plant registration no.: _____________ Manufacture date:
+____________________
+Owner’s name:
+____________________________________________________________________
+
+Address:
+_________________________________________________________________________
+
+Inspection date:
+___________________________________________________________________
+
+______________________________________________________
+
+Name of competent person:
+_________________________________________________________
+
+Address of competent person:
+______________________________________________________
+
+Telephone number: ______________________________________
+
+Qualifications of competent person (e.g. professional engineering qualification, membership
+of professional organisation, crane industry experience, other tertiary qualifications, trade
+qualifications):
+
+__________________________________________________________________________
+________________
+
+Inspector identification number:
+_________________________________________________
+
+Competent person statement:
+I hereby certify that the crane, serial number: _______________, has received its annual
+safety inspection in accordance with the instructions of the crane designer and manufacturer,
+and with relevant Australian Standards and the Tower crane Code of Practice 2017, and is
+safe to use.
+
+Competent person signature: ________________________ Date: ____________
+
+Comments:__________________________________________________________
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                     Page 64 of 65
+Appendix 5: Example - Crane safety certificate
+– major inspection
+Certificate no.: _____________________________
+
+Crane type:     ______________________ Crane manufacturer: ________________________
+
+Crane serial no.: ___________________ Design registration no.: ______________________
+
+WHSQ plant registration no.: _____________      Manufacture date: _______________________
+
+Owner’s name: ____________________________________________________________________
+
+Address: _________________________________________________________________________
+
+Inspection date: ___________________________________________________________________
+
+______________________________________________________
+
+Name of competent person: _________________________________________________________
+
+Address of competent person: ______________________________________________________
+
+Telephone number: ________________________________________________________________
+
+Professional Engineer RPEQ number:_______________________________ ___________
+
+Competent person statement:
+I hereby certify that the crane, serial number: _____________, has received its major safety
+inspection in accordance with the instructions of the crane designer and manufacturer and the Tower
+crane Code of Practice 2017, and is safe to use. This inspection includes mechanical, structural and
+electrical items of the crane.
+
+Competent person signature:     ______________________          Date:   _______________________
+
+Comments:_______________________________________________________________________
+
+
+
+
+Tower Crane Code of Practice 2017 (PN12040)                                            Page 65 of 65
+

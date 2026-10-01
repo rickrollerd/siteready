@@ -1,0 +1,2543 @@
+Formwork code of practice 2016
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0019/15823/formwork-cop-2016.pdf
+
+Formwork
+
+Code of Practice 2016
+This Queensland code of practice was been approved by the Minister for Employment and Industrial
+Relations, Minister for Racing and Minister for Multicultural Affairs under section 274 of the Work
+Health and Safety Act 2011 and commenced on 31 March 2016.
+
+This code was varied by the Minister for Education and Industrial Relations on 1 July 2018.
+
+
+
+
+PN11965
+
+© The State of Queensland 2020
+Copyright protects this document. The State of Queensland has no objection to this material being reproduced, but asserts its right to be recognised as author
+of the original material and the right to have the material unaltered.
+The material presented in this publication is distributed by the Queensland Government as an information source only. The Sta te of Queensland makes no
+statements, representations, or warranties about the accuracy or completeness of the information contained in this publication, and the reader should not rely on
+it. The Queensland Government disclaims all responsibility and all liability (including, without limitation, liability in negligence) for all expenses, losses, damages
+and costs you might incur as a result of the information being inaccurate or incomplete in any way, and for any reason.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                                                                            Page 2 of 54
+Contents
+ 1 Introduction                                                                                                                                  6
+ 1.1 What is formwork? ....................................................................................................................... 6
+ 1.2 Who has health and safety duties in relation to formwork activities? ......................................... 6
+ 1.3 What is involved in managing risks associated with formwork activities? ................................. 7
+ 1.4 Information, training, instruction and supervision ....................................................................... 8
+ 2 Design                                                                                                                                       10
+ 2.1 Safe design of buildings in relation to formwork ..................................................................... 11
+   2.1.1        Build-ability ..............................................................................................................    11
+   2.1.2        Materials – traditional formwork ..............................................................................                 12
+ 2.2 Formwork systems .................................................................................................................... 13
+   2.2.1        Safe formwork design and certification ...................................................................                      13
+   2.2.2        Modular proprietary system design .........................................................................                     15
+   2.2.3        Documentation ........................................................................................................          15
+   2.2.4        Design variations .....................................................................................................         17
+   2.2.5        On site coordination and verification .......................................................................                   17
+ 3 Coordination and administration                                                                                                              18
+ 3.1 Work program ............................................................................................................................ 18
+ 3.2 The work environment ............................................................................................................... 18
+   3.2.1        Entry and exit...........................................................................................................       19
+   3.2.2        Material storage .......................................................................................................        19
+   3.2.3        Rubbish storage and removal .................................................................................                   20
+   3.2.4        Lighting ....................................................................................................................   20
+ 3.3 Safe work method statements .................................................................................................. 20
+ 4 Work systems                                                                                                                                 21
+ 4.1 Formwork erection – traditional systems .................................................................................. 21
+   4.1.1        Foundations .............................................................................................................       21
+   4.1.2        False deck ...............................................................................................................      22
+   4.1.3        Erecting frames .......................................................................................................         22
+   4.1.4        Installing bearers .....................................................................................................        23
+   4.1.5        Fall protection from the formwork deck ...................................................................                      23
+   4.1.6        Laying formply on the deck .....................................................................................                25
+   4.1.7        Cantilevers ...............................................................................................................     26
+   4.1.8        Penetrations ............................................................................................................       27
+   4.1.9        Working areas for steel fixers and others ...............................................................                       28
+ 4.2 Formwork erection – modular formwork systems ..................................................................... 29
+ 4.3 Stripping formwork .................................................................................................................... 29
+   4.3.1        Safe work method statement ..................................................................................                   29
+   4.3.2        Certification prior to stripping ..................................................................................             30
+   4.3.3        Exclusion zone ........................................................................................................         30
+   4.3.4        Drop stripping ..........................................................................................................       30
+ 4.4 Crane and load handling systems............................................................................................. 31
+   4.4.1        Loading materials during formwork construction ....................................................                             31
+   4.4.2        Access for persons slinging loads...........................................................................                    31
+   4.4.3        Lifting gear ...............................................................................................................    32
+   4.4.4        Lifting formwork materials .......................................................................................              32
+
+
+Formwork Code of Practice 2016 (PN11965)                                                                                                  Page 3 of 54
+   4.4.5         Lifting lugs ...............................................................................................................     33
+ 4.5 Use of stair tread systems and ladders .................................................................................... 33
+ 5 Falling objects                                                                                                                                34
+ 5.1 Preventing objects from falling .................................................................................................. 34
+   5.1.1         Perimeter containment screening ...........................................................................                      35
+ 5.2 Building step-ins ........................................................................................................................ 37
+ 5.3 Gaps .......................................................................................................................................... 37
+ 5.4 Prior to lifting .............................................................................................................................. 38
+ 6 Special requirements for wall and column forms                                                                                                  38
+ 6.1 Bracing for wind loading ............................................................................................................ 38
+ 6.2 Access platforms ....................................................................................................................... 38
+ 6.3 Lifting methods .......................................................................................................................... 39
+ 7 Requirements for slip forms, jump forms, self-climbing and crane lifted vertical formwork
+ .....                                                                                    40
+ 7.1 Access and egress .................................................................................................................... 40
+ 7.2 Working platforms and penetrations ......................................................................................... 41
+   7.2.1         Trapdoors ................................................................................................................       41
+ 7.3 Trailing screens and platforms .................................................................................................. 42
+ 7.4 Climbing the form ...................................................................................................................... 42
+ 7.5 Ventilation and amenities .......................................................................................................... 43
+ 7.6 Engineering issues .................................................................................................................... 43
+ 7.7 Emergency issues ..................................................................................................................... 44
+ Appendix 1: Dictionary                                                                                                                           45
+ Appendix 2: Sample engineer’s certification letters                                                                                              47
+ Appendix 3: Construction checklist                                                                                                               49
+ Appendix 4: Sample structural (pre-pour) certificate                                                                                             51
+ Appendix 5: Defects commonly found in formwork systems                                                                                           52
+ Appendix 6: Perimeter screen handover checklist                                                                                                  53
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                                                                  Page 4 of 54
+Foreword
+This Formwork Code of Practice 2016 is an approved code of practice under section 274 of the Work
+Health and Safety Act 2011 (the WHS Act).
+An approved code of practice is a practical guide to achieving the standards of health, safety and
+welfare required under the WHS Act and the Work Health and Safety Regulation 2011 (the WHS
+Regulation).
+From 1 July 2018, duty holders will be required to comply with either an approved code of practice
+under the WHS Act or follow another method, such as a technical or industry standard, if it provides
+an equivalent or higher standard of work health and safety to the standard required in the code.
+A code of practice applies to anyone who has a duty of care in the circumstances described in the
+code. In most cases, following an approved code of practice would achieve compliance with the
+health and safety duties in the WHS Act, in relation to the subject matter of the code. Like regulations,
+codes of practice deal with particular issues and do not cover all hazards or risks which may arise.
+The health and safety duties require duty holders to consider all risks associated with work, not only
+those for which regulations and codes of practice exist.
+Codes of practice are admissible in court proceedings under the WHS Act and WHS Regulation.
+Courts may regard a code of practice as evidence of what is known about a hazard, risk or control
+and may rely on the code in determining what is reasonably practicable in the circumstances to which
+the code relates.
+An inspector may refer to an approved code of practice when issuing an improvement or prohibition
+notice. This may include issuing an improvement notice for failure to comply with a code of practice
+where equivalent or higher standards of work health and safety have not been demonstrated.
+
+Scope and application
+This code provides practical guidance to persons conducting a business or undertaking on how to
+comply with their health and safety duties when carrying out construction work involving formwork
+including high risk construction work.
+How is the code organised
+In providing guidance, the word ‘should’ is used in this code to indicate a recommended course of
+action, while ‘may’ is used to indicate an optional course of action.
+This code also includes various references to provisions of the WHS Act and WHS Regulation which
+set out the legal requirements. These references are not exhaustive. The words ‘must’, ‘requires’ or
+‘mandatory’ indicate that a legal requirement exists and must be complied with.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 5 of 54
+1 Introduction
+1.1 What is formwork?
+Formwork is a temporary structure that supports part or the whole of a permanent structure until it is
+self-supporting. Individual components of formwork, for example frames, are plant. Once assembled
+the components form the temporary structure. Some formwork systems are designed to remain with
+the permanent structure.
+Generally work carried out to design, construct, erect, alter, maintain, dismantle or remove formwork
+will be defined as construction work.
+Formwork means the surface used to contain and shape wet concrete until it is self-supporting. This
+includes the forms on or within which the concrete is poured and the frames and bracing which
+provide stability. Although commonly referred to as part of the formwork assembly, the joists, bearers,
+bracing, foundations and footings are technically referred to as falsework.
+For the purpose of this code, the term ‘formwork’ will be used to describe both formwork and
+falsework.
+What is construction work?
+
+WHS Regulation section 289: Construction work means any work carried out in connection with the
+construction, alteration, conversion, fitting-out, commissioning, renovation, repair, maintenance,
+refurbishment, demolition, decommissioning or dismantling of a structure.
+
+Construction work includes:
+• installation or testing carried out in connection with an activity referred to in the definition
+• the removal from the workplace of any product or waste resulting from demolition
+• the prefabrication or testing of elements at a place specifically established for the construction
+   work, for use in construction work
+• the assembly of prefabricated elements to form a structure, or the disassembly of prefabricated
+   elements forming part of a structure
+• the installation, testing or maintenance of an essential service for a structure
+• work connected with an excavation
+• work connected with any preparatory work or site preparation including landscaping as part of
+   site preparation carried out in connection with an activity referred to in the definition above, and
+• an activity referred to in the definition carried out on, under or near water including work on buoys
+   and obstructions to navigation.
+In addition, formwork may include construction work that is defined as high risk construction work in
+the WHS Regulation for which a safe work method statement (SWMS) must be prepared before the
+work starts (see section 3.3 for more information on SWMS requirements).
+
+1.2 Who has health and safety duties in relation to formwork
+    activities?
+A person conducting a business or undertaking (PCBU) has the primary duty to ensure, so far as
+is reasonably practicable, workers and other people are not exposed to health and safety risks arising
+from the business or undertaking.
+This duty requires the person to manage risks by eliminating health and safety risks so far as is
+reasonably practicable, and if it is not reasonably practicable to eliminate the risks, by minimising
+those risks so far as is reasonably practicable. It also includes ensuring, so far as is reasonably
+practicable the:
+• design, provision and maintenance of safe formwork plant and structures
+• safe erection, alteration, dismantling and use of formwork, and
+• safe use, handling, storage and transport of formwork plant.
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                      Page 6 of 54
+The WHS Regulation include specific duties for a person conducting a business or undertaking with
+management or control of a construction workplace, plant, powered mobile plant and plant that lifts or
+suspends loads.
+Designers, manufacturers, suppliers and importers of plant or structures, including temporary
+structures, must ensure, so far as is reasonably practicable, the plant or structure is without risks to
+health and safety. This duty includes providing information to manufacturers so that plant can be
+manufactured and erected to the design specifications. Designers must give the person who
+commissioned the design of the temporary structure a written safety report.
+People installing, constructing or commissioning plant or structures must ensure, so far as is
+reasonably practicable, all workplace activity relating to the plant or structure including its installation,
+use, decommissioning or dismantling is without risks to health or safety.
+Officers, such as company directors, have a duty to exercise due diligence to ensure the business or
+undertaking complies with the WHS Act and WHS Regulation. This includes taking reasonable steps
+to ensure the business or undertaking has and uses appropriate resources and processes to
+eliminate or minimise risks from the formwork activity.
+Workers and other people at the workplace must take reasonable care for their own health and
+safety, co-operate with reasonable policies, procedures and instructions and not adversely affect
+other people’s health and safety.
+
+1.3 What is involved in managing risks associated with
+    formwork activities?
+WHS Regulation section 297: A person conducting a business or undertaking must manage risks
+associated with carrying out construction work.
+WHS Regulation section 34-38: To manage risk, a person conducting a business or undertaking
+must:
+• identify reasonably foreseeable hazards that could give rise to risks to health and safety
+• eliminate risks to health and safety so far as is reasonably practicable
+• if it is not reasonably practicable to eliminate risks to health and safety—minimise those risks so
+   far as is reasonably practicable by implementing risk control measures according to the hierarchy
+   of control in WHS regulation 36
+• ensure the control measure is, and is maintained so that it remains, effective, and
+• review and as necessary revise control measures implemented to maintain, so far as is
+   reasonably practicable, a work environment that is without risks to health or safety.
+
+To properly manage risks, a person must:
+• identify hazards – find out what caused the harm
+• assess risks that may result because of the hazards – understand the nature of the harm that
+    could be caused by the hazard, how serious the harm could be and the likelihood of it happening
+• decide on control measures to prevent, or minimise the level of, the risks and implement control
+    measures, and
+• monitor and review the effectiveness of the measures.
+Control measures to manage the risk of falls (see WHS Regulation sections 78 and 79) must be
+implemented in an order of priority and implemented before work commences. The following example
+illustrates the order of priority where there is a risk a person could fall.
+
+                             Where this is not           Where this is not practical,    As a last resort and/or
+ Design and planning         practical, prevent a fall   arrest a fall and prevent or    to complement higher
+ Eliminate the risk during   For example, through the    minimise injury from the        order control measures
+ the design and planning     use of edge protection, a   arrested fall                   implement
+ stage.                      cover placed over an        For example, through the use    administrative
+                             opening.                    of a fall arresting platform.   controls.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                          Page 7 of 54
+Guidance on the general risk management process is in the How to manage work health and safety
+risks Code of Practice.
+Hazards associated with work involving the erection, alteration and/or dismantling of formwork
+include:
+• formwork collapse (before, during and after placement of concrete)
+• falls from heights – see the Managing the risk of falls at workplaces Code of Practice.
+• slips and trips
+• falling objects
+• noise – see the Managing noise and preventing hearing loss at work Code of Practice.
+• dust
+• manual tasks – see the Hazardous manual tasks Code of Practice.
+Consulting workers
+
+WHS Act section 47(1): The person conducting a business or undertaking must, so far as is
+reasonably practicable, consult with workers who carry out work for the business or undertaking who
+are, or are likely to be, directly affected by a matter relating to work health or safety.
+WHS Act section 48(2): If the workers are represented by a health and safety representative, the
+consultation must involve that representative.
+
+Consultation involves sharing of information, giving workers a reasonable opportunity to express
+views and taking those views into account before making decisions on health and safety matters.
+Consultation with workers and their health and safety representatives is required at each step of the
+risk management process. In many cases decisions about construction work and projects are made
+before engaging workers so it may not always be possible to consult with workers in these early
+stages. However it is important to consult with workers as formwork activities progress. By drawing on
+the experience, knowledge and ideas of your workers you are more likely to identify hazards and
+choose effective control measures.
+You should encourage your workers to report hazards and health and safety problems immediately so
+the risks can be managed before an incident occurs and you must consult your workers when
+proposing any changes to the work that may affect their health and safety.
+Consulting, cooperating and coordinating activities with other duty holders
+
+WHS Act section 46: If more than one person has a duty in relation to the same matter, each person
+with the duty must, so far as is reasonably practicable, consult, cooperate and coordinate activities
+with all other persons who have a duty in relation to the same matter.
+
+Sometimes you may share responsibility for a health and safety matter with other business operators
+who are involved in the same activities or who share the same workplace. In these situations, you
+must exchange information to find out who is doing what and work together in a cooperative and
+coordinated way so that all risks are eliminated or minimised as far as reasonably practicable.
+Further guidance on consultation is in the Work health and safety consultation, co-operation and co-
+ordination Code of Practice.
+
+1.4 Information, training, instruction and supervision
+WHS Act section 19(3)(f): A person conducting a business or undertaking must ensure, so far as is
+reasonably practicable, the provision of any information, training, instruction or supervision that is
+necessary to protect all persons from risks to their health and safety arising from work carried out as
+part of the conduct of the business or undertaking.
+WHS Regulation section 39(2) and (3): A person conducting a business or undertaking must ensure
+that information, training and instruction provided to a worker is suitable and adequate having regard
+to:
+• the nature of the work carried out by the worker
+
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 8 of 54
+•   the nature of the risks associated with the work at the time of the information, training and
+    instruction, and
+•   the control measures implemented.
+The person must ensure, so far as is reasonably practicable, that the information, training and
+instruction provided under this regulation is provided in a way that is readily understandable by any
+person to whom it is provided.
+WHS Regulation section 317(1): A person conducting a business or undertaking must not direct or
+allow a worker to carry out construction work unless the worker has successfully completed general
+construction induction training and if the worker completed the training more than 2 years
+previously—the worker has carried out construction work in the preceding 2 years.
+
+All persons who may be exposed to work health and safety risks resulting from formwork construction
+must be provided with information and training that is specific to the formwork system that is being
+used.
+Such training and information should include details of:
+• the formwork system, tasks, activities and components
+• the way the manufacturer or designer of the formwork system intended the system to be erected,
+     installed, used, moved, altered or dismantled
+• specific training and information required to undertake or participate in specific tasks or activities
+• control measures to minimise exposure to the risks, correct use of controls, and how to ensure
+     they are kept in full working order
+• safe working procedures, including the use of mechanical aids and devices, where appropriate
+• how to use and maintain equipment, including any specific conditions and prohibitions on the use
+     of equipment. Reference must be made to operator’s manuals
+• any special safety information needed such as safety precautions for working under certain
+     conditions
+• personal protective equipment required, including instruction in fitting, use, cleaning, maintaining
+     and storing this equipment
+• details of how accidents have occurred in the past involving the same work process(es).
+Persons involved in formwork activities must also be provided with more general work health and
+safety information and training including:
+• the effects of noise on their hearing and health
+• Queensland’s work health and safety legislation, including relevant parts of this code of practice
+• the workplace’s health and safety policies, and relevant procedures and safe work method
+    statements
+• the risk management process
+• inspection and maintenance programs in place at the workplace
+• how to access information such as manufacturer's instructions about hazards
+• emergency procedures, including persons with specific emergency roles and responsibilities.
+Training for persons involved in erection of modular formwork systems
+Persons involved in the erection of modular formwork systems should be trained in the safe erection
+and dismantling of the system as well as inspection criteria for materials as an example, defects
+which would preclude the use of the materials. The modular system designer should provide written
+instructions on the erection and dismantling of the system and these instructions should at least
+provide equivalent levels of safety for a person as those detailed in this code. Training by
+representatives of the modular formwork system supplier is encouraged.
+Training for persons working on jump forms, slip forms, self-climbing and crane lifted vertical
+formwork
+In view of the specialised work systems and unique hazards that exist on jump forms and slip forms,
+specific training should be provided for persons intending to work on the forms.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 9 of 54
+Training should include, but not be limited to:
+• The maximum loadings that can be applied to the various areas on the form. This would include
+    information about areas where materials can be stored.
+• Restricted access areas and procedures for installation and removal of edge protection.
+• Climbing or jumping procedures for those involved in these operations.
+• Emergency evacuation procedures for those required to work on the form.
+• Firefighting procedures to be used in emergency situations prior to firefighting personnel arriving
+    at the scene.
+• Any other special work procedures that specifically apply to working on the form. As examples,
+    time limits for working in cells where these apply or safe undertaking of manual tasks.
+
+2 Design
+Eliminating hazards at the design or planning stage is often easier and more cost effective to achieve
+than making changes later when hazards become real risks in the workplace. Safe design means the
+integration of control measures early in the design process to eliminate or, if this is not reasonable
+practicable, minimise risks to health and safety throughout the life of the structure being designed.
+
+WHS Act section 22: A person (the designer) who conducts a business or undertaking that designs
+plant or a structure that is to be used, or could reasonably be expected to be used, as, or at, a
+workplace must ensure, so far as is reasonably practicable, that the plant or structure is designed to
+be without risks to the health and safety of persons who:
+• use the plant or structure at a workplace for a purpose for which it was designed
+• store the plant
+• construct the structure
+• carry out any reasonably foreseeable activity at a workplace in relation to the manufacture,
+    assembly or use of the plant or structure for a purpose for which it was designed, or the proper
+    storage, decommissioning, dismantling or disposal of the plant or structure, or
+• are at or in the vicinity of a workplace and who are exposed to the plant or structure at the
+    workplace or whose health or safety may be affected by one of the above uses or activities.
+The designer must:
+• carry out, or arrange the carrying out of, any calculations, analysis, testing or examination that
+    may be necessary to ensure, so far as is reasonably practicable, that the plant or structure is
+    designed to be without risks to the health and safety of persons
+•   give adequate information to each person who is provided with the design for the purpose of
+    giving effect to it, and
+•   on request, so far as is reasonably practicable, give current relevant information to a person
+    using the plant or structure for a purpose for which it was designed or when carrying out a
+    reasonably foreseeable activity using the plant.
+
+WHS Regulation section 294: A person who conducts a business or undertaking that commissions
+construction work (the client) in relation to a structure must, so far as is reasonably practicable,
+consult with the designer of the whole or any part of the structure about how to ensure that risks to
+health and safety arising from the design during construction are eliminated or minimised so far as is
+reasonably practicable.
+Consultation must include giving the designer any information that the person who commissions the
+construction work has in relation to the hazards and risks at the workplace where the construction
+work is to be carried out.
+
+Consultation should include the following:
+• preparation of a project brief by the person commissioning the construction work that outlines the
+   safety requirements and objectives for the project and provides the designer with all available site
+   information that may affect health and safety (e.g. proximity to underground or overhead services
+   — especially electric lines)
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                   Page 10 of 54
+•   the designer should ask the person commissioning the construction about safety issues such as
+    the types of activities and tasks likely or intended to be carried out in the structure.
+A safety report specifying the hazards relating to the design of a structure must be prepared by the
+designer for designs that have unusual or atypical features but not for common designs where the
+risks are already known. For example, a design specifying an unusual structure for a specific
+application may introduce unique hazards requiring specific risk controls. The written safety report
+should include information about:
+• any hazardous materials or structural features and the designer’s assessment of the risk of injury
+     or illness to construction workers arising from those hazards,
+• the action the designer has taken to control risks (e.g. changes to the design),
+• how to use a component or component system safely,
+• formwork methods
+• the health and safety risk control measures to be used.
+Where there is a principal contractor, the person conducting a business or undertaking who
+commissioned the construction must give a copy of the designer’s safety report to the principal
+contractor.
+Plant design registration
+Structural components, including formwork frames, specifically intended to support formwork do not
+require design registration. However, if traditional prefabricated scaffolding is used as part of the
+supporting structure, these components require design registration. The person with management or
+control of design registrable plant must ensure the design registration number is kept where it is
+readily accessible. If you are hiring prefabricated scaffolding, the supplier must provide the design
+registration number, usually on the supply docket or agreement.
+
+2.1 Safe design of buildings in relation to formwork
+Safe design means the integration of control measures early in the design process to eliminate or, if
+this is not reasonably practicable, minimise risks to health and safety throughout the life of the
+structure being designed.
+Safe design must be factored in during the design phase and should begin at the concept
+development phase of a structure when making decisions about:
+• the design and its intended purpose
+• possible methods of construction, maintenance, operation, demolition or dismantling and
+    disposal;
+• materials to be used
+• what legislation, codes of practice and standards need to be considered and complied with.
+2.1.1 Build-ability
+Designers, including engineers and architects, must consider the ‘build-ability’ of a structure or
+building and produce a design that eliminates or minimises the risk of injury during construction.
+The design of the final concrete structure can have a major effect on the ease of formwork
+construction, and consequently, on the safety of persons during construction. Generally, the more
+basic and simple the final concrete structure, the safer it is to erect.
+Some of the measures that should be considered by the designer of the building or structure to
+minimise exposure to risk of injury during the construction of formwork include:
+• Reducing variations in the floor depth so that it has one consistent depth.
+• Reducing the number of columns required and where columns exist, design the columns so
+    capitals or dropdowns don’t exist.
+• Reducing cantilevered floor sections.
+• Consider alternative designs (e.g. prefabricated concrete elements-columns, beams and floor
+    panels).
+• Planning for manual tasks. Consideration must be given to the suitability of the design of different
+    formwork systems that will reduce manual tasks risks, including:
+
+
+Formwork Code of Practice 2016 (PN11965)                                                   Page 11 of 54
+    -      table forms
+    -      systems with lighter weights of materials to be handled
+    -      methods of formwork erection, alteration and dismantling
+    -      improved access and egress for workers and movement of materials and equipment
+    -      methods for moving large and heavy components, materials and equipment (i.e. making
+           allowances for a crane and other mechanical lifting devices to be used).
+•   Planning for adequate access and sufficient workspace, for example designing cells that have
+    adequate floor area and height to enable workers to carry out their work in a safe environment.
+    Issues to consider include:
+    - adequate ventilation
+    - material access
+    - allowance for access and egress systems,
+    - adequate space to perform work safely.
+•   Allow sufficient clearance to adjacent structures and safe methods for moving large and heavy
+    components, materials and equipment (i.e. making allowances for a crane and other mechanical
+    lifting device to be used).
+Further guidance on safe design is in the Safe design of structures Code of Practice.
+Changing floor levels
+Formwork decks are rarely flat across the entire floor, generally due to deep beams or ’drop downs’
+(sometimes called ’capitals’) around columns. Uneven floors introduce fall hazards. It is preferable
+that these hazards be eliminated at the design stage. These hazards are most effectively managed by
+ensuring that formwork supports and the deck are progressively constructed for the lower parts of the
+deck before work commences on the higher-level areas of the deck.
+As illustrated in Diagram 1, decks of a consistent depth may result in savings in concrete and steel
+but will result in additional labour and material costs. Decks of a varying depth introduce a greater
+quantity of cantilevered beams and joists, which contribute to the risk of a person falling.
+
+
+
+
+Diagram 1 - Flat floor and deep floor beams
+
+2.1.2 Materials – traditional formwork
+All materials and equipment used in formwork construction must be fit for the intended purpose and
+meet design specifications. Materials and equipment must be designed to conform to relevant
+Australian Standards. Where material is designed to an international or other standard, an engineer
+must certify that it conforms to the relevant Australian Standard. Materials and equipment must also
+be manufactured in accordance with a quality assurance system that ensures compliance with the
+design specification.
+
+
+Formwork Code of Practice 2016 (PN11965)                                                   Page 12 of 54
+A suitable system must be implemented to ensure that only materials and components that comply
+with the specifications of the formwork design drawings and documentation are being used. Materials
+and components that are damaged, excessively worn or not fit for the intended use must not be used.
+Evidence must be kept on site, which verifies that formply sheets conform to Australian Standards.
+Such evidence may include:
+• a purchase order which details the specifications of the formply sheets ordered,
+    or
+• that the formply sheets be marked in accordance with Australian Standards (see AS6669
+    Plywood – Formwork).
+For information regarding materials used in modular proprietary systems see section 2.2.2 – Modular
+proprietary system design.
+Importers of material
+Importers have a duty to ensure, so far as is reasonably practicable, plant (e.g. prefabricated
+formwork) is without risks to health and safety. This includes, eliminating or minimising risks to health
+and safety regarding the plant being supplied, where the manufacturer has not already done so.
+Importers should confirm they are being provided with safe plant. For example, they must inspect and
+test the supplied plant and inspect or get third party verification of the manufacturing process. The
+level of inspection and testing done by an importer should be based on what is necessary to be
+confident that the product is safe.
+When dealing with a new manufacturer or one whose products have been previously identified as
+non-compliant, the inspection and testing of the supplied plant may initially need to be more
+extensive.
+Any imported plant must be inspected having regard to information provided by the manufacturer.
+If this information requires the plant to be tested then the importer must undertake this testing.
+
+2.2 Formwork systems
+The design of all formwork systems, both traditional and modular, must satisfy:
+• AS3610 - Formwork for concrete
+• AS3600 - Concrete structures.
+2.2.1 Safe formwork design and certification
+An ‘engineer’ (as defined in Appendix 1), such as a suitably qualified civil engineer experienced in
+structural design, is responsible for overseeing the safe design and certification of the complete
+formwork structure. This includes design of the formwork support structure, the formwork deck and
+connection details, and certification that the formwork drawings and other formwork documentation
+have been completed. Sample engineer’s certification letters are provided at Appendix 2. The project
+engineer is responsible for providing project documentation (as detailed in section 2.2.3 of this code)
+to assist with the design of the formwork.
+While this code requires that overseeing the safe design and certification of formwork systems may
+only be performed by an engineer, it is recognised that some design work may be performed by
+appropriate personnel such as a ‘competent person’ experienced in formwork design and
+documentation. Design documentation may only be prepared by a competent person in the
+circumstances listed in Table 1 if the competent person is using brochures, charts, tables and
+information which has previously been verified for compliance with AS3610 - Formwork for concrete
+by a suitably qualified engineer. ‘Competent person’ is defined in the dictionary at Appendix 1.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 13 of 54
+ Formwork design and certification
+ Vertical formwork (columns and walls)
+ Less than 2.4m high                                                              Competent person
+ 2.4 to 3.5m high                                                                 Engineer
+ More than 3.5m high (single arrangement)                                         Engineer
+ More than 3.5m high (repetitive arrangement)                                     Engineer
+ Single-sided less than 2.4m                                                      Competent person
+ Single-sided more than 2.4m                                                      Engineer
+ Self-climbing or crane assisted formwork systems                                 Engineer
+ Soffit formwork
+ Less than 3m high and less than 250mm thick                                      Competent person
+ More than 3m high or more than 250mm thick                                       Engineer
+                                       2
+ Infill slabs less than 4.5m high, 20m and 300mm thick                            Competent person
+ Stair and landing formwork more than 3m high or more than 200mm thick            Engineer
+ Multistorey formwork and backpropping                                            Engineer
+Note: the height specified in Table 1 is the height measured from the floor/ground immediately below.
+When specifying the design of the formwork system, an engineer or competent person (as per Table
+1) must allow for all loads that can be expected to be applied during construction, including loads
+applied by:
+• the formwork deck, supporting members and formwork frames
+• any false decks that may be provided
+• concrete pouring techniques (i.e. kibble or pump)
+• the concrete pour which includes both the weight of the concrete and dynamic factors applied.
+    The concrete pour rate and pour sequence must be specified.
+• workers on the formwork deck and false decks
+• stacked materials
+• crane lifted materials on both the complete and incomplete formwork deck
+• wind to the system as detailed in AS1170.2 Structural design actions - Wind actions. An
+    allowance for wind loading is particularly important for vertical forms.
+• environmental loads including forces due to water flowing around the formwork. Rain and run off
+    can have a detrimental effect if not considered by a designer.
+Wind loading
+An engineer must consider wind loadings on formwork, particularly for external walls, columns, free-
+standing shutters, blade walls and any platforms which may be subject to uplift.
+Vertical elements must be fully braced prior to and during stripping, and until such time as the
+construction will provide adequate support and/or protection against wind loading.
+Wind loading will vary depending on:
+• the size of form
+• the nature of the form
+• wind speed
+• wind resistance (e.g. screens)
+• wind direction.
+Shade cloth used on screens, signage and outside screens will increase the effective wind loading of
+an open structure.
+The geographical location of the construction site will also have a bearing on the severity of wind on
+the structure. Wind generally has less effect in built up or hilly areas.AS1170.2 Structural design
+actions - Wind actions specifies four different terrain categories that must be taken into consideration
+by an engineer as well as basic wind speeds for different zones in Australia. There are three regions
+for Queensland:
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 14 of 54
+•   Region A (normal) – most of Queensland excluding coastal areas (includes Toowoomba and Mt
+    Isa).
+•   Region B (intermediate) Queensland coastal areas south of Bundaberg and a narrow band
+    behind region C (includes Brisbane and all of Gold Coast and Sunshine Coast).
+•   Region C (tropical cyclones) all coastal areas north of, and including, Bundaberg. Region C has
+    the greatest wind speeds.
+There are a number of other factors that need to be considered by an engineer when calculating wind
+pressure on wall and column forms and the resultant number of braces and size of anchorage point
+required. The number of braces for securing a column or wall form is not to be considered to be
+necessarily in direct proportion to wind speed. Wind pressure will vary as a function of the square of
+the wind speed. A small increase in wind speed produces a much larger increase in pressure and a
+much larger increase in the number of braces or size of brace anchors required.
+
+2.2.2 Modular proprietary system design
+A number of formwork support systems are designed as modular systems that are intended to be
+erected in specific configurations as prescribed by the designer and manufacturer. While modular
+systems require engineer design certification, this certification can be done once and used as
+evidence of design compliance provided:
+• the design certification is carried out by an engineer
+• the design certification is in the form of a signed compliance statement (in accordance with
+    AS3610 Formwork for concrete)
+• the compliance statement clearly identifies the modular formwork system and cross references
+    the method in which the modular system must be erected.
+The design certification can be provided as part of the brochure or erection instructions prepared by
+the manufacturer of the system.
+The design certification only applies when the modular system is erected in accordance with the
+manufacturer’s documented instructions. Specific engineering certification must be provided for the
+modular system if:
+• there is any variation from the manufacturer’s erection instructions
+    or
+• the modular system is used in conjunction with a traditional formwork support system or any other
+    type of modular system.
+Timber used with modular proprietary systems may comply with the relevant standard where the
+system is manufactured provided:
+• The standard is specifically for formwork applications
+• The timber is designed and manufactured for outdoor use
+• The timber is marked in accordance with the design standard
+• The standard makes reference to a quality assurance standard that the timber is to comply with.
+
+2.2.3 Documentation
+Project documentation
+Project documentation must include the following information:
+• minimum stripping times and stripping procedures and requirements for health and safety
+• any limitations on the magnitude and location of stacked materials and minimum strength of
+    concrete to be achieved prior to materials being stacked
+• requirements for the minimum number of levels of supports relative to the type of formwork, timing
+    and sequence of its use, the anticipated time between construction of subsequent floors and the
+    expected ambient temperature for multistorey structures
+• limitations on the use of the permanent structure for the restraint of formwork
+• details of and information on the effect of post-tensioning procedures on the formwork and any
+    special procedures to be adopted in the stripping of formwork
+• location of any mandatory joints and any special procedures for locating other joints
+
+
+Formwork Code of Practice 2016 (PN11965)                                                  Page 15 of 54
+•   sequence of placement of concrete
+•   requirements for propping of any composite construction
+•   details of the cambering of any slabs or beams
+•   design loads for the permanent structure
+•   details of any inserts, water stops, specially formed shapes or penetrations to be constructed, the
+    location and details of which are critical to the serviceability of the permanent structure
+•   any known information about the foundation which is relevant to the design of the footings for the
+    formwork assembly
+•   information about any permanent formwork systems, together with any limitations on deflections
+    and any special requirements for their erection and concreting
+•   information on any architectural or structural component details to be cast into the structural
+    concrete
+•   details of fall and edge protection, that is, perimeter scaffolding
+•   details of back propping that may be required and minimum time intervals between concrete
+    pours.
+Formwork drawings
+Formwork drawings must explain:
+• plans, elevations and sections to show the general arrangement of the formwork and to identify
+   and locate all members and components including bracing
+• wall and column form details
+• the maximum point loadings to be applied
+• the component types and spacings
+• the maximum jack extensions
+• the bearer and joist timber type, the dimensions and spacings
+• the prop sizes and maximum extensions
+• the methods for tying the structure together and spacing between ties (if required)
+• the formply size.
+Where eccentric loading is to be applied to U-heads (i.e. single bearers are positioned to one side of
+the U-head), the formwork drawings must state that this is permitted.
+Other formwork documentation
+The following information must also be provided in the formwork documentation:
+• details sufficient to fully describe important or unusual features of the design
+• reference to documentation for proprietary items
+• safe work method statements for the erection and stripping of the formwork assembly
+• the areas of the forms designed to carry stacked loads
+• acceptance criteria for single use formwork
+• requirements of the project documentation relating to formwork
+• method of provision for field adjustment of the forms prior to and during concrete placement
+• where required, location of weep holes, vibrator holes, clean-out holes and inspection openings
+• sequence of concrete placement, including direction of intended pour on raking or sloping
+   surfaces(e.g. car park ramps and minimum elapsed time between adjacent placements)
+• wrecking strips and other details relating to stripping of the forms
+• design assumptions, including those related to strength, stability and stiffness
+• footing design assumptions, such as foundation material description, safe bearing value,
+   limitations on settlement during erection of formwork, placement of concrete and dismantling of
+   formwork. Reference to information sources such as geotechnical reports must also be included
+• preparation of the foundation, such as filling, compaction and drainage
+• footing details, such as type and size of footings, level of soffit, concrete strength, reinforcement,
+   specification and details of site filling or compaction, and precautions against washouts
+• engineer certification of non-proprietary equipment
+• vertical pour rates, and
+• methods of securing single or multiple props.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 16 of 54
+2.2.4 Design variations
+All variations from the design of a formwork system must be checked by an engineer and:
+• certified in writing by the engineer as being acceptable (that is, complying with AS3610 Formwork
+     for concrete), if the engineer can verify this is the case
+• altered in accordance with the written directions of an engineer in order to comply with AS3610,
+     within a time frame specified by the engineer.
+Potential variations include:
+• structural design change (i.e. a thicker floor slab).
+• a reduced number of formwork frames under the formwork deck
+• different types of braces or props to the ones indicated on the formwork drawing
+• different types and/or quantities of ties on the formwork structure
+• increased spans on members supporting the formwork deck
+• variations in the back-propping system specified by an engineer
+• connections between traditional formwork and modular formwork.
+2.2.5 On site coordination and verification
+The following documentation must be available for inspection on site:
+• Certification of maximum loads from stacked materials that the formwork assembly can withstand.
+• Specifications for the concrete and when formwork can be removed.
+• Back propping details (plans and elevations including tying in).
+• Drawings for the formwork design. The drawings must be signed by an engineer or be
+   accompanied by a certification letter that lists the drawing numbers and drawing revision
+   numbers.
+Verification of the structure with the design
+Verification that the formwork structure complies with the design of the formwork system must be
+documented and provided. A construction check list (as illustrated at Appendix 3) can be used to
+assist in this process. Relying solely upon such a checklist will not be sufficient to verify compliance
+with relevant Australian Standards. The verification and documentation that a design has been
+complied with may be delegated to a ‘competent person’ (see Appendix 1) on site. Table 2 provides a
+list of circumstances where a competent person may perform an inspection.
+Table 2 Circumstances where a competent person may perform an inspection
+                                                        Inspection
+                                                        Access for trades              Pre-pour
+ Vertical formwork (columns and walls)
+ Less than 2.4 m high                                   Competent person                Competent person
+ 2.4 to 3.5 m high                                      Competent person                Competent person
+ More than 3.5 m high (single arrangement)              Competent person                Engineer
+ More than 3.5 m high (repetitive arrangement)          Initial pre-pour inspection by engineer on first
+                                                        arrangement only and then competent person
+                                                        thereafter
+ Single-sided less than 2.4 m                           Competent person                Competent person
+ Single-sided more than 2.4 m                           Competent person                Engineer
+ Self-climbing or crane assisted formwork systems       Initial pre-pour inspection by engineer and then
+                                                        competent person thereafter
+ Soffit formwork
+ Less than 3m high and less than 250mm thick            Competent person               Competent person
+ More than 3m high or more than 250mm thick             Competent person               Engineer
+ Infill slabs more than 4.5m high, 20m2 and 300mm       Competent person               Engineer
+ thick
+ Stair and landing formwork more than 3m high or more   Initial pre-pour inspection by engineer and then
+ than 200mm thick                                       competent person thereafter
+ Multistorey formwork and backpropping                  Competent person                Engineer
+Note: the height specified in Table 2 is the height measured from the floor/ground immediately below.
+
+
+Formwork Code of Practice 2016 (PN11965)                                                       Page 17 of 54
+A competent person, if not an engineer, must have appropriate training and knowledge to perform
+onsite inspections of the formwork system. This delegated person needs to be experienced in
+formwork construction and be competent in reading drawings and be able to certify that the formwork
+structure satisfies the details on the formwork drawings, specifications and any other formwork
+documentation.
+Should the competent person on-site not be an engineer, the delegated person can only verify that
+the designer’s specifications and drawings have been complied with. A competent person who is not
+an engineer must not authorise variations to the design. The delegated person may require
+corrections to the formwork system if some details do not pass as indicated on the construction
+checklist by providing written instructions on remedial action to be undertaken prior to the concrete
+pour.
+If any items on the construction checklist are to be referred to an engineer, then the competent person
+must refer them to an engineer in writing. A competent person must ensure the remedial action has
+occurred prior to the concrete pour including any items referred to an engineer for certification and
+modified as instructed by an engineer.
+A pre-pour inspection should focus on verifying that the design has been complied with and matters
+such as:
+• correct spacing of frames, props and timbers
+• correct joist and bearer sizes
+• acceptable jack extensions
+• quality of materials being used
+• back propping
+• adequate bracing to ensure stability.
+An effective quality control system must be implemented for the construction of formwork. A pre-pour
+inspection is a check to assist in ensuring the specifications of the engineer have been complied with.
+A pre-pour inspection should be a part of any quality control system.
+Sign-off by an engineer or competent person as specified in Table 2 is required following the final pre-
+pour inspection. A sample pre-pour structural certificate is provided at Appendix 4.
+Appendix 5 illustrates some of the more common defects which are likely to occur in a formwork
+system. This list is intended to give guidance to a competent person and should not be considered to
+be exhaustive. In any individual case, some items will be less important than others and only a
+competent person with appropriate experience can assess their relative importance.
+
+3 Coordination and administration
+3.1 Work program
+The risk to a person’s health and safety must be considered when designing a work program for
+erecting, altering and/or dismantling formwork. Consideration must be given to:
+• sequencing work to ensure sufficient time is allowed for each work activity
+• coordinating trades to allow work to be completed free from obstruction
+• allowing for the progressive clean-up of work areas to prevent rubbish becoming a trip hazard and
+    allowing access for mechanical aids
+• taking account of edge protection requirements and ensuring these are designed and constructed
+    appropriately.
+
+3.2 The work environment
+WHS Regulation section 40: A person conducting a business or undertaking must ensure, so far as
+is reasonably practicable, that:
+•   the layout of the workplace allows, and is maintained to allow, persons to enter and exit the
+    workplace and move within it safely, both under normal working conditions and in an emergency
+
+
+Formwork Code of Practice 2016 (PN11965)                                                   Page 18 of 54
+•   work areas have space for work to be carried out safely
+•   floors and other surfaces are designed, installed and maintained to allow work to be carried out
+    safely
+•   lighting enables each worker to carry out work safely, persons to move around safely and safe
+    evacuation in an emergency
+•   ventilation enables workers to carry out their work without risk to their health and safety
+•   workers exposed to extremes of heat or cold are able to carry out work without risk to their health
+    and safety
+•   work in relation to or near essential services (such as gas, electricity, water, sewerage and
+    telecommunications) do not affect the health and safety of persons at the workplace.
+
+Formwork construction, because of its constantly changing work environment, restricted access
+through frames and formwork supports and a large volume of material and waste, requires ongoing
+monitoring of housekeeping practices.
+
+3.2.1 Entry and exit
+Clear access is important for the safe movement of materials, equipment and persons on site.
+Designated access ways must be provided. Persons must be instructed to use the access ways and
+keep them clear of any rubbish, plant or materials. In some situations, it may be necessary to use
+hazard taping or other visual methods to clearly show where access ways are located. This is
+particularly important where access is required through formwork frames.
+Emergency access and egress must be considered and provided to all parts of the workplace where
+persons are required to work (refer to section 7.1 for slip form, jump form, self-climbing and crane
+lifted vertical access and egress requirements). Where the plant listed in column 1 of Table 3 is
+available onsite for emergencies, the corresponding mechanisms in column 2 should be provided as a
+dual emergency access and egress option. Two forms of emergency access and egress should be
+maintained at all times.
+Table 3 Dual emergency access and egress solutions
+
+
+        Emergency access and egress              Additional emergency access and egress
+        solutions required                       solutions required
+  1     Man and material hoist                   Stretcher stair and single scaffold stair
+  2     Crane only                               Stretcher stair and single scaffold stair
+  3     Man and Material Hoist and crane         Stretcher stair and single scaffold stair
+  4     No crane or man and materials hoist      Two stretcher stairs are to be provided for
+                                                 emergency access
+Further information regarding access and egress requirements is provided in section 4.5 (use stair
+tread systems and ladders).
+
+3.2.2 Material storage
+Materials must be stored so as to minimise manual tasks hazards, trip hazards and the potential for
+falling objects. Smaller components such as U-heads, couplers, base plates and ’Z-bars’ should be
+contained in material boxes. Where practicable, frames and formply should be strapped until it is time
+to use them. Bearers and joists should also be strapped together in bundles or stacks. These bundles
+or stacks should be located back from the edge of the deck or openings to prevent materials or
+persons accessing the materials falling through or off the deck.
+It is preferable to lay wall forms flat on the ground instead of leaning them against structures or other
+forms that are not purpose made “A” frames. Timbers, or another effective means, must be provided
+under the forms where slings are to be placed under the forms for crane lifting.
+When not in use, wall forms may be stacked in or against purpose made “A” frames. This is
+preferable to leaning the forms against other structures. If this is not practical, wall forms must be
+
+
+Formwork Code of Practice 2016 (PN11965)                                                      Page 19 of 54
+stacked in such a way that they cannot move away or rotate from the surface they are placed against.
+An engineer must verify in writing that a surface to be used for the stacking of forms is capable of
+withstanding the impact of all imposed loads, including wind loading. The engineer also needs to
+consider both maximum and point distributed loads on the formwork deck and record this information
+in the formwork drawings.
+Incorrect materials delivery and storage can create significant manual tasks. Safe work practices to
+minimise exposure to these risks include:
+• ensuring the formwork materials are delivered as close as possible to the job
+• designing and designating a small section of the formwork as a loading platform to load ply and
+    other components
+• ensuring mechanical aids are used to handle loads wherever possible
+• storing loads on trolleys to minimise double handling or on raised platforms to minimise manual
+    lifting from ground level
+• having adequate storage space or lay down area to safely store materials and equipment and to
+    minimise double handling.
+3.2.3 Rubbish storage and removal
+Rubbish storage and removal for formwork may include the provision of rubbish skips and wheel
+barrows that are moved as work progresses. However, rubbish skips should only be positioned where
+the supporting structure has adequate strength to support the total weight of the bin and likely
+contents.
+
+3.2.4 Lighting
+Sufficient access lighting and task lighting must be provided, whether it is from a natural or artificial
+source, to allow safe movement around the workplace and to allow workers to perform their job
+without having to adopt awkward postures or strain their eyes to see. Additionally, emergency lighting
+must be provided for the safe evacuation of people in the event of an emergency.
+AS/NZS1680.1: 2006 – Interior workplace lighting and the Managing the work environment and
+facilities Code of Practice provide guidance on the recommended illumination levels for various types
+of tasks, activities or interiors.
+
+3.3 Safe work method statements
+WHS Regulation section 299(1): A person conducting a business or undertaking that includes the
+carrying out of high risk construction work must, before high risk construction work commences,
+ensure that a safe work method statement for the proposed work is prepared or has already been
+prepared by another person.
+
+A safe work method statement (SWMS) must be prepared for high risk construction work before the
+work starts.
+A range of activities defined as high risk construction work may be carried out including work:
+• involving a risk of a person falling more than 2 metres
+• carried out on a telecommunication tower
+• involving demolition of an element of a structure that is load-bearing or otherwise related to the
+    physical integrity of the structure
+• involving or likely to involve the disturbance of asbestos
+• involving structural alterations or repairs that require temporary support to prevent collapse
+• carried out in or near a confined space
+• carried out in or near –
+    - a shaft or trench with an excavated depth greater than 1.5 metres
+       or
+    - a tunnel
+• involving the use of explosives
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 20 of 54
+•   carried out on or near pressurised gas distribution mains or piping
+•   carried out on or near chemical, fuel or refrigerant lines
+•   carried out on or near energised electrical installations or services
+•   carried out in an area that may have a contaminated or flammable atmosphere
+•   involving tilt-up or precast concrete
+•   carried out on, in or adjacent to a road, railway, shipping lane or other traffic corridor that is in use
+    by traffic other than pedestrians
+•   carried out at a workplace in which there is movement of powered mobile plant
+•   carried out in an area in which there are artificial extremes of temperature
+•   carried out in or near water or other liquid that involves a risk of drowning
+•   involving diving work.
+The SWMS must:
+• identify the type of high risk construction work being done
+• specify the health and safety hazards and risks arising from the work
+• describe how the risks will be controlled
+• describe how the control measures will be implemented, monitored and reviewed.
+A SWMS must be developed in consultation with workers and their representatives who are carrying
+out the high risk work.
+
+4 Work systems
+4.1 Formwork erection – traditional systems
+Formwork must be erected systematically and tied in and/or braced progressively to stabilise the
+structure. Where a person is to install joists from underneath, the vertical distance between the
+formwork deck and the false deck can be increased. This is illustrated in Diagram 2 below.
+
+
+
+
+Diagram 2 - Worker erecting formwork on two planks
+
+A person must be provided with a working platform of at least 450 mm wide (i.e. two planks). It is not
+acceptable for a person to stand on a single bearer or a single plank.
+4.1.1 Foundations
+Formwork must be erected on a stable base to prevent the risk of collapse. Suspended slabs must be
+able to safely support loads that may be applied by the concrete pour, workers and crane lifted loads.
+Base plates must be provided under props and standards on formwork frames unless the prop or
+standard has an integral foot or an engineer documents that a base plate is unnecessary. Sole boards
+designed to suit the ground conditions should also be used under props and standards on natural
+ground, unless an engineer states otherwise. Frames and props must be located on a firm base,
+
+
+Formwork Code of Practice 2016 (PN11965)                                                       Page 21 of 54
+which is ground that will not subside, fail or get washed away. The principal contractor is responsible
+for providing all information on ground conditions to the engineer.
+4.1.2 False deck
+In situations where a deck is at a height that would require persons to stand at heights of two metres
+or more to install bearers and joists for the formwork deck, a “false” deck, which is a full deck the
+same area as the area being formed, should be provided (see Diagram 3). This deck should be
+provided both inside and between formwork frames and can typically consist of formply, scaffold
+planks or modular platform sections. When erecting backpropping frame towers over two metres high,
+a full deck of planks is to be provided within the tower. A protected access opening can be left in the
+deck to enable materials to be lifted up. The use of a captive platform system is preferable to lapped
+planks because a captive system cannot be accidentally dislodged. Lapped planks may only be used
+if secured against uplift and slipping. The false deck must be constructed such that no gap exceeds
+225mm width and gaps may only exist where a vertical member of a frame passes through the deck.
+
+
+
+
+Diagram 3 – A false deck
+The false deck must be designed and installed to have adequate strength to support persons required
+to stand on the deck and any materials or persons that could fall onto the deck or be placed on the
+deck. The deck must be able to withstand:
+•   a point load of 2kN distributed over an area of 100 x 100mm (2 kN is approximately equivalent to
+    a mass of 200kg)
+•   a uniformly distributed load of 2kPa which is equivalent to a mass of 200kg per square metre.
+When considering the design of the deck for the erecting, altering and/or dismantling of formwork the
+weight of the false deck, and live load should be applied to the formwork support structure.
+The height between the false deck and the pouring deck must allow access for a person during
+stripping.
+4.1.3 Erecting frames
+
+WHS Regulation section 81: A person must not carry out high risk work, including scaffolding work,
+unless the person holds a high risk work licence for that class of high risk work. For example, a
+person must hold a scaffolder’s licence if they are undertaking scaffolding work which involves
+erecting, altering or dismantling a temporary structure that is or has been erected to support a
+platform from which a person or thing may fall more than four metres.
+
+Persons erecting formwork frames must be trained in their safe erection.
+Formwork frames must be erected in a progressive manner to ensure both the installers safety and
+the stability of the overall structure. Braces must be attached to the frames as soon as practical.
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                   Page 22 of 54
+The risk of a fall can exist on edges of formwork frames during their erection. In this situation, it is
+necessary to install edge protection on the frames as they are erected. Provided the side bracing (or
+other edge protection) is installed progressively and as soon as enough material has been raised up,
+additional control measures to prevent a fall occurring do not have to be provided. Many conventional
+formwork frames consist of diagonal braces that cross in the middle. While these braces are not
+considered to be suitable edge protection for a completed formwork deck, they may provide
+reasonable fall protection during frame erection. This is only the case where braces are installed in a
+progressive manner as soon as the braces are handed up to a person.
+As the height of formwork frames increase, there is a greater need to provide lateral stability to the
+frames. All framing must be carried out so that it complies with on site design documentation and any
+manufacturers’ requirements.
+4.1.4 Installing bearers
+Bearers must be placed in position so that persons are located no more than two metres from the
+floor or from the fall arresting platform located immediately below them. For example, the bearer can
+be lifted up onto the top of the formwork frame with a person standing on a platform erected no more
+than two metres from the floor or false deck located immediately below them within the frame.
+Bearers must be positioned such that they will not fall off the top of the frames. The usual method of
+ensuring this is by placing the bearers in U-heads on top of the frames and by ensuring cantilevers
+are minimised. Where only single bearers are placed in the U-head, the bearer must be placed
+centrally in the U-head unless an engineer states otherwise. Where the top of the supporting member
+consists of a flat plate, the bearer must be nailed or otherwise effectively secured to the plate. Flat
+plates may only be used where specified by an engineer.
+4.1.5 Fall protection from the formwork deck
+
+WHS Regulation section 78(1) and (2): A person conducting a business or undertaking must
+manage risks to health and safety associated with a fall by a person from one level to another that is
+reasonably likely to cause injury to the person or any other person. This includes the risk of a fall:
+• in or on an elevated workplace from which a person could fall
+• in the vicinity of an opening through which a person could fall
+• in the vicinity of an edge over which a person could fall on a surface through which a person
+    could fall, or in any other place from which a person could fall.
+WHS Regulation section 306C and 306D: A person conducting a business or undertaking who
+intends to do construction work where the risk of falling is at least two metres must, before work
+starts, use control measures to:
+• prevent a person falling any distance, or
+• if prevention is not practicable to arrest a person’s fall to prevent or minimise the risk of death or
+    injury.
+
+A person conducting a business or undertaking who intends to do construction work where the risk of
+falling is at least two metres must, before work starts, use control measures to prevent a person
+falling any distance or arrest a person’s fall.
+During formwork construction the structure is constantly changing. Hence, continual modification of
+fall protection measures is also necessary. One of the biggest challenges is to provide adequate fall
+protection on the leading edge of the formwork deck. Where there is only one leading edge (i.e. the
+other edges are provided with two metre high edge protection), the provision of fall protection on the
+leading edge is relatively straightforward. However, where there are multiple leading edges and/or the
+deck is not at one consistent level the provision of fall protection can be very difficult to implement.
+Designers of buildings are therefore encouraged to design floor slabs that are one consistent
+thickness.
+Control measures are required where a person could fall onto an object, such as frames, reinforcing
+steel or a rubbish skip.
+Edge protection on the formwork deck
+
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 23 of 54
+WHS Regulation section 306E: Edge protection must be designed to withstand the downwards or
+outwards force of the impact of a fall against it of any person who may reasonably be expected to fall
+against it to ensure that the person does not fall from the surface from which work is to be done.
+
+Where the design of the formwork is complex, it may be impractical to provide edge protection on
+leading edges because the profile of the deck is constantly changing and construction of leading edge
+protection would create more hazards than it would control. For example, the persons installing the
+edge protection could be exposed to risk when installing the edge protection. However, in some
+situations it may be necessary to provide perimeter edge protection on edges of the formwork deck.
+Examples where edge protection must be installed are:
+• There is a change in deck height along the side of the deck being constructed (i.e. a drop down
+    for a beam) and no joists and/or formply has been provided at this different height.
+• If a leading edge is to be left unattended and access onto the deck by persons other than form
+    workers is required (i.e. the formwork deck has not been barricaded off and provided with “keep
+    out” signs).
+The most effective means of providing edge protection on a completed formwork deck is by providing
+perimeter scaffolding or proprietary screen systems. Edge protection is erected prior to the formwork
+and prevents workers falling off the completed deck. The main advantage of these systems is that
+persons are not required to install edge protection on the perimeter of the formwork deck and are
+therefore not exposed to a risk of falling. The other advantage is that edge protection for persons
+installing the final perimeter formply sheets is already in place.
+Where scaffolding over four metres in height is provided, any erection, dismantling or alteration of the
+scaffolding must only be undertaken by licensed scaffolders. Any scaffolding components must be
+replaced following removal. Gaps between a completed floor and scaffolding, that may exist after the
+formwork support system is removed, must be covered where there is a risk of a person or materials
+falling through the gap.
+In some situations, it may be impractical to provide perimeter scaffolding. If this is the case, the work
+system used to install perimeter edge protection on the deck must ensure that a control measure is
+provided to ensure against the risk of a fall. The use of harness systems is discouraged, because it
+does not provide an adequate and practical control for the risk of a fall from height.
+In some situations edge protection can be substituted with an alternative control measure provided
+this measure prevents a person falling from the edge. One alternative is the provision of a barricade
+1.8 metres back from the edge with clearly visible “keep out” signs.
+Unsuitability of harness system for formwork activity
+The use of:
+• travel restraint harness systems to prevent a fall
+    or
+• fall arrest harness systems to arrest a fall when erecting, altering and/or dismantling formwork are
+    not recommended because:
+Travel restraint harness systems
+Travel restraint systems, as a means to prevent a person falling, are impractical for formwork
+because:
+• The contour of the leading edge is constantly changing so that the length of the travel restraint
+    line needs to be continually adjusted
+• Multiple lanyard anchorage points may be required
+• The greater the number of workers building the formwork deck, the greater the likelihood of lines
+    becoming tangled.
+Fall arrest systems
+• When erecting, altering and/or dismantling formwork there will be inadequate free fall distance
+     underneath the working area and a person will strike the ground, a frame or other obstruction
+     prior to the fall being arrested.
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 24 of 54
+•   A falling person can require in excess of 6 metres free fall distance for the fall to be safely
+    arrested by a harness system. In some situations this distance can be substantially reduced by
+    the use of shorter lanyards and/or higher anchorage points.
+•   The erection of formwork frames using fall arrest harnesses requires the user to regularly connect
+    and reconnect to anchorage points. This requires use of a double lanyard.
+4.1.6 Laying formply on the deck
+A formwork deck must be laid in a progressive way such that persons will be provided with a method
+of preventing them from falling below the deck. This control measure is particularly important in
+situations where a false deck has not been provided below the level of the deck to be laid.
+Where a false deck has not been provided formply may only be spread on the joists provided where:
+• Persons commence laying the formply sheets from the perimeter scaffolding or other edge
+   protection that has been provided on the perimeter of the formwork.
+• A minimum of four joists at 450mm centres (400mm gaps, totalling 1.8 metres) are located on
+   bearers next to the person and in the other direction joists extend for at least 1.8 metres (see
+   Diagram 4). Therefore, if a person falls they will fall onto the joists and should be prevented from
+   falling further. (Note, in some situations, there may be a possibility of a person falling through the
+   joists if the joists spread as the person’s body makes contact. This is more likely to be a potential
+   hazard when the person falls onto the joists such that the person’s fall is in the same direction as
+   the joists. Implementing controls to minimise sideways movement of joists will minimise this
+   possibility).
+• Persons lay the formply in front of their bodies so that if they stumble they are likely to fall on top
+   of the sheets being laid.
+
+
+
+
+Diagram 4 – Maximum spacing of timbers around worker where false deck is over 2 metres below
+
+
+Typical work system for a leading edge
+The following work system may be used by persons to construct the formwork deck for typical or
+multi-level construction. The work system may be used irrespective of the distance to the false deck
+or floor below, but is specifically intended for situations where the vertical distance below the deck
+being constructed is greater than two metres.
+• Place bearers on the U-heads of the formwork frames from the working platform provided
+     immediately below. Secure bearers to prevent movement (i.e. by nailing to or wedging in the U-
+     heads) before joists are placed on top. No eccentric (un-centred) loads should be applied to the
+     U-heads.
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                       Page 25 of 54
+•    Place joists on the bearers in a progressive manner from the work platform located directly below
+     the area to be worked on, and spaced at 450mm centres (maximum) or so that the gap between
+     joists does not exceed 400mm.
+•    Cantilevered bearers and joists must be secured against uplift prior to persons being supported
+     by them, if the cantilever distances exceed those specified in Table 4 (in section 4.1.7 of this
+     code).
+•    Formply, or other deck material, must be laid out progressively. Wherever possible, the direction
+     of the leading edge should be perpendicular to the joists (or parallel to the bearers).
+•    Formply should be placed on the joists with the installer located behind the sheet as it is
+     positioned whilst standing on the previously laid sheet or provided work platform. In the event of a
+     person tripping or stumbling they should fall on the sheet and not off the leading edge.
+•    Cover or protect all penetrations left behind the leading edge. Covers must be securely fixed and
+     clearly signed to indicate they are protecting a penetration (see section 4.1.8).
+•    Nail or otherwise secure formply to the joists in accordance with the formwork design as soon as
+     practical.
+•    Only persons involved in the construction of the formwork should be located in the formwork
+     construction zone (see Diagram 7). Any person not involved in construction of the formwork deck
+     and support structure should be excluded.
+•    The leading edge should be free of oil, sawdust and obstructions to reduce the likelihood of slips
+     and trips, and fall prevention control measures should be provided for all leading edges, not just
+     the direction formply is being laid.
+4.1.7 Cantilevers
+Cantilevered bearers, joists and ply sheets can be hazardous when left unsecured. The weight of a
+person standing on the cantilever may make the timber see-saw and cause the person or material to
+fall. When designing the formwork system the use of cantilevers should be kept to a minimum.
+However, in some situations the use of cantilevered sections is unavoidable. Where this is the case,
+an engineer must consider the potential for persons and stored materials to cause cantilevers to pivot.
+Wherever the weight of a person will cause a cantilever to pivot, the cantilever must be positively
+secured such that this will not occur.
+Table 4 provides guidance on the maximum permissible cantilever length without securing the back of
+the cantilever. The information is based on a person’s weight of 120kg and includes a factor of two to
+allow for live loading when a person steps on to the cantilever:
+Table 4 - Maximum unsecured cantilevers for structural members
+
+    Member section size and            Total length of member       Maximum cantilever without
+    material type                                                   securing
+    150 x 100mm oregon bearer                      5m                             420mm
+    150 x 100mm oregon bearer                      4m                             270mm
+    150 x 100mm oregon bearer                      3m                             150mm
+    150 x 77mm LVL (laminated                      5m                             330mm
+    veneer lumber) bearer
+    150 x 77mm LVL (laminated                      4m                             220mm
+    veneer lumber) bearer
+    150 x 77mm LVL (laminated                      3m                             120mm
+    veneer lumber) bearer
+    100 x 75 mm oregon joist                       6m                             310mm
+    100 x 75mm oregon joist                        5m                             220mm
+    100 x 75mm oregon joist                        4m                             140mm
+    100 x 75mm oregon joist                        3m                              80mm
+
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 26 of 54
+Where self-weight of timber is inadequate to ensure the stability of the cantilever, all cantilevers
+should be secured in accordance with the designer’s instructions. This may include nailing or another
+effective method such as bolting. Nailing should be carried out such that the nail will not pull out of the
+timber or shear off. Where skew nailing is used a minimum of two nails should be used and the nail
+should meet the designer’s specifications.
+Wherever practical, it is preferable to secure cantilevers such that the nail or bolt is loaded in pure
+shear (i.e. no pull-out load). The use of purpose designed brackets should also be considered.
+Materials should not be stacked or stored on a cantilever section unless written certification is
+provided by an engineer.
+4.1.8 Penetrations
+
+WHS Regulation section 306F: A fall protection cover used as a control measure must be able to
+withstand the impact of a fall onto it of any person who may reasonably be expected to fall onto it to
+ensure that the person does not fall and be securely fixed in place to prevent it being moved or
+removed accidentally.
+
+Open penetrations, such as stairwells or penetrations to allow for services, create hazards for persons
+on the deck. A person may fall through a larger penetration, sustain injury by stepping into a smaller
+penetration or an object may fall through the opening onto persons below. Any penetration where
+there is a risk that a person or an object could fall through should be covered.
+All penetrations on completed slabs should be provided with a cover mechanically fixed to the floor or
+otherwise effectively restrained so that it remains in position except for plumbing and inspection hole
+covers. Mechanical fixings for a penetration cover should be structurally adequate and require the use
+of a tool to be removed (e.g. an insert type anchor requiring a spanner or socket). Fixings must be
+placed an adequate distance from the cover edges to prevent the failure of the cover, it’s fixing or the
+supporting surface into which the fixings are placed (see Diagram 5).
+
+
+
+
+Diagram 5 – Example of a horizontal penetration cover
+Open penetrations must be protected either with edge protection (e.g. handrails) or securely covered.
+Cast-in metal mesh should be used for small diameter penetrations. Vertical penetrations (e.g. lift
+doors) must be fully enclosed with mesh as a minimum standard. The mesh should have a small
+aperture (e.g. 50 x 50mm mesh size or smaller), and be made of material capable of withstanding the
+potential imposed load. Mesh provided over larger penetrations may require engineering certification
+to ensure it can withstand potential loads, including those applied by people, equipment and material
+(see Diagram 6).
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 27 of 54
+Diagram 6 – Example vertical penetration cover
+Where holes are cut in the mesh for services to pass through, the hole should be cut to the profile of
+the service so that mesh remains in the penetration.
+Ply covers on their own are not to be preferred because:
+• the cover may be indistinguishable from other pieces of ply
+• it may be difficult to determine if the ply is properly secured
+• secured ply covers can be unsecured to gain access and not re-secured.
+Where ply covers are used, they are to be a single piece of ply without multiple pieces and joins and
+the edge of the penetration should be bevelled to minimise any trip hazard. The ply cover should also
+be designed to safely withstand a point load of at least 2 kilonewtons (i.e. 200 kilograms). This is the
+same point load as required for heavy duty scaffolding – see AS/NZS1576.1:2010 Scaffolding Part 1:
+General requirements for further details.
+Where a ply cover is used in addition to cast-in mesh, it acts as a back-up system. Ply covers should
+be painted in a bright colour and be marked with the words “Danger Hole Under” or words to that
+effect. The cover should be firmly secured to the concrete and be designed for potential loads that
+may be applied.
+Before stripping formwork, ensure the penetration that will be exposed as the formwork is stripped is
+covered and or protected prior to the commencement of the stripping operation.
+Penetrations are also hazardous before the deck is laid. Joists placed up to the edge of the
+penetration should be secured so that the timbers cannot spread if a person falls on them.
+4.1.9 Working areas for steel fixers and others
+Steel fixers, plumbers and electricians, often follow closely behind the formwork erection. Consultation
+between formworkers, the person conducting a business or undertaking and other trades should be
+undertaken to ensure a suitable hand over of completed elements of the formwork deck is provided.
+Following consultation, and access to the deck by required installers for water and power, trades that
+will be working on the deck and a delegated ‘competent person’ on site should signoff that the
+following has been completed:
+• penetrations are covered
+• handrails are installed
+• water and power are installed
+• there is a stair tread system provided for safe access and egress to the working deck.
+The formwork zone must be sufficiently large to ensure that these other persons are clearly separated
+from formworkers. A ‘formwork only’ zone should be maintained behind the leading edge. This zone
+should be clearly demarcated by signage and flagging. Diagram 5 illustrates the ‘other work’ zone, the
+formwork zone and the area retained as edge protection (four joists spaced 1800mm beyond the laid
+deck).
+
+
+Formwork Code of Practice 2016 (PN11965)                                                   Page 28 of 54
+Diagram 7 – End view of deck showing working zones
+
+
+4.2 Formwork erection – modular formwork systems
+The basic principles discussed in section 4.1 on traditional systems should be applied to the erection
+of modular formwork systems. Although the erection technique and member dimensions may vary
+greatly between traditional systems and modular systems, the principles of maximum potential fall
+distance and gap width at the working level should be applied. The width of any gap on a working
+level is not to exceed 400mm unless a false deck has been provided within two metres of the working
+level. Working platforms used for modular systems should also have a minimum width of 450mm.
+Modular and traditional formwork systems should be designed to comply with the loadings and
+general principles of AS3610: Formwork for Concrete.
+Traditional formwork systems are sometimes used next to and connected to modular systems,
+particularly around unusually shaped areas. Where this is the case, the formwork drawings should
+show this and should be certified by an engineer. However, components from other types of formwork
+systems should not be used as an integral part of the modular formwork system unless the designer
+of the modular system states in writing that this is permitted.
+Modular formwork systems are often lighter weight and require less physical effort than traditional
+systems because they are often constructed from aluminium instead of steel and they eliminate the
+need for tasks such as repetitive hammering. This reduces a person’s exposure to the risk of injury
+resulting from undertaking manual tasks. However, because of their lighter weight, modular systems
+may be more susceptible to falling over during the erection of the system, due to factors such as wind
+loading. This will generally only be an issue prior to placement of the deck on the modular system. To
+effectively control this issue the formwork system should be progressively braced in accordance with
+the suppliers instructions during its erection.
+
+4.3 Stripping formwork
+Stripping formwork can be one of the most hazardous phases of concrete construction. While falling
+objects are the primary hazard, there may also be fall hazards as a result of floor collapse and manual
+tasks hazards from a person working in awkward postures, repetitive handling of materials and limited
+task variety. As with formwork erection, the stripping operation must be carried out in an orderly,
+progressive manner.
+4.3.1 Safe work method statement
+A safe work method statement (SWMS) for the stripping operation should be prepared and provided
+to those who will be involved in this high risk activity. The SWMS should:
+
+
+Formwork Code of Practice 2016 (PN11965)                                                  Page 29 of 54
+•  identify the work that is high risk construction work
+•  state hazards relating to the high risk construction work and risks to health and safety associated
+   with those hazards
+• describe the measures to be implemented to control the risks
+• describe how the control measures are to be implemented, monitored and reviewed; and include:
+  - The number of persons in the stripping crew.
+  - The sequence of stripping activities – this would need to detail how the frames and/or other
+      supports should be removed (that is, how far U-heads are to be lowered).
+  - Whether the support system is to be completely removed in a zone prior to removal of the
+      formwork deck or whether the supports are to be lowered slightly but still remain under the
+      formply while it is being removed.
+  - When back-propping is required or only part of the support system is to be removed, how the
+      structural members are to remain in place and/or the type and layout of members that will
+      replace the formwork system.
+  - Any other special requirements involved in the stripping and or building process (e.g. checking
+      of back-propping after post-tensioning).
+4.3.2 Certification prior to stripping
+Prior to commencement of the stripping operation, a competent person, from the principal contractor
+(i.e. the project engineer), is to provide written certification that formwork can be removed. This
+certification should be based on an engineer’s specifications for the building, the strength of the
+concrete mix and the time period that has elapsed since the pour. An engineer will also be required to
+have input into the stripping safe work method statement to ensure the concrete element will not fail
+and must have provided details on the structural engineering drawings as required by AS3600 -
+Concrete structures.
+Documentation from the concrete supplier verifying the concrete specification should be available on
+request. A concrete sampling and testing procedure should be in place to verify concrete meets its
+design specification. Guidance on sampling and testing systems for concrete is provided in AS1379 -
+Specification and supply of concrete.
+It is important to note that the compressive strength of laboratory cured test specimens may differ
+from the actual compressive strength due to factors such as temperature and humidity on site, poor
+curing techniques and the addition of water to the mix. Some builders may therefore choose to have
+test samples on site to give an indication of the variation between ‘on site’ tests and laboratory tests.
+4.3.3 Exclusion zone
+Only persons involved in the stripping operation should be permitted in the area to be stripped.
+Stripping areas should be cordoned off and signs should be displayed. The signs should require
+persons to keep out of the area (e.g. “Danger - Formwork stripping in progress – authorised persons
+only”). It is preferable to restrict access to the whole floor where soffit stripping is taking place and this
+should reduce the quantity of signage and barricades required. Where other trades are required to
+work on the same floor during stripping of walls, columns or small sections of soffit, the principal
+contractor or PCBU should ensure that stringent controls are applied that prevent other persons from
+entering the stripping area.
+4.3.4 Drop stripping
+‘Drop stripping’ is a term sometimes used to describe the method used when all of the formwork
+support system is removed and the formply is allowed to drop to the floor either by its own weight or
+by persons levering it off. In general, this method of stripping should not be used to strip formwork. It
+can be hazardous because the formply is likely to fall in an uncontrolled manner and can strike
+persons underneath.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                        Page 30 of 54
+However, in some situations, sheets can be dropped to the floor provided the following is ensured:
+• The formwork support system (e.g. props or frame) is only removed from under the sheet to be
+   dropped. Once the sheet is dropped the process progressively continues until all sheets are
+   dropped.
+• The person levering off the sheet is not at risk of being struck when the sheet falls to the floor,
+   keeping in mind that sheets may fall at an angle due to their large surface area and effect of the
+   air – for example, the person does not stand directly under the sheet but stands far enough away
+   and uses a pinch-bar to lever the sheet off. It should be noted that this method can only be used
+   on relatively low ceiling heights unless the person can be positioned on a working platform or
+   elevating work platform. The advantage of using a platform is that the person will generally be
+   able to get closer to the sheet to be removed without being at risk.
+• The formwork system and sheets are not left in a haphazard manner on the floor but are placed in
+   stacks and progressively removed from the floor area.
+Formwork removal must be carried out in a systematic manner, such that the deck is progressively
+removed as the support system is gradually removed. One way to remove the formply is by partially
+lowering the support system and then dropping the segment of the deck (sheet) onto the support
+system. This is preferable from a manual tasks perspective also as it eliminates the need to lift sheets
+of ply from ground level.
+
+4.4 Crane and load handling systems
+4.4.1 Loading materials during formwork construction
+Materials, including stacks of ply, forms, bearers and joists, are sometimes lifted onto a deck during
+formwork erection, and before the deck is signed over. Stacked materials create point loadings which
+the formwork structure may not be designed to bear. Materials should be stored only where and when
+the deck is able to bear the load.
+Formwork is not suitable for any loading until it is fully secured, that is, the deck is in place with tie-ins
+and back-propping complete. In practice, some loading often occurs before the deck is completed, for
+example, unloading packs of ply and joists used to continue the deck.
+To minimise the risk of collapse and other hazards:
+• Formwork drawings should clearly identify the maximum (pre-pour) point loadings for the deck.
+• Point loadings should not exceed the maximum weight specified by an engineer.
+• Crane crews should be notified when an area of deck is ready to take a load, and where that load
+   should be placed.
+• Crane crews should not lift materials onto the deck until there is a designated lifting zone.
+• Loads should only be placed in the area(s) designated as safe.
+• Loads must not be placed on the formwork deck if the formwork documentation prohibits
+   loadings.
+• Delivery of materials to the site should be planned so that loads are not lifted onto unsecured
+   decks.
+• Prior to persons leaving the site, materials and equipment should be secured to prevent them
+   being moved by wind.
+4.4.2 Access for persons slinging loads
+Safe access must be provided for persons slinging and un-slinging loads.
+A dogger or other person working at two metres or more above the deck must be provided with
+adequate fall protection, unless the person is performing ‘permitted work’.
+Use of fall arrest systems for persons slinging formwork loads is usually impractical and is not
+recommended.
+It may be more practical to fit platforms and edge protection to lift forms to protect persons when
+slinging the loads. The platforms must be at least 450mm wide. Persons required to access the
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                        Page 31 of 54
+platforms from ladders should have a safe means of access provided between the ladder and
+platform. They should not climb over the top of the edge protection.
+
+4.4.3 Lifting gear
+Guidance on the use and inspection of chains, wire ropes and synthetic slings is provided in the
+following publications:
+• AS2759 – Steel wire rope - Use, operation and maintenance.
+• AS3775.2 – Chain slings for lifting purposes – Grade T – Care and use.
+• AS4497 – Roundslings – Synthetic fibre.
+• AS1353.2 – Flat synthetic-webbing slings – Care and use.
+Non-positive lifting gear such as plate clamps and suction devices are not to be used.
+Basic items that should be checked include:
+• The lifting gear is tagged and all relevant information listed (e.g. relevant information for a chain
+   sling is grade of chain, safe working load, manufacturer, chain size and Australian Standard
+   marking).
+• Lifting hooks are provided with operable safety latches.
+• Shackles are prevented from unscrewing (e.g. mousing or similar).
+• Lifting eyes and inserts are compatible and the same proprietary brand.
+• Lifting slings are not damaged (e.g. excessive wear, damaged strands, cracks, deformation
+   and/or severe corrosion).
+• The sling is appropriate for loads being lifted, including adequate capacity and protection from
+   sharp edges.
+All lifting gear, including slings, hooks and material boxes, should be periodically inspected for
+damage and wear. The period between inspections shall depend on the severity of use. In the case of
+chain lifting slings and material boxes, a formal documented inspection should be completed at
+intervals not exceeding 12 months. Documented maintenance records for the lifting gear should be
+available on site.
+
+4.4.4 Lifting formwork materials
+Crane-lifted loads should be slung and secured so that the load (or any part of it) cannot fall, as
+follows:
+• Tare mass of wall, lift or column forms should be provided on site with formwork documentation
+     and made available for inspection by all interested parties.
+• Safe working load mass should be clearly marked on bins.
+• Lifting boxes should be appropriate for the material being lifted, and be engineer-designed and
+     certified.
+• Four chains (one in each corner) should be fitted to lift boxes.
+• Specifically-designed lifting boxes should be used to lift smaller components (e.g. spigots, U-
+     heads, base plates and couplers). Boxes should have enclosed sides or robust mesh (with
+     openings less than the minimum size of materials being lifted).
+• Lifting boxes should be inspected and maintained, and inspection records kept.
+• Loads within lifting boxes should be secured against movement.
+• Materials should not be stacked higher than the side of the box unless they are adequately
+     secured, but at no time should the box become top heavy.
+• Formwork frames should either be strapped together or lifting slings should be wrapped around
+     the load.
+• Loads of joists or bearers should be strapped together before lifting.
+• Use tag lines as required to control loads and well as forms.
+• Formply loads should be strapped together and lifted in a flat position.
+• Ensure where possible all loads are supported with dunnage and the load is uniformly distributed
+     over the supporting surface.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 32 of 54
+4.4.5 Lifting lugs
+Slings attached to lugs or holes cut into part of the load are often used to lift bins, and wall, lift or
+column forms (instead of wrapping the lifting slings around the load). Information verifying the
+structural adequacy of the lifting points should be available.
+The certification should be provided by an engineer who should verify the:
+• structural adequacy of the lifting lug
+• means of attachment to the load (usually welded or bolted to the load).
+
+4.5 Use of stair tread systems and ladders
+Stair tread systems are to be used as the primary form of access and egress to and from a formwork
+zone unless it is not reasonably practicable to do so. Examples where it may not be reasonably
+practicable to use a stair tread system include:
+• accessing column boxes up to 3.5 metres high (e.g. a platform ladder may be used for the
+    purpose of tightening z bars, securing props, plumbing & checking inside box)
+• accessing wall shutters to 3.5 metres high (e.g. a platform ladder may be used for the purpose of
+    installing rebates and penetrations to the shutter, locating z bars, splicing timbers on shutters,
+    securing props, plumbing and checking inside box)
+• conventional core walls up to 3.5 metres (e.g. straight ladders may be used inside shafts for
+    access, locating z bars, splicing shutters and working corners and tread scaffold stairs may be
+    used for accessing pouring platforms at the top of cores)
+• trenches/pits where a stair tread system would not fit within the space (e.g. a straight ladder may
+    be used)
+• core systems (e.g. a straight ladder can be used for access and working inside boxes and cells
+    and tread stairs up to one metre wide can be used to access the system externally from the top of
+    the system to the working soffit/slab below)
+• safety screens (e.g. a straight ladder can be used to go platform to platform within screens and
+    tread stairs up to one metre wide can be used when accessing floor to floor with a stairway on the
+    outside or incorporated into the screens)
+• drop panels/isolated beam to 4.5 metres high (e.g. formworkers could use a straight ladder for
+    access). Where workers other than formworkers need access to drop panels/isolated beams
+    there will need to be a stair tread system
+• soffits (e.g. access to decks should be by tread stairs up to one metre wide or stretcher stairs one
+    metre to 1.8 metre wide)
+• high scaffolding support system (e.g. depending on the scaffold layout, access in scaffold should
+    be by ladders for scaffolders and narrow tread stairs for formworkers getting up under the deck)
+• initial entry to wall systems (e.g. may use a plywood stair tread system).
+Adequate edge protection must be provided on the stair tread system and the area it provides access
+to in accordance with section 306E of the Work Health and Safety Regulation 2011 and AS/NZS
+1576.1:2010 Scaffolding Part:1 General Requirements.
+Temporary timber or plywood framed steps, stairs, treads or ramps may be fabricated by competent
+tradespersons to gain access to vertical formwork systems and from scaffold platforms onto adjacent
+formwork decks. The maximum height of a timber stair, steps or ramp should not exceed 1.5 metres.
+The finished walking surface of the temporary timber or plywood framed steps/stairs/ramp is to be slip
+resistant and provide grip for inclined surfaces. Temporary stair and step fabrication information is
+available from AS/NZS 1576.1:2010 Scaffolding Part:1 General Requirements.
+Stair tread systems are not required for isolated areas that are not integral to the main slab (i.e. drop
+panels and fire corridors).
+Where single or extension ladders are used they must be secured, either:
+• at the top to prevent it moving (e.g. tying the top of the ladder to a plate fixed to the top of a wall
+   frame or clamping the top of the ladder to structural steel);
+   or
+
+
+Formwork Code of Practice 2016 (PN11965)                                                         Page 33 of 54
+•   at or near the bottom to prevent it moving.
+Other issues regarding the safe use of ladders include:
+• At no time is material to be carried while using a ladder – three points of contact must be adhered
+   to.
+• A person’s feet should not be higher than 900mm from the top of the ladder, and when using a
+   platform ladder, a workers feet should not be more than two metres above the base of the ladder.
+• Ladders should be set up on a firm, level surface. They should not be used on scaffolding or
+   elevated work platforms to gain extra height.
+• Ladders should not be handled or used if they may come into contact with electrical power lines.
+   Metal or metal-reinforced ladders should not be used in the vicinity of live electrical equipment
+   (timber ladders often have metal running along their length).
+• Ladders must not be positioned above or adjacent to openings or edges where a potential fall
+   could occur. Work platforms with edge protection should be provided in this instance.
+Ladders can only be used if equipment can be operated with one hand. Activities requiring use of both
+hands must not be performed while standing on a ladder, for example:
+• removing tie bar from wall and column forms during form stripping – this usually requires both
+   hands and/or the use of a ‘tie-bar puller’
+• carrying timbers, formply, props or frames
+• using power tools, such as circular saws.
+Ladders used for access must extend at least one metre above the accessed surface. Ladders should
+not be used in access ways or where there is pedestrian traffic, vehicles or mobile plant.
+AS1657 – (fixed platforms, walkways, stairways and ladders-design, construction and installation)
+must be complied with where fixed or permanent ladders are provided.
+
+5 Falling objects
+WHS Regulation section 54: A person conducting a business or undertaking at a workplace must
+manage risks to health and safety associated with an object falling on a person if the falling object is
+reasonably likely to injure the person.
+WHS Regulation section 315H: A principal contractor must ensure that, before construction work
+starts, the adjoining area is closed under section 315M to the extent necessary to prevent objects
+falling, and perimeter containment screening complying with section 315I is erected along each part of
+the structure from which an object could fall.
+
+Falling objects are significant hazards, creating risks to workers and others during formwork erection,
+alteration and stripping, when slipping and jumping forms, and whenever loads are lifted over work
+areas.
+PCBUs have a duty to workers and other persons who could be injured or killed by any falling object
+during formwork activities.
+The control measures that are implemented should firstly aim to prevent objects from falling, but
+equally prevent injury if an object has fallen. Small objects, such as bolts and concrete aggregate,
+falling from a height can cause serious injury.
+
+5.1 Preventing objects from falling
+Controls should be applied at the source to prevent objects from falling, that is, eliminate the risk. This
+is the most effective control to prevent injury or death caused by falling objects.
+Good housekeeping practices are the most effective way of preventing small objects from falling.
+Ensure items are cleaned up and kept away from edges, voids and penetrations.
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 34 of 54
+One control measure to prevent objects from falling is the use of perimeter containment screens. This
+Code recommends that perimeter containment screening be provided as a control measure for falling
+objects with equal regard for a person’s safety and protection on site as well as for the protection of
+the public in adjoining areas.
+
+5.1.1 Perimeter containment screening
+
+WHS Regulation section 315I: If the perimeter containment screening is used to redirect a falling
+object onto a catch platform, each screen must be fitted vertically to the top of, or flush with, the outer
+edge of the catch platform to redirect a falling object that may reasonably be expected to hit the
+perimeter containment screening, onto the catch platform.
+If the perimeter containment screening is not used to redirect a falling object onto a catch platform,
+each screen must be designed to prevent an object, that may reasonably be expected to hit the
+perimeter containment screening, from falling on persons from the level at which the work is to be
+done.
+Each screen must be made of mesh or of timber, plywood or metal sheeting.
+Each of the following gaps must be not over 25 mm:
+• the gap, measured horizontally, between screens immediately beside each other or a screen and
+   the framework supporting it;
+• the gap, measured vertically, between a screen and another screen immediately above it or a
+   screen and the framework supporting it.
+The framework supporting a screen must be able to bear the load of the screen.
+
+Containment sheeting is a protective structure fixed to the perimeter of a building, structure or working
+platform to prevent objects and people from falling. Containment sheeting should be used around the
+perimeter of a building or structure during construction, and especially during formwork erection or
+stripping. It is usually sheeted with: timber, plywood, metal or synthetic mesh or sheets.
+Containment sheeting may be supported by the building, structure, or specially designed scaffolding.
+It must extend at least one metre above the working surface. When formwork is being erected or
+dismantled in the immediate vicinity of the screening, the screening should be captive to the building
+and extend at least 1 metre above the top of the completed floor slab. Examples of perimeter edge
+protection for falling objects include:
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                      Page 35 of 54
+      Diagram 8 - Typical single or multi-story construction   Diagram 9 - Typical single or multi-story
+                                                                            construction
+
+
+
+
+ Diagram 10 - Typical single level construction
+
+When selecting containment sheeting consideration must be given to:
+• ability to support or contain imposed loads including building materials, equipment and waste
+   materials
+• ability to contain ejected objects
+• pattern and frequency of fixing points
+• degree of protection required from rain or washing down operations
+• chemical reactivity
+
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 36 of 54
+•   flammability
+•   light transmission requirements (refer AS1680 for guidance)
+•   ventilation requirements (refer AS1668.2 for guidance)
+•   frequency of inspection
+•   wind loads on the supporting structure
+•   gaps created by a fixing method
+•   the ability for the containment sheeting to move within the supporting structure.
+Perimeter containment screens used for formwork must be placed in position prior to formwork
+erection commencing and are not to be removed until all stripping is completed and all formwork
+materials are removed from the underside of the concrete as formed and/or removed from or stacked
+on the floor.
+
+5.2 Building step-ins
+Perimeter containment screens must extend above the formwork erection area so that materials
+cannot fall to the ground or other area where persons may be. Where the horizontal surface under
+construction steps in from the building perimeter, such as in the case of a plant room on a building
+roof, the perimeter screens must be erected to a height that will prevent any materials falling to the
+ground (see Diagram 9).
+
+
+
+
+Diagram 11 - Typical set back or single construction
+Persons not involved in formwork erection should not be located in the area of the building next to the
+step-in, unless controls have been implemented to prevent these persons being struck by falling
+objects.
+
+5.3 Gaps
+Gaps between perimeter screens and the formwork deck or floor should not be large enough to allow
+materials to fall below. This can be done by:
+• fixed ply covers,
+   or
+• ply or rubber deflector shields that are connected to screens and the adjacent area cleaned up
+   before they are moved.
+Deflector shields deflect objects onto the deck, preventing objects from falling further down the gap.
+They should be attached to the screens by a system that will ensure the shields do not fall when the
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 37 of 54
+screens are lifted and that is robust enough to withstand the environment. Deflector shields should be
+designed by an engineer and be adequate to resist impact loads likely to be applied (i.e. from bearers,
+formply props, etc.) Where chain is used to secure deflector shields, it should have a minimum link
+size of 5mm and be corrosion resistant. Light gauge domestic type chain is not suitable as it is easily
+damaged and will rust. Gaps on standard decks may have ply covers that are secured using nails,
+however fixings used on ply covers and deflector shields for jump forms, slip forms, self-climbing and
+crane lifted vertical formwork should only be bolted or screw connections – nails should not be used.
+Covers should be designed for:
+• potential loadings such as loads applied by workers
+• the impact loadings of falling materials
+• marking with their safe working load if they can be accessed as a platform.
+
+5.4 Prior to lifting
+Prior to lifting, the following should take place:
+• formply, wall and column forms and other materials should have concrete removed to ensure it
+    does not fall onto persons below
+• an inspection carried out to ensure all loose materials and tools are removed from loads to be
+    lifted.
+Reference should also be made to section 4.4.4 of this code Lifting formwork materials.
+
+6 Special requirements for wall and column forms
+6.1 Bracing for wind loading
+Wall and column forms should be designed to withstand wind loading prior to, during and after the
+concrete pour. The bracing and forms should not be removed from the cast element until it can safely
+withstand potential impact loads and wind loads.
+Prior to commencing formwork stripping operations, a competent person (as described by this code)
+must verify that sufficient concrete strength has been achieved in accordance with the design
+documentation, and provide written certification that the formwork can be removed.
+Lateral support can be provided to vertical elements in a variety of ways including horizontal and
+angled braces and structural connections to other parts of the building. A bracing element must be
+verified and signed off by an engineer. The bracing element must also be able to resist both tensile
+and compressive loads that may be applied by the wind. Anchors for braces should preferably be
+cast-in type anchors or ‘through-bolts’ that extend through both sides of the anchoring medium. Insert
+type anchors of the following types may be used provided they are installed in accordance with the
+manufacturer’s instructions:
+• Undercut type anchor that do not rely on friction to function.
+• Expansion anchors of the high-load slip, torque controlled type. These anchors have a working
+     load of at least 60 per cent of the first slip load and are generally suitable for structural tensile
+     loads.
+• Coil bolts.
+The correct operation of insert type anchors is greatly dependant on their being installed in
+accordance with a manufacturer’s specifications (e.g. drilling the correct size hole and applying the
+correct torque in concrete of adequate strength).
+Insert type anchors are to be installed using a calibrated torque wrench or another reliable method
+that is specified by the anchor manufacturer. Written and signed records verifying the anchors have
+been installed in accordance with the manufacturer’s instructions are to be available on site.
+
+6.2 Access platforms
+Suitable access for doggers, steel fixers and concreters should be provided and may include mobile
+scaffolding, purpose built work platforms or elevating work platforms. Edge protection should be
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 38 of 54
+provided on the access platforms. The access method should allow adequate room for a person and
+be positioned at a height and distance from the form so as to minimise movement and a person’s
+exertion. Any concrete pouring system should permit adequate space for a person to stand with edge
+protection provided. All mobile work platforms should have their castors locked at all times except
+when moving the mobile platform. Platforms should also be designed to resist any side loading that
+may be applied during a concrete pour to ensure the platform does not overturn. Aluminium
+scaffolding may not have adequate self-weight to ensure this. The Scaffolding Code of Practice
+provides additional guidance on the design and use of scaffolding.
+
+6.3 Lifting methods
+Wall and column forms should be provided with lifting points that have been designed by an engineer.
+Documentation must be available that verifies this. Holes cut with oxy-acetylene torches are not
+permitted as they may damage the form, are inaccurate and may make it difficult to attach lifting gear.
+Where lifting lugs are attached to the form the weld size and length should be specified by an
+engineer and the manufacturer should ensure that the weld complies with the engineer’s
+requirements (that is, is of the correct size and has adequate weld penetration).
+Wall and column forms must only be lifted with a positive lifting system such as lifting lugs or by
+slinging the lifting slings around the form such that the form cannot slip out of the slings. Purpose
+designed lifting lugs are preferable to slinging the load because there is less risk of the load becoming
+inadvertently disconnected from the crane hook.
+When lifting wall and column forms always make sure:
+• there is an engineer's drawing or certification for lifting the form
+• the lifting lug type, location and attachment are the same as specified on the drawing
+• the types and spacing of members on the form are the same as those specified on the engineer's
+   drawing
+• the numbers, types and spacing of bolts and screws on the form are the same as those specified
+   on the engineer's drawing
+• the form is engineer certified for any side loading lifting (i.e. when flipping the form onto or when
+   using multi-legged slings)
+• any bracing on the form is the same as that specified on the engineer's drawing
+• a competent person from the formwork contractor inspects the form every time it is lifted and
+   verifies it is safe to lift.
+• there is a documented system so the forms are inspected for damage or deterioration and remain
+   safe.
+It is important to:
+• never lift a wall or column form unless the form complies with the engineer's drawing
+• never lift a form that has lifting parts that are damaged or rotten
+• never change the lifting points without engineer approval
+• never drill extra holes in the lifting parts of the form
+• never use bolts, screws or timbers different to those listed on the engineers drawing,
+• never allow suction between two members.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 39 of 54
+7 Requirements for slip forms, jump forms, self-
+  climbing and crane lifted vertical formwork
+This section applies to slip forms, jump forms and crane lifted forms that incorporate working
+platforms and enclosed cells in which persons are required to work.
+Slip forms and jump forms are the terms given to self-climbing formwork systems specifically intended
+to construct concrete walls and columns in high rise buildings and other concrete structures such as
+chimneys. In slip forms, the climbing is usually carried out continuously during the concrete pour. With
+jump forms, the climbing is done in steps, following the concrete pour. The term “climb form” is also
+used to describe a slip form or jump form. The power for the climbing operation can be provided in a
+variety of ways, but usually by means of hydraulic rams or electric motors connected to climbing feet
+or screw shafts.
+Slip forms and jump forms usually consist of a number of decks and may also be fitted with trailing
+screens that are suspended from the form. As with perimeter screens, trailing screens may provide
+edge protection for persons, prevent materials from falling; provide support for work platforms or a
+combination of these uses. No two slip forms or jump forms will be identical because their design
+depends on the size and configuration of the structure under construction.
+The work systems and layout of some crane-lifted forms may also be similar to those associated with
+slip forms and jump forms. This may be the case for crane-lifted forms provided for the inside of lift
+shafts. While most of the information in this section applies to slip forms and jump forms, some of the
+principles may also apply to crane-lifted forms.
+When designing and operating these types of form, the following issues should be addressed:
+• provision for safe access to all areas and work platforms
+• control of risk associated with working at height
+• provision of sufficient working space and head room
+• specification of appropriate manual tasks methods for shutters and other components, e.g. the
+   use of cranes to lift shutters and provision of safe access for persons attaching slings to shutters
+• provision for retrieval of an injured or incapacitated person from any work area located within the
+   structure.
+It is acknowledged it may not be practicable to provide an access system and working environment on
+a jump form or slip form that are of the same standard as elsewhere. This is primarily due to structure
+characteristics and weight limitations. A designer must endeavour to minimise potential hazards.
+
+7.1 Access and egress
+Access to the form may be provided in a variety of ways including one or more of the following:
+• personnel and material hoists on the building
+• permanent stair systems in the building
+• a trailing stair system suspended from the slip form or jump form
+• an internal trailing ladder system.
+A trailing access stair system should be the primary means of access over a ladder system because it
+is safer for persons to ascend and descend and emergency evacuation is generally safer on a stair
+system. Two forms of access and egress to the form should be maintained at all times. Where
+formwork systems are used on single cell cores, columns or isolated walls, a single stair tread system
+is acceptable provided the site crane or other alternative is available for emergency removal of
+workers. If the site crane, or another suitable alternative, is not available then no workers should
+access the system.
+The access area between the trailing access system and the building should be clear of trip hazards
+and there should be no gaps between platforms exceeding 100mm wide.
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                   Page 40 of 54
+A designer of formwork should ensure the trailing access system is designed for loads that could be
+applied in an emergency evacuation situation. Both the strength of the system itself, and the ability of
+the form to withstand applied loads from the access system, should be adequate. The trailing stair
+access system should be designed for a load of at least 2.5kPa unless the designer is able to justify a
+lesser load based on the anticipated number of persons on the form at any one time.
+Where the designer of the formwork specifies a lesser live load than 2.5kPa, the following should be
+ensured:
+• A sign stating the maximum load that can be applied to the stairs should be fixed to the stairs in a
+   visible position.
+• Written procedures are implemented to ensure the total acceptable number of persons on the
+   form is not exceeded.
+Ladders must be secured in place and be placed at an angle between 70 and 80 degrees to the
+horizontal, where this is practical.
+Access openings for ladders on working decks should be provided with trapdoors that are closed
+except when being accessed. Trapdoors should be provided with a device so that they can be easily
+opened from above. This device should not pose a trip hazard for persons on the deck.
+
+Access ways should be kept free of materials and rubbish to prevent objects falling to the level(s)
+below.
+
+7.2 Working platforms and penetrations
+The following points highlight specific issues that may apply:
+• All penetrations should be covered by formply that is secured in position or should be provided
+   with leading or perimeter edge protection.
+• When placing steel or pouring concrete into a form, controls should be provided to prevent a
+   person falling into or off the form. This becomes more of an issue when the width of the form is
+   greater than 225mm prior to placement of reinforcing steel. A person working in proximity to
+   projecting reinforcing steel or other objects must be protected from the risk of being impaled by
+   these objects. Suitable controls may include edge protection on the internal side of the working
+   platform or sheets of steel re-enforcement mesh temporarily placed on top of the form that is, the
+   steel can be fed through the gaps in the mesh.
+• All platforms that may be affected by uplift should be positively secured so that uplift cannot
+   occur. Uplift can occur from wind loading or when a platform is out-of-level and unsecured. In the
+   latter instance, the platform can see-saw when a load is applied to the end of the platform and
+   then drop a person off the platform if one of the platforms supports moves. This may be the case
+   where work platforms are supported by a trailing screen on one side and a parapet of the building
+   on the other.
+• Where individual cells of the form are climbed at different times, edge protection should be
+   provided on each of the raised cells.
+7.2.1 Trapdoors
+Where penetrations exist, work procedures should be implemented to minimise the risk of workers
+and materials falling through the penetrations. This should include a process that helps workers to be
+aware of the location of trapdoors and covers. This will reduce the risk of workers tripping on
+penetration covers or inadvertently jumping on to a trapdoor without knowing they are doing so.
+Trapdoors are to be constructed so that the trapdoor itself and its support will not fail. Trapdoors need
+to be able to support persons walking or standing on them. Persons should not jump onto trapdoors
+or penetration covers.
+The following applies to trapdoors:
+• The trapdoor itself should be constructed from a single piece of material.
+• The material used to construct the trapdoor should be a structurally rated material. For example, if
+   plywood is used to construct the trapdoor the plywood should be of a structural grade to an
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 41 of 54
+    appropriate design and manufacturing standard such as AS/NZS2269 Plywood-Structural or
+    AS6669 Plywood-Formwork.
+•   The trapdoor should be designed and installed to be supported, when closed, around as much of
+    its edge as practical. For example, support should be provided under all four edges of the
+    trapdoor, except under the area of the trapdoor removed to allow the ladder to pass through the
+    closed trapdoor.
+•   The support under the trapdoor should be by structural bearers and not strips of timber that have
+    been screwed to the formwork deck.
+•   In order to allow the ladder to protrude through the deck, part of the trapdoor will need to have a
+    section removed. This cut out should be as small as possible, while allowing a ladder angle of 4
+    to 1. The cut out should not be wider than the outside of the ladder stiles.
+•   Where a trapdoor is no longer in use it should be locked or fastened so that it cannot be easily
+    opened.
+•   The hinges on the trapdoor are to be robust and remain serviceable for the life of the trapdoor.
+•   Trapdoors should be marked with the words 'Danger Hole Under' or, 'Danger Penetrations Below;
+    or similar.
+
+7.3 Trailing screens and platforms
+Trailing screens can provide edge protection, a means of preventing falling objects and be designed
+to incorporate working platforms. Where platforms are provided these are usually for the purpose of
+patching the building or carrying out minor repairs, and for access for persons climbing the form. A
+designer of formwork will specifically need to address all issues for which the trailing screen system is
+designed. The following issues must be included in the design:
+• A suitable design loading for any platforms on the trailing system. As a guide, platforms should be
+     designed to support a minimum load of 2.5kPa. A designer may reduce this if the number of
+     persons is strictly limited and controls are implemented on site to ensure this. If the design load is
+     less than 2.5kPa, signs should be fixed to the platforms that state the maximum load permitted in
+     kilograms. Persons on site should be made aware of the maximum loading that may be applied to
+     the trailing platform and this should be stated in documentation kept on site.
+• Adequate controls should be provided to control the risk of falling materials (see section 5 of this
+     code for further guidance).
+• All platforms should be secured to prevent uplift or any other movement.
+• Safe working loads when the trailing screen is used as work platform.
+Except where it is impractical to do otherwise, a person should not be located on trailing platforms
+while the platforms are crane lifted. If a person is located on a platform while it is being lifted by a
+crane, the following controls must be implemented:
+• A person should be prevented from falling down any gap that may exist on the inside edge of the
+    platform that is, between the platform and the wall being constructed. It is preferable to provide
+    edge protection on the inside edge to ensure this. Fall arrest harnesses may be provided for
+    workers as long as workers are trained in their safe use and a rescue procedure for retrieval of
+    workers following a fall has been prepared.
+• Persons on the platform hold at least a dogger or rigger licence class or a person with such a
+    licence class is also located on the platform as it is lifted.
+• A clear method of communication between the crane operator and the dogger responsible for
+    directing the lift exists that is, a whistle or two way radios.
+• Any crane making the lift complies with the requirements for cranes used to lift persons specified
+    in AS2550: Cranes, hoists and winches – safe use.
+
+7.4 Climbing the form
+It is important to ensure the different parts of the form remain level during the climbing process.
+Climbing is usually carried out using a series of climbing devices set up to lift at the same time and at
+the same rate. If the lifting system is not properly synchronised the form may become wedged on the
+structure or structural members may be overloaded. There should therefore be a system to ensure
+that the form does not go out-of-level during the climbing procedure. This system may be an
+
+
+Formwork Code of Practice 2016 (PN11965)                                                      Page 42 of 54
+automated system or may rely on operators stopping the climbing process. The following must be
+ensured:
+• Only persons directly involved with the climbing process should be located on the form during the
+    climbing process.
+• Any potential nip or shear points where a person could be injured during the climb are identified
+    and controlled.
+• All obstructions on the form have been removed prior to the form being climbed. A ‘sign-off’
+    procedure for this should be provided. This includes the removal of ‘Z-bars’, ferrule bolts and
+    other material that would snag on the structure if they were not removed.
+• Services including electrical cable and water pipes have been designed so that they will not
+    rupture or snag as the form is climbed.
+When removing a form from a vertical element, the form must be effectively supported such that it
+never relies on suction for support. Serious incidents have occurred when it has been assumed that a
+form is supported from above when it is in fact relying on ‘through bolts’ through the wall for support.
+When the bolts have been removed the form has fallen, with the persons still standing on a platform
+attached to the form. This hazard can apply both to crane lifted forms and jump forms.
+A checklist (as illustrated in Appendix 6) can be used to assist in this process.
+
+7.5 Ventilation and amenities
+Adequate ventilation and access to all cells in jump forms or slip forms should be provided where
+reasonably practicable. It is difficult for persons to spend extended periods in cells due to the heat and
+cramped working conditions. Allowance should be made for these issues and it may be necessary to
+specify maximum times for particular cells depending on temperature, humidity and cell size. These
+times should be developed as part of a safe work method statement following consultation between
+the workers and their PCBU.
+Adequate ventilation and access should also be provided within cells and it may be necessary to
+provide ventilation fans or access ways in the cells.
+Clean drinking water should be provided on the top level of the slip form and jump form. On larger slip
+forms and jump forms it may be necessary to provide clean drinking water on other levels. A chemical
+toilet should be provided on the top of the jump form when installation of a plumbed toilet is not
+practical.
+
+7.6 Engineering issues
+The design of jump forms and slip forms is more complex than the design of formwork systems for
+floors. Greater technical input from a designer is required including consideration of wind loading. For
+this reason, the slip form or jump form designer must be an engineer.
+The jump form or slip form designer must be involved both in the initial design of the form and in
+addressing ongoing design issues that will occur during form erection and during the life of the
+building project. Many of the design problems associated with jump forms and slip forms will not
+become apparent until the job is progressing, and it is likely that alterations to the design of the form
+will be necessary. The designer must therefore inspect the form on site and work closely with persons
+involved in its operation, and the principal contractor, to determine if difficulties are being
+encountered.
+Section 2 of this code discusses engineering issues. In addition, the following factors must be
+addressed by the designer of these types of formwork:
+• Minimum concrete strength required prior to climbing.
+• Allowance for all loads, including dynamic and wind loads that may be applied to the form. Loads
+   applied by workers and concrete placing activities must also be allowed for. Allowance may also
+   need to be made for impact loading when materials are lifted onto the deck of the form. The
+   designer must consider the effects of eccentric loading on the form, both during climbing and at
+   other times, and note the requirements in the operating procedures for the form.
+
+
+Formwork Code of Practice 2016 (PN11965)                                                    Page 43 of 54
+•   The maximum degree to which the form can be out-of-level during climbing, and the procedure
+    required both to minimise the likelihood of this occurring and how to remedy the situation if the
+    form becomes out-of-level.
+•   Consideration of rescue procedures that may affect the design of the form. The rescue procedure
+    may require access to all levels of the form and cells, either through the provision of gates or
+    removal of panels on the form.
+
+7.7 Emergency issues
+Fire extinguishers, hoses and other means of fire prevention and control must be provided on the
+jump form or slip form in accordance with relevant legislation.
+Emergency procedures for the jump form or slip form must be developed, documented and
+implemented. Persons must be trained in these procedures and a list of persons who have received
+the training must be documented.
+The emergency procedures must include, but not be limited to the following:
+• the method of alert in the event of an emergency and the method of extracting persons from each
+   location or cell that the persons have access to or could fall into
+• when to evacuate persons from the form
+• evacuation muster points both on and off the form
+• training in the use of fire extinguishers
+• identifying persons responsible for ensuring evacuation takes place
+• rescue procedures in the event of severe medical conditions
+• identifying persons responsible for rescuing workers, and
+• rescue training for persons involved in rescuing others, where outside experts will not be
+   responsible for performing the rescue.
+Where the form can be accessed using cranes on site, a first aid box for emergency rescue of injured
+and incapacitated persons must be readily available and accessible at all times while work is being
+undertaken.
+Response to emergency situations must be considered during formwork design stages and in an
+ongoing way during construction. Emergency situations requiring evacuation of an injured worker from
+a formwork ‘cell’ need to consider how to safely remove an immobilised or unconscious person. This
+may include creating emergency access holes and doorways through decks and screens. Procedures
+must identify how to access lift-voids and other areas, including cells within the core which may have
+limited access. In relation to emergency evacuation from vertically lifted systems two forms of access
+and egress should be provided as set out in Table 3 in section 3.2.1.
+Emergency services contacts must be clearly identified and available. These must be nominated by
+all parties on site, including the principal contractor, sub-contractors and workers.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                 Page 44 of 54
+Appendix 1: Dictionary
+Bearer:                     Primary horizontal support members for a formwork deck that are placed
+                            on top of formwork frames. Bearers are usually constructed from timber
+                            but are sometimes constructed from metal, such as in the case of some
+                            modular formwork systems.
+
+Cell:                       An area of a slip form, jump form or crane lifted form where a worker or
+                            workers are required to carry out work. The cell will at least be enclosed
+                            by all sides and a bottom surface.
+
+Competent person:           In relation to performing an inspection or other task for a control
+                            measure is a person who has acquired, through training, qualifications or
+                            experience knowledge and skills, including:
+                             • sound knowledge of relevant Australian Standards, relevant codes
+                                 of practice and other relevant legislation,
+                             • ability to read and interpret drawings
+                             • sound knowledge of, and competence in, the risk management
+                                 process for the erecting, altering and dismantling of formwork,
+                                 including:
+                                 - hazard identification and risk assessment
+                                 - measures to control exposure to risks
+                                 - safe work practices and procedures
+                                 - how to plan and prepare formwork.
+
+Containment sheeting:       A protective structure fixed to the perimeter of the building, structure or
+                            working platform to contain objects and prevent them from falling.
+
+Edge protection:            A barrier to prevent a person falling erected along the edge of:
+                            • A building or other structure.
+                            • An opening in a surface of a building or other structure.
+                            • A raised platform.
+
+Engineer:                   In relation to the performance of a task, means a person who:
+                             • is a registered professional engineer under the Professional
+                                 Engineers Act 2002
+                             • is competent to perform the task.
+
+False deck:                 A deck provided to safely arrest a falling person and/or provided as a
+                            working platform (different to the ‘pouring deck’).
+
+Form:                       An object used in the casting of concrete walls or columns that has part
+                            of its surface in contact with the concrete during the concrete curing
+                            process.
+
+
+Formwork frame:             A structural assembly, a number of which are used to support a
+                            formwork deck. Bearers are placed directly on these frames.
+
+Horizontal member:          Any horizontal member of a formwork frame that is provided as stiffening
+                            for the frame and may also be used to support a working platform.
+
+Intermediate platform:      A platform at least two planks wide, located less than 2 metres above a
+                            continuous deck.
+
+
+Formwork Code of Practice 2016 (PN11965)                                                   Page 45 of 54
+Joist:                      Secondary horizontal support members for the formwork deck that are
+                            placed on top of bearers, at right angles to the bearers. Joists are
+                            usually constructed from timber but are sometimes constructed from
+                            metal, such as in the case of some modular formwork systems.
+
+Licence class:              A class of high risk work endorsed on a licence to perform a class of
+                            high risk work.
+
+Modular formwork
+systems:                    A formwork system that is specifically designed for formwork and
+                            consists of components that are not designed to be used with other
+                            systems.
+
+Perimeter edge
+protection:                  Edge protection that is provided on the perimeter of the formwork to be
+                             erected. (Note: Perimeter edge protection will prevent a fall off the
+                             outside perimeter of the formwork but will not prevent internal falls
+                             through the formwork).
+
+Pouring deck:               A deck on which concrete is poured.
+
+Prop:                       A slender structural member placed in a vertical position between two
+                            horizontal surfaces and used to support the upper surface. The
+                            proprietary term “Acrow” is often used to describe the prop. The height
+                            of a prop is usually adjustable.
+
+Vertical member:            A vertical structural member which may or may not form part of a frame,
+                            also known as standard, vertical tube.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                Page 46 of 54
+Appendix 2: Sample engineer’s certification letters
+(A) Engineer’s certification letter – no variation to design
+
+………………………………….
+
+………………………………….
+
+………………………………….
+
+………………………………….
+
+Dear Mr/Ms ……………………………………..
+
+Project …………..………………………………
+
+I certify that the formwork system detailed below has been designed in accordance with Australian
+Standards AS3610 – Formwork for concrete and AS3600 – Concrete structures and the project
+documentation including the structural engineering drawings and specification. The system is detailed
+on the drawings and documentation listed below.
+
+
+                   Drawing number                                Drawing name
+
+
+
+
+  Specifications
+
+
+
+
+  Yours faithfully
+
+
+
+  Signature
+
+  Engineer’s name
+
+
+  RPEQ No.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                Page 47 of 54
+(B) Engineer’s certification letter – variation to design
+
+……………………………………
+
+……………………………………
+
+……………………………………
+
+……………………………………
+
+
+Dear Mr/Ms ……………………..…..
+
+Project …………………………….
+
+I certify that the variations to the formwork system detailed below have been checked and satisfy the
+Australian Standards AS3610 – Formwork for concrete and AS3600 Concrete structure and the
+project documentation including the structural engineering drawings and specification.
+
+
+                 Variation number                             Details of variation of
+
+                                                                formwork system
+
+
+
+
+  Yours faithfully
+
+
+
+
+  Signature
+  Engineer’s Name
+
+
+  RPEQ No.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                 Page 48 of 54
+Appendix 3: Construction checklist
+Note: ‘#’ denotes an item that, if not passed by the competent person, must be referred to the
+engineer. All other items not passed by the competent person must be corrected on site and certified
+by the competent person when he/she is satisfied.
+
+Loads
+• What are the stacked load limits at all stages?
+• Are the stacked materials on spreaders?
+# Will the loads be exceeded by any construction procedure?
+
+Materials
+# Are the correct form materials being used?
+• Is the formface appropriate to the finish required?
+
+Formwork frames
+# Are the formwork frames in the correct location and correct number?
+• Are they to dimension and within tolerance?
+• Are they accurate to line, level and plumb?
+
+Bracing/props
+# Are there different props or braces to the ones indicated on the formwork drawings?
+• Are the props plumb?
+• Are all loads centrally placed?
+• Are supported elements wedged and nailed?
+• Are props straight?
+• Are base plates on adequate foundations?
+• Is the bracing correct?
+• Is the bracing firmly connected?
+
+Fixing
+• Is the nailing/screwing adequate?
+# Are the ties the correct type?
+# Are they on the correct grid?
+• Are all ties, clamps and bolts tight?
+• Are wedges tight and nailed?
+# Are connections between traditional formwork and modular formwork correct?
+
+Back-propping
+# Is the back-propping system correct?
+# Are the number of floors required for back-propping correct?
+
+Cleanliness
+• Are the formfaces cleaned?
+• Is any damage correctly repaired?
+• Is the correct release agent in use?
+• Is it being correctly applied?
+• Has all debris been removed from within the form?
+
+Water-tightness
+• Are all joints properly sealed and cramped?
+• Are the construction joints sealed?
+
+Concrete/concreting
+
+Formwork Code of Practice 2016 (PN11965)                                                Page 49 of 54
+•   What is the maximum rate of placement permitted?
+•   Are the forms maintaining line, level, plumb, shape, etc. during concreting?
+
+Stripping
+• What are the minimum stripping times?
+• Has the project designer permitted modification of these?
+• Do the procedures enable stripping without damage to form or concrete?
+• Are the provisions consistent with the re-use times required?
+• Has the crane the necessary slings, etc. to move the forms quickly?
+• What curing methods must be used once the formwork is removed?
+• Is the storage area for the formwork organised?
+
+Safety
+• Are there adequate guardrails, handrails, walkways, signs, etc. in position?
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                           Page 50 of 54
+Appendix 4: Sample structural (pre-pour)
+certificate
+Engineer’s/Competent person’s name:…………………………. Telephone…………………..
+
+Address: ……………………………………………………..…………………….……………
+
+FAX:……………………………………………….
+
+Mobile: ……………………………………………                                 Date: …………………………..
+
+Project: ………………………………………………………………..……………………..….
+
+       ……………………………………………………………………………………..…..
+
+Level:……………………………….                         Area:…………………………………....
+
+This is to certify that the ……………………….. Formwork for the above project has been inspected
+and is considered to have been erected in accordance with the formwork design documents and
+meets relevant Australian Standards including AS3610 Formwork of concrete.
+
+The following items were included in the inspection:
+
+ITEM                         CONDITION                          WORK REQ’D
+                                                                Yes/No??
+Base plates                          OK                               No
+Frame spacing                        OK                               No
+Frame bracing                        OK                               No
+Frame extensions                     OK                               No
+Bearer size and spacing              OK                               No
+Joist size and spacing               OK                               No
+Prop spacing                         OK                               No
+Prop bracing                         OK                               No
+Eccentric loading                    OK                               No
+Prop inclination                     OK                               No
+Timber condition                     OK                               No
+Steel condition                      OK                               No
+Nails in plates as req’d             OK                               No
+Column framing                       OK                               No
+Column bracing                       OK                               No
+Plywood fixing                       OK                               No
+Back propping                        OK                               No
+Quality of materials                 OK                               No
+
+If there is any additional work required before the pour takes place please detail what is required
+_________________________________________________________________________________
+_________________________________________________________________________________
+__
+
+…………………………………….                                        …………………………………
+Engineer’s / Competent person’s name                      Signature
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                              Page 51 of 54
+Appendix 5: Defects commonly found in formwork
+systems
+Sole plates
+(a) not levelled in or eccentrically placed
+(b) inadequate load-carrying capacity of the ground and uneven bedding
+(c) deterioration with time (e.g. due to weather conditions)
+(d) deterioration of load-carrying capacity of the ground, (e.g. washouts)
+(e) crushing due to inadequate load distribution from vertical and horizontal members.
+
+Horizontal supports
+(a) folding wedges cut to too coarse a taper, not properly cleated, cut from wet material
+(b) inadequate lateral and torsional bracing, (e.g. between telescopic centres, centres carrying heavy
+    loads over long spans, steel props supporting heavy loads at, or near, maximum extension and
+    between towers supporting independent spans)
+(c) horizontal members not centrally placed in forkheads
+(d) inadequate supports to cantilevers, (e.g. struts supporting deep beam sides on the outer face of the
+    structure)
+(e) inadequate bearing areas to vertical supports and underside of principal members causing crushing
+(f) inadequate support to prevent overturning of deep principal members because stirrups or forkheads
+    often omitted
+(g) bolted timber connections not staggered creating tendency to split out.
+
+Vertical supports
+(a) inadequate bracing during erection
+(b) support not plumb
+(c) inadequate lateral ties and/or vertical and plan bracing
+(d) no ties between standards at point of loading (most important where telescopic centres are being
+    supported)
+(e) incorrect provision of props from floor to floor
+(f) lack of rigidity of screw connections due to over-extension or lack of bracing
+(g) adjustable steel props with nails, mild-steel bolts and reinforcing bars used in place of correct pins
+(h) omission of scaffold forkheads or supports, otherwise eccentrically loaded without allowance
+    having been made for this condition
+(i) bearing plates distorted (top and bottom plates of steel props)
+(j) inadequate or discontinuous bracing to scaffold.
+
+General
+(a) excessive tolerances in construction
+(b) failure to check tightness of bolts, wedges, etc.
+(c) failure to control vertical rate of placement of concrete
+(d) failure to control placement of concrete, causing uneven loading of forms
+(e) inadequate allowance for uplift of concrete under inclined forms
+(f) inadequate allowance for the effects of vibration on joints
+(g) inadequate allowance for stresses induced by prestressing, temperature and moisture movements
+(h) no allowance for wind loading
+(i) no allowance for the effect of vibration on ties, struts, braces, and wedges
+(j) unrealistic assessment of stresses due to over-simplification of design assumptions
+(k) unequal load distribution between two or more members carrying a common load.
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                     Page 52 of 54
+Appendix 6: Perimeter screen handover checklist
+ Project:                                                                    Date:
+ Scope:            Checklist for climbing screens
+
+ Activity:         Climbing the perimeter safety screens
+
+                                                      Screen
+   #          Description of activity                                        Sign           Area Foreman      Sign
+                                                     Supervisor
+   1   Pre-climb prep
+   2   Actions during the climb
+   3   Post climb actions
+   4   Task completion checklist
+   5
+   6
+   7
+
+                                                                                                    Yes         No
+   Pre climb preparation of the screens
+  The screen supervisor and area foreman have checked that formwork is clear
+  of screens.
+  All platforms on the screens and building edges have been swept and cleaned at least 1
+  meter from the edge of the building line.
+  The screen supervisor has briefed the screen crew, crane crew and other workers
+  involved in the task.
+  Two way radio communication is established between screen crew and spotter(s).
+  The screen crew have verified that edge protection is in place at the building edge on all
+  levels – including the level that is exposed after screen is climbed, and barricades and
+  screen crew only signage is in place (exclusion zones) a minimum of at least 960mm
+  barricade mesh.
+  All flaps, needles, push pull props, tie down bolts are released from behind compliant
+  edge protection or by a worker anchored in a safety harness. See SWEMS 0058 and
+  SWEMS 0068 trailing screen procedures and SWEMS 0074 using a safety harness.
+  All flaps, push pull props, infill’s, are properly chained or secured to the screens
+  Exposed back props closer than 2/3 the length of the prop from the exposed edge
+  have been bolted to the concrete
+  The screen supervisor has contacted and area foremen to confirm the screens are
+  clear from the building and ready to jump.
+
+ Ensure availability of the cane to lift and secure a series of screens in sequence before the
+ crane is taken away for other lifts. Confirmation consultation with crane crew and builder
+ before preparing to lift screens.
+
+ Dogman to connect the chains to the identified lifting points on the screen. Chains to be
+ connected where there the dogman can reach after lifting. Note: crane crew to be inducted
+ into the lifting of the screen procedure.
+
+   Actions during the climbing of screens
+  All workers in the screen crew are watching for hang ups from behind compliant edge
+  protection and must notify the Screen Supervisor of any problems
+  If workers have to stand outside the edge protection to free hang ups they must be
+  anchored in a safety harness - see SWEMS 0074
+   Post climbing actions
+  All needles / push pull props / connection Z-bars are fixed to concrete slab and all
+  screens are secured to the building
+  Platforms on all levels have flaps in place
+
+                                                                                                   YES         NO
+
+  Note: When the live deck is being laid it is the responsibility of the formworkers to re-fix
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                                   Page 53 of 54
+  the flaps and in-fills when the soffit reaches the trailing screens
+  All flaps and infill’s are in place and secured
+  Gaps between screens do not exceed 25 mm on all levels.
+  Mesh infill panels are covering gaps greater than 25 mm
+  Shade cloth in-fills are in place where required
+  All platforms and flaps are free of rubbish and loose material
+  All exclusion zones no longer required are removed
+  Screen supervisor to retain checklist until task complete
+  Task completion checklist
+
+  Are the screens secured to the building
+  Are raking shores secured to the needles if required
+  Are the flaps and in-fills on the platforms secure
+  Can workers safely access the platforms to work
+  Is the climb completed
+  Are falling object / person controls in place – edge protection established on the levels
+  where there is no longer screen protection
+  Have the barricades, exclusion zone and signage been removed
+  Has access / egress been re-established
+  Have other trades been notified that the works are complete
+
+
+
+
+                                                                        Signature             Date        Time
+
+  Screen supervisor
+
+
+  Area foreman / Structure foreman
+
+
+  Finishing foreman
+
+
+   Comments or additional control measures required:
+
+
+
+
+   Corrective actions or issues:
+
+
+
+
+Formwork Code of Practice 2016 (PN11965)                                                             Page 54 of 54
+

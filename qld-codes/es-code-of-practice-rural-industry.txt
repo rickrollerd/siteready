@@ -1,0 +1,1376 @@
+Electrical Safety Code of Practice 2020 - Electrical equipment rural industry
+https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0018/20952/es-code-of-practice-rural-industry.pdf
+
+Electrical Safety Code of Practice 2020
+
+Electrical equipment rural industry
+This Queensland code of practice has been approved by the Minister for State Development and
+Infrastructure, Minister for Industrial Relations and Minister for Racing under section 44 of the
+Electrical Safety Act 2002.
+
+This code commenced on 2 January 2020.
+
+
+
+
+ESOPDF025
+
+© The State of Queensland 2024
+
+Copyright protects this document. The State of Queensland has no objection to this material being
+reproduced but asserts its right to be recognised as author of the original material and the right to
+have the material unaltered.
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 2 of 31
+Contents
+ Legislative framework................................................................................................................... 4
+ Foreword ...................................................................................................................................... 4
+ Scope and application ................................................................................................................. 5
+    Meaning of rural industry work ................................................................................................ 5
+ 1     Introduction ........................................................................................................................... 7
+     1.1    What are electrical risks? ................................................................................................. 7
+     1.2    Who must manage electrical risks?.................................................................................. 7
+     1.3    What is required to manage electrical risks? .................................................................... 8
+     1.4    Information, training, instruction and supervision ............................................................. 9
+ 2     The risk management process ............................................................................................. 9
+     2.1   Identify the hazards ....................................................................................................... 10
+     2.2   Assess the risks ............................................................................................................. 11
+     2.3   Control the risks ............................................................................................................. 11
+     2.4   Review the control measures ......................................................................................... 12
+ 3     Specific hazards and risk control ...................................................................................... 13
+     3.1  Unsafe electrical equipment and electrical installations at the workplace ....................... 13
+     3.2  Maintenance regimes for electrical equipment used with stated electrical risk factors .... 14
+ 4     Risk control – Initial and annual visual examination ........................................................ 14
+     4.1    How do you tell if electrical equipment is safe to use? ................................................... 14
+       4.1.1 Switchboards ............................................................................................................ 14
+       4.1.2 Electrical cables and conduits ................................................................................... 15
+       4.1.3 Overhead powerlines ................................................................................................ 16
+       4.1.4 Power poles .............................................................................................................. 16
+       4.1.5 Electrical accessories ................................................................................................ 16
+       4.1.6 Other electrical equipment......................................................................................... 17
+       4.2.1 What do you do when unsafe equipment is suspected? ............................................ 19
+ 5     Risk control–Stated electrical risk factors ........................................................................ 19
+     5.1    What must you do where there are stated electrical risk factors? ................................... 20
+     5.2    Safety switches .............................................................................................................. 20
+       5.2.1 Does your work area have a safety switch or switches? ............................................ 20
+       5.2.2 How to find out which equipment is protected by a safety switch ............................... 22
+       5.2.3 How do you test your safety switch and how often should you test it? ....................... 23
+       5.2.4 How do you ensure that your electrical installation remains electrically safe? ........... 23
+ 6     Risk control–Electric welding work ................................................................................... 23
+     6.1   Regulatory requirements for rural industry work ............................................................. 23
+ 7     Risk control–Hazardous areas ........................................................................................... 24
+     7.1   Hazardous areas: where they exist ................................................................................ 24
+     7.2   Hazardous area precautions .......................................................................................... 24
+ Appendix A - Dictionary............................................................................................................. 25
+ Appendix B–Flow chart summary of what you need to do to manage electrical risks ......... 30
+ Appendix C–Sample risk assessment ...................................................................................... 31
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)                                          Page 3 of 31
+Legislative framework
+The Electrical Safety Act 2002 (the ES Act) is directed at eliminating the human cost to
+individuals, families and the community of death, injury and destruction that can be caused by
+electricity. The ES Act establishes a legislative framework for preventing persons from being
+killed or injured by electricity and preventing property from being destroyed or damaged by
+electricity. The ES Act places the primary electrical safety duty on a person conducting a
+business or undertaking (PCBU), who must ensure the business or undertaking is conducted in a
+way that is electrically safe. Duties are also placed on officers of a PCBU, workers and other
+persons at a workplace, as well as electricity entities, designers, manufacturers, importers,
+suppliers, installers, repairers and persons in control of electrical equipment.
+The Work Health and Safety Act 2011 (WHS Act) requires persons who have a duty to ensure
+health and safety to ‘manage risks’ by eliminating health and safety risks so far as is reasonably
+practicable, and if it is not reasonably practicable to do so, to minimise those risks so far as is
+reasonably practicable. The WHS Act provides a framework to protect the health, safety and
+welfare of all workers at work. It also protects the health and safety of all other people who might
+be affected by the work. The WHS Act places the primary health and safety duty on a PCBU, who
+must ensure, so far as is reasonably practicable, the health and safety of workers at the
+workplace. Duties are also placed on officers of a PCBU, workers and other persons at a
+workplace.
+In terms of electrical safety, where the ES Act and the WHS Act both apply, the ES Act takes
+precedence.
+
+Foreword
+This Code of Practice on how to manage risks associated with electrical equipment in rural
+industry workplaces is made under section 44 of the ES Act.
+A code of practice is a practical guide to achieving the standards of electrical safety required
+under the ES Act and the Electrical Safety Regulation 2013 (the ES Regulation).
+A code of practice applies to anyone who has an electrical safety duty in the circumstances
+described in the code. In most cases, following a code of practice would achieve compliance with
+the electrical safety duties in the ES Act, in relation to the subject matter of the code. Like
+regulations, codes of practice deal with particular issues and do not cover all hazards or risks
+that may arise. Health and safety and electrical safety duties require duty holders to consider all
+risks associated with work, not only those for which regulations and codes of practice exist.
+Codes of practice are admissible in court proceedings under the ES Act and ES Regulation.
+Courts may regard a code of practice as evidence of what is known about a hazard, risk or
+control and may rely on the code in determining what is reasonably practicable in the
+circumstances to which the code relates.
+Compliance with the ES Act and ES Regulation may be achieved by following another method,
+such as a technical or an industry standard, if it provides an equivalent or higher standard of
+electrical safety than the code.
+An inspector may refer to a code of practice when issuing an improvement or electrical safety
+protection notice.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)    Page 4 of 31
+Scope and application
+This Code provides practical guidance about how to manage electrical risk in rural industry work.
+This Code should be used by persons conducting a business or undertaking which includes rural
+industry work, to ensure that their electrical safety duties are met.
+This Code applies to plug-in and fixed electrical equipment used in rural industry work, for
+example:
+• wiring systems, either inside or outside a building
+• switchboards where fuses and circuit breakers and other electrical items are located
+• overhead electric lines and associated equipment such as poles and cross arms
+• portable power tools such as drills and grinders
+• pumps and generators
+• electrical equipment used where stated electrical risk factors apply, such as when electrical
+    equipment is used in wet areas or where equipment is subject to harsh treatment
+• areas where safety switches may be required.
+This Code provides for the following ways of managing electrical safety duties:
+• visual examination and assessment of the entire electrical installation, noting any defects
+    and arranging for them to be rectified
+• assessing for the presence of risk, including stated electrical risk factors
+• managing the stated electrical risk factors associated with electrical equipment by:
+    - assessing the risks and implementing risk control measures
+    - using safety switch protection or regular testing and inspection
+    - visually checking all electrical equipment prior to use or connection
+    - continuing to monitor work areas and electrical equipment on an ongoing basis.
+This Code does not apply to:
+• work that is not rural industry work
+• repair of consumer electrical equipment when unplugged from any electrical socket outlet.
+Meaning of rural industry work
+As set down in section 99 of the ES Regulation, rural industry work is work:
+• in the cultivation of any agricultural crop or product whether or not grown for food
+• in the rearing and management of farm animals for example livestock, bees or worms
+• in the classing, scouring, sorting or pressing of wool
+• that is aquaculture
+• in flower or vegetable market gardens
+• at clearing, fencing, trenching, draining or otherwise preparing land for anything stated
+    above.
+Rural industry work includes work that is construction work, manufacturing work or office work
+performed for the purposes of an activity mentioned above if the work is:
+• performed by a PCBU, including by his or her worker, carrying on the business or undertaking
+    in which the product of the construction work, manufacturing work or office work is to be used
+• performed on premises on which the product of the construction work, manufacturing work or
+    office work is to be used.
+Examples of construction work or manufacturing work:
+• repairing farm machinery, for example, tractors or implements
+• making farm machinery, for example, cattle crushes, spray booms or fruit picking booms
+• building sheds.
+Rural industry work does not include work to which rural industry work is only incidental.
+Examples:
+• work in carrying on a farm stay
+• work in conducting a tour associated with rural industry work.
+Because rural industry work does not include other commercial activities such tourism that might
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)    Page 5 of 31
+be associated with a rural industry business, you will need to ensure that the relevant regulatory
+requirements for such other activities under the ES Act are complied with.
+In addition, the ES Regulation for rural industry work and this Code do not alter any other
+regulatory requirements under the ES Act for electrical work. For example, a person performing
+licensed electrical work in a rural industry must hold a relevant electrical work licence and
+comply with other provisions for safe electrical work.
+How to use this Code of Practice
+This Code should be read in conjunction with the ES Act, the ES Regulation, the WHS Act, the
+Work Health and Safety Regulation 2011 (the WHS Regulation) and other relevant codes of
+practice.
+In providing guidance, the word ‘should’ is used in this Code to indicate a recommended course of
+action, while ‘may’ is used to indicate an optional course of action. The terms ‘health and safety’
+and ‘work health and safety’ are used in this Code to indicate a wider application than just
+‘electrical safety’. However, ‘electrical safety’ should be taken as being included when the terms
+‘health and safety’ and ‘work health and safety’ are used.
+This Code also includes various references to provisions of the ES Act, the ES Regulation, the
+WHS Act and the WHS Regulation which set out the legal requirements. These references are
+not exhaustive. The words ‘must’, ‘requires’ or ‘mandatory’ indicate that a legal requirement
+exists and must be complied with.
+This Code also includes various references to standards (using the designated ‘AS’) and joint
+standards (using the designated ‘AS/NZS’). In this Code, unless otherwise stated, a reference to
+a standard (or joint standard) is a reference to that standard (or joint standard) as in force from
+time to time under that designation. For example, ‘AS/NZS 3760’ is a reference to the joint
+standard that is currently in force under that designation.
+Key terms used in this Code are defined at Appendix A.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 6 of 31
+1 Introduction
+1.1 What are electrical risks?
+Electrical risks are risks of death, electric shock or other injury caused directly or indirectly by
+electricity. The most common electrical risks and causes of injury are:
+• electric shock causing injury or death. The electric shock may be received by direct or
+    indirect contact, tracking through or across a medium, or by arcing. For example, electric
+    shock may result from indirect contact where a conductive part that is not normally energised
+    becomes energised due to a fault (e.g. metal body of automotive battery charger, fencing
+    wire)
+• arcing, explosion or fire causing burns. The injuries are often suffered because
+    arcing or explosion or both occur when high fault currents are present
+• electric shock from ‘step-and-touch’ potentials
+• toxic gases causing illness or death. Burning and arcing associated with electrical
+    equipment may release various gases and contaminants
+• fire resulting from an electrical fault.
+Even the briefest contact with electricity at 50 volts for alternating current (V AC) or 120 volts for
+direct current (V DC) can have serious consequences to a person’s health and safety. High
+voltage shocks involving more than 1000 V AC or 1500 V DC can cause contact burns and
+damage to internal organs.
+Electric shocks from faulty electrical equipment may also lead to related injuries, including falls
+from ladders, scaffolds or other elevated work platforms. Other injuries or illnesses may include
+muscle spasms, palpitations, nausea, vomiting, collapse and unconsciousness.
+Workers using electricity may not be the only ones at risk—faulty electrical equipment and poor
+electrical installations can lead to fires that may also cause death or injury to others.
+
+1.2 Who must manage electrical risks?
+A PCBU has the primary duty under the ES Act to ensure the person’s business or undertaking
+is conducted in a way that is electrically safe. This duty includes:
+• ensuring that all electrical equipment used in the conduct of the person’s business or
+     undertaking is electrically safe
+• if the person’s business or undertaking includes the performance of electrical work, ensuring
+     the electrical safety of all persons and property likely to be affected by the electrical work
+• if the person’s business or undertaking includes the performance of work, whether or not
+     electrical work, involving contact with, or being near to, exposed parts, ensuring persons
+     performing the work are electrically safe.
+The ES Regulation includes more specific requirements for managing electrical risks at the
+workplace. For example, all persons conducting a business or undertaking have duties in relation
+to specified electrical equipment, and any unsafe electrical equipment, at the workplace.
+Persons conducting a business or undertaking carrying out electrical work must comply with the
+prohibition on electrical work on or near energised electrical equipment subject to certain
+exceptions.
+Workers performing electrical installation work must be licensed to perform the work, and the PCBU
+employing the licensed worker must ensure the worker is competent in the type of work being
+performed and testing and compliance requirements are met.
+Where a PCBU engages an electrical contractor for the performance of electrical work, the work
+must be performed under the supervision of the qualified technical person (QTP) as nominated on
+the electrical contractor licence. The electrical contractor should ensure effective supervision
+occurs.
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)      Page 7 of 31
+Where the electrical work is performed by a licensed electrical worker employed directly by the
+PCBU, the PCBU should ensure adequate supervision is provided for the electrical work to be
+performed safely.
+Persons in control of electrical equipment must ensure the electrical equipment is electrically safe.
+Designers of electrical equipment or an electrical installation must ensure the electrical
+equipment or electrical installation is designed to be electrically safe.
+Manufacturers of electrical equipment must ensure that the electrical equipment, when made, is
+electrically safe. The duty includes examining and testing the electrical equipment to ensure it is
+electrically safe.
+Importers of electrical equipment must ensure the electrical equipment is electrically safe. The
+duty includes ensuring the electrical equipment is designed to be electrically safe and is tested
+and examined to ensure it is electrically safe.
+Suppliers of electrical equipment must ensure that when the electrical equipment leaves the
+supplier, it is accompanied by information about the way the electrical equipment must be used
+to ensure that its use is electrically safe.
+Installers of electrical equipment or an electrical installation must ensure the way in which the
+electrical equipment or electrical installation is installed is electrically safe. The duty includes
+ensuring the electrical equipment or electrical installation is electrically safe following installation
+(this includes testing and examination).
+Officers, such as company directors, have a duty to exercise due diligence to ensure that the
+business or undertaking complies with the ES Act and ES Regulation. This includes taking
+reasonable steps to ensure that the business or undertaking has and uses appropriate
+resources and processes to eliminate or minimise electrical risks at the workplace.
+Workers must take reasonable care for their own electrical safety and not adversely affect the
+electrical safety of other persons. Workers must comply with any reasonable instruction and
+cooperate with any reasonable policy or procedure relating to electrical safety at the workplace.
+This means that if electrical equipment is provided by the PCBU, the worker must use it in
+accordance with the information, instruction and training provided on its use.
+Other persons at the workplace, like visitors, must take reasonable care for their own electrical
+safety and must take reasonable care not to adversely affect other people’s electrical safety.
+They must comply, so far as they are reasonably able, with reasonable instructions given by the
+PCBU to allow that person to comply with the ES Act.
+All Duty holders will have additional legal duties under the WHS Act and the WHS Regulation.
+
+1.3 What is required to manage electrical risks?
+ ES Regulation s11 A PCBU must manage risks to health and safety associated with electrical
+ risks at the workplace.
+ WHS Regulation s34-38 In order to manage risk, a duty holder must:
+ •  identify reasonably foreseeable hazards that could give rise to the risk
+ •  eliminate the risk, so far as is reasonably practicable
+ •  if it is not reasonably practicable to eliminate the risk, minimise the risk so far as
+    is reasonably practicable by implementing control measures
+ •  maintain the implemented control measure so that it remains effective
+ •  review, and if necessary revise, all risk control measures so as to maintain, so far as
+    is reasonably practicable, a work environment that is without risks to health and
+    safety.
+ The hierarchy of risk control is described in Chapter 2.3 of this Code.
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)        Page 8 of 31
+This Code includes guidance on how to manage electrical risks in the workplace by following a
+systematic process that involves:
+• identifying hazards
+• if necessary, assessing the risks associated with these hazards
+• implementing and maintaining risk control measures (e.g. inspecting and testing electrical
+    equipment, using safety switches)
+• reviewing risk control measures.
+A Flow chart summary of what you need to do is provided at Appendix B.
+Guidance on the general risk management process is available in the How to manage work
+health and safety risks Code of Practice.
+
+1.4 Information, training, instruction and supervision
+ WHS Act s19 A PCBU must ensure, so far as is reasonably practicable, the provision of any
+ information, training, instruction or supervision that is necessary to protect all persons from
+ risks to their health and safety arising from work carried out.
+ WHS Regulation s39 A PCBU must ensure that information, training and instruction provided
+ to a worker is suitable and adequate having regard to:
+ • the nature of the work carried out by the worker
+ • the nature of the risks associated with the work at the time the information, training or
+     instruction is provided
+ • the control measures implemented.
+ A PCBU must ensure, so far as is reasonably practicable, that the information, training
+ and instruction is provided in a way that is readily understandable by any person to
+ whom it is provided.
+
+
+
+
+Formal or on-the-job training may be appropriate depending on the circumstances. Examples of
+training are:
+• induction training—to ensure new starters or workers new to a job are trained on
+     safe systems of work and other relevant health and safety matters
+• supervisor and management training—to ensure that safety issues are
+     appropriately managed at the workplace
+• work-specific training—to ensure that workers carrying out particular work are trained on
+     any electrical and other risks specific to the work, as appropriate
+• ongoing or refresher training—to ensure that any training on work health and safety
+     matters is repeated as appropriate on a periodic basis
+• emergency procedure training—to ensure workers know what to do in the event of
+     an emergency, for example procedures to follow if a person receives an electric
+     shock
+• first aid training—to ensure appropriate procedures are followed for administering first aid,
+     for example proper treatment for electric shock
+• electrical rescue and resuscitation training for safety observers.
+Special needs of workers should be taken into account in deciding the structure, content and
+delivery of training, including literacy levels, work experience and specific skills required to carry
+out the work.
+
+2 The risk management process
+A PCBU must manage risks by identifying reasonably foreseeable hazards that could give rise to a
+risk, eliminating those risks so far as is reasonably practicable, or if that is not possible, minimising
+those risks by implementing control measures.
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)      Page 9 of 31
+Effective risk management involves identifying all of the risks in the workplace, and then carrying
+out a risk assessment for each, to assess its severity, before deciding its priority for control.
+When carrying out a risk assessment, determine the risks that have the greatest potential to
+cause harm and a greater likelihood of occurring. These risks are treated first, followed by the
+less serious risks.
+Attention should be given to risks that may be easy to fix but may have a low risk (e.g. power
+leads across the floor). These risks should be fixed promptly. Particular attention should be
+given to risks that may have very low likelihood of causing harm but may result in major
+consequences.
+The ES Act places duties on a PCBU and other persons requiring that electrical work and
+associated equipment be electrically safe (sections 29 to 40); that is, free from electrical risk.
+Along with complying with any specific requirement of the ES Act or ES Reg, electrical risk can be
+managed through the risk management process as described below. Specific applications of the
+risk management process are covered in relevant following parts.
+
+2.1 Identify the hazards
+Identifying hazards involves finding all of the tasks, situations and sequences of events that
+could potentially cause harm.
+Hazards from electrical equipment or installations may arise from:
+• the design, construction, installation, maintenance and testing of electrical equipment or
+   electrical installations
+• design change or modification
+• inadequate or inactive electrical protection
+• where and how electrical equipment is used. Electrical equipment may be used in
+   environments or under conditions likely to result in damage to the equipment or a reduction
+   in its expected life span. For example, equipment may be at greater risk of damage if
+   treated roughly (dropped or subject to impacts) or used outdoors or in a workshop
+   environment or in dirty, dusty or wet environments
+• electrical equipment being used in an area in which the atmosphere presents a risk to health
+   and safety from fire or explosion, for example confined spaces or rooms where gas or
+   combustible dusts may build up
+• type of electrical equipment. For example, ‘plug in’ electrical equipment that may be moved
+   around from site to site, including extension leads, are particularly liable to damage
+• the age of electrical equipment and electrical installations
+• work carried out on or near electrical equipment or electrical installations, including electric
+   overhead lines or underground electric services, for example work carried out in a confined
+   space connected to plant or services; work carried out using cranes, harvesters, irrigation
+   spay machines or excavation plant, whether under, near or over the top of lines.
+Exposure to high electromagnetic fields may also present a potential hazard for workers with
+some medical conditions, for example pace makers. You must inform workers and other persons
+at the workplace of any potential electromagnetic hazards at the workplace that may affect a
+medical condition. You must also manage risks to health and safety arising out of electromagnetic
+hazards, including eliminating the risk so far as is reasonably practicable. If that is not reasonably
+practicable you must minimise the risk so far as is reasonably practicable.
+Potential electrical hazards may be identified in a number of different ways including:
+• talking to workers and observing where and how electrical equipment is used
+• regularly inspecting and testing electrical equipment and electrical installations as
+    appropriate
+• reading product labels and manufacturers’ instruction manuals
+• talking to manufacturers, suppliers, industry associations, and electrical safety specialists
+• reviewing incident reports
+• consulting with electricity entities on locations of overhead powerlines or underground cables.
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 10 of 31
+2.2 Assess the risks
+Risk assessment involves considering what could happen if someone is exposed to a hazard
+(consequence) and the likelihood of it happening.
+A risk assessment can help determine:
+• the severity of an electrical risk
+• whether existing control measures are effective
+• what action you should take to control an electrical risk
+• how urgently the action needs to be taken.
+To assess the risk associated with electrical hazards consider:
+• What is the potential impact of the hazard?
+    - How severe could the electrical hazard be? For example, direct contact causing
+        electrocution, fire or explosion causing serious burns or death.
+    - How many people are exposed to the hazard?
+• How likely is the hazard to cause harm?
+    - Could it happen at any time or would it be a rare event?
+    - How frequently are workers exposed to the hazard?
+Other factors that may affect consequence and likelihood include:
+• the conditions under which the electrical equipment is used, for example wet conditions
+    outdoors or confined spaces
+• work practices and procedures, for example isolation, to carry out maintenance
+• the capability, skill and experience of relevant workers.
+A sample risk assessment is provided at Appendix C.
+
+2.3 Control the risks
+Once hazards have been identified and the risks assessed, appropriate control measures must
+be put in place.
+The ways of controlling risks are ranked from the highest level of protection and reliability to the
+lowest. This ranking is known as the hierarchy of risk control. You must work through this
+hierarchy to choose the control that most effectively eliminates or minimises the risk in the
+circumstances, so far as is reasonably practicable. This may involve a single control measure or
+a combination of two or more different controls.
+You should also check that your chosen control measure does not introduce new hazards.
+Elimination
+The most effective control measure is to remove the hazard or hazardous work practice. By
+designing-in or designing-out certain features, hazards may be eliminated.
+Substitution
+Replacing a hazardous process or material with one that is less hazardous will reduce the
+hazard, and hence the risk. For example, it may be reasonably practicable to use extra-low
+voltage electrical equipment such as a battery-operated tool rather than a tool that is plugged
+into mains electricity.
+Isolation
+Preventing workers from coming into contact with the source of an electrical hazard will reduce
+the relevant risks. For example, identifying the relevant switchboard and switching off and
+locking out the electrical circuit supplying electricity to the equipment before the worker
+conducts repair or maintenance work on the equipment, such as repairing a water leak on an
+irrigation pump.
+Engineering controls
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 11 of 31
+Use engineering control measures to minimise the risk, for example installing residual current
+devices (commonly referred to as safety switches) to reduce the risk of receiving a fatal electric
+shock.
+Administrative controls
+Administrative controls involve the use of safe work practices to control the risk, for example
+establishing exclusion zones, use of permits and warning signs; requiring a visual inspection
+of electrical equipment by a competent person before use to verify no obvious damage.
+Personal protective equipment (PPE)
+PPE includes protective eyewear, insulated gloves, hard hats, aprons and breathing protection.
+Most forms of PPE are not relevant to minimising electrical risks in workplaces, except in relation
+to energised electrical work.
+Administrative controls and PPE do nothing to change the hazard itself. They rely on people
+behaving as expected and require a high level of supervision. Exclusive reliance on
+administrative controls and PPE must only occur where other measures are not reasonably
+practicable or as an interim control while the preferred control measure is being implemented.
+
+2.4 Review the control measures
+The controls that are put in place to ensure electrical safety must be reviewed regularly to
+make sure they work effectively.
+
+ WHS Regulation s38 A PCBU must review and as necessary revise a control measure in
+ the following circumstances:
+ •    when the control measure does not control the risk it was implemented to control so far as
+      is reasonably practicable
+ •    before a change at the workplace that is likely to give rise to a new or different risk to
+      health or safety that the measure may not effectively control
+ •    if a new relevant hazard or risk is identified
+ •    if the results of consultation indicate that a review is necessary
+ •    if a health and safety representative requests a review.
+
+The following questions will help you evaluate how well you are currently managing electrical
+risks in your workplace:
+• Do you talk to your workers about electrical safety?
+• Do any relevant new work methods or equipment have the potential to make work safer in
+     your workplace?
+• Are procedures for identifying electrical hazards in the workplace effective?
+• Do you audit procedures and work practices to verify safety procedures are
+     followed?
+•     Do you encourage your workers to report electrical hazards?
+• Do you regularly inspect and maintain your electrical equipment to identify safety problems?
+• Do you identify, for example mark on maps or with flags on wires, the location of any overhead
+     powerlines, and do you explain to your staff and contractors and their workers the locations of
+     overhead powerlines on or near the property or where large vehicles (such as harvesters) may
+     operate or travel?
+• Do you ensure all staff, vehicles, or the location of stored equipment maintains exclusion zones
+     to overhead powerlines?
+• Do you fix or rectify identified electrical hazards in a timely manner?
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 12 of 31
+3 Specific hazards and risk control
+There are a number of things you should do to manage the risks to health and safety associated
+with electrical risks at the workplace including the following:
+• Ensuring power circuits are protected by the appropriate rated fuse or circuit breaker to
+     prevent overloading.
+• If a circuit keeps overloading, don’t increase the fuse rating as this creates a fire risk due to
+     overheating. Instead ensure the circuit is not re-energised until the reason for the operation
+     has been determined by a competent person.
+• Ensuring that leads, including cord extension sets and flexible cables, are arranged so they
+     will not be damaged. For example, avoid running leads across the floor or ground, through
+     doorways and over sharp edges, and use lead stands or insulated cable hangers to keep
+     leads off the ground. In many heavy industries, cable protection ramps are used to protect
+     cables.
+• Not using leads and tools in damp or wet conditions unless they are designed for those
+     conditions.
+• Ensuring circuits where portable electrical equipment can be connected are protected by
+     appropriate safety switches (as required by the ES Regulation) that are properly tested and
+     maintained.
+• Consider installing safety switches on all electrical circuits, not just power or light circuits,
+     including fixed equipment unless that equipment cannot operate with a safety switch.
+• If safety switches, circuit breakers or other over current protective devices including fuses
+     are triggered into operation, ensuring circuits are not re-energised until the reason for the
+     operation has been determined by a competent person.
+• Ensuring safety switches are effective by regular testing.
+• Identifying locations of all overhead powerlines and underground cables and ensuring
+     exclusion zones are maintained.
+
+3.1 Unsafe electrical equipment and electrical installations
+   at the workplace
+ES Regulation s101 A PCBU that has management or control of electrical equipment must
+ensure that any unsafe electrical equipment at the workplace is disconnected (or isolated) from
+its electricity supply and, once disconnected, is not reconnected until it is repaired or tested and
+found to be safe or is replaced or permanently removed from use.
+Electrical equipment is unsafe if there are reasonable grounds for believing it to be unsafe.
+
+
+
+You should implement a safe system of work to deal with potentially unsafe electrical equipment
+at the workplace. This could include:
+• training workers to be competent in, and requiring them to, to undertake, checking of the
+     physical condition of any electrical equipment, including the lead and plug connections,
+     prior to commencing use
+• taking the electrical equipment out of service if in doubt as to safety, including at any time
+     during use
+• putting reporting arrangements in place to ensure, so far as is reasonably practicable, that
+     supervisors or line managers are advised if a worker takes electrical equipment out of
+     service for safety reasons.
+Unsafe electrical equipment must be disconnected or isolated from its electricity supply. It must
+not be reconnected unless it is repaired by a competent person or tests by a competent person
+have confirmed it is safe to use (for definition of ‘competent person’ see Appendix A).
+Alternatively, it could be replaced or permanently removed from use.
+Unsafe electrical equipment should be labelled indicating it is unsafe and must not be used. This
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 13 of 31
+is to prevent inadvertent use before the electrical equipment can be tested, repaired or replaced.
+
+3.2 Maintenance regimes for electrical equipment used with
+   stated electrical risk factors
+A regular maintenance regime will assist a PCBU to ensure electrical equipment is
+electrically safe.
+Maintenance of equipment includes maintaining safe methods of use of the equipment within the
+manufacturer's safe design parameters.
+Maintenance of electrical equipment should be undertaken by a competent person, and where the
+work includes electrical work it must pe performed by a worker licensed to undertake that work.
+The maintenance regime should be clearly documented and be available for inspection at the
+workplace. Records of maintenance and service should be kept at your workplace for inspection
+and reference.
+
+4 Risk control – Initial and annual visual
+  examination
+4.1 How do you tell if electrical equipment is safe to use?
+Initially, visually examine electrical equipment to see whether the power points, light fittings,
+switchboards, wiring and other electrical equipment appear to be undamaged and in operational
+condition. Pay particular attention to the electrical equipment discussed in the following pages to
+see if there is any damage, or if the equipment has other readily apparent problems.
+If any problems are found, or it is suspected that something is not electrically safe, a licensed
+electrical contractor or an employee who is a licensed electrical worker are the only people
+permitted to rectify the problems involving electrical work.
+This visual examination should be conducted at least once every 12 months for fixed equipment
+and before each use for portable plug in equipment.
+Examinations of fixed equipment my need to be more frequent depending on environmental
+conditions, for example equipment in locations with high amounts of dust or other contaminants,
+equipment subject to extreme weather conditions.
+
+4.1.1 Switchboards
+Switchboards should be checked to ensure that all switchboard equipment such as fuses, safety
+switches and circuit breakers are clearly marked to indicate the equipment they control. It should
+be clear from switchboard markings which circuit breaker or fuse controls particular equipment.
+It is important that switchboard markings are correct so in an emergency, electrical equipment
+can be quickly isolated.
+If the fuses, safety switches or circuit breakers and their related electrical equipment or circuits
+cannot be identified, a licensed electrical person should be called in to mark the switchboard
+correctly.
+There should be no broken parts of switchboards or switchboard equipment that allow access to
+energised parts (live parts).
+This means that the live parts within the fuse can be touched, and therefore there is a risk of
+electric shock. The fuse wedge can be replaced without a fuse cartridge or element in it, to make
+it safer.
+Make sure live parts are not touched when performing this task. Take these precautions: turn off
+all main switches and wear dry, rubber-soled shoes before replacing the fuse wedge.
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)     Page 14 of 31
+For example, Figure 1 shows a group of fuses on a section of a switchboard. One of the fuse
+wedges (the removable part) has been taken out and not replaced.
+
+
+
+
+Figure 1
+
+Figure 2 shows a switchboard with a circuit breaker removed, leaving a hole where a person's
+fingers could touch live and dangerous internal parts of the switchboard. Only a licensed
+electrical person should repair this. Ensure no contact is made with live parts when carrying out
+this visual inspection.
+Ensure all live parts in the switchboard are suitably isolated before any work is conducted on, or in,
+a switchboard.
+Be aware older switchboards may contain asbestos – appropriate control measures must be
+applied where asbestos is identified. For more information see the WHS Regulation, Chapter 8 and
+the How to manage and control asbestos in the workplace Code of Practice.
+
+
+
+
+Figure 2
+
+
+4.1.2 Electrical cables and conduits
+Electrical cables and conduits should be checked to see if they are secure and not damaged or
+exposed to damage. Cables can be exposed to risk of damage, for example, by being run over
+by a vehicle, or by exposure to other mechanical damage such as heat and excessive vibration
+(see Figure 3).
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 15 of 31
+Figure 3 shows a conduit which has become detached from its fixings, leaving it free to move.
+This needs to be repaired by a licensed electrical person.
+
+
+
+
+Figure 3
+
+
+4.1.3 Overhead powerlines
+You should ensure that overhead powerlines have not been made unsafe, for example, by
+buildings or equipment having been located under or near them.
+For example, in Figure 4 a silo with a ladder and loading platform has been placed adjacent to
+an overhead line. This means the safe clearance the line achieved when constructed has
+changed, and the line now presents an electrical safety risk.
+You should also consider methods to identify all overhead powerlines on your property and
+methods to inform all your workers or contractors and their workers you engage of the
+powerline locations. This should include ensuring any moving plant is identified before use if it
+or workers using the plant, may be able to contact the powerlines, such as trucks, harvesters
+(with harvest arms set in operating and transporting positions), irrigation spray arms and
+elevated work platforms.
+
+
+
+
+Figure 4
+
+4.1.4 Power poles
+Poles which support overhead lines should be in a safe condition. Poles should be checked for
+deterioration, for example, from rot or white ants, at least every five years. Pole inspections
+must be carried out by a person competent in pole inspections.
+
+4.1.5 Electrical accessories
+Electrical accessories must not be cracked, broken, or otherwise damaged, and should not have
+malfunctioning parts such as faulty switches (see Figure 5). Damaged or otherwise unsafe
+electrical equipment needs to be repaired by a licensed electrical worker.
+In Figure 5, you will notice that the plate of the power point is cracked and needs to be replaced
+by a licensed electrical person. An inspection of the equipment being plugged in will also show
+the cord is damaged. Therefore, this equipment must be removed form service, tagged as
+unsafe and repaired by a licensed electrical worker prior to use.
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 16 of 31
+Figure 5
+
+
+4.1.6 Other electrical equipment
+Other electrical equipment connected to the electrical installation for use should be checked to
+ensure that:
+• there are no broken or damaged parts of the equipment, including controls, cabinets or
+    casings
+• safety related parts, including guards, warning lights or gauges, are operating as designed
+• light fittings do not have broken lamps or bulbs where people can touch live parts (filament of
+    the lamp or bulb)
+• the equipment is not exposed to environmental conditions for which it was not designed, e.g.
+    electrical equipment such as water pressure systems that plug into a socket outlet may
+    appear to be designed for exposure to the weather, but some are not; the manufacturer's or
+    agent's advice should be checked if in doubt.
+If electrical equipment is electrically unsafe, it must only be repaired or replaced by a licensed
+electrical person, or if it is plug-in equipment, it should be removed from service.
+Figure 6 shows that the terminal connection box of the motor is partially detached and may
+expose live terminals.
+
+
+
+
+Figure 6
+
+4.2 Visual examination of handheld electrical equipment
+A PCBU must ensure that handheld electrical equipment, is visually inspected for obvious
+defects or damage before it is connected to the electricity supply.
+Ensure that all parts of the equipment that are likely to be touched by the user have been
+examined for:
+• cuts or other damage to the flexible lead that expose the insulation of the inner cores or the
+   conductors (e.g. running the flexible cord through the hand before it is connected to the
+   supply of electricity can help detect damage)
+• melted or burnt areas of the plug, flexible lead or equipment
+• security and safety of covers, guards and controls such as power points, switches and the
+   like
+• cracks or holes in the equipment that may expose live parts when used
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)    Page 17 of 31
+•    interlock switches or devices are correctly operating
+•    all mechanical guards are in place
+•    correct rated supply plug is attached (for example a 10Amp plug on equipment rated 10Amp
+     and a 15Amp plug on equipment rated 15Amp)
+•    obstruction to ventilation inlets and exhausts.
+The illustrations below show examples of equipment that a visual examination has found to be
+defective.
+Figure 7 shows a lead that has had heavy objects dropped on it, causing broken and deformed
+insulation.
+
+
+
+
+Figure 7
+
+Figure 8 shows a drill that has a broken air vent. A person could inadvertently touch internal live
+parts of the drill.
+
+
+
+
+Figure 8
+
+Figure 9 shows an extension socket that is cracked and split. This figure also shows an older
+extension socket that does not have a shroud around the aperture face. PCBU should consider a
+maintenance program that’s includes replacing all such older extension sockets over time.
+
+
+
+
+Figure 9
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 18 of 31
+Figure 10 shows a plug that has signs of heat damage. Further use could cause a fire.
+
+
+
+
+Figure 10
+
+
+4.2.1 What do you do when unsafe equipment is suspected?
+If the handheld or otherwise personally carried electrical equipment is identified as defective,
+damaged or possibly electrically unsafe, the equipment should be:
+• immediately withdrawn from service
+• labeled in a manner to warn against further use until examined by a licensed electrical
+      person
+• either:
+     - repaired by a licensed electrical worker
+     - disposed of or destroyed so that it cannot be connected to an electricity supply, (e.g.
+         break off the plug pins).
+In the case of fixed electrical equipment, appropriate action should be taken to ensure personal
+safety until a repair by a licensed electrical worker can be made. For example, if electrical
+equipment is damaged and live parts are exposed, there should be a procedure in place to
+ensure that:
+• the equipment is isolated at the supply point, for example the isolation switch to the equipment
+     is locked in the off position or the circuit breaker at the switchboard is tagged in the off position
+• persons are kept clear of exposed live parts
+• a licensed electrical worker attends to make the equipment safe.
+
+5 Risk control–Stated electrical risk factors
+Almost all rural workplaces will have stated electrical risk factors in one or more locations. For
+example, if you use electrical equipment in a wet environment, or if you impose harsh wear on
+electrical equipment in your workplace, a stated electrical risk factor will exist.
+Under section 120(5) of the ES Regulation, stated electrical risk factor means any of the
+following:
+• use of plug-in electrical equipment in an unroofed area or wet area (e.g. a hose down area);
+• use of personally supported electrical equipment* if the electricity supply cord is subject to
+     flexing while the equipment is being used
+• use of plug-in electrical equipment that is exposed to environmental factors that subject the
+     equipment to abnormal wear or deterioration.
+Examples of environmental factors that subject equipment to abnormal wear or deterioration:
+• corrosive or other damaging dusts (e.g. metal dust)
+• corrosive chemicals in the air.
+* Personally supported electrical equipment includes handheld, or carried, electrical equipment,
+for example, a back pack type vacuum cleaner.
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)      Page 19 of 31
+5.1 What must you do where there are stated electrical risk
+   factors?
+Under section 120 of the ES Regulation, if proposed work involves a stated electrical risk factor,
+risk control measures (as outlined in Chapter 4 of this Code) must be implemented to prevent the
+electrical risk from the stated electrical risk factor.
+Under section 120 of the ES Regulation, if specified electrical equipment is used by the PCBU for
+work that involves a stated electrical risk factor, the specified electrical equipment must:
+• be connected to a type 1 or type 2 safety switch
+• be inspected and tested at least annually by a competent person and comply with AS/NZS
+    3760 In-service safety inspection and testing of electrical equipment and RCDs when
+    tested.
+You should ensure that the circuit supplying electric light fittings that are accessible within arm's
+reach is protected by a safety switch.
+If you have a safety switch installed for socket outlets, you should ensure that the installer
+provides a report of the post-installation test carried out on the safety switch. The report should
+indicate:
+  • the magnitude of the test current used to verify operation
+  • the time taken for the safety switch to disconnect the circuit when the test current was
+      applied.1
+If you do not have a safety switch installed for socket outlets, you can provide safety switch
+protection of equipment by connecting it to a portable safety switch.
+
+5.2 Safety switches
+Safety switches, also known as residual current devices (RCDs), are devices that cut off the
+electricity supply when there is a very small earth fault on an electrical circuit. Since earth faults
+are the most common type of fault involved in electric shocks, safety switches are a good way of
+reducing the risk of death or injury from electric shock. Safety switches have other advantages,
+for example, they detect an earth fault long before a normal fuse or circuit breaker will detect the
+same fault, and this can sometimes save the equipment from more serious damage. Safety
+switches must comply with AS/NZS 3760.
+
+5.2.1 Does your work area have a safety switch or switches?
+Safety switches are generally located on the switchboard of an electrical installation, although
+they can be located elsewhere. The most common other location for an installed safety switch is
+at a power point which has the device built in to it. There are portable safety switches which will
+provide protection for plug-in electrical equipment.
+Figure 11 below gives a representation of where safety switches are located in a typical rural
+industry installation. This installation has three switchboards. In this installation the switchboards
+have safety switches to protect power points and other electrical equipment. However, it is
+important to note that the switchboards themselves are not usually safety switch protected.
+1
+    Note for licensed electrical persons:
+
+        ▪   For type 1 safety switches, the test current should not exceed 10mA.
+        ▪   For type 2 safety switches, the test current should not exceed 30mA.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)     Page 20 of 31
+Figure 11
+Figure 12, shows three common types of switchboard mounted safety switches, mounted
+together.
+
+
+
+
+Figure 12
+A typical safety switch incorporated in a power point is pictured at Figure 13.
+
+
+
+
+Figure 13
+
+Figure 14 below shows three different types of portable safety switch. You can use portable
+safety switches to meet the regulatory requirement where there are stated electrical risk factors.
+
+
+
+
+Figure 14
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 21 of 31
+Your electrical installation will have at least one switchboard. It may have more than one. Very
+large installations can have many switchboards located throughout the building or buildings, and
+there may be switchboards located out of doors and not attached to a building. You should check
+all switchboards and power points to determine whether safety switches are fitted.
+The devices you will find on switchboards can include:
+• fuses
+• circuit breakers
+• safety switches
+• combination devices that are both a circuit breaker and a safety switch.
+Not all of these devices will be on every switchboard. Sometimes a switchboard may consist only
+of a number of circuit breakers or a number of fuses. Some switchboards will have a device of all
+the types mentioned above, and may have other electrical devices, including power points.
+The purpose of fuses and circuit breakers is to protect circuit wiring from damage in the event of
+a fault, and to prevent exposed conductive parts of electrical equipment from becoming live long
+enough, or to a high enough voltage, to cause a person a serious shock in the event of an
+electrical fault.
+Safety switches often look similar to ordinary circuit breakers. The main external feature that a
+safety switch has, and most circuit breakers do not is a test button (larger circuit breakers of 150
+amp capacity or more can have test buttons).
+
+5.2.2 How to find out which equipment is protected by a safety
+     switch
+Ideally, each safety switch should have marked on or beside it the circuits or equipment it
+protects. Often however, the marking will not be specific enough to identify every item of
+equipment protected.
+To identify the electrical equipment protected by a safety switch, carry out the following
+procedure:
+1. Turn the safety switch off: you can do this by pressing the test button or by operating the
+     on/off toggle or switch.
+     Please note: If pressing the test button does not cause the switch to flick to the off position,
+     the safety switch is faulty and requires checking or replacement by a licensed electrical
+     person.
+2. Check which equipment or circuits are not functioning, by:
+    a) turning on lights
+    b) turning on fixed equipment using safe procedures
+    c) checking power points using a convenient appliance such as a radio.
+3. List items not functioning.
+4. Turn the safety switch back on.
+5. Check that listed items now function.
+Listed items which function after the safety switch is turned on are protected by the safety switch.
+Items which continue to function when the safety switch is turned off are not protected by that
+safety switch.
+This procedure needs to be conducted for each safety switch and will result in a list of all safety
+switch protected equipment. All other equipment will not be safety switch protected.
+If you have a safety switch that is a portable type, you should ensure it is tested before every
+use.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)     Page 22 of 31
+5.2.3 How do you test your safety switch and how often should you
+   test it?
+You can test that your safety switch is operating correctly by a quick push and release of the 'test'
+button on the unit. The safety switch will automatically trip 'off' (the toggle will flip to the off
+position). You can confirm it is operating correctly by checking the equipment connected to that
+circuit have stopped operating. If the safety switch does not trip off and stop electricity supply to
+the equipment, you must have the unit checked or replaced by a licensed electrical worker as
+soon as possible, and you should prevent others from using equipment that would otherwise be
+protected by it, by leaving it turned off, unplugging handheld items and affixing a warning tag.
+There is no prescribed time limit for testing of your safety switch by the test button, but it is
+recommended that you test it in accordance with the manufacturer's instructions. Where
+manufacturer's instructions are not available, you should test the safety switch by the test button
+every three months.
+
+5.2.4 How do you ensure that your electrical installation remains
+   electrically safe?
+Under section 30 of the ES Act, you have a duty to ensure that your business or undertaking is
+conducted in a way that is electrically safe. The duty includes ensuring that all electrical
+equipment used in the conduct of your business or undertaking is electrically safe. A way of
+achieving this is to have an electrical contractor inspect the electrical equipment regularly or
+when you have them attending for other maintenance or repair work. An electrical contractor
+inspection at least every ten years could assist in ensuring a safe installation.
+
+6 Risk control–Electric welding work
+If welding is an activity conducted at your workplace, you must do what the ES Regulation says
+for all work areas. Under section 120(1)(a) of the ES Regulation, a visual inspection of the
+electric welding equipment must be carried out prior to use, and any cord extension sets used
+should comply with the requirements of this Code.
+However, welding presents an extra set of risks. When a person is welding, they may make contact
+with the electrode of the welder and receive a shock. The severity of the shock depends on several
+factors, including the amount of current flowing through the body, the path of the current through
+the body, and the length of time the person is exposed to the current.
+To reduce these risks, all electrode holders should be fully insulated and approved to an
+acceptable standard. Welding electrode holders or electrode tongs should be made of glass
+fibre-reinforced plastic or other insulated materials. Electrode holders should be maintained to
+ensure high conductivity between electrode and holder.
+There should be a safe system of work in place for the performance of electric welding work.
+The safe system of work should address the electrical safety risks of electric welding. Risk
+control measures should include ways of eliminating or minimising all risks, including electric
+shock, burns and inhalation of toxic gases.
+
+6.1 Regulatory requirements for rural industry work
+Under section 120(1)(e) of the ES Regulation, a PCBU must ensure that risk control measures
+are implemented for the risk of electric shock or burns from electric welding work performed in
+the person’s business or undertaking, including the wearing of protective clothing, gloves,
+footwear and eye protection.
+In addition to this, other risk control measures should be implemented as necessary to prevent
+shock and burns.
+In high risk situations, such as welding in an enclosed space with conductive surfaces, a safe
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 23 of 31
+system of work would need either:
+• an electrode disconnection device (this device disconnects the electrode holder while the
+    electrode is being changed)
+• a voltage reduction unit (this device reduces the open circuit voltage of a welder to a safe
+    value)
+• an additional person to oversee the work and disconnect the supply of power at times when
+    the electrode needs to be changed.
+Welding equipment suppliers will be able to assist with information about safety equipment.
+For more detailed information please refer to the following:
+• Welding processes Code of Practice
+• Weld Australia website at www.wtia.com.au.
+
+7 Risk control–Hazardous areas
+7.1 Hazardous areas: where they exist
+An area is considered hazardous if there is an explosive atmosphere is present, or may be
+expected to be present, in quantities such as to require special precautions for the construction,
+installation and use of equipment. An explosive atmosphere is created when there is enough
+flammable substance, such as petrol vapor or grain dust, mixed with the air in a place.
+Some work locations may not have been a hazardous area when the original work was being
+performed, however change of work practices or use of other materials in the area may have
+changed it into a hazardous area.
+Typical examples of hazardous areas include:
+• petrol dispensing or decanting areas
+• liquefied petroleum gas (LPG) storage and decanting areas
+• areas in or adjacent to gas storage facilities
+• ripening rooms
+• grain silos (flammable dusts)
+• areas where flammable products are stored, used, or decanted.
+
+7.2 Hazardous area precautions
+The best and simplest way of making sure a hazardous area is electrically safe is not to have
+any electrical equipment in it.
+Never run an extension lead to a hazardous area to use plug-in electrical equipment. Even extra
+low voltage equipment such as battery drills should not be used in a hazardous area, because
+they can create electrical sparks and arcs which may initiate an explosion.
+If it is essential to have electrical equipment in a hazardous area, you must ensure that:
+• the hazardous area is classified by an expert person, establishing the type of hazardous
+       atmosphere and its risk level, in accordance with recognised standards
+• a licensed electrical person ensures that the electrical installation and equipment are suitable
+       for the classification
+• a licensed electrical person ensures that the electrical installation is audited by an accredited
+       auditor before it is connected to supply.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 24 of 31
+Appendix A - Dictionary
+Arm's reach means 2.5m vertically upwards, and 1.25m sideways or downwards, from any
+point on a surface where persons usually stand or move about.
+Cathodic protection system means a system by which a structure in contact with ground or
+water is protected from electrolytic corrosion by a direct electric current flowing between the
+structure and an electrical conductor through the ground or water.
+Circuit breaker means a switch suitable for opening a circuit automatically, as a result of
+predetermined conditions, such as those of over-current or under-voltage, or by some form of
+external control. Circuit breakers are most often mounted on switchboards and are used to
+protect the circuits that are supplied from a switchboard. Circuit breakers are not the same as
+safety switches.
+Class 1 equipment means equipment in which protection against electric shock does not rely on
+basic insulation only. It includes an additional safety precaution in that accessible conductive
+parts are connected to the protective earthing conductor in the fixed wiring of the electrical
+installation in such a way that accessible parts cannot become live in the event of a failure of the
+basic insulation.
+Notes:
+• Class 1 equipment may have parts with double insulation or parts operating at SELV
+    (safety extra low voltage).
+• For equipment intended for use with a flexible cord or cable, this provision includes a
+    protective earthing conductor as part of the flexible cord or cable.
+Competent person means a person who has acquired, through training, qualifications,
+experience or a combination of these, the knowledge and skills to carry out the task.
+Note: for the performance of electrical work—the person must be licensed or otherwise
+authorised under the ES Act to perform the electrical work.
+Conductive means able to transmit electricity. Examples of conductive objects are any metallic
+substance, concrete, water or wet or damp objects.
+Cord extension set means an assembly of:
+• a three-pin plug intended for connection to a socket outlet
+• a sheathed flexible cord
+• a cord extension socket.
+A cord extension set is commonly referred to as an extension lead.
+
+
+
+
+Figure 16: A cord extension set
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 25 of 31
+Cord extension socket (referred to as a 'socket') means a device arranged for attachment to a
+flexible cord and having contacts whereby a detachable connection can be made with pins of a
+plug.
+
+
+
+
+Figure 17: A cord extension socket
+
+Earthed situation means a place where a person can touch electrical equipment while still in
+contact with the earth or metal or other conductive thing touching the earth. All parts of a
+bathroom, laundry, lavatory, toilet or kitchen are earthed situations.
+An example of an earthed situation is an external concrete area from which you can touch a light
+fitting.
+Electrical equipment (see section 14 of the ES Act) means any apparatus, appliance, cable,
+conductor, fitting, insulator, material, meter or wire:
+
+•    used for controlling, generating, supplying, transforming or transmitting electricity at a voltage
+     greater than extra low voltage; or
+•    operated by electricity at a voltage greater than extra low voltage; or
+•    is, or is part of, a cathodic protection system; or
+•    is prescribed electrical equipment.
+
+However, electrical equipment does not include any apparatus, appliance, cable, conductor,
+fitting, insulator, material, meter or wire forming part of a vehicle if:
+• it forms part of a unit of the vehicle that provides propulsion for the vehicle
+• its source of electricity is a unit of the vehicle that provides propulsion to the vehicle.
+Examples of things that are not electrical equipment:
+• the headlights of a motor vehicle;
+• ignition spark plugs of a motor vehicle; and
+• the interior lighting system of a vehicle, if powered from a battery charged by the engine that
+   drives the vehicle or by the vehicle's movement.
+Examples of things that are not prevented from being electrical equipment:
+• interior lighting or a socket outlet in a caravan, if the lighting or outlet is operated by a low
+   voltage generating set or connected to low voltage supply; and
+• a refrigeration unit in a food delivery vehicle operating at low voltage from a source
+   separate from the propulsion unit for the vehicle.
+However, prescribed electrical equipment is electrical equipment even if it forms part of a
+vehicle.
+
+Electrical installation (see section 15 of the ES Act) means a group of items of electrical
+equipment.
+However, a group of items of electrical equipment is an electrical installation only if:
+• the items are permanently electrically connected together; and
+• can be supplied with electricity from —
+ - the works of an electricity entity; or
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)     Page 26 of 31
+    -     a generating source; or
+    -     a battery or other storage technology; and
+•       the items do not include items that are works of an electricity entity.
+
+Also, an electrical installation is a group of items of electrical equipment that —
+• are permanently electrically connected together; and
+• are used to generate electricity at a voltage greater than extra low voltage; and
+• do not include items that are works of an electricity entity.
+
+Notes:
+• An item of electrical equipment can be part of more than one electrical installation.
+• An item of electrical equipment connected to electricity by a plug and socket outlet is not
+    permanently electrically connected.
+
+Examples of an electrical installation:
+• the switchboard, wiring, lighting, motors, controls and other electrical equipment permanently
+   connected for an irrigation plant
+• the switchboard, wiring, lighting, socket outlets and other electrical equipment permanently
+   connected for a dairy.
+Electrical risk (see section 10 of the ES Act) means:
+• in relation to a person, the risk to the person of death, shock or injury caused directly by
+    electricity or originating from electricity
+• in relation to property, the risk to the property of:
+    - damage caused by a cathodic protection system
+    - loss or damage caused directly by, or originating from, electricity.
+Electrically safe (see section 10(2) of the ES Act) means:
+• for a person or property, that the person or property is free from electrical risk
+• for electrical equipment or an electrical installation, that all persons and property are free
+    from electrical risk from the equipment or installation
+• for the way electrical equipment, an electrical installation or the works of an electricity entity
+    are operated or used, that all persons and property are free from electrical risk from the
+    operation or use of the equipment, installation or works
+• for the way electrical work is performed, that all persons are free from electrical risk from the
+    performance of the work
+• for the way a business or undertaking is conducted, that all persons are free from electrical
+    risk from the conduct of the business or undertaking
+• for the way electrical equipment or an electrical installation is installed or repaired, that all
+    persons are free from electrical risk from the installing or repairing of the equipment or
+    installation.
+Electrical safety (section 10(2) of the ES Act), for a person or property, means the person or
+property is electrically safe.
+Electrical safety examination means a procedure performed by a competent person which
+includes:
+• an inspection to identify visually identifiable defects that cause the equipment to be
+     electrically unsafe
+• an operational test of safety switches
+• an indicative earth continuity test of parts within arm's reach that are required to be earthed.
+Exposed live part means a part of the electrical installation or electrical equipment which is
+exposed, and that, if touched could cause an electric shock.
+Fixed electrical equipment means electrical equipment that is a permanent part of the
+workplace, such as poles, switchboards, wiring, power points, and other equipment that cannot
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 27 of 31
+be unplugged. For example, an electrical motor driving a refrigeration plant in the milk room of a
+dairy would be fixed electrical equipment.
+Free from electrical risk (see section 10(4) of the Act), for a person or property means that the
+electrical risk to the person or property has been eliminated, so far as is reasonably practicable;
+or if it is not reasonably practicable to eliminate electrical risk to the person or property, the risk
+has been minimised so far as is reasonably practicable.
+Hazard means a situation or thing that has the potential to harm a person. Hazards at work may
+include: noisy machinery, a moving forklift, chemicals, electricity, working at heights, a repetitive
+job, bullying and violence at the workplace.
+Hazardous area means an area where an explosive atmosphere is present or may be present.
+Inspected and tested in relation to specified electrical equipment means that the equipment is
+tested and inspected by a competent person, and if the competent person decides the
+equipment is safe to use, a durable tag has been attached to the equipment that shows the day
+by which the equipment must be re-inspected and retested.
+Licensed electrical person means a licensed electrical worker or licensed electrical contractor.
+Energised part (live part) means a conductor or parts of electrical equipment that can become
+electrically energised in normal use and which are dangerous to touch. Energised parts are
+normally enclosed or otherwise protected by the design of electrical equipment so that they
+cannot be touched by persons.
+Near, in relation to electrical equipment, means within 3 meters of an exposed energised part of
+the equipment.
+Plug means an accessory having pins designed to engage with the contacts of a socket-outlet
+and incorporating means for the electrical connection and mechanical retention of flexible cables
+or cords. Figure 18 shows a plug with insulated live pins for insertion into socket outlets complying
+to AS/NZS 3112 (Australian plug and socket outlet standard)
+
+
+
+
+Figure 18: A plug
+
+Risk means the possibility that harm (death, injury or illness) might occur when exposed to a
+hazard.
+For example, if the risk is electricity, there the likelihood that a worker might be electrocuted
+because of the exposure to electrical live parts.
+The degree of risk will depend on the amount of exposure to the risk. With regard to electricity,
+this would relate to aspects of the electricity i.e. voltage, frequency of exposure, and degree of
+risk control measures in place.
+Risk control means taking action to eliminate health and safety risks so far as is reasonably
+practicable, and if that is not possible, minimising the risks so far as is reasonably practicable.
+Eliminating a hazard will also eliminate any risks associated with that hazard.
+Safety switch, or residual current device (RCD), means a device intended to isolate supply to
+protected circuits, socket outlets, or electrical equipment in the event of a current flow to earth
+which exceeds a predetermined value. Safety switches that have a rated load current not
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)      Page 28 of 31
+exceeding 125 A for devices intended for connection to fixed wiring or 20 A for other
+devices and are used to prevent serious injury to persons must have Australian
+certification and be marked with the Regulatory Compliance Mark (RCM) and a
+tripping current not exceeding 30 mA, and a tripping time not exceeding 300 mS.
+
+
+Specified electrical equipment (section 97 of the ES Regulation) for rural industry work
+means:
+• a cord extension set with a current rating of not more than 20 amps; or
+• a portable outlet device with a current rating of not more than 20 amps; or
+• electrical equipment other than a portable safety switch that:
+   - has a current rating of not more than 20 amps
+   - is connected by a flexible cord and plug to low voltage supply.
+Stated electrical risk factor (section 120 of the ES Regulation) means any of the following:
+• use of plug-in electrical equipment in an unroofed area or wet area (e.g. a hose down area)
+• use of personally supported electrical equipment if the electricity supply cord is subject to
+    flexing while the equipment is being used
+• use of plug-in electrical equipment that is exposed to environmental factors that subject the
+    equipment to abnormal wear or deterioration.
+Example of environmental factors that subject equipment to abnormal wear or deterioration:
+•    corrosive or other damaging dusts, for example, metal dust
+•    corrosive chemicals in the air.
+Supervision means the overseeing of workers, including trainees and apprentices, to ensure
+risks to people and property are eliminated or at least minimised. While a supervisor may
+perform audits, auditing should not be seen as interchangeable with supervision. Supervision of
+electrical work includes:
+• health and safety matters
+• statutory compliance e.g. monitoring the work an apprentice or restricted electrical worker is
+     permitted to perform
+• technical aspects e.g. compliance with AS/NZS 3000
+• implementation of a safe work method statement prepared for the work.
+Voltage means differences of potential normally existing between conductors and between
+conductors and earth as follows:
+• Extra low voltage means voltage that does not exceed 50 volts root mean square (RMS)
+    alternating current (50 V AC RMS) or 120 volts ripple-free direct current (120 V ripple-free
+    DC).
+• Low voltage means voltage that exceeds extra-low voltage and does not exceed 1000 volts
+    RMS alternating current (1000 V AC RMS) or 1500 volts ripple-free direct current (1500 V
+    ripple-free DC).
+• High voltage means voltage that exceeds low voltage.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)   Page 29 of 31
+Appendix B–Flow chart summary of what you
+need to do to manage electrical risks
+
+  Step 1:
+  Conduct a visual examination of all                                 Visually inspect all switchboards,
+  electrical equipment in the workplace                               overhead lines, poles, light
+  annually (for fixed equipment) or                                   fittings, power points, wiring,
+  before each use (for portable)                                      power tools, pumps, generators,
+  \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\        welders and other electrical
+                                                                      equipment for defects.
+
+   Step 2:
+   Note defects and arrange for them to be
+   rectified by a licensed electrical person.
+
+
+
+
+                    Are there stated
+                 electrical risk factors?                                             Step 3:
+                                                                 No                   Consider installing/testing safety
+                                                                                      switches on all circuits to ensure
+                                                                                      continued electrical safety into the
+                                                                                      future.
+
+                                Yes
+
+
+
+
+   Step 3:
+   For specified electrical equipment:
+   • install a safety switch; or
+   • test and inspect the equipment.
+
+
+
+   Step 4:
+   For light fittings within arm’s reach, have a
+   safety switch fitted.
+
+
+
+   Step 5:
+   Put risk control measures in place for
+   stated electrical risk factors.
+
+
+   Step 6:
+   For electric welding work, use regulatory
+   risk treatment measures.
+
+
+   Step 7:
+   Continually monitor area for changes in
+   risks and type of work.
+
+
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)                        Page 30 of 31
+Appendix C–Sample risk assessment
+This risk assessment form gives an example of a dairy farm installation and equipment. The risks
+have been identified and rated. Risk control measures have been selected to manage risks. This
+risk assessment needs to be reviewed regularly.
+Note: the ES Regulation requires certain measures for specified electrical equipment.
+Sample risk assessment
+Electrical                Circumstance               Risk                   Risk            Risk control measures
+equipment                                                                   level
+Main switchboard          If removed fuses           Electric shock         Low             •    Regular visual check.
+                          have exposed live          and explosion                          •    Replace fuses by suitably
+                          parts.                                                                 Trained person.
+Workshop shed             If internal parts of       Electric shock         Low             •    Regular visual check.
+lighting is within        light fittings are                                                •    Have safety switch
+arm’s reach               accessed.                                                              installed for lights.
+                                                                                            •    Electrical maintenance
+                                                                                                 work only by licensed
+                                                                                                 electrical persons.
+Poles, cross arms If damaged by                      Electric shock         Medium          •    Protect poles from
+and overhead lines vehicle or other                                                              vehicular damage by
+                   incident.                                                                     barricading or by
+                                                                                                 administrative controls.
+Poles, cross arms May become                         Electric shock         Medium          •    Regular inspection
+and overhead lines unsafe through                                                                and maintenance.
+                   deterioration.
+Overhead lines            Exclusion zones            Electric               High            •  Check for locations of EQ
+                          compromised                shock                                     overhead powerlines at:
+                          (equipment stored                                                 www.lookupandlive.com.au
+                          in exclusion zones,                                                • Map out EQ and private
+                          harvesters or                                                        powerlines on property.
+                          spray pipes driven                                                 • Identify exclusion zones.
+                          into exclusion                                                     • Inform workers of powerline
+                          zones).                                                              locations and exclusion
+                                                                                               zones.
+                                                                                             • Regularly check that
+                                                                                               nothing us built or stored in,
+                                                                                               or work occurs in, exclusion
+                                                                                               zones.
+Refrigeration             May have moisture          Corrosion,             Medium          •    Regular inspection
+equipment in dairy        ingress.                   electric shock                              and maintenance.
+                                                     risk
+Socket outlets in         May have unsafe            Electric shock         Medium          •    Regular visual check.
+dairies                   equipment plugged                                                 •    Maintenance plan for plug
+                          in, or outlets or                                                      in equipment and safety
+                          wiring damaged.                                                        switch protection.
+Fixed operations          Wear and tear              Electric shock         Medium          •    Regular visual check.
+equipment, e.g.           could cause                                                       •    Regular maintenance by
+irrigation pump           deterioration of                                                       licensed electrical persons
+motors, feed              insulation and                                                         and safety switch protection
+delivery systems          earthing.                                                              for up to 5kW equipment.
+Lunch room                Increased risk area. Electric shock               Medium          •    Equipment selected fit
+equipment                                                                                        for purpose.
+                                                                                            •    Safety switch protection
+                                                                                                 and inspection test and
+                                                                                                 maintenance regime.
+
+
+Electrical Safety Code of Practice 2020 – Electrical equipment rural industry (ESOPDF025)                             Page 31 of 31
+
