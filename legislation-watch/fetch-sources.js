@@ -65,7 +65,7 @@ async function tasCurrent() {
 // The Northern Territory and the ACT publish the current regulation as a PDF.
 const PDF_SOURCES = [
   { name: 'Northern Territory', page: 'https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011', pick: /\/api\/sitecore\/Act\/PDF\?id=/i },
-  { name: 'Australian Capital Territory', page: 'https://www.legislation.act.gov.au/sl/2011-36/', pick: /\/View\/sl\/2011-36\/current\/html\//i },
+  { name: 'Australian Capital Territory', page: 'https://www.legislation.act.gov.au/sl/2011-36/', pick: /\/DownloadFile\/sl\/2011-36\/current\/PDF\//i },
 ];
 
 async function pdfSource(source) {
@@ -88,10 +88,10 @@ async function pdfSource(source) {
     flat = text(buffer.toString('utf8'));
   }
   console.log(flat.slice(0, 700));
-  for (const marker of [/high risk construction work means/g, /299\s*Safe work method statement required/g, /166\s*Duty of person conducting a business or undertaking/g]) {
+  for (const marker of [/high risk construction work means/g, /Safe work method statement required for high risk construction work \(1\)/g, /A safe work method statement must/g, /comes within an unsafe distance of an overhead/g, /residential construction work means/g, /Republication No|As in force at|Authorised by the ACT Parliamentary Counsel|current from/g]) {
     const all = [...flat.matchAll(marker)];
     const at = all.length ? all[all.length - 1].index : -1;
-    console.log(`\n--- ${marker}\n${at < 0 ? 'not found' : flat.slice(at, at + 2600)}`);
+    console.log(`\n--- ${marker}\n${at < 0 ? 'not found' : flat.slice(Math.max(0, at - 300), at + 2300)}`);
   }
 }
 
