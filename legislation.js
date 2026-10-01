@@ -117,6 +117,52 @@ const NEW_SOUTH_WALES = {
   overheadLineControl: 'Keep people, cranes, plant, loads and tools at least the approach distance from an overhead electric line: 3.0 m up to 132 kV, 6.0 m above 132 kV up to 330 kV, and 8.0 m above 330 kV (SafeWork NSW Code of practice, Work near overhead and underground electric lines, May 2026, Table 1). Section 166 of the Work Health and Safety Regulation 2025 (NSW) requires an unsafe distance to be avoided. If that is not reasonably practicable, do a risk assessment and follow the requirements of the electricity supply authority responsible for the line.',
 };
 
+// Checked against the authorised PDF of the Work Health and Safety Regulations 2012 (SA),
+// "Version: 1.7.2026", published under the Legislation Revision and Publication Act 2002.
+const SOUTH_AUSTRALIA = {
+  id: 'sa',
+  name: 'South Australia',
+  loaded: true,
+  instrument: 'Work Health and Safety Regulations 2012 (SA)',
+  compilation: '1 July 2026',
+  versionLabel: 'version of 1 July 2026',
+  section: '299',
+  sectionRef: 'regulation 299',
+  sectionTitle: 'Safe work method statement required for high risk construction work',
+  reviewHeading: 'How the controls will be implemented, monitored and reviewed',
+  // Regulation 299(2).
+  contents: [
+    'the work that is high risk construction work',
+    'the hazards and the risks to health and safety',
+    'the measures to control the risks',
+    'how the control measures are to be implemented, monitored and reviewed',
+  ],
+  // Regulation 291, in the regulation's words.
+  highRiskLabels: {
+    fall: 'Involves a risk of a person falling more than 2 metres',
+    tower: 'Is carried out on a telecommunication tower',
+    demolition: 'Involves demolition of an element of a structure that is load-bearing or otherwise related to the physical integrity of the structure',
+    asbestos: 'Involves, or is likely to involve, the disturbance of asbestos',
+    temporary: 'Involves structural alterations or repairs that require temporary support to prevent collapse',
+    confined: 'Is carried out in or near a confined space',
+    trench: 'Is carried out in or near a shaft or trench with an excavated depth greater than 1.5 metres, or a tunnel',
+    explosives: 'Involves the use of explosives',
+    gas: 'Is carried out on or near pressurised gas distribution mains or piping',
+    chemicalLine: 'Is carried out on or near chemical, fuel or refrigerant lines',
+    electrical: 'Is carried out on or near energised electrical installations or services',
+    atmosphere: 'Is carried out in an area that may have a contaminated or flammable atmosphere',
+    precast: 'Involves tilt-up or precast concrete',
+    road: 'Is carried out on, in or adjacent to a road, railway, shipping lane or other traffic corridor that is in use by traffic other than pedestrians',
+    plant: 'Is carried out in an area at a workplace in which there is any movement of powered mobile plant',
+    temperature: 'Is carried out in an area in which there are artificial extremes of temperature',
+    water: 'Is carried out in or near water or other liquid that involves a risk of drowning',
+    diving: 'Involves diving work',
+  },
+  fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulations 2012 (SA), regulation 291, work that involves a risk of a person falling more than 2 metres is high risk construction work. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
+  // Regulation 166 sets no distance.
+  overheadLineControl: 'Keep people, plant and things out of an unsafe distance of an overhead or underground electric line (Work Health and Safety Regulations 2012 (SA), regulation 166). The regulations set no distance, so get the electricity supply authority\'s requirements before work starts. If a safe distance is not reasonably practicable, do a risk assessment and follow those requirements.',
+};
+
 // Checked against the authorised PDF of the Occupational Health and Safety Regulations 2017
 // (Vic), S.R. No. 22/2017, authorised version 017 incorporating amendments as at 29 July 2026.
 // Victoria is not a model WHS state: its list is regulation 322 and differs from section 291.
@@ -184,7 +230,7 @@ const STATES = [
   QUEENSLAND,
   NEW_SOUTH_WALES,
   VICTORIA,
-  { id: 'sa', name: 'South Australia', loaded: false },
+  SOUTH_AUSTRALIA,
   { id: 'wa', name: 'Western Australia', loaded: false },
   { id: 'tas', name: 'Tasmania', loaded: false },
   { id: 'nt', name: 'Northern Territory', loaded: false },
@@ -235,6 +281,7 @@ module.exports = {
   QUEENSLAND,
   NEW_SOUTH_WALES,
   VICTORIA,
+  SOUTH_AUSTRALIA,
   STATES,
   highRiskLabel,
   highRiskList,

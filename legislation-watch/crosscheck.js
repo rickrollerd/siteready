@@ -17,10 +17,11 @@ const SOURCES = {
   qld: { toc: `${AUSTLII}/qld/consol_reg/toc-W.html`, title: 'Work Health and Safety Regulation 2011' },
   nsw: { toc: `${AUSTLII}/nsw/consol_reg/toc-W.html`, title: 'Work Health and Safety Regulation 2025' },
   vic: { toc: `${AUSTLII}/vic/consol_reg/toc-O.html`, title: 'Occupational Health and Safety Regulations 2017' },
+  sa: { toc: `${AUSTLII}/sa/consol_reg/toc-W.html`, title: 'Work Health and Safety Regulations 2012' },
 };
 
 // The provision that defines high risk construction work in each state.
-const HRCW_SECTION = { qld: '291', nsw: '291', vic: '322' };
+const HRCW_SECTION = { qld: '291', nsw: '291', vic: '322', sa: '291' };
 
 async function get(url) {
   const response = await fetch(url, {

@@ -153,3 +153,13 @@ test('Victoria uses regulation 322 and 327 and its own SWMS contents', () => {
   assert.match(line.text, /set no distance/);
   assert.match(questionsFor({ state: 'vic', task: 'Replace a 3m length of fence.', fallRisk: 'no' }).fall.explanation, /regulation 322/);
 });
+
+test('South Australia uses its regulations and gives no power line distance', () => {
+  const done = prepareDraft({ state: 'sa', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no' });
+  assert.equal(done.instrument, 'Work Health and Safety Regulations 2012 (SA)');
+  assert.equal(done.sectionRef, 'regulation 299');
+  assert.ok(done.highRisk.includes('Is carried out on or near energised electrical installations or services'));
+  const line = done.controls.find((item) => /electric line/.test(item.text));
+  assert.match(line.text, /regulation 166/);
+  assert.doesNotMatch(line.text, /\d\.\d m/);
+});
