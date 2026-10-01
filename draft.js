@@ -386,8 +386,14 @@ function deckMethodAnswer(value) {
 // Overhead and other power lines near the work, as opposed to electrical work itself.
 const ENERGISED = /\b(overhead (?:power |electric )?lines?|power lines?)\b/i;
 // An electrician's work on an installation.
-const ELECTRICAL_WORK = /\b(electrician|electrical (?:work|contractor|installation|fit[- ]?out)|wiring|switchboards?|distribution boards?|consumer mains|cabl\w*|circuits?|conduits?|terminat\w*|energis\w*|commission\w*|light fittings?|power points?|busduct)\b/i;
-const SWITCHBOARD_WORK = /\b(main switchboards?|consumer mains|energis\w*|commission\w*|terminat\w*|distribution boards?)\b/i;
+// Words that only an electrician's work uses. General words such as commissioning,
+// testing or rough-in count as electrical only alongside one of these.
+const ELECTRICAL_CORE = /\b(electrician|electrical|wiring|switchboards?|distribution boards?|consumer mains|cabl\w*|circuits?|conduits?|light fittings?|power points?|busduct|construction (?:power|wiring)|temporary (?:power|lighting))\b/i;
+const ELECTRICAL_WORK = ELECTRICAL_CORE;
+const SWITCHBOARD_WORDS = /\b(main switchboards?|consumer mains|energis\w*|commission\w*|terminat\w*|distribution boards?)\b/i;
+const SWITCHBOARD_WORK = { test: (text) => SWITCHBOARD_WORDS.test(String(text || '')) && ELECTRICAL_CORE.test(String(text || '')) };
+// A plumber's work.
+const PLUMBING_WORK = /\b(plumb\w*|hydraulic\w*|drain\w*|sewer\w*|sanitary|pipes?|pipework|sleeves?|puddle flanges?|hot water|cold water|tapware|toilets?|basins?|pump rooms?|sumps?|ejection pits?|water tanks?)\b/i;
 
 const CATEGORY_FACTS = [
   {
@@ -425,7 +431,7 @@ const CATEGORY_FACTS = [
     label: 'Isolation and testing procedure',
     prompt: 'How circuits are isolated, locked and tagged, and tested de-energised by a competent person before work, and who holds the locks.',
     level: 'Administrative',
-    applies: (text) => mentioned(text, SWITCHBOARD_WORK) || TEMP_POWER.test(String(text || '')) || /\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || '')),
+    applies: (text) => SWITCHBOARD_WORK.test(text) || TEMP_POWER.test(String(text || '')) || (/\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || '')) && ELECTRICAL_CORE.test(String(text || ''))),
   },
   {
     // Electrical work on or near energised parts is prohibited except as the
@@ -438,7 +444,7 @@ const CATEGORY_FACTS = [
       { value: 'testing', label: 'Testing or commissioning on or near energised parts (within 3 m)' },
     ],
     level: 'Administrative',
-    applies: (text) => mentioned(text, ELECTRICAL_WORK) && (mentioned(text, /\b(energis\w*|commission\w*|testing|test the|test,)\b/i) || TEMP_POWER.test(String(text || '')) || /\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || ''))),
+    applies: (text) => ELECTRICAL_CORE.test(String(text || '')) && (mentioned(text, /\b(energis\w*|commission\w*|testing|test the|test,)\b/i) || TEMP_POWER.test(String(text || '')) || /\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || ''))),
   },
   {
     id: 'constructionTesting',
@@ -1143,14 +1149,14 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task),
     electricalWork: ELECTRICAL_WORK.test(task),
     tempPower: TEMP_POWER.test(task),
-    castIn: /\b(cast[- ]in|in[- ]slab)\b/i.test(task),
+    castIn: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task),
     cablePull: /\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable)\b/i.test(task),
-    fitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task),
+    fitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     // Isolation steps for any work on the installation; commissioning only for the
     // permanent main switchboard and consumer mains, not construction power.
-    isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || /\b(rough[- ]in|fit[- ]off)\b/i.test(task),
-    commissioning: /\b(main switchboards?|consumer mains|commission\w*)\b/i.test(task) && !TEMP_POWER.test(task),
+    isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || (/\b(rough[- ]in|fit[- ]off)\b/i.test(task) && ELECTRICAL_CORE.test(task)),
+    commissioning: /\b(main switchboards?|consumer mains|commission\w*)\b/i.test(task) && ELECTRICAL_CORE.test(task) && !TEMP_POWER.test(task),
     deck: deckLaying(task),
     ewp: /\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(combinedFacts(task, facts)),
     precast: isPanelLift(task),
