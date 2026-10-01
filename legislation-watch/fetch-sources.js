@@ -24,9 +24,12 @@ async function waCurrent() {
   const body = text(Buffer.from(await response.arrayBuffer()).toString('latin1'));
   console.log(`${url}: HTTP ${response.status}, ${body.length} characters`);
   console.log(body.slice(0, 300));
-  for (const marker of [/291\.\s*Term used: high risk construction work/i, /high risk construction work means/i, /299\.\s*Safe work method statement required/i, /166\.\s*Duty of person conducting a business or undertaking/i]) {
-    const at = body.search(marker);
-    console.log(`\n--- ${marker}\n${at < 0 ? 'not found' : body.slice(at, at + 3200)}`);
+  // The contents page lists each provision too, so the last occurrence is the provision itself.
+  const provisions = ['299.Safe work method statement required', '302.Review of safe work method statement', '166A.Duty of person conducting a business or undertaking: overhead', '306A.Terms used', '306B.Regulator to be notified', '306G.Tilt', '306H.Documents required'];
+  for (const name of provisions) {
+    const flat = body.replace(/\s+\./g, '.');
+    const at = flat.lastIndexOf(name);
+    console.log(`\n--- ${name}\n${at < 0 ? 'not found' : flat.slice(at, at + 2600)}`);
   }
 }
 
