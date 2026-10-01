@@ -1,0 +1,362 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: plumbing",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "drainage",
+      "title": "In-ground drainage and sewer connection",
+      "task": "Excavate trenches up to 2.4 m deep in the basement and the street for in-ground sewer and stormwater drainage, using a 5 tonne excavator, then connect to the council sewer main in the street next to the road, open to traffic.",
+      "fallRisk": "yes",
+      "facts": {
+        "trenchSupport": "Trenches deeper than 1.5 m are shored with a trench shield rated for 3.0 m, as designed by the supplier's engineer.",
+        "fallControl": "Temporary fencing is placed 1 m back from open trench edges, and no one works at an unprotected edge."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "trench",
+          "road",
+          "plant"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Locate underground services",
+          "Excavate",
+          "Work in the trench",
+          "Backfill and restore",
+          "Connect to the live sewer"
+        ],
+        "missing": [
+          "Trench support",
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "sleeves",
+      "title": "Cast-in sleeves and penetrations on the deck",
+      "task": "Install cast-in sleeves, puddle flanges and penetrations for plumbing on the deck of each post-tensioned floor before the pour, alongside the formwork and reo crews. Work is near the slab edge, more than 2 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Work is done inside the perimeter screens and edge protection, and penetrations are covered as they are formed."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Install cast-in sleeves and puddle flanges on the deck before the pour"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "core-drill",
+      "title": "Core drilling through post-tensioned slabs",
+      "task": "Core drill penetrations for pipework through the post-tensioned slabs on each floor and in the basement. Open core holes are a fall of more than 2 m to the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "silicaControls": "Core drilling is done wet with a water-fed rig, with fit tested P2 respirators available, and the written silica assessment is done before work starts.",
+        "fallControl": "Each hole is covered with a fixed, marked cover as soon as it is cut, and the area below is barricaded during drilling."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Plan core holes",
+          "Core drill through the slab"
+        ],
+        "missing": [
+          "Silica dust controls",
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "risers",
+      "title": "Hydraulic risers and pipework at height",
+      "task": "Install hydraulic risers and stacks in the shafts, and pipework in the basement ceilings and the double height foyer, working from elevating work platforms and ladders, more than 2 m above the floor.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Shafts are screened at each level with only the section being worked on opened, and elevating work platforms with guardrails are used for work above 2 m."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Install risers and pipework at height",
+          "Use an elevating work platform"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "joining",
+      "title": "Brazing and solvent cement joining",
+      "task": "Join copper pipe by brazing with oxy-acetylene torches, and join PVC pipe with primer and solvent cement, in the risers, the ceilings and the apartments.",
+      "fallRisk": "no",
+      "facts": {
+        "hotWorkPermit": "The principal contractor issues a hot work permit each day; a fire watch stays for 30 minutes after hot work ends, with a fire extinguisher at each work area.",
+        "safetyDataSheet": "Safety data sheets for the primer and solvent cement: flammable liquids, use with ventilation, keep away from ignition sources, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Braze and solder pipe joints (hot work)",
+          "Join PVC pipe with primer and solvent cement"
+        ],
+        "missing": [
+          "Hot work permit and fire watch",
+          "Safety data sheet"
+        ]
+      }
+    },
+    {
+      "id": "pits",
+      "title": "Pump rooms, pits and tanks; pressure testing and commissioning",
+      "task": "Install the pumps in the basement pump rooms, enter the sewage ejection pits and stormwater sumps to fit the pumps and pipework, then pressure test the pipework and commission the hot water systems.",
+      "fallRisk": "no",
+      "facts": {
+        "spaceAssessment": "confined",
+        "confinedSpace": "An entry permit is issued for each entry. The air is tested for oxygen, flammable gas and toxic gas before entry and continuously during the work. A standby person stays at the opening, and the rescue plan with a tripod and winch is practised before work starts.",
+        "pressureTesting": "Pipework is hydrostatically tested with water to the design test pressure; the test area is barricaded and signed, and pressure is released through the drain valve before any fitting is touched."
+      },
+      "expect": {
+        "highRisk": [
+          "confined"
+        ],
+        "steps": [
+          "Prepare to enter the confined space",
+          "Enter and work",
+          "Leave and close up",
+          "Pressure test and commission"
+        ],
+        "missing": [
+          "Pits, tanks, sumps or manholes entered",
+          "Confined space entry",
+          "Pressure testing method"
+        ]
+      }
+    },
+    {
+      "id": "fit-off",
+      "title": "Apartment plumbing rough-in and fit-off",
+      "task": "Rough-in and fit-off the plumbing in the apartments: chase walls, install pipework, and fit tubs, toilets, basins and tapware, working from platform ladders.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Chasing is done with on-tool dust extraction, with fit tested P2 respirators, and the written silica assessment is done before work starts."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Rough-in and fit-off in the apartments"
+        ],
+        "missing": [
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "drainage",
+        "sleeves",
+        "core-drill",
+        "risers",
+        "joining",
+        "pits",
+        "fit-off"
+      ],
+      "phrase": "Plumbing and drainage work is done by licensed workers",
+      "source": "Plumbing and Drainage Act 2018 (Qld) s 56, s 58, s 59",
+      "quote": "a person must not carry out plumbing or drainage work unless the person holds a licence for the work"
+    },
+    {
+      "swms": [
+        "drainage"
+      ],
+      "phrase": "current underground services information",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 304",
+      "quote": "take all reasonable steps to obtain current underground essential services information"
+    },
+    {
+      "swms": [
+        "drainage"
+      ],
+      "phrase": "all sides supported by shoring, benching or battering",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306",
+      "quote": "all sides of the trench are adequately supported"
+    },
+    {
+      "swms": [
+        "drainage"
+      ],
+      "phrase": "Secure the trench area from unauthorised",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306(1)",
+      "quote": "secured from unauthorised access (including inadvertent entry)"
+    },
+    {
+      "swms": [
+        "drainage"
+      ],
+      "phrase": "Pothole by hand or vacuum excavation",
+      "source": "Model Code: Excavation work s 3.5",
+      "quote": "pothole the area"
+    },
+    {
+      "swms": [
+        "sleeves"
+      ],
+      "phrase": "Cover or barricade every penetration",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306D, s 306F",
+      "quote": "withstand the impact of a fall onto it"
+    },
+    {
+      "swms": [
+        "sleeves"
+      ],
+      "phrase": "top rail at least 900 mm high",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306E",
+      "quote": "at least 900mm higher than that surface"
+    },
+    {
+      "swms": [
+        "core-drill"
+      ],
+      "phrase": "processing a crystalline silica substance",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529B, s 529C",
+      "quote": "must not carry out ... the processing of a crystalline silica substance unless the processing is controlled"
+    },
+    {
+      "swms": [
+        "core-drill"
+      ],
+      "phrase": "Assess in writing before starting",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529CA",
+      "quote": "recorded in writing"
+    },
+    {
+      "swms": [
+        "core-drill"
+      ],
+      "phrase": "crystalline silica training",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529CD",
+      "quote": "crystalline silica training"
+    },
+    {
+      "swms": [
+        "fit-off"
+      ],
+      "phrase": "Chase and drill with water or on-tool extraction",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529B, s 529C",
+      "quote": "an effective on-tool extraction system"
+    },
+    {
+      "swms": [
+        "risers"
+      ],
+      "phrase": "Work from the floor or a solid platform",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 78, s 79",
+      "quote": "carried out on the ground or on a solid construction"
+    },
+    {
+      "swms": [
+        "risers"
+      ],
+      "phrase": "A harness user never works alone",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 80, s 306I",
+      "quote": "must not use ... the system while the person using the system is alone"
+    },
+    {
+      "swms": [
+        "risers",
+        "fit-off"
+      ],
+      "phrase": "rated for at least 120 kg",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306M",
+      "quote": "a load rating of at least 120kg"
+    },
+    {
+      "swms": [
+        "joining"
+      ],
+      "phrase": "hot work permit is issued",
+      "source": "Model Code: Welding processes s 3.4",
+      "quote": "the issue of a 'hot work permit'"
+    },
+    {
+      "swms": [
+        "joining"
+      ],
+      "phrase": "flashback arrestors",
+      "source": "Model Code: Welding processes s 3.4, s 3.6",
+      "quote": "use flash back arrestors on gas hoses"
+    },
+    {
+      "swms": [
+        "joining"
+      ],
+      "phrase": "current safety data sheet",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 341, s 342, s 344",
+      "quote": "the current safety data sheet"
+    },
+    {
+      "swms": [
+        "pits"
+      ],
+      "phrase": "written entry permit",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 65, s 67",
+      "quote": "completed by a competent person"
+    },
+    {
+      "swms": [
+        "pits"
+      ],
+      "phrase": "written risk assessment",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 66",
+      "quote": "conducted by a competent person"
+    },
+    {
+      "swms": [
+        "pits"
+      ],
+      "phrase": "oxygen (19.5% to 23.5%)",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 71, s 72, schedule 19",
+      "quote": "minimum oxygen content in air of 19.5% ... maximum ... of 23.5%"
+    },
+    {
+      "swms": [
+        "pits"
+      ],
+      "phrase": "never enters to rescue",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 69, s 74",
+      "quote": "continuous communication with the worker from outside the space"
+    },
+    {
+      "swms": [
+        "pits"
+      ],
+      "phrase": "Keep the risk assessment for 28 days",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 67, s 77",
+      "quote": "until at least 28 days after the work"
+    },
+    {
+      "swms": [
+        "pits"
+      ],
+      "phrase": "Guard or insulate hot pipes",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 209",
+      "quote": "guarded or insulated"
+    }
+  ]
+}
