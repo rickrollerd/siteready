@@ -24,6 +24,7 @@ const BEFORE = {
     'Inspect tools, plant and equipment before use. Tag out and remove anything faulty.',
     'Set up barriers and signs around the work area.',
     'Workers know the site emergency plan, the first aid arrangements and how to raise the alarm.',
+    { text: 'This SWMS takes into account the principal contractor\'s WHS management plan for the site.', source: 'Work Health and Safety Regulation 2011 (Qld) s 299' },
   ],
 };
 
@@ -35,8 +36,8 @@ const BEFORE_EXTRA = [
   { when: 'electricalWork', text: src('Apprentices are supervised at all times by a licensed electrical worker. In their first 6 months they do not work where they could contact a live low voltage exposed part.', ESR('s 307')) },
   { when: 'electricalWork', text: src('Everyone who performs or helps in performing electrical work is competent in rescue and resuscitation.', ESR('s 211')) },
   { when: 'electricalWork', text: src('A serious electrical incident or dangerous electrical event is reported to the regulator immediately, and the site is left undisturbed.', ESR('s 292, s 296')) },
-  { when: 'plumbingWork', text: src('Plumbing and drainage work is done by licensed workers. Apprentices are directly supervised by a licensed person, who directs the work and ensures it complies.', PDA('s 56, s 58, s 59')) },
-  { when: 'plumbingWork', text: 'Workers hold a general construction induction card (white card).' },
+  { when: 'plumbingWork', text: src('Plumbing and drainage work is done by licensed workers, and supervised only by licensed workers. Trainees are directly supervised by a licensed person, who directs the work and ensures it complies.', PDA('s 56, s 57, s 58, s 59')) },
+  { when: 'plumbingWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'ewp', text: 'A rescue plan is in place for anyone working from an elevating work platform or held by a harness.' },
 ];
 
@@ -166,7 +167,7 @@ const ACTIVITIES = [
         controls: [
           src('Get the current underground services information from the principal contractor before digging, and work to it.', WHS('s 304')),
           'Get service plans, for example through Before You Dig Australia, and locate services on site before digging.',
-          src('Pothole by hand or vacuum excavation to confirm where services are, as plans may not be accurate.', MODEL('Excavation work', 's 3.5')),
+          src('Pothole with water pressure and a vacuum system to confirm where services are, as plans may not be accurate.', MODEL('Excavation work', 's 3.5')),
         ],
       },
       {
@@ -178,7 +179,9 @@ const ACTIVITIES = [
           src('Secure the trench area from unauthorised and inadvertent entry.', WHS('s 306(1)')),
           'Exclusion zone around the excavator, with a spotter when people are nearby.',
           src('Two-way acknowledged communication between plant operators and ground workers.', MODEL('Excavation work', 's 4.3')),
-          src('Keep spoil, materials and plant out of the trench\'s zone of influence unless the support is designed for them.', MODEL('Excavation work', 's 4.1')),
+          src('Keep spoil, materials, plant and traffic out of the trench\'s zone of influence unless the support is designed for those loads.', MODEL('Excavation work', 's 4.1')),
+          src('Dewater with pumps where groundwater or water inrush is possible.', MODEL('Excavation work', 'table')),
+          src('Where diesel or petrol plant works in the basement, ventilate and monitor carbon monoxide.', MODEL('Excavation work', 's 4.6')),
         ],
       },
       {
@@ -186,9 +189,9 @@ const ACTIVITIES = [
         hazards: ['Trench collapse buries a worker.', 'Falling into the trench.', 'Water or bad air in the trench.'],
         controls: [
           'No one enters the trench until the support is in place and checked.',
-          'Ladder access inside the supported area.',
+          src('Work only inside the trench shield, with the access ladder secured to the shield.', MODEL('Excavation work', 's 6.4')),
           { fact: 'fallControl' },
-          src('A competent person checks the trench walls and support at the start of each shift and after rain.', MODEL('Excavation work', 's 6.6')),
+          src('A competent person checks the trench walls and support frequently, including at the start of each shift and after rain. Any damage is repaired from above before work below continues.', MODEL('Excavation work', 's 6.6')),
           src('No engine-driven plant runs in the trench while workers are in it. Check the air with a gas monitor before entry, with a safety observer at the surface.', MODEL('Excavation work', 's 4.6')),
           src('The emergency plan covers ground slip, flooding, gas leaks and rescue from the trench.', MODEL('Excavation work', 's 3.7')),
         ],
@@ -827,7 +830,7 @@ const ACTIVITIES = [
       hazards: ['Sewer gases such as hydrogen sulphide.', 'Infection from sewage.', 'Entry into a manhole or sewer, a confined space.', 'Traffic at the connection in the street.'],
       controls: [
         'Work to the sewer authority\'s approval and connection requirements.',
-        src('A manhole or sewer is entered only as a confined space, with a permit, gas testing and a standby person.', `${WHS('s 65, s 67, s 69')}; ${MODEL('Confined spaces', 'appendix B')}`),
+        src('If a manhole or sewer must be entered, the entry is planned and done as confined space entry, with its own permit and controls.', `${WHS('s 65 to s 77')}; ${MODEL('Confined spaces', 'appendix B')}`),
         'Wash hands before eating or smoking, cover cuts, and keep a clean water supply and first aid at the work area.',
       ],
     }],
@@ -839,8 +842,9 @@ const ACTIVITIES = [
       step: 'Install cast-in sleeves and puddle flanges on the deck before the pour',
       hazards: ['A person falls through an opening or penetration.', 'Falling objects from the deck edge.', 'Working among formworkers and reo fixers.'],
       controls: [
-        src('Cover or barricade every penetration as soon as it is formed. Covers withstand a fall onto them, are fixed in place and are marked.', `${WHS('s 306D, s 306F')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
-        src('Stay inside edge protection with a top rail at least 900 mm high and toe boards at least 150 mm high.', WHS('s 306E')),
+        src('Cover or barricade every penetration as soon as it is formed. Covers withstand a fall onto them and are fixed in place.', WHS('s 306D, s 306F')),
+        src('Covers take a point load of at least 2 kN, are signed DANGER HOLE BENEATH, and plywood alone is not preferred.', MODEL('Managing the risk of falls', 's 4.2')),
+        src('Work only inside edge protection installed by others to the regulation. Do not remove or alter it, and report any damage.', WHS('s 306E')),
         src('Barriers or an exclusion zone below the work for falling objects.', WHS('s 55')),
         'Agree access, timing and the order of work with the formwork and reo crews before the pour.',
       ],
@@ -853,7 +857,7 @@ const ACTIVITIES = [
         step: 'Plan core holes',
         hazards: ['Cutting a post-tensioning tendon or reo.', 'Water and slurry near electrical leads.'],
         controls: [
-          'Each core hole is approved by the engineer. Check the post-tensioning drawings, and scan and mark the tendons before drilling.',
+          'Each core hole is approved by the engineer. Check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Do not drill over a detected service until it is isolated and confirmed.',
           'Keep leads off wet floors and protect them with RCDs. Contain water and slurry.',
         ],
       },
@@ -862,12 +866,14 @@ const ACTIVITIES = [
         hazards: ['Silica dust from drilling concrete.', 'Noise and vibration.', 'The core falls to the floor below.', 'A person falls through the hole.'],
         controls: [
           { fact: 'silicaControls' },
-          src('Drilling concrete is processing a crystalline silica substance. It is controlled by wet drilling, on-tool extraction or local exhaust, with respirators for anyone still at risk.', WHS('s 529A, s 529B, s 529C')),
+          src('Drilling concrete is processing a crystalline silica substance. It is controlled by wet drilling, on-tool extraction or local exhaust.', WHS('s 529A, s 529B, s 529C')),
+          src('The operator and anyone in the dust zone wear fit tested P2 respirators while drilling.', WHS('s 529B')),
           src('Assess in writing before starting whether the processing is high risk, without counting PPE or administrative controls.', WHS('s 529CA')),
-          src('Workers have completed crystalline silica training.', WHS('s 529CD')),
+          src('Where the processing is high risk: a silica risk control plan (this SWMS where it is for high risk construction work) is given to workers before they start, and workers have completed a VET accredited or regulator approved crystalline silica course, with records kept for 5 years.', WHS('s 529CB, s 529CC, s 529CD')),
+          src('Health monitoring for workers at significant risk from crystalline silica.', WHS('s 368, schedule 14')),
           src('Barricade and sign the area below, so a falling core cannot hit anyone.', WHS('s 55')),
-          src('Cover or barricade the hole as soon as it is cut.', WHS('s 306F')),
-          src('Hearing protection where noise exceeds the exposure standard, with hearing tests for those who need it.', WHS('s 57, s 58')),
+          src('Cover or barricade the hole as soon as it is cut, with a fixed cover rated for a 2 kN point load and signed DANGER HOLE BENEATH.', `${WHS('s 306F')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
+          src('Hearing protection where noise exceeds the exposure standard. Workers who must wear it have hearing tests within 3 months of starting and at least every 2 years.', WHS('s 57, s 58')),
         ],
       },
     ],
@@ -881,9 +887,11 @@ const ACTIVITIES = [
         hazards: ['A fall into a shaft or from a ladder, platform or elevating work platform.', 'Dropped pipe and fittings.', 'Back strain lifting pipe.'],
         controls: [
           src('Work from the floor or a solid platform where possible. Otherwise use fall prevention: covers, guardrails or working platforms, before work positioning or fall arrest.', WHS('s 78, s 79')),
-          src('Shaft openings have barriers. Open only the section being worked on.', MODEL('Managing the risk of falls', 's 4.2')),
-          src('A harness user never works alone, and rescue procedures are set and practised.', WHS('s 80, s 306I')),
-          src('Ladders are industrial, rated for at least 120 kg and set at 70 to 80 degrees. Do not use stillsons or other high-force tools from a ladder.', `${WHS('s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
+          src('Shaft openings have barriers.', MODEL('Managing the risk of falls', 's 4.2')),
+          'Open only the section of shaft being worked on.',
+          src('A harness user never works alone. Anchors are rated for 12 kN with limited free fall or 15 kN with free fall, with enough clear distance to arrest a fall, and rescue procedures are set and practised.', WHS('s 80, s 306I')),
+          src('Single or extension ladders are used only for access or for work that can be done with one hand, at 70 to 80 degrees. Ladders are industrial and rated for at least 120 kg.', WHS('s 306K, s 306M')),
+          src('No stillsons or other high-force tools from a ladder, and no stepladder beside an open shaft or penetration without extra fall protection.', MODEL('Managing the risk of falls', 's 9.1')),
           src('Raise and lower pipe with a hoist or rope, not by hand up ladders, with an exclusion zone below.', WHS('s 55')),
         ],
       },
@@ -898,15 +906,17 @@ const ACTIVITIES = [
       controls: [
         { fact: 'hotWorkPermit' },
         src('A hot work permit is issued before hot work, and fire-fighting equipment is kept near the work.', MODEL('Welding processes', 's 3.4')),
-        src('No flame where there could be a flammable atmosphere.', WHS('s 51, s 355')),
-        src('Fit flashback arrestors at the torch and regulator. Keep cylinders upright and secured, valves closed when not in use, and turn the gas off at the valve straight after use.', `${MODEL('Welding processes', 's 3.4, s 3.6')}`),
+        src('No flame where there could be a flammable atmosphere.', WHS('s 355')),
+        src('Keep the fewest gas cylinders, full or empty, at the work area.', WHS('s 53')),
+        src('Fit flashback arrestors at the torch and regulator. Keep cylinders upright and secured, valves closed when not in use, and turn the gas off at the valve straight after use. Gases heavier than air collect in pits and basements, so store and use cylinders where leaks can disperse.', `${MODEL('Welding processes', 's 3.4, s 3.6')}`),
         src('Gas cylinders carry a current inspection mark.', WHS('s 224')),
         src('Extract or ventilate fumes so no one is exposed above the exposure standard.', `${WHS('s 49')}; ${MODEL('Welding processes', 's 4.1')}`),
         src('No hot work from a ladder.', MODEL('Managing the risk of falls', 's 9.1')),
-        src('Mark hot pipe as hot. Wear fire-resistant gloves and natural fibre clothing.', MODEL('Welding processes', 's 3.5, s 4.2')),
+        src('Mark hot pipe as hot. Wear fire-resistant gloves, natural fibre clothing and filter eye protection for the flame.', MODEL('Welding processes', 's 3.5, s 4.2')),
+        'Hot work at height or in risers also follows the controls in the SWMS for work at height.',
       ],
     }],
-    ppe: ['gloveWelding', 'glassesTinted'],
+    ppe: ['gloveWelding', 'filterEye'],
   },
   {
     when: 'solventCement',
@@ -924,29 +934,17 @@ const ACTIVITIES = [
     ppe: ['gloveChemical'],
   },
   {
-    when: 'pressureTest',
-    steps: [{
-      step: 'Pressure test and commission',
-      hazards: ['A fitting or cap blows off under pressure.', 'Hot water scalds.', 'Flooding.'],
-      controls: [
-        { fact: 'pressureTesting' },
-        'Exclusion zone around the pipework under test. No one works on it while it is under pressure.',
-        'Release pressure fully before tightening or changing fittings.',
-        src('Guard or insulate hot pipes.', WHS('s 209')),
-        'Check temperature control devices before hot water is used.',
-      ],
-    }],
-  },
-  {
     when: 'plumbingFitOff',
     steps: [{
       step: 'Rough-in and fit-off in the apartments',
       hazards: ['Back strain carrying and fitting tubs, toilets and pipe.', 'Silica dust from chasing or drilling.', 'A fall from a ladder.'],
       controls: [
         src('Use trolleys and lifting aids for heavy items. Plan team lifts with one person in charge. Training alone is not the control.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 4.5, s 4.9')}`),
-        src('Chase and drill with water or on-tool extraction, and a respirator where needed.', WHS('s 529B, s 529C')),
+        src('Chase and drill with water or on-tool extraction. The operator and anyone in the dust zone wear fit tested P2 respirators.', WHS('s 529B, s 529C')),
+        src('Assess in writing before chasing whether the processing is high risk. If it is, prepare a silica risk control plan and give it to workers before they start.', WHS('s 529CA, s 529CB, s 529CC')),
+        src('No stepladder beside an open penetration or unprotected edge without extra fall protection.', MODEL('Managing the risk of falls', 's 9.1')),
         'Before drilling into a post-tensioned slab, check the post-tensioning drawings, and scan and mark the tendons.',
-        src('Use platform ladders. Industrial ladders rated for at least 120 kg.', WHS('s 306M')),
+        src('Use platform ladders. Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
       ],
     }],
     ppe: ['p2'],
@@ -990,10 +988,12 @@ const ACTIVITIES = [
         hazards: ['Low oxygen, or toxic or flammable gas.', 'Engulfment or entrapment.'],
         controls: [
           { fact: 'confinedSpace' },
+          src('Install so that entry is not needed where possible, for example pumps on guide rails that lift out from above.', WHS('s 64')),
           src('A competent person does a written risk assessment first, including whether the work can be done without entering.', WHS('s 66')),
+          src('Workers are trained in the hazards, controls, permit and emergency procedures, with training records kept for 2 years.', WHS('s 76')),
           src('No one enters without a written entry permit from a competent person, naming the space, the people entering, the time and the controls.', WHS('s 65, s 67')),
           src('Signs at each entry say it is a confined space and not to enter without a permit.', WHS('s 68')),
-          src('Isolate connected pipes and plant: blank or cap lines, or close, lock and tag two valves with the drain between them locked open, and release stored energy.', `${WHS('s 70')}; ${MODEL('Confined spaces', 's 4.4')}`),
+          src('Isolate connected pipes and plant: blank or cap lines, or close, lock and tag two valves with the drain between them locked open, and release stored energy. Pump power is locked out and tagged, and each person keeps the key to their own lock.', `${WHS('s 70')}; ${MODEL('Confined spaces', 's 4.4')}`),
           src('Ventilate or purge, never with pure oxygen. Test from outside for oxygen (19.5% to 23.5%), flammable gas (below 5% of the lower explosive limit) and toxic gases such as hydrogen sulphide and carbon monoxide.', `${WHS('s 71, s 72, schedule 19')}; ${MODEL('Confined spaces', 's 3.4')}`),
         ],
       },
@@ -1002,9 +1002,10 @@ const ACTIVITIES = [
         hazards: ['A fall at the access.', 'A worker is overcome by the atmosphere.'],
         controls: [
           { fact: 'fallControl' },
-          src('Monitor the air continuously. Leave at once if the alarm sounds, or flammable gas reaches 10% of the lower explosive limit.', WHS('s 72')),
+          src('Monitor the air continuously, with the flammable gas alarm set at 5% of the lower explosive limit. Leave at once if any alarm sounds.', WHS('s 72')),
+          'Access by fixed ladder, or by a tripod and winch with a harness where there is a fall at the access.',
           src('A standby person stays outside, in continuous contact, and never enters to rescue. Rescue is started from outside.', `${WHS('s 69, s 74')}; ${MODEL('Confined spaces', 's 4.6')}`),
-          src('Rescue and first aid procedures are set and practised, and rescue equipment is ready at the entry.', WHS('s 74')),
+          src('Rescue and first aid procedures are set and practised, rescue equipment is ready at the entry, and air supplied breathing equipment is available for any rescue entry.', WHS('s 74, s 75')),
           src('No ignition source is taken in if there is any possibility of fire or explosion.', WHS('s 73')),
         ],
       },
@@ -1018,6 +1019,20 @@ const ACTIVITIES = [
       },
     ],
     ppe: ['harness'],
+  },
+  {
+    when: 'pressureTest',
+    steps: [{
+      step: 'Pressure test and commission',
+      hazards: ['A fitting or cap blows off under pressure.', 'Hot water scalds.', 'Flooding.'],
+      controls: [
+        { fact: 'pressureTesting' },
+        'Exclusion zone around the pipework under test. No one works on it while it is under pressure.',
+        'Release pressure fully before tightening or changing fittings.',
+        src('Guard or insulate hot pipes.', WHS('s 209')),
+        'Check temperature control devices before hot water is used.',
+      ],
+    }],
   },
   {
     when: 'water',
@@ -1075,7 +1090,7 @@ const ACTIVITIES = [
 // Personal protective equipment, grouped as site PPE lists usually are.
 const PPE = [
   { area: 'Head', items: [['hardHat', 'Hard hat'], ['chinStrap', 'Chin strap'], ['sunHat', 'Broad brim or neck flap']] },
-  { area: 'Eyes and face', items: [['glassesClear', 'Safety glasses, clear'], ['glassesTinted', 'Safety glasses, tinted'], ['goggles', 'Goggles'], ['faceShield', 'Face shield']] },
+  { area: 'Eyes and face', items: [['glassesClear', 'Safety glasses, clear'], ['glassesTinted', 'Safety glasses, tinted'], ['goggles', 'Goggles'], ['faceShield', 'Face shield'], ['filterEye', 'Filter eye protection (brazing or welding)']] },
   { area: 'Hearing', items: [['earPlugs', 'Ear plugs'], ['earMuffs', 'Ear muffs']] },
   { area: 'Breathing', items: [['p2', 'P2 respirator (fit tested)'], ['halfFace', 'Half-face respirator with filters (fit tested)']] },
   { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves'], ['gloveInsulated', 'Insulated electrical gloves'], ['gloveWelding', 'Welding or heat resistant gloves']] },

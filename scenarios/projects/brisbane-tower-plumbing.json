@@ -103,18 +103,23 @@
       "id": "joining",
       "title": "Brazing and solvent cement joining",
       "task": "Join copper pipe by brazing with oxy-acetylene torches, and join PVC pipe with primer and solvent cement, in the risers, the ceilings and the apartments.",
-      "fallRisk": "no",
+      "fallRisk": "yes",
       "facts": {
         "hotWorkPermit": "The principal contractor issues a hot work permit each day; a fire watch stays for 30 minutes after hot work ends, with a fire extinguisher at each work area.",
-        "safetyDataSheet": "Safety data sheets for the primer and solvent cement: flammable liquids, use with ventilation, keep away from ignition sources, wear gloves and eye protection."
+        "safetyDataSheet": "Safety data sheets for the primer and solvent cement: flammable liquids, use with ventilation, keep away from ignition sources, wear gloves and eye protection.",
+        "fallControl": "Joints in risers and ceilings are made from platforms with guardrails inside the screened shafts, or from elevating work platforms."
       },
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "fall",
+          "atmosphere"
+        ],
         "steps": [
           "Braze and solder pipe joints (hot work)",
           "Join PVC pipe with primer and solvent cement"
         ],
         "missing": [
+          "Fall control",
           "Hot work permit and fire watch",
           "Safety data sheet"
         ]
@@ -209,7 +214,7 @@
       "swms": [
         "drainage"
       ],
-      "phrase": "Pothole by hand or vacuum excavation",
+      "phrase": "Pothole with water pressure and a vacuum system",
       "source": "Model Code: Excavation work s 3.5",
       "quote": "pothole the area"
     },
@@ -225,9 +230,9 @@
       "swms": [
         "sleeves"
       ],
-      "phrase": "top rail at least 900 mm high",
+      "phrase": "edge protection installed by others to the regulation",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 306E",
-      "quote": "at least 900mm higher than that surface"
+      "quote": "must be erected in accordance with the instructions of the manufacturer or supplier"
     },
     {
       "swms": [
@@ -249,8 +254,8 @@
       "swms": [
         "core-drill"
       ],
-      "phrase": "crystalline silica training",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 529CD",
+      "phrase": "regulator approved crystalline silica course",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529CB, s 529CC, s 529CD",
       "quote": "crystalline silica training"
     },
     {
@@ -357,6 +362,53 @@
       "phrase": "Guard or insulate hot pipes",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 209",
       "quote": "guarded or insulated"
+    },
+    {
+      "swms": [
+        "core-drill",
+        "fit-off"
+      ],
+      "phrase": "wear fit tested P2 respirators",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529B",
+      "quote": "is provided with respiratory protective equipment; and wears the respiratory protective equipment"
+    },
+    {
+      "swms": [
+        "core-drill"
+      ],
+      "phrase": "Health monitoring for workers at significant risk from crystalline silica",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 368, schedule 14",
+      "quote": "schedule 14 item 7 crystalline silica"
+    },
+    {
+      "swms": [
+        "pits"
+      ],
+      "phrase": "flammable gas alarm set at 5% of the lower explosive limit",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 72",
+      "quote": "less than 5% of its LEL"
+    },
+    {
+      "swms": [
+        "pits"
+      ],
+      "phrase": "air supplied breathing equipment",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 74, s 75",
+      "quote": "air supplied respiratory equipment is available"
+    },
+    {
+      "swms": [
+        "drainage",
+        "sleeves",
+        "core-drill",
+        "risers",
+        "joining",
+        "pits",
+        "fit-off"
+      ],
+      "phrase": "principal contractor's WHS management plan",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 299",
+      "quote": "takes into account the WHS management plan"
     }
   ]
 }
