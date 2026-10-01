@@ -64,8 +64,8 @@ async function tasCurrent() {
 
 // The Northern Territory and the ACT publish the current regulation as a PDF.
 const PDF_SOURCES = [
-  { name: 'Northern Territory', page: 'https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011', pick: /PDFVersion/i },
-  { name: 'Australian Capital Territory', page: 'https://www.legislation.act.gov.au/sl/2011-36/', direct: 'https://www.legislation.act.gov.au/View/sl/2011-36/current/PDF/2011-36.PDF' },
+  { name: 'Northern Territory', page: 'https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011', pick: /\/api\/sitecore\/Act\/PDF\?id=/i },
+  { name: 'Australian Capital Territory', page: 'https://www.legislation.act.gov.au/sl/2011-36/', pick: /\/current\/pdf\/|\.pdf$/i },
 ];
 
 async function pdfSource(source) {
@@ -74,7 +74,7 @@ async function pdfSource(source) {
     const page = await (await fetch(source.page, { signal: AbortSignal.timeout(30000) })).text();
     const links = [...page.matchAll(/href=["']([^"']+)["']/gi)].map((match) => new URL(match[1].replace(/&amp;/g, '&'), source.page).href);
     pdf = links.find((link) => source.pick.test(link));
-    console.log(`\n=== ${source.name}: ${source.page}\nPDF links: ${links.filter((link) => /pdf/i.test(link)).join(' ')}`);
+    console.log(`\n=== ${source.name}: ${source.page}\nPDF links: ${[...new Set(links.filter((link) => /pdf|current/i.test(link)))].slice(0, 15).join(' ')}`);
   }
   if (!pdf) return;
   const response = await fetch(pdf, { signal: AbortSignal.timeout(60000) });
