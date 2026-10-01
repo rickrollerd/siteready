@@ -110,7 +110,7 @@
     {
       "id": "car-park-fans",
       "title": "Basement car park jet fans and exhaust",
-      "task": "Install jet fans and car park exhaust ductwork in the 3 basement levels, drilling into the slabs for hanger anchors, working from scissor lifts more than 2 m above the floor, while other trades' vehicles use the car park.",
+      "task": "Install jet fans and car park exhaust ductwork in the 3 basement levels, drilling into the post-tensioned slabs for hanger anchors, working from scissor lifts more than 2 m above the floor, while other trades' vehicles use the car park.",
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Scissor lifts with guardrails are used for all work above 2 m.",

@@ -75,6 +75,13 @@ const BEFORE_EXTRA = [
   { when: 'pneumaticTube', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'generatorPlant', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'boilerPlant', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'earthworks', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'electricalWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'precastTier', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'seating', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'sportsLighting', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'temporaryTowers', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'dualLift', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'stoneWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'paving', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'mobileScaffold', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
@@ -300,8 +307,9 @@ const ACTIVITIES = [
         hazards: ['The excavator strikes a person.', 'The ground collapses.'],
         controls: [
           { fact: 'trenchSupport' },
-          src('A trench 1.5 m deep or more has all sides supported by shoring, benching or battering, unless a geotechnical engineer has advised in writing, for a stated period, that the sides are safe from collapse.', WHS('s 306')),
-          src('A trench 1.5 m deep or more is secured from unauthorised and inadvertent entry. Shallower trenches are barricaded too.', WHS('s 306')),
+          { only: 'deepTrench', ...src('A trench 1.5 m deep or more has all sides supported by shoring, benching or battering, unless a geotechnical engineer has advised in writing, for a stated period, that the sides are safe from collapse.', WHS('s 306')) },
+          { only: 'deepTrench', ...src('A trench 1.5 m deep or more is secured from unauthorised and inadvertent entry.', WHS('s 306')) },
+          'Open trenches are barricaded.',
           'Exclusion zone around the excavator, with a spotter when people are nearby.',
           src('Two-way acknowledged communication between plant operators and ground workers.', MODEL('Excavation work', 's 4.3')),
           src('Keep spoil, materials, plant and traffic out of the trench\'s zone of influence unless the support is designed for those loads.', MODEL('Excavation work', 's 4.1')),
@@ -313,8 +321,8 @@ const ACTIVITIES = [
         step: 'Work in the trench',
         hazards: ['Trench collapse buries a worker.', 'Falling into the trench.', 'Water or bad air in the trench.'],
         controls: [
-          'No one enters the trench until the support is in place and checked.',
-          src('Where the trench is shored or shielded, work only inside the support, with the access ladder secured to it.', MODEL('Excavation work', 's 4.4, s 6.4')),
+          { only: 'deepTrench', text: 'No one enters the trench until the support is in place and checked.' },
+          { only: 'deepTrench', ...src('Work only inside the trench support, with the access ladder secured to it.', MODEL('Excavation work', 's 4.4, s 6.4')) },
           { fact: 'fallControl' },
           src('A competent person checks the trench walls and support frequently, including at the start of each shift and after rain. Any damage is repaired from above before work below continues.', MODEL('Excavation work', 's 6.6')),
           src('No engine-driven plant runs in the trench while workers are in it. Check the air with a gas monitor before entry, with a safety observer at the surface.', MODEL('Excavation work', 's 4.6')),
@@ -325,7 +333,7 @@ const ACTIVITIES = [
         step: 'Backfill and restore',
         hazards: ['Plant strikes a person.', 'An open trench is left unprotected.'],
         controls: [
-          'Remove the support as backfilling proceeds, as designed.',
+          { only: 'deepTrench', text: 'Remove the support as backfilling proceeds, as designed.' },
           'Cover or barricade any open trench overnight.',
         ],
       },
@@ -509,6 +517,7 @@ const ACTIVITIES = [
         controls: [
           { fact: 'fallControl' },
           'Edge protection or perimeter screens are in place at every open edge of the deck before anyone works near it.',
+          src('Where the deck slopes more than 26 degrees, mesh or sheeting extends at least 900 mm up the edge protection.', WHS('s 306E')),
           {
             choice: 'deckMethod',
             options: {
@@ -680,6 +689,7 @@ const ACTIVITIES = [
           'A truck-mounted pump stands on ground that can take the outrigger loads, with pads under the outriggers.',
           'Where a separate placing boom is set up on the slab, it stands on an engineer-certified base or ballast.',
           'The pipeline is restrained, pressure-rated, and checked for wear and secure clamps before each pour.',
+          src('Concrete placing booms are registered items of plant. Check the registration before use.', WHS('schedule 5')),
           'The placing boom operator holds a high risk work licence for a concrete placing boom.',
           'Keep the boom within its rated reach and clear of the crane\'s working area, as coordinated with the crane crew.',
           'No one stands or works under the boom while it is operating.',
@@ -833,7 +843,7 @@ const ACTIVITIES = [
         'Exclusion zone below open risers and work areas for dropped objects.',
         'Drill anchors with on-tool dust extraction. Anyone still at risk of exposure wears a fit tested respirator (P2 or better).',
         'Nearby parts are de-energised before work starts. If they cannot be, the work is planned as energised work with its own controls.',
-        'In basements, plant rooms and other enclosed areas, use battery or electric plant where practical. Otherwise ventilate, and monitor for exhaust fumes.',
+        'In enclosed areas, use battery or electric plant where practical. Otherwise ventilate, and monitor for exhaust fumes.',
       ],
     }],
     ppe: ['p2', 'earPlugs'],
@@ -985,7 +995,7 @@ const ACTIVITIES = [
         step: 'Plan core holes',
         hazards: ['Cutting a post-tensioning tendon or reo.', 'Water and slurry near electrical leads.'],
         controls: [
-          'Each core hole has the structural engineer\'s written approval before drilling. Check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Never drill within a marked tendon zone: move the hole. Other detected services are isolated and confirmed before drilling near them.',
+          'Each core hole has the structural engineer\'s written approval before drilling. Scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings, and never drill within a marked tendon zone: move the hole. Other detected services are isolated and confirmed before drilling near them.',
           'Keep leads off wet floors and protect them with RCDs. Contain water and slurry.',
         ],
       },
@@ -1065,7 +1075,7 @@ const ACTIVITIES = [
     when: 'plumbingFitOff',
     steps: [{
       step: 'Plumbing rough-in and fit-off',
-      hazards: ['Back strain carrying and fitting baths, pans, basins and pipe.', 'Silica dust from chasing or drilling.', 'A fall from a ladder.'],
+      hazards: ['Back strain carrying and fitting fixtures and pipe.', 'Silica dust from chasing or drilling.', 'A fall from a ladder.'],
       controls: [
         src('Use trolleys and lifting aids for heavy items. Plan team lifts with one person in charge. Training alone is not the control.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 4.5, s 4.9')}`),
         src('Chase and drill with water or on-tool extraction. Anyone still at risk of exposure after these controls wears a fit tested respirator (P2 or better).', WHS('s 529B, s 529C')),
@@ -2339,7 +2349,7 @@ const ACTIVITIES = [
       hazards: ['The public is struck by falling objects.', 'Unauthorised entry to the site.', 'Hoardings or gantries collapse.'],
       controls: [
         src('The site is secured from unauthorised access.', WHS('s 298')),
-        src('Where the measured angle to the hoarding line is 75 degrees or more, a fully sheeted hoarding at least 1,800 mm high and a gantry, closure or catch platform with screening.', WHS('s 315F, s 315G')),
+        src('The barricade or hoarding is set by the angle from the highest point of the work to the hoarding line: 15 degrees or less, at least 900 mm high; over 15 to 30 degrees, a hoarding at least 1,800 mm high; over 30 and under 75 degrees, a fully sheeted hoarding at least 1,800 mm high; 75 degrees or more, a fully sheeted hoarding at least 1,800 mm high and a gantry, closure or catch platform with screening.', WHS('s 315F, s 315G')),
         src('Gantries are engineer designed (5 kPa, or 10 kPa where work other than light work is done above 10 m) and stop falling objects, water and dust. The overhead platform is secured against lifting or coming apart, with solid sheeting on its outer edge to at least the higher of 900 mm and anything stored on it. The area below is lit to at least 50 lux, the gantry cannot tip over or rotate (for example if a truck backs into it), and it is engineer designed for any shed or materials on it.', WHS('s 315K')),
         src('Loads are lifted over the footpath or road only where the area is closed or a gantry protects people from the load.', WHS('s 315L, s 315M')),
         src('Get the current underground services information before digging or driving footings for fences, hoardings and gantries, and work to it.', WHS('s 304')),
@@ -2470,6 +2480,7 @@ const ACTIVITIES = [
       hazards: ['A tower or the steel on it collapses.', 'Steel moves when it is released from the towers.'],
       controls: [
         { fact: 'temporarySupport' },
+        src('Towers are erected to the engineer\'s design on a base that can take their load, and checked by the engineer before steel is landed on them. Towers built from scaffolding are erected by licensed scaffolders.', WHS('s 81, schedule 3')),
         'Towers stay loaded until the steel is connected and braced to the erection sequence and the steel erection engineer releases it. Towers are unloaded and removed only in the engineer\'s sequence.',
         src('Brace and secure the structure as it is built, to prevent structural collapse.', MODEL('Construction work', 's 3.1, appendix K')),
       ],
@@ -2535,7 +2546,8 @@ const ACTIVITIES = [
         src('Units are lifted with lifting attachments suited to the load, within limits, kept under control and never over people.', WHS('s 219')),
         'Each unit is landed on its bearings and fixed to the erection design before the hook is released. Hands and feet stay clear of the bearings until the unit is down.',
         src('Brace and secure the structure as it is built, to the erection design.', MODEL('Construction work', 'appendix K')),
-        src('Travel restraint is installed by a competent person, users are trained, and it is inspected at least every 6 months. It may not be practicable on slopes over 15 degrees.', `${WHS('s 306G')}; ${MODEL('Managing the risk of falls', 's 6.1')}`),
+        src('Travel restraint is installed by a competent person, users are trained, and it is inspected at least every 6 months. It may not be practicable on slopes over 15 degrees, where fall arrest may be more appropriate.', `${WHS('s 306G')}; ${MODEL('Managing the risk of falls', 's 6.1')}`),
+        src('Where fall arrest is used, anchors carry at least 15 kN for one person, there is enough clearance below, no one works alone, and the rescue procedure is set up and tested.', WHS('s 80, s 306I')),
         src('Units are moved and placed by crane, not by hand. Bearing pads and fixings are handled in small loads, with tasks rotated.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 4.5')}`),
         src('Open tier edges have edge protection with a top rail at least 900 mm above the surface, no gap over 450 mm between rails or between the lowest rail and the toe board, and a toe board or bottom rail. Where the surface the work is done from slopes more than 26 degrees, mesh or sheeting extends at least 900 mm up the edge protection.', WHS('s 306E')),
         src('An exclusion zone is set up below and beside the units being placed.', `${WHS('s 55')}; ${MODEL('Construction work', 'appendix K')}`),
@@ -2568,7 +2580,8 @@ const ACTIVITIES = [
         src('Boom EWPs with a boom of 11 m or more are operated by a licensed operator. The harness is attached to the EWP\'s designated anchor point, not the handrail.', `${WHS('schedule 3')}; ${MODEL('Managing the risk of falls', 's 5.1')}`),
         src('Plan for the EWP contacting electric lines, overturning, falls from the platform and crushing. Some EWPs are not suitable for windy conditions outdoors: work within the manufacturer\'s wind limit.', MODEL('Managing the risk of falls', 's 5.1')),
         src('Screens and light frames are lifted by the crane company with lifting attachments suited to the load, within limits, kept under control and never over people.', WHS('s 219')),
-        src('People are lifted in a crane work box only where plant designed to lift people, such as an EWP, is not reasonably practicable. The box has a registered design and is securely attached, people stay in it and wear a harness, and there is a way to get them out safely if the crane fails.', WHS('s 219, s 220, schedule 5')),
+        src('People are lifted in a crane work box only where plant designed to lift people, such as an EWP, is not reasonably practicable. The box has a registered design and is securely attached, people stay in it and wear a harness, and there is a way to get them out safely if the crane fails.', WHS('s 219(3), s 220(1), schedule 5')),
+        src('Connecting lights and screens to the supply is electrical work, done by licensed electrical workers with the circuits isolated.', ESA('s 18, s 55, s 56')),
         src('Light fittings and screen parts are moved with trolleys and lifting aids, not carried by hand at height.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 4.5')}`),
         src('Tools and fittings at height are on lanyards, and an exclusion zone is set up below.', `${WHS('s 55')}; ${MODEL('Construction work', 'appendix K')}`),
       ],
@@ -2589,6 +2602,8 @@ const ACTIVITIES = [
         src('Plant, trucks and spoil stay out of the zone of influence of excavations and batters, and plant approaches trenches and embankments across the line, not parallel to it.', MODEL('Excavation work', 's 4.1, s 4.3')),
         src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
         src('Plan haul roads and plant routes for blind spots, and keep plant away from overhangs and the edges of deep excavations. Ground workers wear high visibility clothing.', MODEL('Excavation work', 's 4.3')),
+        src('Where a person could fall from a cut face or batter crest, install barriers or bunds, and set up clear pedestrian detours.', MODEL('Excavation work', 's 4.4')),
+        'Spoil trucks leave through the site gate under the traffic management plan.',
         src('Keep dust down with water carts or other wet methods.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
         src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Hearing protection where noise is above the standard, with hearing tests within 3 months of starting and at least every 2 years.', WHS('s 56, s 57, s 58')),
       ],
@@ -3099,10 +3114,12 @@ function jobStepsFor(flags, factText, fallback) {
   const seen = new Set();
   const steps = [before, ...middle, FINISH]
     .filter((step) => !seen.has(step.step) && seen.add(step.step));
+  // Post-tensioning checks apply only where the task is on post-tensioned slabs.
+  const pt = (line) => (flags.ptSlab ? line : line.replace(/a post-tensioning tendon or /gi, '').split(/(?<=\.)\s+(?=[A-Z])/).filter((part) => !/post-tension|tendon/i.test(part)).join(' '));
   return steps.map((step) => ({
     step: step.step,
-    hazards: step.hazards.slice(),
-    controls: step.controls.flatMap((item) => expand(item, factText, flags.cite)),
+    hazards: step.hazards.map(pt).filter(Boolean),
+    controls: step.controls.filter((item) => !item.only || flags[item.only]).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean),
   }));
 }
 

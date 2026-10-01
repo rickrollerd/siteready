@@ -14,7 +14,7 @@
         "fallControl": "Connections are bolted from boom lifts with guardrails, with harnesses attached to the boom lift anchor points. No one climbs the steel.",
         "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
         "temporarySupport": "Temporary support towers are to the engineer's design TS-12 (revision B), installed and checked by the steel erection engineer before any truss is landed on them.",
-        "erectionSequence": "Steel is erected to the designer's sequence on drawing SE-020 (revision D), with temporary bracing as shown, and the steel erection engineer checks the structure is stable before connections are released."
+        "erectionSequence": "Steel is erected to the designer's sequence on drawing SE-020 (revision D), with temporary bracing as shown, and the steel erection engineer checks the structure is stable before the crane slings are released."
       },
       "expect": {
         "highRisk": [
