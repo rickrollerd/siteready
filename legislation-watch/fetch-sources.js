@@ -55,10 +55,11 @@ async function tasCurrent() {
   console.log(`\n=== ${TAS_URL}\nHTTP ${response.status}, ${body.length} characters. Version dates linked: ${[...new Set(versions)].join(', ')}`);
   console.log(body.slice(0, 600));
   const flat = body.replace(/\s+/g, ' ');
-  for (const name of ['291 Meaning of high risk construction work', '299 Safe work method statement required', '166 Duty of person conducting a business or undertaking', 'high risk construction work means']) {
+  for (const name of ['299. Safe work method statement required', '166. Duty of person conducting a business or undertaking']) {
     const at = flat.lastIndexOf(name);
-    console.log(`\n--- ${name}\n${at < 0 ? 'not found' : flat.slice(at, at + 3000)}`);
+    console.log(`\n--- ${name}\n${at < 0 ? 'not found' : flat.slice(at, at + 2200)}`);
   }
+  console.log(`\nVersion dates linked: ${[...new Set(versions)].join(', ')}`);
 }
 
 async function main() {
