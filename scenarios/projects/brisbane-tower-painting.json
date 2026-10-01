@@ -16,8 +16,7 @@
         "highRisk": [],
         "steps": [
           "Prepare to paint",
-          "Paint",
-          "Clean up paint and solvents"
+          "Paint"
         ],
         "missing": [
           "Safety data sheet"
@@ -37,10 +36,10 @@
           "atmosphere"
         ],
         "steps": [
-          "Spray paint with airless sprayers",
           "Prepare to paint",
           "Paint",
-          "Clean up paint and solvents"
+          "Spray paint with airless sprayers",
+          "Control solvent-based paint"
         ],
         "missing": [
           "Safety data sheet"
@@ -66,8 +65,7 @@
           "Use an elevating work platform",
           "Paint the outside of the building at height",
           "Prepare to paint",
-          "Paint",
-          "Clean up paint and solvents"
+          "Paint"
         ],
         "missing": [
           "Safety data sheet",

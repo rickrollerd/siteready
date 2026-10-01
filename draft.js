@@ -72,6 +72,9 @@ const MASONRY_WORK = /\b(blockwork|block walls?|blocklay\w*|bricklay\w*|brickwor
 const PLASTER_WORK = /\b(plasterboard|gyprock|drywall|set(?:ting)? compound\w*|cornices?|suspended ceilings?|ceiling (?:grids?|sheets?|linings?)|plasterers?|sand\w* (?:the )?joints?)\b/i;
 const FLOOR_WORK = /\b(carpet\w*|vinyl|floor coverings?|timber floor\w*|engineered timber|floating floors?|levelling compound\w*)\b/i;
 
+const GLAZING_WORK = /\b(glass balustrades?|balustrades?|shower screens?|internal glazing|glass partitions?|mirrors?)\b/i;
+const STONE_WORK = /\b(benchtops?|stone (?:slabs?|vanit\w*)|splashbacks?)\b/i;
+
 // Waterproofing membranes.
 const WATERPROOFING = /\b(waterproof\w*|membranes?|tanking|torch[- ]on)\b/i;
 
@@ -86,7 +89,8 @@ const CARPENTRY_WORK = /\b(steel stud\w*|stud (?:walls?|framing)|wall framing|fr
 const PILING_WORK = /\b(piling|piles?(?!\s+caps?\b)|pile rigs?|piling rigs?|cfa|bored piles?|secant|contiguous pil\w*|pile heads?|pile cages?)\b/i;
 
 // Facade work: unitised curtain wall, glazing and cladding panels, not precast concrete.
-const FACADE_WORK = /\b(fa[cç]ades?|curtain wall\w*|unitised|cladding|glazing|glazed|glass panels?|spandrels?|sunshades?)\b/i;
+const FACADE_RAW = /\b(fa[cç]ades?|curtain wall\w*|unitised|cladding|glazing|glazed|glass panels?|spandrels?|sunshades?)\b/i;
+const FACADE_WORK = { test: (text) => FACADE_RAW.test(String(text || '')) && !/\b(glass balustrades?|balustrades?|shower screens?|internal glazing|glass partitions?|mirrors?)\b/i.test(String(text || '')), source: FACADE_RAW.source };
 
 const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
 const ROAD = /\b(road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane)\b/i;
@@ -390,7 +394,7 @@ const ENTERED_SPACE = /\b(?:enter\w*|entry|inside|work in|working in)\b[\w\s,-]{
 const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|welding)\b/i;
 const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air test\w*)\b/i;
 const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?)\b/i;
-const SILICA_WORK = /\b(cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?)|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?))\b/i;
+const SILICA_WORK = /\b(cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?))\b/i;
 
 const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply)|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
 
@@ -1316,18 +1320,20 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     masonryWork: MASONRY_WORK.test(task),
     masonryCut: MASONRY_WORK.test(task) && /\b(cut\w*|saws?)\b/i.test(task),
     masonryLay: MASONRY_WORK.test(task) && /\b(lay\w*|build\w*|walls?)\b/i.test(task),
-    masonryGrout: MASONRY_WORK.test(task) && /\b(mortar|grout\w*|core[- ]fill\w*)\b/i.test(task),
+    masonryGrout: MASONRY_WORK.test(task) && /\b(grout\w*|core[- ]fill\w*)\b/i.test(task),
     masonryEdge: MASONRY_WORK.test(task) && /\b(slab edges?|edges?|perimeter)\b/i.test(task),
     plasterWork: PLASTER_WORK.test(task),
     plasterSheets: PLASTER_WORK.test(task) && /\b(sheets?|fix\w*|hang\w*)\b/i.test(task),
-    plasterHeight: PLASTER_WORK.test(task) && /\b(ceilings?|bulkheads?|scaffolds?|ladders?|platforms?)\b/i.test(task),
+    plasterHeight: PLASTER_WORK.test(task) && /\b(ceilings?|bulkheads?|scaffolds?|ladders?|platforms?|trestles?)\b/i.test(task),
     plasterSanding: PLASTER_WORK.test(task) && /\b(sand\w*|set\w*|cut\w*|stopping)\b/i.test(task),
     paintSpray: /\b(paint\w*|coating)\b/i.test(task) && /\b(spray\w*|airless)\b/i.test(task),
-    paintExternal: /\bpaint\w*\b/i.test(task) && /\b(external\w*|outside|facade|fa[cç]ade|ewps?|elevating work platforms?|boom lifts?|swing stages?)\b/i.test(task),
+    paintExternal: /\bpaint\w*\b/i.test(task) && /\b(external\w*|outside|facade|fa[cç]ade|ewps?|elevating work platforms?|boom lifts?)\b/i.test(task),
     floorWork: FLOOR_WORK.test(task),
     floorGrind: FLOOR_WORK.test(task) && /\b(grind\w*|prepar\w*)\b/i.test(task),
-    floorAdhesive: FLOOR_WORK.test(task) && /\b(adhesives?|glue\w*|levelling)\b/i.test(task),
-    floorLay: FLOOR_WORK.test(task) && /\b(lay\w*|install\w*|fit\w*)\b/i.test(task),
+    floorAdhesive: FLOOR_WORK.test(task) && /\b(adhesives?|glue\w*)\b/i.test(task),
+    floorLevel: FLOOR_WORK.test(task) && /\b(levelling|primers?|screed\w*)\b/i.test(task),
+    timberFloor: /\b(timber floor\w*|engineered timber|floating floors?)\b/i.test(task),
+    floorLay: /\b(carpet\w*|vinyl|floor coverings?)\b/i.test(task) && /\b(lay\w*|install\w*|fit\w*)\b/i.test(task),
     waterproofing: WATERPROOFING.test(task),
     wpPrep: WATERPROOFING.test(task) && /\b(grind\w*|prepar\w*|scabbl\w*)\b/i.test(task),
     wpLiquid: WATERPROOFING.test(task) && /\b(primers?|liquid|solvents?|polyurethane|apply\w*|brush\w*|roll(?:ed|ing)? on|spray\w*)\b/i.test(task),
@@ -1356,6 +1362,13 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     pileConcrete: PILING_WORK.test(task) && /\b(concrete|tremie|grout\w*)\b/i.test(task) && /\b(plac\w*|pour\w*|pump\w*|tremie)\b/i.test(task),
     pileTrim: PILING_WORK.test(task) && /\b(trim\w*|crop\w*|break\w* (?:down )?(?:the )?pile(?: heads?|s))\b/i.test(task),
     retentionWall: PILING_WORK.test(task) && /\b(secant|contiguous|retention walls?|sheet pil\w*|shoring walls?|bulk excavat\w*)\b/i.test(task),
+    glazingWork: GLAZING_WORK.test(task),
+    balustradeEdge: /\bbalustrades?\b/i.test(task) && /\b(balcon\w*|edges?|terraces?)\b/i.test(task),
+    glassHandle: GLAZING_WORK.test(task) && /\b(glass|glazing|mirrors?|screens?)\b/i.test(task),
+    glazingSeal: GLAZING_WORK.test(task) && /\b(seal\w*|silicon\w*)\b/i.test(task),
+    stoneSilica: STONE_WORK.test(task) && /\b(cut\w*|drill\w*|polish\w*|grind\w*)\b/i.test(task),
+    stoneHandle: STONE_WORK.test(task) && /\b(install\w*|set\w*|carr\w*|mov\w*|lift\w*)\b/i.test(task),
+    roofStrip: /\broof\w*\b/i.test(task) && /\b(remov\w*|replac\w*|strip\w*|re-?roof\w*)\b/i.test(task),
     facadeWork: FACADE_WORK.test(task),
     panelLoad: FACADE_WORK.test(task) && /\b(load\w*|deliver\w*|stillages?|racks?|land\w*)\b/i.test(task),
     facadeCrane: FACADE_WORK.test(task) && /\b((?:floor|mini|spider|crawler) cranes?|monorails?)\b/i.test(task),
@@ -1398,7 +1411,9 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     asbestos: /\basbestos\b/i.test(task),
     confined: /\bconfined space\b/i.test(task) || choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined',
     water: mentioned(task, WATER),
-    painting: needsSafetyDataSheet(task) && /\b(paint\w*|enamel|coating)\b/i.test(task),
+    painting: (needsSafetyDataSheet(task) || /\bpaint\w*\b/i.test(task)) && /\b(paint\w*|enamel|coating)\b/i.test(task),
+    paintSolvent: /\b(paint\w*|enamel|coating)\b/i.test(task) && /\b(solvent[- ]based|solvents?|enamel|oil[- ]based|two[- ]pack|2[- ]pack)\b/i.test(task),
+    paintSwing: /\bpaint\w*\b/i.test(task) && /\bswing stages?\b/i.test(task),
   };
 }
 
