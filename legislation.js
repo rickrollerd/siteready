@@ -87,6 +87,9 @@ const QUEENSLAND = {
   // Electrical Safety Regulation 2026 (Qld), which replaced the 2013 regulation on 1 September 2026
   // with no policy change. 3.0 m is the exclusion zone for untrained persons and operating plant
   // near lines up to 132 kV; higher voltages need more.
+  // Section 299(4): a statement whose only fall controls are administrative or PPE must
+  // describe all control measures considered, including the section 79(3) requirements.
+  fallControlsConsidered: 'Only needed if the fall control is a procedure or a harness. List the other controls considered, such as edge protection, a scaffold or an elevating work platform, and why they were not used (section 299(4)).',
   overheadLineControl: 'Keep people and operating plant outside the minimum distance for the line voltage under the Electrical Safety Regulation 2026 (Qld). For a line up to 132 kV this is 3.0 m. Use a safety observer when plant could come within that distance.',
 };
 

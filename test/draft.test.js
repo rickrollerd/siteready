@@ -163,3 +163,31 @@ test('South Australia uses its regulations and gives no power line distance', ()
   assert.match(line.text, /regulation 166/);
   assert.doesNotMatch(line.text, /\d\.\d m/);
 });
+
+test('Queensland section 299(4): a harness alone needs the other controls considered', () => {
+  const task = 'Replace roof sheets on a two storey house.';
+  const harness = 'Workers wear a full body harness clipped to a static line.';
+  const asked = questionsFor({ state: 'qld', task, fallRisk: 'yes' });
+  assert.ok(asked.required.some((item) => item.id === 'controlsConsidered'));
+
+  const bare = draft(task, { fallRisk: 'yes', facts: { fallControl: harness } });
+  assert.equal(bare.kind, 'stand-down');
+  assert.deepEqual(bare.missing, ['Other fall controls considered']);
+
+  const done = draft(task, {
+    fallRisk: 'yes',
+    facts: { fallControl: harness, controlsConsidered: 'Edge protection was considered but the roof edge has no fixing points; a scaffold cannot be placed on the neighbouring boundary.' },
+  });
+  assert.equal(done.kind, 'draft');
+  assert.ok(done.controls.some((item) => /^Other fall controls considered: Edge protection/.test(item.text)));
+  assert.ok(done.controls.some((item) => item.level === 'PPE'));
+
+  // Edge protection is an engineering control, so nothing more is needed.
+  const edge = draft(task, { fallRisk: 'yes', facts: { fallControl: 'Edge protection is installed around the roof perimeter first.' } });
+  assert.equal(edge.kind, 'draft');
+
+  // The rule is Queensland's. NSW does not ask.
+  const nsw = prepareDraft({ state: 'nsw', task, fallRisk: 'yes', facts: { fallControl: harness } });
+  assert.equal(nsw.kind, 'draft');
+  assert.ok(nsw.controls.some((item) => /must be considered before administrative controls/.test(item.text)));
+});

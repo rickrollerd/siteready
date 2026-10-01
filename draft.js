@@ -306,7 +306,19 @@ function highRiskMatches(text, answer, state) {
   return highRiskList(state).filter((item) => checks[item.check]);
 }
 
-function requiredFactsFor(task, answer) {
+function fallLineFor(source, facts) {
+  return fallControlText(acceptedText(source)) || keptFact(facts.fallControl);
+}
+
+// Where a fall control sits in the hierarchy.
+function fallControlLevel(line) {
+  if (/\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(line)) return 'Eliminate';
+  if (/\b(edge protection|guard\s?rails?|scaffold|elevating work platform|\bewp\b|safety mesh|catch platform|fenc\w*|barriers?|barricad\w*|hoarding|covers?|covered)\b/i.test(line)) return 'Isolate or engineer';
+  if (/\b(harness|fall arrest|lanyard|restraint)\b/i.test(line)) return 'PPE';
+  return 'Administrative';
+}
+
+function requiredFactsFor(task, answer, state) {
   const facts = [];
   if (isCraneOrLift(task)) {
     facts.push({
@@ -334,6 +346,15 @@ function requiredFactsFor(task, answer) {
       id: 'fallControl',
       label: 'Fall control',
       prompt: 'How a fall of more than 2 metres is prevented.',
+    });
+  }
+  // Queensland, section 299(4): when the only fall controls are administrative or PPE,
+  // the statement describes every control considered.
+  if (state && state.fallControlsConsidered && fallRiskFor(task, answer)) {
+    facts.push({
+      id: 'controlsConsidered',
+      label: 'Other fall controls considered',
+      prompt: state.fallControlsConsidered,
     });
   }
   if (deepExcavation(task) && !trenchSupportText(task)) {
@@ -422,6 +443,11 @@ const TOPIC_PATTERNS = {
 };
 
 function factState(item, task, facts) {
+  // Only needed when the fall control is administrative or PPE.
+  if (item.id === 'controlsConsidered') {
+    const fallLine = fallLineFor(combinedFacts(task, facts), facts);
+    if (!fallLine || ['Eliminate', 'Isolate or engineer'].includes(fallControlLevel(fallLine))) return 'supplied';
+  }
   if (item.id === 'fallControl' && fallControlText(acceptedText(combinedFacts(task, facts)))) return 'supplied';
   if (item.id === 'asbestosArrangement' && asbestosArrangement(acceptedText(combinedFacts(task, facts)))) return 'supplied';
   if (item.id === 'trenchSupport' && trenchSupportText(acceptedText(combinedFacts(task, facts)))) return 'supplied';
@@ -431,8 +457,8 @@ function factState(item, task, facts) {
   return hasSubstance(item.id, field) ? 'supplied' : 'vague';
 }
 
-function missingFacts(task, facts, answer) {
-  return requiredFactsFor(task, answer)
+function missingFacts(task, facts, answer, state) {
+  return requiredFactsFor(task, answer, state)
     .map((item) => ({ ...item, state: factState(item, task, facts) }))
     .filter((item) => item.state !== 'supplied');
 }
@@ -495,17 +521,15 @@ function controlsFor(task, facts, pack) {
     push('Isolate or engineer', pack.state.overheadLineControl);
   }
 
-  const fallLine = fallControlText(acceptedText(source)) || keptFact(facts.fallControl);
+  const fallLine = fallLineFor(source, facts);
   if (fallRiskFor(source, pack && pack.fallAnswer) && fallLine) {
-    const ppe = /\b(harness|fall arrest)\b/i.test(fallLine);
-    const engineered = /\b(edge protection|guard\s?rails?|scaffold|elevating work platform|\bewp\b)\b/i.test(fallLine);
-    const eliminated = /\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(fallLine);
-    if (eliminated) push('Eliminate', fallLine);
-    else if (engineered) push('Isolate or engineer', fallLine);
-    else if (ppe) {
-      push('Administrative', 'For a fall of more than 2 metres, elimination, substitution, and isolation or engineering were considered before personal protective equipment.');
-      push('PPE', fallLine);
-    } else push('Administrative', fallLine);
+    const level = fallControlLevel(fallLine);
+    const considered = keptFact(facts.controlsConsidered);
+    if (level === 'PPE' || level === 'Administrative') {
+      if (considered) push('Administrative', `Other fall controls considered: ${considered.replace(/[.]+$/, '')}.`);
+      else push('Administrative', 'For a fall of more than 2 metres, elimination, substitution, and isolation or engineering must be considered before administrative controls or personal protective equipment.');
+    }
+    push(level, fallLine);
   }
 
   const asbestos = keptFact(facts.asbestosArrangement) || asbestosArrangement(source);
@@ -678,7 +702,7 @@ function questionsFor(input) {
     },
     task,
     fall: fallCheck(task, answer, state),
-    required: requiredFactsFor(task, answer),
+    required: requiredFactsFor(task, answer, state),
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
   };
 }
@@ -700,7 +724,7 @@ function prepareDraft(input) {
     fallAnswer: fallAnswer(input.fallRisk),
     state,
   };
-  const missing = missingFacts(task, facts, pack.fallAnswer);
+  const missing = missingFacts(task, facts, pack.fallAnswer, state);
   const status = packIsTest(input)
     ? 'Not approved. Not signed. A test, not a site record.'
     : 'Not approved. Not signed.';
