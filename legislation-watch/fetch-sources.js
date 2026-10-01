@@ -6,10 +6,29 @@
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 
-const URLS = [
-  'https://www.worksafe.vic.gov.au/safe-work-method-statements-swms',
-  'https://content-v2.api.worksafe.vic.gov.au/sites/default/files/2022-03/ISBN-Safe-work-method-statements-2022-03.pdf',
-];
+const URLS = [];
+
+// The current Western Australian regulation: the page lists each version, and the
+// row marked Current links to its PDF.
+const WA_PAGE = 'https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_s53267.html';
+
+async function waCurrent() {
+  const page = await (await fetch(WA_PAGE, { signal: AbortSignal.timeout(30000) })).text();
+  const row = page.split(/<tr/i).find((part) => />\s*Current\s*</i.test(part)) || '';
+  const links = [...row.matchAll(/href="([^"]+)"/gi)].map((match) => new URL(match[1].replace(/&amp;/g, '&'), WA_PAGE).href);
+  console.log(`\n=== ${WA_PAGE}\nCurrent row: ${text(row).slice(0, 300)}\nLinks: ${links.join(' ')}`);
+  const pdf = links.find((link) => /pdf/i.test(link));
+  if (!pdf) return;
+  const response = await fetch(pdf, { signal: AbortSignal.timeout(60000) });
+  fs.writeFileSync('wa.pdf', Buffer.from(await response.arrayBuffer()));
+  const body = execFileSync('pdftotext', ['-layout', 'wa.pdf', '-']).toString().replace(/[ \t]+/g, ' ');
+  console.log(`PDF ${pdf}: HTTP ${response.status}`);
+  console.log(body.slice(0, 400));
+  for (const marker of [/291\.\s*Term used: high risk construction work/i, /high risk construction work means/i, /299\.\s*Safe work method statement required/i, /166\.\s*Duty of person conducting/i]) {
+    const at = body.search(marker);
+    console.log(`\n--- ${marker}\n${at < 0 ? 'not found' : body.slice(at, at + 3500)}`);
+  }
+}
 
 function text(html) {
   return String(html)
@@ -23,6 +42,7 @@ function text(html) {
 }
 
 async function main() {
+  await waCurrent().catch((error) => console.log(`WA failed: ${error.message}`));
   for (const url of URLS) {
     try {
       const response = await fetch(url, {
