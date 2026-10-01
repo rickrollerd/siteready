@@ -65,7 +65,7 @@ async function tasCurrent() {
 // The Northern Territory and the ACT publish the current regulation as a PDF.
 const PDF_SOURCES = [
   { name: 'Northern Territory', page: 'https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011', pick: /\/api\/sitecore\/Act\/PDF\?id=/i },
-  { name: 'Australian Capital Territory', page: 'https://www.legislation.act.gov.au/sl/2011-36/', pick: /\/current\/pdf\/|\.pdf$/i },
+  { name: 'Australian Capital Territory', page: 'https://www.legislation.act.gov.au/sl/2011-36/', pick: /\/View\/sl\/2011-36\/current\/html\//i },
 ];
 
 async function pdfSource(source) {
@@ -79,10 +79,14 @@ async function pdfSource(source) {
   if (!pdf) return;
   const response = await fetch(pdf, { signal: AbortSignal.timeout(60000) });
   const buffer = Buffer.from(await response.arrayBuffer());
-  console.log(`\n=== ${source.name} PDF: ${pdf} HTTP ${response.status}, ${buffer.length} bytes, starts ${buffer.slice(0, 5).toString()}`);
-  if (buffer.slice(0, 4).toString() !== '%PDF') return;
-  fs.writeFileSync('source.pdf', buffer);
-  const flat = execFileSync('pdftotext', ['source.pdf', '-']).toString().replace(/\s+/g, ' ');
+  console.log(`\n=== ${source.name} document: ${pdf} HTTP ${response.status}, ${buffer.length} bytes, starts ${buffer.slice(0, 5).toString()}`);
+  let flat;
+  if (buffer.slice(0, 4).toString() === '%PDF') {
+    fs.writeFileSync('source.pdf', buffer);
+    flat = execFileSync('pdftotext', ['source.pdf', '-'], { maxBuffer: 64 * 1024 * 1024 }).toString().replace(/\s+/g, ' ');
+  } else {
+    flat = text(buffer.toString('utf8'));
+  }
   console.log(flat.slice(0, 700));
   for (const marker of [/high risk construction work means/g, /299\s*Safe work method statement required/g, /166\s*Duty of person conducting a business or undertaking/g]) {
     const all = [...flat.matchAll(marker)];
