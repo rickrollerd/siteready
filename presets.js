@@ -7,8 +7,8 @@ const fs = require('fs');
 const path = require('path');
 
 const PROJECTS = path.join(__dirname, 'scenarios', 'projects');
-const TRADE_ORDER = ['piling', 'structure', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade'];
-const TRADE_NAMES = { piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
+const TRADE_ORDER = ['piling', 'excavation', 'structure', 'waterproofing', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade', 'carpentry fit-out', 'tiling'];
+const TRADE_NAMES = { excavation: 'Excavation (basement)', waterproofing: 'Waterproofing', 'carpentry fit-out': 'Carpentry fit-out', tiling: 'Tiling', piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
 
 function loadTrades() {
   return fs.readdirSync(PROJECTS)
@@ -85,6 +85,9 @@ const ANSWERS = {
   ],
   confinedSpace: [
     ['Permit entry', 'Entry only under a confined space entry permit, with atmospheric testing before and during entry, a standby person at the opening, and a practised rescue plan.'],
+  ],
+  excavationPlan: [
+    ['Geotechnical design', 'Excavation follows the geotechnical design ____ (revision ____) in stages to the levels shown, with batters no steeper than ____, and plant and trucks follow the site traffic management plan ____.'],
   ],
   rigExclusionZone: [
     ['Fenced radius', 'Each rig has a fenced and signed exclusion zone of ____ m radius (at least the mast height plus ____ m). Only the rig crew enters, with the operator\'s agreement, controlled by the piling supervisor.'],

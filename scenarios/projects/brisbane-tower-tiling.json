@@ -1,0 +1,100 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: tiling",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "apartments",
+      "title": "Apartment floor and wall tiling",
+      "task": "Lay floor and wall tiles in the apartment bathrooms and kitchens, cutting porcelain tiles with wet saws, and mixing adhesive and grout.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Tiles are cut with a water-fed wet saw. Fit tested P2 respirators are worn while cutting dry. The written silica assessment is done before work starts and attached to this SWMS.",
+        "safetyDataSheet": "Safety data sheets for the tile adhesive, grout and sealer are kept at the work area: avoid skin contact, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Cut tiles and stone",
+          "Mix and apply adhesives, grouts, screeds and sealers",
+          "Lay tiles"
+        ],
+        "missing": [
+          "Safety data sheet",
+          "Silica dust controls"
+        ]
+      }
+    },
+    {
+      "id": "balconies",
+      "title": "Balcony and terrace tiling",
+      "task": "Lay tiles on the apartment balconies and podium terraces next to the edge, cutting tiles with grinders and mixing screed and adhesive.",
+      "fallRisk": "yes",
+      "facts": {
+        "silicaControls": "Tiles are cut with on-tool dust extraction. Fit tested P2 respirators are worn while cutting. The written silica assessment is done before work starts and attached to this SWMS.",
+        "safetyDataSheet": "Safety data sheets for the screed, adhesive and grout are kept at the work area: avoid skin contact, wear gloves and eye protection.",
+        "fallControl": "Balcony balustrades or temporary edge protection stay in place, and no one works outside them."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Cut tiles and stone",
+          "Mix and apply adhesives, grouts, screeds and sealers",
+          "Lay tiles",
+          "Tile balconies and terraces near edges"
+        ],
+        "missing": [
+          "Safety data sheet",
+          "Fall control",
+          "Silica dust controls"
+        ]
+      }
+    },
+    {
+      "id": "lobby",
+      "title": "Lobby stone and tile floors",
+      "task": "Lay natural stone and porcelain tiles on the ground floor lobby with epoxy grout, cutting the stone with wet saws.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Stone and tiles are cut with a water-fed wet saw. Fit tested P2 respirators are worn while cutting. The written silica assessment is done before work starts and attached to this SWMS.",
+        "safetyDataSheet": "Safety data sheets for the epoxy grout and adhesive are kept at the work area: skin sensitiser, wear chemical resistant gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Cut tiles and stone",
+          "Mix and apply adhesives, grouts, screeds and sealers",
+          "Lay tiles"
+        ],
+        "missing": [
+          "Safety data sheet",
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "apartments",
+        "balconies",
+        "lobby"
+      ],
+      "phrase": "Ceramic and porcelain tiles and grout are not engineered stone",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529D",
+      "quote": "does not include ... ceramic wall or floor tiles"
+    },
+    {
+      "swms": [
+        "apartments",
+        "lobby"
+      ],
+      "phrase": "Kneeling while laying tiles is a hazardous manual task",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 60",
+      "quote": "kneeling while trowelling concrete or laying carpet"
+    }
+  ]
+}

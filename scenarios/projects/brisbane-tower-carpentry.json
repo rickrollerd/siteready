@@ -1,0 +1,81 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: carpentry fit-out",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "framing",
+      "title": "Wall and bulkhead framing",
+      "task": "Frame steel stud walls and bulkheads in the apartments and corridors, working from platform ladders and mobile scaffolds, and moving materials up by hoist.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Move materials and joinery to the floors",
+          "Frame walls and bulkheads",
+          "Use power tools: saws and nail guns"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "id": "joinery",
+      "title": "Doors, joinery and cabinets",
+      "task": "Install door frames, doors, kitchen cabinets, vanities and wardrobes in the apartments, moving joinery to the floors by hoist.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Move materials and joinery to the floors",
+          "Use power tools: saws and nail guns",
+          "Install doors, joinery and cabinets"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "id": "edges",
+      "title": "Carpentry near balcony edges and voids",
+      "task": "Install timber handrails and balcony screens near the balcony edges and stair voids, using drop saws and nail guns.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Balcony balustrades and void edge protection stay in place, and no one works outside them."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Use power tools: saws and nail guns",
+          "Work near balcony edges, voids and penetrations"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "framing",
+        "joinery",
+        "edges"
+      ],
+      "phrase": "Drop saws have a self-adjusting guard",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 208",
+      "quote": "Self-adjusting guard for a drop saw"
+    },
+    {
+      "swms": [
+        "framing"
+      ],
+      "phrase": "Never use a ladder to hold up a platform",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306M",
+      "quote": "must not use, or allow another person to use, the ladder to support a platform"
+    }
+  ]
+}
