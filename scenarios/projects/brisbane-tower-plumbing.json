@@ -168,7 +168,7 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Rough-in and fit-off in the apartments"
+          "Plumbing rough-in and fit-off"
         ],
         "missing": [
           "Silica dust controls"
@@ -211,8 +211,8 @@
       "swms": [
         "drainage"
       ],
-      "phrase": "Secure the trench area from unauthorised",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 306(1)",
+      "phrase": "is secured from unauthorised and inadvertent entry",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306",
       "quote": "secured from unauthorised access (including inadvertent entry)"
     },
     {

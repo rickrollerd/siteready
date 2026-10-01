@@ -7,16 +7,26 @@
     {
       "id": "hoarding",
       "title": "Site fencing, hoardings and sheds",
-      "task": "Erect the site fencing and hoardings along the street frontage, and set up the site sheds and amenities.",
+      "task": "Erect the site fencing and hoardings along the street frontage, with materials delivered by truck, and set up the site sheds, lifted into place by the crane company's mobile crane.",
       "fallRisk": "no",
-      "facts": {},
+      "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines."
+      },
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "road",
+          "plant"
+        ],
         "steps": [
+          "Set up traffic management",
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
           "Erect fencing, hoardings and gantries",
           "Set up site sheds"
         ],
-        "missing": []
+        "missing": [
+          "Crane company and lift plan"
+        ]
       }
     },
     {

@@ -44,6 +44,7 @@ const ANSWERS = {
   ],
   craneCompany: [
     ['Crane company lift plan', 'Lifts are done by ____ (crane company) under its lift plan. The crane company\'s dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.'],
+    ['Steel or precast', 'Lifts are done by ____ (crane company) under its lift plan. The crane company\'s dogman slings the loads, and our licensed riggers (basic rigging or higher) receive, place and secure them.'],
   ],
   craneChart: [
     ['Chart duty', 'Rated capacity from the crane chart: ____ t at ____ m radius. Heaviest gross load (load, lifting gear and rigging) is ____ t at ____ m radius.'],
@@ -94,7 +95,7 @@ const ANSWERS = {
     ['Geotechnical design', 'Excavation follows the geotechnical design ____ (revision ____) in stages to the levels shown, with batters no steeper than ____, and plant and trucks follow the site traffic management plan ____.'],
   ],
   rigExclusionZone: [
-    ['Fenced radius', 'Each rig has a fenced and signed exclusion zone of ____ m radius (at least the mast height plus ____ m). Only the rig crew enters, with the operator\'s agreement, controlled by the piling supervisor.'],
+    ['Fenced radius', 'Each rig has a fenced and signed exclusion zone of ____ m radius. Only the rig crew enters, with the operator\'s agreement, controlled by the piling supervisor.'],
   ],
   pilingPlatform: [
     ['Engineer\'s certificate', 'The working platform is designed by ____ (geotechnical engineer) for the ____ rig, with a maximum plant loading of ____ kPa. The platform certificate is given to the rig operator before the rig goes on it.'],

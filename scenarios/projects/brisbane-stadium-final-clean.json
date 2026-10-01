@@ -15,6 +15,7 @@
       "expect": {
         "highRisk": [],
         "steps": [
+          "Clean the stands and aisles",
           "Clean with chemicals"
         ],
         "missing": [

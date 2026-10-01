@@ -34,5 +34,14 @@
       }
     }
   ],
-  "rules": []
+  "rules": [
+    {
+      "swms": [
+        "cladding"
+      ],
+      "phrase": "installed so a person falling into the net will not hit anything below it",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306J",
+      "quote": "so that a person falling into the net will not hit anything below the net"
+    }
+  ]
 }

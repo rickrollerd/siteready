@@ -101,7 +101,7 @@ test('No with work at height warns, and the No stands', () => {
   const done = draft(task);
   assert.equal(done.kind, 'draft');
   assert.ok(!done.highRisk.includes(FALL));
-  assert.match(done.fallRisk, /user confirmed no one can fall more than 2 metres/);
+  assert.match(done.fallRisk, /No work is done where a person could fall 2 metres or more/);
 });
 
 test('No on a task at ground level is recorded as No with no warning', () => {

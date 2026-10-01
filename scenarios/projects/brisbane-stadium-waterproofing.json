@@ -13,9 +13,10 @@
         "safetyDataSheet": "Safety data sheets for the primer and polyurethane membrane are kept at the work area: use with ventilation, keep away from ignition sources, wear gloves and eye protection."
       },
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "atmosphere"
+        ],
         "steps": [
-          "Join PVC pipe with primer and solvent cement",
           "Apply primers and liquid membranes"
         ],
         "missing": [

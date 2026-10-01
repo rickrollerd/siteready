@@ -32,5 +32,14 @@
       }
     }
   ],
-  "rules": []
+  "rules": [
+    {
+      "swms": [
+        "lights"
+      ],
+      "phrase": "way to get them out safely if the crane fails",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 219, s 220, schedule 5",
+      "quote": "means are provided by which the persons being lifted or suspended can safely exit from the plant in the event of a failure in its normal operation"
+    }
+  ]
 }

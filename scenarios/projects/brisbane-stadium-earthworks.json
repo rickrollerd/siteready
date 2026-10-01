@@ -25,5 +25,14 @@
       }
     }
   ],
-  "rules": []
+  "rules": [
+    {
+      "swms": [
+        "bowl"
+      ],
+      "phrase": "Manage the risks of plant overturning",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 214, s 215",
+      "quote": "(a) the plant overturning; (b) things falling on the operator of the plant; (c) the operator being ejected from the plant; (d) the plant colliding with any person or thing"
+    }
+  ]
 }

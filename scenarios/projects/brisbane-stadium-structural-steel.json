@@ -10,7 +10,7 @@
       "task": "Erect the long span steel roof trusses with two crawler cranes in a dual lift, landing them on temporary support towers, and bolting the connections from boom lifts more than 2 m above the ground.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings the loads, and our licensed riggers (basic rigging or higher, intermediate rigging for the dual lifts) receive, place and secure them.",
         "fallControl": "Connections are bolted from boom lifts with guardrails, with harnesses attached to the boom lift anchor points. No one climbs the steel.",
         "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
         "temporarySupport": "Temporary support towers are to the engineer's design TS-12 (revision B), installed and checked by the steel erection engineer before any truss is landed on them.",
@@ -23,12 +23,12 @@
           "plant"
         ],
         "steps": [
-          "Install temporary support",
           "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Use an elevating work platform",
           "Lift and land steel with the crane company",
           "Erect and connect steel at height",
+          "Land steel on temporary support towers",
           "Plan and do the dual lift"
         ],
         "missing": [
@@ -40,5 +40,22 @@
       }
     }
   ],
-  "rules": []
+  "rules": [
+    {
+      "swms": [
+        "trusses"
+      ],
+      "phrase": "only where each crane is specifically designed to lift a load",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 219",
+      "quote": "no load is lifted simultaneously by more than 1 piece of plant unless each piece of plant used to lift the load is specifically designed to lift a load"
+    },
+    {
+      "swms": [
+        "trusses"
+      ],
+      "phrase": "at least an intermediate rigging licence",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 85, schedule 3",
+      "quote": "(f) dual lifts"
+    }
+  ]
 }

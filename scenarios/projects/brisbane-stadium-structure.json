@@ -19,7 +19,8 @@
       },
       "expect": {
         "highRisk": [
-          "fall"
+          "fall",
+          "plant"
         ],
         "steps": [
           "Erect falsework and shores",

@@ -16,8 +16,7 @@
       },
       "expect": {
         "highRisk": [
-          "fall",
-          "precast"
+          "fall"
         ],
         "steps": [
           "Drill the tiers and fix seats"
@@ -29,5 +28,14 @@
       }
     }
   ],
-  "rules": []
+  "rules": [
+    {
+      "swms": [
+        "seats"
+      ],
+      "phrase": "If it cannot be determined, treat it as high risk",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529B, s 529C, s 529CA",
+      "quote": "is taken to be reasonably likely to result in a risk to the health of a person"
+    }
+  ]
 }

@@ -7,17 +7,19 @@
     {
       "id": "drainage-turf",
       "title": "Pitch drainage and turf",
-      "task": "Dig the subsoil drainage trenches across the pitch, up to 1 m deep, lay the drainage pipe and irrigation, then lay the turf rolls.",
+      "task": "Dig the subsoil drainage trenches across the pitch with an excavator, up to 1 m deep, lay the drainage pipe and irrigation, then lay the turf rolls.",
       "fallRisk": "no",
       "facts": {},
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "plant"
+        ],
         "steps": [
           "Locate underground services",
           "Excavate",
           "Work in the trench",
           "Backfill and restore",
-          "Move soil and mulch, and plant"
+          "Lay turf"
         ],
         "missing": []
       }
