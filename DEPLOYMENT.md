@@ -17,9 +17,18 @@
 6. Railway auto-detects Node.js, builds, deploys
 7. You get a live URL like: `https://siteready.railway.app`
 
-### Step 2: Environment variables
+### Step 2: Database and environment variables
 
-No API key is needed. Railway sets `PORT`. The optional settings are in `.env.example`.
+1. In the Railway project, click **New** → **Database** → **Add PostgreSQL**. Railway adds `DATABASE_URL` to the app. The tables are created when the app starts.
+2. In the app's **Variables**, add:
+   - `APP_URL`: the public address, for example `https://siteready.co.nz` (used in sign-in links, QR codes and Face ID)
+   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`: the mail account that sends sign-in links and review reminders (Gmail: `smtp.gmail.com`, port `465`, an app password)
+   - `NODE_ENV=production`
+3. Railway sets `PORT`. The other optional settings are in `.env.example`.
+
+Without `DATABASE_URL` the app still drafts and previews, but signing in, downloads and saving are switched off.
+
+Face ID works in Safari and Chrome on the web address. In the iOS app wrapper it also needs the domain added as an associated domain (webcredentials), which is set up when the app is signed for the App Store.
 
 ### Step 3: Custom Domain (siteready.co.nz)
 

@@ -26,11 +26,19 @@
     "@capacitor/push-notifications": "^8.0.3",
     "@capacitor/share": "^8.0.1",
     "@capacitor/toast": "^8.0.1",
+    "@simplewebauthn/server": "^14.0.3",
     "cors": "^2.8.6",
     "docx": "^9.8.1",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
-    "helmet": "^8.1.0"
+    "helmet": "^8.1.0",
+    "nodemailer": "^10.0.13",
+    "pdfkit": "^0.20.2",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "pg-mem": "^3.0.14"
   }
 }

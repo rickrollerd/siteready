@@ -1,0 +1,130 @@
+// Accounts, sites, saved SWMS and worker sign-ons are kept in Postgres.
+// DATABASE_URL points at the database (Railway sets it when a Postgres service
+// is added). Without it the app still drafts, but signing in is switched off.
+const { Pool } = require('pg');
+
+let pool = null;
+
+function connect() {
+  if (pool || !process.env.DATABASE_URL) return pool;
+  const local = /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL);
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: Number(process.env.DATABASE_POOL || 5),
+    ssl: local || process.env.DATABASE_SSL === 'off' ? false : { rejectUnauthorized: false },
+  });
+  return pool;
+}
+
+// Tests pass in an in-memory database with the same interface.
+function useDatabase(next) {
+  pool = next;
+}
+
+function enabled() {
+  return Boolean(connect());
+}
+
+async function query(text, params = []) {
+  const db = connect();
+  if (!db) throw Object.assign(new Error('Accounts are not set up on this server.'), { status: 503, publicMessage: true });
+  const result = await db.query(text, params);
+  return result.rows;
+}
+
+async function one(text, params = []) {
+  return (await query(text, params))[0] || null;
+}
+
+// Each statement is safe to run again, so the schema is brought up to date on start.
+const SCHEMA = [
+  `CREATE TABLE IF NOT EXISTS companies (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL DEFAULT '',
+    abn TEXT NOT NULL DEFAULT '',
+    address TEXT NOT NULL DEFAULT '',
+    phone TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
+    logo TEXT NOT NULL DEFAULT '',
+    trial_ends_at TIMESTAMPTZ NOT NULL,
+    plan_status TEXT NOT NULL DEFAULT 'trial',
+    stripe_customer_id TEXT,
+    stripe_subscription_id TEXT,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    company_id TEXT NOT NULL REFERENCES companies(id),
+    email TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL,
+    last_seen_at TIMESTAMPTZ
+  )`,
+  `CREATE TABLE IF NOT EXISTS login_tokens (
+    token_hash TEXT PRIMARY KEY,
+    email TEXT NOT NULL,
+    company_id TEXT,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at TIMESTAMPTZ
+  )`,
+  `CREATE TABLE IF NOT EXISTS sessions (
+    token_hash TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS passkeys (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    public_key TEXT NOT NULL,
+    counter INTEGER NOT NULL DEFAULT 0,
+    transports TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL,
+    last_used_at TIMESTAMPTZ
+  )`,
+  `CREATE TABLE IF NOT EXISTS challenges (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    challenge TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS sites (
+    id TEXT PRIMARY KEY,
+    company_id TEXT NOT NULL REFERENCES companies(id),
+    name TEXT NOT NULL,
+    details JSONB NOT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS swms (
+    id TEXT PRIMARY KEY,
+    company_id TEXT NOT NULL REFERENCES companies(id),
+    site_id TEXT,
+    title TEXT NOT NULL,
+    input JSONB NOT NULL,
+    reviewed_by TEXT NOT NULL,
+    created_by TEXT NOT NULL,
+    signon_token TEXT NOT NULL UNIQUE,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    last_reviewed_at TIMESTAMPTZ NOT NULL,
+    review_due_at TIMESTAMPTZ NOT NULL,
+    reminder_sent_at TIMESTAMPTZ
+  )`,
+  `CREATE TABLE IF NOT EXISTS signons (
+    id TEXT PRIMARY KEY,
+    swms_id TEXT NOT NULL REFERENCES swms(id),
+    worker_name TEXT NOT NULL,
+    worker_company TEXT NOT NULL DEFAULT '',
+    signature TEXT NOT NULL,
+    signed_at TIMESTAMPTZ NOT NULL
+  )`,
+];
+
+async function migrate() {
+  for (const statement of SCHEMA) await query(statement);
+}
+
+module.exports = { connect, useDatabase, enabled, query, one, migrate };
