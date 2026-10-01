@@ -58,6 +58,7 @@ function draftBody(body) {
     state: field(body.state, 80),
     task: field(body.task || body.jobDescription, 5000),
     fallRisk: field(body.fallRisk, 10),
+    residential: field(body.residential, 10),
     company: field(body.company || body.companyName, 200),
     workplace: field(body.workplace || body.siteAddress, 500),
     principalContractor: field(body.principalContractor, 300),

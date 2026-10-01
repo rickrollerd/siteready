@@ -224,3 +224,39 @@ test('Tasmania uses its regulations and gives no power line distance', () => {
   assert.match(line.text, /Electricity Industry Safety and Administration Act 1997/);
   assert.doesNotMatch(line.text, /\d\.\d m/);
 });
+
+test('ACT: light rail, and processing crystalline silica material with a power tool', () => {
+  const cut = prepareDraft({ state: 'act', task: 'Cut and grind concrete pavers with an angle grinder to fit the new path.', fallRisk: 'no' });
+  assert.equal(cut.instrument, 'Work Health and Safety Regulation 2011 (ACT)');
+  assert.ok(cut.highRisk.includes('Involves processing crystalline silica material using a power tool or another mechanical method'));
+  assert.ok(cut.hazards.some((row) => row.hazard === 'Respirable crystalline silica'));
+  // Not a category elsewhere.
+  assert.ok(!prepareDraft({ state: 'nsw', task: 'Cut and grind concrete pavers with an angle grinder.', fallRisk: 'no' }).highRisk.some((item) => /silica/.test(item)));
+  // Hand tools alone do not count.
+  assert.ok(!prepareDraft({ state: 'act', task: 'Score and snap plasterboard sheets with a knife.', fallRisk: 'no' }).highRisk.some((item) => /silica/.test(item)));
+
+  const rail = prepareDraft({ state: 'act', task: 'Repair the footpath kerb beside the light rail line.', fallRisk: 'no' });
+  assert.ok(rail.highRisk.some((item) => /including light rail/.test(item)));
+});
+
+test('Northern Territory: 3 metres for residential construction work, 2 metres otherwise', () => {
+  const nt = (task, residential, fallRisk = 'no', facts = {}) => prepareDraft({ state: 'nt', task, residential, fallRisk, facts });
+  assert.equal(nt('Replace a 3m length of fence.', '').kind, 'error');
+
+  // A 2.5 m height is a fall risk for commercial work but not for residential work.
+  const task = 'Fix gutters from a platform at 2.5 m.';
+  assert.match(questionsFor({ state: 'nt', task, residential: 'no', fallRisk: 'no' }).fall.warning, /more than 2 metres/);
+  assert.equal(questionsFor({ state: 'nt', task, residential: 'yes', fallRisk: 'no' }).fall.warning, '');
+
+  const house = nt('Replace roof sheets on a two storey house.', 'yes', 'yes', { fallControl: 'Edge protection is installed around the roof perimeter first.' });
+  assert.ok(house.highRisk.includes('If it is residential construction work, involves a risk of a person falling more than 3 m'));
+  assert.equal(house.fallMetres, 3);
+  assert.equal(house.residential, 'Yes');
+  assert.ok(house.hazards.some((row) => row.risk === 'A person falls more than 3 metres.'));
+
+  const shop = nt('Replace roof sheets on a shop.', 'no', 'yes', { fallControl: 'Edge protection is installed around the roof perimeter first.' });
+  assert.ok(shop.highRisk.includes('If it is not residential construction work, involves a risk of a person falling more than 2 m'));
+  assert.equal(shop.fallMetres, 2);
+  // Other states do not ask.
+  assert.equal(prepareDraft({ state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no' }).residential, '');
+});

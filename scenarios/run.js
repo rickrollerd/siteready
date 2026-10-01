@@ -26,7 +26,8 @@ function describe(label, diff) {
 }
 
 function runLoaded(state, scenario) {
-  const base = { state: state.id, task: scenario.task, fallRisk: scenario.fallRisk };
+  // The Northern Territory also asks whether the work is residential.
+  const base = { state: state.id, task: scenario.task, fallRisk: scenario.fallRisk, residential: scenario.residential };
   const problems = [];
 
   // Without the facts, the task is stood down and names what is missing.
@@ -45,7 +46,8 @@ function runLoaded(state, scenario) {
   if (full.kind !== 'draft') {
     problems.push(`With facts: expected a draft, got ${full.kind}${full.missing ? ` (missing: ${full.missing.join('; ')})` : ''}`);
   } else {
-    const expectedRisk = scenario.expect.highRisk.map((id) => highRiskLabel(state, id));
+    const residential = state.residentialFallLabel && scenario.residential === 'yes';
+    const expectedRisk = scenario.expect.highRisk.map((id) => (id === 'fall' && residential ? state.residentialFallLabel : highRiskLabel(state, id)));
     problems.push(...describe('High risk category', difference(expectedRisk, full.highRisk)));
     const hazards = full.hazards.map((row) => row.hazard);
     problems.push(...describe('Hazard', { missing: difference(scenario.expect.hazards, hazards).missing, extra: [] }));
@@ -55,7 +57,7 @@ function runLoaded(state, scenario) {
 }
 
 function runRefused(state, scenario) {
-  const result = prepareDraft({ state: state.id, task: scenario.task, fallRisk: scenario.fallRisk, facts: scenario.facts });
+  const result = prepareDraft({ state: state.id, task: scenario.task, fallRisk: scenario.fallRisk, residential: scenario.residential, facts: scenario.facts });
   return result.kind === 'refused' ? [] : [`Expected refused (legislation not loaded), got ${result.kind}`];
 }
 
