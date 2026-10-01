@@ -18,6 +18,8 @@ const SOURCES = {
   plant: ['Model Code of Practice: Managing the risks of plant in the workplace (Safe Work Australia, November 2024)', 'https://www.safeworkaustralia.gov.au/sites/default/files/2024-11/model_code_of_practice-managing_the_risks_of_plant_in_the_workplace-nov24.pdf'],
   ozoneRegs: ['Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth), latest', 'https://www.legislation.gov.au/F1996B02085/latest/text'],
   ozoneDownloads: ['Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth), downloads page', 'https://www.legislation.gov.au/F1996B02085/latest/downloads'],
+  // The regulations' text loads in the browser, so follow the PDF link on the downloads page.
+  ozonePdf: ['Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth), latest PDF', 'https://www.legislation.gov.au/F1996B02085/latest/downloads', /href="([^"]+)"[^>]*>[^<]*\.pdf/i],
   refrigerantCode: ['Australia and New Zealand Refrigerant Handling Code of Practice 2025, Part 2 (ARC)', 'https://www.arctick.org/media/29167/air018-refrigerant-handling-codes-of-practice-2025_part-2_web_final_singles.pdf'],
   manual: ['Model Code of Practice: Hazardous manual tasks (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-hazardous-manual-tasks-v2.pdf'],
 };
@@ -37,9 +39,17 @@ function html(text) {
 }
 
 (async () => {
-  const [name, url] = SOURCES[process.env.SOURCE];
+  const [name, page, follow] = SOURCES[process.env.SOURCE];
   const chunk = Number(process.env.CHUNK || 0);
-  const response = await fetch(url, { signal: AbortSignal.timeout(120000), headers: { 'User-Agent': BROWSER, Accept: '*/*' } });
+  const get = (address) => fetch(address, { signal: AbortSignal.timeout(120000), headers: { 'User-Agent': BROWSER, Accept: '*/*' } });
+  let url = page;
+  if (follow) {
+    const listing = await (await get(page)).text();
+    const link = listing.match(follow) || listing.match(/href="([^"]+\.pdf[^"]*)"/i) || listing.match(/href="([^"]*\/pdf[^"]*)"/i);
+    if (!link) throw new Error(`no link found on ${page}; links: ${(listing.match(/href="[^"]+"/g) || []).join(' ')}`);
+    url = new URL(link[1].replace(/&amp;/g, '&'), page).href;
+  }
+  const response = await get(url);
   const buffer = Buffer.from(await response.arrayBuffer());
   let text;
   if (buffer.subarray(0, 4).toString() === '%PDF') {

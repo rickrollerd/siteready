@@ -19,8 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { source: ozoneDownloads, chunk: 0 }
-          - { source: refrigerantCode, chunk: 0 }
+          - { source: ozonePdf, chunk: 0 }
     name: ${{ matrix.source }} ${{ matrix.chunk }}
     steps:
       - uses: actions/checkout@v5
