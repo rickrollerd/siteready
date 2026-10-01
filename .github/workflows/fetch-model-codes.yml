@@ -22,7 +22,7 @@ jobs:
           node-version: '22'
       - run: sudo apt-get install -y -qq poppler-utils > /dev/null
       - run: |
-          for source in confined excavation welding falls plant constructionCode noiseCode chemicalsCode manual; do
+          for source in confined excavation welding falls plant constructionCode noiseCode chemicalsCode manual electricalCode; do
             SOURCE=$source OUT=model-codes/$source.txt node legislation-watch/fetch-source.js
           done
           ls -la model-codes

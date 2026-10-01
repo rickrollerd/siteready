@@ -32,6 +32,7 @@ const SOURCES = {
   vicReg: ['Occupational Health and Safety Regulations 2017 (Vic), current', 'https://www.legislation.vic.gov.au/in-force/statutory-rules/occupational-health-and-safety-regulations-2017', /href="([^"]+\.pdf[^"]*)"/i],
   waReg: ['Work Health and Safety (General) Regulations 2022 (WA), current', 'https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_s53267.html', /href="([^"]+\.pdf[^"]*)"/i],
   manual: ['Model Code of Practice: Hazardous manual tasks (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-hazardous-manual-tasks-v2.pdf'],
+  electricalCode: ['Model Code of Practice: Managing electrical risks in the workplace (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-managing-electrical-risks_in_the_workplace-v3.pdf'],
 };
 const CHUNK_SIZE = Number(process.env.CHUNK_SIZE || 550000);
 const BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
