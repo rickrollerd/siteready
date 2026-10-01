@@ -1,0 +1,193 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: ICT and security",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "cabling",
+      "title": "Communications containment and cabling in risers and ceilings",
+      "task": "Install cable tray and pull structured data cabling in the risers, corridor ceilings and apartments, drilling into the post-tensioned slabs for tray anchors, working from scissor lifts and platform ladders more than 2 m above the floor.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Risers are screened at each level with only the section being worked on opened, and scissor lifts with guardrails are used for work above 2 m.",
+        "silicaControls": "Anchor holes are drilled with on-tool dust extraction, fit tested P2 respirators are worn while drilling, and the written silica assessment is done before work starts."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Install containment and pull communications cabling"
+        ],
+        "missing": [
+          "Fall control",
+          "Silica dust controls"
+        ]
+      }
+    },
+    {
+      "id": "fibre",
+      "title": "Optical fibre backbone installation, splicing and testing",
+      "task": "Install the optical fibre backbone cabling in the risers from the main comms room in the basement to each floor, then splice and test the fibre.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Riser openings have fixed edge protection screens at each level, with only the section being worked on opened, and gates closed when not in use."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Install containment and pull communications cabling",
+          "Install, splice and test optical fibre"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "comms-rooms",
+      "title": "Comms rooms, racks and UPS batteries",
+      "task": "Install communications racks, cabinets and UPS batteries in the basement comms room and the floor comms rooms, and terminate the data cabling.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Install racks, cabinets and UPS batteries in the comms rooms"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "id": "security",
+      "title": "CCTV, access control and intercoms",
+      "task": "Install CCTV cameras, access control card readers and intercoms in the foyer, lift lobbies and the 3 basement car park levels, working from platform ladders and scissor lifts more than 2 m above the floor, while other trades' vehicles use the car park.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Install security cameras, card readers and intercoms"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "roof-antenna",
+      "title": "Roof antennas and MATV",
+      "task": "Install the MATV antennas and the communications cabling on the roof, next to the roof edge.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Edge protection is installed around the roof perimeter before work starts, and no one works outside it."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Install plant and equipment on the roof"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "cabling",
+        "fibre",
+        "comms-rooms",
+        "security",
+        "roof-antenna"
+      ],
+      "phrase": "registered cabling provider",
+      "source": "Telecommunications (Cabling Provider) Rules 2025 (Cth) s 21, s 22, s 23",
+      "quote": "Cabling work must be performed by ... a registered cabling provider ... or a cabling provider ... who is directly supervised at all times"
+    },
+    {
+      "swms": [
+        "cabling",
+        "fibre",
+        "comms-rooms",
+        "security",
+        "roof-antenna"
+      ],
+      "phrase": "white card",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 317",
+      "quote": "the worker holds a general construction induction training card"
+    },
+    {
+      "swms": [
+        "security"
+      ],
+      "phrase": "licensed security equipment installers",
+      "source": "Security Providers Act 1993 (Qld) s 6B, s 8A, s 9",
+      "quote": "Unless a person holds the appropriate licence, the person must not ... carry out the functions of a security provider"
+    },
+    {
+      "swms": [
+        "fibre"
+      ],
+      "phrase": "No Class 3B or Class 4 lasers",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 223",
+      "quote": "Class 3B and Class 4 lasers ... are not used in construction work"
+    },
+    {
+      "swms": [
+        "cabling",
+        "fibre"
+      ],
+      "phrase": "DANGER HOLE BENEATH",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306F",
+      "quote": "securely fixed in place to prevent it being moved or removed accidentally"
+    },
+    {
+      "swms": [
+        "cabling",
+        "security"
+      ],
+      "phrase": "rated for at least 120 kg",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306L, s 306M",
+      "quote": "has a load rating of at least 120kg"
+    },
+    {
+      "swms": [
+        "security"
+      ],
+      "phrase": "close the work area to vehicles",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 215",
+      "quote": "the plant does not collide with pedestrians or other powered mobile plant"
+    },
+    {
+      "swms": [
+        "roof-antenna"
+      ],
+      "phrase": "top rail at least 900 mm",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306E",
+      "quote": "900mm higher than that surface"
+    },
+    {
+      "swms": [
+        "comms-rooms"
+      ],
+      "phrase": "Team lifts are an interim control",
+      "source": "Model Code: Hazardous manual tasks s 4.5, s 4.9",
+      "quote": "It should only be used as an interim control measure"
+    }
+  ]
+}

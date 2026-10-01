@@ -11,6 +11,8 @@ const WHS = (section) => `Work Health and Safety Regulation 2011 (Qld) ${section
 const PDA = (section) => `Plumbing and Drainage Act 2018 (Qld) ${section}`;
 const MODEL = (code, section) => `Model Code: ${code} ${section}`;
 const OZONE = (section) => `Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth) ${section}`;
+const CPR = (section) => `Telecommunications (Cabling Provider) Rules 2025 (Cth) ${section}`;
+const SPA = (section) => `Security Providers Act 1993 (Qld) ${section}`;
 const ARC = (section) => `Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 ${section}`;
 const src = (text, source) => ({ text, source });
 
@@ -41,6 +43,9 @@ const BEFORE_EXTRA = [
   { when: 'plumbingWork', text: src('Plumbing and drainage work is done by licensed workers, and supervised only by licensed workers. Trainees are directly supervised by a licensed person, who directs the work and ensures it complies.', PDA('s 56, s 57, s 58, s 59')) },
   { when: 'plumbingWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'mechanicalWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'ictWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'ictWork', text: src('Cabling work is done by a registered cabling provider whose registration covers the work (open registration for structured, optical fibre and coaxial cabling), or by a cabler directly supervised at all times by one. All cabling complies with the Wiring Rules (AS/CA S009).', CPR('s 21, s 22, s 23')) },
+  { when: 'securityWork', text: src('Security equipment such as CCTV, access control, intercoms and alarms is installed only by licensed security equipment installers.', SPA('s 6B, s 8A, s 9')) },
   { when: 'refrigerantWork', text: src('Work on refrigeration and air conditioning equipment, including installing and commissioning it whether or not refrigerant is present, is done only by holders of a refrigerant handling licence that covers the work. Trainee licence holders work under the supervision of a full licence holder.', `${OZONE('reg 111, reg 134')}; ${ARC('s 1.1.1')}`) },
   { when: 'ewp', text: 'A rescue plan is in place for anyone working from an elevating work platform or held by a harness.' },
 ];
@@ -1063,7 +1068,7 @@ const ACTIVITIES = [
   {
     when: 'roofPlant',
     steps: [{
-      step: 'Install plant on the roof',
+      step: 'Install plant and equipment on the roof',
       hazards: ['A fall from the roof edge or through a roof opening.', 'Wind on large panels and plant.', 'Fire from hot work on the roof.'],
       controls: [
         { fact: 'fallControl' },
@@ -1131,6 +1136,67 @@ const ACTIVITIES = [
       },
     ],
     ppe: ['earMuffs'],
+  },
+  {
+    when: 'ictCabling',
+    steps: [{
+      step: 'Install containment and pull communications cabling',
+      hazards: ['A fall from a ladder, platform or open riser.', 'Tools and cable boxes fall onto people below.', 'Contact with energised electrical parts in shared risers and ceilings.', 'Silica dust from drilling anchors.', 'Strain from pulling and lifting cable.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Risers and shafts are covered or screened at each level, with only the section being worked on opened. Covers are fixed in place and signed DANGER HOLE BENEATH.', `${WHS('s 306F')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
+        src('Platform ladders are industrial and rated for at least 120 kg. Keep 3 points of contact on a ladder where a fall could be 2 m or more.', WHS('s 306L, s 306M')),
+        src('Barricade and sign the area below, and stop tools and materials falling.', `${WHS('s 55')}; ${MODEL('Managing the risk of falls', 's 8.1')}`),
+        src('Where an exposed energised part is within 3 m, have it de-energised or covered by the electrician before work starts.', CODE('s 9.2')),
+        'Before drilling into a post-tensioned slab, check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Do not drill over a detected service until it is isolated and confirmed.',
+        src('Drill anchors with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
+        src('Use cable dispensers and rollers, and plan team pulls with one person in charge.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
+        'Keep communications cabling separated from power cabling as the Wiring Rules require.',
+      ],
+    }],
+    ppe: ['gloveCut', 'p2'],
+  },
+  {
+    when: 'fibre',
+    steps: [{
+      step: 'Install, splice and test optical fibre',
+      hazards: ['Glass fibre shards in skin or eyes.', 'Eye injury from test light sources.', 'Solvents used for cleaning.'],
+      controls: [
+        'Collect fibre offcuts in a marked, sealed container on a dark work mat. No eating or drinking at the splicing station.',
+        'Never look into a fibre end or connector. Treat every fibre as live until it is checked.',
+        src('No Class 3B or Class 4 lasers are used in construction work.', WHS('s 223')),
+        src('Keep the safety data sheet for cleaning solvents at the work area.', WHS('s 344')),
+      ],
+    }],
+    ppe: ['glassesClear'],
+  },
+  {
+    when: 'commsRoom',
+    steps: [{
+      step: 'Install racks, cabinets and UPS batteries in the comms rooms',
+      hazards: ['Strain or crush moving racks, cabinets and batteries.', 'A rack tips over.', 'Battery electrolyte, short circuits and stored energy.'],
+      controls: [
+        src('Move racks and batteries with trolleys, pallet jacks or lifting aids. Team lifts are an interim control, with one person in charge.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
+        'Fix racks to the floor or wall as soon as they are stood up, before loading equipment.',
+        src('Keep the battery safety data sheet at the work area.', WHS('s 344')),
+        'UPS and power connections are made only by licensed electricians.',
+      ],
+    }],
+    ppe: ['gloveChemical'],
+  },
+  {
+    when: 'securityDevices',
+    steps: [{
+      step: 'Install security cameras, card readers and intercoms',
+      hazards: ['A fall from a ladder or platform.', 'Vehicles in the car park.', 'Silica dust from drilling.', 'Contact with energised cables in walls and ceilings.'],
+      controls: [
+        src('Platform ladders are industrial and rated for at least 120 kg. Keep 3 points of contact on a ladder where a fall could be 2 m or more.', WHS('s 306L, s 306M')),
+        src('In the car park, close the work area to vehicles with barriers, or separate the workers from traffic.', WHS('s 215')),
+        src('Drill with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
+        'Check for cables before drilling walls and ceilings. Door hardware and power supplies are connected to mains power only by licensed electricians.',
+      ],
+    }],
+    ppe: ['p2'],
   },
   {
     when: 'asbestos',
