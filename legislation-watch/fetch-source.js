@@ -25,6 +25,9 @@ const SOURCES = {
   securityAct: ['Security Providers Act 1993 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-1993-083'],
   pilingStandard: ['Piling work and foundation engineering sites: A guide to managing safety (industry standard, WorkSafe Victoria and PFSF, edition 1, January 2014)', 'http://pilingfederation.org.au/wp-content/uploads/2017/08/Piling-Works-Industry-Standard.pdf'],
   mobilePlantSupport: ['Safe support of mobile plant guide (Office of Industrial Relations, Qld)', 'https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0008/20150/safe-support-mobile-plant-guide.pdf'],
+  constructionCode: ['Model Code of Practice: Construction work (Safe Work Australia, November 2024)', 'https://www.safeworkaustralia.gov.au/sites/default/files/2024-11/model_code_of_practice-construction_work-nov24.pdf'],
+  noiseCode: ['Model Code of Practice: Managing noise and preventing hearing loss at work (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1810/model-cop-managing-noise-and-preventing-hearing-loss-at-work.pdf'],
+  chemicalsCode: ['Model Code of Practice: Managing risks of hazardous chemicals in the workplace (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1702/managing_risks_of_hazardous_chemicals2.pdf'],
   manual: ['Model Code of Practice: Hazardous manual tasks (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-hazardous-manual-tasks-v2.pdf'],
 };
 const CHUNK_SIZE = Number(process.env.CHUNK_SIZE || 550000);

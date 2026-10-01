@@ -1,0 +1,75 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: masonry",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "blockwork",
+      "title": "Basement blockwork walls",
+      "task": "Lay core-filled blockwork walls in the basement, cutting blocks with a brick saw, from mobile scaffolds and trestles.",
+      "fallRisk": "yes",
+      "facts": {
+        "silicaControls": "Blocks are cut wet or with on-tool dust extraction. Fit tested P2 respirators are worn by anyone still at risk. The written silica assessment is done before work starts and attached to this SWMS.",
+        "fallControl": "Scaffolds and trestles over 2 m have full edge protection.",
+        "safetyDataSheet": "Safety data sheets for the mortar and grout are kept at the work area: alkaline, avoid skin contact, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Cut blocks and bricks",
+          "Lay blocks and bricks",
+          "Mix mortar and core fill"
+        ],
+        "missing": [
+          "Fall control",
+          "Silica dust controls"
+        ]
+      }
+    },
+    {
+      "id": "podium",
+      "title": "Podium brickwork near slab edges",
+      "task": "Lay brickwork on the podium levels near the slab edges, with mortar mixed on site.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Edge protection with mesh infill stays in place at the slab edges.",
+        "safetyDataSheet": "Safety data sheets for the mortar are kept at the work area: alkaline, avoid skin contact, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Lay blocks and bricks",
+          "Mix mortar and core fill",
+          "Work near slab edges"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "blockwork"
+      ],
+      "phrase": "Bricks and blocks are not engineered stone",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529B, s 529C",
+      "quote": "does not include ... (ii) bricks, pavers or other similar blocks"
+    },
+    {
+      "swms": [
+        "blockwork",
+        "podium"
+      ],
+      "phrase": "Brace new walls until they are complete and cured",
+      "source": "Model Code: Construction work appendix F",
+      "quote": "Worker injured by structural collapse before completion & curing."
+    }
+  ]
+}

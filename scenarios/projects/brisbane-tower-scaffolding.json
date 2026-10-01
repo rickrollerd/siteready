@@ -1,0 +1,131 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: scaffolding and hoists",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "perimeter",
+      "title": "Podium perimeter scaffold erection and dismantling",
+      "task": "Erect, alter and dismantle the tube and coupler perimeter scaffold around the podium next to the street, with loading bays.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Scaffolders install platforms, edge protection and access at each lift before going higher, and wear harnesses clipped to the scaffold where edge protection is not yet in place.",
+        "controlsConsidered": "Installing edge protection from the lift below with advance guardrails was considered for every lift; harnesses are used only where the scaffold layout prevents it.",
+        "systemInstructions": "Tube and coupler scaffold to the scaffold designer's drawings SC-01 (revision B), erected by licensed intermediate scaffolders."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "road"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Set up and protect the area below",
+          "Erect the scaffold",
+          "Inspect and hand over",
+          "Dismantle the scaffold"
+        ],
+        "missing": [
+          "Fall control",
+          "System and supplier instructions"
+        ]
+      }
+    },
+    {
+      "id": "mobile",
+      "title": "Mobile scaffolds for fit-out trades",
+      "task": "Erect and move mobile scaffolds for the ceiling and services trades on each floor.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Mobile scaffolds have full guardrails and toe boards on every platform, and internal ladders."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Use mobile scaffolds"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "hoist-install",
+      "title": "Builders' hoist installation and climbing",
+      "task": "Install, climb and dismantle the personnel and materials hoist on the building face, tying it to the slab edges as it climbs.",
+      "fallRisk": "yes",
+      "facts": {
+        "systemInstructions": "The hoist is installed to the manufacturer's manual (model and revision on the plant register) by our crew holding intermediate rigging licences.",
+        "fallControl": "Riggers work from the hoist car roof inside its guardrails and wear harnesses clipped to the mast anchor points when outside them."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Install, climb and dismantle the hoist"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "hoist-operate",
+      "title": "Builders' hoist operation",
+      "task": "Operate the personnel and materials hoist, carrying workers and materials to each floor.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Every landing has a full height landing gate that stays closed unless the car is at the landing."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Operate the hoist"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "perimeter"
+      ],
+      "phrase": "not used until a competent person gives written confirmation",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 225",
+      "quote": "written confirmation from a competent person that construction of the scaffold has been completed"
+    },
+    {
+      "swms": [
+        "perimeter"
+      ],
+      "phrase": "a platform at least 450 mm wide",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306P",
+      "quote": "a platform at least 450mm wide along the full length of the section of scaffolding"
+    },
+    {
+      "swms": [
+        "hoist-install"
+      ],
+      "phrase": "registration number is kept at the hoist",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 243, s 260, schedule 5",
+      "quote": "the design registration number is kept readily accessible in the vicinity of the plant at all times"
+    },
+    {
+      "swms": [
+        "hoist-operate"
+      ],
+      "phrase": "Emergency stops are red",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 210, s 211",
+      "quote": "any handle, bar or push button associated with the stop control is coloured red"
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: waterproofing",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "basement",
+      "title": "Basement tanking and lift pit membranes",
+      "task": "Apply waterproofing membranes to the basement walls and floors and inside the lift pits and sumps, grinding the concrete surfaces first, and applying solvent-based primers and liquid membranes.",
+      "fallRisk": "yes",
+      "facts": {
+        "silicaControls": "Concrete is ground with on-tool dust extraction. Fit tested P2 respirators are worn while grinding. The written silica assessment is done before work starts and attached to this SWMS.",
+        "safetyDataSheet": "Safety data sheets for the primer and polyurethane membrane are kept at the work area: flammable, use with ventilation, keep away from ignition sources, wear gloves, goggles and a half-face respirator.",
+        "fallControl": "Lift pits and sumps have a guard rail with a gate, and access is by a secured ladder.",
+        "spaceAssessment": "confined",
+        "confinedSpace": "Entry to lift pits and sumps is only under a confined space entry permit, with atmospheric testing before and during entry, vapour extracted from the lowest point with fresh air introduced from above, a standby person at the opening, and a practised rescue plan."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "confined",
+          "atmosphere"
+        ],
+        "steps": [
+          "Prepare to enter the confined space",
+          "Enter and work",
+          "Prepare surfaces by grinding",
+          "Apply primers and liquid membranes",
+          "Leave and close up"
+        ],
+        "missing": [
+          "Safety data sheet",
+          "Fall control",
+          "Pits, tanks, sumps or manholes entered",
+          "Confined space entry",
+          "Silica dust controls"
+        ]
+      }
+    },
+    {
+      "id": "roof",
+      "title": "Roof and podium torch-on membranes",
+      "task": "Lay torch-on bitumen sheet membranes on the roof and podium next to the edge, lifting the membrane rolls by hoist.",
+      "fallRisk": "yes",
+      "facts": {
+        "hotWorkPermit": "The principal contractor issues a hot work permit each day, with a fire extinguisher at each work area and a fire watch after torching ends.",
+        "fallControl": "Edge protection is installed around the roof and podium perimeter before work starts, and no one works outside it."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Lay torch-on membranes",
+          "Work at edges",
+          "Move membrane rolls and materials"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "wet-areas",
+      "title": "Apartment wet area and balcony membranes",
+      "task": "Apply liquid waterproofing membranes to the apartment bathrooms and balconies, with water-based primers.",
+      "fallRisk": "yes",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the water-based primer and membrane are kept at the work area: avoid skin contact, wear gloves and eye protection.",
+        "fallControl": "Balcony balustrades or temporary edge protection stay in place, and no one works outside them."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Apply primers and liquid membranes",
+          "Work at edges"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "basement",
+        "wet-areas"
+      ],
+      "phrase": "extract from the lowest point",
+      "source": "Model Code: Managing risks of hazardous chemicals s 3.4, s 4.1",
+      "quote": "extraction of vapours should be from the lowest point and fresh air introduced from above"
+    },
+    {
+      "swms": [
+        "roof"
+      ],
+      "phrase": "A hot work permit is issued before torching",
+      "source": "Model Code: Managing risks of hazardous chemicals s 4.2, appendix H",
+      "quote": "establishing a hot work permit system"
+    },
+    {
+      "swms": [
+        "basement"
+      ],
+      "phrase": "Grinding concrete is processing a crystalline silica substance",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529B, s 529C",
+      "quote": "unless the processing is controlled"
+    }
+  ]
+}

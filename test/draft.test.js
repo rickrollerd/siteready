@@ -227,12 +227,12 @@ test('Tasmania uses its regulations and gives no power line distance', () => {
 });
 
 test('ACT: light rail, and processing crystalline silica material with a power tool', () => {
-  const cut = prepareDraft({ state: 'act', task: 'Cut and grind concrete pavers with an angle grinder to fit the new path.', fallRisk: 'no' });
+  const cut = prepareDraft({ state: 'act', task: 'Cut and grind concrete pavers with an angle grinder to fit the new path.', fallRisk: 'no', facts: { silicaControls: 'Pavers are cut with on-tool dust extraction, and fit tested P2 respirators are worn.' } });
   assert.equal(cut.instrument, 'Work Health and Safety Regulation 2011 (ACT)');
   assert.ok(cut.highRisk.includes('Involves processing crystalline silica material using a power tool or another mechanical method'));
   assert.ok(cut.hazards.some((row) => row.hazard === 'Respirable crystalline silica'));
   // Not a category elsewhere.
-  assert.ok(!prepareDraft({ state: 'nsw', task: 'Cut and grind concrete pavers with an angle grinder.', fallRisk: 'no' }).highRisk.some((item) => /silica/.test(item)));
+  assert.ok(!prepareDraft({ state: 'nsw', task: 'Cut and grind concrete pavers with an angle grinder.', fallRisk: 'no', facts: { silicaControls: 'Pavers are cut with on-tool dust extraction, and fit tested P2 respirators are worn.' } }).highRisk.some((item) => /silica/.test(item)));
   // Hand tools alone do not count.
   assert.ok(!prepareDraft({ state: 'act', task: 'Score and snap plasterboard sheets with a knife.', fallRisk: 'no' }).highRisk.some((item) => /silica/.test(item)));
 

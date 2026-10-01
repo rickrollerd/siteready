@@ -47,6 +47,16 @@ const BEFORE_EXTRA = [
   { when: 'ictWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'ictWork', text: src('Cabling work is done by a registered cabling provider whose registration covers the work (an open registration, with the extra units of competency for structured, optical fibre or coaxial cabling notified to the registrar), or by a cabler directly supervised at all times by one who holds that competency and accepts full responsibility for the work. All cabling complies with the Wiring Rules (AS/CA S009), and cabling and equipment comply with the Labelling Notice.', CPR('s 21, s 22, s 23, s 24')) },
   { when: 'ictWork', text: src('When the cabling work is complete, the registered cabling provider gives a statement that it complies fully with the Wiring Rules to their employer and the customer, and keeps a copy for at least 1 year.', CPR('s 25')) },
+  { when: 'bulkDig', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'waterproofing', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'tilingWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'scaffold', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'hoistInstall', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'steelWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'masonryWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'plasterWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'floorWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'carpentryWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'pilingWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'pilingWork', text: 'Piling controls cited to the piling industry standard are Victorian guidance, used here as good practice. Qld has no piling rig licence.' },
   { when: 'facadeWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
@@ -101,10 +111,13 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Set up and protect the area below',
-        hazards: ['Falling objects strike people below, including the public.', 'Scaffold collapse from poor ground or base.'],
+        hazards: ['Falling objects strike people below, including the public.', 'Scaffold collapse from poor ground or base.', 'Contact with powerlines.'],
         controls: [
           'Protect people below with a hoarding or gantry, or divert pedestrians, as approved.',
+          src('Where the scaffold is next to a street, the principal contractor provides the hoarding, gantry or closure the regulation requires, and lifts over the footpath happen only with the area closed or a gantry in place.', WHS('s 315F, s 315G, s 315L')),
+          src('Exclusion zone below with keep out signs and a person controlling it while erecting and dismantling.', `${WHS('s 55')}; ${MODEL('Construction work', 's 3.3')}`),
           'Check the ground and set out base plates and sole boards to the scaffold design.',
+          src('Within the powerline no go zone, work only under the electricity entity\'s permit to work. Keep electrical leads off the metal frame with plastic lead hooks or insulation.', MODEL('Managing the risk of falls', 's 5.1')),
         ],
       },
       {
@@ -114,20 +127,77 @@ const ACTIVITIES = [
           { fact: 'fallControl' },
           { fact: 'systemInstructions' },
           'A licensed scaffolder erects the scaffold to the manufacturer\'s or designer\'s instructions. Do not mix components from different systems.',
+          src('Scaffolding work where a person or object could fall more than 4 m needs a licence for the class: basic for modular scaffolds, intermediate for tube and coupler, gantries, perimeter screens and cantilevered crane loading platforms, advanced for hung and suspended scaffolds. Trainees work under the direct supervision of a licensed scaffolder. Sight each licence before work.', `${WHS('s 81, s 85, schedule 3')}; ${MODEL('Managing the risk of falls', 's 5.1')}`),
+          src('Prefabricated scaffold has a registered design, and components are not mixed unless the manufacturer approves.', `${WHS('schedule 5')}; ${MODEL('Managing the risk of falls', 's 5.1')}`),
+          src('At each lift, a platform at least 450 mm wide, edge protection and access are installed before the next lift, with a platform not more than 2 m below, unless the scaffolder is otherwise protected from falling.', WHS('s 306P')),
           'Install ties as the scaffold goes up.',
           'Pass components hand to hand or use a gin wheel. Do not throw them.',
+          src('Team lifts are an interim control only, with one person in charge.', MODEL('Hazardous manual tasks', 's 4.9')),
         ],
       },
       {
         step: 'Inspect and hand over',
         hazards: ['People use an incomplete or unsafe scaffold.'],
         controls: [
+          src('A scaffold from which a person or thing could fall more than 4 m is not used until a competent person gives written confirmation it is complete. It is inspected before use, after any incident or repair, and at least every 30 days.', WHS('s 225')),
           'A competent person inspects the scaffold before it is used and tags it.',
-          'Incomplete sections are tagged as not to be used and access is blocked.',
+          src('Incomplete sections are tagged as not to be used and access is blocked.', `${WHS('s 225')}; ${MODEL('Managing the risk of falls', 's 8.2')}`),
+          src('Users are told the safe working load, never to use an incomplete or defective scaffold, to report defects straight away, and not to alter it. Only licensed scaffolders alter it.', MODEL('Managing the risk of falls', 's 5.1')),
+          src('Edge protection at every open edge of a work platform: top rail at least 900 mm, no more than 450 mm between rails, toe board at least 150 mm.', `${WHS('s 306E')}; ${MODEL('Managing the risk of falls', 's 5.1')}`),
+        ],
+      },
+      {
+        step: 'Dismantle the scaffold',
+        hazards: ['Scaffolders fall as edge protection is removed.', 'Components fall onto people below.'],
+        controls: [
+          src('Edge protection and access stay in place as long as practicable, with a platform not more than 2 m below the scaffolder.', WHS('s 306Q')),
+          src('Exclusion zone below, with keep out signs and a person controlling it.', MODEL('Construction work', 's 3.3')),
+          'Lower components with a gin wheel or crane. Do not drop them.',
         ],
       },
     ],
-    ppe: ['sunscreen'],
+    ppe: ['sunscreen', 'harness'],
+  },
+  {
+    when: 'mobileScaffold',
+    steps: [{
+      step: 'Use mobile scaffolds',
+      hazards: ['The scaffold rolls or tips.', 'A fall from the platform or access.'],
+      controls: [
+        src('Workers are trained in its use. It stays level and plumb, castors are locked before anyone gets on, it is never moved with anyone on it, and it is accessed by its internal ladder.', MODEL('Managing the risk of falls', 's 5.1')),
+        src('Keep it well clear of powerlines, open floor edges and penetrations.', MODEL('Managing the risk of falls', 's 5.1')),
+        src('Where a person could fall more than 4 m from it, it is erected by a licensed scaffolder and inspected and handed over in writing.', WHS('s 225, schedule 3')),
+      ],
+    }],
+  },
+  {
+    when: 'hoistInstall',
+    steps: [{
+      step: 'Install, climb and dismantle the hoist',
+      hazards: ['A fall from the mast or landing.', 'The hoist or mast collapses.', 'Crush between the car and the mast or landing.'],
+      controls: [
+        { fact: 'systemInstructions' },
+        src('Setting up and dismantling a hoist is rigging work: basic rigging for hoists, intermediate rigging for hoists with jibs and self-climbing hoists. Sight each licence before work.', WHS('s 81, s 85, schedule 3')),
+        src('A personnel hoist with platform travel over 2.4 m has a registered design, and the registration number is kept at the hoist.', WHS('s 243, s 260, schedule 5')),
+        src('Installed, climbed and dismantled by competent people to the manufacturer\'s instructions, stable throughout, and not commissioned until it is without risk so far as reasonably practicable, including inspections.', `${WHS('s 204')}; ${MODEL('Managing the risks of plant in the workplace', 's 3.2, s 3.9')}`),
+        src('Exclusion zone below the mast during installation and climbing.', WHS('s 55')),
+      ],
+    }],
+  },
+  {
+    when: 'hoistOperate',
+    steps: [{
+      step: 'Operate the hoist',
+      hazards: ['A fall from an open landing.', 'An overloaded car.', 'Unintended movement.'],
+      controls: [
+        src('A personnel and materials hoist is operated by a holder of the personnel and materials hoist licence, a materials hoist by a materials hoist licence holder.', WHS('s 81, schedule 3')),
+        src('Loads stay within the rated load, with lifting attachments suited to them, and under control.', WHS('s 219')),
+        src('Landing gates prevent falls, and stay closed except when the car is at the landing.', MODEL('Managing the risk of falls', 's 4.2')),
+        src('Controls are guarded against unintended activation and can be locked off. Emergency stops are red.', WHS('s 210, s 211')),
+        src('Maintained and inspected by a competent person to the manufacturer\'s recommendations, with an inspection register.', `${WHS('s 213')}; ${MODEL('Managing the risks of plant in the workplace', 's 3.5')}`),
+        src('Used only as designed, and no unauthorised changes.', WHS('s 205, s 206')),
+      ],
+    }],
   },
   {
     when: 'roof',
@@ -884,7 +954,7 @@ const ACTIVITIES = [
           src('Drilling concrete is processing a crystalline silica substance. It is controlled by wet drilling, on-tool extraction or local exhaust.', WHS('s 529A, s 529B, s 529C')),
           src('The operator and anyone in the dust zone wear fit tested P2 respirators while drilling.', WHS('s 529B')),
           src('Assess in writing before starting whether the processing is high risk, without counting PPE or administrative controls.', WHS('s 529CA')),
-          src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS, with the written assessment attached, can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+          src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
           src('Health monitoring for workers at significant risk from crystalline silica.', WHS('s 368, schedule 14')),
           src('Barricade and sign the area below, so a falling core cannot hit anyone.', WHS('s 55')),
           src('Cover or barricade the hole as soon as it is cut, with a fixed cover rated for a 2 kN point load and signed DANGER HOLE BENEATH.', `${WHS('s 306F')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
@@ -1000,7 +1070,7 @@ const ACTIVITIES = [
           'Before drilling into a post-tensioned slab, check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval. Other detected services are isolated and confirmed before drilling near them.',
           src('Drill anchors with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
           src('Assess in writing before drilling whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
-          src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS, with the written assessment attached, can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+          src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
           src('Use lifting aids such as duct lifters for overhead duct sections, rather than holding them up by hand.', MODEL('Hazardous manual tasks', 's 4.5')),
         ],
       },
@@ -1091,7 +1161,7 @@ const ACTIVITIES = [
         'Before drilling fixings into a post-tensioned roof slab, check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval.',
         src('Drill with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
         src('Assess in writing before drilling whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
-        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS, with the written assessment attached, can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
       ],
     }],
     ppe: ['harness', 'chinStrap', 'p2'],
@@ -1170,7 +1240,7 @@ const ACTIVITIES = [
         'Before drilling into a post-tensioned slab, check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval. Other detected services are isolated and confirmed before drilling near them.',
         src('Drill anchors with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
         src('Assess in writing before drilling whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
-        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS, with the written assessment attached, can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
         src('Use cable dispensers and rollers, and plan team pulls with one person in charge.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
         'Keep communications cabling separated from power cabling as the Wiring Rules require.',
       ],
@@ -1201,7 +1271,7 @@ const ACTIVITIES = [
         'Before drilling rack anchors into a post-tensioned slab, check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval.',
         src('Drill with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
         src('Assess in writing before drilling whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
-        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS, with the written assessment attached, can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
         src('Keep the battery safety data sheet at the work area.', WHS('s 344')),
         'UPS and power connections are made only by licensed electricians.',
         src('Where exposed energised parts are nearby, have them de-energised or covered by the electrician before work starts, and use non-conductive ladders near them.', CODE('s 8.2, s 9.2')),
@@ -1220,7 +1290,7 @@ const ACTIVITIES = [
         'In the car park, work inside the principal contractor\'s traffic management: the work area is closed to vehicles with barriers, or workers are separated from traffic.',
         src('Drill with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
         src('Assess in writing before drilling whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
-        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS, with the written assessment attached, can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
         'Check for cables before drilling walls and ceilings. Door hardware and power supplies are connected to mains power only by licensed electricians.',
         src('Where exposed energised parts are nearby, have them de-energised or covered by the electrician before work starts, and use non-conductive ladders near them.', CODE('s 8.2, s 9.2')),
         'Before drilling into a post-tensioned slab, check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval.',
@@ -1349,7 +1419,7 @@ const ACTIVITIES = [
         'Before drilling into a post-tensioned slab edge, check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval.',
         src('Drill with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
         src('Assess in writing before drilling whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
-        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS, with the written assessment attached, can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
       ],
     }],
     ppe: ['gloveChemical', 'p2'],
@@ -1472,7 +1542,7 @@ const ACTIVITIES = [
         { fact: 'silicaControls' },
         src('Breaking concrete with power tools or plant is processing crystalline silica. Control it with wet suppression or on-tool extraction, and fit tested respirators for anyone still at risk.', WHS('s 529A, s 529B, s 529C')),
         src('Assess in writing before breaking whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
-        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS, with the written assessment attached, can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
         src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak, reducing it at the source first. Workers who must wear hearing protection have hearing tests within 3 months and at least every 2 years.', WHS('s 56, s 57, s 58')),
         src('Choose low vibration tools, or plant such as hydraulic pile croppers, to reduce hand-held breaking.', MODEL('Hazardous manual tasks', 's 4.8')),
         'Where hand-held breakers are used: rotate operators to limit time on the tool, use the lightest breaker that does the job, keep both hands on it, and keep others outside the fragment zone.',
@@ -1496,6 +1566,475 @@ const ACTIVITIES = [
         src('No plant or loads near the edge unless the support is designed by a competent person to carry them.', MODEL('Excavation work', 's 4.1')),
         src('A competent person inspects the wall and excavation often, and any repair is made from above before work below continues.', MODEL('Excavation work', 's 6.6')),
         src('The emergency plan covers ground slip, flooding and rescue from the excavation.', MODEL('Excavation work', 's 3.7')),
+      ],
+    }],
+  },
+  {
+    when: 'carpLoad',
+    steps: [{
+      step: 'Move materials and joinery to the floors',
+      hazards: ['Back and shoulder strain carrying sheets, studs, doors and cabinets.', 'Wind catches large sheets.'],
+      controls: [
+        src('Move materials between levels with the materials hoist, not by hand.', MODEL('Construction work', 's 3.3')),
+        src('Have materials delivered to the hoist or to where they are used.', MODEL('Hazardous manual tasks', 's 4.7')),
+        src('Use trolleys, lift trolleys, panel lifters, and hooks or suction pads for sheets. Keep trolleys maintained.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5')),
+        src('Team lifts are an interim control only, with one person in charge.', MODEL('Hazardous manual tasks', 's 4.9')),
+        src('Handle large sheets in low wind on balconies and at hoist landings.', MODEL('Hazardous manual tasks', 's 4.8')),
+        src('Unload only inside the hoist landing gates. Gates stay closed except while the hoist is at the landing.', MODEL('Managing the risk of falls', 's 4.2')),
+      ],
+    }],
+  },
+  {
+    when: 'carpFraming',
+    steps: [{
+      step: 'Frame walls and bulkheads',
+      hazards: ['A fall from a ladder or mobile scaffold.', 'Cuts from steel stud edges.', 'Noise and flying particles from cutting.'],
+      controls: [
+        src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
+        src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
+        src('Use step platforms rather than plain stepladders. Never stand above the second tread below the top of a stepladder, never use two-handed saws on a ladder, and plan the work so no one works from a ladder for long periods.', MODEL('Managing the risk of falls', 's 8.3, s 9.1')),
+        src('Mobile scaffolds: lock the castors before anyone gets on, never move it with anyone on it, keep it clear of open edges and penetrations, and do not alter it.', MODEL('Managing the risk of falls', 's 5.1')),
+        src('Never use a ladder to hold up a platform.', WHS('s 306M')),
+        src('A saw built for timber is used to cut steel studs only if a competent person has assessed it as suitable for that use. If not, it is not used.', MODEL('Managing the risks of plant in the workplace', 's 3.4')),
+      ],
+    }],
+    ppe: ['gloveCut', 'earPlugs'],
+  },
+  {
+    when: 'carpFraming',
+    steps: [{
+      step: 'Cut and fix steel studs and track',
+      hazards: ['Hot swarf, sparks and sharp burrs from cutting metal.', 'Cuts from stud edges.'],
+      controls: [
+        'Eye protection and cut resistant gloves when cutting metal. Deburr cut edges, and keep sparks away from combustible materials.',
+        'Use snips or a metal cutting saw rather than an abrasive disc where possible.',
+      ],
+    }],
+  },
+  {
+    when: 'carpentryWork',
+    steps: [{
+      step: 'Use power tools',
+      hazards: ['Cuts and amputation from saw blades.', 'Nails or fragments fired into a person.', 'Noise.', 'Dust from cutting.'],
+      controls: [
+        src('Guards are in place, strongly fixed and hard to bypass, and control ejected parts. Drop saws have a self-adjusting guard.', `${WHS('s 208')}; ${MODEL('Managing the risks of plant in the workplace', 's 4.1')}`),
+        src('Disconnect the power before removing a guard, and refit it before use. Inspect hand-held tools regularly and repair or replace them.', MODEL('Managing the risks of plant in the workplace', 's 3.5, s 4.1')),
+        'Nail guns: sequential trigger where available, never bypass the nose contact, no finger on the trigger while carrying, and keep the gun pointed away from people.',
+        src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. If you need to raise your voice to talk to someone 1 m away, the noise is likely hazardous. Use quieter methods, such as gluing instead of nailing, where possible.', `${WHS('s 56, s 57')}; ${MODEL('Managing noise and preventing hearing loss', 's 3.2, s 5.1')}`),
+        src('Hearing protection is worn for the whole time of the noise. Workers who must wear it have hearing tests within 3 months and at least every 2 years.', `${WHS('s 58')}; ${MODEL('Managing noise and preventing hearing loss', 's 5.3, s 5.4')}`),
+        src('Keep timber and MDF dust below the exposure standard with dust extraction on saws, and monitor where unsure.', WHS('s 49, s 50')),
+      ],
+    }],
+    ppe: ['glassesClear', 'earPlugs'],
+  },
+  {
+    when: 'carpJoinery',
+    steps: [{
+      step: 'Install doors, joinery and cabinets',
+      hazards: ['Strain holding heavy units in place while fixing.', 'Crush from a falling door or cabinet.'],
+      controls: [
+        src('No engineered stone benchtops, panels or slabs are installed or processed.', WHS('s 529D')),
+        src('Ask suppliers to deliver joinery ready to install and the right way up.', MODEL('Hazardous manual tasks', 's 4.7')),
+        src('Use lifting aids, straps, trolleys and props to hold units while fixing, rather than holding them up by hand for long periods.', MODEL('Hazardous manual tasks', 's 2.2, s 4.9')),
+        'Doors and cabinets are fixed or propped as soon as they are stood up.',
+        src('Overhead cabinets and wardrobes are fitted from step platforms or platform ladders rated for at least 120 kg, not from the top of a stepladder.', `${WHS('s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
+      ],
+    }],
+  },
+  {
+    when: 'carpEdge',
+    steps: [{
+      step: 'Work near balcony edges, voids and penetrations',
+      hazards: ['A fall from a balcony edge, void or penetration.', 'Tools and offcuts fall onto people below.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Edge protection and penetration covers stay in place. Covers carry a 2 kN point load, are fixed down and signed DANGER HOLE BENEATH. Plywood alone is not preferred.', `${WHS('s 306E, s 306F')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
+        src('No stepladders near an open edge, penetration or beside a railing without extra fall protection.', MODEL('Managing the risk of falls', 's 9.1')),
+        src('Where temporary edge protection must be opened to fit handrails or screens, it is opened only under the principal contractor\'s permit, one section at a time. Workers at the opening use travel restraint so they cannot reach the edge. No one uses a fall arrest harness while working alone. The edge protection is put back before the area is left.', `${WHS('s 306D, s 306G, s 306I')}; ${MODEL('Managing the risk of falls', 's 8.2')}`),
+        src('Handle large screens in low wind, with lifting aids.', MODEL('Hazardous manual tasks', 's 4.8')),
+        src('Barricade and sign no go areas below, and keep tools and offcuts away from edges.', MODEL('Managing the risk of falls', 's 8.1')),
+      ],
+    }],
+  },
+  {
+    when: 'bulkDig',
+    steps: [{
+      step: 'Bulk excavate and load trucks',
+      hazards: ['An excavator or truck strikes a person.', 'Plant overturns on a ramp or at the edge.', 'The excavation face or batter collapses.'],
+      controls: [
+        { fact: 'excavationPlan' },
+        src('Manage the risk of plant overturning and colliding with people or things. Plant that could hit people has a warning device.', WHS('s 214, s 215')),
+        src('A traffic management plan is in place before plant starts. Ramps and haul roads are built and maintained.', MODEL('Excavation work', 's 4.3')),
+        src('Physical barriers separate people from plant. Operators and ground workers use two way acknowledgement before anyone approaches plant.', MODEL('Excavation work', 's 2.3, s 4.3')),
+        src('Plant, trucks and stockpiles stay out of the zone of influence unless the support is designed for them. Wheel stops at edges.', MODEL('Excavation work', 's 4.1, s 4.3')),
+        src('Batters are no steeper than 45 degrees unless designed by a competent person and certified in writing. If ground conditions change, stop until the ground is stable.', MODEL('Excavation work', 's 6.1')),
+        src('Earthmoving plant over 1500 kg with a seated operator has a rollover or falling object protective structure. Daily pre-start checks, and defective plant is taken out of service.', MODEL('Excavation work', 's 4.3')),
+        src('A competent person inspects faces, batters and support often, including after rain and changes in the water table, and repairs are made from above before work below continues.', MODEL('Excavation work', 's 6.6')),
+        src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Where rock is drilled or broken with plant, control the silica dust (wet methods or extraction) and assess it in writing before starting.', WHS('s 56, s 57, s 529B, s 529C, s 529CA')),
+        src('The emergency plan covers ground slip, flooding and rescue from the excavation.', MODEL('Excavation work', 's 3.7')),
+      ],
+    }],
+    ppe: ['hivisNight'],
+  },
+  {
+    when: 'anchorsProps',
+    steps: [{
+      step: 'Install, stress and later remove ground anchors and props',
+      hazards: ['The wall moves or collapses if anchors lose load.', 'A prop or waler falls during lifting.', 'Stored energy released when de-stressing.'],
+      controls: [
+        { fact: 'temporarySupport' },
+        src('Ground anchors are designed by a competent person, such as a geotechnical engineer. Anchor loads are checked while they are in service.', MODEL('Excavation work', 's 6.2')),
+        src('Do not dig below the design stage level, or remove soil above anchors or within the active soil zone, without a competent person\'s approval. No one works ahead of the support.', MODEL('Excavation work', 's 6.2')),
+        src('Hydraulic props are designed for the expected ground pressures.', MODEL('Excavation work', 's 6.2')),
+        src('Remove supports in reverse order of installation, installing temporary members first where needed, with workers kept clear.', MODEL('Excavation work', 's 6.3')),
+        src('Props and walers are lifted with plant designed to lift them, never over people, and slung by a licensed dogger. An excavator is used to lift only where plant designed to lift is not reasonably practicable, and it creates no greater risk.', WHS('s 219, schedule 3')),
+        'Anchor stressing and de-stressing are done by the anchor contractor to the engineer\'s procedure, with an exclusion zone around and behind the jack.',
+        src('Anchor loads are checked with hydraulic jacks and pressure gauges.', MODEL('Excavation work', 's 6.2')),
+        src('Anchors drilled under the street or neighbouring land are checked against the underground services information for those areas.', `${WHS('s 304')}; ${MODEL('Excavation work', 's 3.5')}`),
+      ],
+    }],
+  },
+  {
+    when: 'detailDig',
+    steps: [{
+      step: 'Excavate pile caps, lift pits and trenches',
+      hazards: ['The sides collapse and bury a worker.', 'A fall into a pit or trench.', 'Striking underground services.', 'Exhaust fumes in a pit.'],
+      controls: [
+        { fact: 'trenchSupport' },
+        src('Every side of a trench or pit 1.5 m deep or more is supported by shoring, benching or battering, unless a geotechnical engineer advises in writing, for a stated period, that it is safe. Support it at any depth where there is a risk of engulfment.', `${WHS('s 306')}; ${MODEL('Excavation work', 's 5.1')}`),
+        src('Trenches and pits are secured from unauthorised or accidental entry. Lift pits have a lockable cover or a guard rail with a gate.', `${WHS('s 306')}; ${MODEL('Excavation work', 's 5.3')}`),
+        src('Get the underground services information and pothole to confirm services before digging.', `${WHS('s 304')}; ${MODEL('Excavation work', 's 3.5')}`),
+        src('No combustion engine plant in a trench or pit while workers are in it. Check the atmosphere before starting.', MODEL('Excavation work', 's 4.6')),
+        src('Trench shields protect workers if a collapse happens, but do not support the ground: they are not loaded beyond their design, and are used to the manufacturer\'s instructions. Enter sheeted areas only by ladder.', MODEL('Excavation work', 's 6.2, s 6.4')),
+        src('Barriers go up around a pit or trench as it is dug, before it is deeper than 2 m.', WHS('s 306D')),
+        src('A competent person inspects the sides and support often, and after rain.', MODEL('Excavation work', 's 6.6')),
+      ],
+    }],
+  },
+  {
+    when: 'dewatering',
+    steps: [{
+      step: 'Dewater the excavation',
+      hazards: ['Water softens the faces and undermines the support.', 'Flooding traps workers.', 'Boiling or piping of sandy ground.'],
+      controls: [
+        src('The dewatering system is planned, and pumps stop water building up.', MODEL('Excavation work', 's 2.3, s 4')),
+        src('Support is designed for groundwater pressure and saturated soil. Watch for boils in sandy ground.', MODEL('Excavation work', 's 4.1, s 6')),
+        src('Faces and support are inspected often as the water table changes. Spoil is placed to channel runoff away from the excavation.', MODEL('Excavation work', 's 4.1, s 6.6')),
+        src('The emergency plan covers flooding and rescue from the excavation.', MODEL('Excavation work', 's 3.7')),
+      ],
+    }],
+  },
+  {
+    when: 'contaminatedSpoil',
+    steps: [{
+      step: 'Handle contaminated or unknown material in the spoil',
+      hazards: ['Exposure to contaminated soil, gases or asbestos.', 'Gases collecting in the excavation.'],
+      controls: [
+        src('Workers are trained to recognise buried contaminants and what to do: stop, keep clear, and report.', MODEL('Excavation work', 's 2.1, s 4')),
+        src('Manage exposure to airborne contaminants in the excavation, with gas monitors and mechanical ventilation where needed.', `${WHS('s 305')}; ${MODEL('Excavation work', 's 4, s 4.6')}`),
+        src('If asbestos is found or suspected, stop and keep clear. A competent person identifies it, or it is assumed to be asbestos, and it is removed by a licensed asbestos removalist unless the regulation allows otherwise.', WHS('s 422, s 458')),
+        src('Plan haul routes and disposal for spoil.', MODEL('Excavation work', 's 2.2')),
+      ],
+    }],
+  },
+  {
+    when: 'basementEdge',
+    steps: [{
+      step: 'Protect the basement edge and provide access',
+      hazards: ['A fall from the basement edge.', 'Spoil or objects fall onto workers below.', 'No safe way in or out.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Edge protection at the basement edge before a fall of 2 m or more is possible: top rail at least 900 mm, toe board at least 150 mm, and no more than 450 mm between rails.', WHS('s 306D, s 306E')),
+        src('Toe boards where spoil could fall in.', MODEL('Excavation work', 's 4.1')),
+        src('Safe access and exit: scaffold stairs or landing platforms in deep excavations, and emergency exits.', `${WHS('s 78')}; ${MODEL('Excavation work', 's 4.4')}`),
+        src('Ladders are for access only, industrial and rated for at least 120 kg, set at 4 to 1 and secured.', MODEL('Managing the risk of falls', 's 9.1')),
+      ],
+    }],
+  },
+  {
+    when: 'neighbours',
+    steps: [{
+      step: 'Protect neighbouring buildings and the street',
+      hazards: ['A neighbouring building moves, cracks or floods.', 'The public is struck by plant or falling material.', 'Traffic loads collapse the edge near the street.'],
+      controls: [
+        src('No digging until steps are taken to prevent collapse of neighbouring buildings. Digging below their footings is assessed by a competent person and supported. Vibration and flooding of neighbours are controlled.', MODEL('Excavation work', 's 3.4')),
+        src('Underground services information covers adjacent areas too.', WHS('s 304')),
+        src('The site is secured from unauthorised access, and the edge near the street is supported against traffic loads.', `${WHS('s 298')}; ${MODEL('Excavation work', 's 5.1')}`),
+        'Trained traffic controllers direct trucks in and out of the site under the principal contractor\'s traffic management plan.',
+      ],
+    }],
+  },
+  {
+    when: 'tileCut',
+    steps: [{
+      step: 'Cut tiles and stone',
+      hazards: ['Silica dust from cutting tiles and stone.', 'Cuts and flying fragments from saws and grinders.', 'Noise.', 'Electric shock from tools used with water.'],
+      controls: [
+        { fact: 'silicaControls' },
+        src('Tiles and stone with 1% or more crystalline silica are a crystalline silica substance. Cutting them with power tools is processing that must be controlled: wet cutting or on-tool extraction, and respirators for anyone still at risk.', WHS('s 529A, s 529B, s 529C')),
+        src('Assess in writing before cutting whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('No engineered stone benchtops, panels or slabs are cut or installed. Ceramic and porcelain tiles and grout are not engineered stone.', WHS('s 529A, s 529D')),
+        'No dry cutting without wet cutting or extraction, unless neither is reasonably practicable and that is recorded. Anyone still at risk while cutting wears a fit tested respirator.',
+        src('Where it is uncertain whether dust is below the exposure standard, monitor the air and keep the results for 30 years. For high risk processing, results above the exposure standard are reported to the regulator within 14 days.', WHS('s 49, s 50, s 529CE')),
+        src('Health monitoring for workers at significant risk from crystalline silica.', WHS('s 368, schedule 14')),
+        src('Saw and grinder guards are in place and hard to bypass. Isolate the cutting area, wear a face shield, and replace worn blades and wheels.', `${WHS('s 208')}; ${MODEL('Managing the risks of plant in the workplace', 's 2.2, s 3.5')}`),
+        src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Hearing protection is worn for the whole time of the noise. Workers who must wear it have hearing tests within 3 months and at least every 2 years.', `${WHS('s 56, s 57, s 58')}; ${MODEL('Managing noise and preventing hearing loss', 's 5.3, s 5.4')}`),
+        src('Use RCD protected tools and leads, keep leads off wet floors and out of access ways, and inspect tools regularly.', `${MODEL('Construction work', 's 3.3')}; ${MODEL('Managing the risks of plant in the workplace', 's 3.5')}`),
+      ],
+    }],
+    ppe: ['p2', 'earMuffs', 'faceShield', 'gumboots'],
+  },
+  {
+    when: 'tileMix',
+    steps: [{
+      step: 'Mix and apply adhesives, grouts, screeds and sealers',
+      hazards: ['Cement dust and skin burns from wet cement products.', 'Skin sensitisation from epoxy grouts and sealers.', 'Vapour from sealers.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        src('The current safety data sheet for each product is at the work area before first use, and every container, including anything decanted, is labelled.', WHS('s 341, s 342, s 344')),
+        src('Ventilate when using solvent sealers, especially in small bathrooms, and keep ignition sources away.', `${WHS('s 351, s 355')}; ${MODEL('Managing risks of hazardous chemicals', 's 4.1')}`),
+        src('Keep dust below the exposure standard. Mix bagged products with dust control, keep containers closed, vacuum or wet clean instead of dry sweeping, and clean spills straight away.', `${WHS('s 49')}; ${MODEL('Managing risks of hazardous chemicals', 's 4.1')}`),
+        src('Avoid skin contact with cement and epoxy: wear chemical resistant gloves suited to the product. No eating, drinking or smoking in the work area, and wash before breaks.', MODEL('Managing risks of hazardous chemicals', 's 4.1, appendix J')),
+      ],
+    }],
+    ppe: ['gloveChemical', 'goggles', 'p2'],
+  },
+  {
+    when: 'tileLay',
+    steps: [{
+      step: 'Lay tiles',
+      hazards: ['Knee and back injury from long periods kneeling.', 'Strain lifting tile boxes and adhesive bags.', 'Slips on wet slurry.'],
+      controls: [
+        src('Kneeling while laying tiles is a hazardous manual task. Rotate tasks and take short, frequent breaks.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 2.2, s 4.9')}`),
+        src('Buy smaller or lighter bags and boxes where possible, have materials delivered to the hoist or work area, move them between levels by hoist, and use trolleys.', `${MODEL('Hazardous manual tasks', 's 4.1, s 4.4, s 4.5, s 4.7')}; ${MODEL('Construction work', 's 3.3')}`),
+        src('Use panel lifters or trolleys for heavy stone and large format tiles.', MODEL('Hazardous manual tasks', 's 4.5')),
+        'Wear knee pads.',
+        src('Keep access ways clear, put waste in bins, and clean up slurry so floors are not slippery.', MODEL('Construction work', 'appendix K')),
+      ],
+    }],
+  },
+  {
+    when: 'tileEdge',
+    steps: [{
+      step: 'Tile balconies and terraces near edges',
+      hazards: ['A fall from the balcony edge.', 'Tiles, offcuts or tools fall onto people below.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Edge protection stays in place: top rail at least 900 mm above the finished surface (the falls code suggests 900 mm to 1100 mm), no more than 450 mm between rails, and a toe board at least 150 mm high. Recheck the height after screeding and tiling raise the floor.', `${WHS('s 306D, s 306E')}; ${MODEL('Managing the risk of falls', 's 5.2')}`),
+        src('Do not stack tiles or bags near edges, and secure offcuts against wind.', MODEL('Construction work', 'appendix K')),
+        src('Stop objects falling freely, and do not work above other trades.', `${WHS('s 55')}; ${MODEL('Managing the risk of falls', 's 8.3')}`),
+      ],
+    }],
+  },
+  {
+    when: 'steelLift',
+    steps: [{
+      step: 'Lift and land steel with the crane company',
+      hazards: ['A steel member falls or swings into a person.', 'A badly slung load.'],
+      controls: [
+        { fact: 'craneCompany' },
+        src('Structural steel erection is basic rigging work, which includes dogging. Slinging and directing loads out of the operator\'s view is dogging. Sight each licence before work.', WHS('s 81, s 85, schedule 3, schedule 19')),
+        src('Lifting gear suits the load, lifts stay within the crane\'s limits, no loads over people, and the load stays under control with tag lines.', WHS('s 219')),
+        src('Enclose the area under the lift and use a spotter at ground level.', MODEL('Construction work', 'appendix K')),
+        src('Our SWMS and the crane company\'s are coordinated before lifts start.', MODEL('Construction work', 's 4.2')),
+      ],
+    }],
+  },
+  {
+    when: 'steelErect',
+    steps: [{
+      step: 'Erect and connect steel at height',
+      hazards: ['A fall while connecting.', 'The partly built structure collapses.', 'Tools and bolts fall onto people below.'],
+      controls: [
+        { fact: 'fallControl' },
+        { fact: 'erectionSequence' },
+        src('Follow the designer\'s erection sequence, and brace and secure members as they go up so the structure stays stable.', MODEL('Construction work', 'appendix D, appendix K')),
+        src('Prevent falls first, with EWPs or edge protection. Fall arrest only where prevention is not practicable.', WHS('s 306D')),
+        src('In a boom EWP, the harness is attached to the EWP\'s anchor point, not the handrail. Boom EWPs of 11 m or more need a licensed operator.', `${MODEL('Managing the risk of falls', 's 5.1')}; ${WHS('schedule 3')}`),
+        src('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', WHS('s 80, s 306I')),
+        src('Tool lanyards, and catch platforms or nets. Safety nets and static lines are installed by licensed riggers or scaffolders.', `${MODEL('Construction work', 'appendix K')}; ${MODEL('Managing the risk of falls', 's 7.2')}`),
+      ],
+    }],
+    ppe: ['harness', 'chinStrap'],
+  },
+  {
+    when: 'steelWeld',
+    steps: [{
+      step: 'Bolt and weld steel',
+      hazards: ['Welding fume, including zinc fume from galvanised steel.', 'Arc flash to people nearby.', 'Fire from sparks.', 'Electric shock.'],
+      controls: [
+        { fact: 'hotWorkPermit' },
+        src('Identify coatings before welding, and keep fume below the exposure standard. Galvanised steel gives off zinc oxide fume.', `${WHS('s 49')}; ${MODEL('Welding processes', 's 3.1, appendix B')}`),
+        src('Screens and signs protect people nearby from arc flash.', MODEL('Welding processes', 's 3.2')),
+        src('Hot work permit, fire-resistant barriers, fire-fighting equipment at hand, cylinders secured, and flashback arrestors fitted.', MODEL('Welding processes', 's 3.4')),
+        src('No welding from ladders, and no hot work above safety nets.', `${MODEL('Welding processes', 's 3.9')}; ${MODEL('Managing the risk of falls', 's 7.2')}`),
+        src('Fully insulated electrode holders and dry welding gloves.', MODEL('Welding processes', 's 3.3')),
+      ],
+    }],
+    ppe: ['gloveWelding', 'filterEye', 'longs'],
+  },
+  {
+    when: 'masonryCut',
+    steps: [{
+      step: 'Cut blocks and bricks',
+      hazards: ['Silica dust from cutting.', 'Noise.', 'Cuts and flying fragments.'],
+      controls: [
+        { fact: 'silicaControls' },
+        src('Bricks and blocks are not engineered stone, but cutting them with power tools is processing crystalline silica and must be controlled: wet cutting or on-tool extraction, and respirators for anyone still at risk.', WHS('s 529A, s 529B, s 529C')),
+        src('Assess in writing before cutting whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak, reducing it at the source first. Workers who must wear hearing protection have hearing tests within 3 months and at least every 2 years.', `${WHS('s 56, s 57, s 58')}; ${MODEL('Managing noise and preventing hearing loss', 's 5.4')}`),
+        src('Use a noise-reduced saw blade. Guard the blade, isolate the cutting area and wear a face shield.', `${MODEL('Construction work', 's 3.3')}; ${MODEL('Managing the risks of plant in the workplace', 's 2.3')}`),
+      ],
+    }],
+    ppe: ['p2', 'earMuffs', 'faceShield'],
+  },
+  {
+    when: 'masonryLay',
+    steps: [{
+      step: 'Lay blocks and bricks',
+      hazards: ['Back strain from repetitive lifting of blocks.', 'A fall from a scaffold or trestle.', 'A new wall collapses before it cures.'],
+      controls: [
+        src('Crane or hoist blocks to the work face, and stage them between waist and shoulder height. Training in lifting technique is not the main control.', `${MODEL('Construction work', 's 3.3')}; ${MODEL('Hazardous manual tasks', 's 4.3, s 4.9')}`),
+        src('Work from scaffold with brick guards where a fall of more than 2 m is possible, and do not overload bays (the code\'s example limit is 400 kg of blocks a bay). A scaffold over 4 m is used only after written handover, and inspected at least every 30 days.', `${WHS('s 225')}; ${MODEL('Construction work', 'appendix F')}`),
+        src('Trestles at 2 m or more are secured, with edge protection, a platform at least 450 mm wide and no higher than 5 m. Use only purpose-made pins.', `${WHS('s 306N, s 306O')}; ${MODEL('Managing the risk of falls', 's 5.1')}`),
+        src('Brace new walls until they are complete and cured.', MODEL('Construction work', 'appendix F')),
+        src('Secure the scaffold, for example by removing access ladders, when leaving site.', MODEL('Construction work', 's 2.1')),
+      ],
+    }],
+  },
+  {
+    when: 'masonryGrout',
+    steps: [{
+      step: 'Mix mortar and core fill',
+      hazards: ['Cement burns and dermatitis.', 'Strain lifting bags.', 'A concrete placing boom strikes a person.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        'Avoid skin contact with wet mortar and grout: gloves, long sleeves and eye protection, and wash skin straight away.',
+        src('Move bags with mechanical aids rather than carrying them.', MODEL('Hazardous manual tasks', 's 2.2, s 4.5')),
+        src('A concrete placing boom used for core filling has a registered design and a licensed operator. Never stand under a working boom.', WHS('schedule 3, schedule 5')),
+      ],
+    }],
+    ppe: ['gloveChemical', 'goggles'],
+  },
+  {
+    when: 'masonryEdge',
+    steps: [{
+      step: 'Work near slab edges',
+      hazards: ['A fall from the slab edge.', 'Blocks or tools fall onto people below.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Edge protection: top rail at least 900 mm, toe board at least 150 mm, no more than 450 mm between rails. Openings covered with fixed covers.', WHS('s 306D, s 306E, s 306F')),
+        src('No stacking near unmeshed edges. Perimeter screens and toe boards stop falling objects.', `${WHS('s 55')}; ${MODEL('Construction work', 'appendix K')}`),
+        src('No trades working directly above or below each other.', MODEL('Managing the risk of falls', 's 8.3')),
+      ],
+    }],
+  },
+  {
+    when: 'plasterSheets',
+    steps: [{
+      step: 'Move and fix plasterboard sheets',
+      hazards: ['Back and shoulder strain from carrying and holding sheets.', 'Arms overhead fixing ceilings.'],
+      controls: [
+        src('Use sheet lifters and suction pads or hooks, with training in each aid. Have sheets delivered to the floor where they are used.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5, s 4.7')),
+        src('Holding sheets while fixing and working with arms overhead are hazardous postures: use lifters to hold ceiling sheets.', MODEL('Hazardous manual tasks', 's 2.2')),
+        src('Team lifts are an interim control only, with one person in charge. Training in lifting technique is not the main control.', MODEL('Hazardous manual tasks', 's 4.9')),
+      ],
+    }],
+  },
+  {
+    when: 'plasterHeight',
+    steps: [{
+      step: 'Fix ceilings and bulkheads at height',
+      hazards: ['A fall from a mobile scaffold or ladder.'],
+      controls: [
+        src('Work from the floor or a platform where possible. Ladders only after scaffolds and EWPs are considered.', `${WHS('s 78, s 79')}; ${MODEL('Managing the risk of falls', 's 9')}`),
+        src('Mobile scaffolds: castors locked before anyone gets on, never moved with anyone on it, and kept clear of open edges and penetrations.', MODEL('Managing the risk of falls', 's 5.1')),
+        src('Ladders are industrial and rated for at least 120 kg. Use step platforms rather than plain stepladders, never stand above the second tread below the top of a stepladder, and never use two-handed tools on a ladder.', `${WHS('s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
+      ],
+    }],
+  },
+  {
+    when: 'plasterSanding',
+    steps: [{
+      step: 'Cut, set and sand',
+      hazards: ['Dust from sanding and cutting.', 'Silica dust where products contain crystalline silica.'],
+      controls: [
+        src('Keep dust below the exposure standard, and monitor the air if unsure. Check each product\'s safety data sheet: if it has 1% or more crystalline silica, power sanding or cutting it is controlled silica processing.', WHS('s 49, s 50, s 529A, s 529B')),
+        src('Sanders with dust extraction. Pre-mixed compounds instead of mixing powders.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
+        src('Vacuum or wet clean, never dry sweep. Respirators where dust exposure remains.', `${MODEL('Managing risks of hazardous chemicals', 'appendix J')}; ${MODEL('Construction work', 'appendix K')}`),
+      ],
+    }],
+    ppe: ['p2', 'glassesClear'],
+  },
+  {
+    when: 'paintSpray',
+    steps: [{
+      step: 'Spray paint with airless sprayers',
+      hazards: ['Injection injury from the spray tip.', 'Breathing spray mist and vapour.', 'Fire or explosion from flammable vapour.'],
+      controls: [
+        src('Spraying makes a hazardous airborne concentration likely. Ventilate, and wear the respirator the safety data sheet lists, even with other controls in place. Two-pack isocyanate paints: full-face air-fed respirators.', MODEL('Managing risks of hazardous chemicals', 's 3.3, s 4.1')),
+        src('No ignition sources where flammable vapour may be present. Earthed and intrinsically safe equipment, and static controlled.', `${WHS('s 355')}; ${MODEL('Managing risks of hazardous chemicals', 's 4.2')}`),
+        'Never point the gun at anyone. Tip guard and trigger lock on, and release pressure before cleaning or changing tips. An injection injury is a medical emergency, even if it looks minor.',
+      ],
+    }],
+    ppe: ['halfFace', 'coveralls', 'goggles'],
+  },
+  {
+    when: 'paintExternal',
+    steps: [{
+      step: 'Paint the outside of the building at height',
+      hazards: ['A fall from the EWP or swing stage.', 'Paint or tools fall onto people below.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Prevent falls first. In a boom EWP, the harness is attached to the EWP\'s anchor point, not the handrail. Boom EWPs of 11 m or more need a licensed operator. EWPs only on solid level ground and in suitable wind.', `${WHS('s 306D')}; ${MODEL('Managing the risk of falls', 's 5.1')}`),
+        src('On a swing stage, everyone wears a harness anchored to the stage, operators are trained, and installers hold an advanced rigging or scaffolding licence.', MODEL('Managing the risk of falls', 's 5.1')),
+        src('Exclusion zone below, and sun protection.', `${WHS('s 55')}; ${MODEL('Construction work', 'appendix K')}`),
+      ],
+    }],
+    ppe: ['harness', 'sunHat'],
+  },
+  {
+    when: 'floorGrind',
+    steps: [{
+      step: 'Prepare and grind floors',
+      hazards: ['Silica dust from grinding concrete.', 'Noise.'],
+      controls: [
+        { fact: 'silicaControls' },
+        src('Grinding concrete is processing crystalline silica and must be controlled: wet suppression, on-tool extraction or local exhaust, and respirators for anyone still at risk.', WHS('s 529A, s 529B, s 529C')),
+        src('Assess in writing before grinding whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak, reducing it at the source first. Workers who must wear hearing protection have hearing tests within 3 months and at least every 2 years.', `${WHS('s 56, s 57, s 58')}; ${MODEL('Managing noise and preventing hearing loss', 's 5.4')}`),
+        src('Inspect grinders and replace worn wheels.', MODEL('Managing the risks of plant in the workplace', 's 3.5')),
+      ],
+    }],
+    ppe: ['p2', 'earMuffs'],
+  },
+  {
+    when: 'floorAdhesive',
+    steps: [{
+      step: 'Apply adhesives and levelling compounds',
+      hazards: ['Solvent vapour collecting at floor level.', 'Fire from flammable adhesive vapour.', 'Skin contact.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        src('The current safety data sheet is at the work area and the product is on the register.', WHS('s 344, s 346')),
+        src('Use nails, or less volatile and less flammable adhesives, where possible. Pre-mixed levelling products instead of dry powders.', MODEL('Managing risks of hazardous chemicals', 's 4.1, appendix J')),
+        src('Vapour heavier than air collects near the floor: ventilate, and keep ignition sources out.', `${WHS('s 355')}; ${MODEL('Managing risks of hazardous chemicals', 's 4.1')}`),
+        src('Wear the gloves the safety data sheet lists, and contain spills.', `${WHS('s 357')}; ${MODEL('Managing risks of hazardous chemicals', 's 4.2')}`),
+      ],
+    }],
+    ppe: ['gloveChemical'],
+  },
+  {
+    when: 'floorLay',
+    steps: [{
+      step: 'Lay carpet, vinyl and timber floors',
+      hazards: ['Knee injury from kneeling and knee kickers.', 'Strain moving rolls.', 'Timber dust.'],
+      controls: [
+        src('Kneeling to lay floor coverings is a hazardous posture: rotate tasks, take short frequent breaks, and wear knee pads. Use a power stretcher instead of a knee kicker where possible.', MODEL('Hazardous manual tasks', 's 2.2, s 3.3, s 4.1, s 4.9')),
+        src('Move rolls with trolleys or hand trucks, pushing rather than pulling, and order smaller loads or move large rolls mechanically.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5')),
+        src('Control dust from cutting timber flooring.', MODEL('Managing risks of hazardous chemicals', 's 2.1')),
       ],
     }],
   },
@@ -1538,8 +2077,7 @@ const ACTIVITIES = [
         hazards: ['Low oxygen, or toxic or flammable gas.', 'Engulfment or entrapment.'],
         controls: [
           { fact: 'confinedSpace' },
-          src('Install so that entry is not needed where possible, for example pumps on guide rails that lift out from above.', WHS('s 64')),
-          src('A competent person does a written risk assessment first, including whether the work can be done without entering.', WHS('s 66')),
+                    src('A competent person does a written risk assessment first, including whether the work can be done without entering.', WHS('s 66')),
           src('Workers are trained in the hazards, controls, permit and emergency procedures, with training records kept for 2 years.', WHS('s 76')),
           src('No one enters without a written entry permit from a competent person, naming the space, the people entering, the time and the controls.', WHS('s 65, s 67')),
           src('Signs at each entry say it is a confined space and not to enter without a permit.', WHS('s 68')),
@@ -1569,6 +2107,86 @@ const ACTIVITIES = [
       },
     ],
     ppe: ['harness'],
+  },
+  {
+    when: 'wpPrep',
+    steps: [{
+      step: 'Prepare surfaces by grinding',
+      hazards: ['Silica dust from grinding concrete.', 'Noise.', 'Flying particles.'],
+      controls: [
+        { fact: 'silicaControls' },
+        src('Grinding concrete is processing a crystalline silica substance and must be controlled: wet suppression, on-tool extraction or local exhaust, and respirators worn by anyone still at risk.', WHS('s 529B, s 529C')),
+        src('Assess in writing before grinding whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Where it is uncertain whether dust is below the exposure standard, monitor the air.', WHS('s 50')),
+        src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Wear hearing protection near grinders.', `${WHS('s 56, s 57')}; ${MODEL('Construction work', 'appendix K')}`),
+        src('Vacuum or wet clean dust, never dry sweep.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
+      ],
+    }],
+    ppe: ['p2', 'earMuffs', 'glassesClear'],
+  },
+  {
+    when: 'wpLiquid',
+    steps: [{
+      step: 'Apply primers and liquid membranes',
+      hazards: ['Breathing vapour from primers and membranes.', 'Fire from flammable vapour where solvent-based products are used.', 'Skin and eye contact.', 'Knee strain from long periods kneeling.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        src('The current safety data sheet for each product is at the work area, the product is on the hazardous chemicals register, and anything decanted is labelled.', WHS('s 342, s 344, s 346')),
+        src('Use a less hazardous product where possible, such as a water-based membrane instead of a solvent or two-part epoxy system.', MODEL('Construction work', 's 3.3')),
+        src('Keep vapour below the exposure standard. Vapour heavier than air collects low down: extract from the lowest point and bring fresh air in from above.', `${WHS('s 49')}; ${MODEL('Managing risks of hazardous chemicals', 's 3.4, s 4.1')}`),
+        src('No ignition sources where flammable vapour may be present. Keep only small quantities at the work area.', WHS('s 53, s 355')),
+        src('Lids stay on except when pouring, and spills are contained and cleaned up straight away.', `${WHS('s 357')}; ${MODEL('Managing risks of hazardous chemicals', 's 4.2')}`),
+        src('Wear gloves resistant to the product used, and no eating, drinking or smoking in the work area.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
+        src('Where solvent-based products are used, fans and electrical equipment are designed for hazardous areas.', MODEL('Managing risks of hazardous chemicals', 's 4.2')),
+        src('Long periods kneeling are a hazardous manual task: rotate tasks and use knee pads.', MODEL('Hazardous manual tasks', 's 2.2')),
+      ],
+    }],
+    ppe: ['gloveChemical', 'goggles', 'halfFace'],
+  },
+  {
+    when: 'wpTorch',
+    steps: [{
+      step: 'Lay torch-on membranes',
+      hazards: ['Fire from the torch and hot bitumen.', 'LPG cylinder leaks or flashback.', 'Burns and heat stress.'],
+      controls: [
+        { fact: 'hotWorkPermit' },
+        src('A hot work permit is issued before torching. Bitumen is a combustible fuel: clear rubbish and other fuel from the area, and keep fire-fighting equipment at the work area.', `${MODEL('Managing risks of hazardous chemicals', 's 4.2, appendix H')}; ${MODEL('Welding processes', 's 3.4')}`),
+        src('LPG cylinders are upright and secured, have a working relief valve, and valves are closed when not in use. Flashback arrestors are fitted, hoses have crimped or permanent clips, and fittings are leak tested with detergent or leak spray.', `${MODEL('Managing risks of hazardous chemicals', 's 4.2')}; ${MODEL('Welding processes', 's 3.4, s 3.6')}`),
+        src('Gas heavier than air collects in pits and low areas. No torching in pits, sumps or enclosed spaces.', MODEL('Welding processes', 's 3.6')),
+        src('Avoid contact with hot surfaces, wear heat resistant gloves, drink cool water and take regular rest breaks.', MODEL('Welding processes', 's 3.5')),
+        'A fire watch stays after torching ends, for the time set in the principal contractor\'s hot work permit.',
+      ],
+    }],
+    ppe: ['gloveWelding', 'longs'],
+  },
+  {
+    when: 'wpEdge',
+    steps: [{
+      step: 'Work at edges',
+      hazards: ['A fall from the edge.', 'Materials or tools fall or blow off the edge.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Work from a solid surface with edge protection before a fall of 2 m or more is possible: top rail at least 900 mm, rails no more than 450 mm apart, toe board at least 150 mm.', WHS('s 78, s 306D, s 306E')),
+        src('Openings are covered with fixed covers that take a fall.', WHS('s 306F')),
+        src('Where travel restraint is used, it stops the wearer reaching the edge. Fall arrest is used only with someone on site who can rescue.', MODEL('Managing the risk of falls', 's 6.1, s 7.3')),
+        src('No materials stacked near edges, and loose material is secured against wind.', MODEL('Construction work', 'appendix K')),
+      ],
+    }],
+    ppe: ['sunHat'],
+  },
+  {
+    when: 'wpRolls',
+    steps: [{
+      step: 'Move membrane rolls and materials',
+      hazards: ['Back strain lifting rolls and drums.', 'Long periods kneeling.'],
+      controls: [
+        src('Rolls and drums are delivered by crane or hoist to where they are used, ordered in smaller loads for handling, and moved with trolleys.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5, s 4.7')),
+        src('Team lifts are an interim control only, with one person in charge.', MODEL('Hazardous manual tasks', 's 4.9')),
+        src('Hoist loads stay within the rated load and under control, landing gates stay closed except while loading, and no one stands under a load being lifted.', `${WHS('s 219')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
+        src('Long periods kneeling are a hazardous manual task: rotate tasks and use knee pads.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 2.2')}`),
+      ],
+    }],
   },
   {
     when: 'pressureTest',
@@ -1615,7 +2233,8 @@ const ACTIVITIES = [
         hazards: ['Breathing in solvent fumes.', 'Fire from flammable vapour.'],
         controls: [
           { fact: 'safetyDataSheet' },
-          'Ventilate the area: open doors and windows, and use fans if needed.',
+          src('The current safety data sheet is at the work area, the product is on the register, and containers are labelled. Use water-based paint instead of solvent-based paint where possible.', `${WHS('s 341, s 344, s 346')}; ${MODEL('Construction work', 's 3.3')}`),
+          src('Ventilate as the label says: natural ventilation suits only small amounts of low toxicity products. Use fans or extraction otherwise.', MODEL('Managing risks of hazardous chemicals', 's 4.1, s 4.2')),
           'No smoking, flames or sparks in the area.',
         ],
       },
@@ -1623,7 +2242,9 @@ const ACTIVITIES = [
         step: 'Paint',
         hazards: ['Paint on the skin or in the eyes.', 'Trips over drop sheets and tins.'],
         controls: [
-          'Wear the gloves and eye protection the safety data sheet lists.',
+          src('Wear gloves suited to the solvent in use, and the eye protection the safety data sheet lists.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
+          src('Painting is a repetitive task: rotate tasks and use extension poles.', MODEL('Hazardous manual tasks', 's 2.2')),
+          src('Painters exposed to solvents and noise together keep noise to 80 dB(A) or below.', MODEL('Managing noise and preventing hearing loss', 'appendix B')),
           'Keep only the paint needed in the work area, with lids on when not in use.',
         ],
       },
@@ -1673,7 +2294,10 @@ function jobStepsFor(flags, factText, fallback) {
   let found = ACTIVITIES.filter((activity) => flags[activity.when]);
   const replaced = new Set(found.flatMap((activity) => activity.replaces || []));
   found = found.filter((activity) => !replaced.has(activity.when));
-  const middle = found.length ? found.flatMap((activity) => activity.steps) : [fallback];
+  let middle = found.length ? found.flatMap((activity) => activity.steps) : [fallback];
+  // Work done inside a confined space happens before the permit is closed.
+  const close = middle.filter((step) => step.step === 'Leave and close up');
+  middle = [...middle.filter((step) => step.step !== 'Leave and close up'), ...close];
   const before = {
     ...BEFORE,
     controls: [...BEFORE.controls, ...BEFORE_EXTRA.filter((item) => flags[item.when]).flatMap((item) => expand(item.text, factText, flags.cite))],

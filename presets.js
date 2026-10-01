@@ -7,8 +7,8 @@ const fs = require('fs');
 const path = require('path');
 
 const PROJECTS = path.join(__dirname, 'scenarios', 'projects');
-const TRADE_ORDER = ['piling', 'structure', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade'];
-const TRADE_NAMES = { piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
+const TRADE_ORDER = ['piling', 'excavation', 'structure', 'scaffolding and hoists', 'structural steel', 'waterproofing', 'masonry', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade', 'carpentry fit-out', 'plasterboard and ceilings', 'tiling', 'painting', 'flooring'];
+const TRADE_NAMES = { 'scaffolding and hoists': 'Scaffolding and hoists', 'structural steel': 'Structural steel', masonry: 'Masonry', 'plasterboard and ceilings': 'Plasterboard and ceilings', painting: 'Painting', flooring: 'Flooring', excavation: 'Excavation (basement)', waterproofing: 'Waterproofing', 'carpentry fit-out': 'Carpentry fit-out', tiling: 'Tiling', piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
 
 function loadTrades() {
   return fs.readdirSync(PROJECTS)
@@ -85,6 +85,12 @@ const ANSWERS = {
   ],
   confinedSpace: [
     ['Permit entry', 'Entry only under a confined space entry permit, with atmospheric testing before and during entry, a standby person at the opening, and a practised rescue plan.'],
+  ],
+  erectionSequence: [
+    ['Designer\'s sequence', 'Steel is erected to the designer\'s sequence on drawing ____ (revision ____), with temporary bracing as shown, and ____ checks the structure is stable before connections are released.'],
+  ],
+  excavationPlan: [
+    ['Geotechnical design', 'Excavation follows the geotechnical design ____ (revision ____) in stages to the levels shown, with batters no steeper than ____, and plant and trucks follow the site traffic management plan ____.'],
   ],
   rigExclusionZone: [
     ['Fenced radius', 'Each rig has a fenced and signed exclusion zone of ____ m radius (at least the mast height plus ____ m). Only the rig crew enters, with the operator\'s agreement, controlled by the piling supervisor.'],

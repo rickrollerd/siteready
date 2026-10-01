@@ -132,6 +132,8 @@ function draftBody(body) {
       plantIsolation: field(facts.plantIsolation, 2000),
       pilingPlatform: field(facts.pilingPlatform, 2000),
       rigExclusionZone: field(facts.rigExclusionZone, 2000),
+      excavationPlan: field(facts.excavationPlan, 2000),
+      erectionSequence: field(facts.erectionSequence, 2000),
       confinedSpace: field(facts.confinedSpace, 2000),
       temporarySupport: field(facts.temporarySupport, 2000),
       electricalSafety: field(facts.electricalSafety, 2000),

@@ -1,0 +1,146 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: excavation",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "bulk",
+      "title": "Bulk excavation of the basement",
+      "task": "Bulk excavate the 3 level basement inside the piled retention wall with excavators, loading trucks on the haul ramp, next to the neighbouring buildings and the street.",
+      "fallRisk": "yes",
+      "facts": {
+        "excavationPlan": "Excavation follows the geotechnical design GT-01 (revision C) in stages to the levels shown, with batters no steeper than 1 to 1, and plant and trucks follow the site traffic management plan TMP-02.",
+        "fallControl": "Edge protection is installed along the basement edge before excavation goes below 2 m, and access is by a scaffold stair."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Bulk excavate and load trucks",
+          "Protect the basement edge and provide access",
+          "Protect neighbouring buildings and the street"
+        ],
+        "missing": [
+          "Fall control",
+          "Excavation and traffic plan"
+        ]
+      }
+    },
+    {
+      "id": "anchors",
+      "title": "Staged excavation, ground anchors and props",
+      "task": "Bulk excavate with excavators in stages in front of the retention wall, installing and stressing ground anchors and temporary props at each stage, and later de-stressing the anchors and removing the props.",
+      "fallRisk": "yes",
+      "facts": {
+        "excavationPlan": "Excavation follows the geotechnical design GT-01 (revision C) in stages to the levels shown, with batters no steeper than 1 to 1, and plant and trucks follow the site traffic management plan TMP-02.",
+        "fallControl": "Edge protection is installed along the basement edge before excavation goes below 2 m, and access is by a scaffold stair.",
+        "temporarySupport": "Ground anchors and props are to the geotechnical engineer's design GT-04 (revision B), with each stage approved by the engineer before excavation continues."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Bulk excavate and load trucks",
+          "Install, stress and later remove ground anchors and props",
+          "Protect the basement edge and provide access"
+        ],
+        "missing": [
+          "Fall control",
+          "Excavation and traffic plan"
+        ]
+      }
+    },
+    {
+      "id": "detail",
+      "title": "Detailed excavation for pile caps and lift pits",
+      "task": "Detailed excavation for the pile caps and lift pits up to 2.5 m deep in the basement with a 5 tonne excavator.",
+      "fallRisk": "yes",
+      "facts": {
+        "trenchSupport": "Pile caps and lift pits 1.5 m deep or more are battered, or shored to the engineer's design, or protected by a trench shield to the supplier's engineer's design.",
+        "fallControl": "Mesh barriers go up 1.5 m back around each pile cap and lift pit as it is dug, before it is deeper than 2 m."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "trench",
+          "plant"
+        ],
+        "steps": [
+          "Excavate pile caps, lift pits and trenches"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "dewater",
+      "title": "Dewatering and contaminated spoil",
+      "task": "Bulk excavate the basement with excavators below the groundwater level with dewatering pumps, and handle spoil that may contain contaminated fill or acid sulfate soil.",
+      "fallRisk": "yes",
+      "facts": {
+        "excavationPlan": "Excavation follows the geotechnical design GT-01 (revision C) in stages to the levels shown, with batters no steeper than 1 to 1, and plant and trucks follow the site traffic management plan TMP-02.",
+        "fallControl": "Edge protection is installed along the basement edge before excavation goes below 2 m, and access is by a scaffold stair."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "asbestos",
+          "atmosphere",
+          "plant"
+        ],
+        "steps": [
+          "Bulk excavate and load trucks",
+          "Dewater the excavation",
+          "Handle contaminated or unknown material in the spoil",
+          "Protect the basement edge and provide access"
+        ],
+        "missing": [
+          "Fall control",
+          "Excavation and traffic plan"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "bulk",
+        "anchors",
+        "dewater"
+      ],
+      "phrase": "traffic management plan is in place before plant starts",
+      "source": "Model Code: Excavation work s 4.3",
+      "quote": "Traffic management arrangements must be implemented"
+    },
+    {
+      "swms": [
+        "anchors"
+      ],
+      "phrase": "No one works ahead of the support",
+      "source": "Model Code: Excavation work s 6.2",
+      "quote": "They should not work ahead of the shoring protection"
+    },
+    {
+      "swms": [
+        "detail"
+      ],
+      "phrase": "1.5 m deep or more is supported",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306",
+      "quote": "all sides of the trench are adequately supported"
+    },
+    {
+      "swms": [
+        "bulk"
+      ],
+      "phrase": "No digging until steps are taken to prevent collapse of neighbouring buildings",
+      "source": "Model Code: Excavation work s 3.4",
+      "quote": "Excavation work must not commence until steps are taken to prevent the collapse"
+    }
+  ]
+}
