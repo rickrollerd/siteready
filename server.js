@@ -152,7 +152,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
 });
 
 app.get('/api/config', (_req, res) => {
-  res.json({ accounts: db.enabled(), trialDays: auth.TRIAL_DAYS, billing: billing.enabled(), price: process.env.PRICE_LABEL || 'A$49 a month' });
+  res.json({ accounts: db.enabled(), trialDays: auth.TRIAL_DAYS, billing: billing.enabled(), price: process.env.PRICE_LABEL || 'A$49 a month incl. GST' });
 });
 
 app.get('/api/health', async (_req, res) => {

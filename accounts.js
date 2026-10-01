@@ -87,7 +87,7 @@ router.post('/auth/passkey/login', route(async (req, res) => res.json({ token: a
 router.get('/me', requireUser, route(async (req, res) => {
   await db.query('UPDATE users SET last_seen_at = $1 WHERE id = $2', [new Date(), req.user.id]);
   const keys = await db.query('SELECT id FROM passkeys WHERE user_id = $1', [req.user.id]);
-  res.json({ user: { email: req.user.email, name: req.user.name, hasPasskey: keys.length > 0 }, company: companyView(req.company) });
+  res.json({ user: { email: req.user.email, name: req.user.name, hasPasskey: keys.length > 0, isAdmin: Boolean(req.user.is_admin) }, company: companyView(req.company) });
 }));
 
 router.put('/me', requireUser, route(async (req, res) => {
@@ -109,12 +109,30 @@ router.put('/company', requireUser, route(async (req, res) => {
   res.json({ company: companyView(company) });
 }));
 
+// Only the company's administrator adds and removes people.
+function requireAdmin(req, res, next) {
+  if (!req.user.is_admin) return next(fail(403, 'Only your company\'s administrator can add or remove people.'));
+  return next();
+}
+
 router.get('/company/users', requireUser, route(async (req, res) => {
-  const users = await db.query('SELECT email, name, created_at, last_seen_at FROM users WHERE company_id = $1 ORDER BY created_at', [req.company.id]);
+  const users = await db.query('SELECT email, name, is_admin, created_at, last_seen_at FROM users WHERE company_id = $1 ORDER BY created_at', [req.company.id]);
   res.json({ users });
 }));
 
-router.post('/company/users', requireUser, route(async (req, res) => {
+router.delete('/company/users/:email', requireUser, requireAdmin, route(async (req, res) => {
+  const email = auth.cleanEmail(req.params.email);
+  const user = email && await db.one('SELECT id, is_admin FROM users WHERE email = $1 AND company_id = $2', [email, req.company.id]);
+  if (!user) throw fail(404, 'That person is not in your company.');
+  if (user.is_admin) throw fail(400, 'The administrator cannot be removed.');
+  await db.query('DELETE FROM sessions WHERE user_id = $1', [user.id]);
+  await db.query('DELETE FROM passkeys WHERE user_id = $1', [user.id]);
+  await db.query('DELETE FROM users WHERE id = $1', [user.id]);
+  await db.query('DELETE FROM login_tokens WHERE email = $1', [email]);
+  res.json({ ok: true, message: `${email} has been removed from your company.` });
+}));
+
+router.post('/company/users', requireUser, requireAdmin, route(async (req, res) => {
   const email = auth.cleanEmail(req.body && req.body.email);
   if (!email) throw fail(400, 'Enter a valid email address.');
   const existing = await db.one('SELECT company_id FROM users WHERE email = $1', [email]);

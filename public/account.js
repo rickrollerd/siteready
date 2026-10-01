@@ -511,10 +511,17 @@
   async function loadTeam() {
     try {
       const { users } = await call('GET', '/api/company/users');
-      $('team-list').innerHTML = users.map((user) => `<li>${esc(user.email)}${user.last_seen_at ? '' : ' <span class="meta">(invited)</span>'}</li>`).join('');
+      const admin = Boolean(me && me.user.isAdmin);
+      $('team-list').innerHTML = users.map((user) => `<li>${esc(user.email)}`
+        + `${user.is_admin ? ' <span class="meta">(administrator)</span>' : user.last_seen_at ? '' : ' <span class="meta">(invited)</span>'}`
+        + `${admin && !user.is_admin ? ` <button type="button" class="link" data-remove="${esc(user.email)}">Remove</button>` : ''}</li>`).join('');
     } catch (error) {
       $('team-list').innerHTML = `<li class="error">${esc(error.message)}</li>`;
     }
+    const admin = Boolean(me && me.user.isAdmin);
+    ['team-invite-field', 'team-invite'].forEach((id) => $(id).classList.toggle('hidden', !admin));
+    $('team-email').required = admin;
+    $('team-note').classList.toggle('hidden', admin);
     $('team-faceid').classList.toggle('hidden', !passkeysWork() || !me || me.user.hasPasskey);
   }
 
@@ -524,6 +531,18 @@
       const data = await call('POST', '/api/company/users', { email: $('team-email').value });
       status('team-status', data.message);
       $('team-email').value = '';
+      loadTeam();
+    } catch (error) {
+      status('team-status', error.message, true);
+    }
+  });
+
+  $('team-list').addEventListener('click', async (event) => {
+    const email = event.target.dataset && event.target.dataset.remove;
+    if (!email || !window.confirm(`Remove ${email} from your company? They will be signed out and lose access.`)) return;
+    try {
+      const data = await call('DELETE', `/api/company/users/${encodeURIComponent(email)}`);
+      status('team-status', data.message);
       loadTeam();
     } catch (error) {
       status('team-status', error.message, true);
