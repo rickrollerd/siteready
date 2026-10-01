@@ -1,11 +1,14 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');
+const { setupAccounts, lastLinkToken } = require('./helpers');
 
 let server;
 let base;
+let session;
 
 test.before(async () => {
+  await setupAccounts();
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
   base = `http://127.0.0.1:${server.address().port}`;
@@ -13,11 +16,17 @@ test.before(async () => {
 
 test.after(() => server.close());
 
-const post = (route, body, raw) => fetch(`${base}${route}`, {
+const post = (route, body, raw, token) => fetch(`${base}${route}`, {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
   body: raw || JSON.stringify(body),
 });
+
+async function signIn(email) {
+  await post('/api/auth/email', { email });
+  const response = await post('/api/auth/verify', { token: lastLinkToken(email) });
+  return (await response.json()).token;
+}
 
 test('the old AI routes are gone', async () => {
   for (const route of ['/api/questions', '/api/generate-swms']) {
@@ -46,10 +55,13 @@ test('a draft and its Word file are prepared', async () => {
   const draft = await post('/api/draft', body);
   assert.equal(draft.status, 200);
   assert.equal((await draft.json()).kind, 'draft');
-  const refused = await post('/api/draft.docx', body);
+  const anonymous = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' });
+  assert.equal(anonymous.status, 401, 'without an account the SWMS is preview only');
+  session = await signIn('sam@example.com');
+  const refused = await post('/api/draft.docx', body, null, session);
   assert.equal(refused.status, 400);
   assert.match((await refused.json()).message, /review and approve/);
-  const docx = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' });
+  const docx = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
   assert.equal(docx.status, 200);
   assert.match(docx.headers.get('content-type'), /wordprocessingml/);
   const zip = Buffer.from(await docx.arrayBuffer()).toString('latin1');
@@ -58,7 +70,7 @@ test('a draft and its Word file are prepared', async () => {
 
 test('the Word file is refused without a name, even when confirmed', async () => {
   const body = { state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no', reviewConfirmed: true, reviewedBy: '   ' };
-  assert.equal((await post('/api/draft.docx', body)).status, 400);
+  assert.equal((await post('/api/draft.docx', body, null, session)).status, 400);
 });
 
 test('trade and task pick lists come from the tested project sets', async () => {

@@ -192,7 +192,7 @@ function principalContractorReview(draft) {
 
 // Its own pages, so they can be printed and kept at the work area. The heading
 // row repeats on every page.
-function workerSignOn(draft) {
+function workerSignOn(draft, signons = []) {
   const widths = [4400, 3800, CONTENT_WIDTH - 4400 - 3800 - 2400, 2400];
   const labels = ['Name', 'Company', 'Signature', 'Date'];
   const where = [draft.task, draft.workplace].filter(Boolean).join('  ·  ');
@@ -216,7 +216,18 @@ function workerSignOn(draft) {
           cantSplit: true,
           children: labels.map((label, index) => cell(label, widths[index], { bold: true, fill: HEAD })),
         }),
-        ...Array.from({ length: SIGN_ROWS }, () => new TableRow({
+        // Workers who signed on in the app come first, with their signatures.
+        ...signons.map((item) => new TableRow({
+          cantSplit: true,
+          height: { value: 560 },
+          children: [
+            cell(item.worker_name, widths[0], { size: 20 }),
+            cell(item.worker_company || ' ', widths[1], { size: 20 }),
+            signatureCell(item.signature, widths[2]),
+            cell(item.signedDate || ' ', widths[3], { size: 20 }),
+          ],
+        })),
+        ...Array.from({ length: Math.max(10, SIGN_ROWS - signons.length) }, () => new TableRow({
           cantSplit: true,
           height: { value: 560 },
           children: widths.map((width) => new TableCell({
@@ -227,6 +238,15 @@ function workerSignOn(draft) {
       ],
     }),
   ];
+}
+
+// A finger signature from the sign-on page, as a small picture.
+function signatureCell(dataUrl, width) {
+  const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl || ''));
+  const children = match
+    ? [new Paragraph({ children: [new ImageRun({ type: 'png', data: Buffer.from(match[1], 'base64'), transformation: { width: 120, height: 34 } })] })]
+    : [new Paragraph({})];
+  return new TableCell({ width: { size: width, type: WidthType.DXA }, borders, margins: { top: 40, bottom: 40, left: 80, right: 80 }, children });
 }
 
 // A cell holding several lines, one paragraph each.
@@ -309,7 +329,7 @@ function metaRows(draft) {
   return rows;
 }
 
-function childrenFor(draft) {
+function childrenFor(draft, options = {}) {
   const blocks = [
     para('Safe work method statement', { bold: true, size: 36, before: 0, after: 40 }),
     para(`${draft.instrument}  ·  ${draft.versionLabel}  ·  ${draft.sectionRef}`, { size: 20, color: MUTED, after: 40 }),
@@ -361,7 +381,7 @@ function childrenFor(draft) {
 
   blocks.push(...preparedBy());
   blocks.push(...principalContractorReview(draft));
-  blocks.push(...workerSignOn(draft));
+  blocks.push(...workerSignOn(draft, options.signons || []));
   return blocks;
 }
 
@@ -447,7 +467,7 @@ function buildDocument(draft, options = {}) {
           ],
         }),
       },
-      children: childrenFor(draft),
+      children: childrenFor(draft, options),
     }],
   });
 }
@@ -456,4 +476,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { draftToDocx };
+module.exports = { draftToDocx, draftedNote };
