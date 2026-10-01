@@ -178,7 +178,16 @@ preparedEl.addEventListener('change', () => {
   try { localStorage.setItem(PREPARED_KEY, preparedEl.value.trim()); } catch { /* not kept */ }
 });
 
-// Principal contractors used before, and those on saved sites, are suggested as you type.
+// Large Australian head contractors, each named in at least two published 2025-26
+// rankings (Hubexo Construction League, company revenue lists). Checked October 2026.
+const BUILDERS = [
+  'ADCO Constructions', 'BESIX Watpac', 'BMD', 'Buildcorp', 'Built', 'CPB Contractors', 'Downer',
+  'FDC Construction & Fitout', 'Hansen Yuncken', 'Hickory', 'Hutchinson Builders', 'Icon', 'John Holland',
+  'Kane Constructions', 'Kapitol', 'Laing O\'Rourke', 'Lendlease', 'Multiplex', 'Richard Crookes Constructions',
+];
+
+// Principal contractors used before, and those on saved sites, are suggested as you type,
+// ahead of the builders list.
 const PRINCIPALS_KEY = 'siteready.principals';
 let principals = [];
 try { principals = JSON.parse(localStorage.getItem(PRINCIPALS_KEY) || '[]'); } catch { principals = []; }
@@ -192,7 +201,9 @@ function addPrincipals(names, keep) {
   if (keep) {
     try { localStorage.setItem(PRINCIPALS_KEY, JSON.stringify(principals)); } catch { /* not kept */ }
   }
-  document.getElementById('principal-list').innerHTML = principals.map((name) => `<option value="${esc(name)}"></option>`).join('');
+  const known = new Set(principals.map((name) => name.toLowerCase()));
+  const all = [...principals, ...BUILDERS.filter((name) => !known.has(name.toLowerCase()))];
+  document.getElementById('principal-list').innerHTML = all.map((name) => `<option value="${esc(name)}"></option>`).join('');
 }
 
 function payload() {

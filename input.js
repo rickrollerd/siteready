@@ -54,7 +54,6 @@ function draftBody(body) {
       trenchSupport: field(facts.trenchSupport, 2000),
       controlsConsidered: field(facts.controlsConsidered, 2000),
       regulatorNotified: field(facts.regulatorNotified, 1000),
-      craneCompany: field(facts.craneCompany, 1000),
       systemInstructions: field(facts.systemInstructions, 2000),
       deckMethod: field(facts.deckMethod, 100),
       loadLimits: field(facts.loadLimits, 2000),

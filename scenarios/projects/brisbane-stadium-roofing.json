@@ -10,7 +10,6 @@
       "task": "Fix the metal roof sheeting and the PTFE membrane panels to the roof steel, working above safety nets more than 2 m above the stands, with sheets lifted by the crane company's crawler crane.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
         "fallControl": "Work is done inside roof edge protection, over safety nets designed and installed under the roof steel before sheeting starts.",
         "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed."
       },
@@ -23,12 +22,10 @@
           "Set up roof access and fall protection",
           "Lift materials to and from the roof",
           "Fix new roofing",
-          "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Install and use safety nets"
         ],
         "missing": [
-          "Crane company and lift plan",
           "Fall control"
         ]
       }

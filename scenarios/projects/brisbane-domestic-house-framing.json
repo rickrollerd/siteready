@@ -10,7 +10,6 @@
       "task": "Stand the timber wall frames and fix the roof trusses for a new two storey house, with the trusses lifted by the crane company's mobile crane, working more than 3 m above the ground.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "Lifts are done by the crane company under its lift plan; its dogman slings and releases the loads, and our crew receives them with tag lines.",
         "fallControl": "Perimeter scaffold with guardrails is erected around the house before the upper floor frames go up, and trusses are fixed from inside the scaffold edge protection.",
         "controlsConsidered": "Edge protection and scaffolds were considered first for every task, and an elevating work platform where they cannot be fixed."
       },
@@ -20,13 +19,11 @@
           "plant"
         ],
         "steps": [
-          "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Stand and brace wall frames",
           "Fix roof trusses"
         ],
         "missing": [
-          "Crane company and lift plan",
           "Fall control"
         ]
       }

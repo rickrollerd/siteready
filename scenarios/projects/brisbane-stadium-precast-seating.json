@@ -10,7 +10,6 @@
       "task": "Install the precast concrete seating tiers onto the raker beams with the crane company's crawler crane, working on the sloping bowl more than 2 m above the ground.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings the loads, and our licensed riggers (basic rigging or higher) receive, place and secure them.",
         "fallControl": "Edge protection is fixed to each tier edge as the units are placed. Riggers landing units at the open end work on travel restraint lines to engineer designed anchors set so they cannot reach the edge.",
         "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
         "tierErection": "Units are placed to the engineer's erection design PC-301 (revision C): bearing pads and fixings as detailed, placed in the sequence shown, with temporary propping where the design shows it, checked by the precast supervisor before the hook is released."
@@ -22,12 +21,10 @@
           "plant"
         ],
         "steps": [
-          "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Place precast seating units on the rakers"
         ],
         "missing": [
-          "Crane company and lift plan",
           "Fall control",
           "Precast erection design"
         ]

@@ -706,19 +706,14 @@ function ownWork(task) {
 function requiredFactsFor(fullTask, answer, state) {
   const task = ownWork(fullTask);
   const facts = [];
-  // Most cranes on site are supplied and run by a crane company. Its operator and
-  // dogmen work to its own lift plan, so the subcontractor states who that is.
+  // Most cranes on site are supplied and run by a crane company. The lifts are its
+  // work, under its own lift plan and SWMS, so the subcontractor is asked nothing
+  // about them. A subcontractor that runs its own crane gives the crane chart.
   if (isCraneOrLift(task) && state && state.ownCrane) {
     facts.push({
       id: 'craneChart',
       label: 'Crane chart',
       prompt: 'From the crane chart: the rated capacity in tonnes at the working radius in metres.',
-    });
-  } else if (isCraneOrLift(task)) {
-    facts.push({
-      id: 'craneCompany',
-      label: 'Crane company and lift plan',
-      prompt: 'Name the company that supplies and operates the crane, and confirm its lift plan or SWMS covers these lifts.',
     });
   }
   if (isPanelLift(task)) {
@@ -780,7 +775,6 @@ function combinedFacts(task, facts) {
   return [
     task,
     facts.craneChart,
-    facts.craneCompany,
     facts.erectionDesign,
     facts.centreOfGravity,
     facts.braceArrangement,
@@ -905,9 +899,7 @@ function controlsFor(task, facts, pack) {
   } else if (isCraneOrLift(source)) {
     const under = isPanelLift(source) ? 'No one goes under the panel.' : 'No one goes under the load.';
     if (!(pack && pack.state && pack.state.ownCrane)) {
-      const company = keptFact(facts.craneCompany);
-      if (company) push('Administrative', company);
-      push('Administrative', 'The crane company operates the crane under its lift plan. Only licensed dogmen or riggers sling, direct and release loads, with the split of duties agreed with the crane company.');
+      push('Administrative', 'The crane company plans and does the lifts under its own lift plan. Our workers follow the crane crew\'s directions.');
     }
     push('Administrative', `Only the people doing the lift are inside the exclusion zone. Stop the lift if anyone else enters. Do not pass a load over a person. ${under}`);
     // Free-fall lowering is a mobile crane feature, and the operator's business.
@@ -1079,7 +1071,7 @@ function methodSteps(task, facts, site, pack) {
   }
   const fromTask = sentences(task).filter((line) => !isDenialLine(line) && (!LIFT_BLEED.test(line) || isCraneOrLift(task)));
   const fromFacts = [];
-  for (const id of ['craneChart', 'craneCompany', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport', ...CATEGORY_FACTS.filter((item) => !item.choices).map((item) => item.id)]) {
+  for (const id of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport', ...CATEGORY_FACTS.filter((item) => !item.choices).map((item) => item.id)]) {
     const line = keptFact(facts[id]);
     if (!line) continue;
     if (sentences(task).some((item) => item.toLowerCase() === sentences(line).join(' ').toLowerCase())) continue;
@@ -1324,7 +1316,6 @@ const REFERENCE_FACTS = [
   ['stressingProcedure', 'Stressing procedure'],
   ['erectionDesign', 'Erection design'],
   ['temporarySupport', 'Temporary support design'],
-  ['craneCompany', 'Crane company and lift plan'],
   ['safetyDataSheet', 'Safety data sheet'],
 ];
 

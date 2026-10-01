@@ -307,11 +307,10 @@ test('unknown work still gets job steps from the task', () => {
 
 test('a crane company runs the crane unless the subcontractor says it runs its own', () => {
   const task = 'Lift steel beams into place with a mobile crane.';
-  const company = draft(task);
-  assert.equal(company.kind, 'stand-down');
-  assert.deepEqual(company.missing, ['Crane company and lift plan']);
-  const done = draft(task, { facts: { craneCompany: 'Example Cranes supplies and operates the crane under its lift plan.' } });
+  // The lifts are the crane company's work, so nothing is asked about them.
+  const done = draft(task);
   assert.equal(done.kind, 'draft');
+  assert.deepEqual(done.missing, []);
   assert.equal(done.craneOperator, 'Crane company');
   const steps = done.jobSteps.map((step) => step.step);
   assert.ok(steps.includes('Work with the crane crew during lifts'));

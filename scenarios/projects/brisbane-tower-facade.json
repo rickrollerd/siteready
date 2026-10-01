@@ -10,7 +10,6 @@
       "task": "Receive unitised curtain wall panels in stillages lifted by the tower crane onto the landing platforms, then move the panels on trolleys to the stacking areas on each floor.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
         "loadLimits": "Stillages are stacked only in the areas marked on the structural engineer's drawing S-502 (5 kPa), checked by the structural engineer before loading starts.",
         "fallControl": "Panels are received only at the landing platform, inside its edge protection. While the gate is open to land a load, the dogman receiving it wears a harness on a travel restraint line so they cannot reach the open edge.",
         "systemInstructions": "The landing platforms are the scaffold contractor's proprietary platforms, erected to the supplier's instructions (document and revision on the platform tag) and rated for 2 t."
@@ -20,13 +19,11 @@
           "fall"
         ],
         "steps": [
-          "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Load out floors and use loading platforms",
           "Load panels onto the floors and move them to the work face"
         ],
         "missing": [
-          "Crane company and lift plan",
           "Fall control",
           "Load limits",
           "System and supplier instructions"

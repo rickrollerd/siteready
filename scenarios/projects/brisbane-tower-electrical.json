@@ -82,7 +82,6 @@
       "task": "Pull sub-main and final subcircuit cables up the risers and through the basement carpark, with cable drums lifted to the floors by the tower crane and moved on the floor with a forklift. Work at the open risers is more than 2 m above the floor below.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd, under its lift plans.",
         "loadLimits": "Cable drums are landed and stored within the slab loads on the builder's load plan, signed at each landing area.",
         "fallControl": "Risers are screened at each level, and cables are pulled from inside the screens with only the section being worked on opened and fenced."
       },
@@ -92,13 +91,11 @@
           "plant"
         ],
         "steps": [
-          "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Operate forklifts",
           "Pull cables and handle cable drums"
         ],
         "missing": [
-          "Crane company and lift plan",
           "Fall control",
           "Load limits"
         ]

@@ -382,20 +382,10 @@ const ACTIVITIES = [
     when: 'craneInterface',
     steps: [
       {
-        step: 'Plan lifts with the crane company',
-        hazards: ['Lifts not planned for this work.', 'Loads land where the structure cannot take them.'],
-        controls: [
-          { fact: 'craneCompany' },
-          'Agree each day\'s lifts with the crane company\'s crew before work starts, including where loads land.',
-          'Landing areas are clear, ready and within the rated load of where loads land before each lift.',
-          'Wind and weather stops are set by the crane company. When the crane stops, the lift stops.',
-        ],
-      },
-      {
         step: 'Work with the crane crew during lifts',
         hazards: ['A person is struck or crushed by a load.', 'A badly prepared load falls apart in the air.', 'Miscommunication with the crane crew.'],
         controls: [
-          'Only licensed dogmen or riggers sling, direct and release loads.',
+          'The crane company plans and does the lifts under its own lift plan. Its licensed crew slings, directs and releases loads.',
           'Prepare loads as the crane crew directs: bundled, strapped, and with loose items removed.',
           'Stay out from under suspended loads and out of the crane\'s exclusion zones.',
           'Stop and tell the crane crew straight away if a load is unstable or a lift looks unsafe.',
@@ -1896,7 +1886,6 @@ const ACTIVITIES = [
       step: 'Lift and land steel with the crane company',
       hazards: ['A steel member falls or swings into a person.', 'A badly slung load.'],
       controls: [
-        { fact: 'craneCompany' },
         src('Structural steel erection is basic rigging work, which includes dogging. Slinging and directing loads out of the operator\'s view is dogging. Sight each licence before work.', WHS('s 81, s 85, schedule 3, schedule 19')),
         src('Lifting gear suits the load, lifts stay within the crane\'s limits, no loads over people, and the load stays under control with tag lines.', WHS('s 219')),
         src('Enclose the area under the lift and use a spotter at ground level.', MODEL('Construction work', 'appendix K')),

@@ -10,7 +10,6 @@
       "task": "Remove the concrete roof tiles from a two storey house and replace them with metal roof sheeting, with the sheets lifted by the crane company's mobile crane.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "Lifts are done by the crane company under its lift plan; its dogman slings and releases the loads, and our crew receives them with tag lines.",
         "fallControl": "Roof edge protection is installed by the scaffolder around the whole roof before the tiles are removed, and checked before work starts each day.",
         "controlsConsidered": "Edge protection and scaffolds were considered first for every task, and an elevating work platform where they cannot be fixed."
       },
@@ -24,11 +23,9 @@
           "Remove old roofing",
           "Lift materials to and from the roof",
           "Fix new roofing",
-          "Plan lifts with the crane company",
           "Work with the crane crew during lifts"
         ],
         "missing": [
-          "Crane company and lift plan",
           "Fall control"
         ]
       }

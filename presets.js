@@ -65,10 +65,6 @@ const ANSWERS = {
   controlsConsidered: [
     ['Edge protection not possible', 'Edge protection was considered but cannot be fixed at ____ because ____. An elevating work platform was considered but ____.'],
   ],
-  craneCompany: [
-    ['Crane company lift plan', 'Lifts are done by ____ (crane company) under its lift plan. The crane company\'s licensed dogman slings, directs, lands and releases loads. Our workers prepare loads and keep clear of suspended loads.'],
-    ['Steel or precast', 'Lifts are done by ____ (crane company) under its lift plan. The crane company\'s dogman slings the loads, and our licensed riggers (basic rigging or higher) receive, place and secure them.'],
-  ],
   craneChart: [
     ['Chart duty', 'Rated capacity from the crane chart: ____ t at ____ m radius. Heaviest gross load (load, lifting gear and rigging) is ____ t at ____ m radius.'],
   ],
