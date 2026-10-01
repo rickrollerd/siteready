@@ -292,9 +292,21 @@ function render(draft) {
     <p>${esc(draft.review)}</p>
     <h4>Site-specific</h4>${site}
     <h4>Method</h4>${method}
-    <h4>Workers</h4>
+    <h4>Prepared by</h4>
+    <table><tbody>${['Name and position', 'Signature', 'Date', 'Date given to the principal contractor'].map((label) => `<tr><th>${label}</th><td></td></tr>`).join('')}</tbody></table>
+    <h4>Principal contractor review</h4>
+    <p class="meta">Completed by the principal contractor before the work starts.</p>
+    <table><tbody>
+      <tr><th>Principal contractor</th><td>${esc(draft.principalContractor)}</td></tr>
+      ${['Date SWMS received', 'Reviewed by (name and position)'].map((label) => `<tr><th>${label}</th><td></td></tr>`).join('')}
+      <tr><th>Outcome</th><td>&#9744; Accepted &nbsp; &#9744; Accepted with changes &nbsp; &#9744; Not accepted: revise and resubmit</td></tr>
+      ${['Comments or changes', 'Signature', 'Date'].map((label) => `<tr><th>${label}</th><td></td></tr>`).join('')}
+    </tbody></table>
+    <h4>Worker sign-on</h4>
+    <p>By signing, I confirm this SWMS has been explained to me, I understand it, and I will follow it. If the work changes or a control is not working, I will stop and tell my supervisor.</p>
     <div class="sign"><div>Name</div><div>Signature</div><div>Date</div></div>
-    <div class="sign"><div></div><div></div><div></div></div>`;
+    <div class="sign"><div></div><div></div><div></div></div>
+    <p class="meta">The Word file has two pages of lines for workers to sign.</p>`;
 }
 
 factsForm.addEventListener('submit', async (event) => {

@@ -1,0 +1,24 @@
+name: Fetch SWMS templates
+
+# Reads the regulators' SWMS templates from GitHub's servers and prints their text.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'legislation-watch/fetch-templates.js'
+      - '.github/workflows/fetch-templates.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils antiword > /dev/null
+      - run: node legislation-watch/fetch-templates.js

@@ -125,24 +125,86 @@ function hazardTable(hazards) {
   });
 }
 
-function workerTable() {
-  const widths = [3360, 3360, 3360];
-  const labels = ['Name', 'Signature', 'Date'];
+// Sign-off sections. Every line is left blank for a pen or for typing in Word.
+const SIGN_ROWS = 44;
+const TICK = '\u2610';
+
+function signTable(rows) {
   return new Table({
     width: { size: CONTENT_WIDTH, type: WidthType.DXA },
-    columnWidths: widths,
-    rows: [
-      new TableRow({
-        cantSplit: true,
-        children: labels.map((label, index) => cell(label, widths[index], { bold: true, fill: HEAD })),
-      }),
-      new TableRow({
-        cantSplit: true,
-        height: { value: 500 },
-        children: widths.map((width) => cell(' ', width)),
-      }),
-    ],
+    columnWidths: [3000, 7080],
+    rows: rows.map(([label, value, height]) => new TableRow({
+      cantSplit: true,
+      height: { value: height || 520 },
+      children: [
+        cell(label, 3000, { bold: true, fill: HEAD, size: 20 }),
+        cell(value || ' ', 7080, { size: 20 }),
+      ],
+    })),
   });
+}
+
+function preparedBy() {
+  return [
+    sectionHeading('Prepared by'),
+    signTable([
+      ['Name and position', ''],
+      ['Signature', ''],
+      ['Date', ''],
+      ['Date given to the principal contractor', ''],
+    ]),
+  ];
+}
+
+// The principal contractor must get the SWMS before the high risk construction
+// work starts. This section records its check of it.
+function principalContractorReview(draft) {
+  return [
+    sectionHeading('Principal contractor review'),
+    para('Completed by the principal contractor before the work starts.', { size: 20, color: MUTED, before: 0, after: 80 }),
+    signTable([
+      ['Principal contractor', draft.principalContractor || ''],
+      ['Date SWMS received', ''],
+      ['Reviewed by (name and position)', ''],
+      ['Outcome', `${TICK} Accepted    ${TICK} Accepted with changes noted below    ${TICK} Not accepted: revise and resubmit`],
+      ['Comments or changes', '', 1400],
+      ['Signature', ''],
+      ['Date', ''],
+    ]),
+  ];
+}
+
+// Its own pages, so they can be printed and kept at the work area. The heading
+// row repeats on every page.
+function workerSignOn(draft) {
+  const widths = [3000, 2600, 2880, 1600];
+  const labels = ['Name', 'Company', 'Signature', 'Date'];
+  const where = [draft.task, draft.workplace].filter(Boolean).join('  ·  ');
+  return [
+    new Paragraph({
+      pageBreakBefore: true,
+      spacing: { before: 0, after: 60 },
+      children: [run('Worker sign-on', { bold: true, size: 32 })],
+    }),
+    para(where, { size: 20, color: MUTED, after: 120 }),
+    para('By signing, I confirm this SWMS has been explained to me, I understand it, and I will follow it. If the work changes or a control is not working, I will stop and tell my supervisor.', { size: 21, after: 160 }),
+    new Table({
+      width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+      columnWidths: widths,
+      rows: [
+        new TableRow({
+          tableHeader: true,
+          cantSplit: true,
+          children: labels.map((label, index) => cell(label, widths[index], { bold: true, fill: HEAD })),
+        }),
+        ...Array.from({ length: SIGN_ROWS }, () => new TableRow({
+          cantSplit: true,
+          height: { value: 560 },
+          children: widths.map((width) => cell(' ', width)),
+        })),
+      ],
+    }),
+  ];
 }
 
 function metaRows(draft) {
@@ -206,8 +268,9 @@ function childrenFor(draft) {
     blocks.push(para(`${index + 1}.  ${step}`, { before: 20, after: 40 }));
   });
 
-  blocks.push(sectionHeading('Workers'));
-  blocks.push(workerTable());
+  blocks.push(...preparedBy());
+  blocks.push(...principalContractorReview(draft));
+  blocks.push(...workerSignOn(draft));
   return blocks;
 }
 

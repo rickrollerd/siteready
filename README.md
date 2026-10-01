@@ -57,6 +57,10 @@ The draft is built by fixed rules in `draft.js`. No AI service is called, and no
 
 The server runs one worker per processor core and replaces a worker that stops. Each worker keeps its own rate limit count, so with several workers the effective limit per address is higher than the figure set.
 
+## Sign-off
+
+Every statement ends with a Prepared by section, a Principal contractor review (date received, reviewed by, Accepted / Accepted with changes / Not accepted, comments, signature, date) and Worker sign-on pages. The sign-on starts on a new page with a short declaration and 44 lines for name, company, signature and date, over about two pages, with the heading row repeated on each page. A stood-down task has none of these, because it has no method to sign onto.
+
 ## Company profile
 
 A company enters its name, ABN, address, phone, email and logo once. They are saved in the browser on that device and filled into every statement; the subcontractor name can still be changed on any one statement. The details appear at the top of the statement and in the header of every page of the Word file, with the logo. The logo is redrawn at header size in the browser, and the server accepts only PNG or JPEG up to 400 KB. The server does not keep the profile. Sharing one profile across a team's devices would need user accounts, which the app does not have yet.

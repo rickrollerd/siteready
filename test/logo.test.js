@@ -79,3 +79,25 @@ test('a draft with no company details has no header', async () => {
   const text = (await draftToDocx(draft)).toString('latin1');
   assert.doesNotMatch(text, /word\/header1\.xml/);
 });
+
+test('the Word file has a prepared by section, a principal contractor review and worker sign-on pages', async () => {
+  const draft = prepareDraft({ state: 'vic', task: 'Replace a 3m length of fence.', fallRisk: 'no', principalContractor: 'Example Builders' });
+  const zip = await draftToDocx(draft);
+  const xml = require('node:zlib').inflateRawSync(documentXml(zip)).toString();
+  for (const text of ['Prepared by', 'Principal contractor review', 'Example Builders', 'Not accepted: revise and resubmit', 'Worker sign-on', 'I will stop and tell my supervisor']) {
+    assert.ok(xml.includes(text), text);
+  }
+  assert.ok(xml.includes('<w:pageBreakBefore'), 'sign-on starts on a new page');
+  assert.ok((xml.match(/<w:tr>/g) || []).length > 44, 'room for many workers');
+});
+
+// Reads word/document.xml out of the zip without another library.
+function documentXml(zip) {
+  let at = zip.indexOf('word/document.xml');
+  while (at >= 0 && zip.readUInt32LE(at - 30) !== 0x04034b50) at = zip.indexOf('word/document.xml', at + 1);
+  const start = at - 30;
+  const size = zip.readUInt32LE(start + 18);
+  const nameLength = zip.readUInt16LE(start + 26);
+  const extra = zip.readUInt16LE(start + 28);
+  return zip.subarray(start + 30 + nameLength + extra, start + 30 + nameLength + extra + size);
+}
