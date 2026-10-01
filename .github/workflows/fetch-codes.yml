@@ -19,9 +19,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { source: constructionCode, chunk: 0 }
-          - { source: noiseCode, chunk: 0 }
-          - { source: chemicalsCode, chunk: 0 }
+          - { source: constructionCode, chunk: 1 }
+          - { source: chemicalsCode, chunk: 1 }
+          - { source: chemicalsCode, chunk: 2 }
     name: ${{ matrix.source }} ${{ matrix.chunk }}
     steps:
       - uses: actions/checkout@v5
