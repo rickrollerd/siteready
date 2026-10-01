@@ -191,3 +191,26 @@ test('Queensland section 299(4): a harness alone needs the other controls consid
   assert.equal(nsw.kind, 'draft');
   assert.ok(nsw.controls.some((item) => /must be considered before administrative controls/.test(item.text)));
 });
+
+test('Western Australia: danger zones, and the regulator notice for tilt-up work', () => {
+  const lines = prepareDraft({ state: 'wa', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no' });
+  assert.equal(lines.instrument, 'Work Health and Safety (General) Regulations 2022 (WA)');
+  const line = lines.controls.find((item) => /danger zone/.test(item.text));
+  assert.match(line.text, /0\.5 m .* 1\.0 m .* 3\.0 m .* 6\.0 m .*regulation 166A/);
+
+  const task = 'Erect six precast concrete wall panels using a 100 tonne mobile crane.';
+  const pack = {
+    craneChart: 'Rated capacity 11.2 t at 16 m radius from the crane chart.',
+    erectionDesign: 'Erection design drawing ED-01 revision B by the project engineer.',
+    centreOfGravity: 'Centre of gravity is marked on each panel shop drawing, 1.2 m above the base.',
+    braceArrangement: 'Two braces per panel, fixed to the slab with chemical anchors as shown on drawing ED-02.',
+  };
+  const bare = prepareDraft({ state: 'wa', task, fallRisk: 'no', facts: pack });
+  assert.deepEqual(bare.missing, ['WorkSafe WA notification']);
+  const done = prepareDraft({ state: 'wa', task, fallRisk: 'no', facts: { ...pack, regulatorNotified: 'Notified on 2 September 2026, 15 working days before casting.' } });
+  assert.equal(done.kind, 'draft');
+  assert.ok(done.controls.some((item) => /regulation 306I/.test(item.text)));
+  assert.ok(done.controls.some((item) => /regulation 306H/.test(item.text)));
+  // Other states do not ask for it.
+  assert.equal(prepareDraft({ state: 'nsw', task, fallRisk: 'no', facts: pack }).kind, 'draft');
+});

@@ -33,7 +33,11 @@ function runLoaded(state, scenario) {
   const bare = prepareDraft(base);
   if (scenario.expect.missing.length) {
     if (bare.kind !== 'stand-down') problems.push(`Without facts: expected a stand-down, got ${bare.kind}`);
-    else problems.push(...describe('Without facts, missing fact', difference(scenario.expect.missing, bare.missing)));
+    else {
+      // Some states ask for more, such as Western Australia's regulator notice for tilt-up work.
+      const expected = [...scenario.expect.missing, ...((scenario.expect.missingByState || {})[state.id] || [])];
+      problems.push(...describe('Without facts, missing fact', difference(expected, bare.missing)));
+    }
   }
 
   // With the facts, a draft is prepared with the expected categories and hazards.

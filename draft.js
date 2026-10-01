@@ -348,6 +348,10 @@ function requiredFactsFor(task, answer, state) {
       prompt: 'How a fall of more than 2 metres is prevented.',
     });
   }
+  // State facts for precast and tilt-up panels, such as Western Australia's regulator notice.
+  if (state && Array.isArray(state.panelFacts) && isPanelLift(task)) {
+    for (const item of state.panelFacts) facts.push({ ...item });
+  }
   // Queensland, section 299(4): when the only fall controls are administrative or PPE,
   // the statement describes every control considered.
   if (state && state.fallControlsConsidered && fallRiskFor(task, answer)) {
@@ -530,6 +534,15 @@ function controlsFor(task, facts, pack) {
       else push('Administrative', 'For a fall of more than 2 metres, elimination, substitution, and isolation or engineering must be considered before administrative controls or personal protective equipment.');
     }
     push(level, fallLine);
+  }
+
+  const state = pack && pack.state;
+  if (state && isPanelLift(source)) {
+    for (const item of state.panelFacts || []) {
+      const value = keptFact(facts[item.id]);
+      if (value) push('Administrative', `${item.label}: ${value.replace(/[.]+$/, '')}.`);
+    }
+    for (const [level, text] of state.panelControls || []) push(level, text);
   }
 
   const asbestos = keptFact(facts.asbestosArrangement) || asbestosArrangement(source);

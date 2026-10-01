@@ -56,7 +56,8 @@
       "craneChart": "Rated capacity 11.2 t at 16 m radius from the crane chart.",
       "erectionDesign": "Erection design drawing ED-01 revision B by the project engineer.",
       "centreOfGravity": "Centre of gravity is marked on each panel shop drawing, 1.2 m above the base.",
-      "braceArrangement": "Two braces per panel, fixed to the slab with chemical anchors as shown on drawing ED-02."
+      "braceArrangement": "Two braces per panel, fixed to the slab with chemical anchors as shown on drawing ED-02.",
+      "regulatorNotified": "WorkSafe WA was notified on 2 September 2026, 15 working days before casting."
     },
     "expect": {
       "missing": [
@@ -73,7 +74,12 @@
         "Dropped load",
         "Tilt-up or precast concrete",
         "Moving plant"
-      ]
+      ],
+      "missingByState": {
+        "wa": [
+          "WorkSafe WA notification"
+        ]
+      }
     }
   },
   {
