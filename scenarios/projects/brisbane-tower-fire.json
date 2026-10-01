@@ -1,0 +1,69 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: fire services",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "sprinklers",
+      "title": "Sprinkler and hydrant pipework at height",
+      "task": "Install sprinkler and hydrant pipework in the apartment ceilings, corridors and risers, from scissor lifts more than 2 m above the floor, roll grooving and cutting pipe on each floor.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Risers are screened at each level with only the section being worked on opened, and scissor lifts with guardrails are used for all work above 2 m."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Install sprinkler and hydrant pipework at height",
+          "Roll groove, thread and cut pipe"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "live",
+      "title": "Fire pump room, testing and live connections",
+      "task": "Pressure test the sprinkler and hydrant pipework with water, connect new pipework to the live fire system and commission the fire pumps in the pump room.",
+      "fallRisk": "no",
+      "facts": {
+        "pressureTesting": "Tested with water to 1,500 kPa, with the area barricaded and signed during the test, and pressure released through the drain valve before any fitting is touched.",
+        "isolationProcedure": "Fire pumps are isolated at their controllers and locked out with personal padlocks, valves are locked closed and tagged, and pressure is released before breaking into pipework."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Work on live fire systems and in pump rooms",
+          "Pressure test and commission"
+        ],
+        "missing": [
+          "Pressure testing method"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "live"
+      ],
+      "phrase": "a tag alone is not an isolation",
+      "source": "Model Code: Managing the risks of plant in the workplace s 4.5",
+      "quote": "A tag should not be used on its own as an isolation device"
+    },
+    {
+      "swms": [
+        "sprinklers"
+      ],
+      "phrase": "the machine cannot restart until a removed guard is replaced",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 208, s 210",
+      "quote": "the plant cannot be restarted unless the guarding is replaced"
+    }
+  ]
+}

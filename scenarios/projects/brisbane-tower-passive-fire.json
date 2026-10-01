@@ -1,0 +1,41 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: passive fire",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "penetrations",
+      "title": "Fire stopping penetrations",
+      "task": "Fire stop penetrations in the risers, ceilings and walls with fire collars, mastics and fire rated batts, from scissor lifts and platform ladders.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Risers are screened at each level with only the section being worked on opened, and scissor lifts with guardrails are used for all work above 2 m.",
+        "safetyDataSheet": "Safety data sheets for the fire rated mastic and sealant and the batts are kept at the work area: avoid skin contact, wear gloves, eye protection and a P2 respirator when cutting batts."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Seal penetrations and fire stop"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "penetrations"
+      ],
+      "phrase": "Plywood alone is not preferred",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 79, s 306F",
+      "quote": "secured plywood covers can be unsecured to gain access and not re-secured"
+    }
+  ]
+}

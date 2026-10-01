@@ -1,0 +1,67 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: site establishment and traffic",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "hoarding",
+      "title": "Site fencing, hoardings and gantries",
+      "task": "Erect the site fencing, hoardings and the gantry over the footpath, next to the street, and set up the site sheds.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Gantry decks have edge protection with mesh infill before anyone works on them.",
+        "systemInstructions": "The gantry is to the engineer's design GN-01 (revision B), erected by licensed intermediate scaffolders."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "road"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Erect fencing, hoardings and gantries"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "traffic",
+      "title": "Traffic management at the site gate",
+      "task": "Traffic controllers manage trucks, concrete trucks and mobile plant deliveries at the site gate and on the street next to the site, and separate plant and pedestrians on site.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [
+          "road",
+          "plant"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Separate plant and people on site"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "hoarding"
+      ],
+      "phrase": "a fully sheeted hoarding at least 1,800 mm high",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 315F, s 315G",
+      "quote": "a hoarding at least 1,800mm high that is fully sheeted"
+    },
+    {
+      "swms": [
+        "hoarding"
+      ],
+      "phrase": "light the footpath to 50 lux",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 315K",
+      "quote": "have natural or other lighting of at least 50 lux"
+    }
+  ]
+}

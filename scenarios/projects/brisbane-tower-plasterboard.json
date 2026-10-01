@@ -34,7 +34,8 @@
         "steps": [
           "Use mobile scaffolds",
           "Move and fix plasterboard sheets",
-          "Work at the upper wall and ceiling line"
+          "Work at the upper wall and ceiling line",
+          "Fix ceiling sheets"
         ],
         "missing": [
           "Fall control"
@@ -62,7 +63,7 @@
       "swms": [
         "ceilings"
       ],
-      "phrase": "use sheet lifters to hold ceiling sheets",
+      "phrase": "Use sheet lifters to hold ceiling sheets",
       "source": "Model Code: Hazardous manual tasks s 2.2, s 4.5",
       "quote": "supporting plasterboard sheeting while it is nailed into place"
     }

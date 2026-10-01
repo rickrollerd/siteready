@@ -1991,13 +1991,22 @@ const ACTIVITIES = [
     when: 'plasterHeight',
     steps: [{
       step: 'Work at the upper wall and ceiling line',
-      hazards: ['A fall from a mobile scaffold, trestle, step platform or ladder.', 'Arms overhead fixing ceilings and setting joints.'],
+      hazards: ['A fall from a mobile scaffold, step platform or ladder.', 'Working with arms overhead.'],
       controls: [
-        src('Fall hazards under 2 m are identified, assessed and controlled before work starts.', WHS('s 306C')),
-        src('Ladders are industrial and rated for at least 120 kg. Use step platforms or trestles rather than stepladders, and never stand above the second tread below the top of a stepladder.', `${WHS('s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
+        src('Fall hazards under 2 m are identified, assessed and controlled before work starts. Platforms 2 m or higher have guardrails so a fall is prevented.', WHS('s 306C, s 306D')),
         src('Work from the floor or a platform where possible. Ladders only after scaffolds and EWPs are considered.', `${WHS('s 78, s 79')}; ${MODEL('Managing the risk of falls', 's 9')}`),
-        src('Working with arms overhead is a hazardous posture: use sheet lifters to hold ceiling sheets, and rotate tasks.', MODEL('Hazardous manual tasks', 's 2.2, s 4.5')),
         src('Ladders are industrial and rated for at least 120 kg. Use step platforms rather than plain stepladders, never stand above the second tread below the top of a stepladder, and never use two-handed tools on a ladder.', `${WHS('s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
+        src('Working with arms overhead is a hazardous posture: rotate tasks and take short breaks.', MODEL('Hazardous manual tasks', 's 2.2, s 4.9')),
+      ],
+    }],
+  },
+  {
+    when: 'plasterCeiling',
+    steps: [{
+      step: 'Fix ceiling sheets',
+      hazards: ['Strain holding ceiling sheets overhead.'],
+      controls: [
+        src('Use sheet lifters to hold ceiling sheets in place while fixing.', MODEL('Hazardous manual tasks', 's 2.2, s 4.5')),
       ],
     }],
   },
@@ -2582,7 +2591,6 @@ const ACTIVITIES = [
         hazards: ['Paint on the skin or in the eyes.', 'Trips over drop sheets and tins.'],
         controls: [
           src('Wear the gloves and eye protection the safety data sheet lists.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
-          src('Sanding between coats: vacuum or wet clean the dust, never dry sweep.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
           src('Painting is a repetitive task: rotate tasks.', MODEL('Hazardous manual tasks', 's 2.2')),
           'Keep only the paint needed in the work area, with lids on when not in use.',
         ],
@@ -2597,6 +2605,7 @@ const ACTIVITIES = [
       hazards: ['A fall from a ladder, trestle or step platform.'],
       controls: [
         'Use extension poles for walls and ceilings where possible.',
+        src('Sanding between coats: vacuum or wet clean the dust, never dry sweep.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
         src('Fall hazards under 2 m are identified, assessed and controlled before work starts.', WHS('s 306C')),
         src('Ladders are industrial and rated for at least 120 kg. Use step platforms or trestles rather than stepladders.', `${WHS('s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
       ],

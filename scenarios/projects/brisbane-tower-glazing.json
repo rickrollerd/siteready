@@ -1,0 +1,64 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: glazing and balustrades",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "balustrades",
+      "title": "Glass balustrades on balconies",
+      "task": "Install glass balustrades and handrails on the apartment balconies at the edge, lifting glass panels with vacuum lifters, and sealing with silicone.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Temporary edge protection stays in place except at the panel being installed, opened under permit, and workers there use travel restraint to engineer designed anchors so they cannot reach the edge.",
+        "safetyDataSheet": "Safety data sheets for the silicone sealant are kept at the work area: avoid skin contact, wear gloves."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Install balustrades at balcony edges",
+          "Handle and install glass panels",
+          "Seal glazing"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "screens",
+      "title": "Shower screens and internal glazing",
+      "task": "Install shower screens and mirrors in the apartments.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Handle and install glass panels"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "balustrades"
+      ],
+      "phrase": "opened only at the panel being installed",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 79, s 306D",
+      "quote": "permits for access to areas where travel restraint systems"
+    },
+    {
+      "swms": [
+        "balustrades",
+        "screens"
+      ],
+      "phrase": "Use vacuum lifters, glass panel lifters",
+      "source": "Model Code: Hazardous manual tasks s 4.4, s 4.5",
+      "quote": "glass panel, duct and plaster lifters"
+    }
+  ]
+}

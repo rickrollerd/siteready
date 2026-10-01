@@ -1,0 +1,61 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: landscaping",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "podium",
+      "title": "Podium landscaping and planters",
+      "task": "Fill the podium planters with soil and mulch and plant them, near the podium edge.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Edge protection with mesh infill stays in place at the podium edge."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Move soil and mulch, and plant",
+          "Work at podium edges and on the street"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "paving",
+      "title": "Street paving",
+      "task": "Lay and cut pavers on the footpath next to the street.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Pavers are cut wet or with on-tool dust extraction. Fit tested P2 respirators are worn by anyone still at risk. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [
+          "road"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Lay and cut pavers",
+          "Work at podium edges and on the street"
+        ],
+        "missing": [
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "paving"
+      ],
+      "phrase": "Pavers are not engineered stone",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529B, s 529C, s 529CA",
+      "quote": "bricks, pavers or other similar blocks"
+    }
+  ]
+}

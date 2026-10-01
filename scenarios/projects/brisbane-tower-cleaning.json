@@ -1,0 +1,37 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: final clean",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "clean",
+      "title": "Builders' clean of apartments",
+      "task": "Final clean of the apartments, including windows from inside and balconies, with cleaning chemicals.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the cleaning products are kept at the work area: never mix products, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Clean with chemicals",
+          "Clean windows and balconies"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "clean"
+      ],
+      "phrase": "including for supermarket products used for work",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 341, s 344, s 351",
+      "quote": "if you are using a domestic chemical in a manner different to normal household use, you should also obtain the SDS"
+    }
+  ]
+}

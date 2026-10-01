@@ -1,0 +1,42 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: concrete cutting",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "saw",
+      "title": "Concrete saw cutting and core drilling",
+      "task": "Saw cut and core drill openings in the post-tensioned slabs and walls with wall saws and core drills.",
+      "fallRisk": "yes",
+      "facts": {
+        "silicaControls": "Concrete is cut wet or with on-tool dust extraction. Fit tested P2 respirators are worn by anyone still at risk. The written silica assessment is done before work starts and attached to this SWMS.",
+        "fallControl": "Each opening is barricaded before cutting and covered with a fixed, marked cover as soon as the section is removed."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Plan core holes",
+          "Core drill through the slab",
+          "Saw cut concrete"
+        ],
+        "missing": [
+          "Fall control",
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "saw"
+      ],
+      "phrase": "Cutting concrete is processing a crystalline silica substance",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529B, s 529C",
+      "quote": "unless the processing is controlled"
+    }
+  ]
+}
