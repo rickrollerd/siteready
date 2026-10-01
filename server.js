@@ -29,8 +29,11 @@ function positiveNumber(value, fallback) {
 }
 
 const app = express();
-// Railway and similar hosts sit behind one proxy. The rate limit needs the client address.
-app.set('trust proxy', 1);
+// Railway and similar hosts sit behind one proxy, which adds the client address.
+// Set TRUST_PROXY to the number of proxies in front of the server (0 for none),
+// or a client could fake its address and get round the rate limit.
+const trustProxy = Number(process.env.TRUST_PROXY ?? 1);
+app.set('trust proxy', Number.isInteger(trustProxy) && trustProxy >= 0 ? trustProxy : 1);
 app.use(helmet());
 app.use(cors({ origin: allowedOrigins() }));
 // The Word file can carry the company logo, so its route accepts a larger body.
@@ -59,9 +62,13 @@ app.use('/api', limiter(
   (req) => req.originalUrl.startsWith(WORD_ROUTE),
 ));
 
+// Control characters, often pasted in from Word or email, are not allowed in a
+// Word file and would make it fail to open.
+const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
+
 function textField(value, max) {
   if (typeof value !== 'string') return '';
-  return value.trim().substring(0, max);
+  return value.toWellFormed().replace(CONTROL, ' ').trim().substring(0, max);
 }
 
 function longDate(date = new Date()) {
@@ -165,9 +172,12 @@ function start() {
     console.log(`SiteReady server running on http://localhost:${PORT} with ${workers} workers`);
     return;
   }
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     if (workers <= 1) console.log(`SiteReady server running on http://localhost:${PORT}`);
   });
+  // A client that sends a request slowly is cut off, so it cannot hold connections open.
+  server.headersTimeout = 20000;
+  server.requestTimeout = 30000;
 }
 
 if (require.main === module) start();
