@@ -32,7 +32,7 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "The car top has its guardrail fitted before anyone stands on it, and the pit is entered by its fixed ladder.",
-        "plantIsolation": "The lift is isolated at the main switch and locked out with personal padlocks, the car is put on car top inspection control, and only the person on the car top operates it."
+        "plantIsolation": "For work that does not need the car to move, the lift is isolated at the main switch and locked out with personal padlocks. Where the car must move, it runs only on car top inspection control, operated only by the person doing the work."
       },
       "expect": {
         "highRisk": [

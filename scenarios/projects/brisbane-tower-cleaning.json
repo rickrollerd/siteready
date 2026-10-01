@@ -10,7 +10,7 @@
       "task": "Final clean of the apartments, including windows from inside and balconies, with cleaning chemicals.",
       "fallRisk": "no",
       "facts": {
-        "safetyDataSheet": "Safety data sheets for the cleaning products are kept at the work area: never mix products, wear gloves and eye protection."
+        "safetyDataSheet": "Safety data sheets for the cleaning products are kept at the work area. Never mix products."
       },
       "expect": {
         "highRisk": [],
