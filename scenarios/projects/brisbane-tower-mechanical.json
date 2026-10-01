@@ -10,8 +10,8 @@
       "task": "Receive air handling units, chillers and cooling tower sections lifted by the tower crane to the roof and plant room levels, then move them into position on skates and pallet jacks and set them on their plinths.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "Lifts are done by the crane company under its lift plan; our licensed dogman slings and receives the loads with tag lines.",
-        "loadLimits": "Plant is landed only on the plinths and the landing zones marked on the structural drawings S-501, rated 10 kPa, checked by our supervisor before each lift.",
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
+        "loadLimits": "Plant is landed only on the plinths and landing zones, and moved only along the routes, marked on the structural engineer's drawing S-501 (10 kPa), checked by the structural engineer before the first lift.",
         "fallControl": "Plant is received only inside the perimeter screens and at the crane landing platform with gates closed; no one works at an open edge."
       },
       "expect": {
@@ -58,14 +58,16 @@
     {
       "id": "refrigerant-pipework",
       "title": "Refrigerant pipework brazing and nitrogen pressure testing",
-      "task": "Install and braze refrigerant pipework between the condensing units on the roof and the fan coil units in the apartments, then pressure test the refrigerant pipework with oxygen-free nitrogen.",
-      "fallRisk": "no",
+      "task": "Install and braze refrigerant pipework between the condensing units on the roof and the fan coil units in the apartments, running through the risers, then pressure test the refrigerant pipework with oxygen-free nitrogen.",
+      "fallRisk": "yes",
       "facts": {
         "hotWorkPermit": "The principal contractor issues a hot work permit each day; a fire extinguisher is kept at each brazing location and the area is checked after brazing ends.",
-        "pressureTesting": "Oxygen-free nitrogen through a regulator with a relief valve, tested to the manufacturer's test pressure below the PS on the unit's plate, with the area barricaded and signed during the test, and pressure released through the gauge set before any fitting is touched."
+        "pressureTesting": "Oxygen-free nitrogen through a regulator with a relief valve, tested to the manufacturer's test pressure below the PS on the unit's plate, with the area barricaded and signed during the test, and pressure released through the gauge set before any fitting is touched.",
+        "fallControl": "Risers are screened at each level with only the section being worked on opened, and the roof work is done inside the roof edge protection."
       },
       "expect": {
         "highRisk": [
+          "fall",
           "chemicalLine"
         ],
         "steps": [
@@ -74,6 +76,7 @@
           "Pressure test with nitrogen"
         ],
         "missing": [
+          "Fall control",
           "Hot work permit and fire watch",
           "Pressure testing method"
         ]
@@ -157,7 +160,8 @@
       "expect": {
         "highRisk": [
           "chemicalLine",
-          "atmosphere"
+          "atmosphere",
+          "electrical"
         ],
         "steps": [
           "Evacuate, charge and recover refrigerant",
@@ -260,9 +264,9 @@
         "refrigerant-pipework",
         "roof-plant"
       ],
-      "phrase": "recover or isolate all of it, and ventilate the area",
-      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 9.3, s 9.9.3",
-      "quote": "all refrigerant must be recovered from the system, or isolated"
+      "phrase": "recover or isolate all of it, ventilate the area, and evacuate and purge",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 9.3, s 9.9.3, s 9.9.4",
+      "quote": "all refrigerant must be recovered from the system, or isolated; must be evacuated and purged with OFN prior to any hot work"
     },
     {
       "swms": [
@@ -383,6 +387,23 @@
       "phrase": "confined space entry permit",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 66, s 67, s 69, s 70",
       "quote": "must not direct a worker to enter a confined space to carry out work unless the person has issued a confined space entry permit"
+    },
+    {
+      "swms": [
+        "ductwork",
+        "car-park-fans"
+      ],
+      "phrase": "Assess in writing before drilling",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529CA",
+      "quote": "recorded in writing"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "do not trap liquid refrigerant between closed valves",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 6.4, s 6.5",
+      "quote": "avoid refrigerant liquid being trapped between closed valves as high pressures may develop"
     }
   ]
 }
