@@ -27,6 +27,7 @@ function payload() {
   return {
     state: state ? state.value : '',
     fallRisk: (document.querySelector('input[name="fallRisk"]:checked') || {}).value || '',
+    residential: (document.querySelector('input[name="residential"]:checked') || {}).value || '',
     task: value('task'),
     company: value('company'),
     workplace: value('workplace'),
@@ -67,8 +68,15 @@ let stateList = [];
 function showFallExplanation() {
   const chosen = document.querySelector('input[name="state"]:checked');
   const state = stateList.find((item) => chosen && item.id === chosen.value);
+  // The Northern Territory asks whether the work is residential, which sets the fall height.
+  const asksResidential = Boolean(state && state.residentialFallMetres);
+  document.getElementById('residential-question').classList.toggle('hidden', !asksResidential);
+  document.getElementById('residential-legend').textContent = (state && state.residentialQuestion) || '';
+  document.querySelectorAll('input[name="residential"]').forEach((input) => { input.required = asksResidential; });
+  const residential = asksResidential && document.querySelector('input[name="residential"]:checked')?.value === 'yes';
+  document.getElementById('fall-metres').textContent = residential ? String(state.residentialFallMetres) : '2';
   const el = document.getElementById('fall-explanation');
-  el.textContent = (state && state.fallExplanation) || '';
+  el.textContent = (state && (residential && state.residentialFallExplanation ? state.residentialFallExplanation : state.fallExplanation)) || '';
   const no = document.querySelector('input[name="fallRisk"]:checked')?.value === 'no';
   el.classList.toggle('hidden', !no || !el.textContent);
 }
@@ -113,7 +121,7 @@ document.getElementById('start').addEventListener('submit', async (event) => {
   factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-document.querySelectorAll('input[name="fallRisk"]').forEach((input) => {
+document.querySelectorAll('input[name="fallRisk"], input[name="residential"]').forEach((input) => {
   input.addEventListener('change', showFallExplanation);
 });
 
@@ -140,7 +148,8 @@ function render(draft) {
         ${row('First aider', draft.firstAider)}
         ${row('Muster point', draft.musterPoint)}
         <tr><th>Task</th><td>${esc(draft.task)}</td></tr>
-        ${row('Fall of more than 2 metres', draft.fallRisk)}
+        ${row('Residential construction work', draft.residential)}
+        ${row(`Fall of more than ${draft.fallMetres || 2} metres`, draft.fallRisk)}
         <tr><th>Date</th><td>${esc(draft.date)}</td></tr>
       </tbody>
     </table>`;

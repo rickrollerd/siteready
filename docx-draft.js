@@ -155,7 +155,8 @@ function metaRows(draft) {
   if (draft.firstAider) rows.push(['First aider', draft.firstAider]);
   if (draft.musterPoint) rows.push(['Muster point', draft.musterPoint]);
   rows.push(['Task', draft.task]);
-  if (draft.fallRisk) rows.push(['Fall of more than 2 metres', draft.fallRisk]);
+  if (draft.residential) rows.push(['Residential construction work', draft.residential]);
+  if (draft.fallRisk) rows.push([`Fall of more than ${draft.fallMetres || 2} metres`, draft.fallRisk]);
   rows.push(['Date', draft.date || ' ']);
   return rows;
 }

@@ -391,6 +391,9 @@ function listStates() {
     versionLabel: state.versionLabel || '',
     instrument: state.instrument || '',
     fallExplanation: state.fallExplanation || '',
+    residentialFallMetres: state.residentialFallMetres || 0,
+    residentialQuestion: state.residentialQuestion || '',
+    residentialFallExplanation: state.residentialFallExplanation || '',
   }));
 }
 

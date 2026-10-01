@@ -165,8 +165,13 @@
         </label>
         <textarea id="task" required></textarea>
       </div>
+      <fieldset class="field choice hidden" id="residential-question">
+        <legend id="residential-legend"></legend>
+        <label><input type="radio" name="residential" value="yes"> Yes</label>
+        <label><input type="radio" name="residential" value="no"> No</label>
+      </fieldset>
       <fieldset class="field choice" id="fall-question">
-        <legend>Could a person fall more than 2 metres during this task?</legend>
+        <legend>Could a person fall more than <span id="fall-metres">2</span> metres during this task?</legend>
         <label><input type="radio" name="fallRisk" value="yes" required> Yes</label>
         <label><input type="radio" name="fallRisk" value="no"> No</label>
         <p class="note hidden" id="fall-explanation"></p>
