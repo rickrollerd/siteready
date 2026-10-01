@@ -137,11 +137,30 @@
     .sheet-company { font-weight: 700; margin: 0 0 2px; }
     .sheet-logo { max-width: min(300px, 45%); max-height: 100px; width: auto; height: auto; display: block; margin-left: auto; }
     input[type="file"] { font-size: 14px; }
+    .account-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 10px 14px; }
+    .bar-note { font-size: 14px; color: #3d4a59; }
+    .bar-links { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+    button.link { background: none; border: 0; color: #1f4e3d; padding: 0; font-weight: 600; text-decoration: underline; width: auto; }
+    button.small { padding: 6px 12px; font-size: 14px; width: auto; }
+    select.plain { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; padding: 9px 11px; }
+    .swms-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e1e6ec; }
+    .swms-row .meta { display: block; }
+    .due { color: #8a2b2b; font-weight: 600; }
+    .wrap-actions { flex-wrap: wrap; }
+    .qr-box { display: flex; gap: 16px; align-items: center; margin-bottom: 8px; }
+    .qr { width: 160px; flex: none; }
+    .qr svg { width: 100%; height: auto; display: block; }
+    .site-item { border: 1px solid #e1e6ec; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; }
+    .site-item > summary { cursor: pointer; font-weight: 600; }
+    .site-item[open] > summary { margin-bottom: 10px; }
+    .error-note { background: #fbeaea; border-color: #e3a3a3; color: #8a2b2b; }
+    #site-save-current { margin-top: 0; }
     @media (max-width: 640px) {
       .wrap { padding: 18px 12px 48px; }
       .panel, .sheet { padding: 16px; }
       .sign { grid-template-columns: 1fr; }
       .actions { flex-direction: column; }
+      .qr-box { flex-direction: column; align-items: flex-start; }
       button { width: 100%; }
     }
   </style>
@@ -152,6 +171,63 @@
       <h1>SiteReady</h1>
       <p class="lede">A writing aid for one task. The subcontractor finishes the statement.</p>
     </header>
+
+    <div class="account-bar hidden" id="account-bar"></div>
+
+    <section class="panel hidden" id="signin">
+      <h2>Sign in or start your free trial</h2>
+      <p class="lede" style="margin-bottom:12px">Enter your email and we will send you a sign-in link. No password. A new email starts a free 14 day trial for your company.</p>
+      <form id="signin-form">
+        <div class="field">
+          <label for="signin-email">Email</label>
+          <input id="signin-email" type="text" inputmode="email" autocomplete="email" required>
+        </div>
+        <div class="actions">
+          <button type="submit">Email me a sign-in link</button>
+          <button type="button" class="secondary hidden" id="faceid-signin">Sign in with Face ID</button>
+        </div>
+      </form>
+      <p class="note hidden" id="signin-status"></p>
+    </section>
+
+    <section class="panel hidden" id="faceid-offer">
+      <h2>Use Face ID next time?</h2>
+      <p class="lede" style="margin-bottom:12px">On an iPhone or iPad, sign in with Face ID instead of an email link. Your face never leaves the device.</p>
+      <div class="actions">
+        <button type="button" id="faceid-setup">Set up Face ID</button>
+        <button type="button" class="secondary" id="faceid-later">Not now</button>
+      </div>
+    </section>
+    <p class="note hidden" id="faceid-status"></p>
+
+    <section class="panel hidden" id="my-swms">
+      <h2>My SWMS</h2>
+      <div id="swms-list"></div>
+    </section>
+
+    <section class="panel hidden" id="sites-panel">
+      <h2>Sites</h2>
+      <p class="lede" style="margin-bottom:12px">Save a site's details once, then pick the site when you prepare a SWMS.</p>
+      <div id="sites-list"></div>
+      <h2 style="margin-top:18px">Add a site</h2>
+      <div id="site-new"></div>
+    </section>
+
+    <section class="panel hidden" id="team-panel">
+      <h2>Team</h2>
+      <ul id="team-list"></ul>
+      <form id="team-form">
+        <div class="field">
+          <label for="team-email">Add a person to your company</label>
+          <input id="team-email" type="text" inputmode="email" autocomplete="off" required>
+        </div>
+        <div class="actions">
+          <button type="submit">Send invitation</button>
+          <button type="button" class="secondary hidden" id="team-faceid">Set up Face ID on this device</button>
+        </div>
+      </form>
+      <p class="note hidden" id="team-status"></p>
+    </section>
 
     <details class="panel" id="profile">
       <summary>Company profile<span class="saved-name" id="profile-summary"></span></summary>
@@ -195,6 +271,13 @@
       <div class="field">
         <label>State</label>
         <ul class="states" id="states"></ul>
+      </div>
+      <div class="field pick signed-in-only hidden">
+        <label for="site-picker">Site
+          <span class="hint">Pick a saved site to fill in its details, or save the details below as a new site.</span>
+        </label>
+        <select id="site-picker"><option value="">Choose a saved site</option></select>
+        <button type="button" class="pick-button" id="site-save-current">Save these details as a site</button>
       </div>
       <div class="field">
         <label for="principal">Principal contractor</label>
@@ -305,5 +388,6 @@
     <p class="site-footer">SiteReady prepares draft SWMS. Your business reviews, approves and is responsible for every SWMS it uses. <a href="/terms.html">Terms of use</a> · <a href="/privacy.html">Privacy</a></p>
   </div>
   <script src="/app.js"></script>
+  <script src="/account.js"></script>
 </body>
 </html>

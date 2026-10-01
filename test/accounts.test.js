@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');
 const db = require('../db');
-const { sendReviewReminders } = require('../accounts');
+const { sendReviewReminders, removeExpired } = require('../accounts');
 const { setupAccounts, lastLinkToken, mailbox } = require('./helpers');
 
 let server;
@@ -169,4 +169,11 @@ test('Face ID set-up and sign-in options are offered', async () => {
   assert.ok(login.challengeId && login.options.challenge);
   const bad = await call('POST', '/api/auth/passkey/login', { body: { challengeId: login.challengeId, response: { id: 'unknown' } } });
   assert.equal(bad.status, 400);
+});
+
+test('expired sign-in links and sessions are removed', async () => {
+  await call('POST', '/api/auth/email', { body: { email: 'old@link.example' } });
+  await db.query('UPDATE login_tokens SET expires_at = $1 WHERE email = $2', [new Date(Date.now() - 1000), 'old@link.example']);
+  await removeExpired();
+  assert.equal((await db.query('SELECT * FROM login_tokens WHERE email = $1', ['old@link.example'])).length, 0);
 });

@@ -119,7 +119,7 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     if (!confirmation) return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve this SWMS, and enter your name, before downloading.' });
     const result = prepareDraft(signedInBody(req));
     if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
-    const buffer = await draftToPdf(result, { logo: readLogo(req.company.logo), note: draftedNote(confirmation) });
+    const buffer = await draftToPdf(result, { logo: readLogo((req.company && req.company.logo) || (req.body && req.body.logo)), note: draftedNote(confirmation) });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${result.kind === 'stand-down' ? 'SiteReady-stood-down.pdf' : 'SiteReady.pdf'}"`);
     res.send(buffer);
@@ -135,7 +135,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   }
   const result = prepareDraft(signedInBody(req));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
-  const buffer = await draftToDocx(result, { logo: readLogo(req.company.logo || (req.body && req.body.logo)), confirmation });
+  const buffer = await draftToDocx(result, { logo: readLogo((req.company && req.company.logo) || (req.body && req.body.logo)), confirmation });
   const filename = result.kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -177,7 +177,7 @@ function start() {
     db.migrate().catch((error) => console.error('Database setup failed:', error.message));
     // One process sends review reminders, every 6 hours.
     if (!cluster.worker || cluster.worker.id === 1) {
-      const remind = () => accounts.sendReviewReminders().catch((error) => console.error('Review reminders failed:', error.message));
+      const remind = () => Promise.all([accounts.sendReviewReminders(), accounts.removeExpired()]).catch((error) => console.error('Review reminders failed:', error.message));
       setTimeout(remind, 60 * 1000);
       setInterval(remind, 6 * 60 * 60 * 1000).unref();
     }

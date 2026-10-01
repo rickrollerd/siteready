@@ -86,10 +86,20 @@ document.getElementById('profile-logo').addEventListener('change', async (event)
   preview.classList.toggle('hidden', !pendingLogo);
 });
 
-document.getElementById('profile-save').addEventListener('click', () => {
+document.getElementById('profile-save').addEventListener('click', async () => {
   const next = {};
   Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { next[key] = document.getElementById(id).value.trim(); });
   if (pendingLogo) next.logo = pendingLogo;
+  // Signed in, the profile is the company's and is kept on the server for the whole team.
+  if (window.SiteReady && window.SiteReady.saveCompany && window.SiteReady.signedIn()) {
+    try {
+      setProfile(await window.SiteReady.saveCompany(next));
+      profileStatus('Saved for your company.');
+    } catch (error) {
+      profileStatus(error.message);
+    }
+    return;
+  }
   try {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(next));
   } catch {
@@ -115,6 +125,15 @@ document.getElementById('profile-clear').addEventListener('click', () => {
 });
 
 showProfile();
+
+// Used when signed in: the saved company replaces this device's profile.
+function setProfile(next) {
+  const company = document.getElementById('company');
+  if (!company.value || company.value === profile.name) company.value = next.name || '';
+  profile = next;
+  pendingLogo = next.logo || '';
+  showProfile();
+}
 
 function esc(value) {
   return String(value || '').replace(/[&<>"']/g, (ch) => ({
@@ -202,8 +221,12 @@ function showFallExplanation() {
   el.classList.toggle('hidden', !no || !el.textContent);
 }
 
-document.getElementById('start').addEventListener('submit', async (event) => {
+document.getElementById('start').addEventListener('submit', (event) => {
   event.preventDefault();
+  loadQuestions();
+});
+
+async function loadQuestions() {
   document.getElementById('start-error').textContent = '';
   resultEl.classList.add('hidden');
   const response = await fetch(api('/api/draft/questions'), {
@@ -214,7 +237,7 @@ document.getElementById('start').addEventListener('submit', async (event) => {
   const data = await response.json();
   if (!response.ok) {
     document.getElementById('start-error').textContent = data.message || 'That state is not available.';
-    return;
+    return false;
   }
   questions = data;
   const warning = document.getElementById('fall-warning');
@@ -251,7 +274,42 @@ document.getElementById('start').addEventListener('submit', async (event) => {
   `).join('');
   factsForm.classList.remove('hidden');
   factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
+  return true;
+}
+
+// Puts a saved SWMS back into the form, so it can be changed and saved again.
+const FORM_FIELDS = {
+  principalContractor: 'principal', company: 'company', workplace: 'workplace', siteManager: 'site-manager',
+  worksManager: 'works-manager', worksManagerPhone: 'works-manager-phone', complianceResponsible: 'compliance-responsible',
+  reviewer: 'reviewer', reviewDate: 'review-date', scaffoldSupervisor: 'scaffold-supervisor', hospital: 'hospital',
+  firstAider: 'first-aider', musterPoint: 'muster-point', date: 'draft-date', task: 'task',
+};
+
+function fillFields(values) {
+  Object.entries(FORM_FIELDS).forEach(([key, id]) => {
+    if (values[key] !== undefined) document.getElementById(id).value = values[key] || '';
+  });
+}
+
+async function fillForm(input) {
+  const pick = (name, value) => {
+    const el = value && document.querySelector(`input[name="${name}"][value="${value}"]`);
+    if (el) el.checked = true;
+  };
+  pick('state', input.state);
+  pick('residential', input.residential);
+  pick('crane', input.crane || 'company');
+  pick('fallRisk', input.fallRisk);
+  fillFields(input);
+  showFallExplanation();
+  if (!(await loadQuestions())) return;
+  document.querySelectorAll('[data-fact]').forEach((el) => {
+    const value = (input.facts || {})[el.dataset.fact] || '';
+    if (el.type === 'radio') el.checked = el.value === value;
+    else el.value = value;
+  });
+  document.querySelectorAll('[data-site]').forEach((el) => { el.value = (input.site || {})[el.dataset.site] || ''; });
+}
 
 // A standard answer is added to the box, where it can be changed. Blanks (____) are left to fill in.
 document.getElementById('required-block').addEventListener('click', (event) => {
@@ -405,31 +463,10 @@ factsForm.addEventListener('submit', async (event) => {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || 'The statement could not be prepared.');
-    resultEl.innerHTML = `<div class="sheet">${render(data)}</div>
-      <div class="panel confirm" style="margin-top:12px">
-        <label class="check"><input type="checkbox" id="review-confirm"><span>I understand this is a draft. My business will check it against the site, change it where needed, and approve it before it is used. <a href="/terms.html" target="_blank" rel="noopener">Terms of use</a></span></label>
-        <div class="field">
-          <label for="reviewed-by">Your name (printed on the SWMS)</label>
-          <input id="reviewed-by" autocomplete="name" maxlength="120" value="${esc(savedReviewer())}">
-        </div>
-        <div class="actions">
-          <button type="button" id="download" disabled>Download Word</button>
-        </div>
-      </div>`;
+    resultEl.innerHTML = `<div class="sheet">${render(data)}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
-    const confirmBox = document.getElementById('review-confirm');
-    const nameBox = document.getElementById('reviewed-by');
-    const downloadButton = document.getElementById('download');
-    const ready = () => { downloadButton.disabled = !(confirmBox.checked && nameBox.value.trim()); };
-    confirmBox.addEventListener('change', ready);
-    nameBox.addEventListener('input', ready);
-    downloadButton.addEventListener('click', () => {
-      const reviewedBy = nameBox.value.trim();
-      saveReviewer(reviewedBy);
-      // The Word file also carries the saved logo, and the name of the person who confirmed.
-      const wordBody = JSON.stringify({ ...JSON.parse(body), ...(profile.logo ? { logo: profile.logo } : {}), reviewConfirmed: true, reviewedBy });
-      downloadDocx(wordBody, data.kind);
-    });
+    // Downloading and saving need an account; the account script adds those buttons.
+    window.SiteReady.showActions(data, JSON.parse(body));
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;
@@ -438,33 +475,9 @@ factsForm.addEventListener('submit', async (event) => {
   }
 });
 
-const REVIEWER_KEY = 'siteready-reviewer';
-function savedReviewer() {
-  try { return localStorage.getItem(REVIEWER_KEY) || ''; } catch { return ''; }
-}
-function saveReviewer(name) {
-  try { localStorage.setItem(REVIEWER_KEY, name); } catch { /* not saved */ }
-}
-
-async function downloadDocx(body, kind) {
-  const response = await fetch(api('/api/draft.docx'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-  });
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    document.getElementById('facts-error').textContent = data.message || 'The Word file could not be prepared.';
-    return;
-  }
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
-  link.click();
-  URL.revokeObjectURL(url);
-}
+window.SiteReady = Object.assign(window.SiteReady || {}, {
+  api, esc, payload, render, fillForm, fillFields, setProfile, getProfile: () => profile, resultEl,
+});
 
 loadStates().catch(() => {
   document.getElementById('start-error').textContent = 'The state list could not be loaded.';

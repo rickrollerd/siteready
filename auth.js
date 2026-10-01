@@ -117,6 +117,8 @@ function requireUser(req, _res, next) {
 }
 
 function requireAccess(req, _res, next) {
+  // Without a database there are no accounts, and downloads work as before.
+  if (!db.enabled()) return next();
   if (!req.user) return next(fail(401, 'Sign in, or start a free trial, to download, save or share a SWMS.'));
   if (!hasAccess(req.company)) return next(fail(402, 'Your free trial has ended. Subscribe to keep downloading, saving and sharing SWMS.'));
   next();

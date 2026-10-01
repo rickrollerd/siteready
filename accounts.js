@@ -194,8 +194,13 @@ async function ownSwms(req, id) {
   return row;
 }
 
+// A title from the task: its first sentence, cut at a word if it is long.
 function titleFor(body, input) {
-  return textField(body.title, 200) || textField(input.task, 90).replace(/[.,;:]+$/, '') || 'Untitled SWMS';
+  const given = textField(body.title, 200);
+  if (given) return given;
+  const sentence = textField(input.task, 5000).split(/(?<=[.!?])\s/)[0].replace(/[.,;:]+$/, '');
+  if (sentence.length <= 100) return sentence || 'Untitled SWMS';
+  return `${sentence.slice(0, 100).replace(/[\s,;:]+\S*$/, '')}…`;
 }
 
 router.get('/swms', requireUser, route(async (req, res) => {
@@ -367,4 +372,12 @@ async function sendReviewReminders(now = new Date()) {
   return due.length;
 }
 
-module.exports = { router, sendReviewReminders, withCompany, REVIEW_MONTHS };
+// Expired sign-in links, sessions and Face ID challenges are removed.
+async function removeExpired(now = new Date()) {
+  if (!db.enabled()) return;
+  await db.query('DELETE FROM login_tokens WHERE expires_at < $1', [now]);
+  await db.query('DELETE FROM sessions WHERE expires_at < $1', [now]);
+  await db.query('DELETE FROM challenges WHERE expires_at < $1', [now]);
+}
+
+module.exports = { router, sendReviewReminders, removeExpired, withCompany, REVIEW_MONTHS };

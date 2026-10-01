@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign on to a SWMS</title>
+  <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.45; color: #1c2430; background: #eef1f4; }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 18px 14px 48px; }
+    h1 { font-size: 24px; margin: 0 0 4px; }
+    h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #3d4a59; margin: 18px 0 8px; }
+    .meta { color: #5c6773; font-size: 14px; margin: 0 0 4px; }
+    .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    details { border-top: 1px solid #e1e6ec; padding: 8px 0; }
+    summary { cursor: pointer; font-weight: 600; }
+    ul { margin: 6px 0 0; padding-left: 1.2em; }
+    li { margin-bottom: 4px; font-size: 15px; }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    input[type="text"] { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; padding: 10px 11px; font: inherit; }
+    .field { margin-bottom: 14px; }
+    .pad { width: 100%; height: 170px; border: 1px dashed #8a96a3; border-radius: 6px; background: #fff; touch-action: none; display: block; }
+    .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; }
+    .check input { margin-top: 4px; flex: none; width: 20px; height: 20px; }
+    button { border: 1px solid #1f4e3d; background: #1f4e3d; color: #fff; border-radius: 6px; padding: 12px 14px; font: inherit; font-weight: 600; width: 100%; cursor: pointer; }
+    button.secondary { background: #fff; color: #1f4e3d; width: auto; padding: 6px 12px; font-size: 14px; margin-top: 6px; }
+    .error { color: #8a2b2b; }
+    .done { background: #e8f3ee; border: 1px solid #9cc9b3; border-radius: 8px; padding: 16px; margin-top: 14px; font-weight: 600; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="meta">SiteReady · Worker sign-on</p>
+    <h1 id="title">Loading…</h1>
+    <p class="meta" id="where"></p>
+    <p class="error hidden" id="load-error"></p>
+
+    <div class="panel hidden" id="swms">
+      <p>Read the SWMS below, or have your supervisor explain it, before you sign.</p>
+      <h2>High risk work</h2>
+      <ul id="risks"></ul>
+      <h2>Job steps</h2>
+      <div id="steps"></div>
+      <h2>PPE to wear</h2>
+      <ul id="ppe"></ul>
+    </div>
+
+    <form class="panel hidden" id="sign-form">
+      <div class="field">
+        <label for="name">Your name</label>
+        <input id="name" type="text" autocomplete="name" required>
+      </div>
+      <div class="field">
+        <label for="company">Your company</label>
+        <input id="company" type="text" autocomplete="organization">
+      </div>
+      <div class="field">
+        <label>Sign with your finger</label>
+        <canvas class="pad" id="pad"></canvas>
+        <button type="button" class="secondary" id="clear">Clear signature</button>
+      </div>
+      <div class="field">
+        <label class="check"><input type="checkbox" id="confirmed"><span>This SWMS has been explained to me, I understand it, and I will follow it. If the work changes or a control is not working, I will stop and tell my supervisor.</span></label>
+      </div>
+      <button type="submit" id="submit">Sign on</button>
+      <p class="error hidden" id="sign-error"></p>
+    </form>
+    <div class="done hidden" id="done"></div>
+  </div>
+  <script src="/sign.js"></script>
+</body>
+</html>
