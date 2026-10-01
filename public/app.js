@@ -50,7 +50,7 @@ async function loadStates() {
       <label class="state${state.loaded ? '' : ' disabled'}">
         <input type="radio" name="state" value="${esc(state.id)}" ${state.loaded ? '' : 'disabled'}>
         <span>${esc(state.name)}</span>
-        <span class="tag">${state.loaded ? `${esc(state.compilation)} compilation` : 'Legislation not loaded'}</span>
+        <span class="tag">${state.loaded ? esc(state.versionLabel) : 'Legislation not loaded'}</span>
       </label>
     </li>
   `).join('');
@@ -126,7 +126,7 @@ function render(draft) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
   const head = `
     <h3>Safe work method statement</h3>
-    <p class="meta">${esc(draft.instrument)} · ${esc(draft.compilation)} compilation · section ${esc(draft.section)}</p>
+    <p class="meta">${esc(draft.instrument)} · ${esc(draft.versionLabel)} · ${esc(draft.sectionRef)}</p>
     <p class="status">${esc(draft.status || 'Not approved. Not signed.')}</p>
     <table>
       <tbody>
@@ -165,7 +165,7 @@ function render(draft) {
     <h4>High risk construction work</h4>${risks}
     <h4>Hazards and risks</h4>${hazards}
     <h4>Controls</h4>${controls}
-    <h4>How the controls will be implemented, monitored and reviewed</h4>
+    <h4>${esc(draft.reviewHeading)}</h4>
     <p>${esc(draft.review)}</p>
     <h4>Site-specific</h4>${site}
     <h4>Method</h4>${method}

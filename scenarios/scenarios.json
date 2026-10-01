@@ -82,7 +82,7 @@
     "expect": {
       "missing": [],
       "highRisk": ["demolition", "temporary"],
-      "hazards": ["Demolition of a load-bearing structure", "Temporary support"]
+      "hazards": ["Demolition", "Temporary support"]
     }
   },
   {

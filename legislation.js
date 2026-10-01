@@ -47,7 +47,10 @@ const QUEENSLAND = {
   loaded: true,
   instrument: 'Work Health and Safety Regulation 2011 (Qld)',
   compilation: 'March 2026',
+  versionLabel: 'current as at 29 March 2026',
   section: '299',
+  sectionRef: 'section 299',
+  reviewHeading: 'How the controls will be implemented, monitored and reviewed',
   sectionTitle: 'Safe work method statement required for high risk construction work',
   // Section 299(2). The draft writes these four contents and does not claim
   // the statement is approved.
@@ -73,7 +76,10 @@ const NEW_SOUTH_WALES = {
   loaded: true,
   instrument: 'Work Health and Safety Regulation 2025 (NSW)',
   compilation: '3 July 2026',
+  versionLabel: 'current version from 3 July 2026',
   section: '299',
+  sectionRef: 'section 299',
+  reviewHeading: 'How the controls will be implemented, monitored and reviewed',
   sectionTitle: 'Safe work method statement required for high risk construction work',
   // Section 299(2).
   contents: [
@@ -106,10 +112,68 @@ const NEW_SOUTH_WALES = {
   fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulation 2025 (NSW), section 291, work that involves a risk of a person falling more than 2 metres is high risk construction work. Section 299 says high risk construction work needs a safe work method statement before it starts.',
   // Section 166 sets no distance. It requires an unsafe distance to be avoided, or a risk
   // assessment and the electricity supply authority's requirements where that is not practicable.
-  overheadLineControl: 'Keep people, plant and things out of an unsafe distance of an overhead or underground electric line (Work Health and Safety Regulation 2025 (NSW), section 166). If that is not reasonably practicable, do a risk assessment and follow the requirements of the electricity supply authority responsible for the line.',
+  // Distances: SafeWork NSW Code of practice, Work near overhead and underground electric
+  // lines (May 2026), Table 1, ordinary persons and plant they operate.
+  overheadLineControl: 'Keep people, cranes, plant, loads and tools at least the approach distance from an overhead electric line: 3.0 m up to 132 kV, 6.0 m above 132 kV up to 330 kV, and 8.0 m above 330 kV (SafeWork NSW Code of practice, Work near overhead and underground electric lines, May 2026, Table 1). Section 166 of the Work Health and Safety Regulation 2025 (NSW) requires an unsafe distance to be avoided. If that is not reasonably practicable, do a risk assessment and follow the requirements of the electricity supply authority responsible for the line.',
 };
 
+// Checked against the authorised PDF of the Occupational Health and Safety Regulations 2017
+// (Vic), S.R. No. 22/2017, authorised version 017 incorporating amendments as at 29 July 2026.
+// Victoria is not a model WHS state: its list is regulation 322 and differs from section 291.
+const VICTORIA = {
+  id: 'vic',
+  name: 'Victoria',
+  loaded: true,
+  instrument: 'Occupational Health and Safety Regulations 2017 (Vic)',
+  compilation: '29 July 2026',
+  versionLabel: 'authorised version 017, as at 29 July 2026',
+  section: '327',
+  sectionRef: 'regulation 327',
+  sectionTitle: 'Safe work method statement required for high risk construction work',
+  reviewHeading: 'How the risk control measures are to be implemented',
+  // Regulation 324.
+  contents: [
+    'the work that is high risk construction work',
+    'the hazards and risks of that work',
+    'measures to control those risks',
+    'how the risk control measures are to be implemented',
+  ],
+  // Regulation 322, in the regulation's words. check names the test in draft.js.
+  highRisk: [
+    { id: 'fall', check: 'fall', label: 'Where there is a risk of a person falling more than 2 metres' },
+    { id: 'tower', check: 'tower', label: 'On telecommunications towers' },
+    { id: 'demolition', check: 'demolitionAny', label: 'Involving demolition' },
+    { id: 'asbestos', check: 'asbestos', label: 'Involving the removal or likely disturbance of asbestos' },
+    { id: 'temporary', check: 'temporary', label: 'Involving structural alterations that require temporary support to prevent collapse' },
+    { id: 'confined', check: 'confined', label: 'Involving a confined space' },
+    { id: 'trench', check: 'trenchOrShaft', label: 'Involving a trench or shaft if the excavated depth is more than 1.5 metres' },
+    { id: 'tunnel', check: 'tunnel', label: 'Involving a tunnel' },
+    { id: 'explosives', check: 'explosives', label: 'Involving the use of explosives' },
+    { id: 'gas', check: 'gas', label: 'On or near pressurised gas distribution mains or piping' },
+    { id: 'chemicalLine', check: 'chemicalLine', label: 'On or near chemical, fuel or refrigerant lines' },
+    { id: 'electrical', check: 'electrical', label: 'On or near energised electrical installations or services' },
+    { id: 'atmosphere', check: 'atmosphere', label: 'In an area that may have a contaminated or flammable atmosphere' },
+    { id: 'precast', check: 'precast', label: 'Involving tilt-up or precast concrete' },
+    { id: 'road', check: 'roadOrRail', label: 'On or adjacent to roadways or railways used by road or rail traffic' },
+    { id: 'plant', check: 'plant', label: 'At workplaces where there is any movement of powered mobile plant' },
+    { id: 'temperature', check: 'temperature', label: 'In an area where there are artificial extremes of temperature' },
+    { id: 'water', check: 'water', label: 'In, over or adjacent to water or other liquids where there is a risk of drowning' },
+    { id: 'diving', check: 'diving', label: 'Involving diving' },
+  ],
+  fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Occupational Health and Safety Regulations 2017 (Vic), regulation 322, construction work where there is a risk of a person falling more than 2 metres is high risk construction work. Regulation 327 says that work must not be done, where it puts anyone at risk, unless a safe work method statement is prepared before it starts and the work follows it.',
+  // The regulations set no distance for overhead electric lines.
+  overheadLineControl: 'Keep people, plant, loads and tools away from overhead electric lines. The Occupational Health and Safety Regulations 2017 (Vic) set no distance, so get the line owner\'s requirements before work starts and follow them.',
+};
+
+// The categories a state uses. A state without its own list uses section 291.
+function highRiskList(state) {
+  if (state && Array.isArray(state.highRisk)) return state.highRisk;
+  return HIGH_RISK.map((item) => ({ id: item.id, check: item.id, label: highRiskLabel(state, item.id) }));
+}
+
 function highRiskLabel(state, id) {
+  const listed = state && Array.isArray(state.highRisk) && state.highRisk.find((entry) => entry.id === id);
+  if (listed) return listed.label;
   const own = state && state.highRiskLabels && state.highRiskLabels[id];
   if (own) return own;
   const item = HIGH_RISK.find((entry) => entry.id === id);
@@ -119,7 +183,7 @@ function highRiskLabel(state, id) {
 const STATES = [
   QUEENSLAND,
   NEW_SOUTH_WALES,
-  { id: 'vic', name: 'Victoria', loaded: false },
+  VICTORIA,
   { id: 'sa', name: 'South Australia', loaded: false },
   { id: 'wa', name: 'Western Australia', loaded: false },
   { id: 'tas', name: 'Tasmania', loaded: false },
@@ -152,6 +216,7 @@ function listStates() {
     name: state.name,
     loaded: state.loaded,
     compilation: state.compilation || '',
+    versionLabel: state.versionLabel || '',
     instrument: state.instrument || '',
     fallExplanation: state.fallExplanation || '',
   }));
@@ -169,8 +234,10 @@ module.exports = {
   HIGH_RISK,
   QUEENSLAND,
   NEW_SOUTH_WALES,
+  VICTORIA,
   STATES,
   highRiskLabel,
+  highRiskList,
   listStates,
   findState,
 };

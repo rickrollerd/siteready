@@ -121,8 +121,35 @@ test('New South Wales uses its own regulation, wording and power line rule', () 
   assert.equal(done.section, '299');
   assert.ok(done.highRisk.includes('Is carried out on or near energised electrical installations or services'));
   const line = done.controls.find((item) => /electric line/.test(item.text));
-  assert.match(line.text, /section 166/);
-  assert.doesNotMatch(line.text, /3\.0 m|Qld/);
+  assert.match(line.text, /Section 166/);
+  assert.match(line.text, /3\.0 m up to 132 kV, 6\.0 m above 132 kV up to 330 kV, and 8\.0 m above 330 kV/);
+  assert.doesNotMatch(line.text, /Qld/);
   const asked = questionsFor({ state: 'nsw', task: 'Replace a 3m length of fence.', fallRisk: 'no' });
   assert.match(asked.fall.explanation, /Regulation 2025 \(NSW\), section 291/);
+});
+
+test('Victoria uses regulation 322 and 327 and its own SWMS contents', () => {
+  const shed = (state) => prepareDraft({ state, task: 'Demolish a timber garden shed with hand tools.', fallRisk: 'no' });
+  const vic = shed('vic');
+  assert.equal(vic.instrument, 'Occupational Health and Safety Regulations 2017 (Vic)');
+  assert.equal(vic.sectionRef, 'regulation 327');
+  assert.equal(vic.reviewHeading, 'How the risk control measures are to be implemented');
+  // Any demolition is high risk in Victoria. Section 291 needs a load-bearing element.
+  assert.deepEqual(vic.highRisk, ['Involving demolition']);
+  assert.deepEqual(shed('qld').highRisk, []);
+  assert.deepEqual(shed('nsw').highRisk, []);
+
+  const tunnel = prepareDraft({
+    state: 'vic',
+    task: 'Line a stormwater tunnel with shotcrete.',
+    fallRisk: 'no',
+    facts: { trenchSupport: 'Ground support to the engineer\'s tunnel design, installed before entry.' },
+  });
+  assert.ok(tunnel.highRisk.includes('Involving a tunnel'));
+  assert.ok(!tunnel.highRisk.some((item) => /trench or shaft/.test(item)));
+
+  const lines = prepareDraft({ state: 'vic', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no' });
+  const line = lines.controls.find((item) => /overhead electric lines/.test(item.text));
+  assert.match(line.text, /set no distance/);
+  assert.match(questionsFor({ state: 'vic', task: 'Replace a 3m length of fence.', fallRisk: 'no' }).fall.explanation, /regulation 322/);
 });
