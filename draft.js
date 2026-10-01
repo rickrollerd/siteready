@@ -1,4 +1,4 @@
-const { HIERARCHY, SITE_FIELDS, HIGH_RISK, findState, highRiskLabel } = require('./legislation');
+const { HIERARCHY, SITE_FIELDS, findState, highRiskList } = require('./legislation');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
 
@@ -276,7 +276,7 @@ function mentioned(text, pattern) {
   return pattern.test(String(text || ''));
 }
 
-function highRiskMatches(text, answer) {
+function highRiskMatches(text, answer, state) {
   const checks = {
     fall: fallRiskFor(text, answer),
     tower: mentioned(text, /\btelecommunication tower\b/i),
@@ -296,8 +296,14 @@ function highRiskMatches(text, answer) {
     temperature: mentioned(text, /\bartificial extremes of temperature\b/i),
     water: mentioned(text, WATER),
     diving: mentioned(text, /\bdiving\b/i),
+    // Victoria, regulation 322: any demolition, trenches and shafts apart from tunnels,
+    // and roads or railways without shipping lanes.
+    demolitionAny: mentioned(text, DEMOLITION),
+    trenchOrShaft: /\b(trench\w*|shaft)\b/i.test(text) && deepExcavation(text.replace(/\btunnel\w*\b/gi, '')),
+    tunnel: mentioned(text, /\btunnel\w*\b/i),
+    roadOrRail: mentioned(String(text || '').replace(/\bshipping lanes?\b/gi, ''), ROAD),
   };
-  return HIGH_RISK.filter((item) => checks[item.id]);
+  return highRiskList(state).filter((item) => checks[item.check]);
 }
 
 function requiredFactsFor(task, answer) {
@@ -538,11 +544,12 @@ function controlsFor(task, facts, pack) {
 const HRCW_HAZARDS = {
   fall: ['Fall from height', 'A person falls more than 2 metres.'],
   tower: ['Telecommunication tower', 'A person falls from the tower.'],
-  demolition: ['Demolition of a load-bearing structure', 'A person is struck or crushed by a collapse.'],
+  demolition: ['Demolition', 'A person is struck or crushed by a collapse or falling material.'],
   asbestos: ['Asbestos', 'A person is exposed to asbestos.'],
   temporary: ['Temporary support', 'A structure collapses onto a person.'],
   confined: ['Confined space', 'A person is overcome by the atmosphere or trapped.'],
   trench: ['Trench or excavation collapse', 'A person is buried or crushed.'],
+  tunnel: ['Tunnel', 'A person is trapped or crushed by a collapse.'],
   explosives: ['Explosives', 'A person is injured by a blast.'],
   gas: ['Pressurised gas main or piping', 'A gas release, fire or explosion injures a person.'],
   chemicalLine: ['Chemical, fuel or refrigerant line', 'A person is exposed to a release.'],
@@ -581,7 +588,7 @@ function hazardsFor(task, facts, pack) {
   }
   // Every high risk construction work category found in the task has a hazard row.
   const named = rows.map((row) => row.hazard);
-  for (const item of highRiskMatches(source, pack && pack.fallAnswer)) {
+  for (const item of highRiskMatches(source, pack && pack.fallAnswer, pack && pack.state)) {
     const row = HRCW_HAZARDS[item.id];
     if (row && !named.includes(row[0])) {
       add(row[0], row[1]);
@@ -702,6 +709,9 @@ function prepareDraft(input) {
     instrument: state.instrument,
     compilation: state.compilation,
     section: state.section,
+    sectionRef: state.sectionRef,
+    versionLabel: state.versionLabel,
+    reviewHeading: state.reviewHeading,
     sectionTitle: state.sectionTitle,
     contents: state.contents,
     principalContractor: keptFact(input.principalContractor),
@@ -750,7 +760,7 @@ function prepareDraft(input) {
     ...header,
     missing: [],
     statement: '',
-    highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer).map((item) => highRiskLabel(state, item.id)),
+    highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer, state).map((item) => item.label),
     hazards: hazardsFor(task, facts, pack),
     controls: dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
       const splitAt = key.indexOf('|');

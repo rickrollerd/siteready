@@ -163,7 +163,7 @@ function metaRows(draft) {
 function childrenFor(draft) {
   const blocks = [
     para('Safe work method statement', { bold: true, size: 36, before: 0, after: 40 }),
-    para(`${draft.instrument}  ·  ${draft.compilation} compilation  ·  section ${draft.section}`, { size: 20, color: MUTED, after: 40 }),
+    para(`${draft.instrument}  ·  ${draft.versionLabel}  ·  ${draft.sectionRef}`, { size: 20, color: MUTED, after: 40 }),
     para(draft.status || 'Not approved. Not signed.', { size: 20, before: 0, after: 160 }),
     metaTable(metaRows(draft)),
   ];
@@ -193,7 +193,7 @@ function childrenFor(draft) {
   blocks.push(sectionHeading('Controls'));
   blocks.push(controlTable(draft.controls));
 
-  blocks.push(sectionHeading('How the controls will be implemented, monitored and reviewed'));
+  blocks.push(sectionHeading(draft.reviewHeading));
   blocks.push(para(draft.review, { before: 40, after: 40 }));
 
   blocks.push(sectionHeading('Site-specific'));
@@ -213,7 +213,7 @@ function buildDocument(draft) {
   return new Document({
     creator: 'SiteReady',
     title: 'Safe work method statement',
-    description: `${draft.instrument}, ${draft.compilation} compilation, section ${draft.section}`,
+    description: `${draft.instrument}, ${draft.versionLabel}, ${draft.sectionRef}`,
     styles: {
       default: {
         document: {
@@ -234,7 +234,7 @@ function buildDocument(draft) {
             new Paragraph({
               alignment: AlignmentType.LEFT,
               spacing: { before: 80 },
-              children: [run(`${draft.instrument}  ·  section ${draft.section}`, { size: 16, color: MUTED })],
+              children: [run(`${draft.instrument}  ·  ${draft.sectionRef}`, { size: 16, color: MUTED })],
             }),
           ],
         }),

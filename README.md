@@ -17,7 +17,7 @@ npm test
 
 ## How it works
 
-1. Pick the state, write the task, and answer Yes or No to "Could a person fall more than 2 metres during this task?". Queensland and New South Wales are loaded. Other states are shown but cannot be chosen. A No shows a short explanation of what a fall from height is. If the task wording mentions work at height and the answer is No, the user is warned and asked to check, but the No stands, because a scaffold, parapet or edge protection may already remove the risk. The draft records the answer.
+1. Pick the state, write the task, and answer Yes or No to "Could a person fall more than 2 metres during this task?". Queensland, New South Wales and Victoria are loaded. Other states are shown but cannot be chosen. A No shows a short explanation of what a fall from height is. If the task wording mentions work at height and the answer is No, the user is warned and asked to check, but the No stands, because a scaffold, parapet or edge protection may already remove the risk. The draft records the answer.
 2. The app asks for the facts the task needs, for example:
    - crane chart: rated capacity in tonnes at the working radius in metres
    - erection design, centre of gravity and brace arrangement for a panel lift
@@ -77,7 +77,8 @@ The native app loads `public/` from the device, so it must be told where the ser
 ## Legislation references
 
 - Queensland: Work Health and Safety Regulation 2011 (Qld), current as at 29 March 2026. Overhead line distance from the Electrical Safety Regulation 2026 (Qld).
-- New South Wales: Work Health and Safety Regulation 2025 (NSW), current version for 3 July 2026, checked against the official PDF. Section 166 sets no overhead line distance, so none is given.
+- New South Wales: Work Health and Safety Regulation 2025 (NSW), current version for 3 July 2026, checked against the official PDF. Overhead line approach distances from the SafeWork NSW Code of practice, Work near overhead and underground electric lines (May 2026), Table 1.
+- Victoria: Occupational Health and Safety Regulations 2017 (Vic), authorised version 017 as at 29 July 2026, checked against the authorised PDF. Victoria is not a model WHS state: high risk construction work is regulation 322 (19 categories, any demolition, tunnels listed separately), the SWMS is regulation 327, and regulation 324 asks only how controls are to be implemented. The regulations set no overhead line distance, so drafts tell the user to get the line owner's requirements.
 
 The references in `legislation.js` must be checked against each state's official legislation site before release, and again when a regulation changes.
 
