@@ -15,6 +15,8 @@ const SOURCES = {
   excavation: ['Model Code of Practice: Excavation work (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-excavation-work-v3.pdf'],
   welding: ['Model Code of Practice: Welding processes (Safe Work Australia, July 2020)', 'https://www.safeworkaustralia.gov.au/sites/default/files/2020-07/model_code_of_practice_welding_processes.pdf'],
   falls: ['Managing the risk of falls at workplaces Code of Practice (model code, SafeWork SA copy, June 2020)', 'https://www.safework.sa.gov.au/__data/assets/pdf_file/0004/136273/Managing-the-risk-of-falls-at-workplaces.pdf'],
+  plant: ['Model Code of Practice: Managing the risks of plant in the workplace (Safe Work Australia, November 2024)', 'https://www.safeworkaustralia.gov.au/sites/default/files/2024-11/model_code_of_practice-managing_the_risks_of_plant_in_the_workplace-nov24.pdf'],
+  ozoneRegs: ['Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth), latest', 'https://www.legislation.gov.au/F1996B02085/latest/text'],
   manual: ['Model Code of Practice: Hazardous manual tasks (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-hazardous-manual-tasks-v2.pdf'],
 };
 const CHUNK_SIZE = 550000;
