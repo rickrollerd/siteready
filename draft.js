@@ -202,12 +202,12 @@ function statedHeights(text) {
   return heights;
 }
 
-function fallRisk(text) {
+function fallRisk(text, metres = 2) {
   const source = String(text || '');
-  if (/\bfall(?:ing)? (?:of )?(?:more than )?(?:2|two)\b/i.test(source)) return true;
+  if (/\bfall(?:ing)? (?:of )?(?:more than )?(?:2|two|3|three)\b/i.test(source)) return true;
   if (/\b(working at height|work at height)\b/i.test(source)) return true;
   const heights = statedHeights(source);
-  if (heights.some((height) => height > 2)) return true;
+  if (heights.some((height) => height > metres)) return true;
   if (heights.length) return false;
   // No height was stated. Roof work, work above ground floor and scaffold
   // erection are treated as a fall of more than 2 metres until a height says otherwise.
@@ -232,6 +232,12 @@ function fallRiskFor(text, answer) {
   if (answer === 'yes') return true;
   if (answer === 'no') return false;
   return fallRisk(text);
+}
+
+// The fall height that makes work high risk. The Northern Territory uses 3 metres for
+// residential construction work and 2 metres otherwise; every other state uses 2 metres.
+function fallMetres(state) {
+  return (state && state.fallMetres) || 2;
 }
 
 function fallControlText(text) {
@@ -345,7 +351,7 @@ function requiredFactsFor(task, answer, state) {
     facts.push({
       id: 'fallControl',
       label: 'Fall control',
-      prompt: 'How a fall of more than 2 metres is prevented.',
+      prompt: `How a fall of more than ${fallMetres(state)} metres is prevented.`,
     });
   }
   // State facts for precast and tilt-up panels, such as Western Australia's regulator notice.
@@ -531,7 +537,7 @@ function controlsFor(task, facts, pack) {
     const considered = keptFact(facts.controlsConsidered);
     if (level === 'PPE' || level === 'Administrative') {
       if (considered) push('Administrative', `Other fall controls considered: ${considered.replace(/[.]+$/, '')}.`);
-      else push('Administrative', 'For a fall of more than 2 metres, elimination, substitution, and isolation or engineering must be considered before administrative controls or personal protective equipment.');
+      else push('Administrative', `For a fall of more than ${fallMetres(pack && pack.state)} metres, elimination, substitution, and isolation or engineering must be considered before administrative controls or personal protective equipment.`);
     }
     push(level, fallLine);
   }
@@ -611,7 +617,7 @@ function hazardsFor(task, facts, pack) {
   if (mentioned(source, ROAD)) {
     add('Traffic', 'A person or a vehicle is struck.');
   }
-  if (fallRiskFor(source, pack && pack.fallAnswer)) add('Fall from height', 'A person falls more than 2 metres.');
+  if (fallRiskFor(source, pack && pack.fallAnswer)) add('Fall from height', `A person falls more than ${fallMetres(pack && pack.state)} metres.`);
   if (isScaffoldErection(task) && scaffoldBrief(task, pack && pack.site, pack).hoarded) {
     add('Public footpath below', 'A person on the footpath is below the scaffold.');
   }
@@ -626,7 +632,9 @@ function hazardsFor(task, facts, pack) {
   // Every high risk construction work category found in the task has a hazard row.
   const named = rows.map((row) => row.hazard);
   for (const item of highRiskMatches(source, pack && pack.fallAnswer, pack && pack.state)) {
-    const row = HRCW_HAZARDS[item.id];
+    const row = item.id === 'fall'
+      ? ['Fall from height', `A person falls more than ${fallMetres(pack && pack.state)} metres.`]
+      : HRCW_HAZARDS[item.id];
     if (row && !named.includes(row[0])) {
       add(row[0], row[1]);
       named.push(row[0]);
@@ -667,27 +675,46 @@ function methodSteps(task, facts, site, pack) {
 
 const REVIEW = 'The controls are put in place before the task starts. They are checked while the task is underway. They are reviewed before the task starts again, and if the task changes.';
 
-const FALL_WARNING = 'You answered No, but the task mentions work at height, such as a roof, a scaffold, an upper storey, or a height above 2 metres. Check that no one can fall more than 2 metres, for example because a scaffold, parapet or edge protection is already in place. If someone can, go back and answer Yes.';
+function fallWarning(metres) {
+  return `You answered No, but the task mentions work at height, such as a roof, a scaffold, an upper storey, or a height above ${metres} metres. Check that no one can fall more than ${metres} metres, for example because a scaffold, parapet or edge protection is already in place. If someone can, go back and answer Yes.`;
+}
 
 function fallCheck(task, answer, state) {
-  const detected = fallRisk(task);
+  const metres = fallMetres(state);
+  const detected = fallRisk(task, metres);
   return {
     answer,
     detected,
+    metres,
     treatedAsYes: answer === 'yes',
-    warning: answer === 'no' && detected ? FALL_WARNING : '',
+    warning: answer === 'no' && detected ? fallWarning(metres) : '',
     explanation: state.fallExplanation,
   };
 }
 
 function fallRecord(check) {
   if (check.answer === 'yes') return 'Yes';
-  if (check.detected) return 'No. The task mentions work at height, and the user confirmed no one can fall more than 2 metres.';
+  if (check.detected) return `No. The task mentions work at height, and the user confirmed no one can fall more than ${check.metres} metres.`;
   return 'No';
 }
 
-function questionsFor(input) {
+// Northern Territory: residential construction work (a Class 1 building, or a Class 10
+// building attached or adjacent to one) has a 3 metre fall height.
+function residentialAnswer(value) {
+  const text = cleanLine(value).toLowerCase();
+  return ['yes', 'no'].includes(text) ? text : '';
+}
+
+// The state, with the fall height that applies to this task.
+function stateFor(input) {
   const state = findState(input.state);
+  if (!state || !state.residentialFallMetres) return state;
+  const residential = residentialAnswer(input.residential) === 'yes';
+  return { ...state, residential, fallMetres: residential ? state.residentialFallMetres : 2 };
+}
+
+function questionsFor(input) {
+  const state = stateFor(input);
   if (!state) {
     return { kind: 'refused', message: 'Choose a state.' };
   }
@@ -700,6 +727,9 @@ function questionsFor(input) {
   }
   const task = cleanLine(input.task || input.jobDescription);
   if (!task) return { kind: 'error', message: 'Write the task.' };
+  if (state.residentialFallMetres && !residentialAnswer(input.residential)) {
+    return { kind: 'error', message: 'Answer whether this is residential construction work.' };
+  }
   const answer = fallAnswer(input.fallRisk);
   if (!answer) {
     return { kind: 'error', message: 'Answer the fall from height question.', explanation: state.fallExplanation };
@@ -723,7 +753,7 @@ function questionsFor(input) {
 function prepareDraft(input) {
   const asked = questionsFor(input);
   if (asked.kind === 'refused' || asked.kind === 'error') return asked;
-  const state = findState(input.state);
+  const state = stateFor(input);
   const task = cleanLine(input.task || input.jobDescription);
   const facts = input.facts || {};
   const site = siteFromPack(task, input.site || {});
@@ -761,6 +791,8 @@ function prepareDraft(input) {
     musterPoint: keptFact(input.musterPoint),
     task,
     fallRisk: fallRecord(fallCheck(task, pack.fallAnswer, state)),
+    fallMetres: fallMetres(state),
+    residential: state.residentialFallMetres ? (state.residential ? 'Yes' : 'No') : '',
     date: cleanLine(input.date),
     status,
     test: packIsTest(input),
@@ -797,7 +829,8 @@ function prepareDraft(input) {
     ...header,
     missing: [],
     statement: '',
-    highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer, state).map((item) => item.label),
+    highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer, state)
+      .map((item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label)),
     hazards: hazardsFor(task, facts, pack),
     controls: dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
       const splitAt = key.indexOf('|');

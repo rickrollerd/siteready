@@ -88,7 +88,7 @@ async function pdfSource(source) {
     flat = text(buffer.toString('utf8'));
   }
   console.log(flat.slice(0, 700));
-  for (const marker of [/high risk construction work means/g, /Safe work method statement required for high risk construction work \(1\)/g, /A safe work method statement must/g, /comes within an unsafe distance of an overhead/g, /residential construction work means/g, /Republication No|As in force at|Authorised by the ACT Parliamentary Counsel|current from/g]) {
+  for (const marker of [/high risk construction work means/g, /Safe work method statement required for high risk construction work \(1\)/g, /A safe work method statement must/g, /unsafe\s+distance/g, /crystalline silica material means/g, /418A\s+Definitions/g]) {
     const all = [...flat.matchAll(marker)];
     const at = all.length ? all[all.length - 1].index : -1;
     console.log(`\n--- ${marker}\n${at < 0 ? 'not found' : flat.slice(Math.max(0, at - 300), at + 2300)}`);
