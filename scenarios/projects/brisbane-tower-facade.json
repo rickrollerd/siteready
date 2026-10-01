@@ -1,0 +1,225 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: facade",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "loading",
+      "title": "Loading facade panels onto the floors",
+      "task": "Receive unitised curtain wall panels in stillages lifted by the tower crane onto the landing platforms, then move the panels on trolleys to the stacking areas on each floor.",
+      "fallRisk": "yes",
+      "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
+        "loadLimits": "Stillages are stacked only in the areas marked on the structural engineer's drawing S-502 (5 kPa), checked by the structural engineer before loading starts.",
+        "fallControl": "Panels are received only at the landing platform, inside its edge protection, with the gate closed except while a load is landed.",
+        "systemInstructions": "The landing platforms are the scaffold contractor's proprietary platforms, erected to the supplier's instructions (document and revision on the platform tag) and rated for 2 t."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Plan lifts with the crane company",
+          "Load panels onto the floors and move them to the work face"
+        ],
+        "missing": [
+          "Crane company and lift plan",
+          "Fall control",
+          "Load limits",
+          "System and supplier instructions"
+        ]
+      }
+    },
+    {
+      "id": "floor-crane",
+      "title": "Floor crane and monorail set-up and use",
+      "task": "Set up the mini crawler crane and the monorail on the slab edge, and use them to lift unitised curtain wall panels into position.",
+      "fallRisk": "yes",
+      "facts": {
+        "systemInstructions": "The mini crawler crane and monorail are set up to the manufacturer's manuals (model and revision on the plant register), by our trained crew, and inspected before use.",
+        "craneCompany": "The tower crane is run by the crane company; the mini crawler crane and monorail are our own plant, operated by our licensed crane operator.",
+        "loadLimits": "The structural engineer's letter SE-14 gives the allowable outrigger and monorail loads on the slab edge.",
+        "fallControl": "Work at the slab edge is done with a travel restraint system to engineer designed anchors, and edge protection stays in place except at the panel being installed."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Set up and use the floor crane or monorail"
+        ],
+        "missing": [
+          "Crane company and lift plan",
+          "Fall control",
+          "Load limits"
+        ]
+      }
+    },
+    {
+      "id": "install",
+      "title": "Installing unitised curtain wall panels at the slab edge",
+      "task": "Install unitised curtain wall panels and spandrel panels from inside the floor at the open slab edge, removing edge protection only at the panel being installed, using vacuum lifters.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Workers at the open edge use a travel restraint system to engineer designed anchors installed by a competent person, so they cannot reach the edge, and edge protection is removed only at the panel being installed and put back straight after."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Install panels at the open slab edge",
+          "Handle glass and panels"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "id": "swing-stage",
+      "title": "Swing stage work on the facade",
+      "task": "Work from swing stages on the outside of the building to seal joints, fix sunshades and replace damaged glazing.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Each worker on the swing stage wears a harness attached to the stage's anchor point, and the stage is installed by an advanced rigger.",
+        "safetyDataSheet": "Safety data sheets for the silicone sealant, primer and glass cleaner are kept at the work area: use with ventilation, wear gloves and eye protection.",
+        "controlsConsidered": "Edge protection cannot be used on the outside face. Elevating work platforms cannot reach above level 6, and the building maintenance unit is not yet installed, so swing stages with harnesses attached to the stage are used."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Work from a swing stage or mast climbing work platform"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "sealing",
+      "title": "Facade fixing brackets, sealing and finishing",
+      "task": "Drill into the post-tensioned slab edges to fix facade brackets, then seal the panel joints with silicone, working from inside the floor behind edge protection.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Fixing holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS.",
+        "safetyDataSheet": "Safety data sheets for the silicone sealant and primer are kept at the work area: use with ventilation, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Fix, seal and finish"
+        ],
+        "missing": [
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "loading",
+        "floor-crane",
+        "install",
+        "swing-stage",
+        "sealing"
+      ],
+      "phrase": "white card",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 317",
+      "quote": "the worker holds a general construction induction training card"
+    },
+    {
+      "swms": [
+        "loading"
+      ],
+      "phrase": "the principal contractor has closed the area or erected a gantry",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 219, s 315L",
+      "quote": "the adjoining area is closed under section 315M"
+    },
+    {
+      "swms": [
+        "loading"
+      ],
+      "phrase": "a structural engineer sets the safe load",
+      "source": "Model Code: Managing the risk of falls s 4.2",
+      "quote": "When in doubt, have a structural engineer determine the safe load capacity before use."
+    },
+    {
+      "swms": [
+        "floor-crane"
+      ],
+      "phrase": "at least once a year",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 213",
+      "quote": "in relation to inspection ... annually"
+    },
+    {
+      "swms": [
+        "floor-crane"
+      ],
+      "phrase": "Setting up or dismantling a crane or hoist is rigging work",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 81, s 85, schedule 3",
+      "quote": "the setting up or dismantling of cranes or hoists"
+    },
+    {
+      "swms": [
+        "install"
+      ],
+      "phrase": "installed by a competent person, and used only by workers trained",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306G",
+      "quote": "be installed by a competent person"
+    },
+    {
+      "swms": [
+        "install"
+      ],
+      "phrase": "Lanyards do not run over unprotected slab edges",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306I",
+      "quote": "an edge of a platform or beam over which a lanyard would tighten if a fall were to happen"
+    },
+    {
+      "swms": [
+        "install"
+      ],
+      "phrase": "gantry, road closure or catch protection",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 315G, s 315L",
+      "quote": "a gantry is erected along the proposed line adjacent to the sides of each part of the structure from which an object could fall"
+    },
+    {
+      "swms": [
+        "install",
+        "loading"
+      ],
+      "phrase": "vacuum lifters and glass panel lifters",
+      "source": "Model Code: Hazardous manual tasks s 4.5",
+      "quote": "vacuum or magnet assisted lifters ... glass panel, duct and plaster lifters"
+    },
+    {
+      "swms": [
+        "swing-stage"
+      ],
+      "phrase": "advanced rigging or advanced scaffolding licence",
+      "source": "Work Health and Safety Regulation 2011 (Qld) schedule 3",
+      "quote": "hold an advanced rigging or advanced scaffolding high risk work licence"
+    },
+    {
+      "swms": [
+        "swing-stage"
+      ],
+      "phrase": "at least every 30 days",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 225",
+      "quote": "at least every 30 days"
+    },
+    {
+      "swms": [
+        "sealing"
+      ],
+      "phrase": "No welding from ladders",
+      "source": "Model Code: Welding processes s 3.9",
+      "quote": "Welding should not be carried out on ladders."
+    }
+  ]
+}
