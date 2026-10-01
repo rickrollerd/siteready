@@ -46,7 +46,8 @@
         ],
         "steps": [
           "Bulk excavate and load trucks",
-          "Install, stress and later remove ground anchors and props"
+          "Install, stress and later remove ground anchors and props",
+          "Protect the basement edge and provide access"
         ],
         "missing": [
           "Fall control",
@@ -60,8 +61,8 @@
       "task": "Detailed excavation for the pile caps and lift pits up to 2.5 m deep in the basement with a 5 tonne excavator.",
       "fallRisk": "yes",
       "facts": {
-        "trenchSupport": "Pile caps and lift pits 1.5 m deep or more are battered or shored with a trench shield to the supplier's engineer's design.",
-        "fallControl": "Each pile cap and lift pit is fenced with mesh barriers 1.5 m back from the edge as soon as it is dug."
+        "trenchSupport": "Pile caps and lift pits 1.5 m deep or more are battered, or shored to the engineer's design, or protected by a trench shield to the supplier's engineer's design.",
+        "fallControl": "Mesh barriers are set up 1.5 m back from each pile cap and lift pit before digging starts, and moved only as the dig progresses."
       },
       "expect": {
         "highRisk": [
@@ -70,8 +71,7 @@
           "plant"
         ],
         "steps": [
-          "Excavate pile caps, lift pits and trenches",
-          "Protect the basement edge and provide access"
+          "Excavate pile caps, lift pits and trenches"
         ],
         "missing": [
           "Fall control"
@@ -90,6 +90,8 @@
       "expect": {
         "highRisk": [
           "fall",
+          "asbestos",
+          "atmosphere",
           "plant"
         ],
         "steps": [

@@ -14,7 +14,7 @@
         "safetyDataSheet": "Safety data sheets for the primer and polyurethane membrane are kept at the work area: flammable, use with ventilation, keep away from ignition sources, wear gloves, goggles and a half-face respirator.",
         "fallControl": "Lift pits and sumps have a guard rail with a gate, and access is by a secured ladder.",
         "spaceAssessment": "confined",
-        "confinedSpace": "Entry to lift pits and sumps is only under a confined space entry permit, with atmospheric testing before and during entry, forced ventilation from the lowest point, a standby person at the opening, and a practised rescue plan."
+        "confinedSpace": "Entry to lift pits and sumps is only under a confined space entry permit, with atmospheric testing before and during entry, vapour extracted from the lowest point with fresh air introduced from above, a standby person at the opening, and a practised rescue plan."
       },
       "expect": {
         "highRisk": [
@@ -23,11 +23,11 @@
           "atmosphere"
         ],
         "steps": [
-          "Prepare surfaces by grinding",
-          "Apply primers and liquid membranes",
           "Prepare to enter the confined space",
           "Enter and work",
-          "Leave and close up"
+          "Leave and close up",
+          "Prepare surfaces by grinding",
+          "Apply primers and liquid membranes"
         ],
         "missing": [
           "Safety data sheet",
@@ -53,7 +53,7 @@
         ],
         "steps": [
           "Lay torch-on membranes",
-          "Work at roof, podium and balcony edges",
+          "Work at edges",
           "Move membrane rolls and materials"
         ],
         "missing": [
@@ -76,7 +76,7 @@
         ],
         "steps": [
           "Apply primers and liquid membranes",
-          "Work at roof, podium and balcony edges"
+          "Work at edges"
         ],
         "missing": [
           "Fall control"

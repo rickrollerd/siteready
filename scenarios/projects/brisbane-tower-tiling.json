@@ -10,7 +10,7 @@
       "task": "Lay floor and wall tiles in the apartment bathrooms and kitchens, cutting porcelain tiles with wet saws, and mixing adhesive and grout.",
       "fallRisk": "no",
       "facts": {
-        "silicaControls": "Tiles are cut with a water-fed wet saw. Fit tested P2 respirators are worn while cutting dry. The written silica assessment is done before work starts and attached to this SWMS.",
+        "silicaControls": "Tiles are cut with a water-fed wet saw, with no dry cutting. Fit tested P2 respirators are worn by anyone still at risk. The written silica assessment is done before work starts and attached to this SWMS.",
         "safetyDataSheet": "Safety data sheets for the tile adhesive, grout and sealer are kept at the work area: avoid skin contact, wear gloves and eye protection."
       },
       "expect": {
