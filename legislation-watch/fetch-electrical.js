@@ -9,11 +9,13 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const SOURCES = [
-  ['Electrical Safety Regulation 2026 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2026-0113'],
-  ['Electrical Safety Act 2002 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2002-042'],
-  ['Electrical Safety (Codes of Practice) Notice, current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2013-0276'],
-];
+// One source a run keeps the log within what can be read back.
+const ALL = {
+  regulation: ['Electrical Safety Regulation 2026 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2026-0113'],
+  act: ['Electrical Safety Act 2002 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2002-042'],
+  model: ['Model Code of Practice: Managing electrical risks in the workplace (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-managing-electrical-risks_in_the_workplace-v3.pdf'],
+};
+const SOURCES = [ALL[process.env.SOURCE || 'regulation']];
 
 const BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
