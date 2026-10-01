@@ -19,9 +19,9 @@
     found = data.tasks || [];
     const note = data.note ? `<p class="note">${esc(data.note)}</p>` : '';
     $('scope-results').innerHTML = note + (found.length
-      ? `<p class="meta" style="margin-top:10px">${found.length} ${found.length === 1 ? 'task needs' : 'tasks need'} a SWMS. Check each one against the scope before you rely on it.</p>` + found.map((item, index) => `
+      ? `<p class="meta" style="margin-top:10px">${found.length} ${found.length === 1 ? 'task' : 'tasks'} found. Tasks marked high risk construction work need a SWMS by law; most builders ask for one for every task. Check each one against the scope before you rely on it.</p>` + found.map((item, index) => `
         <div class="scope-task">
-          <h3>${esc(item.title)}</h3>
+          <h3>${esc(item.title)}${item.needsSwms ? ' <span class="tag-risk">High risk</span>' : ''}</h3>
           <p>${esc(item.task)}</p>
           ${(item.highRisk || []).length ? `<p class="meta">High risk construction work: ${esc(item.highRisk.join('; '))}</p>` : ''}
           <details><summary>From the scope (${item.lines.length} ${item.lines.length === 1 ? 'line' : 'lines'})</summary><ul>${item.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>

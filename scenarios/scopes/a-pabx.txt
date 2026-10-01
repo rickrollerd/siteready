@@ -1,0 +1,41 @@
+PABX DESIGN AND CONSTRUCT – SCOPE OF WORKS
+
+
+1. 	The subcontractor to complete their design & construct proposal for the Central Facilities as per 	the final client approval regarding the provision of the PABX system, and the required 	handsets for the Central Facilities.
+
+2. 	The works are to be coordinated through the consultants regarding comms rack 	provision, final data point locations for the handsets, final handset selection. All final 	selections & locations have been approved by the client for the Central Facilities per the 	ammended Matrix provided by the technology consultant PABX Updates ____.
+	The works include the following :
+	 Admin handsets/wall phones
+	 IP analogue adaptor for fax function t printer
+	 IP admin extensions; IP Guest Telephone extensions
+	 Executive & mid-range handsets
+	 Expansion modules
+	 Strobe light & door stations
+	 PABX intercoms
+	 Conference phones IP Conference Phones with expansion Mics
+	 Misc hardware, software, installation & configuration
+	 Head end server; server rack; battery backup,
+	 ISDN On Ramp 10/20/30 Interface
+	 Interfacing with PMS
+	 Misc. features included in the offer – music on hold, messaging, guest guides, user 		guides, accounting features, dial/call by name feature wake up , check out & in , 		room status, multilingual guides, class of service update to PMS, single digit 		hotel services; 	testing, training, project management, 12 month 24 x 7 support
+	 Wi- Fi Handsets with charger & pouches as noted in quote
+	 Supply of reservations Call Centre Application with statistics in place of hunt group
+	 Call accounting system
+	 SIP License for MPR & Conference Room Floor Boxes
+	 Interface to PA contractor PA Input
+	 To be confirmed final selected PABX Intercoms
+
+3. 	The works will need to be coordinated through the consultants regarding comms rack 	provision, the data point locations for the handsets were previously advised through 	the consultant & the technology consultant provided Matrix. Note the handsets selected have been 	approved by the client
+
+4. 	As previously advised by correspondence ____ the client requested that the builder work with the subcontractor to 	co-ordinate with the consultant & the site electrician re locations of phone points for Joinery & 	Kitchen Shop Joinery & data wiring requirements.
+
+5.	Supportive Documents Provided/Referenced:
+
+	 Current Architect's drawings & Central Facilities Master Schedule
+	 drawing ____ Matrix of Technologies
+	 Current Interior Designer Drawings, all other internal drawings & schedules relevant to 	the Joinery works including all service drawings, kitchen drawings, structural drawings
+	 The subcontractor's IP Telephony Solution of Costs Quotation 	Reference ____ dated ____
+
+
+Total Cost inc Provisional Sums ( PABX Intercoms & Interface to PA contractor) = $____ EX GST
+
