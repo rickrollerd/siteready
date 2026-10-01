@@ -87,6 +87,9 @@ const QUEENSLAND = {
   // Electrical Safety Regulation 2026 (Qld), which replaced the 2013 regulation on 1 September 2026
   // with no policy change. 3.0 m is the exclusion zone for untrained persons and operating plant
   // near lines up to 132 kV; higher voltages need more.
+  // Section 299(4): a statement whose only fall controls are administrative or PPE must
+  // describe all control measures considered, including the section 79(3) requirements.
+  fallControlsConsidered: 'Only needed if the fall control is a procedure or a harness. List the other controls considered, such as edge protection, a scaffold or an elevating work platform, and why they were not used (section 299(4)).',
   overheadLineControl: 'Keep people and operating plant outside the minimum distance for the line voltage under the Electrical Safety Regulation 2026 (Qld). For a line up to 132 kV this is 3.0 m. Use a safety observer when plant could come within that distance.',
 };
 
@@ -185,6 +188,62 @@ const SOUTH_AUSTRALIA = {
   overheadLineControl: 'Keep people, plant and things out of an unsafe distance of an overhead or underground electric line (Work Health and Safety Regulations 2012 (SA), regulation 166). The regulations set no distance, so get the electricity supply authority\'s requirements before work starts. If a safe distance is not reasonably practicable, do a risk assessment and follow those requirements.',
 };
 
+// Checked against the official current version (01-c0-00, as at 1 July 2026) read from
+// legislation.wa.gov.au, the 2022 PDF (00-a0-00) and the model WHS Regulations.
+const WESTERN_AUSTRALIA = {
+  id: 'wa',
+  name: 'Western Australia',
+  loaded: true,
+  instrument: 'Work Health and Safety (General) Regulations 2022 (WA)',
+  compilation: '1 July 2026',
+  versionLabel: 'version 01-c0-00, as at 1 July 2026',
+  section: '299',
+  sectionRef: 'regulation 299',
+  sectionTitle: 'Safe work method statement required for high risk construction work',
+  reviewHeading: 'How the controls will be implemented, monitored and reviewed',
+  contents: [
+    'the work that is high risk construction work',
+    'the hazards and the risks to health and safety',
+    'the measures to control the risks',
+    'how the control measures are to be implemented, monitored and reviewed',
+  ],
+  // Regulation 291, in the regulation's words (the same as South Australia's).
+  highRiskLabels: {
+    fall: 'Involves a risk of a person falling more than 2 metres',
+    tower: 'Is carried out on a telecommunication tower',
+    demolition: 'Involves demolition of an element of a structure that is load-bearing or otherwise related to the physical integrity of the structure',
+    asbestos: 'Involves, or is likely to involve, the disturbance of asbestos',
+    temporary: 'Involves structural alterations or repairs that require temporary support to prevent collapse',
+    confined: 'Is carried out in or near a confined space',
+    trench: 'Is carried out in or near a shaft or trench with an excavated depth greater than 1.5 metres, or a tunnel',
+    explosives: 'Involves the use of explosives',
+    gas: 'Is carried out on or near pressurised gas distribution mains or piping',
+    chemicalLine: 'Is carried out on or near chemical, fuel or refrigerant lines',
+    electrical: 'Is carried out on or near energised electrical installations or services',
+    atmosphere: 'Is carried out in an area that may have a contaminated or flammable atmosphere',
+    precast: 'Involves tilt-up or precast concrete',
+    road: 'Is carried out on, in or adjacent to a road, railway, shipping lane or other traffic corridor that is in use by traffic other than pedestrians',
+    plant: 'Is carried out in an area at a workplace in which there is any movement of powered mobile plant',
+    temperature: 'Is carried out in an area in which there are artificial extremes of temperature',
+    water: 'Is carried out in or near water or other liquid that involves a risk of drowning',
+    diving: 'Involves diving work',
+  },  fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety (General) Regulations 2022 (WA), regulation 291, work that involves a risk of a person falling more than 2 metres is high risk construction work. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
+  // Regulation 166A danger zones.
+  overheadLineControl: 'Keep workers, plant and material out of the danger zone of an overhead electric line: 0.5 m from a live insulated line or aerial bundled conductor of not more than 1,000 volts, 1.0 m from a live uninsulated line of not more than 1,000 volts, 3.0 m from a live line above 1,000 volts up to 33,000 volts, and 6.0 m from a live line above 33,000 volts (Work Health and Safety (General) Regulations 2022 (WA), regulation 166A). This does not apply where the line has been insulated and cordoned off or otherwise made safe, or to a worker authorised to carry out electrical work under the Electricity Act 1945.',
+  // Regulations 306B to 306I, tilt-up and precast concrete panels.
+  panelFacts: [
+    {
+      id: 'regulatorNotified',
+      label: 'WorkSafe WA notification',
+      prompt: 'When the regulator was notified under regulation 306B, at least 10 working days before the panels were cast. Tilt-up work cannot be done on site without it (regulation 306G).',
+    },
+  ],
+  panelControls: [
+    ['Isolate or engineer', 'Only people doing the tilt-up work, or with written authority for a purpose connected with it, enter or stay in the area where it is done (regulation 306I).'],
+    ['Administrative', 'Keep at the site the regulator notification, the shop drawings of each panel, a current plan for the work, any written advice from a qualified practising engineer, and each panel\'s inspection report (regulation 306H).'],
+  ],
+};
+
 // Checked against the authorised PDF of the Occupational Health and Safety Regulations 2017
 // (Vic), S.R. No. 22/2017, authorised version 017 incorporating amendments as at 29 July 2026.
 // Victoria is not a model WHS state: its list is regulation 322 and differs from section 291.
@@ -253,7 +312,7 @@ const STATES = [
   NEW_SOUTH_WALES,
   VICTORIA,
   SOUTH_AUSTRALIA,
-  { id: 'wa', name: 'Western Australia', loaded: false },
+  WESTERN_AUSTRALIA,
   { id: 'tas', name: 'Tasmania', loaded: false },
   { id: 'nt', name: 'Northern Territory', loaded: false },
   { id: 'act', name: 'Australian Capital Territory', loaded: false },
@@ -304,6 +363,7 @@ module.exports = {
   NEW_SOUTH_WALES,
   VICTORIA,
   SOUTH_AUSTRALIA,
+  WESTERN_AUSTRALIA,
   STATES,
   highRiskLabel,
   highRiskList,

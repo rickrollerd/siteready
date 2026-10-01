@@ -20,4 +20,5 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
       - run: node legislation-watch/fetch-sources.js

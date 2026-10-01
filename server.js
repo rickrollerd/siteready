@@ -76,6 +76,8 @@ function draftBody(body) {
       fallControl: field(facts.fallControl, 2000),
       asbestosArrangement: field(facts.asbestosArrangement, 2000),
       trenchSupport: field(facts.trenchSupport, 2000),
+      controlsConsidered: field(facts.controlsConsidered, 2000),
+      regulatorNotified: field(facts.regulatorNotified, 1000),
     },
     site: {
       liveServices: field(site.liveServices, 1000),

@@ -8,9 +8,15 @@
       "fallControl": "A perimeter guardrail scaffold is installed around the roof edge before work starts, and safety mesh is fixed under the new sheets."
     },
     "expect": {
-      "missing": ["Fall control"],
-      "highRisk": ["fall"],
-      "hazards": ["Fall from height"]
+      "missing": [
+        "Fall control"
+      ],
+      "highRisk": [
+        "fall"
+      ],
+      "hazards": [
+        "Fall from height"
+      ]
     }
   },
   {
@@ -23,9 +29,22 @@
       "fallControl": "Temporary fencing is placed 1 m back from the trench edge on all sides, and no one works at the open edge."
     },
     "expect": {
-      "missing": ["Trench support", "Fall control"],
-      "highRisk": ["fall", "trench", "road", "plant"],
-      "hazards": ["Trench or excavation collapse", "Fall from height", "Traffic", "Moving plant"]
+      "missing": [
+        "Trench support",
+        "Fall control"
+      ],
+      "highRisk": [
+        "fall",
+        "trench",
+        "road",
+        "plant"
+      ],
+      "hazards": [
+        "Trench or excavation collapse",
+        "Fall from height",
+        "Traffic",
+        "Moving plant"
+      ]
     }
   },
   {
@@ -37,12 +56,30 @@
       "craneChart": "Rated capacity 11.2 t at 16 m radius from the crane chart.",
       "erectionDesign": "Erection design drawing ED-01 revision B by the project engineer.",
       "centreOfGravity": "Centre of gravity is marked on each panel shop drawing, 1.2 m above the base.",
-      "braceArrangement": "Two braces per panel, fixed to the slab with chemical anchors as shown on drawing ED-02."
+      "braceArrangement": "Two braces per panel, fixed to the slab with chemical anchors as shown on drawing ED-02.",
+      "regulatorNotified": "WorkSafe WA was notified on 2 September 2026, 15 working days before casting."
     },
     "expect": {
-      "missing": ["Crane chart", "Erection design", "Centre of gravity", "Brace arrangement"],
-      "highRisk": ["precast", "plant"],
-      "hazards": ["Dropped load", "Tilt-up or precast concrete", "Moving plant"]
+      "missing": [
+        "Crane chart",
+        "Erection design",
+        "Centre of gravity",
+        "Brace arrangement"
+      ],
+      "highRisk": [
+        "precast",
+        "plant"
+      ],
+      "hazards": [
+        "Dropped load",
+        "Tilt-up or precast concrete",
+        "Moving plant"
+      ],
+      "missingByState": {
+        "wa": [
+          "WorkSafe WA notification"
+        ]
+      }
     }
   },
   {
@@ -54,9 +91,15 @@
       "asbestosArrangement": "A licensed asbestos removalist removes the sheets under an asbestos removal control plan."
     },
     "expect": {
-      "missing": ["Asbestos arrangement"],
-      "highRisk": ["asbestos"],
-      "hazards": ["Asbestos"]
+      "missing": [
+        "Asbestos arrangement"
+      ],
+      "highRisk": [
+        "asbestos"
+      ],
+      "hazards": [
+        "Asbestos"
+      ]
     }
   },
   {
@@ -65,12 +108,21 @@
     "task": "Enter a 3 m deep underground water storage tank through the access hatch to inspect and repair the inlet valve. The tank is a confined space.",
     "fallRisk": "yes",
     "facts": {
-      "fallControl": "Access is by a fixed ladder with a full body harness attached to a retrieval tripod over the hatch."
+      "fallControl": "Access is by a fixed ladder with a full body harness attached to a retrieval tripod over the hatch.",
+      "controlsConsidered": "Removing the need to enter was considered, but the valve cannot be reached from outside. A fixed platform cannot be installed inside the tank."
     },
     "expect": {
-      "missing": ["Fall control"],
-      "highRisk": ["fall", "confined"],
-      "hazards": ["Fall from height", "Confined space"]
+      "missing": [
+        "Fall control"
+      ],
+      "highRisk": [
+        "fall",
+        "confined"
+      ],
+      "hazards": [
+        "Fall from height",
+        "Confined space"
+      ]
     }
   },
   {
@@ -81,8 +133,14 @@
     "facts": {},
     "expect": {
       "missing": [],
-      "highRisk": ["demolition", "temporary"],
-      "hazards": ["Demolition", "Temporary support"]
+      "highRisk": [
+        "demolition",
+        "temporary"
+      ],
+      "hazards": [
+        "Demolition",
+        "Temporary support"
+      ]
     }
   },
   {
@@ -94,9 +152,18 @@
       "craneChart": "Rated capacity 1.5 t at 6 m radius from the crane truck load chart."
     },
     "expect": {
-      "missing": ["Crane chart"],
-      "highRisk": ["electrical", "plant"],
-      "hazards": ["Dropped load", "Energised electrical service", "Moving plant"]
+      "missing": [
+        "Crane chart"
+      ],
+      "highRisk": [
+        "electrical",
+        "plant"
+      ],
+      "hazards": [
+        "Dropped load",
+        "Energised electrical service",
+        "Moving plant"
+      ]
     }
   },
   {
@@ -108,9 +175,13 @@
       "safetyDataSheet": "Safety data sheet for the enamel paint: flammable liquid, use with ventilation, wear gloves and eye protection, keep ignition sources away."
     },
     "expect": {
-      "missing": ["Safety data sheet"],
+      "missing": [
+        "Safety data sheet"
+      ],
       "highRisk": [],
-      "hazards": ["Hazardous substance"]
+      "hazards": [
+        "Hazardous substance"
+      ]
     }
   },
   {
@@ -122,9 +193,15 @@
       "fallControl": "Scaffolders install each lift with advance guardrails before stepping up, and the working deck is fully planked."
     },
     "expect": {
-      "missing": ["Fall control"],
-      "highRisk": ["fall"],
-      "hazards": ["Fall from height"]
+      "missing": [
+        "Fall control"
+      ],
+      "highRisk": [
+        "fall"
+      ],
+      "hazards": [
+        "Fall from height"
+      ]
     }
   },
   {
@@ -135,8 +212,12 @@
     "facts": {},
     "expect": {
       "missing": [],
-      "highRisk": ["water"],
-      "hazards": ["Water or other liquid"]
+      "highRisk": [
+        "water"
+      ],
+      "hazards": [
+        "Water or other liquid"
+      ]
     }
   }
 ]
