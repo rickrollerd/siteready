@@ -1,0 +1,416 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: mechanical",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "plant",
+      "title": "Mechanical plant delivery and lifting to the roof and plant rooms",
+      "task": "Receive air handling units, chillers and cooling tower sections lifted by the tower crane to the roof and plant room levels, then move them into position on skates and pallet jacks and set them on their plinths.",
+      "fallRisk": "yes",
+      "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
+        "loadLimits": "Plant is landed only on the plinths and landing zones, and moved only along the routes, marked on the structural engineer's drawing S-501 (10 kPa), checked by the structural engineer before the first lift.",
+        "fallControl": "Plant is received only inside the perimeter screens and at the crane landing platform with gates closed; no one works at an open edge."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
+          "Receive plant and move it into position"
+        ],
+        "missing": [
+          "Crane company and lift plan",
+          "Fall control",
+          "Load limits"
+        ]
+      }
+    },
+    {
+      "id": "ductwork",
+      "title": "Ductwork, pipework and fan coil units at height",
+      "task": "Install ductwork, chilled water pipework and fan coil units in the apartment ceilings, corridors and risers, drilling into the post-tensioned slabs for hanger anchors, working from scissor lifts and platform ladders more than 2 m above the floor.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Risers are screened at each level with only the section being worked on opened, and scissor lifts with guardrails are used for work above 2 m.",
+        "silicaControls": "Anchor holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Install ductwork, pipework and units at height"
+        ],
+        "missing": [
+          "Fall control",
+          "Silica dust controls"
+        ]
+      }
+    },
+    {
+      "id": "refrigerant-pipework",
+      "title": "Refrigerant pipework brazing and nitrogen pressure testing",
+      "task": "Install and braze refrigerant pipework between the condensing units on the roof and the fan coil units in the apartments, running through the risers, then pressure test the refrigerant pipework with oxygen-free nitrogen.",
+      "fallRisk": "yes",
+      "facts": {
+        "hotWorkPermit": "The principal contractor issues a hot work permit each day; a fire extinguisher is kept at each brazing location and the area is checked after brazing ends.",
+        "pressureTesting": "Oxygen-free nitrogen through a regulator with a relief valve, tested to the manufacturer's test pressure below the PS on the unit's plate, with the area barricaded and signed during the test, and pressure released through the gauge set before any fitting is touched.",
+        "fallControl": "Risers are screened at each level with only the section being worked on opened, and the roof work is done inside the roof edge protection."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "chemicalLine"
+        ],
+        "steps": [
+          "Braze and solder pipe joints (hot work)",
+          "Braze refrigerant pipework",
+          "Pressure test with nitrogen"
+        ],
+        "missing": [
+          "Fall control",
+          "Hot work permit and fire watch",
+          "Pressure testing method"
+        ]
+      }
+    },
+    {
+      "id": "roof-plant",
+      "title": "Roof plant installation",
+      "task": "Install condensing units, exhaust fans and ductwork on the roof, including brazing connections, next to the roof edge.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Edge protection is installed around the roof perimeter before plant is installed, and no one works outside it.",
+        "hotWorkPermit": "The principal contractor issues a hot work permit each day, with a fire extinguisher at each work area."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "chemicalLine"
+        ],
+        "steps": [
+          "Install plant and equipment on the roof",
+          "Braze refrigerant pipework"
+        ],
+        "missing": [
+          "Fall control",
+          "Hot work permit and fire watch"
+        ]
+      }
+    },
+    {
+      "id": "car-park-fans",
+      "title": "Basement car park jet fans and exhaust",
+      "task": "Install jet fans and car park exhaust ductwork in the 3 basement levels, drilling into the slabs for hanger anchors, working from scissor lifts more than 2 m above the floor, while other trades' vehicles use the car park.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m.",
+        "silicaControls": "Anchor holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Install car park fans over traffic areas"
+        ],
+        "missing": [
+          "Fall control",
+          "Silica dust controls"
+        ]
+      }
+    },
+    {
+      "id": "insulation",
+      "title": "Ductwork and pipework insulation",
+      "task": "Insulate the ductwork and chilled water pipework with glasswool and foam lagging using adhesives, in the ceilings, risers and plant rooms, from platform ladders.",
+      "fallRisk": "yes",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the glasswool, foam lagging and contact adhesive are kept at the work area: use with ventilation, keep away from ignition sources, wear gloves and eye protection.",
+        "fallControl": "Risers are screened at each level with only the section being worked on opened and fenced, and work above 2 m is done from scissor lifts with guardrails."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Insulate ductwork and pipework"
+        ],
+        "missing": [
+          "Fall control",
+          "Safety data sheet"
+        ]
+      }
+    },
+    {
+      "id": "commissioning",
+      "title": "Refrigerant charging, commissioning and air balancing",
+      "task": "Evacuate and charge the systems with refrigerant, commission the air handling units, fan coil units and exhaust fans, and balance the air flows.",
+      "fallRisk": "yes",
+      "facts": {
+        "refrigerantClass": "a2l",
+        "plantIsolation": "Each unit is isolated at its local isolator and locked out with personal padlocks, tested by trying to start it, and the building management system is put in manual off for plant under its control.",
+        "fallControl": "Roof plant is commissioned only inside the roof edge protection, and ceiling units are reached from platform ladders or scissor lifts with guardrails."
+      },
+      "expect": {
+        "highRisk": [
+          "chemicalLine",
+          "atmosphere",
+          "electrical",
+          "fall"
+        ],
+        "steps": [
+          "Evacuate, charge and recover refrigerant",
+          "Isolate plant before work on it",
+          "Commission and balance the system"
+        ],
+        "missing": [
+          "Fall control",
+          "Refrigerant safety class",
+          "Plant isolation procedure"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "refrigerant-pipework",
+        "roof-plant",
+        "commissioning"
+      ],
+      "phrase": "refrigerant handling licence",
+      "source": "Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth) reg 111, reg 134",
+      "quote": "carries out work in relation to RAC equipment and the person is not ... the holder of a refrigerant handling licence"
+    },
+    {
+      "swms": [
+        "plant",
+        "ductwork",
+        "refrigerant-pipework",
+        "roof-plant",
+        "car-park-fans",
+        "insulation",
+        "commissioning"
+      ],
+      "phrase": "white card",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 317",
+      "quote": "general construction induction training card"
+    },
+    {
+      "swms": [
+        "plant"
+      ],
+      "phrase": "Move plant with mechanical aids",
+      "source": "Model Code: Hazardous manual tasks s 4.5",
+      "quote": "using motorised push/pull equipment such as tugs or electric pallet jacks"
+    },
+    {
+      "swms": [
+        "plant"
+      ],
+      "phrase": "Team lifts are an interim control only",
+      "source": "Model Code: Hazardous manual tasks s 4.9",
+      "quote": "It should only be used as an interim control measure"
+    },
+    {
+      "swms": [
+        "plant"
+      ],
+      "phrase": "parked level, with the brake on and the key removed",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 215, s 218",
+      "quote": "parked on a firm, level surface with the handbrake applied ... removing the key"
+    },
+    {
+      "swms": [
+        "ductwork",
+        "car-park-fans"
+      ],
+      "phrase": "Fall prevention comes before work positioning or fall arrest",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 78, s 79",
+      "quote": "providing a fall prevention device if it is reasonably practicable to do so"
+    },
+    {
+      "swms": [
+        "ductwork"
+      ],
+      "phrase": "DANGER HOLE BENEATH",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306F",
+      "quote": "securely fixed in place to prevent it being moved or removed accidentally"
+    },
+    {
+      "swms": [
+        "ductwork",
+        "car-park-fans"
+      ],
+      "phrase": "rated for at least 120 kg",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306L, s 306M",
+      "quote": "has a load rating of at least 120kg"
+    },
+    {
+      "swms": [
+        "refrigerant-pipework",
+        "roof-plant"
+      ],
+      "phrase": "Purge oxygen-free nitrogen continuously",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 4.6.5",
+      "quote": "OFN must be purged continuously through the system during the operation"
+    },
+    {
+      "swms": [
+        "refrigerant-pipework",
+        "roof-plant"
+      ],
+      "phrase": "recover or isolate all of it, ventilate the area, and evacuate and purge",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 9.3, s 9.9.3, s 9.9.4",
+      "quote": "all refrigerant must be recovered from the system, or isolated; must be evacuated and purged with OFN prior to any hot work"
+    },
+    {
+      "swms": [
+        "refrigerant-pipework"
+      ],
+      "phrase": "never standard grade nitrogen",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 4.9, s 4.9.3",
+      "quote": "The use of standard grade nitrogen is unsafe"
+    },
+    {
+      "swms": [
+        "refrigerant-pipework"
+      ],
+      "phrase": "never above the maximum allowable pressure (PS)",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 4.9.4",
+      "quote": "never greater than the maximum allowable pressure (PS)"
+    },
+    {
+      "swms": [
+        "refrigerant-pipework"
+      ],
+      "phrase": "no more than 5% hydrogen",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 4.9.3",
+      "quote": "For safety reasons 5% hydrogen must not be exceeded"
+    },
+    {
+      "swms": [
+        "roof-plant"
+      ],
+      "phrase": "top rail at least 900 mm",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306E",
+      "quote": "900mm higher than that surface"
+    },
+    {
+      "swms": [
+        "roof-plant"
+      ],
+      "phrase": "21 kN for two",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306I",
+      "quote": "if 2 persons are using the anchorage point\u201421kN"
+    },
+    {
+      "swms": [
+        "car-park-fans"
+      ],
+      "phrase": "Close the work area to vehicles",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 215",
+      "quote": "the plant does not collide with pedestrians or other powered mobile plant"
+    },
+    {
+      "swms": [
+        "insulation"
+      ],
+      "phrase": "Label anything decanted",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 342, s 344",
+      "quote": "transferred or decanted from its original container at the workplace"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "Earth the system before charging",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 6.6",
+      "quote": "The refrigerating system must be earthed prior to charging with flammable refrigerant"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "never a halide detector",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 4.3, s 4.9.3",
+      "quote": "Traditional halide leak detectors can create a spark and must not be used for flammable refrigerants"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "higher global warming potential is prohibited",
+      "source": "Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth) reg 2AAA, reg 111A",
+      "quote": "charges the equipment with a GWP refrigerant ... other than the design refrigerant"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "Never vent refrigerant",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 10.1, s 12.2.3",
+      "quote": "Scheduled refrigerant must never be deliberately vented"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "test by trying to start the plant",
+      "source": "Model Code: Managing the risks of plant in the workplace s 4.5",
+      "quote": "test by 'trying' to reactivate the plant"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "A tag alone is not an isolation",
+      "source": "Model Code: Managing the risks of plant in the workplace s 4.5",
+      "quote": "A tag should not be used on its own as an isolation device"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "could start without warning",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 222",
+      "quote": "if it could start without warning and cause a hazard"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "confined space entry permit",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 66, s 67, s 69, s 70",
+      "quote": "must not direct a worker to enter a confined space to carry out work unless the person has issued a confined space entry permit"
+    },
+    {
+      "swms": [
+        "ductwork",
+        "car-park-fans"
+      ],
+      "phrase": "Assess in writing before drilling",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529CA",
+      "quote": "recorded in writing"
+    },
+    {
+      "swms": [
+        "commissioning"
+      ],
+      "phrase": "do not trap liquid refrigerant between closed valves",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 6.4, s 6.5",
+      "quote": "avoid refrigerant liquid being trapped between closed valves as high pressures may develop"
+    }
+  ]
+}

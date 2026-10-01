@@ -48,7 +48,7 @@ function dedupe(lines) {
 function isCraneOrLift(text) {
   const source = String(text || '');
   if (/\b(cranes?|liebherr)\b/i.test(source)) return true;
-  if (/\b(panel|precast|tilt-?up)\b/i.test(source) && /\blift/i.test(source)) return true;
+  if (/\b(panel|precast|tilt-?up)\b/i.test(source) && /\blift(?!ers?\b)/i.test(source)) return true;
   if (/\b(dogm[ae]n|dogger|banksman|signaller)\b/i.test(source) && /\b(crane|lift|load|panel)\b/i.test(source)) return true;
   if (/\b(crane lift|load lift)\b/i.test(source)) return true;
   if (/\blifting the (panel|load|beam|house|structure)\b/i.test(source)) return true;
@@ -61,8 +61,11 @@ function isPanelLift(text) {
   const source = String(text || '');
   const concrete = /\b(precast|tilt-?up|concrete (?:wall )?panels?)\b/i.test(source);
   if (concrete && /\b(lift\w*|erect\w*|stand\w*|stood|install\w*|plac\w*|crane\w*)\b/i.test(source)) return true;
-  return /\bpanels?\b/i.test(source) && /\b(lift\w*|crane\w*)\b/i.test(source);
+  return /\bpanels?\b/i.test(source) && /\b(lift\w*|crane\w*)\b/i.test(source) && !FACADE_WORK.test(source);
 }
+
+// Facade work: unitised curtain wall, glazing and cladding panels, not precast concrete.
+const FACADE_WORK = /\b(fa[cç]ades?|curtain wall\w*|unitised|cladding|glazing|glazed|glass panels?|spandrels?|sunshades?)\b/i;
 
 const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
 const ROAD = /\b(road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane)\b/i;
@@ -342,6 +345,8 @@ function fallLineFor(source, facts) {
 function fallControlLevel(line) {
   if (/\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(line)) return 'Eliminate';
   if (/\b(edge protection|guard\s?rails?|handrails?|scaffold|elevating work platform|\bewp\b|safety mesh|catch platform|perimeter screens?|edge screens?|screens|full height gates?|fenc\w*|barriers?|barricad\w*|hoarding|covers?|covered)\b/i.test(line)) return 'Isolate or engineer';
+  // A travel restraint system prevents a fall (s 306D(3)(a)), so it ranks above fall arrest.
+  if (/\btravel restraint\b/i.test(line) && !/\bfall arrest\b/i.test(line)) return 'Isolate or engineer';
   if (/\b(harness|fall arrest|lanyard|restraint)\b/i.test(line)) return 'PPE';
   return 'Administrative';
 }
@@ -354,7 +359,9 @@ function loadsOnDeckOrSlab(text) {
   const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
   return FORMWORK.test(source)
     || /\b(load(?:ing)?[- ]?out|loading platforms?|landing platforms?|forklifts?|telehandlers?)\b/i.test(source)
-    || (/\b(reo|reinforc\w*|rebar)\b/i.test(source) && /\b(deck|slab)\b/i.test(source));
+    || (/\b(reo|reinforc\w*|rebar)\b/i.test(source) && /\b(deck|slab)\b/i.test(source))
+    || (FACADE_WORK.test(source) && /\b((?:floor|mini|spider|crawler) cranes?|monorails?|stillages?)\b/i.test(source))
+    || (/\b(ahus?|air handling units?|chillers?|cooling towers?)\b/i.test(source) && /\b(lift\w*|cranes?|land\w*|deliver\w*)\b/i.test(source));
 }
 
 // Entering a pit, sump, tank, manhole or sewer.
@@ -362,7 +369,7 @@ const ENTERED_SPACE = /\b(?:enter\w*|entry|inside|work in|working in)\b[\w\s,-]{
 const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|welding)\b/i;
 const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air test\w*)\b/i;
 const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?)\b/i;
-const SILICA_WORK = /\b(core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|drill\w* (?:into )?(?:the )?(?:concrete|masonry|blockwork|block walls?|slabs?))\b/i;
+const SILICA_WORK = /\b(core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?))\b/i;
 
 const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply)|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
 
@@ -373,6 +380,11 @@ function choiceAnswer(id, value) {
   if (id === 'spaceAssessment') {
     if (/\bnot ?confined|not a confined\b/.test(text)) return 'notConfined';
     if (/\bconfined\b/.test(text)) return 'confined';
+  }
+  if (id === 'refrigerantClass') {
+    if (/\b(a3|highly flammable|r290|r600a|propane|isobutane)\b/.test(text)) return 'a3';
+    if (/\b(a2l?|mildly flammable|r32|r454b|r1234\w*)\b/.test(text)) return 'a2l';
+    if (/\b(a1|non-?flammable|r410a|r134a|r407c|co2|r744)\b/.test(text)) return 'a1';
   }
   if (id === 'energisedWork') {
     if (/\b(testing|commissioning|energised parts|within 3 ?m)\b/.test(text)) return 'testing';
@@ -399,11 +411,25 @@ const ENERGISED = /\b(overhead (?:power |electric )?lines?|power lines?)\b/i;
 // An electrician's work on an installation.
 // Words that only an electrician's work uses. General words such as commissioning,
 // testing or rough-in count as electrical only alongside one of these.
-const ELECTRICAL_CORE = /\b(electrician|electrical|wiring|switchboards?|distribution boards?|consumer mains|cabl\w*|circuits?|conduits?|light fittings?|power points?|busduct|construction (?:power|wiring)|temporary (?:power|lighting))\b/i;
+const ELECTRICAL_RAW = /\b(electrician|electrical|wiring|switchboards?|distribution boards?|consumer mains|cabl\w*|circuits?|conduits?|light fittings?|power points?|busduct|construction (?:power|wiring)|temporary (?:power|lighting))\b/i;
+// Communications and security cabling is extra low voltage work by registered cablers
+// and security installers, so it is electrical work only when power words are used too.
+const ICT_WORK = /\b(data cabl\w*|data points?|comms|communications|telecommunications|ict|structured cabling|optical fibre|fibre optic\w*|fibre|cat ?6a?|cctv|access control|intercoms?|security (?:systems?|cameras?|equipment)|card readers?|nbn|wireless access points?|matv|antennas?)\b/i;
+const SECURITY_WORK = /\b(cctv|access control|intercoms?|security (?:systems?|cameras?|equipment)|card readers?|alarms?|intrusion detect\w*)\b/i;
+const POWER_WORDS = /\b(electrician|electrical|switchboards?|distribution boards?|consumer mains|light fittings?|power points?|busduct|construction (?:power|wiring)|temporary (?:power|lighting)|mains power)\b/i;
+const ELECTRICAL_CORE = { test: (text) => ELECTRICAL_RAW.test(String(text || '')) && (!ICT_WORK.test(String(text || '')) || POWER_WORDS.test(String(text || ''))) };
 const ELECTRICAL_WORK = ELECTRICAL_CORE;
 const SWITCHBOARD_WORDS = /\b(main switchboards?|consumer mains|energis\w*|commission\w*|terminat\w*|distribution boards?)\b/i;
 const SWITCHBOARD_WORK = { test: (text) => SWITCHBOARD_WORDS.test(String(text || '')) && ELECTRICAL_CORE.test(String(text || '')) };
 // A plumber's work.
+// A mechanical (HVAC) contractor's work. Its pipework is not plumbing unless plumbing words are used too.
+const MECHANICAL_WORK = /\b(mechanical services|hvac|air[- ]?condition\w*|ductwork|duct(?:ing| runs?| sections?)|refrigerant|refrigeration|split systems?|fan coil units?|fcus?|ahus?|air handling units?|chillers?|cooling towers?|condensers?|condensing units?|jet fans?|exhaust fans?|chilled water|vrf|vrv)\b/i;
+const REFRIGERANT = /\b(refrigerant|refrigeration|split systems?|condensing units?|vrf|vrv)\b/i;
+const PLUMBING_ONLY_WORDS = /\b(plumb\w*|sanitary|sewer\w*|drain\w*|hot water|cold water|tapware|toilets?|basins?)\b/i;
+function isPlumbing(text) {
+  const source = String(text || '');
+  return PLUMBING_WORK.test(source) && (!MECHANICAL_WORK.test(source) || PLUMBING_ONLY_WORDS.test(source));
+}
 const PLUMBING_WORK = /\b(plumb\w*|hydraulic\w*|drain\w*|sewer\w*|sanitary|pipes?|pipework|sleeves?|puddle flanges?|hot water|cold water|tapware|toilets?|basins?|pump rooms?|sumps?|ejection pits?|water tanks?)\b/i;
 
 const CATEGORY_FACTS = [
@@ -513,9 +539,29 @@ const CATEGORY_FACTS = [
     applies: (text) => HOT_WORK.test(String(text || '')),
   },
   {
+    // Flammable refrigerants (A2L, A2 and A3) need a flammable zone and rated tools.
+    id: 'refrigerantClass',
+    label: 'Refrigerant safety class',
+    prompt: 'Choose the refrigerant\'s safety class, from the compliance plate or the safety data sheet.',
+    choices: [
+      { value: 'a1', label: 'Non-flammable (A1), such as R410A or R134a' },
+      { value: 'a2l', label: 'Mildly flammable or flammable (A2L or A2), such as R32 or R454B' },
+      { value: 'a3', label: 'Highly flammable (A3), such as R290' },
+    ],
+    level: 'Administrative',
+    applies: (text) => REFRIGERANT.test(String(text || '')) && /\b(charg\w*|evacuat\w*|recover\w*|decant\w*)\b/i.test(String(text || '')),
+  },
+  {
+    id: 'plantIsolation',
+    label: 'Plant isolation procedure',
+    prompt: 'How plant is isolated and locked out (each energy source, personal locks), how it is tested before work, and how plant on automatic or building management control is stopped from starting.',
+    level: 'Isolate or engineer',
+    applies: (text) => MECHANICAL_WORK.test(String(text || '')) && /\b(commission\w*|start[- ]?up|balanc\w*)\b/i.test(String(text || '')),
+  },
+  {
     id: 'pressureTesting',
     label: 'Pressure testing method',
-    prompt: 'The test medium (water or air), the test pressure, how the area is kept clear during the test, and how pressure is released.',
+    prompt: 'The test medium (water, air or oxygen-free nitrogen), the test pressure, how the area is kept clear during the test, and how pressure is released.',
     level: 'Administrative',
     applies: (text) => PRESSURE_TEST.test(String(text || '')),
   },
@@ -763,7 +809,7 @@ function controlsFor(task, facts, pack) {
     if (!(pack && pack.state && pack.state.ownCrane)) {
       const company = keptFact(facts.craneCompany);
       if (company) push('Administrative', company);
-      push('Administrative', 'The crane company operates the crane, and its licensed crew slings, directs and releases every load under its lift plan.');
+      push('Administrative', 'The crane company operates the crane under its lift plan. Only licensed dogmen or riggers sling, direct and release loads, with the split of duties agreed with the crane company.');
     }
     push('Administrative', `Only the people doing the lift are inside the exclusion zone. Stop the lift if anyone else enters. Do not pass a load over a person. ${under}`);
     // Free-fall lowering is a mobile crane feature, and the operator's business.
@@ -813,7 +859,7 @@ function controlsFor(task, facts, pack) {
     }
     if (value && item.applies(source)) {
       for (const line of sentences(value)) {
-        push(/\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?)\b/i.test(line) ? 'Administrative' : item.level, line);
+        push(/\brespirators?\b/i.test(line) && !/\b(extraction|wet|water)\b/i.test(line) ? 'PPE' : /\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?|assess\w*)\b/i.test(line) ? 'Administrative' : item.level, line);
       }
     }
   }
@@ -1118,7 +1164,7 @@ function prepareDraft(input) {
     missing: [],
     statement: '',
     // Testing on or near energised parts is high risk construction work, however the task is worded.
-    highRisk: highRiskMatches(`${combinedFacts(task, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined' ? '\nconfined space' : ''}${/\b(live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task) ? '\nwork near a confined space (sewer)\ncontaminated atmosphere (sewer gas)' : ''}${/\b(solvent (?:cement|weld\w*)|primer)\b/i.test(task) && /\b(risers?|basements?|ducts?|pits?|shafts?|ceilings?)\b/i.test(task) ? '\nflammable atmosphere' : ''}`, pack.fallAnswer, state)
+    highRisk: highRiskMatches(`${combinedFacts(task, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined' ? '\nconfined space' : ''}${ICT_WORK.test(task) && /\b(risers?|ceilings?|comms rooms?|ups|card readers?|intercoms?|power supplies)\b/i.test(task) ? '\nwork near energised electrical installations (shared risers, ceilings and equipment)' : ''}${MECHANICAL_WORK.test(task) && /\b(commission\w*|start[- ]?up)\b/i.test(task) ? '\nwork near energised electrical installations (plant being commissioned)' : ''}${REFRIGERANT.test(task) && /\b(pipe\w*|lines?|braz\w*|charg\w*|recover\w*|evacuat\w*|pressure test\w*)\b/i.test(task) ? '\nrefrigerant line' : ''}${['a2l', 'a3'].includes(choiceAnswer('refrigerantClass', facts.refrigerantClass)) ? '\nflammable atmosphere' : ''}${/\b(live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task) ? '\nwork near a confined space (sewer)\ncontaminated atmosphere (sewer gas)' : ''}${/\b(solvent (?:cement|weld\w*)|primer)\b/i.test(task) && /\b(risers?|basements?|ducts?|pits?|shafts?|ceilings?)\b/i.test(task) ? '\nflammable atmosphere' : ''}`, pack.fallAnswer, state)
       .map((item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label)),
     hazards,
     controls: finalControls,
@@ -1175,7 +1221,7 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     power: mentioned(task, ENERGISED),
     scaffold,
     // Roofing work, not a roof beam or a job under a roof.
-    roof: /\b(roof(?:ing)? sheets?|roofing|re-?roof\w*|roof tiles?|on (?:the|a) roof|roof work|roof repairs?)\b/i.test(task) && !scaffold,
+    roof: /\b(roof(?:ing)? sheets?|roofing|re-?roof\w*|roof tiles?|on (?:the|a) roof|roof work|roof repairs?)\b/i.test(task) && !scaffold && !MECHANICAL_WORK.test(task) && !ICT_WORK.test(task),
     trench: deepExcavation(task) || /\b(excavat\w*|trench\w*)\b/i.test(task),
     propping: CATEGORY_FACTS.find((item) => item.id === 'temporarySupport').applies(task),
     demolition: mentioned(task, DEMOLITION),
@@ -1192,20 +1238,47 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     jumpform: JUMPFORM.test(task),
     ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task),
     electricalWork: ELECTRICAL_WORK.test(task),
-    plumbingWork: PLUMBING_WORK.test(task),
+    plumbingWork: isPlumbing(task),
     sewerConnection: /\b(sewer connection|connect\w* (?:to )?(?:the )?(?:council |existing |live )?sewer\w*|live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task),
-    castInPlumbing: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && /\b(sleeves?|puddle flanges?|plumbing|drainage|pipes?)\b/i.test(task),
+    castInPlumbing: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && /\b(sleeves?|puddle flanges?|plumbing|drainage|pipes?)\b/i.test(task) && isPlumbing(task),
     coreDrill: CORE_DRILL.test(task),
     // Installing risers or pipework at height, not other work done in the risers.
-    hydraulicRisers: PLUMBING_WORK.test(task) && /\binstall\w*\b/i.test(task) && /\b(risers?|stacks?|shafts?|ceilings?|at height)\b/i.test(task) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
+    hydraulicRisers: isPlumbing(task) && /\binstall\w*\b/i.test(task) && /\b(risers?|stacks?|shafts?|ceilings?|at height)\b/i.test(task) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
     hotWork: HOT_WORK.test(task),
     solventCement: /\b(solvent (?:cement|weld\w*)|pvc (?:glue|cement)|primer)\b/i.test(task),
     pressureTest: PRESSURE_TEST.test(task),
-    plumbingFitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task) && PLUMBING_WORK.test(task) && !ELECTRICAL_CORE.test(task),
+    plumbingFitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task) && isPlumbing(task) && !ELECTRICAL_CORE.test(task),
+    facadeWork: FACADE_WORK.test(task),
+    panelLoad: FACADE_WORK.test(task) && /\b(load\w*|deliver\w*|stillages?|racks?|land\w*)\b/i.test(task),
+    facadeCrane: FACADE_WORK.test(task) && /\b((?:floor|mini|spider|crawler) cranes?|monorails?)\b/i.test(task),
+    panelInstall: FACADE_WORK.test(task) && /\b(install\w*|plac\w*|hang\w*)\b/i.test(task) && /\b(panels?|curtain wall\w*|glazing|glass)\b/i.test(task) && !/\b(swing stages?|suspended scaffold\w*|mast climb\w*)\b/i.test(task),
+    glassHandling: FACADE_WORK.test(task) && /\b(glass|glazing|glazed|panels?|vacuum lifters?)\b/i.test(task) && /\b(install\w*|lift\w*|handl\w*|replac\w*)\b/i.test(task) && !/\b(stillages?|trolleys?)\b/i.test(task),
+    swingStage: /\b(swing stages?|suspended scaffold\w*|mast climb\w*|mcwps?)\b/i.test(task),
+    edgeBracket: FACADE_WORK.test(task) && /\bbrackets?\b/i.test(task) && /\bslab edges?\b/i.test(task),
+    facadeSeal: FACADE_WORK.test(task) && /\b(seal\w*|silicon\w*|caulk\w*)\b/i.test(task),
+    mechanicalWork: MECHANICAL_WORK.test(task),
+    refrigerantWork: REFRIGERANT.test(task),
+    // Heavy plant lifted, delivered or moved into place; not scissor or boom lifts.
+    plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|fans?(?!\s+coil)|plant)\b/i.test(task) && /\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*)\b/i.test(task),
+    ductwork: MECHANICAL_WORK.test(task) && /\binstall\w*\b/i.test(task) && !/\bon the roof\b/i.test(task) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task))),
+    refrigerantPipework: REFRIGERANT.test(task) && /\b(braz\w*|silver solder\w*)\b/i.test(task),
+    refrigerantTest: REFRIGERANT.test(task) && PRESSURE_TEST.test(task),
+    refrigerantCharge: REFRIGERANT.test(task) && /\b(charg\w*|evacuat\w*|recover\w*|decant\w*)\b/i.test(task),
+    // Plant installed on the roof, as opposed to pipework that only runs to it.
+    roofPlant: (MECHANICAL_WORK.test(task) || ICT_WORK.test(task)) && /\binstall\w*\b[^.]{0,70}\b(?:on the roof|roof plant)\b/i.test(task) && !/\b(?:pipework|pipes?|lines?)\s+(?:between|from|to)\b/i.test(task),
+    jetFans: /\b(jet fans?|car ?park (?:ventilation|exhaust)\w*)\b/i.test(task),
+    mechInsulation: MECHANICAL_WORK.test(task) && /\b(insulat\w*|lagging)\b/i.test(task),
+    mechCommissioning: MECHANICAL_WORK.test(task) && /\b(commission\w*|start[- ]?up|balanc\w*)\b/i.test(task),
     tempPower: TEMP_POWER.test(task),
     castIn: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && ELECTRICAL_CORE.test(task),
-    containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task),
-    cablePull: /\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable)\b/i.test(task),
+    containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task) && ELECTRICAL_CORE.test(task),
+    cablePull: /\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable)\b/i.test(task) && ELECTRICAL_CORE.test(task),
+    ictWork: ICT_WORK.test(task),
+    securityWork: SECURITY_WORK.test(task),
+    ictCabling: ICT_WORK.test(task) && !/\bon the roof\b/i.test(task) && /\b(?:install\w*|pull\w*|run\w*)\b[^.]{0,60}\b(?:cabl\w*|containment|cable trays?|catenary|conduits?)\b/i.test(task),
+    fibre: /\b(optical fibre|fibre optic\w*|fibre backbone|fibre cabl\w*|splic\w*)\b/i.test(task),
+    commsRoom: ICT_WORK.test(task) && /\b(racks?|cabinets?|ups|batter(?:y|ies))\b/i.test(task),
+    securityDevices: SECURITY_WORK.test(task) && /\binstall\w*\b/i.test(task),
     fitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     // Isolation steps for any work on the installation; commissioning only for the
     // permanent main switchboard and consumer mains, not construction power.
@@ -1231,7 +1304,7 @@ function asSentence(text) {
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
-    if (['deckMethod', 'energisedWork', 'spaceAssessment'].includes(id)) return choiceAnswer(id, facts[id]);
+    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass'].includes(id)) return choiceAnswer(id, facts[id]);
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));

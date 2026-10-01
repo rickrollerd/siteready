@@ -1,12 +1,12 @@
-name: Fetch mechanical sources
+name: Fetch ICT and security sources
 
-# Reads the plant code and refrigerant law behind SiteReady's mechanical job steps, one job per source and chunk so each log can be read back.
+# Reads the cabling and security licensing law behind SiteReady's ICT and security job steps, one job per source and chunk so each log can be read back.
 on:
   workflow_dispatch:
   push:
     paths:
       - 'legislation-watch/fetch-source.js'
-      - '.github/workflows/fetch-mechanical.yml'
+      - '.github/workflows/fetch-ict.yml'
 
 permissions:
   contents: read
@@ -19,11 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { source: ozonePdf, chunk: 0 }
-          - { source: ozonePdf, chunk: 1 }
-          - { source: ozonePdf, chunk: 2 }
-          - { source: ozonePdf, chunk: 3 }
-          - { source: ozonePdf, chunk: 4 }
+          - { source: cablingRules, chunk: 0 }
+          - { source: securityAct, chunk: 0 }
     name: ${{ matrix.source }} ${{ matrix.chunk }}
     steps:
       - uses: actions/checkout@v5
