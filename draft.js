@@ -830,10 +830,8 @@ function controlsFor(task, facts, pack) {
   }
 
   const ppeNamed = source.match(/\b(hard hats?|helmets?|safety glasses|eye protection|gloves?|safety boots|hearing protection|hi-?vis(?:ibility)?(?: clothing)?|high visibility clothing|respirators?|dust masks?)\b/gi) || [];
-  for (const item of dedupe(ppeNamed)) {
-    const name = `${item.charAt(0).toUpperCase()}${item.slice(1)}`;
-    push('PPE', `Wear ${name}.`);
-  }
+  // The PPE section lists each item with its type, so one pointer is clearer than vague 'Wear gloves' lines.
+  if (ppeNamed.length) push('PPE', 'Wear the PPE ticked in the PPE section, as listed for each job step.');
 
   if (!items.length) {
     push('Administrative', 'The controls for this task are set out in each job step below.');
@@ -1120,7 +1118,7 @@ function prepareDraft(input) {
     missing: [],
     statement: '',
     // Testing on or near energised parts is high risk construction work, however the task is worded.
-    highRisk: highRiskMatches(`${combinedFacts(task, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined' ? '\nconfined space' : ''}${/\b(solvent (?:cement|weld\w*)|primer)\b/i.test(task) && /\b(risers?|basements?|ducts?|pits?|shafts?|ceilings?)\b/i.test(task) ? '\nflammable atmosphere' : ''}`, pack.fallAnswer, state)
+    highRisk: highRiskMatches(`${combinedFacts(task, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined' ? '\nconfined space' : ''}${/\b(live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task) ? '\nwork near a confined space (sewer)\ncontaminated atmosphere (sewer gas)' : ''}${/\b(solvent (?:cement|weld\w*)|primer)\b/i.test(task) && /\b(risers?|basements?|ducts?|pits?|shafts?|ceilings?)\b/i.test(task) ? '\nflammable atmosphere' : ''}`, pack.fallAnswer, state)
       .map((item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label)),
     hazards,
     controls: finalControls,

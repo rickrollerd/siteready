@@ -10,7 +10,7 @@
       "task": "Excavate trenches up to 2.4 m deep in the basement and the street for in-ground sewer and stormwater drainage, using a 5 tonne excavator, then connect to the council sewer main in the street next to the road, open to traffic.",
       "fallRisk": "yes",
       "facts": {
-        "trenchSupport": "Trenches deeper than 1.5 m are shored with a trench shield rated for 3.0 m, as designed by the supplier's engineer.",
+        "trenchSupport": "Trenches 1.5 m deep or more are shored with a trench shield rated for 3.0 m, as designed by the supplier's engineer.",
         "fallControl": "Temporary fencing is placed 1 m back from open trench edges, and no one works at an unprotected edge."
       },
       "expect": {
@@ -18,7 +18,9 @@
           "fall",
           "trench",
           "road",
-          "plant"
+          "plant",
+          "confined",
+          "atmosphere"
         ],
         "steps": [
           "Set up traffic management",
@@ -60,7 +62,7 @@
       "task": "Core drill penetrations for pipework through the post-tensioned slabs on each floor and in the basement. Open core holes are a fall of more than 2 m to the floor below.",
       "fallRisk": "yes",
       "facts": {
-        "silicaControls": "Core drilling is done wet with a water-fed rig, with fit tested P2 respirators available, and the written silica assessment is done before work starts.",
+        "silicaControls": "Core drilling is done wet with a water-fed rig, with fit tested P2 respirators worn while drilling, and the written silica assessment is done before work starts.",
         "fallControl": "Each hole is covered with a fixed, marked cover as soon as it is cut, and the area below is barricaded during drilling."
       },
       "expect": {
@@ -158,7 +160,7 @@
       "task": "Rough-in and fit-off the plumbing in the apartments: chase walls, install pipework, and fit tubs, toilets, basins and tapware, working from platform ladders.",
       "fallRisk": "no",
       "facts": {
-        "silicaControls": "Chasing is done with on-tool dust extraction, with fit tested P2 respirators, and the written silica assessment is done before work starts."
+        "silicaControls": "Chasing is done with on-tool dust extraction, with fit tested P2 respirators worn while chasing, and the written silica assessment is done before work starts."
       },
       "expect": {
         "highRisk": [],
@@ -409,6 +411,15 @@
       "phrase": "principal contractor's WHS management plan",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 299",
       "quote": "takes into account the WHS management plan"
+    },
+    {
+      "swms": [
+        "core-drill",
+        "fit-off"
+      ],
+      "phrase": "Health monitoring for workers at significant risk from crystalline silica",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 368, schedule 14",
+      "quote": "must ensure that health monitoring is provided to a worker ... if there is a significant risk to the worker's health because of exposure to a hazardous chemical mentioned in schedule 14, table 14.1"
     }
   ]
 }
