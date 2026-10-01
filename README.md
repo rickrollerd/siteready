@@ -63,6 +63,12 @@ Each draft lays the job out as the regulators' templates do: job steps, each wit
 
 Confined spaces, propping or load-bearing demolition, overhead power lines and work over water each stand down until their key fact is given: the entry permit and rescue, the temporary support design, the electrical safety arrangement, and the drowning controls.
 
+## Electrical work and cited sources
+
+The electrician's job steps (construction power, cast-in conduits, cable tray and containment, cable pulling, apartment rough-in and fit-off, switchboards and commissioning) are built from the Electrical Safety Regulation 2026 (Qld), the Electrical Safety Act 2002 (Qld) and Safe Work Australia's model Code of Practice: Managing electrical risks in the workplace. Controls taken from them end with their source, for example (Electrical Safety Regulation 2026 (Qld) s 140). Required facts cover the isolation and testing procedure, whether any work is on or near energised parts (within 3 m, s 193), and inspection and testing of construction wiring. Choosing testing on or near energised parts adds the s 195 to s 204 controls, ticks the energised installations category and ticks arc-rated PPE.
+
+A project file can carry a `rules` list: each rule names the SWMS it belongs to, a phrase and its source. `scenarios/projects.js` fails if a rule is missing from its SWMS or its citation is missing, so content is checked against the sources, not only against itself. Queensland's own electrical codes of practice could not be downloaded (WorkSafe Queensland refuses automated requests), so code citations are to the model code and should be re-checked against the Queensland code.
+
 ## Decks and load limits
 
 When a formwork deck is laid, the draft asks how: from below through the joists from a working platform, or on top working away from the edge on laid sheets. Each choice gets its own controls. Loading ply onto the deck while it is being laid has its own step. Work that puts materials or plant on a formwork deck or a suspended slab (formwork, load-out and loading platforms, forklifts and telehandlers, reo on a deck) stands down until the load limits are stated: the allowable loads, where they are shown on site, and who checks them. Load limits then appear in each step that lands or stacks loads, and in the documents to keep on site.
