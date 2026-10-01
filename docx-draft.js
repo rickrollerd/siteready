@@ -1,6 +1,6 @@
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-  WidthType, BorderStyle, VerticalAlign, Footer, Header, AlignmentType, ImageRun,
+  WidthType, BorderStyle, VerticalAlign, Footer, Header, AlignmentType, ImageRun, CheckBox,
 } = require('docx');
 const { fitLogo } = require('./logo');
 
@@ -110,7 +110,24 @@ function controlTable(controls) {
 
 // Sign-off sections. Every line is left blank for a pen or for typing in Word.
 const SIGN_ROWS = 44;
-const TICK = '\u2610';
+
+// Real Word tick boxes: a click in Word ticks or clears them. Empty box, or a box
+// with a tick, in a symbol font Word has on Windows and Mac.
+const BOX_FONT = 'Segoe UI Symbol';
+
+function tickBoxes(items) {
+  const children = [];
+  items.forEach((item, index) => {
+    if (index) children.push(run('     ', { size: 20 }));
+    children.push(new CheckBox({
+      checked: Boolean(item.ticked),
+      checkedState: { value: '2611', font: BOX_FONT },
+      uncheckedState: { value: '2610', font: BOX_FONT },
+    }));
+    children.push(run(` ${item.label}`, { size: 20 }));
+  });
+  return children;
+}
 
 function signTable(rows) {
   return new Table({
@@ -121,9 +138,19 @@ function signTable(rows) {
       height: { value: height || 520 },
       children: [
         cell(label, 3000, { bold: true, fill: HEAD, size: 20 }),
-        cell(value || ' ', 7080, { size: 20 }),
+        Array.isArray(value) ? boxCell(value, 7080) : cell(value || ' ', 7080, { size: 20 }),
       ],
     })),
+  });
+}
+
+function boxCell(items, width) {
+  return new TableCell({
+    width: { size: width, type: WidthType.DXA },
+    borders,
+    margins: { top: 60, bottom: 60, left: 80, right: 80 },
+    verticalAlign: VerticalAlign.TOP,
+    children: [new Paragraph({ spacing: { before: 0, after: 0, line: 276 }, children: tickBoxes(items) })],
   });
 }
 
@@ -149,7 +176,7 @@ function principalContractorReview(draft) {
       ['Principal contractor', draft.principalContractor || ''],
       ['Date SWMS received', ''],
       ['Reviewed by (name and position)', ''],
-      ['Outcome', `${TICK} Accepted    ${TICK} Accepted with changes noted below    ${TICK} Not accepted: revise and resubmit`],
+      ['Outcome', [{ label: 'Accepted' }, { label: 'Accepted with changes noted below' }, { label: 'Not accepted: revise and resubmit' }]],
       ['Comments or changes', '', 1400],
       ['Signature', ''],
       ['Date', ''],
@@ -237,14 +264,8 @@ function jobStepsTable(steps) {
   });
 }
 
-const BOX = { true: '\u2612', false: '\u2610' };
-
 function ppeTable(groups) {
-  return signTable(groups.map((group) => [
-    group.area,
-    group.items.map((item) => `${BOX[item.ticked]} ${item.label}`).join('     '),
-    360,
-  ]));
+  return signTable(groups.map((group) => [group.area, group.items, 360]));
 }
 
 const COMPLIANCE_CHECK = 'The supervisor checks the controls are in place before work starts and during the work, and stops the work if they are not.';
@@ -259,7 +280,7 @@ function responsibilities(draft) {
       ['How compliance is checked', COMPLIANCE_CHECK],
       ['Person responsible for reviewing the control measures', draft.reviewer],
       ['Review date', draft.reviewDate],
-      ['Workers consulted on this SWMS', `${BOX.false} Yes    ${BOX.false} No`],
+      ['Workers consulted on this SWMS', [{ label: 'Yes' }, { label: 'No' }]],
     ]),
   ];
 }
