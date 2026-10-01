@@ -1437,7 +1437,7 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     gasCylinders: /\b(gas cylinders?|cylinders?|gas manifolds?)\b/i.test(task) && (MEDICAL_GAS.test(task) || /\bmanifolds?\b/i.test(task)),
     leadShielding: LEAD_SHIELDING.test(task),
     liveHospital: LIVE_HOSPITAL.test(task),
-    hospitalCut: LIVE_HOSPITAL.test(task) && /\b(drill\w*|cut\w*|cor(?:e|ing)\b|penetrat\w*|break\w* through|chas\w*)/i.test(task),
+    hospitalCut: LIVE_HOSPITAL.test(task) && !PILING_WORK.test(task) && /\b(drill\w*|cut\w*|cor(?:e|ing)\b|penetrat\w*|break\w* through|chas\w*)/i.test(task),
     ambulance: /\bambulances?\b/i.test(task),
     structuralOpening: /\b(opening|break\w* through)\b/i.test(task) && /\bwalls?\b/i.test(task) && /\b(load[- ]bearing|propped|propping)\b/i.test(task),
     timberWork: /\b(timber|mdf|joinery|cabinets?|doors?|skirtings?|architraves?)\b/i.test(task),

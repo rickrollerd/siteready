@@ -30,19 +30,24 @@
     {
       "id": "generators",
       "title": "Standby generators",
-      "task": "Install the standby generators and connect their diesel fuel lines and day tanks in the generator room.",
+      "task": "Install the standby generators, lifted in by the crane company's mobile crane, and connect their diesel fuel lines and day tanks in the generator room.",
       "fallRisk": "no",
       "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
         "safetyDataSheet": "Safety data sheets for the diesel fuel are kept at the work area. Keep ignition sources away."
       },
       "expect": {
         "highRisk": [
-          "chemicalLine"
+          "chemicalLine",
+          "plant"
         ],
         "steps": [
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
           "Install generators and fuel systems"
         ],
         "missing": [
+          "Crane company and lift plan",
           "Safety data sheet"
         ]
       }
