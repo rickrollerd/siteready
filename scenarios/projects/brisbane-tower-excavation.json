@@ -62,7 +62,7 @@
       "fallRisk": "yes",
       "facts": {
         "trenchSupport": "Pile caps and lift pits 1.5 m deep or more are battered, or shored to the engineer's design, or protected by a trench shield to the supplier's engineer's design.",
-        "fallControl": "Mesh barriers are set up 1.5 m back from each pile cap and lift pit before digging starts, and moved only as the dig progresses."
+        "fallControl": "Mesh barriers go up 1.5 m back around each pile cap and lift pit as it is dug, before it is deeper than 2 m."
       },
       "expect": {
         "highRisk": [

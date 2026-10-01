@@ -1,0 +1,72 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: flooring",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "prep",
+      "title": "Floor preparation and levelling",
+      "task": "Grind the concrete floors and apply levelling compound before the floor coverings are laid.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Floors are ground with on-tool dust extraction. Fit tested P2 respirators are worn by anyone still at risk. The written silica assessment is done before work starts and attached to this SWMS.",
+        "safetyDataSheet": "Safety data sheets for the levelling compound and primer are kept at the work area: avoid skin contact, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Prepare and grind floors",
+          "Apply adhesives and levelling compounds"
+        ],
+        "missing": [
+          "Silica dust controls"
+        ]
+      }
+    },
+    {
+      "id": "carpet",
+      "title": "Carpet and vinyl laying",
+      "task": "Lay carpet and vinyl in the apartments and corridors with adhesive, moving rolls by hoist.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the flooring adhesive are kept at the work area: use with ventilation, keep away from ignition sources, wear gloves."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Apply adhesives and levelling compounds",
+          "Lay carpet, vinyl and timber floors"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    },
+    {
+      "id": "timber",
+      "title": "Engineered timber floors",
+      "task": "Install engineered timber floors in the apartments, cutting boards with drop saws.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Lay carpet, vinyl and timber floors"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "carpet",
+        "timber"
+      ],
+      "phrase": "Use a power stretcher instead of a knee kicker",
+      "source": "Model Code: Hazardous manual tasks s 2.2, s 3.3, s 4.1, s 4.9",
+      "quote": "kneeling while trowelling concrete or laying carpet"
+    }
+  ]
+}

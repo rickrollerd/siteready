@@ -15,7 +15,8 @@
         "steps": [
           "Move materials and joinery to the floors",
           "Frame walls and bulkheads",
-          "Use power tools: saws and nail guns"
+          "Cut and fix steel studs and track",
+          "Use power tools"
         ],
         "missing": []
       }
@@ -30,7 +31,7 @@
         "highRisk": [],
         "steps": [
           "Move materials and joinery to the floors",
-          "Use power tools: saws and nail guns",
+          "Use power tools",
           "Install doors, joinery and cabinets"
         ],
         "missing": []
@@ -42,14 +43,14 @@
       "task": "Install timber handrails and balcony screens near the balcony edges and stair voids, using drop saws and nail guns.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Balcony balustrades and void edge protection stay in place, and no one works outside them."
+        "fallControl": "Balcony balustrades and void edge protection stay in place, except where opened one section at a time under the permit procedure in this SWMS."
       },
       "expect": {
         "highRisk": [
           "fall"
         ],
         "steps": [
-          "Use power tools: saws and nail guns",
+          "Use power tools",
           "Work near balcony edges, voids and penetrations"
         ],
         "missing": [

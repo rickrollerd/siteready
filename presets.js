@@ -7,8 +7,8 @@ const fs = require('fs');
 const path = require('path');
 
 const PROJECTS = path.join(__dirname, 'scenarios', 'projects');
-const TRADE_ORDER = ['piling', 'excavation', 'structure', 'waterproofing', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade', 'carpentry fit-out', 'tiling'];
-const TRADE_NAMES = { excavation: 'Excavation (basement)', waterproofing: 'Waterproofing', 'carpentry fit-out': 'Carpentry fit-out', tiling: 'Tiling', piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
+const TRADE_ORDER = ['piling', 'excavation', 'structure', 'scaffolding and hoists', 'structural steel', 'waterproofing', 'masonry', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade', 'carpentry fit-out', 'plasterboard and ceilings', 'tiling', 'painting', 'flooring'];
+const TRADE_NAMES = { 'scaffolding and hoists': 'Scaffolding and hoists', 'structural steel': 'Structural steel', masonry: 'Masonry', 'plasterboard and ceilings': 'Plasterboard and ceilings', painting: 'Painting', flooring: 'Flooring', excavation: 'Excavation (basement)', waterproofing: 'Waterproofing', 'carpentry fit-out': 'Carpentry fit-out', tiling: 'Tiling', piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
 
 function loadTrades() {
   return fs.readdirSync(PROJECTS)

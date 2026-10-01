@@ -1,0 +1,82 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: structural steel",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "roof-steel",
+      "title": "Roof and plant platform steel erection",
+      "task": "Erect structural steel for the roof plant platforms and the crown, lifted by the tower crane, connecting and bolting from boom lifts.",
+      "fallRisk": "yes",
+      "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; our licensed riggers sling and land the steel with tag lines.",
+        "erectionSequence": "Steel is erected to the designer's sequence on drawing ST-10 (revision C), with temporary bracing as shown, and our supervisor checks each bay is braced before rigging is released.",
+        "fallControl": "Connectors work from boom lifts with harnesses clipped to the platform anchor point, and edge protection stays in place at the roof edge."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
+          "Use an elevating work platform",
+          "Lift and land steel with the crane company",
+          "Erect and connect steel at height"
+        ],
+        "missing": [
+          "Crane company and lift plan",
+          "Fall control",
+          "Erection sequence and temporary bracing"
+        ]
+      }
+    },
+    {
+      "id": "weld",
+      "title": "Welding steel canopies and stairs",
+      "task": "Install and weld the steel canopies and steel stairs at the podium, working from scissor lifts.",
+      "fallRisk": "yes",
+      "facts": {
+        "hotWorkPermit": "The principal contractor issues a hot work permit each day, with a fire extinguisher at each work area and a fire watch after hot work ends.",
+        "erectionSequence": "Canopy and stair steel is installed to the designer's sequence on drawing ST-20 (revision A), propped until all connections are welded.",
+        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Lift and land steel with the crane company",
+          "Erect and connect steel at height",
+          "Bolt and weld steel"
+        ],
+        "missing": [
+          "Fall control",
+          "Erection sequence and temporary bracing"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "roof-steel"
+      ],
+      "phrase": "Structural steel erection is basic rigging work",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 81, s 85, schedule 3, schedule 19",
+      "quote": "5 Basic rigging (1) Dogging work (2) ... (a) structural steel erection"
+    },
+    {
+      "swms": [
+        "weld"
+      ],
+      "phrase": "no hot work above safety nets",
+      "source": "Model Code: Welding processes s 3.9",
+      "quote": "Welding should not be carried out on ladders."
+    }
+  ]
+}

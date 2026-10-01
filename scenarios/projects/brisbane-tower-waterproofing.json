@@ -25,9 +25,9 @@
         "steps": [
           "Prepare to enter the confined space",
           "Enter and work",
-          "Leave and close up",
           "Prepare surfaces by grinding",
-          "Apply primers and liquid membranes"
+          "Apply primers and liquid membranes",
+          "Leave and close up"
         ],
         "missing": [
           "Safety data sheet",

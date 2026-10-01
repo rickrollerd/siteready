@@ -1,0 +1,62 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: plasterboard and ceilings",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "walls",
+      "title": "Plasterboard walls",
+      "task": "Fix plasterboard sheets to the apartment walls, moving sheets to each floor by hoist.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Move and fix plasterboard sheets"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "id": "ceilings",
+      "title": "Suspended ceilings and bulkheads",
+      "task": "Install suspended ceiling grids and fix plasterboard ceiling sheets in the apartments and corridors, using sheet lifters and mobile scaffolds.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Use mobile scaffolds",
+          "Move and fix plasterboard sheets",
+          "Fix ceilings and bulkheads at height"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "id": "setting",
+      "title": "Setting and sanding",
+      "task": "Set and sand the plasterboard joints and cornices in the apartments.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Cut, set and sand"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "ceilings"
+      ],
+      "phrase": "use lifters to hold ceiling sheets",
+      "source": "Model Code: Hazardous manual tasks s 2.2",
+      "quote": "supporting plasterboard sheeting while it is nailed into place"
+    }
+  ]
+}

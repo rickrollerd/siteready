@@ -1,0 +1,91 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: painting",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "internal",
+      "title": "Internal painting",
+      "task": "Paint the apartment and corridor walls and ceilings with water-based paint by brush and roller, sanding between coats.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the water-based paints are kept at the work area: avoid skin contact, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Prepare to paint",
+          "Paint",
+          "Clean up paint and solvents"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    },
+    {
+      "id": "spray",
+      "title": "Airless spray painting",
+      "task": "Spray paint the stairwells and car park walls with airless spray equipment and solvent-based paint.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the solvent-based paint are kept at the work area: flammable, use with ventilation, keep away from ignition sources, wear a respirator, gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [
+          "atmosphere"
+        ],
+        "steps": [
+          "Spray paint with airless sprayers",
+          "Prepare to paint",
+          "Paint",
+          "Clean up paint and solvents"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    },
+    {
+      "id": "external",
+      "title": "External painting from boom lifts",
+      "task": "Paint the external podium walls from boom lifts, with water-based paint.",
+      "fallRisk": "yes",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the water-based paints are kept at the work area: avoid skin contact, wear gloves and eye protection.",
+        "fallControl": "Painters work from boom lifts with harnesses clipped to the platform anchor point.",
+        "controlsConsidered": "Scaffolding the podium walls was considered but would block the footpath and entries; boom lifts with guardrails are used, with harnesses clipped to the platform anchor."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Paint the outside of the building at height",
+          "Prepare to paint",
+          "Paint",
+          "Clean up paint and solvents"
+        ],
+        "missing": [
+          "Safety data sheet",
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "internal",
+        "spray",
+        "external"
+      ],
+      "phrase": "Use water-based paint instead of solvent-based paint where possible",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 341, s 344, s 346",
+      "quote": "using a water-based paint rather than a solvent-based paint"
+    }
+  ]
+}
