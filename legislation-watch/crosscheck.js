@@ -75,16 +75,37 @@ async function provision(base, number) {
   throw new Error(`Provision ${number} was not found under ${base}`);
 }
 
+// Queensland's official site answers GitHub, so its whole-regulation page is read
+// and each provision is cut out of it.
+const OFFICIAL = {
+  qld: 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2011-0240',
+};
+
+function cutProvision(body, number) {
+  const start = body.search(new RegExp(`\\b${number} (?:Meaning of|Safe work method statement required)`));
+  if (start < 0) throw new Error(`Provision ${number} was not found in the official text`);
+  const next = body.slice(start + 10).search(new RegExp(`\\b${Number(number) + 1} [A-Z]`));
+  return body.slice(start, next < 0 ? start + 5000 : start + 10 + next);
+}
+
 async function checkState(state) {
   const source = SOURCES[state.id];
-  if (!source) return { lines: [`No AustLII source is listed for ${state.name}.`], differences: 1 };
+  if (!source && !OFFICIAL[state.id]) return { lines: [`No source is listed for ${state.name}.`], differences: 1 };
   const lines = [];
   let differences = 0;
-  const base = await regulationBase(source);
-  lines.push(`AustLII: ${base}`);
-
-  const hrcw = await provision(base, HRCW_SECTION[state.id]);
-  const swms = await provision(base, state.section);
+  let hrcw;
+  let swms;
+  if (OFFICIAL[state.id]) {
+    const body = text(await get(OFFICIAL[state.id]));
+    lines.push(`Official text: ${OFFICIAL[state.id]}`);
+    hrcw = { url: OFFICIAL[state.id], body: cutProvision(body, HRCW_SECTION[state.id]) };
+    swms = { url: OFFICIAL[state.id], body: cutProvision(body, state.section) };
+  } else {
+    const base = await regulationBase(source);
+    lines.push(`AustLII: ${base}`);
+    hrcw = await provision(base, HRCW_SECTION[state.id]);
+    swms = await provision(base, state.section);
+  }
   const hrcwWords = new Set(words(hrcw.body));
 
   const heading = (body) => body.slice(0, 160);
