@@ -9,6 +9,7 @@ const { listStates } = require('./legislation');
 const { questionsFor, prepareDraft } = require('./draft');
 const { draftToDocx } = require('./docx-draft');
 const { readLogo } = require('./logo');
+const { TRADES, answersFor } = require('./presets');
 
 require('dotenv').config();
 
@@ -151,9 +152,15 @@ app.get('/api/states', (_req, res) => {
   res.json({ states: listStates() });
 });
 
+app.get('/api/presets', (_req, res) => {
+  res.json({ trades: TRADES });
+});
+
 app.post('/api/draft/questions', (req, res) => {
   const result = questionsFor(draftBody(req.body || {}));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
+  // Standard answers the user can pick, then change.
+  result.required = (result.required || []).map((item) => (item.choices ? item : { ...item, suggestions: answersFor(item.id) }));
   res.json(result);
 });
 

@@ -232,9 +232,13 @@ document.getElementById('start').addEventListener('submit', async (event) => {
         ${item.choices.map((choice) => `<label style="display:flex;margin:0 0 8px"><input type="radio" name="fact-${esc(item.id)}" data-fact="${esc(item.id)}" value="${esc(choice.value)}"> ${esc(choice.label)}</label>`).join('')}
       </fieldset>`;
       }
+      const picks = (item.suggestions || []).length
+        ? `<div class="picks"><span class="picks-label">Standard answers:</span>${item.suggestions.map((pick, index) => `<button type="button" class="pick-button" data-pick-for="${esc(item.id)}" data-pick="${index}">${esc(pick.label)}</button>`).join('')}</div>`
+        : '';
       return `
       <div class="field">
         <label for="fact-${esc(item.id)}">${esc(item.label)}${extra}</label>
+        ${picks}
         <textarea id="fact-${esc(item.id)}" data-fact="${esc(item.id)}"></textarea>
       </div>`;
     }).join('')
@@ -248,6 +252,58 @@ document.getElementById('start').addEventListener('submit', async (event) => {
   factsForm.classList.remove('hidden');
   factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
+
+// A standard answer is added to the box, where it can be changed. Blanks (____) are left to fill in.
+document.getElementById('required-block').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-pick-for]');
+  if (!button || !questions) return;
+  const item = (questions.required || []).find((entry) => entry.id === button.dataset.pickFor);
+  const pick = item && (item.suggestions || [])[Number(button.dataset.pick)];
+  if (!pick) return;
+  const box = document.getElementById(`fact-${item.id}`);
+  box.value = box.value.trim() ? `${box.value.trim()} ${pick.text}` : pick.text;
+  box.focus();
+  const blank = box.value.indexOf('____');
+  if (blank >= 0) box.setSelectionRange(blank, blank + 4);
+});
+
+// Trade and task pick lists fill in the task, the fall question and who runs the crane.
+let trades = [];
+const tradeEl = document.getElementById('trade');
+const presetEl = document.getElementById('preset');
+
+async function loadPresets() {
+  try {
+    const response = await fetch(api('/api/presets'));
+    if (!response.ok) return;
+    trades = (await response.json()).trades || [];
+    tradeEl.innerHTML = '<option value="">Choose a trade</option>' + trades.map((trade, index) => `<option value="${index}">${esc(trade.name)}</option>`).join('');
+  } catch {
+    // The pick lists are a convenience. Without them the task is written by hand.
+  }
+}
+
+tradeEl.addEventListener('change', () => {
+  const trade = trades[Number(tradeEl.value)];
+  presetEl.innerHTML = '<option value="">Choose a task</option>' + (trade ? trade.tasks.map((item, index) => `<option value="${index}">${esc(item.title)}</option>`).join('') : '');
+  presetEl.disabled = !trade;
+});
+
+presetEl.addEventListener('change', () => {
+  const trade = trades[Number(tradeEl.value)];
+  const item = trade && trade.tasks[Number(presetEl.value)];
+  if (!item) return;
+  const taskEl = document.getElementById('task');
+  if (taskEl.value.trim() && taskEl.value.trim() !== taskEl.dataset.preset && !confirm('Replace the task you have written?')) return;
+  taskEl.value = item.task;
+  taskEl.dataset.preset = item.task;
+  const fall = document.querySelector(`input[name="fallRisk"][value="${item.fallRisk}"]`);
+  if (fall) { fall.checked = true; fall.dispatchEvent(new Event('change', { bubbles: true })); }
+  const crane = document.querySelector(`input[name="crane"][value="${item.crane}"]`);
+  if (crane) crane.checked = true;
+});
+
+loadPresets();
 
 document.querySelectorAll('input[name="fallRisk"], input[name="residential"]').forEach((input) => {
   input.addEventListener('change', showFallExplanation);

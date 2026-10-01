@@ -50,3 +50,32 @@ test('a draft and its Word file are prepared', async () => {
   assert.equal(docx.status, 200);
   assert.match(docx.headers.get('content-type'), /wordprocessingml/);
 });
+
+test('trade and task pick lists come from the tested project sets', async () => {
+  const response = await fetch(`${base}/api/presets`);
+  assert.equal(response.status, 200);
+  const { trades } = await response.json();
+  assert.deepEqual(trades.map((trade) => trade.id), ['structure', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade']);
+  for (const trade of trades) {
+    assert.ok(trade.tasks.length >= 5);
+    for (const item of trade.tasks) {
+      assert.ok(item.task && item.title);
+      assert.ok(['yes', 'no'].includes(item.fallRisk));
+      assert.ok(['company', 'own'].includes(item.crane));
+    }
+  }
+});
+
+test('required questions carry standard answers, and each answer is accepted', async () => {
+  const { prepareDraft } = require('../draft');
+  const { answersFor } = require('../presets');
+  const task = 'Install ductwork in the apartment ceilings and risers, drilling into the post-tensioned slabs for hanger anchors, working from scissor lifts more than 2 m above the floor.';
+  const response = await post('/api/draft/questions', { state: 'qld', task, fallRisk: 'yes' });
+  const data = await response.json();
+  const fall = data.required.find((item) => item.id === 'fallControl');
+  assert.ok(fall.suggestions.length >= 3);
+  for (const pick of answersFor('fallControl')) {
+    const done = prepareDraft({ state: 'qld', task, fallRisk: 'yes', facts: { fallControl: pick.text, silicaControls: answersFor('silicaControls')[0].text } });
+    assert.equal(done.kind, 'draft', `${pick.label}: ${(done.missing || []).join('; ')}`);
+  }
+});

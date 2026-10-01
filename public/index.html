@@ -43,6 +43,31 @@
       line-height: 1.4;
     }
     textarea { min-height: 96px; resize: vertical; }
+    .pick select {
+      width: 100%;
+      border: 1px solid #c5cdd6;
+      border-radius: 6px;
+      background: #fff;
+      padding: 9px 11px;
+      margin-bottom: 8px;
+    }
+    .pick select:disabled { color: #7b8794; background: #f7f8fa; }
+    .picks { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+    .picks-label { font-size: 13px; color: #5c6773; }
+    .pick-button {
+      width: auto;
+      font-weight: 400;
+      margin: 0;
+      border: 1px solid #1f4e3d;
+      border-radius: 999px;
+      background: #fff;
+      color: #1f4e3d;
+      padding: 4px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pick-button:hover { background: #eef4f1; }
+    select:focus, .pick-button:focus { outline: 2px solid #1f4e3d; outline-offset: 1px; }
     input:focus, textarea:focus { outline: 2px solid #1f4e3d; outline-offset: 1px; border-color: #1f4e3d; }
     .states { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
     .states li { margin: 0; }
@@ -221,6 +246,13 @@
       <div class="field">
         <label for="draft-date">Date of the draft</label>
         <input id="draft-date" type="text" autocomplete="off">
+      </div>
+      <div class="field pick">
+        <label for="trade">Trade
+          <span class="hint">Pick a trade and a common task to fill in the task, then change it to suit. Or write your own.</span>
+        </label>
+        <select id="trade"><option value="">Choose a trade</option></select>
+        <select id="preset" disabled><option value="">Choose a task</option></select>
       </div>
       <div class="field">
         <label for="task">Task
