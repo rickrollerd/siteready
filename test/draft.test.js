@@ -331,11 +331,48 @@ test('a proprietary system is erected to its supplier\'s instructions, which the
   const done = draft(task, { facts: {
     systemInstructions: 'Example deck system from Example Formwork Hire, erected to its assembly instructions AI-7 revision 4. Crew trained by the supplier.',
     formworkDesign: 'Formwork design FW-1 by the formwork engineer.',
+    loadLimits: 'Deck loads on drawing FW-2, signed at each landing area.',
   } });
   assert.equal(done.kind, 'draft');
   const erect = done.jobSteps.find((step) => step.step === 'Erect falsework and shores');
   assert.ok(erect.controls.some((line) => /assembly instructions AI-7/.test(line)));
   assert.ok(erect.controls.some((line) => /Do not mix components/.test(line)));
   assert.ok(erect.hazards.some((line) => /^Manual handling/.test(line)));
-  assert.deepEqual(done.references.map((item) => item.label), ['System and supplier instructions', 'Formwork design']);
+  assert.deepEqual(done.references.map((item) => item.label), ['Load limits', 'System and supplier instructions', 'Formwork design']);
+});
+
+test('the deck is laid the way the user chooses, and ply loading onto the deck is covered', () => {
+  const task = 'Erect the slab formwork and falsework and lay the ply deck for level 12.';
+  const facts = {
+    systemInstructions: 'Example deck system, erected to its assembly instructions AI-7 revision 4.',
+    formworkDesign: 'Formwork design FW-1 by the formwork engineer.',
+    loadLimits: 'Deck loads on drawing FW-2, signed at each landing area.',
+  };
+  const asked = questionsFor({ state: 'qld', task, fallRisk: 'no' });
+  const question = asked.required.find((item) => item.id === 'deckMethod');
+  assert.deepEqual(question.choices.map((choice) => choice.value), ['below', 'top']);
+  assert.ok(draft(task, { facts }).missing.includes('How the deck is laid'));
+
+  const deckStep = (method) => draft(task, { facts: { ...facts, deckMethod: method } })
+    .jobSteps.find((step) => step.step === 'Install edge protection and lay the deck').controls.join(' ');
+  assert.match(deckStep('below'), /working platform below the joists/);
+  assert.doesNotMatch(deckStep('below'), /Never step onto joists/);
+  assert.match(deckStep('top'), /Never step onto joists or unfixed sheets/);
+  assert.doesNotMatch(deckStep('top'), /platform below the joists/);
+
+  const done = draft(task, { facts: { ...facts, deckMethod: 'top' } });
+  const loading = done.jobSteps.find((step) => step.step === 'Load ply onto the deck while it is being laid');
+  assert.ok(loading.controls.some((line) => /Never on joists alone or on unfixed sheets/.test(line)));
+  assert.ok(done.controls.some((item) => /Deck laid on top, working away from the edge/.test(item.text)));
+});
+
+test('load limits must be stated before materials or plant go on a deck or slab', () => {
+  for (const task of [
+    'Load out level 20 with ply and props from the loading platform.',
+    'Lift reo bundles onto the deck and tie the slab reinforcement.',
+    'Move pallets of blocks across the suspended slab with a forklift.',
+  ]) {
+    assert.ok(draft(task).missing.includes('Load limits'), task);
+  }
+  assert.ok(!draft('Paint the interior walls of a shop with water-based paint.').missing.includes('Load limits'));
 });

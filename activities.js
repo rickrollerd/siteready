@@ -300,9 +300,11 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Load out floors and use loading platforms',
-        hazards: ['A person falls from the loading platform or slab edge.', 'Materials fall from the floor or the platform.', 'Overloading the platform or the slab.'],
+        hazards: ['A person falls from the loading platform or slab edge.', 'Materials fall from the floor or the platform.', 'Overloading the platform, the slab or a newly poured floor, causing collapse.'],
         controls: [
           { fact: 'systemInstructions' },
+          { fact: 'loadLimits' },
+          'Load limits are signed at each landing and stacking area, and loads are checked against them before they are landed.',
           'Loading platforms are installed to the supplier\'s design, inspected, and signed with their rated load.',
           'Platform gates stay closed except when a load is being landed or taken off.',
           'Stack materials within the slab\'s allowable load, away from edges and penetrations, and secure them against wind.',
@@ -321,7 +323,8 @@ const ACTIVITIES = [
           'Forklift operators hold a high risk work licence for forklift trucks. Telehandler operators are trained and assessed for the machine, and hold a crane licence where its set-up needs one.',
           'Separate people from forklift routes with barriers, and use a spotter where people are near.',
           'Wheel stops or barriers at slab edges and penetrations on forklift routes.',
-          'Check the slab and the backpropping can take the forklift and its load before it is used on a suspended floor.',
+          { fact: 'loadLimits' },
+          'Check the slab and the backpropping can take the forklift and its load before it is used on a suspended floor, and keep to the routes and areas the load limits allow.',
           'Carry loads low, within the rated capacity, and never lift people on the forks.',
         ],
       },
@@ -356,8 +359,40 @@ const ACTIVITIES = [
         controls: [
           { fact: 'fallControl' },
           'Perimeter screens or edge protection are in place before anyone works near the edge.',
-          'Lay sheets progressively in front of the worker. Two people handle full sheets, and sheets are not carried in strong wind.',
+          {
+            choice: 'deckMethod',
+            options: {
+              below: [
+                'Lay the ply from a working platform below the joists, fully decked, at the height and width the formwork design sets.',
+                'No one climbs onto the joists or the ply from below.',
+                'Two people hand sheets up into place.',
+              ],
+              top: [
+                'Stand only on sheets that are laid and fixed. Never step onto joists or unfixed sheets.',
+                'Lay sheets progressively in front of the worker, working away from the edge, with the edge protection in place first.',
+                'Nets or a platform under the deck where the formwork design calls for them.',
+                'Two people handle full sheets, and sheets are not carried in strong wind.',
+              ],
+            },
+          },
           'Use power saws with guards in place, with dust extraction or a P2 respirator, and hearing protection.',
+        ],
+      },
+      {
+        step: 'Load ply onto the deck while it is being laid',
+        hazards: [
+          'Overloading the deck or the joists with ply packs.',
+          'A pack landed on joists or unfixed sheets falls through.',
+          'A pack swinging into workers at the leading edge.',
+          'Packs or sheets blown off the deck.',
+        ],
+        controls: [
+          { fact: 'loadLimits' },
+          'Load limits are signed at each landing and stacking area, and loads are checked against them before they are landed.',
+          'Land ply packs only on laid and fixed deck over the bearers, within the load the formwork design allows. Never on joists alone or on unfixed sheets.',
+          'Keep the landing area away from the leading edge, and clear of people while a load comes in.',
+          'Crane loads are directed by the crane crew. A forklift or telehandler places packs within its rated capacity at that reach, with a spotter, and only where the formwork design allows.',
+          'Secure landed packs against wind, and cut the straps only when the pack is stable.',
         ],
       },
       {
@@ -446,10 +481,11 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Lift reo onto the deck',
-        hazards: ['Dropped bundles.', 'Overloading the formwork.'],
+        hazards: ['Dropped bundles.', 'Overloading the formwork with stacked bundles, causing collapse.'],
         controls: [
           'Lift bundles with rated slings or chains, never by the tie wire.',
-          'Land bundles on bearers, spread out within the formwork\'s allowable load.',
+          { fact: 'loadLimits' },
+          'Land bundles on bearers, spread out within the formwork\'s allowable load. Do not stack bundles in one place.',
         ],
       },
       {
@@ -504,6 +540,7 @@ const ACTIVITIES = [
           'Check pipes, clamps and the end hose before pumping.',
           'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
           'Stay inside the edge protection.',
+          'Place concrete evenly. Do not heap it on the deck beyond what the formwork design allows.',
           'A competent formwork watcher checks the formwork during the pour and can stop the pour.',
           'The hose hand stays in contact with the operator by radio or agreed signals.',
         ],
@@ -716,8 +753,10 @@ const SITE_MINIMUM = ['hardHat', 'glassesClear', 'gloveGeneral', 'longs', 'hivis
 const PPE_IDS = new Set(PPE.flatMap((group) => group.items.map(([id]) => id)));
 
 // A fact control may carry `otherwise`, a line used only when the fact is not given.
+// A choice control gives the lines for the option the user chose.
 function expand(control, factText) {
   if (typeof control === 'string') return [control];
+  if (control.choice) return control.options[factText(control.choice)] || [];
   const text = factText(control.fact);
   if (text) return [text];
   return control.otherwise ? [control.otherwise] : [];

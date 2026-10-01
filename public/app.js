@@ -126,7 +126,10 @@ function payload() {
   const state = document.querySelector('input[name="state"]:checked');
   const facts = {};
   const site = {};
-  document.querySelectorAll('[data-fact]').forEach((el) => { facts[el.dataset.fact] = el.value.trim(); });
+  document.querySelectorAll('[data-fact]').forEach((el) => {
+    if (el.type === 'radio' && !el.checked) return;
+    facts[el.dataset.fact] = el.value.trim();
+  });
   document.querySelectorAll('[data-site]').forEach((el) => { site[el.dataset.site] = el.value.trim(); });
   const value = (id) => {
     const el = document.getElementById(id);
@@ -222,6 +225,13 @@ document.getElementById('start').addEventListener('submit', async (event) => {
     ? `<p class="lede" style="margin-bottom:12px">If a required fact is blank, the task is stood down. A method is not written.</p>` + required.map((item) => {
       const extra = item.prompt && item.prompt.replace(/\.$/, '') !== item.label
         ? `<span class="hint">${esc(item.prompt)}</span>` : '';
+      if (item.choices) {
+        return `
+      <fieldset class="field choice">
+        <legend>${esc(item.label)}</legend>
+        ${item.choices.map((choice) => `<label style="display:flex;margin:0 0 8px"><input type="radio" name="fact-${esc(item.id)}" data-fact="${esc(item.id)}" value="${esc(choice.value)}"> ${esc(choice.label)}</label>`).join('')}
+      </fieldset>`;
+      }
       return `
       <div class="field">
         <label for="fact-${esc(item.id)}">${esc(item.label)}${extra}</label>

@@ -63,6 +63,10 @@ Each draft lays the job out as the regulators' templates do: job steps, each wit
 
 Confined spaces, propping or load-bearing demolition, overhead power lines and work over water each stand down until their key fact is given: the entry permit and rescue, the temporary support design, the electrical safety arrangement, and the drowning controls.
 
+## Decks and load limits
+
+When a formwork deck is laid, the draft asks how: from below through the joists from a working platform, or on top working away from the edge on laid sheets. Each choice gets its own controls. Loading ply onto the deck while it is being laid has its own step. Work that puts materials or plant on a formwork deck or a suspended slab (formwork, load-out and loading platforms, forklifts and telehandlers, reo on a deck) stands down until the load limits are stated: the allowable loads, where they are shown on site, and who checks them. Load limits then appear in each step that lands or stacks loads, and in the documents to keep on site.
+
 ## Proprietary systems
 
 SiteReady does not write erection methods for proprietary formwork, scaffold or platform systems. Their supplier's instructions set how they are erected, used and dismantled. Where formwork, falsework, scaffold erection or loading platforms are found, the draft asks for the system, its supplier, the instructions it is erected to (document and revision) and who trained the crew, and stands down without them. The job steps then point to those instructions and say not to mix or change components without the supplier's approval. Documents the SWMS relies on are listed in a Documents to keep on site section.

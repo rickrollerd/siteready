@@ -349,6 +349,27 @@ function fallControlLevel(line) {
 const FORMWORK = /\b(formwork|falsework|formply|deck forms?|table forms?|backprop\w*)\b/i;
 const JUMPFORM = /\b(jump ?forms?|self[- ]climbing (?:form\w*|system)|climbing form\w*)\b/i;
 const PT = /\b(post[- ]?tension\w*|pt slabs?|pt tendons?|stressing)\b/i;
+// Work that puts materials or plant on a formwork deck or a suspended slab.
+function loadsOnDeckOrSlab(text) {
+  const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
+  return FORMWORK.test(source)
+    || /\b(load(?:ing)?[- ]?out|loading platforms?|landing platforms?|forklifts?|telehandlers?)\b/i.test(source)
+    || (/\b(reo|reinforc\w*|rebar)\b/i.test(source) && /\b(deck|slab)\b/i.test(source));
+}
+
+function deckLaying(text) {
+  const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
+  return FORMWORK.test(source) && /\b(deck\w*|ply|plywood|formply|soffit)\b/i.test(source);
+}
+
+// A deck method answer, read from the choice or from words like "from below".
+function deckMethodAnswer(value) {
+  const text = String(value || '').toLowerCase();
+  if (/\b(below|underneath|through the joists)\b/.test(text)) return 'below';
+  if (/\b(top|on top|away from the edge)\b/.test(text)) return 'top';
+  return '';
+}
+
 const ENERGISED = /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i;
 
 const CATEGORY_FACTS = [
@@ -381,6 +402,27 @@ const CATEGORY_FACTS = [
     level: 'Isolate or engineer',
     // A jumpform is not slab formwork: it has its own climbing procedure.
     applies: (text) => FORMWORK.test(String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '')),
+  },
+  {
+    // Stacked materials, reo bundles and plant on a deck or a green slab are a known
+    // cause of collapse, so the allowable loads are stated before work starts.
+    id: 'loadLimits',
+    label: 'Load limits',
+    prompt: 'The allowable loads on the formwork deck and on each slab (for example in kPa, or the size and weight of packs and plant allowed in each area), where they are shown on site, and who checks them.',
+    level: 'Administrative',
+    applies: (text) => loadsOnDeckOrSlab(text),
+  },
+  {
+    // Both ways of laying a deck are used. The user says which, and the controls follow it.
+    id: 'deckMethod',
+    label: 'How the deck is laid',
+    prompt: 'Choose how the ply is laid.',
+    choices: [
+      { value: 'below', label: 'From below, through the joists, from a working platform' },
+      { value: 'top', label: 'On top, working away from the edge on laid sheets' },
+    ],
+    level: 'Isolate or engineer',
+    applies: (text) => deckLaying(text),
   },
   {
     // Proprietary formwork, scaffold and platform systems are erected to their
@@ -476,7 +518,7 @@ function requiredFactsFor(task, answer, state) {
   }
   // Facts the high risk categories below cannot be done safely without.
   for (const item of CATEGORY_FACTS) {
-    if (item.applies(task)) facts.push({ id: item.id, label: item.label, prompt: item.prompt });
+    if (item.applies(task)) facts.push({ id: item.id, label: item.label, prompt: item.prompt, ...(item.choices ? { choices: item.choices } : {}) });
   }
   if (/\basbestos\b/i.test(task) && !asbestosArrangement(task)) {
     facts.push({
@@ -558,6 +600,7 @@ const TOPIC_PATTERNS = {
 };
 
 function factState(item, task, facts) {
+  if (item.id === 'deckMethod') return deckMethodAnswer(facts.deckMethod) ? 'supplied' : 'missing';
   // Only needed when the fall control is administrative or PPE.
   if (item.id === 'controlsConsidered') {
     const fallLine = fallLineFor(combinedFacts(task, facts), facts);
@@ -660,6 +703,11 @@ function controlsFor(task, facts, pack) {
 
   for (const item of CATEGORY_FACTS) {
     const value = keptFact(facts[item.id]);
+    if (item.choices) {
+      const chosen = item.choices.find((choice) => choice.value === deckMethodAnswer(value));
+      if (chosen && item.applies(source)) push(item.level, `Deck laid ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
+      continue;
+    }
     if (value && item.applies(source)) {
       for (const line of sentences(value)) {
         push(/\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?)\b/i.test(line) ? 'Administrative' : item.level, line);
@@ -778,7 +826,7 @@ function methodSteps(task, facts, site, pack) {
   }
   const fromTask = sentences(task).filter((line) => !isDenialLine(line) && (!LIFT_BLEED.test(line) || isCraneOrLift(task)));
   const fromFacts = [];
-  for (const id of ['craneChart', 'craneCompany', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport', ...CATEGORY_FACTS.map((item) => item.id)]) {
+  for (const id of ['craneChart', 'craneCompany', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport', ...CATEGORY_FACTS.filter((item) => !item.choices).map((item) => item.id)]) {
     const line = keptFact(facts[id]);
     if (!line) continue;
     if (sentences(task).some((item) => item.toLowerCase() === sentences(line).join(' ').toLowerCase())) continue;
@@ -989,6 +1037,7 @@ function prepareDraft(input) {
 
 // Documents the SWMS relies on, to be kept on site with it.
 const REFERENCE_FACTS = [
+  ['loadLimits', 'Load limits'],
   ['systemInstructions', 'System and supplier instructions'],
   ['formworkDesign', 'Formwork design'],
   ['jumpformProcedure', 'Jumpform climbing procedure'],
@@ -1029,6 +1078,7 @@ function workFlags(task, facts = {}, ownCrane = false) {
     stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing)\b/i.test(task),
     jumpform: JUMPFORM.test(task),
     ptSlab: PT.test(task),
+    deck: deckLaying(task),
     ewp: /\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(combinedFacts(task, facts)),
     precast: isPanelLift(task),
     asbestos: /\basbestos\b/i.test(task),
@@ -1048,6 +1098,7 @@ function asSentence(text) {
 function jobStepsForTask(task, facts, hazards, controls, state) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
+    if (id === 'deckMethod') return deckMethodAnswer(facts.deckMethod);
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));

@@ -12,7 +12,8 @@
       "facts": {
         "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
         "fallControl": "Loading platforms have full height gates and side screens, and the slab edge has perimeter screens on every level being worked.",
-        "systemInstructions": "Loading platforms are the supplier's system, installed to its instructions LP-01 revision 3 by its trained installers."
+        "systemInstructions": "Loading platforms are the supplier's system, installed to its instructions LP-01 revision 3 by its trained installers.",
+        "loadLimits": "Load limits for each floor and the loading platforms are on the formwork engineer's load plan LP-10. They are signed at each landing area, and the formwork supervisor checks them before each load-out."
       },
       "expect": {
         "highRisk": [
@@ -30,7 +31,8 @@
         "missing": [
           "Crane company and lift plan",
           "Fall control",
-          "System and supplier instructions"
+          "System and supplier instructions",
+          "Load limits"
         ]
       }
     },
@@ -43,7 +45,9 @@
         "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
         "formworkDesign": "Formwork, falsework and backpropping designed by the formwork engineer, drawings FW-100 to FW-120. The formwork supervisor inspects and signs the pre-pour checklist before every pour.",
         "fallControl": "Perimeter screens are installed on the levels being formed, decks are laid from inside the edge protection, and penetrations are covered as they are formed.",
-        "systemInstructions": "The deck system and props are the formwork supplier's proprietary system, erected to its assembly instructions FS-200 revision 5. The crew is trained by the supplier."
+        "systemInstructions": "The deck system and props are the formwork supplier's proprietary system, erected to its assembly instructions FS-200 revision 5. The crew is trained by the supplier.",
+        "deckMethod": "top",
+        "loadLimits": "The formwork deck is designed for the construction loads on drawing FW-101, including ply packs of no more than 1.5 t per landing area over the bearers. Limits are signed on the deck and checked by the formwork supervisor."
       },
       "expect": {
         "highRisk": [
@@ -54,6 +58,7 @@
           "Plan lifts with the crane company",
           "Erect falsework and shores",
           "Install edge protection and lay the deck",
+          "Load ply onto the deck while it is being laid",
           "Form penetrations and voids",
           "Inspect before the pour",
           "Strip formwork and backprop"
@@ -61,7 +66,9 @@
         "missing": [
           "Crane company and lift plan",
           "Formwork design",
-          "System and supplier instructions"
+          "System and supplier instructions",
+          "How the deck is laid",
+          "Load limits"
         ]
       }
     },
@@ -72,7 +79,8 @@
       "fallRisk": "yes",
       "facts": {
         "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
-        "fallControl": "Work is done inside the perimeter screens, and no one works outside the edge protection."
+        "fallControl": "Work is done inside the perimeter screens, and no one works outside the edge protection.",
+        "loadLimits": "Reo bundles are landed within the deck loads on the formwork engineer's drawing FW-101, spread over the bearers. The steel fixing supervisor checks each landing against the signed limits."
       },
       "expect": {
         "highRisk": [
@@ -87,7 +95,8 @@
         ],
         "missing": [
           "Crane company and lift plan",
-          "Fall control"
+          "Fall control",
+          "Load limits"
         ]
       }
     },
