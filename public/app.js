@@ -299,7 +299,7 @@ function render(draft) {
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
   const steps = `<table><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index) => `<tr><td><strong>${index + 1}. ${esc(step.step)}</strong></td><td>${list(step.hazards)}</td><td>${list(step.controls)}</td></tr>`).join('')}</tbody></table>`;
-  const ppe = `<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.map((item) => `${item.ticked ? '&#9746;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}</td></tr>`).join('')}</tbody></table>`;
+  const ppe = `<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.map((item) => `${item.ticked ? '&#9745;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}</td></tr>`).join('')}</tbody></table>`;
   const people = `<table><tbody>
       ${row('Works manager', draft.worksManager) || '<tr><th>Works manager</th><td></td></tr>'}
       ${row('Contact phone', draft.worksManagerPhone) || '<tr><th>Contact phone</th><td></td></tr>'}
