@@ -32,4 +32,4 @@ jobs:
           git rm -rqf --cached .
           git add qld-codes
           git commit -qm "Queensland codes of practice, fetched $(date -u +%Y-%m-%d)" || echo "nothing fetched"
-          git push -f origin HEAD:refs/heads/qld-codes || true
+          git push -f origin HEAD:refs/heads/qld-codes || echo "nothing pushed"
