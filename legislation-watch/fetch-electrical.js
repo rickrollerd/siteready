@@ -10,11 +10,9 @@ const os = require('os');
 const path = require('path');
 
 const SOURCES = [
-  ['Electrical Safety Regulation 2013 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2013-0213'],
-  ['Managing electrical risks in the workplace Code of Practice 2021 (Qld)', 'https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0025/72637/managing-electrical-risks-in-the-workplace-cop-2021.pdf'],
-  ['Electrical Safety Code of Practice 2021 (Qld), risk management', 'https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0007/59677/es-code-of-practice-risk-management.pdf'],
-  ['Model Code of Practice: Managing electrical risks in the workplace (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-managing-electrical-risks_in_the_workplace-v3.pdf'],
-  ['Managing electrical risks in the workplace Code of Practice (NT copy of the model code)', 'https://worksafe.nt.gov.au/_resources/documents/pdf/codes-of-practice/code-of-practice-managing-electrical-risks-in-the-workplace.pdf'],
+  ['Electrical Safety Regulation 2026 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2026-0113'],
+  ['Electrical Safety Act 2002 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2002-042'],
+  ['Electrical Safety (Codes of Practice) Notice, current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2013-0276'],
 ];
 
 const BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
