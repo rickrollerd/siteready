@@ -335,6 +335,58 @@ const AUSTRALIAN_CAPITAL_TERRITORY = {
   overheadLineControl: 'Keep people, plant and things out of an unsafe distance of an overhead or underground electric line (Work Health and Safety Regulation 2011 (ACT), section 166). The regulation sets no distance, so get the electricity supply authority\'s requirements before work starts. If a safe distance is not reasonably practicable, do a risk assessment and follow those requirements. The Electricity Safety Act 1971, the Utilities Act 2000 and the Utilities (Technical Regulation) Act 2014 also apply.',
 };
 
+// Checked against the official PDF read from legislation.nt.gov.au (as in force at
+// 17 July 2026) and the model WHS Regulations (5 December 2025).
+const NORTHERN_TERRITORY = {
+  id: 'nt',
+  name: 'Northern Territory',
+  loaded: true,
+  instrument: 'Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT)',
+  compilation: '17 July 2026',
+  versionLabel: 'as in force at 17 July 2026',
+  section: '299',
+  sectionRef: 'regulation 299',
+  sectionTitle: 'Safe work method statement required for high risk construction work',
+  reviewHeading: 'How the controls will be implemented, monitored and reviewed',
+  contents: [
+    'the work that is high risk construction work',
+    'the hazards and the risks to health and safety',
+    'the measures to control the risks',
+    'how the control measures are to be implemented, monitored and reviewed',
+  ],
+  // Regulation 291(1)(a) and (ab): 3 metres for residential construction work, a Class 1
+  // building or a Class 10 building attached or adjacent to one; 2 metres otherwise.
+  residentialFallMetres: 3,
+  residentialQuestion: 'Is this residential construction work? That is work on a house (a Class 1 building), or on a garage, carport or shed attached to or next to a house (a Class 10 building).',
+  residentialFallLabel: 'If it is residential construction work, involves a risk of a person falling more than 3 m',
+  // Regulation 291, in the regulation's words.
+  highRiskLabels: {
+    fall: 'If it is not residential construction work, involves a risk of a person falling more than 2 m',
+    tower: 'Is carried out on a telecommunication tower',
+    demolition: 'Involves demolition of an element of a structure that is load-bearing or otherwise related to the physical integrity of the structure',
+    asbestos: 'Involves, or is likely to involve, the disturbance of asbestos',
+    temporary: 'Involves structural alterations or repairs that require temporary support to prevent collapse',
+    confined: 'Is carried out in or near a confined space',
+    trench: 'Is carried out in or near a shaft or trench with an excavated depth greater than 1.5 m, or a tunnel',
+    explosives: 'Involves the use of explosives',
+    gas: 'Is carried out on or near pressurised gas distribution mains or piping',
+    chemicalLine: 'Is carried out on or near chemical, fuel or refrigerant lines',
+    electrical: 'Is carried out on or near energised electrical installations or services',
+    atmosphere: 'Is carried out in an area that may have a contaminated or flammable atmosphere',
+    precast: 'Involves tilt-up or precast concrete',
+    road: 'Is carried out on, in or adjacent to a road, railway, shipping lane or other traffic corridor that is in use by traffic other than pedestrians',
+    plant: 'Is carried out in an area at a workplace in which there is any movement of powered mobile plant',
+    temperature: 'Is carried out in an area in which there are artificial extremes of temperature',
+    water: 'Is carried out in or near water or other liquid that involves a risk of drowning',
+    diving: 'Involves diving work',
+  },
+  fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT), regulation 291, construction work that is not residential is high risk construction work where a person could fall more than 2 metres. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
+  residentialFallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT), regulation 291, residential construction work (a house, or a garage, carport or shed attached to or next to a house) is high risk construction work where a person could fall more than 3 metres. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
+  // The text of regulation 166 could not be read from the published PDF. Regulation 729's
+  // note confirms the Electrical Reform Act 2000 also applies to work near electric lines.
+  overheadLineControl: 'Keep people, plant and things away from overhead and underground electric lines. Get the electricity supply authority\'s requirements before work starts and follow them. The Electrical Reform Act 2000 also imposes obligations for work near electric lines.',
+};
+
 // Checked against the authorised PDF of the Occupational Health and Safety Regulations 2017
 // (Vic), S.R. No. 22/2017, authorised version 017 incorporating amendments as at 29 July 2026.
 // Victoria is not a model WHS state: its list is regulation 322 and differs from section 291.
@@ -405,7 +457,7 @@ const STATES = [
   SOUTH_AUSTRALIA,
   WESTERN_AUSTRALIA,
   TASMANIA,
-  { id: 'nt', name: 'Northern Territory', loaded: false },
+  NORTHERN_TERRITORY,
   AUSTRALIAN_CAPITAL_TERRITORY,
 ];
 
@@ -460,6 +512,7 @@ module.exports = {
   WESTERN_AUSTRALIA,
   TASMANIA,
   AUSTRALIAN_CAPITAL_TERRITORY,
+  NORTHERN_TERRITORY,
   STATES,
   highRiskLabel,
   highRiskList,

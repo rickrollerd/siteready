@@ -27,6 +27,8 @@ const CHECKED_BY_HAND = {
   vic: 'Authorised PDF (version 017) and WorkSafe Victoria\'s Safe Work Method Statements (SWMS) page (retrieved 1 October 2026).',
   sa: 'Authorised PDF (1 July 2026) and the model WHS Regulations (5 December 2025).',
   tas: 'Official current text read from legislation.tas.gov.au through GitHub, and the model WHS Regulations (5 December 2025).',
+  nt: 'Official PDF (as in force at 17 July 2026) read through GitHub, and the model WHS Regulations (5 December 2025). Regulation 166 could not be read from the PDF.',
+  act: 'Official PDF (republication 47, effective 29 November 2025) read through GitHub, and the model WHS Regulations (5 December 2025).',
   wa: 'Official current version (01-c0-00, 1 July 2026) read through GitHub, the 2022 PDF (00-a0-00) for regulations 166A and 306B to 306I, and the model WHS Regulations for 291 and 299.',
 };
 

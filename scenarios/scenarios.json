@@ -17,7 +17,8 @@
       "hazards": [
         "Fall from height"
       ]
-    }
+    },
+    "residential": "yes"
   },
   {
     "id": "sewer-trench",
@@ -45,7 +46,8 @@
         "Traffic",
         "Moving plant"
       ]
-    }
+    },
+    "residential": "no"
   },
   {
     "id": "precast-panels",
@@ -80,7 +82,8 @@
           "WorkSafe WA notification"
         ]
       }
-    }
+    },
+    "residential": "no"
   },
   {
     "id": "asbestos-eaves",
@@ -100,7 +103,8 @@
       "hazards": [
         "Asbestos"
       ]
-    }
+    },
+    "residential": "yes"
   },
   {
     "id": "tank-entry",
@@ -123,7 +127,8 @@
         "Fall from height",
         "Confined space"
       ]
-    }
+    },
+    "residential": "no"
   },
   {
     "id": "wall-demolition",
@@ -141,7 +146,8 @@
         "Demolition",
         "Temporary support"
       ]
-    }
+    },
+    "residential": "no"
   },
   {
     "id": "carport-hiab",
@@ -164,7 +170,8 @@
         "Energised electrical service",
         "Moving plant"
       ]
-    }
+    },
+    "residential": "yes"
   },
   {
     "id": "solvent-painting",
@@ -182,7 +189,8 @@
       "hazards": [
         "Hazardous substance"
       ]
-    }
+    },
+    "residential": "no"
   },
   {
     "id": "facade-scaffold",
@@ -202,7 +210,8 @@
       "hazards": [
         "Fall from height"
       ]
-    }
+    },
+    "residential": "no"
   },
   {
     "id": "jetty-decking",
@@ -218,6 +227,7 @@
       "hazards": [
         "Water or other liquid"
       ]
-    }
+    },
+    "residential": "no"
   }
 ]
