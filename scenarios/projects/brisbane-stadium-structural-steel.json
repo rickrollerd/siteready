@@ -1,0 +1,44 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: structural steel",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "trusses",
+      "title": "Long span roof trusses",
+      "task": "Erect the long span steel roof trusses with two crawler cranes in a dual lift, landing them on temporary support towers, and bolting the connections from boom lifts more than 2 m above the ground.",
+      "fallRisk": "yes",
+      "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
+        "fallControl": "Connections are bolted from boom lifts with guardrails, with harnesses attached to the boom lift anchor points. No one climbs the steel.",
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "temporarySupport": "Temporary support towers are to the engineer's design TS-12 (revision B), installed and checked by the steel erection engineer before any truss is landed on them.",
+        "erectionSequence": "Steel is erected to the designer's sequence on drawing SE-020 (revision D), with temporary bracing as shown, and the steel erection engineer checks the structure is stable before connections are released."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "temporary",
+          "plant"
+        ],
+        "steps": [
+          "Install temporary support",
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
+          "Use an elevating work platform",
+          "Lift and land steel with the crane company",
+          "Erect and connect steel at height",
+          "Plan and do the dual lift"
+        ],
+        "missing": [
+          "Crane company and lift plan",
+          "Fall control",
+          "Temporary support design",
+          "Erection sequence and temporary bracing"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

@@ -1,0 +1,28 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: waterproofing",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "wp",
+      "title": "Concourse and amenities waterproofing",
+      "task": "Apply the waterproofing membrane to the amenities floors and the concourse plant room floors, with primer and polyurethane membrane.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the primer and polyurethane membrane are kept at the work area: use with ventilation, keep away from ignition sources, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Join PVC pipe with primer and solvent cement",
+          "Apply primers and liquid membranes"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

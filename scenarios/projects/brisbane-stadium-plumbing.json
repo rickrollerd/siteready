@@ -1,0 +1,47 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: plumbing",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "drainage",
+      "title": "Drainage under the concourse",
+      "task": "Install the stormwater and sanitary drainage under the concourse slab in trenches up to 2 m deep, with an excavator.",
+      "fallRisk": "no",
+      "facts": {
+        "trenchSupport": "Trenches 1.5 m deep or more are shored with a trench shield rated for 3 m, as designed by the supplier's engineer."
+      },
+      "expect": {
+        "highRisk": [
+          "trench",
+          "plant"
+        ],
+        "steps": [
+          "Locate underground services",
+          "Excavate",
+          "Work in the trench",
+          "Backfill and restore"
+        ],
+        "missing": [
+          "Trench support"
+        ]
+      }
+    },
+    {
+      "id": "amenities",
+      "title": "Amenities fit-off",
+      "task": "Fit off the toilets, basins and tapware in the public amenities.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Rough-in and fit-off in the apartments"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": []
+}

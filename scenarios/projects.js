@@ -7,7 +7,9 @@ const path = require('path');
 const { prepareDraft } = require('../draft');
 const { STATES, highRiskLabel } = require('../legislation');
 
-const files = process.argv[2] ? [process.argv[2]] : ['brisbane-tower.json', 'brisbane-tower-electrical.json', 'brisbane-tower-plumbing.json', 'brisbane-tower-mechanical.json', 'brisbane-tower-ict.json', 'brisbane-tower-facade.json', 'brisbane-tower-piling.json', 'brisbane-tower-excavation.json', 'brisbane-tower-waterproofing.json', 'brisbane-tower-tiling.json', 'brisbane-tower-carpentry.json', 'brisbane-tower-scaffolding.json', 'brisbane-tower-steel.json', 'brisbane-tower-masonry.json', 'brisbane-tower-plasterboard.json', 'brisbane-tower-painting.json', 'brisbane-tower-flooring.json', 'brisbane-tower-fire.json', 'brisbane-tower-lifts.json', 'brisbane-tower-passive-fire.json', 'brisbane-tower-glazing.json', 'brisbane-tower-stone.json', 'brisbane-tower-roofing.json', 'brisbane-tower-site.json', 'brisbane-tower-cutting.json', 'brisbane-tower-landscaping.json', 'brisbane-tower-cleaning.json'].map((name) => path.join(__dirname, 'projects', name));
+// Every project set in scenarios/projects, the tower first.
+const first = (name) => (name === 'brisbane-tower.json' ? '' : name);
+const files = process.argv[2] ? [process.argv[2]] : require('fs').readdirSync(path.join(__dirname, 'projects')).filter((name) => name.endsWith('.json')).sort((a, b) => first(a).localeCompare(first(b))).map((name) => path.join(__dirname, 'projects', name));
 let exitCode = 0;
 for (const file of files) exitCode = Math.max(exitCode, runProject(require(path.resolve(file))));
 process.exit(exitCode);

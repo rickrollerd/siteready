@@ -1,0 +1,29 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: earthworks",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "bowl",
+      "title": "Bulk earthworks for the bowl and pitch",
+      "task": "Cut and fill the stadium bowl and pitch with dozers, graders, excavators and rollers, with trucks carting spoil off site.",
+      "fallRisk": "no",
+      "facts": {
+        "excavationPlan": "Earthworks follow the geotechnical design G-201 (revision C) in stages to the levels shown, with batters no steeper than 1 in 2, and plant and trucks follow the site traffic management plan TMP-03."
+      },
+      "expect": {
+        "highRisk": [
+          "plant"
+        ],
+        "steps": [
+          "Run earthmoving plant"
+        ],
+        "missing": [
+          "Excavation and traffic plan"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

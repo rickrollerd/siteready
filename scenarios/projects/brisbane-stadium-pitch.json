@@ -1,0 +1,27 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: pitch",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "drainage-turf",
+      "title": "Pitch drainage and turf",
+      "task": "Dig the subsoil drainage trenches across the pitch, up to 1 m deep, lay the drainage pipe and irrigation, then lay the turf rolls.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Locate underground services",
+          "Excavate",
+          "Work in the trench",
+          "Backfill and restore",
+          "Move soil and mulch, and plant"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": []
+}

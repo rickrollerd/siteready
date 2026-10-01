@@ -1,0 +1,42 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: site establishment and traffic",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "hoarding",
+      "title": "Site fencing, hoardings and sheds",
+      "task": "Erect the site fencing and hoardings along the street frontage, and set up the site sheds and amenities.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Erect fencing, hoardings and gantries",
+          "Set up site sheds"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "id": "traffic",
+      "title": "Traffic management at the site gates",
+      "task": "Traffic controllers manage trucks, concrete trucks and mobile plant deliveries at the site gates and on the street next to the site, and separate plant and pedestrians on site.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [
+          "road",
+          "plant"
+        ],
+        "steps": [
+          "Set up traffic management",
+          "Separate plant and people on site"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": []
+}

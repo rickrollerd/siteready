@@ -1,0 +1,35 @@
+{
+  "title": "Stadium with a long span steel roof, Brisbane: glazing and balustrades",
+  "state": "qld",
+  "workplace": "Stadium with three grandstands, concourses, corporate boxes and a long span steel roof, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "boxes",
+      "title": "Corporate box glass balustrades",
+      "task": "Install glass balustrades at the front edge of the corporate boxes, lifting glass panels with vacuum lifters, and sealing with silicone.",
+      "fallRisk": "yes",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the silicone sealant are kept at the work area: avoid skin contact, wear gloves.",
+        "fallControl": "Workers at the open box edge use a travel restraint system to engineer designed anchors installed by a competent person, so they cannot reach the edge.",
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Install balustrades at balcony edges",
+          "Handle and install glass panels",
+          "Handle glass in the wind",
+          "Seal glazing"
+        ],
+        "missing": [
+          "Safety data sheet",
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}
