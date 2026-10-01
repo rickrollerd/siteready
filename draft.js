@@ -80,6 +80,16 @@ function acceptedText(text) {
   return sentences(text).filter((line) => !isDenialLine(line)).join(' ');
 }
 
+// The subcontractor's saved details, as one line for the page header.
+function companyDetails(input) {
+  return [
+    input.companyAbn && `ABN ${blankName(input.companyAbn).replace(/^ABN\s*/i, '')}`,
+    blankName(input.companyAddress),
+    blankName(input.companyPhone),
+    blankName(input.companyEmail),
+  ].filter((item) => item && item !== 'ABN ').join(' · ');
+}
+
 function keptFact(value) {
   const text = blankName(value);
   if (!text) return '';
@@ -795,6 +805,7 @@ function prepareDraft(input) {
     contents: state.contents,
     principalContractor: keptFact(input.principalContractor),
     subcontractor: blankName(input.company || input.subcontractor),
+    companyDetails: companyDetails(input),
     workplace: blankName(input.workplace || input.siteAddress),
     siteManager: keptFact(input.siteManager),
     scaffoldSupervisor: keptFact(input.scaffoldSupervisor),

@@ -3,9 +3,12 @@ const helmet = require('helmet');
 const cors = require('cors');
 const { rateLimit } = require('express-rate-limit');
 const path = require('path');
+const cluster = require('cluster');
+const os = require('os');
 const { listStates } = require('./legislation');
 const { questionsFor, prepareDraft } = require('./draft');
 const { draftToDocx } = require('./docx-draft');
+const { readLogo } = require('./logo');
 
 require('dotenv').config();
 
@@ -30,15 +33,31 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({ origin: allowedOrigins() }));
-app.use(express.json({ limit: '100kb' }));
+// The Word file can carry the company logo, so its route accepts a larger body.
+const WORD_ROUTE = '/api/draft.docx';
+const smallJson = express.json({ limit: '100kb' });
+const wordJson = express.json({ limit: '1mb' });
+app.use((req, res, next) => (req.path === WORD_ROUTE ? wordJson : smallJson)(req, res, next));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/api', rateLimit({
-  windowMs: positiveNumber(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
-  limit: positiveNumber(process.env.RATE_LIMIT_MAX_REQUESTS, 100),
+
+// Limits are per client address. Phones on mobile data and a site office on one
+// connection often share an address, so the limits are set for a busy site, not
+// one person. Each server process keeps its own count.
+const windowMs = positiveNumber(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000);
+const limiter = (limit, skip) => rateLimit({
+  windowMs,
+  limit,
+  skip,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  message: { kind: 'error', message: 'Too many requests. Try again later.' },
-}));
+  message: { kind: 'error', message: 'Too many requests. Try again in a few minutes.' },
+});
+// The Word file takes most of the work, so it has its own, lower limit.
+app.use(WORD_ROUTE, limiter(positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300)));
+app.use('/api', limiter(
+  positiveNumber(process.env.RATE_LIMIT_MAX_REQUESTS, 600),
+  (req) => req.originalUrl.startsWith(WORD_ROUTE),
+));
 
 function textField(value, max) {
   if (typeof value !== 'string') return '';
@@ -60,6 +79,10 @@ function draftBody(body) {
     fallRisk: field(body.fallRisk, 10),
     residential: field(body.residential, 10),
     company: field(body.company || body.companyName, 200),
+    companyAbn: field(body.companyAbn, 40),
+    companyAddress: field(body.companyAddress, 300),
+    companyPhone: field(body.companyPhone, 60),
+    companyEmail: field(body.companyEmail, 200),
     workplace: field(body.workplace || body.siteAddress, 500),
     principalContractor: field(body.principalContractor, 300),
     siteManager: field(body.siteManager, 300),
@@ -109,7 +132,8 @@ app.post('/api/draft', (req, res) => {
 app.post('/api/draft.docx', async (req, res) => {
   const result = prepareDraft(draftBody(req.body || {}));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
-  const buffer = await draftToDocx(result);
+  // The logo is used for this file only and is not kept.
+  const buffer = await draftToDocx(result, { logo: readLogo(req.body && req.body.logo) });
   const filename = result.kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -128,12 +152,25 @@ app.use((error, _req, res, _next) => {
   res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message });
 });
 
-if (require.main === module) {
+// One worker per processor core. A worker that stops is replaced.
+function start() {
   const PORT = process.env.PORT || 3849;
+  const workers = Math.floor(positiveNumber(process.env.WEB_CONCURRENCY, os.availableParallelism()));
+  if (workers > 1 && cluster.isPrimary) {
+    for (let i = 0; i < workers; i += 1) cluster.fork();
+    cluster.on('exit', (worker, code, signal) => {
+      console.error(`Worker ${worker.process.pid} stopped (${signal || code}). Starting another.`);
+      cluster.fork();
+    });
+    console.log(`SiteReady server running on http://localhost:${PORT} with ${workers} workers`);
+    return;
+  }
   app.listen(PORT, () => {
-    console.log(`SiteReady server running on http://localhost:${PORT}`);
+    if (workers <= 1) console.log(`SiteReady server running on http://localhost:${PORT}`);
   });
 }
+
+if (require.main === module) start();
 
 module.exports = {
   app,

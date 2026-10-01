@@ -8,6 +8,114 @@ const factsForm = document.getElementById('facts');
 const resultEl = document.getElementById('result');
 let questions = null;
 
+// The company profile is kept in this browser only. It is not sent anywhere
+// until a statement is prepared, and the server does not keep it.
+const PROFILE_KEY = 'siteready.profile';
+const PROFILE_FIELDS = { name: 'profile-company', abn: 'profile-abn', address: 'profile-address', phone: 'profile-phone', email: 'profile-email' };
+let profile = loadProfile();
+let pendingLogo = profile.logo || '';
+
+function loadProfile() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+    return saved && typeof saved === 'object' ? saved : {};
+  } catch {
+    return {};
+  }
+}
+
+function showProfile() {
+  Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { document.getElementById(id).value = profile[key] || ''; });
+  const preview = document.getElementById('profile-logo-preview');
+  preview.src = pendingLogo || '';
+  preview.classList.toggle('hidden', !pendingLogo);
+  document.getElementById('profile-summary').textContent = profile.name ? `· ${profile.name}` : '';
+  document.getElementById('profile').open = !profile.name;
+  const company = document.getElementById('company');
+  if (!company.value && profile.name) company.value = profile.name;
+}
+
+function profileStatus(text) {
+  const el = document.getElementById('profile-status');
+  el.textContent = text;
+  el.classList.toggle('hidden', !text);
+}
+
+// The logo is redrawn at header size so it stays small enough to save and send.
+function shrinkLogo(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('The logo could not be read.'));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error('The logo could not be read. Use a PNG or JPEG.'));
+      image.onload = () => {
+        const scale = Math.min(600 / image.width, 200 / image.height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        const context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        let url = canvas.toDataURL('image/png');
+        if (url.length > 500000) {
+          context.globalCompositeOperation = 'destination-over';
+          context.fillStyle = '#fff';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          url = canvas.toDataURL('image/jpeg', 0.85);
+        }
+        if (url.length > 500000) reject(new Error('The logo is too large. Use a smaller image.'));
+        else resolve(url);
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('profile-logo').addEventListener('change', async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    pendingLogo = await shrinkLogo(file);
+    profileStatus('Logo ready. Save the profile to keep it.');
+  } catch (error) {
+    profileStatus(error.message);
+  }
+  const preview = document.getElementById('profile-logo-preview');
+  preview.src = pendingLogo || '';
+  preview.classList.toggle('hidden', !pendingLogo);
+});
+
+document.getElementById('profile-save').addEventListener('click', () => {
+  const next = {};
+  Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { next[key] = document.getElementById(id).value.trim(); });
+  if (pendingLogo) next.logo = pendingLogo;
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(next));
+  } catch {
+    profileStatus('The profile could not be saved on this device. Private browsing can stop this.');
+    return;
+  }
+  const company = document.getElementById('company');
+  if (!company.value || company.value === profile.name) company.value = next.name;
+  profile = next;
+  showProfile();
+  profileStatus('Saved on this device.');
+});
+
+document.getElementById('profile-clear').addEventListener('click', () => {
+  try { localStorage.removeItem(PROFILE_KEY); } catch { /* nothing saved */ }
+  const company = document.getElementById('company');
+  if (company.value === profile.name) company.value = '';
+  profile = {};
+  pendingLogo = '';
+  document.getElementById('profile-logo').value = '';
+  showProfile();
+  profileStatus('Profile removed from this device.');
+});
+
+showProfile();
+
 function esc(value) {
   return String(value || '').replace(/[&<>"']/g, (ch) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -30,6 +138,10 @@ function payload() {
     residential: (document.querySelector('input[name="residential"]:checked') || {}).value || '',
     task: value('task'),
     company: value('company'),
+    companyAbn: profile.abn || '',
+    companyAddress: profile.address || '',
+    companyPhone: profile.phone || '',
+    companyEmail: profile.email || '',
     workplace: value('workplace'),
     principalContractor: value('principal'),
     siteManager: value('site-manager'),
@@ -132,7 +244,9 @@ document.getElementById('back').addEventListener('click', () => {
 
 function render(draft) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
-  const head = `
+  const logo = profile.logo ? `<img class="sheet-logo" src="${esc(profile.logo)}" alt="">` : '';
+  const company = draft.companyDetails ? `<p class="meta">${esc(draft.companyDetails)}</p>` : '';
+  const head = `${logo}${company}
     <h3>Safe work method statement</h3>
     <p class="meta">${esc(draft.instrument)} · ${esc(draft.versionLabel)} · ${esc(draft.sectionRef)}</p>
     <p class="status">${esc(draft.status || 'Not approved. Not signed.')}</p>
@@ -202,7 +316,9 @@ factsForm.addEventListener('submit', async (event) => {
         <button type="button" id="download">Download Word</button>
       </div>`;
     resultEl.classList.remove('hidden');
-    document.getElementById('download').addEventListener('click', () => downloadDocx(body, data.kind));
+    // The Word file also carries the saved logo.
+    const wordBody = profile.logo ? JSON.stringify({ ...JSON.parse(body), logo: profile.logo }) : body;
+    document.getElementById('download').addEventListener('click', () => downloadDocx(wordBody, data.kind));
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;

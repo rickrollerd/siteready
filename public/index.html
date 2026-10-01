@@ -101,6 +101,12 @@
     .note { background: #f4f6f8; border: 1px solid #d5dbe3; }
     .warning { background: #fdf3e3; border: 1px solid #e3b76b; margin: 0 0 14px; }
     .hidden { display: none; }
+    details.panel > summary { cursor: pointer; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #3d4a59; }
+    details.panel[open] > summary { margin-bottom: 14px; }
+    .saved-name { text-transform: none; letter-spacing: 0; font-weight: 400; color: #5c6773; margin-left: 6px; }
+    .logo-preview { max-width: 180px; max-height: 60px; display: block; margin-top: 8px; }
+    .sheet-logo { max-width: 180px; max-height: 60px; display: block; margin-bottom: 6px; }
+    input[type="file"] { font-size: 14px; }
     @media (max-width: 640px) {
       .wrap { padding: 18px 12px 48px; }
       .panel, .sheet { padding: 16px; }
@@ -116,6 +122,43 @@
       <h1>SiteReady</h1>
       <p class="lede">A writing aid for one task. The subcontractor finishes the statement.</p>
     </header>
+
+    <details class="panel" id="profile">
+      <summary>Company profile<span class="saved-name" id="profile-summary"></span></summary>
+      <p class="lede" style="margin-bottom:12px">Enter once. It is saved on this device and filled in for every statement. You can still change the subcontractor name on any one statement.</p>
+      <div class="field">
+        <label for="profile-company">Company name</label>
+        <input id="profile-company" type="text" autocomplete="organization">
+      </div>
+      <div class="field">
+        <label for="profile-abn">ABN</label>
+        <input id="profile-abn" type="text" inputmode="numeric" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="profile-address">Address</label>
+        <input id="profile-address" type="text" autocomplete="street-address">
+      </div>
+      <div class="field">
+        <label for="profile-phone">Phone</label>
+        <input id="profile-phone" type="text" inputmode="tel" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label for="profile-email">Email</label>
+        <input id="profile-email" type="text" inputmode="email" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="profile-logo">Logo
+          <span class="hint">PNG or JPEG. It is made smaller to fit the page header.</span>
+        </label>
+        <input id="profile-logo" type="file" accept="image/png,image/jpeg">
+        <img id="profile-logo-preview" class="logo-preview hidden" alt="Company logo">
+      </div>
+      <div class="actions">
+        <button type="button" id="profile-save">Save profile</button>
+        <button type="button" class="secondary" id="profile-clear">Remove profile</button>
+      </div>
+      <p class="note hidden" id="profile-status"></p>
+    </details>
 
     <form id="start" class="panel">
       <h2>State and task</h2>

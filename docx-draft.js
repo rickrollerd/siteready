@@ -1,7 +1,8 @@
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-  WidthType, BorderStyle, VerticalAlign, Footer, AlignmentType,
+  WidthType, BorderStyle, VerticalAlign, Footer, Header, AlignmentType, ImageRun,
 } = require('docx');
+const { fitLogo } = require('./logo');
 
 const FONT = 'Calibri';
 const INK = '1C2430';
@@ -210,7 +211,22 @@ function childrenFor(draft) {
   return blocks;
 }
 
-function buildDocument(draft) {
+// The company logo, name and details head every page, so the file reads as the
+// company's own document. With no logo or details there is no header.
+function companyHeader(draft, logo) {
+  const lines = [];
+  if (logo) {
+    lines.push(new Paragraph({
+      spacing: { before: 0, after: 60 },
+      children: [new ImageRun({ type: logo.type, data: logo.data, transformation: fitLogo(logo) })],
+    }));
+  }
+  if (draft.subcontractor) lines.push(para(draft.subcontractor, { bold: true, size: 20, after: 20 }));
+  if (draft.companyDetails) lines.push(para(draft.companyDetails, { size: 16, color: MUTED, after: 80 }));
+  return lines.length ? { default: new Header({ children: lines }) } : undefined;
+}
+
+function buildDocument(draft, options = {}) {
   return new Document({
     creator: 'SiteReady',
     title: 'Safe work method statement',
@@ -229,6 +245,7 @@ function buildDocument(draft) {
           margin: { top: 850, bottom: 850, left: 900, right: 900 },
         },
       },
+      headers: companyHeader(draft, options.logo),
       footers: {
         default: new Footer({
           children: [
@@ -245,8 +262,8 @@ function buildDocument(draft) {
   });
 }
 
-async function draftToDocx(draft) {
-  return Packer.toBuffer(buildDocument(draft));
+async function draftToDocx(draft, options = {}) {
+  return Packer.toBuffer(buildDocument(draft, options));
 }
 
 module.exports = { draftToDocx };

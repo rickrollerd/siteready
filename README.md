@@ -53,11 +53,19 @@ The draft is built by fixed rules in `draft.js`. No AI service is called, and no
 | `POST /api/draft` | The draft, or a stand-down listing what is missing |
 | `POST /api/draft.docx` | The same, as a Word file |
 
-`/api` routes are rate limited per client address.
+`/api` routes are rate limited per client address: 600 requests per 15 minutes, with the Word file limited separately to 300. A site office or phones on one mobile network can share an address, so the limits are set for a busy site rather than one person.
+
+The server runs one worker per processor core and replaces a worker that stops. Each worker keeps its own rate limit count, so with several workers the effective limit per address is higher than the figure set.
+
+## Company profile
+
+A company enters its name, ABN, address, phone, email and logo once. They are saved in the browser on that device and filled into every statement; the subcontractor name can still be changed on any one statement. The details appear at the top of the statement and in the header of every page of the Word file, with the logo. The logo is redrawn at header size in the browser, and the server accepts only PNG or JPEG up to 400 KB. The server does not keep the profile. Sharing one profile across a team's devices would need user accounts, which the app does not have yet.
 
 ## Scenarios
 
 `scenarios/scenarios.json` holds ten work scenarios with the result each should give. `npm test` runs them in every state and territory; `npm run scenarios` also writes `scenarios/results.md`. A state without loaded legislation must refuse.
+
+`npm run load` runs many users at once across the country (default 200 users for 30 seconds; `node scenarios/load.js 300 60` for 300 users for a minute). Each user is a different site working through every scenario in every state: questions, the draft with and without facts, then the Word file. Every answer is compared with the same draft prepared directly, so a busy server cannot give one user another user's statement. It starts its own server with the rate limits raised, or pass a server address as the third argument.
 
 ## Settings
 
@@ -68,7 +76,9 @@ See `.env.example`.
 | `PORT` | 3849 | Server port |
 | `ALLOWED_ORIGINS` | none | Extra origins allowed to call the API (comma-separated). The native app origins are always allowed. |
 | `RATE_LIMIT_WINDOW_MS` | 900000 | Rate limit window (15 minutes) |
-| `RATE_LIMIT_MAX_REQUESTS` | 100 | Requests per window per client |
+| `RATE_LIMIT_MAX_REQUESTS` | 600 | Requests per window per client address, other than the Word file |
+| `RATE_LIMIT_WORD_REQUESTS` | 300 | Word files per window per client address |
+| `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. |
 
 ## Native app
 

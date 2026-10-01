@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test && node scenarios/run.js > /dev/null",
-    "scenarios": "node scenarios/run.js --write"
+    "scenarios": "node scenarios/run.js --write",
+    "load": "node scenarios/load.js"
   },
   "keywords": [],
   "author": "",
