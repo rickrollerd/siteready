@@ -407,11 +407,19 @@ const CATEGORY_FACTS = [
 
 function requiredFactsFor(task, answer, state) {
   const facts = [];
-  if (isCraneOrLift(task)) {
+  // Most cranes on site are supplied and run by a crane company. Its operator and
+  // dogmen work to its own lift plan, so the subcontractor states who that is.
+  if (isCraneOrLift(task) && state && state.ownCrane) {
     facts.push({
       id: 'craneChart',
       label: 'Crane chart',
       prompt: 'From the crane chart: the rated capacity in tonnes at the working radius in metres.',
+    });
+  } else if (isCraneOrLift(task)) {
+    facts.push({
+      id: 'craneCompany',
+      label: 'Crane company and lift plan',
+      prompt: 'Which company supplies and operates the crane, and that its lift plan or SWMS covers these lifts.',
     });
   }
   if (isPanelLift(task)) {
@@ -473,6 +481,7 @@ function combinedFacts(task, facts) {
   return [
     task,
     facts.craneChart,
+    facts.craneCompany,
     facts.erectionDesign,
     facts.centreOfGravity,
     facts.braceArrangement,
@@ -594,9 +603,14 @@ function controlsFor(task, facts, pack) {
     }
   } else if (isCraneOrLift(source)) {
     const under = isPanelLift(source) ? 'No one goes under the panel.' : 'No one goes under the load.';
+    if (!(pack && pack.state && pack.state.ownCrane)) {
+      const company = keptFact(facts.craneCompany);
+      if (company) push('Administrative', company);
+      push('Administrative', 'The crane company operates the crane, and its licensed crew slings, directs and releases every load under its lift plan.');
+    }
     push('Administrative', `Only the people doing the lift are inside the exclusion zone. Stop the lift if anyone else enters. Do not pass a load over a person. ${under}`);
-    // Free-fall lowering is a mobile crane feature.
-    if (!/\btower cranes?\b/i.test(source)) push('Administrative', 'No free-fall with a load.');
+    // Free-fall lowering is a mobile crane feature, and the operator's business.
+    if (pack && pack.state && pack.state.ownCrane && !/\btower cranes?\b/i.test(source)) push('Administrative', 'No free-fall with a load.');
   } else if (mentioned(source, /\b(powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|telehandlers?|excavators?|forklifts?|trucks?|loaders?)\b/i)) {
     push('Administrative', 'People stay clear of moving plant.');
   }
@@ -753,7 +767,7 @@ function methodSteps(task, facts, site, pack) {
   }
   const fromTask = sentences(task).filter((line) => !isDenialLine(line) && (!LIFT_BLEED.test(line) || isCraneOrLift(task)));
   const fromFacts = [];
-  for (const id of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport', ...CATEGORY_FACTS.map((item) => item.id)]) {
+  for (const id of ['craneChart', 'craneCompany', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport', ...CATEGORY_FACTS.map((item) => item.id)]) {
     const line = keptFact(facts[id]);
     if (!line) continue;
     if (sentences(task).some((item) => item.toLowerCase() === sentences(line).join(' ').toLowerCase())) continue;
@@ -798,9 +812,16 @@ function residentialAnswer(value) {
 }
 
 // The state, with the fall height that applies to this task.
+// Who runs the crane: a crane company unless the subcontractor says it runs its own.
+function craneAnswer(value) {
+  return /^(own|ours?|us|we|our company|yes)$/i.test(String(value || '').trim()) ? 'own' : 'company';
+}
+
 function stateFor(input) {
-  const state = findState(input.state);
-  if (!state || !state.residentialFallMetres) return state;
+  const found = findState(input.state);
+  if (!found) return found;
+  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own' };
+  if (!state.residentialFallMetres) return state;
   const residential = residentialAnswer(input.residential) === 'yes';
   return { ...state, residential, fallMetres: residential ? state.residentialFallMetres : 2 };
 }
@@ -882,6 +903,7 @@ function prepareDraft(input) {
     hospital: keptFact(input.hospital),
     firstAider: keptFact(input.firstAider),
     musterPoint: keptFact(input.musterPoint),
+    craneOperator: isCraneOrLift(task) ? (state.ownCrane ? 'Our company' : 'Crane company') : '',
     worksManager: keptFact(input.worksManager),
     worksManagerPhone: keptFact(input.worksManagerPhone),
     complianceResponsible: keptFact(input.complianceResponsible),
@@ -931,9 +953,9 @@ function prepareDraft(input) {
   return {
     kind: 'draft',
     ...header,
-    jobSteps: jobStepsForTask(task, facts, hazards, finalControls),
+    jobSteps: jobStepsForTask(task, facts, hazards, finalControls, state),
     ppe: ppeFor(
-      workFlags(task, facts),
+      workFlags(task, facts, state.ownCrane),
       input.ppe,
       /\b(harness|fall arrest|elevating work platform|ewp|boom lift)\b/i.test(combinedFacts(task, facts)),
       /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task),
@@ -954,7 +976,7 @@ function prepareDraft(input) {
 }
 
 // The kinds of work in the task, which choose the job steps and the PPE.
-function workFlags(task, facts = {}) {
+function workFlags(task, facts = {}, ownCrane = false) {
   const scaffold = isScaffoldErection(task);
   return {
     road: mentioned(task, ROAD),
@@ -965,8 +987,9 @@ function workFlags(task, facts = {}) {
     trench: deepExcavation(task) || /\b(excavat\w*|trench\w*)\b/i.test(task),
     propping: CATEGORY_FACTS.find((item) => item.id === 'temporarySupport').applies(task),
     demolition: mentioned(task, DEMOLITION),
-    towerCrane: /\btower cranes?\b/i.test(task),
-    crane: isCraneOrLift(task) && !/\btower cranes?\b/i.test(task),
+    craneInterface: isCraneOrLift(task) && !ownCrane,
+    towerCrane: ownCrane && /\btower cranes?\b/i.test(task),
+    crane: ownCrane && isCraneOrLift(task) && !/\btower cranes?\b/i.test(task),
     loadOut: /\b(load(?:ing)?[- ]?out|loading platforms?|landing platforms?)\b/i.test(task),
     forklift: /\b(forklifts?|telehandlers?)\b/i.test(task),
     formwork: FORMWORK.test(task.replace(new RegExp(JUMPFORM.source, 'gi'), '')),
@@ -992,7 +1015,7 @@ function asSentence(text) {
 
 // Job steps, each with its hazards and controls. Work the library does not know
 // gets one middle step built from the task, its hazards and its controls.
-function jobStepsForTask(task, facts, hazards, controls) {
+function jobStepsForTask(task, facts, hazards, controls, state) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
     const given = keptFact(facts[id]);
@@ -1003,7 +1026,7 @@ function jobStepsForTask(task, facts, hazards, controls) {
     return '';
   };
   const [first] = sentences(task);
-  return jobStepsFor(workFlags(task, facts), factText, {
+  return jobStepsFor(workFlags(task, facts, state.ownCrane), factText, {
     step: asSentence(first || task),
     hazards: hazards.map((row) => `${row.hazard}: ${row.risk}`),
     controls: controls.map((item) => item.text),

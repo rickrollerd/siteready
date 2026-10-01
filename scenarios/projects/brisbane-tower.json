@@ -6,11 +6,11 @@
   "swms": [
     {
       "id": "load-out",
-      "title": "Floor load-out, tower crane lifts and forklifts",
+      "title": "Floor load-out, working with the tower cranes, and forklifts",
       "task": "Load out each floor of the 50 storey tower using the two tower cranes and the loading platforms, and move materials on the floor with a forklift. Deliveries are unloaded from the street loading zone next to the road, open to traffic, with traffic controllers. The floors are post-tensioned slabs. Work is at the slab edge, more than 2 m above the floor below.",
       "fallRisk": "yes",
       "facts": {
-        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts.",
+        "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
         "fallControl": "Loading platforms have full height gates and side screens, and the slab edge has perimeter screens on every level being worked."
       },
       "expect": {
@@ -21,13 +21,13 @@
         ],
         "steps": [
           "Set up traffic management",
-          "Plan the tower crane lifts",
-          "Rig, lift and land loads with the tower crane",
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
           "Load out floors and use loading platforms",
           "Operate forklifts"
         ],
         "missing": [
-          "Crane chart",
+          "Crane company and lift plan",
           "Fall control"
         ]
       }
@@ -38,9 +38,9 @@
       "task": "Erect the slab formwork and falsework for each post-tensioned floor of the 50 storey tower, lay the deck, form penetrations, install edge protection, then strip the formwork and install backprops. Materials are lifted with the tower cranes. Work is at the slab edge and up to 4 m above the floor below.",
       "fallRisk": "yes",
       "facts": {
+        "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
         "formworkDesign": "Formwork, falsework and backpropping designed by the formwork engineer, drawings FW-100 to FW-120. The formwork supervisor inspects and signs the pre-pour checklist before every pour.",
-        "fallControl": "Perimeter screens are installed on the levels being formed, decks are laid from inside the edge protection, and penetrations are covered as they are formed.",
-        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts."
+        "fallControl": "Perimeter screens are installed on the levels being formed, decks are laid from inside the edge protection, and penetrations are covered as they are formed."
       },
       "expect": {
         "highRisk": [
@@ -48,7 +48,7 @@
           "plant"
         ],
         "steps": [
-          "Plan the tower crane lifts",
+          "Plan lifts with the crane company",
           "Erect falsework and shores",
           "Install edge protection and lay the deck",
           "Form penetrations and voids",
@@ -56,7 +56,7 @@
           "Strip formwork and backprop"
         ],
         "missing": [
-          "Crane chart",
+          "Crane company and lift plan",
           "Formwork design"
         ]
       }
@@ -67,7 +67,7 @@
       "task": "Lift reo bundles onto the deck with the tower cranes, place and tie the reinforcement, and place the post-tensioning ducts and tendons for each floor slab of the 50 storey tower. Work is at the slab edge, more than 2 m above the floor below.",
       "fallRisk": "yes",
       "facts": {
-        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts.",
+        "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
         "fallControl": "Work is done inside the perimeter screens, and no one works outside the edge protection."
       },
       "expect": {
@@ -76,13 +76,13 @@
           "plant"
         ],
         "steps": [
-          "Plan the tower crane lifts",
+          "Plan lifts with the crane company",
           "Lift reo onto the deck",
           "Place and tie reo",
           "Place post-tensioning ducts and tendons"
         ],
         "missing": [
-          "Crane chart",
+          "Crane company and lift plan",
           "Fall control"
         ]
       }
@@ -141,9 +141,9 @@
       "task": "Climb the jumpform on the core walls of the 50 storey tower with its hydraulic climbing system, then fix reo and pour the core walls from the jumpform platforms, more than 2 m above the floor below. The tower cranes lift materials to the jumpform.",
       "fallRisk": "yes",
       "facts": {
+        "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
         "jumpformProcedure": "Climbing follows the jumpform supplier's climbing procedure JF-OPS revision 3, including its wind limit. Only the climbing crew trained and assessed by the supplier climbs the jumpform.",
-        "fallControl": "The jumpform platforms have full perimeter screens and guardrails, and the gaps to the wall are closed with hinged flaps.",
-        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts."
+        "fallControl": "The jumpform platforms have full perimeter screens and guardrails, and the gaps to the wall are closed with hinged flaps."
       },
       "expect": {
         "highRisk": [
@@ -151,7 +151,7 @@
           "plant"
         ],
         "steps": [
-          "Plan the tower crane lifts",
+          "Plan lifts with the crane company",
           "Prepare to climb the jumpform",
           "Climb the jumpform",
           "Work on the jumpform platforms",
@@ -159,7 +159,7 @@
           "Pour the core walls"
         ],
         "missing": [
-          "Crane chart",
+          "Crane company and lift plan",
           "Fall control",
           "Jumpform climbing procedure"
         ]
@@ -171,7 +171,7 @@
       "task": "Install precast concrete columns and blade walls with the tower cranes, lifting them from trucks in the street loading zone, stand them on shims, brace them, then grout the base. The floors are post-tensioned slabs. Work is at the slab edge of the 50 storey tower, more than 2 m above the floor below.",
       "fallRisk": "yes",
       "facts": {
-        "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts.",
+        "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
         "erectionDesign": "Precast erection design and sequence drawings PC-300 to PC-305 by the precast engineer.",
         "centreOfGravity": "The centre of gravity is marked on each element's shop drawing.",
         "braceArrangement": "Two braces per column and three per blade wall, fixed to the slab with cast-in ferrules as shown on drawing PC-310.",
@@ -185,14 +185,14 @@
           "road"
         ],
         "steps": [
-          "Plan the tower crane lifts",
-          "Rig, lift and land loads with the tower crane",
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
           "Stand and brace the precast elements",
           "Grout the base and remove the braces",
           "Use an elevating work platform"
         ],
         "missing": [
-          "Crane chart",
+          "Crane company and lift plan",
           "Erection design",
           "Centre of gravity",
           "Brace arrangement",

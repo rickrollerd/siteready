@@ -63,6 +63,10 @@ Each draft lays the job out as the regulators' templates do: job steps, each wit
 
 Confined spaces, propping or load-bearing demolition, overhead power lines and work over water each stand down until their key fact is given: the entry permit and rescue, the temporary support design, the electrical safety arrangement, and the drowning controls.
 
+## Cranes
+
+Cranes are taken to be supplied and operated by a crane company, whose operator and dogmen work to its own lift plan. The draft asks which company that is and that its lift plan covers the lifts, and the job steps cover working with the crane crew: planning the day's lifts and landing areas, only licensed dogmen or riggers slinging and releasing loads, preparing loads as directed, staying out from under loads, and stopping when the crane stops. Choosing "Our company" for who operates the crane gives the crane set-up and lifting steps instead and asks for the crane chart.
+
 ## Sign-off
 
 Every statement ends with a Prepared by section, a Principal contractor review (date received, reviewed by, Accepted / Accepted with changes / Not accepted, comments, signature, date) and Worker sign-on pages. The sign-on starts on a new page with a short declaration and 44 lines for name, company, signature and date, over about two pages, with the heading row repeated on each page. A stood-down task has none of these, because it has no method to sign onto.

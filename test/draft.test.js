@@ -51,13 +51,13 @@ test('a trench of 1 m is not high risk trench work', () => {
 });
 
 test('a fact that only says it was supplied does not count', () => {
-  const vague = draft('Lift steel beams with a crane.', { facts: { craneChart: 'Chart supplied.' } });
+  const vague = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Chart supplied.' } });
   assert.equal(vague.kind, 'stand-down');
   assert.deepEqual(vague.missing, ['Crane chart (the text given does not state it)']);
-  assert.equal(draft('Lift steel beams with a crane, chart supplied.').kind, 'stand-down');
+  assert.equal(draft('Lift steel beams with a crane, chart supplied.', { crane: 'own' }).kind, 'stand-down');
   assert.equal(draft('Paint the office walls.', { facts: { safetyDataSheet: 'Attached.' } }).kind, 'stand-down');
 
-  const stated = draft('Lift steel beams with a crane.', { facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.' } });
+  const stated = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.' } });
   assert.equal(stated.kind, 'draft');
 });
 
@@ -201,7 +201,7 @@ test('Western Australia: danger zones, and the regulator notice for tilt-up work
 
   const task = 'Erect six precast concrete wall panels using a 100 tonne mobile crane.';
   const pack = {
-    craneChart: 'Rated capacity 11.2 t at 16 m radius from the crane chart.',
+    craneCompany: 'Example Cranes supplies and operates the crane under its lift plan.',
     erectionDesign: 'Erection design drawing ED-01 revision B by the project engineer.',
     centreOfGravity: 'Centre of gravity is marked on each panel shop drawing, 1.2 m above the base.',
     braceArrangement: 'Two braces per panel, fixed to the slab with chemical anchors as shown on drawing ED-02.',
@@ -292,7 +292,7 @@ test('a draft has job steps with hazards and controls, and a PPE list', () => {
 });
 
 test('roof beams are not roofing, and indoor work gets no sunscreen', () => {
-  const beams = draft('Lift the carport roof beams into place with a crane truck.', { facts: { craneChart: '1.5 t at 6 m radius.' } });
+  const beams = draft('Lift the carport roof beams into place with a crane truck.', { crane: 'own', facts: { craneChart: '1.5 t at 6 m radius.' } });
   assert.ok(!beams.jobSteps.some((step) => step.step === 'Remove old roofing'));
   const paint = draft('Paint the interior walls of a shop with solvent-based enamel paint.', { facts: { safetyDataSheet: 'Flammable liquid, ventilate, gloves and eye protection.' } });
   const ticked = paint.ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
@@ -303,4 +303,23 @@ test('roof beams are not roofing, and indoor work gets no sunscreen', () => {
 test('unknown work still gets job steps from the task', () => {
   const done = draft('Replace a 3m length of fence.');
   assert.deepEqual(done.jobSteps.map((step) => step.step), ['Before starting', 'Replace a 3m length of fence.', 'Finish and clean up']);
+});
+
+test('a crane company runs the crane unless the subcontractor says it runs its own', () => {
+  const task = 'Lift steel beams into place with a mobile crane.';
+  const company = draft(task);
+  assert.equal(company.kind, 'stand-down');
+  assert.deepEqual(company.missing, ['Crane company and lift plan']);
+  const done = draft(task, { facts: { craneCompany: 'Example Cranes supplies and operates the crane under its lift plan.' } });
+  assert.equal(done.kind, 'draft');
+  assert.equal(done.craneOperator, 'Crane company');
+  const steps = done.jobSteps.map((step) => step.step);
+  assert.ok(steps.includes('Work with the crane crew during lifts'));
+  assert.ok(!steps.includes('Set up the crane'));
+  assert.ok(!done.controls.some((item) => /free-fall/.test(item.text)));
+  const own = draft(task, { crane: 'own' });
+  assert.deepEqual(own.missing, ['Crane chart']);
+  const ownDone = draft(task, { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.' } });
+  assert.ok(ownDone.jobSteps.some((step) => step.step === 'Set up the crane'));
+  assert.equal(ownDone.craneOperator, 'Our company');
 });

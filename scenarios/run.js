@@ -27,7 +27,7 @@ function describe(label, diff) {
 
 function runLoaded(state, scenario) {
   // The Northern Territory also asks whether the work is residential.
-  const base = { state: state.id, task: scenario.task, fallRisk: scenario.fallRisk, residential: scenario.residential };
+  const base = { state: state.id, task: scenario.task, fallRisk: scenario.fallRisk, residential: scenario.residential, crane: scenario.crane };
   const problems = [];
 
   // Without the facts, the task is stood down and names what is missing.
@@ -57,7 +57,7 @@ function runLoaded(state, scenario) {
 }
 
 function runRefused(state, scenario) {
-  const result = prepareDraft({ state: state.id, task: scenario.task, fallRisk: scenario.fallRisk, residential: scenario.residential, facts: scenario.facts });
+  const result = prepareDraft({ state: state.id, task: scenario.task, fallRisk: scenario.fallRisk, residential: scenario.residential, crane: scenario.crane, facts: scenario.facts });
   return result.kind === 'refused' ? [] : [`Expected refused (legislation not loaded), got ${result.kind}`];
 }
 
