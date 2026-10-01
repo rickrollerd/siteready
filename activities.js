@@ -10,6 +10,8 @@ const CODE = (section) => `Model Code: Managing electrical risks ${section}`;
 const WHS = (section) => `Work Health and Safety Regulation 2011 (Qld) ${section}`;
 const PDA = (section) => `Plumbing and Drainage Act 2018 (Qld) ${section}`;
 const MODEL = (code, section) => `Model Code: ${code} ${section}`;
+const OZONE = (section) => `Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth) ${section}`;
+const ARC = (section) => `Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 ${section}`;
 const src = (text, source) => ({ text, source });
 
 const BEFORE = {
@@ -38,6 +40,8 @@ const BEFORE_EXTRA = [
   { when: 'electricalWork', text: src('A serious electrical incident or dangerous electrical event is reported to the regulator immediately, and the site is left undisturbed.', ESR('s 292, s 296')) },
   { when: 'plumbingWork', text: src('Plumbing and drainage work is done by licensed workers, and supervised only by licensed workers. Trainees are directly supervised by a licensed person, who directs the work and ensures it complies.', PDA('s 56, s 57, s 58, s 59')) },
   { when: 'plumbingWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'mechanicalWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'refrigerantWork', text: src('Work on refrigeration and air conditioning equipment, including installing and commissioning it whether or not refrigerant is present, is done only by holders of a refrigerant handling licence that covers the work. Trainee licence holders work under the supervision of a full licence holder.', `${OZONE('reg 111, reg 134')}; ${ARC('s 1.1.1')}`) },
   { when: 'ewp', text: 'A rescue plan is in place for anyone working from an elevating work platform or held by a harness.' },
 ];
 
@@ -952,6 +956,183 @@ const ACTIVITIES = [
     ppe: ['p2'],
   },
   {
+    when: 'plantLift',
+    steps: [
+      {
+        step: 'Receive plant and move it into position',
+        hazards: ['A person is crushed by plant on skates, a pallet jack or a forklift.', 'Back and shoulder injury moving heavy plant, ductwork and pipe.', 'The slab or roof is overloaded where plant lands or is set down.'],
+        controls: [
+          { fact: 'loadLimits' },
+          'Set plant down only where the load limits allow, on the plinths or supports designed for it.',
+          src('Move plant with mechanical aids such as skates, pallet jacks or powered tugs, not by carrying.', MODEL('Hazardous manual tasks', 's 4.5')),
+          src('Team lifts are an interim control only. One person plans and takes charge of each team lift.', MODEL('Hazardous manual tasks', 's 4.9')),
+          src('Forklifts are kept apart from people, with a warning device, and carry no passengers. A forklift left unattended is parked level, with the brake on and the key removed.', `${WHS('s 215, s 218')}; ${MODEL('Managing the risks of plant in the workplace', 's 3.8')}`),
+          src('Leave an access way around plant for maintenance, at least 600 mm wide.', MODEL('Managing the risks of plant in the workplace', 's 3.2')),
+        ],
+      },
+    ],
+  },
+  {
+    when: 'ductwork',
+    steps: [
+      {
+        step: 'Install ductwork, pipework and units at height',
+        hazards: ['A fall from a platform, ladder or open riser.', 'Tools, fixings and duct sections fall onto people below.', 'Silica dust from drilling hanger anchors.', 'Cutting a post-tensioning tendon when drilling.', 'Cuts from duct edges and strain from lifting duct overhead.'],
+        controls: [
+          { fact: 'fallControl' },
+          src('Work from the floor or a platform where possible. Fall prevention comes before work positioning or fall arrest.', WHS('s 78, s 79')),
+          src('Risers and shafts are covered or screened at each level, with only the section being worked on opened. Covers are fixed in place and signed DANGER HOLE BENEATH.', `${WHS('s 306F')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
+          src('Platform ladders are industrial and rated for at least 120 kg. Keep 3 points of contact on a ladder where a fall could be 2 m or more.', WHS('s 306L, s 306M')),
+          src('Barricade and sign the area below, and stop tools and materials falling.', `${WHS('s 55')}; ${MODEL('Managing the risk of falls', 's 8.1')}`),
+          src('Sequence the work so trades are not working above or below each other at the same time.', MODEL('Managing the risk of falls', 's 8.3')),
+          'Before drilling into a post-tensioned slab, check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Do not drill over a detected service until it is isolated and confirmed.',
+          src('Drill anchors with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
+          src('Use lifting aids such as duct lifters for overhead duct sections, rather than holding them up by hand.', MODEL('Hazardous manual tasks', 's 4.5')),
+        ],
+      },
+    ],
+    ppe: ['gloveCut', 'p2'],
+  },
+  {
+    when: 'refrigerantPipework',
+    steps: [
+      {
+        step: 'Braze refrigerant pipework',
+        hazards: ['Fire from the flame.', 'Nitrogen or refrigerant displaces air in a small or enclosed space.', 'Burns.'],
+        controls: [
+          src('Before hot work on a system that has held refrigerant, recover or isolate all of it, and ventilate the area.', ARC('s 9.3, s 9.9.3')),
+          src('Purge oxygen-free nitrogen continuously through the pipe while brazing, at minimal pressure.', ARC('s 4.6.5')),
+          src('Oxygen monitoring where the work is in an enclosed space. Nitrogen is an asphyxiant.', ARC('s 4.9.1, s 10.4')),
+        ],
+      },
+    ],
+  },
+  {
+    when: 'refrigerantTest',
+    steps: [
+      {
+        step: 'Pressure test with nitrogen',
+        hazards: ['A joint, fitting or hose fails under high pressure.', 'Nitrogen is an asphyxiant.'],
+        controls: [
+          { fact: 'pressureTesting' },
+          src('Test only with oxygen-free nitrogen, never standard grade nitrogen. Never use refrigerant to pressure test.', ARC('s 4.9, s 4.9.3')),
+          src('Test pressure is never above the maximum allowable pressure (PS) on the equipment, and below the relief valve settings.', ARC('s 4.9.4')),
+          src('Raise the pressure in stages, then isolate the system from the nitrogen cylinder.', ARC('s 4.9.5')),
+          'Exclusion zone around the pipework under test. No one works on it while it is under pressure. Release pressure fully before touching fittings.',
+          src('A tracer gas has no more than 5% hydrogen.', ARC('s 4.9.3')),
+          src('Gas cylinders are secured upright, with valves closed when not in use.', MODEL('Welding processes', 's 3.6')),
+        ],
+      },
+    ],
+    replaces: ['pressureTest'],
+  },
+  {
+    when: 'refrigerantCharge',
+    steps: [{
+      step: 'Evacuate, charge and recover refrigerant',
+      hazards: ['Freeze burns from liquid refrigerant.', 'Asphyxiation from a leak in an enclosed space.', 'Fire from a flammable refrigerant.', 'A cylinder bursts.'],
+      controls: [
+        src('Read the refrigerant\'s safety data sheet before handling it.', ARC('s 13.1')),
+        {
+          choice: 'refrigerantClass',
+          options: {
+            a1: [
+              'The refrigerant is non-flammable (A1). Ventilate enclosed plant rooms and keep oxygen monitoring where the space is enclosed.',
+            ],
+            a2l: [
+              src('Before charging, assess the area for ventilation, ignition sources and fire safety equipment, and set up a temporary flammable zone. Earth the system before charging.', ARC('s 6.6')),
+              src('Tools and equipment are rated for the refrigerant\'s flammability grade. Use a leak detector rated for flammable refrigerants, never a halide detector.', ARC('s 4.3, s 4.9.3')),
+              src('If a leak is suspected, remove or put out all ignition sources and naked flames.', ARC('s 9.3')),
+            ],
+            a3: [
+              src('Before charging, assess the area for ventilation, ignition sources and fire safety equipment, and set up a temporary flammable zone. Earth the system before charging.', ARC('s 6.6')),
+              src('Tools and equipment are rated for the refrigerant\'s flammability grade. Use a leak detector rated for flammable refrigerants, never a halide detector.', ARC('s 4.3, s 4.9.3')),
+              src('If a leak is suspected, remove or put out all ignition sources and naked flames.', ARC('s 9.3')),
+            ],
+          },
+        },
+        src('Charge only with the refrigerant on the equipment\'s compliance plate. Charging a different refrigerant with a higher global warming potential is prohibited.', OZONE('reg 2AAA, reg 111A')),
+        src('Leak test charging hoses before fully opening the cylinder valve. Never let refrigerant flow back into the cylinder.', ARC('s 6.3, s 6.5')),
+        src('Recover into in-date cylinders suited to the refrigerant (A2 and A2L into their own cylinders). Never vent refrigerant.', ARC('s 10.1, s 12.2.3')),
+        src('Store refrigerant only in refillable containers, and give recovered refrigerant to a refrigerant trading authorisation holder or a destruction facility.', OZONE('reg 135')),
+        src('Close cylinder valves and fit the sealing caps when not in use.', ARC('s 13.6.1')),
+      ],
+    }],
+    ppe: ['gloveCold', 'goggles'],
+  },
+  {
+    when: 'roofPlant',
+    steps: [{
+      step: 'Install plant on the roof',
+      hazards: ['A fall from the roof edge or through a roof opening.', 'Wind on large panels and plant.', 'Fire from hot work on the roof.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Edge protection or travel restraint where a fall of 2 m or more is possible, before work starts.', WHS('s 306D')),
+        src('Edge protection has a top rail at least 900 mm above the roof, a toe board or bottom rail, and no more than 450 mm between rails.', WHS('s 306E')),
+        src('Harness anchors are engineer designed or approved by a competent person, rated 15 kN for one person or 21 kN for two.', WHS('s 306I')),
+        src('Where fall arrest is used, a rescue plan is set and practised.', WHS('s 80')),
+        src('Check the wind and rain before roof work, and stop in unsafe conditions.', MODEL('Managing the risk of falls', 's 3.2')),
+        src('Hot work on the roof has a hot work permit and fire-fighting equipment at the work area.', MODEL('Welding processes', 's 3.4')),
+      ],
+    }],
+    ppe: ['harness', 'chinStrap'],
+  },
+  {
+    when: 'jetFans',
+    steps: [{
+      step: 'Install car park fans over traffic areas',
+      hazards: ['Vehicles and mobile plant in the car park strike workers or the platform.', 'Objects fall onto people below.', 'The platform tips on a ramp, drain or penetration.'],
+      controls: [
+        src('Close the work area to vehicles with barriers, or separate the platform and workers from traffic.', WHS('s 215')),
+        src('Exclusion zone below overhead work, with barriers that are highly visible and fixed in place.', `${WHS('s 55')}; ${MODEL('Managing the risk of falls', 's 8.1')}`),
+        src('Check the slab for ramps, slopes, drains and penetrations before driving the platform.', MODEL('Managing the risk of falls', 's 5.1')),
+      ],
+    }],
+    ppe: ['hivisNight'],
+  },
+  {
+    when: 'mechInsulation',
+    steps: [{
+      step: 'Insulate ductwork and pipework',
+      hazards: ['Skin, eye and breathing irritation from insulation and adhesives.', 'Fumes from adhesives and sealants.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        src('Keep the current safety data sheet for each insulation, adhesive and sealant at the work area. Label anything decanted.', WHS('s 342, s 344')),
+        'Follow the safety data sheet for ventilation, PPE and clean up. Use a vacuum, not compressed air or dry sweeping.',
+        src('Insulate or guard hot and cold pipework.', WHS('s 209')),
+      ],
+    }],
+    ppe: ['gloveChemical', 'p2'],
+  },
+  {
+    when: 'mechCommissioning',
+    steps: [
+      {
+        step: 'Isolate plant before work on it',
+        hazards: ['Fans, pumps or compressors start without warning.', 'Stored energy: pressure, capacitors, springs.', 'Contact with rotating parts.'],
+        controls: [
+          { fact: 'plantIsolation' },
+          src('Isolate every energy source, control stored energy, then test by trying to start the plant.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
+          src('Each worker fits their own padlock. A tag alone is not an isolation. Only the person who fitted a lock or tag removes it, or a supervisor after consulting them.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
+          src('Plant controls can be locked in the off position.', WHS('s 210')),
+          src('Fans and pumps under automatic or building management system control are isolated where they could start without warning.', WHS('s 222')),
+          src('Lock out before removing a guard, and replace guards before the plant returns to service.', `${WHS('s 208')}; ${MODEL('Managing the risks of plant in the workplace', 's 4.1')}`),
+          'Electrical work, including wiring and terminating, is done only by licensed electricians.',
+        ],
+      },
+      {
+        step: 'Commission and balance the system',
+        hazards: ['Contact with moving parts during start-up.', 'Noise from fans and plant.', 'Entering ducts or plenums.'],
+        controls: [
+          src('Plant is not commissioned until it has been checked to be without risk, by competent people.', WHS('s 204')),
+          src('Hearing protection where noise exceeds 85 dB(A) over 8 hours or 140 dB(C) peak. Workers who must wear it have hearing tests.', WHS('s 56, s 57, s 58')),
+          src('Ducts and plenums that meet the confined space definition are entered only under a confined space entry permit, with a standby person and connected plant isolated.', `${WHS('s 66, s 67, s 69, s 70')}; ${MODEL('Confined spaces', 's 1.1')}`),
+        ],
+      },
+    ],
+    ppe: ['earMuffs'],
+  },
+  {
     when: 'asbestos',
     steps: [
       {
@@ -1095,7 +1276,7 @@ const PPE = [
   { area: 'Eyes and face', items: [['glassesClear', 'Safety glasses, clear'], ['glassesTinted', 'Safety glasses, tinted'], ['goggles', 'Goggles'], ['faceShield', 'Face shield'], ['filterEye', 'Filter eye protection (brazing or welding)']] },
   { area: 'Hearing', items: [['earPlugs', 'Ear plugs'], ['earMuffs', 'Ear muffs']] },
   { area: 'Breathing', items: [['p2', 'P2 respirator (fit tested)'], ['halfFace', 'Half-face respirator with filters (fit tested)']] },
-  { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves'], ['gloveInsulated', 'Insulated electrical gloves'], ['gloveWelding', 'Welding or heat resistant gloves']] },
+  { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves'], ['gloveInsulated', 'Insulated electrical gloves'], ['gloveWelding', 'Welding or heat resistant gloves'], ['gloveCold', 'Cold resistant gloves (refrigerant)']] },
   { area: 'Body', items: [['longs', 'Long sleeves and long pants'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls'], ['arcRated', 'Arc-rated face shield and flame-resistant clothing']] },
   { area: 'Feet', items: [['boots', 'Safety boots'], ['gumboots', 'Safety gumboots']] },
   { area: 'Sun', items: [['sunscreen', 'Sunscreen']] },

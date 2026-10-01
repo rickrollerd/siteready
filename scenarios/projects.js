@@ -7,7 +7,7 @@ const path = require('path');
 const { prepareDraft } = require('../draft');
 const { STATES, highRiskLabel } = require('../legislation');
 
-const files = process.argv[2] ? [process.argv[2]] : ['brisbane-tower.json', 'brisbane-tower-electrical.json', 'brisbane-tower-plumbing.json'].map((name) => path.join(__dirname, 'projects', name));
+const files = process.argv[2] ? [process.argv[2]] : ['brisbane-tower.json', 'brisbane-tower-electrical.json', 'brisbane-tower-plumbing.json', 'brisbane-tower-mechanical.json'].map((name) => path.join(__dirname, 'projects', name));
 let exitCode = 0;
 for (const file of files) exitCode = Math.max(exitCode, runProject(require(path.resolve(file))));
 process.exit(exitCode);
@@ -30,6 +30,9 @@ const REWORDINGS = [
   ['forklift', 'telehandler'],
   ['placing boom', 'concrete placing boom'],
   ['formwork', 'Formwork'],
+  ['refrigerant pipework', 'refrigerant lines'],
+  ['air handling units', 'AHUs'],
+  ['fan coil units', 'FCUs'],
 ];
 
 

@@ -127,6 +127,8 @@ function draftBody(body) {
       silicaControls: field(facts.silicaControls, 2000),
       hotWorkPermit: field(facts.hotWorkPermit, 2000),
       pressureTesting: field(facts.pressureTesting, 2000),
+      refrigerantClass: field(facts.refrigerantClass, 200),
+      plantIsolation: field(facts.plantIsolation, 2000),
       confinedSpace: field(facts.confinedSpace, 2000),
       temporarySupport: field(facts.temporarySupport, 2000),
       electricalSafety: field(facts.electricalSafety, 2000),

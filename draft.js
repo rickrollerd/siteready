@@ -354,7 +354,8 @@ function loadsOnDeckOrSlab(text) {
   const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
   return FORMWORK.test(source)
     || /\b(load(?:ing)?[- ]?out|loading platforms?|landing platforms?|forklifts?|telehandlers?)\b/i.test(source)
-    || (/\b(reo|reinforc\w*|rebar)\b/i.test(source) && /\b(deck|slab)\b/i.test(source));
+    || (/\b(reo|reinforc\w*|rebar)\b/i.test(source) && /\b(deck|slab)\b/i.test(source))
+    || (/\b(ahus?|air handling units?|chillers?|cooling towers?)\b/i.test(source) && /\b(lift\w*|cranes?|land\w*|deliver\w*)\b/i.test(source));
 }
 
 // Entering a pit, sump, tank, manhole or sewer.
@@ -362,7 +363,7 @@ const ENTERED_SPACE = /\b(?:enter\w*|entry|inside|work in|working in)\b[\w\s,-]{
 const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|welding)\b/i;
 const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air test\w*)\b/i;
 const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?)\b/i;
-const SILICA_WORK = /\b(core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|drill\w* (?:into )?(?:the )?(?:concrete|masonry|blockwork|block walls?|slabs?))\b/i;
+const SILICA_WORK = /\b(core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?))\b/i;
 
 const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply)|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
 
@@ -373,6 +374,11 @@ function choiceAnswer(id, value) {
   if (id === 'spaceAssessment') {
     if (/\bnot ?confined|not a confined\b/.test(text)) return 'notConfined';
     if (/\bconfined\b/.test(text)) return 'confined';
+  }
+  if (id === 'refrigerantClass') {
+    if (/\b(a3|highly flammable|r290|r600a|propane|isobutane)\b/.test(text)) return 'a3';
+    if (/\b(a2l?|mildly flammable|r32|r454b|r1234\w*)\b/.test(text)) return 'a2l';
+    if (/\b(a1|non-?flammable|r410a|r134a|r407c|co2|r744)\b/.test(text)) return 'a1';
   }
   if (id === 'energisedWork') {
     if (/\b(testing|commissioning|energised parts|within 3 ?m)\b/.test(text)) return 'testing';
@@ -404,6 +410,14 @@ const ELECTRICAL_WORK = ELECTRICAL_CORE;
 const SWITCHBOARD_WORDS = /\b(main switchboards?|consumer mains|energis\w*|commission\w*|terminat\w*|distribution boards?)\b/i;
 const SWITCHBOARD_WORK = { test: (text) => SWITCHBOARD_WORDS.test(String(text || '')) && ELECTRICAL_CORE.test(String(text || '')) };
 // A plumber's work.
+// A mechanical (HVAC) contractor's work. Its pipework is not plumbing unless plumbing words are used too.
+const MECHANICAL_WORK = /\b(mechanical services|hvac|air[- ]?condition\w*|ductwork|duct(?:ing| runs?| sections?)|refrigerant|refrigeration|split systems?|fan coil units?|fcus?|ahus?|air handling units?|chillers?|cooling towers?|condensers?|condensing units?|jet fans?|exhaust fans?|chilled water|vrf|vrv)\b/i;
+const REFRIGERANT = /\b(refrigerant|refrigeration|split systems?|condensing units?|vrf|vrv)\b/i;
+const PLUMBING_ONLY_WORDS = /\b(plumb\w*|sanitary|sewer\w*|drain\w*|hot water|cold water|tapware|toilets?|basins?)\b/i;
+function isPlumbing(text) {
+  const source = String(text || '');
+  return PLUMBING_WORK.test(source) && (!MECHANICAL_WORK.test(source) || PLUMBING_ONLY_WORDS.test(source));
+}
 const PLUMBING_WORK = /\b(plumb\w*|hydraulic\w*|drain\w*|sewer\w*|sanitary|pipes?|pipework|sleeves?|puddle flanges?|hot water|cold water|tapware|toilets?|basins?|pump rooms?|sumps?|ejection pits?|water tanks?)\b/i;
 
 const CATEGORY_FACTS = [
@@ -513,9 +527,29 @@ const CATEGORY_FACTS = [
     applies: (text) => HOT_WORK.test(String(text || '')),
   },
   {
+    // Flammable refrigerants (A2L, A2 and A3) need a flammable zone and rated tools.
+    id: 'refrigerantClass',
+    label: 'Refrigerant safety class',
+    prompt: 'Choose the refrigerant\'s safety class, from the compliance plate or the safety data sheet.',
+    choices: [
+      { value: 'a1', label: 'Non-flammable (A1), such as R410A or R134a' },
+      { value: 'a2l', label: 'Mildly flammable or flammable (A2L or A2), such as R32 or R454B' },
+      { value: 'a3', label: 'Highly flammable (A3), such as R290' },
+    ],
+    level: 'Administrative',
+    applies: (text) => REFRIGERANT.test(String(text || '')) && /\b(charg\w*|evacuat\w*|recover\w*|decant\w*)\b/i.test(String(text || '')),
+  },
+  {
+    id: 'plantIsolation',
+    label: 'Plant isolation procedure',
+    prompt: 'How plant is isolated and locked out (each energy source, personal locks), how it is tested before work, and how plant on automatic or building management control is stopped from starting.',
+    level: 'Isolate or engineer',
+    applies: (text) => MECHANICAL_WORK.test(String(text || '')) && /\b(commission\w*|start[- ]?up|balanc\w*)\b/i.test(String(text || '')),
+  },
+  {
     id: 'pressureTesting',
     label: 'Pressure testing method',
-    prompt: 'The test medium (water or air), the test pressure, how the area is kept clear during the test, and how pressure is released.',
+    prompt: 'The test medium (water, air or oxygen-free nitrogen), the test pressure, how the area is kept clear during the test, and how pressure is released.',
     level: 'Administrative',
     applies: (text) => PRESSURE_TEST.test(String(text || '')),
   },
@@ -1118,7 +1152,7 @@ function prepareDraft(input) {
     missing: [],
     statement: '',
     // Testing on or near energised parts is high risk construction work, however the task is worded.
-    highRisk: highRiskMatches(`${combinedFacts(task, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined' ? '\nconfined space' : ''}${/\b(live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task) ? '\nwork near a confined space (sewer)\ncontaminated atmosphere (sewer gas)' : ''}${/\b(solvent (?:cement|weld\w*)|primer)\b/i.test(task) && /\b(risers?|basements?|ducts?|pits?|shafts?|ceilings?)\b/i.test(task) ? '\nflammable atmosphere' : ''}`, pack.fallAnswer, state)
+    highRisk: highRiskMatches(`${combinedFacts(task, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined' ? '\nconfined space' : ''}${REFRIGERANT.test(task) && /\b(pipe\w*|lines?|braz\w*|charg\w*|recover\w*|evacuat\w*|pressure test\w*)\b/i.test(task) ? '\nrefrigerant line' : ''}${['a2l', 'a3'].includes(choiceAnswer('refrigerantClass', facts.refrigerantClass)) ? '\nflammable atmosphere' : ''}${/\b(live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task) ? '\nwork near a confined space (sewer)\ncontaminated atmosphere (sewer gas)' : ''}${/\b(solvent (?:cement|weld\w*)|primer)\b/i.test(task) && /\b(risers?|basements?|ducts?|pits?|shafts?|ceilings?)\b/i.test(task) ? '\nflammable atmosphere' : ''}`, pack.fallAnswer, state)
       .map((item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label)),
     hazards,
     controls: finalControls,
@@ -1175,7 +1209,7 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     power: mentioned(task, ENERGISED),
     scaffold,
     // Roofing work, not a roof beam or a job under a roof.
-    roof: /\b(roof(?:ing)? sheets?|roofing|re-?roof\w*|roof tiles?|on (?:the|a) roof|roof work|roof repairs?)\b/i.test(task) && !scaffold,
+    roof: /\b(roof(?:ing)? sheets?|roofing|re-?roof\w*|roof tiles?|on (?:the|a) roof|roof work|roof repairs?)\b/i.test(task) && !scaffold && !MECHANICAL_WORK.test(task),
     trench: deepExcavation(task) || /\b(excavat\w*|trench\w*)\b/i.test(task),
     propping: CATEGORY_FACTS.find((item) => item.id === 'temporarySupport').applies(task),
     demolition: mentioned(task, DEMOLITION),
@@ -1192,16 +1226,29 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     jumpform: JUMPFORM.test(task),
     ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task),
     electricalWork: ELECTRICAL_WORK.test(task),
-    plumbingWork: PLUMBING_WORK.test(task),
+    plumbingWork: isPlumbing(task),
     sewerConnection: /\b(sewer connection|connect\w* (?:to )?(?:the )?(?:council |existing |live )?sewer\w*|live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task),
-    castInPlumbing: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && /\b(sleeves?|puddle flanges?|plumbing|drainage|pipes?)\b/i.test(task),
+    castInPlumbing: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && /\b(sleeves?|puddle flanges?|plumbing|drainage|pipes?)\b/i.test(task) && isPlumbing(task),
     coreDrill: CORE_DRILL.test(task),
     // Installing risers or pipework at height, not other work done in the risers.
-    hydraulicRisers: PLUMBING_WORK.test(task) && /\binstall\w*\b/i.test(task) && /\b(risers?|stacks?|shafts?|ceilings?|at height)\b/i.test(task) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
+    hydraulicRisers: isPlumbing(task) && /\binstall\w*\b/i.test(task) && /\b(risers?|stacks?|shafts?|ceilings?|at height)\b/i.test(task) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
     hotWork: HOT_WORK.test(task),
     solventCement: /\b(solvent (?:cement|weld\w*)|pvc (?:glue|cement)|primer)\b/i.test(task),
     pressureTest: PRESSURE_TEST.test(task),
-    plumbingFitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task) && PLUMBING_WORK.test(task) && !ELECTRICAL_CORE.test(task),
+    plumbingFitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task) && isPlumbing(task) && !ELECTRICAL_CORE.test(task),
+    mechanicalWork: MECHANICAL_WORK.test(task),
+    refrigerantWork: REFRIGERANT.test(task),
+    // Heavy plant lifted, delivered or moved into place; not scissor or boom lifts.
+    plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|fans?(?!\s+coil)|plant)\b/i.test(task) && /\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*)\b/i.test(task),
+    ductwork: MECHANICAL_WORK.test(task) && /\binstall\w*\b/i.test(task) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task))),
+    refrigerantPipework: REFRIGERANT.test(task) && /\b(braz\w*|silver solder\w*)\b/i.test(task),
+    refrigerantTest: REFRIGERANT.test(task) && PRESSURE_TEST.test(task),
+    refrigerantCharge: REFRIGERANT.test(task) && /\b(charg\w*|evacuat\w*|recover\w*|decant\w*)\b/i.test(task),
+    // Plant installed on the roof, as opposed to pipework that only runs to it.
+    roofPlant: MECHANICAL_WORK.test(task) && /\binstall\w*\b[^.]{0,70}\b(?:on the roof|roof plant)\b/i.test(task) && !/\b(?:pipework|pipes?|lines?)\s+(?:between|from|to)\b/i.test(task),
+    jetFans: /\b(jet fans?|car ?park (?:ventilation|exhaust)\w*)\b/i.test(task),
+    mechInsulation: MECHANICAL_WORK.test(task) && /\b(insulat\w*|lagging)\b/i.test(task),
+    mechCommissioning: MECHANICAL_WORK.test(task) && /\b(commission\w*|start[- ]?up|balanc\w*)\b/i.test(task),
     tempPower: TEMP_POWER.test(task),
     castIn: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task),
@@ -1231,7 +1278,7 @@ function asSentence(text) {
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
-    if (['deckMethod', 'energisedWork', 'spaceAssessment'].includes(id)) return choiceAnswer(id, facts[id]);
+    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass'].includes(id)) return choiceAnswer(id, facts[id]);
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));
