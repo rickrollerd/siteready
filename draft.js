@@ -357,12 +357,23 @@ function loadsOnDeckOrSlab(text) {
     || (/\b(reo|reinforc\w*|rebar)\b/i.test(source) && /\b(deck|slab)\b/i.test(source));
 }
 
+// Entering a pit, sump, tank, manhole or sewer.
+const ENTERED_SPACE = /\b(?:enter\w*|entry|inside|work in|working in)\b[\w\s,-]{0,40}\b(pits?|sumps?|tanks?|manholes?|maintenance holes?|sewers?|wet wells?)\b/i;
+const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|welding)\b/i;
+const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air test\w*)\b/i;
+const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?)\b/i;
+const SILICA_WORK = /\b(core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|drill\w* (?:into )?(?:the )?(?:concrete|masonry|blockwork|block walls?|slabs?))\b/i;
+
 const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply)|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
 
 // Answers for a choice fact, read from the stored value.
 function choiceAnswer(id, value) {
   if (id === 'deckMethod') return deckMethodAnswer(value);
   const text = String(value || '').toLowerCase();
+  if (id === 'spaceAssessment') {
+    if (/\bnot ?confined|not a confined\b/.test(text)) return 'notConfined';
+    if (/\bconfined\b/.test(text)) return 'confined';
+  }
   if (id === 'energisedWork') {
     if (/\b(testing|commissioning|energised parts|within 3 ?m)\b/.test(text)) return 'testing';
     if (/\b(none|no|de-energised)\b/.test(text)) return 'none';
@@ -386,16 +397,35 @@ function deckMethodAnswer(value) {
 // Overhead and other power lines near the work, as opposed to electrical work itself.
 const ENERGISED = /\b(overhead (?:power |electric )?lines?|power lines?)\b/i;
 // An electrician's work on an installation.
-const ELECTRICAL_WORK = /\b(electrician|electrical (?:work|contractor|installation|fit[- ]?out)|wiring|switchboards?|distribution boards?|consumer mains|cabl\w*|circuits?|conduits?|terminat\w*|energis\w*|commission\w*|light fittings?|power points?|busduct)\b/i;
-const SWITCHBOARD_WORK = /\b(main switchboards?|consumer mains|energis\w*|commission\w*|terminat\w*|distribution boards?)\b/i;
+// Words that only an electrician's work uses. General words such as commissioning,
+// testing or rough-in count as electrical only alongside one of these.
+const ELECTRICAL_CORE = /\b(electrician|electrical|wiring|switchboards?|distribution boards?|consumer mains|cabl\w*|circuits?|conduits?|light fittings?|power points?|busduct|construction (?:power|wiring)|temporary (?:power|lighting))\b/i;
+const ELECTRICAL_WORK = ELECTRICAL_CORE;
+const SWITCHBOARD_WORDS = /\b(main switchboards?|consumer mains|energis\w*|commission\w*|terminat\w*|distribution boards?)\b/i;
+const SWITCHBOARD_WORK = { test: (text) => SWITCHBOARD_WORDS.test(String(text || '')) && ELECTRICAL_CORE.test(String(text || '')) };
+// A plumber's work.
+const PLUMBING_WORK = /\b(plumb\w*|hydraulic\w*|drain\w*|sewer\w*|sanitary|pipes?|pipework|sleeves?|puddle flanges?|hot water|cold water|tapware|toilets?|basins?|pump rooms?|sumps?|ejection pits?|water tanks?)\b/i;
 
 const CATEGORY_FACTS = [
+  {
+    // Pits, sumps, tanks and manholes are confined spaces only if they meet the
+    // definition in the WHS Regulation, schedule 19, so a competent person decides.
+    id: 'spaceAssessment',
+    label: 'Pits, tanks, sumps or manholes entered',
+    prompt: 'Has a competent person assessed the space against the confined space definition?',
+    choices: [
+      { value: 'confined', label: 'Yes: it is a confined space' },
+      { value: 'notConfined', label: 'Yes: it is not a confined space' },
+    ],
+    level: 'Administrative',
+    applies: (text) => ENTERED_SPACE.test(String(text || '')) && !/\bconfined space\b/i.test(String(text || '')),
+  },
   {
     id: 'confinedSpace',
     label: 'Confined space entry',
     prompt: 'The entry permit, atmosphere testing, the standby person outside, and how a person is rescued.',
     level: 'Administrative',
-    applies: (text) => mentioned(text, /\bconfined space\b/i),
+    applies: (text) => mentioned(text, /\bconfined space\b/i) || ENTERED_SPACE.test(String(text || '')),
   },
   {
     id: 'temporarySupport',
@@ -425,7 +455,7 @@ const CATEGORY_FACTS = [
     label: 'Isolation and testing procedure',
     prompt: 'How circuits are isolated, locked and tagged, and tested de-energised by a competent person before work, and who holds the locks.',
     level: 'Administrative',
-    applies: (text) => mentioned(text, SWITCHBOARD_WORK) || TEMP_POWER.test(String(text || '')) || /\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || '')),
+    applies: (text) => SWITCHBOARD_WORK.test(text) || TEMP_POWER.test(String(text || '')) || (/\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || '')) && ELECTRICAL_CORE.test(String(text || ''))),
   },
   {
     // Electrical work on or near energised parts is prohibited except as the
@@ -438,7 +468,7 @@ const CATEGORY_FACTS = [
       { value: 'testing', label: 'Testing or commissioning on or near energised parts (within 3 m)' },
     ],
     level: 'Administrative',
-    applies: (text) => mentioned(text, ELECTRICAL_WORK) && (mentioned(text, /\b(energis\w*|commission\w*|testing|test the|test,)\b/i) || TEMP_POWER.test(String(text || '')) || /\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || ''))),
+    applies: (text) => ELECTRICAL_CORE.test(String(text || '')) && (mentioned(text, /\b(energis\w*|commission\w*|testing|test the|test,)\b/i) || TEMP_POWER.test(String(text || '')) || /\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || ''))),
   },
   {
     id: 'constructionTesting',
@@ -467,6 +497,27 @@ const CATEGORY_FACTS = [
     ],
     level: 'Isolate or engineer',
     applies: (text) => deckLaying(text),
+  },
+  {
+    id: 'silicaControls',
+    label: 'Silica dust controls',
+    prompt: 'How silica dust is controlled (wet cutting, on-tool extraction or local exhaust), the respirator and its fit testing, and the written assessment of whether the work is high risk.',
+    level: 'Isolate or engineer',
+    applies: (text) => SILICA_WORK.test(String(text || '')),
+  },
+  {
+    id: 'hotWorkPermit',
+    label: 'Hot work permit and fire watch',
+    prompt: 'Who issues the hot work permit, the fire watch during and after the work, and the extinguishers at the work area.',
+    level: 'Administrative',
+    applies: (text) => HOT_WORK.test(String(text || '')),
+  },
+  {
+    id: 'pressureTesting',
+    label: 'Pressure testing method',
+    prompt: 'The test medium (water or air), the test pressure, how the area is kept clear during the test, and how pressure is released.',
+    level: 'Administrative',
+    applies: (text) => PRESSURE_TEST.test(String(text || '')),
   },
   {
     // Proprietary formwork, scaffold and platform systems are erected to their
@@ -652,6 +703,7 @@ const TOPIC_PATTERNS = {
 
 function factState(item, task, facts) {
   if (item.choices) return choiceAnswer(item.id, facts[item.id]) ? 'supplied' : 'missing';
+  if (item.id === 'confinedSpace' && !/\bconfined space\b/i.test(task) && choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'notConfined') return 'supplied';
   // Only needed when the fall control is administrative or PPE.
   if (item.id === 'controlsConsidered') {
     const fallLine = fallLineFor(combinedFacts(task, facts), facts);
@@ -778,10 +830,8 @@ function controlsFor(task, facts, pack) {
   }
 
   const ppeNamed = source.match(/\b(hard hats?|helmets?|safety glasses|eye protection|gloves?|safety boots|hearing protection|hi-?vis(?:ibility)?(?: clothing)?|high visibility clothing|respirators?|dust masks?)\b/gi) || [];
-  for (const item of dedupe(ppeNamed)) {
-    const name = `${item.charAt(0).toUpperCase()}${item.slice(1)}`;
-    push('PPE', `Wear ${name}.`);
-  }
+  // The PPE section lists each item with its type, so one pointer is clearer than vague 'Wear gloves' lines.
+  if (ppeNamed.length) push('PPE', 'Wear the PPE ticked in the PPE section, as listed for each job step.');
 
   if (!items.length) {
     push('Administrative', 'The controls for this task are set out in each job step below.');
@@ -1068,7 +1118,7 @@ function prepareDraft(input) {
     missing: [],
     statement: '',
     // Testing on or near energised parts is high risk construction work, however the task is worded.
-    highRisk: highRiskMatches(`${combinedFacts(task, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}`, pack.fallAnswer, state)
+    highRisk: highRiskMatches(`${combinedFacts(task, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}${choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined' ? '\nconfined space' : ''}${/\b(live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task) ? '\nwork near a confined space (sewer)\ncontaminated atmosphere (sewer gas)' : ''}${/\b(solvent (?:cement|weld\w*)|primer)\b/i.test(task) && /\b(risers?|basements?|ducts?|pits?|shafts?|ceilings?)\b/i.test(task) ? '\nflammable atmosphere' : ''}`, pack.fallAnswer, state)
       .map((item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label)),
     hazards,
     controls: finalControls,
@@ -1142,20 +1192,30 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     jumpform: JUMPFORM.test(task),
     ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task),
     electricalWork: ELECTRICAL_WORK.test(task),
+    plumbingWork: PLUMBING_WORK.test(task),
+    sewerConnection: /\b(sewer connection|connect\w* (?:to )?(?:the )?(?:council |existing |live )?sewer\w*|live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task),
+    castInPlumbing: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && /\b(sleeves?|puddle flanges?|plumbing|drainage|pipes?)\b/i.test(task),
+    coreDrill: CORE_DRILL.test(task),
+    // Installing risers or pipework at height, not other work done in the risers.
+    hydraulicRisers: PLUMBING_WORK.test(task) && /\binstall\w*\b/i.test(task) && /\b(risers?|stacks?|shafts?|ceilings?|at height)\b/i.test(task) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
+    hotWork: HOT_WORK.test(task),
+    solventCement: /\b(solvent (?:cement|weld\w*)|pvc (?:glue|cement)|primer)\b/i.test(task),
+    pressureTest: PRESSURE_TEST.test(task),
+    plumbingFitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task) && PLUMBING_WORK.test(task) && !ELECTRICAL_CORE.test(task),
     tempPower: TEMP_POWER.test(task),
-    castIn: /\b(cast[- ]in|in[- ]slab)\b/i.test(task),
+    castIn: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task),
     cablePull: /\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable)\b/i.test(task),
-    fitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task),
+    fitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     // Isolation steps for any work on the installation; commissioning only for the
     // permanent main switchboard and consumer mains, not construction power.
-    isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || /\b(rough[- ]in|fit[- ]off)\b/i.test(task),
-    commissioning: /\b(main switchboards?|consumer mains|commission\w*)\b/i.test(task) && !TEMP_POWER.test(task),
+    isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || (/\b(rough[- ]in|fit[- ]off)\b/i.test(task) && ELECTRICAL_CORE.test(task)),
+    commissioning: /\b(main switchboards?|consumer mains|commission\w*)\b/i.test(task) && ELECTRICAL_CORE.test(task) && !TEMP_POWER.test(task),
     deck: deckLaying(task),
     ewp: /\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(combinedFacts(task, facts)),
     precast: isPanelLift(task),
     asbestos: /\basbestos\b/i.test(task),
-    confined: /\bconfined space\b/i.test(task),
+    confined: /\bconfined space\b/i.test(task) || choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'confined',
     water: mentioned(task, WATER),
     painting: needsSafetyDataSheet(task) && /\b(paint\w*|enamel|coating)\b/i.test(task),
   };
@@ -1171,7 +1231,7 @@ function asSentence(text) {
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
-    if (['deckMethod', 'energisedWork'].includes(id)) return choiceAnswer(id, facts[id]);
+    if (['deckMethod', 'energisedWork', 'spaceAssessment'].includes(id)) return choiceAnswer(id, facts[id]);
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));
@@ -1180,7 +1240,7 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
     return '';
   };
   const [first] = sentences(task);
-  return jobStepsFor({ ...workFlags(task, facts, state.ownCrane), ...extra }, factText, {
+  return jobStepsFor({ ...workFlags(task, facts, state.ownCrane), ...extra, cite: state.id === 'qld' }, factText, {
     step: asSentence(first || task),
     hazards: hazards.map((row) => `${row.hazard}: ${row.risk}`),
     controls: controls.map((item) => item.text),

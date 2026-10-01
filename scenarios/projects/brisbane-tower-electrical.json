@@ -110,7 +110,8 @@
       "fallRisk": "no",
       "facts": {
         "isolationProcedure": "Each circuit is isolated at the distribution board, locked with a personal lock and danger tag, and tested de-energised by a licensed electrician before work.",
-        "energisedWork": "testing"
+        "energisedWork": "testing",
+        "silicaControls": "Chasing and drilling are done with on-tool dust extraction, with fit tested P2 respirators, and the written silica assessment is done before work starts."
       },
       "expect": {
         "highRisk": [
@@ -123,6 +124,7 @@
         ],
         "missing": [
           "Isolation and testing procedure",
+          "Silica dust controls",
           "Work on or near energised parts"
         ]
       }

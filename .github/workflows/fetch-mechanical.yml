@@ -1,0 +1,34 @@
+name: Fetch mechanical sources
+
+# Reads the plant code and refrigerant law behind SiteReady's mechanical job steps, one job per source and chunk so each log can be read back.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'legislation-watch/fetch-source.js'
+      - '.github/workflows/fetch-mechanical.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { source: ozoneDownloads, chunk: 0 }
+          - { source: refrigerantCode, chunk: 0 }
+    name: ${{ matrix.source }} ${{ matrix.chunk }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - run: node legislation-watch/fetch-source.js
+        env:
+          SOURCE: ${{ matrix.source }}
+          CHUNK: ${{ matrix.chunk }}
