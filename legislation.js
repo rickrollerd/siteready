@@ -289,6 +289,52 @@ const TASMANIA = {
   overheadLineControl: 'Keep people, plant and things out of an unsafe distance of an overhead or underground electric line (Work Health and Safety Regulations 2022 (Tas), regulation 166). The regulations set no distance, so get the electricity supply authority\'s requirements before work starts. If a safe distance is not reasonably practicable, do a risk assessment and follow those requirements. The Electricity Industry Safety and Administration Act 1997 also applies.',
 };
 
+// Checked against the official current PDF (Republication 47, effective 29 November 2025)
+// read from legislation.act.gov.au, and the model WHS Regulations (5 December 2025).
+const AUSTRALIAN_CAPITAL_TERRITORY = {
+  id: 'act',
+  name: 'Australian Capital Territory',
+  loaded: true,
+  instrument: 'Work Health and Safety Regulation 2011 (ACT)',
+  compilation: '29 November 2025',
+  versionLabel: 'republication 47, effective 29 November 2025',
+  section: '299',
+  sectionRef: 'section 299',
+  sectionTitle: 'Safe work method statement required for high risk construction work',
+  reviewHeading: 'How the controls will be implemented, monitored and reviewed',
+  contents: [
+    'the work that is high risk construction work',
+    'the hazards and the risks to health and safety',
+    'the measures to control the risks',
+    'how the control measures are to be implemented, monitored and reviewed',
+  ],
+  // Section 291, in the regulation's words. The ACT adds light rail and item (s).
+  highRisk: [
+    { id: 'fall', check: 'fall', label: 'Involves a risk of a person falling more than 2m' },
+    { id: 'tower', check: 'tower', label: 'Is carried out on a telecommunication tower' },
+    { id: 'demolition', check: 'demolition', label: 'Involves demolition of an element of a structure that is load-bearing or otherwise related to the physical integrity of the structure' },
+    { id: 'asbestos', check: 'asbestos', label: 'Involves, or is likely to involve, the disturbance of asbestos' },
+    { id: 'temporary', check: 'temporary', label: 'Involves structural alterations or repairs that require temporary support to prevent collapse' },
+    { id: 'confined', check: 'confined', label: 'Is carried out in or near a confined space' },
+    { id: 'trench', check: 'trench', label: 'Is carried out in or near a shaft or trench with an excavated depth greater than 1.5m, or a tunnel' },
+    { id: 'explosives', check: 'explosives', label: 'Involves the use of explosives' },
+    { id: 'gas', check: 'gas', label: 'Is carried out on or near pressurised gas distribution mains or piping' },
+    { id: 'chemicalLine', check: 'chemicalLine', label: 'Is carried out on or near chemical, fuel or refrigerant lines' },
+    { id: 'electrical', check: 'electrical', label: 'Is carried out on or near energised electrical installations or services' },
+    { id: 'atmosphere', check: 'atmosphere', label: 'Is carried out in an area that may have a contaminated or flammable atmosphere' },
+    { id: 'precast', check: 'precast', label: 'Involves tilt-up or precast concrete' },
+    { id: 'road', check: 'road', label: 'Is carried out on, in or adjacent to a road, railway (including light rail), shipping lane or other traffic corridor that is in use by traffic other than pedestrians' },
+    { id: 'plant', check: 'plant', label: 'Is carried out in an area at a workplace in which there is any movement of powered mobile plant' },
+    { id: 'temperature', check: 'temperature', label: 'Is carried out in an area in which there are artificial extremes of temperature' },
+    { id: 'water', check: 'water', label: 'Is carried out in or near water or other liquid that involves a risk of drowning' },
+    { id: 'diving', check: 'diving', label: 'Involves diving work' },
+    { id: 'silica', check: 'silica', label: 'Involves processing crystalline silica material using a power tool or another mechanical method' },
+  ],
+  fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulation 2011 (ACT), section 291, work that involves a risk of a person falling more than 2 metres is high risk construction work. Section 299 says high risk construction work needs a safe work method statement before it starts.',
+  // Section 166 sets no distance, and names the ACT electricity Acts.
+  overheadLineControl: 'Keep people, plant and things out of an unsafe distance of an overhead or underground electric line (Work Health and Safety Regulation 2011 (ACT), section 166). The regulation sets no distance, so get the electricity supply authority\'s requirements before work starts. If a safe distance is not reasonably practicable, do a risk assessment and follow those requirements. The Electricity Safety Act 1971, the Utilities Act 2000 and the Utilities (Technical Regulation) Act 2014 also apply.',
+};
+
 // Checked against the authorised PDF of the Occupational Health and Safety Regulations 2017
 // (Vic), S.R. No. 22/2017, authorised version 017 incorporating amendments as at 29 July 2026.
 // Victoria is not a model WHS state: its list is regulation 322 and differs from section 291.
@@ -360,7 +406,7 @@ const STATES = [
   WESTERN_AUSTRALIA,
   TASMANIA,
   { id: 'nt', name: 'Northern Territory', loaded: false },
-  { id: 'act', name: 'Australian Capital Territory', loaded: false },
+  AUSTRALIAN_CAPITAL_TERRITORY,
 ];
 
 const ALIASES = {
@@ -413,6 +459,7 @@ module.exports = {
   SOUTH_AUSTRALIA,
   WESTERN_AUSTRALIA,
   TASMANIA,
+  AUSTRALIAN_CAPITAL_TERRITORY,
   STATES,
   highRiskLabel,
   highRiskList,

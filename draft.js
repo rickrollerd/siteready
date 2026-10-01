@@ -282,6 +282,14 @@ function mentioned(text, pattern) {
   return pattern.test(String(text || ''));
 }
 
+const SILICA_MATERIAL = /\b(engineered stone|natural stone|stone|concrete|cement|bricks?|pavers?|blocks?|blockwork|masonry|tiles?|tiling|grout|mortar|render|plasterboard|porcelain|sintered stone|silica)\b/i;
+const SILICA_POWER = /\b(grind\w*|grinder|drill\w*|polish\w*|sand(?:s|ing|er)\b|saw\w*|chas(?:e|es|ing)|cor(?:e|ing)|core drill|scabbl\w*|jackhammer\w*|demolition hammer|router|power tool|angle grinder|crush\w*|tile cutter|wet saw)/i;
+
+function silicaProcessing(text) {
+  const source = String(text || '');
+  return SILICA_MATERIAL.test(source) && SILICA_POWER.test(source);
+}
+
 function highRiskMatches(text, answer, state) {
   const checks = {
     fall: fallRiskFor(text, answer),
@@ -297,7 +305,7 @@ function highRiskMatches(text, answer, state) {
     electrical: mentioned(text, /\b(energised|energized|overhead (?:power )?lines?|live electrical|electrical services?)\b/i),
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i),
     precast: mentioned(text, /\b(tilt-?up|precast)\b/i),
-    road: mentioned(text, ROAD),
+    road: mentioned(text, ROAD) || /\blight rail\b/i.test(String(text || '')),
     plant: mentioned(text, /\b(powered mobile plant|excavators?|forklifts?|trucks?|cranes?|loaders?|liebherr)\b/i),
     temperature: mentioned(text, /\bartificial extremes of temperature\b/i),
     water: mentioned(text, WATER),
@@ -308,6 +316,9 @@ function highRiskMatches(text, answer, state) {
     trenchOrShaft: /\b(trench\w*|shaft)\b/i.test(text) && deepExcavation(text.replace(/\btunnel\w*\b/gi, '')),
     tunnel: mentioned(text, /\btunnel\w*\b/i),
     roadOrRail: mentioned(String(text || '').replace(/\bshipping lanes?\b/gi, ''), ROAD),
+    // ACT, section 291(s): processing crystalline silica material with a power tool or
+    // another mechanical method (section 418A). Hand tools alone do not count.
+    silica: silicaProcessing(text),
   };
   return highRiskList(state).filter((item) => checks[item.check]);
 }
@@ -604,6 +615,7 @@ const HRCW_HAZARDS = {
   temperature: ['Artificial extremes of temperature', 'A person suffers heat or cold illness.'],
   water: ['Water or other liquid', 'A person drowns.'],
   diving: ['Diving work', 'A person drowns or is injured under water.'],
+  silica: ['Respirable crystalline silica', 'A person breathes in silica dust.'],
 };
 
 function hazardsFor(task, facts, pack) {
