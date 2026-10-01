@@ -759,6 +759,8 @@ const PPE_IDS = new Set(PPE.flatMap((group) => group.items.map(([id]) => id)));
 // A choice control gives the lines for the option the user chose.
 function expand(control, factText) {
   if (typeof control === 'string') return [control];
+  // A control taken from a regulation or code carries its source, printed after it.
+  if (control.text) return [control.source ? `${control.text} (${control.source})` : control.text];
   if (control.choice) return control.options[factText(control.choice)] || [];
   const text = factText(control.fact);
   if (text) return [text];
