@@ -16,7 +16,7 @@ const CPR = (section) => `Telecommunications (Cabling Provider) Rules 2025 (Cth)
 const SPA = (section) => `Security Providers Act 1993 (Qld) ${section}`;
 const ARC = (section) => `Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 ${section}`;
 const src = (text, source) => ({ text, source });
-const { localSource } = require('./citations');
+const { localSource, localText } = require('./citations');
 
 const BEFORE = {
   step: 'Before starting',
@@ -3242,7 +3242,8 @@ function expand(control, factText, cite = 'qld') {
   if (typeof control === 'string') return [control];
   if (control.text) {
     const source = cite && control.source ? localSource(control.source, cite) : '';
-    return [source ? `${control.text} (${source})` : control.text];
+    const text = localText(control.text, cite);
+    return [source ? `${text} (${source})` : text];
   }
   if (control.choice) return (control.options[factText(control.choice)] || []).flatMap((item) => expand(item, factText, cite));
   const text = factText(control.fact);
