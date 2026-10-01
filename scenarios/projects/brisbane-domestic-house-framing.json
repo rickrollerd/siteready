@@ -32,5 +32,14 @@
       }
     }
   ],
-  "rules": []
+  "rules": [
+    {
+      "swms": [
+        "frame"
+      ],
+      "phrase": "Brace and secure each frame as it is stood",
+      "source": "Model Code: Construction work appendix K",
+      "quote": "securing and properly bracing structures"
+    }
+  ]
 }

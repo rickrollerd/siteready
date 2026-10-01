@@ -19,5 +19,14 @@
       }
     }
   ],
-  "rules": []
+  "rules": [
+    {
+      "swms": [
+        "fence"
+      ],
+      "phrase": "Get the underground services information before digging",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 304",
+      "quote": "take all reasonable steps to obtain current underground essential services information"
+    }
+  ]
 }

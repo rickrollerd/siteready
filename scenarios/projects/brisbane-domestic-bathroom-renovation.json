@@ -31,5 +31,22 @@
       }
     }
   ],
-  "rules": []
+  "rules": [
+    {
+      "swms": [
+        "strip"
+      ],
+      "phrase": "all asbestos likely to be disturbed is identified",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 457",
+      "quote": "all asbestos that is likely to be disturbed by the refurbishment is identified; and (b) so far as is reasonably practicable, that the asbestos is removed before the refurbishment is commenced"
+    },
+    {
+      "swms": [
+        "strip"
+      ],
+      "phrase": "except for 10 m2 or less of non-friable asbestos",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 458",
+      "quote": "(a) 10m 2 or less of non-friable asbestos"
+    }
+  ]
 }
