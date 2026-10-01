@@ -10,6 +10,7 @@ const CODE = (section) => `Model Code: Managing electrical risks ${section}`;
 const WHS = (section) => `Work Health and Safety Regulation 2011 (Qld) ${section}`;
 const PDA = (section) => `Plumbing and Drainage Act 2018 (Qld) ${section}`;
 const MODEL = (code, section) => `Model Code: ${code} ${section}`;
+const PSTD = (section) => `Piling industry standard (WorkSafe Victoria and PFSF, 2014, Victorian guidance) ${section}`;
 const OZONE = (section) => `Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth) ${section}`;
 const CPR = (section) => `Telecommunications (Cabling Provider) Rules 2025 (Cth) ${section}`;
 const SPA = (section) => `Security Providers Act 1993 (Qld) ${section}`;
@@ -46,6 +47,8 @@ const BEFORE_EXTRA = [
   { when: 'ictWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'ictWork', text: src('Cabling work is done by a registered cabling provider whose registration covers the work (an open registration, with the extra units of competency for structured, optical fibre or coaxial cabling notified to the registrar), or by a cabler directly supervised at all times by one who holds that competency and accepts full responsibility for the work. All cabling complies with the Wiring Rules (AS/CA S009), and cabling and equipment comply with the Labelling Notice.', CPR('s 21, s 22, s 23, s 24')) },
   { when: 'ictWork', text: src('When the cabling work is complete, the registered cabling provider gives a statement that it complies fully with the Wiring Rules to their employer and the customer, and keeps a copy for at least 1 year.', CPR('s 25')) },
+  { when: 'pilingWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'pilingWork', text: 'Piling controls cited to the piling industry standard are Victorian guidance, used here as good practice. Qld has no piling rig licence.' },
   { when: 'facadeWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'securityWork', text: src('Security equipment such as CCTV, access control, intercoms and alarms is installed only by licensed security equipment installers.', SPA('s 6B, s 8A, s 9')) },
   { when: 'refrigerantWork', text: src('Work on refrigeration and air conditioning equipment, including installing and commissioning it whether or not refrigerant is present, is done only by holders of a refrigerant handling licence that covers the work. Trainee licence holders work under the supervision of a full licence holder.', `${OZONE('reg 111, reg 134')}; ${ARC('s 1.1.1')}`) },
@@ -311,7 +314,7 @@ const ACTIVITIES = [
         hazards: ['The crane overturns from poor ground or an overload.'],
         controls: [
           { fact: 'craneChart' },
-          'Check the ground and use outrigger pads before setting up.',
+          'Check the ground or working platform can carry the crane\'s outrigger or track loads under the heaviest lift before setting up.',
           'The crane operator, and the dogman or rigger, hold current high risk work licences.',
         ],
       },
@@ -630,7 +633,7 @@ const ACTIVITIES = [
       step: 'Use an elevating work platform',
       hazards: ['The platform overturns or falls from a slab edge.', 'The operator is crushed against the structure.'],
       controls: [
-        'Check the slab can take the platform, and keep it back from slab edges and penetrations.',
+        'Check the slab, working platform or ground can take the platform, and keep it back from edges, penetrations and open excavations.',
         src('The operator is trained for the platform. A high risk work licence is needed only for a boom-type platform with a boom of 11 m or more.', WHS('s 81, schedule 3')),
         'Wear a harness attached to the platform\'s anchor point in a boom-type platform.',
         src('Check for crushing points such as low soffits, beams and services before raising or moving the platform. Operators are trained in safe work procedures to avoid crushing.', MODEL('Managing the risk of falls', 's 5.1')),
@@ -1350,6 +1353,151 @@ const ACTIVITIES = [
       ],
     }],
     ppe: ['gloveChemical', 'p2'],
+  },
+  {
+    when: 'pilingPlatform',
+    steps: [
+      {
+        step: 'Prepare the piling working platform',
+        hazards: ['The rig overturns because the platform cannot carry it.', 'Other works weaken the platform.'],
+        controls: [
+          { fact: 'pilingPlatform' },
+          src('A competent person, such as a geotechnical engineer, designs the working platform from the rig\'s operating bearing pressures, not its static weight.', PSTD('s 3.12')),
+          src('After the platform is built, a competent person inspects it and states in writing its maximum plant loading. The rig operator has a copy before the rig goes onto it.', PSTD('s 4.3')),
+          src('A different rig, even a smaller one, is checked against the platform first. Smaller rigs often have higher bearing pressures.', PSTD('s 4.3')),
+          src('No piling where trenching or other work has disturbed the platform until it is reinstated and approved again. The platform is monitored and maintained for the whole job.', PSTD('s 4.3')),
+          src('Slopes are within the rig\'s limits, and the ground carries the rig and delivery trucks.', PSTD('s 4.1')),
+        ],
+      },
+      {
+        step: 'Deliver, assemble and dismantle the rig',
+        hazards: ['Crushing or falling parts during assembly.', 'Delivery trucks strike people.', 'A fall from the mast or rig.'],
+        controls: [
+          src('Assemble and dismantle the rig to the manufacturer\'s procedure, by a crew trained in that procedure for that rig.', PSTD('s 4.4')),
+          src('Exclusion zone around assembly and disassembly. Deliveries follow the site traffic management plan, and drivers follow the traffic controller and the piling crew.', `${PSTD('s 4.4, s 4.9')}; ${MODEL('Excavation work', 's 4.3')}`),
+          src('Keep rigs and trucks apart from people.', WHS('s 215')),
+          { fact: 'fallControl' },
+          src('Assembly procedures control the risks of working at height. No climbing the mast; work at height on the rig uses its access systems or an elevating work platform.', PSTD('s 4.4')),
+        ],
+      },
+    ],
+  },
+  {
+    when: 'pilingRig',
+    steps: [{
+      step: 'Drill and install piles',
+      hazards: ['Entanglement in the rotating auger or kelly.', 'The rig overturns or strikes a person.', 'Striking underground services or overhead powerlines.', 'Spoil thrown from the auger.'],
+      controls: [
+        { fact: 'rigExclusionZone' },
+        src('Fence and sign the operational safety zone around the rig. The exclusion zone is described in this SWMS, and the piling supervisor supervises it.', PSTD('s 4.5, s 4.6')),
+        src('No one approaches the rig until the operator has agreed. Agree hand signals or radios, with a relay offsider when the signaller is out of the operator\'s view.', `${MODEL('Excavation work', 's 4.3')}; ${PSTD('s 3.13')}`),
+        src('Isolate the rig before cleaning the auger or any maintenance.', MODEL('Managing the risks of plant in the workplace', 's 3.6')),
+        src('Manage the risk of the rig overturning or colliding with any person or thing.', WHS('s 214')),
+        src('The principal contractor obtains the underground services information, and services are marked so rig operators can see them.', `${WHS('s 304')}; ${PSTD('s 4.8')}`),
+        src('Treat powerlines as live unless the asset owner confirms in writing that they are isolated, and keep the platform from raising ground levels under them. Where powerlines are near, the no go zones and how they are kept are written here: ____.', PSTD('s 4.7')),
+        src('Rigs keep out of the zone of influence of the basement edge and the retention wall unless the support is designed by a competent person for the rig.', MODEL('Excavation work', 's 4.1, s 4.3')),
+        src('Spoil is kept outside the zone of influence of the basement excavation and any open bores.', MODEL('Excavation work', 's 4.1')),
+        src('Operators are trained on the specific rig and its attachments. Trainees never operate unsupervised.', PSTD('s 5.4, s 5.5')),
+        src('Pre-start inspection each shift. Safety faults are fixed before the rig is used. A competent person maintains it to the manufacturer\'s recommendations, with an annual inspection.', `${WHS('s 213')}; ${PSTD('s 6.2, s 6.3, s 6.4')}`),
+      ],
+    }],
+    ppe: ['earMuffs', 'hivis'],
+  },
+  {
+    when: 'pileCage',
+    steps: [{
+      step: 'Lift, pitch and lower reinforcement cages',
+      hazards: ['A cage falls or buckles during the lift.', 'A person is struck or crushed by a swinging cage.', 'A fall into the open bore while guiding the cage.'],
+      controls: [
+        src('The crane operator holds the slewing mobile crane licence for the crane\'s maximum rated capacity (up to 20 t, 60 t, 100 t or over 100 t). Slinging and directing lifts out of the operator\'s view is dogging work. Sight each licence before work.', WHS('s 81, s 85, schedule 3')),
+        src('A mobile crane with a maximum rated capacity over 10 t is registered, and its registration is current.', WHS('schedule 5')),
+        src('Lifting gear suits the cage, and lifts stay within the crane\'s limits. No one stands under a suspended cage, and the cage stays under control while it is pitched and lowered, with tag lines.', WHS('s 219')),
+        src('Pitching with two machines (crane and rig, or a tailing crane) only where each machine is designed to lift a load. The rig\'s whip line is used only where the rig is designed to lift that load.', WHS('s 219')),
+        src('Plan the slings and the cage lay-down areas.', PSTD('s 3.9, s 3.10')),
+        'Guide the cage into the bore from outside the bore guard, never by standing over the open bore.',
+      ],
+    }],
+    replaces: ['reo'],
+  },
+  {
+    when: 'cfaCage',
+    steps: [{
+      step: 'Lift and plunge cages into the fresh CFA pile',
+      hazards: ['A cage falls or buckles during the lift.', 'A person is struck or crushed by a swinging cage.', 'Concrete splash and skin burns from wet concrete.'],
+      controls: [
+        src('The crane operator holds the slewing mobile crane licence for the crane\'s maximum rated capacity (up to 20 t, 60 t, 100 t or over 100 t). Slinging and directing lifts out of the operator\'s view is dogging work. Sight each licence before work.', WHS('s 81, s 85, schedule 3')),
+        src('A mobile crane with a maximum rated capacity over 10 t is registered, and its registration is current.', WHS('schedule 5')),
+        src('Lifting gear suits the cage, and lifts stay within the crane\'s limits. No one stands under a suspended cage, and the cage stays under control while it is pitched and plunged, with tag lines.', WHS('s 219')),
+        src('Plan the slings and the cage lay-down areas.', PSTD('s 3.9, s 3.10')),
+        'Guide the cage from beside the pile, never under it, and keep hands clear of the cage as it is pushed into the concrete.',
+      ],
+    }],
+    replaces: ['reo'],
+    ppe: ['gloveChemical', 'goggles'],
+  },
+  {
+    when: 'openBore',
+    steps: [{
+      step: 'Protect open bores',
+      hazards: ['A person falls into an open bore.', 'Drowning in a bore holding water or slurry.', 'Bore collapse.'],
+      controls: [
+        src('Cover or guard each bore as soon as it is formed. Covers carry at least a 2 kN point load, are fixed down, and are signed DANGER HOLE BENEATH.', `${MODEL('Managing the risk of falls', 's 4.2')}; ${WHS('s 306F')}`),
+        src('Pile hole guards with a footplate, or a lockable cover, at every open bore.', `${PSTD('s 3.7, s 3.10')}; ${MODEL('Excavation work', 's 5.3')}`),
+        src('Barricade and sign the bore area, and keep the site secure from unauthorised access.', `${MODEL('Managing the risk of falls', 's 8.1')}; ${WHS('s 298')}`),
+        'No one enters a pile bore.',
+        src('The emergency plan covers rescue of a person from a bore or excavation.', MODEL('Excavation work', 's 3.7')),
+      ],
+    }],
+  },
+  {
+    when: 'pileConcrete',
+    steps: [{
+      step: 'Place concrete in the piles',
+      hazards: ['A pressurised concrete line or hydraulic hose fails.', 'A line blockage releases under pressure.', 'Strain handling hoses and pipes.'],
+      controls: [
+        src('Manage failure of pressurised concrete lines and hydraulics.', WHS('s 214')),
+        src('Release pressure and isolate before clearing a blockage. Refit guards before restarting.', MODEL('Managing the risks of plant in the workplace', 's 3.6')),
+        src('Use lifting aids for hoses and pipes rather than carrying them.', MODEL('Hazardous manual tasks', 's 4.5')),
+        src('Agitator trucks keep to the set routes.', PSTD('s 4.9')),
+      ],
+    }],
+    replaces: ['concrete'],
+  },
+  {
+    when: 'pileTrim',
+    steps: [{
+      step: 'Trim pile heads',
+      hazards: ['Silica dust from breaking concrete.', 'Noise and hand-arm vibration from breakers.', 'Flying fragments.', 'Back strain and crush handling broken pile heads.'],
+      controls: [
+        { fact: 'silicaControls' },
+        src('Breaking concrete with power tools or plant is processing crystalline silica. Control it with wet suppression or on-tool extraction, and fit tested respirators for anyone still at risk.', WHS('s 529A, s 529B, s 529C')),
+        src('Assess in writing before breaking whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS, with the written assessment attached, can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
+        src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak, reducing it at the source first. Workers who must wear hearing protection have hearing tests within 3 months and at least every 2 years.', WHS('s 56, s 57, s 58')),
+        src('Choose low vibration tools, or plant such as hydraulic pile croppers, to reduce hand-held breaking.', MODEL('Hazardous manual tasks', 's 4.8')),
+        'Where hand-held breakers are used: rotate operators to limit time on the tool, use the lightest breaker that does the job, keep both hands on it, and keep others outside the fragment zone.',
+        'Exposed starter bars are capped or bent over, and broken pile heads are lifted with lifting gear, not by hand.',
+        src('An excavator lifts broken pile heads only where it is designed to lift that load, or the lift creates no greater risk than with plant designed for it.', WHS('s 219')),
+        src('Keep people clear of the excavator and croppers while they work.', WHS('s 215')),
+        src('Isolate the work area for flying fragments, and wear a face shield.', MODEL('Managing the risks of plant in the workplace', 's 2.3')),
+      ],
+    }],
+    ppe: ['p2', 'earMuffs', 'faceShield'],
+  },
+  {
+    when: 'retentionWall',
+    steps: [{
+      step: 'Excavate in front of the retention wall',
+      hazards: ['The wall or face collapses.', 'Neighbouring buildings move or flood.', 'A fall from the basement edge.', 'Plant at the edge overloads the wall.'],
+      controls: [
+        { fact: 'temporarySupport' },
+        src('Neighbouring buildings are protected before digging, and the work does not flood them.', MODEL('Excavation work', 's 3.4')),
+        src('Excavate in stages, with support keeping pace. No one works ahead of the support. Where ground anchors are used, soil above them is removed only after a competent person approves.', MODEL('Excavation work', 's 6.2')),
+        src('No plant or loads near the edge unless the support is designed by a competent person to carry them.', MODEL('Excavation work', 's 4.1')),
+        src('A competent person inspects the wall and excavation often, and any repair is made from above before work below continues.', MODEL('Excavation work', 's 6.6')),
+        src('The emergency plan covers ground slip, flooding and rescue from the excavation.', MODEL('Excavation work', 's 3.7')),
+      ],
+    }],
   },
   {
     when: 'asbestos',

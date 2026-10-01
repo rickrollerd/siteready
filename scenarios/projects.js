@@ -7,7 +7,7 @@ const path = require('path');
 const { prepareDraft } = require('../draft');
 const { STATES, highRiskLabel } = require('../legislation');
 
-const files = process.argv[2] ? [process.argv[2]] : ['brisbane-tower.json', 'brisbane-tower-electrical.json', 'brisbane-tower-plumbing.json', 'brisbane-tower-mechanical.json', 'brisbane-tower-ict.json', 'brisbane-tower-facade.json'].map((name) => path.join(__dirname, 'projects', name));
+const files = process.argv[2] ? [process.argv[2]] : ['brisbane-tower.json', 'brisbane-tower-electrical.json', 'brisbane-tower-plumbing.json', 'brisbane-tower-mechanical.json', 'brisbane-tower-ict.json', 'brisbane-tower-facade.json', 'brisbane-tower-piling.json'].map((name) => path.join(__dirname, 'projects', name));
 let exitCode = 0;
 for (const file of files) exitCode = Math.max(exitCode, runProject(require(path.resolve(file))));
 process.exit(exitCode);
@@ -37,6 +37,8 @@ const REWORDINGS = [
   ['optical fibre', 'fibre optic'],
   ['unitised curtain wall panels', 'facade panels'],
   ['swing stages', 'suspended scaffolds'],
+  ['CFA piles', 'continuous flight auger piles'],
+  ['pile heads', 'piles'],
 ];
 
 

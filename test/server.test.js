@@ -55,7 +55,7 @@ test('trade and task pick lists come from the tested project sets', async () => 
   const response = await fetch(`${base}/api/presets`);
   assert.equal(response.status, 200);
   const { trades } = await response.json();
-  assert.deepEqual(trades.map((trade) => trade.id), ['structure', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade']);
+  assert.deepEqual(trades.map((trade) => trade.id), ['piling', 'structure', 'electrical', 'plumbing', 'mechanical', 'ICT and security', 'facade']);
   for (const trade of trades) {
     assert.ok(trade.tasks.length >= 5);
     for (const item of trade.tasks) {
