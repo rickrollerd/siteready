@@ -113,11 +113,13 @@
     "fallRisk": "yes",
     "facts": {
       "fallControl": "Access is by a fixed ladder with a full body harness attached to a retrieval tripod over the hatch.",
-      "controlsConsidered": "Removing the need to enter was considered, but the valve cannot be reached from outside. A fixed platform cannot be installed inside the tank."
+      "controlsConsidered": "Removing the need to enter was considered, but the valve cannot be reached from outside. A fixed platform cannot be installed inside the tank.",
+      "confinedSpace": "An entry permit is issued for each entry. The air is tested for oxygen, flammable gas and toxic gas before entry and continuously during the work. A standby person stays at the hatch with a radio. The retrieval tripod and winch are used for rescue, and the rescue plan is practised before the work starts."
     },
     "expect": {
       "missing": [
-        "Fall control"
+        "Fall control",
+        "Confined space entry"
       ],
       "highRisk": [
         "fall",
@@ -135,9 +137,13 @@
     "title": "Demolition of a load-bearing wall with propping",
     "task": "Demolish a load-bearing internal brick wall on the ground floor of an office building to form an opening. Temporary propping supports the floor above until the new steel beam is installed.",
     "fallRisk": "no",
-    "facts": {},
+    "facts": {
+      "temporarySupport": "Propping is installed to the structural engineer's design drawing TS-01 revision A. The engineer inspects and signs off the propping before any brickwork is removed."
+    },
     "expect": {
-      "missing": [],
+      "missing": [
+        "Temporary support design"
+      ],
       "highRisk": [
         "demolition",
         "temporary"
@@ -155,11 +161,13 @@
     "task": "Install a new steel-framed carport beside a house, using a crane truck to lift the roof beams into place. Overhead power lines run along the front boundary about 5 m from the work area.",
     "fallRisk": "no",
     "facts": {
-      "craneChart": "Rated capacity 1.5 t at 6 m radius from the crane truck load chart."
+      "craneChart": "Rated capacity 1.5 t at 6 m radius from the crane truck load chart.",
+      "electricalSafety": "The crane truck is set up so the boom and load stay more than 3 m from the lines at all times. A safety observer watches the boom and has no other duties. The network operator's requirements are obtained before the lift."
     },
     "expect": {
       "missing": [
-        "Crane chart"
+        "Crane chart",
+        "Electrical safety arrangement"
       ],
       "highRisk": [
         "electrical",
@@ -218,9 +226,13 @@
     "title": "Jetty decking replacement over a tidal river",
     "task": "Replace timber decking boards on a jetty over a tidal river. Workers kneel on the jetty deck about 1.5 m above the water.",
     "fallRisk": "no",
-    "facts": {},
+    "facts": {
+      "drowningControls": "Workers wear life jackets on the jetty. Boards are removed one bay at a time and the open bay is covered or barricaded. A life ring with a throw line is kept on the jetty, and a second worker is always present to raise the alarm and do the rescue from the jetty."
+    },
     "expect": {
-      "missing": [],
+      "missing": [
+        "Drowning controls"
+      ],
       "highRisk": [
         "water"
       ],

@@ -1,0 +1,422 @@
+// Job steps for common kinds of construction work, each with its hazards and
+// controls, as the regulators' SWMS templates lay them out. The text is general
+// good practice for the subcontractor to check and change to suit the site.
+// A control written { fact: 'id' } is replaced with what the user gave for that fact.
+
+const BEFORE = {
+  step: 'Before starting',
+  hazards: [
+    'Work starts before everyone knows the risks and controls.',
+    'People who are not involved walk into the work area.',
+  ],
+  controls: [
+    'Workers have done the site induction, and this SWMS is explained to them before they sign it.',
+    'Check that licences, tickets and permits needed for the task are current.',
+    'Inspect tools, plant and equipment before use. Tag out and remove anything faulty.',
+    'Set up barriers and signs around the work area.',
+  ],
+};
+
+const FINISH = {
+  step: 'Finish and clean up',
+  hazards: [
+    'Trips and cuts from waste and offcuts.',
+    'The area is left unsafe for others.',
+  ],
+  controls: [
+    'Remove waste and offcuts as the work goes, and at the end of each day.',
+    'Barriers and signs stay in place until the hazard is gone.',
+    'Report any incident, near miss or damage to the supervisor.',
+  ],
+};
+
+const ACTIVITIES = [
+  {
+    when: 'road',
+    steps: [{
+      step: 'Set up traffic management',
+      hazards: ['Workers struck by passing vehicles.', 'Vehicles or pedestrians enter the work area.'],
+      controls: [
+        'Set up traffic control to the approved traffic management plan before work starts, with the road authority\'s approval where needed.',
+        'Only qualified traffic controllers direct traffic.',
+        'Keep work, plant and materials inside the separated work area.',
+      ],
+    }],
+    ppe: ['hivisNight', 'sunscreen'],
+  },
+  {
+    when: 'power',
+    steps: [{
+      step: 'Plan the work near overhead power lines',
+      hazards: ['Plant, a load or a tool contacts or comes close to the lines, causing electrocution.'],
+      controls: [
+        { fact: 'electricalSafety' },
+        'Stop work if any part of the plant or load comes inside the safe distance.',
+        'Treat every line as live unless the network operator confirms in writing it is isolated.',
+      ],
+    }],
+  },
+  {
+    when: 'scaffold',
+    steps: [
+      {
+        step: 'Set up and protect the area below',
+        hazards: ['Falling objects strike people below, including the public.', 'Scaffold collapse from poor ground or base.'],
+        controls: [
+          'Protect people below with a hoarding or gantry, or divert pedestrians, as approved.',
+          'Check the ground and set out base plates and sole boards to the scaffold design.',
+        ],
+      },
+      {
+        step: 'Erect the scaffold',
+        hazards: ['Scaffolders fall from height.', 'Dropped components.', 'Manual handling strain.'],
+        controls: [
+          { fact: 'fallControl' },
+          'A licensed scaffolder erects the scaffold to the manufacturer\'s or designer\'s instructions.',
+          'Install ties as the scaffold goes up.',
+          'Pass components hand to hand or use a gin wheel. Do not throw them.',
+        ],
+      },
+      {
+        step: 'Inspect and hand over',
+        hazards: ['People use an incomplete or unsafe scaffold.'],
+        controls: [
+          'A competent person inspects the scaffold before it is used and tags it.',
+          'Incomplete sections are tagged as not to be used and access is blocked.',
+        ],
+      },
+    ],
+    ppe: ['sunscreen'],
+  },
+  {
+    when: 'roof',
+    steps: [
+      {
+        step: 'Set up roof access and fall protection',
+        hazards: ['Falling from the roof edge or through openings.'],
+        controls: [
+          { fact: 'fallControl' },
+          'Fall protection is installed and checked before anyone goes onto the roof.',
+          'Access by a scaffold stair, or a ladder secured top and bottom that extends above the landing.',
+        ],
+      },
+      {
+        step: 'Remove old roofing',
+        hazards: ['Falling through brittle roofing or openings.', 'Cuts from sheet edges.', 'Sheets caught by wind.'],
+        controls: [
+          'Walk only on purlin lines or on safety mesh.',
+          'Cover or barricade openings as soon as sheets are removed.',
+          'Wear cut resistant gloves when handling sheets.',
+          'Stop handling sheets in strong wind.',
+        ],
+      },
+      {
+        step: 'Lift materials to and from the roof',
+        hazards: ['Falling objects strike people below.', 'Manual handling strain.'],
+        controls: [
+          'Exclusion zone below the work, with barriers and signs.',
+          'Use mechanical lifting where possible. Team lift long sheets.',
+          'Secure sheets stacked on the roof against wind.',
+        ],
+      },
+      {
+        step: 'Fix new roofing',
+        hazards: ['Fall from height.', 'Power tool injuries.', 'Heat and sun exposure.'],
+        controls: [
+          'Stay inside the edge protection at all times.',
+          'Use tools with guards in place. Keep leads away from edges.',
+          'Plan work for cooler times. Water and shade breaks.',
+        ],
+      },
+    ],
+    ppe: ['gloveCut', 'sunHat', 'sunscreen'],
+  },
+  {
+    when: 'trench',
+    steps: [
+      {
+        step: 'Locate underground services',
+        hazards: ['Striking underground electrical, gas, water or communications services.'],
+        controls: [
+          'Get service plans, for example through Before You Dig Australia, and locate services on site before digging.',
+          'Dig by hand or by vacuum excavation near located services.',
+        ],
+      },
+      {
+        step: 'Excavate',
+        hazards: ['The excavator strikes a person.', 'The ground collapses.'],
+        controls: [
+          { fact: 'trenchSupport' },
+          'Exclusion zone around the excavator, with a spotter when people are nearby.',
+          'Keep spoil and plant back from the trench edge.',
+        ],
+      },
+      {
+        step: 'Work in the trench',
+        hazards: ['Trench collapse buries a worker.', 'Falling into the trench.', 'Water or bad air in the trench.'],
+        controls: [
+          'No one enters the trench until the support is in place and checked.',
+          'Ladder access inside the supported area.',
+          { fact: 'fallControl' },
+          'Check the trench at the start of each shift and after rain.',
+        ],
+      },
+      {
+        step: 'Backfill and restore',
+        hazards: ['Plant strikes a person.', 'An open trench is left unprotected.'],
+        controls: [
+          'Remove the support as backfilling proceeds, as designed.',
+          'Cover or barricade any open trench overnight.',
+        ],
+      },
+    ],
+    ppe: ['earMuffs', 'sunscreen'],
+  },
+  {
+    when: 'propping',
+    steps: [{
+      step: 'Install temporary support',
+      hazards: ['The structure above collapses.'],
+      controls: [
+        { fact: 'temporarySupport' },
+        'No load-bearing part is removed until the propping is installed and checked.',
+      ],
+    }],
+  },
+  {
+    when: 'demolition',
+    steps: [
+      {
+        step: 'Demolish',
+        hazards: ['Falling bricks and debris.', 'Silica dust from cutting or breaking masonry or concrete.', 'Noise.'],
+        controls: [
+          'Exclusion zone around the demolition.',
+          'Use water suppression or on-tool dust extraction when cutting or breaking masonry or concrete.',
+          'Remove debris as the work goes.',
+        ],
+      },
+      {
+        step: 'Complete the permanent structure and remove props',
+        hazards: ['Collapse when props are removed too early.'],
+        controls: ['Props are removed only when the engineer confirms the permanent structure is complete.'],
+      },
+    ],
+    ppe: ['p2', 'earMuffs'],
+  },
+  {
+    when: 'crane',
+    steps: [
+      {
+        step: 'Set up the crane',
+        hazards: ['The crane overturns from poor ground or an overload.'],
+        controls: [
+          { fact: 'craneChart' },
+          'Check the ground and use outrigger pads before setting up.',
+          'The crane operator, and the dogman or rigger, hold current high risk work licences.',
+        ],
+      },
+      {
+        step: 'Rig and lift the load',
+        hazards: ['A dropped load.', 'A person is struck or crushed by the load.'],
+        controls: [
+          'Inspect lifting gear before use. Check tags and ratings.',
+          'Use tag lines to control the load.',
+          'Exclusion zone. No one goes under a suspended load.',
+        ],
+      },
+      {
+        step: 'Land and release the load',
+        hazards: ['Crushing between the load and the structure.'],
+        controls: ['Land the load on a stable surface and secure it before releasing the rigging.'],
+      },
+    ],
+  },
+  {
+    when: 'precast',
+    steps: [{
+      step: 'Stand and brace the panels',
+      hazards: ['A panel falls or topples onto a person.'],
+      controls: [
+        { fact: 'erectionDesign' },
+        { fact: 'centreOfGravity' },
+        { fact: 'braceArrangement' },
+        { fact: 'regulatorNotified' },
+        'Each panel is braced to the design before it is released from the crane.',
+      ],
+    }],
+  },
+  {
+    when: 'asbestos',
+    steps: [
+      {
+        step: 'Prepare the asbestos work area',
+        hazards: ['Asbestos fibres are released into the area.'],
+        controls: [
+          { fact: 'asbestosArrangement' },
+          'Isolate the area with barriers and asbestos warning signs.',
+          'Do not break, cut, drill or use power tools on the asbestos.',
+        ],
+      },
+      {
+        step: 'Remove the asbestos',
+        hazards: ['Breathing in asbestos fibres.'],
+        controls: [
+          'Keep the material wet and remove it whole, by hand.',
+          'Wear disposable coveralls and a respirator rated P2 or higher.',
+        ],
+      },
+      {
+        step: 'Bag, label and dispose of asbestos waste',
+        hazards: ['Fibres spread beyond the work area.'],
+        controls: [
+          'Wrap the waste in heavy duty plastic, label it as asbestos waste and take it to a facility licensed to accept it.',
+          'Where a licensed removalist does the work, a clearance inspection is done before the area is reopened.',
+        ],
+      },
+    ],
+    ppe: ['coveralls', 'p2'],
+  },
+  {
+    when: 'confined',
+    steps: [
+      {
+        step: 'Prepare to enter the confined space',
+        hazards: ['Low oxygen, or toxic or flammable gas.', 'Engulfment or entrapment.'],
+        controls: [
+          { fact: 'confinedSpace' },
+          'Isolate and lock out inlet and outlet lines before entry.',
+        ],
+      },
+      {
+        step: 'Enter and work',
+        hazards: ['A fall at the access.', 'A worker is overcome by the atmosphere.'],
+        controls: [
+          { fact: 'fallControl' },
+          'Monitor the air continuously. Leave at once if the alarm sounds.',
+          'The standby person stays outside and in contact at all times.',
+        ],
+      },
+      {
+        step: 'Leave and close up',
+        hazards: ['A person or tool is left inside.'],
+        controls: [
+          'Account for everyone and all tools before closing the access.',
+          'Close and sign off the entry permit.',
+        ],
+      },
+    ],
+    ppe: ['harness'],
+  },
+  {
+    when: 'water',
+    steps: [
+      {
+        step: 'Set up rescue equipment',
+        hazards: ['A person falls into the water and drowns.'],
+        controls: [
+          { fact: 'drowningControls' },
+          'Check the tides and the weather before starting. Stop work in rough conditions.',
+        ],
+      },
+      {
+        step: 'Work over the water',
+        hazards: ['Falling through open bays.', 'Splinters and cuts.', 'Power tool injuries.'],
+        controls: [
+          'Open one bay at a time and cover or barricade it.',
+          'Wear gloves when handling timber.',
+          'Use tools with guards in place.',
+        ],
+      },
+    ],
+    ppe: ['lifeJacket', 'sunHat', 'sunscreen'],
+  },
+  {
+    when: 'painting',
+    steps: [
+      {
+        step: 'Prepare to paint',
+        hazards: ['Breathing in solvent fumes.', 'Fire from flammable vapour.'],
+        controls: [
+          { fact: 'safetyDataSheet' },
+          'Ventilate the area: open doors and windows, and use fans if needed.',
+          'No smoking, flames or sparks in the area.',
+        ],
+      },
+      {
+        step: 'Paint',
+        hazards: ['Paint on the skin or in the eyes.', 'Trips over drop sheets and tins.'],
+        controls: [
+          'Wear the gloves and eye protection the safety data sheet lists.',
+          'Keep only the paint needed in the work area, with lids on when not in use.',
+        ],
+      },
+      {
+        step: 'Clean up paint and solvents',
+        hazards: ['Fire from solvent-soaked rags.'],
+        controls: ['Put solvent-soaked rags in a closed metal container or take them off site.'],
+      },
+    ],
+    ppe: ['gloveChemical'],
+  },
+];
+
+// Personal protective equipment, grouped as site PPE lists usually are.
+const PPE = [
+  { area: 'Head', items: [['hardHat', 'Hard hat'], ['chinStrap', 'Chin strap'], ['sunHat', 'Broad brim or neck flap']] },
+  { area: 'Eyes and face', items: [['glassesClear', 'Safety glasses, clear'], ['glassesTinted', 'Safety glasses, tinted'], ['goggles', 'Goggles'], ['faceShield', 'Face shield']] },
+  { area: 'Hearing', items: [['earPlugs', 'Ear plugs'], ['earMuffs', 'Ear muffs']] },
+  { area: 'Breathing', items: [['p2', 'P2 respirator (fit checked)'], ['halfFace', 'Half-face respirator with filters']] },
+  { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves']] },
+  { area: 'Body', items: [['longs', 'Long sleeves and long pants'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls']] },
+  { area: 'Feet', items: [['boots', 'Safety boots']] },
+  { area: 'Sun', items: [['sunscreen', 'Sunscreen']] },
+  { area: 'Falls and water', items: [['harness', 'Full body harness'], ['lifeJacket', 'Life jacket']] },
+];
+
+const SITE_MINIMUM = ['hardHat', 'glassesClear', 'gloveGeneral', 'longs', 'hivis', 'boots'];
+const PPE_IDS = new Set(PPE.flatMap((group) => group.items.map(([id]) => id)));
+
+function expand(control, factText) {
+  if (typeof control === 'string') return [control];
+  const text = factText(control.fact);
+  return text ? [text] : [];
+}
+
+// Steps for the kinds of work found, between the opening and closing steps.
+// `flags` names the kinds of work found; `factText` returns the user's text for a fact.
+// Work the library does not know uses `fallback`, a step built from the task.
+function jobStepsFor(flags, factText, fallback) {
+  const found = ACTIVITIES.filter((activity) => flags[activity.when]);
+  const middle = found.length ? found.flatMap((activity) => activity.steps) : [fallback];
+  const seen = new Set();
+  const steps = [BEFORE, ...middle, FINISH]
+    .filter((step) => !seen.has(step.step) && seen.add(step.step));
+  return steps.map((step) => ({
+    step: step.step,
+    hazards: step.hazards.slice(),
+    controls: step.controls.flatMap((item) => expand(item, factText)),
+  }));
+}
+
+// The PPE list with each item ticked or not. A chosen list replaces the defaults.
+function ppeFor(flags, chosen, mentionsHarness, indoors) {
+  let ticked;
+  if (Array.isArray(chosen) && chosen.some((id) => PPE_IDS.has(id))) {
+    ticked = new Set(chosen.filter((id) => PPE_IDS.has(id)));
+  } else {
+    ticked = new Set(SITE_MINIMUM);
+    for (const activity of ACTIVITIES) {
+      if (flags[activity.when]) for (const id of activity.ppe || []) ticked.add(id);
+    }
+    if (ticked.has('gloveCut') || ticked.has('gloveChemical')) ticked.delete('gloveGeneral');
+    if (ticked.has('hivisNight')) ticked.delete('hivis');
+    if (mentionsHarness) ticked.add('harness');
+    if (!indoors) ticked.add('sunscreen');
+  }
+  return PPE.map((group) => ({
+    area: group.area,
+    items: group.items.map(([id, label]) => ({ id, label, ticked: ticked.has(id) })),
+  }));
+}
+
+module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM };

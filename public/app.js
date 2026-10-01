@@ -149,6 +149,11 @@ function payload() {
     hospital: value('hospital'),
     firstAider: value('first-aider'),
     musterPoint: value('muster-point'),
+    worksManager: value('works-manager'),
+    worksManagerPhone: value('works-manager-phone'),
+    complianceResponsible: value('compliance-responsible'),
+    reviewer: value('reviewer'),
+    reviewDate: value('review-date'),
     date: value('draft-date'),
     facts,
     site,
@@ -283,15 +288,26 @@ function render(draft) {
     : '<p>None stated for this task.</p>';
   const controls = `<table><thead><tr><th>Hierarchy</th><th>Control</th></tr></thead><tbody>${draft.controls.map((item) => `<tr><td>${esc(item.level)}</td><td>${esc(item.text)}</td></tr>`).join('')}</tbody></table>`;
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
-  const method = `<ol>${draft.method.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>`;
+  const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
+  const steps = `<table><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index) => `<tr><td><strong>${index + 1}. ${esc(step.step)}</strong></td><td>${list(step.hazards)}</td><td>${list(step.controls)}</td></tr>`).join('')}</tbody></table>`;
+  const ppe = `<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.map((item) => `${item.ticked ? '&#9746;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}</td></tr>`).join('')}</tbody></table>`;
+  const people = `<table><tbody>
+      ${row('Works manager', draft.worksManager) || '<tr><th>Works manager</th><td></td></tr>'}
+      ${row('Contact phone', draft.worksManagerPhone) || '<tr><th>Contact phone</th><td></td></tr>'}
+      ${row('Person responsible for ensuring compliance', draft.complianceResponsible) || '<tr><th>Person responsible for ensuring compliance</th><td></td></tr>'}
+      ${row('Person responsible for reviewing the controls', draft.reviewer) || '<tr><th>Person responsible for reviewing the controls</th><td></td></tr>'}
+      ${row('Review date', draft.reviewDate) || '<tr><th>Review date</th><td></td></tr>'}
+    </tbody></table>`;
   return `${head}
+    <h4>Responsibilities</h4>${people}
     <h4>High risk construction work</h4>${risks}
     <h4>Hazards and risks</h4>${hazards}
     <h4>Controls</h4>${controls}
+    <h4>Job steps</h4>${steps}
+    <h4>Personal protective equipment</h4>${ppe}
     <h4>${esc(draft.reviewHeading)}</h4>
     <p>${esc(draft.review)}</p>
     <h4>Site-specific</h4>${site}
-    <h4>Method</h4>${method}
     <h4>Prepared by</h4>
     <table><tbody>${['Name and position', 'Signature', 'Date', 'Date given to the principal contractor'].map((label) => `<tr><th>${label}</th><td></td></tr>`).join('')}</tbody></table>
     <h4>Principal contractor review</h4>

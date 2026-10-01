@@ -217,6 +217,74 @@ function workerSignOn(draft) {
   ];
 }
 
+// A cell holding several lines, one paragraph each.
+function linesCell(lines, width, options = {}) {
+  const items = lines.length ? lines : [' '];
+  return new TableCell({
+    width: { size: width, type: WidthType.DXA },
+    borders,
+    margins: { top: 60, bottom: 60, left: 80, right: 80 },
+    verticalAlign: VerticalAlign.TOP,
+    children: items.map((line, index) => new Paragraph({
+      spacing: { before: 0, after: index === items.length - 1 ? 0 : 60, line: 240 },
+      children: [run(options.bullet && lines.length ? `\u2022  ${line}` : line, { size: 19, bold: options.bold })],
+    })),
+  });
+}
+
+// The job laid out as the regulators' templates do: each step with its hazards and controls.
+function jobStepsTable(steps) {
+  const widths = [2100, 2800, 4180, 1000];
+  const labels = ['Job step', 'Hazards and risks', 'Controls', 'Who'];
+  return new Table({
+    width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+    columnWidths: widths,
+    rows: [
+      new TableRow({
+        tableHeader: true,
+        cantSplit: true,
+        children: labels.map((label, index) => cell(label, widths[index], { bold: true, fill: HEAD })),
+      }),
+      ...steps.map((step, index) => new TableRow({
+        cantSplit: true,
+        children: [
+          linesCell([`${index + 1}. ${step.step}`], widths[0], { bold: true }),
+          linesCell(step.hazards, widths[1], { bullet: true }),
+          linesCell(step.controls, widths[2], { bullet: true }),
+          linesCell([], widths[3]),
+        ],
+      })),
+    ],
+  });
+}
+
+const BOX = { true: '\u2612', false: '\u2610' };
+
+function ppeTable(groups) {
+  return signTable(groups.map((group) => [
+    group.area,
+    group.items.map((item) => `${BOX[item.ticked]} ${item.label}`).join('     '),
+    360,
+  ]));
+}
+
+const COMPLIANCE_CHECK = 'The supervisor checks the controls are in place before work starts and during the work, and stops the work if they are not.';
+
+function responsibilities(draft) {
+  return [
+    sectionHeading('Responsibilities'),
+    signTable([
+      ['Works manager', draft.worksManager],
+      ['Contact phone', draft.worksManagerPhone],
+      ['Person responsible for ensuring compliance with this SWMS', draft.complianceResponsible],
+      ['How compliance is checked', COMPLIANCE_CHECK],
+      ['Person responsible for reviewing the control measures', draft.reviewer],
+      ['Review date', draft.reviewDate],
+      ['Workers consulted on this SWMS', `${BOX.false} Yes    ${BOX.false} No`],
+    ]),
+  ];
+}
+
 function metaRows(draft) {
   const rows = [['State', draft.state]];
   if (draft.principalContractor) rows.push(['Principal contractor', draft.principalContractor]);
@@ -253,6 +321,8 @@ function childrenFor(draft) {
     return blocks;
   }
 
+  blocks.push(...responsibilities(draft));
+
   blocks.push(sectionHeading('High risk construction work'));
   if (draft.highRisk.length) {
     for (const item of draft.highRisk) blocks.push(para(item, { before: 0, after: 40 }));
@@ -267,16 +337,19 @@ function childrenFor(draft) {
   blocks.push(sectionHeading('Controls'));
   blocks.push(controlTable(draft.controls));
 
+  blocks.push(sectionHeading('Job steps'));
+  blocks.push(para('Change any step, hazard or control to suit the site. Write who is responsible for each step.', { size: 19, color: MUTED, before: 0, after: 80 }));
+  blocks.push(jobStepsTable(draft.jobSteps || []));
+
+  blocks.push(sectionHeading('Personal protective equipment'));
+  blocks.push(para('Ticked items must be worn. Change the ticks to suit the site.', { size: 19, color: MUTED, before: 0, after: 80 }));
+  blocks.push(ppeTable(draft.ppe || []));
+
   blocks.push(sectionHeading(draft.reviewHeading));
   blocks.push(para(draft.review, { before: 40, after: 40 }));
 
   blocks.push(sectionHeading('Site-specific'));
   for (const field of draft.site) blocks.push(...siteBlock(field));
-
-  blocks.push(sectionHeading('Method'));
-  draft.method.forEach((step, index) => {
-    blocks.push(para(`${index + 1}.  ${step}`, { before: 20, after: 40 }));
-  });
 
   blocks.push(...preparedBy());
   blocks.push(...principalContractorReview(draft));
