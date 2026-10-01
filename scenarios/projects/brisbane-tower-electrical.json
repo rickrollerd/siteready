@@ -1,0 +1,324 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: electrical",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "temp-power",
+      "title": "Construction power and temporary lighting",
+      "task": "Install, test and maintain construction power and temporary lighting for the tower, the foyer and the 3 level basement carpark: site switchboards, distribution boards, leads and lighting, connected to the energised builder's supply.",
+      "fallRisk": "no",
+      "facts": {
+        "constructionTesting": "The site electrician inspects and tests construction wiring, switchboards and RCDs, and leads are tested and tagged, at the intervals AS/NZS 3012 sets, recorded in the site register.",
+        "isolationProcedure": "Circuits are isolated at the site switchboard, locked with each worker's personal lock and a danger tag, and tested de-energised by the licensed electrician before work.",
+        "energisedWork": "testing"
+      },
+      "expect": {
+        "highRisk": [
+          "electrical"
+        ],
+        "steps": [
+          "Install construction power and temporary lighting",
+          "Inspect, test and maintain construction power",
+          "Isolate and prove de-energised",
+          "Work on or near energised parts"
+        ],
+        "missing": [
+          "Inspection and testing of construction wiring",
+          "Isolation and testing procedure",
+          "Work on or near energised parts"
+        ]
+      }
+    },
+    {
+      "id": "cast-in",
+      "title": "Cast-in conduits on the deck",
+      "task": "Install cast-in conduits and in-slab electrical services on the deck of each post-tensioned floor before the pour, alongside the formwork and reo crews. Work is at the slab edge, more than 2 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Work is done inside the perimeter screens and edge protection, with penetrations covered."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Install cast-in conduits on the deck before the pour"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "containment",
+      "title": "Cable tray, containment and cabling at height",
+      "task": "Install cable tray, containment and cabling in the risers, the apartment ceilings, the double height foyer and the 3 level basement carpark, working from elevating work platforms and ladders, more than 2 m above the floor.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Elevating work platforms with guardrails are used for work above 2 m, risers are screened at each level, and only the section being worked on is opened and fenced."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Install cable tray, containment and cabling at height",
+          "Use an elevating work platform"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "cable-pull",
+      "title": "Cable pulling and cable drums",
+      "task": "Pull sub-main and final subcircuit cables up the risers and through the basement carpark, with cable drums lifted to the floors by the tower crane and moved on the floor with a forklift. Work at the open risers is more than 2 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd, under its lift plans.",
+        "loadLimits": "Cable drums are landed and stored within the slab loads on the builder's load plan, signed at each landing area.",
+        "fallControl": "Risers are screened at each level, and cables are pulled from inside the screens with only the section being worked on opened and fenced."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Pull cables and handle cable drums",
+          "Work with the crane crew during lifts",
+          "Operate forklifts"
+        ],
+        "missing": [
+          "Crane company and lift plan",
+          "Load limits",
+          "Fall control"
+        ]
+      }
+    },
+    {
+      "id": "fit-off",
+      "title": "Apartment rough-in and fit-off",
+      "task": "Rough-in and fit-off the electrical installation in the apartments: chase and drill walls, run cables in the ceiling spaces, and fit power points, switches and light fittings, working from platform ladders.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Rough-in and fit-off in the apartments"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "id": "switchboards",
+      "title": "Main switchboards, terminations, energising and commissioning",
+      "task": "Install the main switchboard, distribution boards and consumer mains in the basement switchroom and on each floor, terminate the cables, then test, energise and commission the installation with the distribution entity.",
+      "fallRisk": "no",
+      "facts": {
+        "isolationProcedure": "Each circuit is isolated at its switchboard, locked with each worker's personal lock and a danger tag, and tested de-energised by a licensed electrician using a proved tester before work.",
+        "energisedWork": "testing"
+      },
+      "expect": {
+        "highRisk": [
+          "electrical"
+        ],
+        "steps": [
+          "Isolate and prove de-energised",
+          "Work on or near energised parts",
+          "Test, connect and commission",
+          "Leave unfinished work safe"
+        ],
+        "missing": [
+          "Isolation and testing procedure",
+          "Work on or near energised parts"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "temp-power",
+        "cast-in",
+        "containment",
+        "cable-pull",
+        "fit-off",
+        "switchboards"
+      ],
+      "phrase": "licensed electrical workers",
+      "source": "Electrical Safety Act 2002 (Qld) s 55",
+      "quote": "must not perform or supervise electrical work unless the person is the holder of an electrical work licence"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "cast-in",
+        "containment",
+        "cable-pull",
+        "fit-off",
+        "switchboards"
+      ],
+      "phrase": "Apprentices are supervised at all times",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 307",
+      "quote": "supervised at all times by a licensed electrical worker"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "cast-in",
+        "containment",
+        "cable-pull",
+        "fit-off",
+        "switchboards"
+      ],
+      "phrase": "competent in rescue and resuscitation",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 211",
+      "quote": "competent in rescue and resuscitation"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "cast-in",
+        "containment",
+        "cable-pull",
+        "fit-off",
+        "switchboards"
+      ],
+      "phrase": "reported to the regulator immediately",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 292",
+      "quote": "serious electrical incident or dangerous electrical event"
+    },
+    {
+      "swms": [
+        "temp-power"
+      ],
+      "phrase": "complies with AS/NZS 3012",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 140",
+      "quote": "complies with the requirements of AS/NZS 3012"
+    },
+    {
+      "swms": [
+        "temp-power"
+      ],
+      "phrase": "test tag only if new",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 140(3)-(4)",
+      "quote": "not fitted with a tag that includes the test or retest date ... unless the equipment is new"
+    },
+    {
+      "swms": [
+        "temp-power"
+      ],
+      "phrase": "not reconnected until it is repaired or tested",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 17",
+      "quote": "is not reconnected until it is repaired or tested and found to be safe"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "cast-in",
+        "cable-pull"
+      ],
+      "phrase": "will not be damaged",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 18",
+      "quote": "located where it is not likely to suffer damage; or protected against damage"
+    },
+    {
+      "swms": [
+        "cast-in"
+      ],
+      "phrase": "supervision of a licensed electrical worker",
+      "source": "Electrical Safety Act 2002 (Qld) s 18(2)(e)",
+      "quote": "building or repairing ducts, conduits or troughs ... under the supervision of a person licensed"
+    },
+    {
+      "swms": [
+        "cable-pull"
+      ],
+      "phrase": "Treat existing cables as energised",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 196(2)",
+      "quote": "each exposed part is treated as energised until it is isolated and found not to be energised"
+    },
+    {
+      "swms": [
+        "fit-off"
+      ],
+      "phrase": "roof space",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 33",
+      "quote": "the relevant electrical installation for the building is de-energised"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "switchboards"
+      ],
+      "phrase": "tested by a competent person and found de-energised",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 196",
+      "quote": "tested by a competent person to decide whether or not it is energised"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "switchboards"
+      ],
+      "phrase": "Lock isolation points in the open position",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 197, s 198",
+      "quote": "locked when in the open position"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "switchboards"
+      ],
+      "phrase": "never because it is more convenient",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 195",
+      "quote": "there is no reasonable alternative way of carrying out the work"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "switchboards"
+      ],
+      "phrase": "recorded risk assessment",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 199",
+      "quote": "capable of being operated quickly"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "switchboards"
+      ],
+      "phrase": "Only authorised people enter the area",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 201, s 202",
+      "quote": "unauthorised access to electrical equipment while work performed"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "switchboards"
+      ],
+      "phrase": "safety observer",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 203",
+      "quote": "observed by a safety observer"
+    },
+    {
+      "swms": [
+        "switchboards"
+      ],
+      "phrase": "Do not connect an installation unless",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 219",
+      "quote": "tested as electrically safe and complies with the requirements of the wiring rules"
+    },
+    {
+      "swms": [
+        "switchboards"
+      ],
+      "phrase": "notice of test",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 228, s 229",
+      "quote": "notice of test; certificate of testing and compliance"
+    }
+  ]
+}

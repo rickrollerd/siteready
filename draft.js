@@ -313,7 +313,7 @@ function highRiskMatches(text, answer, state) {
     explosives: mentioned(text, /\bexplosives?\b/i),
     gas: mentioned(text, /\b(gas main|pressuri[sz]ed gas)\b/i),
     chemicalLine: mentioned(text, /\b(fuel line|refrigerant line|chemical line)\b/i),
-    electrical: mentioned(text, /\b(energised|energized|overhead (?:power )?lines?|live electrical|electrical services?)\b/i),
+    electrical: mentioned(text, /\b(energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live (?:electrical|parts?|switchboards?|circuits?)|(?:energised|energized|live) electrical (?:installations?|services?))\b/i),
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i),
     precast: mentioned(text, /\b(tilt-?up|precast)\b/i),
     road: mentioned(text, ROAD) || /\blight rail\b/i.test(String(text || '')),
@@ -357,6 +357,19 @@ function loadsOnDeckOrSlab(text) {
     || (/\b(reo|reinforc\w*|rebar)\b/i.test(source) && /\b(deck|slab)\b/i.test(source));
 }
 
+const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply)|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
+
+// Answers for a choice fact, read from the stored value.
+function choiceAnswer(id, value) {
+  if (id === 'deckMethod') return deckMethodAnswer(value);
+  const text = String(value || '').toLowerCase();
+  if (id === 'energisedWork') {
+    if (/\b(testing|commissioning|energised parts|within 3 ?m)\b/.test(text)) return 'testing';
+    if (/\b(none|no|de-energised)\b/.test(text)) return 'none';
+  }
+  return '';
+}
+
 function deckLaying(text) {
   const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
   return FORMWORK.test(source) && /\b(deck\w*|ply|plywood|formply|soffit)\b/i.test(source);
@@ -370,7 +383,11 @@ function deckMethodAnswer(value) {
   return '';
 }
 
-const ENERGISED = /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i;
+// Overhead and other power lines near the work, as opposed to electrical work itself.
+const ENERGISED = /\b(overhead (?:power |electric )?lines?|power lines?)\b/i;
+// An electrician's work on an installation.
+const ELECTRICAL_WORK = /\b(electrician|electrical (?:work|contractor|installation|fit[- ]?out)|wiring|switchboards?|distribution boards?|consumer mains|cabl\w*|circuits?|conduits?|terminat\w*|energis\w*|commission\w*|light fittings?|power points?|busduct)\b/i;
+const SWITCHBOARD_WORK = /\b(main switchboards?|consumer mains|energis\w*|commission\w*|terminat\w*|distribution boards?)\b/i;
 
 const CATEGORY_FACTS = [
   {
@@ -402,6 +419,33 @@ const CATEGORY_FACTS = [
     level: 'Isolate or engineer',
     // A jumpform is not slab formwork: it has its own climbing procedure.
     applies: (text) => FORMWORK.test(String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '')),
+  },
+  {
+    id: 'isolationProcedure',
+    label: 'Isolation and testing procedure',
+    prompt: 'How circuits are isolated, locked and tagged, and tested de-energised by a competent person before work, and who holds the locks.',
+    level: 'Administrative',
+    applies: (text) => mentioned(text, SWITCHBOARD_WORK),
+  },
+  {
+    // Electrical work on or near energised parts is prohibited except as the
+    // Electrical Safety Regulation 2026 (Qld) s 195 allows, so the user says which.
+    id: 'energisedWork',
+    label: 'Work on or near energised parts',
+    prompt: 'Choose one.',
+    choices: [
+      { value: 'none', label: 'None: everything is isolated and proved de-energised first' },
+      { value: 'testing', label: 'Testing or commissioning on or near energised parts (within 3 m)' },
+    ],
+    level: 'Administrative',
+    applies: (text) => mentioned(text, /\b(energis\w*|commission\w*|testing|test the)\b/i) && mentioned(text, ELECTRICAL_WORK),
+  },
+  {
+    id: 'constructionTesting',
+    label: 'Inspection and testing of construction wiring',
+    prompt: 'Who inspects and tests the construction wiring, switchboards, RCDs and leads, and how often, as AS/NZS 3012 requires.',
+    level: 'Administrative',
+    applies: (text) => TEMP_POWER.test(String(text || '')),
   },
   {
     // Stacked materials, reo bundles and plant on a deck or a green slab are a known
@@ -458,7 +502,14 @@ const CATEGORY_FACTS = [
   },
 ];
 
-function requiredFactsFor(task, answer, state) {
+// Other trades named only as company ("alongside the formwork and reo crews") are
+// not this SWMS's work, so they do not choose its steps or required facts.
+function ownWork(task) {
+  return String(task || '').replace(/\b(?:alongside|beside|next to|near|around|with|among|coordinat\w* with)\s+(?:the\s+)?[\w\s,-]{0,60}?\b(?:crews?|trades?|workers|contractors?|subcontractors?|teams?)\b/gi, ' ');
+}
+
+function requiredFactsFor(fullTask, answer, state) {
+  const task = ownWork(fullTask);
   const facts = [];
   // Most cranes on site are supplied and run by a crane company. Its operator and
   // dogmen work to its own lift plan, so the subcontractor states who that is.
@@ -600,7 +651,7 @@ const TOPIC_PATTERNS = {
 };
 
 function factState(item, task, facts) {
-  if (item.id === 'deckMethod') return deckMethodAnswer(facts.deckMethod) ? 'supplied' : 'missing';
+  if (item.choices) return choiceAnswer(item.id, facts[item.id]) ? 'supplied' : 'missing';
   // Only needed when the fall control is administrative or PPE.
   if (item.id === 'controlsConsidered') {
     const fallLine = fallLineFor(combinedFacts(task, facts), facts);
@@ -677,7 +728,7 @@ function controlsFor(task, facts, pack) {
     push('Isolate or engineer', 'People stay clear of the structure while it is being moved.');
   }
 
-  if (mentioned(source, /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i)) {
+  if (mentioned(source, ENERGISED)) {
     push('Isolate or engineer', pack.state.overheadLineControl);
   }
 
@@ -704,8 +755,9 @@ function controlsFor(task, facts, pack) {
   for (const item of CATEGORY_FACTS) {
     const value = keptFact(facts[item.id]);
     if (item.choices) {
-      const chosen = item.choices.find((choice) => choice.value === deckMethodAnswer(value));
-      if (chosen && item.applies(source)) push(item.level, `Deck laid ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
+      const chosen = item.choices.find((choice) => choice.value === choiceAnswer(item.id, value));
+      if (chosen && item.applies(source) && item.id === 'deckMethod') push(item.level, `Deck laid ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
+      if (chosen && item.applies(source) && item.id === 'energisedWork') push(item.level, `Work on or near energised parts: ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
       continue;
     }
     if (value && item.applies(source)) {
@@ -787,7 +839,7 @@ function hazardsFor(task, facts, pack) {
     add('Public footpath below', 'A person on the footpath is below the scaffold.');
   }
   if (mentioned(source, /\basbestos\b/i)) add('Asbestos', 'A person is exposed to asbestos.');
-  if (mentioned(source, /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i)) {
+  if (mentioned(source, /\b(energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live electrical)\b/i)) {
     add('Energised electrical service', 'A person contacts live electricity.');
   }
   if (needsSafetyDataSheet(source)) add('Hazardous substance', 'A person is exposed to the substance.');
@@ -1037,6 +1089,10 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     /\b(harness|fall arrest|elevating work platform|ewp|boom lift)\b/i.test(combinedFacts(task, facts)),
     /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task),
   );
+  // Energised testing needs arc-rated PPE and insulated gloves (Model Code s 9.5).
+  if (!Array.isArray(input.ppe) && choiceAnswer('energisedWork', facts.energisedWork) === 'testing') {
+    for (const group of ppe) for (const item of group.items) if (['arcRated', 'gloveInsulated'].includes(item.id)) item.ticked = true;
+  }
   const respirator = ppe.some((group) => group.items.some((item) => item.ticked && ['p2', 'halfFace'].includes(item.id)));
   return { jobSteps: jobStepsForTask(task, facts, hazards, controls, state, { respirator }), ppe };
 }
@@ -1061,7 +1117,8 @@ function referencesFor(facts) {
 }
 
 // The kinds of work in the task, which choose the job steps and the PPE.
-function workFlags(task, facts = {}, ownCrane = false) {
+function workFlags(fullTask, facts = {}, ownCrane = false) {
+  const task = ownWork(fullTask);
   const scaffold = isScaffoldErection(task);
   return {
     road: mentioned(task, ROAD),
@@ -1080,10 +1137,17 @@ function workFlags(task, facts = {}, ownCrane = false) {
     formwork: FORMWORK.test(task.replace(new RegExp(JUMPFORM.source, 'gi'), '')),
     reo: /\b(reo|reinforc\w*|rebar|steel fixing)\b/i.test(task),
     ptTendons: PT.test(task) && /\b(place|placing|install\w*|lay\w*|fix\w*)\b/i.test(task) && /\b(ducts?|tendons?|strand)\b/i.test(task),
-    concrete: /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(task),
+    concrete: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) ? /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete)\b/i.test(task) : /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(task),
     stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing)\b/i.test(task),
     jumpform: JUMPFORM.test(task),
     ptSlab: PT.test(task),
+    electricalWork: ELECTRICAL_WORK.test(task),
+    tempPower: TEMP_POWER.test(task),
+    castIn: /\b(cast[- ]in|in[- ]slab)\b/i.test(task),
+    containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task),
+    cablePull: /\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable)\b/i.test(task),
+    fitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task),
+    switchboard: SWITCHBOARD_WORK.test(task),
     deck: deckLaying(task),
     ewp: /\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(combinedFacts(task, facts)),
     precast: isPanelLift(task),
@@ -1104,7 +1168,7 @@ function asSentence(text) {
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
-    if (id === 'deckMethod') return deckMethodAnswer(facts.deckMethod);
+    if (['deckMethod', 'energisedWork'].includes(id)) return choiceAnswer(id, facts[id]);
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));

@@ -3,6 +3,12 @@
 // good practice for the subcontractor to check and change to suit the site.
 // A control written { fact: 'id' } is replaced with what the user gave for that fact.
 
+// Sources for controls taken from the law or a code of practice.
+const ESR = (section) => `Electrical Safety Regulation 2026 (Qld) ${section}`;
+const ESA = (section) => `Electrical Safety Act 2002 (Qld) ${section}`;
+const CODE = (section) => `Model Code: Managing electrical risks ${section}`;
+const src = (text, source) => ({ text, source });
+
 const BEFORE = {
   step: 'Before starting',
   hazards: [
@@ -22,6 +28,10 @@ const BEFORE = {
 const BEFORE_EXTRA = [
   { when: 'ptSlab', text: 'Check the post-tensioning drawings and scan the slab before drilling or fixing into a post-tensioned slab.' },
   { when: 'respirator', text: 'Tight-fitting respirators are fit tested to each wearer before use, for the make and model they wear, and wearers are clean shaven where the mask seals.' },
+  { when: 'electricalWork', text: src('Electrical work is done or supervised only by licensed electrical workers, for a licensed electrical contractor.', `${ESA('s 55, s 56')}`) },
+  { when: 'electricalWork', text: src('Apprentices are supervised at all times by a licensed electrical worker. In their first 6 months they do not work where they could contact a live low voltage exposed part.', ESR('s 307')) },
+  { when: 'electricalWork', text: src('Everyone doing electrical work is competent in rescue and resuscitation.', ESR('s 211')) },
+  { when: 'electricalWork', text: src('A serious electrical incident or dangerous electrical event is reported to the regulator immediately, and the site is left undisturbed.', ESR('s 292, s 296')) },
   { when: 'ewp', text: 'A rescue plan is in place for anyone working from an elevating work platform or held by a harness.' },
 ];
 
@@ -625,6 +635,141 @@ const ACTIVITIES = [
     }],
   },
   {
+    when: 'tempPower',
+    steps: [
+      {
+        step: 'Install construction power and temporary lighting',
+        hazards: ['Electric shock from damaged leads or equipment.', 'Leads damaged by plant, water or concrete.', 'Trips over leads.'],
+        controls: [
+          { fact: 'constructionTesting' },
+          src('All construction wiring and electrical equipment complies with AS/NZS 3012.', ESR('s 140, s 192')),
+          src('Construction wiring, switchboards and RCDs carry a test tag only if new, or inspected and tested by a competent person, with the retest date and the tester shown.', ESR('s 140(3)-(4)')),
+          src('Run leads where they will not be damaged, or protect them. Keep them off the ground on lead stands or insulated hangers, and away from doorways and sharp edges.', `${ESR('s 18')}; ${CODE('s 3')}`),
+          src('RCD protection as AS/NZS 3012 requires. If an RCD trips, the circuit stays off until a competent person finds the cause.', CODE('s 3.4')),
+        ],
+      },
+      {
+        step: 'Inspect, test and maintain construction power',
+        hazards: ['Unsafe equipment stays in use.'],
+        controls: [
+          src('Unsafe equipment is disconnected, labelled unsafe, and not reconnected until it is repaired or tested and found safe.', `${ESR('s 17')}; ${CODE('s 3.1')}`),
+          src('Hired electrical equipment is inspected, tested and tagged by the hire company before hire.', ESR('s 142')),
+          src('Use battery tools in place of mains tools where practical.', CODE('s 2.3')),
+        ],
+      },
+    ],
+  },
+  {
+    when: 'castIn',
+    steps: [{
+      step: 'Install cast-in conduits on the deck before the pour',
+      hazards: ['A person falls from the slab edge or through a penetration.', 'Impalement or trips on reo.', 'Working among formworkers and reo fixers.', 'Leads damaged by water or concrete.'],
+      controls: [
+        src('Conduit work by a worker without an electrical licence is done under the supervision of a licensed electrical worker, with no energised wiring in the conduits.', ESA('s 18(2)(e)')),
+        src('Agree access, timing and the order of work with the formwork and reo crews and the principal contractor before the pour.', CODE('s 7.2')),
+        'Stay inside the edge protection, and keep penetration covers in place.',
+        'Use walkways over the reo, and keep exposed bars capped or covered.',
+        src('Run construction power leads on the deck where they will not be damaged by water, concrete or work, or protect them.', ESR('s 18')),
+      ],
+    }],
+  },
+  {
+    when: 'containment',
+    steps: [{
+      step: 'Install cable tray, containment and cabling at height',
+      hazards: ['A fall from a ladder, platform or elevating work platform.', 'A fall into an open riser or shaft.', 'Dropped tools and materials.', 'Contact with energised parts nearby.'],
+      controls: [
+        src('Use non-conductive ladders for electrical work.', CODE('s 9.2')),
+        'Risers and shafts are screened or covered at each level. Only the section being worked on is opened, and it is fenced.',
+        src('Restrain tools with lanyards or holders when working above others or near switchboards.', CODE('s 9.1')),
+        src('Where an exposed energised part is within 3 m, de-energise it or fit covers, and use a safety observer where the work is energised work.', `${ESR('s 193')}; ${CODE('s 9.2')}`),
+        'In the basement, use battery or electric plant where practical. Otherwise ventilate, and monitor for exhaust fumes.',
+      ],
+    }],
+  },
+  {
+    when: 'cablePull',
+    steps: [{
+      step: 'Pull cables and handle cable drums',
+      hazards: ['A drum rolls or falls.', 'Back strain and crush injuries handling drums and cable.', 'Caught in a winch or struck by a cable under tension.', 'Contact with an existing energised cable.'],
+      controls: [
+        'Move drums with a forklift, crane or drum trailer. Chock them, and pay out from a drum stand with a spindle.',
+        'Use a winch with guards and a stop control. Keep people out of the line of pull and away from pulling points.',
+        'Manual handling: team pull, rotate tasks, and keep cable bends and pulling points within reach without twisting.',
+        src('Treat existing cables as energised until proved de-energised. Check both ends for isolation before cutting, and use a cable spiking device where it is fit for purpose.', `${ESR('s 196(2)')}; ${CODE('s 5.3')}`),
+        src('Run the leads for winches and tools where they will not be damaged, or protect them.', ESR('s 18')),
+      ],
+    }],
+    ppe: ['gloveGeneral'],
+  },
+  {
+    when: 'fitOff',
+    steps: [{
+      step: 'Rough-in and fit-off in the apartments',
+      hazards: ['Contact with live cables when drilling or chasing.', 'Silica dust from chasing or drilling concrete or blockwork.', 'Work in ceiling spaces.', 'A fall from a ladder or platform.', 'Swarf entering switchboards and enclosures.'],
+      controls: [
+        src('Work in a roof space (between the roof and the top floor ceiling) only when the electrical installation is de-energised, unless a risk assessment and written statement under the regulation cover the work.', ESR('s 31, s 33, s 34')),
+        src('In ceiling spaces between floors, treat cables as energised until they are proved de-energised.', ESR('s 196(2)')),
+        src('Check for cables before drilling or chasing, and scan post-tensioned slabs first.', CODE('appendix C')),
+        'Chase and drill with water suppression or on-tool dust extraction.',
+        'Use platform ladders or mobile scaffolds, not the top steps of a stepladder.',
+        src('Cover open switchboards and enclosures to keep swarf out.', CODE('appendix C')),
+      ],
+    }],
+    ppe: ['p2', 'earPlugs'],
+  },
+  {
+    when: 'switchboard',
+    steps: [
+      {
+        step: 'Isolate and prove de-energised',
+        hazards: ['Electric shock and arc flash.', 'Equipment re-energised while work is underway.'],
+        controls: [
+          { fact: 'isolationProcedure' },
+          src('Treat every exposed part as energised until it is isolated and tested by a competent person and found de-energised.', ESR('s 196')),
+          src('Test the tester on a known source, test for zero volts, then test the known source again. Do not rely on proximity testers. Use instruments rated Category III or IV.', CODE('s 9.4')),
+          src('Lock isolation points in the open position and tag them. Each worker fits a personal lock, and tags are removed only by the person who signed them.', `${ESR('s 197, s 198')}; ${CODE('s 6.1')}`),
+        ],
+      },
+      {
+        step: 'Work on or near energised parts',
+        hazards: ['Electric shock and arc flash from exposed energised parts within 3 m.'],
+        controls: [{
+          choice: 'energisedWork',
+          options: {
+            none: [
+              src('No work is done on or near energised parts (within 3 m of an exposed energised part). If that changes, stop and prepare for energised work as the regulation requires.', ESR('s 193, s 195')),
+            ],
+            testing: [
+              src('Work on or near energised parts is done only where the regulation allows, such as testing, and never because it is more convenient.', `${ESR('s 195')}; ${CODE('s 7.1')}`),
+              src('Before the work: a competent person\'s recorded risk assessment, this SWMS, clear access and exit, the isolation point labelled and quick to operate, and authorisation after consulting the principal contractor.', ESR('s 199, s 200')),
+              src('Only authorised people enter the area, and barriers prevent contact with exposed energised parts.', ESR('s 201, s 202')),
+              src('A safety observer, assessed in the last 12 months as competent in rescue and resuscitation, watches the work and does no other work.', `${ESR('s 203, schedule 10')}; ${CODE('s 7.3')}`),
+              src('Use insulated tools, tested test equipment, and PPE rated for the energy at the point of work: an arc-rated face shield, insulated gloves and flame-resistant clothing. No metal jewellery.', `${ESR('s 203')}; ${CODE('s 9.5')}`),
+            ],
+          },
+        }],
+      },
+      {
+        step: 'Test, connect and commission',
+        hazards: ['New work energised before it is safe.', 'People exposed while equipment is energised for testing.'],
+        controls: [
+          src('Test new work so it is electrically safe before it is connected, and keep people not needed for testing safe while it is energised.', ESR('s 207')),
+          src('Do not connect an installation unless the work was done by a licensed person and tested as electrically safe and compliant with the wiring rules.', ESR('s 219')),
+          src('Give the distribution entity the notice of test, and issue the certificate of testing and compliance.', ESR('s 228, s 229')),
+          src('Before restoring power: terminate conductors, test insulation resistance, earth continuity, polarity and function, remove temporary bonds, tell workers, and remove locks and tags by the procedure.', CODE('s 6.3')),
+        ],
+      },
+      {
+        step: 'Leave unfinished work safe',
+        hazards: ['Someone contacts or energises unfinished work.'],
+        controls: [
+          src('Terminate and secure conductors, tag and tape off, label the switchboard status, prevent re-energising, and hand over.', CODE('s 6.4')),
+        ],
+      },
+    ],
+  },
+  {
     when: 'asbestos',
     steps: [
       {
@@ -745,8 +890,8 @@ const PPE = [
   { area: 'Eyes and face', items: [['glassesClear', 'Safety glasses, clear'], ['glassesTinted', 'Safety glasses, tinted'], ['goggles', 'Goggles'], ['faceShield', 'Face shield']] },
   { area: 'Hearing', items: [['earPlugs', 'Ear plugs'], ['earMuffs', 'Ear muffs']] },
   { area: 'Breathing', items: [['p2', 'P2 respirator (fit tested)'], ['halfFace', 'Half-face respirator with filters (fit tested)']] },
-  { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves']] },
-  { area: 'Body', items: [['longs', 'Long sleeves and long pants'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls']] },
+  { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves'], ['gloveInsulated', 'Insulated electrical gloves']] },
+  { area: 'Body', items: [['longs', 'Long sleeves and long pants'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls'], ['arcRated', 'Arc-rated face shield and flame-resistant clothing']] },
   { area: 'Feet', items: [['boots', 'Safety boots'], ['gumboots', 'Safety gumboots']] },
   { area: 'Sun', items: [['sunscreen', 'Sunscreen']] },
   { area: 'Falls and water', items: [['harness', 'Full body harness'], ['lifeJacket', 'Life jacket']] },
@@ -761,7 +906,7 @@ function expand(control, factText) {
   if (typeof control === 'string') return [control];
   // A control taken from a regulation or code carries its source, printed after it.
   if (control.text) return [control.source ? `${control.text} (${control.source})` : control.text];
-  if (control.choice) return control.options[factText(control.choice)] || [];
+  if (control.choice) return (control.options[factText(control.choice)] || []).flatMap((item) => expand(item, factText));
   const text = factText(control.fact);
   if (text) return [text];
   return control.otherwise ? [control.otherwise] : [];
@@ -777,7 +922,8 @@ function jobStepsFor(flags, factText, fallback) {
   const middle = found.length ? found.flatMap((activity) => activity.steps) : [fallback];
   const before = {
     ...BEFORE,
-    controls: [...BEFORE.controls, ...BEFORE_EXTRA.filter((item) => flags[item.when]).map((item) => item.text)],
+    controls: [...BEFORE.controls, ...BEFORE_EXTRA.filter((item) => flags[item.when]).flatMap((item) => expand(item.text, factText))],
+
   };
   const seen = new Set();
   const steps = [before, ...middle, FINISH]

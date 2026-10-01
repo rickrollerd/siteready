@@ -7,7 +7,16 @@ const path = require('path');
 const { prepareDraft } = require('../draft');
 const { STATES, highRiskLabel } = require('../legislation');
 
-const project = require(path.resolve(process.argv[2] || path.join(__dirname, 'projects', 'brisbane-tower.json')));
+const files = process.argv[2] ? [process.argv[2]] : ['brisbane-tower.json', 'brisbane-tower-electrical.json'].map((name) => path.join(__dirname, 'projects', name));
+let exitCode = 0;
+for (const file of files) exitCode = Math.max(exitCode, runProject(require(path.resolve(file))));
+process.exit(exitCode);
+
+function runProject(project) {
+const failures = [];
+let runs = 0;
+const fail = (where, message) => failures.push(`${where}: ${message}`);
+
 
 // Other ways the same work is written on site.
 const REWORDINGS = [
@@ -23,16 +32,13 @@ const REWORDINGS = [
   ['formwork', 'Formwork'],
 ];
 
-const failures = [];
-let runs = 0;
-const fail = (where, message) => failures.push(`${where}: ${message}`);
 
 function check(where, state, swms, task) {
   runs += 1;
   const base = { state: state.id, task, fallRisk: swms.fallRisk, residential: 'no' };
   const extra = (state.panelFacts || []).length && /precast/i.test(task) ? { regulatorNotified: 'Regulator notified 15 working days before.' } : {};
   const bare = prepareDraft(base);
-  if (bare.kind !== 'stand-down') fail(where, `without facts expected a stand-down, got ${bare.kind}`);
+  if (swms.expect.missing.length && bare.kind !== 'stand-down') fail(where, `without facts expected a stand-down, got ${bare.kind}`);
   const done = prepareDraft({ ...base, facts: { ...swms.facts, ...extra } });
   if (done.kind !== 'draft') return fail(where, `with facts expected a draft, got ${done.kind} (${(done.missing || []).join('; ')})`);
   for (const id of swms.expect.highRisk) {
@@ -64,6 +70,21 @@ for (const state of STATES.filter((item) => item.loaded)) {
   }
 }
 
+// Every rule taken from a regulation or code must appear, with its source, in the
+// SWMS it belongs to. A rule missing from a draft fails here.
+for (const rule of project.rules || []) {
+  for (const id of rule.swms) {
+    const swms = project.swms.find((item) => item.id === id);
+    runs += 1;
+    const done = prepareDraft({ state: project.state, task: swms.task, fallRisk: swms.fallRisk, residential: 'no', facts: swms.facts });
+    const text = JSON.stringify(done.jobSteps || []);
+    const line = (done.jobSteps || []).flatMap((step) => step.controls).find((item) => item.includes(rule.phrase));
+    if (!text.includes(rule.phrase)) fail(`${project.state} ${id}`, `rule missing: ${rule.phrase} (${rule.source})`);
+    else if (!line || !rule.source.split(/,|;/)[0].trim().split(' s ')[0].split(' ').every((word) => line.includes(word))) fail(`${project.state} ${id}`, `rule not cited: ${rule.phrase} (${rule.source})`);
+  }
+}
+
 console.log(`${project.title}: ${runs} runs, ${failures.length} failures`);
 for (const item of failures) console.log(`  ${item}`);
-process.exit(failures.length ? 1 : 0);
+return failures.length ? 1 : 0;
+}
