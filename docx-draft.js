@@ -369,14 +369,17 @@ function childrenFor(draft) {
 // company's own document. With no logo or details there is no header.
 function companyHeader(draft, logo) {
   const lines = [];
+  // The last header line carries the gap that keeps the page title clear of the header.
+  const gap = 240;
+  const textLines = [draft.subcontractor, draft.companyDetails].filter(Boolean).length;
   if (logo) {
     lines.push(new Paragraph({
-      spacing: { before: 0, after: 60 },
+      spacing: { before: 0, after: textLines ? 60 : gap },
       children: [new ImageRun({ type: logo.type, data: logo.data, transformation: fitLogo(logo) })],
     }));
   }
-  if (draft.subcontractor) lines.push(para(draft.subcontractor, { bold: true, size: 20, after: 20 }));
-  if (draft.companyDetails) lines.push(para(draft.companyDetails, { size: 16, color: MUTED, after: 80 }));
+  if (draft.subcontractor) lines.push(para(draft.subcontractor, { bold: true, size: 20, after: draft.companyDetails ? 20 : gap }));
+  if (draft.companyDetails) lines.push(para(draft.companyDetails, { size: 16, color: MUTED, after: gap }));
   return lines.length ? { default: new Header({ children: lines }) } : undefined;
 }
 
