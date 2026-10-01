@@ -1,27 +1,28 @@
 {
-  "title": "New hospital building, Brisbane: site establishment and traffic",
+  "title": "New major hospital, Brisbane: site establishment and traffic",
   "state": "qld",
-  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "workplace": "New major hospital with a hospital tower, two level basement and rooftop helipad, Brisbane",
   "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
   "swms": [
     {
       "id": "hoarding",
-      "title": "Hoardings next to the live hospital",
-      "task": "Erect the site fencing and hoardings between the site and the live hospital entrance and car park, with materials delivered by truck, and set up the site sheds, lifted into place by the crane company's mobile crane.",
+      "title": "Site fencing, hoardings and sheds",
+      "task": "Erect the site fencing and hoardings along the street frontage, with materials delivered by truck from the street, and set up the site sheds, lifted into place by the crane company's mobile crane.",
       "fallRisk": "no",
       "facts": {
         "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines."
       },
       "expect": {
         "highRisk": [
+          "road",
           "plant"
         ],
         "steps": [
+          "Set up traffic management",
           "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Erect fencing, hoardings and gantries",
-          "Set up site sheds",
-          "Work next to the live hospital"
+          "Set up site sheds"
         ],
         "missing": [
           "Crane company and lift plan"
@@ -30,8 +31,8 @@
     },
     {
       "id": "traffic",
-      "title": "Traffic management on the hospital campus",
-      "task": "Traffic controllers manage trucks, concrete trucks and mobile plant deliveries at the site gate on the hospital campus road next to the live hospital, open to traffic, keeping ambulance routes clear.",
+      "title": "Traffic management at the site gates",
+      "task": "Traffic controllers manage trucks, concrete trucks and mobile plant deliveries at the site gates and on the street next to the site, open to traffic, and separate plant and pedestrians on site.",
       "fallRisk": "no",
       "facts": {},
       "expect": {
@@ -41,8 +42,7 @@
         ],
         "steps": [
           "Set up traffic management",
-          "Separate plant and people on site",
-          "Work next to the live hospital"
+          "Separate plant and people on site"
         ],
         "missing": []
       }

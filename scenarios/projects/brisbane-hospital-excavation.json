@@ -1,13 +1,13 @@
 {
-  "title": "New hospital building, Brisbane: excavation",
+  "title": "New major hospital, Brisbane: excavation",
   "state": "qld",
-  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "workplace": "New major hospital with a hospital tower, two level basement and rooftop helipad, Brisbane",
   "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
   "swms": [
     {
       "id": "basement",
       "title": "Bulk excavation for the basement",
-      "task": "Bulk excavate the two level basement with excavators and trucks, next to the live hospital, installing ground anchors in the retention wall as the excavation goes down, with the basement edge more than 2 m deep.",
+      "task": "Bulk excavate the two level basement with excavators and trucks, next to the street and neighbouring buildings, installing ground anchors in the retention wall as the excavation goes down, with the basement edge more than 2 m deep.",
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Edge protection is installed along the basement edge before the excavation is more than 2 m deep, and ramps and stairs with handrails give access.",
@@ -17,13 +17,15 @@
       "expect": {
         "highRisk": [
           "fall",
+          "road",
           "plant"
         ],
         "steps": [
+          "Set up traffic management",
           "Bulk excavate and load trucks",
           "Install, stress and later remove ground anchors and props",
           "Protect the basement edge and provide access",
-          "Work next to the live hospital"
+          "Protect neighbouring buildings and the street"
         ],
         "missing": [
           "Fall control",

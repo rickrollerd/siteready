@@ -98,25 +98,20 @@
     {
       "id": "retention",
       "title": "Secant pile retention wall and staged excavation",
-      "task": "Install the secant pile retention wall around the basement with the CFA piling rig, then excavate in stages in front of the wall to the 3 basement levels, next to the neighbouring buildings and the street.",
-      "fallRisk": "yes",
+      "task": "Install the secant pile retention wall around the basement with the CFA piling rig, next to the neighbouring buildings and the street.",
+      "fallRisk": "no",
       "facts": {
         "pilingPlatform": "The working platform is designed by the project geotechnical engineer for the 90 t CFA rig and the 100 t bored pile rig, with a maximum plant loading of 250 kPa. The platform certificate is given to each rig operator before the rig goes on it.",
-        "temporarySupport": "The secant wall and its temporary props are to the engineer's design (drawing ____, revision ____), with each excavation stage approved by the engineer before it starts.",
-        "fallControl": "Edge protection is installed along the top of the retention wall before excavation goes below 2 m, and no one works outside it.",
         "rigExclusionZone": "Each rig has a fenced and signed exclusion zone of 30 m radius. Only the rig crew enters, with the operator's agreement, controlled by the piling supervisor."
       },
       "expect": {
         "highRisk": [
-          "fall",
           "plant"
         ],
         "steps": [
-          "Drill and install piles",
-          "Excavate in front of the retention wall"
+          "Drill and install piles"
         ],
         "missing": [
-          "Fall control",
           "Rig exclusion zone",
           "Working platform design and certificate"
         ]
@@ -217,22 +212,6 @@
       "phrase": "DANGER HOLE BENEATH",
       "source": "Model Code: Managing the risk of falls s 4.2",
       "quote": "Holes, penetrations and openings must be made safe immediately after being formed"
-    },
-    {
-      "swms": [
-        "retention"
-      ],
-      "phrase": "No one works ahead of the support",
-      "source": "Model Code: Excavation work s 6.2",
-      "quote": "They should not work ahead of the shoring protection"
-    },
-    {
-      "swms": [
-        "retention"
-      ],
-      "phrase": "Neighbouring buildings are protected before digging",
-      "source": "Model Code: Excavation work s 3.4",
-      "quote": "Excavation work must not commence until steps are taken to prevent the collapse or partial collapse of any potentially affected building or structure."
     },
     {
       "swms": [
