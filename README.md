@@ -82,6 +82,7 @@ See `.env.example`.
 | `RATE_LIMIT_WINDOW_MS` | 900000 | Rate limit window (15 minutes) |
 | `RATE_LIMIT_MAX_REQUESTS` | 600 | Requests per window per client address, other than the Word file |
 | `RATE_LIMIT_WORD_REQUESTS` | 300 | Word files per window per client address |
+| `TRUST_PROXY` | 1 | Number of proxies in front of the server. Set 0 when clients connect directly, or a client can fake its address to get round the rate limit. |
 | `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. |
 
 ## Native app

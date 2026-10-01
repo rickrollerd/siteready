@@ -75,7 +75,7 @@ async function user(number, until) {
       seen.add(name);
     } catch (error) {
       errors += 1;
-      if (errors <= 5) console.error(`${name}: ${error.message}`);
+      if (errors <= 5) console.error(`${name}: ${error.message}${error.cause ? ` (${error.cause.code || error.cause.message})` : ''}`);
     }
   }
 }

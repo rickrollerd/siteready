@@ -16,9 +16,13 @@ const borders = { top: hair, bottom: hair, left: hair, right: hair };
 const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
 const open = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
 
+// Characters a Word file cannot hold are replaced, so the file always opens.
+const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
+const safe = (text) => String(text || '').toWellFormed().replace(CONTROL, ' ');
+
 function run(text, options = {}) {
   return new TextRun({
-    text: text || '',
+    text: safe(text),
     font: FONT,
     size: options.size || 22,
     bold: Boolean(options.bold),
@@ -191,6 +195,9 @@ function workerSignOn(draft) {
     new Table({
       width: { size: CONTENT_WIDTH, type: WidthType.DXA },
       columnWidths: widths,
+      // Borders are set once on the table and the blank cells are kept bare,
+      // because every extra setting on 176 cells slows the file down.
+      borders: { ...borders, insideHorizontal: hair, insideVertical: hair },
       rows: [
         new TableRow({
           tableHeader: true,
@@ -200,7 +207,10 @@ function workerSignOn(draft) {
         ...Array.from({ length: SIGN_ROWS }, () => new TableRow({
           cantSplit: true,
           height: { value: 560 },
-          children: widths.map((width) => cell(' ', width)),
+          children: widths.map((width) => new TableCell({
+            width: { size: width, type: WidthType.DXA },
+            children: [new Paragraph({})],
+          })),
         })),
       ],
     }),

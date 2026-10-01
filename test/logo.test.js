@@ -101,3 +101,11 @@ function documentXml(zip) {
   const extra = zip.readUInt16LE(start + 28);
   return zip.subarray(start + 30 + nameLength + extra, start + 30 + nameLength + extra + size);
 }
+
+test('pasted control characters and markup cannot break the Word file', async () => {
+  const bad = 'Fix fence </w:t><w:t>X & <b> \u0001\u000b\u001f ￾ \uD800 end';
+  const zip = await draftToDocx(prepareDraft({ state: 'nsw', task: bad, fallRisk: 'no', company: bad }));
+  const xml = require('node:zlib').inflateRawSync(documentXml(zip)).toString();
+  assert.doesNotMatch(xml, /[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]/);
+  assert.ok(xml.includes('&lt;/w:t&gt;&lt;w:t&gt;X'));
+});
