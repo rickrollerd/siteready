@@ -41,7 +41,7 @@
         "systemInstructions": "The mini crawler crane and monorail are set up to the manufacturer's manuals (model and revision on the plant register), by our crew holding intermediate rigging licences, and inspected before use.",
         "loadLimits": "The structural engineer's letter SE-14 gives the allowable outrigger and monorail loads on the slab edge.",
         "fallControl": "Work at the slab edge is done with a travel restraint system to engineer designed anchors, and edge protection stays in place except at the panel being installed.",
-        "craneChart": "Mini crawler crane rated capacity chart: 2.9 t at 2.5 m radius, 1.2 t at 5.0 m; heaviest panel 1.1 t at 4.5 m radius."
+        "craneChart": "Mini crawler crane rated capacity chart (outriggers set, main boom): 1.6 t at 4.5 m radius. Heaviest gross load is 1.25 t (panel 1.1 t, vacuum lifter 0.12 t, slings and shackles 0.03 t) at 4.5 m radius."
       },
       "expect": {
         "highRisk": [
@@ -109,14 +109,14 @@
       "facts": {
         "silicaControls": "Fixing holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS.",
         "safetyDataSheet": "Safety data sheets for the silicone sealant and primer are kept at the work area: use with ventilation, wear gloves and eye protection.",
-        "fallControl": "Brackets at the slab edge are fixed with a travel restraint system to engineer designed anchors, so workers cannot reach the open edge.",
-        "controlsConsidered": "Edge protection stays in place except at the bracket being fixed. Fixing every bracket from inside the edge protection was considered, but the edge brackets sit beyond reach of the rail, so travel restraint is used at those brackets."
+        "fallControl": "Brackets at the slab edge are fixed with a travel restraint system to engineer designed anchors, so workers cannot reach the open edge."
       },
       "expect": {
         "highRisk": [
           "fall"
         ],
         "steps": [
+          "Fix brackets at the slab edge",
           "Fix, seal and finish"
         ],
         "missing": [

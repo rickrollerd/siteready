@@ -1277,7 +1277,8 @@ const ACTIVITIES = [
         src('Where fall arrest is used instead of restraint: harness anchors are engineer designed or approved by a competent person, rated at least 12 kN for one person with a limited free fall, 15 kN for one person with a free fall, or 21 kN for two. Energy absorbers limit the arrest force to 6 kN, there is enough clearance below to stop a fall before it hits anything, and no one uses a harness system alone.', WHS('s 306I')),
         src('Clip on before moving into a position where you could fall. Lanyards do not run over unprotected slab edges.', WHS('s 306I')),
         src('Travel restraint and fall arrest systems are inspected by a competent person at least every 6 months, and worn components are not used.', WHS('s 306G, s 306I')),
-        src('A panel on the crane or monorail stays under control until it is fixed and the rigging is released, with a licensed dogman directing.', WHS('s 219')),
+        src('A panel on the crane or monorail stays under control until it is fixed and the rigging is released.', WHS('s 219')),
+        src('A licensed dogman directs lifts that are out of the operator\'s view.', WHS('s 81, schedule 3')),
         src('Insert-type anchors are not used for fall arrest where the load would pull them straight out. Anchors are proof tested.', MODEL('Managing the risk of falls', 's 7.3')),
         'Only the panel opening being worked on is opened, and edge protection or screens are put back before the area is left.',
         src('Tether tools, and keep fixings in closed containers, so nothing can fall. Exclusion zones on the floors below.', WHS('s 55')),
@@ -1321,13 +1322,27 @@ const ACTIVITIES = [
     ppe: ['harness'],
   },
   {
+    when: 'edgeBracket',
+    steps: [{
+      step: 'Fix brackets at the slab edge',
+      hazards: ['A fall from the slab edge where edge protection is opened.', 'Tools and fixings fall to the floors below or the street.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('A travel restraint system is installed by a competent person, and used only by workers trained in it. A competent person inspects it at least every 6 months.', WHS('s 306G')),
+        'Edge protection is opened only at the bracket being fixed, and put back before moving on.',
+        src('Tether tools, and keep fixings in closed containers. Exclusion zones on the floors below.', WHS('s 55')),
+      ],
+    }],
+    ppe: ['harness'],
+  },
+  {
     when: 'facadeSeal',
     steps: [{
       step: 'Fix, seal and finish',
       hazards: ['Silica dust from drilling.', 'Cutting a post-tensioning tendon.', 'Fumes from sealants and cleaners.'],
       controls: [
         { fact: 'safetyDataSheet' },
-        src('Keep the current safety data sheet for each sealant, primer and cleaner at the work area.', WHS('s 344')),
+        src('Keep the current safety data sheet for each sealant, primer and cleaner used at the work area.', WHS('s 344')),
         'Before drilling into a post-tensioned slab edge, check the post-tensioning drawings, and scan and mark tendons, conduits and pipes. Never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval.',
         src('Drill with on-tool extraction, and wear a fit tested P2 respirator.', WHS('s 529B, s 529C')),
         src('Assess in writing before drilling whether the processing is high risk, without counting PPE or administrative controls, and without relying only on on-tool extraction or wet methods. If it cannot be determined, treat it as a risk to health until it is.', WHS('s 529CA')),
