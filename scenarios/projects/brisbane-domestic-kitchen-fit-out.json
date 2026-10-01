@@ -1,0 +1,31 @@
+{
+  "title": "Houses and renovations, Brisbane: kitchen fit-out",
+  "state": "qld",
+  "workplace": "Houses and renovations around Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "kitchen",
+      "title": "New kitchen in a house",
+      "task": "Install a new kitchen in a house: assemble and fix the cabinets, fit the benchtops, and install the appliances, cutting benchtops on site.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Benchtop cut-outs are made with a wet saw and on-tool extraction. Fit tested P2 respirators are worn while cutting. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Move materials and joinery into place",
+          "Use power tools",
+          "Install doors, joinery and cabinets",
+          "Cut and finish stone and porcelain benchtops",
+          "Move and set heavy benchtops"
+        ],
+        "missing": [
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

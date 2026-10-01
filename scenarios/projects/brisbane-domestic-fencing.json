@@ -1,0 +1,23 @@
+{
+  "title": "Houses and renovations, Brisbane: fencing",
+  "state": "qld",
+  "workplace": "Houses and renovations around Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "fence",
+      "title": "Timber boundary fence",
+      "task": "Dig the post holes with a post hole digger and build a timber boundary fence between two houses, concreting the posts.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Dig post holes and build the fence"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": []
+}

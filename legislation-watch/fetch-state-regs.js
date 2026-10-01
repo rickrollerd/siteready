@@ -41,6 +41,29 @@ async function nsw(browser) {
     console.log(`NSW ${url}: ${text.length} characters, starts: ${text.slice(0, 200).replace(/\s+/g, ' ')}`);
     if (text.length > 200000) return save('nswReg', 'Work Health and Safety Regulation 2025 (NSW), current', url, text);
   }
+  // AustLII publishes the consolidated NSW regulations too.
+  for (const index of ['https://www.austlii.edu.au/cgi-bin/viewdb/au/legis/nsw/consol_reg/', 'https://classic.austlii.edu.au/au/legis/nsw/consol_reg/']) {
+    try {
+      await page.goto(index.includes('viewdb') ? `${index}toc-W.html` : `${index}toc-W.html`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+      const link = await page.evaluate(() => [...document.querySelectorAll('a')].find((a) => /Work Health and Safety Regulation 2025/i.test(a.innerText)));
+      const href = await page.evaluate(() => { const a = [...document.querySelectorAll('a')].find((el) => /Work Health and Safety Regulation 2025/i.test(el.innerText)); return a ? a.href : ''; });
+      console.log(`AustLII ${index}: link ${href || 'not found'}${link ? '' : ''}`);
+      if (!href) continue;
+      await page.goto(href, { waitUntil: 'domcontentloaded', timeout: 90000 });
+      // The regulation's contents page links each section; read them all.
+      const sections = await page.evaluate(() => [...document.querySelectorAll('a')].map((a) => a.href).filter((h) => /\/s\d+[a-z]*\.html$|\/sch\d+\.html$/i.test(h)));
+      console.log(`AustLII sections linked: ${sections.length}`);
+      let text = '';
+      for (const url of [...new Set(sections)]) {
+        const response = await page.request.get(url, { timeout: 60000 }).catch(() => null);
+        if (!response || !response.ok()) continue;
+        text += (await response.text()).replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n') + '\n';
+      }
+      if (text.length > 200000) return save('nswReg', 'Work Health and Safety Regulation 2025 (NSW), AustLII consolidation', href, text);
+    } catch (error) {
+      console.log(`AustLII failed: ${error.message}`);
+    }
+  }
   // Fall back to the PDF the page offers.
   const pdfLink = await page.evaluate(() => [...document.querySelectorAll('a')].map((a) => a.href).find((href) => /pdf/i.test(href)));
   console.log(`NSW PDF link: ${pdfLink}`);

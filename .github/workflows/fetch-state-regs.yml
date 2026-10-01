@@ -32,7 +32,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git checkout --orphan state-sources-tmp
-          git rm -rq --cached .
+          git rm -rqf --cached .
           git add state-sources
           git commit -qm "State regulation texts, fetched $(date -u +%Y-%m-%d)"
           git push -f origin HEAD:refs/heads/state-sources

@@ -1,0 +1,31 @@
+{
+  "title": "Houses and renovations, Brisbane: decks and pergolas",
+  "state": "qld",
+  "workplace": "Houses and renovations around Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "deck",
+      "title": "Timber deck at the back of a house",
+      "task": "Build a timber deck 2.5 m above the ground at the back of a house, digging post holes and concreting the posts, and cutting timber with a drop saw.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "The deck frame is built from the ground and from a mobile scaffold with guardrails; no one works on the open joists near the edge until the decking is laid and temporary edge protection is fixed.",
+        "controlsConsidered": "Edge protection and scaffolds were considered first for every task, and an elevating work platform where they cannot be fixed."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Set out and dig post holes",
+          "Build the deck frame and lay the decking"
+        ],
+        "missing": [
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

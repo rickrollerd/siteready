@@ -1,0 +1,35 @@
+{
+  "title": "Houses and renovations, Brisbane: bathroom renovation",
+  "state": "qld",
+  "workplace": "Houses and renovations around Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "strip",
+      "title": "Bathroom strip-out in an older house",
+      "task": "Strip out the bathroom of a 1970s house, removing the wall and floor tiles and the fibro wall sheets, then waterproof the floor and walls and re-tile, cutting tiles with a wet saw.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Tiles are removed and cut with wet methods and on-tool extraction. Fit tested P2 respirators are worn. The written silica assessment is done before work starts and attached to this SWMS.",
+        "asbestosArrangement": "The fibro wall sheets were sampled and tested by an occupational hygienist (report AS-221): they contain asbestos. A licensed asbestos removalist removes them before the strip-out starts, and gives a clearance certificate before other work begins."
+      },
+      "expect": {
+        "highRisk": [
+          "asbestos"
+        ],
+        "steps": [
+          "Check for asbestos before starting",
+          "Strip out the room",
+          "Cut tiles and stone",
+          "Lay tiles",
+          "Apply primers and liquid membranes"
+        ],
+        "missing": [
+          "Silica dust controls",
+          "Asbestos arrangement"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}
