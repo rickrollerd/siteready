@@ -162,6 +162,11 @@
     .site-item[open] > summary { margin-bottom: 10px; }
     .error-note { background: #fbeaea; border-color: #e3a3a3; color: #8a2b2b; }
     #site-save-current { margin-top: 0; }
+    .scope-task { border: 1px solid #e1e6ec; border-radius: 6px; padding: 10px 12px; margin-top: 10px; }
+    .scope-task h3 { font-size: 15px; margin: 0 0 4px; }
+    .scope-task p { font-size: 14px; margin: 0 0 8px; }
+    .scope-task details { font-size: 13px; color: #5c6773; margin-bottom: 8px; }
+    .scope-task ul { margin: 6px 0 0; padding-left: 1.2em; }
     @media (max-width: 640px) {
       .wrap { padding: 18px 12px 48px; }
       .panel, .sheet { padding: 16px; }
@@ -273,6 +278,26 @@
         <button type="button" class="secondary" id="profile-clear">Remove profile</button>
       </div>
       <p class="note hidden" id="profile-status"></p>
+    </details>
+
+    <details class="panel" id="scope-panel">
+      <summary>Start from a scope of works</summary>
+      <p class="lede" style="margin-bottom:12px">Attach the scope of works, or paste it below. SiteReady lists the tasks in it that need a SWMS. Pick one to fill in the task, then check it and continue as normal.</p>
+      <div class="field">
+        <label for="scope-file">Scope of works file
+          <span class="hint">Word (.docx), PDF or text. Attach the scope only, not the whole contract.</span>
+        </label>
+        <input id="scope-file" type="file" accept=".docx,.pdf,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
+      </div>
+      <div class="field">
+        <label for="scope-text">Or paste the scope</label>
+        <textarea id="scope-text" style="min-height:160px"></textarea>
+      </div>
+      <div class="actions">
+        <button type="button" id="scope-read">Find the tasks that need a SWMS</button>
+      </div>
+      <p class="error" id="scope-error"></p>
+      <div id="scope-results"></div>
     </details>
 
     <form id="start" class="panel">
@@ -408,5 +433,6 @@
   </div>
   <script src="/app.js"></script>
   <script src="/account.js"></script>
+  <script src="/scope.js"></script>
 </body>
 </html>
