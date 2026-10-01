@@ -38,7 +38,7 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Risers are screened at each level with only the section being worked on opened, and scissor lifts with guardrails are used for work above 2 m.",
-        "silicaControls": "Anchor holes are drilled with on-tool dust extraction, fit tested P2 respirators are worn while drilling, and the written silica assessment is done before work starts."
+        "silicaControls": "Anchor holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS."
       },
       "expect": {
         "highRisk": [
@@ -113,7 +113,7 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Scissor lifts with guardrails are used for all work above 2 m.",
-        "silicaControls": "Anchor holes are drilled with on-tool dust extraction, fit tested P2 respirators are worn while drilling, and the written silica assessment is done before work starts."
+        "silicaControls": "Anchor holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS."
       },
       "expect": {
         "highRisk": [

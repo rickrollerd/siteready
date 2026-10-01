@@ -7,16 +7,17 @@
     {
       "id": "cabling",
       "title": "Communications containment and cabling in risers and ceilings",
-      "task": "Install cable tray and pull structured data cabling in the risers, corridor ceilings and apartments, drilling into the post-tensioned slabs for tray anchors, working from scissor lifts and platform ladders more than 2 m above the floor.",
+      "task": "Install cable tray and pull structured data cabling in the risers, corridor ceilings and apartments, drilling into the post-tensioned slabs for tray anchors, working from scissor lifts more than 2 m above the floor, and from platform ladders for lower work.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Risers are screened at each level with only the section being worked on opened, and scissor lifts with guardrails are used for work above 2 m.",
-        "silicaControls": "Anchor holes are drilled with on-tool dust extraction, fit tested P2 respirators are worn while drilling, and the written silica assessment is done before work starts."
+        "fallControl": "Risers are screened at each level with only the section being worked on opened, scissor lifts with guardrails are used for all work above 2 m, and platform ladders only for work below 2 m.",
+        "silicaControls": "Anchor holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS."
       },
       "expect": {
         "highRisk": [
           "fall",
-          "plant"
+          "plant",
+          "electrical"
         ],
         "steps": [
           "Use an elevating work platform",
@@ -38,7 +39,8 @@
       },
       "expect": {
         "highRisk": [
-          "fall"
+          "fall",
+          "electrical"
         ],
         "steps": [
           "Install containment and pull communications cabling",
@@ -56,7 +58,9 @@
       "fallRisk": "no",
       "facts": {},
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "electrical"
+        ],
         "steps": [
           "Install racks, cabinets and UPS batteries in the comms rooms"
         ],
@@ -66,15 +70,16 @@
     {
       "id": "security",
       "title": "CCTV, access control and intercoms",
-      "task": "Install CCTV cameras, access control card readers and intercoms in the foyer, lift lobbies and the 3 basement car park levels, working from platform ladders and scissor lifts more than 2 m above the floor, while other trades' vehicles use the car park.",
+      "task": "Install CCTV cameras, access control card readers and intercoms in the foyer, lift lobbies and the 3 basement car park levels, working from scissor lifts more than 2 m above the floor, and from platform ladders for lower work, while other trades' vehicles use the car park.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m."
+        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m, and platform ladders only for work below 2 m."
       },
       "expect": {
         "highRisk": [
           "fall",
-          "plant"
+          "plant",
+          "electrical"
         ],
         "steps": [
           "Use an elevating work platform",
@@ -141,14 +146,6 @@
     },
     {
       "swms": [
-        "fibre"
-      ],
-      "phrase": "No Class 3B or Class 4 lasers",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 223",
-      "quote": "Class 3B and Class 4 lasers ... are not used in construction work"
-    },
-    {
-      "swms": [
         "cabling",
         "fibre"
       ],
@@ -167,14 +164,6 @@
     },
     {
       "swms": [
-        "security"
-      ],
-      "phrase": "close the work area to vehicles",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 215",
-      "quote": "the plant does not collide with pedestrians or other powered mobile plant"
-    },
-    {
-      "swms": [
         "roof-antenna"
       ],
       "phrase": "top rail at least 900 mm",
@@ -188,6 +177,26 @@
       "phrase": "Team lifts are an interim control",
       "source": "Model Code: Hazardous manual tasks s 4.5, s 4.9",
       "quote": "It should only be used as an interim control measure"
+    },
+    {
+      "swms": [
+        "cabling",
+        "fibre",
+        "comms-rooms",
+        "security",
+        "roof-antenna"
+      ],
+      "phrase": "complies fully with the Wiring Rules",
+      "source": "Telecommunications (Cabling Provider) Rules 2025 (Cth) s 25",
+      "quote": "states that the cabling work has been completed and complies fully with the Wiring Rules"
+    },
+    {
+      "swms": [
+        "comms-rooms"
+      ],
+      "phrase": "Assess in writing before drilling",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529CA",
+      "quote": "recorded in writing"
     }
   ]
 }
