@@ -1,0 +1,30 @@
+SiteReady: SWMS for review
+50 storey tower, Brisbane CBD: structure (Queensland)
+
+This is the first human test of SiteReady. Seven safe work method statements are attached as Word files, ready to review, change and sign:
+
+01 Floor load-out, tower crane lifts and forklifts
+02 Slab formwork, falsework, stripping and backpropping
+03 Reo fixing and post-tensioning tendon placement
+04 Concrete pumping, placing and finishing
+05 Post-tensioning stressing and grouting
+06 Core jumpform climbing and core wall construction
+07 Precast column and blade wall installation
+
+Each one has: the high risk construction work under section 291 of the Work Health and Safety Regulation 2011 (Qld), the key controls by hierarchy, job steps with hazards and controls, PPE tick boxes, responsibilities, a Prepared by section, a principal contractor review section, and worker sign-on pages.
+
+Please note:
+- These are drafts. They are not approved or signed.
+- Drawing numbers, crane capacities and procedures in them are example inputs for the test. On a real project they come from the project's own designs and procedures.
+- Blank lines are left for names, dates, the principal contractor, the Who column, worker consultation and the site-specific section.
+- Every step, hazard, control and PPE tick can be changed in Word.
+
+What to look for when reviewing:
+1. Is anything wrong, unsafe or misleading?
+2. Is anything missing that a principal contractor would reject the SWMS for?
+3. Is the wording clear enough for workers on site?
+4. Would you use this layout, or change it?
+
+Please reply with your notes, or mark up the Word files and send them back.
+
+SiteReady

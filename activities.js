@@ -360,9 +360,10 @@ const ACTIVITIES = [
       },
       {
         step: 'Climb the jumpform',
-        hazards: ['The jumpform fails or drops.', 'Falling objects strike people below.'],
+        hazards: ['The jumpform fails or drops.', 'Falling objects strike people below.', 'Crushing between moving platforms and the wall.', 'Hydraulic hose failure and oil injection.'],
         controls: [
           'Only the trained climbing crew is on the jumpform during the climb, under a supervisor.',
+          'No one stands between moving and fixed parts during the climb. Check hydraulic hoses before the climb, and never feel for a leak by hand.',
           'Exclusion zone below the core during the climb.',
           'After each climb, the platforms are inspected and handed over in writing before trades return.',
         ],
@@ -392,6 +393,7 @@ const ACTIVITIES = [
         controls: [
           'Pour the walls at the rate in the formwork design.',
           'Concrete is placed by placing boom or kibble, with the hose hand in contact with the operator.',
+          'The placing boom operator holds a high risk work licence for a concrete placing boom.',
           'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
           'Wash wet concrete off the skin straight away. Wear gloves and eye protection.',
         ],
@@ -399,7 +401,7 @@ const ACTIVITIES = [
     ],
     // On a jumpform, reo and concrete are core wall work, not slab work.
     replaces: ['reo', 'concrete'],
-    ppe: ['chinStrap'],
+    ppe: ['chinStrap', 'gloveChemical', 'earPlugs'],
   },
   {
     when: 'reo',
@@ -487,10 +489,12 @@ const ACTIVITIES = [
         step: 'Stress the tendons',
         hazards: ['A tendon or anchor fails under load and is released violently, including out past the slab edge over the street or lower levels.', 'Hydraulic hose failure and oil injection.'],
         controls: [
-          { fact: 'stressingProcedure' },
-          'Only the trained stressing crew stresses tendons, to the engineer\'s sequence, once the concrete strength the engineer requires is reached.',
+          {
+            fact: 'stressingProcedure',
+            otherwise: 'Only the trained stressing crew stresses tendons, to the engineer\'s sequence, once the concrete strength the engineer requires is reached.',
+          },
           'The line of fire behind each jack is shielded. No one stands behind or in line with the jack.',
-          'During stressing, the area in line with the tendon is excluded, including outside the screens and on the levels below, as the stressing procedure requires.',
+          'During stressing, the area in line with the tendon is excluded, including outside the screens, on the levels below, and on the footpath or street below where the line of fire reaches it, as approved.',
           'Check the jack, gauges and hoses before use. Never feel for a hydraulic leak by hand. Release the pressure before disconnecting hoses.',
         ],
       },
@@ -506,6 +510,19 @@ const ACTIVITIES = [
       },
     ],
     ppe: ['faceShield', 'gloveChemical', 'p2', 'earPlugs'],
+  },
+  {
+    when: 'ewp',
+    steps: [{
+      step: 'Use an elevating work platform',
+      hazards: ['The platform overturns or falls from a slab edge.', 'The operator is crushed against the structure.'],
+      controls: [
+        'Check the slab can take the platform, and keep it back from slab edges and penetrations.',
+        'The operator is trained for the platform, and holds a high risk work licence for a boom of 11 m or more.',
+        'Wear a harness attached to the platform\'s anchor point in a boom-type platform.',
+      ],
+    }],
+    ppe: ['harness'],
   },
   {
     when: 'precast',
@@ -528,19 +545,6 @@ const ACTIVITIES = [
         'Braces stay in place until the grout reaches strength and the connections are complete, and the engineer approves their removal.',
       ],
     }],
-  },
-  {
-    when: 'ewp',
-    steps: [{
-      step: 'Use an elevating work platform',
-      hazards: ['The platform overturns or falls from a slab edge.', 'The operator is crushed against the structure.'],
-      controls: [
-        'Check the slab can take the platform, and keep it back from slab edges and penetrations.',
-        'The operator is trained for the platform, and holds a high risk work licence for a boom of 11 m or more.',
-        'Wear a harness attached to the platform\'s anchor point in a boom-type platform.',
-      ],
-    }],
-    ppe: ['harness'],
   },
   {
     when: 'asbestos',
@@ -673,10 +677,12 @@ const PPE = [
 const SITE_MINIMUM = ['hardHat', 'glassesClear', 'gloveGeneral', 'longs', 'hivis', 'boots'];
 const PPE_IDS = new Set(PPE.flatMap((group) => group.items.map(([id]) => id)));
 
+// A fact control may carry `otherwise`, a line used only when the fact is not given.
 function expand(control, factText) {
   if (typeof control === 'string') return [control];
   const text = factText(control.fact);
-  return text ? [text] : [];
+  if (text) return [text];
+  return control.otherwise ? [control.otherwise] : [];
 }
 
 // Steps for the kinds of work found, between the opening and closing steps.
