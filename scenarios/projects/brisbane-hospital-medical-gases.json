@@ -1,0 +1,91 @@
+{
+  "title": "New hospital building, Brisbane: medical gases",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "pipework",
+      "title": "Medical gas pipework",
+      "task": "Install and braze the copper medical gas pipework for oxygen, medical air and suction in the ward ceilings and risers, from scissor lifts more than 2 m above the floor.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m, and platform ladders only for work below 2 m.",
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "hotWorkPermit": "The principal contractor issues a hot work permit each day, after checking the hospital's smoke detection is isolated only for the work area. A fire extinguisher is kept at each work area, and the area is checked 60 minutes after hot work ends."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Braze and solder pipe joints (hot work)",
+          "Braze medical gas pipework"
+        ],
+        "missing": [
+          "Fall control",
+          "Hot work permit and fire watch"
+        ]
+      }
+    },
+    {
+      "id": "connect",
+      "title": "Testing and connection to the live medical gas mains",
+      "task": "Pressure test the new medical gas pipework and connect it to the live oxygen and medical air mains in the existing hospital.",
+      "fallRisk": "no",
+      "facts": {
+        "serviceShutdown": "Each connection is done under the hospital's shutdown permit SP-14, approved by hospital engineering, in the agreed window of 10 pm to 4 am. The ward and clinical staff are told beforehand, and cylinder supply set up by the medical gas supplier keeps patients supplied.",
+        "pressureTesting": "Tested with oxygen-free nitrogen to 1,400 kPa, pressurised in stages, with the area barricaded and signed during the test, and pressure released before any fitting is touched."
+      },
+      "expect": {
+        "highRisk": [
+          "gas"
+        ],
+        "steps": [
+          "Test and connect to live medical gas services",
+          "Work next to the live hospital",
+          "Pressure test and commission"
+        ],
+        "missing": [
+          "Live service shutdown",
+          "Pressure testing method"
+        ]
+      }
+    },
+    {
+      "id": "manifold",
+      "title": "Gas cylinder manifold room",
+      "task": "Install the medical gas manifold and move the gas cylinders into the manifold room.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Braze medical gas pipework",
+          "Handle gas cylinders and manifolds"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "connect"
+      ],
+      "phrase": "between 19.5% and 23.5%",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 51, s 52, schedule 19",
+      "quote": "safe oxygen level means a minimum oxygen content in air of 19·5% by volume ... and a maximum oxygen content of air of 23·5% by volume"
+    },
+    {
+      "swms": [
+        "manifold"
+      ],
+      "phrase": "Keep the fewest cylinders practicable",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 53",
+      "quote": "the substances are kept at the lowest practicable quantity for the workplace ... (b) gas cylinders, whether empty or full"
+    }
+  ]
+}

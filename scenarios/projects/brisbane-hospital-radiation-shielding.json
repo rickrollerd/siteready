@@ -1,0 +1,43 @@
+{
+  "title": "New hospital building, Brisbane: radiation shielding",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "lead",
+      "title": "Lead-lined walls in the imaging rooms",
+      "task": "Install lead-lined plasterboard and lead sheet to the walls of the imaging rooms, cutting the lead-lined sheets on site.",
+      "fallRisk": "no",
+      "facts": {},
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Move and fix plasterboard sheets",
+          "Work at the upper wall and ceiling line",
+          "Cut, set and sand",
+          "Install lead shielding"
+        ],
+        "missing": []
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "lead"
+      ],
+      "phrase": "the regulator is notified in writing within 7 days",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 395, s 403, s 405",
+      "quote": "the person must give the regulator written notice within 7 days that the work is lead risk work"
+    },
+    {
+      "swms": [
+        "lead"
+      ],
+      "phrase": "treat it as lead risk work",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 392, s 394, s 402",
+      "quote": "the process is taken to include lead risk work until the person determines that lead risk work is not carried out in the process"
+    }
+  ]
+}

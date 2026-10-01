@@ -68,6 +68,13 @@ const BEFORE_EXTRA = [
   { when: 'roof', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'sitePlant', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'formwork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'medicalGas', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'leadShielding', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'liveHospital', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'helipad', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'pneumaticTube', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'generatorPlant', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'boilerPlant', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'stoneWork', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'paving', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'mobileScaffold', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
@@ -983,7 +990,7 @@ const ACTIVITIES = [
         ],
       },
       {
-        step: 'Core drill through the slab',
+        step: 'Core drill through the slab or wall',
         hazards: ['Silica dust from drilling concrete.', 'Noise and vibration.', 'The core falls to the floor below.', 'A person falls through the hole.'],
         controls: [
           { fact: 'silicaControls' },
@@ -2605,6 +2612,143 @@ const ACTIVITIES = [
       ],
     }],
     ppe: ['p2', 'earMuffs', 'glassesClear'],
+  },
+  {
+    when: 'medicalGasBraze',
+    steps: [{
+      step: 'Braze medical gas pipework',
+      hazards: ['Fire from brazing near combustible material or oxygen.', 'Burns.', 'Nitrogen used for purging displaces the air in a small space or ceiling void.', 'Fumes from brazing.'],
+      controls: [
+        { fact: 'hotWorkPermit' },
+        src('Brazing is a welding process. Hot work is done under a written hot work permit, taking into account the occupied areas around the work.', MODEL('Welding processes', 's 1.1, s 3.4')),
+        src('Keep oil, grease and other hydrocarbons away from oxygen pipework, fittings and tools: oxygen in contact with them can ignite and cause a fire or explosion.', MODEL('Welding processes', 's 3.4')),
+        src('Nitrogen and other inert gases are an asphyxiation hazard in high concentrations. Ventilate the work area, and monitor the atmosphere where gas could collect.', MODEL('Welding processes', 's 3.6')),
+        'Pipework is purged with oxygen-free nitrogen while brazing, to the medical gas installer\'s procedure.',
+        src('Gas cylinders are secured at all times and stored upright, with flashback arrestors on the gas hoses.', MODEL('Welding processes', 's 3.4, s 3.6')),
+      ],
+    }],
+    ppe: ['gloveWelding', 'filterEye'],
+  },
+  {
+    when: 'medicalGasLive',
+    steps: [{
+      step: 'Test and connect to live medical gas services',
+      hazards: ['A release of gas under pressure.', 'Oxygen leaks enrich the air and greatly increase the fire risk.', 'Nitrous oxide or nitrogen in the air.', 'Patients lose their gas supply.'],
+      controls: [
+        { fact: 'serviceShutdown' },
+        { fact: 'pressureTesting' },
+        src('Live medical gas pipework is pressurised gas piping: work on or near it is high risk construction work.', WHS('s 291')),
+        src('Isolate by lock-out: each worker fits their own lock, and a tag alone is not an isolation.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
+        src('Oxygen leaks are hard to detect. Monitor the atmosphere so the oxygen level stays between 19.5% and 23.5%, ventilate the area, and stop work and leave if it is outside that range. No ignition sources while there is any risk of oxygen enrichment.', `${WHS('s 51, s 52, schedule 19')}; ${MODEL('Welding processes', 's 3.6')}`),
+        'Pressure tests use oxygen-free nitrogen, never standard grade nitrogen or oxygen, pressurised in stages, with joints accessible and the area cleared during the test.',
+        src('Pipework carrying each gas is labelled, and pipework is protected from impact and damage.', WHS('s 343, s 358')),
+      ],
+    }],
+  },
+  {
+    when: 'gasCylinders',
+    steps: [{
+      step: 'Handle gas cylinders and manifolds',
+      hazards: ['A cylinder falls or is damaged and releases gas.', 'Back strain moving cylinders.'],
+      controls: [
+        src('Keep the fewest cylinders practicable at the work area.', WHS('s 53')),
+        src('Cylinders are secured against falling, kept upright, valves closed when not in use (including when empty), and valves are never lubricated or leaks repaired by the user. Treat empty cylinders as if they were full.', `${MODEL('Managing risks of hazardous chemicals', 'appendix J')}; ${MODEL('Welding processes', 's 3.4')}`),
+        src('Move cylinders with a cylinder trolley, not by rolling or carrying.', MODEL('Hazardous manual tasks', 's 4.5')),
+      ],
+    }],
+  },
+  {
+    when: 'leadShielding',
+    steps: [{
+      step: 'Install lead shielding',
+      hazards: ['Lead dust or fume from cutting, grinding or finishing lead.', 'Lead taken home on clothing or swallowed when eating.', 'Back strain from heavy lead-lined sheets.'],
+      controls: [
+        src('Cutting lead with power tools, or hand grinding and finishing lead, is a lead process. Before work, assess whether it is lead risk work without counting PPE. Until that is decided, treat it as lead risk work.', WHS('s 392, s 394, s 402')),
+        'Where possible, cut lead-lined board by scoring and snapping, or have it cut to size off site, instead of cutting with power tools.',
+        src('Lead contamination is kept within the lead process area, and the area is cleaned by methods that do not spread lead.', WHS('s 396, s 397')),
+        src('No eating, drinking, chewing gum or smoking in the lead process area. Workers remove contaminated clothing and wash their hands and faces before eating or drinking, in an eating area that lead cannot reach.', WHS('s 398, s 399')),
+        src('Contaminated clothing and PPE are sealed in a container before they leave the lead process area.', WHS('s 400')),
+        src('If it is lead risk work: workers are told about the lead hazards before they are engaged, the regulator is notified in writing within 7 days, and workers have health monitoring before they start and 1 month after.', WHS('s 395, s 403, s 405')),
+        src('Lead-lined sheets are moved with sheet trolleys and lifters, not carried by hand.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 4.5')}`),
+      ],
+    }],
+    ppe: ['p2', 'gloveCut'],
+  },
+  {
+    when: 'liveHospital',
+    steps: [{
+      step: 'Work next to the live hospital',
+      hazards: ['Patients, staff or visitors enter the work area.', 'Dust, noise or vibration reaches patients and sensitive equipment.', 'Emergency exits or access routes are blocked.', 'Hidden live services are struck.', 'Objects fall onto people next to the work.'],
+      controls: [
+        src('This SWMS takes into account that the work is next to an operating hospital, and the hospital\'s requirements agreed with the principal contractor.', WHS('s 299')),
+        src('The work area is secured from unauthorised access. Where access cannot be prevented, hazards in it are isolated.', WHS('s 298')),
+        src('Hospital entries, exits and emergency routes stay open, identifiable, free of obstruction and lit, and the emergency plan allows for patients and the people at the hospital. A register of who is on site is kept.', `${WHS('s 40, s 43')}; ${MODEL('Construction work', 'appendix K')}`),
+        src('The principal contractor finds the essential services at or near the work before it starts. Services may be hidden in slabs and walls: scan and confirm before drilling or cutting.', `${WHS('s 40, s 315')}; ${MODEL('Construction work', 'appendix K')}`),
+        src('Objects cannot fall onto people next to the work: exclusion zones, enclosed lifting areas and no loads over people.', `${WHS('s 54, s 55, s 219')}; ${MODEL('Construction work', 'appendix K')}`),
+        src('Keep dust below the exposure standard, and noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Take extra care with vibration near hospital equipment that is sensitive to shock and vibration.', `${WHS('s 49, s 57')}; ${MODEL('Excavation work', 's 3.4')}`),
+        'Dust and infection control measures agreed with the hospital (such as sealed barriers and keeping doors closed) are in place before work starts, and checked each day.',
+        src('Before drilling, cutting or penetrating an existing building, get the hospital\'s asbestos register. In a building built before 31 December 1989, asbestos likely to be disturbed is identified, and removed where reasonably practicable, before the work starts. Inaccessible areas likely to contain asbestos are assumed to contain it.', WHS('s 422, s 427, s 447, s 450, s 456')),
+      ],
+    }],
+  },
+  {
+    when: 'helipad',
+    steps: [{
+      step: 'Build the helipad at the roof edge',
+      hazards: ['A fall from the roof or helipad edge.', 'A fall through an opening in the deck.', 'The deck or steel falls during lifting.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Prevent falls first. Edge protection at the roof and helipad edges: top rail at least 900 mm, no gap over 450 mm between rails or between the lowest rail and the toe board, and a toe board or bottom rail.', `${WHS('s 306D, s 306E')}; ${MODEL('Managing the risk of falls', 's 5.2')}`),
+        src('Openings in the deck are made safe as soon as they are formed, with covers or barricading.', MODEL('Managing the risk of falls', 's 4.2')),
+        src('Where safety nets are used, they are designed by an engineer or competent person, so a person falling into the net will not hit anything below it, and are hung no more than 2 m below the work.', `${WHS('s 306J')}; ${MODEL('Managing the risk of falls', 's 7.2')}`),
+        src('Where fall arrest is used, anchors carry at least 15 kN for one person or 21 kN for two, no one uses it alone, and the rescue procedure is in place.', WHS('s 80, s 306I')),
+        src('Deck panels and steel are lifted by the crane company, kept under control and never over people. Slinging is done by licensed dogmen, and placing and securing steel by licensed riggers.', WHS('s 81, s 219, schedule 3')),
+      ],
+    }],
+    ppe: ['harness'],
+  },
+  {
+    when: 'pneumaticTube',
+    steps: [{
+      step: 'Install pneumatic tube pipework in ceilings',
+      hazards: ['A fall from a scissor lift or ladder.', 'Drilling into hidden cables or gas pipes in the ceiling.', 'Back strain lifting tube lengths and stations overhead.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Check the ceiling services before drilling or fixing: cables, medical gas and other pipes may be hidden above the ceiling and in slabs.', MODEL('Construction work', 'appendix K')),
+        src('Work near energised cables or medical gas pipes in the ceiling is high risk construction work.', WHS('s 291')),
+        src('In existing buildings, assume asbestos is present in inaccessible ceiling spaces until the register or a competent person shows otherwise.', WHS('s 422')),
+        src('Use lifting aids for tube lengths and stations, and rotate overhead work.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
+      ],
+    }],
+  },
+  {
+    when: 'generatorPlant',
+    steps: [{
+      step: 'Install generators and fuel systems',
+      hazards: ['Fire or explosion from diesel or its vapour.', 'Fuel spills.', 'Diesel exhaust and noise when generators run.', 'The generator starts while someone is working on it.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        src('Work on or near fuel lines is high risk construction work.', WHS('s 291')),
+        src('Keep the least practicable quantity of fuel at the work area, keep ignition sources out of hazardous areas, and contain and clean up spills straight away.', WHS('s 53, s 355, s 357')),
+        src('Generators are isolated by lock-out before work on them, with automatic starting disabled, and each worker fits their own lock.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
+        src('When generators are run for testing, the exhaust is taken outside and the room ventilated so no one breathes diesel exhaust above the exposure standard. Noise is kept below 85 dB(A) over 8 hours and 140 dB(C) peak, with hearing protection in signposted areas.', `${WHS('s 49, s 57, s 58')}; ${MODEL('Managing risks of hazardous chemicals', 's 2.1')}`),
+      ],
+    }],
+    ppe: ['earMuffs', 'gloveChemical'],
+  },
+  {
+    when: 'boilerPlant',
+    steps: [{
+      step: 'Install and commission boilers and pressure vessels',
+      hazards: ['Release of steam or pressure.', 'Burns from hot surfaces.', 'Fire or explosion from fuel.', 'Heat stress next to operating plant.'],
+      controls: [
+        src('Boilers and pressure vessels at hazard level A, B or C have a registered design and are registered items before they are used.', WHS('s 243, s 246, schedule 5')),
+        src('Boilers are operated only by a person holding a standard or advanced boiler operation licence as the boiler requires.', WHS('s 81, schedule 3')),
+        src('Isolate steam, water and fuel by lock-out before work, and release stored pressure.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
+        src('No ignition sources are taken into a hazardous area around fuel systems.', WHS('s 355')),
+        src('Work alongside an operating boiler is work in artificial extremes of temperature: plan breaks, cool water and limits on time near hot plant.', MODEL('Construction work', 'appendix C, appendix K')),
+      ],
+    }],
   },
   {
     when: 'cleaning',

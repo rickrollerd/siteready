@@ -1,0 +1,35 @@
+{
+  "title": "New hospital building, Brisbane: fire services",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "sprinklers",
+      "title": "Sprinklers in the wards",
+      "task": "Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor, drilling into the post-tensioned slabs for hanger anchors, and roll grooving and cutting pipe on site.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m, and platform ladders only for work below 2 m.",
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "silicaControls": "Hanger anchor holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Use an elevating work platform",
+          "Install sprinkler and hydrant pipework at height",
+          "Roll groove, thread and cut pipe"
+        ],
+        "missing": [
+          "Fall control",
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

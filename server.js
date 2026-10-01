@@ -135,6 +135,7 @@ function draftBody(body) {
       excavationPlan: field(facts.excavationPlan, 2000),
       erectionSequence: field(facts.erectionSequence, 2000),
       tierErection: field(facts.tierErection, 2000),
+      serviceShutdown: field(facts.serviceShutdown, 2000),
       confinedSpace: field(facts.confinedSpace, 2000),
       temporarySupport: field(facts.temporarySupport, 2000),
       electricalSafety: field(facts.electricalSafety, 2000),

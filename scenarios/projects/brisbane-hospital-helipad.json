@@ -1,0 +1,39 @@
+{
+  "title": "New hospital building, Brisbane: helipad",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "deck",
+      "title": "Rooftop helipad",
+      "task": "Erect the rooftop helipad steel frame and deck at the roof edge, with steel lifted by the crane company's mobile crane, working more than 2 m above the roof.",
+      "fallRisk": "yes",
+      "facts": {
+        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings the loads, and our licensed riggers (basic rigging or higher) receive, place and secure the steel.",
+        "fallControl": "Edge protection is fixed around the roof and helipad edges before the deck is laid, and openings in the deck are covered as they are formed.",
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "erectionSequence": "Steel is erected to the designer's sequence on drawing HP-020 (revision B), with temporary bracing as shown, and the steel erection engineer checks the structure is stable before connections are released."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts",
+          "Lift and land steel with the crane company",
+          "Erect and connect steel at height",
+          "Build the helipad at the roof edge"
+        ],
+        "missing": [
+          "Crane company and lift plan",
+          "Fall control",
+          "Erection sequence and temporary bracing"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

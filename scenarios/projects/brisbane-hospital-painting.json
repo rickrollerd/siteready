@@ -1,0 +1,29 @@
+{
+  "title": "New hospital building, Brisbane: painting",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "wards",
+      "title": "Ward painting",
+      "task": "Paint the ward walls and ceilings with water-based paint.",
+      "fallRisk": "no",
+      "facts": {
+        "safetyDataSheet": "Safety data sheets for the water-based paints are kept at the work area: avoid skin contact, wear gloves and eye protection."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Prepare to paint",
+          "Paint",
+          "Reach high walls and ceilings"
+        ],
+        "missing": [
+          "Safety data sheet"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}

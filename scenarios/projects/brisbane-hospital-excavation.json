@@ -1,0 +1,32 @@
+{
+  "title": "New hospital building, Brisbane: excavation",
+  "state": "qld",
+  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "basement",
+      "title": "Bulk excavation for the basement",
+      "task": "Bulk excavate the two level basement with excavators and trucks, next to the live hospital, installing ground anchors in the retention wall as the excavation goes down.",
+      "fallRisk": "no",
+      "facts": {
+        "excavationPlan": "Excavation follows the geotechnical design G-110 (revision C) in stages to the levels shown, with anchors installed and stressed before digging below each row, and plant and trucks follow the site traffic management plan TMP-02."
+      },
+      "expect": {
+        "highRisk": [
+          "plant"
+        ],
+        "steps": [
+          "Bulk excavate and load trucks",
+          "Install, stress and later remove ground anchors and props",
+          "Protect the basement edge and provide access",
+          "Work next to the live hospital"
+        ],
+        "missing": [
+          "Excavation and traffic plan"
+        ]
+      }
+    }
+  ],
+  "rules": []
+}
