@@ -141,6 +141,60 @@ function esc(value) {
   })[ch]);
 }
 
+// Date fields hold 2026-10-01. The statement prints 1 October 2026.
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function isoToday() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function longDate(iso) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return match ? `${Number(match[3])} ${MONTHS[Number(match[2]) - 1]} ${match[1]}` : '';
+}
+
+function isoDate(text) {
+  const match = /^(\d{1,2}) ([A-Za-z]+) (\d{4})$/.exec(String(text || '').trim());
+  const month = match ? MONTHS.findIndex((name) => name.toLowerCase() === match[2].toLowerCase()) : -1;
+  return month >= 0 ? `${match[3]}-${String(month + 1).padStart(2, '0')}-${match[1].padStart(2, '0')}` : '';
+}
+
+const DATE_FIELDS = new Set(['review-date', 'draft-date']);
+const reviewDateEl = document.getElementById('review-date');
+const draftDateEl = document.getElementById('draft-date');
+draftDateEl.value = isoToday();
+reviewDateEl.min = isoToday();
+// The calendar opens on a click anywhere in the box, not only on its icon.
+[reviewDateEl, draftDateEl].forEach((el) => el.addEventListener('click', () => {
+  try { el.showPicker(); } catch { /* the browser opens its own picker */ }
+}));
+
+// Prepared by is remembered on this device. Signed in, the account name fills it.
+const PREPARED_KEY = 'siteready.preparedBy';
+const preparedEl = document.getElementById('prepared-by');
+try { preparedEl.value = localStorage.getItem(PREPARED_KEY) || ''; } catch { /* not kept */ }
+preparedEl.addEventListener('change', () => {
+  try { localStorage.setItem(PREPARED_KEY, preparedEl.value.trim()); } catch { /* not kept */ }
+});
+
+// Principal contractors used before, and those on saved sites, are suggested as you type.
+const PRINCIPALS_KEY = 'siteready.principals';
+let principals = [];
+try { principals = JSON.parse(localStorage.getItem(PRINCIPALS_KEY) || '[]'); } catch { principals = []; }
+if (!Array.isArray(principals)) principals = [];
+
+function addPrincipals(names, keep) {
+  for (const name of names.map((item) => String(item || '').trim()).filter(Boolean)) {
+    principals = [name, ...principals.filter((item) => item.toLowerCase() !== name.toLowerCase())];
+  }
+  principals = principals.slice(0, 50);
+  if (keep) {
+    try { localStorage.setItem(PRINCIPALS_KEY, JSON.stringify(principals)); } catch { /* not kept */ }
+  }
+  document.getElementById('principal-list').innerHTML = principals.map((name) => `<option value="${esc(name)}"></option>`).join('');
+}
+
 function payload() {
   const state = document.querySelector('input[name="state"]:checked');
   const facts = {};
@@ -176,8 +230,10 @@ function payload() {
     worksManagerPhone: value('works-manager-phone'),
     complianceResponsible: value('compliance-responsible'),
     reviewer: value('reviewer'),
-    reviewDate: value('review-date'),
-    date: value('draft-date'),
+    reviewDate: longDate(value('review-date')),
+    date: longDate(value('draft-date')),
+    preparedBy: value('prepared-by'),
+    ppe: document.querySelector('[data-ppe]') ? [...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value) : undefined,
     facts,
     site,
   };
@@ -266,6 +322,12 @@ async function loadQuestions() {
       </div>`;
     }).join('')
     : '<p class="lede">No further fact is required for this task.</p>';
+  document.getElementById('ppe-block').innerHTML = (data.ppe || []).map((group) => `
+    <fieldset class="ppe-group">
+      <legend>${esc(group.area)}</legend>
+      ${group.items.map((item) => `<label><input type="checkbox" data-ppe value="${esc(item.id)}"${item.ticked ? ' checked' : ''}> ${esc(item.label)}</label>`).join('')}
+    </fieldset>
+  `).join('');
   document.getElementById('site-block').innerHTML = (data.site || []).map((item) => `
     <div class="field">
       <label for="site-${esc(item.id)}">${esc(item.label)}</label>
@@ -282,12 +344,15 @@ const FORM_FIELDS = {
   principalContractor: 'principal', company: 'company', workplace: 'workplace', siteManager: 'site-manager',
   worksManager: 'works-manager', worksManagerPhone: 'works-manager-phone', complianceResponsible: 'compliance-responsible',
   reviewer: 'reviewer', reviewDate: 'review-date', scaffoldSupervisor: 'scaffold-supervisor', hospital: 'hospital',
-  firstAider: 'first-aider', musterPoint: 'muster-point', date: 'draft-date', task: 'task',
+  firstAider: 'first-aider', musterPoint: 'muster-point', date: 'draft-date', preparedBy: 'prepared-by', task: 'task',
 };
 
 function fillFields(values) {
   Object.entries(FORM_FIELDS).forEach(([key, id]) => {
-    if (values[key] !== undefined) document.getElementById(id).value = values[key] || '';
+    if (values[key] === undefined) return;
+    const el = document.getElementById(id);
+    if (DATE_FIELDS.has(id)) el.value = isoDate(values[key]) || (id === 'draft-date' ? isoToday() : '');
+    else el.value = values[key] || '';
   });
 }
 
@@ -309,7 +374,14 @@ async function fillForm(input) {
     else el.value = value;
   });
   document.querySelectorAll('[data-site]').forEach((el) => { el.value = (input.site || {})[el.dataset.site] || ''; });
+  if (Array.isArray(input.ppe)) document.querySelectorAll('[data-ppe]').forEach((el) => { el.checked = input.ppe.includes(el.value); });
 }
+
+// Testing live equipment needs arc-rated clothing and insulated gloves (Model Code s 9.5).
+factsForm.addEventListener('change', (event) => {
+  if (event.target.dataset.fact !== 'energisedWork' || event.target.value !== 'testing') return;
+  document.querySelectorAll('[data-ppe]').forEach((el) => { if (['arcRated', 'gloveInsulated'].includes(el.value)) el.checked = true; });
+});
 
 // A standard answer is added to the box, where it can be changed. Blanks (____) are left to fill in.
 document.getElementById('required-block').addEventListener('click', (event) => {
@@ -433,7 +505,7 @@ function render(draft) {
     <h4>Site-specific</h4>${site}
     ${(draft.references || []).length ? `<h4>Documents to keep on site with this SWMS</h4><table><tbody>${draft.references.map((item) => `<tr><th>${esc(item.label)}</th><td>${esc(item.text)}</td></tr>`).join('')}</tbody></table>` : ''}
     <h4>Prepared by</h4>
-    <table><tbody>${['Name and position', 'Signature', 'Date', 'Date given to the principal contractor'].map((label) => `<tr><th>${label}</th><td></td></tr>`).join('')}</tbody></table>
+    <table><tbody>${[['Name and position', draft.preparedBy], ['Signature', ''], ['Date', draft.preparedBy ? draft.date : ''], ['Date given to the principal contractor', '']].map(([label, value]) => `<tr><th>${label}</th><td>${esc(value)}</td></tr>`).join('')}</tbody></table>
     <h4>Principal contractor review</h4>
     <p class="meta">Completed by the principal contractor before the work starts.</p>
     <table><tbody>
@@ -463,6 +535,7 @@ factsForm.addEventListener('submit', async (event) => {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || 'The statement could not be prepared.');
+    addPrincipals([JSON.parse(body).principalContractor], true);
     resultEl.innerHTML = `<div class="sheet">${render(data)}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
     // Downloading and saving need an account; the account script adds those buttons.
@@ -476,8 +549,12 @@ factsForm.addEventListener('submit', async (event) => {
 });
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
-  api, esc, payload, render, fillForm, fillFields, setProfile, getProfile: () => profile, resultEl,
+  api, esc, payload, render, fillForm, fillFields, setProfile, getProfile: () => profile, resultEl, addPrincipals,
+  // Signed in, the account name fills Prepared by when it is empty.
+  setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });
+
+addPrincipals([], false);
 
 loadStates().catch(() => {
   document.getElementById('start-error').textContent = 'The state list could not be loaded.';

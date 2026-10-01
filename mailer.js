@@ -35,7 +35,12 @@ async function sendMail({ to, subject, text }) {
     console.log(`Email to ${to}: ${subject}\n${text}`);
     return null;
   }
-  return mailTransport().sendMail({ from: process.env.MAIL_FROM || process.env.SMTP_USERNAME, to, subject, text });
+  try {
+    return await mailTransport().sendMail({ from: process.env.MAIL_FROM || process.env.SMTP_USERNAME, to, subject, text });
+  } catch (error) {
+    console.error(`Email to ${to} could not be sent:`, error.message);
+    throw Object.assign(new Error('The email could not be sent. Try again in a few minutes.'), { status: 503, publicMessage: true });
+  }
 }
 
 module.exports = { sendMail, captureMail, configured };

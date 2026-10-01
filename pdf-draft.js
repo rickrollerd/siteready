@@ -236,7 +236,7 @@ function draftToPdf(draft, options = {}) {
     }
 
     heading(doc, 'Prepared by');
-    table(doc, { widths: pairWidths, rows: [pair('Name and position', ''), pair('Signature', ''), pair('Date', ''), pair('Date given to the principal contractor', '')] });
+    table(doc, { widths: pairWidths, rows: [pair('Name and position', draft.preparedBy || ''), pair('Signature', ''), pair('Date', draft.preparedBy ? draft.date : ''), pair('Date given to the principal contractor', '')] });
 
     heading(doc, 'Principal contractor review');
     table(doc, {

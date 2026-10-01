@@ -133,6 +133,8 @@
       me = await call('GET', '/api/me');
       S.setProfile(me.company);
       sites = (await call('GET', '/api/sites')).sites;
+      S.addPrincipals(sites.map((site) => site.principalContractor), false);
+      S.setPreparedBy(me.user.name || read(REVIEWER_KEY));
     } catch {
       me = null;
     }

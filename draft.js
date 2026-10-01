@@ -718,7 +718,7 @@ function requiredFactsFor(fullTask, answer, state) {
     facts.push({
       id: 'craneCompany',
       label: 'Crane company and lift plan',
-      prompt: 'Which company supplies and operates the crane, and that its lift plan or SWMS covers these lifts.',
+      prompt: 'Name the company that supplies and operates the crane, and confirm its lift plan or SWMS covers these lifts.',
     });
   }
   if (isPanelLift(task)) {
@@ -1172,8 +1172,13 @@ function questionsFor(input) {
     fall: fallCheck(task, answer, state),
     required: requiredFactsFor(task, answer, state),
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
+    // The PPE suggested for this task, for the user to change before the draft is prepared.
+    ppe: ppeList(task, input.facts || {}, state),
   };
 }
+
+// Details often not known until work starts. They are filled in before the SWMS goes for approval.
+const TO_COMPLETE = 'To be completed before submitting for approval';
 
 function prepareDraft(input) {
   const asked = questionsFor(input);
@@ -1211,16 +1216,17 @@ function prepareDraft(input) {
     companyDetails: companyDetails(input),
     workplace: blankName(input.workplace || input.siteAddress),
     siteManager: keptFact(input.siteManager),
-    scaffoldSupervisor: keptFact(input.scaffoldSupervisor),
+    scaffoldSupervisor: keptFact(input.scaffoldSupervisor) || TO_COMPLETE,
     hospital: keptFact(input.hospital),
     firstAider: keptFact(input.firstAider),
-    musterPoint: keptFact(input.musterPoint),
+    musterPoint: keptFact(input.musterPoint) || TO_COMPLETE,
     craneOperator: isCraneOrLift(task) ? (state.ownCrane ? 'Our company' : 'Crane company') : '',
     worksManager: keptFact(input.worksManager),
     worksManagerPhone: keptFact(input.worksManagerPhone),
     complianceResponsible: keptFact(input.complianceResponsible),
     reviewer: keptFact(input.reviewer),
     reviewDate: keptFact(input.reviewDate),
+    preparedBy: keptFact(input.preparedBy),
     task,
     fallRisk: fallRecord(fallCheck(task, pack.fallAnswer, state)),
     fallMetres: fallMetres(state),
@@ -1284,13 +1290,17 @@ function prepareDraft(input) {
 }
 
 // The PPE list, then the job steps, which add fit testing when a respirator is ticked.
-function stepsAndPpe(task, facts, hazards, controls, state, input) {
-  const ppe = ppeFor(
+function ppeList(task, facts, state, chosen) {
+  return ppeFor(
     workFlags(task, facts, state.ownCrane),
-    input.ppe,
+    chosen,
     /\b(harness|fall arrest|elevating work platform|ewp|boom lift)\b/i.test(combinedFacts(task, facts)),
     /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task),
   );
+}
+
+function stepsAndPpe(task, facts, hazards, controls, state, input) {
+  const ppe = ppeList(task, facts, state, input.ppe);
   // Energised testing needs arc-rated PPE and insulated gloves (Model Code s 9.5).
   if (!Array.isArray(input.ppe) && choiceAnswer('energisedWork', facts.energisedWork) === 'testing') {
     for (const group of ppe) for (const item of group.items) if (['arcRated', 'gloveInsulated'].includes(item.id)) item.ticked = true;

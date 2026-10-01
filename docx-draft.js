@@ -160,13 +160,13 @@ function boxCell(items, width) {
   });
 }
 
-function preparedBy() {
+function preparedBy(draft) {
   return [
     sectionHeading('Prepared by'),
     signTable([
-      ['Name and position', ''],
+      ['Name and position', draft.preparedBy || ''],
       ['Signature', ''],
-      ['Date', ''],
+      ['Date', draft.preparedBy ? draft.date : ''],
       ['Date given to the principal contractor', ''],
     ]),
   ];
@@ -379,7 +379,7 @@ function childrenFor(draft, options = {}) {
     blocks.push(signTable(draft.references.map((item) => [item.label, item.text])));
   }
 
-  blocks.push(...preparedBy());
+  blocks.push(...preparedBy(draft));
   blocks.push(...principalContractorReview(draft));
   blocks.push(...workerSignOn(draft, options.signons || []));
   return blocks;
