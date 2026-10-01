@@ -62,8 +62,37 @@ async function tasCurrent() {
   console.log(`\nVersion dates linked: ${[...new Set(versions)].join(', ')}`);
 }
 
+// The Northern Territory and the ACT publish the current regulation as a PDF.
+const PDF_SOURCES = [
+  { name: 'Northern Territory', page: 'https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011', pick: /PDFVersion/i },
+  { name: 'Australian Capital Territory', page: 'https://www.legislation.act.gov.au/sl/2011-36/', direct: 'https://www.legislation.act.gov.au/View/sl/2011-36/current/PDF/2011-36.PDF' },
+];
+
+async function pdfSource(source) {
+  let pdf = source.direct;
+  if (!pdf) {
+    const page = await (await fetch(source.page, { signal: AbortSignal.timeout(30000) })).text();
+    const links = [...page.matchAll(/href=["']([^"']+)["']/gi)].map((match) => new URL(match[1].replace(/&amp;/g, '&'), source.page).href);
+    pdf = links.find((link) => source.pick.test(link));
+    console.log(`\n=== ${source.name}: ${source.page}\nPDF links: ${links.filter((link) => /pdf/i.test(link)).join(' ')}`);
+  }
+  if (!pdf) return;
+  const response = await fetch(pdf, { signal: AbortSignal.timeout(60000) });
+  const buffer = Buffer.from(await response.arrayBuffer());
+  console.log(`\n=== ${source.name} PDF: ${pdf} HTTP ${response.status}, ${buffer.length} bytes, starts ${buffer.slice(0, 5).toString()}`);
+  if (buffer.slice(0, 4).toString() !== '%PDF') return;
+  fs.writeFileSync('source.pdf', buffer);
+  const flat = execFileSync('pdftotext', ['source.pdf', '-']).toString().replace(/\s+/g, ' ');
+  console.log(flat.slice(0, 700));
+  for (const marker of [/high risk construction work means/g, /299\s*Safe work method statement required/g, /166\s*Duty of person conducting a business or undertaking/g]) {
+    const all = [...flat.matchAll(marker)];
+    const at = all.length ? all[all.length - 1].index : -1;
+    console.log(`\n--- ${marker}\n${at < 0 ? 'not found' : flat.slice(at, at + 2600)}`);
+  }
+}
+
 async function main() {
-  await tasCurrent().catch((error) => console.log(`Tasmania failed: ${error.message}`));
+  for (const source of PDF_SOURCES) await pdfSource(source).catch((error) => console.log(`${source.name} failed: ${error.message}`));
   for (const url of URLS) {
     try {
       const response = await fetch(url, {
