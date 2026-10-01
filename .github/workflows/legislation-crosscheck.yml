@@ -1,0 +1,25 @@
+name: Legislation cross-check
+
+# Compares the loaded legislation with AustLII's copy. Run it by hand after a
+# state is loaded or changed. A push that changes the loaded legislation runs it too.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'legislation.js'
+      - 'legislation-watch/crosscheck.js'
+      - '.github/workflows/legislation-crosscheck.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  crosscheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: node legislation-watch/crosscheck.js
