@@ -109,3 +109,20 @@ test('No on a task at ground level is recorded as No with no warning', () => {
   assert.equal(asked.fall.warning, '');
   assert.equal(draft('Replace a 3m length of fence.').fallRisk, 'No');
 });
+
+test('New South Wales uses its own regulation, wording and power line rule', () => {
+  const done = prepareDraft({
+    state: 'nsw',
+    task: 'Relocate the switchboard near the overhead power lines.',
+    fallRisk: 'no',
+  });
+  assert.equal(done.kind, 'draft');
+  assert.equal(done.instrument, 'Work Health and Safety Regulation 2025 (NSW)');
+  assert.equal(done.section, '299');
+  assert.ok(done.highRisk.includes('Is carried out on or near energised electrical installations or services'));
+  const line = done.controls.find((item) => /electric line/.test(item.text));
+  assert.match(line.text, /section 166/);
+  assert.doesNotMatch(line.text, /3\.0 m|Qld/);
+  const asked = questionsFor({ state: 'nsw', task: 'Replace a 3m length of fence.', fallRisk: 'no' });
+  assert.match(asked.fall.explanation, /Regulation 2025 \(NSW\), section 291/);
+});

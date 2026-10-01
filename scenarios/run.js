@@ -7,10 +7,9 @@
 const fs = require('fs');
 const path = require('path');
 const { prepareDraft } = require('../draft');
-const { STATES, HIGH_RISK } = require('../legislation');
+const { STATES, highRiskLabel } = require('../legislation');
 
 const scenarios = JSON.parse(fs.readFileSync(path.join(__dirname, 'scenarios.json'), 'utf8'));
-const HIGH_RISK_LABEL = Object.fromEntries(HIGH_RISK.map((item) => [item.id, item.label]));
 
 function difference(expected, actual) {
   return {
@@ -42,7 +41,7 @@ function runLoaded(state, scenario) {
   if (full.kind !== 'draft') {
     problems.push(`With facts: expected a draft, got ${full.kind}${full.missing ? ` (missing: ${full.missing.join('; ')})` : ''}`);
   } else {
-    const expectedRisk = scenario.expect.highRisk.map((id) => HIGH_RISK_LABEL[id]);
+    const expectedRisk = scenario.expect.highRisk.map((id) => highRiskLabel(state, id));
     problems.push(...describe('High risk category', difference(expectedRisk, full.highRisk)));
     const hazards = full.hazards.map((row) => row.hazard);
     problems.push(...describe('Hazard', { missing: difference(scenario.expect.hazards, hazards).missing, extra: [] }));

@@ -1,4 +1,4 @@
-const { HIERARCHY, SITE_FIELDS, HIGH_RISK, findState } = require('./legislation');
+const { HIERARCHY, SITE_FIELDS, HIGH_RISK, findState, highRiskLabel } = require('./legislation');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
 
@@ -750,7 +750,7 @@ function prepareDraft(input) {
     ...header,
     missing: [],
     statement: '',
-    highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer).map((item) => item.label),
+    highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer).map((item) => highRiskLabel(state, item.id)),
     hazards: hazardsFor(task, facts, pack),
     controls: dedupe(ordered.map((item) => `${item.level}|${item.text}`)).map((key) => {
       const splitAt = key.indexOf('|');
