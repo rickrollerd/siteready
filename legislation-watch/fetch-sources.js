@@ -44,8 +44,26 @@ function text(html) {
     .trim();
 }
 
+// Tasmania's current regulation, read whole from its official site.
+const TAS_URL = 'https://www.legislation.tas.gov.au/view/whole/html/inforce/current/sr-2022-109';
+
+async function tasCurrent() {
+  const response = await fetch(TAS_URL, { signal: AbortSignal.timeout(60000) });
+  const html = await response.text();
+  const body = text(html);
+  const versions = [...html.matchAll(/inforce\/(\d{4}-\d{2}-\d{2})\/sr-2022-109/g)].map((match) => match[1]);
+  console.log(`\n=== ${TAS_URL}\nHTTP ${response.status}, ${body.length} characters. Version dates linked: ${[...new Set(versions)].join(', ')}`);
+  console.log(body.slice(0, 600));
+  const flat = body.replace(/\s+/g, ' ');
+  for (const name of ['299. Safe work method statement required', '166. Duty of person conducting a business or undertaking']) {
+    const at = flat.lastIndexOf(name);
+    console.log(`\n--- ${name}\n${at < 0 ? 'not found' : flat.slice(at, at + 2200)}`);
+  }
+  console.log(`\nVersion dates linked: ${[...new Set(versions)].join(', ')}`);
+}
+
 async function main() {
-  await waCurrent().catch((error) => console.log(`WA failed: ${error.message}`));
+  await tasCurrent().catch((error) => console.log(`Tasmania failed: ${error.message}`));
   for (const url of URLS) {
     try {
       const response = await fetch(url, {

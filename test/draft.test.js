@@ -214,3 +214,13 @@ test('Western Australia: danger zones, and the regulator notice for tilt-up work
   // Other states do not ask for it.
   assert.equal(prepareDraft({ state: 'nsw', task, fallRisk: 'no', facts: pack }).kind, 'draft');
 });
+
+test('Tasmania uses its regulations and gives no power line distance', () => {
+  const done = prepareDraft({ state: 'tas', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no' });
+  assert.equal(done.instrument, 'Work Health and Safety Regulations 2022 (Tas)');
+  assert.equal(done.sectionRef, 'regulation 299');
+  const line = done.controls.find((item) => /electric line/.test(item.text));
+  assert.match(line.text, /regulation 166/);
+  assert.match(line.text, /Electricity Industry Safety and Administration Act 1997/);
+  assert.doesNotMatch(line.text, /\d\.\d m/);
+});
