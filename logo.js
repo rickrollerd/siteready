@@ -39,7 +39,7 @@ function readLogo(value) {
 }
 
 // Fits the logo in the page header without changing its shape.
-function fitLogo(logo, maxWidth = 180, maxHeight = 60) {
+function fitLogo(logo, maxWidth = 300, maxHeight = 100) {
   const scale = Math.min(maxWidth / logo.width, maxHeight / logo.height, 1);
   return { width: Math.round(logo.width * scale), height: Math.round(logo.height * scale) };
 }

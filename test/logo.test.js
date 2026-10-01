@@ -46,7 +46,7 @@ test('a small PNG logo is read with its size', () => {
   assert.equal(logo.type, 'png');
   assert.equal(logo.width, 300);
   assert.equal(logo.height, 100);
-  assert.deepEqual(fitLogo(logo), { width: 180, height: 60 });
+  assert.deepEqual(fitLogo(logo), { width: 300, height: 100 });
 });
 
 test('a logo that is not a PNG or JPEG, or is too large, is ignored', () => {
