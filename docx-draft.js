@@ -1,6 +1,6 @@
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-  WidthType, BorderStyle, VerticalAlign, Footer, Header, AlignmentType, ImageRun, CheckBox,
+  WidthType, BorderStyle, VerticalAlign, Footer, Header, AlignmentType, ImageRun, CheckBox, PageOrientation,
 } = require('docx');
 const { fitLogo } = require('./logo');
 
@@ -9,7 +9,13 @@ const INK = '1C2430';
 const MUTED = '5C6773';
 const LINE = 'D5DBE3';
 const HEAD = 'F4F6F8';
-const CONTENT_WIDTH = 10080;
+// A4 landscape, as most SWMS are, with room for the job steps table.
+const PAGE_LONG = 16838;
+const PAGE_SHORT = 11906;
+const MARGIN = 900;
+const CONTENT_WIDTH = PAGE_LONG - 2 * MARGIN;
+const LABEL_WIDTH = 3400;
+const VALUE_WIDTH = CONTENT_WIDTH - LABEL_WIDTH;
 
 const hair = { style: BorderStyle.SINGLE, size: 4, color: LINE };
 const borders = { top: hair, bottom: hair, left: hair, right: hair };
@@ -58,12 +64,12 @@ function cell(text, width, options = {}) {
 function metaTable(rows) {
   return new Table({
     width: { size: CONTENT_WIDTH, type: WidthType.DXA },
-    columnWidths: [2200, 7880],
+    columnWidths: [LABEL_WIDTH, VALUE_WIDTH],
     rows: rows.map(([label, value]) => new TableRow({
       cantSplit: true,
       children: [
-        cell(label, 2200, { bold: true, fill: HEAD, size: 20 }),
-        cell(value || ' ', 7880, { size: 20 }),
+        cell(label, LABEL_WIDTH, { bold: true, fill: HEAD, size: 20 }),
+        cell(value || ' ', VALUE_WIDTH, { size: 20 }),
       ],
     })),
   });
@@ -85,7 +91,7 @@ function siteBlock(field) {
 }
 
 function controlTable(controls) {
-  const widths = [2200, 7880];
+  const widths = [LABEL_WIDTH, VALUE_WIDTH];
   const header = new TableRow({
     tableHeader: true,
     cantSplit: true,
@@ -109,7 +115,7 @@ function controlTable(controls) {
 }
 
 // Sign-off sections. Every line is left blank for a pen or for typing in Word.
-const SIGN_ROWS = 44;
+const SIGN_ROWS = 30;
 
 // Real Word tick boxes: a click in Word ticks or clears them. Empty box, or a box
 // with a tick, in a symbol font Word has on Windows and Mac.
@@ -132,13 +138,13 @@ function tickBoxes(items) {
 function signTable(rows) {
   return new Table({
     width: { size: CONTENT_WIDTH, type: WidthType.DXA },
-    columnWidths: [3000, 7080],
+    columnWidths: [LABEL_WIDTH, VALUE_WIDTH],
     rows: rows.map(([label, value, height]) => new TableRow({
       cantSplit: true,
       height: { value: height || 520 },
       children: [
-        cell(label, 3000, { bold: true, fill: HEAD, size: 20 }),
-        Array.isArray(value) ? boxCell(value, 7080) : cell(value || ' ', 7080, { size: 20 }),
+        cell(label, LABEL_WIDTH, { bold: true, fill: HEAD, size: 20 }),
+        Array.isArray(value) ? boxCell(value, VALUE_WIDTH) : cell(value || ' ', VALUE_WIDTH, { size: 20 }),
       ],
     })),
   });
@@ -187,7 +193,7 @@ function principalContractorReview(draft) {
 // Its own pages, so they can be printed and kept at the work area. The heading
 // row repeats on every page.
 function workerSignOn(draft) {
-  const widths = [3000, 2600, 2880, 1600];
+  const widths = [4400, 3800, CONTENT_WIDTH - 4400 - 3800 - 2400, 2400];
   const labels = ['Name', 'Company', 'Signature', 'Date'];
   const where = [draft.task, draft.workplace].filter(Boolean).join('  ·  ');
   return [
@@ -240,7 +246,7 @@ function linesCell(lines, width, options = {}) {
 
 // The job laid out as the regulators' templates do: each step with its hazards and controls.
 function jobStepsTable(steps) {
-  const widths = [2100, 2800, 4180, 1000];
+  const widths = [2600, 3900, CONTENT_WIDTH - 2600 - 3900 - 1600, 1600];
   const labels = ['Job step', 'Hazards and risks', 'Controls', 'Who'];
   return new Table({
     width: { size: CONTENT_WIDTH, type: WidthType.DXA },
@@ -389,8 +395,8 @@ function buildDocument(draft, options = {}) {
     sections: [{
       properties: {
         page: {
-          size: { width: 11906, height: 16838 },
-          margin: { top: 850, bottom: 850, left: 900, right: 900 },
+          size: { width: PAGE_SHORT, height: PAGE_LONG, orientation: PageOrientation.LANDSCAPE },
+          margin: { top: 850, bottom: 850, left: MARGIN, right: MARGIN },
         },
       },
       headers: companyHeader(draft, options.logo),

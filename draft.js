@@ -1012,14 +1012,8 @@ function prepareDraft(input) {
   return {
     kind: 'draft',
     ...header,
-    jobSteps: jobStepsForTask(task, facts, hazards, finalControls, state),
+    ...stepsAndPpe(task, facts, hazards, finalControls, state, input),
     references: referencesFor(facts),
-    ppe: ppeFor(
-      workFlags(task, facts, state.ownCrane),
-      input.ppe,
-      /\b(harness|fall arrest|elevating work platform|ewp|boom lift)\b/i.test(combinedFacts(task, facts)),
-      /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task),
-    ),
     missing: [],
     statement: '',
     highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer, state)
@@ -1033,6 +1027,18 @@ function prepareDraft(input) {
     signed: false,
     approved: false,
   };
+}
+
+// The PPE list, then the job steps, which add fit testing when a respirator is ticked.
+function stepsAndPpe(task, facts, hazards, controls, state, input) {
+  const ppe = ppeFor(
+    workFlags(task, facts, state.ownCrane),
+    input.ppe,
+    /\b(harness|fall arrest|elevating work platform|ewp|boom lift)\b/i.test(combinedFacts(task, facts)),
+    /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task),
+  );
+  const respirator = ppe.some((group) => group.items.some((item) => item.ticked && ['p2', 'halfFace'].includes(item.id)));
+  return { jobSteps: jobStepsForTask(task, facts, hazards, controls, state, { respirator }), ppe };
 }
 
 // Documents the SWMS relies on, to be kept on site with it.
@@ -1095,7 +1101,7 @@ function asSentence(text) {
 
 // Job steps, each with its hazards and controls. Work the library does not know
 // gets one middle step built from the task, its hazards and its controls.
-function jobStepsForTask(task, facts, hazards, controls, state) {
+function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
     if (id === 'deckMethod') return deckMethodAnswer(facts.deckMethod);
@@ -1107,7 +1113,7 @@ function jobStepsForTask(task, facts, hazards, controls, state) {
     return '';
   };
   const [first] = sentences(task);
-  return jobStepsFor(workFlags(task, facts, state.ownCrane), factText, {
+  return jobStepsFor({ ...workFlags(task, facts, state.ownCrane), ...extra }, factText, {
     step: asSentence(first || task),
     hazards: hazards.map((row) => `${row.hazard}: ${row.risk}`),
     controls: controls.map((item) => item.text),

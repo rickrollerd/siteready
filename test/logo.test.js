@@ -109,3 +109,9 @@ test('pasted control characters and markup cannot break the Word file', async ()
   assert.doesNotMatch(xml, /[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]/);
   assert.ok(xml.includes('&lt;/w:t&gt;&lt;w:t&gt;X'));
 });
+
+test('the Word file is A4 landscape', async () => {
+  const zip = await draftToDocx(prepareDraft({ state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no' }));
+  const xml = require('node:zlib').inflateRawSync(documentXml(zip)).toString();
+  assert.match(xml, /<w:pgSz w:w="16838" w:h="11906" w:orient="landscape"\/>/);
+});
