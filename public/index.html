@@ -217,13 +217,14 @@
     <section class="panel hidden" id="team-panel">
       <h2>Team</h2>
       <ul id="team-list"></ul>
+      <p class="meta hidden" id="team-note">Only your company's administrator can add or remove people.</p>
       <form id="team-form">
-        <div class="field">
+        <div class="field" id="team-invite-field">
           <label for="team-email">Add a person to your company</label>
           <input id="team-email" type="text" inputmode="email" autocomplete="off" required>
         </div>
         <div class="actions">
-          <button type="submit">Send invitation</button>
+          <button type="submit" id="team-invite">Send invitation</button>
           <button type="button" class="secondary hidden" id="team-faceid">Set up Face ID on this device</button>
         </div>
       </form>

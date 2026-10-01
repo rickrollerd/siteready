@@ -33,7 +33,7 @@ Face ID works in Safari and Chrome on the web address. In the iOS app wrapper it
 ### Step 2b: Subscriptions (Stripe)
 
 1. Create a Stripe account and complete the business details (ABN, bank account).
-2. **Product catalogue** → add a product "SiteReady", with a recurring price of A$49 a month. Copy the price id (`price_...`).
+2. **Product catalogue** → add a product "SiteReady", with a recurring price of A$49 a month, GST inclusive (set the price to include tax). Copy the price id (`price_...`).
 3. **Developers** → **API keys**: copy the secret key (`sk_live_...`).
 4. **Developers** → **Webhooks** → add an endpoint `https://YOUR-DOMAIN/api/billing/webhook` with the events `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` and `customer.subscription.deleted`. Copy the signing secret (`whsec_...`).
 5. **Settings** → **Billing** → **Customer portal**: switch it on, allowing customers to update cards, see invoices and cancel.

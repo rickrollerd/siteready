@@ -61,11 +61,13 @@ async function createSession(userId) {
 }
 
 // A first sign-in makes the company, with its free trial. An invited person
-// joins the company that invited them.
+// joins the company that invited them. The person who makes the company is
+// its administrator.
 async function userForEmail(email, companyId) {
   const existing = await db.one('SELECT * FROM users WHERE email = $1', [email]);
   if (existing) return existing;
   let company = companyId;
+  const founder = !company;
   if (!company) {
     company = newId();
     await db.query('INSERT INTO companies (id, email, trial_ends_at, created_at) VALUES ($1, $2, $3, $4)',
@@ -73,7 +75,7 @@ async function userForEmail(email, companyId) {
     await record('trial_started', company);
   }
   const id = newId();
-  await db.query('INSERT INTO users (id, company_id, email, created_at) VALUES ($1, $2, $3, $4)', [id, company, email, new Date()]);
+  await db.query('INSERT INTO users (id, company_id, email, is_admin, created_at) VALUES ($1, $2, $3, $4, $5)', [id, company, email, founder, new Date()]);
   return db.one('SELECT * FROM users WHERE id = $1', [id]);
 }
 

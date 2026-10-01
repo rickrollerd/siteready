@@ -137,6 +137,15 @@ const SCHEMA = [
 
 async function migrate() {
   for (const statement of SCHEMA) await query(statement);
+  // Added after launch: the person who created each company is its administrator.
+  const columns = await query("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'is_admin'");
+  if (!columns.length) await query('ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT FALSE');
+  const withAdmin = new Set((await query('SELECT company_id FROM users WHERE is_admin = TRUE')).map((row) => row.company_id));
+  const companies = new Set((await query('SELECT company_id FROM users')).map((row) => row.company_id));
+  for (const companyId of [...companies].filter((id) => !withAdmin.has(id))) {
+    const first = await one('SELECT id FROM users WHERE company_id = $1 ORDER BY created_at LIMIT 1', [companyId]);
+    await query('UPDATE users SET is_admin = TRUE WHERE id = $1', [first.id]);
+  }
 }
 
 module.exports = { connect, useDatabase, enabled, query, one, migrate };

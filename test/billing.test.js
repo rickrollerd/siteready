@@ -54,7 +54,7 @@ test('subscribing during the trial keeps the rest of the trial', async () => {
   const token = await signIn('buyer@co.example');
   const config = await (await call('GET', '/api/config')).json();
   assert.equal(config.billing, true);
-  assert.equal(config.price, 'A$49 a month');
+  assert.equal(config.price, 'A$49 a month incl. GST');
   const response = await call('POST', '/api/billing/checkout', { token });
   assert.equal(response.status, 200);
   assert.equal((await response.json()).url, 'https://checkout.stripe.test/s1');

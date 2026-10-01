@@ -130,6 +130,17 @@ test('an invited person joins the company', async () => {
   const mateToken = (await mate.json()).token;
   const users = await (await call('GET', '/api/company/users', { token: mateToken })).json();
   assert.deepEqual(users.users.map((item) => item.email).sort(), ['boss@team.example', 'mate@team.example']);
+
+  // The person who made the company is its administrator; only they add or remove people.
+  assert.equal((await (await call('GET', '/api/me', { token })).json()).user.isAdmin, true);
+  assert.equal((await (await call('GET', '/api/me', { token: mateToken })).json()).user.isAdmin, false);
+  assert.equal((await call('POST', '/api/company/users', { token: mateToken, body: { email: 'other@team.example' } })).status, 403);
+  assert.equal((await call('DELETE', '/api/company/users/boss%40team.example', { token: mateToken })).status, 403);
+  assert.equal((await call('DELETE', '/api/company/users/boss%40team.example', { token })).status, 400);
+  assert.equal((await call('DELETE', '/api/company/users/mate%40team.example', { token })).status, 200);
+  assert.equal((await call('GET', '/api/me', { token: mateToken })).status, 401, 'a removed person is signed out');
+  const left = await (await call('GET', '/api/company/users', { token })).json();
+  assert.deepEqual(left.users.map((item) => item.email), ['boss@team.example']);
 });
 
 test('an ended trial is preview only until the company subscribes', async () => {
