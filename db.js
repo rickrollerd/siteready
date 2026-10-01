@@ -113,6 +113,18 @@ const SCHEMA = [
     review_due_at TIMESTAMPTZ NOT NULL,
     reminder_sent_at TIMESTAMPTZ
   )`,
+  `CREATE TABLE IF NOT EXISTS events (
+    id TEXT PRIMARY KEY,
+    company_id TEXT,
+    type TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS errors (
+    id TEXT PRIMARY KEY,
+    route TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS signons (
     id TEXT PRIMARY KEY,
     swms_id TEXT NOT NULL REFERENCES swms(id),

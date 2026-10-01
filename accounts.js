@@ -10,6 +10,7 @@ const { prepareDraft } = require('./draft');
 const { draftToDocx, draftedNote } = require('./docx-draft');
 const { draftToPdf } = require('./pdf-draft');
 const { readLogo } = require('./logo');
+const { record } = require('./events');
 
 const REVIEW_MONTHS = 3;
 const REMIND_DAYS_BEFORE = 7;
@@ -224,6 +225,7 @@ router.post('/swms', requireAccess, route(async (req, res) => {
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $9, $10)`,
     [id, req.company.id, site ? site.id : null, titleFor(body, input), JSON.stringify(input), name, req.user.id, auth.newToken(), now, addMonths(now, REVIEW_MONTHS)],
   );
+  record('swms_saved', req.company.id);
   res.status(201).json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [id])) });
 }));
 
@@ -295,6 +297,7 @@ router.get('/swms/:id/docx', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   const parts = await documentParts(req, row);
   const buffer = await draftToDocx(parts.draft, parts);
+  record('download_word', req.company.id);
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${fileName(row, 'docx')}"`);
   res.send(Buffer.from(buffer));
@@ -304,6 +307,7 @@ router.get('/swms/:id/pdf', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   const parts = await documentParts(req, row);
   const buffer = await draftToPdf(parts.draft, { ...parts, note: draftedNote(parts.confirmation) });
+  record('download_pdf', req.company.id);
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="${fileName(row, 'pdf')}"`);
   res.send(buffer);
@@ -344,6 +348,7 @@ router.post('/sign/:token', route(async (req, res) => {
   if (body.confirmed !== true) throw fail(400, 'Tick the box to confirm the SWMS has been explained to you.');
   await db.query('INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at) VALUES ($1, $2, $3, $4, $5, $6)',
     [auth.newId(), row.id, name, textField(body.company, 200), signature, new Date()]);
+  record('worker_signon', row.company_id);
   res.status(201).json({ ok: true, message: `Thanks ${name}. You are signed on to ${row.title}.` });
 }));
 

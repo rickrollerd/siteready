@@ -156,8 +156,13 @@
       document.querySelectorAll('.signed-in-only').forEach((el) => el.classList.add('hidden'));
       return;
     }
+    const paying = ['active', 'trialing', 'past_due'].includes(me.company.planStatus);
+    const billingLink = !config.billing ? '' : paying
+      ? '<button type="button" class="link" id="manage-billing">Billing</button>'
+      : `<button type="button" class="small" id="subscribe">Subscribe, ${esc(config.price)}</button>`;
     bar.innerHTML = `<span class="bar-note"><strong>${esc(me.company.name || me.user.email)}</strong> · ${esc(trialText(me.company))}</span>
       <span class="bar-links">
+        ${billingLink}
         <button type="button" class="link" data-panel="my-swms">My SWMS</button>
         <button type="button" class="link" data-panel="sites-panel">Sites</button>
         <button type="button" class="link" data-panel="team-panel">Team</button>
@@ -184,6 +189,24 @@
     }
     const panel = event.target.closest('[data-panel]');
     if (panel) return showPanel(panel.dataset.panel);
+    if (event.target.id === 'subscribe' || event.target.closest('[data-subscribe]')) {
+      try {
+        const { url } = await call('POST', '/api/billing/checkout');
+        window.location.href = url;
+      } catch (error) {
+        alert(error.message);
+      }
+      return;
+    }
+    if (event.target.id === 'manage-billing') {
+      try {
+        const { url } = await call('POST', '/api/billing/portal');
+        window.location.href = url;
+      } catch (error) {
+        alert(error.message);
+      }
+      return;
+    }
     if (event.target.id === 'sign-out') {
       await call('POST', '/api/auth/logout').catch(() => {});
       signedOut();
@@ -247,6 +270,11 @@
     if (config.accounts && !me) {
       box.innerHTML = `<div class="panel confirm"><p><strong>Like it?</strong> Sign in, or start a free ${config.trialDays} day trial, to download this SWMS as Word or PDF, save it, and get workers to sign on by QR code.</p>
         <div class="actions"><button type="button" data-open="signin">Sign in or start free trial</button></div></div>`;
+      return;
+    }
+    if (me && !me.company.hasAccess) {
+      box.innerHTML = `<div class="panel confirm"><p><strong>Your free trial has ended.</strong> Subscribe for ${esc(config.price)} to keep downloading, saving and sharing SWMS. Your saved SWMS and sites are kept.</p>
+        ${config.billing ? '<div class="actions"><button type="button" data-subscribe>Subscribe</button></div>' : ''}</div>`;
       return;
     }
     const kind = draft.kind;
@@ -526,6 +554,16 @@
     }
     const params = new URLSearchParams(window.location.search);
     const login = params.get('login');
+    const billingResult = params.get('billing');
+    if (billingResult) {
+      history.replaceState(null, '', window.location.pathname);
+      const note = $('billing-status');
+      note.textContent = billingResult === 'success'
+        ? 'Thanks. Your subscription is set up. It can take a minute to show here.'
+        : 'Subscribing was cancelled. Nothing was charged.';
+      note.classList.remove('hidden');
+      if (billingResult === 'success') setTimeout(refresh, 5000);
+    }
     if (login && config.accounts) {
       history.replaceState(null, '', window.location.pathname);
       try {
