@@ -213,6 +213,32 @@ const ACTIVITIES = [
     ppe: ['p2', 'earMuffs'],
   },
   {
+    // Cranes supplied and operated by a crane company: the crews' part is working with them.
+    when: 'craneInterface',
+    steps: [
+      {
+        step: 'Plan lifts with the crane company',
+        hazards: ['Lifts not planned for this work.', 'Loads land where the structure cannot take them.'],
+        controls: [
+          { fact: 'craneCompany' },
+          'Agree each day\'s lifts with the crane company\'s crew before work starts, including where loads land.',
+          'Landing areas are clear, ready and within the rated load of where loads land before each lift.',
+          'Wind and weather stops are set by the crane company. When the crane stops, the lift stops.',
+        ],
+      },
+      {
+        step: 'Work with the crane crew during lifts',
+        hazards: ['A person is struck or crushed by a load.', 'A badly prepared load falls apart in the air.', 'Miscommunication with the crane crew.'],
+        controls: [
+          'Only licensed dogmen or riggers sling, direct and release loads.',
+          'Prepare loads as the crane crew directs: bundled, strapped, and with loose items removed.',
+          'Stay out from under suspended loads and out of the crane\'s exclusion zones.',
+          'Stop and tell the crane crew straight away if a load is unstable or a lift looks unsafe.',
+        ],
+      },
+    ],
+  },
+  {
     when: 'towerCrane',
     ppe: ['chinStrap'],
     steps: [

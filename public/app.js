@@ -136,6 +136,7 @@ function payload() {
     state: state ? state.value : '',
     fallRisk: (document.querySelector('input[name="fallRisk"]:checked') || {}).value || '',
     residential: (document.querySelector('input[name="residential"]:checked') || {}).value || '',
+    crane: (document.querySelector('input[name="crane"]:checked') || {}).value || 'company',
     task: value('task'),
     company: value('company'),
     companyAbn: profile.abn || '',
@@ -267,6 +268,7 @@ function render(draft) {
         ${row('First aider', draft.firstAider)}
         ${row('Muster point', draft.musterPoint)}
         <tr><th>Task</th><td>${esc(draft.task)}</td></tr>
+        ${row('Crane operated by', draft.craneOperator)}
         ${row('Residential construction work', draft.residential)}
         ${row(`Fall of more than ${draft.fallMetres || 2} metres`, draft.fallRisk)}
         <tr><th>Date</th><td>${esc(draft.date)}</td></tr>
