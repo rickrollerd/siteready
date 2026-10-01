@@ -306,6 +306,7 @@ function render(draft) {
     <h4>${esc(draft.reviewHeading)}</h4>
     <p>${esc(draft.review)}</p>
     <h4>Site-specific</h4>${site}
+    ${(draft.references || []).length ? `<h4>Documents to keep on site with this SWMS</h4><table><tbody>${draft.references.map((item) => `<tr><th>${esc(item.label)}</th><td>${esc(item.text)}</td></tr>`).join('')}</tbody></table>` : ''}
     <h4>Prepared by</h4>
     <table><tbody>${['Name and position', 'Signature', 'Date', 'Date given to the principal contractor'].map((label) => `<tr><th>${label}</th><td></td></tr>`).join('')}</tbody></table>
     <h4>Principal contractor review</h4>

@@ -327,6 +327,11 @@ function childrenFor(draft) {
   blocks.push(sectionHeading('Site-specific'));
   for (const field of draft.site) blocks.push(...siteBlock(field));
 
+  if ((draft.references || []).length) {
+    blocks.push(sectionHeading('Documents to keep on site with this SWMS'));
+    blocks.push(signTable(draft.references.map((item) => [item.label, item.text])));
+  }
+
   blocks.push(...preparedBy());
   blocks.push(...principalContractorReview(draft));
   blocks.push(...workerSignOn(draft));

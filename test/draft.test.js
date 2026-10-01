@@ -11,9 +11,9 @@ test('scaffold erection to 6 m stands down until a fall control is given', () =>
   assert.match(questionsFor({ state: 'qld', task, fallRisk: 'no' }).fall.warning, /mentions work at height/);
   const stood = draft(task, { fallRisk: 'yes' });
   assert.equal(stood.kind, 'stand-down');
-  assert.deepEqual(stood.missing, ['Fall control']);
+  assert.deepEqual(stood.missing, ['Fall control', 'System and supplier instructions']);
 
-  const done = draft(task, { fallRisk: 'yes', facts: { fallControl: 'Erect from a fully decked platform with advance guardrails at each lift.' } });
+  const done = draft(task, { fallRisk: 'yes', facts: { fallControl: 'Erect from a fully decked platform with advance guardrails at each lift.', systemInstructions: 'Example modular scaffold, erected to the supplier\'s instructions SC-01 revision 2 by trained scaffolders.' } });
   assert.equal(done.kind, 'draft');
   assert.ok(done.highRisk.includes(FALL));
   assert.ok(done.hazards.some((row) => row.hazard === 'Fall from height'));
@@ -322,4 +322,20 @@ test('a crane company runs the crane unless the subcontractor says it runs its o
   const ownDone = draft(task, { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.' } });
   assert.ok(ownDone.jobSteps.some((step) => step.step === 'Set up the crane'));
   assert.equal(ownDone.craneOperator, 'Our company');
+});
+
+test('a proprietary system is erected to its supplier\'s instructions, which the SWMS lists', () => {
+  const task = 'Erect the slab formwork and falsework for level 12.';
+  const stood = draft(task);
+  assert.ok(stood.missing.includes('System and supplier instructions'));
+  const done = draft(task, { facts: {
+    systemInstructions: 'Example deck system from Example Formwork Hire, erected to its assembly instructions AI-7 revision 4. Crew trained by the supplier.',
+    formworkDesign: 'Formwork design FW-1 by the formwork engineer.',
+  } });
+  assert.equal(done.kind, 'draft');
+  const erect = done.jobSteps.find((step) => step.step === 'Erect falsework and shores');
+  assert.ok(erect.controls.some((line) => /assembly instructions AI-7/.test(line)));
+  assert.ok(erect.controls.some((line) => /Do not mix components/.test(line)));
+  assert.ok(erect.hazards.some((line) => /^Manual handling/.test(line)));
+  assert.deepEqual(done.references.map((item) => item.label), ['System and supplier instructions', 'Formwork design']);
 });

@@ -11,7 +11,8 @@
       "fallRisk": "yes",
       "facts": {
         "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
-        "fallControl": "Loading platforms have full height gates and side screens, and the slab edge has perimeter screens on every level being worked."
+        "fallControl": "Loading platforms have full height gates and side screens, and the slab edge has perimeter screens on every level being worked.",
+        "systemInstructions": "Loading platforms are the supplier's system, installed to its instructions LP-01 revision 3 by its trained installers."
       },
       "expect": {
         "highRisk": [
@@ -28,7 +29,8 @@
         ],
         "missing": [
           "Crane company and lift plan",
-          "Fall control"
+          "Fall control",
+          "System and supplier instructions"
         ]
       }
     },
@@ -40,7 +42,8 @@
       "facts": {
         "craneCompany": "The tower cranes are supplied and operated by the crane company, Example Cranes Pty Ltd. Its operators and dogmen work to its lift plans and SWMS.",
         "formworkDesign": "Formwork, falsework and backpropping designed by the formwork engineer, drawings FW-100 to FW-120. The formwork supervisor inspects and signs the pre-pour checklist before every pour.",
-        "fallControl": "Perimeter screens are installed on the levels being formed, decks are laid from inside the edge protection, and penetrations are covered as they are formed."
+        "fallControl": "Perimeter screens are installed on the levels being formed, decks are laid from inside the edge protection, and penetrations are covered as they are formed.",
+        "systemInstructions": "The deck system and props are the formwork supplier's proprietary system, erected to its assembly instructions FS-200 revision 5. The crew is trained by the supplier."
       },
       "expect": {
         "highRisk": [
@@ -57,7 +60,8 @@
         ],
         "missing": [
           "Crane company and lift plan",
-          "Formwork design"
+          "Formwork design",
+          "System and supplier instructions"
         ]
       }
     },

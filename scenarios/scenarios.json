@@ -207,11 +207,13 @@
     "task": "Erect a tube and fitting scaffold 4 lifts high, about 8 m, on the front facade of a commercial building above a public footpath.",
     "fallRisk": "yes",
     "facts": {
-      "fallControl": "Scaffolders install each lift with advance guardrails before stepping up, and the working deck is fully planked."
+      "fallControl": "Scaffolders install each lift with advance guardrails before stepping up, and the working deck is fully planked.",
+      "systemInstructions": "Tube and fitting scaffold erected to the scaffold designer's drawings SD-01 revision A by licensed scaffolders."
     },
     "expect": {
       "missing": [
-        "Fall control"
+        "Fall control",
+        "System and supplier instructions"
       ],
       "highRisk": [
         "fall"

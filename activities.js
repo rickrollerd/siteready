@@ -81,7 +81,8 @@ const ACTIVITIES = [
         hazards: ['Scaffolders fall from height.', 'Dropped components.', 'Manual handling strain.'],
         controls: [
           { fact: 'fallControl' },
-          'A licensed scaffolder erects the scaffold to the manufacturer\'s or designer\'s instructions.',
+          { fact: 'systemInstructions' },
+          'A licensed scaffolder erects the scaffold to the manufacturer\'s or designer\'s instructions. Do not mix components from different systems.',
           'Install ties as the scaffold goes up.',
           'Pass components hand to hand or use a gin wheel. Do not throw them.',
         ],
@@ -301,6 +302,7 @@ const ACTIVITIES = [
         step: 'Load out floors and use loading platforms',
         hazards: ['A person falls from the loading platform or slab edge.', 'Materials fall from the floor or the platform.', 'Overloading the platform or the slab.'],
         controls: [
+          { fact: 'systemInstructions' },
           'Loading platforms are installed to the supplier\'s design, inspected, and signed with their rated load.',
           'Platform gates stay closed except when a load is being landed or taken off.',
           'Stack materials within the slab\'s allowable load, away from edges and penetrations, and secure them against wind.',
@@ -331,21 +333,30 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Erect falsework and shores',
-        hazards: ['Falsework collapse.', 'A person falls while erecting bearers and joists.', 'Dropped components.', 'Back strain from props, beams and ply.'],
+        hazards: [
+          'Falsework collapse.',
+          'A person falls while erecting bearers and joists.',
+          'Dropped components.',
+          'Manual handling: lifting and carrying props, frames, beams and ply, often overhead or in awkward postures, and repeated many times a day.',
+        ],
         controls: [
+          { fact: 'systemInstructions' },
+          'Erect, use and dismantle the system only to the supplier\'s instructions. Do not mix components from different systems, or change them, without the supplier\'s approval.',
           { fact: 'formworkDesign' },
           'Erect falsework to the formwork design, on a base that can take the load.',
           'Erect bearers and joists from a working platform or from below, as the formwork design sets out, so no one works at an unprotected edge.',
-          'Use mechanical handling for props, beams and bundles of ply where possible. Team lift the rest.',
+          'Manual handling: move props, frames, beams and ply to the work area in crane-lifted bundles, on trolleys or by hoist, not by carrying them across the floor.',
+          'Manual handling: team lift long or heavy items, keep loads close to the body, and limit lifting above shoulder height.',
+          'Manual handling: rotate tasks and take breaks during repetitive erection.',
         ],
       },
       {
         step: 'Install edge protection and lay the deck',
-        hazards: ['A person falls from the slab edge or through gaps in the deck.', 'Materials fall from the edge.', 'Cuts, dust and noise from power saws.'],
+        hazards: ['A person falls from the slab edge or through gaps in the deck.', 'Materials fall from the edge.', 'Cuts, dust and noise from power saws.', 'Manual handling: carrying and placing ply sheets, often in wind.'],
         controls: [
           { fact: 'fallControl' },
           'Perimeter screens or edge protection are in place before anyone works near the edge.',
-          'Lay sheets progressively in front of the worker.',
+          'Lay sheets progressively in front of the worker. Two people handle full sheets, and sheets are not carried in strong wind.',
           'Use power saws with guards in place, with dust extraction or a P2 respirator, and hearing protection.',
         ],
       },
@@ -361,11 +372,12 @@ const ACTIVITIES = [
       },
       {
         step: 'Strip formwork and backprop',
-        hazards: ['The slab or falsework collapses.', 'Falling formwork strikes a person.'],
+        hazards: ['The slab or falsework collapses.', 'Falling formwork strikes a person.', 'Manual handling: lowering ply and beams from overhead.'],
         controls: [
           'Strip only after stressing is complete and the post-tensioning engineer releases the slab, in the order in the formwork design.',
           'Install backprops progressively as each bay is stripped, to the design, and leave them until the design allows removal.',
           'Exclusion zone below and around the area being stripped.',
+          'Lower components in a controlled way with stripping tools. Do not drop them or catch them from overhead.',
         ],
       },
     ],
