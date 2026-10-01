@@ -7,10 +7,11 @@
     {
       "id": "sprinklers",
       "title": "Sprinkler and hydrant pipework at height",
-      "task": "Install sprinkler and hydrant pipework in the apartment ceilings, corridors and risers, from scissor lifts more than 2 m above the floor, roll grooving and cutting pipe on each floor.",
+      "task": "Install sprinkler and hydrant pipework in the apartment ceilings, corridors and risers, from scissor lifts more than 2 m above the floor, drilling into the post-tensioned slabs for hanger anchors, and roll grooving and cutting pipe on each floor.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Risers are screened at each level with only the section being worked on opened, and scissor lifts with guardrails are used for all work above 2 m."
+        "fallControl": "Risers are screened at each level with only the section being worked on opened, and scissor lifts with guardrails are used for all work above 2 m.",
+        "silicaControls": "Hanger anchor holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS."
       },
       "expect": {
         "highRisk": [
@@ -23,7 +24,8 @@
           "Roll groove, thread and cut pipe"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Silica dust controls"
         ]
       }
     },
@@ -37,7 +39,9 @@
         "isolationProcedure": "Fire pumps are isolated at their controllers and locked out with personal padlocks, valves are locked closed and tagged, and pressure is released before breaking into pipework."
       },
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "electrical"
+        ],
         "steps": [
           "Work on live fire systems and in pump rooms",
           "Pressure test and commission"
@@ -64,6 +68,22 @@
       "phrase": "the machine cannot restart until a removed guard is replaced",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 208, s 210",
       "quote": "the plant cannot be restarted unless the guarding is replaced"
+    },
+    {
+      "swms": [
+        "sprinklers"
+      ],
+      "phrase": "secured at or near the top or bottom",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306L, s 306M",
+      "quote": "the ladder is secured (i) at or near the top to prevent it moving; or ... (ii) at or near the bottom to prevent it moving"
+    },
+    {
+      "swms": [
+        "live"
+      ],
+      "phrase": "Pump runs and diesel pump tests are noisy",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 56, s 57, s 58",
+      "quote": "L Aeq,8h of 85 dB(A); or (b) L C,peak of 140 dB(C)"
     }
   ]
 }

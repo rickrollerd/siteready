@@ -19,6 +19,7 @@
           "plant"
         ],
         "steps": [
+          "Use an elevating work platform",
           "Prepare the piling working platform",
           "Deliver, assemble and dismantle the rig"
         ],
@@ -44,6 +45,9 @@
           "plant"
         ],
         "steps": [
+          "Set up the crane",
+          "Rig and lift the load",
+          "Land and release the load",
           "Drill and install piles",
           "Lift and plunge cages into the fresh CFA pile",
           "Place concrete in the piles"
@@ -75,8 +79,12 @@
           "water"
         ],
         "steps": [
-          "Protect open bores",
+          "Set up the crane",
+          "Rig and lift the load",
+          "Land and release the load",
+          "Drill and install piles",
           "Lift, pitch and lower reinforcement cages",
+          "Protect open bores",
           "Place concrete in the piles"
         ],
         "missing": [

@@ -28,9 +28,9 @@
         ],
         "missing": [
           "Fall control",
-          "Inspection and testing of construction wiring",
           "Isolation and testing procedure",
-          "Work on or near energised parts"
+          "Work on or near energised parts",
+          "Inspection and testing of construction wiring"
         ]
       }
     },
@@ -68,8 +68,8 @@
           "plant"
         ],
         "steps": [
-          "Install cable tray, containment and cabling at height",
-          "Use an elevating work platform"
+          "Use an elevating work platform",
+          "Install cable tray, containment and cabling at height"
         ],
         "missing": [
           "Fall control"
@@ -92,14 +92,15 @@
           "plant"
         ],
         "steps": [
-          "Pull cables and handle cable drums",
+          "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
-          "Operate forklifts"
+          "Operate forklifts",
+          "Pull cables and handle cable drums"
         ],
         "missing": [
           "Crane company and lift plan",
-          "Load limits",
-          "Fall control"
+          "Fall control",
+          "Load limits"
         ]
       }
     },
@@ -124,8 +125,8 @@
         ],
         "missing": [
           "Isolation and testing procedure",
-          "Silica dust controls",
-          "Work on or near energised parts"
+          "Work on or near energised parts",
+          "Silica dust controls"
         ]
       }
     },

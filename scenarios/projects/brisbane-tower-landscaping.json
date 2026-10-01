@@ -18,7 +18,7 @@
         ],
         "steps": [
           "Move soil and mulch, and plant",
-          "Work at podium edges and on the street"
+          "Work at podium edges"
         ],
         "missing": [
           "Fall control"
@@ -39,8 +39,7 @@
         ],
         "steps": [
           "Set up traffic management",
-          "Lay and cut pavers",
-          "Work at podium edges and on the street"
+          "Lay and cut pavers"
         ],
         "missing": [
           "Silica dust controls"
@@ -56,6 +55,14 @@
       "phrase": "Pavers are not engineered stone",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529B, s 529C, s 529CA",
       "quote": "bricks, pavers or other similar blocks"
+    },
+    {
+      "swms": [
+        "paving"
+      ],
+      "phrase": "before excavating the paving bed",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 304",
+      "quote": "take all reasonable steps to obtain current underground essential services information"
     }
   ]
 }

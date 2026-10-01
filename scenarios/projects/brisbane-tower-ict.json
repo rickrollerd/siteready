@@ -16,8 +16,8 @@
       "expect": {
         "highRisk": [
           "fall",
-          "plant",
-          "electrical"
+          "electrical",
+          "plant"
         ],
         "steps": [
           "Use an elevating work platform",
@@ -78,8 +78,8 @@
       "expect": {
         "highRisk": [
           "fall",
-          "plant",
-          "electrical"
+          "electrical",
+          "plant"
         ],
         "steps": [
           "Use an elevating work platform",

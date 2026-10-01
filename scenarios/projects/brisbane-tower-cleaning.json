@@ -32,6 +32,14 @@
       "phrase": "including for supermarket products used for work",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 341, s 344, s 351",
       "quote": "if you are using a domestic chemical in a manner different to normal household use, you should also obtain the SDS"
+    },
+    {
+      "swms": [
+        "clean"
+      ],
+      "phrase": "on the hazardous chemicals register",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 346",
+      "quote": "a register of hazardous chemicals used, handled or stored at the workplace is prepared and kept at the workplace"
     }
   ]
 }

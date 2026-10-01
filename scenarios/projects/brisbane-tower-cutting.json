@@ -15,12 +15,14 @@
       },
       "expect": {
         "highRisk": [
-          "fall"
+          "fall",
+          "electrical"
         ],
         "steps": [
           "Plan core holes",
           "Core drill through the slab",
-          "Saw cut concrete"
+          "Saw cut concrete",
+          "Remove cut sections"
         ],
         "missing": [
           "Fall control",
@@ -37,6 +39,14 @@
       "phrase": "Cutting concrete is processing a crystalline silica substance",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529B, s 529C",
       "quote": "unless the processing is controlled"
+    },
+    {
+      "swms": [
+        "saw"
+      ],
+      "phrase": "results over the exposure standard go to the regulator within 14 days",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 50, s 368, s 371, s 529CE, schedule 14",
+      "quote": "no later than 14 days, after the day the person receives the results"
     }
   ]
 }
