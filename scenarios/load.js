@@ -17,9 +17,13 @@ const { STATES } = require('../legislation');
 
 const USERS = Number(process.argv[2]) || 200;
 const SECONDS = Number(process.argv[3]) || 30;
-let base = process.argv[4] || '';
-const scenarios = JSON.parse(fs.readFileSync(path.join(__dirname, 'scenarios.json'), 'utf8'));
-const jobs = STATES.flatMap((state) => scenarios.map((scenario) => ({ state, scenario })));
+let base = process.argv[4] && !process.argv[4].startsWith('--') ? process.argv[4] : '';
+// --project <file> loads a project's SWMS set in its own state instead.
+const projectAt = process.argv.indexOf('--project');
+const project = projectAt > 0 ? JSON.parse(fs.readFileSync(path.resolve(process.argv[projectAt + 1]), 'utf8')) : null;
+const scenarios = project ? project.swms : JSON.parse(fs.readFileSync(path.join(__dirname, 'scenarios.json'), 'utf8'));
+const states = project ? STATES.filter((state) => state.id === project.state) : STATES;
+const jobs = states.flatMap((state) => scenarios.map((scenario) => ({ state, scenario })));
 
 const timings = { questions: [], draft: [], docx: [] };
 const failures = [];
@@ -58,7 +62,7 @@ async function user(number, until) {
   while (Date.now() < until) {
     const { state, scenario } = jobs[next];
     next = (next + 1) % jobs.length;
-    const input = { state: state.id, task: scenario.task, fallRisk: scenario.fallRisk, residential: scenario.residential, company };
+    const input = { state: state.id, task: scenario.task, fallRisk: scenario.fallRisk, residential: scenario.residential || 'no', company };
     const name = `${state.id} ${scenario.id}`;
     try {
       const asked = await call('/api/draft/questions', input, address);

@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test && node scenarios/run.js > /dev/null",
+    "test": "node --test && node scenarios/run.js > /dev/null && node scenarios/projects.js > /dev/null",
     "scenarios": "node scenarios/run.js --write",
     "load": "node scenarios/load.js"
   },

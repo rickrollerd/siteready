@@ -204,6 +204,32 @@ const ACTIVITIES = [
     ppe: ['p2', 'earMuffs'],
   },
   {
+    when: 'towerCrane',
+    steps: [
+      {
+        step: 'Plan the tower crane lifts',
+        hazards: ['Overloading the crane.', 'Lifting in winds above the crane\'s limits.', 'Loads passing over people, including the public.'],
+        controls: [
+          { fact: 'craneChart' },
+          'Know the weight of every load before it is lifted. Use the crane\'s load chart for the radius of each lift.',
+          'Stop lifting when the wind is above the crane supplier\'s limits.',
+          'No loads over the public unless the area below is protected or closed, as approved.',
+          'The crane operator, dogmen and riggers hold current high risk work licences for the work they do.',
+        ],
+      },
+      {
+        step: 'Rig, lift and land loads with the tower crane',
+        hazards: ['A dropped load.', 'A person is struck or crushed by the load.', 'The dogman loses sight of the load.'],
+        controls: [
+          'Inspect lifting gear before use. Check tags and ratings, and use gear rated for the load.',
+          'Use tag lines to control loads. No one goes under a suspended load.',
+          'The dogman stays in radio contact with the operator, and a second dogman is used where the load is out of sight.',
+          'Land loads on bearers inside the loading area and secure them before releasing the rigging.',
+        ],
+      },
+    ],
+  },
+  {
     when: 'crane',
     steps: [
       {
@@ -232,16 +258,217 @@ const ACTIVITIES = [
     ],
   },
   {
+    when: 'loadOut',
+    steps: [
+      {
+        step: 'Load out floors and use loading platforms',
+        hazards: ['A person falls from the loading platform or slab edge.', 'Materials fall from the floor or the platform.', 'Overloading the platform or the slab.'],
+        controls: [
+          'Loading platforms are installed to the supplier\'s design, inspected, and signed with their rated load.',
+          'Platform gates stay closed except when a load is being landed or taken off.',
+          'Stack materials within the slab\'s allowable load, away from edges and penetrations, and secure them against wind.',
+          'Keep loose materials, offcuts and packaging tied down or removed from the edges.',
+        ],
+      },
+    ],
+  },
+  {
+    when: 'forklift',
+    steps: [
+      {
+        step: 'Operate forklifts and telehandlers',
+        hazards: ['A person is struck by the forklift or its load.', 'The forklift tips over.', 'A suspended slab is overloaded.'],
+        controls: [
+          'Operators hold the licence for the machine they operate.',
+          'Separate people from forklift routes with barriers, and use a spotter where people are near.',
+          'Check the slab and the backpropping can take the forklift and its load before it is used on a suspended floor.',
+          'Carry loads low, within the rated capacity, and never lift people on the forks.',
+        ],
+      },
+    ],
+    ppe: ['hivisNight'],
+  },
+  {
+    when: 'formwork',
+    steps: [
+      {
+        step: 'Erect falsework and shores',
+        hazards: ['Falsework collapse.', 'A person falls while erecting.', 'Dropped components.'],
+        controls: [
+          { fact: 'formworkDesign' },
+          'Erect falsework to the formwork design, on a base that can take the load.',
+          'Install deck in a sequence that keeps workers on a platform or inside edge protection.',
+        ],
+      },
+      {
+        step: 'Lay the deck and install edge protection',
+        hazards: ['A person falls from the slab edge or through gaps in the deck.', 'Materials fall from the edge.'],
+        controls: [
+          { fact: 'fallControl' },
+          'Perimeter screens or edge protection are in place before anyone works near the edge.',
+          'Lay sheets progressively in front of the worker.',
+        ],
+      },
+      {
+        step: 'Form penetrations and voids',
+        hazards: ['A person falls through a penetration or void.'],
+        controls: ['Cover penetrations straight away with fixed covers that can take the load and are marked, or fence them off.'],
+      },
+      {
+        step: 'Inspect before the pour',
+        hazards: ['Formwork fails during the pour.'],
+        controls: ['A competent person checks the formwork and falsework are built to the design, and signs it off, before the pour.'],
+      },
+      {
+        step: 'Strip formwork and backprop',
+        hazards: ['The slab or falsework collapses.', 'Falling formwork strikes a person.'],
+        controls: [
+          'Strip only when the engineer\'s conditions are met, in the order in the formwork design.',
+          'Install backprops to the design before stripping, and leave them until the design allows removal.',
+          'Exclusion zone below and around the area being stripped.',
+        ],
+      },
+    ],
+    ppe: ['chinStrap', 'earPlugs'],
+  },
+  {
+    when: 'jumpform',
+    steps: [
+      {
+        step: 'Prepare to climb the jumpform',
+        hazards: ['Loose materials fall during the climb.', 'Climbing in high wind.'],
+        controls: [
+          { fact: 'jumpformProcedure' },
+          'Before each climb, remove loose materials and tools from all platforms and check anchors and hydraulics.',
+          'Climb only within the supplier\'s wind limits.',
+        ],
+      },
+      {
+        step: 'Climb the jumpform',
+        hazards: ['The jumpform fails or drops.', 'Falling objects strike people below.'],
+        controls: [
+          'Only the trained climbing crew is on the jumpform during the climb, under a supervisor.',
+          'Exclusion zone below the core during the climb.',
+        ],
+      },
+      {
+        step: 'Work on the jumpform platforms',
+        hazards: ['A person falls through gaps between the platform and the wall.', 'Dropped objects.', 'Emergency escape from the platforms.'],
+        controls: [
+          'Close the gaps between platforms and the wall, and keep the screens and mesh in place.',
+          'Keep tools tethered or contained, and keep platforms tidy.',
+          'Keep emergency access routes from the platforms clear, and include the jumpform in the site emergency plan.',
+        ],
+      },
+    ],
+    ppe: ['chinStrap'],
+  },
+  {
+    when: 'reo',
+    steps: [
+      {
+        step: 'Lift reo onto the deck',
+        hazards: ['Dropped bundles.', 'Overloading the formwork.'],
+        controls: [
+          'Lift bundles with rated slings or chains, never by the tie wire.',
+          'Land bundles on bearers, spread out within the formwork\'s allowable load.',
+        ],
+      },
+      {
+        step: 'Place and tie reo',
+        hazards: ['Impalement on exposed bars.', 'Trips on bars and chairs.', 'Cuts and back strain.', 'A person falls from the edge.'],
+        controls: [
+          'Cap or bend over exposed starter bars and ends of bars.',
+          'Lay walkways over the reo where people need to cross it.',
+          'Team lift long or heavy bars, and rotate tying tasks.',
+          'Work inside the edge protection at all times.',
+        ],
+      },
+    ],
+    ppe: ['gloveCut', 'chinStrap'],
+  },
+  {
+    when: 'ptTendons',
+    steps: [
+      {
+        step: 'Place post-tensioning ducts and tendons',
+        hazards: ['Coiled strand springs free when it is released.', 'Cuts from strand ends.'],
+        controls: [
+          'Release coils and strapping in a controlled way, standing clear of the strand ends.',
+          'Fix ducts and tendons to the post-tensioning drawings.',
+        ],
+      },
+    ],
+  },
+  {
+    when: 'concrete',
+    steps: [
+      {
+        step: 'Set up the concrete pump and placing boom',
+        hazards: ['The pump or boom overturns.', 'The boom strikes a person or structure.'],
+        controls: [
+          'Set up on ground or a slab that can take the outrigger loads, with pads under the outriggers.',
+          'The placing boom operator holds a high risk work licence for a concrete placing boom.',
+          'Keep the boom within its rated reach and clear of the crane\'s working area, as coordinated with the crane crew.',
+        ],
+      },
+      {
+        step: 'Pump and place concrete',
+        hazards: ['Hose whip at start-up or when a blockage clears.', 'A burst line.', 'A person falls from the edge or through the deck.'],
+        controls: [
+          'Check pipes, clamps and the end hose before pumping.',
+          'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
+          'Stay inside the edge protection. The formwork is watched during the pour for movement.',
+          'The hose hand stays in contact with the operator by radio or agreed signals.',
+        ],
+      },
+      {
+        step: 'Finish concrete',
+        hazards: ['Cement burns to the skin and eyes.', 'Power trowel injuries.', 'Back strain.'],
+        controls: [
+          'Wash wet concrete off the skin straight away. Wear gloves and eye protection.',
+          'Use power trowels with guards and a working stop switch.',
+          'Rotate finishing tasks and take breaks.',
+        ],
+      },
+    ],
+    ppe: ['gloveChemical', 'chinStrap', 'earPlugs'],
+  },
+  {
+    when: 'stressing',
+    steps: [
+      {
+        step: 'Stress the tendons',
+        hazards: ['A tendon or anchor fails under load and is released violently.', 'Hydraulic hose failure.'],
+        controls: [
+          { fact: 'stressingProcedure' },
+          'Only the trained stressing crew stresses tendons, to the engineer\'s sequence, once the concrete strength the engineer requires is reached.',
+          'No one stands behind or in line with the jack. Exclusion zone signed and barricaded at both ends of the tendon.',
+          'Check the jack, gauges and hoses before use.',
+        ],
+      },
+      {
+        step: 'Cut tails and grout',
+        hazards: ['Grout on the skin and in the eyes.', 'Cutting disc injuries.'],
+        controls: [
+          'Cut tendon tails only after the engineer accepts the stressing records.',
+          'Wear gloves and eye protection when grouting. Use cutting tools with guards in place.',
+        ],
+      },
+    ],
+    ppe: ['faceShield', 'gloveChemical'],
+  },
+  {
     when: 'precast',
     steps: [{
-      step: 'Stand and brace the panels',
-      hazards: ['A panel falls or topples onto a person.'],
+      step: 'Stand and brace the precast elements',
+      hazards: ['A precast element falls or topples onto a person.'],
       controls: [
         { fact: 'erectionDesign' },
         { fact: 'centreOfGravity' },
         { fact: 'braceArrangement' },
         { fact: 'regulatorNotified' },
-        'Each panel is braced to the design before it is released from the crane.',
+        'Each element is braced or propped to the design before it is released from the crane.',
       ],
     }],
   },

@@ -317,7 +317,7 @@ function highRiskMatches(text, answer, state) {
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i),
     precast: mentioned(text, /\b(tilt-?up|precast)\b/i),
     road: mentioned(text, ROAD) || /\blight rail\b/i.test(String(text || '')),
-    plant: mentioned(text, /\b(powered mobile plant|excavators?|forklifts?|trucks?|cranes?|loaders?|liebherr)\b/i),
+    plant: mentioned(text, /\b(powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|telehandlers?|excavators?|forklifts?|trucks?|cranes?|loaders?|liebherr)\b/i),
     temperature: mentioned(text, /\bartificial extremes of temperature\b/i),
     water: mentioned(text, WATER),
     diving: mentioned(text, /\bdiving\b/i),
@@ -341,11 +341,14 @@ function fallLineFor(source, facts) {
 // Where a fall control sits in the hierarchy.
 function fallControlLevel(line) {
   if (/\b(do not place a person|from the ground|stay(?:s|ing)? on the ground)\b/i.test(line)) return 'Eliminate';
-  if (/\b(edge protection|guard\s?rails?|scaffold|elevating work platform|\bewp\b|safety mesh|catch platform|fenc\w*|barriers?|barricad\w*|hoarding|covers?|covered)\b/i.test(line)) return 'Isolate or engineer';
+  if (/\b(edge protection|guard\s?rails?|handrails?|scaffold|elevating work platform|\bewp\b|safety mesh|catch platform|perimeter screens?|edge screens?|screens|full height gates?|fenc\w*|barriers?|barricad\w*|hoarding|covers?|covered)\b/i.test(line)) return 'Isolate or engineer';
   if (/\b(harness|fall arrest|lanyard|restraint)\b/i.test(line)) return 'PPE';
   return 'Administrative';
 }
 
+const FORMWORK = /\b(formwork|falsework|formply|deck forms?|table forms?|backprop\w*)\b/i;
+const JUMPFORM = /\b(jump ?forms?|self[- ]climbing (?:form\w*|system)|climbing form\w*)\b/i;
+const PT = /\b(post[- ]?tension\w*|pt slabs?|pt tendons?|stressing)\b/i;
 const ENERGISED = /\b(energised|energized|overhead (?:power )?lines?|live electrical)\b/i;
 
 const CATEGORY_FACTS = [
@@ -370,6 +373,28 @@ const CATEGORY_FACTS = [
     prompt: 'How far the work and plant stay from the lines, the network operator\'s requirements or permit, and the safety observer.',
     level: 'Isolate or engineer',
     applies: (text) => mentioned(text, ENERGISED),
+  },
+  {
+    id: 'formworkDesign',
+    label: 'Formwork design',
+    prompt: 'The formwork, falsework and backpropping design, who designed it, and who inspects the formwork before the pour.',
+    level: 'Isolate or engineer',
+    // A jumpform is not slab formwork: it has its own climbing procedure.
+    applies: (text) => FORMWORK.test(String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '')),
+  },
+  {
+    id: 'jumpformProcedure',
+    label: 'Jumpform climbing procedure',
+    prompt: 'The supplier\'s climbing procedure, its wind limits, and who is trained to climb the jumpform.',
+    level: 'Administrative',
+    applies: (text) => JUMPFORM.test(text),
+  },
+  {
+    id: 'stressingProcedure',
+    label: 'Stressing procedure',
+    prompt: 'The engineer\'s stressing sequence and the concrete strength needed, who does the stressing, and the exclusion zone at the jacks.',
+    level: 'Administrative',
+    applies: (text) => /\b(stress(?:ing)? (?:the )?tendons?|stressing)\b/i.test(text),
   },
   {
     id: 'drowningControls',
@@ -575,7 +600,7 @@ function controlsFor(task, facts, pack) {
       const line = keptFact(facts[field]);
       if (line) push('Administrative', line);
     }
-  } else if (mentioned(source, /\b(powered mobile plant|excavators?|forklifts?|trucks?|loaders?)\b/i)) {
+  } else if (mentioned(source, /\b(powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|telehandlers?|excavators?|forklifts?|trucks?|loaders?)\b/i)) {
     push('Isolate or engineer', 'People stay clear of moving plant.');
   }
 
@@ -694,7 +719,7 @@ function hazardsFor(task, facts, pack) {
     add('Energised electrical service', 'A person contacts live electricity.');
   }
   if (needsSafetyDataSheet(source)) add('Hazardous substance', 'A person is exposed to the substance.');
-  if (mentioned(source, /\b(powered mobile plant|excavators?|forklifts?|trucks?|loaders?|cranes?)\b/i) && !isCraneOrLift(source)) {
+  if (mentioned(source, /\b(powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|telehandlers?|excavators?|forklifts?|trucks?|loaders?|cranes?)\b/i) && !isCraneOrLift(source)) {
     add('Moving plant', 'A person is struck by plant.');
   }
   // Every high risk construction work category found in the task has a hazard row.
@@ -941,7 +966,16 @@ function workFlags(task) {
     trench: deepExcavation(task) || /\b(excavat\w*|trench\w*)\b/i.test(task),
     propping: CATEGORY_FACTS.find((item) => item.id === 'temporarySupport').applies(task),
     demolition: mentioned(task, DEMOLITION),
-    crane: isCraneOrLift(task),
+    towerCrane: /\btower cranes?\b/i.test(task),
+    crane: isCraneOrLift(task) && !/\btower cranes?\b/i.test(task),
+    loadOut: /\b(load(?:ing)?[- ]?out|loading platforms?|landing platforms?)\b/i.test(task),
+    forklift: /\b(forklifts?|telehandlers?)\b/i.test(task),
+    formwork: FORMWORK.test(task.replace(new RegExp(JUMPFORM.source, 'gi'), '')),
+    reo: /\b(reo|reinforc\w*|rebar|steel fixing)\b/i.test(task),
+    ptTendons: PT.test(task) && /\b(place|placing|install\w*|lay\w*|fix\w*)\b/i.test(task) && /\b(ducts?|tendons?|strand)\b/i.test(task),
+    concrete: /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(task),
+    stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing)\b/i.test(task),
+    jumpform: JUMPFORM.test(task),
     precast: isPanelLift(task),
     asbestos: /\basbestos\b/i.test(task),
     confined: /\bconfined space\b/i.test(task),
