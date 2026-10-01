@@ -1,0 +1,55 @@
+name: Send SWMS pack
+
+# Builds a project's SWMS set as Word files and emails them, from the SiteReady
+# account, for people to review. Run it from the Actions tab.
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Project file
+        default: scenarios/projects/brisbane-tower.json
+      to:
+        description: Send to (blank sends to the SiteReady account)
+        default: ''
+      body:
+        description: Email text file
+        default: scenarios/projects/brisbane-tower-email.txt
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: npm test
+      - name: Build the Word files
+        run: node scenarios/project-pack.js "${{ inputs.project }}" pack "$(TZ=Australia/Brisbane date '+%-d %B %Y')"
+      - name: Email them
+        env:
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          TO: ${{ inputs.to }}
+          PROJECT: ${{ inputs.project }}
+          BODY: ${{ inputs.body }}
+        run: |
+          if [ -z "$SMTP_USERNAME" ] || [ -z "$SMTP_PASSWORD" ]; then
+            echo "SMTP_USERNAME and SMTP_PASSWORD secrets are needed." >&2
+            exit 1
+          fi
+          RCPT="${TO:-$SMTP_USERNAME}"
+          TITLE=$(node -e "console.log(require('./' + process.argv[1]).title)" "$PROJECT")
+          node scenarios/email-pack.js pack "$SMTP_USERNAME" "$RCPT" "SiteReady SWMS for review: $TITLE" "$BODY" > message.eml
+          ls -la pack
+          curl --silent --show-error --ssl-reqd \
+            --url 'smtps://smtp.gmail.com:465' \
+            --user "$SMTP_USERNAME:$SMTP_PASSWORD" \
+            --mail-from "$SMTP_USERNAME" \
+            --mail-rcpt "$RCPT" \
+            --upload-file message.eml
+          echo "Sent $(ls pack | wc -l) files."

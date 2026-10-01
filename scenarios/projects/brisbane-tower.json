@@ -7,7 +7,7 @@
     {
       "id": "load-out",
       "title": "Floor load-out, tower crane lifts and forklifts",
-      "task": "Load out each floor of the 50 storey tower using the two tower cranes and the loading platforms, and move materials on the floor with a forklift. Deliveries are unloaded from the street loading zone next to the road, open to traffic, with traffic controllers. Work is at the slab edge, more than 2 m above the floor below.",
+      "task": "Load out each floor of the 50 storey tower using the two tower cranes and the loading platforms, and move materials on the floor with a forklift. Deliveries are unloaded from the street loading zone next to the road, open to traffic, with traffic controllers. The floors are post-tensioned slabs. Work is at the slab edge, more than 2 m above the floor below.",
       "fallRisk": "yes",
       "facts": {
         "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts.",
@@ -24,7 +24,7 @@
           "Plan the tower crane lifts",
           "Rig, lift and land loads with the tower crane",
           "Load out floors and use loading platforms",
-          "Operate forklifts and telehandlers"
+          "Operate forklifts"
         ],
         "missing": [
           "Crane chart",
@@ -50,7 +50,7 @@
         "steps": [
           "Plan the tower crane lifts",
           "Erect falsework and shores",
-          "Lay the deck and install edge protection",
+          "Install edge protection and lay the deck",
           "Form penetrations and voids",
           "Inspect before the pour",
           "Strip formwork and backprop"
@@ -98,9 +98,11 @@
       "expect": {
         "highRisk": [
           "fall",
-          "plant"
+          "plant",
+          "road"
         ],
         "steps": [
+          "Set up traffic management",
           "Set up the concrete pump and placing boom",
           "Pump and place concrete",
           "Finish concrete"
@@ -153,8 +155,8 @@
           "Prepare to climb the jumpform",
           "Climb the jumpform",
           "Work on the jumpform platforms",
-          "Place and tie reo",
-          "Pump and place concrete"
+          "Fix reo and set the wall forms from the platforms",
+          "Pour the core walls"
         ],
         "missing": [
           "Crane chart",
@@ -166,7 +168,7 @@
     {
       "id": "precast",
       "title": "Precast column and blade wall installation",
-      "task": "Install precast concrete columns and blade walls with the tower cranes, stand them on shims, brace them, then grout the base. Work is at the slab edge of the 50 storey tower, more than 2 m above the floor below.",
+      "task": "Install precast concrete columns and blade walls with the tower cranes, lifting them from trucks in the street loading zone, stand them on shims, brace them, then grout the base. The floors are post-tensioned slabs. Work is at the slab edge of the 50 storey tower, more than 2 m above the floor below.",
       "fallRisk": "yes",
       "facts": {
         "craneChart": "Tower crane 1 rated 3.2 t at 50 m radius and tower crane 2 rated 2.8 t at 55 m radius, from the crane charts.",
@@ -179,12 +181,15 @@
         "highRisk": [
           "fall",
           "precast",
-          "plant"
+          "plant",
+          "road"
         ],
         "steps": [
           "Plan the tower crane lifts",
           "Rig, lift and land loads with the tower crane",
-          "Stand and brace the precast elements"
+          "Stand and brace the precast elements",
+          "Grout the base and remove the braces",
+          "Use an elevating work platform"
         ],
         "missing": [
           "Crane chart",

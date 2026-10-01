@@ -14,8 +14,15 @@ const BEFORE = {
     'Check that licences, tickets and permits needed for the task are current.',
     'Inspect tools, plant and equipment before use. Tag out and remove anything faulty.',
     'Set up barriers and signs around the work area.',
+    'Workers know the site emergency plan, the first aid arrangements and how to raise the alarm.',
   ],
 };
+
+// Controls added to Before starting for some kinds of work.
+const BEFORE_EXTRA = [
+  { when: 'ptSlab', text: 'Check the post-tensioning drawings and scan the slab before drilling or fixing into a post-tensioned slab.' },
+  { when: 'ewp', text: 'A rescue plan is in place for anyone working from an elevating work platform or held by a harness.' },
+];
 
 const FINISH = {
   step: 'Finish and clean up',
@@ -40,6 +47,8 @@ const ACTIVITIES = [
         'Set up traffic control to the approved traffic management plan before work starts, with the road authority\'s approval where needed.',
         'Only qualified traffic controllers direct traffic.',
         'Keep work, plant and materials inside the separated work area.',
+        'Protect the public on the footpath with a closure or a gantry, as approved.',
+        'A spotter guides trucks reversing or entering the loading zone.',
       ],
     }],
     ppe: ['hivisNight', 'sunscreen'],
@@ -205,6 +214,7 @@ const ACTIVITIES = [
   },
   {
     when: 'towerCrane',
+    ppe: ['chinStrap'],
     steps: [
       {
         step: 'Plan the tower crane lifts',
@@ -212,7 +222,8 @@ const ACTIVITIES = [
         controls: [
           { fact: 'craneChart' },
           'Know the weight of every load before it is lifted. Use the crane\'s load chart for the radius of each lift.',
-          'Stop lifting when the wind is above the crane supplier\'s limits.',
+          'Stop lifting when the wind is above the crane supplier\'s limits. Lower limits apply to loads with a large surface, such as formwork, screens and panels.',
+          'Where more than one crane works, the cranes use the anti-collision or zoning system, and the operators follow an agreed radio protocol.',
           'No loads over the public unless the area below is protected or closed, as approved.',
           'The crane operator, dogmen and riggers hold current high risk work licences for the work they do.',
         ],
@@ -224,7 +235,7 @@ const ACTIVITIES = [
           'Inspect lifting gear before use. Check tags and ratings, and use gear rated for the load.',
           'Use tag lines to control loads. No one goes under a suspended load.',
           'The dogman stays in radio contact with the operator, and a second dogman is used where the load is out of sight.',
-          'Land loads on bearers inside the loading area and secure them before releasing the rigging.',
+          'Land loads on a stable surface, within the rated load of where they land, and secure them before releasing the rigging.',
         ],
       },
     ],
@@ -253,7 +264,7 @@ const ACTIVITIES = [
       {
         step: 'Land and release the load',
         hazards: ['Crushing between the load and the structure.'],
-        controls: ['Land the load on a stable surface and secure it before releasing the rigging.'],
+        controls: ['Land the load on a stable surface, within the rated load of where it lands, and secure it before releasing the rigging.'],
       },
     ],
   },
@@ -276,11 +287,12 @@ const ACTIVITIES = [
     when: 'forklift',
     steps: [
       {
-        step: 'Operate forklifts and telehandlers',
+        step: 'Operate forklifts',
         hazards: ['A person is struck by the forklift or its load.', 'The forklift tips over.', 'A suspended slab is overloaded.'],
         controls: [
-          'Operators hold the licence for the machine they operate.',
+          'Forklift operators hold a high risk work licence for forklift trucks. Telehandler operators are trained and assessed for the machine, and hold a crane licence where its set-up needs one.',
           'Separate people from forklift routes with barriers, and use a spotter where people are near.',
+          'Wheel stops or barriers at slab edges and penetrations on forklift routes.',
           'Check the slab and the backpropping can take the forklift and its load before it is used on a suspended floor.',
           'Carry loads low, within the rated capacity, and never lift people on the forks.',
         ],
@@ -293,20 +305,22 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Erect falsework and shores',
-        hazards: ['Falsework collapse.', 'A person falls while erecting.', 'Dropped components.'],
+        hazards: ['Falsework collapse.', 'A person falls while erecting bearers and joists.', 'Dropped components.', 'Back strain from props, beams and ply.'],
         controls: [
           { fact: 'formworkDesign' },
           'Erect falsework to the formwork design, on a base that can take the load.',
-          'Install deck in a sequence that keeps workers on a platform or inside edge protection.',
+          'Erect bearers and joists from a working platform or from below, as the formwork design sets out, so no one works at an unprotected edge.',
+          'Use mechanical handling for props, beams and bundles of ply where possible. Team lift the rest.',
         ],
       },
       {
-        step: 'Lay the deck and install edge protection',
-        hazards: ['A person falls from the slab edge or through gaps in the deck.', 'Materials fall from the edge.'],
+        step: 'Install edge protection and lay the deck',
+        hazards: ['A person falls from the slab edge or through gaps in the deck.', 'Materials fall from the edge.', 'Cuts, dust and noise from power saws.'],
         controls: [
           { fact: 'fallControl' },
           'Perimeter screens or edge protection are in place before anyone works near the edge.',
           'Lay sheets progressively in front of the worker.',
+          'Use power saws with guards in place, with dust extraction or a P2 respirator, and hearing protection.',
         ],
       },
       {
@@ -323,8 +337,8 @@ const ACTIVITIES = [
         step: 'Strip formwork and backprop',
         hazards: ['The slab or falsework collapses.', 'Falling formwork strikes a person.'],
         controls: [
-          'Strip only when the engineer\'s conditions are met, in the order in the formwork design.',
-          'Install backprops to the design before stripping, and leave them until the design allows removal.',
+          'Strip only after stressing is complete and the post-tensioning engineer releases the slab, in the order in the formwork design.',
+          'Install backprops progressively as each bay is stripped, to the design, and leave them until the design allows removal.',
           'Exclusion zone below and around the area being stripped.',
         ],
       },
@@ -339,6 +353,7 @@ const ACTIVITIES = [
         hazards: ['Loose materials fall during the climb.', 'Climbing in high wind.'],
         controls: [
           { fact: 'jumpformProcedure' },
+          'Before each climb, the supplier or engineer confirms the concrete strength at the climbing anchors, and the pre-climb check is signed.',
           'Before each climb, remove loose materials and tools from all platforms and check anchors and hydraulics.',
           'Climb only within the supplier\'s wind limits.',
         ],
@@ -349,6 +364,7 @@ const ACTIVITIES = [
         controls: [
           'Only the trained climbing crew is on the jumpform during the climb, under a supervisor.',
           'Exclusion zone below the core during the climb.',
+          'After each climb, the platforms are inspected and handed over in writing before trades return.',
         ],
       },
       {
@@ -358,9 +374,31 @@ const ACTIVITIES = [
           'Close the gaps between platforms and the wall, and keep the screens and mesh in place.',
           'Keep tools tethered or contained, and keep platforms tidy.',
           'Keep emergency access routes from the platforms clear, and include the jumpform in the site emergency plan.',
+          'Lift shafts and core voids are screened or covered at every level, including below hung platforms.',
+        ],
+      },
+      {
+        step: 'Fix reo and set the wall forms from the platforms',
+        hazards: ['Overloading the platforms.', 'Impalement on exposed bars.', 'Dropped bars and tools.'],
+        controls: [
+          'Land materials on the platforms within the supplier\'s rated platform load.',
+          'Cap or cover exposed bars.',
+          'Keep tools tethered or contained when working near the platform edges.',
+        ],
+      },
+      {
+        step: 'Pour the core walls',
+        hazards: ['Formwork overpressure from pouring too fast.', 'Hose whip at start-up or when a blockage clears.', 'Concrete on the skin and in the eyes.'],
+        controls: [
+          'Pour the walls at the rate in the formwork design.',
+          'Concrete is placed by placing boom or kibble, with the hose hand in contact with the operator.',
+          'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
+          'Wash wet concrete off the skin straight away. Wear gloves and eye protection.',
         ],
       },
     ],
+    // On a jumpform, reo and concrete are core wall work, not slab work.
+    replaces: ['reo', 'concrete'],
     ppe: ['chinStrap'],
   },
   {
@@ -378,7 +416,8 @@ const ACTIVITIES = [
         step: 'Place and tie reo',
         hazards: ['Impalement on exposed bars.', 'Trips on bars and chairs.', 'Cuts and back strain.', 'A person falls from the edge.'],
         controls: [
-          'Cap or bend over exposed starter bars and ends of bars.',
+          'Cap or cover exposed starter bars and ends of bars.',
+          'Keep penetration covers in place. Fence any opening before a cover is lifted to pass bars through.',
           'Lay walkways over the reo where people need to cross it.',
           'Team lift long or heavy bars, and rotate tying tasks.',
           'Work inside the edge protection at all times.',
@@ -389,12 +428,16 @@ const ACTIVITIES = [
   },
   {
     when: 'ptTendons',
+    ppe: ['earPlugs', 'faceShield'],
     steps: [
       {
         step: 'Place post-tensioning ducts and tendons',
-        hazards: ['Coiled strand springs free when it is released.', 'Cuts from strand ends.'],
+        hazards: ['Coiled strand springs free when it is released.', 'Cuts from strand ends.', 'A person falls while fixing anchors at the slab edge.', 'Abrasive saw injuries, noise and sparks.'],
         controls: [
+          'Lift strand coils in their cradle or with rated gear, and dispense strand from a cradle that stops the coil springing.',
           'Release coils and strapping in a controlled way, standing clear of the strand ends.',
+          'Fix live-end anchors and pocket formers from inside the edge protection or from a working platform.',
+          'Use abrasive saws with guards in place, with eye and hearing protection.',
           'Fix ducts and tendons to the post-tensioning drawings.',
         ],
       },
@@ -407,7 +450,9 @@ const ACTIVITIES = [
         step: 'Set up the concrete pump and placing boom',
         hazards: ['The pump or boom overturns.', 'The boom strikes a person or structure.'],
         controls: [
-          'Set up on ground or a slab that can take the outrigger loads, with pads under the outriggers.',
+          'A truck-mounted pump stands on ground that can take the outrigger loads, with pads under the outriggers.',
+          'A placing boom on the slab stands on an engineer-certified base or ballast.',
+          'The pipeline is restrained, pressure-rated, and checked for wear and secure clamps before each pour.',
           'The placing boom operator holds a high risk work licence for a concrete placing boom.',
           'Keep the boom within its rated reach and clear of the crane\'s working area, as coordinated with the crane crew.',
         ],
@@ -418,7 +463,8 @@ const ACTIVITIES = [
         controls: [
           'Check pipes, clamps and the end hose before pumping.',
           'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
-          'Stay inside the edge protection. The formwork is watched during the pour for movement.',
+          'Stay inside the edge protection.',
+          'A competent formwork watcher checks the formwork during the pour and can stop the pour.',
           'The hose hand stays in contact with the operator by radio or agreed signals.',
         ],
       },
@@ -432,31 +478,34 @@ const ACTIVITIES = [
         ],
       },
     ],
-    ppe: ['gloveChemical', 'chinStrap', 'earPlugs'],
+    ppe: ['gloveChemical', 'chinStrap', 'earPlugs', 'gumboots'],
   },
   {
     when: 'stressing',
     steps: [
       {
         step: 'Stress the tendons',
-        hazards: ['A tendon or anchor fails under load and is released violently.', 'Hydraulic hose failure.'],
+        hazards: ['A tendon or anchor fails under load and is released violently, including out past the slab edge over the street or lower levels.', 'Hydraulic hose failure and oil injection.'],
         controls: [
           { fact: 'stressingProcedure' },
           'Only the trained stressing crew stresses tendons, to the engineer\'s sequence, once the concrete strength the engineer requires is reached.',
-          'No one stands behind or in line with the jack. Exclusion zone signed and barricaded at both ends of the tendon.',
-          'Check the jack, gauges and hoses before use.',
+          'The line of fire behind each jack is shielded. No one stands behind or in line with the jack.',
+          'During stressing, the area in line with the tendon is excluded, including outside the screens and on the levels below, as the stressing procedure requires.',
+          'Check the jack, gauges and hoses before use. Never feel for a hydraulic leak by hand. Release the pressure before disconnecting hoses.',
         ],
       },
       {
         step: 'Cut tails and grout',
-        hazards: ['Grout on the skin and in the eyes.', 'Cutting disc injuries.'],
+        hazards: ['Grout on the skin and in the eyes.', 'Dust from mixing bagged grout.', 'Grout hose bursts or blockages.', 'Cutting disc injuries and noise.'],
         controls: [
           'Cut tendon tails only after the engineer accepts the stressing records.',
-          'Wear gloves and eye protection when grouting. Use cutting tools with guards in place.',
+          'Wear gloves and eye protection when grouting, and a P2 respirator when mixing bagged grout.',
+          'Check grout pump hoses and fittings before use. Release the pressure before clearing a blockage.',
+          'Use cutting tools with guards in place, with hearing protection.',
         ],
       },
     ],
-    ppe: ['faceShield', 'gloveChemical'],
+    ppe: ['faceShield', 'gloveChemical', 'p2', 'earPlugs'],
   },
   {
     when: 'precast',
@@ -468,9 +517,30 @@ const ACTIVITIES = [
         { fact: 'centreOfGravity' },
         { fact: 'braceArrangement' },
         { fact: 'regulatorNotified' },
+        'Inspect lifting inserts and elements for damage on delivery. Do not lift a damaged element.',
         'Each element is braced or propped to the design before it is released from the crane.',
       ],
+    }, {
+      step: 'Grout the base and remove the braces',
+      hazards: ['Grout dust, and grout on the skin and in the eyes.', 'An element falls if its braces are removed too early.'],
+      controls: [
+        'Mix bagged grout with dust control. Wear a P2 respirator, gloves and eye protection.',
+        'Braces stay in place until the grout reaches strength and the connections are complete, and the engineer approves their removal.',
+      ],
     }],
+  },
+  {
+    when: 'ewp',
+    steps: [{
+      step: 'Use an elevating work platform',
+      hazards: ['The platform overturns or falls from a slab edge.', 'The operator is crushed against the structure.'],
+      controls: [
+        'Check the slab can take the platform, and keep it back from slab edges and penetrations.',
+        'The operator is trained for the platform, and holds a high risk work licence for a boom of 11 m or more.',
+        'Wear a harness attached to the platform\'s anchor point in a boom-type platform.',
+      ],
+    }],
+    ppe: ['harness'],
   },
   {
     when: 'asbestos',
@@ -595,7 +665,7 @@ const PPE = [
   { area: 'Breathing', items: [['p2', 'P2 respirator (fit checked)'], ['halfFace', 'Half-face respirator with filters']] },
   { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves']] },
   { area: 'Body', items: [['longs', 'Long sleeves and long pants'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls']] },
-  { area: 'Feet', items: [['boots', 'Safety boots']] },
+  { area: 'Feet', items: [['boots', 'Safety boots'], ['gumboots', 'Safety gumboots']] },
   { area: 'Sun', items: [['sunscreen', 'Sunscreen']] },
   { area: 'Falls and water', items: [['harness', 'Full body harness'], ['lifeJacket', 'Life jacket']] },
 ];
@@ -613,10 +683,16 @@ function expand(control, factText) {
 // `flags` names the kinds of work found; `factText` returns the user's text for a fact.
 // Work the library does not know uses `fallback`, a step built from the task.
 function jobStepsFor(flags, factText, fallback) {
-  const found = ACTIVITIES.filter((activity) => flags[activity.when]);
+  let found = ACTIVITIES.filter((activity) => flags[activity.when]);
+  const replaced = new Set(found.flatMap((activity) => activity.replaces || []));
+  found = found.filter((activity) => !replaced.has(activity.when));
   const middle = found.length ? found.flatMap((activity) => activity.steps) : [fallback];
+  const before = {
+    ...BEFORE,
+    controls: [...BEFORE.controls, ...BEFORE_EXTRA.filter((item) => flags[item.when]).map((item) => item.text)],
+  };
   const seen = new Set();
-  const steps = [BEFORE, ...middle, FINISH]
+  const steps = [before, ...middle, FINISH]
     .filter((step) => !seen.has(step.step) && seen.add(step.step));
   return steps.map((step) => ({
     step: step.step,
@@ -632,8 +708,10 @@ function ppeFor(flags, chosen, mentionsHarness, indoors) {
     ticked = new Set(chosen.filter((id) => PPE_IDS.has(id)));
   } else {
     ticked = new Set(SITE_MINIMUM);
-    for (const activity of ACTIVITIES) {
-      if (flags[activity.when]) for (const id of activity.ppe || []) ticked.add(id);
+    const active = ACTIVITIES.filter((activity) => flags[activity.when]);
+    const replaced = new Set(active.flatMap((activity) => activity.replaces || []));
+    for (const activity of active) {
+      if (!replaced.has(activity.when)) for (const id of activity.ppe || []) ticked.add(id);
     }
     if (ticked.has('gloveCut') || ticked.has('gloveChemical')) ticked.delete('gloveGeneral');
     if (ticked.has('hivisNight')) ticked.delete('hivis');

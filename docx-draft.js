@@ -108,27 +108,6 @@ function controlTable(controls) {
   });
 }
 
-function hazardTable(hazards) {
-  const widths = [3600, 6480];
-  const header = new TableRow({
-    tableHeader: true,
-    cantSplit: true,
-    children: [
-      cell('Hazard', widths[0], { bold: true, fill: HEAD }),
-      cell('Risk', widths[1], { bold: true, fill: HEAD }),
-    ],
-  });
-  const body = hazards.map((item) => new TableRow({
-    cantSplit: true,
-    children: [cell(item.hazard, widths[0]), cell(item.risk, widths[1])],
-  }));
-  return new Table({
-    width: { size: CONTENT_WIDTH, type: WidthType.DXA },
-    columnWidths: widths,
-    rows: [header, ...body],
-  });
-}
-
 // Sign-off sections. Every line is left blank for a pen or for typing in Word.
 const SIGN_ROWS = 44;
 const TICK = '\u2610';
@@ -329,10 +308,6 @@ function childrenFor(draft) {
   } else {
     blocks.push(para('This task is not identified as high risk construction work.', { before: 0, after: 40 }));
   }
-
-  blocks.push(sectionHeading('Hazards and risks'));
-  if (draft.hazards.length) blocks.push(hazardTable(draft.hazards));
-  else blocks.push(para('None stated for this task.', { before: 0, after: 40 }));
 
   blocks.push(sectionHeading('Controls'));
   blocks.push(controlTable(draft.controls));

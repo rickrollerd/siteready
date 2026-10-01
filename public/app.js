@@ -283,9 +283,6 @@ function render(draft) {
   const risks = draft.highRisk.length
     ? `<ul>${draft.highRisk.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`
     : '<p>This task is not identified as high risk construction work.</p>';
-  const hazards = draft.hazards.length
-    ? `<table><thead><tr><th>Hazard</th><th>Risk</th></tr></thead><tbody>${draft.hazards.map((item) => `<tr><td>${esc(item.hazard)}</td><td>${esc(item.risk)}</td></tr>`).join('')}</tbody></table>`
-    : '<p>None stated for this task.</p>';
   const controls = `<table><thead><tr><th>Hierarchy</th><th>Control</th></tr></thead><tbody>${draft.controls.map((item) => `<tr><td>${esc(item.level)}</td><td>${esc(item.text)}</td></tr>`).join('')}</tbody></table>`;
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
@@ -301,7 +298,6 @@ function render(draft) {
   return `${head}
     <h4>Responsibilities</h4>${people}
     <h4>High risk construction work</h4>${risks}
-    <h4>Hazards and risks</h4>${hazards}
     <h4>Controls</h4>${controls}
     <h4>Job steps</h4>${steps}
     <h4>Personal protective equipment</h4>${ppe}
