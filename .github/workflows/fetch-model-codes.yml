@@ -1,0 +1,37 @@
+name: Fetch model codes of practice
+
+# Commits the text of the model codes SiteReady cites to the model-codes branch,
+# so their section numbers can be compared with the Queensland-approved codes.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fetch-model-codes.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - run: |
+          for source in confined excavation welding falls plant constructionCode noiseCode chemicalsCode manual; do
+            SOURCE=$source OUT=model-codes/$source.txt node legislation-watch/fetch-source.js
+          done
+          ls -la model-codes
+      - name: Commit the texts to the model-codes branch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan model-codes-tmp
+          git rm -rqf --cached .
+          git add -f model-codes
+          git commit -qm "Model codes of practice, fetched $(date -u +%Y-%m-%d)"
+          git push -f origin HEAD:refs/heads/model-codes
