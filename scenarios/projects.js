@@ -42,7 +42,7 @@ const REWORDINGS = [
 
 function check(where, state, swms, task) {
   runs += 1;
-  const base = { state: state.id, task, fallRisk: swms.fallRisk, residential: 'no' };
+  const base = { state: state.id, task, fallRisk: swms.fallRisk, residential: 'no', crane: swms.crane };
   const extra = (state.panelFacts || []).length && /precast/i.test(task) ? { regulatorNotified: 'Regulator notified 15 working days before.' } : {};
   const bare = prepareDraft(base);
   if (swms.expect.missing.length && bare.kind !== 'stand-down') fail(where, `without facts expected a stand-down, got ${bare.kind}`);
@@ -63,7 +63,7 @@ for (const state of STATES.filter((item) => item.loaded)) {
     check(`${state.id} ${swms.id}`, state, swms, swms.task);
     // Exact missing facts are checked in the project's own state.
     if (state.id === project.state) {
-      const bare = prepareDraft({ state: state.id, task: swms.task, fallRisk: swms.fallRisk, residential: 'no' });
+      const bare = prepareDraft({ state: state.id, task: swms.task, fallRisk: swms.fallRisk, residential: 'no', crane: swms.crane });
       const missing = (bare.missing || []).slice().sort();
       if (JSON.stringify(missing) !== JSON.stringify(swms.expect.missing.slice().sort())) {
         fail(`${state.id} ${swms.id}`, `missing facts were ${missing.join('; ')}, expected ${swms.expect.missing.join('; ')}`);
@@ -83,7 +83,7 @@ for (const rule of project.rules || []) {
   for (const id of rule.swms) {
     const swms = project.swms.find((item) => item.id === id);
     runs += 1;
-    const done = prepareDraft({ state: project.state, task: swms.task, fallRisk: swms.fallRisk, residential: 'no', facts: swms.facts });
+    const done = prepareDraft({ state: project.state, task: swms.task, fallRisk: swms.fallRisk, residential: 'no', crane: swms.crane, facts: swms.facts });
     const text = JSON.stringify(done.jobSteps || []);
     const line = (done.jobSteps || []).flatMap((step) => step.controls).find((item) => item.includes(rule.phrase));
     if (!text.includes(rule.phrase)) fail(`${project.state} ${id}`, `rule missing: ${rule.phrase} (${rule.source})`);

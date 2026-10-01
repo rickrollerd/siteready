@@ -17,6 +17,7 @@ fs.mkdirSync(out, { recursive: true });
       state: project.state,
       task: swms.task,
       fallRisk: swms.fallRisk,
+      crane: swms.crane,
       residential: 'no',
       workplace: project.workplace,
       date: date || '',

@@ -12,7 +12,7 @@
       "facts": {
         "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
         "loadLimits": "Stillages are stacked only in the areas marked on the structural engineer's drawing S-502 (5 kPa), checked by the structural engineer before loading starts.",
-        "fallControl": "Panels are received only at the landing platform, inside its edge protection, with the gate closed except while a load is landed.",
+        "fallControl": "Panels are received only at the landing platform, inside its edge protection. While the gate is open to land a load, the dogman receiving it wears a harness on a travel restraint line so they cannot reach the open edge.",
         "systemInstructions": "The landing platforms are the scaffold contractor's proprietary platforms, erected to the supplier's instructions (document and revision on the platform tag) and rated for 2 t."
       },
       "expect": {
@@ -38,10 +38,10 @@
       "task": "Set up the mini crawler crane and the monorail on the slab edge, and use them to lift unitised curtain wall panels into position.",
       "fallRisk": "yes",
       "facts": {
-        "systemInstructions": "The mini crawler crane and monorail are set up to the manufacturer's manuals (model and revision on the plant register), by our trained crew, and inspected before use.",
-        "craneCompany": "The tower crane is run by the crane company; the mini crawler crane and monorail are our own plant, operated by our licensed crane operator.",
+        "systemInstructions": "The mini crawler crane and monorail are set up to the manufacturer's manuals (model and revision on the plant register), by our crew holding intermediate rigging licences, and inspected before use.",
         "loadLimits": "The structural engineer's letter SE-14 gives the allowable outrigger and monorail loads on the slab edge.",
-        "fallControl": "Work at the slab edge is done with a travel restraint system to engineer designed anchors, and edge protection stays in place except at the panel being installed."
+        "fallControl": "Work at the slab edge is done with a travel restraint system to engineer designed anchors, and edge protection stays in place except at the panel being installed.",
+        "craneChart": "Mini crawler crane rated capacity chart: 2.9 t at 2.5 m radius, 1.2 t at 5.0 m; heaviest panel 1.1 t at 4.5 m radius."
       },
       "expect": {
         "highRisk": [
@@ -49,14 +49,16 @@
           "plant"
         ],
         "steps": [
-          "Set up and use the floor crane or monorail"
+          "Set up and use the floor crane or monorail",
+          "Lift panels with the floor crane or monorail"
         ],
         "missing": [
-          "Crane company and lift plan",
+          "Crane chart",
           "Fall control",
           "Load limits"
         ]
-      }
+      },
+      "crane": "own"
     },
     {
       "id": "install",
@@ -83,7 +85,7 @@
       "task": "Work from swing stages on the outside of the building to seal joints, fix sunshades and replace damaged glazing.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Each worker on the swing stage wears a harness attached to the stage's anchor point, and the stage is installed by an advanced rigger.",
+        "fallControl": "Each worker on the swing stage wears a harness attached to the stage's anchor point.",
         "safetyDataSheet": "Safety data sheets for the silicone sealant, primer and glass cleaner are kept at the work area: use with ventilation, wear gloves and eye protection.",
         "controlsConsidered": "Edge protection cannot be used on the outside face. Elevating work platforms cannot reach above level 6, and the building maintenance unit is not yet installed, so swing stages with harnesses attached to the stage are used."
       },
@@ -92,7 +94,7 @@
           "fall"
         ],
         "steps": [
-          "Work from a swing stage or mast climbing work platform"
+          "Work from a swing stage"
         ],
         "missing": [
           "Fall control"
@@ -103,13 +105,17 @@
       "id": "sealing",
       "title": "Facade fixing brackets, sealing and finishing",
       "task": "Drill into the post-tensioned slab edges to fix facade brackets, then seal the panel joints with silicone, working from inside the floor behind edge protection.",
-      "fallRisk": "no",
+      "fallRisk": "yes",
       "facts": {
         "silicaControls": "Fixing holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS.",
-        "safetyDataSheet": "Safety data sheets for the silicone sealant and primer are kept at the work area: use with ventilation, wear gloves and eye protection."
+        "safetyDataSheet": "Safety data sheets for the silicone sealant and primer are kept at the work area: use with ventilation, wear gloves and eye protection.",
+        "fallControl": "Brackets at the slab edge are fixed with a travel restraint system to engineer designed anchors, so workers cannot reach the open edge.",
+        "controlsConsidered": "Edge protection stays in place except at the bracket being fixed. Fixing every bracket from inside the edge protection was considered, but the edge brackets sit beyond reach of the rail, so travel restraint is used at those brackets."
       },
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "fall"
+        ],
         "steps": [
           "Fix, seal and finish"
         ],
@@ -152,15 +158,7 @@
       "swms": [
         "floor-crane"
       ],
-      "phrase": "at least once a year",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 213",
-      "quote": "in relation to inspection ... annually"
-    },
-    {
-      "swms": [
-        "floor-crane"
-      ],
-      "phrase": "Setting up or dismantling a crane or hoist is rigging work",
+      "phrase": "Setting up or dismantling a crane is rigging work",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 81, s 85, schedule 3",
       "quote": "the setting up or dismantling of cranes or hoists"
     },
@@ -190,8 +188,7 @@
     },
     {
       "swms": [
-        "install",
-        "loading"
+        "install"
       ],
       "phrase": "vacuum lifters and glass panel lifters",
       "source": "Model Code: Hazardous manual tasks s 4.5",
@@ -215,11 +212,27 @@
     },
     {
       "swms": [
-        "sealing"
+        "floor-crane"
       ],
-      "phrase": "No welding from ladders",
-      "source": "Model Code: Welding processes s 3.9",
-      "quote": "Welding should not be carried out on ladders."
+      "phrase": "rests on a suitable foundation",
+      "source": "Model Code: Managing the risks of plant in the workplace s 3.2",
+      "quote": "the plant rests on a suitable foundation"
+    },
+    {
+      "swms": [
+        "install"
+      ],
+      "phrase": "at least every 6 months",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 306G, s 306I",
+      "quote": "at least once every 6 months, a competent person ... inspects the system"
+    },
+    {
+      "swms": [
+        "swing-stage"
+      ],
+      "phrase": "the platform stays horizontal",
+      "source": "Model Code: Managing the risk of falls s 5.1",
+      "quote": "the platform remains horizontal when it moves up or down"
     }
   ]
 }
