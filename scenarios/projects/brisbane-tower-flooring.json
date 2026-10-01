@@ -17,7 +17,7 @@
         "highRisk": [],
         "steps": [
           "Prepare and grind floors",
-          "Apply adhesives and levelling compounds"
+          "Apply primers and levelling compounds"
         ],
         "missing": [
           "Silica dust controls"
@@ -35,8 +35,8 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Apply adhesives and levelling compounds",
-          "Lay carpet, vinyl and timber floors"
+          "Apply flooring adhesives",
+          "Lay carpet and vinyl"
         ],
         "missing": [
           "Safety data sheet"
@@ -52,7 +52,7 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Lay carpet, vinyl and timber floors"
+          "Cut and install timber floors"
         ],
         "missing": []
       }
@@ -61,12 +61,27 @@
   "rules": [
     {
       "swms": [
-        "carpet",
-        "timber"
+        "carpet"
       ],
-      "phrase": "Use a power stretcher instead of a knee kicker",
+      "phrase": "Kneeling to lay floor coverings is a hazardous posture",
       "source": "Model Code: Hazardous manual tasks s 2.2, s 3.3, s 4.1, s 4.9",
       "quote": "kneeling while trowelling concrete or laying carpet"
+    },
+    {
+      "swms": [
+        "timber"
+      ],
+      "phrase": "Dust from machining timber is hazardous",
+      "source": "Model Code: Managing risks of hazardous chemicals s 2.1",
+      "quote": "dusts released from machining timbers are hazardous to health"
+    },
+    {
+      "swms": [
+        "prep"
+      ],
+      "phrase": "Health monitoring for workers at significant risk from crystalline silica",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 368, s 529CB, s 529CE, schedule 14",
+      "quote": "health monitoring"
     }
   ]
 }

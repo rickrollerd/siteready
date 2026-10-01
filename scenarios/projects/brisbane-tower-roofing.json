@@ -1,0 +1,45 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: roofing",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "plant-roof",
+      "title": "Roof plant enclosure roofing",
+      "task": "Fix metal roof sheeting, gutters and flashings on the roof plant enclosures next to the roof edge, with sheets lifted by the tower crane.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Edge protection is installed around the roof perimeter and the enclosure roof edges before work starts, with safety mesh under the sheets.",
+        "craneCompany": "Lifts are done by the crane company under its lift plan; its dogman slings and releases the sheet bundles, and our crew receives them on the roof."
+      },
+      "expect": {
+        "highRisk": [
+          "fall",
+          "plant"
+        ],
+        "steps": [
+          "Set up roof access and fall protection",
+          "Lift materials to and from the roof",
+          "Fix new roofing",
+          "Plan lifts with the crane company",
+          "Work with the crane crew during lifts"
+        ],
+        "missing": [
+          "Crane company and lift plan",
+          "Fall control"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "plant-roof"
+      ],
+      "phrase": "Safety mesh does not protect edges or holes",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 78, s 306F",
+      "quote": "Safety mesh does not prevent falls from the edge of a roof or through holes in a roof"
+    }
+  ]
+}

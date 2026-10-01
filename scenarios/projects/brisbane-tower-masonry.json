@@ -32,23 +32,26 @@
     {
       "id": "podium",
       "title": "Podium brickwork near slab edges",
-      "task": "Lay brickwork on the podium levels near the slab edges, with mortar mixed on site.",
+      "task": "Lay brickwork on the podium levels near the slab edges, cutting bricks with a brick saw, with mortar mixed on site.",
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Edge protection with mesh infill stays in place at the slab edges.",
-        "safetyDataSheet": "Safety data sheets for the mortar are kept at the work area: alkaline, avoid skin contact, wear gloves and eye protection."
+        "safetyDataSheet": "Safety data sheets for the mortar are kept at the work area: alkaline, avoid skin contact, wear gloves and eye protection.",
+        "silicaControls": "Bricks are cut wet or with on-tool dust extraction. Fit tested P2 respirators are worn by anyone still at risk. The written silica assessment is done before work starts and attached to this SWMS."
       },
       "expect": {
         "highRisk": [
           "fall"
         ],
         "steps": [
+          "Cut blocks and bricks",
           "Lay blocks and bricks",
-          "Mix mortar and core fill",
+          "Mix mortar",
           "Work near slab edges"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Silica dust controls"
         ]
       }
     }

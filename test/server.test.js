@@ -56,11 +56,11 @@ test('trade and task pick lists come from the tested project sets', async () => 
   assert.equal(response.status, 200);
   const { trades } = await response.json();
   const ids = trades.map((trade) => trade.id);
-  assert.equal(ids[0], 'piling');
+  assert.ok(ids.includes('piling'));
   for (const id of ['structure', 'electrical', 'plumbing', 'mechanical', 'facade', 'tiling']) assert.ok(ids.includes(id), id);
   assert.equal(new Set(ids).size, ids.length);
   for (const trade of trades) {
-    assert.ok(trade.tasks.length >= 2);
+    assert.ok(trade.tasks.length >= 1);
     for (const item of trade.tasks) {
       assert.ok(item.task && item.title);
       assert.ok(['yes', 'no'].includes(item.fallRisk));

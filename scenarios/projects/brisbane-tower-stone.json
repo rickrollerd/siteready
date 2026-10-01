@@ -1,0 +1,37 @@
+{
+  "title": "50 storey residential tower, Brisbane CBD: joinery and stone",
+  "state": "qld",
+  "workplace": "50 storey residential tower with foyer and 3 level basement carpark, Brisbane CBD",
+  "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
+  "swms": [
+    {
+      "id": "benchtops",
+      "title": "Natural stone and porcelain benchtops",
+      "task": "Install natural stone and porcelain benchtops in the apartment kitchens, cutting sink and cooktop holes on site.",
+      "fallRisk": "no",
+      "facts": {
+        "silicaControls": "Cut-outs are cut wet or with on-tool dust extraction. Fit tested P2 respirators are worn by anyone still at risk. The written silica assessment is done before work starts and attached to this SWMS."
+      },
+      "expect": {
+        "highRisk": [],
+        "steps": [
+          "Cut and finish stone and porcelain benchtops",
+          "Move and set heavy benchtops"
+        ],
+        "missing": [
+          "Silica dust controls"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "swms": [
+        "benchtops"
+      ],
+      "phrase": "No engineered stone benchtops, panels or slabs are supplied, installed or processed",
+      "source": "Work Health and Safety Regulation 2011 (Qld) s 529A, s 529D",
+      "quote": "must not carry out ... work that involves manufacturing, supplying, processing or installing engineered stone benchtops, panels or slabs"
+    }
+  ]
+}
