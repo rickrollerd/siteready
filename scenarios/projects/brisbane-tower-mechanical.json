@@ -10,7 +10,6 @@
       "task": "Receive air handling units, chillers and cooling tower sections lifted by the tower crane to the roof and plant room levels, then move them into position on skates and pallet jacks and set them on their plinths.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "Lifts are done by the crane company under its lift plan; the crane company's dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.",
         "loadLimits": "Plant is landed only on the plinths and landing zones, and moved only along the routes, marked on the structural engineer's drawing S-501 (10 kPa), checked by the structural engineer before the first lift.",
         "fallControl": "Plant is received only inside the perimeter screens and at the crane landing platform with gates closed; no one works at an open edge."
       },
@@ -20,12 +19,10 @@
           "plant"
         ],
         "steps": [
-          "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Receive plant and move it into position"
         ],
         "missing": [
-          "Crane company and lift plan",
           "Fall control",
           "Load limits"
         ]

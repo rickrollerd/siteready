@@ -706,19 +706,14 @@ function ownWork(task) {
 function requiredFactsFor(fullTask, answer, state) {
   const task = ownWork(fullTask);
   const facts = [];
-  // Most cranes on site are supplied and run by a crane company. Its operator and
-  // dogmen work to its own lift plan, so the subcontractor states who that is.
+  // Most cranes on site are supplied and run by a crane company. The lifts are its
+  // work, under its own lift plan and SWMS, so the subcontractor is asked nothing
+  // about them. A subcontractor that runs its own crane gives the crane chart.
   if (isCraneOrLift(task) && state && state.ownCrane) {
     facts.push({
       id: 'craneChart',
       label: 'Crane chart',
       prompt: 'From the crane chart: the rated capacity in tonnes at the working radius in metres.',
-    });
-  } else if (isCraneOrLift(task)) {
-    facts.push({
-      id: 'craneCompany',
-      label: 'Crane company and lift plan',
-      prompt: 'Which company supplies and operates the crane, and that its lift plan or SWMS covers these lifts.',
     });
   }
   if (isPanelLift(task)) {
@@ -780,7 +775,6 @@ function combinedFacts(task, facts) {
   return [
     task,
     facts.craneChart,
-    facts.craneCompany,
     facts.erectionDesign,
     facts.centreOfGravity,
     facts.braceArrangement,
@@ -905,9 +899,7 @@ function controlsFor(task, facts, pack) {
   } else if (isCraneOrLift(source)) {
     const under = isPanelLift(source) ? 'No one goes under the panel.' : 'No one goes under the load.';
     if (!(pack && pack.state && pack.state.ownCrane)) {
-      const company = keptFact(facts.craneCompany);
-      if (company) push('Administrative', company);
-      push('Administrative', 'The crane company operates the crane under its lift plan. Only licensed dogmen or riggers sling, direct and release loads, with the split of duties agreed with the crane company.');
+      push('Administrative', 'The crane company plans and does the lifts under its own lift plan. Our workers follow the crane crew\'s directions.');
     }
     push('Administrative', `Only the people doing the lift are inside the exclusion zone. Stop the lift if anyone else enters. Do not pass a load over a person. ${under}`);
     // Free-fall lowering is a mobile crane feature, and the operator's business.
@@ -1079,7 +1071,7 @@ function methodSteps(task, facts, site, pack) {
   }
   const fromTask = sentences(task).filter((line) => !isDenialLine(line) && (!LIFT_BLEED.test(line) || isCraneOrLift(task)));
   const fromFacts = [];
-  for (const id of ['craneChart', 'craneCompany', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport', ...CATEGORY_FACTS.filter((item) => !item.choices).map((item) => item.id)]) {
+  for (const id of ['craneChart', 'erectionDesign', 'centreOfGravity', 'braceArrangement', 'safetyDataSheet', 'fallControl', 'asbestosArrangement', 'trenchSupport', ...CATEGORY_FACTS.filter((item) => !item.choices).map((item) => item.id)]) {
     const line = keptFact(facts[id]);
     if (!line) continue;
     if (sentences(task).some((item) => item.toLowerCase() === sentences(line).join(' ').toLowerCase())) continue;
@@ -1172,8 +1164,13 @@ function questionsFor(input) {
     fall: fallCheck(task, answer, state),
     required: requiredFactsFor(task, answer, state),
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
+    // The PPE suggested for this task, for the user to change before the draft is prepared.
+    ppe: ppeList(task, input.facts || {}, state),
   };
 }
+
+// Details often not known until work starts. They are filled in before the SWMS goes for approval.
+const TO_COMPLETE = 'To be completed before submitting for approval';
 
 function prepareDraft(input) {
   const asked = questionsFor(input);
@@ -1211,16 +1208,17 @@ function prepareDraft(input) {
     companyDetails: companyDetails(input),
     workplace: blankName(input.workplace || input.siteAddress),
     siteManager: keptFact(input.siteManager),
-    scaffoldSupervisor: keptFact(input.scaffoldSupervisor),
+    scaffoldSupervisor: keptFact(input.scaffoldSupervisor) || TO_COMPLETE,
     hospital: keptFact(input.hospital),
     firstAider: keptFact(input.firstAider),
-    musterPoint: keptFact(input.musterPoint),
+    musterPoint: keptFact(input.musterPoint) || TO_COMPLETE,
     craneOperator: isCraneOrLift(task) ? (state.ownCrane ? 'Our company' : 'Crane company') : '',
     worksManager: keptFact(input.worksManager),
     worksManagerPhone: keptFact(input.worksManagerPhone),
     complianceResponsible: keptFact(input.complianceResponsible),
     reviewer: keptFact(input.reviewer),
     reviewDate: keptFact(input.reviewDate),
+    preparedBy: keptFact(input.preparedBy),
     task,
     fallRisk: fallRecord(fallCheck(task, pack.fallAnswer, state)),
     fallMetres: fallMetres(state),
@@ -1284,13 +1282,17 @@ function prepareDraft(input) {
 }
 
 // The PPE list, then the job steps, which add fit testing when a respirator is ticked.
-function stepsAndPpe(task, facts, hazards, controls, state, input) {
-  const ppe = ppeFor(
+function ppeList(task, facts, state, chosen) {
+  return ppeFor(
     workFlags(task, facts, state.ownCrane),
-    input.ppe,
+    chosen,
     /\b(harness|fall arrest|elevating work platform|ewp|boom lift)\b/i.test(combinedFacts(task, facts)),
     /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task),
   );
+}
+
+function stepsAndPpe(task, facts, hazards, controls, state, input) {
+  const ppe = ppeList(task, facts, state, input.ppe);
   // Energised testing needs arc-rated PPE and insulated gloves (Model Code s 9.5).
   if (!Array.isArray(input.ppe) && choiceAnswer('energisedWork', facts.energisedWork) === 'testing') {
     for (const group of ppe) for (const item of group.items) if (['arcRated', 'gloveInsulated'].includes(item.id)) item.ticked = true;
@@ -1314,7 +1316,6 @@ const REFERENCE_FACTS = [
   ['stressingProcedure', 'Stressing procedure'],
   ['erectionDesign', 'Erection design'],
   ['temporarySupport', 'Temporary support design'],
-  ['craneCompany', 'Crane company and lift plan'],
   ['safetyDataSheet', 'Safety data sheet'],
 ];
 

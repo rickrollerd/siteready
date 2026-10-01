@@ -10,8 +10,7 @@
       "task": "Fix metal roof sheeting, gutters and flashings on the roof plant enclosures next to the roof edge, with sheets lifted by the tower crane.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Edge protection is installed around the roof perimeter and the enclosure roof edges before work starts, with safety mesh under the sheets.",
-        "craneCompany": "Lifts are done by the crane company under its lift plan LP-07 (revision B); its dogman slings and releases the sheet bundles, and our crew receives them on the roof."
+        "fallControl": "Edge protection is installed around the roof perimeter and the enclosure roof edges before work starts, with safety mesh under the sheets."
       },
       "expect": {
         "highRisk": [
@@ -21,11 +20,9 @@
           "Set up roof access and fall protection",
           "Lift materials to and from the roof",
           "Fix new roofing",
-          "Plan lifts with the crane company",
           "Work with the crane crew during lifts"
         ],
         "missing": [
-          "Crane company and lift plan",
           "Fall control"
         ]
       }

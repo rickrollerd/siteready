@@ -40,6 +40,7 @@ function draftBody(body) {
     complianceResponsible: field(body.complianceResponsible, 300),
     reviewer: field(body.reviewer, 300),
     reviewDate: field(body.reviewDate, 80),
+    preparedBy: field(body.preparedBy, 300),
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {
@@ -53,7 +54,6 @@ function draftBody(body) {
       trenchSupport: field(facts.trenchSupport, 2000),
       controlsConsidered: field(facts.controlsConsidered, 2000),
       regulatorNotified: field(facts.regulatorNotified, 1000),
-      craneCompany: field(facts.craneCompany, 1000),
       systemInstructions: field(facts.systemInstructions, 2000),
       deckMethod: field(facts.deckMethod, 100),
       loadLimits: field(facts.loadLimits, 2000),

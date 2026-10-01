@@ -44,6 +44,12 @@
       line-height: 1.4;
     }
     textarea { min-height: 96px; resize: vertical; }
+    #task { min-height: 192px; }
+    input[type="date"] { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; padding: 9px 11px; line-height: 1.4; }
+    input::placeholder, textarea::placeholder { color: #9aa5b1; }
+    .ppe-group { border: 0; padding: 0; margin: 0 0 10px; }
+    .ppe-group legend { font-size: 14px; font-weight: 600; margin-bottom: 4px; padding: 0; }
+    .ppe-group label { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; margin: 0 16px 6px 0; }
     .pick select {
       width: 100%;
       border: 1px solid #c5cdd6;
@@ -284,7 +290,8 @@
       </div>
       <div class="field">
         <label for="principal">Principal contractor</label>
-        <input id="principal" type="text" autocomplete="organization">
+        <input id="principal" type="text" autocomplete="off" list="principal-list">
+        <datalist id="principal-list"></datalist>
       </div>
       <div class="field">
         <label for="company">Subcontractor</label>
@@ -316,11 +323,11 @@
       </div>
       <div class="field">
         <label for="review-date">Review date</label>
-        <input id="review-date" type="text" autocomplete="off">
+        <input id="review-date" type="date" autocomplete="off">
       </div>
       <div class="field">
         <label for="scaffold-supervisor">Scaffold supervisor</label>
-        <input id="scaffold-supervisor" type="text" autocomplete="off">
+        <input id="scaffold-supervisor" type="text" autocomplete="off" placeholder="If not known yet, complete before submitting for approval">
       </div>
       <div class="field">
         <label for="hospital">Hospital</label>
@@ -332,15 +339,21 @@
       </div>
       <div class="field">
         <label for="muster-point">Muster point</label>
-        <input id="muster-point" type="text" autocomplete="off">
+        <input id="muster-point" type="text" autocomplete="off" placeholder="If not known yet, complete before submitting for approval">
       </div>
       <div class="field">
         <label for="draft-date">Date of the draft</label>
-        <input id="draft-date" type="text" autocomplete="off">
+        <input id="draft-date" type="date" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="prepared-by">Prepared by
+          <span class="hint">Name and position. Printed in the Prepared by section.</span>
+        </label>
+        <input id="prepared-by" type="text" autocomplete="name">
       </div>
       <div class="field pick">
         <label for="trade">Trade
-          <span class="hint">Pick a trade and a common task to fill in the task, then change it to suit. Or write your own.</span>
+          <span class="hint">Pick a trade and a common task to fill in the task, then change it to suit your job, such as the type of structure, slab and crane. Or write your own.</span>
         </label>
         <select id="trade"><option value="">Choose a trade</option></select>
         <select id="preset" disabled><option value="">Choose a task</option></select>
@@ -377,6 +390,9 @@
       <p class="warning hidden" id="fall-warning"></p>
       <h2>Facts</h2>
       <div id="required-block"></div>
+      <h2 style="margin-top:18px">Personal protective equipment</h2>
+      <p class="lede" style="margin-bottom:12px">Ticked items are suggested for this task. Change them to suit the job and the site rules.</p>
+      <div id="ppe-block"></div>
       <h2 style="margin-top:18px">Site-specific</h2>
       <p class="lede" style="margin-bottom:12px">Leave a line blank if you do not have it. A blank line stays blank.</p>
       <div id="site-block"></div>

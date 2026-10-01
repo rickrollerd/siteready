@@ -10,7 +10,6 @@
       "task": "Erect structural steel for the roof plant platforms and the crown, lifted by the tower crane, connecting and bolting from boom lifts.",
       "fallRisk": "yes",
       "facts": {
-        "craneCompany": "Lifts are done by the crane company under its lift plan; our licensed riggers sling and land the steel with tag lines.",
         "erectionSequence": "Steel is erected to the designer's sequence on drawing ST-10 (revision C), with temporary bracing as shown, and our supervisor checks each bay is braced before rigging is released.",
         "fallControl": "Connectors work from boom lifts with harnesses clipped to the platform anchor point, and edge protection stays in place at the roof edge."
       },
@@ -20,14 +19,12 @@
           "plant"
         ],
         "steps": [
-          "Plan lifts with the crane company",
           "Work with the crane crew during lifts",
           "Use an elevating work platform",
           "Lift and land steel with the crane company",
           "Erect and connect steel at height"
         ],
         "missing": [
-          "Crane company and lift plan",
           "Fall control",
           "Erection sequence and temporary bracing"
         ]

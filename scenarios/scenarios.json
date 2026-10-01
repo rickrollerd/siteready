@@ -55,7 +55,6 @@
     "task": "Erect six precast concrete wall panels, each 9 tonnes, using a 100 tonne mobile crane. Riggers stay on the ground and the crane operator is in the cab.",
     "fallRisk": "no",
     "facts": {
-      "craneCompany": "Example Cranes Pty Ltd supplies and operates the 100 tonne mobile crane, with its operator and dogmen working to its lift plan.",
       "erectionDesign": "Erection design drawing ED-01 revision B by the project engineer.",
       "centreOfGravity": "Centre of gravity is marked on each panel shop drawing, 1.2 m above the base.",
       "braceArrangement": "Two braces per panel, fixed to the slab with chemical anchors as shown on drawing ED-02.",
@@ -63,7 +62,6 @@
     },
     "expect": {
       "missing": [
-        "Crane company and lift plan",
         "Erection design",
         "Centre of gravity",
         "Brace arrangement"

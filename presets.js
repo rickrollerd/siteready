@@ -10,6 +10,28 @@ const PROJECTS = path.join(__dirname, 'scenarios', 'projects');
 const TRADE_ORDER = ['site establishment and traffic', 'earthworks', 'piling', 'excavation', 'structure', 'precast seating', 'scaffolding and hoists', 'structural steel', 'concrete cutting', 'waterproofing', 'masonry', 'electrical', 'plumbing', 'mechanical', 'medical gases', 'hospital plant', 'fire services', 'ICT and security', 'pneumatic tube', 'lifts', 'facade', 'roofing', 'helipad', 'sports lighting and screens', 'live hospital connections', 'passive fire', 'carpentry fit-out', 'plasterboard and ceilings', 'radiation shielding', 'glazing and balustrades', 'joinery and stone', 'tiling', 'painting', 'flooring', 'seating', 'pitch', 'landscaping', 'final clean', 'house framing', 'decks and pergolas', 'house roofing', 'bathroom renovation', 'kitchen fit-out', 'house electrical', 'house painting', 'driveways and concreting', 'fencing'];
 const TRADE_NAMES = { 'house framing': 'Houses: framing and trusses', 'decks and pergolas': 'Houses: decks and pergolas', 'house roofing': 'Houses: roofing', 'bathroom renovation': 'Houses: bathroom renovation', 'kitchen fit-out': 'Houses: kitchen fit-out', 'house electrical': 'Houses: electrical', 'house painting': 'Houses: painting', 'driveways and concreting': 'Houses: driveways and concreting', fencing: 'Houses: fencing', 'medical gases': 'Medical gases', 'hospital plant': 'Hospital plant (boilers, generators)', helipad: 'Helipad', 'live hospital connections': 'Connections into the live hospital', 'pneumatic tube': 'Pneumatic tube system', 'radiation shielding': 'Radiation shielding (lead)', earthworks: 'Earthworks', 'precast seating': 'Precast seating tiers', 'sports lighting and screens': 'Sports lighting and screens', seating: 'Seating', pitch: 'Pitch and turf', 'site establishment and traffic': 'Site establishment and traffic', 'concrete cutting': 'Concrete cutting', 'fire services': 'Fire services', lifts: 'Lifts', roofing: 'Roofing', 'passive fire': 'Passive fire', 'glazing and balustrades': 'Glazing and balustrades', 'joinery and stone': 'Joinery and stone benchtops', landscaping: 'Landscaping', 'final clean': 'Final clean', 'scaffolding and hoists': 'Scaffolding and hoists', 'structural steel': 'Structural steel', masonry: 'Masonry', 'plasterboard and ceilings': 'Plasterboard and ceilings', painting: 'Painting', flooring: 'Flooring', excavation: 'Excavation (basement)', waterproofing: 'Waterproofing', 'carpentry fit-out': 'Carpentry fit-out', tiling: 'Tiling', piling: 'Piling', structure: 'Structure (formwork, reo, concrete, precast)', electrical: 'Electrical', plumbing: 'Plumbing', mechanical: 'Mechanical (HVAC)', 'ICT and security': 'ICT and security', facade: 'Facade' };
 
+// The tasks were written for test projects (a 50 storey tower, a hospital, a
+// stadium). Project names, sizes and slab types are taken out so a task suits any
+// job; the user adds back what applies. A task that is about post-tensioning, or
+// a tower crane by its title, keeps it.
+function generalTask(task, title) {
+  let text = task
+    .replace(/\s+of the 50 storey tower\b/g, '')
+    .replace(/\s+of the hospital\b/g, '')
+    .replace(/\bthe (?:hospital )?tower (core|foundations)\b/g, 'the $1')
+    .replace(/\bthe hospital podium\b/g, 'the podium')
+    .replace(/\bthe stadium forecourt\b/g, 'the forecourt')
+    .replace(/\bfor the tower, the foyer\b/g, 'for the building, the foyer')
+    .replace(/\bthe 3 level basement\b/g, 'the basement')
+    .replace(/\bthe 3 basement levels\b/g, 'the basement levels')
+    .replace(/\bthe two tower cranes\b/g, 'the tower cranes');
+  if (!/post-tension|stressing|tendon/i.test(title)) {
+    text = text.replace(/\s*The floors are post-tensioned slabs\./g, '').replace(/\bpost-tensioned /g, '');
+  }
+  if (!/tower/i.test(title)) text = text.replace(/\btower (cranes?)\b/g, '$1');
+  return text.replace(/\s{2,}/g, ' ').trim();
+}
+
 // Projects that share a trade (the tower and the stadium both have piling) give
 // one trade with the tasks of both.
 function loadTrades() {
@@ -20,8 +42,9 @@ function loadTrades() {
     if (!trades.has(id)) trades.set(id, { id, name: TRADE_NAMES[id] || id, tasks: [] });
     const { tasks } = trades.get(id);
     for (const swms of project.swms) {
-      if (tasks.some((item) => item.task === swms.task)) continue;
-      tasks.push({ title: swms.title, task: swms.task, fallRisk: swms.fallRisk, crane: swms.crane === 'own' ? 'own' : 'company' });
+      const task = generalTask(swms.task, swms.title);
+      if (tasks.some((item) => item.task === task)) continue;
+      tasks.push({ title: swms.title, task, fallRisk: swms.fallRisk, crane: swms.crane === 'own' ? 'own' : 'company' });
     }
   }
   const order = (id) => (TRADE_ORDER.includes(id) ? TRADE_ORDER.indexOf(id) : TRADE_ORDER.length);
@@ -41,10 +64,6 @@ const ANSWERS = {
   ],
   controlsConsidered: [
     ['Edge protection not possible', 'Edge protection was considered but cannot be fixed at ____ because ____. An elevating work platform was considered but ____.'],
-  ],
-  craneCompany: [
-    ['Crane company lift plan', 'Lifts are done by ____ (crane company) under its lift plan. The crane company\'s dogman slings and releases loads, and our licensed dogman receives and lands them with tag lines.'],
-    ['Steel or precast', 'Lifts are done by ____ (crane company) under its lift plan. The crane company\'s dogman slings the loads, and our licensed riggers (basic rigging or higher) receive, place and secure them.'],
   ],
   craneChart: [
     ['Chart duty', 'Rated capacity from the crane chart: ____ t at ____ m radius. Heaviest gross load (load, lifting gear and rigging) is ____ t at ____ m radius.'],
