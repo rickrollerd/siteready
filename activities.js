@@ -21,6 +21,7 @@ const BEFORE = {
 // Controls added to Before starting for some kinds of work.
 const BEFORE_EXTRA = [
   { when: 'ptSlab', text: 'Check the post-tensioning drawings and scan the slab before drilling or fixing into a post-tensioned slab.' },
+  { when: 'respirator', text: 'Tight-fitting respirators are fit tested to each wearer before use, for the make and model they wear, and wearers are clean shaven where the mask seals.' },
   { when: 'ewp', text: 'A rescue plan is in place for anyone working from an elevating work platform or held by a harness.' },
 ];
 
@@ -467,6 +468,7 @@ const ACTIVITIES = [
           'Pour the walls at the rate in the formwork design.',
           'Concrete is placed by placing boom or kibble, with the hose hand in contact with the operator.',
           'The placing boom operator holds a high risk work licence for a concrete placing boom.',
+          'No one stands or works under the boom while it is operating.',
           'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
           'Wash wet concrete off the skin straight away. Wear gloves and eye protection.',
         ],
@@ -524,13 +526,14 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Set up the concrete pump and placing boom',
-        hazards: ['The pump or boom overturns.', 'The boom strikes a person or structure.'],
+        hazards: ['The pump or boom overturns.', 'The boom strikes a person or structure.', 'The boom or pipeline fails, or concrete falls from the boom, onto a person below.'],
         controls: [
           'A truck-mounted pump stands on ground that can take the outrigger loads, with pads under the outriggers.',
           'A placing boom on the slab stands on an engineer-certified base or ballast.',
           'The pipeline is restrained, pressure-rated, and checked for wear and secure clamps before each pour.',
           'The placing boom operator holds a high risk work licence for a concrete placing boom.',
           'Keep the boom within its rated reach and clear of the crane\'s working area, as coordinated with the crane crew.',
+          'No one stands or works under the boom while it is operating.',
         ],
       },
       {
@@ -610,7 +613,7 @@ const ACTIVITIES = [
         { fact: 'braceArrangement' },
         { fact: 'regulatorNotified' },
         'Inspect lifting inserts and elements for damage on delivery. Do not lift a damaged element.',
-        'Each element is braced or propped to the design before it is released from the crane.',
+        'Each element has at least two braces fixed, as the erection design shows, before the crane hook is released. Where the design calls for more, all are fixed first.',
       ],
     }, {
       step: 'Grout the base and remove the braces',
@@ -741,7 +744,7 @@ const PPE = [
   { area: 'Head', items: [['hardHat', 'Hard hat'], ['chinStrap', 'Chin strap'], ['sunHat', 'Broad brim or neck flap']] },
   { area: 'Eyes and face', items: [['glassesClear', 'Safety glasses, clear'], ['glassesTinted', 'Safety glasses, tinted'], ['goggles', 'Goggles'], ['faceShield', 'Face shield']] },
   { area: 'Hearing', items: [['earPlugs', 'Ear plugs'], ['earMuffs', 'Ear muffs']] },
-  { area: 'Breathing', items: [['p2', 'P2 respirator (fit checked)'], ['halfFace', 'Half-face respirator with filters']] },
+  { area: 'Breathing', items: [['p2', 'P2 respirator (fit tested)'], ['halfFace', 'Half-face respirator with filters (fit tested)']] },
   { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves']] },
   { area: 'Body', items: [['longs', 'Long sleeves and long pants'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls']] },
   { area: 'Feet', items: [['boots', 'Safety boots'], ['gumboots', 'Safety gumboots']] },

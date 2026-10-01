@@ -376,3 +376,25 @@ test('load limits must be stated before materials or plant go on a deck or slab'
   }
   assert.ok(!draft('Paint the interior walls of a shop with water-based paint.').missing.includes('Load limits'));
 });
+
+test('no one under a working placing boom, two braces before the hook is released, and respirators fit tested', () => {
+  const pour = draft('Pump concrete with a placing boom and place and finish the slab.');
+  const pump = pour.jobSteps.find((step) => step.step === 'Set up the concrete pump and placing boom');
+  assert.ok(pump.controls.includes('No one stands or works under the boom while it is operating.'));
+
+  const precast = draft('Install precast concrete columns with a mobile crane and brace them.', { facts: {
+    craneCompany: 'Example Cranes operates the crane under its lift plan.',
+    erectionDesign: 'Erection design drawing PC-1 revision A by the precast engineer.',
+    centreOfGravity: 'Marked on each shop drawing.',
+    braceArrangement: 'Two braces per column on drawing PC-2.',
+  } });
+  const brace = precast.jobSteps.find((step) => step.step === 'Stand and brace the precast elements');
+  assert.ok(brace.controls.some((line) => /at least two braces fixed.*before the crane hook is released/.test(line)));
+
+  const asbestos = draft('Remove bonded asbestos cement sheets.', { facts: { asbestosArrangement: 'A licensed removalist removes them under a control plan.' } });
+  const ppe = asbestos.ppe.flatMap((group) => group.items).find((item) => item.id === 'p2');
+  assert.equal(ppe.label, 'P2 respirator (fit tested)');
+  assert.ok(ppe.ticked);
+  assert.ok(asbestos.jobSteps[0].controls.some((line) => /fit tested to each wearer/.test(line)));
+  assert.ok(!draft('Replace a 3m length of fence.').jobSteps[0].controls.some((line) => /fit tested/.test(line)));
+});
