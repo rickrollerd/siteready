@@ -74,7 +74,7 @@ async function user(number, until) {
         const problem = compare(`${name} ${label}`, result.data, prepareDraft(body));
         if (problem) failures.push(problem);
       }
-      const word = await call('/api/draft.docx', { ...input, facts: scenario.facts }, address);
+      const word = await call('/api/draft.docx', { ...input, facts: scenario.facts, reviewConfirmed: true, reviewedBy: 'Load test' }, address);
       if (word.status !== 200 || word.data.subarray(0, 2).toString() !== 'PK') throw new Error(`Word file answered ${word.status}`);
       seen.add(name);
     } catch (error) {

@@ -46,9 +46,19 @@ test('a draft and its Word file are prepared', async () => {
   const draft = await post('/api/draft', body);
   assert.equal(draft.status, 200);
   assert.equal((await draft.json()).kind, 'draft');
-  const docx = await post('/api/draft.docx', body);
+  const refused = await post('/api/draft.docx', body);
+  assert.equal(refused.status, 400);
+  assert.match((await refused.json()).message, /review and approve/);
+  const docx = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' });
   assert.equal(docx.status, 200);
   assert.match(docx.headers.get('content-type'), /wordprocessingml/);
+  const zip = Buffer.from(await docx.arrayBuffer()).toString('latin1');
+  assert.ok(zip.includes('footer'), 'the file has a footer');
+});
+
+test('the Word file is refused without a name, even when confirmed', async () => {
+  const body = { state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no', reviewConfirmed: true, reviewedBy: '   ' };
+  assert.equal((await post('/api/draft.docx', body)).status, 400);
 });
 
 test('trade and task pick lists come from the tested project sets', async () => {

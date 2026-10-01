@@ -406,13 +406,30 @@ factsForm.addEventListener('submit', async (event) => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || 'The statement could not be prepared.');
     resultEl.innerHTML = `<div class="sheet">${render(data)}</div>
-      <div class="actions" style="margin-top:12px">
-        <button type="button" id="download">Download Word</button>
+      <div class="panel confirm" style="margin-top:12px">
+        <label class="check"><input type="checkbox" id="review-confirm"><span>I understand this is a draft. My business will check it against the site, change it where needed, and approve it before it is used. <a href="/terms.html" target="_blank" rel="noopener">Terms of use</a></span></label>
+        <div class="field">
+          <label for="reviewed-by">Your name (printed on the SWMS)</label>
+          <input id="reviewed-by" autocomplete="name" maxlength="120" value="${esc(savedReviewer())}">
+        </div>
+        <div class="actions">
+          <button type="button" id="download" disabled>Download Word</button>
+        </div>
       </div>`;
     resultEl.classList.remove('hidden');
-    // The Word file also carries the saved logo.
-    const wordBody = profile.logo ? JSON.stringify({ ...JSON.parse(body), logo: profile.logo }) : body;
-    document.getElementById('download').addEventListener('click', () => downloadDocx(wordBody, data.kind));
+    const confirmBox = document.getElementById('review-confirm');
+    const nameBox = document.getElementById('reviewed-by');
+    const downloadButton = document.getElementById('download');
+    const ready = () => { downloadButton.disabled = !(confirmBox.checked && nameBox.value.trim()); };
+    confirmBox.addEventListener('change', ready);
+    nameBox.addEventListener('input', ready);
+    downloadButton.addEventListener('click', () => {
+      const reviewedBy = nameBox.value.trim();
+      saveReviewer(reviewedBy);
+      // The Word file also carries the saved logo, and the name of the person who confirmed.
+      const wordBody = JSON.stringify({ ...JSON.parse(body), ...(profile.logo ? { logo: profile.logo } : {}), reviewConfirmed: true, reviewedBy });
+      downloadDocx(wordBody, data.kind);
+    });
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;
@@ -421,6 +438,14 @@ factsForm.addEventListener('submit', async (event) => {
   }
 });
 
+const REVIEWER_KEY = 'siteready-reviewer';
+function savedReviewer() {
+  try { return localStorage.getItem(REVIEWER_KEY) || ''; } catch { return ''; }
+}
+function saveReviewer(name) {
+  try { localStorage.setItem(REVIEWER_KEY, name); } catch { /* not saved */ }
+}
+
 async function downloadDocx(body, kind) {
   const response = await fetch(api('/api/draft.docx'), {
     method: 'POST',
@@ -428,7 +453,8 @@ async function downloadDocx(body, kind) {
     body,
   });
   if (!response.ok) {
-    document.getElementById('facts-error').textContent = 'The Word file could not be prepared.';
+    const data = await response.json().catch(() => ({}));
+    document.getElementById('facts-error').textContent = data.message || 'The Word file could not be prepared.';
     return;
   }
   const blob = await response.blob();

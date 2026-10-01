@@ -176,11 +176,24 @@ app.post('/api/draft', (req, res) => {
   res.json(result);
 });
 
+// A Word file is only prepared once the user confirms the business will review
+// and approve it, and gives the name that goes on it.
+function reviewConfirmation(body) {
+  const name = typeof body.reviewedBy === 'string' ? body.reviewedBy.replace(/\s+/g, ' ').trim().slice(0, 120) : '';
+  if (body.reviewConfirmed !== true || !name) return null;
+  const date = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Australia/Brisbane' }).format(new Date());
+  return { name, date };
+}
+
 app.post('/api/draft.docx', async (req, res) => {
+  const confirmation = reviewConfirmation(req.body || {});
+  if (!confirmation) {
+    return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve this SWMS, and enter your name, before downloading.' });
+  }
   const result = prepareDraft(draftBody(req.body || {}));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   // The logo is used for this file only and is not kept.
-  const buffer = await draftToDocx(result, { logo: readLogo(req.body && req.body.logo) });
+  const buffer = await draftToDocx(result, { logo: readLogo(req.body && req.body.logo), confirmation });
   const filename = result.kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
