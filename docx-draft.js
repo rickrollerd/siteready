@@ -405,6 +405,12 @@ function companyHeader(draft, logo) {
   return { default: new Header({ children: [table, new Paragraph({ spacing: { before: 0, after: 160 }, children: [] })] }) };
 }
 
+// Every page says the file is a draft the business reviews and approves.
+function draftedNote(confirmation) {
+  const by = confirmation ? ` by ${confirmation.name} on ${confirmation.date}` : '';
+  return `Drafted with SiteReady${by}. The business named in this SWMS reviews, approves and is responsible for it.`;
+}
+
 function buildDocument(draft, options = {}) {
   return new Document({
     creator: 'SiteReady',
@@ -432,6 +438,11 @@ function buildDocument(draft, options = {}) {
               alignment: AlignmentType.LEFT,
               spacing: { before: 80 },
               children: [run(`${draft.instrument}  ·  ${draft.sectionRef}`, { size: 16, color: MUTED })],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.LEFT,
+              spacing: { before: 20 },
+              children: [run(draftedNote(options.confirmation), { size: 16, color: MUTED })],
             }),
           ],
         }),
