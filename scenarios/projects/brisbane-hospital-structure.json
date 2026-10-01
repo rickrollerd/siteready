@@ -7,7 +7,7 @@
     {
       "id": "formwork",
       "title": "Formwork, reo and post-tensioned slabs",
-      "task": "Form, reinforce and pour the post-tensioned floor slabs of the new hospital building, working on formwork decks more than 2 m above the floor below, with concrete placed by a boom pump.",
+      "task": "Form, reinforce and pour the post-tensioned floor slabs of the new hospital building next to the live hospital, working on formwork decks more than 2 m above the floor below, with concrete placed by a boom pump.",
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Edge protection is installed around every open deck edge before work starts, and no one works outside it.",
@@ -33,7 +33,8 @@
           "Place and tie reo",
           "Set up the concrete pump and placing boom",
           "Pump and place concrete",
-          "Finish concrete"
+          "Finish concrete",
+          "Work next to the live hospital"
         ],
         "missing": [
           "Fall control",

@@ -7,7 +7,7 @@
     {
       "id": "link",
       "title": "Opening into the existing hospital for the link bridge",
-      "task": "Saw cut and core drill an opening through the existing hospital's concrete wall to connect the new link bridge, next to occupied wards, with the wall propped to the engineer's design before cutting.",
+      "task": "Saw cut and core drill an opening through the existing hospital's load-bearing concrete wall to connect the new link bridge, next to occupied wards, with the wall propped to the engineer's design before cutting.",
       "fallRisk": "no",
       "facts": {
         "temporarySupport": "The wall is propped to the engineer's design PR-05 (revision A), installed and checked by the engineer before cutting starts.",
@@ -15,6 +15,7 @@
       },
       "expect": {
         "highRisk": [
+          "demolition",
           "temporary",
           "electrical"
         ],
@@ -24,7 +25,8 @@
           "Core drill through the slab or wall",
           "Saw cut concrete",
           "Remove cut sections",
-          "Work next to the live hospital"
+          "Work next to the live hospital",
+          "Cut an opening in a load-bearing wall"
         ],
         "missing": [
           "Temporary support design",

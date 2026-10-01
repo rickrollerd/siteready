@@ -21,7 +21,6 @@
         ],
         "steps": [
           "Use an elevating work platform",
-          "Braze and solder pipe joints (hot work)",
           "Braze medical gas pipework"
         ],
         "missing": [
@@ -45,8 +44,7 @@
         ],
         "steps": [
           "Test and connect to live medical gas services",
-          "Work next to the live hospital",
-          "Pressure test and commission"
+          "Work next to the live hospital"
         ],
         "missing": [
           "Live service shutdown",
@@ -61,7 +59,9 @@
       "fallRisk": "no",
       "facts": {},
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "gas"
+        ],
         "steps": [
           "Braze medical gas pipework",
           "Handle gas cylinders and manifolds"

@@ -14,7 +14,8 @@
       },
       "expect": {
         "highRisk": [
-          "plant"
+          "plant",
+          "temperature"
         ],
         "steps": [
           "Plan lifts with the crane company",
