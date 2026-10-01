@@ -317,7 +317,7 @@ function highRiskMatches(text, answer, state) {
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i),
     precast: mentioned(text, /\b(tilt-?up|precast)\b/i),
     road: mentioned(text, ROAD) || /\blight rail\b/i.test(String(text || '')),
-    plant: mentioned(text, /\b(powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|telehandlers?|excavators?|forklifts?|trucks?|cranes?|loaders?|liebherr)\b/i),
+    plant: mentioned(text, /\b(elevating work platforms?|ewps?|scissor lifts?|boom lifts?|powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|telehandlers?|excavators?|forklifts?|trucks?|cranes?|loaders?|liebherr)\b/i),
     temperature: mentioned(text, /\bartificial extremes of temperature\b/i),
     water: mentioned(text, WATER),
     diving: mentioned(text, /\bdiving\b/i),
@@ -425,7 +425,7 @@ const CATEGORY_FACTS = [
     label: 'Isolation and testing procedure',
     prompt: 'How circuits are isolated, locked and tagged, and tested de-energised by a competent person before work, and who holds the locks.',
     level: 'Administrative',
-    applies: (text) => mentioned(text, SWITCHBOARD_WORK),
+    applies: (text) => mentioned(text, SWITCHBOARD_WORK) || TEMP_POWER.test(String(text || '')) || /\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || '')),
   },
   {
     // Electrical work on or near energised parts is prohibited except as the
@@ -438,7 +438,7 @@ const CATEGORY_FACTS = [
       { value: 'testing', label: 'Testing or commissioning on or near energised parts (within 3 m)' },
     ],
     level: 'Administrative',
-    applies: (text) => mentioned(text, /\b(energis\w*|commission\w*|testing|test the)\b/i) && mentioned(text, ELECTRICAL_WORK),
+    applies: (text) => mentioned(text, ELECTRICAL_WORK) && (mentioned(text, /\b(energis\w*|commission\w*|testing|test the|test,)\b/i) || TEMP_POWER.test(String(text || '')) || /\b(rough[- ]in|fit[- ]off)\b/i.test(String(text || ''))),
   },
   {
     id: 'constructionTesting',
@@ -757,7 +757,6 @@ function controlsFor(task, facts, pack) {
     if (item.choices) {
       const chosen = item.choices.find((choice) => choice.value === choiceAnswer(item.id, value));
       if (chosen && item.applies(source) && item.id === 'deckMethod') push(item.level, `Deck laid ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
-      if (chosen && item.applies(source) && item.id === 'energisedWork') push(item.level, `Work on or near energised parts: ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
       continue;
     }
     if (value && item.applies(source)) {
@@ -785,7 +784,7 @@ function controlsFor(task, facts, pack) {
   }
 
   if (!items.length) {
-    push('Administrative', 'The task is done in the order written in the method.');
+    push('Administrative', 'The controls for this task are set out in each job step below.');
   }
 
   const sorted = items
@@ -1068,7 +1067,8 @@ function prepareDraft(input) {
     references: referencesFor(facts),
     missing: [],
     statement: '',
-    highRisk: highRiskMatches(combinedFacts(task, facts), pack.fallAnswer, state)
+    // Testing on or near energised parts is high risk construction work, however the task is worded.
+    highRisk: highRiskMatches(`${combinedFacts(task, facts)}${choiceAnswer('energisedWork', facts.energisedWork) === 'testing' ? '\nlive electrical' : ''}`, pack.fallAnswer, state)
       .map((item) => (item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label)),
     hazards,
     controls: finalControls,
@@ -1140,14 +1140,17 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     concrete: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) ? /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete)\b/i.test(task) : /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(task),
     stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing)\b/i.test(task),
     jumpform: JUMPFORM.test(task),
-    ptSlab: PT.test(task),
+    ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task),
     electricalWork: ELECTRICAL_WORK.test(task),
     tempPower: TEMP_POWER.test(task),
     castIn: /\b(cast[- ]in|in[- ]slab)\b/i.test(task),
     containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task),
     cablePull: /\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable)\b/i.test(task),
     fitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task),
-    switchboard: SWITCHBOARD_WORK.test(task),
+    // Isolation steps for any work on the installation; commissioning only for the
+    // permanent main switchboard and consumer mains, not construction power.
+    isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || /\b(rough[- ]in|fit[- ]off)\b/i.test(task),
+    commissioning: /\b(main switchboards?|consumer mains|commission\w*)\b/i.test(task) && !TEMP_POWER.test(task),
     deck: deckLaying(task),
     ewp: /\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(combinedFacts(task, facts)),
     precast: isPanelLift(task),

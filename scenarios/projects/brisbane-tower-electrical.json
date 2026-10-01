@@ -8,14 +8,16 @@
       "id": "temp-power",
       "title": "Construction power and temporary lighting",
       "task": "Install, test and maintain construction power and temporary lighting for the tower, the foyer and the 3 level basement carpark: site switchboards, distribution boards, leads and lighting, connected to the energised builder's supply.",
-      "fallRisk": "no",
+      "fallRisk": "yes",
       "facts": {
         "constructionTesting": "The site electrician inspects and tests construction wiring, switchboards and RCDs, and leads are tested and tagged, at the intervals AS/NZS 3012 sets, recorded in the site register.",
         "isolationProcedure": "Circuits are isolated at the site switchboard, locked with each worker's personal lock and a danger tag, and tested de-energised by the licensed electrician before work.",
-        "energisedWork": "testing"
+        "energisedWork": "testing",
+        "fallControl": "Lighting and leads in risers, stairs and shafts are installed from platforms with guardrails, and riser openings are screened."
       },
       "expect": {
         "highRisk": [
+          "fall",
           "electrical"
         ],
         "steps": [
@@ -25,6 +27,7 @@
           "Work on or near energised parts"
         ],
         "missing": [
+          "Fall control",
           "Inspection and testing of construction wiring",
           "Isolation and testing procedure",
           "Work on or near energised parts"
@@ -34,7 +37,7 @@
     {
       "id": "cast-in",
       "title": "Cast-in conduits on the deck",
-      "task": "Install cast-in conduits and in-slab electrical services on the deck of each post-tensioned floor before the pour, alongside the formwork and reo crews. Work is at the slab edge, more than 2 m above the floor below.",
+      "task": "Install cast-in conduits and in-slab electrical services on the deck of each post-tensioned floor before the pour, alongside the formwork and reo crews. Work is near the slab edge, more than 2 m above the floor below.",
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Work is done inside the perimeter screens and edge protection, with penetrations covered."
@@ -61,7 +64,8 @@
       },
       "expect": {
         "highRisk": [
-          "fall"
+          "fall",
+          "plant"
         ],
         "steps": [
           "Install cable tray, containment and cabling at height",
@@ -104,13 +108,23 @@
       "title": "Apartment rough-in and fit-off",
       "task": "Rough-in and fit-off the electrical installation in the apartments: chase and drill walls, run cables in the ceiling spaces, and fit power points, switches and light fittings, working from platform ladders.",
       "fallRisk": "no",
-      "facts": {},
+      "facts": {
+        "isolationProcedure": "Each circuit is isolated at the distribution board, locked with a personal lock and danger tag, and tested de-energised by a licensed electrician before work.",
+        "energisedWork": "testing"
+      },
       "expect": {
-        "highRisk": [],
-        "steps": [
-          "Rough-in and fit-off in the apartments"
+        "highRisk": [
+          "electrical"
         ],
-        "missing": []
+        "steps": [
+          "Rough-in and fit-off in the apartments",
+          "Isolate and prove de-energised",
+          "Work on or near energised parts"
+        ],
+        "missing": [
+          "Isolation and testing procedure",
+          "Work on or near energised parts"
+        ]
       }
     },
     {
@@ -230,9 +244,9 @@
       "swms": [
         "cast-in"
       ],
-      "phrase": "supervision of a licensed electrical worker",
+      "phrase": "under the supervision of a person licensed for electrical installation work",
       "source": "Electrical Safety Act 2002 (Qld) s 18(2)(e)",
-      "quote": "building or repairing ducts, conduits or troughs ... under the supervision of a person licensed"
+      "quote": "the channels are not intended to be earthed; wiring installed in the channels is not energised; the work is done under the supervision of a person licensed to perform electrical installation work"
     },
     {
       "swms": [
@@ -253,6 +267,7 @@
     {
       "swms": [
         "temp-power",
+        "fit-off",
         "switchboards"
       ],
       "phrase": "tested by a competent person and found de-energised",
@@ -262,15 +277,17 @@
     {
       "swms": [
         "temp-power",
+        "fit-off",
         "switchboards"
       ],
-      "phrase": "Lock isolation points in the open position",
+      "phrase": "Lock the isolating device open",
       "source": "Electrical Safety Regulation 2026 (Qld) s 197, s 198",
       "quote": "locked when in the open position"
     },
     {
       "swms": [
         "temp-power",
+        "fit-off",
         "switchboards"
       ],
       "phrase": "never because it is more convenient",
@@ -280,6 +297,7 @@
     {
       "swms": [
         "temp-power",
+        "fit-off",
         "switchboards"
       ],
       "phrase": "recorded risk assessment",
@@ -289,6 +307,7 @@
     {
       "swms": [
         "temp-power",
+        "fit-off",
         "switchboards"
       ],
       "phrase": "Only authorised people enter the area",
@@ -298,6 +317,7 @@
     {
       "swms": [
         "temp-power",
+        "fit-off",
         "switchboards"
       ],
       "phrase": "safety observer",
@@ -308,9 +328,9 @@
       "swms": [
         "switchboards"
       ],
-      "phrase": "Do not connect an installation unless",
-      "source": "Electrical Safety Regulation 2026 (Qld) s 219",
-      "quote": "tested as electrically safe and complies with the requirements of the wiring rules"
+      "phrase": "not connected for the first time until the distribution entity",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 217",
+      "quote": "must not connect an electrical installation to a source of electricity supplied by a distribution entity for the first time unless the distribution entity has examined"
     },
     {
       "swms": [
@@ -319,6 +339,40 @@
       "phrase": "notice of test",
       "source": "Electrical Safety Regulation 2026 (Qld) s 228, s 229",
       "quote": "notice of test; certificate of testing and compliance"
+    },
+    {
+      "swms": [
+        "temp-power"
+      ],
+      "phrase": "tested by a competent person immediately after they are connected",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 139",
+      "quote": "tested by a competent person in accordance with AS/NZS 3760 immediately after it is connected"
+    },
+    {
+      "swms": [
+        "temp-power",
+        "fit-off",
+        "switchboards"
+      ],
+      "phrase": "Keep the risk assessment until at least 28 days",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 204",
+      "quote": "a copy of the risk assessment until at least 28 days after the work"
+    },
+    {
+      "swms": [
+        "switchboards"
+      ],
+      "phrase": "connects only when satisfied the Act and regulation",
+      "source": "Electrical Safety Regulation 2026 (Qld) s 223",
+      "quote": "not connect the electrical installation ... unless the contractor is satisfied the Act and this regulation have been complied with"
+    },
+    {
+      "swms": [
+        "cable-pull"
+      ],
+      "phrase": "Helpers without an electrical licence",
+      "source": "Electrical Safety Act 2002 (Qld) s 18(2)(g)",
+      "quote": "under the direct supervision of the electrical worker, if the assistance does not involve physical contact with any energised electrical equipment"
     }
   ]
 }
