@@ -398,3 +398,15 @@ test('no one under a working placing boom, two braces before the hook is release
   assert.ok(asbestos.jobSteps[0].controls.some((line) => /fit tested to each wearer/.test(line)));
   assert.ok(!draft('Replace a 3m length of fence.').jobSteps[0].controls.some((line) => /fit tested/.test(line)));
 });
+
+test('work into a live hospital gets the hospital step, demolition and asbestos controls', () => {
+  const task = "Saw cut and core drill an opening through the existing hospital's load-bearing concrete wall to connect the new link bridge, next to occupied wards, with the wall propped to the engineer's design before cutting.";
+  const done = prepareDraft({ state: 'qld', task, fallRisk: 'no', facts: { temporarySupport: 'Propped to the engineer\'s design PR-05, checked before cutting.', silicaControls: 'Wet cutting with water-fed saws. Fit tested P2 respirators are worn while cutting. The written silica assessment is attached.' } });
+  assert.equal(done.kind, 'draft');
+  const steps = done.jobSteps.map((step) => step.step);
+  assert.ok(steps.includes('Work next to the live hospital'));
+  assert.ok(steps.includes('Cut an opening in a load-bearing wall'));
+  const text = JSON.stringify(done.jobSteps);
+  assert.match(text, /asbestos register/);
+  assert.match(text, /demolition licence/);
+});

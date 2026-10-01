@@ -1,7 +1,7 @@
 {
-  "title": "New hospital building, Brisbane: medical gases",
+  "title": "New major hospital, Brisbane: medical gases",
   "state": "qld",
-  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "workplace": "New major hospital with a hospital tower, two level basement and rooftop helipad, Brisbane",
   "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
   "swms": [
     {
@@ -32,7 +32,7 @@
     {
       "id": "connect",
       "title": "Testing and connection to the live medical gas mains",
-      "task": "Pressure test the new medical gas pipework and connect it to the live oxygen and medical air mains in the existing hospital.",
+      "task": "Pressure test the new medical gas pipework and connect it to the live oxygen and medical air mains from the bulk oxygen store and medical air plant.",
       "fallRisk": "no",
       "facts": {
         "serviceShutdown": "Each connection is done under the hospital's shutdown permit SP-14, approved by hospital engineering, in the agreed window of 10 pm to 4 am. The ward and clinical staff are told beforehand, and cylinder supply set up by the medical gas supplier keeps patients supplied.",
@@ -43,8 +43,7 @@
           "gas"
         ],
         "steps": [
-          "Test and connect to live medical gas services",
-          "Work next to the live hospital"
+          "Test and connect to live medical gas services"
         ],
         "missing": [
           "Live service shutdown",

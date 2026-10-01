@@ -1,13 +1,13 @@
 {
-  "title": "New hospital building, Brisbane: structure",
+  "title": "New major hospital, Brisbane: structure",
   "state": "qld",
-  "workplace": "New 10 storey hospital building with a two level basement and rooftop helipad, on an existing hospital campus next to the live hospital, Brisbane",
+  "workplace": "New major hospital with a hospital tower, two level basement and rooftop helipad, Brisbane",
   "note": "Facts are example inputs for testing. On a real project they come from the contractor's own procedures and the project's documents.",
   "swms": [
     {
       "id": "formwork",
       "title": "Formwork, reo and post-tensioned slabs",
-      "task": "Form, reinforce and pour the post-tensioned floor slabs of the new hospital building next to the live hospital, working on formwork decks more than 2 m above the floor below, with concrete placed by a boom pump.",
+      "task": "Form, reinforce and pour the post-tensioned floor slabs of the hospital, working on formwork decks more than 2 m above the floor below, with concrete placed by a boom pump.",
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Edge protection is installed around every open deck edge before work starts, and no one works outside it.",
@@ -33,8 +33,7 @@
           "Place and tie reo",
           "Set up the concrete pump and placing boom",
           "Pump and place concrete",
-          "Finish concrete",
-          "Work next to the live hospital"
+          "Finish concrete"
         ],
         "missing": [
           "Fall control",
@@ -42,6 +41,30 @@
           "Load limits",
           "How the deck is laid",
           "System and supplier instructions"
+        ]
+      }
+    },
+    {
+      "id": "stressing",
+      "title": "Stressing the post-tensioned slabs",
+      "task": "Stress the post-tensioning tendons on each floor slab of the hospital once the concrete reaches the engineer's strength, grout the ducts and cut the tendon tails. Stressing is done at the slab edge, more than 2 m above the floor below.",
+      "fallRisk": "yes",
+      "facts": {
+        "fallControl": "Stressing is done from inside the perimeter screens, which stay in place until stressing is complete.",
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "stressingProcedure": "Stressing follows the post-tensioning engineer's sequence on drawing PT-200, once cylinder tests show the strength the engineer requires. The post-tensioning subcontractor's trained crew does the stressing. Exclusion zones behind each jack and along the tendon line are barricaded and signed."
+      },
+      "expect": {
+        "highRisk": [
+          "fall"
+        ],
+        "steps": [
+          "Stress the tendons",
+          "Cut tails and grout"
+        ],
+        "missing": [
+          "Fall control",
+          "Stressing procedure"
         ]
       }
     }
