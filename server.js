@@ -118,6 +118,8 @@ function draftBody(body) {
       regulatorNotified: field(facts.regulatorNotified, 1000),
       craneCompany: field(facts.craneCompany, 1000),
       systemInstructions: field(facts.systemInstructions, 2000),
+      deckMethod: field(facts.deckMethod, 100),
+      loadLimits: field(facts.loadLimits, 2000),
       confinedSpace: field(facts.confinedSpace, 2000),
       temporarySupport: field(facts.temporarySupport, 2000),
       electricalSafety: field(facts.electricalSafety, 2000),
