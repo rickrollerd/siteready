@@ -131,6 +131,7 @@ function draftBody(body) {
       refrigerantClass: field(facts.refrigerantClass, 200),
       plantIsolation: field(facts.plantIsolation, 2000),
       pilingPlatform: field(facts.pilingPlatform, 2000),
+      rigExclusionZone: field(facts.rigExclusionZone, 2000),
       confinedSpace: field(facts.confinedSpace, 2000),
       temporarySupport: field(facts.temporarySupport, 2000),
       electricalSafety: field(facts.electricalSafety, 2000),
