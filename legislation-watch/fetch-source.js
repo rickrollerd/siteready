@@ -21,6 +21,8 @@ const SOURCES = {
   // The regulations' text loads in the browser, so follow the PDF link on the downloads page.
   ozonePdf: ['Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth), latest PDF', 'https://www.legislation.gov.au/F1996B02085/latest/downloads', /href="([^"]+)"[^>]*>[^<]*\.pdf/i],
   refrigerantCode: ['Australia and New Zealand Refrigerant Handling Code of Practice 2025, Part 2 (ARC)', 'https://www.arctick.org/media/29167/air018-refrigerant-handling-codes-of-practice-2025_part-2_web_final_singles.pdf'],
+  cablingRules: ['Telecommunications (Cabling Provider) Rules 2025 (Cth), as made', 'https://www.legislation.gov.au/F2025L00386/asmade/2025-03-21/text/original/pdf'],
+  securityAct: ['Security Providers Act 1993 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-1993-083'],
   manual: ['Model Code of Practice: Hazardous manual tasks (Safe Work Australia)', 'https://www.safeworkaustralia.gov.au/system/files/documents/1705/mcop-hazardous-manual-tasks-v2.pdf'],
 };
 const CHUNK_SIZE = Number(process.env.CHUNK_SIZE || 550000);

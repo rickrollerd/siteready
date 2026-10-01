@@ -1,0 +1,35 @@
+name: Fetch ICT and security sources
+
+# Reads the cabling and security licensing law behind SiteReady's ICT and security job steps, one job per source and chunk so each log can be read back.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'legislation-watch/fetch-source.js'
+      - '.github/workflows/fetch-ict.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { source: cablingRules, chunk: 0 }
+          - { source: securityAct, chunk: 0 }
+    name: ${{ matrix.source }} ${{ matrix.chunk }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - run: node legislation-watch/fetch-source.js
+        env:
+          SOURCE: ${{ matrix.source }}
+          CHUNK: ${{ matrix.chunk }}
+          CHUNK_SIZE: 150000
