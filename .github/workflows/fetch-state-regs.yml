@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - '.github/workflows/fetch-state-regs.yml'
+      - 'legislation-watch/fetch-state-regs.js'
 
 permissions:
   contents: write
@@ -22,10 +23,9 @@ jobs:
         with:
           node-version: '22'
       - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - run: npm install --no-save playwright@1 && npx playwright install --with-deps chromium > /dev/null
       - run: |
-          for source in nswReg vicReg waReg; do
-            SOURCE=$source OUT=state-sources/$source.txt node legislation-watch/fetch-source.js
-          done
+          node legislation-watch/fetch-state-regs.js
           ls -la state-sources
       - name: Commit the texts to the state-sources branch
         run: |
