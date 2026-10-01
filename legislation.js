@@ -60,6 +60,28 @@ const QUEENSLAND = {
     'the controls',
     'how the controls will be implemented, monitored and reviewed',
   ],
+  // Section 291, in the regulation's words, checked against legislation.qld.gov.au
+  // (current as at 29 March 2026) and the model WHS Regulations (5 December 2025).
+  highRiskLabels: {
+    fall: 'Involves a risk of a person falling more than 2m',
+    tower: 'Is carried out on a telecommunication tower',
+    demolition: 'Involves demolition of an element of a structure that is load-bearing or otherwise related to the physical integrity of the structure',
+    asbestos: 'Involves, or is likely to involve, the disturbance of asbestos',
+    temporary: 'Involves structural alterations or repairs that require temporary support to prevent collapse',
+    confined: 'Is carried out in or near a confined space',
+    trench: 'Is carried out in or near a shaft or trench with an excavated depth greater than 1.5m, or a tunnel',
+    explosives: 'Involves the use of explosives',
+    gas: 'Is carried out on or near pressurised gas distribution mains or piping',
+    chemicalLine: 'Is carried out on or near chemical, fuel or refrigerant lines',
+    electrical: 'Is carried out on or near energised electrical installations or services',
+    atmosphere: 'Is carried out in an area that may have a contaminated or flammable atmosphere',
+    precast: 'Involves tilt-up or precast concrete',
+    road: 'Is carried out on, in or adjacent to a road, railway, shipping lane or other traffic corridor that is in use by traffic other than pedestrians',
+    plant: 'Is carried out in an area at a workplace in which there is any movement of powered mobile plant',
+    temperature: 'Is carried out in an area in which there are artificial extremes of temperature',
+    water: 'Is carried out in or near water or other liquid that involves a risk of drowning',
+    diving: 'Involves diving work',
+  },
   // Plain wording for a user who is not sure what a fall from height is.
   fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulation 2011 (Qld), section 291, work where a person could fall more than 2 metres is high risk construction work. Section 299 says high risk construction work needs a safe work method statement before it starts.',
   // Electrical Safety Regulation 2026 (Qld), which replaced the 2013 regulation on 1 September 2026

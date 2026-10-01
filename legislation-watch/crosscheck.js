@@ -13,11 +13,19 @@ const { STATES, highRiskList } = require('../legislation');
 const AUSTLII = 'https://classic.austlii.edu.au/au/legis';
 
 // Where each state's regulation is listed on AustLII.
+// AustLII refuses requests from GitHub (HTTP 403), so these are only used when the
+// check is run from somewhere AustLII answers.
 const SOURCES = {
-  qld: { toc: `${AUSTLII}/qld/consol_reg/toc-W.html`, title: 'Work Health and Safety Regulation 2011' },
   nsw: { toc: `${AUSTLII}/nsw/consol_reg/toc-W.html`, title: 'Work Health and Safety Regulation 2025' },
   vic: { toc: `${AUSTLII}/vic/consol_reg/toc-O.html`, title: 'Occupational Health and Safety Regulations 2017' },
   sa: { toc: `${AUSTLII}/sa/consol_reg/toc-W.html`, title: 'Work Health and Safety Regulations 2012' },
+};
+
+// How each state was checked by hand when no source here can be read automatically.
+const CHECKED_BY_HAND = {
+  nsw: 'Official PDF (3 July 2026) and the model WHS Regulations (5 December 2025).',
+  vic: 'Authorised PDF (version 017) and AustLII copies of regulations 322, 324 and 327.',
+  sa: 'Authorised PDF (1 July 2026) and the model WHS Regulations (5 December 2025).',
 };
 
 // The provision that defines high risk construction work in each state.
@@ -124,16 +132,16 @@ async function checkState(state) {
 
   const items = (hrcw.body.match(/\([a-z]\)/g) || []).length;
   const list = highRiskList(state);
-  lines.push(`Categories: the app has ${list.length}; AustLII lists ${items} lettered items.`);
+  lines.push(`Categories: the app has ${list.length}; the source lists ${items} lettered items.`);
   if (items && items < list.length) {
     differences += 1;
-    lines.push('  DIFFERENT: AustLII lists fewer items than the app.');
+    lines.push('  DIFFERENT: the source lists fewer items than the app.');
   }
   for (const item of list) {
     const missing = words(item.label).filter((word) => !hrcwWords.has(word));
     if (missing.length) {
       differences += 1;
-      lines.push(`  DIFFERENT: "${item.label}" (not in AustLII: ${missing.join(', ')})`);
+      lines.push(`  DIFFERENT: "${item.label}" (not in the source: ${missing.join(', ')})`);
     } else {
       lines.push(`  Same: "${item.label}"`);
     }
@@ -152,8 +160,12 @@ async function main() {
       console.log(result.lines.join('\n'));
       console.log(`Differences: ${result.differences}`);
     } catch (error) {
-      total += 1;
-      console.log(`Could not check: ${error.message}`);
+      if (CHECKED_BY_HAND[state.id]) {
+        console.log(`Not readable from here (${error.message}). Checked by hand: ${CHECKED_BY_HAND[state.id]}`);
+      } else {
+        total += 1;
+        console.log(`Could not check: ${error.message}`);
+      }
     }
   }
   console.log(`\nTotal differences: ${total}`);

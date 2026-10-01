@@ -4,7 +4,7 @@ const { prepareDraft, questionsFor } = require('../draft');
 
 // Most tests answer No so the task wording check is what is being tested.
 const draft = (task, extra = {}) => prepareDraft({ state: 'qld', task, fallRisk: 'no', ...extra });
-const FALL = 'Risk of a person falling more than 2 metres';
+const FALL = 'Involves a risk of a person falling more than 2m';
 
 test('scaffold erection to 6 m stands down until a fall control is given', () => {
   const task = 'Erect a modular scaffold 4 bays by 2, top working platform at 6 m, ties to the slab edge at every lift.';
