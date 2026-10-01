@@ -383,6 +383,17 @@ const CATEGORY_FACTS = [
     applies: (text) => FORMWORK.test(String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '')),
   },
   {
+    // Proprietary formwork, scaffold and platform systems are erected to their
+    // supplier's instructions, which the SWMS names rather than rewrites.
+    id: 'systemInstructions',
+    label: 'System and supplier instructions',
+    prompt: 'The formwork, scaffold or platform system used, its supplier, the supplier\'s instructions it is erected to (document and revision), and who trained the crew.',
+    level: 'Administrative',
+    applies: (text) => FORMWORK.test(String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), ''))
+      || isScaffoldErection(text)
+      || /\b(loading platforms?|landing platforms?)\b/i.test(String(text || '')),
+  },
+  {
     id: 'jumpformProcedure',
     label: 'Jumpform climbing procedure',
     prompt: 'The supplier\'s climbing procedure, its wind limits, and who is trained to climb the jumpform.',
@@ -954,6 +965,7 @@ function prepareDraft(input) {
     kind: 'draft',
     ...header,
     jobSteps: jobStepsForTask(task, facts, hazards, finalControls, state),
+    references: referencesFor(facts),
     ppe: ppeFor(
       workFlags(task, facts, state.ownCrane),
       input.ppe,
@@ -973,6 +985,24 @@ function prepareDraft(input) {
     signed: false,
     approved: false,
   };
+}
+
+// Documents the SWMS relies on, to be kept on site with it.
+const REFERENCE_FACTS = [
+  ['systemInstructions', 'System and supplier instructions'],
+  ['formworkDesign', 'Formwork design'],
+  ['jumpformProcedure', 'Jumpform climbing procedure'],
+  ['stressingProcedure', 'Stressing procedure'],
+  ['erectionDesign', 'Erection design'],
+  ['temporarySupport', 'Temporary support design'],
+  ['craneCompany', 'Crane company and lift plan'],
+  ['safetyDataSheet', 'Safety data sheet'],
+];
+
+function referencesFor(facts) {
+  return REFERENCE_FACTS
+    .map(([id, label]) => ({ label, text: keptFact(facts[id]) }))
+    .filter((item) => item.text);
 }
 
 // The kinds of work in the task, which choose the job steps and the PPE.

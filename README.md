@@ -63,6 +63,10 @@ Each draft lays the job out as the regulators' templates do: job steps, each wit
 
 Confined spaces, propping or load-bearing demolition, overhead power lines and work over water each stand down until their key fact is given: the entry permit and rescue, the temporary support design, the electrical safety arrangement, and the drowning controls.
 
+## Proprietary systems
+
+SiteReady does not write erection methods for proprietary formwork, scaffold or platform systems. Their supplier's instructions set how they are erected, used and dismantled. Where formwork, falsework, scaffold erection or loading platforms are found, the draft asks for the system, its supplier, the instructions it is erected to (document and revision) and who trained the crew, and stands down without them. The job steps then point to those instructions and say not to mix or change components without the supplier's approval. Documents the SWMS relies on are listed in a Documents to keep on site section.
+
 ## Cranes
 
 Cranes are taken to be supplied and operated by a crane company, whose operator and dogmen work to its own lift plan. The draft asks which company that is and that its lift plan covers the lifts, and the job steps cover working with the crane crew: planning the day's lifts and landing areas, only licensed dogmen or riggers slinging and releasing loads, preparing loads as directed, staying out from under loads, and stopping when the crane stops. Choosing "Our company" for who operates the crane gives the crane set-up and lifting steps instead and asks for the crane chart.
