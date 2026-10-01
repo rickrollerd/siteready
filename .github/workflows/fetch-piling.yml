@@ -1,0 +1,35 @@
+name: Fetch piling sources
+
+# Reads the piling industry standard and the mobile plant support guide behind SiteReady's piling job steps, one job per source and chunk so each log can be read back.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'legislation-watch/fetch-source.js'
+      - '.github/workflows/fetch-piling.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { source: pilingStandard, chunk: 0 }
+          - { source: mobilePlantSupport, chunk: 0 }
+    name: ${{ matrix.source }} ${{ matrix.chunk }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - run: node legislation-watch/fetch-source.js
+        env:
+          SOURCE: ${{ matrix.source }}
+          CHUNK: ${{ matrix.chunk }}
+          CHUNK_SIZE: 150000
