@@ -14,14 +14,23 @@ const WA_PAGE = 'https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_
 
 async function waCurrent() {
   const page = await (await fetch(WA_PAGE, { signal: AbortSignal.timeout(30000) })).text();
-  const row = page.split(/<tr/i).find((part) => />\s*Current\s*</i.test(part)) || '';
-  const links = [...row.matchAll(/href="([^"]+)"/gi)].map((match) => new URL(match[1].replace(/&amp;/g, '&'), WA_PAGE).href);
-  console.log(`\n=== ${WA_PAGE}\nCurrent row: ${text(row).slice(0, 300)}\nLinks: ${links.join(' ')}`);
-  const pdf = links.find((link) => /pdf/i.test(link));
+  const links = [...page.matchAll(/href="([^"]+)"/gi)]
+    .map((match) => new URL(match[1].replace(/&amp;/g, '&'), WA_PAGE).href)
+    .filter((link) => /01-c0-00|mrdoc|\.htm|\.pdf|\.docx?/i.test(link) && !/law_s53267/.test(link));
+  console.log(`\n=== ${WA_PAGE}\nLinks: ${[...new Set(links)].join('\n')}`);
+  const at = page.indexOf('01-c0-00');
+  console.log(`Markup near the current version: ${page.slice(Math.max(0, at - 1500), at + 1500).replace(/\s+/g, ' ')}`);
+  const pdf = links.find((link) => /01-c0-00/.test(link) && /\.pdf/i.test(link)) || links.find((link) => /01-c0-00/.test(link));
   if (!pdf) return;
   const response = await fetch(pdf, { signal: AbortSignal.timeout(60000) });
-  fs.writeFileSync('wa.pdf', Buffer.from(await response.arrayBuffer()));
-  const body = execFileSync('pdftotext', ['-layout', 'wa.pdf', '-']).toString().replace(/[ \t]+/g, ' ');
+  const buffer = Buffer.from(await response.arrayBuffer());
+  let body;
+  if (buffer.slice(0, 4).toString() === '%PDF') {
+    fs.writeFileSync('wa.pdf', buffer);
+    body = execFileSync('pdftotext', ['-layout', 'wa.pdf', '-']).toString().replace(/[ \t]+/g, ' ');
+  } else {
+    body = text(buffer.toString('latin1'));
+  }
   console.log(`PDF ${pdf}: HTTP ${response.status}`);
   console.log(body.slice(0, 400));
   for (const marker of [/291\.\s*Term used: high risk construction work/i, /high risk construction work means/i, /299\.\s*Safe work method statement required/i, /166\.\s*Duty of person conducting/i]) {
