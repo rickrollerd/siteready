@@ -134,16 +134,20 @@
       "id": "insulation",
       "title": "Ductwork and pipework insulation",
       "task": "Insulate the ductwork and chilled water pipework with glasswool and foam lagging using adhesives, in the ceilings, risers and plant rooms, from platform ladders.",
-      "fallRisk": "no",
+      "fallRisk": "yes",
       "facts": {
-        "safetyDataSheet": "Safety data sheets for the glasswool, foam lagging and contact adhesive are kept at the work area: use with ventilation, keep away from ignition sources, wear gloves and eye protection."
+        "safetyDataSheet": "Safety data sheets for the glasswool, foam lagging and contact adhesive are kept at the work area: use with ventilation, keep away from ignition sources, wear gloves and eye protection.",
+        "fallControl": "Risers are screened at each level with only the section being worked on opened and fenced, and work above 2 m is done from scissor lifts with guardrails."
       },
       "expect": {
-        "highRisk": [],
+        "highRisk": [
+          "fall"
+        ],
         "steps": [
           "Insulate ductwork and pipework"
         ],
         "missing": [
+          "Fall control",
           "Safety data sheet"
         ]
       }
@@ -152,16 +156,18 @@
       "id": "commissioning",
       "title": "Refrigerant charging, commissioning and air balancing",
       "task": "Evacuate and charge the systems with refrigerant, commission the air handling units, fan coil units and exhaust fans, and balance the air flows.",
-      "fallRisk": "no",
+      "fallRisk": "yes",
       "facts": {
         "refrigerantClass": "a2l",
-        "plantIsolation": "Each unit is isolated at its local isolator and locked out with personal padlocks, tested by trying to start it, and the building management system is put in manual off for plant under its control."
+        "plantIsolation": "Each unit is isolated at its local isolator and locked out with personal padlocks, tested by trying to start it, and the building management system is put in manual off for plant under its control.",
+        "fallControl": "Roof plant is commissioned only inside the roof edge protection, and ceiling units are reached from platform ladders or scissor lifts with guardrails."
       },
       "expect": {
         "highRisk": [
           "chemicalLine",
           "atmosphere",
-          "electrical"
+          "electrical",
+          "fall"
         ],
         "steps": [
           "Evacuate, charge and recover refrigerant",
@@ -169,6 +175,7 @@
           "Commission and balance the system"
         ],
         "missing": [
+          "Fall control",
           "Refrigerant safety class",
           "Plant isolation procedure"
         ]
