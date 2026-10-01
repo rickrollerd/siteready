@@ -1,0 +1,23 @@
+name: Fetch second sources
+
+# Reads second sources for the legislation from GitHub's servers and prints them.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'legislation-watch/fetch-sources.js'
+      - '.github/workflows/fetch-sources.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: node legislation-watch/fetch-sources.js

@@ -17,7 +17,7 @@ npm test
 
 ## How it works
 
-1. Pick the state, write the task, and answer Yes or No to "Could a person fall more than 2 metres during this task?". Queensland, New South Wales and Victoria are loaded. Other states are shown but cannot be chosen. A No shows a short explanation of what a fall from height is. If the task wording mentions work at height and the answer is No, the user is warned and asked to check, but the No stands, because a scaffold, parapet or edge protection may already remove the risk. The draft records the answer.
+1. Pick the state, write the task, and answer Yes or No to "Could a person fall more than 2 metres during this task?". Queensland, New South Wales, Victoria and South Australia are loaded. Other states are shown but cannot be chosen. A No shows a short explanation of what a fall from height is. If the task wording mentions work at height and the answer is No, the user is warned and asked to check, but the No stands, because a scaffold, parapet or edge protection may already remove the risk. The draft records the answer.
 2. The app asks for the facts the task needs, for example:
    - crane chart: rated capacity in tonnes at the working radius in metres
    - erection design, centre of gravity and brace arrangement for a panel lift
@@ -76,9 +76,10 @@ The native app loads `public/` from the device, so it must be told where the ser
 
 ## Legislation references
 
-- Queensland: Work Health and Safety Regulation 2011 (Qld), current as at 29 March 2026. Overhead line distance from the Electrical Safety Regulation 2026 (Qld).
-- New South Wales: Work Health and Safety Regulation 2025 (NSW), current version for 3 July 2026, checked against the official PDF. Overhead line approach distances from the SafeWork NSW Code of practice, Work near overhead and underground electric lines (May 2026), Table 1.
-- Victoria: Occupational Health and Safety Regulations 2017 (Vic), authorised version 017 as at 29 July 2026, checked against the authorised PDF. Victoria is not a model WHS state: high risk construction work is regulation 322 (19 categories, any demolition, tunnels listed separately), the SWMS is regulation 327, and regulation 324 asks only how controls are to be implemented. The regulations set no overhead line distance, so drafts tell the user to get the line owner's requirements.
+- Queensland: Work Health and Safety Regulation 2011 (Qld), current as at 29 March 2026, checked against legislation.qld.gov.au and the model WHS Regulations (5 December 2025). Overhead line distance from the Electrical Safety Regulation 2026 (Qld).
+- New South Wales: Work Health and Safety Regulation 2025 (NSW), current version for 3 July 2026, checked against the official PDF and the model WHS Regulations (5 December 2025). Overhead line approach distances from the SafeWork NSW Code of practice, Work near overhead and underground electric lines (May 2026), Table 1.
+- Victoria: Occupational Health and Safety Regulations 2017 (Vic), authorised version 017 as at 29 July 2026, checked against the authorised PDF and WorkSafe Victoria's Safe Work Method Statements (SWMS) page, which lists the same 19 categories. Victoria is not a model WHS state: high risk construction work is regulation 322 (19 categories, any demolition, tunnels listed separately), the SWMS is regulation 327, and regulation 324 asks only how controls are to be implemented. The regulations set no overhead line distance, so drafts tell the user to get the line owner's requirements.
+- South Australia: Work Health and Safety Regulations 2012 (SA), version of 1 July 2026, checked against the authorised PDF and the model WHS Regulations (5 December 2025). Regulations 291 and 299 follow the national model. Regulation 166 sets no overhead line distance, so drafts tell the user to get the electricity supply authority's requirements.
 
 The references in `legislation.js` must be checked against each state's official legislation site before release, and again when a regulation changes.
 
@@ -100,3 +101,7 @@ The check runs from the default branch (`main`). Email needs three repository se
 | `SMTP_PASSWORD` | A Gmail app password for that address (needs 2-Step Verification) |
 
 Without them, the issue is still opened and GitHub notifies the repository owner.
+
+## Legislation cross-check
+
+`.github/workflows/legislation-crosscheck.yml` compares each loaded state's section numbers and category labels with a second source, and prints the provisions. Queensland is read from legislation.qld.gov.au. AustLII refuses requests from GitHub, so the other states are checked by hand against the sources listed in `legislation-watch/crosscheck.js`.

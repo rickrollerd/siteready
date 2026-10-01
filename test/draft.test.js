@@ -4,7 +4,7 @@ const { prepareDraft, questionsFor } = require('../draft');
 
 // Most tests answer No so the task wording check is what is being tested.
 const draft = (task, extra = {}) => prepareDraft({ state: 'qld', task, fallRisk: 'no', ...extra });
-const FALL = 'Risk of a person falling more than 2 metres';
+const FALL = 'Involves a risk of a person falling more than 2m';
 
 test('scaffold erection to 6 m stands down until a fall control is given', () => {
   const task = 'Erect a modular scaffold 4 bays by 2, top working platform at 6 m, ties to the slab edge at every lift.';
@@ -152,4 +152,14 @@ test('Victoria uses regulation 322 and 327 and its own SWMS contents', () => {
   const line = lines.controls.find((item) => /overhead electric lines/.test(item.text));
   assert.match(line.text, /set no distance/);
   assert.match(questionsFor({ state: 'vic', task: 'Replace a 3m length of fence.', fallRisk: 'no' }).fall.explanation, /regulation 322/);
+});
+
+test('South Australia uses its regulations and gives no power line distance', () => {
+  const done = prepareDraft({ state: 'sa', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no' });
+  assert.equal(done.instrument, 'Work Health and Safety Regulations 2012 (SA)');
+  assert.equal(done.sectionRef, 'regulation 299');
+  assert.ok(done.highRisk.includes('Is carried out on or near energised electrical installations or services'));
+  const line = done.controls.find((item) => /electric line/.test(item.text));
+  assert.match(line.text, /regulation 166/);
+  assert.doesNotMatch(line.text, /\d\.\d m/);
 });
