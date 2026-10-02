@@ -133,10 +133,10 @@ test('review fixes: trench depth threshold, harness only when used, trade-limite
   assert.ok(!questionsFor({ state: 'qld', trade: 'roofing', fallRisk: 'yes', task: 'Install prepainted steel roof sheeting.' }).required.some((item) => item.id === 'erectionSequence'));
   // A plumber's roof work gets roof access; a roofer gets the roofing steps, not both.
   const steps = (input) => draft({ fallRisk: 'yes', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' }, ...input }).jobSteps.map((step) => step.step);
-  // With roof access as its only steps, the plumber's install is stood down: the main work has no steps yet.
+  // The plumber's solar hot water install gets roof access and the water heater connection.
   const solar = draft({ trade: 'plumbing', fallRisk: 'yes', task: 'Install the solar hot water system on the roof.', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
-  assert.equal(solar.kind, 'stand-down');
-  assert.match(solar.missing[0], /only for the access, lifting or other work around it/);
+  assert.equal(solar.kind, 'draft');
+  assert.ok(solar.jobSteps.some((step) => step.step === 'Get onto the roof and set up fall protection') && solar.jobSteps.some((step) => step.step === 'Disconnect and connect the water heater'));
   assert.ok(!steps({ trade: 'roofing', task: 'Fix roof sheeting on the roof.' }).includes('Get onto the roof and set up fall protection'));
   // Knee pads called for in the steps are ticked.
   const vinyl = draft({ trade: 'flooring', task: 'Install sheet vinyl and carpet tiles with adhesive.', facts: { safetyDataSheet: 'The products used are epoxy adhesive.' } });

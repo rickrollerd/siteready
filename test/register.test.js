@@ -291,3 +291,16 @@ test('round 10: work named only as a destination or a marking job does not bring
   const kitchen = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Install and commission refrigeration equipment and cooking equipment in the commercial kitchen.', facts: { safetyDataSheet: 'Refrigerant SDS.', plantIsolation: 'Isolated and locked out at the switchboard.' } });
   assert.ok((kitchen.highRisk || []).some((item) => /refrigerant/i.test(item)));
 });
+
+test('everyday tasks get job steps for their main work', () => {
+  const steps = (task, facts = {}) => {
+    const draft = prepareDraft({ state: 'nsw', fallRisk: 'no', residential: 'yes', task, facts: { silicaControls: 'On-tool extraction.', fallControl: 'Mobile scaffold with guardrails.', ...facts } });
+    return draft.kind === 'draft' ? draft.jobSteps.map((step) => step.step) : draft.missing;
+  };
+  assert.ok(steps('Install ceiling grid and tiles in an open plan office from mobile scaffolds.').includes('Install suspended grid ceilings'));
+  assert.ok(steps('Install new playground equipment and rubber softfall at a council park.').includes('Install playground equipment and softfall'));
+  assert.ok(steps('Install a 20 m sewer rising main by horizontal directional drilling under a road.').includes('Bore under the road or ground with a directional drill'));
+  assert.ok(steps('Demolish a single storey brick veneer house and remove the slab.', { asbestosArrangement: 'A licensed removalist removed all asbestos; clearance certificate sighted.' }).includes('Demolish the structure'));
+  assert.ok(steps('Remove three large gum trees near power lines at a rural property.', { electricalSafety: 'The network operator has isolated the line in writing before work starts.' }).some((step) => /tree/i.test(step)));
+  assert.ok(steps('Replace carpet tiles and vinyl in a primary school during the holidays.').some((step) => /floor/i.test(step)));
+});
