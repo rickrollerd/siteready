@@ -152,7 +152,7 @@ const LOAD_BEARING_REMOVAL = /\b(remov\w*|cut\w*|knock\w* out|tak\w* out|demolis
 const MASONRY_OPENING = /\b(?:cut\w*|form\w*|mak\w*|creat\w*|new|widen\w*|enlarg\w*)\b[^.]{0,20}\b(?:doorways?|openings?|window openings?)\b[^.]{0,40}\b(?:brick|block|masonry|stone|concrete)\b|\b(?:install\w*|insert\w*|fit\w*|replac\w*)\b[^.]{0,20}\b(?:rusted |steel |new |old )*lintels?\b[^.]{0,60}\b(?:existing|old|brick|block|masonry|above|over)\b/i;
 const SUBFLOOR_REPAIR = /\b(?:replac\w*|repair\w*|sister\w*)\b[^.]{0,30}\b(?:rotten |damaged |old )?(?:timber )?(?:floor )?(?:joists?|bearers?)\b/i;
 const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
-const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
+const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
 const WATER = /\b(drown(?:ing)?|in or near water|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|(?:into|in) (?:a |the )?(?:swimming )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall)\b/i;
 
 function isScaffoldErection(text) {
@@ -1412,7 +1412,9 @@ function prepareDraft(input) {
   if (asked.kind === 'refused' || asked.kind === 'error') return asked;
   const state = stateFor(input);
   const task = cleanLine(input.task || input.jobDescription);
-  const facts = input.facts || {};
+  // A space the user has assessed as not a confined space drops any confined space arrangement.
+  const facts = { ...(input.facts || {}) };
+  if (choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'notConfined' && !/\bconfined space\b/i.test(task)) delete facts.confinedSpace;
   const site = siteFromPack(task, input.site || {});
   const pack = {
     site,
@@ -1819,6 +1821,16 @@ function settleFlags(flags, task) {
   // A lead paint job has its own removal step.
   if (out.leadPaint) out.painting = out.painting && /\b(re-?paint\w*|paint (?:the|it)|and paint)\b/i.test(task);
   if (out.tileReplace) out.tileCut = true;
+  if (out.applianceSwap) out.fitOff = false;
+  if (out.crackInjection && !/\b(spall\w*|break\w* out|concrete cancer)\b/i.test(task)) out.concreteRepair = false;
+  if (out.tankWalls) out.confined = out.confined || false;
+  if (out.slabRemoval && out.groundCut) out.cutOpening = false;
+  if (out.masonryLay) out.masonryMortar = true;
+  if (/\b(?:remov\w*|demolish\w*|take down|pull down)\b[^.]{0,30}\b(?:fibro |garden |old |timber |metal )?(?:sheds?|garages?|carports?|cubby houses?)\b/i.test(task)) out.structureDemolition = true;
+  if (/\bbenchtops?\b/i.test(task) && !/\b(cabinets?|joinery|cupboards?|doors?|kitchens? (?:fit|install))\b/i.test(task)) out.carpJoinery = false;
+  if (/\b(?:fix\w*|hang\w*|install\w*)\b[^.]{0,20}\bplasterboard\b[^.]{0,30}\bbulkheads?\b/i.test(task) && !/\b(fram\w*|studs?)\b/i.test(task)) out.carpFraming = false;
+  if (out.streetLighting) out.cablePull = true;
+  if (/\b(?:install\w*|replac\w*) (?:a |an |the )?(?:new )?(?:[\w-]+ ){0,4}(?:control panels?|sub-?boards?)\b/i.test(task)) { out.isolation = true; out.boardDelivery = true; }
   if (out.platformLift) { out.liftShaft = false; out.liftInstall = false; out.liftCar = false; out.liftLifting = false; }
   if (out.pitLid && !/\b(pipes?|pipework|drains?)\b/i.test(task)) { out.trench = false; out.plumbingWork = false; }
   if (out.subfloorRepair) { out.timberFloor = false; out.propping = false; }
@@ -2050,7 +2062,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     compaction: /\b(compact\w*|rollers?)\b/i.test(task),
     claddingInstall: /\b(?:roof|frame),? (?:and )?clad\b|\bclad(?:,| and) line\b/i.test(task) || /\b(?:install\w*|fix\w*|replac\w*|supply and)\b[^.]{0,40}\b(?:(?:fibre cement|timber|weatherboard|james hardie|composite|external) )?(?:cladding|weatherboards?|hebel (?:panels?|blocks?)|aac panels?)\b/i.test(task) && !/\b(?:unitised|curtain wall|facade panels?|aluminium composite panels?|acp)\b/i.test(task),
     repointing: /\b(repoint\w*|rak\w* out (?:the )?(?:mortar|joints?)|replac\w* (?:the )?(?:old )?mortar|re-?mortar\w*|sandstone (?:repair|restoration))\b/i.test(task),
-    fixtures: /\b(?:install\w*|fit\w*|fix\w*)\b[^.]{0,40}\b(?:acoustic (?:wall )?panels? on (?:the )?walls?|wall panels?|grab rails?|handrails?|stair ?lifts?|tactile (?:indicators?|tiles?)|shelving|signage|whiteboards?|mirrors?|toilet partitions?|lockers?)\b/i.test(task),
+    fixtures: /\b(?:install\w*|fit\w*|fix\w*)\b[^.]{0,40}\b(?:acoustic (?:wall )?panels? on (?:the )?walls?|grab rails?|handrails?|stair ?lifts?|tactile (?:indicators?|tiles?)|shelving|whiteboards?|mirrors?|toilet partitions?|lockers?)\b/i.test(task),
     accessSteel: /\b(?:install\w*|fit\w*|fix\w*|erect\w*)\b[^.]{0,30}\b(?:access (?:ladders?|platforms?|stairs?)|walkways?|cage ladders?|fixed ladders?|(?:mezzanine |steel )?stairs?(?: and handrails?)?|staircases?|ladders? (?:and |with (?:a )?)?cages?|plant platforms?)\b/i.test(task),
     garageDoor: /\b(?:install\w*|replac\w*|fit\w*)\b[^.]{0,30}\b(?:garage doors?|roller doors?|sectional doors?|roller shutters?)\b/i.test(task),
     anchorInstall: /\b(?:install\w*|fit\w*|certif\w*)\b[^.]{0,30}\b(?:anchor points?|static lines?|lifelines?|roof anchors?|fall arrest (?:systems?|anchors?|points?)|height safety (?:systems?|anchors?))\b/i.test(task),
@@ -2173,6 +2185,33 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     steelRails: /\b(steel|weld\w*)\b/i.test(task) && /\b(rails?|yards?|posts?|fenc\w*)\b/i.test(task),
     grinding: /\bgrind\w*\b/i.test(task),
     deckRefinish: /\b(?:strip\w*|refinish\w*|oil\w*|stain\w*|sand\w*)\b[^.]{0,30}\b(?:timber )?decks?\b/i.test(task),
+    multiLevel: /\b(apartments?|levels?|storeys?|stor(?:e?y|ies)|multi-?stor\w*|high ?rises?|towers?|floors? (?:above|below)|office (?:buildings?|towers?)|hospitals?)\b/i.test(task),
+    chasing: /\b(chas\w*|rough[- ]in|rewir\w*|new circuits?|power points?|gpos?|switch(?:es)?|outlets?|data points?|conduits? in (?:the )?walls?|wall boxes?|fit[- ]off)\b/i.test(task),
+    sportsField: /\b(sports? (?:fields?|ovals?|grounds?|courts?)|ovals?|stadiums?|playing fields?)\b/i.test(task),
+    craneNamed: /\b(cranes?|work box\w*|screens?)\b/i.test(task),
+    signPostsOnly: /\b(sign ?posts?|car ?parks?|parking (?:spaces?|bays?)|road signs?|street signs?)\b/i.test(task) && !/\b(facades?|shopfronts?|buildings? (?:front|face)|lit signs?|led screens?|billboards?)\b/i.test(task),
+    panelCladding: /\b(cladding panels?|wall panels?|acm|aluminium composite|metal cladding|tilt-?up)\b/i.test(task) && !/\b(timber|weatherboards?|fibre cement|hardie\w*)\b/i.test(task),
+    roofContext: /\b(roofs?|rooftop|roof ?top)\b/i.test(task),
+    louvres: /\blouv(?:re|er)s?\b/i.test(task),
+    refrigEquipment: /\b(fridges?|freezers?|cool ?rooms?|cold ?rooms?|refrigerat\w*|ice machines?|display cabinets?|chillers?)\b/i.test(task),
+    stainlessFab: /\b(stainless steel (?:benches|benching|sinks?|shelving|joinery|custom fabricated items)|fabricat\w*|weld\w*)\b/i.test(task),
+    retainingBlock: /\bretaining walls?\b/i.test(task) && /\b(blocks?|masonry|bricks?|besser)\b/i.test(task),
+    masonryFooting: /\b(barbecues?|bbqs?|letterbox\w*|piers?|fences?|planters?)\b/i.test(task),
+    wallRepair: /\b(failed|collapsed|leaning|cracked|damaged)\b[^.]{0,20}\b(?:retaining )?walls?\b|\brepair\w*[^.]{0,20}\bretaining walls?\b/i.test(task),
+    skylightRepair: /\b(repair\w*|replac\w*)\b[^.]{0,30}\b(?:broken |damaged |hail[- ]damaged |cracked )?skylights?\b|\b(?:hail|storm)[- ]damaged skylights?\b/i.test(task),
+    fuelSite: /\b(service stations?|petrol stations?|fuel (?:sites?|forecourts?|bowsers?|dispensers?))\b/i.test(task),
+    balustradeReplace: /\b(?:replac\w*|remov\w*|repair\w*)\b[^.]{0,30}\bbalustrad\w*/i.test(task),
+    landingDoors: /\blanding doors?\b/i.test(task),
+    kitchenStrip: /\bstrip\w*[- ]?out\b[^.]{0,30}\bkitchens?\b|\bkitchens?\b[^.]{0,30}\bstrip\w*[- ]?out\b/i.test(task),
+    paneReplace: /\b(cracked|broken|smashed)\b[^.]{0,20}\b(?:window )?(?:panes?|glass)\b|\b(?:replac\w*)\b[^.]{0,20}\b(?:window |glass )?panes?\b/i.test(task),
+    acUnit: /\b(air ?con\w*|condens\w*|split systems?|heat pump units?|outdoor units?)\b/i.test(task),
+    slabRemoval: /\b(?:cut\w*|break\w*|remov\w*|demolish\w*)\b[^.]{0,30}\b(?:and remov\w* )?(?:a |the )?(?:existing |old )?(?:concrete )?slabs?\b/i.test(task) && /\bremov\w*|break\w*|demolish\w*/i.test(task),
+    applianceSwap: /\b(?:replac\w*|swap\w*|chang\w*)\b[^.]{0,40}\b(?:stoves?|ovens?|cooktops?|rangehoods?|dishwashers?|appliances?)\b/i.test(task) && /\b(electric|induction|cooktops?|stoves?|ovens?)\b/i.test(task) && !/\bgas\b/i.test(task),
+    tankWalls: /\bconstruct\w*[^.]{0,30}\bconcrete (?:water )?tanks?\b|\b(?:build|form|pour)\w*[^.]{0,30}\btank walls?\b/i.test(task),
+    kerbWork: /\b(kerbs?|kerb and channel|channels?)\b/i.test(task),
+    solarArray: /\b(solar (?:panels?|pv|arrays?|modules?|systems?)|pv|arrays?|panels?|photovoltaic)\b/i.test(task) && !/\b(battery|batteries)\b(?![^.]*\bpanels?\b)/i.test(task) || /\bsolar (?:panels?|arrays?)\b/i.test(task),
+    chainWire: /\bchain ?wire\b|\bchainmesh\b|\bcyclone (?:wire|fenc\w*)\b/i.test(task),
+    lintelReplace: /\b(?:replac\w*|remov\w*)\b[^.]{0,30}\blintels?\b/i.test(task),
     poolHeater: /\bpool (?:heaters?|heat pumps?|heating)\b/i.test(task),
     appliancePower: /\b(power|electrical|electric(?:ity)?|booster heaters?)\b/i.test(task) && /\b(dishwashers?|coffee machines?|ice machines?|ovens?|fryers?|appliances?|machines?|equipment)\b/i.test(task) || /\bice machines?\b/i.test(task),
     smallMasonry: /\b(letterbox\w*|piers?|brick\w* up|block\w* up|fill\w* in|openings?|doorways?|repair\w*|patch\w*|barbecues?|bbqs?|steps|planter\w*)\b/i.test(task) && !/\b(storeys?|houses? (?:walls|brickwork)|face brick\w* (?:for|to) (?:a |the )?(?:new )?(?:\w+ )?(?:house|building)|fire walls?|block (?:walls?|fire walls?))\b/i.test(task),
