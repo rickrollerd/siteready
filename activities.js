@@ -3918,6 +3918,35 @@ ACTIVITIES.push(
     ppe: ['gloveCut'],
   },
   {
+    when: 'safetyMesh',
+    steps: [{
+      step: 'Install safety mesh and sarking',
+      hazards: ['A fall between purlins before the mesh is fixed.', 'A fall from the roof edge.', 'Mesh that is badly fixed or lapped fails under a falling person.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Safety mesh to AS/NZS 4389 is run out from a protected edge, and fixed, lapped and tensioned over the purlins to the manufacturer\'s details.',
+        'A competent person checks the mesh before any sheet goes on, and damaged mesh is replaced.',
+        'Sarking is laid only over mesh that is already fixed. No one stands on sarking between purlins.',
+        'Mesh does not protect against a fall from the edge: edge protection stays in place.',
+      ],
+    }],
+    ppe: ['gloveCut'],
+  },
+  {
+    when: 'waterHeater',
+    steps: [{
+      step: 'Disconnect and connect the water heater',
+      hazards: ['Scalds from stored hot water and hot pipes.', 'Water damage and slips while draining.', 'Strain or crushing moving the heater.'],
+      controls: [
+        'The water connections are plumbing work for a licensed plumber.',
+        'The old heater is turned off and left to cool before it is drained, and drained to a floor waste or outside.',
+        'The new heater has its temperature and pressure relief valve and drain line fitted to the manufacturer\'s instructions.',
+        'Water to bathroom outlets is delivered no hotter than 50 °C, with a tempering valve where the plumbing rules require one.',
+        'Heaters are moved by two people or with a trolley, and set on a base that takes their full weight.',
+      ],
+    }],
+  },
+  {
     when: 'rainwaterTank',
     steps: [{
       step: 'Install the rainwater tank and pump',
@@ -3977,6 +4006,8 @@ ACTIVITIES.push(
         'Tiles stacked on the roof are spread along the battens so they cannot slide, and the area below is fenced off.',
         src('Drill with on-tool extraction. Anyone still at risk of exposure wears a fit tested respirator (P2 or better).', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`),
         'Tiles are cut with a wet saw or a saw with on-tool extraction, never dry cut without extraction.',
+        src('Assess in writing before cutting whether the processing is high risk. The assessment does not count PPE, administrative controls, or the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.', WHS('s 529CA')),
+        src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
       ],
     }],
     ppe: ['p2', 'sunHat', 'sunscreen'],
