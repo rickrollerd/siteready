@@ -3580,7 +3580,7 @@ addAfter('landscape', {
   when: 'treeRemoval',
   steps: [{
     step: 'Remove trees, stumps and roots',
-    hazards: ['A tree or limb falls on a person.', 'Chainsaw cuts and kickback.', 'Stump grinder debris.', 'Striking services or overhead power lines.'],
+    hazards: ['A tree or limb falls on a person.', 'Chainsaw cuts and kickback.', 'Stump grinder debris.', 'Striking services or overhead power lines.', 'Noise from chainsaws and stump grinders.'],
     controls: [
       'Where trees are felled, they are felled from the ground only by competent chainsaw operators, with a plan for the direction of fall. A tree that must be dismantled at height is done by an arborist under their own SWMS.',
       'Keep an exclusion zone around felling of at least twice the height of the tree, and around any work under a tree being cut.',
