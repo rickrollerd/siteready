@@ -1969,6 +1969,7 @@ function settleFlags(flags, task) {
   off(out.beamInstall && !/\b(build\w*|lay\w*|brick\w* up|block\w* up|fill\w* in)\b/i.test(task), 'masonryLay');
   // Late rules: these follow every rule above.
   out.asbestosNamed = /\basbestos\b/i.test(task);
+  off(out.pileConcrete || out.pileCage || out.cfaCage, 'pileComplete');
   if (/\basbestos\b/i.test(task) && /\bwall sheets?\b/i.test(task) && /\btil\w*\b/i.test(task)) { out.wetAreaSheets = true; out.wpLiquid = true; }
   out.vanityReplace = /\b(?:replac\w*|remov\w*|swap\w*)\b[^.]{0,30}\bvanit/i.test(task);
   out.jointSaw = /\b(saw\w*|control joints?)\b/i.test(task);
@@ -2291,9 +2292,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     masonryFence: /\b(masonry|brick|block|rendered) fences?\b/i.test(task),
     siteToilets: /\b(toilets?|amenities)\b/i.test(task),
     gravelWork: /\bgravel\b/i.test(task),
-    rockLining: /\b(rock (?:lining|beaching|armour\w*|walls?)|rip ?rap)\b/i.test(task),
     stormwaterOnly: /\b(downpipes?|stormwater|gutters?|roof water)\b/i.test(task) && !/\b(sewers?|sewage|sanitary|waste|toilets?|septic)\b/i.test(task),
-    inverterReplace: /\b(?:replac\w*|swap\w*|upgrad\w*)\b[^.]{0,30}\binverters?\b/i.test(task),
     pumpOutLine: /\bpump[- ]?out (?:lines?|points?|pipes?)\b|\bpump[- ]?out\b[^.]{0,30}\b(?:septic|grease|arrestor|trap)\b|\b(?:septic|grease|arrestor|trap)\b[^.]{0,30}\bpump[- ]?out\b/i.test(task),
     platformLift: /\b(platform lifts?|wheelchair (?:lift|platform)\w*|disabled (?:access )?lifts?|lift platforms?)\b/i.test(task),
     pitLid: /\b(?:replac\w*|fit\w*|install\w*)\b[^.]{0,30}\b(?:pit (?:lids?|covers?|grates?)|(?:grated |access )?(?:lids?|covers?|grates?) (?:on|to|of) (?:a |the )?(?:\w+ )?pits?)\b/i.test(task),
@@ -2328,7 +2327,6 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     kerbWork: /\b(kerbs?|kerb and channel|channels?)\b/i.test(task),
     solarArray: /\b(solar (?:panels?|pv|arrays?|modules?|systems?)|pv|arrays?|panels?|photovoltaic)\b/i.test(task) && !/\b(battery|batteries)\b(?![^.]*\bpanels?\b)/i.test(task) || /\bsolar (?:panels?|arrays?)\b/i.test(task),
     chainWire: /\bchain ?wire\b|\bchainmesh\b|\bcyclone (?:wire|fenc\w*)\b/i.test(task),
-    lintelReplace: /\b(?:replac\w*|remov\w*)\b[^.]{0,30}\blintels?\b/i.test(task),
     smallElectrical: /\b(houses?|homes?|units?|apartments?|cooktops?|stoves?|ovens?|sports? (?:fields?|ovals?|grounds?)|ev chargers?|garages?)\b/i.test(task),
     ewpNamed: /\b(ewps?|boom lifts?|elevating work platforms?|scissor lifts?|cherry pickers?)\b/i.test(task),
     attachedStructure: /\battached\b/i.test(task),
@@ -2360,7 +2358,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     shedTakeDown: /\b(?:remov\w*|demolish\w*|tak\w* down|dismantl\w*)\b[^.]{0,30}\b(?:\w+ )?(?:garden )?sheds?\b/i.test(task) && !/\b(machinery|hay|industrial|farm|storage) sheds?\b/i.test(task),
     controlPanelInstall: /\b(?:install\w*|replac\w*|new)\b[^.]{0,40}\bcontrol (?:panels?|boards?)\b/i.test(task),
     pumpStation: /\b(pump stations?|wet wells?|sewage pumps?)\b/i.test(task),
-    rockLining: /\brock (?:lining|beaching|armour\w*|walls?)\b/i.test(task),
+    rockLining: /\b(rock (?:lining|beaching|armour\w*|walls?)|rip ?rap)\b/i.test(task),
     lintelReplace: /\b(?:replac\w*|remov\w*)\b[^.]{0,30}\b(?:rusted |old |failed |cracked )?(?:steel )?lintels?\b/i.test(task),
     subBoardInstall: /\b(?:install\w*|new)\b[^.]{0,30}\b(?:3-phase |three phase |single phase )?(?:sub-?boards?|distribution boards?)\b/i.test(task),
     footpathWork: /\b(footpaths?|sidewalks?|shopfronts?|pedestrian)\b/i.test(task),
@@ -2374,7 +2372,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     mainRepair: /\b(burst|broken|leaking|damaged)\b[^.]{0,20}\b(?:water )?mains?\b/i.test(task),
     tempPole: /\b(temporary|builder'?s|construction) (?:power )?poles?\b/i.test(task),
     fireCollar: /\bfire collars?\b/i.test(task),
-    pileConcrete: /\b(bored|cfa|cast[- ]in[- ]place|cast[- ]in[- ]situ|screw) piles?\b/i.test(task) && /\b(install\w*|construct\w*|drill\w*|bore\w*)\b/i.test(task),
+    pileComplete: /\b(bored|cfa|continuous flight auger|cast[- ]in[- ]place|cast[- ]in[- ]situ|screw) piles?\b/i.test(task) && /\b(install\w*|construct\w*|drill\w*|bore\w*)\b/i.test(task),
     poolHeater: /\bpool (?:heaters?|heat pumps?|heating)\b/i.test(task),
     appliancePower: /\b(power|electrical|electric(?:ity)?|booster heaters?)\b/i.test(task) && /\b(dishwashers?|coffee machines?|ice machines?|ovens?|fryers?|appliances?|machines?|equipment)\b/i.test(task) || /\bice machines?\b/i.test(task),
     smallMasonry: /\b(letterbox\w*|piers?|brick\w* up|block\w* up|fill\w* in|openings?|doorways?|repair\w*|patch\w*|barbecues?|bbqs?|steps|planter\w*)\b/i.test(task) && !/\b(storeys?|houses? (?:walls|brickwork)|face brick\w* (?:for|to) (?:a |the )?(?:new )?(?:\w+ )?(?:house|building)|fire walls?|block (?:walls?|fire walls?))\b/i.test(task),

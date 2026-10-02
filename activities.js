@@ -4123,7 +4123,7 @@ const ACTIVITIES = [
     ppe: ['p2', 'glassesClear'],
   },
   {
-    when: 'pileConcrete',
+    when: 'pileComplete',
     steps: [{
       step: 'Place the reinforcement cage and concrete the pile',
       hazards: ['The cage swings or drops while it is lifted.', 'A fall into an open bore.', 'Struck by the concrete pump hose or tremie.'],
@@ -5676,7 +5676,6 @@ ACTIVITIES.push(
         hazards: [{ only: 'solarArray', text: 'Electric shock from the array: panels make DC voltage whenever light falls on them, and cannot be switched off at the panel.' }, { unless: 'solarArray', text: 'Electric shock from DC and AC terminals at the inverter and battery.' }, 'A DC arc and burns when connectors are pulled apart under load.', 'Electric shock from the AC supply at the switchboard.'],
         controls: [
           'Electrical work is done only by a licensed electrical worker.',
-          { only: 'inverterReplace', text: 'The old inverter is isolated on both the AC and DC sides, and proved de-energised, before it is disconnected and taken off the wall.' },
           { only: 'solarArray', text: 'Array conductors are treated as live in daylight. Connectors stay apart until the final connection, panels are covered with an opaque cover where their conductors must be worked on, and DC connectors are never pulled apart under load: the DC isolator is opened first.' },
           { only: 'inverterReplace', text: 'The old inverter is isolated on both its AC and DC sides, and the DC isolators locked off, before it is disconnected and removed. The new inverter is mounted to the manufacturer\'s instructions and AS/NZS 4777.1 on a wall that can carry it.' },
           { unless: 'inverterReplace', text: 'The array, inverter and isolators are installed to AS/NZS 5033, AS/NZS 4777.1 and the manufacturers\' instructions, with the required signs fitted.' },
