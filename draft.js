@@ -156,8 +156,10 @@ const MASONRY_OPENING = /\b(?:cut\w*|form\w*|mak\w*|creat\w*|new|widen\w*|enlarg
 const HOUSE_JACKING = /\b(re-?stump\w*|(?:replac|chang)\w* (?:the )?(?:old |rotten |timber )*stumps|jack\w* (?:up )?(?:the |a )?(?:\w+ )?houses?|rais\w* (?:the |a )?(?:\w+ )?houses?|lift\w* (?:the |a )?(?:\w+ )?houses?|underpin\w*)\b/i;
 const SUBFLOOR_REPAIR = /\b(?:replac\w*|repair\w*|sister\w*)\b[^.]{0,30}\b(?:rotten |damaged |old )?(?:timber )?(?:floor )?(?:joists?|bearers?)\b/i;
 const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
-const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
-const WATER = /\b(drown(?:ing)?|in or near water|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|(?:into|in) (?:a |the )?(?:swimming )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall)\b/i;
+const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|motorways?|freeways?|next to (?:live )?traffic|rural roads?|road pavements?|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
+// Track work and work beside running lines are in or next to a railway in use.
+const RAIL_IN_USE = /\b(rail (?:lines?|tracks?)|live track|track possessions?|during (?:a|the) possession|road rail vehicles?|rail overhead wiring|overhead wiring with|track laying|track maintenance machines?|ballast)\b/i;
+const WATER = /\b(drown(?:ing)?|in or near water|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|(?:into|in) (?:a |the )?(?:swimming )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall|breakwaters?|(?:from|on) (?:a |the )?(?:jack-?up )?barges?|jack-?up barges?|dredg\w*)\b/i;
 
 function isScaffoldErection(text) {
   return /\bscaffold\w*\b/i.test(String(text || '').replace(/\bmobile scaffold\w*/gi, '')) && (/\b(erect\w*|dismantl\w*|strik\w* (?:the )?scaffold|alter\w*)\b/i.test(text) || /\b(?:install\w*|build\w*) (?:a |the )?(?:temporary |new )?scaffold\w*/i.test(text));
@@ -403,6 +405,10 @@ function deepExcavation(text) {
     // Basements and bulk excavation are not trenches or shafts.
     // A pump station wet well is a shaft.
     if (/\b(?:install\w*|construct\w*|build\w*)\b[^.]{0,60}\b(?:pump station )?wet wells?\b/i.test(text)) return true;
+    if (/\b(diaphragm walls?|secant (?:pile )?walls?)\b/i.test(text)) return true;
+    // A main or pipe of 900 mm or more sits in a trench well over 1.5 m deep.
+    const bore = text.match(/\b(\d{3,4}) ?mm\b[^.]{0,30}\b(?:mains?|pipes?|pipelines?|culverts?)\b/i);
+    if (bore && Number(bore[1]) >= 900 && /\b(lay\w*|install\w*)\b/i.test(text)) return true;
     // Detention and other underground tanks, and digging down beside a basement wall, go well past 1.5 m.
     if (/\b(?:install\w*|construct\w*|build\w*)\b[^.]{0,40}\b(?:detention|retention|underground|in-ground|below-ground)\s+(?:\w+\s+)?tanks?\b/i.test(text) && !trenchDepths(text).some((depth) => depth <= 1.5)) return true;
     if (/\bbasement walls?\b[^.]{0,40}\b(?:from )?(?:the )?outside\b|\boutside of (?:a |the )?basement walls?\b/i.test(text)) return true;
@@ -414,8 +420,14 @@ function deepExcavation(text) {
   return !depths.length || depths.some((depth) => depth > 1.5);
 }
 
+function trenchDig(text) {
+  // Diaphragm wall panels are dug under support fluid and no one enters them.
+  return deepExcavation(String(text || '').replace(/\btunnel\w*\b/gi, ' ')) && !/\bdiaphragm walls?\b/i.test(String(text || ''));
+}
+
 function trenchSupportText(text) {
-  const lines = sentences(text).filter((line) => /\b(shor(?:e|ed|ing)|bench(?:ed|ing)|batter(?:ed|ing)?|trench (?:box|shield)|shields?|engineer\w*)\b/i.test(line));
+  const lines = sentences(text).filter((line) => /\b(shor(?:e|ed|ing)|bench(?:ed|ing)|batter(?:ed|ing)?|trench (?:box|shield)|shields?|engineer\w*)\b/i.test(line))
+    .map((line) => (/^(?:excavat\w*|dig\w*|lay\w*|install\w*)\b/i.test(line) && /\b(?:trench (?:box\w*|shields?)|shields?)\b/i.test(line) && !/\b(shor(?:e|ed|ing)|bench(?:ed|ing)|batter(?:ed|ing)?|engineer\w*)\b/i.test(line) ? 'The trench is supported with trench shields.' : line));
   return lines.join(' ');
 }
 
@@ -438,7 +450,7 @@ function highRiskMatches(raw, answer, state) {
     fall: fallRiskFor(text, answer),
     tower: mentioned(text, /\btelecommunication tower\b/i),
     // Demolishing a whole building takes down its load-bearing parts.
-    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || mentioned(text, DEMOLITION) && (mentioned(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, ''), /\b(load-bearing|load bearing|structur\w*)\b/i) || /\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|dwellings?|granny flats?)\b/i.test(String(text || ''))),
+    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || mentioned(text, DEMOLITION) && (mentioned(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, ''), /\b(load-bearing|load bearing|structur\w*)\b/i) || /\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|dwellings?|granny flats?|bridges?)\b/i.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
     asbestos: mentioned(text, /\basbestos\b/i),
     // Structural alterations or repairs to an existing structure that need temporary support.
     // Propping and backpropping new formwork and slabs is not an alteration or repair.
@@ -454,7 +466,7 @@ function highRiskMatches(raw, answer, state) {
     // Drilling or fixing to precast units already in place is not precast work.
     precast: mentioned(withoutWorkIntoPrecast(text), /\b(tilt-?up|precast)\b/i),
     // Work in a footpath or verge is next to the road it runs beside.
-    road: mentioned(text, ROAD) || /\blight rail\b/i.test(String(text || '')) || /\b(in|on|along|across|under) (?:the |a )?(?:council |public )?(?:footpaths?|verges?|road reserves?|nature strips?)\b/i.test(String(text || '')),
+    road: mentioned(text, ROAD) || mentioned(text, RAIL_IN_USE) || /\blight rail\b/i.test(String(text || '')) || /\b(in|on|along|across|under) (?:the |a )?(?:council |public )?(?:footpaths?|verges?|road reserves?|nature strips?)\b/i.test(String(text || '')),
     // Trenches and site excavation are dug by machine unless the task says by hand.
     plant: (/\b(excavat\w*|dig\w*)\s+(?:the\s+|all\s+|new\s+|and\s+\w+\s+(?:a\s+|the\s+)?(?:new\s+)?)?(?:\w+\s+)?(?:trench\w*|site|footings?|pits?|basement|swales?|sewer|line|drains?|stormwater|services?|pipes?)\b|\bbulk excavat\w*/i.test(String(text || '')) && !/\b(?:by hand|hand[- ]dig\w*|hand excavat\w*)\b/i.test(String(text || ''))) || mentioned(text, /\b((?:piling|cfa|bored pil\w*|drill(?:ing)?|hdd) rigs?|directional drill\w*|(?:excavator[- ]mounted )?pile croppers?|rock break(?:ers?|ing)|hydraulic hammers?|elevating work platforms?|ewps?|scissor lifts?|boom lifts?|powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|boom pumps?|telehandlers?|excavators?|forklifts?|trucks?|(?<!tower )cranes?(?!\s+(?:company|companies|crew|operators?)\b)|loaders?|liebherr|skid ?steers?|bobcats?|posi-?tracks?|(?:vibrating|smooth drum|padfoot|ride-on|road|compaction) rollers?)\b/i)
       // Concrete trucks come into the work area for every slab, path or driveway pour.
@@ -466,10 +478,10 @@ function highRiskMatches(raw, answer, state) {
     diving: mentioned(text, /\bdiving\b/i),
     // Victoria, regulation 322: any demolition, trenches and shafts apart from tunnels,
     // and roads or railways without shipping lanes.
-    demolitionAny: mentioned(text, DEMOLITION),
+    demolitionAny: mentioned(text, DEMOLITION) || /\b(?:remov\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
     trenchOrShaft: /\b(trench\w*|shaft)\b/i.test(text) && deepExcavation(text.replace(/\btunnel\w*\b/gi, '')),
     tunnel: mentioned(text, /\btunnel\w*\b/i),
-    roadOrRail: mentioned(String(text || '').replace(/\bshipping lanes?\b/gi, ''), ROAD),
+    roadOrRail: mentioned(String(text || '').replace(/\bshipping lanes?\b/gi, ''), ROAD) || mentioned(text, RAIL_IN_USE),
     // ACT, section 291(s): processing crystalline silica material with a power tool or
     // another mechanical method (section 418A). Hand tools alone do not count.
     silica: silicaProcessing(text),
@@ -886,7 +898,7 @@ function allRequiredFacts(fullTask, answer, state) {
       prompt: state.fallControlsConsidered,
     });
   }
-  if (deepExcavation(task) && !trenchSupportText(task)) {
+  if (trenchDig(task) && !trenchSupportText(task)) {
     facts.push({
       id: 'trenchSupport',
       label: 'Trench support',
@@ -1045,9 +1057,9 @@ function controlsFor(task, facts, pack) {
     }
   } else if (isCraneOrLift(source)) {
     const under = isPanelLift(source) ? 'No one goes under the panel.' : 'No one goes under the load.';
-    if (!(pack && pack.state && pack.state.ownCrane)) {
+    if (!(pack && pack.state && pack.state.ownCrane) && !/\b(?:operat\w*|run\w*)\b[^.]{0,20}\b(?:a |the )?tower cranes?\b/i.test(source)) {
       // A steel erector's own riggers sling and direct the steel.
-      push('Administrative', STEEL_WORK.test(source) && /\b(erect\w*|portal frames?|columns?|beams?|rafters?|steel frames?|structural steel)\b/i.test(source)
+      push('Administrative', (STEEL_WORK.test(source) || /\bbridge spans?\b/i.test(source)) && /\b(erect\w*|spans?|girders?|portal frames?|columns?|beams?|rafters?|steel frames?|structural steel)\b/i.test(source)
         ? 'The crane company operates the crane under its own lift plan. Our licensed riggers sling and direct the steel.'
         : 'The crane company plans and does the lifts under its own lift plan. Our workers follow the crane crew\'s directions.');
     }
@@ -1108,7 +1120,7 @@ function controlsFor(task, facts, pack) {
   if (asbestos && !isDenialLine(asbestos)) push('Administrative', asbestos);
 
   const trench = trenchSupportText(acceptedText(source)) || keptFact(facts.trenchSupport);
-  if (deepExcavation(source) && trench) push('Isolate or engineer', trench);
+  if (trenchDig(source) && trench) push('Isolate or engineer', trench);
 
   const sheet = keptFact(facts.safetyDataSheet);
   if (sheet) {
@@ -1345,7 +1357,7 @@ const MAIN_WORK = [
   [/^(?![^]*\bconnect\w*[^.]{0,30}\bto (?:the |an |its )?(?:existing )?solar inverter)[^]*\b(solar (?:panels?|pv|arrays?|systems?)|pv (?:panels?|arrays?|systems?)|inverters?)\b/i, 'solar panel and inverter installation', /\b(solar|inverters?)\b/i],
   [/^(?![^]*\bwith (?:a |an )?(?:heat pump|electric|solar))[^]*\b(gas (?:hot water|appliances?|heaters?|cooktops?|connections?|fitting|lines?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas (?:lines?|supply|mains?))\b/i, 'gas fitting', /\bgas\b/i],
   [/\b(portal frames?|steel (?:frames?|sheds?|structures?)|(?:erect|stand)\w* [^.]{0,20}\b(?:steel|columns|rafters))\b/i, 'steel erection', /\b(Erect and connect steel|Land steel|Erect the frame and roof of the structure)\b/],
-  [/\bretaining walls?\b/i, 'retaining wall construction', /\bretaining\b/i],
+  [/\bretaining walls?\b/i, 'retaining wall construction', /\b(retaining|ground anchors)\b/i],
   [/\b(epoxy (?:coat\w*|floor\w*|seal\w*)|(?:apply|applying|seal\w*|coat\w*) [^.]{0,30}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(epoxy|floor coatings?)\b/i],
   [/\b(grind\w* [^.]{0,20}\bfloors?|floor grind\w*)\b/i, 'floor grinding', /\bgrind floors\b/i],
   [/\bhydro[- ]?demoli\w*\b/i, 'hydro-demolition', /\bhydro/i],
@@ -1554,7 +1566,7 @@ function prepareDraft(input) {
   }
   // Powered mobile plant the SWMS lists, even where it may be used, brings the s 291 plant item.
   // A plate compactor on a small barrowed pour is not mobile plant moving around the work.
-  if (registers.plant.some((item) => /^(Mobile crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig|Turf laying machine|Trencher|Vacuum truck|Elevating work platform|Scissor lift|Boom-type elevating)/.test(item.item) && !(item.item === 'Roller or plate compactor' && !/\brollers?\b/i.test(draft.task || '')) && !(item.item === 'Roller or plate compactor' && SMALL_POUR.test(draft.task || '')))) {
+  if (registers.plant.some((item) => /^(Mobile crane|Crawler crane|Non-slewing mobile crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig|Turf laying machine|Trencher|Vacuum truck|Elevating work platform|Scissor lift|Boom-type elevating|Dozer|Grader|Loader|Scraper|Articulated dump truck|Water cart|Road profiler|Stabiliser|Asphalt paver|Bitumen sprayer|Aggregate spreader|Truck mounted attenuator|Self-propelled modular transporter|Pile driving hammer|Ground improvement rig|Rolling impact compactor|Shotcrete rig|Roadheader|Low loader|Mulcher|Fuel truck|Road rail vehicle|Track laying machine|Track maintenance machine|Hydro demolition robot|Directional drilling rig|Drill rig|Post driver|Vacuum excavation unit|Truck and dog)/.test(item.item) && !(item.item === 'Roller or plate compactor' && !/\brollers?\b/i.test(draft.task || '')) && !(item.item === 'Roller or plate compactor' && SMALL_POUR.test(draft.task || '')))) {
     const plantItem = highRiskMatches('movement of powered mobile plant', 'no', state).map((item) => item.label);
     for (const label of plantItem) if (!draft.highRisk.includes(label)) draft.highRisk = [...draft.highRisk, label];
   }
@@ -2322,13 +2334,72 @@ function settleFlags(flags, task) {
   if (T(/\b(?:lay\w*|install\w*)\b[^.]{0,30}\b(?:\d+ ?mm )?(?:water|sewer|trunk|gas) mains?\b/i) && !out.mainRepair) { out.trench = true; }
   if (T(/\b(?:operat\w*|run\w*)\b[^.]{0,20}\bdewatering\b/i)) { out.dewatering = true; out.trench = false; }
   if (T(/\b(temporary|haul) bridges?\b/i)) { out.steelErect = true; out.craneInterface = true; }
-  if (T(/\bsolar farm\b/i) && T(/\bpiles?\b/i)) { out.groundSolar = true; }
+  if (T(/\bsolar farm\b/i) && T(/\bpiles?\b/i)) out.groundSolar = T(/\b(panels?|modules?|frames?|trackers?)\b/i);
   if (T(/\b(road rail vehicles?|rrvs?|hi-?rail)\b/i)) { out.railCorridor = true; out.sitePlant = true; }
   if (T(/\b(track laying|tamp\w*|track machines?|ballast regulators?)\b/i)) { out.trackWork = true; out.railCorridor = true; }
   if (T(/\b(mass concrete|dam spillways?|diaphragm walls?|tremie)\b/i)) out.concrete = true;
   if (T(/\b(traffic switch|lane closures?|long term traffic|variable message (?:boards|signs))\b/i)) out.road = true;
   if (T(/\b(cable (?:winch|drum trailers?)|pull\w* (?:high voltage |hv )?cables?)\b/i)) out.cablePull = true;
   if (T(/\bmine (?:sites?)?\b|\bmining\b|\bon a mine\b/i)) out.mineSite = true;
+  // Plant review rules.
+  out.civilSite = T(/\b(bridges?|motorways?|highways?|freeways?|railways?|rail (?:lines?|corridors?|tracks?)|track possessions?|tunnel\w*|mines?|mining|quarr(?:y|ies)|solar farms?|wind (?:farms?|turbines?)|dams?|spillways?|wharf|breakwaters?|haul roads?|interchanges?|culverts?|transmission|road corridors?)\b/i);
+  out.noDigWork = Boolean(out.earthworks && T(/\b(water carts?|load\w* trucks?|stockpiles?|dust control|haul spoil|muck\w* out)\b/i) && !T(/\b(excavat\w*|dig\w*|cut and fill|trench\w*|bulk earthworks|construct\w*|build\w*)\b/i));
+  if (out.tunnelWork) out.earthworks = false;
+  out.noSpoilGate = Boolean(out.noDigWork || out.mineSite || out.tunnelWork);
+  out.haulRoad = T(/\bhaul roads?\b/i) && T(/\b(construct\w*|build\w*|form\w*|maintain\w*)\b/i);
+  out.waterCart = T(/\bwater carts?\b/i);
+  out.limeWork = T(/\b(lime|cement|stabilis\w*)\b/i);
+  out.asphaltHot = T(/\b(asphalt|hot ?mix|pavers?|resurfac\w*)\b/i);
+  out.truckFeed = T(/\b(pavers?|profil\w*|asphalt|resurfac\w*|cold planers?)\b/i);
+  out.lineMarkOnly = Boolean(out.roadPlant && T(/\bline mark\w*/i) && !out.truckFeed && !out.limeWork);
+  out.trackLaying = T(/\b(track laying|lay\w* (?:the )?(?:new )?(?:rail )?track|install\w* (?:the )?(?:new )?rail track)\b/i);
+  out.tamping = Boolean(out.trackWork) && T(/\b(tamp\w*|regulat\w* (?:the )?ballast|ballast regulators?)\b/i);
+  out.ohwInstall = T(/\b(overhead wiring|ohw|catenary|contact wires?)\b(?! (?:masts?|structures?|footings?|foundations?|poles?|portals?))/i) && T(/\b(install\w*|string\w*|erect\w*|replac\w*)\b/i) && T(/\b(rail\w*|track|road rail|rrvs?|tram\w*)\b/i);
+  if (out.ohwInstall) { out.railCorridor = true; out.sitePlant = false; }
+  out.noDeck = Boolean(out.concrete && T(/\b(piers?|columns?|spillways?|diaphragm walls?|mass concrete|tremie|pile caps?|headwalls?|abutments?)\b/i) && !T(/\b(slabs?|decks?|floors?|suspended)\b/i));
+  out.tremiePour = Boolean(out.concrete && T(/\b(tremie|diaphragm walls?|secant|contiguous piles?)\b/i));
+  // Diaphragm wall panels are dug under support fluid: no one works in them.
+  if (out.tremiePour && T(/\bdiaphragm walls?\b/i)) { out.trench = false; out.deepTrench = false; }
+  out.noFormWatch = Boolean(out.formwork || out.tremiePour);
+  out.noUnderDeck = Boolean(out.formwork || out.noDeck);
+  out.concreteConveyor = Boolean(out.concrete && T(/\bconveyors?\b/i));
+  out.telehandlerOnly = Boolean(out.forklift && T(/\btelehandlers?\b/i) && !T(/\bforklifts?\b/i));
+  out.noSlab = Boolean(out.civilSite || T(/\b(trailers?|laydown|yards?|farms?|paddocks?|hardstands?)\b/i));
+  out.trailerUnload = T(/\bunload\w*\b/i) && T(/\b(trailers?|semis?|trucks?)\b/i);
+  out.bridgeDemo = T(/\b(bridges?|overpass\w*|culverts?)\b/i) && Boolean(out.structureDemolition || out.hydroDemo || out.asbestosCheck);
+  out.noBuildingLine = Boolean(out.attachedStructure || out.bridgeDemo);
+  out.noRoofDown = Boolean(out.lightStructure || out.bridgeDemo);
+  out.wireSaw = T(/\bwire saw\w*/i);
+  out.anchorWork = T(/\b(rock anchors?|ground anchors?|soil nails?|rock bolts?)\b/i);
+  if (out.anchorWork && T(/\bon (?:a |the )?(?:\w+ )?retaining walls?\b/i)) out.retainingWall = false;
+  out.impactRoller = T(/\brolling impact compact\w*/i);
+  if (out.impactRoller) { out.groundImprove = false; out.earthworks = false; out.sitePlant = true; }
+  out.trafficSwitch = T(/\b(traffic switch\w*|contraflow)\b/i);
+  out.pumpReplace = T(/\b(replac\w*|remov\w*|chang\w*)\b[^.]{0,20}\b(?:a |the )?(?:\w+ )?pumps?\b/i);
+  out.tempBridge = T(/\b(temporary|haul) bridges?\b/i) && T(/\b(construct\w*|build\w*|install\w*|erect\w*)\b/i);
+  if (out.tempBridge) { out.steelErect = false; out.earthworks = false; out.craneInterface = false; }
+  out.dredgeWork = T(/\bdredg\w*/i);
+  out.bargeCrane = Boolean(out.marinePlant) && T(/\bcranes?\b/i);
+  out.roadheader = T(/\b(roadheaders?|tbms?|tunnel boring)\b/i);
+  out.tunnelFans = Boolean(out.tunnelWork) && T(/\b(fans?|ventilation)\b/i) && T(/\b(install\w*|replac\w*)\b/i);
+  out.plantErect = Boolean(out.processPlant) && T(/\b(install\w*|erect\w*|set\w* up|relocat\w*)\b/i);
+  if (out.plantErect) { out.craneInterface = true; out.road = false; }
+  out.batchOnly = T(/\bbatch(?:ing)? plants?\b/i) && !T(/\b(crush\w*|screen\w*|quarr\w*)\b/i);
+  out.skidMove = T(/\b(skid\w*|jack\w* and skid\w*)\b/i);
+  out.launchOnly = T(/\blaunch\w*\b/i) && !out.skidMove && !T(/\b(spmts?|self-?propelled)\b/i);
+  out.spmtMove = T(/\b(spmts?|self-?propelled modular transporters?)\b/i);
+  out.pullback = Boolean(out.hddBore) && T(/\b(pull\w* back|pullback|pipe strings?)\b/i);
+  out.waterCrossing = Boolean(out.hddBore) && T(/\b(rivers?|creeks?|waterways?|harbours?|estuar\w*)\b/i);
+  out.rockArmour = T(/\b(rock armou?r|breakwaters?|revetments?|armour (?:rock|stone))\b/i);
+  out.heavyUnload = Boolean(out.heavyHaulage) && T(/\b(deliver\w*|unload\w*)\b/i) && T(/\b(transformers?|oversize|over-?mass|heavy|plant items?|switch ?rooms?)\b/i);
+  out.noWaterTools = Boolean(out.drivenPiles || out.marinePlant || out.rockArmour || out.tempBridge || out.dredgeWork);
+  out.ubiu = T(/\b(under-?bridge (?:inspection )?units?|ubius?|bridge inspection units?)\b/i);
+  if (T(/\b(culvert units?|box culverts?|precast (?:culverts?|headwalls?|units?))\b/i) && T(/\b(lift\w*|install\w*|plac\w*|lay\w*)\b/i)) out.tankPlace = true;
+  if (T(/\b(?:operat\w*|run\w*)\b[^.]{0,20}\b(?:a |the )?tower cranes?\b/i)) out.craneInterface = false;
+  if (T(/\bcuttings?\b/i) && !T(/\btrench\w*\b/i) && T(/\b(excavat\w*|rock break\w*)\b/i)) { out.trench = false; out.deepTrench = false; out.earthworks = true; out.sitePlant = true; }
+  // Breaking rock in a trench, or setting manholes, lays no pipe of its own.
+  if (out.trench && T(/\b(rock break\w*|break\w* (?:the )?rock)\b/i) && !T(/\b(pipes?|conduits?|pits?|sewers?|mains?|drains?|cables?|services?|culverts?|manholes?|tanks?)\b/i)) { out.trenchNoPipes = true; out.noBackfillStep = !T(/\bbackfill\w*\b/i); }
+  if (T(/\bmanholes?\b/i) && !T(/\b(pipes?|sewer (?:mains?|lines?)|connect\w*)\b/i)) out.trenchNoPipes = true;
   out.bridgeBearings = T(/\bbearings?\b/i) && T(/\b(bridges?|decks?|girders?)\b/i);
   if (T(/\b(conveyors?|silos?|pipe racks?|crane beams?|automated storage|asrs|stacker cranes?)\b/i) && T(/\b(steel|install\w*|erect\w*)\b/i) && !T(/\bbaggage\b/i)) { out.steelErect = true; out.steelLift = true; }
   out.conveyorInstall = T(/\b(baggage handling|conveyors?)\b/i) && T(/\b(install\w*|new)\b/i) && !T(/\bsteel\b/i);
@@ -2413,6 +2484,7 @@ function settleFlags(flags, task) {
   out.noFloorBelow = Boolean(out.groundCut || out.wallPenetration);
   out.softfallOnly = Boolean(out.playground && /\b(soft ?fall|rubber)\b/i.test(task) && !/\b(equipment|structures?|swings?|slides?|play units?)\b/i.test(task));
   out.noPipeLaying = Boolean(out.mainRepair && !/\b(new (?:pipes?|mains?)|pits?|conduits?)\b/i.test(task));
+  if (out.trenchNoPipes) out.noPipeLaying = true;
   out.roofLeak = /\b(?:repair\w*|fix\w*|find\w*)\b[^.]{0,30}\bleak\w*\b[^.]{0,20}\broofs?\b|\bleak\w* roofs?\b|\broof leaks?\b/i.test(task) && !/\b(valleys?|flashings?|membranes?|re-?roof\w*|replac\w* the roof|skylights?|gutters?)\b/i.test(task);
   if (out.roofLeak) { out.roof = false; out.roofStrip = false; out.roofAccess = true; }
   if (/\broofs?\b/i.test(task) && /\b(?:re)?paint\w*\b/i.test(task)) out.paintExternal = true;
@@ -2459,8 +2531,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // Roofing work, not a roof beam or a job under a roof.
     roof: !SPORTS_LIGHTING.test(task) && (/\b(?:frame|clad)\w*,? (?:and )?roof\b|\broof,? (?:and )?(?:clad|line)\b|\breplac\w* (?:the |a )?(?:section of (?:the )?)?(?:\w+ )?roof\b(?! spaces?| cavit\w*| plant| trusses?| beams?| turbines?| vents?| fans?| ventilators?| gutters?)/i.test(roofTask) || /\b(roof(?:ing)? sheet\w*|roofing|re-?roof\w*|re-?sheet\w*|roof tiles?|slate (?:roof\w*|tiles?)|on (?:the|a) roof|roof work|roof repairs?|repair\w* (?:the |a )?(?:\w+ )?roof|ridge capp\w*|ridge caps?|roof flashings?|roof (?:screws|fixings|fasteners)|(?:install|fix|lay)\w* (?:a |the )?(?:new )?(?:colorbond |metal |steel |corrugated )roofs?)\b/i.test(roofTask) || /\b(cappings?|(?:under|over)?flashings?)\b/i.test(roofTask) && /\b(decktites?|sarking|fascias?|ridges?|roof\w*|gutters?)\b/i.test(roofTask)) && !scaffold && !MECHANICAL_WORK.test(roofTask) && !ICT_WORK.test(roofTask) && !WATERPROOFING.test(roofTask),
     // Piling contractors excavate bores and basements, not trenches, unless a trench is named.
-    deepTrench: deepExcavation(task),
-    trench: (deepExcavation(task) || /\b(excavat(?!ors?\b)\w*|trench\w*)\b/i.test(task) || /\b(?:install\w*|lay\w*|replac\w*|repair\w*)\b[^.]{0,40}\b(?:underground (?:run )?(?:pipework|pipes?|services)|(?:collapsed |broken |damaged |cracked )(?:stormwater|sewer|drainage|water) pipes?|(?:stormwater|sewer|drainage) pipes? \d|water reticulation|pipes? for (?:a |the )?(?:new )?\w+'?s? (?:water|sewer|stormwater|drainage)|(?:pipework|pipes?|mains?|services|conduits?) underground|in-?ground (?:drainage|pipework)|(?:sewer|house|stormwater)(?:\/house)? drainage (?:systems?|lines?)|(?:stormwater|sewer|drainage) (?:pipes?|lines?|mains?)|(?:precast |concrete )?(?:pits?|manholes?)|(?:detention|underground|storage|onsite detention) tanks?|grease traps?|septic (?:tanks?|systems?)|absorption trench\w*|culverts?|culvert pipes?|cattle grids?)\b/i.test(task) && !/\b(?:directional drill\w*|hdd|under ?bor\w*|bored under)\b/i.test(task)) && !((PILING_WORK.test(task) || BULK_EXCAVATION.test(task) || EARTHWORKS.test(task)) && !/\btrench\w*\b/i.test(task)),
+    deepTrench: trenchDig(task),
+    trench: (trenchDig(task) || /\b(excavat(?!ors?\b)\w*|trench\w*)\b/i.test(task) || /\b(?:install\w*|lay\w*|replac\w*|repair\w*)\b[^.]{0,40}\b(?:underground (?:run )?(?:pipework|pipes?|services)|(?:collapsed |broken |damaged |cracked )(?:stormwater|sewer|drainage|water) pipes?|(?:stormwater|sewer|drainage) pipes? \d|water reticulation|pipes? for (?:a |the )?(?:new )?\w+'?s? (?:water|sewer|stormwater|drainage)|(?:pipework|pipes?|mains?|services|conduits?) underground|in-?ground (?:drainage|pipework)|(?:sewer|house|stormwater)(?:\/house)? drainage (?:systems?|lines?)|(?:stormwater|sewer|drainage) (?:pipes?|lines?|mains?)|(?:precast |concrete )?(?:pits?|manholes?)|(?:detention|underground|storage|onsite detention) tanks?|grease traps?|septic (?:tanks?|systems?)|absorption trench\w*|culverts?|culvert pipes?|cattle grids?)\b/i.test(task) && !/\b(?:directional drill\w*|hdd|under ?bor\w*|bored under)\b/i.test(task)) && !((PILING_WORK.test(task) || BULK_EXCAVATION.test(task) || EARTHWORKS.test(task)) && !/\btrench\w*\b/i.test(task)),
     propping: CATEGORY_FACTS.find((item) => item.id === 'temporarySupport').applies(task),
     // Removing old services (pipework, cabling, ductwork) is not building demolition unless the building fabric is named.
     demolition: mentioned(task, DEMOLITION) && !(/\b(?:plant|pipework|pipes|cabling|cables|cable (?:trays?|ladders?)|ductwork|light fittings|services)\b[^.]{0,60}\bto be (?:demolished|removed)\b|\b(?:demoli\w*|remov\w*|strip\w*)\b[^.]{0,60}\b(?:plant|pipework|pipes|cabling|cables|cable (?:trays?|ladders?)|ductwork|light fittings|services)\b/i.test(task) && !/\b(walls?|slabs?|masonry|brick\w*|concrete|structur\w*|roofs?|floors?|ceilings?|partitions?|blockwork|stairs?)\b/i.test(task)),

@@ -404,6 +404,7 @@ const ACTIVITIES = [
         ],
       },
       {
+        unless: 'noBackfillStep',
         step: 'Backfill and restore',
         hazards: ['Plant strikes a person.', 'An open trench is left unprotected.', 'Noise and vibration from compaction plant.', 'A roller overturns at a trench edge or slope.'],
         controls: [
@@ -546,13 +547,15 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Operate forklifts',
-        hazards: ['A person is struck by the forklift or its load.', 'The forklift tips over.', 'A suspended slab is overloaded.'],
+        hazards: ['A person is struck by the forklift or its load.', 'The forklift tips over.', { unless: 'noSlab', text: 'A suspended slab is overloaded.' }, { only: 'trailerUnload', text: 'The load shifts or falls when its restraints are released.' }],
         controls: [
-          'Forklift operators hold a high risk work licence for forklift trucks. Telehandler operators are trained and assessed for the machine, and hold a crane licence where its set-up needs one.',
+          { unless: 'telehandlerOnly', text: 'Forklift operators hold a high risk work licence for forklift trucks. Telehandler operators are trained and assessed for the machine, and hold a crane licence where its set-up needs one.' },
+          { only: 'telehandlerOnly', text: 'Telehandler operators are trained and assessed for the machine and its attachments, and hold a crane licence where its set-up needs one. The telehandler works on firm, level ground within its load chart for the reach.' },
           'Separate people from forklift routes with barriers, and use a spotter where people are near.',
-          'Wheel stops or barriers at slab edges and penetrations on forklift routes.',
-          { fact: 'loadLimits' },
-          'Check the slab and the backpropping can take the forklift and its load before it is used on a suspended floor, and keep to the routes and areas the load limits allow.',
+          { unless: 'noSlab', text: 'Wheel stops or barriers at slab edges and penetrations on forklift routes.' },
+          { unless: 'noSlab', fact: 'loadLimits' },
+          { unless: 'noSlab', text: 'Check the slab and the backpropping can take the forklift and its load before it is used on a suspended floor, and keep to the routes and areas the load limits allow.' },
+          { only: 'trailerUnload', text: 'Before restraints are released, the load is checked from the ground for shifting. No one stands where a load could fall as straps or chains are released, and the driver waits in a safe place away from the unloading.' },
           'Carry loads low, within the rated capacity, and never lift people on the forks.',
         ],
       },
@@ -796,20 +799,23 @@ const ACTIVITIES = [
       },
       {
         step: 'Pump and place concrete',
-        hazards: ['Hose whip at start-up or when a blockage clears.', 'A burst line.', 'A person falls from the edge or through the deck.', 'A reversing concrete truck strikes a person.', 'Electric shock and vibration from vibrators.', 'Exhaust fumes from generators.', 'Eye injury when blowing out decks with compressed air.'],
+        hazards: ['Hose whip at start-up or when a blockage clears.', 'A burst line.', { unless: 'noDeck', text: 'A person falls from the edge or through the deck.' }, { only: 'noDeck', text: 'A person falls from the pour platform or into the open excavation.' }, 'A reversing concrete truck strikes a person.', 'Electric shock and vibration from vibrators.', 'Exhaust fumes from generators.', { unless: 'noDeck', text: 'Eye injury when blowing out decks with compressed air.' }],
         controls: [
           'Check pipes, clamps and the end hose before pumping.',
           'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
           src('Start the pump slowly. No metal fittings on the free end of the delivery hose, the hose is never stretched to reach, and no more hose hangs from the boom than the manufacturer allows.', QCODE('Concrete pumping', 's 4.1.4')),
           src('Keep the hopper topped up so air is not drawn in. Where air is in the line, keep people out of an exclusion zone, and purge into a bin before moving the boom over the pour.', QCODE('Concrete pumping', 's 4.1.4, s 4.3.2')),
           src('When opening a coupling, stand to one side, never straddle the line, and never try to restrain the hose. Blockages are not cleared with compressed air. Lines are cleaned with water rather than air, and the pump operator stays at the controls while the line is under pressure.', QCODE('Concrete pumping', 's 4.3.5, s 4.3.6')),
-          'Stay inside the edge protection.',
-          'Place concrete evenly. Do not heap it on the deck beyond what the formwork design allows.',
-          'Workers reach the deck only by a stair tower, scaffold stair or secured ladder. Hoses, screeds and tools are lifted up, not carried up ladders, and hose runs and walkways over the reo are kept clear and boarded.',
-          { text: 'The pour starts only once the formwork and props have been inspected and signed off by a competent person, and penetrations and voids are covered and fixed.', unless: 'formwork' },
-          { text: 'A competent formwork watcher checks the formwork during the pour and can stop the pour.', unless: 'formwork' },
+          { unless: 'noDeck', text: 'Stay inside the edge protection.' },
+          { unless: 'noDeck', text: 'Place concrete evenly. Do not heap it on the deck beyond what the formwork design allows.' },
+          { unless: 'noDeck', text: 'Workers reach the deck only by a stair tower, scaffold stair or secured ladder. Hoses, screeds and tools are lifted up, not carried up ladders, and hose runs and walkways over the reo are kept clear and boarded.' },
+          { only: 'noDeck', text: 'Concrete is placed from work platforms with edge protection, or from outside the excavation behind barriers, and no one stands at an unprotected edge.' },
+          { only: 'tremiePour', text: 'Concrete is placed through the tremie from the bottom up, with the tremie end kept in the concrete as the pour method sets out. Tremie sections are lifted and handled by crane, slung by licensed doggers. The open panel or bore is covered or barricaded, and support fluid pushed out by the concrete is pumped to storage.' },
+          { only: 'concreteConveyor', text: 'The conveyor is guarded, set up on firm ground, and stopped and isolated before anyone cleans it or clears a blockage.' },
+          { text: 'The pour starts only once the formwork and props have been inspected and signed off by a competent person, and penetrations and voids are covered and fixed.', unless: 'noFormWatch' },
+          { text: 'A competent formwork watcher checks the formwork during the pour and can stop the pour.', unless: 'noFormWatch' },
           'On a slab on ground, concrete trucks stand back from excavation edges, and people keep clear of the chute while it is swung or extended.',
-          { text: 'No one works under the deck being poured except the formwork watcher in a safe position, and the area below is barricaded and signed.', unless: 'formwork' },
+          { text: 'No one works under the deck being poured except the formwork watcher in a safe position, and the area below is barricaded and signed.', unless: 'noUnderDeck' },
           'The hose hand stays in contact with the operator by radio or agreed signals.',
           'Concrete trucks reverse only with a spotter, into a marked area kept clear of people.',
           'Vibrators have their leads checked and tagged and are protected by an RCD. Rotate operators to limit hand-arm vibration.',
@@ -818,6 +824,7 @@ const ACTIVITIES = [
         ],
       },
       {
+        unless: 'noDeck',
         step: 'Finish concrete',
         hazards: ['Cement burns to the skin and eyes.', 'Power trowel injuries.', 'Back strain.', 'Chemicals in curing compounds.', 'Silica dust from grinding and patching concrete.', 'Noise from vibrators, trowels, pumps and generators.', 'Silica dust and noise from saw cutting joints.'],
         controls: [
@@ -874,9 +881,11 @@ const ACTIVITIES = [
       step: 'Use an elevating work platform',
       hazards: ['The platform overturns or falls from an edge.', 'The operator is crushed against the structure.'],
       controls: [
-        'Check the slab, working platform or ground can take the platform, and keep it back from edges, penetrations and open excavations.',
+        { unless: 'civilSite', text: 'Check the slab, working platform or ground can take the platform, and keep it back from edges, penetrations and open excavations.' },
+        { only: 'civilSite', text: 'Check the ground, deck or working platform can take the platform, and keep it back from edges, batters and open excavations.' },
         src('Use the platform only on a solid level surface, unless it is designed for rough terrain.', QCODE('Managing the risk of falls', 's 5.1')),
-        'Sequence trades so they are not working above or below each other.',
+        { unless: 'civilSite', text: 'Sequence trades so they are not working above or below each other.' },
+        { only: 'ubiu', text: 'The under-bridge unit works inside a lane closure under the traffic management plan, with its outriggers set and the deck checked for its loads, and is run only by its trained operator.' },
         'Outdoors, stop in winds above the manufacturer\'s limit, and check for overhead power lines, keeping the platform outside the approach distances.',
         src('The operator is trained for the platform. A high risk work licence is needed only for a boom-type platform with a boom of 11 m or more.', WHS('s 81, schedule 3')),
         'Where a boom-type platform is used, the harness is attached to the platform\'s anchor point.',
@@ -2076,7 +2085,8 @@ const ACTIVITIES = [
         src('Lifting gear suits the load, lifts stay within the crane\'s limits, no loads over people, and the load stays under control with tag lines.', WHS('s 219')),
         src('Enclose the area under the lift and use a spotter at ground level.', `${WHS('s 55, s 219')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
         src('Our SWMS and the crane company\'s are coordinated before lifts start.', QCODE('Managing the risks of plant in the workplace', 's 1.3')),
-        src('No loads are lifted over areas outside the site. If one must be, the principal contractor closes the area or erects a gantry first.', WHS('s 315L')),
+        { unless: 'railCorridor', ...src('No loads are lifted over areas outside the site. If one must be, the principal contractor closes the area or erects a gantry first.', WHS('s 315L')) },
+        { only: 'railCorridor', text: 'Loads over the rail corridor are lifted only inside the possession, under a lift plan the rail manager has accepted.' },
         'Wind limits: the crane company\'s for the crane, and the EWP manufacturer\'s for any EWP.',
       ],
     }],
@@ -2494,13 +2504,15 @@ const ACTIVITIES = [
     when: 'hddBore',
     steps: [{
       step: 'Bore under the road or ground with a directional drill',
-      hazards: ['The drill head strikes a buried electrical cable, gas main or other service.', 'Being caught in the rotating drill string or rod handling.', 'Drilling fluid under pressure blows out at the surface.', 'Traffic and the public near the entry and exit pits.', 'Noise from the rig.'],
+      hazards: ['The drill head strikes a buried electrical cable, gas main or other service.', 'Being caught in the rotating drill string or rod handling.', { only: 'pullback', text: 'Struck by the pipe string, swivel or pulling head during pullback.' }, { only: 'waterCrossing', text: 'Drilling fluid escapes into the waterway.' }, 'Drilling fluid under pressure blows out at the surface.', 'Traffic and the public near the entry and exit pits.', 'Noise from the rig.'],
       controls: [
         src('Get the current underground services information before boring, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
         'Services along and across the bore path are exposed by potholing (vacuum or hand digging) and their depth confirmed before the bore passes them. The bore path is tracked and recorded as it goes.',
         'Only the trained operator runs the rig. No one stands near the rotating rods, and the rod handler and operator use agreed signals and the rig\'s interlocks.',
         'Entry and exit pits are fenced, and drilling fluid is contained and disposed of as the principal contractor directs.',
         'Traffic management is in place where the rig or pits are near the road.',
+        { only: 'pullback', text: 'The pipe string is laid out on rollers along a cleared route. No one is between the string and plant, or near the swivel and pulling head, while it is pulled back, and the pull force is kept within the pipe and rig limits.' },
+        { only: 'waterCrossing', text: 'Under a waterway, drilling fluid pressures and returns are watched for a frac-out, with containment and a response plan ready as the environmental approvals require.' },
         'If a service is struck, stop at once, keep everyone clear, and call the asset owner and 000.',
       ],
     }],
@@ -2510,19 +2522,21 @@ const ACTIVITIES = [
     when: 'structureDemolition',
     steps: [{
       step: 'Demolish the structure',
-      hazards: ['The structure collapses unexpectedly or in the wrong direction.', 'Asbestos or lead is disturbed.', 'A live service is struck or cut.', 'Falling debris strikes a worker or the public.', 'An excavator or other demolition plant overturns or strikes a person.', 'Silica dust and noise from breaking masonry and slabs.'],
+      hazards: ['The structure collapses unexpectedly or in the wrong direction.', 'Asbestos or lead is disturbed.', 'A live service is struck or cut.', 'Falling debris strikes a worker or the public.', 'An excavator or other demolition plant overturns or strikes a person.', { unless: 'bridgeDemo', text: 'Silica dust and noise from breaking masonry and slabs.' }, { only: 'bridgeDemo', text: 'Silica dust and noise from breaking and crushing concrete.' }],
       controls: [
-        { unless: 'attachedStructure', ...src('All gas, electricity, water, sewer, telecommunications and other services are disconnected and capped at or outside the building line by the authorities or licensed trades before demolition starts, and confirmed in writing.', QCODE('Demolition', 's 3.8')) },
+        { only: 'bridgeDemo', text: 'Services carried on or under the bridge are disconnected or diverted by their asset owners before demolition starts, and this is confirmed in writing.' },
+        { unless: 'noBuildingLine', ...src('All gas, electricity, water, sewer, telecommunications and other services are disconnected and capped at or outside the building line by the authorities or licensed trades before demolition starts, and confirmed in writing.', QCODE('Demolition', 's 3.8')) },
         src('Asbestos likely to be disturbed is identified before demolition and, so far as is reasonably practicable, removed by a licensed asbestos removalist before demolition starts.', `${WHS('s 451, s 452, s 453')}; ${QCODE('Demolition', 's 3.6, s 4.2')}`),
         { only: 'attachedStructure', text: 'Services to the attached structure are isolated and capped back to the house by the licensed trades, the shared wall is propped or protected, and the house stays weatherproof and safe to use.' },
         'Demolition is done by a contractor holding any demolition licence the state requires.',
         src('Where the structure, or a load-bearing part of it, is at least 6 m high, the regulator is given written notice at least 5 days before the work starts.', WHS('s 142')),
         src('An exclusion zone is fenced and signed around the structure, wide enough that falling or rebounding debris cannot reach anyone outside it. No one enters while demolition is under way.', QCODE('Demolition', 's 4.3')),
-        { unless: 'lightStructure', ...src('The structure is demolished in the reverse order to its construction, from the roof down, and kept stable at every stage. No one works inside or under it while it is being pulled down.', QCODE('Demolition', 's 4.12')) },
+        { only: 'bridgeDemo', text: 'The bridge is taken down in the sequence the engineer\'s demolition plan sets, with spans propped or supported as it requires, and kept stable at every stage. No one works on or under a span while it is cut, broken or lifted out.' },
+        { unless: 'noRoofDown', ...src('The structure is demolished in the reverse order to its construction, from the roof down, and kept stable at every stage. No one works inside or under it while it is being pulled down.', QCODE('Demolition', 's 4.12')) },
         src('Excavators and other demolition plant have operator protective devices (falling object protection and a seat belt), and only the operator and a spotter in sight of the operator are near them.', QCODE('Demolition', 's 4.12')),
         src('Debris is removed as the work goes, and is not dropped freely except into a fenced drop zone.', QCODE('Demolition', 's 4.7')),
         { only: 'masonryDemo', ...src('Breaking masonry and slabs is processing a crystalline silica substance: water sprays keep dust down, and anyone still at risk wears a fit tested respirator. Hearing protection near breakers and hammers.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2')}`) },
-        'Neighbours are told before work starts, and the boundary is protected from debris and dust.',
+        { unless: 'bridgeDemo', text: 'Neighbours are told before work starts, and the boundary is protected from debris and dust.' },
       ],
     }],
     ppe: ['p2', 'earMuffs', 'hivis'],
@@ -2943,6 +2957,7 @@ const ACTIVITIES = [
       step: 'Install the pump and pipework',
       hazards: ['The pump falls while it is lifted or lowered.', 'Strain handling pumps and pipe.', 'Electric shock connecting the pump.', { only: 'pumpOpening', text: 'A fall into an open bore, pit or well.' }],
       controls: [
+        { only: 'pumpReplace', text: 'The old pump is isolated and locked out, and its lines are depressurised and drained, before it is disconnected.' },
         'Where a pump is too heavy to handle by hand, it is lifted or lowered with a hoist, tripod or crane rated for the load, and no one stands under the load.',
         { only: 'pumpOpening', text: 'Openings, bores and pits are covered or barricaded when not being worked on.' },
         'Pipe is moved with mechanical aids or by two people.',
@@ -4124,7 +4139,8 @@ const ACTIVITIES = [
       hazards: ['Crushed hands or feet placing rock.', 'Plant placing rock strikes a worker.', 'Rock rolls down the batter.'],
       controls: [
         'Large rock is placed by the excavator, with workers out of its reach while it is moving, and two-way acknowledgement before anyone approaches.',
-        'Smaller rock is placed by hand with gloves and steel-capped boots, lifting only pieces one person can handle.',
+        { unless: 'rockArmour', text: 'Smaller rock is placed by hand with gloves and steel-capped boots, lifting only pieces one person can handle.' },
+        { only: 'rockArmour', text: 'Armour rock is placed one piece at a time by the excavator from a stable position, within its lifting chart at that reach, and no one is on the face below.' },
         'Workers stay beside or above the rock being placed, never downhill of it.',
       ],
     }],
@@ -5463,10 +5479,12 @@ const ACTIVITIES = [
     when: 'trackWork',
     steps: [{
       step: 'Replace the sleepers and ballast',
-      hazards: ['Struck by a train or track plant.', 'Strain lifting sleepers and rail.', 'Silica dust from ballast.', 'Crushed by on-track plant or rail handling equipment.'],
+      hazards: ['Struck by a train or track plant.', { unless: 'tamping', text: 'Strain lifting sleepers and rail.' }, 'Silica dust from ballast.', 'Crushed by on-track plant or rail handling equipment.'],
       controls: [
         'Work is done only inside a track possession under the rail manager\'s protection arrangements, by workers with the rail competencies the rail manager requires.',
-        'Sleepers and rail are handled with on-track plant or sleeper tongs, never lifted by hand alone, and people keep clear of plant on the track.',
+        { unless: 'tamping', text: 'Sleepers and rail are handled with on-track plant or sleeper tongs, never lifted by hand alone, and people keep clear of plant on the track.' },
+        { only: 'trackLaying', text: 'The track laying machine is run by its trained crew, and no one is near rail being threaded, pulled or cut, or between the machine and the rail it is placing.' },
+        { only: 'tamping', text: 'Tampers and ballast regulators work only under the protection officer\'s directions. No one on foot is within the machines\' working area, and workers walk only in a safe place clear of the track.' },
         'Ballast is dropped and regulated with water sprays where dust is raised, and P2 respirators are worn.',
         'The track is inspected and handed back by the rail manager\'s competent person before the possession ends.',
       ],
@@ -5477,13 +5495,15 @@ const ACTIVITIES = [
     when: 'roadPlant',
     steps: [{
       step: 'Run the road plant inside the work zone',
-      hazards: ['A worker is struck or run over by the profiler, paver, stabiliser, roller or trucks.', 'Struck by passing traffic.', 'Entanglement in the profiler drum, auger or conveyor.', 'Burns from hot asphalt and lime.', 'Dust and fumes.'],
+      hazards: ['A worker is struck or run over by the road plant or trucks.', 'Struck by passing traffic.', { unless: 'lineMarkOnly', text: 'Entanglement in a cutting or mixing drum, auger or conveyor.' }, { only: 'asphaltHot', text: 'Burns from hot asphalt.' }, { only: 'limeWork', text: 'Burns to skin and eyes from lime and cement.' }, 'Dust and fumes.'],
       controls: [
         'All plant works inside the traffic management set out for the job, with a truck mounted attenuator behind the work where the traffic management plan requires it.',
-        'Each machine is run by a competent operator, checked before each shift, with its guards fitted. The drum, auger and conveyor are stopped and isolated before anyone clears or inspects them.',
+        'Each machine is run by a competent operator, checked before each shift, with its guards fitted.',
+        { unless: 'lineMarkOnly', text: 'Drums, augers and conveyors are stopped and isolated before anyone clears or inspects them.' },
         'Ground workers stay out of the plant\'s path and blind spots, wear high visibility clothing, and use two-way acknowledgement with operators before approaching.',
-        'Trucks reverse to the paver or profiler only on a spotter\'s signal.',
-        'Lime and cement are spread in low wind, with workers upwind, wearing eye protection, gloves and a P2 respirator. Hot asphalt is handled with gloves, long sleeves and boots.',
+        { only: 'truckFeed', text: 'Trucks reverse to the paver or profiler only on a spotter\'s signal.' },
+        { only: 'limeWork', text: 'Lime and cement are spread in low wind, with workers upwind, wearing eye protection, gloves and a P2 respirator.' },
+        { only: 'asphaltHot', text: 'Hot asphalt is handled with gloves, long sleeves and boots.' },
         'At night, the work zone is lit, and plant has its lights and beacons working.',
       ],
     }],
@@ -5495,7 +5515,7 @@ const ACTIVITIES = [
       step: 'Plan and do the heavy lift',
       hazards: ['The crane overturns from ground failure or overload.', 'The load drops, swings or strikes people or structures.', 'Contact with overhead power lines or rail overhead wiring.', 'Wind exceeds the crane\'s limit during the lift.'],
       controls: [
-        'The lift is planned by a competent lift engineer or lift supervisor: a written lift study with the load weight and centre of gravity, rigging, crane configuration, radius and capacity, and the ground bearing and crane mats or outrigger pads checked against the ground conditions.',
+        'The lift is planned in writing by the crane company or a competent lift engineer or lift supervisor: a lift study with the load weight and centre of gravity, rigging, crane configuration, radius and capacity, and the ground bearing and crane mats or outrigger pads checked against the ground conditions.',
         'The crane is set up only on ground or mats certified for its loads, away from excavations, batters and services.',
         'Licensed operators, doggers and riggers run the lift. Everyone not involved stays outside the exclusion zone, and a pre-lift meeting is held.',
         'The lift stops in winds above the crane\'s or the load\'s limit, which is checked before and during the lift.',
@@ -5523,9 +5543,11 @@ const ACTIVITIES = [
     when: 'transportMove',
     steps: [{
       step: 'Move the load with transporters or a launching system',
-      hazards: ['The load tips, slides or drops during the move.', 'Hydraulic failure of jacks, transporters or the launching gantry.', 'Workers crushed between the load and the structure.', 'Ground failure under the transporters.'],
+      hazards: ['The load tips, slides or drops during the move.', 'Hydraulic failure of the jacks or moving equipment.', 'Workers crushed between the load and the structure.', 'Ground or supports fail under the load.'],
       controls: [
-        'The move follows an engineered procedure, with the route, ground bearing, load paths and stop points set out, and the gantry or transporters set up and checked by their supplier.',
+        'The move follows an engineered procedure, with the route, ground bearing, load paths and stop points set out, and the moving equipment set up and checked by its supplier.',
+        { only: 'skidMove', text: 'Skid tracks are set level on supports designed for the load, the load is jacked only at its designed jacking points, and it is packed as it is raised or lowered so it cannot drop.' },
+        { only: 'substation', text: 'Within a live substation, the work follows the network operator\'s access permit, with the load, plant and people kept outside the safe approach distances to energised equipment.' },
         'Movements are directed by one supervisor with radio contact to all operators, and stop if any monitoring point goes outside its limit.',
         'No one is under the load or between the load and the structure while it moves.',
         'Hydraulic systems are inspected before the move and depressurised before any fitting is undone.',
@@ -5536,9 +5558,10 @@ const ACTIVITIES = [
     when: 'drivenPiles',
     steps: [{
       step: 'Pitch and drive the piles',
-      hazards: ['A pile or hammer falls or swings while it is pitched.', 'The rig overturns on soft ground.', 'Noise and vibration from the hammer.', 'Struck by a pile that breaks or kicks out while it is driven.'],
+      hazards: ['A pile or hammer falls or swings while it is pitched.', { unless: 'marinePlant', text: 'The rig overturns on soft ground.' }, { only: 'marinePlant', text: 'The piling rig overturns from barge movement or overload.' }, 'Noise and vibration from the hammer.', 'Struck by a pile that breaks or kicks out while it is driven.'],
       controls: [
-        'The rig works on a working platform designed for its track loads, and the platform certificate is sighted before the rig sets up.',
+        { unless: 'marinePlant', text: 'The rig works on a working platform designed for its track loads, and the platform certificate is sighted before the rig sets up.' },
+        { only: 'marinePlant', text: 'The rig on the barge or jack-up works within the vessel\'s stability limits and its load chart for marine use, and pitching stops in sea states or winds above the limits.' },
         'Piles are pitched with the rig or a crane, slung by licensed doggers, with no one under the pile or within the exclusion zone while it is pitched and driven.',
         'The hammer is run by a competent operator, with its guards fitted, and stopped before anyone approaches the pile head.',
         'Hearing protection is worn near the hammer, and noise and vibration at neighbouring buildings are monitored where the plan requires it.',
@@ -5550,7 +5573,7 @@ const ACTIVITIES = [
     when: 'groundImprove',
     steps: [{
       step: 'Run the ground improvement rig',
-      hazards: ['The rig overturns on soft ground.', 'Struck by the mast, mandrel or vibrator.', 'Noise and vibration.', 'Plant strikes ground workers.'],
+      hazards: ['The rig overturns on soft ground.', 'Struck by the mast, mandrel or vibroprobe.', 'Noise and vibration.', 'Plant strikes ground workers.'],
       controls: [
         'The rig works on a working platform designed for its loads, and keeps back from soft edges and excavations.',
         'An exclusion zone is kept around the rig while it runs, and ground workers approach only on the operator\'s signal.',
@@ -5570,6 +5593,7 @@ const ACTIVITIES = [
         'The rotating rods are guarded, and no one handles rods while they turn. The rig has a working emergency stop.',
         'Drilling uses water or dust collection, with fit tested P2 respirators for anyone still at risk.',
         'Workers at a cut edge use fall protection where a fall is possible.',
+        { only: 'anchorWork', text: 'Anchors are installed, grouted and tested to the designer\'s method. The stressing jack is run only by trained people, and no one stands behind or in line with the jack or anchor head while it is stressed or tested.' },
       ],
     }],
     ppe: ['p2', 'earMuffs'],
@@ -5591,12 +5615,13 @@ const ACTIVITIES = [
     when: 'tunnelWork',
     steps: [{
       step: 'Work underground in the tunnel',
-      hazards: ['Struck by plant in a confined tunnel.', 'Poor air, dust, diesel exhaust or gas underground.', 'Rock or ground falls from the face or crown.', 'Fire underground.', 'Being unaccounted for in an emergency.'],
+      hazards: ['Struck by plant in a confined tunnel.', { only: 'roadheader', text: 'Contact with the rotating cutter head.' }, { only: 'roadheader', text: 'Silica dust from cutting rock.' }, 'Poor air, dust, diesel exhaust or gas underground.', 'Rock or ground falls from the face or crown.', 'Fire underground.', 'Being unaccounted for in an emergency.'],
       controls: [
         'Everyone underground is tagged in and out, and the tunnel emergency plan covers refuge chambers, self-rescuers and the rescue team.',
         'Ventilation keeps the air within the exposure standards, and the air is monitored for oxygen, gas and diesel exhaust, with alarms.',
         'Plant movements are controlled with traffic rules, passing bays, lighting and proximity warning, and pedestrians stay in marked walkways.',
         'No one goes under unsupported ground. The face and crown are supported as the design requires before anyone works under them.',
+        { only: 'roadheader', text: 'The cutter head is stopped and isolated before anyone approaches it, and the water sprays and dust scrubber run whenever it cuts. Air is monitored for crystalline silica, with respirators for anyone still at risk.' },
         'Fire extinguishers are carried on plant and at work areas, and hot work underground is done only under a permit.',
       ],
     }],
@@ -5606,10 +5631,10 @@ const ACTIVITIES = [
     when: 'marinePlant',
     steps: [{
       step: 'Work from the barge or marine plant',
-      hazards: ['The barge or jack-up becomes unstable or overloaded.', 'A fall into the water when moving between vessels and structures.', 'A crane on a barge is overloaded by barge movement.', 'Struck by mooring lines under tension.'],
+      hazards: ['The vessel becomes unstable or overloaded.', 'A fall into the water when moving between vessels and structures.', { only: 'bargeCrane', text: 'A crane on a barge is overloaded by barge movement.' }, 'Struck by mooring lines under tension.'],
       controls: [
-        'The barge, jack-up or dredge is run by its licensed master or competent operator under its marine safety system, with its load limits and stability checked for the work.',
-        'Crane lifts from a barge use the crane\'s de-rated load chart for barge use and stop in sea states or winds above the limit.',
+        'The vessel is run by its licensed master or competent operator under its marine safety system, with its load limits and stability checked for the work.',
+        { only: 'bargeCrane', text: 'Crane lifts from a barge use the crane\'s de-rated load chart for barge use and stop in sea states or winds above the limit.' },
         'Transfers between vessels and structures use a secured gangway or ladder, with life jackets worn and a rescue boat or rescue equipment ready.',
         'No one stands in the bight or line of a mooring line under tension.',
       ],
@@ -5626,6 +5651,7 @@ const ACTIVITIES = [
         'Oversize and overmass loads travel only under their road permits, on the approved route, with the pilot or escort vehicles the permit requires, and the route is checked for power lines and clearances.',
         'Trucks enter and leave the site only through the traffic management set out for the gate, with a spotter for reversing.',
         'Drivers work within the heavy vehicle fatigue rules, and the work is planned to meet the chain of responsibility duties.',
+        { only: 'heavyUnload', text: 'At site, the load is unloaded by the crane, jacking or skidding method in the delivery plan, on ground checked for the loads, with no one under or beside it while it is lifted or moved off the trailer.' },
       ],
     }],
     ppe: ['hivis'],
@@ -5633,6 +5659,7 @@ const ACTIVITIES = [
   {
     when: 'processPlant',
     steps: [{
+      unless: 'plantErect',
       step: 'Run and maintain the crushing, screening or batching plant',
       hazards: ['Entanglement in conveyors, crushers and screens.', 'Struck by material falling from conveyors or stockpiles.', 'Silica dust and noise.', 'Plant starts while someone is working on it.'],
       controls: [
@@ -5741,6 +5768,103 @@ const ACTIVITIES = [
       ],
     }],
     ppe: ['gloveInsulated'],
+  },
+  {
+    when: 'trafficSwitch',
+    steps: [{
+      step: 'Set up the traffic switch and message signs',
+      hazards: ['Struck by passing traffic while placing signs, barriers or message boards.', 'Drivers confused by the change in traffic arrangement.', 'Struck by the truck or trailer placing the equipment.'],
+      controls: [
+        'The traffic switch follows the traffic management plan and staging approved by the road authority, and is set up only by workers holding the state\'s traffic management qualifications for the work.',
+        'Signs, barriers and message boards are placed in the order the plan sets, working from behind a truck mounted attenuator or a protected position, and with traffic slowed or stopped where the plan requires it.',
+        'Variable message boards are parked clear of traffic, levelled and locked, and show the messages and timing the plan approves before the switch is made.',
+        'The switch is checked by driving through it before workers move into the new work area, and is inspected at the intervals the plan sets.',
+      ],
+    }],
+    ppe: ['hivisNight'],
+  },
+  {
+    when: 'ohwInstall',
+    steps: [{
+      step: 'Install the overhead wiring',
+      hazards: ['Electric shock if the traction supply is not isolated and earthed, or is re-energised.', 'A fall from the road rail vehicle platform or a mast.', 'Struck by wire or fittings under tension.', 'Struck by a train or track plant.'],
+      controls: [
+        'Work is done only inside the possession, after the traction supply is isolated, proved dead and earthed by the rail manager\'s authorised electrical staff, with the permit issued to the work group.',
+        'Workers on the overhead wiring hold the electrical and rail competencies the rail manager requires for overhead line work.',
+        'Work at height is done from the road rail vehicle platform or elevating work platform with guardrails, and harnesses are attached to its anchor point.',
+        'Wire is run out and tensioned with the wiring train or tensioning equipment to the method statement, and no one stands in the bight of a wire under tension.',
+        'The permit is cancelled, and earths removed, only when everyone is clear and the work is signed off.',
+      ],
+    }],
+    ppe: ['harness', 'hivisNight'],
+  },
+  {
+    when: 'tempBridge',
+    steps: [{
+      step: 'Build the temporary bridge',
+      hazards: ['The bridge or its abutments fail under haul truck loads.', 'A fall into the creek or from the bridge edge.', 'Struck by beams or deck units while they are lifted.', 'Plant overturns at the creek bank.'],
+      controls: [
+        'The bridge, abutments and crossing are built to an engineer\'s design for the haul trucks that will use it, with the load rating signed at each end.',
+        'Beams and deck units are lifted in by crane under a lift plan, slung by licensed doggers, with no one under the load.',
+        'Plant works back from the creek bank on ground checked for its loads, and anyone near the water wears a life jacket.',
+        'Edge barriers or kerbs are fitted before trucks use the bridge, and the bridge is inspected by a competent person before first use and at set intervals.',
+      ],
+    }],
+    ppe: ['lifeJacket', 'chinStrap'],
+  },
+  {
+    when: 'dredgeWork',
+    steps: [{
+      step: 'Run the dredge and discharge line',
+      hazards: ['Contact with the cutter head or pump while it is running.', 'The floating discharge line breaks free or a joint bursts.', 'Collision with other vessels in the channel.', 'A fall into the water.'],
+      controls: [
+        'The cutter head and dredge pump are stopped and isolated before anyone works on them or clears a blockage.',
+        'The discharge line is anchored and marked, and its joints and floats are checked each shift. People keep clear of the line while it is pressurised.',
+        'Navigation marks, lights and notices are set as the harbour master or waterways authority requires, and the dredge keeps a lookout.',
+        'Life jackets are worn on deck and on the discharge line, and a rescue boat is ready.',
+      ],
+    }],
+    ppe: ['lifeJacket', 'earMuffs'],
+  },
+  {
+    when: 'tunnelFans',
+    steps: [{
+      step: 'Lift and fix the tunnel ventilation fans',
+      hazards: ['A fan falls while it is lifted or fixed.', 'Crushed between the platform and the tunnel crown.', 'Fixings into the crown fail.'],
+      controls: [
+        'Fans are lifted with a lifting device rated for the fan, with no one under the load, and held until the supports are fixed.',
+        'Supports and fixings are installed and proof tested to the designer\'s details before the fan is hung.',
+        'Platform operators check for crushing points at the crown and services before raising.',
+        'The fan supply is isolated and locked out until the electricians connect and commission it.',
+      ],
+    }],
+    ppe: ['chinStrap'],
+  },
+  {
+    when: 'plantErect',
+    steps: [{
+      step: 'Erect and commission the plant',
+      hazards: ['A silo, frame or conveyor section falls while it is lifted.', 'A fall from silos, frames or conveyor walkways.', 'Plant starts while someone is working on it during commissioning.'],
+      controls: [
+        'The plant is erected to its supplier\'s procedure on footings designed for it, and sections and silos are lifted by crane under a lift plan, slung by licensed doggers or riggers.',
+        'Work at height uses the plant\'s walkways and ladders once fitted with guardrails, or an elevating work platform, with harnesses where those are not yet in place.',
+        'Guards, pull-wires and emergency stops are fitted and tested before the plant is run, and it is isolated and locked out while anyone works on it.',
+      ],
+    }],
+    ppe: ['harness', 'chinStrap'],
+  },
+  {
+    when: 'impactRoller',
+    steps: [{
+      step: 'Compact with the rolling impact compactor',
+      hazards: ['Struck by the towed compactor or tractor.', 'Stones thrown from under the module.', 'Ground vibration damages nearby structures or services.', 'Whole-body vibration for the operator.'],
+      controls: [
+        'An exclusion zone is set around the compaction area, sized as the supplier specifies, and no one enters it while the compactor runs.',
+        'Vibration limits are set for nearby structures and buried services, with monitoring where the plan requires it, and compaction stops back from them.',
+        'The tractor has rollover protection and a seat belt, and operators are rotated to limit whole-body vibration.',
+      ],
+    }],
+    ppe: ['earMuffs', 'hivis'],
   },
   {
     when: 'glassWind',
@@ -5987,6 +6111,7 @@ const ACTIVITIES = [
       controls: [
         { only: 'kerbWork', ...src('Get the current underground services information before cutting or breaking out, and work to it.', WHS('s 304')) },
         { only: 'kerbWork', text: 'The damaged section is saw cut and broken out with a breaker or excavator, and the rubble is loaded out, inside the traffic or pedestrian management for the work.' },
+        { only: 'wireSaw', text: 'The wire saw is set up with its guards fitted and the wire path enclosed, and no one stands in line with the wire while it runs, in case it breaks and whips.' },
         { fact: 'silicaControls' },
         src('Cutting concrete is processing a crystalline silica substance and must be controlled: wet cutting or on-tool extraction, and respirators for anyone still at risk.', `${WHS('s 529A, s 529B, s 529C')}; ${QCODE('Silica', 's 5.1, s 7.4.1, s 7.4.2, s 7.6')}`),
         src('Assess in writing before cutting whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.', WHS('s 529CA')),
@@ -6211,10 +6336,12 @@ const ACTIVITIES = [
         src('Traffic management for the plant is in place, and operators and ground workers use two way acknowledgement before anyone approaches plant.', MODEL('Excavation work', 's 4.3')),
         src('Operators can show they are competent on the type of plant they use.', MODEL('Excavation work', 's 4.3')),
         src('Plant, trucks and spoil stay out of the zone of influence of excavations and batters, and plant approaches trenches and embankments across the line, not parallel to it.', MODEL('Excavation work', 's 4.1, s 4.3')),
-        src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
+        { unless: 'noDigWork', ...src('Get the current underground services information before digging, and work to it.', WHS('s 304')) },
+        { only: 'haulRoad', text: 'Haul roads are built and kept to the site\'s haul road design: width, grades and crossfalls for the largest vehicle using them, with windrows or bunds on open edges sized as the design sets out.' },
+        { only: 'waterCart', text: 'Water carts keep to the routes and speeds set for haul roads, and do not over-water ramps, corners or intersections where plant could slide.' },
         src('Plan haul roads and plant routes for blind spots, and keep plant away from overhangs and the edges of deep excavations. Ground workers wear high visibility clothing.', MODEL('Excavation work', 's 4.3')),
         src('Where a person could fall from a cut face or batter crest, install barriers or bunds, and set up clear pedestrian detours.', MODEL('Excavation work', 's 4.4')),
-        'Spoil trucks leave through the site gate under the traffic management plan.',
+        { unless: 'noSpoilGate', text: 'Spoil trucks leave through the site gate under the traffic management plan.' },
         { text: 'Rollers and plate compactors are run by competent operators. Ride-on rollers have rollover protection and a seat belt, and keep back from trench and batter edges. Vibration is managed by rotating operators.', only: 'compaction' },
         src('Keep dust down with wet methods, such as water carts.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
         src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Hearing protection where noise is above the standard, with hearing tests within 3 months of starting and at least every 2 years.', WHS('s 56, s 57, s 58')),
@@ -6417,11 +6544,12 @@ const ACTIVITIES = [
     when: 'asbestosCheck',
     steps: [{
       step: 'Check for asbestos before starting',
-      hazards: ['Asbestos in fibro, eaves, wall and floor linings, or vinyl tiles is disturbed and its fibres breathed in.'],
+      hazards: [{ unless: 'bridgeDemo', text: 'Asbestos in fibro, eaves, wall and floor linings, or vinyl tiles is disturbed and its fibres breathed in.' }, { only: 'bridgeDemo', text: 'Asbestos in the structure or the services it carries is disturbed and its fibres breathed in.' }],
       controls: [
         { fact: 'asbestosArrangement' },
         { ...src('Before refurbishing a house, all asbestos likely to be disturbed is identified, and removed so far as is reasonably practicable before the work starts.', WHS('s 457')), unless: 'structureDemolition', only: 'domesticPremises' },
-        src('Buildings built before 31 December 1989 are checked for asbestos before demolition or refurbishment. Where there is no asbestos register, a competent person inspects first. Material that cannot be identified, but a competent person believes is asbestos, is treated as asbestos.', WHS('s 422, s 447, s 451')),
+        { only: 'bridgeDemo', ...src('Before demolition or refurbishment, a competent person identifies any asbestos in the structure, and it is removed so far as is reasonably practicable before the work starts.', WHS('s 451, s 452')) },
+        { unless: 'bridgeDemo', ...src('Buildings built before 31 December 1989 are checked for asbestos before demolition or refurbishment. Where there is no asbestos register, a competent person inspects first. Material that cannot be identified, but a competent person believes is asbestos, is treated as asbestos.', WHS('s 422, s 447, s 451')) },
         src('Asbestos is removed by a licensed asbestos removalist, except for 10 m2 or less of non-friable asbestos removed under the regulation.', WHS('s 458')),
         src('No high-pressure water spray or compressed air on asbestos, and no power tools or brooms on it unless their use is controlled. Exposure to airborne asbestos is eliminated so far as is reasonably practicable.', WHS('s 420, s 446')),
         'If material that may be asbestos is found during the work, stop, keep people away, and do not restart until it has been identified.',
@@ -6797,13 +6925,13 @@ const ACTIVITIES = [
       {
         unless: 'poolOnly',
         step: 'Work over the water',
-        hazards: [{ unless: 'poolOnly', only: 'workBoat', text: 'A fall into the water from the edge, an open bay or the work boat.' }, { only: 'waterNoBoat', text: 'A fall into the water from the edge or an open bay.' }, { only: 'poolOnly', text: 'A fall into the pool.' }, { only: 'deckingWork', text: 'Splinters and cuts.' }, 'Power tool injuries.', 'Tools and materials fall into the water.'],
+        hazards: [{ unless: 'poolOnly', only: 'workBoat', text: 'A fall into the water from the edge, an open bay or the work boat.' }, { only: 'waterNoBoat', text: 'A fall into the water from the edge or an open bay.' }, { only: 'poolOnly', text: 'A fall into the pool.' }, { only: 'deckingWork', text: 'Splinters and cuts.' }, { unless: 'noWaterTools', text: 'Power tool injuries.' }, 'Tools and materials fall into the water.'],
         controls: [
           { unless: 'poolOnly', text: 'Life jackets are worn by anyone who could fall into the water.' },
           { text: 'Open one bay at a time and cover or barricade it.', only: 'deckingWork' },
           { text: 'Wear gloves when handling timber.', only: 'deckingWork' },
           { text: 'A punt, barge or work boat is moored and stable before anyone works from it, is not overloaded, and is run by a competent operator.', only: 'workBoat' },
-          'Use tools with guards in place, and battery tools rather than mains power over the water where practical.',
+          { unless: 'noWaterTools', text: 'Use tools with guards in place, and battery tools rather than mains power over the water where practical.' },
         ],
       },
     ],
@@ -7864,6 +7992,11 @@ function jobStepsFor(flags, factText, fallback) {
   moveAfter('Break out and repair damaged concrete', 'Remove cut sections');
   moveAfter('Break out and repair damaged concrete', 'Saw cut concrete');
   moveBefore('Build the vehicle crossover', 'Saw cut concrete');
+  moveAfter('Break rock with a hydraulic hammer', 'Excavate');
+  moveBefore('Drill with the drill rig', 'Install, stress and later remove ground anchors and props');
+  // Work in a rail corridor is set up before anything else starts.
+  const railStep = middle.find((item) => item.step === 'Work in the rail corridor');
+  if (railStep) middle = [railStep, ...middle.filter((item) => item !== railStep)];
   moveBefore('Build the retaining wall', 'Form, reinforce and pour the retaining wall');
   moveBefore('Lift machines, rails and equipment into the shaft', 'Install the lift rails, car and machine');
   moveAfter('Isolate and prove de-energised', 'Install solar panels and mounting rails on the roof');
@@ -7984,7 +8117,7 @@ function jobStepsFor(flags, factText, fallback) {
   // A step left with no controls (energised work answered "none") is not work this SWMS covers.
   return steps.map((step) => ({
     ...(step.fallback ? { fallback: true } : {}),
-    step: step.step === 'Erect fencing, hoardings and gantries' && !flags.hoarding ? 'Erect temporary fencing' : step.step === 'Build the retaining wall' && flags.concreteWall ? 'Excavate and set out the retaining wall' : step.step === 'Disconnect and connect the water heater' && !flags.replaceAppliance ? 'Set and connect the water heater' : step.step === 'Prop and repair the verandah' && flags.pergolaWork ? 'Prop and repair the pergola' : step.step === 'Work on a tiled roof' && flags.slateRoof ? 'Work on a slate roof' : step.step === 'Strip roof tiles and fix new battens and sarking' && flags.slateRoof ? 'Strip slates and fix new battens and sarking' : step.step === 'Fit fly screens and security doors' && !flags.doorWork ? 'Fit fly and security screens' : step.step === 'Install rooftop antennas and equipment' && flags.towerWork ? 'Install antennas and equipment on the tower' : step.step === 'Install the hydrant booster assembly' && flags.sprinkler ? 'Install the sprinkler booster valve set' : step.step === 'Clean windows and balconies' && flags.ewpNamed ? 'Clean windows from the EWP' : step.step === 'Dig footing holes' && flags.masonryLay ? 'Dig and pour footings' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.bollardsOnly ? 'Install bollards' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.humpsOnly ? 'Install speed humps' : step.step === 'Install gutters, fascia, downpipes and eaves linings' && flags.guttersOnly ? 'Install gutters and downpipes' : step.step === 'Install sports lighting and screens at height' && !flags.screens ? 'Install sports lighting at height' : step.step === 'Install signal or lighting poles, pits and conduits' && !flags.signalWork ? 'Install lighting poles, pits and conduits' : step.step === 'Clear the collapsed wall and protect the footpath' && !flags.footpathWork ? 'Clear the collapsed wall' : step.step === 'Rough-in and fit-off' && flags.fitOffOnly ? 'Fit off' : step.step === 'Remove and fit the vanity' && !flags.vanityReplace ? 'Install vanities and fixtures' : step.step === 'Sand and finish timber floors' && flags.deckRefinish ? 'Strip, sand and refinish the deck' : step.step === 'Install signs and screens' && flags.signPostsOnly ? 'Install signs on posts' : step.step === 'Drill or cut concrete, masonry or stone' && flags.grindOnly ? 'Grind concrete' : step.step === 'Install doors, joinery and cabinets' && !flags.cabinetWork ? (flags.trimWork ? 'Install doors and trim' : 'Install doors') : step.step === 'Remove and replace the bath and shower' && flags.bathOnly ? 'Remove and replace the bath' : step.step === 'Remove and replace the bath and shower' && flags.showerOnly ? 'Remove and replace the shower' : step.step === 'Fix rails, fittings and equipment to walls and floors' && flags.boardwalk ? 'Fix the handrails to the boardwalk' : step.step === 'Apply sealers to concrete, pavers or timber' && flags.stoneSurface ? 'Apply sealer to the stone' : step.step === 'Install window frames, doors and louvres' && flags.windowsOnly ? 'Install the windows' : step.step === 'Build the deck frame and lay the decking' && flags.deckBoardsOnly ? 'Remove and replace the decking' : step.step === 'Dig a shallow trench and lay pipe or cable' && flags.cableOnlyTrench ? 'Dig a shallow trench and lay the cable' : step.step === 'Build the vehicle crossover' ? 'Set up the crossover work area' : step.step === 'Install bird netting at height' && flags.birdSpikes ? 'Install bird spikes at height' : step.step === 'Install the garage or roller door and its motor' && flags.motorOnly ? 'Install the door motor' : step.step === 'Install gutters and downpipes' && flags.downpipesOnly ? 'Install downpipes' : step.step === 'Install playground equipment and softfall' && flags.softfallOnly ? 'Lay the rubber softfall' : step.step === 'Install boom gates and automatic gates' && flags.solarGate ? 'Install the gate opener' : step.step === 'Install boom gates and automatic gates' && flags.barrierArm ? 'Install the barrier arm' : step.step === 'Install gutters, fascia, downpipes and eaves linings' && flags.fasciaOnly ? 'Replace the fascia boards' : step.step === 'Install window frames, doors and louvres' && flags.shopfront ? 'Install the shopfront frames and doors' : step.step === 'Install window frames, doors and louvres' && flags.louvresOnly ? 'Fit the louvre frames and glass' : step.step === 'Get soil and plants to the podium' && flags.greenRoof ? 'Get soil and plants to the roof' : step.step === 'Install water meters and backflow devices' && flags.backflowOnly ? 'Install the backflow device' : step.step === 'Jack the house and replace stumps' && flags.houseRaise ? 'Jack and raise the house' : step.step === 'Install battens and external cladding' && flags.cladReplace ? 'Replace the cladding boards' : step.step === 'Install sprinkler and hydrant pipework at height' && flags.sprinklerOnly ? 'Install sprinkler pipework at height' : step.step === 'Install sprinkler and hydrant pipework at height' && flags.hydrantOnly ? 'Install hydrant pipework at height' : step.step === 'Break out the cracked tiles' && flags.oldTiles ? 'Remove the old tiles' : step.step === 'Connect the solar array and inverter' && !flags.solarArray ? (flags.batteryStorage ? 'Connect the inverter and battery' : 'Connect the inverter') : step.step,
+    step: step.step === 'Erect fencing, hoardings and gantries' && !flags.hoarding ? 'Erect temporary fencing' : step.step === 'Replace the sleepers and ballast' && flags.tamping ? 'Tamp and regulate the ballast' : step.step === 'Replace the sleepers and ballast' && flags.trackLaying ? 'Lay the new track' : step.step === 'Operate forklifts' && flags.telehandlerOnly ? 'Operate the telehandler' : step.step === 'Run and maintain the crushing, screening or batching plant' && flags.batchOnly ? 'Run and maintain the batching plant' : step.step === 'Run and maintain the crushing, screening or batching plant' ? 'Run and maintain the crushing and screening plant' : step.step === 'Move the load with transporters or a launching system' && flags.skidMove ? 'Jack and skid the load into place' : step.step === 'Move the load with transporters or a launching system' && flags.launchOnly ? 'Launch the girders' : step.step === 'Move the load with transporters or a launching system' && flags.spmtMove ? 'Move the load with the transporters' : step.step === 'Bore under the road or ground with a directional drill' && flags.waterCrossing ? 'Bore under the waterway with the directional drill' : step.step === 'Demolish the structure' && flags.bridgeDemo ? 'Demolish the bridge' : step.step === 'Build the retaining wall' && flags.concreteWall ? 'Excavate and set out the retaining wall' : step.step === 'Disconnect and connect the water heater' && !flags.replaceAppliance ? 'Set and connect the water heater' : step.step === 'Prop and repair the verandah' && flags.pergolaWork ? 'Prop and repair the pergola' : step.step === 'Work on a tiled roof' && flags.slateRoof ? 'Work on a slate roof' : step.step === 'Strip roof tiles and fix new battens and sarking' && flags.slateRoof ? 'Strip slates and fix new battens and sarking' : step.step === 'Fit fly screens and security doors' && !flags.doorWork ? 'Fit fly and security screens' : step.step === 'Install rooftop antennas and equipment' && flags.towerWork ? 'Install antennas and equipment on the tower' : step.step === 'Install the hydrant booster assembly' && flags.sprinkler ? 'Install the sprinkler booster valve set' : step.step === 'Clean windows and balconies' && flags.ewpNamed ? 'Clean windows from the EWP' : step.step === 'Dig footing holes' && flags.masonryLay ? 'Dig and pour footings' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.bollardsOnly ? 'Install bollards' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.humpsOnly ? 'Install speed humps' : step.step === 'Install gutters, fascia, downpipes and eaves linings' && flags.guttersOnly ? 'Install gutters and downpipes' : step.step === 'Install sports lighting and screens at height' && !flags.screens ? 'Install sports lighting at height' : step.step === 'Install signal or lighting poles, pits and conduits' && !flags.signalWork ? 'Install lighting poles, pits and conduits' : step.step === 'Clear the collapsed wall and protect the footpath' && !flags.footpathWork ? 'Clear the collapsed wall' : step.step === 'Rough-in and fit-off' && flags.fitOffOnly ? 'Fit off' : step.step === 'Remove and fit the vanity' && !flags.vanityReplace ? 'Install vanities and fixtures' : step.step === 'Sand and finish timber floors' && flags.deckRefinish ? 'Strip, sand and refinish the deck' : step.step === 'Install signs and screens' && flags.signPostsOnly ? 'Install signs on posts' : step.step === 'Drill or cut concrete, masonry or stone' && flags.grindOnly ? 'Grind concrete' : step.step === 'Install doors, joinery and cabinets' && !flags.cabinetWork ? (flags.trimWork ? 'Install doors and trim' : 'Install doors') : step.step === 'Remove and replace the bath and shower' && flags.bathOnly ? 'Remove and replace the bath' : step.step === 'Remove and replace the bath and shower' && flags.showerOnly ? 'Remove and replace the shower' : step.step === 'Fix rails, fittings and equipment to walls and floors' && flags.boardwalk ? 'Fix the handrails to the boardwalk' : step.step === 'Apply sealers to concrete, pavers or timber' && flags.stoneSurface ? 'Apply sealer to the stone' : step.step === 'Install window frames, doors and louvres' && flags.windowsOnly ? 'Install the windows' : step.step === 'Build the deck frame and lay the decking' && flags.deckBoardsOnly ? 'Remove and replace the decking' : step.step === 'Dig a shallow trench and lay pipe or cable' && flags.cableOnlyTrench ? 'Dig a shallow trench and lay the cable' : step.step === 'Build the vehicle crossover' ? 'Set up the crossover work area' : step.step === 'Install bird netting at height' && flags.birdSpikes ? 'Install bird spikes at height' : step.step === 'Install the garage or roller door and its motor' && flags.motorOnly ? 'Install the door motor' : step.step === 'Install gutters and downpipes' && flags.downpipesOnly ? 'Install downpipes' : step.step === 'Install playground equipment and softfall' && flags.softfallOnly ? 'Lay the rubber softfall' : step.step === 'Install boom gates and automatic gates' && flags.solarGate ? 'Install the gate opener' : step.step === 'Install boom gates and automatic gates' && flags.barrierArm ? 'Install the barrier arm' : step.step === 'Install gutters, fascia, downpipes and eaves linings' && flags.fasciaOnly ? 'Replace the fascia boards' : step.step === 'Install window frames, doors and louvres' && flags.shopfront ? 'Install the shopfront frames and doors' : step.step === 'Install window frames, doors and louvres' && flags.louvresOnly ? 'Fit the louvre frames and glass' : step.step === 'Get soil and plants to the podium' && flags.greenRoof ? 'Get soil and plants to the roof' : step.step === 'Install water meters and backflow devices' && flags.backflowOnly ? 'Install the backflow device' : step.step === 'Jack the house and replace stumps' && flags.houseRaise ? 'Jack and raise the house' : step.step === 'Install battens and external cladding' && flags.cladReplace ? 'Replace the cladding boards' : step.step === 'Install sprinkler and hydrant pipework at height' && flags.sprinklerOnly ? 'Install sprinkler pipework at height' : step.step === 'Install sprinkler and hydrant pipework at height' && flags.hydrantOnly ? 'Install hydrant pipework at height' : step.step === 'Break out the cracked tiles' && flags.oldTiles ? 'Remove the old tiles' : step.step === 'Connect the solar array and inverter' && !flags.solarArray ? (flags.batteryStorage ? 'Connect the inverter and battery' : 'Connect the inverter') : step.step,
     hazards: step.hazards.filter((item) => typeof item === 'string' || ((!item.only || flags[item.only]) && (!item.unless || !flags[item.unless]))).map((item) => (typeof item === 'string' ? item : item.text)).map((line) => localText(line, flags.cite || 'qld')).map(pt).filter(Boolean),
     controls: [...new Set(step.controls.filter((item) => (!item.only || flags[item.only]) && (!item.unless || !flags[item.unless])).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean))],
   })).map((step) => {

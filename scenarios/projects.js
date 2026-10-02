@@ -59,7 +59,9 @@ function check(where, state, swms, task) {
     if (!done.highRisk.includes(highRiskLabel(state, id))) fail(where, `high risk category missing: ${id}`);
   }
   const names = done.jobSteps.map((step) => step.step);
-  for (const step of swms.expect.steps) if (!names.includes(step)) fail(where, `job step missing: ${step}`);
+  // A task naming only a telehandler gets the telehandler step.
+  const renamed = (step) => (step === 'Operate forklifts' && /\btelehandlers?\b/i.test(task) && !/\bforklifts?\b/i.test(task) ? 'Operate the telehandler' : step);
+  for (const step of swms.expect.steps.map(renamed)) if (!names.includes(step)) fail(where, `job step missing: ${step}`);
   if (names[0] !== 'Before starting' || names[names.length - 1] !== 'Finish and clean up') fail(where, 'opening or closing step missing');
   if (done.jobSteps.some((step) => !step.hazards.length || !step.controls.length)) fail(where, 'a job step has no hazards or no controls');
   return done;
