@@ -133,7 +133,10 @@ test('review fixes: trench depth threshold, harness only when used, trade-limite
   assert.ok(!questionsFor({ state: 'qld', trade: 'roofing', fallRisk: 'yes', task: 'Install prepainted steel roof sheeting.' }).required.some((item) => item.id === 'erectionSequence'));
   // A plumber's roof work gets roof access; a roofer gets the roofing steps, not both.
   const steps = (input) => draft({ fallRisk: 'yes', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' }, ...input }).jobSteps.map((step) => step.step);
-  assert.ok(steps({ trade: 'plumbing', task: 'Install the solar hot water system on the roof.' }).includes('Get onto the roof and set up fall protection'));
+  // With roof access as its only steps, the plumber's install is stood down: the main work has no steps yet.
+  const solar = draft({ trade: 'plumbing', fallRisk: 'yes', task: 'Install the solar hot water system on the roof.', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
+  assert.equal(solar.kind, 'stand-down');
+  assert.match(solar.missing[0], /only for the access, lifting or other work around it/);
   assert.ok(!steps({ trade: 'roofing', task: 'Fix roof sheeting on the roof.' }).includes('Get onto the roof and set up fall protection'));
   // Knee pads called for in the steps are ticked.
   const vinyl = draft({ trade: 'flooring', task: 'Install sheet vinyl and carpet tiles with adhesive.', facts: { safetyDataSheet: 'The products used are epoxy adhesive.' } });

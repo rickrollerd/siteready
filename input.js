@@ -42,6 +42,7 @@ function draftBody(body) {
     reviewer: field(body.reviewer, 300),
     reviewDate: field(body.reviewDate, 80),
     preparedBy: field(body.preparedBy, 300),
+    swmsRef: field(body.swmsRef, 80),
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {

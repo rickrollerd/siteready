@@ -7,7 +7,7 @@
 // paintwork") then does not get their steps.
 // `signal` is a flag (or a pattern) that shows the trade even where no kind of work matches.
 const TRADES = [
-  { id: 'electrical', name: 'Electrical work', signal: 'electricalWork', kinds: ['tempPower', 'castIn', 'containment', 'cablePull', 'fitOff', 'isolation', 'commissioning', 'generatorPlant'], extra: ['trench'] },
+  { id: 'electrical', name: 'Electrical work', signal: 'electricalWork', kinds: ['tempPower', 'castIn', 'containment', 'cablePull', 'fitOff', 'isolation', 'commissioning', 'generatorPlant'], extra: ['trench', 'ictCabling'] },
   { id: 'communications', name: 'Communications cabling and equipment', signal: 'ictWork', kinds: ['ictCabling', 'fibre', 'commsRoom'], extra: ['trench', 'containment'] },
   { id: 'security', name: 'Security system installation', signal: 'securityWork', kinds: ['securityDevices'], extra: ['containment'] },
   { id: 'plumbing', name: 'Plumbing and drainage work', signal: 'plumbingWork', kinds: ['sewerConnection', 'waterConnection', 'castInPlumbing', 'hydraulicRisers', 'hotWork', 'solventCement', 'plumbingFitOff', 'pressureTest', 'hotWater', 'boilerPlant'], extra: ['trench'] },
@@ -17,14 +17,14 @@ const TRADES = [
   { id: 'facade', name: 'Facade installation', signal: 'facadeWork', kinds: ['panelLoad', 'facadeCrane', 'panelInstall', 'swingStage', 'edgeBracket', 'facadeSeal'], extra: ['glassHandling', 'glassWind'] },
   { id: 'glazing', name: 'Windows, doors and glazing installation', signal: 'glazingWork', kinds: ['balustradeEdge', 'glassHandle', 'glazingDrill', 'glazingSeal'], extra: ['glassHandling', 'glassWind'] },
   { id: 'steel', name: 'Structural steel erection and rigging', signal: 'steelWork', kinds: ['steelLift', 'steelErect', 'steelWeld', 'temporaryTowers', 'dualLift'], extra: ['steelLift'] },
-  { id: 'masonry', name: 'Blockwork and brickwork', signal: 'masonryWork', kinds: ['masonryCut', 'masonryLay', 'masonryEdge'], extra: ['tileMix'] },
+  { id: 'masonry', name: 'Blockwork and brickwork', signal: 'masonryWork', kinds: ['masonryCut', 'masonryLay', 'masonryEdge'], extra: ['tileMix', 'masonryMortar', 'masonryGrout', 'paving'] },
   { id: 'plasterboard', name: 'Wall and ceiling linings', signal: 'plasterWork', kinds: ['plasterSheets', 'plasterHeight', 'plasterCeiling', 'plasterSanding', 'carpFraming'], extra: ['carpLoad', 'carpEdge', 'carpentryWork'] },
   { id: 'carpentry', name: 'Carpentry and joinery', signal: /\b(carpent\w*|joinery|cabinetry|timber (?:fram\w*|floor\w*|decks?)|wall frames?|roof trusses|trusses|hang(?:ing)? doors?)\b/i, kinds: ['carpFraming', 'carpJoinery', 'carpEdge', 'timberFloor', 'houseFraming', 'deckBuild'], extra: ['carpLoad', 'stoneHandle', 'carpentryWork'] },
   { id: 'doors', name: 'Doors, frames and hardware', signal: /\b(door ?frames?|door hardware|doorsets?|hinges|door closers|locksets?|(?:hang|install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors)\b/i, kinds: ['doorHang'], extra: ['carpLoad', 'carpentryWork'] },
   { id: 'kitchens', name: 'Commercial kitchen and stainless steel installation', signal: /\b(commercial kitchens?|kitchen equipment|kitchen items|exhaust hoods?|cool ?rooms?|freezer rooms?|dishwash\w*|combi ovens?|stainless steel (?:benches|benching|sinks?|shelving|joinery))\b/i, kinds: [], extra: ['plantLift'] },
   { id: 'tiling', name: 'Floor and wall tiling', signal: 'tilingWork', kinds: ['tileCut', 'tileLay', 'tileEdge'], extra: ['tileMix'] },
   { id: 'stone', name: 'Stone benchtops', signal: 'stoneWork', kinds: ['stoneSilica', 'stoneHandle'], extra: [] },
-  { id: 'flooring', name: 'Floor coverings', signal: 'floorWork', kinds: ['floorGrind', 'floorAdhesive', 'floorLevel', 'timberFloor', 'floorLay'], extra: [] },
+  { id: 'flooring', name: 'Floor coverings', signal: 'floorWork', kinds: ['floorGrind', 'floorAdhesive', 'floorLevel', 'timberFloor', 'floorLay'], extra: ['tileCut', 'tileMix', 'tileLay'] },
   { id: 'waterproofing', name: 'Waterproofing', signal: 'waterproofing', kinds: ['wpPrep', 'wpLiquid', 'wpTorch', 'wpEdge'], extra: ['wpRolls'] },
   { id: 'painting', name: 'Painting', signal: 'painting', kinds: ['painting', 'paintAccess', 'paintSpray', 'paintSolvent', 'paintSwing', 'paintExternal'], extra: [] },
   { id: 'roofing', name: 'Roofing', kinds: ['roof', 'roofStrip'], extra: [] },

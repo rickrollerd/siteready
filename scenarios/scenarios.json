@@ -160,12 +160,14 @@
     "fallRisk": "no",
     "facts": {
       "craneChart": "Rated capacity 1.5 t at 6 m radius from the crane truck load chart.",
-      "electricalSafety": "The crane truck is set up so the boom and load stay more than 3 m from the lines at all times. A safety observer watches the boom and has no other duties. The network operator's requirements are obtained before the lift."
+      "electricalSafety": "The crane truck is set up so the boom and load stay more than 3 m from the lines at all times. A safety observer watches the boom and has no other duties. The network operator's requirements are obtained before the lift.",
+      "erectionSequence": "Posts are stood and braced first, then the roof beams are lifted in and bolted to the carport supplier's drawing, and the crane does not release a beam until both ends are bolted."
     },
     "expect": {
       "missing": [
         "Crane chart",
-        "Electrical safety arrangement"
+        "Electrical safety arrangement",
+        "Erection sequence and temporary bracing"
       ],
       "highRisk": [
         "electrical",

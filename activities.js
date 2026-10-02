@@ -55,7 +55,7 @@ const BEFORE = {
 // Controls added to Before starting for some kinds of work.
 const BEFORE_EXTRA = [
   { when: 'ptSlab', text: 'Check the post-tensioning drawings and scan the slab before drilling or fixing into a post-tensioned slab.' },
-  { when: 'respirator', text: src('Tight-fitting respirators are fit tested to each wearer before use and at least once a year, for the make and model they wear. Wearers are clean shaven where the mask seals, and fit check the respirator each time they put it on.', QCODE('Silica', 's 7.6.2')) },
+  { when: 'respirator', text: 'Tight-fitting respirators are fit tested to each wearer before use and at least once a year, for the make and model they wear. Wearers are clean shaven where the mask seals, and fit check the respirator each time they put it on.' },
   { when: 'electricalWork', text: src('Electrical work is done or supervised only by licensed electrical workers, for a licensed electrical contractor.', `${ESA('s 55, s 56')}`) },
   { when: 'electricalWork', text: src('Apprentices are supervised at all times by a licensed electrical worker. In their first 6 months they do not work where they could contact a live low voltage exposed part.', ESR('s 307')) },
   { when: 'electricalWork', text: src('Everyone who performs or helps in performing electrical work is competent in rescue and resuscitation.', ESR('s 211')) },
@@ -221,7 +221,7 @@ const ACTIVITIES = [
     when: 'mobileScaffold',
     steps: [{
       step: 'Use mobile scaffolds',
-      hazards: ['The scaffold rolls or tips.', 'A fall from the platform or access.'],
+      hazards: ['The mobile scaffold rolls or tips.', 'A fall from the platform or access.'],
       controls: [
         src('Workers are trained in using the scaffold. The scaffold stays level and plumb, castors are locked before anyone gets on, it is never moved with anyone on it, and it is accessed by its internal ladder.', MODEL('Managing the risk of falls', 's 5.1')),
         src('Keep it well clear of open floor edges and penetrations, and of powerlines outdoors.', MODEL('Managing the risk of falls', 's 5.1')),
@@ -790,7 +790,7 @@ const ACTIVITIES = [
           'Concrete trucks reverse only with a spotter, into a marked area kept clear of people.',
           'Vibrators have their leads checked and tagged and are protected by an RCD. Rotate operators to limit hand-arm vibration.',
           'Generators, petrol trowels and petrol saws run only outdoors or where exhaust cannot collect, and are refuelled only when stopped and cool.',
-          'Vacuum decks first. Blow out with compressed air only with eye protection and a P2 respirator, and keep others clear while doing it.',
+          'Vacuum decks first. Compressed air is used only for loose debris the vacuum cannot reach, never on concrete dust or slurry, with eye protection and a P2 respirator, and others kept clear.',
         ],
       },
       {
@@ -1036,7 +1036,7 @@ const ACTIVITIES = [
         step: 'Deliver and place switchboards',
         hazards: ['A switchboard tips or falls during delivery or placement.', 'Crushing and back strain moving heavy boards.'],
         controls: [
-          'Move boards on skates, trolleys or jacks, on a planned route within the slab\'s load limits. If a crane or forklift is needed, this SWMS is reviewed to cover powered mobile plant before it is used.',
+          'Move boards on skates, trolleys or jacks, on a planned route within the slab\'s load limits. A crane or forklift is used only by a licensed operator, inside an exclusion zone.',
           'Keep people clear of the load, and secure each board as soon as it is placed.',
           'Manual handling: no manual lifting of heavy boards; use skates, jacks and team handling for final positioning.',
         ],
@@ -1823,7 +1823,7 @@ const ACTIVITIES = [
         src('Edge protection and penetration covers stay in place. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306E, s 306F')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
         src('No stepladders near an open edge, penetration or beside a railing without extra fall protection.', MODEL('Managing the risk of falls', 's 9.1')),
         src('Where temporary edge protection must be opened, it is opened only under the principal contractor\'s permit. Workers at the opening use travel restraint so they cannot reach the edge. No one uses a fall arrest harness while working alone.', `${WHS('s 306D, s 306G, s 306I')}; ${QCODE('Managing the risk of falls', 's 6.1, s 8.2, s 10.1')}`),
-        'Temporary edge protection is not removed or opened by us. It is opened one section at a time, and put back before the area is left.',
+        'Edge protection opened under the permit is opened one section at a time, and put back before the area is left. Otherwise it is not removed or opened by us.',
         src('Barricade and sign no go areas below.', QCODE('Managing the risk of falls', 's 8.1')),
         'Keep tools and offcuts away from edges.',
       ],
@@ -3035,7 +3035,7 @@ const ACTIVITIES = [
           'Brace and secure each frame as it is stood, to the frame drawings, before letting go of it.',
           src('Housing construction: where a person could fall 3 m or more, prevent the fall with edge protection, scaffolds or work platforms before using fall arrest.', WHS('s 306D, s 306E')),
           src('Ladders are industrial, rated for at least 120 kg, secured, and not used for work that needs two hands or a high degree of leverage.', `${WHS('s 306L, s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
-          'Nail guns are used with the safety contact trip, never carried with a finger on the trigger, and disconnected before clearing a jam.',
+          'Nail guns are used with the single shot (sequential) trigger, never carried with a finger on the trigger, and disconnected before clearing a jam.',
           src('Lift frames with enough people or a crane, not alone. Rotate lifting tasks.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
         ],
       },
@@ -3083,6 +3083,7 @@ const ACTIVITIES = [
         'Walk only on the ceiling joists or on crawl boards laid across them, never on the ceiling sheets.',
         'Wear a dust mask, long sleeves and gloves when moving insulation.',
         'Treat all cables in the roof space as live until they are proved de-energised.',
+        'Turn off the power at the main switchboard before going into the roof space, where the work allows it. No metal staples, fixings or foil insulation near cables.',
       ],
     }],
     ppe: ['p2', 'longs'],
@@ -3123,6 +3124,7 @@ const ACTIVITIES = [
       hazards: ['A fall from a balcony or from a ladder near an edge.', 'Items fall from balconies.'],
       controls: [
         src('Work from the floor with extendable tools where possible. Where cleaning is near a balcony or open edge, the balustrade or barrier is in place first.', `${WHS('s 78')}; ${MODEL('Managing the risk of falls', 's 4.1, s 4.2')}`),
+        'Outside glass that cannot be reached from the floor or a balcony is cleaned only from an EWP, or by a rope access or building maintenance unit contractor under their own SWMS.',
         src('No stepladders at balustrades or open edges. Ladders only for short light work.', MODEL('Managing the risk of falls', 's 9.1')),
         src('Nothing is left loose on balconies, with an exclusion zone below where items could fall.', WHS('s 55')),
       ],
@@ -3402,7 +3404,7 @@ const ACTIVITIES = [
         src('Spraying makes a hazardous airborne concentration likely. Ventilate, and wear the respirator the safety data sheet lists, even with other controls in place. Two-pack isocyanate paints: full-face air-fed respirators.', MODEL('Managing risks of hazardous chemicals', 's 3.3, s 4.1')),
         src('No ignition sources where flammable vapour may be present. Earthed and intrinsically safe equipment, and static controlled.', `${WHS('s 355')}; ${MODEL('Managing risks of hazardous chemicals', 's 4.2')}`),
         'Never point the gun at anyone. Tip guard and trigger lock on, and release pressure before cleaning or changing tips. An injection injury is a medical emergency, even if it looks minor.',
-        src('Heavier than air vapour collects in stairwells and the basement car park.', `${WHS('s 51')}; ${QCODE('Managing risks of hazardous chemicals', 's 3.4, appendix I')}`),
+        src('Heavier than air vapour collects in low and enclosed areas, such as stairwells, pits and basements.', `${WHS('s 51')}; ${QCODE('Managing risks of hazardous chemicals', 's 3.4, appendix I')}`),
         'An atmosphere above 5% of the lower explosive limit is a hazardous atmosphere: stop and ventilate.',
         src('Workers spraying two-pack isocyanate paints who are at significant risk have health monitoring.', WHS('s 368, schedule 14')),
       ],
@@ -3579,9 +3581,9 @@ addAfter('landscape', {
   when: 'treeRemoval',
   steps: [{
     step: 'Remove trees, stumps and roots',
-    hazards: ['A tree or limb falls on a person.', 'Chainsaw cuts and kickback.', 'Stump grinder debris.', 'Striking services or overhead power lines.'],
+    hazards: ['A tree or limb falls on a person.', 'Chainsaw cuts and kickback.', 'Stump grinder debris.', 'Striking services or overhead power lines.', 'Noise from chainsaws and stump grinders.'],
     controls: [
-      'Trees are felled from the ground only by competent chainsaw operators, with a plan for the direction of fall. A tree that must be dismantled at height is done by an arborist under their own SWMS.',
+      'Where trees are felled, they are felled from the ground only by competent chainsaw operators, with a plan for the direction of fall. A tree that must be dismantled at height is done by an arborist under their own SWMS.',
       'Keep an exclusion zone around felling of at least twice the height of the tree, and around any work under a tree being cut.',
       'Check for overhead power lines and buried services before felling or grinding. Work near power lines only under the network operator\'s requirements.',
       'Chainsaws have a working chain brake and are refuelled only when stopped and cool. Operators wear chainsaw chaps or trousers, a helmet with face shield, and hearing protection.',
@@ -3766,13 +3768,22 @@ function jobStepsFor(flags, factText, fallback) {
   let found = ACTIVITIES.filter((activity) => flags[activity.when]);
   const replaced = new Set(found.flatMap((activity) => activity.replaces || []));
   found = found.filter((activity) => !replaced.has(activity.when));
-  let middle = found.length ? found.flatMap((activity) => activity.steps) : [fallback];
+  // With no kind of work recognised, the task itself is the only step: marked so the
+  // draft is stood down rather than issued with no real hazards or controls.
+  let middle = found.length ? found.flatMap((activity) => activity.steps) : [{ ...fallback, fallback: true }];
   // Work done inside a confined space happens before the permit is closed.
   const close = middle.filter((step) => step.step === 'Leave and close up');
   middle = [...middle.filter((step) => step.step !== 'Leave and close up'), ...close];
   // Asbestos is checked, and the room stripped out, before anything new goes in.
   const FIRST = ['Check for asbestos before starting', 'Strip out the room'];
   middle = [...FIRST.flatMap((name) => middle.filter((step) => step.step === name)), ...middle.filter((step) => !FIRST.includes(step.step))];
+  // The circuit is isolated and proved de-energised before it is worked on.
+  const isolate = middle.find((step) => step.step === 'Isolate and prove de-energised');
+  const fitOff = middle.findIndex((step) => step.step === 'Rough-in and fit-off');
+  if (isolate && fitOff >= 0 && middle.indexOf(isolate) > fitOff) {
+    middle = middle.filter((step) => step !== isolate);
+    middle.splice(fitOff, 0, isolate);
+  }
   // Old roofing comes off once the roof access and fall protection are set up.
   const strip = middle.find((step) => step.step === 'Remove old roofing');
   const setUp = middle.findIndex((step) => step.step === 'Set up roof access and fall protection');
@@ -3789,11 +3800,13 @@ function jobStepsFor(flags, factText, fallback) {
     .filter((step) => !seen.has(step.step) && seen.add(step.step));
   // Post-tensioning checks apply only where the task is on post-tensioned slabs.
   const pt = (line) => (flags.ptSlab ? line : line.replace(/a post-tensioning tendon or /gi, '').split(/(?<=\.)\s+(?=[A-Z])/).filter((part) => !/post-tension|tendon/i.test(part)).join(' '));
+  // A step left with no controls (energised work answered "none") is not work this SWMS covers.
   return steps.map((step) => ({
+    ...(step.fallback ? { fallback: true } : {}),
     step: step.step,
     hazards: step.hazards.map(pt).filter(Boolean),
     controls: step.controls.filter((item) => !item.only || flags[item.only]).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean),
-  }));
+  })).filter((step) => step.fallback || step.controls.length);
 }
 
 // The PPE list with each item ticked or not. A chosen list replaces the defaults.

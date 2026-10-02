@@ -11,7 +11,8 @@
       "fallRisk": "no",
       "facts": {
         "isolationProcedure": "The supply is isolated at the main switch and the meter fuse is pulled by the distributor where needed. Circuits are locked and danger tagged, and tested de-energised by the licensed electrician before work. Each worker holds their own lock.",
-        "energisedWork": "none"
+        "energisedWork": "none",
+        "asbestosArrangement": "The old switchboard panel was checked against the asbestos register before work: no asbestos."
       },
       "expect": {
         "highRisk": [],
@@ -22,6 +23,7 @@
           "Work in the roof space"
         ],
         "missing": [
+          "Asbestos arrangement",
           "Isolation and testing procedure",
           "Work on or near energised parts"
         ]
