@@ -129,7 +129,7 @@ const NEW_SOUTH_WALES = {
     atmosphere: 'Is carried out in an area that may have a contaminated or flammable atmosphere',
     precast: 'Involves tilt-up or precast concrete',
     road: 'Is carried out on, in or adjacent to a road, railway, shipping lane or other traffic corridor that is in use by traffic other than pedestrians',
-    plant: 'Is carried out in an area at a workplace in which there is movement of powered mobile plant',
+    plant: 'Is carried out in an area at a workplace in which there is any movement of powered mobile plant',
     temperature: 'Is carried out in an area in which there are artificial extremes of temperature',
     water: 'Is carried out in or near water or other liquid that involves a risk of drowning',
     diving: 'Involves diving work',
