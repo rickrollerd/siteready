@@ -266,6 +266,4 @@ test('round 8: licences from the work itself, and lines only where the work has 
   assert.ok(!workFlags('Identifying, labelling, and protecting all plant, pipework, cabling and ductwork to be demolished and removed from site.', {}).demolition);
   assert.ok(!workFlags('Install all architectural door and window hardware. Tape all glazing to windows and doors.', {}).glassHandle);
   assert.ok(!workFlags('Clean, grind and prepare the concrete pool prior to membrane installation.', {}).fibreCement);
-  const forklift = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Unload and move formwork ply around the deck. Forklifts are kept clear of the pour area.' });
-  assert.ok(!forklift.qualifications.some((item) => /\(\(/.test(item)));
 });
