@@ -1559,7 +1559,7 @@ const OWN_CUTTING = ['tileCut', 'masonryCut', 'sawCut', 'coreDrill', 'stoneSilic
 // Concrete slabs on the ground: house and ground floor slabs, driveways, paths, kerbs,
 // crossovers and pads. With no suspended slab in the task, the ground steps take the
 // place of the deck, trench and demolition saw cutting steps.
-const SLAB_GROUND = /\b(slabs? on ground|slab-on-ground|on-ground slabs?|ground (?:floor )?slabs?|ground bearing slabs?|house slabs?|raft slabs?|waffle (?:pod )?slabs?|garage slabs?|shed slabs?|driveways?|footpaths?|crossovers?|kerbs?|(?:concrete )?paths?|patios?|plinths?|hardstands?|concrete pads?)\b/i;
+const SLAB_GROUND = /\b(slabs? for (?:an? |the )?(?:new )?(?:garden )?(?:sheds?|garages?|carports?|water tanks?|tanks?)|slabs? on ground|slab-on-ground|on-ground slabs?|ground (?:floor )?slabs?|ground bearing slabs?|house slabs?|raft slabs?|waffle (?:pod )?slabs?|garage slabs?|shed slabs?|driveways?|footpaths?|crossovers?|kerbs?|(?:concrete )?paths?|patios?|plinths?|hardstands?|concrete pads?)\b/i;
 // Forming or placing concrete: reo on its own is the reo steps.
 const CONCRETE_POUR = /\b(concrete|pour\w*|edge forms?|formwork)\b/i;
 const SUSPENDED = /\b(suspended|decks?|podium|transfer slabs?|upper (?:floors?|levels?)|level [1-9]\d*|post[- ]?tension\w*|backprop\w*|falsework|soffits?)\b/i;
