@@ -892,7 +892,7 @@ const ACTIVITIES = [
       hazards: ['A fall from a ladder, platform or elevating work platform.', 'A fall into an open riser or shaft.', 'Dropped tools and materials.', 'Contact with energised parts nearby.'],
       controls: [
         src('Use non-conductive ladders for electrical work.', CODE('s 9.2')),
-        src('Extension ladders used for electrical work are no longer than 9.2 m.', WHS('s 306M')),
+        src('Extension ladders used for electrical work are no longer than 9.2 m, and are used for access only. Work is done from the platforms set out in the fall controls.', WHS('s 306M')),
         'Risers and shafts are screened or covered at each level. Only the section being worked on is opened, and it is fenced.',
         src('Restrain tools with lanyards or holders when working above others or near switchboards.', CODE('s 9.1')),
         src('Where an exposed energised part is within 3 m, de-energise it or fit covers, and use a safety observer where needed.', `${ESR('s 193')}; ${CODE('s 8.2, s 9.2')}`),
@@ -3486,7 +3486,7 @@ addAfter('treeRemoval', {
     hazards: ['Skin, eye and breathing contact with herbicides or termiticides.', 'Spray drift onto people, plants or waterways.'],
     controls: [
       { fact: 'safetyDataSheet' },
-      'Chemicals are applied by a person licensed or trained for the product and the work, as its label and safety data sheet require.',
+      'Each product is applied as its label and safety data sheet require, by a worker trained for it. Termite treatments are applied only by a holder of a Queensland Health pest management licence for timber pests, who also holds a QBCC termite management (chemical) licence for treatments to new building work. Herbicide spraying with powered ground equipment in a regulated area is done only by a licensed commercial operator.',
       'Do not spray in wind that carries drift, or near drains and waterways. Keep people out of treated areas for the time the label sets.',
       'Mix and decant only in a ventilated area with spill containment, and wear the gloves, eye protection and respirator the label lists.',
     ],
