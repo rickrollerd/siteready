@@ -81,6 +81,7 @@ const QUALIFICATIONS = [
   ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|fit[- ]off|terminations?|wiring|cabling|power points?|lighting)\b/i],
   ['Plumbing and drainage licence', /\b(plumbing|plumber|drainage|sewer\w*|hot water|water supply|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
   ['Refrigerant handling licence (ARC)', /\brefrigerant\b/i],
+  ['Gas work licence (Petroleum and Gas (Production and Safety) Act 2004 (Qld))', /\b(gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|meters?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas\b)\b/i],
   ['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)', /\basbestos\b/i],
   ['Confined space entry training', /\bconfined spaces?\b/i],
   ['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk', /\bsilica dust\b/i],
@@ -165,7 +166,7 @@ function substancesFor(text, safetyDataSheet) {
 
 // Trade licences come from the task itself, not from controls that mention other
 // trades' work. Training for a hazard comes from the hazards in the steps.
-const TASK_LICENCES = /^(Electrical work licence|Plumbing and drainage licence|Refrigerant handling|Licensed asbestos|Pest management|Traffic controller|Chainsaw|Commercial operator)/;
+const TASK_LICENCES = /^(Gas work licence|Electrical work licence|Plumbing and drainage licence|Refrigerant handling|Licensed asbestos|Pest management|Traffic controller|Chainsaw|Commercial operator)/;
 
 function qualificationsFor(taskText, hazardText, allText, plant, highRisk = []) {
   const needed = QUALIFICATIONS.filter(([name, pattern]) => {

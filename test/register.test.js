@@ -55,3 +55,24 @@ test('explosive power tools are not the use of explosives', () => {
   assert.ok(!checks('Fix brackets with explosive power tools.').includes('explosives'));
   assert.ok(checks('Blast rock with explosives to form the footing.').includes('explosives'));
 });
+
+test('high risk categories from the task wording', () => {
+  const { highRiskMatches } = require('../draft');
+  const { findState } = require('../legislation');
+  const checks = (task) => highRiskMatches(task, 'no', findState('qld')).map((item) => item.check);
+  assert.ok(checks('Excavate and connect a new sewer line to the council main 2.4 m deep in the footpath.').includes('trench'));
+  assert.ok(checks('Excavate and connect a new sewer line to the council main 2.4 m deep in the footpath.').includes('road'));
+  assert.ok(!checks('Excavate the basement 9 m deep.').includes('trench'));
+  assert.ok(checks('Install solar panels and an inverter on a house roof.').includes('electrical'));
+  assert.ok(checks('Demolish the load-bearing wall with temporary props and a new steel beam.').includes('temporary'));
+  assert.ok(checks('Install a new swimming pool fence around a filled pool.').includes('water'));
+  assert.ok(!checks('Install pool fencing before the pool is filled.').includes('water'));
+  assert.ok(checks('Install a gas hot water system and connect it to the existing gas line.').includes('gas'));
+});
+
+test('registers: no paint rollers as compactors, no plumbing licence for plumb and brace, licences held by others', () => {
+  const draft = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'doors', task: 'Stand, plumb and brace door frames, and hang doors to masonry openings.', facts: { silicaControls: 'Drilling is done with on-tool extraction.' } });
+  assert.ok(!draft.qualifications.some((item) => /Plumbing/.test(item)));
+  const paint = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'painting', task: 'Paint the office walls with water-based paint using brushes and rollers.', facts: { safetyDataSheet: 'Water-based acrylic.' } });
+  assert.ok(!paint.plant.some((item) => /compactor/i.test(item.item)));
+});
