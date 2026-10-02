@@ -2702,6 +2702,196 @@ const ACTIVITIES = [
     ppe: ['gloveCut', 'sunHat', 'sunscreen'],
   },
   {
+    when: 'restump',
+    steps: [{
+      step: 'Jack the house and replace stumps',
+      hazards: ['The house drops or moves when jacked.', 'Crushed under the floor or house.', 'Striking services under the house.', 'Strain and awkward postures working under the floor.', 'Asbestos or lead in old sheeting and paint under the house.'],
+      controls: [
+        'Jacking points, jack capacities and the temporary supports are planned before work starts, and the engineer\'s design is followed where the house is raised or the structure altered.',
+        'The house is jacked in small lifts and packed with timber or steel cribbing as it goes. No one goes under a part that is held only by a jack.',
+        'Services (water, sewer, gas and power) are located and disconnected or made flexible by licensed trades before the house is raised.',
+        'Holes for new stumps are dug by hand or machine after the services are located, and backfilled or covered when left.',
+        'Work under the floor is broken up with breaks, with knee pads and enough lighting.',
+        'Sheeting and paint on older houses are checked for asbestos and lead before they are disturbed.',
+      ],
+    }],
+    ppe: ['kneePads', 'gloveGeneral'],
+  },
+  {
+    when: 'flueInstall',
+    steps: [{
+      step: 'Install the heater and flue',
+      hazards: ['A fall from the roof while fitting the flue and cowl.', 'The heater is heavy and can crush or strain.', 'Fire if the flue or heater is too close to combustible materials.', 'Cuts from sheet metal.'],
+      controls: [
+        { fact: 'fallControl' },
+        'The heater is moved with a trolley or by two people, and set on a hearth that takes its weight.',
+        'Clearances from the heater and flue to combustible materials follow the manufacturer\'s instructions and AS/NZS 2918.',
+        'The roof penetration is flashed and sealed, and the flue is supported and braced as the manufacturer requires.',
+        'Cut resistant gloves when handling flue sections and flashings.',
+      ],
+    }],
+    ppe: ['gloveCut'],
+  },
+  {
+    when: 'testTag',
+    steps: [{
+      step: 'Inspect, test and tag electrical equipment',
+      hazards: ['Electric shock from damaged equipment during testing.', 'Equipment in use is switched off without warning.'],
+      controls: [
+        'Testing is done by a competent person, to AS/NZS 3760 or AS/NZS 3012 for construction equipment, with a calibrated tester.',
+        'Equipment is visually inspected before it is tested, and damaged items are tagged out of service straight away.',
+        'Equipment is unplugged before it is tested, and users are told before their equipment is taken out of use.',
+        'Each item passed is tagged with the test date, the retest date and the tester\'s name, and results are recorded.',
+      ],
+    }],
+    ppe: [],
+  },
+  {
+    when: 'edgeProtectionInstall',
+    steps: [{
+      step: 'Install or remove edge protection',
+      hazards: ['A fall from the edge while the edge protection is being installed or removed.', 'Components fall onto people below.'],
+      controls: [
+        'Edge protection is installed working back from the edge, or by workers using travel restraint set so they cannot reach the edge.',
+        'Posts and clamps are fixed to the manufacturer\'s instructions, and each section is complete before workers move along it.',
+        'An exclusion zone is set up below, and components are not stacked at the edge.',
+        'Edge protection is removed only when the edge is no longer needed, or a permanent barrier is in place.',
+      ],
+    }],
+    ppe: ['harness'],
+  },
+  {
+    when: 'rockBreak',
+    steps: [{
+      step: 'Break rock with a hydraulic hammer',
+      hazards: ['Flying rock and chips strike people.', 'Silica dust from breaking rock.', 'Noise and vibration.', 'Plant overturns at an excavation edge.'],
+      controls: [
+        'An exclusion zone is kept around the hammer, and only the operator is inside it.',
+        'Breaking is done with water sprays to keep dust down, and anyone in the area still at risk wears a fit tested P2 respirator.',
+        'Hearing protection is worn within the signposted area, and operators\' exposure to vibration is managed by rotating tasks.',
+        'The excavator stays back from excavation edges and works on firm level ground.',
+      ],
+    }],
+    ppe: ['earMuffs', 'p2', 'glassesClear'],
+  },
+  {
+    when: 'drainClear',
+    steps: [{
+      step: 'Clear the drain with a drain machine or jetter',
+      hazards: ['Hands caught in the rotating drain cable.', 'High pressure water from the jetter hose.', 'Sewage on the skin or in the eyes.', 'Gases from the drain.'],
+      controls: [
+        'Drain machines are used with their guards, a foot switch and leather drain cleaning gloves, and the cable is never held by hand while it rotates.',
+        'Jetter hoses and nozzles are rated for the pressure, and the nozzle is in the pipe before the pump starts.',
+        'Gloves and eye protection are worn, cuts are covered, and hands are washed before eating.',
+        'No one enters a pit or manhole without a confined space assessment.',
+      ],
+    }],
+    ppe: ['gloveChemical', 'glassesClear', 'gumboots'],
+  },
+  {
+    when: 'signageInstall',
+    steps: [{
+      step: 'Install signs and screens on the building',
+      hazards: ['A fall from the EWP or ladder.', 'The sign or screen falls while it is lifted or fixed.', 'Electric shock connecting lit signs.', 'People below are struck by falling items.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Signs and screens are lifted with a crane, hoist or EWP rated for the load, not carried up ladders.',
+        'Fixings into the facade suit the wall and the load, as the designer specifies.',
+        'An exclusion zone is set up below, with any footpath closure the council requires.',
+        'Power to lit signs and screens is connected by a licensed electrician.',
+      ],
+    }],
+    ppe: ['harness'],
+  },
+  {
+    when: 'fuelTankRemoval',
+    steps: [{
+      step: 'Remove the fuel tanks',
+      hazards: ['Fire or explosion from fuel vapour in the tank.', 'Contaminated soil and groundwater.', 'The excavation collapses.', 'The tank falls while it is lifted.'],
+      controls: [
+        'Tanks are emptied, and the vapour is removed or made inert and tested with a gas detector, before any cutting or lifting.',
+        'No ignition sources are allowed in the hazardous area around the tank and excavation.',
+        'Contaminated soil and water are tested, handled and disposed of as the environmental consultant and the regulator require.',
+        'The excavation is battered, benched or shored where people work in or near it.',
+        'Tanks are slung and lifted by licensed crane crews, and no one stands under the load.',
+      ],
+    }],
+    ppe: ['gloveChemical', 'p2'],
+  },
+  {
+    when: 'fuelSystems',
+    steps: [{
+      step: 'Install fuel dispensers and lines',
+      hazards: ['Fire or explosion from fuel vapour.', 'Fuel on the skin.', 'Struck by vehicles at an operating site.'],
+      controls: [
+        'The hazardous areas are identified, and no ignition sources are used in them unless a hot work permit is in place.',
+        'Existing tanks and lines are isolated, drained and tested free of vapour before they are opened.',
+        'New lines are pressure tested before fuel is introduced.',
+        'The work area is barricaded from customer vehicles.',
+        'Electrical work in hazardous areas is done by licensed electricians competent in hazardous area work.',
+      ],
+    }],
+    ppe: ['gloveChemical'],
+  },
+  {
+    when: 'accessFloor',
+    steps: [{
+      step: 'Install raised access flooring',
+      hazards: ['A fall into an open floor void.', 'Strain lifting floor panels.', 'Cuts from panel edges.', 'Damage to cables under the floor.'],
+      controls: [
+        'Open voids are barricaded, and only the panels being worked on are lifted.',
+        'Panels are lifted with suction lifters, and stacks are kept low.',
+        'Cut resistant gloves are worn when cutting and handling panels.',
+        'Cables under the floor are treated as live until the electrician confirms otherwise.',
+      ],
+    }],
+    ppe: ['gloveCut', 'kneePads'],
+  },
+  {
+    when: 'pumpInstall',
+    steps: [{
+      step: 'Install the pump and pipework',
+      hazards: ['The pump falls while it is lifted or lowered.', 'Strain handling pumps and pipe.', 'Electric shock connecting the pump.', 'A fall into an open bore, pit or well.'],
+      controls: [
+        'Pumps are lifted or lowered with a hoist, tripod or crane rated for the load, and no one stands under the load.',
+        'Openings, bores and pits are covered or barricaded when not being worked on.',
+        'Pipe is moved with mechanical aids or by two people.',
+        'The pump\'s electrical connection is made by a licensed electrician.',
+      ],
+    }],
+    ppe: ['gloveGeneral'],
+  },
+  {
+    when: 'lightningProtection',
+    steps: [{
+      step: 'Install lightning protection',
+      hazards: ['A fall from the roof edge or from the facade access.', 'Tools and materials fall onto people below.', 'Striking buried services when installing earth electrodes.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Down conductors on the facade are installed from an EWP, swing stage or scaffold set out in the fall controls.',
+        'An exclusion zone is set up below the work.',
+        'Services are located before earth electrodes are driven or buried.',
+      ],
+    }],
+    ppe: ['harness'],
+  },
+  {
+    when: 'abrasiveBlast',
+    steps: [{
+      step: 'Abrasive blast and repaint steel',
+      hazards: ['Lead and other heavy metals in old paint.', 'Dust from the blasting media.', 'Struck by the blast stream or a whipping hose.', 'Noise.', 'A fall from the access platform.'],
+      controls: [
+        src('Old paint is tested for lead before blasting. Removing paint with more than 1% lead by abrasive blasting is a lead process, with the controls and health monitoring the regulation sets.', WHS('s 392')),
+        src('The blasting media contains no more than 1% free crystalline silica.', WHS('schedule 10')),
+        'The blast area is enclosed to contain dust and spent media, and only the blaster is inside it.',
+        'Blasters wear an air-supplied blasting helmet, and hoses have whip checks. The deadman control is never tied down.',
+        'Hearing protection in the signposted area.',
+        { fact: 'fallControl' },
+      ],
+    }],
+    ppe: ['earMuffs', 'gloveGeneral'],
+  },
+  {
     when: 'glassWind',
     steps: [{
       step: 'Handle glass in the wind',
