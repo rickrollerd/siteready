@@ -3047,8 +3047,8 @@ const ACTIVITIES = [
       hazards: ['Striking buried services.', 'Back strain from digging.', 'People stepping into open holes.'],
       controls: [
         { only: 'smallPlant', text: 'Holes are dug with the mini excavator or auger attachment by a competent operator, with workers out of its reach and the holes covered or fenced until they are poured.' },
-        { only: 'footingPour', text: 'Concrete is placed into the holes from the truck chute, a barrow or a pump, with gloves and boots worn and skin contact washed off straight away.' },
         src('Get the current underground services information, for example through Before You Dig Australia, before digging, and work to it.', WHS('s 304')),
+        { only: 'footingPour', text: 'Concrete is placed into the holes from the truck chute, a barrow or a pump, with gloves and boots worn and skin contact washed off straight away.' },
         { unless: 'handDigOff', text: 'Dig with spades and post hole shovels, take turns, and keep loads small. A powered auger is used only with both hands on the handles and stopped before it is cleared.' },
         { only: 'masonryLay', text: 'Strip or pad footings are dug to the drawings, with the trench kept shallow or battered, and concrete is placed with gloves and boots, with skin contact washed off straight away.' },
         'Open holes are covered or fenced when no one is working at them.',
@@ -4043,7 +4043,7 @@ const ACTIVITIES = [
     when: 'fenceRemove',
     steps: [{
       step: 'Take down the old fence',
-      hazards: ['Cuts from sheet and wire edges.', 'Strain lifting panels and digging out posts.', { unless: 'notFibroFence', text: 'Asbestos in an old fibro fence.' }, 'Children, animals or the public get through the gap.'],
+      hazards: [{ unless: 'timberFenceOld', text: 'Cuts from sheet and wire edges.' }, { only: 'timberFenceOld', text: 'Splinters, nails and cuts from old palings and rails.' }, 'Strain lifting panels and digging out posts.', { unless: 'notFibroFence', text: 'Asbestos in an old fibro fence.' }, 'Children, animals or the public get through the gap.'],
       controls: [
         { unless: 'notFibroFence', text: 'An old fibro fence on a property built before 2004 (asbestos products were used until the national ban at the end of 2003) is treated as asbestos unless tested, and is not cut or broken.' },
         'The fence is taken down in sections, with the boundary kept secure by temporary fencing where a pool, animals or the public need it.',
@@ -4689,7 +4689,7 @@ const ACTIVITIES = [
         { only: 'oldFloorTiles', text: 'The old tiles and bedding are lifted with a floor scraper or chisel, using water or on-tool extraction to keep dust down, with eye protection and a fit tested P2 respirator. Wall sheets and screeds under old tiles are checked for asbestos first in a building built before 2004.' },
         ...SILICA_FOLLOW_UP,
         'Shards are collected as the work goes, and cut resistant gloves are worn.',
-        { unless: 'splashback', text: 'The membrane under the tiles is checked, and any damage is repaired or the membrane renewed before new tiles are laid.' },
+        { only: 'wetAreaTiles', text: 'The membrane under the tiles is checked, and any damage is repaired or the membrane renewed before new tiles are laid.' },
       ],
     }],
     ppe: ['gloveCut', 'p2', 'glassesClear'],
@@ -5525,7 +5525,7 @@ const ACTIVITIES = [
       hazards: ['Silica dust from cutting pavers with a paver saw.', 'Noise.', 'Kneeling.'],
       controls: [
         src('Get the current underground services information before excavating the paving bed, and work to it.', WHS('s 304')),
-        { only: 'paverRepair', text: 'Collapsed pavers are lifted out by hand or with a paver lifter, and the bed is dug out to find the cause, such as a broken pipe, before it is rebuilt.' },
+        { only: 'paverRepair', text: 'Damaged pavers are lifted out by hand or with a paver lifter. Where pavers have sunk or collapsed, the bed is dug out to find the cause, such as a broken pipe, before it is rebuilt.' },
         'Use a plate compactor to compact the bedding before the pavers are laid, with its guards in place and hearing protection worn.',
         { fact: 'silicaControls' },
         src('Pavers are not engineered stone, but cutting pavers with 1% or more crystalline silica is processing that must be controlled: wet cutting or on-tool extraction, and respirators for anyone still at risk. Assess in writing before cutting whether it is high risk, without counting PPE or administrative controls, and without relying only on the dust controls used for the processing. If it cannot be determined, treat it as a risk to health.', `${WHS('s 529A, s 529B, s 529C, s 529CA')}; ${QCODE('Silica', 's 5.1, s 7.4.1, s 7.4.2, s 7.6')}`),
