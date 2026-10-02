@@ -210,7 +210,7 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = []) 
   return [...new Set(needed)];
 }
 
-function emergencyFor(text, input, highRisk, plant = []) {
+function emergencyFor(text, input, highRisk, plant = [], coreText = text) {
   const ewp = plant.some((item) => /elevating work platform|Scissor lift/.test(item.item));
   const rows = [];
   rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: input.musterPoint || '' });
@@ -219,7 +219,8 @@ function emergencyFor(text, input, highRisk, plant = []) {
   if (highRisk.some((item) => /falling more than/i.test(item)) || /\b(harness|elevating work platforms?|ewps?|boom lifts?)\b/i.test(text)) {
     rows.push({ type: 'Work at height', equipment: ewp ? 'Rescue plan for a person stuck or suspended at height, including the EWP\'s ground controls and rescue equipment' : 'Rescue plan for a person who falls or is injured at height, including from an edge, opening or scaffold, and for a person suspended in a harness where harnesses are used', detail: '' });
   }
-  if (/\boverhead (?:power |electric )?lines?\b/i.test(text)) rows.push({ type: 'Contact with power lines', equipment: 'Keep everyone well clear of a person, plant or load in contact with a line. Call 000 and the network operator. The operator stays in the plant unless there is fire', detail: '' });
+  // Power lines named in the task or a hazard, not the general check-for-lines control.
+  if (/\b(?:overhead |power |electric )(?:power |electric )?lines?\b/i.test(coreText)) rows.push({ type: 'Contact with power lines', equipment: 'Keep everyone well clear of a person, plant or load in contact with a line. Call 000 and the network operator. The operator stays in the plant unless there is fire', detail: '' });
   if (highRisk.some((item) => /energised electrical/i.test(item)) || /\b(energised parts?|live cables?|energised cables?|live electrical parts?)\b/i.test(text)) rows.push({ type: 'Electric shock or arc flash', equipment: 'Isolate the supply before touching the person. Low voltage rescue kit, CPR and defibrillator (AED), burns first aid', detail: '' });
   if (highRisk.some((item) => /trench|shaft/i.test(item))) rows.push({ type: 'Trench', equipment: 'Rescue plan for a trench collapse (Excavation work Code of Practice s 3.8). No one enters an unsupported trench to rescue', detail: '' });
   if (highRisk.some((item) => /confined space/i.test(item))) rows.push({ type: 'Confined space', equipment: 'Rescue plan and equipment, started from outside the space', detail: '' });
@@ -294,7 +295,7 @@ function registersFor(draft, input = {}) {
     plant,
     substances,
     qualifications: qualificationsFor(task, hazardText, allText, plant, draft.highRisk || []),
-    emergency: emergencyFor(allText, input, draft.highRisk || [], plant),
+    emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`),
     sources,
     // Before starting is checks and briefings, not a work step, so it is not rated.
     jobSteps: steps.map((step) => ({ ...step, risk: step.step === 'Before starting' ? null : riskFor(step) })),
