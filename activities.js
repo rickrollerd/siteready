@@ -55,6 +55,7 @@ const BEFORE = {
 
 // Controls added to Before starting for some kinds of work.
 const BEFORE_EXTRA = [
+  { when: 'airside', text: 'Work airside follows the airport operator\'s airside permit and rules: airside induction and escort, vehicle and plant permits, and stopping work when aircraft movements require it.' },
   { when: 'bollards', unless: 'footpathWork', text: 'The work area is closed to vehicles with barriers, cones and signs before work starts.' },
   { when: 'bollardFuel', text: 'At a service station or other fuel site, work follows the site operator\'s permit and hazardous area rules: no ignition sources in the zones around dispensers, vents and tank fill points, and underground tanks and fuel lines are located before any drilling or digging.' },
   { when: 'publicSite', text: 'The work area is fenced or screened off from children, students, patients, residents and the public, with the areas and times agreed with the site or facility manager.' },
@@ -5223,6 +5224,229 @@ const ACTIVITIES = [
         'The area below is closed off, and condensate trays and pipes are drained into buckets.',
       ],
     }],
+  },
+  {
+    when: 'towerCraneErect',
+    steps: [{
+      step: 'Erect or dismantle the tower crane',
+      hazards: ['A crane section, jib or counterweight falls or swings while it is lifted.', 'A fall from the mast, jib or counterweight jib.', 'The crane is erected out of sequence or on an unchecked base and collapses.', 'Loads pass over the street and the public.'],
+      controls: [
+        'The crane is erected and dismantled by the crane supplier\'s erection crew to the manufacturer\'s erection procedure and a written lift plan, with the base or footing certified by an engineer before erection.',
+        'Sections are lifted by the assist crane under its lift plan, slung by licensed riggers holding the class of rigging licence the work needs, and no one stands under a load.',
+        'Erectors climb and work on the mast and jibs only with fall arrest anchored to the crane at all times, and a rescue plan for a worker suspended at height.',
+        'Work stops in winds above the manufacturer\'s erection limit.',
+        'The street is closed under the council\'s and road authority\'s permits while loads pass over it.',
+        'The crane is a registered item of plant and is commissioned and inspected by a competent person before it is used.',
+      ],
+    }],
+    ppe: ['harness', 'chinStrap'],
+  },
+  {
+    when: 'bmuInstall',
+    steps: [{
+      step: 'Install the building maintenance unit',
+      hazards: ['A fall from the roof edge while the track and davits are fixed.', 'BMU parts fall or swing while they are craned onto the roof.', 'The BMU is fixed to a structure that cannot hold it.', 'People below are struck by tools or parts.'],
+      controls: [
+        'Roof edge protection is in place before work starts near the edge, and no one works outside it without travel restraint to the roof anchors.',
+        'BMU parts are lifted onto the roof by crane under a lift plan, slung by licensed doggers or riggers, and landed where the roof is designed to take them.',
+        'The track, davits and fixings are installed to the BMU designer\'s drawings and the engineer\'s certified fixings, and anchors are proof tested where the design requires.',
+        'The BMU is a registered design, and is commissioned, load tested and certified before anyone uses it.',
+        'The area below the roof edge is closed off while parts are lifted or work is done near the edge.',
+      ],
+    }],
+    ppe: ['harness'],
+  },
+  {
+    when: 'cleanRoom',
+    steps: [{
+      step: 'Install the clean room walls, ceilings and floor',
+      hazards: ['Strain lifting insulated wall and ceiling panels.', 'A fall from a platform or from walk-on ceiling panels.', 'Cuts from panel edges.', 'Fumes from floor adhesives and sealants.'],
+      controls: [
+        'Wall and ceiling panels are moved with panel trolleys and lifted with panel lifters or two people, and wall panels are propped until joined.',
+        'Ceiling panels are fixed from a mobile scaffold or platform. Walk-on ceilings are walked on only once they are complete and rated for it.',
+        'Panel edges are handled with cut resistant gloves.',
+        'Floor adhesives, coved vinyl and sealants are used as their safety data sheets set out, with ventilation, and the room is not used until they have cured.',
+        'Work next to the operating pharmacy follows the hospital\'s infection control permit, with dust barriers and an H class vacuum.',
+      ],
+    }],
+    ppe: ['gloveCut'],
+  },
+  {
+    when: 'bridgeBearings',
+    steps: [{
+      step: 'Jack the deck and replace the bearings',
+      hazards: ['The deck drops or shifts while it is on the jacks.', 'Hands crushed between the deck, bearing and pier.', 'Hydraulic hose failure or oil injection.', 'A fall from the pier head or platform.'],
+      controls: [
+        'Jacking is done to the bridge engineer\'s jacking procedure, with the jack positions, loads and lift heights set out, and the deck is packed on load-rated packers as it rises so it is never held only by the jacks.',
+        'Jacks, pumps and hoses are rated for the loads, inspected before use, and the system is depressurised before any fitting is undone.',
+        'No hands go between the deck and the bearing while the deck is on the jacks. Bearings are moved with lifting aids or bars.',
+        'Work at the pier head is done from an EWP, scaffold or under-bridge platform with guardrails, with traffic or rail below managed under its permit.',
+      ],
+    }],
+  },
+  {
+    when: 'greenWall',
+    steps: [{
+      step: 'Install the green wall',
+      hazards: ['A fall from the EWP, scaffold or swing stage.', 'Panels, planters or tools fall onto people below.', 'Strain lifting wet planter modules.', 'Skin contact with soil, fertiliser and Legionella in potting mix.'],
+      controls: [
+        'The support frame is fixed to the structure to the engineer\'s design for the wet weight of the planted wall.',
+        'Modules are lifted with a hoist or crane, not carried up ladders, and the area below is closed off.',
+        'Potting mix is handled damp with gloves and a P2 mask, and hands are washed before eating.',
+        'The irrigation connection is made by a licensed plumber with the backflow protection the plumbing rules require.',
+      ],
+    }],
+    ppe: ['p2', 'gloveGeneral'],
+  },
+  {
+    when: 'pendants',
+    steps: [{
+      step: 'Install the ceiling pendants',
+      hazards: ['A pendant falls while it is lifted to the ceiling.', 'The ceiling support fails under the pendant\'s load.', 'Contact with live medical gas or electrical services.', 'Dust in a clinical area.'],
+      controls: [
+        'Pendants are lifted with a material lifter or lifting frame rated for the load, never held overhead by hand.',
+        'The ceiling support steel and anchors are installed to the engineer\'s design for the pendant\'s load and are certified before the pendant is hung.',
+        'Medical gas connections are made by licensed medical gas fitters and electrical connections by licensed electricians, with the services isolated under the hospital\'s permit.',
+        'Work follows the hospital\'s infection control permit, with dust barriers where it requires them.',
+      ],
+    }],
+  },
+  {
+    when: 'mriShield',
+    steps: [{
+      step: 'Install the MRI room shielding',
+      hazards: ['Strain and crush injuries from heavy copper or steel shielding panels.', 'A strong magnetic field if a magnet is already on site.', 'Cuts from sheet metal edges.', 'Fumes from soldering or brazing joints.'],
+      controls: [
+        'Shielding panels are moved on trolleys and lifted with panel lifters or two people, and propped until fixed.',
+        'Where the magnet is already installed or energised, no ferrous tools or materials go into the magnet room, and access follows the hospital\'s MRI safety rules.',
+        'Sheet edges are handled with cut resistant gloves.',
+        'Soldering or brazing is done under a hot work permit with ventilation.',
+      ],
+    }],
+    ppe: ['gloveCut'],
+  },
+  {
+    when: 'fumeCupboard',
+    steps: [{
+      step: 'Install the fume cupboards and their exhaust',
+      hazards: ['A fume cupboard tips or falls while it is moved.', 'Strain lifting cabinets and benches.', 'Chemical residues in an existing laboratory.', 'A fall from the roof while fitting the exhaust fan and stack.'],
+      controls: [
+        'Fume cupboards are moved on trolleys or skates and lifted with mechanical aids, and fixed before they are let go.',
+        'In an existing laboratory, the area is cleared and decontaminated by the occupier before work starts.',
+        'The exhaust fan and stack on the roof are installed with the roof fall protection in place.',
+        'Fume cupboards are tested and commissioned to AS/NZS 2243.8 before use, with electrical and plumbing connections made by licensed trades.',
+      ],
+    }],
+  },
+  {
+    when: 'poolPlant',
+    steps: [{
+      step: 'Install the pool plant and chemical dosing',
+      hazards: ['Chlorine gas or chemical release when chemicals are mixed or spilled.', 'Strain lifting pumps, filters and vessels.', 'Electric shock from pumps and controls near water.', 'Pressure vessel or pipe failure during testing.'],
+      controls: [
+        'Pool chemicals are stored and handled as their safety data sheets set out, kept apart, never mixed, with an eyewash and spill kit at hand.',
+        'Pumps, filters and vessels are moved with skates, a pallet jack or lifting aids.',
+        'Pipework is pressure tested to the designer\'s test pressure with the area clear.',
+        'Electrical connections are made by a licensed electrician, and plant is commissioned to the supplier\'s instructions.',
+      ],
+    }],
+    ppe: ['gloveChemical', 'goggles'],
+  },
+  {
+    when: 'gasSuppression',
+    steps: [{
+      step: 'Install the gas suppression system',
+      hazards: ['A cylinder falls, or a valve is knocked off and the cylinder discharges.', 'Asphyxiation if the system discharges into an occupied room.', 'Strain lifting cylinders.', 'Pipe fittings fail under pressure.'],
+      controls: [
+        'Cylinders are moved on cylinder trolleys with their valve caps or anti-recoil devices fitted, and strapped to their racks as soon as they are placed.',
+        'The actuators stay disconnected, and the system stays isolated, until commissioning, which is done with the room cleared and to the supplier\'s procedure.',
+        'Pipework and fittings are rated for the system pressure and tested as the standard requires.',
+        'The work is done by workers holding the fire protection licence or accreditation the state requires.',
+      ],
+    }],
+  },
+  {
+    when: 'conveyorInstall',
+    steps: [{
+      step: 'Install the conveyors',
+      hazards: ['Conveyor sections fall or swing while they are lifted.', 'Entanglement when the conveyor is first run.', 'A fall from the conveyor frame or walkway.', 'Strain lifting rollers and drive units.'],
+      controls: [
+        'Sections are lifted with a crane, forklift or lifting gear rated for them, slung by licensed doggers where the work needs it, with no one under the load.',
+        'Work at height is done from an EWP or from walkways with their guardrails fitted.',
+        'Guards are fitted before the conveyor is run, and the drives are isolated and locked out whenever anyone works on the conveyor.',
+        'The conveyor is commissioned to a written procedure, with emergency stops and pull wires tested first.',
+      ],
+    }],
+  },
+  {
+    when: 'moduleInstall',
+    steps: [{
+      step: 'Lift and set the modules',
+      hazards: ['A module falls or swings while it is lifted.', 'A fall from the top or open edge of a module.', 'Crush injuries between modules as they are landed.', 'Modules delivered on the street strike the public.'],
+      controls: [
+        'Each module is lifted with the crane under a lift plan, using the manufacturer\'s lifting points and spreader frame, slung by licensed doggers or riggers, with no one under the load.',
+        'Modules are guided with tag lines, and no one stands between a module and the structure while it is landed.',
+        'Workers on top of modules use edge protection or travel restraint to anchors set out in the installation plan.',
+        'Deliveries and lifts over the street happen only inside the traffic management and permits for the work.',
+      ],
+    }],
+    ppe: ['harness'],
+  },
+  {
+    when: 'timberStructure',
+    steps: [{
+      step: 'Erect the mass timber panels and beams',
+      hazards: ['A panel or beam falls or swings while it is lifted.', 'A fall from the floor edge or through an opening.', 'The structure is unstable before it is braced.', 'Cuts and dust from cutting timber on site.'],
+      controls: [
+        'Panels and beams are lifted with the crane under a lift plan, with the manufacturer\'s lifting points, slung by licensed doggers or riggers.',
+        'Members are erected to the engineer\'s sequence and braced as they go up, with props until the connections are complete.',
+        'Floor edges and openings have edge protection or covers as soon as panels are laid.',
+        'Timber is cut with saws that have dust extraction, and fixings are installed with the tools the connector supplier specifies.',
+      ],
+    }],
+    ppe: ['harness'],
+  },
+  {
+    when: 'shotcrete',
+    steps: [{
+      step: 'Spray the shotcrete',
+      hazards: ['Struck by the nozzle or a hose that whips when it blocks or bursts.', 'Rebound and dust in the eyes and lungs.', 'Cement burns.', 'The face behind the shotcrete collapses.'],
+      controls: [
+        'The nozzle operator is trained, hoses and couplings are rated and pinned, and the line is depressurised before a blockage is cleared.',
+        'No one stands in front of the nozzle or in the rebound area. The nozzle operator wears a face shield and respirator, and others keep back.',
+        'The excavated face is sprayed in the lifts the engineer sets, and no one works under an unsupported face.',
+        'Gloves, long sleeves and boots are worn, and skin contact is washed off straight away.',
+      ],
+    }],
+    ppe: ['faceShield', 'p2', 'gloveChemical'],
+  },
+  {
+    when: 'kerbInstall',
+    steps: [{
+      step: 'Form and pour the kerb and channel',
+      hazards: ['Struck by traffic or plant.', 'Cement burns and dust.', 'Strain and knee injury finishing kerbs.', 'Caught in a kerb extruding machine.'],
+      controls: [
+        'All work is inside the traffic management set out for the job, and plant has a spotter where people are near.',
+        'The kerb machine is operated by a trained operator, with guards in place and no one near the auger or mould while it runs.',
+        'Gloves, boots and long sleeves are worn, and wet concrete is washed off skin straight away.',
+        'Finishing is rotated, with kneeling pads used.',
+      ],
+    }],
+    ppe: ['hivis', 'gloveChemical'],
+  },
+  {
+    when: 'trackWork',
+    steps: [{
+      step: 'Replace the sleepers and ballast',
+      hazards: ['Struck by a train or track plant.', 'Strain lifting sleepers and rail.', 'Silica dust from ballast.', 'Crushed by on-track plant or rail handling equipment.'],
+      controls: [
+        'Work is done only inside a track possession under the rail manager\'s protection arrangements, by workers with the rail competencies the rail manager requires.',
+        'Sleepers and rail are handled with on-track plant or sleeper tongs, never lifted by hand alone, and people keep clear of plant on the track.',
+        'Ballast is dropped and regulated with water sprays where dust is raised, and P2 respirators are worn.',
+        'The track is inspected and handed back by the rail manager\'s competent person before the possession ends.',
+      ],
+    }],
+    ppe: ['hivis', 'p2'],
   },
   {
     when: 'glassWind',

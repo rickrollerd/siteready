@@ -1382,7 +1382,7 @@ const MAIN_WORK = [
   [/^(?![^]*\b(?:repoint\w*|sandstone|brick\w*|masonry|stone walls?|render\w*|concrete|retaining walls?|fire ?walls?|fibro|asbestos)\b)[^]*\b(?:patch\w*|repair\w*)\b[^.]{0,30}\b(?:plasterboard|linings?|walls?(?! frames?| framing)|ceilings?)\b/i, 'patching linings', /\bCut, set and sand\b/],
   [/\b(underfloor heating|heating cables?|heating mats?)\b/i, 'underfloor heating installation', /\b(heating|Rough-in and fit-off)\b/i],
   [/^\s*(?:install|fix|replac)\w*\s+(?:[\w-]+\s+){0,3}(?:cladding|weatherboards?)\b/i, 'cladding installation', /\bcladding\b/i],
-  [/^\s*install\w*\s+(?:an? |the |new )*(?:passenger |goods )?(?:lifts?|elevators?)\b(?! (?:pits?|shafts?|cores?|the|materials|equipment|it|them|panels?|sheets?|landing doors?|doors?))/i, 'lift installation', /\b(Work on the car top|Lift machines, rails|Install the lift rails|Replace the lift motor)\b/],
+  [/^\s*install\w*\s+(?:an? |the |new )*(?:passenger |goods )?(?:lifts?|elevators?)\b(?! (?:pits?|shafts?|cores?|the|materials|equipment|it|them|panels?|sheets?|landing doors?|doors?))/i, 'lift installation', /\b(Work on the car top|Lift machines, rails|Install the lift rails|Replace the lift motor|Erect and connect steel)\b/],
   [/\btrees?\b[^.]{0,40}\b(cranes?)\b|\bcranes?\b[^.]{0,40}\btrees?\b/i, 'tree removal', /\bRemove trees\b/],
   [/\b(?:replac|fix|repair|re-?bed|repoint|lay|install)\w*\b[^.]{0,30}\b(?:roof tiles?|tiled roofs?|ridge caps?)\b/i, 'tiled roof work', /\b(?:tiled|slate) roof\b|\bStrip slates\b/i],
   [/\b(ev|electric vehicle|car) chargers?\b/i, 'EV charger installation', /\b(Rough-in and fit-off|Test, connect and commission)\b/],
@@ -2282,6 +2282,58 @@ function settleFlags(flags, task) {
   if (out.garageDoor === false && /\bcool ?room doors?\b/i.test(task)) out.timberWork = false;
   if (/\bcool ?room doors?\b/i.test(task)) out.timberWork = false;
   if (out.floorCoating) out.sealing = false;
+  // Commercial bank 12 rules.
+  const T = (re) => re.test(task);
+  out.bridgeBearings = T(/\bbearings?\b/i) && T(/\b(bridges?|decks?|girders?)\b/i);
+  if (T(/\b(conveyors?|silos?|pipe racks?|crane beams?|automated storage|asrs|stacker cranes?)\b/i) && T(/\b(steel|install\w*|erect\w*)\b/i) && !T(/\bbaggage\b/i)) { out.steelErect = true; out.steelLift = true; }
+  out.conveyorInstall = T(/\b(baggage handling|conveyors?)\b/i) && T(/\b(install\w*|new)\b/i) && !T(/\bsteel\b/i);
+  if (T(/\b(?:install\w*|deliver\w*|lift\w*|set\w*)\b[^.]{0,30}\b(?:electrical )?(?:switch ?rooms?|e-?houses?|substation (?:modules?|buildings?))\b/i) && !T(/\bto (?:the )?switch ?rooms?\b/i)) { out.plantLift = true; out.craneInterface = true; }
+  if (T(/\b(bunded|tank farms?|reservoirs?|concrete tanks?)\b/i) && T(/\b(build\w*|construct\w*|pour\w*)\b/i)) { out.formwork = true; out.reo = true; out.concrete = true; }
+  if (T(/\b(process pipework|pipe racks?|pipework on (?:a |the )?(?:pipe )?racks?)\b/i)) { out.hydraulicRisers = true; out.pressureTest = true; }
+  if (T(/\bprecast (?:planks?|hollow ?core|floor units?|beams?)\b|\bhollow ?core\b/i)) { out.precast = true; out.craneInterface = true; }
+  if (T(/\b(band beams?|post-?tensioned (?:slabs?|beams?|band))\b/i) && T(/\b(install\w*|pour\w*|construct\w*)\b/i)) { out.ptTendons = true; out.stressing = true; out.formwork = true; out.reo = true; out.concrete = true; }
+  if (T(/\b(facade|building) louv(?:re|er)s?\b|\blouv(?:re|er)s? on (?:a |the )?(?:\w+ )?(?:facade|building)\b/i)) { out.claddingInstall = true; out.windowInstall = false; }
+  out.greenWall = T(/\bgreen walls?\b|\bvertical gardens?\b/i);
+  out.pendants = T(/\b(?:theatre|ceiling|medical|surgical) pendants?\b/i);
+  out.mriShield = T(/\b(mri|rf) (?:shield\w*|room)\b|\bfaraday cage\b/i);
+  if (T(/\b(?:install\w*|new|provide|cabl\w*)\b[^.]{0,30}\b(nurse call|duress|pa systems?|public address)\b/i) && !T(/\btrolley\b/i)) out.ictCabling = true;
+  out.fumeCupboard = T(/\bfume (?:cupboards?|hoods?)\b/i);
+  if (T(/\btilt-?up\b/i)) out.precast = true;
+  if (T(/\b(sports? (?:hall )?floor\w*|gym(?:nasium)? floor\w*|sprung floor\w*)\b/i)) out.floorLay = true;
+  out.poolPlant = T(/\bpool (?:plant|filtration|chemical dosing)\b|\b(aquatic|swimming) centre (?:pool )?plant\b/i);
+  if (T(/\bbusways?\b|\bbus ?ducts?\b/i)) out.containment = true;
+  out.gasSuppression = T(/\b(gas suppression|suppression gas|gaseous (?:fire )?suppression|fm-?200|inergen|clean agent)\b/i);
+  if (T(/\binsulated panels?\b|\bsandwich panels?\b/i) && T(/\b(freezer|cool|cold) (?:rooms?|stores?|storage|warehouses?)\b|\bfreezer warehouses?\b/i)) out.coolroomPanels = true;
+  out.airside = T(/\b(airports?|aprons?|taxiways?|runways?|aerobridges?|airside)\b/i);
+  if (T(/\b(aprons?|taxiways?|runways?|hardstands?)\b/i) && T(/\b(construct\w*|pav\w*|pour\w*|build\w*)\b/i)) { out.slabGround = true; out.slabPour = true; out.earthworks = true; }
+  if (T(/\baerobridge foundations?\b/i)) out.pilingRig = true;
+  out.moduleInstall = T(/\b(bathroom pods?|modular (?:apartment |building |hotel )?(?:units?|modules?)|volumetric modules?|prefabricated modules?)\b/i);
+  out.timberStructure = T(/\b(cross laminated timber|clt|glulam|mass timber|lvl beams?)\b/i);
+  if (out.timberStructure) out.timberFloor = false;
+  if (T(/\b(void|atrium) (?:protection )?nets?\b|\bsafety nets?\b/i)) out.safetyNet = true;
+  if (T(/\b(temporary works platforms?|protection deck|gantry)\b/i) && T(/\b(over|above) (?:an? |the )?(?:occupied |live )?(?:road|street|footpath|rail\w*)\b/i)) { out.scaffold = true; out.workAbove = true; out.road = true; }
+  if (T(/\b(remediat\w*|contaminated (?:soil|ground|land))\b/i)) { out.contaminatedSpoil = true; out.earthworks = true; }
+  if (T(/\bdewatering bores?\b|\bspear points?\b/i)) out.dewatering = true;
+  out.shotcrete = T(/\b(shotcrete|sprayed concrete|gunite)\b/i) && !T(/\bpools?\b/i);
+  if (T(/\b(crane beams?|lifting (?:beams?|points?))\b/i) && T(/\b(motor rooms?|machine rooms?|plant rooms?)\b/i)) { out.liftShaft = false; out.liftLifting = false; out.liftInstall = false; }
+  if (T(/\b(high voltage|hv|\d+ ?kv)\b/i) && T(/\b(commission\w*|switchgear)\b/i)) { out.commissioning = true; out.isolation = true; if (!T(/\b(deliver\w*|install\w*|plac\w*)\b/i)) out.boardDelivery = false; }
+  if (T(/\b(sound|noise|acoustic) barriers?\b/i) && T(/\bbridges?\b/i)) { out.noiseWall = true; out.workAbove = true; }
+  if (T(/\b(?:build\w*|construct\w*|install\w*|lay\w*)\b[^.]{0,30}\b(?:\w+ )?culverts?\b/i) && !T(/\bculverts? (?:&|and) covers?\b/i)) { out.tankPlace = true; out.trench = true; out.craneInterface = true; }
+  out.kerbInstall = T(/\bkerb(?:s| and channel| and gutter)?\b/i) && T(/\b(construct\w*|build\w*|new|install\w*|form\w*|pour\w*|extrud\w*)\b/i) && !T(/\b(remov\w*|replac\w*|repair\w*|section of)\b/i);
+  if (T(/\bbus shelters?\b/i)) { out.kitStructure = true; out.footingHoles = true; }
+  if (T(/\b(?:install\w*|build\w*|construct\w*|new)\b[^.]{0,30}\b(?<!drinking )(fountains?|water features?)\b/i)) { out.pumpInstall = true; out.trench = true; }
+  out.trackWork = T(/\b(sleepers?|ballast|rail track|track renewal|resleeper\w*)\b/i) && T(/\b(rail|track|possession)\b/i);
+  if (T(/\b(overhead wiring|ohw|catenary) masts?\b/i)) { out.footingHoles = true; out.craneInterface = true; }
+  if (T(/\bplatform canop(?:y|ies)\b|\bcanop(?:y|ies)\b[^.]{0,20}\b(stations?|platforms?)\b/i)) { out.steelErect = true; out.steelLift = true; }
+  if (T(/\b(piles?|piling)\b/i) && T(/\b(barges?|punts?|jack-?up|from the water)\b/i)) { out.pilingRig = true; out.workBoat = true; }
+  if (T(/\b(wharf|jetty) decks?\b/i) && T(/\b(install\w*|construct\w*|pour\w*|build\w*)\b/i)) { out.precast = true; out.formwork = true; out.craneInterface = true; }
+  // Commercial bank rules.
+  if (/\bground anchors?\b/i.test(task) && /\b(shoring|basements?|retention|piles?|walls?)\b/i.test(task)) out.anchorsProps = true;
+  out.towerCraneErect = /\b(erect\w*|dismantl\w*|climb\w*|install\w*|jump\w*)\b[^.]{0,20}\b(?:a |the )?tower cranes?\b/i.test(task) && !/\b(?:with|using|from|by) (?:a |the )?tower crane\b/i.test(task);
+  out.bmuInstall = Boolean(out.bmu && /\b(install\w*|erect\w*|new)\b/i.test(task) && !out.bmuClean);
+  if (out.bmuInstall) out.roof = false;
+  out.cleanRoom = /\bclean ?rooms?\b/i.test(task);
+  if (/\b(rooftop plant|plant on (?:the |a )?roof|roof ?top (?:units?|plant))\b/i.test(task) && /\b(install\w*|replac\w*|lift\w*)\b/i.test(task)) out.roofPlant = true;
   // Banks 5 and 6 review rules.
   if (out.membraneStrip === false && /\bplanters?\b/i.test(task) && /\b(waterproof\w*|membranes?)\b/i.test(task)) { out.landscape = false; out.landscapeLift = false; }
   if (out.wallPanels) out.fixtures = false;
@@ -2360,7 +2412,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     ptTendons: PT.test(task) && /\b(place|placing|install\w*|lay\w*|fix\w*)\b/i.test(task) && /\b(ducts?|tendons?|strand)\b/i.test(task),
     // Attending a pour for another trade (keeping reo cover) is not placing the concrete.
     concrete: /\b(cast[- ]in|in[- ]slab)\b/i.test(pourTask) ? /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete)\b/i.test(pourTask) : /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(pourTask),
-    stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
+    stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing|stress\w*\b[^.]{0,30}\btendons?)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
     jumpform: JUMPFORM.test(task),
     ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
     // Painting or masking around electrical fittings is not electrical work.
