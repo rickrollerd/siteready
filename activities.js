@@ -130,7 +130,7 @@ const ACTIVITIES = [
       hazards: ['Workers struck by passing vehicles.', 'Vehicles or pedestrians enter the work area.'],
       controls: [
         'Set up traffic control to the approved traffic management plan before work starts, with the road authority\'s approval where needed.',
-        src('The principal contractor manages traffic near the site. Trained traffic controllers direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.', `${WHS('s 315')}; ${MODEL('Construction work', 's 3.3, appendix F')}`),
+        src('The principal contractor manages traffic near the site, or where there is no principal contractor, our supervisor puts the traffic management plan in place. Traffic controllers who hold Queensland traffic controller accreditation direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.', `${WHS('s 315')}; ${MODEL('Construction work', 's 3.3, appendix F')}`),
         'Keep work, plant and materials inside the separated work area.',
         src('Footpath or road closures have written approval from the authority that controls the area.', WHS('s 315M')),
         'A physical barrier separates the work area from live traffic, and pedestrians are diverted on a safe, marked route.',
@@ -668,7 +668,7 @@ const ACTIVITIES = [
         controls: [
           'Pour the walls at the rate in the formwork design.',
           'Concrete is placed by placing boom or kibble, with the hose hand in contact with the operator.',
-          'The placing boom operator holds a high risk work licence for a concrete placing boom.',
+          src('The placing boom operator holds a high risk work licence for a concrete placing boom.', WHS('s 81, schedule 3')),
           'No one stands or works under the boom while it is operating.',
           'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
           'Wash wet concrete off the skin straight away. Wear gloves and eye protection.',
@@ -738,8 +738,8 @@ const ACTIVITIES = [
           'Where a separate placing boom is set up on the slab, it stands on an engineer-certified base or ballast.',
           'The pipeline is restrained, pressure-rated, and checked for wear and secure clamps before each pour.',
           src('Concrete placing booms are registered items of plant. Check the registration before use.', WHS('schedule 5')),
-          'The placing boom operator holds a high risk work licence for a concrete placing boom.',
-          'Keep the boom within its rated reach and clear of the crane\'s working area, as coordinated with the crane crew.',
+          src('The placing boom operator holds a high risk work licence for a concrete placing boom.', WHS('s 81, schedule 3')),
+          'Keep the boom within its rated reach. Where a crane works on site, keep clear of its working area, as coordinated with the crane crew.',
           'No one stands or works under the boom while it is operating.',
         ],
       },
@@ -751,28 +751,34 @@ const ACTIVITIES = [
           'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
           'Stay inside the edge protection.',
           'Place concrete evenly. Do not heap it on the deck beyond what the formwork design allows.',
+          'Workers reach the deck only by a stair tower, scaffold stair or secured ladder. Hoses, screeds and tools are lifted up, not carried up ladders, and hose runs and walkways over the reo are kept clear and boarded.',
+          'The pour starts only once the formwork and props have been inspected and signed off by a competent person, and penetrations and voids are covered and fixed.',
           'A competent formwork watcher checks the formwork during the pour and can stop the pour.',
+          'On a slab on ground, concrete trucks stand back from excavation edges, and people keep clear of the chute while it is swung or extended.',
+          'No one works under the deck being poured except the formwork watcher in a safe position, and the area below is barricaded and signed.',
           'The hose hand stays in contact with the operator by radio or agreed signals.',
           'Concrete trucks reverse only with a spotter, into a marked area kept clear of people.',
           'Vibrators have their leads checked and tagged and are protected by an RCD. Rotate operators to limit hand-arm vibration.',
-          'Generators run outdoors or where exhaust cannot collect, and are refuelled only when stopped and cool.',
+          'Generators, petrol trowels and petrol saws run only outdoors or where exhaust cannot collect, and are refuelled only when stopped and cool.',
           'Vacuum decks first. Blow out with compressed air only with eye protection and a P2 respirator, and keep others clear while doing it.',
         ],
       },
       {
         step: 'Finish concrete',
-        hazards: ['Cement burns to the skin and eyes.', 'Power trowel injuries.', 'Back strain.', 'Chemicals in curing compounds.', 'Silica dust from grinding and patching concrete.', 'Noise from vibrators, trowels, pumps and generators.'],
+        hazards: ['Cement burns to the skin and eyes.', 'Power trowel injuries.', 'Back strain.', 'Chemicals in curing compounds.', 'Silica dust from grinding and patching concrete.', 'Noise from vibrators, trowels, pumps and generators.', 'Silica dust and noise from saw cutting joints.'],
         controls: [
           'Wash wet concrete off the skin straight away. Wear gloves and eye protection.',
           'Use power trowels with guards and a working stop switch.',
           'Rotate finishing tasks and take breaks.',
           'Curing compounds are used as their safety data sheet says, with gloves and eye protection.',
-          src('Grind and patch concrete with on-tool extraction or wet methods, and wear a fit tested P2 respirator where dust remains.', WHS('s 529B, s 529C')),
+          src('Where concrete is ground or patched, it is done with on-tool extraction or wet methods, and a fit tested P2 respirator is worn where dust remains.', WHS('s 529B, s 529C')),
+          src('Where control joints are saw cut, or concrete is cut or drilled, it is done wet or with on-tool extraction. This is processing a crystalline silica substance. Anyone still at risk of exposure wears a fit tested P2 respirator.', WHS('s 529B, s 529C')),
+          'Concrete saws have their blade guards in place, and electric saws used wet are protected by an RCD, with leads kept out of water.',
           ...SILICA_FOLLOW_UP,
           src('Where it is uncertain whether dust is below the exposure standard, monitor the air.', WHS('s 50')),
           src('Health monitoring is provided for workers at significant risk from crystalline silica.', WHS('s 368, schedule 14')),
-          'Wear hearing protection near vibrators, power trowels, pumps and generators.',
-          'Patch soffits and walls at height from a mobile scaffold with its castors locked, or a platform ladder, not from a stepladder.',
+          src('Wear hearing protection near concrete saws, vibrators, power trowels, pumps and generators. Workers who must wear it have hearing tests within 3 months of starting and at least every 2 years.', WHS('s 57, s 58')),
+          'Where soffits and walls are patched after stripping, it is done from a mobile scaffold with its castors locked, or a platform ladder, not from a stepladder.',
           'Penetration covers stay fixed in place, and hoses and screeds are not dragged over them in a way that could dislodge them.',
         ],
       },
@@ -3541,6 +3547,91 @@ addAfter('carpJoinery', {
     ],
   }],
   ppe: ['gloveGeneral', 'glassesClear'],
+});
+
+// Slabs on ground: house and ground floor slabs, driveways, paths, kerbs and pads.
+// They come before the deck work, as a ground slab is poured first.
+addAfter(ACTIVITIES[ACTIVITIES.findIndex((item) => item.when === 'formwork') - 1].when, {
+  when: 'slabGround',
+  steps: [
+    {
+      step: 'Prepare the ground and set out',
+      hazards: ['Striking underground services.', 'Plant strikes a person.', 'An excavation for edge beams, footings or thickened edges collapses, or a person falls in.', 'Dust, noise and vibration from compaction.'],
+      controls: [
+        src('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
+        'Excavators, bobcats and rollers are run by competent operators, checked before each shift, with an exclusion zone and a spotter where people work nearby.',
+        src('Boxing out, thickened edges, edge beams and footings are dug no deeper than needed, and battered or benched where the ground needs it. A trench or shaft deeper than 1.5 m is high risk construction work this SWMS does not cover: stop and have the SWMS reviewed before anyone enters it.', WHS('s 291, s 302, s 306')),
+        'Open excavations are barricaded, and people cross only at set crossing points.',
+        'Plate compactors and rollers are used with guards in place, operators are rotated to limit vibration, and hearing protection is worn.',
+        'Dust from fill and the subgrade is kept down with water.',
+      ],
+    },
+    {
+      step: 'Set edge forms and prepare the base',
+      hazards: ['Impalement on stakes, pegs and starter bars.', 'Cuts and kickback from saws.', 'Nail gun injuries.', 'Back strain from form boards and stakes.', 'Trips over forms and stakes.', 'Back strain and trips handling pods and vapour barrier rolls.'],
+      controls: [
+        'Cap stakes, star pickets and starter bars as soon as they are in place. Bars are bent over only where the engineer allows it.',
+        'Cut form boards with a saw that has its guards in place, with the work supported, and wear eye and hearing protection.',
+        'Nail guns are used with the single shot (sequential) trigger, never pointed at anyone, and disconnected before clearing a jam.',
+        'Deliver and stack materials close to where they are used, and team lift long boards.',
+        'Pod bundles and vapour barrier rolls are moved on trolleys. Lay boards where people cross pods or sheeting, and weigh down sheeting and pods against wind.',
+      ],
+    },
+    {
+      step: 'Place and tie reo on the ground',
+      hazards: ['Impalement on bars.', 'Cuts and back strain handling mesh and bars.', 'Trips on bar chairs and mesh.', 'Sparks and noise from cutting bars.'],
+      controls: [
+        'Mesh sheets are handled by two people or with a mechanical aid, wearing cut resistant gloves.',
+        'Cap or cover exposed bar ends and starter bars.',
+        'Lay walkways over mesh where people need to cross it.',
+        'Cut bars with a bar cutter, or with a grinder or cut-off saw with its guards in place. Wear eye and hearing protection, and keep sparks clear of other workers and plastic sheeting.',
+        'Rotate tying tasks, and use a tying tool or long-handled tier to limit bending.',
+      ],
+    },
+  ],
+  ppe: ['gloveCut', 'earMuffs', 'sunHat', 'sunscreen'],
+});
+
+// Placing and finishing a slab on ground, also for a concreter who only pours.
+addAfter('slabGround', {
+  when: 'slabPour',
+  steps: [
+    {
+      step: 'Place concrete',
+      hazards: ['A reversing concrete truck strikes a person.', 'Contact with overhead power lines.', 'Struck by a swinging chute.', 'Struck by a pump hose or a burst line.', 'Cement burns to the skin and eyes.', 'Back strain from barrowing and screeding.'],
+      controls: [
+        'Concrete trucks reverse only with a spotter, into a marked area kept clear of people, and stand on firm ground back from excavation edges.',
+        'Check for overhead power lines before a truck, pump or boom sets up. Keep plant outside the approach distances, with a spotter where it could come close.',
+        'Keep clear of the chute while it is swung or extended.',
+        'Where a line pump or boom pump is used, check pipes, clamps and the end hose before pumping, keep people clear of the end hose at start-up, and clear blockages only after the pressure is released.',
+        src('Where a concrete placing boom is used, it is registered plant and its operator holds a high risk work licence for a concrete placing boom.', WHS('s 81, schedule 3, schedule 5')),
+        'Where the truck or pump stands on the road or footpath, the traffic management set out for the work is in place and people walking past are kept clear or diverted.',
+        'Wear safety gumboots, chemical resistant gloves, eye protection and long sleeves, and wash wet concrete off the skin straight away.',
+        'Barrow loads are kept to what a person can handle, on boarded runs, and barrowing and screeding are rotated.',
+        'Vibrators have their leads checked and tagged and are protected by an RCD.',
+        'Where the engineer inspects before the pour, the pour starts only once the inspection is passed.',
+        'Slump tests and test cylinders are taken at the chute with the truck stopped, wearing gloves and eye protection.',
+      ],
+    },
+    {
+      step: 'Finish, joint and cure',
+      hazards: ['Power trowel injuries.', 'Carbon monoxide from petrol plant used where exhaust can collect.', 'Silica dust and noise from saw cutting joints.', 'Chemicals in curing compounds and sealers.', 'Knee and back strain finishing edges.'],
+      controls: [
+        'Power trowels have their guards in place and a working stop switch that cuts out when released, and are never left running unattended.',
+        'Petrol trowels, saws and generators run only outdoors or where exhaust cannot collect.',
+        src('Where control joints are saw cut, or concrete is cut or drilled, it is done wet or with on-tool extraction. This is processing a crystalline silica substance. Anyone still at risk of exposure wears a fit tested P2 respirator.', WHS('s 529B, s 529C')),
+        src('Before any saw cutting or drilling, assess in writing whether the processing is high risk. The assessment does not count PPE, administrative controls, or the dust controls used for the processing, such as wet methods, extraction or isolation.', WHS('s 529CA')),
+        SILICA_FOLLOW_UP[1],
+        src('Where it is uncertain whether dust is below the exposure standard, monitor the air.', WHS('s 50')),
+        src('Health monitoring is provided for workers at significant risk from crystalline silica.', WHS('s 368, schedule 14')),
+        'Concrete saws have their blade guards in place, and electric saws used wet are protected by an RCD, with leads kept out of water.',
+        src('Hearing protection where noise exceeds the exposure standard, such as near saws, power trowels and compactors. Workers who must wear it have hearing tests within 3 months of starting and at least every 2 years.', WHS('s 57, s 58')),
+        'Curing compounds and sealers are used as their safety data sheets set out, with chemical resistant gloves and eye protection.',
+        'Use knee pads and kneeling boards for edge finishing, and rotate tasks.',
+      ],
+    },
+  ],
+  ppe: ['gloveChemical', 'gloveCut', 'gumboots', 'goggles', 'earMuffs', 'p2', 'kneePads', 'sunHat', 'sunscreen'],
 });
 
 const PPE = [

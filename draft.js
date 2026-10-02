@@ -350,6 +350,8 @@ function trenchDepths(text) {
 function deepExcavation(text) {
   text = String(text || '').replace(/\b(?:lift|riser|service|ventilation|stair)\s+shafts?\b|\bin the shafts\b|\bshaft ?walls?\b/gi, ' ');
   if (LIFT_WORK.test(text)) text = text.replace(/\bshafts?\b/gi, ' ');
+  // Trench drains, and cable trenches in a floor, are not excavations.
+  text = text.replace(/\btrench (?:drains?|grates?|covers?)\b|\bcable trenches\b|\btrenches in (?:the )?(?:switch|plant|pump|comms) ?rooms?\b/gi, ' ');
   if (/\btunnel\w*\b/i.test(text)) return true;
   if (!/\b(trench\w*|shaft)\b/i.test(text)) return false;
   const depths = trenchDepths(text);
@@ -393,7 +395,9 @@ function highRiskMatches(text, answer, state) {
     precast: mentioned(withoutWorkIntoPrecast(text), /\b(tilt-?up|precast)\b/i),
     road: mentioned(text, ROAD) || /\blight rail\b/i.test(String(text || '')),
     // Trenches and site excavation are dug by machine unless the task says by hand.
-    plant: (/\b(excavat\w*|dig\w*)\s+(?:the\s+|all\s+|new\s+)?(?:\w+\s+)?(?:trench\w*|site|footings?|pits?|basement|swales?)\b|\bbulk excavat\w*/i.test(String(text || '')) && !/\b(?:by hand|hand[- ]dig\w*|hand excavat\w*)\b/i.test(String(text || ''))) || mentioned(text, /\b((?:piling|cfa|bored pil\w*) rigs?|(?:excavator[- ]mounted )?pile croppers?|elevating work platforms?|ewps?|scissor lifts?|boom lifts?|powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|boom pumps?|telehandlers?|excavators?|forklifts?|trucks?|(?<!tower )cranes?(?!\s+(?:company|companies|crew|operators?)\b)|loaders?|liebherr|skid ?steers?|bobcats?|posi-?tracks?|(?:vibrating|smooth drum|padfoot|ride-on|road|compaction) rollers?)\b/i),
+    plant: (/\b(excavat\w*|dig\w*)\s+(?:the\s+|all\s+|new\s+)?(?:\w+\s+)?(?:trench\w*|site|footings?|pits?|basement|swales?)\b|\bbulk excavat\w*/i.test(String(text || '')) && !/\b(?:by hand|hand[- ]dig\w*|hand excavat\w*)\b/i.test(String(text || ''))) || mentioned(text, /\b((?:piling|cfa|bored pil\w*) rigs?|(?:excavator[- ]mounted )?pile croppers?|elevating work platforms?|ewps?|scissor lifts?|boom lifts?|powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|boom pumps?|telehandlers?|excavators?|forklifts?|trucks?|(?<!tower )cranes?(?!\s+(?:company|companies|crew|operators?)\b)|loaders?|liebherr|skid ?steers?|bobcats?|posi-?tracks?|(?:vibrating|smooth drum|padfoot|ride-on|road|compaction) rollers?)\b/i)
+      // Concrete trucks come into the work area for every slab, path or driveway pour.
+      || (SLAB_GROUND.test(String(text || '')) && /\b(pour\w*|concrete)\b/i.test(String(text || ''))),
     temperature: mentioned(text, /\bartificial extremes of temperature\b/i),
     water: mentioned(text, WATER),
     diving: mentioned(text, /\bdiving\b/i),
@@ -432,7 +436,7 @@ function loadsOnDeckOrSlab(text) {
   const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
   return FORMWORK.test(source)
     || /\b(load(?:ing)?[- ]?out|loading platforms?|landing platforms?|forklifts?|telehandlers?)\b/i.test(source)
-    || (/\b(reo|reinforc\w*|rebar)\b/i.test(source) && /\b(deck|slab)\b/i.test(source))
+    || (/\b(reo|reinforc\w*|rebar)\b/i.test(source) && /\b(deck|slab)\b/i.test(source) && !(SLAB_GROUND.test(source) && !SUSPENDED.test(source)))
     || (FACADE_WORK.test(source) && /\b((?:floor|mini|spider|crawler) cranes?|monorails?|stillages?)\b/i.test(source))
     || (/\b(ahus?|air handling units?|chillers?|cooling towers?)\b/i.test(source) && /\b(lift\w*|cranes?|land\w*|deliver\w*)\b/i.test(source));
 }
@@ -1429,14 +1433,47 @@ function tradeFlags(task, facts, state) {
   const flags = limitToTrades(workFlags(task, facts, state.ownCrane), state.trades, KIND_IDS);
   // A cutting step that is not this trade's work is taken out, so drilling and
   // cutting comes back as the general step.
-  if (SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id])) flags.silicaDrill = true;
+  // Saw cut control joints are covered in the concrete finishing step.
+  const jointsOnly = flags.concrete && /\b(control|contraction|expansion) joints?\b/i.test(task) && !/\b(drill\w*|cor(?:e|ing)|chas\w*)\b/i.test(task);
+  if (SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id]) && !jointsOnly) flags.silicaDrill = true;
   return flags;
 }
 
 // Kinds of work any trade can strike, found from the task's own words, on top of
 // the trade kinds below. Drilling or cutting concrete counts only where no other
 // cutting step (tiles, masonry, saw cutting, coring, stone, grinding) covers it.
-const OWN_CUTTING = ['tileCut', 'masonryCut', 'sawCut', 'coreDrill', 'stoneSilica', 'floorGrind', 'wpPrep', 'pileTrim', 'structuralOpening'];
+const OWN_CUTTING = ['tileCut', 'masonryCut', 'sawCut', 'coreDrill', 'stoneSilica', 'floorGrind', 'wpPrep', 'pileTrim', 'structuralOpening', 'slabGround', 'slabPour'];
+
+// Concrete slabs on the ground: house and ground floor slabs, driveways, paths, kerbs,
+// crossovers and pads. With no suspended slab in the task, the ground steps take the
+// place of the deck, trench and demolition saw cutting steps.
+const SLAB_GROUND = /\b(slabs? on ground|slab-on-ground|on-ground slabs?|ground (?:floor )?slabs?|ground bearing slabs?|house slabs?|raft slabs?|waffle (?:pod )?slabs?|garage slabs?|shed slabs?|driveways?|footpaths?|crossovers?|kerbs?|(?:concrete )?paths?|patios?|plinths?|hardstands?|concrete pads?)\b/i;
+// Forming or placing concrete: reo on its own is the reo steps.
+const CONCRETE_POUR = /\b(concrete|pour\w*|edge forms?|formwork)\b/i;
+const SUSPENDED = /\b(suspended|decks?|podium|transfer slabs?|upper (?:floors?|levels?)|level [1-9]\d*|post[- ]?tension\w*|backprop\w*|falsework|soffits?)\b/i;
+
+// True when the text has slab on ground work and no suspended slab.
+function groundSlabOnly(text) {
+  return SLAB_GROUND.test(text) && CONCRETE_POUR.test(text) && !SUSPENDED.test(text);
+}
+
+function slabGroundFlags(task, flags) {
+  if (!(SLAB_GROUND.test(task) && CONCRETE_POUR.test(task))) return {};
+  const only = !SUSPENDED.test(task);
+  // With suspended slabs too, the ground steps are added only for the crew forming or placing the concrete.
+  if (!only && !flags.concrete && !flags.formwork) return {};
+  return {
+    // A pour on its own needs only the placing and finishing steps.
+    slabGround: only || Boolean(flags.formwork),
+    slabPour: only,
+    ...(only ? { reo: false, concrete: false, sawCut: false, silicaDrill: false } : {}),
+    // Saw cutting control joints is part of the slab steps, not cutting openings.
+    ...(/\b(control|contraction|expansion) joints?\b/i.test(task) && !/\b(openings?|demoli\w*|penetrations?|remov\w*)\b/i.test(task) ? { sawCut: false, silicaDrill: false } : {}),
+    ...(only && !/\b(trench\w*|pipes?|pipework|stormwater|sewer\w*|conduits?|drain\w*)\b/i.test(task) ? { trench: false } : {}),
+    // Edge forms on the ground are part of the slab steps, not deck formwork.
+    ...(only ? { formwork: false, propping: false } : {}),
+  };
+}
 
 function workFlags(fullTask, facts = {}, ownCrane = false) {
   const flags = baseWorkFlags(fullTask, facts, ownCrane);
@@ -1454,6 +1491,7 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     asphalt: /\b(asphalt|bitumen seal|hotmix|hot mix)\b/i.test(task),
     insulation: /\b(insulation|glasswool|glass wool|rockwool|batts)\b/i.test(task) && !MECHANICAL_WORK.test(task) && !/\b(ductwork|pipework|lagging|roof sheet\w*|roofing|membranes?|waterproof\w*)\b/i.test(task),
     doorHang: /\b(door ?frames?|doorsets?|hang\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors)\b/i.test(task),
+    ...slabGroundFlags(task, flags),
   };
 }
 
@@ -1713,6 +1751,17 @@ const TASK_ONLY = [
   [/^Cable jointing resins are used/, /\b(joints?|jointing|terminat\w*|heat[- ]shrink)\b/i],
   [/^Where spoil is carted by truck or loader/, /\b(cart\w*|haul\w*|spoil|surplus)\b/i],
   [/^Use a power stretcher instead of a knee kicker/, /^(?![\s\S]*\bdirect[- ]stick)/i],
+  [/^Where the truck or pump stands on the road or footpath/, /\b(road|street|footpaths?|verge|traffic|crossovers?|kerbs?)\b/i],
+  [/^On a slab on ground, concrete trucks stand back/, /\b(slabs? on ground|slab-on-ground|ground (?:floor )?slabs?|driveways?|paths?|kerbs?|house slabs?)\b/i],
+  [/^Silica dust and noise from saw cutting joints/, /\b(saw\w*|control joints?)\b/i],
+  [/^Silica dust from grinding and patching/, /\b(grind\w*|patch\w*)\b/i],
+  [/^Where soffits and walls are patched/, /\b(patch\w*|make good)\b/i],
+  [/^Where the engineer inspects before the pour/, /\b(engineer\W?s? inspect\w*|inspection)\b/i],
+  [/^Struck by a pump hose or a burst line/, /\b(pump\w*|boom)\b/i],
+  [/^Back strain and trips handling pods|^Pod bundles and vapour barrier rolls/, /\b(pods?|waffle|vapou?r barrier|membrane|plastic|sheeting)\b/i],
+  [/^Slump tests and test cylinders/, /\b(test\w* (?:all |the )?concrete|slump|cylinders?|concrete test\w*)\b/i],
+  [/^Where a concrete placing boom is used/, /\b(boom|pump\w*)\b/i],
+  [/^Where a line pump or boom pump is used/, /\b(pump\w*|boom)\b/i],
   [/^Footings, thickenings and pits are entered/, /\b(footings?|thickenings?|pits?)\b/i],
   [/^Where walls, lift shafts or stairwells are reinforced/, /\b(walls?|lift shafts?|cores?|stairwells?)\b/i],
   [/^In risers, use cable grips/, /\b(risers?|shafts?)\b/i],
@@ -1759,6 +1808,7 @@ function stripLiftBleedText(text) {
 }
 
 module.exports = {
+  groundSlabOnly,
   isCraneOrLift,
   workFlags,
   highRiskMatches,
