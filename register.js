@@ -241,7 +241,7 @@ function legislationFor(lines) {
     const match = /\(([^()]*(?:\([^()]*\)[^()]*)*)\)\s*$/.exec(line);
     if (!match) continue;
     for (const part of match[1].split(/;\s*/)) {
-      const title = part.replace(/\s+(?:s|ss|schedule|appendix|part|chapter|table|section)\s.*$/i, '').trim();
+      const title = part.replace(/\s+(?:s|ss|r|rr|schedule|appendix|part|chapter|table|section)\s.*$/i, '').trim();
       if (/\b(Act|Regulation|Regulations|Code|Rules|standard|Council)\b/i.test(title)) sources.add(title);
     }
   }
