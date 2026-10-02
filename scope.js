@@ -322,7 +322,8 @@ function tasksFromScope(text, stateId = 'qld') {
       highRisk,
       // The trades the task belongs to, so its SWMS uses only their job steps.
       trade: trades.join(','),
-      fallRisk: highRisk.some((label) => /falling/i.test(label)) ? 'yes' : '',
+      // A fall is suggested where the work is at an edge, on a roof or at height; the user confirms it.
+      fallRisk: highRisk.some((label) => /falling/i.test(label)) || /\b(slab edges?|edges?|roofs?|roofing|eaves|balcon\w*|scaffold\w*|ewps?|elevating work platforms?|boom lifts?|scissor lifts?|at height|voids?|risers?|shafts?|parapets?|ladders?|mezzanines?)\b/i.test(task) ? 'yes' : '',
       needsSwms: highRisk.length > 0,
       // The job steps to tick for this task when it is used.
       kinds: [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')) })])],

@@ -279,7 +279,10 @@ function addQldSources(sources, d) {
 // Licences named for the state: Queensland's gas work licence is under its own Act.
 function localLicences(stateName, trade, list) {
   const named = tradeLicences(trade, list);
-  return /Queensland/.test(stateName || '') ? named.map((name) => (name === 'Gas work licence' ? 'Gas work licence (Petroleum and Gas (Production and Safety) Act 2004 (Qld))' : name)) : named.map((name) => (name === 'Gas work licence' ? 'Gas work licence or authorisation for the gas work' : name));
+  if (/Queensland/.test(stateName || '')) return named.map((name) => (name === 'Gas work licence' ? 'Gas work licence (Petroleum and Gas (Production and Safety) Act 2004 (Qld))' : name));
+  // Licence names outside Queensland: the state's own class names are not yet checked, so they are named generally.
+  const local = { 'Gas work licence': 'Gas work licence or authorisation for the gas work', 'Electrical work licence (electrical mechanic)': 'Electrical licence (licensed electrician) under the state\'s electrical licensing law', 'Plumbing and drainage licence': 'Plumbing licence or registration under the state\'s plumbing law' };
+  return [...new Set(named.map((name) => local[name] || name))];
 }
 
 // A crew of a licensed trade holds that trade's licence, whatever steps were picked.

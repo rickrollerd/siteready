@@ -1494,6 +1494,13 @@ function prepareDraft(input) {
   // Plant, substances, licences, emergency arrangements, sources and a suggested
   // risk rating for each step, worked out from the finished steps.
   const registers = registersFor(draft, input);
+  // Where a state lists silica processing as high risk construction work (the ACT), a
+  // job step that processes silica brings it, whatever the task's own words.
+  if (registers.jobSteps.some((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)))) {
+    for (const item of highRiskMatches('cut concrete with a saw', 'no', state).filter((match) => match.check === 'silica')) {
+      if (!draft.highRisk.includes(item.label)) draft.highRisk = [...draft.highRisk, item.label];
+    }
+  }
   // Powered mobile plant the SWMS lists, even where it may be used, brings the s 291 plant item.
   if (registers.plant.some((item) => /^(Mobile crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig)/.test(item.item))) {
     const plantItem = highRiskMatches('movement of powered mobile plant', 'no', state).map((item) => item.label);

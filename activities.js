@@ -3748,10 +3748,15 @@ const PPE_IDS = new Set(PPE.flatMap((group) => group.items.map(([id]) => id)));
 // cite is the state: its own sources are printed after each control, where they
 // have been checked (see citations.js). Unchecked sources are left off.
 function expand(control, factText, cite = 'qld') {
-  if (typeof control === 'string') return [control];
+  if (typeof control === 'string') {
+    const text = localText(control, cite);
+    return text == null ? [] : [text];
+  }
   if (control.text) {
-    const source = cite && control.source ? localSource(control.source, cite) : '';
     const text = localText(control.text, cite);
+    if (text == null) return [];
+    // A line reworded for another state keeps only sources that still fit it: none for Queensland-only law.
+    const source = cite && control.source && text === control.text ? localSource(control.source, cite) : cite === 'vic' && text !== control.text && /crystalline silica/.test(text) ? localSource(control.source || '', cite) : '';
     return [source ? `${text} (${source})` : text];
   }
   if (control.choice) return (control.options[factText(control.choice)] || []).flatMap((item) => expand(item, factText, cite));
@@ -4127,8 +4132,8 @@ function jobStepsFor(flags, factText, fallback) {
   return steps.map((step) => ({
     ...(step.fallback ? { fallback: true } : {}),
     step: step.step,
-    hazards: step.hazards.map(pt).filter(Boolean),
-    controls: step.controls.filter((item) => !item.only || flags[item.only]).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean),
+    hazards: step.hazards.map((line) => localText(line, flags.cite || 'qld')).map(pt).filter(Boolean),
+    controls: [...new Set(step.controls.filter((item) => !item.only || flags[item.only]).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean))],
   })).filter((step) => step.fallback || step.controls.length);
 }
 

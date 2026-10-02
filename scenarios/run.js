@@ -48,6 +48,8 @@ function runLoaded(state, scenario) {
   } else {
     const residential = state.residentialFallLabel && scenario.residential === 'yes';
     const expectedRisk = scenario.expect.highRisk.map((id) => (id === 'fall' && residential ? state.residentialFallLabel : highRiskLabel(state, id)));
+    // Categories only some states list (the ACT's silica processing) are expected only there.
+    for (const id of scenario.expect.highRiskWhereListed || []) if (highRiskLabel(state, id) !== id) expectedRisk.push(highRiskLabel(state, id));
     problems.push(...describe('High risk category', difference(expectedRisk, full.highRisk)));
     const hazards = full.hazards.map((row) => row.hazard);
     problems.push(...describe('Hazard', { missing: difference(scenario.expect.hazards, hazards).missing, extra: [] }));

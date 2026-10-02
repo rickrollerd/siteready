@@ -69,9 +69,42 @@ function localSource(source, stateId) {
 // 31 December 1989 (Qld reg s 447). Elsewhere the date that matters is the national
 // asbestos ban of 31 December 2003, the date in WA reg r 447.
 // Remarks about Queensland law are left out of other states' drafts.
+//
+// Lines that state a Queensland electrical, plumbing or gas rule are given wording
+// that holds in any state, so another state's draft does not present Queensland law
+// as its own. Each state's own electrical, plumbing and gas licensing law is named
+// generally until it has been checked line by line. A null drops the line.
+const OUTSIDE_QLD = [
+  [/^Electrical work is done or supervised only by licensed electrical workers, for a licensed electrical contractor\.$/, 'Electrical work is done or supervised only by licensed electricians, for a licensed electrical contractor, as the state\'s electrical licensing law requires.'],
+  [/^Apprentices are supervised at all times by a licensed electrical worker\. In their first 6 months/, 'Apprentices are supervised by a licensed electrician as the state\'s electrical licensing rules require.'],
+  [/^Everyone who performs or helps in performing electrical work is competent in rescue and resuscitation\.$/, 'Everyone working on or near energised electrical equipment is trained in low voltage rescue and CPR.'],
+  [/^A serious electrical incident or dangerous electrical event is reported to the regulator/, 'A notifiable incident is reported to the regulator immediately, and the site is left undisturbed.'],
+  [/^Plumbing and drainage work is done by licensed workers/, 'Plumbing and drainage work is done by plumbers licensed or registered under the state\'s plumbing law, and trainees are supervised as that law requires.'],
+  [/^Hired electrical equipment must carry the hire company's tag, which is renewed at least every 6 months/, 'Hired electrical equipment is inspected and tested by the hire company and carries a current test tag. Reject it if the tag is missing or out of date.'],
+  [/^Workers without an electrical licence build conduits only if/, 'Workers without an electrical licence do only the conduit work the state\'s electrical licensing law allows, under a licensed electrician\'s supervision. Any earthing or bonding is done by licensed workers.'],
+  [/^Work in a roof space \(between the roof and the top floor ceiling\) only when the electrical installation is de-energised\./, 'Before work in a roof space, the electrical installation is de-energised where practicable. If it cannot be, cables are treated as energised and the controls are set out in this SWMS.'],
+  [/^A safety observer, assessed in the last 12 months as competent in rescue and resuscitation/, 'A safety observer competent in low voltage rescue and CPR watches the work and does no other work.'],
+  [/^Keep the risk assessment until at least 28 days after the work/, 'Keep the risk assessment and this SWMS readily available to the workers until the work is complete.'],
+  [/^The consumer mains and main switchboard are not connected for the first time until the distribution entity has examined them/, 'The consumer mains and main switchboard are not connected for the first time until the network operator has inspected or approved them as its connection rules require.'],
+  [/^The electrical contractor connects only when satisfied the Act and regulation have been complied with\.$/, 'The installation is connected only when the electrical contractor is satisfied it complies with the state\'s electrical safety law and the wiring rules.'],
+  [/^Give the distribution entity the notice of test, and issue the certificate of testing and safety\.$/, 'Give the network operator the notice it requires, and issue the electrical certificate of compliance or safety the state requires.'],
+  [/^Where we connect the installation, issue the certificate of testing and compliance\.$/, null],
+  [/^Any high voltage electrical installation is not connected until an accredited auditor has inspected and certified it\.$/, 'Any high voltage electrical installation is inspected and approved as the state\'s electrical safety law and the network operator require before it is connected.'],
+  [/^Every part of the boom and drop hose stays at least 3 m from overhead power lines up to 132 kV/, 'Every part of the boom and drop hose stays outside the safe distance from overhead power lines that the state\'s rules and the line owner set, and the boom is not worked over energised lines. De-energising or re-routing the lines is considered first.'],
+];
+
+// Victoria has its own crystalline silica rules (high risk crystalline silica work and
+// a hazard control statement), not the model regulations' high risk processing and
+// silica risk control plan, so those lines are given in Victoria's terms.
+const VIC_SILICA = /\b(processing is high risk|silica risk control plan|high risk processing|VET accredited or regulator approved)\b/i;
+const VIC_SILICA_LINE = 'Before high risk crystalline silica work starts, a hazard control statement is prepared, and workers are given the information, instruction and training the crystalline silica rules in the Occupational Health and Safety Regulations 2017 (Vic) require.';
+
 function localText(text, stateId) {
-  if (stateId === 'qld') return text;
-  return text.replace(/31 December 1989/g, '31 December 2003').replace(/ Qld has no piling rig licence\./g, '');
+  if (stateId === 'qld' || text == null) return text;
+  for (const [pattern, replacement] of OUTSIDE_QLD) if (pattern.test(text)) return replacement;
+  if (stateId === 'vic' && VIC_SILICA.test(text)) return VIC_SILICA_LINE;
+  return text.replace(/31 December 1989/g, '31 December 2003').replace(/ Qld has no piling rig licence\./g, '')
+    .replace(/\bthe distribution entity\b/g, 'the network operator').replace(/\bdistribution entity\b/g, 'network operator');
 }
 
 const citedStates = () => ['qld', ...Object.keys(STATE_CITATIONS)];
