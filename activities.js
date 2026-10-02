@@ -3922,6 +3922,22 @@ ACTIVITIES.push(
     ppe: ['gloveCut'],
   },
   {
+    when: 'kitchenEquipment',
+    steps: [{
+      step: 'Deliver and install commercial kitchen equipment',
+      hazards: ['Crushing or strain moving heavy ovens, fridges, dishwashers and benches.', 'Equipment tipping while it is moved or levelled.', 'Cuts from stainless steel edges.', 'Electric shock, gas leaks or refrigerant release at connections.', 'Burns and fumes from welding or grinding stainless steel on site.'],
+      controls: [
+        'Heavy equipment is moved with trolleys, pallet jacks or skates on a planned route, within the floor\'s load limits, with enough people. Tall items are kept upright and secured against tipping until they are fixed.',
+        'Equipment is levelled and fixed or restrained to the supplier\'s instructions.',
+        'Electrical connections are made by a licensed electrician, gas connections by a licensed gas fitter, and water and waste connections by a licensed plumber.',
+        'Refrigerant work on refrigeration equipment is done only by the holder of a refrigerant handling licence.',
+        'Cut-resistant gloves are worn when handling stainless steel sheet, benches and shelving.',
+        'Welding or grinding stainless steel on site is hot work, done under a hot work permit with fume extraction.',
+      ],
+    }],
+    ppe: ['gloveCut'],
+  },
+  {
     when: 'safetyMesh',
     steps: [{
       step: 'Install safety mesh and sarking',

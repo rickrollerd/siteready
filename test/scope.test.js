@@ -63,7 +63,7 @@ test('the distinct, riskier work is its own task and routine work joins the trad
   assert.deepEqual(ids('b-painting.txt').sort(), ['paintExternal', 'painting']);
   for (const id of ['formwork', 'reo', 'concrete', 'propping']) assert.ok(ids('c-frp.txt').includes(id), id);
   assert.ok(ids('b-roofing-metal.txt').includes('roof'));
-  assert.ok(ids('b-steel-rigging.txt').includes('steel'));
+  assert.ok(ids('b-steel-rigging.txt').includes('steelErect'));
 });
 
 test('exclusions, work by others and paperwork are left out', () => {
