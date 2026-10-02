@@ -104,3 +104,10 @@ test('a task whose main work has no steps is stood down, not drafted with only a
   assert.equal(stood('Install a gas hot water system and connect it to the existing gas line.', 'plumbing').kind, 'stand-down');
   assert.equal(stood('Hydro-demolition and concrete repair of a balcony slab soffit from a mobile scaffold.').kind, 'stand-down');
 });
+
+test('a paint roller is not a compactor, an asphalt roller is', () => {
+  const ceilings = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'painting', task: 'Paint the ceilings of a new house with a roller.', facts: { safetyDataSheet: 'Water-based acrylic.' } });
+  assert.ok(!(ceilings.plant || []).some((item) => /compactor/i.test(item.item)));
+  const asphalt = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Lay asphalt to a private driveway with a roller.' });
+  if (asphalt.kind === 'draft') assert.ok(asphalt.plant.some((item) => /Roller/.test(item.item)));
+});
