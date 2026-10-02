@@ -3,6 +3,7 @@ const {
   WidthType, BorderStyle, VerticalAlign, Footer, Header, AlignmentType, ImageRun, CheckBox, PageOrientation,
 } = require('docx');
 const { fitLogo } = require('./logo');
+const { MATRIX, LIKELIHOOD } = require('./register');
 
 const FONT = 'Calibri';
 const INK = '1C2430';
@@ -266,8 +267,8 @@ function linesCell(lines, width, options = {}) {
 
 // The job laid out as the regulators' templates do: each step with its hazards and controls.
 function jobStepsTable(steps) {
-  const widths = [2600, 3900, CONTENT_WIDTH - 2600 - 3900 - 1600, 1600];
-  const labels = ['Job step', 'Hazards and risks', 'Controls', 'Who'];
+  const widths = [2400, 3500, CONTENT_WIDTH - 2400 - 3500 - 1900 - 1400, 1900, 1400];
+  const labels = ['Job step', 'Hazards and risks', 'Controls', 'Risk rating', 'Who'];
   return new Table({
     width: { size: CONTENT_WIDTH, type: WidthType.DXA },
     columnWidths: widths,
@@ -283,11 +284,59 @@ function jobStepsTable(steps) {
           linesCell([`${index + 1}. ${step.step}`], widths[0], { bold: true }),
           linesCell(step.hazards, widths[1], { bullet: true }),
           linesCell(step.controls, widths[2], { bullet: true }),
-          linesCell([], widths[3]),
+          linesCell(step.risk ? riskText(step.risk).split('\n') : [], widths[3]),
+          linesCell([], widths[4]),
         ],
       })),
     ],
   });
+}
+
+// A table with a header row and plain text cells.
+function gridTable(labels, widths, rows) {
+  return new Table({
+    width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+    columnWidths: widths,
+    rows: [
+      new TableRow({ tableHeader: true, cantSplit: true, children: labels.map((label, index) => cell(label, widths[index], { bold: true, fill: HEAD })) }),
+      ...rows.map((row) => new TableRow({ cantSplit: true, height: { value: 420 }, children: row.map((value, index) => (String(value || '').includes('\n') ? linesCell(String(value).split('\n'), widths[index]) : cell(value || ' ', widths[index]))) })),
+    ],
+  });
+}
+
+const RISK_NOTE = 'Suggested ratings from the matrix below, before and after the controls. The supervisor checks them and changes them to suit the site.';
+const riskText = (risk) => (risk ? `Before: ${risk.before.level}\n${risk.before.label}\nAfter: ${risk.after.level}\n${risk.after.label}` : '');
+
+function registerBlocks(draft) {
+  const blocks = [];
+  if ((draft.plant || []).length) {
+    blocks.push(sectionHeading('Plant and equipment'));
+    blocks.push(para('Keep the inspection and maintenance records, and sight each licence before work.', { size: 19, color: MUTED, before: 0, after: 80 }));
+    blocks.push(gridTable(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], [3400, 6400, CONTENT_WIDTH - 9800], draft.plant.map((item) => [item.item, item.inspection, item.licence])));
+  }
+  if (draft.substances && draft.substances.items.length) {
+    blocks.push(sectionHeading('Hazardous substances'));
+    blocks.push(para('Name each product used, attach its current safety data sheet, and keep it at the work area.', { size: 19, color: MUTED, before: 0, after: 80 }));
+    blocks.push(gridTable(['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], [3800, 5200, 2600, CONTENT_WIDTH - 11600], draft.substances.items.map((item) => [item.product, '', 'Yes  /  No', ''])));
+  }
+  blocks.push(sectionHeading('Licences, tickets and training'));
+  blocks.push(para('Needed for this task:', { size: 20, bold: true, before: 0, after: 40 }));
+  for (const item of draft.qualifications || []) blocks.push(para(`•  ${item}`, { size: 20, before: 0, after: 20 }));
+  blocks.push(para(' ', { after: 40 }));
+  blocks.push(gridTable(['Name', 'Site induction', 'White card number', 'Licences and tickets (type and number)', 'Sighted by'], [3600, 1700, 2600, CONTENT_WIDTH - 10400, 2500], Array.from({ length: 5 }, () => ['', 'Yes  /  No', '', '', ''])));
+  blocks.push(sectionHeading('Emergency arrangements'));
+  blocks.push(gridTable(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], [2400, 7400, CONTENT_WIDTH - 9800], (draft.emergency || []).map((item) => [item.type, item.equipment, item.detail])));
+  if (draft.sources && (draft.sources.legislation.length || draft.sources.codes.length)) {
+    blocks.push(sectionHeading('Legislation and codes of practice'));
+    blocks.push(gridTable(['Legislation', 'Codes of practice and guidance'], [LABEL_WIDTH + 2400, VALUE_WIDTH - 2400], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]));
+  }
+  return blocks;
+}
+
+function riskMatrix() {
+  const widths = [2600, ...Array(5).fill(Math.floor((CONTENT_WIDTH - 2600) / 5))];
+  const levels = [5, 4, 3, 2, 1].map((l) => [`${LIKELIHOOD[l]} (${l})`, ...MATRIX[l].map((level, i) => `${level} (${l * (i + 1)})`)]);
+  return gridTable(['Likelihood', 'Negligible (1)', 'Minor (2)', 'Moderate (3)', 'Major (4)', 'Catastrophic (5)'], widths, levels);
 }
 
 function ppeTable(groups) {
@@ -313,6 +362,7 @@ function responsibilities(draft) {
 
 function metaRows(draft) {
   const rows = [['State', draft.state]];
+  rows.push(['SWMS reference number', draft.swmsRef || ' ']);
   if (draft.principalContractor) rows.push(['Principal contractor', draft.principalContractor]);
   rows.push(['Subcontractor', draft.subcontractor || ' ']);
   rows.push(['Workplace', draft.workplace || ' ']);
@@ -364,9 +414,14 @@ function childrenFor(draft, options = {}) {
   blocks.push(para('Change any step, hazard or control to suit the site. Write who is responsible for each step.', { size: 19, color: MUTED, before: 0, after: 80 }));
   blocks.push(jobStepsTable(draft.jobSteps || []));
 
+  blocks.push(para(RISK_NOTE, { size: 19, color: MUTED, before: 80, after: 40 }));
+  blocks.push(riskMatrix());
+
   blocks.push(sectionHeading('Personal protective equipment'));
   blocks.push(para('Ticked items must be worn. Change the ticks to suit the site.', { size: 19, color: MUTED, before: 0, after: 80 }));
   blocks.push(ppeTable(draft.ppe || []));
+
+  blocks.push(...registerBlocks(draft));
 
   blocks.push(sectionHeading(draft.reviewHeading));
   blocks.push(para(draft.review, { before: 40, after: 40 }));

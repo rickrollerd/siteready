@@ -2,6 +2,7 @@
 // print or send it. Worker signatures collected in the app are printed on it.
 const PDFDocument = require('pdfkit');
 const { fitLogo } = require('./logo');
+const { MATRIX, LIKELIHOOD } = require('./register');
 
 const INK = '#1C2430';
 const MUTED = '#5C6773';
@@ -130,7 +131,7 @@ function table(doc, { widths, header, rows, size = 8.5 }) {
 const pair = (label, value) => ({ cells: [[{ text: label, bold: true }], [{ text: value || ' ' }]] });
 
 function metaRows(draft) {
-  const rows = [['State', draft.state]];
+  const rows = [['State', draft.state], ['SWMS reference number', draft.swmsRef || ' ']];
   if (draft.principalContractor) rows.push(['Principal contractor', draft.principalContractor]);
   rows.push(['Subcontractor', draft.subcontractor]);
   rows.push(['Workplace', draft.workplace]);
@@ -155,6 +156,43 @@ function companyHeader(doc, draft, logo, logoImage) {
   if (draft.subcontractor) doc.font('Helvetica-Bold').fontSize(12).fillColor(INK).text(printable(draft.subcontractor), MARGIN, top + 4, { width });
   if (draft.companyDetails) doc.font('Helvetica').fontSize(8).fillColor(MUTED).text(printable(draft.companyDetails), MARGIN, doc.y + 2, { width });
   doc.y = Math.max(doc.y, logo ? top + fitLogo(logo, 225, 75).height : doc.y) + 14;
+}
+
+const lines = (value) => String(value || ' ').split('\n').map((line) => ({ text: line || ' ' }));
+const row = (...values) => ({ cells: values.map(lines) });
+const riskLines = (risk) => (risk ? [`Before: ${risk.before.level}`, risk.before.label, `After: ${risk.after.level}`, risk.after.label].join('\n') : ' ');
+
+function registers(doc, draft, w) {
+  if ((draft.plant || []).length) {
+    heading(doc, 'Plant and equipment');
+    text(doc, 'Keep the inspection and maintenance records, and sight each licence before work.', { size: 8.5, color: MUTED });
+    table(doc, { widths: [150, w - 150 - 210, 210], header: ['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], rows: draft.plant.map((item) => row(item.item, item.inspection, item.licence)) });
+  }
+  if (draft.substances && draft.substances.items.length) {
+    heading(doc, 'Hazardous substances');
+    text(doc, 'Name each product used, attach its current safety data sheet, and keep it at the work area.', { size: 8.5, color: MUTED });
+    table(doc, { widths: [190, w - 190 - 130 - 90, 130, 90], header: ['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], rows: draft.substances.items.map((item) => row(item.product, ' ', 'Yes  /  No', ' ')) });
+  }
+  heading(doc, 'Licences, tickets and training');
+  text(doc, 'Needed for this task:', { bold: true });
+  for (const item of draft.qualifications || []) text(doc, `•  ${item}`);
+  table(doc, { widths: [170, 80, 120, w - 170 - 80 - 120 - 110, 110], header: ['Name', 'Site induction', 'White card number', 'Licences and tickets (type and number)', 'Sighted by'], rows: Array.from({ length: 5 }, () => row('\n ', 'Yes  /  No', ' ', ' ', ' ')) });
+  heading(doc, 'Emergency arrangements');
+  table(doc, { widths: [110, w - 110 - 230, 230], header: ['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], rows: (draft.emergency || []).map((item) => row(item.type, item.equipment, item.detail || ' ')) });
+  if (draft.sources && (draft.sources.legislation.length || draft.sources.codes.length)) {
+    heading(doc, 'Legislation and codes of practice');
+    table(doc, { widths: [w / 2, w / 2], header: ['Legislation', 'Codes of practice and guidance'], rows: [row(draft.sources.legislation.join('\n'), draft.sources.codes.join('\n'))] });
+  }
+}
+
+function riskMatrix(doc, w) {
+  const widths = [110, ...Array(5).fill((w - 110) / 5)];
+  table(doc, {
+    widths,
+    header: ['Likelihood', 'Negligible (1)', 'Minor (2)', 'Moderate (3)', 'Major (4)', 'Catastrophic (5)'],
+    rows: [5, 4, 3, 2, 1].map((l) => row(`${LIKELIHOOD[l]} (${l})`, ...MATRIX[l].map((level, i) => `${level} (${l * (i + 1)})`))),
+    size: 8,
+  });
 }
 
 function draftToPdf(draft, options = {}) {
@@ -201,19 +239,23 @@ function draftToPdf(draft, options = {}) {
     table(doc, { widths: pairWidths, header: ['Hierarchy', 'Control'], rows: (draft.controls || []).map((item) => ({ cells: [[{ text: item.level }], [{ text: item.text }]] })) });
 
     heading(doc, 'Job steps');
-    const stepWidths = [130, 200, w - 130 - 200 - 80, 80];
+    const stepWidths = [115, 180, w - 115 - 180 - 95 - 60, 95, 60];
     table(doc, {
       widths: stepWidths,
-      header: ['Job step', 'Hazards and risks', 'Controls', 'Who'],
+      header: ['Job step', 'Hazards and risks', 'Controls', 'Risk rating', 'Who'],
       rows: (draft.jobSteps || []).map((step, index) => ({
         cells: [
           [{ text: `${index + 1}. ${step.step}`, bold: true }],
           step.hazards.map((line) => ({ text: `•  ${line}` })),
           step.controls.map((line) => ({ text: `•  ${line}` })),
+          lines(riskLines(step.risk)),
           [{ text: ' ' }],
         ],
       })),
     });
+
+    text(doc, 'Suggested ratings from the matrix below, before and after the controls. The supervisor checks them and changes them to suit the site.', { size: 8.5, color: MUTED });
+    riskMatrix(doc, w);
 
     heading(doc, 'Personal protective equipment');
     table(doc, {
@@ -223,6 +265,8 @@ function draftToPdf(draft, options = {}) {
         return pair(group.area, worn.length ? `Wear: ${worn.join(', ')}` : 'None required for this area.');
       }),
     });
+
+    registers(doc, draft, w);
 
     heading(doc, draft.reviewHeading);
     text(doc, draft.review);

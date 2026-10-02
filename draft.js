@@ -1,6 +1,7 @@
 const { HIERARCHY, SITE_FIELDS, findState, highRiskList } = require('./legislation');
 const { jobStepsFor, ppeFor, ACTIVITIES } = require('./activities');
 const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
+const { registersFor } = require('./register');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
 
@@ -1286,6 +1287,7 @@ function prepareDraft(input) {
     reviewer: keptFact(input.reviewer),
     reviewDate: keptFact(input.reviewDate),
     preparedBy: keptFact(input.preparedBy),
+    swmsRef: keptFact(input.swmsRef),
     task,
     fallRisk: fallRecord(fallCheck(task, pack.fallAnswer, state)),
     fallMetres: fallMetres(state),
@@ -1327,7 +1329,7 @@ function prepareDraft(input) {
   });
   const hazards = hazardsFor(task, facts, pack);
 
-  return {
+  const draft = {
     kind: 'draft',
     ...header,
     ...stepsAndPpe(task, facts, hazards, finalControls, state, input),
@@ -1346,6 +1348,9 @@ function prepareDraft(input) {
     signed: false,
     approved: false,
   };
+  // Plant, substances, licences, emergency arrangements, sources and a suggested
+  // risk rating for each step, worked out from the finished steps.
+  return { ...draft, ...registersFor(draft, input) };
 }
 
 // The PPE list, then the job steps, which add fit testing when a respirator is ticked.

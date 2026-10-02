@@ -247,6 +247,7 @@ function payload() {
     reviewDate: longDate(value('review-date')),
     date: longDate(value('draft-date')),
     preparedBy: value('prepared-by'),
+    swmsRef: value('swms-ref'),
     ppe: document.querySelector('[data-ppe]') ? [...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value) : undefined,
     facts,
     site,
@@ -358,7 +359,7 @@ const FORM_FIELDS = {
   principalContractor: 'principal', company: 'company', workplace: 'workplace', siteManager: 'site-manager',
   worksManager: 'works-manager', worksManagerPhone: 'works-manager-phone', complianceResponsible: 'compliance-responsible',
   reviewer: 'reviewer', reviewDate: 'review-date', scaffoldSupervisor: 'scaffold-supervisor', hospital: 'hospital',
-  firstAider: 'first-aider', musterPoint: 'muster-point', date: 'draft-date', preparedBy: 'prepared-by', task: 'task', trade: 'task-trade',
+  firstAider: 'first-aider', musterPoint: 'muster-point', date: 'draft-date', preparedBy: 'prepared-by', swmsRef: 'swms-ref', task: 'task', trade: 'task-trade',
 };
 
 function fillFields(values) {
@@ -472,6 +473,7 @@ function render(draft) {
     <table>
       <tbody>
         <tr><th>State</th><td>${esc(draft.state)}</td></tr>
+        ${row('SWMS reference number', draft.swmsRef)}
         ${row('Principal contractor', draft.principalContractor)}
         <tr><th>Subcontractor</th><td>${esc(draft.subcontractor)}</td></tr>
         <tr><th>Workplace</th><td>${esc(draft.workplace)}</td></tr>
@@ -501,7 +503,15 @@ function render(draft) {
   const controls = `<table><thead><tr><th>Hierarchy</th><th>Control</th></tr></thead><tbody>${draft.controls.map((item) => `<tr><td>${esc(item.level)}</td><td>${esc(item.text)}</td></tr>`).join('')}</tbody></table>`;
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
-  const steps = `<table><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index) => `<tr><td><strong>${index + 1}. ${esc(step.step)}</strong></td><td>${list(step.hazards)}</td><td>${list(step.controls)}</td></tr>`).join('')}</tbody></table>`;
+  const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}` : '');
+  const steps = `<table><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index) => `<tr><td><strong>${index + 1}. ${esc(step.step)}</strong></td><td>${list(step.hazards)}</td><td>${list(step.controls)}</td><td>${riskCell(step.risk)}</td></tr>`).join('')}</tbody></table>
+    <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site.</p>`;
+  const grid = (labels, rows) => `<table><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value) => `<td>${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const registers = `${(draft.plant || []).length ? `<h4>Plant and equipment</h4>${grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence]))}` : ''}
+    ${draft.substances && draft.substances.items.length ? `<h4>Hazardous substances</h4>${grid(['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], draft.substances.items.map((item) => [item.product, '', 'Yes / No', '']))}` : ''}
+    ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
+    ${(draft.emergency || []).length ? `<h4>Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}` : ''}
+    ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? `<h4>Legislation and codes of practice</h4>${grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]])}` : ''}`;
   const ppe = `<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.map((item) => `${item.ticked ? '&#9745;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}</td></tr>`).join('')}</tbody></table>`;
   const people = `<table><tbody>
       ${row('Works manager', draft.worksManager) || '<tr><th>Works manager</th><td></td></tr>'}
@@ -516,6 +526,7 @@ function render(draft) {
     <h4>Controls</h4>${controls}
     <h4>Job steps</h4>${steps}
     <h4>Personal protective equipment</h4>${ppe}
+    ${registers}
     <h4>${esc(draft.reviewHeading)}</h4>
     <p>${esc(draft.review)}</p>
     <h4>Site-specific</h4>${site}
