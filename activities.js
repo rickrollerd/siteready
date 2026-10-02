@@ -3792,12 +3792,13 @@ function jobStepsFor(flags, factText, fallback) {
     .filter((step) => !seen.has(step.step) && seen.add(step.step));
   // Post-tensioning checks apply only where the task is on post-tensioned slabs.
   const pt = (line) => (flags.ptSlab ? line : line.replace(/a post-tensioning tendon or /gi, '').split(/(?<=\.)\s+(?=[A-Z])/).filter((part) => !/post-tension|tendon/i.test(part)).join(' '));
+  // A step left with no controls (energised work answered "none") is not work this SWMS covers.
   return steps.map((step) => ({
     ...(step.fallback ? { fallback: true } : {}),
     step: step.step,
     hazards: step.hazards.map(pt).filter(Boolean),
     controls: step.controls.filter((item) => !item.only || flags[item.only]).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean),
-  }));
+  })).filter((step) => step.fallback || step.controls.length);
 }
 
 // The PPE list with each item ticked or not. A chosen list replaces the defaults.
