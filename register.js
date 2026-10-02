@@ -204,7 +204,7 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
     if (/harness/.test(name)) return /\b(use (?:a )?(?:harness|travel restraint)|fall arrest is used|harness is attached|travel restraint is installed)\b/i.test(allText.replace(/\b(?:where|if|when)\b[^.]*/gi, ""));
     // Work done around another trade's fittings ("mask and cut in around electrical fittings") is not that trade's work.
     // Data, fibre and communications cabling is not electrical work.
-    return pattern.test(TASK_LICENCES.test(name) ? ownWork(taskText).replace(/\b(?:around|mask\w*|protect\w*|cut in|clear of)\b[^.]*/gi, '').replace(/\b(?:fibre optic|optical fibre|data|communications?|comms|cat ?6a?|structured|telephone|ip)\s+(?:cabling|cables?)(?:\s+and\s+terminations?)?/gi, '') : /silica/.test(name) ? silicaText : /Hot work/.test(name) ? hazardText : allText);
+    return pattern.test(TASK_LICENCES.test(name) ? ownWork(taskText).replace(/\b(?:around|mask\w*|protect\w*|cut in|clear of)\b[^.]*/gi, '').replace(/\bfit[- ]off (?:of )?(?:the )?(?:plumbing|sanitary|drainage|hydraulic)\b|\b(?:plumbing|sanitary|drainage|hydraulic)\b[^.]{0,20}\bfit[- ]off\b/gi, '').replace(/\b(?:fibre optic|optical fibre|data|communications?|comms|cat ?6a?|structured|telephone|ip)\s+(?:cabling|cables?)(?:\s+and\s+terminations?)?/gi, '') : /silica/.test(name) ? silicaText : /Hot work/.test(name) ? hazardText : allText);
   }).map(([name]) => name);
   if (highRisk.some((item) => /energised electrical/i.test(item)) && !needed.some((name) => /^Rescue/.test(name))) needed.push('Rescue and resuscitation (low voltage rescue and CPR), current');
   for (const item of plant) {
@@ -277,7 +277,8 @@ function addQldSources(sources, d) {
   const codes = new Set(sources.codes);
   for (const [applies, title] of QLD_SOURCES) if (applies(d)) codes.add(title);
   const legislation = new Set(['Work Health and Safety Act 2011 (Qld)', ...sources.legislation]);
-  if (/\b(electrical work|electricians?|energised|switchboards?|wiring|cabling)\b/i.test(ownWork(d.text))) legislation.add('Electrical Safety Act 2002 (Qld)');
+  // The crew's own electrical work, from the task and the step names, not a hazard line about nearby circuits.
+  if (/\b(electrical work|electricians?|energised|switchboards?|wiring|cabling)\b/i.test(ownWork(d.workText || d.text))) legislation.add('Electrical Safety Act 2002 (Qld)');
   return { legislation: [...legislation].sort(), codes: [...codes].sort() };
 }
 
@@ -339,10 +340,11 @@ function registersFor(draft, input = {}) {
   // A generator being installed or load tested is the building's plant, not a portable site generator.
   const buildingGenerator = steps.some((step) => ['Install generators and fuel systems', 'Run and load test generators'].includes(step.step));
   const plant = [...plantFor(`${useText}\n${usedInControls.join('\n')}`), ...maybe].filter((item) => !(buildingGenerator && item.item === 'Generator')).map((item) => othersLicence(item, allText, task));
+  if (buildingGenerator) plant.push({ item: 'Standby generator (building plant)', inspection: 'Serviced and tested to the manufacturer\'s instructions. Guards, exhaust and fuel system checked before each run.', licence: 'No. Switching by licensed electricians' });
   const substances = substancesFor(`${task}\n${hazardText}\n${steps.map((step) => step.step).join('\n')}`, (input.facts || {}).safetyDataSheet, steps.flatMap((step) => step.controls).join('\n'));
   let sources = legislationFor([...steps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
   if (!/Queensland/.test(draft.state || '')) sources = addStateLaw(sources, draft.state);
-  if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant, substances, hazardText, text: allText });
+  if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` });
   // Register notes cite the state's own regulation.
   const stateId = (findState(draft.state) || { id: 'qld' }).id;
   return {
