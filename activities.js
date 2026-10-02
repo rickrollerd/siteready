@@ -5613,16 +5613,6 @@ ACTIVITIES.push(
   {
     when: 'kitchenEquipment',
     steps: [{
-      only: 'hoodOnly',
-      step: 'Install the exhaust hood',
-      hazards: ['A fall from a platform or ladder while fixing the hood and ducts overhead.', 'The hood or a duct section falls while it is lifted.', 'Cuts from stainless steel edges.', 'Electric shock at the fan and lighting connections.'],
-      controls: [
-        'Hoods and exhaust ducts are lifted into place with a lifter or from a platform, supported until fixed to structure checked for their weight, and never held overhead from a ladder.',
-        { only: 'fireSuppression', text: 'The hood fire suppression system is installed and commissioned by a licensed fire protection contractor to the manufacturer\'s design, and is not left isolated once cooking starts.' },
-        'The fan and hood lighting are connected by a licensed electrician.',
-        'Cut-resistant gloves are worn when handling the hood and duct sections.',
-      ],
-    }, {
       unless: 'hoodOnly',
       step: 'Deliver and install commercial kitchen equipment',
       hazards: ['Crushing or strain moving heavy equipment and benches.', { only: 'rangeHood', text: 'A fall from a platform or ladder while fixing hoods and ducts overhead.' }, 'Equipment tipping while it is moved or levelled.', 'Cuts from stainless steel edges.', 'Electric shock or gas leaks at connections.', { only: 'refrigEquipment', text: 'Refrigerant release at connections.' }, { only: 'stainlessFab', text: 'Burns and fumes from welding or grinding stainless steel on site.' }],
@@ -5636,6 +5626,16 @@ ACTIVITIES.push(
         { text: 'Refrigerant work on refrigeration equipment is done only by the holder of a refrigerant handling licence.', unless: 'refrigerantWork', only: 'refrigEquipment' },
         'Cut-resistant gloves are worn when handling stainless steel sheet, benches and shelving.',
         { only: 'stainlessFab', text: 'Welding or grinding stainless steel on site is hot work, done under a hot work permit with fume extraction.' },
+      ],
+    }, {
+      only: 'hoodOnly',
+      step: 'Install the exhaust hood',
+      hazards: ['A fall from a platform or ladder while fixing the hood and ducts overhead.', 'The hood or a duct section falls while it is lifted.', 'Cuts from stainless steel edges.', 'Electric shock at the fan and lighting connections.'],
+      controls: [
+        'Hoods and exhaust ducts are lifted into place with a lifter or from a platform, supported until fixed to structure checked for their weight, and never held overhead from a ladder.',
+        { only: 'fireSuppression', text: 'The hood fire suppression system is installed and commissioned by a licensed fire protection contractor to the manufacturer\'s design, and is not left isolated once cooking starts.' },
+        'The fan and hood lighting are connected by a licensed electrician.',
+        'Cut-resistant gloves are worn when handling the hood and duct sections.',
       ],
     }],
     ppe: ['gloveCut'],

@@ -1842,7 +1842,7 @@ function settleFlags(flags, task) {
   if (out.batteryStorage && /\bconnect\w*\b/i.test(task)) out.commissioning = true;
   off(out.commercialAppliance && !/\b(rough[- ]in|new (?:pipes?|pipework|waste|drain))\b/i.test(task), 'plumbingFitOff', 'kitchenEquipment');
   // A hood, exhaust fan or coolroom on its own is not a kitchen equipment fit-out.
-  const kitchenItems = /\b(kitchen equipment|kitchen items|kitchen fit-?outs?|dishwash\w*|ice machines?|ovens?|cooktops?|fryers?|benches|benching|shelving|stainless steel (?:sinks?|joinery)|bain[- ]maries?|refrigerated display)\b/i.test(task);
+  const kitchenItems = /\b((?:kitchen|cooking|refrigeration|preparation|serving|mobile kitchen) equipment|kitchen items|glass-?wash\w*|custom fabricated|kitchen fit-?outs?|dishwash\w*|ice machines?|ovens?|cooktops?|fryers?|benches|benching|shelving|stainless steel (?:sinks?|joinery)|bain[- ]maries?|refrigerated display)\b/i.test(task);
   out.hoodOnly = Boolean(out.kitchenEquipment && out.rangeHood && !kitchenItems);
   off(!kitchenItems && !out.rangeHood && (out.coolroomPanels || /\bexhaust fans?\b/i.test(task)), 'kitchenEquipment');
   if (/\bducts?\b[^.]{0,30}\b(?:through|in|into|above) (?:the )?ceilings?\b/i.test(task)) out.ductwork = true;
