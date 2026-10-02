@@ -25,7 +25,7 @@ const PLANT = [
   { item: 'Mobile scaffold', pattern: /\bmobile scaffolds?\b/i, inspection: 'Erected to the manufacturer\'s instructions. Castors locked, guardrails complete, checked before use. Over 4 m: handover certificate and inspections as for a scaffold (WHS Reg s 225).', licence: 'No, under 4 m. Yes (SB) where a person or object could fall more than 4 m' },
   { item: 'Excavator', pattern: /\b(excavators?|excavat\w* by machine|mini excavators?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Skid steer or posi-track', pattern: /\b(skid ?steers?|bobcats?|posi-?tracks?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
-  { item: 'Roller or plate compactor', pattern: /\b(plate compactors?|compactors?|wacker|compaction|(?:ride-on|vibrating|smooth drum|padfoot|road|trench) rollers?)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
+  { item: 'Roller or plate compactor', pattern: /\b(plate compactors?|compactors?|wacker|compaction|(?:ride-on|vibrating|smooth drum|padfoot|road|trench) rollers?|with a roller|rolled with a roller)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
   { item: 'Piling rig', pattern: /\b(piling rigs?|cfa rigs?|bored pil\w*)\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent' },
   { item: 'Concrete truck', pattern: /\bconcrete trucks?\b/i, inspection: 'The supplier\'s pre-start check.', licence: 'Truck driver\'s licence' },
   { item: 'Power trowel', pattern: /\bpower trowels?\b/i, inspection: `${PRESTART} Guards and stop switch checked.`, licence: 'No' },
@@ -207,7 +207,7 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
     if (/^Yes/.test(item.licence)) needed.push(`High risk work licence: ${item.item.toLowerCase()} (${item.licence.split('. ')[0].replace(/^Yes,?\s*/, '').replace(/^\((.*)\)$/, '$1')})`);
   }
   // Dogging or rigging by this crew; where the crane company's crew slings, it holds the licences.
-  if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging)\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText)) needed.push(/\bstructural steel|steel erect\w*|steelwork\b/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
+  if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging)\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText) || /\nErect and connect steel at height\n/.test(`\n${allText}\n`)) needed.push(/\bstructural steel|steel erect\w*|steelwork\b/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
   return [...new Set(needed)];
 }
 
