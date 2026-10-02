@@ -177,7 +177,7 @@ const ACTIVITIES = [
         hazards: ['Falling objects strike people below, including the public.', 'Scaffold collapse from poor ground or base.', 'Contact with powerlines.'],
         controls: [
           'Protect people below with a hoarding or gantry, or divert pedestrians, as approved.',
-          src('Where the scaffold is next to a street, the principal contractor provides the hoarding, gantry or closure the regulation requires, and lifts over the footpath happen only with the area closed or a gantry in place.', WHS('s 315F, s 315G, s 315L')),
+          { unless: 'houseWork', ...src('Where the scaffold is next to a street, the principal contractor provides the hoarding, gantry or closure the regulation requires, and lifts over the footpath happen only with the area closed or a gantry in place.', WHS('s 315F, s 315G, s 315L')) },
           src('Exclusion zone below with keep out signs and a person controlling it while erecting and dismantling.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
           { unless: 'scaffoldDismantleOnly', text: 'Check the ground and set out base plates and sole boards to the scaffold design.' },
           src('Within the powerline no go zone, work only under the electricity entity\'s permit to work. Keep electrical leads off the metal frame with plastic lead hooks or insulation.', MODEL('Managing the risk of falls', 's 5.1')),
@@ -999,6 +999,7 @@ const ACTIVITIES = [
         ...SILICA_FOLLOW_UP.map((item) => ({ only: 'chasing', ...(typeof item === 'string' ? { text: item } : item) })),
         'Use platform ladders or a working platform, not the top steps of a stepladder.',
         src('Cover open switchboards and enclosures to keep swarf out.', CODE('appendix C')),
+        { only: 'carParkWork', text: 'The work area in the car park is barricaded and signed, with vehicles kept out of it and a spotter used when plant or materials move across driving aisles.' },
         { only: 'ceilingFans', text: 'Ceiling fans are hung from a fixing rated for the fan, working from a platform ladder, with a second person for heavy fans.' },
       ],
     }],
@@ -1251,12 +1252,12 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Install ductwork, pipework and units at height',
-        hazards: [{ only: 'multiLevel', text: 'A fall from a platform, ladder or open riser.' }, { unless: 'multiLevel', text: 'A fall from a platform or ladder.' }, 'Tools, fixings and duct sections fall onto people below.', 'Silica dust from drilling hanger anchors.', 'Cutting a post-tensioning tendon when drilling.', 'Cuts from duct edges and strain from lifting duct overhead.'],
+        hazards: [{ only: 'riserWork', text: 'A fall from a platform, ladder or open riser.' }, { unless: 'riserWork', text: 'A fall from a platform or ladder.' }, 'Tools, fixings and duct sections fall onto people below.', 'Silica dust from drilling hanger anchors.', 'Cutting a post-tensioning tendon when drilling.', 'Cuts from duct edges and strain from lifting duct overhead.'],
         controls: [
           { fact: 'fallControl' },
           src('Work from the floor or a platform where possible. Fall prevention comes before work positioning or fall arrest.', WHS('s 78, s 79')),
-          { only: 'multiLevel', ...src('Risers and shafts are covered or screened at each level. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`) },
-          { only: 'multiLevel', text: 'Only the section being worked on is opened.' },
+          { only: 'riserWork', ...src('Risers and shafts are covered or screened at each level. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`) },
+          { only: 'riserWork', text: 'Only the section being worked on is opened.' },
           src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
           src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
           src('Barricade and sign the area below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
@@ -1428,7 +1429,7 @@ const ACTIVITIES = [
       hazards: ['A fall from a ladder, platform or open riser.', 'Tools and cable boxes fall onto people below.', 'Contact with energised electrical parts in shared risers and ceilings.', 'Silica dust from drilling anchors.', 'Strain from pulling and lifting cable.'],
       controls: [
         { fact: 'fallControl' },
-        src('Risers and shafts are covered or screened at each level. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`),
+        { only: 'riserWork', ...src('Risers and shafts are covered or screened at each level. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`) },
         'Only the section being worked on is opened.',
         src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
         src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
@@ -1614,9 +1615,10 @@ const ACTIVITIES = [
       step: 'Fix, seal and finish',
       hazards: ['Silica dust from drilling.', 'Cutting a post-tensioning tendon.', 'Fumes from sealants and cleaners.'],
       controls: [
+        { only: 'jointSealOnly', text: 'Old sealant is cut out with a knife or multi-tool, the joint is cleaned, backing rod is fitted, and primer and sealant are applied as their safety data sheets set out, with gloves and eye protection.' },
         { fact: 'safetyDataSheet' },
         src('Keep the current safety data sheet for each sealant, primer and cleaner used at the work area.', WHS('s 344')),
-        'Before drilling into a slab edge, scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings, and never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval.',
+        { unless: 'jointSealOnly', text: 'Before drilling into a slab edge, scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings, and never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval.' },
         src('Drill with on-tool extraction. Anyone still at risk of exposure wears a fit tested respirator (P2 or better).', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`),
         src('Assess in writing before drilling whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.', WHS('s 529CA')),
         src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
@@ -2738,6 +2740,7 @@ const ACTIVITIES = [
       step: 'Apply render to walls',
       hazards: ['A fall from the scaffold or platform.', 'Skin burns from cement render.', 'Silica dust from mixing render and cutting or grinding masonry.', 'Strain mixing and applying render.'],
       controls: [
+        { only: 'renderRepair', ...src('Cracked render is cut out with a grinder or chisel on extraction, or wet, and a fit tested P2 respirator is worn. The area below is closed off while it is removed.', WHS('s 529B, s 529C')) },
         { fact: 'fallControl' },
         'Render is mixed with a mixer or paddle, and bags are moved with a trolley.',
         'Gloves, long sleeves and eye protection are worn. Skin that touches wet render is washed straight away.',
@@ -3007,6 +3010,7 @@ const ACTIVITIES = [
       hazards: ['Struck by passing traffic.', 'A pole falls while it is lifted or stood.', 'Striking underground services or overhead lines.', 'Electric shock connecting to the supply.'],
       controls: [
         'All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.',
+        { only: 'barrierReplace', text: 'The damaged rail and posts are unbolted and lifted out with plant or two people, with the end of the remaining barrier protected until the new section is fixed.' },
         'Underground services are located before pits and conduits are dug, and plant keeps its approach distances from overhead lines.',
         { only: 'polesNamed', text: 'Poles are lifted and stood with a crane truck or EWP by licensed operators and doggers, with an exclusion zone under the load, and bolted to their footings before the slings are released.' },
         'Signal and lighting wiring and the connection to the supply are electrical work for a licensed electrician accredited by the road authority or network operator, and the supply is isolated and proved de-energised before the connection.',
@@ -3020,8 +3024,10 @@ const ACTIVITIES = [
       step: 'Dig footing holes',
       hazards: ['Striking buried services.', 'Back strain from digging.', 'People stepping into open holes.'],
       controls: [
+        { only: 'smallPlant', text: 'Holes are dug with the mini excavator or auger attachment by a competent operator, with workers out of its reach and the holes covered or fenced until they are poured.' },
+        { only: 'footingPour', text: 'Concrete is placed into the holes from the truck chute, a barrow or a pump, with gloves and boots worn and skin contact washed off straight away.' },
         src('Get the current underground services information, for example through Before You Dig Australia, before digging, and work to it.', WHS('s 304')),
-        { unless: 'masonryLay', text: 'Dig with spades and post hole shovels, take turns, and keep loads small. A powered auger is used only with both hands on the handles and stopped before it is cleared.' },
+        { unless: 'handDigOff', text: 'Dig with spades and post hole shovels, take turns, and keep loads small. A powered auger is used only with both hands on the handles and stopped before it is cleared.' },
         { only: 'masonryLay', text: 'Strip or pad footings are dug to the drawings, with the trench kept shallow or battered, and concrete is placed with gloves and boots, with skin contact washed off straight away.' },
         'Open holes are covered or fenced when no one is working at them.',
       ],
@@ -3033,6 +3039,8 @@ const ACTIVITIES = [
       step: 'Strip roof tiles and fix new battens and sarking',
       hazards: ['A fall from the roof edge or through the battens.', 'Tiles fall onto people below.', 'Strain lifting stacks of tiles.', 'Silica dust from cutting concrete or terracotta tiles.'],
       controls: [
+        { only: 'slateRoof', ...src('Slates are cut with a slate cutter or hand tools where possible. Power cutting is done wet or on extraction with a fit tested P2 respirator, as slate contains crystalline silica.', WHS('s 529B, s 529C')) },
+        { only: 'slateRoof', text: 'Slates are stacked on the roof only in small lots spread along the battens, and are passed up by hoist, not carried up ladders.' },
         { fact: 'fallControl' },
         'Tiles are passed down by a chute, hoist or materials lift into a closed area, never thrown.',
         'An exclusion zone is kept under the roof edge and the chute while tiles are removed.',
@@ -3064,9 +3072,9 @@ const ACTIVITIES = [
       step: 'Fit fly screens and security doors',
       hazards: ['Strain lifting heavy security doors.', 'Cuts from mesh and aluminium edges.', 'A fall from a ladder at upper windows.', 'Drilling into hidden wiring.'],
       controls: [
-        'Heavy security doors are lifted by two people or with a door lifter.',
+        { only: 'doorWork', text: 'Heavy security doors are lifted by two people or with a door lifter.' },
         'Gloves are worn when cutting and handling mesh and frames.',
-        'Upper storey screens are fitted from inside where possible. Where a ladder is used, it is a platform ladder, set up on firm level ground.',
+        { unless: 'groundFloor', text: 'Upper storey screens are fitted from inside where possible. Where a ladder is used, it is a platform ladder, set up on firm level ground.' },
         'Check for wiring before drilling near switches and power points.',
       ],
     }],
@@ -3218,7 +3226,7 @@ const ACTIVITIES = [
       hazards: ['The load swings or falls while it is lifted.', 'A person in the excavation is struck by the load.', 'The excavation edge collapses under the plant.'],
       controls: [
         'Tanks, pits and precast units are lifted on their lifting points with rigging rated for the load, by a licensed operator and dogger where a crane is used.',
-        'No one is in the excavation while a unit is lowered. Workers guide it with tag lines from outside the excavation.',
+        { only: 'trench', text: 'No one is in the excavation while a unit is lowered. Workers guide it with tag lines from outside the excavation.' },
         'Plant stands back from the excavation edge as the excavation design or a competent person sets out.',
       ],
     }],
@@ -3398,7 +3406,7 @@ const ACTIVITIES = [
       hazards: ['A gate or boom falls or swings while it is fixed.', 'Struck by vehicles at the entry.', 'Crushed or struck when the gate or boom is first run.', 'Electric shock connecting the motor.'],
       controls: [
         'The entry is closed to vehicles, or traffic is diverted around the work with barriers and signs, while the gate or boom is installed.',
-        'Footings and conduits for gates, booms and ticket machines are dug only after services are located.',
+        { only: 'boomGate', text: 'Footings and conduits for gates, booms and ticket machines are dug only after services are located.' },
         'Gate leaves, posts and boom housings are lifted with two people or a lifting aid and propped until fixed to their footings or anchors.',
         'Wiring and the power connection are electrical work for a licensed electrician, with the circuit isolated first.',
         'The gate or boom is commissioned with the area closed off, and its safety sensors, loops and force limits are tested before it is used.',
@@ -3465,10 +3473,11 @@ const ACTIVITIES = [
     when: 'antennaInstall',
     steps: [{
       step: 'Install rooftop antennas and equipment',
-      hazards: [{ only: 'rfEquipment', text: 'Exposure to radio frequency energy from live antennas.' }, 'A fall from the roof edge.', 'Equipment falls while it is lifted.', 'Electric shock connecting equipment.'],
+      hazards: [{ only: 'rfEquipment', text: 'Exposure to radio frequency energy from live antennas.' }, { unless: 'towerWork', text: 'A fall from the roof edge.' }, { only: 'towerWork', text: 'A fall while climbing or working on the tower.' }, 'Equipment falls while it is lifted.', 'Electric shock connecting equipment.'],
       controls: [
         { only: 'rfEquipment', text: 'Work follows the carrier\'s radio frequency safety plan: transmitters near the work are switched off or turned down by the carrier, and workers stay outside the marked exclusion zones (ARPANSA RPS S-1).' },
         { fact: 'fallControl' },
+        { only: 'towerWork', text: 'Tower climbing is done only by workers trained in tower climbing and rescue, attached at all times to the tower\'s fall arrest system or with twin lanyards, with a rescue plan and rescue kit on site for a worker suspended in a harness.' },
         'Antennas, mounts and cabinets too heavy to carry safely are lifted with a crane or hoist on a lift plan, with an exclusion zone below, not carried up ladders.',
         'Power connections are electrical work for a licensed electrician.',
       ],
@@ -3673,7 +3682,8 @@ const ACTIVITIES = [
       controls: [
         'Valves, pipe and the booster cabinet are lifted with plant or a lifting aid rated for the load, and supported until fixed.',
         'The connection to the live water supply is made only under the water authority\'s or building owner\'s isolation, with the line depressurised.',
-        'The assembly is pressure tested and commissioned to AS 2419.1 with the area kept clear during the test.',
+        { unless: 'sprinkler', text: 'The assembly is pressure tested and commissioned to AS 2419.1 with the area kept clear during the test.' },
+        { only: 'sprinkler', text: 'The booster valve set is pressure tested and commissioned to AS 2118.1 and the system design, with the area kept clear during the test.' },
       ],
     }],
   },
@@ -3727,7 +3737,8 @@ const ACTIVITIES = [
         { fact: 'safetyDataSheet' },
         'Resins are mixed and injected as their safety data sheets set out, with chemical gloves and eye protection.',
         'Ports and surface seals are checked before pressure is applied, injection pressure is kept within the system limits, and pressure is released before any fitting is undone.',
-        'Crack surfaces are ground with on-tool extraction, and a P2 respirator is worn.',
+        src('Crack surfaces are ground with on-tool extraction, and a P2 respirator is worn.', WHS('s 529B, s 529C')),
+        ...SILICA_FOLLOW_UP.slice(0, 2),
       ],
     }],
     ppe: ['gloveChemical', 'p2'],
@@ -4029,8 +4040,9 @@ const ACTIVITIES = [
     when: 'shedTakeDown',
     steps: [{
       step: 'Take down the shed frame',
-      hazards: ['The frame collapses while members are removed.', 'Cuts from sheet metal and fixings.', 'Strain handling frame members.'],
+      hazards: ['The frame collapses while members are removed.', 'Cuts and splinters from sheets, timber and fixings.', 'Asbestos in old fibro sheets.', 'Strain handling frame members.'],
       controls: [
+        'Wall and roof sheets are taken off first, working from a platform or ladder, not from the frame. Old fibro sheets on a shed built before 2004 are treated as asbestos unless tested, and are removed under the asbestos rules.',
         'The frame is taken down by hand from the top, after the wall and roof sheets are off, with each section supported or braced until it is released.',
         'Cut-resistant gloves and eye protection are worn, and fixings are cut or unscrewed, not torn out.',
         'Members are carried by two people and stacked clear of the work.',
@@ -4260,6 +4272,44 @@ const ACTIVITIES = [
         'Handrails, steps and parts are replaced to the manufacturer\'s instructions by the lift contractor\'s trained workers, and the escalator is tested before it is handed back.',
       ],
     }],
+  },
+  {
+    when: 'purlinInstall',
+    steps: [{
+      step: 'Lift and fix the purlins',
+      hazards: ['A fall from the top of the frame while placing purlins.', 'A purlin bundle falls or swings while it is lifted.', 'Purlins roll or slide off the rafters before they are fixed.'],
+      controls: [
+        'Purlins are lifted in bundles by crane or telehandler, landed only where the frame is braced to take them, and unstrapped only once they are restrained.',
+        'Purlins are placed and fixed from an EWP or from edge protection at the eaves, never by walking the rafters, and each one is fixed at both ends before the next is placed.',
+        'Bracing and fly bracing go in as the purlins are fixed, to the frame supplier\'s sequence.',
+      ],
+    }],
+  },
+  {
+    when: 'stairLiftInstall',
+    steps: [{
+      step: 'Install the stair lift',
+      hazards: ['A fall on the stairs while carrying rail sections or working.', 'Strain lifting the rail, chair and motor.', 'Electric shock connecting the power supply.'],
+      controls: [
+        'The rail is fixed to the stair treads, not the wall, to the manufacturer\'s instructions, working from below the work and keeping one hand free on the stairs.',
+        'Rail sections, the chair and the motor are carried by two people, and the stairs are kept clear of tools and offcuts.',
+        'The power outlet for the charger is installed by a licensed electrician, and the lift is tested and its safety edges checked before handover.',
+      ],
+    }],
+  },
+  {
+    when: 'artificialTurf',
+    steps: [{
+      step: 'Lay artificial turf',
+      hazards: ['Plant strikes a worker while the base is prepared.', 'Cuts from turf knives.', 'Strain handling turf rolls.', 'Dust from crushed rock and infill sand.'],
+      controls: [
+        'The base is excavated and compacted with the bobcat and plate compactor, with workers out of the plant\'s reach and two-way acknowledgement before anyone approaches.',
+        'Turf rolls are moved with the bobcat or by two people, and cut with sharp knives, cutting away from the body, with cut-resistant gloves.',
+        'Seam adhesives are used as their safety data sheets set out, with gloves.',
+        'Infill sand and crushed rock are spread damp or in low wind, with a P2 respirator where dust is raised.',
+      ],
+    }],
+    ppe: ['gloveCut', 'p2'],
   },
   {
     when: 'glassWind',
@@ -4617,7 +4667,7 @@ const ACTIVITIES = [
       step: 'Lay turf',
       hazards: ['Back strain from turf rolls.', 'Struck by plant moving turf.', 'Heat.'],
       controls: [
-        src('Use a turf laying machine for large turf rolls. Use mechanical aids for smaller rolls, and rotate tasks.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
+        { unless: 'artificialTurf', ...src('Use a turf laying machine for large turf rolls. Use mechanical aids for smaller rolls, and rotate tasks.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')) },
         src('Plant has a warning device, and operators and ground workers use two way acknowledgement before anyone approaches plant.', `${WHS('s 215')}; ${MODEL('Excavation work', 's 4.3')}`),
         src('Cool drinking water, shade and rest breaks in hot weather.', `${WHS('s 40, s 41')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
       ],
@@ -4981,6 +5031,7 @@ const ACTIVITIES = [
         step: 'Build the deck frame and lay the decking',
         hazards: ['A fall from the edge of the deck frame or between joists.', 'Cuts and kickback from saws.', 'Back strain lifting bearers, joists and boards.', 'Timber dust.'],
         controls: [
+          { only: 'deckReplace', text: 'The old decking and frame are removed in sections from the edge inwards, with temporary edge protection kept on any open edge and offcuts lowered, not thrown.' },
           { fact: 'fallControl' },
           src('Work from the ground, a platform or a scaffold where possible. Where a person could fall, prevent it with edge protection or work platforms before using fall arrest.', WHS('s 78, s 79, s 306C, s 306D')),
           src('Saws have their guards in place. Cut on a stable bench, not on the deck frame.', WHS('s 208')),
@@ -5056,7 +5107,8 @@ const ACTIVITIES = [
       controls: [
         { only: 'exhaustFan', text: 'The fan is fixed to the ceiling framing to the manufacturer\'s instructions, its duct is run to the outlet without crushing, and it is connected by a licensed electrician.' },
         src('Roof cavities get very hot: work early in the day, limit time in the roof, take breaks, and drink water.', `${WHS('s 40')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
-        { only: 'looseFill', text: 'Before anyone enters the roof space, check the loose-fill asbestos insulation register for the house. If loose, fluffy insulation of unknown type is found, stop work, keep out of the roof space and have it tested.' },
+        { only: 'insulationReplace', text: 'Old insulation is bagged in the roof space and passed down, with a P2 respirator, gloves and long sleeves worn, and droppings and dust handled as waste. Anything that looks like loose-fill asbestos stops the work until it is tested.' },
+      { only: 'looseFill', text: 'Before anyone enters the roof space, check the loose-fill asbestos insulation register for the house. If loose, fluffy insulation of unknown type is found, stop work, keep out of the roof space and have it tested.' },
         'Walk only on the ceiling joists or on crawl boards laid across them, never on the ceiling sheets.',
         'Wear a dust mask, long sleeves and gloves when moving insulation.',
         'Treat all cables in the roof space as live until they are proved de-energised.',
@@ -5103,7 +5155,7 @@ const ACTIVITIES = [
       hazards: ['A fall from a balcony or from a ladder near an edge.', 'Items fall from balconies.'],
       controls: [
         { text: 'Work from the building maintenance unit (BMU) only where it has been inspected and its certification is current, the operators are trained in it, harnesses are attached to its anchor points, and work stops in high wind.', only: 'bmu' },
-        src('Work from the floor with extendable tools where possible. Where cleaning is near a balcony or open edge, the balustrade or barrier is in place first.', `${WHS('s 78')}; ${MODEL('Managing the risk of falls', 's 4.1, s 4.2')}`),
+        { unless: 'ewpNamed', ...src('Work from the floor with extendable tools where possible. Where cleaning is near a balcony or open edge, the balustrade or barrier is in place first.', `${WHS('s 78')}; ${MODEL('Managing the risk of falls', 's 4.1, s 4.2')}`) },
         { unless: 'bmu', text: 'Outside glass that cannot be reached from the floor or a balcony is cleaned only from an EWP, or by a rope access or building maintenance unit contractor under their own SWMS.' },
         src('No stepladders at balustrades or open edges. Ladders only for short light work.', MODEL('Managing the risk of falls', 's 9.1')),
         src('Nothing is left loose on balconies, with an exclusion zone below where items could fall.', WHS('s 55')),
@@ -5782,6 +5834,7 @@ ACTIVITIES.push(
         step: 'Install solar panels and mounting rails on the roof',
         hazards: ['A fall from the roof edge or through a skylight or fragile sheet.', 'Panels catch the wind and pull a worker off balance or blow off the roof.', 'Strain carrying panels on the roof.', 'Panels, rails or tools fall onto people below.'],
         controls: [
+          'Skylights and fragile roof sheets near the work are covered with fixed covers or fenced off before work starts near them.',
           { fact: 'fallControl' },
           'Panels go up by a materials hoist, panel lifter, ladder lift or crane, not carried up a ladder.',
           'Panels are not handled on the roof in strong or gusty wind, and each panel is clamped as soon as it is placed.',
@@ -5833,7 +5886,6 @@ ACTIVITIES.push(
       hazards: ['Electric shock and arc flash: the consumer mains and service fuse stay live until the distribution entity disconnects them.', 'Asbestos in an older meter panel.', 'A fall from a ladder at the meter box.'],
       controls: [
         'Electrical work is done only by a licensed electrical worker.',
-        'The supply is disconnected at the service fuse or pole by the distribution entity or a person it authorises, and the mains are tested de-energised before work.',
         'Meters are removed, moved or refitted only by the distribution entity or the metering provider, or a person they authorise.',
         { unless: 'asbestosNamed', text: 'An older meter panel is treated as containing asbestos unless it has been tested. It is removed whole, without drilling, cutting or breaking it, under the asbestos arrangement in this SWMS, and disposed of as asbestos waste.' },
         { unless: 'asbestosNamed', ...src('If asbestos cement is found or suspected, work on it stops. High-pressure water and compressed air are never used on it, and power tools only where their use is controlled; the work follows the asbestos rules.', WHS('s 446')) },
@@ -6180,7 +6232,8 @@ function jobStepsFor(flags, factText, fallback) {
   // An asbestos meter panel comes out only once the supply is disconnected.
   if (middle.some((step) => step.step === 'Replace the meter box and consumer mains connection')) {
     const off = middle.filter((step) => ['Have the supply disconnected', 'Isolate and prove de-energised'].includes(step.step));
-    middle = [...off, ...middle.filter((step) => !off.includes(step))];
+    const check = middle.filter((step) => step.step === 'Check for asbestos before starting');
+    middle = [...check, ...off, ...middle.filter((step) => !off.includes(step) && !check.includes(step))];
   }
   // The circuit is isolated and proved de-energised before it is worked on.
   const isolate = middle.find((step) => step.step === 'Isolate and prove de-energised');
@@ -6366,6 +6419,12 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Cut an opening in a load-bearing wall', 'Cut blocks and bricks');
   moveBefore('Remove and fit the vanity', 'Plumbing rough-in and fit-off');
   moveBefore('Mix bagged concrete', 'Place concrete');
+  moveBefore('Lift and place tanks, pits or precast units', 'Plumbing rough-in and fit-off');
+  moveBefore('Work in the roof space', 'Install ductwork, pipework and units at height');
+  moveBefore('Disconnect and connect the water heater', 'Connect, leak test and commission the gas appliance');
+  moveBefore('Lift and fix the purlins', 'Fix new roofing');
+  moveBefore('Lift and fix the purlins', 'Set up roof access and fall protection');
+  moveBefore('Operate small earthmoving plant', 'Dig footing holes');
   moveBefore('Operate small earthmoving plant', 'Lay turf');
   moveBefore('Replace the meter box and consumer mains connection', 'Leave unfinished work safe');
   moveBefore('Replace the meter box and consumer mains connection', 'Test, connect and commission');
@@ -6430,7 +6489,7 @@ function jobStepsFor(flags, factText, fallback) {
   // A step left with no controls (energised work answered "none") is not work this SWMS covers.
   return steps.map((step) => ({
     ...(step.fallback ? { fallback: true } : {}),
-    step: step.step === 'Erect fencing, hoardings and gantries' && !flags.hoarding ? 'Erect temporary fencing' : step.step === 'Dig footing holes' && flags.masonryLay ? 'Dig and pour footings' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.bollardsOnly ? 'Install bollards' : step.step === 'Install gutters, fascia, downpipes and eaves linings' && flags.guttersOnly ? 'Install gutters and downpipes' : step.step === 'Install sports lighting and screens at height' && !flags.screens ? 'Install sports lighting at height' : step.step === 'Install signal or lighting poles, pits and conduits' && !flags.signalWork ? 'Install lighting poles, pits and conduits' : step.step === 'Clear the collapsed wall and protect the footpath' && !flags.footpathWork ? 'Clear the collapsed wall' : step.step === 'Rough-in and fit-off' && flags.fitOffOnly ? 'Fit off' : step.step === 'Remove and fit the vanity' && !flags.vanityReplace ? 'Install vanities and fixtures' : step.step === 'Sand and finish timber floors' && flags.deckRefinish ? 'Strip, sand and refinish the deck' : step.step === 'Install signs and screens' && flags.signPostsOnly ? 'Install signs on posts' : step.step === 'Drill or cut concrete, masonry or stone' && flags.grindOnly ? 'Grind concrete' : step.step === 'Install doors, joinery and cabinets' && !flags.cabinetWork ? (flags.trimWork ? 'Install doors and trim' : 'Install doors') : step.step,
+    step: step.step === 'Erect fencing, hoardings and gantries' && !flags.hoarding ? 'Erect temporary fencing' : step.step === 'Disconnect and connect the water heater' && !flags.replaceAppliance ? 'Set and connect the water heater' : step.step === 'Work on a tiled roof' && flags.slateRoof ? 'Work on a slate roof' : step.step === 'Strip roof tiles and fix new battens and sarking' && flags.slateRoof ? 'Strip slates and fix new battens and sarking' : step.step === 'Fit fly screens and security doors' && !flags.doorWork ? 'Fit fly and security screens' : step.step === 'Install rooftop antennas and equipment' && flags.towerWork ? 'Install antennas and equipment on the tower' : step.step === 'Install the hydrant booster assembly' && flags.sprinkler ? 'Install the sprinkler booster valve set' : step.step === 'Clean windows and balconies' && flags.ewpNamed ? 'Clean windows from the EWP' : step.step === 'Dig footing holes' && flags.masonryLay ? 'Dig and pour footings' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.bollardsOnly ? 'Install bollards' : step.step === 'Install gutters, fascia, downpipes and eaves linings' && flags.guttersOnly ? 'Install gutters and downpipes' : step.step === 'Install sports lighting and screens at height' && !flags.screens ? 'Install sports lighting at height' : step.step === 'Install signal or lighting poles, pits and conduits' && !flags.signalWork ? 'Install lighting poles, pits and conduits' : step.step === 'Clear the collapsed wall and protect the footpath' && !flags.footpathWork ? 'Clear the collapsed wall' : step.step === 'Rough-in and fit-off' && flags.fitOffOnly ? 'Fit off' : step.step === 'Remove and fit the vanity' && !flags.vanityReplace ? 'Install vanities and fixtures' : step.step === 'Sand and finish timber floors' && flags.deckRefinish ? 'Strip, sand and refinish the deck' : step.step === 'Install signs and screens' && flags.signPostsOnly ? 'Install signs on posts' : step.step === 'Drill or cut concrete, masonry or stone' && flags.grindOnly ? 'Grind concrete' : step.step === 'Install doors, joinery and cabinets' && !flags.cabinetWork ? (flags.trimWork ? 'Install doors and trim' : 'Install doors') : step.step,
     hazards: step.hazards.filter((item) => typeof item === 'string' || ((!item.only || flags[item.only]) && (!item.unless || !flags[item.unless]))).map((item) => (typeof item === 'string' ? item : item.text)).map((line) => localText(line, flags.cite || 'qld')).map(pt).filter(Boolean),
     controls: [...new Set(step.controls.filter((item) => (!item.only || flags[item.only]) && (!item.unless || !flags[item.unless])).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean))],
   })).map((step) => {
