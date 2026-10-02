@@ -170,7 +170,7 @@ test('library coverage: everyday jobs get their own job steps', () => {
   assert.ok(steps('Build a timber retaining wall 600 mm high.').includes('Build the retaining wall'));
   assert.ok(steps('Build a timber pergola at ground level.').includes('Erect the pergola, carport or shed frame and roof'));
   assert.ok(steps('Pressure clean and reseal a concrete driveway.').includes('Pressure clean surfaces'));
-  assert.ok(steps('Install bollards in a car park.').includes('Install bollards, wheel stops and speed humps'));
+  assert.ok(steps('Install bollards in a car park.').includes('Install bollards, barriers, wheel stops and speed humps'));
   // A meter box in an older house asks how asbestos was identified.
   const { questionsFor } = require('../draft');
   assert.ok(questionsFor({ state: 'qld', fallRisk: 'no', task: 'Replace the old meter box on a house wall.' }).required.some((item) => item.id === 'asbestosArrangement'));

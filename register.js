@@ -296,7 +296,7 @@ function registersFor(draft, input = {}) {
   const useText = `${task}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText}`;
   // Control lines that say the crew uses plant, not the ones about keeping clear of it.
   const usedInControls = steps.flatMap((step) => step.controls).filter((line) => /^(?:Use|Using)\b|\b(?:are|is) (?:run|used|operated) by\b|\bcut with\b/i.test(line) && !/\b(keep|clear of|away from|others|crane company|pumping company)\b/i.test(line));
-  const forkliftLines = steps.flatMap((step) => step.controls).filter((line) => /\b(forklifts?|telehandlers?)\b/i.test(line) && !/\b(keep|clear of|away from|exclusion|near)\b/i.test(line));
+  const forkliftLines = steps.flatMap((step) => step.controls).filter((line) => /\b(forklifts?|telehandlers?)\b/i.test(line) && !/\b(keep|clear of|away from|exclusion|near|separat\w*)\b/i.test(line));
   // A forklift or telehandler named only in a control line may or may not be used, so its licence is conditional.
   const named = plantFor(`${useText}\n${usedInControls.join('\n')}`).map((item) => item.item);
   const maybe = plantFor(forkliftLines.join('\n')).filter((item) => /^(Forklift|Telehandler)$/.test(item.item) && !named.includes(item.item)).map((item) => ({ ...item, licence: `${item.licence}, where one is used` }));
