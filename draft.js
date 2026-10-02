@@ -1354,7 +1354,7 @@ const MAIN_WORK = [
   [/\bcore fill\w*\b/i, 'core filling', /\bcore fill\b/i],
   [/\b(sewer mains?|council mains?|connect\w*[^.]{0,30}\bsewer)\b/i, 'connection to the live sewer', /\bConnect to the live sewer\b/],
   [/\b(?:install|replac|lift|remov)\w*\b[^.]{0,40}\b(?:air ?con\w* units?|rooftop units?|condensers?|package units?)\b/i, 'air conditioning plant installation', /\b(Install split system|Install plant|Receive plant|Isolate plant|Install ductwork)\b/],
-  [/\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?)\b/i, 'demolition of a whole structure', /\bDemolish the structure\b/],
+  [/\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?)\b/i, 'demolition of a whole structure', /\b(Demolish the structure|Take down the shed frame)\b/],
   [/\b(pool shells?|shotcrete|gunite|spray\w* concrete)\b/i, 'pool shell and sprayed concrete work', /\b(shotcrete|sprayed concrete)\b/i],
   [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer|seal floor joints)/i],
   [/\bpergolas?\b/i, 'pergola work', /\b(pergola|footings?|post holes?|shallow trench|Dig|frame and roof of the structure|Prop and repair)\b/i],
@@ -1371,7 +1371,7 @@ const MAIN_WORK = [
   [/\b(?:replac|chang|clean)\w* [^.]{0,20}\bfilters?\b/i, 'filter replacement', /\bfilters?\b/i],
   [/\bunderground power\b|\bpower (?:supply )?to (?:a |the )?(?:granny flat|shed|garage|outbuilding|pool|pump)/i, 'connecting the new supply', /\b(Isolate and prove|Test, connect|Rough-in and fit-off)\b/],
   // A grid with plasterboard sheets has its steps; a grid with ceiling tiles does not yet.
-  [/^(?![^]*\b(?:plasterboard|gyprock|drywall|sheets?)\b)[^]*\b(?:suspended grid ceilings?|grid ceilings?|ceiling grids?|ceiling tiles?)\b/i, 'suspended grid ceiling installation', /\bgrid\b/i],
+  [/^(?![^]*\b(?:plasterboard|gyprock|drywall|sheets?)\b)[^]*\b(?:suspended grid ceilings?|grid ceilings?|ceiling grids?|ceiling tiles?)\b/i, 'suspended grid ceiling installation', /\b(grid|Replace the ceiling tiles)\b/i],
   [/\bremov\w*\b[^.]{0,30}\b(?:concrete |old |underground )*(?:water |fuel |septic )?tanks?\b/i, 'tank removal', /\b(Remove the (?:fuel )?tanks?|Cut steel with oxy)/],
   [/\b(sand\w* and (?:polish|coat|seal)\w*|floor sand\w*)\b/i, 'floor sanding and coating', /\b(floor sanding|Sand and coat|Sand and finish timber floors|grind floors)\b/i],
   [/\b(?:install|erect|assembl|build)\w*\s+(?:an? |the )?(?:new )?(?:(?:garden|kit|colorbond|steel|metal)\s+)+sheds?\b/i, 'shed kit assembly', /\b(shed kit|shed frame)\b/i],
@@ -1379,7 +1379,7 @@ const MAIN_WORK = [
   [/\bexhaust fans?\b[^.]{0,40}\b(?:ceilings?|roof spaces?)\b|\b(?:ceilings?|roof spaces?)\b[^.]{0,40}\bexhaust fans?\b/i, 'exhaust fan work in a ceiling', /\bWork in the roof space\b/],
   [/\bremov\w*\b[^.]{0,30}\b(?:split systems?|air ?condition\w*)/i, 'removing the units', /\b(Receive plant|Install ductwork, pipework and units)\b/],
   [/\b(jackhammer\w*|break\w* (?:out|up)|breakers?)\b/i, 'breaking out concrete', /\b(break|Trim pile heads|Demolish|Saw cut)/i],
-  [/^(?![^]*\b(?:repoint\w*|sandstone|brick\w*|masonry|stone walls?|render\w*|concrete|retaining walls?|fire ?walls?)\b)[^]*\b(?:patch\w*|repair\w*)\b[^.]{0,30}\b(?:plasterboard|linings?|walls?|ceilings?)\b/i, 'patching linings', /\bCut, set and sand\b/],
+  [/^(?![^]*\b(?:repoint\w*|sandstone|brick\w*|masonry|stone walls?|render\w*|concrete|retaining walls?|fire ?walls?)\b)[^]*\b(?:patch\w*|repair\w*)\b[^.]{0,30}\b(?:plasterboard|linings?|walls?(?! frames?| framing)|ceilings?)\b/i, 'patching linings', /\bCut, set and sand\b/],
   [/\b(underfloor heating|heating cables?|heating mats?)\b/i, 'underfloor heating installation', /\b(heating|Rough-in and fit-off)\b/i],
   [/^\s*(?:install|fix|replac)\w*\s+(?:[\w-]+\s+){0,3}(?:cladding|weatherboards?)\b/i, 'cladding installation', /\bcladding\b/i],
   [/^\s*install\w*\s+(?:an? |the |new )*(?:passenger |goods )?(?:lifts?|elevators?)\b(?! (?:pits?|shafts?|cores?|the|materials|equipment|it|them|panels?|sheets?|landing doors?|doors?))/i, 'lift installation', /\b(Work on the car top|Lift machines, rails|Install the lift rails)\b/],
@@ -2065,7 +2065,7 @@ function settleFlags(flags, task) {
   off(out.deckBuild && !out.multiLevel, 'balustradeEdge');
   if (/\b(?:switch ?boards?)\b/i.test(task) && /\b(rewir\w*|new switch ?boards?)\b/i.test(task) && /\b(houses?|homes?|units?|dwellings?)\b/i.test(task)) out.switchboardReplace = true;
   if (/\b(condensers?|condensing units?|package units?|air ?condition\w*|plant)\b/i.test(task) && /\b(?:on(?:to)?|to) (?:a |the )?(?:\w+ )?roofs?\b/i.test(task)) out.roofAccess = true;
-  if (/\b(?:run\w*|install\w*)\b[^.]{0,20}\b(?:underground )?power to\b/i.test(task) || /\b(?:replac\w*|swap\w*|chang\w*)\b[^.]{0,30}\b(?:ceiling fans?|light switches|switches|power points?|light fittings?|lights)\b/i.test(task)) { if (/\b(electric\w*|power|fans?|switches|lights?|power points?)\b/i.test(task)) out.commissioning = true; }
+  if (/\b(?:run\w*|install\w*)\b[^.]{0,20}\b(?:underground )?(?:power|(?:new )?(?:power )?circuits?) to\b/i.test(task) || /\b(?:replac\w*|swap\w*|chang\w*)\b[^.]{0,30}\b(?:ceiling fans?|light switches|switches|power points?|light fittings?|lights)\b/i.test(task)) { if (/\b(electric\w*|power|fans?|switches|lights?|power points?)\b/i.test(task)) out.commissioning = true; }
   if (/\b(?:cut\w*|form\w*|mak\w*|creat\w*|new)\b[^.]{0,30}\b(?:doorways?|openings?|archways?)\b/i.test(task) && /\b(brick|block|masonry|double brick)\b/i.test(task) && !/\bnon[- ]load[- ]bearing\b/i.test(task)) out.structuralOpening = true;
   out.stairOnly = Boolean(out.accessSteel && /\bstair\w*\b/i.test(task) && !/\b(stair ?lifts?|ladders?|platforms?|walkways?|mezzanine (?:floors?|platforms?|decks?))\b/i.test(task));
   off(out.stairOnly, 'fixtures');
@@ -2125,6 +2125,38 @@ function settleFlags(flags, task) {
   out.windowsOnly = Boolean(out.windowInstall && !/\bdoors?\b/i.test(task) && !out.louvres);
   out.pylonSign = /\bpylons?\b/i.test(task);
   out.potholeRepair = /\bpot ?holes?\b/i.test(task);
+  // Bank 8 rules.
+  out.wallRemoval = /\b(?:remov\w*|knock\w* (?:out|down)|tak\w* out|demolish\w*)\b[^.]{0,20}\b(?:an? |the )?(?:old )?(?:internal |interior |non[- ]load[- ]bearing |stud |timber |plasterboard )?walls?\b/i.test(task) && !/(?<!non[- ])\bload[- ]bearing\b|\b(retaining|brick|block|masonry|fence|wallpaper|tiles?|render|sheets?|cladding|linings?|graffiti|paint)\b/i.test(task);
+  out.noiseWall = /\b(sound|noise|acoustic) (?:walls?|barriers?|fences?)\b/i.test(task) && /\b(highways?|roads?|motorways?|freeways?|rail\w*)\b/i.test(task);
+  out.dumbwaiter = /\bdumb ?waiters?\b/i.test(task);
+  out.frameRepair = /\b(termite|rotten|damaged|white ?ant)\w*\b[^.]{0,30}\b(?:wall )?(frames?|framing|studs?|top plates?|bottom plates?)\b/i.test(task) && /\b(repair\w*|replac\w*|fix\w*)\b/i.test(task);
+  out.smokeAlarms = /\bsmoke alarms?\b/i.test(task) && /\b(install\w*|fit\w*|replac\w*|new|upgrad\w*)\b/i.test(task);
+  if (out.smokeAlarms && !/\b(cctv|access control|intercoms?|security|card readers?|intrusion)\b/i.test(task)) out.securityDevices = false;
+  out.crackStitch = /\bhelical (?:ties?|bars?)\b|\bcrack stitch\w*/i.test(task);
+  if (out.crackStitch) { out.masonryLay = false; out.masonryMortar = false; }
+  out.septicRemove = /\bseptic\b/i.test(task) && /\b(replac\w*|remov\w*|old|decommission\w*)\b/i.test(task);
+  if (out.septicRemove && /\b(replac\w*|new|install\w*)\b/i.test(task)) out.tankPlace = true;
+  out.flashingReplace = /\bflashings?\b/i.test(task) && /\b(replac\w*|repair\w*|leak\w*|re-?flash\w*)\b/i.test(task) && !/\b(re-?roof\w*|roof sheet\w*|new roof|roofing|sheeting|standing seam|cappings?)\b/i.test(task);
+  if (out.flashingReplace) { out.roof = false; out.roofStrip = false; out.roofAccess = true; }
+  if (/\b(cyclone|storm|hail|wind)[- ]damaged? (?:metal |tin |iron )?roofs?\b/i.test(task) && /\b(repair\w*|fix\w*|replac\w*)\b/i.test(task) && !/\btiles?|tiled\b/i.test(task)) { out.roof = true; out.roofStrip = true; out.roofAccess = true; }
+  out.benchtopReplace = /\bbench ?tops?\b/i.test(task) && /\b(replac\w*|new|install\w*|fit\w*)\b/i.test(task);
+  if (out.benchtopReplace && !/\bstrip\w*\b/i.test(task)) out.stripOut = false;
+  out.crossover = /\b(?:vehicle |driveway )?crossovers?\b|\bdriveway crossings?\b/i.test(task);
+  if (out.crossover) { out.slabGround = true; out.slabPour = true; out.sawCut = true; out.footpathWork = true; }
+  out.bikeRacks = /\b(bike|bicycle|cycle) (?:racks?|hoops?|rails?|parking)\b/i.test(task);
+  out.crackSeal = /\bseal\w*\b[^.]{0,20}\bcracks?\b|\bcracks?\b[^.]{0,20}\bseal\w*/i.test(task) && !/\binject\w*/i.test(task);
+  if (out.crackSeal && !/\b(break\w*|patch\w*|spall\w*|repair\w*)\b/i.test(task)) { out.concreteRepair = false; out.pressureClean = false; }
+  if ((out.tileLay || out.tileCut) && /\b(remov\w*|lift\w*|strip\w*)\b[^.]{0,20}\btiles?\b|\breplac\w*\b[^.]{0,30}\b(?:floor |wall )?tiles\b|\bre-?lay\w*\b[^.]{0,20}\btiles\b/i.test(task)) { out.tileRemove = true; out.tileLay = true; }
+  if (out.tileRemove && /\bre-?lay\w*\b/i.test(task)) out.tileLay = true;
+  if (out.tileRemove && /\b(leak\w*)\b/i.test(task) && /\bshowers?\b/i.test(task)) out.wpLiquid = true;
+  if (/\b(?:run\w*|install\w*)\b[^.]{0,20}\b(?:new )?(?:power )?(?:circuits?|power|cables?) to (?:an? |the )?(?:\w+ )?(?:sheds?|garages?|granny flats?|studios?|outbuildings?|workshops?|pool (?:pumps?|houses?)|gates?)\b/i.test(task)) { out.shallowTrench = true; out.fitOff = true; out.isolation = true; }
+  if (out.frameRepair) out.houseFraming = false;
+  out.ceilingTileReplace = /\breplac\w*\b[^.]{0,20}\bceiling tiles\b/i.test(task) && !/\bgrid\b/i.test(task);
+  if (out.ceilingTileReplace) out.ceilingGrid = false;
+  out.oldTiles = Boolean(out.tileRemove && !/\b(cracked|broken|drummy|loose|damaged|chipped)\b/i.test(task));
+  if (/\bgranny flat kits?\b|\bkit homes?\b/i.test(task)) out.kitStructure = true;
+  if (out.paintExternal && !/\b(external\w*|exterior|outside|facade|fa[cç]ade|eaves|fascias?|towers?|tank stands?)\b/i.test(task) && /\b(warehouses?|factor(?:y|ies)|inside|interior|internal|halls?|gyms?|sheds?)\b/i.test(task)) out.paintExternal = false;
+  if (/\b(?:install\w*|new|add\w*)\b[^.]{0,10}\b(?:an? |the )?(?:home )?batter(?:y|ies)\b/i.test(task) && !/\b(smoke alarms?|remotes?|torch\w*)\b/i.test(task)) out.batteryStorage = true;
   out.facadeSign = !out.signPostsOnly && !out.pylonSign;
   out.waterNoBoat = !out.poolOnly && !out.workBoat;
   out.bollardFuel = Boolean(out.bollards && out.fuelSite);
@@ -2175,7 +2207,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     solventCement: /\b(solvent (?:cement|weld\w*)|pvc (?:glue|cement)|pvc pip\w*|soil and waste)\b/i.test(task) || (/\bprimers?\b/i.test(task) && /\b(pvc|pipe\w*)\b/i.test(task)),
     pressureTest: PRESSURE_TEST.test(task),
     hotWater: PRESSURE_TEST.test(task) && /\b(hot water|heat pumps?|boilers?|water heaters?)\b/i.test(task),
-    plumbingFitOff: (/\b(rough[- ]in|fit[- ]off)\b/i.test(task) && isPlumbing(task) || /\b(?:replac|install|fit|chang)\w*\b[^.]{0,30}\b(?:mixer taps?|taps?|toilet suites?|toilets?|cisterns?|basins?|sinks?|sink wastes?|vanit(?:y|ies) basins?|shower (?:heads?|roses?|mixers?)|dishwashers?|coffee machines?|water filters?|ice machines?|tapware|vanities)\b/i.test(task) || /\bconnect\w*\b[^.]{0,40}\b(?:dishwashers?|coffee machines?|ice machines?|water filters?|glass ?washers?)\b/i.test(task)) && !/\b(?:install\w*|run\w*|pull\w*)\b[^.]{0,30}\b(?:cables?|circuits?|wiring)\b/i.test(task) || /\b(?:install\w*|replac\w*|fit\w*)\b[^.]{0,30}\b(?:emergency )?(?:eye ?wash\w*|safety showers?|deluge showers?)\b/i.test(task),
+    plumbingFitOff: (/\b(rough[- ]in|fit[- ]off)\b/i.test(task) && isPlumbing(task) || /\b(?:replac|install|fit|chang)\w*\b[^.]{0,30}\b(?:outdoor showers?|mixer taps?|taps?|toilet suites?|toilets?|cisterns?|basins?|sinks?|sink wastes?|vanit(?:y|ies) basins?|shower (?:heads?|roses?|mixers?)|dishwashers?|coffee machines?|water filters?|ice machines?|tapware|vanities)\b/i.test(task) || /\bconnect\w*\b[^.]{0,40}\b(?:dishwashers?|coffee machines?|ice machines?|water filters?|glass ?washers?)\b/i.test(task)) && !/\b(?:install\w*|run\w*|pull\w*)\b[^.]{0,30}\b(?:cables?|circuits?|wiring)\b/i.test(task) || /\b(?:install\w*|replac\w*|fit\w*)\b[^.]{0,30}\b(?:emergency )?(?:eye ?wash\w*|safety showers?|deluge showers?)\b/i.test(task),
     bulkDig: /\b(bulk excavat\w*|excavat\w* (?:the |out the )?basement|dig\w* (?:out )?(?:the |a )?basement)\b/i.test(task),
     anchorsProps: BULK_EXCAVATION.test(task) && /\b(ground anchors?|anchors?|props?|walers?|de-?stress\w*|shoring|soldier piles?|sheet piles?|shotcrete)\b/i.test(task),
     detailDig: /\b(detailed excavat\w*|(?:excavat|dig)\w*[^.]{0,30}\b(?:pile caps?|lift pits?))\b/i.test(task),
@@ -2369,7 +2401,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     antennaInstall: /\b(weather stations?|antennas?|aerials?|mobile phone (?:towers?|base stations?)|telecommunications? (?:equipment|towers?)|5g (?:equipment|antennas?)|satellite dish\w*)\b/i.test(task) && /\b(install\w*|replac\w*|fit\w*|mount\w*)\b/i.test(task),
     smallPour: SMALL_POUR.test(task),
     hvWork: /\b(high voltage|hv|11 ?kv|22 ?kv|33 ?kv|kiosk substations?|transformers?)\b/i.test(task),
-    solarPanels: /\b(solar (?:panels?|pv|arrays?|modules?)|pv (?:panels?|arrays?|modules?)|photovoltaic|panels? on the roof)\b/i.test(task),
+    solarPanels: /\b(solar (?:panels?|pv|arrays?|modules?|systems? on (?:a |the )?(?:\w+ )*?roofs?)|pv (?:panels?|arrays?|modules?)|photovoltaic|panels? on the roof)\b/i.test(task),
     subfloor: /\bunder (?:the |a |an )?(?:existing )?(?:house|home|floor|building)\b|\bsub-?floor\b/i.test(task),
     upperFloor: /\b(?:level \d+|(?:first|second|third|fourth|fifth|\d+(?:st|nd|rd|th)) (?:floor|storey)|upper (?:floor|level)s?|balcon\w*)\b/i.test(task),
     childcare: /\b(child ?care|early (?:childhood|learning)|kindergartens?|kindy|preschools?|schools?|aged care|nursing homes?|hospitals?)\b/i.test(task),
@@ -2615,7 +2647,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     kitchenEquipment: /\b(commercial kitchens?|kitchen equipment|kitchen items|commercial dishwash\w*|(?:commercial )?range ?hoods?|(?:commercial )?ice machines?|exhaust hoods?|cool ?rooms?|freezer rooms?|walk-in (?:freezers?|cool ?rooms?|fridges?)|combi ovens?|stainless steel (?:benches|benching|sinks?|shelving|joinery|custom fabricated items))\b/i.test(task) && /\b(install\w*|certif\w*|supply|provid\w*|fit\w*|deliver\w*)\b/i.test(task),
     safetyMesh: /\b(safety mesh|roof mesh|sarking)\b/i.test(task) && /\b(install\w*|fix\w*|lay\w*|run\w*)\b/i.test(task) && /\b(purlins?|warehouse|industrial|commercial|metal roof|roof sheet\w*)\b/i.test(task),
     waterHeater: /\b(?:install\w*|replac\w*|connect\w*|fit\w*)\b[^.]{0,40}\b(hot water (?:systems?|units?|heaters?|cylinders?|services?|heat pumps?|plant)|water heaters?|heat pumps?|pool heaters?)\b/i.test(task) && !/\b(air ?condition\w*)\b/i.test(task),
-    solarPV: /\b(solar (?:panels?|pv|arrays?|power systems?)|pv (?:panels?|arrays?|systems?)|photovoltaic|inverters?)\b/i.test(task.replace(/\b(?:connect\w*|link\w*|integrat\w*)\b[^.]{0,20}\bto (?:the |an |its )?(?:existing )?(?:solar )?inverter\b/gi, '')) && !/\bsolar hot water\b/i.test(task) && !/\bclean\w*\b/i.test(task),
+    solarPV: /\b(solar (?:panels?|pv|arrays?|power systems?|systems? on (?:a |the )?(?:\w+ )*?roofs?)|pv (?:panels?|arrays?|systems?)|photovoltaic|inverters?)\b/i.test(task.replace(/\b(?:connect\w*|link\w*|integrat\w*)\b[^.]{0,20}\bto (?:the |an |its )?(?:existing )?(?:solar )?inverter\b/gi, '')) && !/\bsolar hot water\b/i.test(task) && !/\bclean\w*\b/i.test(task),
     batteryStorage: /\binverters? and (?:an? )?batter(?:y|ies)\b|\bbatter(?:y|ies) and (?:an? )?inverters?\b|\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbattery (?:storage|systems?)\b|\bbatter(?:y|ies)\b[^.]{0,30}\b(?:solar|garage wall|house wall)\b/i.test(task),
     // Work on the meter box itself, not a submain run from it.
     meterBox: /\b(?:replac\w*|upgrad\w*|install\w*|relocat\w*|new|chang\w*|remov\w*)\b[^.]{0,40}\bmeter (?:box|board|panel)s?\b|\bmeter (?:box|board|panel)s? (?:is |are )?(?:replac\w*|upgrad\w*|relocat\w*|chang\w*)/i.test(task),
