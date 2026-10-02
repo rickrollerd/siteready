@@ -149,6 +149,9 @@
       "hazards": [
         "Demolition",
         "Temporary support"
+      ],
+      "highRiskWhereListed": [
+        "silica"
       ]
     },
     "residential": "no"

@@ -175,3 +175,34 @@ test('library coverage: everyday jobs get their own job steps', () => {
   const { questionsFor } = require('../draft');
   assert.ok(questionsFor({ state: 'qld', fallRisk: 'no', task: 'Replace the old meter box on a house wall.' }).required.some((item) => item.id === 'asbestosArrangement'));
 });
+
+test('other states: their own Act, their own sections in register notes, and no Queensland-only wording', () => {
+  const { localNote, localText } = require('../citations');
+  const draft = (state, task, facts = {}) => prepareDraft({ state, fallRisk: 'no', residential: 'no', task, facts: { silicaControls: 'Drilling is done with on-tool dust extraction.', ...facts } });
+  assert.ok(draft('nsw', 'Core drill penetrations through a concrete slab.').sources.legislation.includes('Work Health and Safety Act 2011 (NSW)'));
+  const vic = draft('vic', 'Core drill penetrations through a concrete slab.');
+  assert.ok(vic.sources.legislation.includes('Occupational Health and Safety Act 2004 (Vic)'));
+  const vicText = vic.jobSteps.flatMap((step) => step.controls).join('\n');
+  assert.ok(!/silica risk control plan|processing is high risk|Where the processing is high risk: a Before/.test(vicText));
+  // A Queensland section maps to the state's own, or is left out where it has not been matched.
+  assert.match(localNote('Inspected to the manufacturer\'s instructions (WHS Reg s 213).', 'wa'), /\(Work Health and Safety \(General\) Regulations 2022 \(WA\) r 213\)/);
+  assert.equal(localNote('Inspected to the manufacturer\'s instructions (WHS Reg s 213).', 'nsw'), 'Inspected to the manufacturer\'s instructions.');
+  assert.ok(!/Queensland/.test(localText('The principal contractor manages traffic near the site, or where there is no principal contractor, our supervisor puts the traffic management plan in place. Traffic controllers who hold Queensland traffic controller accreditation direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.', 'act')));
+});
+
+test('licences and steps follow the work, not words around it', () => {
+  const { workFlags } = require('../draft');
+  const { tasksFromScope } = require('../scope');
+  const painting = prepareDraft({ state: 'tas', fallRisk: 'no', residential: 'no', trade: 'painting,electrical', facts: { safetyDataSheet: 'Acrylic paint SDS, revision 2.' }, task: 'Paint internal walls and ceilings. Mask and cut in paintwork around all electrical fittings and switchboards.' });
+  assert.ok(!painting.qualifications.some((item) => /Electrical/.test(item)));
+  assert.ok(!workFlags('Install energy efficient in pool lighting and a pool services distribution board.', {}).water);
+  assert.ok(!workFlags('Provide a submain from the meter panel main circuit breaker to the distribution boards.', {}).meterBox);
+  assert.ok(workFlags('Replace the meter box on a house.', {}).meterBox);
+  assert.ok(!workFlags('Cut reglets for flashings to the parapet.', {}).cutOpening);
+  assert.ok(workFlags('Saw cut a new doorway opening in a concrete wall.', {}).cutOpening);
+  assert.ok(!workFlags('Install windows with all flashings, sealants and trims.', {}).roofAccess);
+  assert.ok(workFlags('Grade to level and compact subgrade, with backfilling and compaction as required.', {}).earthworks);
+  assert.ok(!workFlags('Fabricate and install steel, cleaning free from loose scale and touching up primer.', {}).cleaning);
+  const scope = tasksFromScope('SCOPE OF WORKS\n1. The Subcontractor shall only supply materials to the Site that contain NO asbestos.\n2. Install cable tray and pull cables for lighting circuits.\n3. Terminate all cables at the distribution boards.');
+  assert.ok(!scope.tasks.some((task) => /asbestos/i.test(task.title)));
+});

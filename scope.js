@@ -22,7 +22,7 @@ const PAPERWORK = /\b(shop drawings?|submit\w*|submissions?|certificat\w*|warran
 const SITE_WORK = /\b(install\w*|supply and install|erect\w*|dismantl\w*|fix\w*|lay(?:s|ing)?\b|construct\w*|demoli\w*|remov\w*|strip\w*|excavat\w*|trench\w*|backfill\w*|pour\w*|place(?:s|d)?\b|placing|cut(?:s|ting)?\b|core[- ]?drill\w*|coring|drill\w*|weld\w*|braz\w*|paint(?:s|ed|ing)?\b|apply|applied|application of|spray\w*|connect\w*|terminat\w*|test(?:s|ed|ing)?\b|commission\w*|seal(?:s|ed|ing)?\b|caulk\w*|grout\w*|tiling|hang(?:s|ing)?\b|set ?out|lift(?:s|ed|ing)?\b|hoist\w*|unload\w*|break(?:s|ing)? out|grind\w*|polish\w*|clean(?:s|ed|ing)?\b|torch\w*|screed\w*|render(?:s|ed|ing)?\b|sheet(?:ed|ing)\b|clad(?:ding)?\b|glaz(?:e|ed|ing)\b|pump(?:s|ed|ing)?\b|scaffold\w*|compact\w*|bolt(?:s|ed|ing)\b|anchor(?:s|ed|ing)\b|mount(?:s|ed|ing)\b|suspend\w*|penetrat\w*|isolat(?:e|es|ed|ing)\b|energis\w*|charg(?:e|ed|ing)\b|purg\w*|flush\w*|planting|mulch\w*|irrigat\w*|pav(?:e|ed|ing)\b|line ?mark\w*|rig(?:s|ged|ging)\b|dogg\w*|reinstat\w*|relocat\w*|pull(?:s|ed|ing)?\b|reticulat\w*|run(?:s|ning)? (?:the |all |new )?(?:cables?|pipes?|pipework|ducts?|ductwork|conduits?|services)|form(?:s|ed|ing)? (?:up|the|all)|tie(?:s|d)? (?:the |all )?(?:reo|reinforc\w*|bars?)|stress(?:ed|ing)\b|turf(?:ed|ing)\b|fill(?:ed|ing)?\b)\b/i;
 
 // Not this trade's site work: drawing and document titles, and other subcontractors' work.
-const NOT_WORK = /(\b(?:layout|sheet \d+|part \d+|drawing ____|document ____|specification\s*[-–:]|schedule\s*[-–:]|appendix\b|annexure\b|attachment\b)|\b(?!(?:the|this|our|each|a|any|all|such)\b)(?:\w+\/)?\w+ subcontractors? (?:to|will|shall|is|are)\b|\bother (?:sub)?contractors?\b|\bpreliminar\w*|^comment by\b|\bnational code of practice\b|\bunderstood\b|\bfit for construction\b|\breserves? the right\b|\bunless noted otherwise\b)/i;
+const NOT_WORK = /(\b(?:layout|sheet \d+|part \d+|drawing ____|document ____|specification\s*[-–:]|schedule\s*[-–:]|appendix\b|annexure\b|attachment\b)|\b(?!(?:the|this|our|each|a|any|all|such)\b)(?:\w+\/)?\w+ subcontractors? (?:to|will|shall|is|are)\b|\bother (?:sub)?contractors?\b|\bpreliminar\w*|^comment by\b|\bnational code of practice\b|\bunderstood\b|\bfit for construction\b|\breserves? the right\b|\bunless noted otherwise\b|\b(?:is|are) to be (?:of )?(?:an? )?(?:class|grade|type) \w+ finish\b|\bcontain(?:s|ing)? no asbestos\b|\bban on the import\w* of\b|\basbestos[- ]free\b)/i;
 
 const MIN_WORDS = 4;
 
@@ -126,6 +126,10 @@ const KINDS = ACTIVITIES.filter((activity) => activity.when && (activity.steps |
 const DETAIL = new Set(['ptSlab', 'craneInterface', 'cite', 'ewp', 'mobileScaffold', 'forklift', 'carpentryWork', 'carpLoad', 'sitePlant', 'tileMix', 'masonryMortar', 'masonryGrout', 'wpRolls', 'glassHandling', 'glassWind', 'gasCylinders', 'neighbours', 'siteSheds', 'roofAccess', 'oxyCutting', 'silicaDrill', 'smallPlant', 'groundChemicals']);
 // A kind found in fewer lines than this is a passing mention, unless it is high risk work.
 const MIN_SUPPORT = 2;
+// Kinds of work whose steps have a person falling from an edge, roof or platform,
+// or through an opening. A task with one of them has a fall suggested.
+const PERSON_FALL = /(?:\bperson |\bworkers? |^an? |^)(?:fall|falls|falling) (?:from (?!a ladder\b)|through\b|into (?:an? |the )?(?:open )?(?:riser|shaft|void|opening))/i;
+const FALL_KINDS = new Set(KINDS.filter((kind) => kind.steps.some((step) => (step.hazards || []).some((line) => PERSON_FALL.test(typeof line === 'string' ? line : line.text)))).map((kind) => kind.when));
 const CROSS = new Set(['demolition', 'trench', 'coreDrill', 'sawCut', 'structuralOpening', 'asbestos', 'asbestosCheck', 'confined', 'roofSpace', 'power', 'road', 'water', 'liveHospital', 'stripOut', 'crane', 'towerCrane', 'scaffold']);
 // A trade is the scope's trade when it is found in this share of the lines of the most found trade.
 const TRADE_SHARE = 0.3;
@@ -215,7 +219,7 @@ const TITLES = Object.freeze({
   tileEdge: 'Tiling near balcony and terrace edges', cleaningHeight: 'Window and balcony cleaning', panelInstall: 'Panel installation at the slab edge',
   sawCut: 'Saw cutting', asbestos: 'Asbestos removal', asbestosCheck: 'Asbestos check', confined: 'Confined space entry', roofSpace: 'Work in the roof space',
   floorGrind: 'Floor grinding', wpTorch: 'Torch-on membranes', stoneSilica: 'Cutting stone benchtops', steelErect: 'Steel erection at height',
-  balustradeEdge: 'Balustrades at open edges', liftShaft: 'Work at open lift shafts', landscapeLift: 'Lifting soil and plants',
+  balustradeEdge: 'Balustrades at open edges', earthworks: 'Earthworks and compaction', water: 'Work in or near water', liftShaft: 'Work at open lift shafts', landscapeLift: 'Lifting soil and plants',
 });
 const MAX_LINES = 8;
 const MAX_TASK = 900;
@@ -238,7 +242,7 @@ const notLimited = (line) => line.replace(/\b(including\s+)?but not limited to,?
 function taskText(found) {
   const cleaned = found.map(notLimited);
   const specific = cleaned.filter((line) => !GENERAL.test(line));
-  const lines = (specific.length ? specific : cleaned).slice(0, MAX_LINES).map(taskLine);
+  const lines = [...new Set((specific.length ? specific : cleaned).map(taskLine))].slice(0, MAX_LINES);
   let text = '';
   for (const line of lines) {
     if ((text + ' ' + line).length > MAX_TASK) break;
@@ -314,6 +318,7 @@ function tasksFromScope(text, stateId = 'qld') {
     const title = TITLES[id] || step;
     const task = taskText(found);
     const highRisk = highRiskMatches(task, '', state).map((item) => item.label);
+    const kinds = [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')) })])];
     return {
       id,
       title,
@@ -322,10 +327,11 @@ function tasksFromScope(text, stateId = 'qld') {
       highRisk,
       // The trades the task belongs to, so its SWMS uses only their job steps.
       trade: trades.join(','),
-      fallRisk: highRisk.some((label) => /falling/i.test(label)) ? 'yes' : '',
+      // A fall is suggested where the work is at an edge, on a roof or at height; the user confirms it.
+      fallRisk: highRisk.some((label) => /falling/i.test(label)) || /\b(slab edges?|edges?|roofs?|roofing|eaves|balcon\w*|scaffold\w*|ewps?|elevating work platforms?|boom lifts?|scissor lifts?|at height|voids?|risers?|shafts?|parapets?|ladders?|mezzanines?)\b/i.test(task) || kinds.some((kind) => FALL_KINDS.has(kind)) ? 'yes' : '',
       needsSwms: highRisk.length > 0,
       // The job steps to tick for this task when it is used.
-      kinds: [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')) })])],
+      kinds,
     };
   };
   const tasks = [...groups.values()]
