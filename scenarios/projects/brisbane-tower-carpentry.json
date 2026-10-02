@@ -13,7 +13,7 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Move materials and joinery into place",
+          "Move materials into place",
           "Frame walls and bulkheads",
           "Cut and fix steel studs and track",
           "Use power tools"
@@ -30,7 +30,7 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Move materials and joinery into place",
+          "Move materials into place",
           "Use power tools",
           "Install doors, joinery and cabinets"
         ],

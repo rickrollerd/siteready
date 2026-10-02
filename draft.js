@@ -931,6 +931,17 @@ function control(level, text) {
   return { level, text: cleanLine(text).replace(/[.]+$/, '.') };
 }
 
+// The sentences of an answer as rows of the controls table. A sentence that leans on
+// the one before ("They are used with good ventilation") stays with it.
+function controlRows(text) {
+  const rows = [];
+  for (const line of sentences(text)) {
+    if (rows.length && /^(?:They|Them|It|Its|These|This|Those)\b/.test(line)) rows[rows.length - 1] += ` ${line}`;
+    else rows.push(line);
+  }
+  return rows;
+}
+
 function controlsFor(task, facts, pack) {
   const source = combinedFacts(task, facts);
   const items = [];
@@ -996,7 +1007,7 @@ function controlsFor(task, facts, pack) {
       continue;
     }
     if (value && item.applies(source)) {
-      for (const line of sentences(value)) {
+      for (const line of controlRows(value)) {
         push(/\brespirators?\b/i.test(line) && !/\b(extraction|wet|water)\b/i.test(line) ? 'PPE' : /\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?|assess\w*)\b/i.test(line) ? 'Administrative' : item.level, line);
       }
     }
@@ -1010,7 +1021,7 @@ function controlsFor(task, facts, pack) {
 
   const sheet = keptFact(facts.safetyDataSheet);
   if (sheet) {
-    for (const line of sentences(sheet)) {
+    for (const line of controlRows(sheet)) {
       // 'kept at the work area: avoid skin contact, wear gloves' is two controls: the PPE part goes under PPE.
       const at = line.search(/[,;:]\s*(?:and\s+)?wear\b/i);
       if (at > 0) {
@@ -1360,6 +1371,13 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   if (!Array.isArray(input.ppe)) {
     const said = jobSteps.flatMap((step) => step.controls).join('\n');
     if (/\bknee pads?\b/i.test(said)) tick('kneePads');
+    if (/\bsunglasses\b/i.test(said)) tick('glassesTinted');
+    // Outdoor work: sun and heat are controlled where the steps do not already say how.
+    if (ticked(['sunscreen']) && !/\bsun protection\b|\bsunscreen\b/i.test(said)) {
+      jobSteps[0] = { ...jobSteps[0], hazards: [...jobSteps[0].hazards, 'Heat illness and sunburn working outdoors.'], controls: [...jobSteps[0].controls, 'Sun and heat: hat or brim, long sleeves, sunglasses and SPF 30 or higher sunscreen. Cool drinking water, shade and rest breaks in hot weather.'] };
+      tick('sunHat');
+      tick('glassesTinted');
+    }
     if (/\bhearing protection\b|\bear (?:muffs|plugs)\b/i.test(said) && !ticked(['earPlugs', 'earMuffs'])) tick('earMuffs');
     if (/\bP2\b|\brespirators?\b/.test(said) && !ticked(['p2', 'halfFace'])) {
       tick('p2');
@@ -1419,6 +1437,9 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     treeRemoval: /\b(remov\w*|fell\w*|cut\w* down)\s+(?:of\s+)?(?:the\s+|all\s+)?trees?\b|\btree (?:removal|felling)\b|\bstump (?:grind\w*|removal)\b/i.test(task),
     groundChemicals: /\b(poison\w*|herbicides?|weed ?killers?|termite (?:treatment|barriers?)|termiticides?|treat\w* the ground)\b/i.test(task),
     waterConnection: /\b(water mains?|incoming water suppl\w*|connect\w* (?:to |the )?(?:incoming |new )?water suppl\w*|water (?:supply )?connections?)\b/i.test(task),
+    liftCarWork: /\blift cars?\b/i.test(task) && !LIFT_WORK.test(task.replace(/\blift cars?\b/gi, '')),
+    asphalt: /\b(asphalt|bitumen seal|hotmix|hot mix)\b/i.test(task),
+    insulation: /\b(insulation|glasswool|glass wool|rockwool|batts)\b/i.test(task) && !MECHANICAL_WORK.test(task) && !/\b(ductwork|pipework|lagging)\b/i.test(task),
     doorHang: /\b(door ?frames?|doorsets?|hang\w* (?:the |all )?(?:\w+ ){0,3}doors|(?:install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors)\b/i.test(task),
   };
 }
@@ -1509,7 +1530,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     carpLoad: CARPENTRY_WORK.test(task) && !FORMWORK.test(task) && /\b(hoists?|deliver\w*|carr\w*|mov\w*|sheets?|joinery|cabinets?)\b/i.test(task),
     carpFraming: CARPENTRY_WORK.test(task) && /\b(steel stud\w*|stud (?:walls?|framing)|wall framing|framing|bulkheads?)\b/i.test(task) && !FORMWORK.test(task),
     carpJoinery: CARPENTRY_WORK.test(task) && /\b(door frames?|doors?|joinery|(?<!(?:comms|communications|data|server|equipment|electrical|racks,?|racks and)\s)cabinets?|vanities|wardrobes?|benchtops?)\b/i.test(task) && !FORMWORK.test(task),
-    carpEdge: CARPENTRY_WORK.test(task) && /\b(balcon\w*|voids?|penetrations?|balustrades?|handrails?)\b/i.test(task) && !FORMWORK.test(task),
+    carpEdge: CARPENTRY_WORK.test(task) && /\b(balcon\w*|voids?|penetrations?|balustrades?|handrails?|open (?:slab )?edges?)\b/i.test(task) && !FORMWORK.test(task),
     pilingWork: PILING_WORK.test(task),
     pilingPlatform: PILING_WORK.test(task) && /\b(working platforms?|piling platforms?|deliver\w*|assembl\w*|disassembl\w*|mobilis\w*|set up the rigs?)\b/i.test(task),
     pilingRig: PILING_WORK.test(task) && /\b(drill\w*|auger\w*|install\w*)\b/i.test(task),
