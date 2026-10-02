@@ -17,7 +17,7 @@ const PLANT = [
   { item: 'Scissor lift', pattern: /\bscissor lifts?\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'No. Operator trained in the model used' },
   { item: 'Elevating work platform', pattern: /\b(elevating work platforms?|ewps?)\b/i, skipIf: /\b(scissor|boom)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Only for a boom-type platform with a boom length of 11 m or more (WP). No licence for a scissor lift' },
   { item: 'Tower crane', pattern: /\btower cranes?\b/i, inspection: 'Registered item of plant. Pre-erection and commissioning inspections, daily pre-operational check and log book, routine inspections, a yearly inspection if erected for 12 months or more, and a major inspection (WHS Reg s 235).', licence: 'Yes (CT, or CS for a self-erecting tower crane), with licensed doggers or riggers' },
-  { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\b(tower crane|crane ties?|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|where a crane|if a crane|crane or forklift|forklift or crane|forklift, crane)\b/i, inspection: 'Crane company\'s log book and pre-start check. Inspected to the manufacturer\'s instructions (WHS Reg s 213). Cranes over 10 t are registered plant and need a major inspection (s 235).', licence: 'Yes, crane class to suit (slewing C2, C6, C1 or C0; non-slewing over 3 t CN; vehicle loading crane of 10 metre-tonnes or more CV), with licensed doggers or riggers. No licence for a vehicle loading crane under 10 metre-tonnes or a non-slewing crane of 3 t or less' },
+  { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\b(tower crane|crane ties?|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|where a crane|if a crane|crane or forklift|forklift or crane|forklift, crane|people, cranes|cranes, plant|keep cranes)\b/i, inspection: 'Crane company\'s log book and pre-start check. Inspected to the manufacturer\'s instructions (WHS Reg s 213). Cranes over 10 t are registered plant and need a major inspection (s 235).', licence: 'Yes, crane class to suit (slewing C2, C6, C1 or C0; non-slewing over 3 t CN; vehicle loading crane of 10 metre-tonnes or more CV), with licensed doggers or riggers. No licence for a vehicle loading crane under 10 metre-tonnes or a non-slewing crane of 3 t or less' },
   { item: 'Forklift', pattern: /\bforklifts?\b/i, inspection: PRESTART, licence: 'Yes (LF)' },
   { item: 'Telehandler', pattern: /\btelehandlers?\b/i, inspection: PRESTART, licence: 'No Schedule 3 class names telehandlers. Operator competent in the model used. Check with the supplier whether a non-slewing crane licence (CN) is needed when it is fitted with a jib or hook to lift suspended loads' },
   { item: 'Personnel or materials hoist', pattern: /\b(hoists?|materials lifts?)\b/i, skipIf: /\b(chain hoists?|leave out|at the hoist|where there is|near the hoist|clear of)\b/i, inspection: 'Inspected, tested and maintained by a competent person to the manufacturer\'s instructions (WHS Reg s 213). Pre-start check each shift. Erected and altered by licensed riggers.', licence: 'Yes (HP or HM)' },
@@ -36,7 +36,7 @@ const PLANT = [
   { item: 'Generator', pattern: /\bgenerators?\b/i, inspection: `${PRESTART} Electrical output protected by an RCD. ${TEST_TAG}`, licence: 'No' },
   { item: 'Chainsaw', pattern: /\bchainsaws?\b/i, inspection: `${PRESTART} Chain brake working.`, licence: 'No. Operator competent' },
   { item: 'Oxy-acetylene or gas torch set', pattern: /\b(oxy|acetylene|gas torch\w*|torch-on|torching|brazing|lpg)\b/i, inspection: 'Hoses, regulators and flashback arrestors checked before use.', licence: 'No' },
-  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*)\b/i, inspection: TEST_TAG, licence: 'No' },
+  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*|blend\w* in welds|welds to)\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Nail gun', pattern: /\bnail guns?\b/i, inspection: 'Checked before use. Single shot trigger.', licence: 'No' },
   { item: 'Air compressor', pattern: /\b(compressed air|air compressors?|compressors?)\b/i, skipIf: /\b(fans?|pumps|start\w* without|refrigerat\w*|condens\w*)\b/i, inspection: `${PRESTART} Hoses and couplings checked and restrained.`, licence: 'No' },
   { item: 'Concrete vibrator', pattern: /\bvibrators?\b/i, inspection: TEST_TAG, licence: 'No' },
@@ -83,7 +83,7 @@ const QUALIFICATIONS = [
   ['General construction induction (white card)', /./],
   ['Site specific induction', /./],
   ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|distribution boards?|submains?|fit[- ]off|terminat\w*|wiring|cabling|power points?|power circuits?|light switch(?:es)?|(?:install|replac|connect|fit|wir)\w* [^.]{0,30}\b(?:ceiling fans?|hardwired smoke alarms?)|(?<!clean\w* |wip\w* |dust\w* )lighting|(?:install|replac|connect|fit)\w* [^.]{0,30}\b(?:light|led) fittings?|(?:install|replac|connect|add)\w* [^.]{0,30}\b(?:circuits?|outlets?)|(?:ev|electric vehicle|car) chargers?|inverters?|solar(?! hot water)|(?:pull|install|run|lay|terminat)\w* [^.]{0,20}\bcables?)\b/i],
-  ['Plumbing and drainage licence', /\b(plumbing|plumber|drainage(?! swales?)|sewer\w*|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water supply|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
+  ['Plumbing and drainage licence', /\b(plumbing|plumber|drainage(?! (?:swales?|gravel|cells?|mats?|layers?|boards?|aggregate|sheets?|composites?|fabric))|sewer\w*|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water suppl(?:y|ies)|water mains?|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
   ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?)\b/i],
   ['Gas work licence', /\b(gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|meters?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas\b)\b/i],
   ['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)', /\basbestos\b/i],
@@ -96,7 +96,7 @@ const QUALIFICATIONS = [
   ['Commercial operator licence, where powered ground spraying of herbicide is done in a regulated area', /\b(herbicides?|weed ?(?:spray|kill)\w*)\b/i],
   ['Pest management licence and QBCC termite licence', /\b(termit\w*)\b/i],
   ['Hot work permit trained', /\bhot work\b/i],
-  ['Cabling provider registration (open or restricted registration with an ACMA accredited registrar)', /\bregistered cabling provider\b/i],
+  ['Cabling provider registration with an ACMA accredited registrar, of the type the cabling work needs', /\bregistered cabling provider\b/i],
 ];
 
 // The 5 x 5 matrix from the Queensland SWMS template: likelihood 5 (almost
@@ -347,7 +347,8 @@ function registersFor(draft, input = {}) {
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.
     qualifications: localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' ')), steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').flatMap((step) => [step.step, ...step.hazards]).join('\n')),
-    emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`),
+    // Victoria has its own compliance codes, not the model codes of practice.
+    emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`).map((row) => (stateId === 'vic' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
     sources,
     // Before starting is checks and briefings, not a work step, so it is not rated.
     jobSteps: steps.map((step) => ({ ...step, risk: step.step === 'Before starting' ? null : riskFor(step) })),

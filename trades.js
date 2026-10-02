@@ -15,7 +15,7 @@ const TRADES = [
   { id: 'fire', name: 'Fire services installation', signal: 'fireWork', kinds: ['fireAtHeight', 'fireGrooving', 'fireLive', 'passiveFire'], extra: ['trench'] },
   { id: 'lifts', name: 'Lift installation', signal: 'liftWork', kinds: ['liftShaft', 'liftLifting', 'liftCar'], extra: [] },
   { id: 'facade', name: 'Facade installation', signal: 'facadeWork', kinds: ['panelLoad', 'facadeCrane', 'panelInstall', 'swingStage', 'edgeBracket', 'facadeSeal'], extra: ['glassHandling', 'glassWind'] },
-  { id: 'glazing', name: 'Windows, doors and glazing installation', signal: 'glazingWork', kinds: ['balustradeEdge', 'glassHandle', 'glazingDrill', 'glazingSeal'], extra: ['glassHandling', 'glassWind'] },
+  { id: 'glazing', name: 'Windows, doors and glazing installation', signal: 'glazingWork', kinds: ['balustradeEdge', 'glassHandle', 'windowInstall', 'glazingDrill', 'glazingSeal'], extra: ['glassHandling', 'glassWind'] },
   { id: 'steel', name: 'Structural steel erection and rigging', signal: 'steelWork', kinds: ['steelLift', 'steelErect', 'steelWeld', 'temporaryTowers', 'dualLift'], extra: ['steelLift', 'kitStructure'] },
   { id: 'masonry', name: 'Blockwork and brickwork', signal: 'masonryWork', kinds: ['masonryCut', 'masonryLay', 'masonryEdge'], extra: ['tileMix', 'masonryMortar', 'masonryGrout', 'paving', 'retainingWall'] },
   { id: 'plasterboard', name: 'Wall and ceiling linings', signal: 'plasterWork', kinds: ['plasterSheets', 'plasterHeight', 'plasterCeiling', 'plasterSanding', 'carpFraming'], extra: ['carpLoad', 'carpEdge', 'carpentryWork'] },
