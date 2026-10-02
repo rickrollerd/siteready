@@ -66,6 +66,8 @@
     taskEl.value = item.task;
     taskEl.dataset.preset = item.task;
     $('task-trade').value = item.trade || '';
+    // The scope reader's steps for this task are ticked when the task is used as it stands.
+    window.siteReadyScopeTask = { task: item.task, kinds: item.kinds || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });
     document.querySelector('input[name="fallRisk"]').dispatchEvent(new Event('change', { bubbles: true }));
     $('start').scrollIntoView({ behavior: 'smooth', block: 'start' });

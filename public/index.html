@@ -48,6 +48,13 @@
     input[type="date"] { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; padding: 9px 11px; line-height: 1.4; }
     input::placeholder, textarea::placeholder { color: #9aa5b1; }
     .ppe-group { border: 0; padding: 0; margin: 0 0 10px; }
+    .step-list { list-style: none; margin: 0 0 12px; padding: 0; }
+    .step-list li { border: 1px solid #e1e6ec; border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; }
+    .step-list label { display: flex; gap: 8px; align-items: flex-start; font-weight: 600; margin: 0; }
+    .step-list .step-names { display: block; font-size: 13px; font-weight: 400; color: #5c6773; margin-top: 2px; }
+    .step-list .tag { font-size: 12px; font-weight: 400; color: #5c6773; margin-left: 6px; }
+    .step-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .step-add input, .step-add select { flex: 1 1 220px; min-width: 0; }
     .ppe-group legend { font-size: 14px; font-weight: 600; margin-bottom: 4px; padding: 0; }
     .ppe-group label { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; margin: 0 16px 6px 0; }
     .pick select {
@@ -113,6 +120,13 @@
     .meta { color: #5c6773; font-size: 14px; margin: 0 0 4px; }
     .status { font-size: 14px; margin: 0 0 16px; }
     table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; }
+    /* Wide tables become one block per row on a phone, each cell named. */
+    @media (max-width: 640px) {
+      table.stack thead { display: none; }
+      table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: auto; }
+      table.stack tr { border-top: 2px solid #c9d1da; padding: 4px 0; }
+      table.stack td::before { content: attr(data-label); display: block; font-size: 12px; font-weight: 600; color: #5c6773; }
+    }
     th, td { border: 1px solid #d5dbe3; text-align: left; vertical-align: top; padding: 7px 9px; font-size: 14px; }
     th { background: #f4f6f8; font-weight: 600; }
     .sheet h4 { font-size: 16px; margin: 20px 0 8px; }
@@ -421,7 +435,16 @@
 
     <form id="facts" class="panel hidden">
       <p class="warning hidden" id="fall-warning"></p>
-      <h2>Facts</h2>
+      <h2>Job steps</h2>
+      <p class="lede" style="margin-bottom:12px">Ticked steps go into the SWMS. SiteReady ticks the ones it found in the task. Untick any that are not part of this job, and add any that are missing. Steps marked required stay because of the work or the law.</p>
+      <ul class="step-list" id="steps-block"></ul>
+      <div class="field step-add">
+        <label for="step-search" style="flex-basis:100%">Add a step</label>
+        <input id="step-search" type="search" placeholder="Search job steps" autocomplete="off">
+        <select id="step-add"><option value="">Choose a step to add</option></select>
+        <button type="button" class="secondary" id="steps-reset">Go back to the suggested steps</button>
+      </div>
+      <h2 style="margin-top:18px">Facts</h2>
       <div id="required-block"></div>
       <h2 style="margin-top:18px">Personal protective equipment</h2>
       <p class="lede" style="margin-bottom:12px">Ticked items are suggested for this task. Change them to suit the job and the site rules.</p>

@@ -249,6 +249,8 @@ function payload() {
     preparedBy: value('prepared-by'),
     swmsRef: value('swms-ref'),
     ppe: document.querySelector('[data-ppe]') ? [...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value) : undefined,
+    // The job steps picked, or none to use the ones SiteReady finds in the task.
+    kinds: stepPicks || undefined,
     facts,
     site,
   };
@@ -294,10 +296,98 @@ function showFallExplanation() {
 
 document.getElementById('start').addEventListener('submit', (event) => {
   event.preventDefault();
+  // A new task starts from the steps found in it, or the steps the scope reader found for it.
+  const scope = window.siteReadyScopeTask;
+  stepPicks = scope && scope.task === document.getElementById('task').value.trim() && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
   loadQuestions();
 });
 
-async function loadQuestions() {
+// Job steps: null follows the steps SiteReady finds in the task; a list is the user's own picks.
+let stepPicks = null;
+let stepLibrary = { groups: [] };
+const stepById = new Map();
+
+async function loadStepLibrary() {
+  try {
+    const response = await fetch(api('/api/steps'));
+    if (!response.ok) return;
+    stepLibrary = await response.json();
+    stepLibrary.groups.forEach((group) => group.kinds.forEach((kind) => { if (!stepById.has(kind.id)) stepById.set(kind.id, kind); }));
+    fillStepAdd();
+  } catch {
+    // Without the library the found steps can still be ticked and unticked.
+  }
+}
+
+function fillStepAdd() {
+  const search = document.getElementById('step-search').value.trim().toLowerCase();
+  const shown = new Set(stepPicks || (questions && questions.steps ? questions.steps.chosen : []));
+  const match = (kind) => !search || `${kind.label} ${kind.steps.join(' ')}`.toLowerCase().includes(search);
+  document.getElementById('step-add').innerHTML = '<option value="">Choose a step to add</option>' + stepLibrary.groups.map((group) => {
+    const kinds = group.kinds.filter((kind) => !shown.has(kind.id) && match(kind));
+    return kinds.length ? `<optgroup label="${esc(group.trade)}">${kinds.map((kind) => `<option value="${esc(kind.id)}">${esc(kind.label)}</option>`).join('')}</optgroup>` : '';
+  }).join('');
+}
+
+function renderSteps(steps) {
+  const chosen = new Set(steps.chosen || []);
+  const locked = new Set(steps.locked || []);
+  // Suggested steps keep their place when unticked; added steps follow them.
+  const ids = [...new Set([...(steps.suggested || []), ...(stepPicks || []), ...(steps.chosen || [])])];
+  document.getElementById('steps-block').innerHTML = ids.length ? ids.map((id) => {
+    const kind = stepById.get(id) || { label: id, steps: [] };
+    const others = kind.steps.filter((name) => name !== kind.label);
+    const names = others.length ? `<span class="step-names">${esc(others.join('; '))}</span>` : '';
+    return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) || locked.has(id) ? ' checked' : ''}${locked.has(id) ? ' disabled' : ''}><span>${esc(kind.label)}${locked.has(id) ? '<span class="tag">Required</span>' : ''}${names}</span></label></li>`;
+  }).join('') : '<li>No job steps were found in the task. Add the steps for the work below.</li>';
+  fillStepAdd();
+}
+
+// Changing the steps asks the questions again, keeping what has been filled in.
+async function refreshSteps() {
+  const kept = {};
+  document.querySelectorAll('[data-fact]').forEach((el) => {
+    if (el.type === 'radio') { if (el.checked) kept[el.dataset.fact] = el.value; } else kept[el.dataset.fact] = el.value;
+  });
+  const site = {};
+  document.querySelectorAll('[data-site]').forEach((el) => { site[el.dataset.site] = el.value; });
+  const ppe = new Set([...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value));
+  if (!(await loadQuestions({ stay: true }))) return;
+  document.querySelectorAll('[data-fact]').forEach((el) => {
+    const value = kept[el.dataset.fact];
+    if (value === undefined) return;
+    if (el.type === 'radio') el.checked = el.value === value;
+    else el.value = value;
+  });
+  document.querySelectorAll('[data-site]').forEach((el) => { if (site[el.dataset.site] !== undefined) el.value = site[el.dataset.site]; });
+  document.querySelectorAll('[data-ppe]').forEach((el) => { if (ppe.has(el.value)) el.checked = true; });
+}
+
+document.getElementById('steps-block').addEventListener('change', (event) => {
+  if (!event.target.matches('[data-step]')) return;
+  stepPicks = [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value);
+  refreshSteps();
+});
+
+document.getElementById('step-add').addEventListener('change', (event) => {
+  const id = event.target.value;
+  if (!id) return;
+  const current = stepPicks || [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value);
+  stepPicks = [...new Set([...current, id])];
+  document.getElementById('step-search').value = '';
+  refreshSteps();
+});
+
+document.getElementById('step-search').addEventListener('input', fillStepAdd);
+
+document.getElementById('steps-reset').addEventListener('click', () => {
+  stepPicks = null;
+  refreshSteps();
+});
+
+loadStepLibrary();
+
+async function loadQuestions(options = {}) {
   document.getElementById('start-error').textContent = '';
   resultEl.classList.add('hidden');
   const response = await fetch(api('/api/draft/questions'), {
@@ -349,8 +439,9 @@ async function loadQuestions() {
       <textarea id="site-${esc(item.id)}" data-site="${esc(item.id)}"></textarea>
     </div>
   `).join('');
+  renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
   factsForm.classList.remove('hidden');
-  factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!options.stay) factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
   return true;
 }
 
@@ -382,6 +473,7 @@ async function fillForm(input) {
   pick('fallRisk', input.fallRisk);
   fillFields(input);
   document.getElementById('task-trade').value = input.trade || '';
+  stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   showFallExplanation();
   if (!(await loadQuestions())) return;
   document.querySelectorAll('[data-fact]').forEach((el) => {
@@ -504,9 +596,9 @@ function render(draft) {
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
   const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}` : '');
-  const steps = `<table><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index) => `<tr><td><strong>${index + 1}. ${esc(step.step)}</strong></td><td>${list(step.hazards)}</td><td>${list(step.controls)}</td><td>${riskCell(step.risk)}</td></tr>`).join('')}</tbody></table>
+  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index) => `<tr><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong></td><td data-label="Hazards and risks">${list(step.hazards)}</td><td data-label="Controls">${list(step.controls)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td></tr>`).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
-  const grid = (labels, rows) => `<table><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value) => `<td>${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const registers = `${(draft.plant || []).length ? `<h4>Plant and equipment</h4>${grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence]))}` : ''}
     ${draft.substances && draft.substances.items.length ? `<h4>Hazardous substances</h4>${grid(['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], draft.substances.items.map((item) => [item.product, '', 'Yes / No', '']))}` : ''}
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}

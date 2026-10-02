@@ -7,6 +7,7 @@ const cluster = require('cluster');
 const os = require('os');
 const { listStates } = require('./legislation');
 const { questionsFor, prepareDraft } = require('./draft');
+const { stepLibrary } = require('./steps');
 const { draftToDocx, draftedNote } = require('./docx-draft');
 const { readLogo } = require('./logo');
 const { draftToPdf } = require('./pdf-draft');
@@ -91,6 +92,12 @@ app.get('/api/states', (_req, res) => {
 
 app.get('/api/presets', (_req, res) => {
   res.json({ trades: TRADES });
+});
+
+// The job step library for the step picker.
+app.get('/api/steps', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.json(stepLibrary());
 });
 
 app.post('/api/draft/questions', (req, res) => {
