@@ -80,8 +80,8 @@ function isPanelLift(text) {
 // Bulk and detailed excavation of a basement, as opposed to service trenches.
 const BULK_EXCAVATION = /\b(bulk excavat\w*|excavat\w* (?:the |out the )?basement|dig\w* (?:out )?(?:the )?basement|detailed excavat\w*|(?:excavat|dig)\w*[^.]{0,30}\b(?:pile caps?|lift pits?))\b/i;
 
-const STEEL_WORK = /\b(structural steel\w*|steelwork|steel[- ]framed (?:carports?|sheds?|buildings?|structures?)|portal frames?|steel (?:erect\w*|frames?|stairs?|canop(?:y|ies)|awnings?|platforms?|roof|sheds?|carports?|portal\w*))\b/i;
-const MASONRY_WORK = /\b(blockwork|block walls?|blocklay\w*|bricklay\w*|brickwork|masonry|core[- ]fill\w*)\b/i;
+const STEEL_WORK = /\b(structural steel\w*|steelwork|steel[- ]framed (?:carports?|sheds?|buildings?|structures?)|portal frames?|steel (?:erect\w*|frames?|stairs?|staircases?|canop(?:y|ies)|awnings?|platforms?|roof|sheds?|carports?|portal\w*))\b/i;
+const MASONRY_WORK = /\b(blockwork|block walls?|blocklay\w*|bricklay\w*|brickwork|brick (?:boundary )?walls?|masonry|core[- ]fill\w*)\b/i;
 const PLASTER_WORK = /\b(plasterboard|gyprock|drywall|set(?:ting)? compound\w*|cornices?|suspended ceilings?|ceiling (?:grids?|sheets?|linings?)|plasterers?|sand\w* (?:the )?joints?)\b/i;
 const FLOOR_WORK = /\b(carpet\w*|vinyl|floor coverings?|timber floor\w*|engineered timber|floating floors?|levelling compound\w*)\b/i;
 
@@ -515,6 +515,7 @@ const SWITCHBOARD_WORK = { test: (text) => SWITCHBOARD_WORDS.test(String(text ||
 // A plumber's work.
 // A mechanical (HVAC) contractor's work. Its pipework is not plumbing unless plumbing words are used too.
 const MECHANICAL_WORK = /\b(mechanical services|hvac|air[- ]?condition\w*|ductwork|duct(?:ing| runs?| sections?)|refrigerant|refrigeration|split systems?|fan coil units?|fcus?|ahus?|air handling units?|chillers?|cooling towers?|condensers?|condensing units?|jet fans?|exhaust fans?|chilled water|vrf|vrv)\b/i;
+const SPLIT_INSTALL = /\binstall\w*\b[^.]{0,40}\bsplit systems?\b/i;
 const REFRIGERANT = /\b(refrigerant|refrigeration|split systems?|condensing units?|vrf|vrv)\b/i;
 const PLUMBING_ONLY_WORDS = /\b(plumb\w*|sanitary|sewer\w*|drain\w*|hot water|cold water|tapware|toilets?|basins?)\b/i;
 function isPlumbing(text) {
@@ -1737,10 +1738,11 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     refrigerantWork: REFRIGERANT.test(task),
     // Heavy plant lifted, delivered or moved into place; not scissor or boom lifts.
     plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:air[- ]?condition\w*|rooftop|package\w*|a\/?c) units?|fans?(?!\s+coil)|plant)\b/i.test(task) && /\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*)\b/i.test(task),
-    ductwork: MECHANICAL_WORK.test(task) && /\binstall\w*\b/i.test(task) && !/\bon the roof\b/i.test(task) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task))),
+    ductwork: MECHANICAL_WORK.test(task) && /\binstall\w*\b/i.test(task) && !/\bon the roof\b/i.test(task) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task)) || /\b(split systems?|indoor units?|outdoor units?|wall[- ]hung units?)\b/i.test(task)),
     refrigerantPipework: REFRIGERANT.test(task) && /\b(braz\w*|silver solder\w*)\b/i.test(task),
-    refrigerantTest: REFRIGERANT.test(task) && PRESSURE_TEST.test(task),
-    refrigerantCharge: REFRIGERANT.test(task) && /\b(charg\w*|evacuat\w*|recover\w*|decant\w*)\b/i.test(task),
+    // Installing a split system includes pressure testing, evacuating and releasing or adding the charge.
+    refrigerantTest: REFRIGERANT.test(task) && (PRESSURE_TEST.test(task) || SPLIT_INSTALL.test(task)),
+    refrigerantCharge: REFRIGERANT.test(task) && (/\b(charg\w*|evacuat\w*|recover\w*|decant\w*)\b/i.test(task) || SPLIT_INSTALL.test(task)),
     // Plant installed on the roof, as opposed to pipework that only runs to it.
     roofPlant: (MECHANICAL_WORK.test(task) || ICT_WORK.test(task)) && /\b(?:install|replac)\w*\b[^.]{0,70}\b(?:on the roof|roof plant|rooftop)\b/i.test(task) && !/\b(?:pipework|pipes?|lines?)\s+(?:between|from|to)\b/i.test(task),
     jetFans: /\b(jet fans?|car ?park (?:ventilation|exhaust)\w*)\b/i.test(task),
@@ -1756,7 +1758,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     fibre: /\b(optical fibre|fibre optic\w*|fibre backbone|fibre cabl\w*|splic\w*)\b/i.test(task),
     commsRoom: ICT_WORK.test(task) && /\b(racks?|cabinets?|ups|batter(?:y|ies))\b/i.test(task),
     securityDevices: SECURITY_WORK.test(task) && /\binstall\w*\b/i.test(task),
-    fitOff: /\b(rough[- ]in|fit[- ]off|rewir\w*|run\w* (?:new )?cables?)\b/i.test(task) && ELECTRICAL_CORE.test(task),
+    fitOff: (/\b(rough[- ]in|fit[- ]off|rewir\w*|run\w* (?:new )?cables?)\b/i.test(task) || /\b(?:install\w*|replac\w*|add\w*)\b[^.]{0,40}\b(?:led lighting|lighting|light fittings?|lights|downlights?|power (?:points?|circuits?|outlets?)|gpos?|switches)\b/i.test(task)) && ELECTRICAL_CORE.test(task),
     // Isolation steps for any work on the installation; commissioning only for the
     // permanent main switchboard and consumer mains, not construction power.
     isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || (/\b(rough[- ]in|fit[- ]off)\b/i.test(task) && ELECTRICAL_CORE.test(task)),
