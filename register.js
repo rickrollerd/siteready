@@ -207,7 +207,7 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
     if (/^Yes/.test(item.licence)) needed.push(`High risk work licence: ${item.item.toLowerCase()} (${item.licence.split('. ')[0].replace(/^Yes,?\s*/, '').replace(/^\((.*)\)$/, '$1')})`);
   }
   // Dogging or rigging by this crew; where the crane company's crew slings, it holds the licences.
-  if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging)\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText) || /\nErect and connect steel at height\n/.test(`\n${allText}\n`)) needed.push(/\bstructural steel|steel erect\w*|steelwork\b/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
+  if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging)\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText) || /\nErect and connect steel at height\n/.test(`\n${allText}\n`)) needed.push(/\bstructural steel|steel (?:is )?erect\w*|steelwork\b|Erect and connect steel/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
   return [...new Set(needed)];
 }
 
@@ -296,7 +296,7 @@ function registersFor(draft, input = {}) {
   const useText = `${task}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText}`;
   // Control lines that say the crew uses plant, not the ones about keeping clear of it.
   const usedInControls = steps.flatMap((step) => step.controls).filter((line) => /^(?:Use|Using)\b|\b(?:are|is) (?:run|used|operated) by\b|\bcut with\b/i.test(line) && !/\b(keep|clear of|away from|others|crane company|pumping company)\b/i.test(line));
-  const forkliftLines = steps.flatMap((step) => step.controls).filter((line) => /\b(forklifts?|telehandlers?)\b/i.test(line) && !/\b(keep|clear of|away from|exclusion|near)\b/i.test(line));
+  const forkliftLines = steps.flatMap((step) => step.controls).filter((line) => /\b(forklifts?|telehandlers?)\b/i.test(line) && !/\b(keep|clear of|away from|exclusion|near|separat\w*)\b/i.test(line));
   // A forklift or telehandler named only in a control line may or may not be used, so its licence is conditional.
   const named = plantFor(`${useText}\n${usedInControls.join('\n')}`).map((item) => item.item);
   const maybe = plantFor(forkliftLines.join('\n')).filter((item) => /^(Forklift|Telehandler)$/.test(item.item) && !named.includes(item.item)).map((item) => ({ ...item, licence: `${item.licence}, where one is used` }));
