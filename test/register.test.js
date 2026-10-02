@@ -336,7 +336,7 @@ test('task bank round 4: licences, high risk categories and main work steps', ()
   assert.deepEqual(steps('Remove a load-bearing wall between the kitchen and lounge and install a steel beam.', { facts: { temporarySupport: 'Props to the engineer\'s design, checked by the supervisor before the wall is removed.' } }).filter((step) => /support|opening|beam/.test(step)), ['Install temporary support', 'Cut an opening in a load-bearing wall', 'Lift and fix the new beam or lintel']);
   assert.ok(steps('Install new playground shade sails at a school.').includes('Install shade sail posts and sails'));
   assert.ok(!steps('Install new playground shade sails at a school.').includes('Erect the pergola, carport or shed frame and roof'));
-  assert.ok(steps('Lay sewer drainage under a new house slab before the pour.').includes('Lay drainage under the slab'));
+  assert.ok(steps('Lay sewer drainage under a new house slab before the pour.').includes('Lay drainage under the slab or floor'));
   assert.ok(!steps('Lay sewer drainage under a new house slab before the pour.').includes('Place concrete'));
   const tank = steps('Install a stormwater detention tank under a car park.');
   assert.ok(tank.indexOf('Lift and place the tank or precast units') < tank.indexOf('Backfill and restore'));
@@ -344,4 +344,21 @@ test('task bank round 4: licences, high risk categories and main work steps', ()
   assert.ok(flat.indexOf('Stand and brace wall frames') < flat.indexOf('Fix new roofing'));
   assert.ok(flat.indexOf('Fix new roofing') < flat.indexOf('Install battens and external cladding'));
   assert.ok(!steps('Install steel portal frames and purlins for a farm machinery shed using a mobile crane and EWPs.').includes('Set up site sheds'));
+});
+
+test('task bank round 5: everyday jobs that stood down now get their main steps', () => {
+  const steps = (task, trade = '', fallRisk = 'no') => {
+    const draft = prepareDraft({ state: 'vic', fallRisk, residential: 'yes', trade, task, facts: { silicaControls: 'On-tool extraction.', fallControl: 'Edge protection on all open edges.', safetyDataSheet: 'SDS at the work area.' } });
+    return draft.kind === 'draft' ? draft.jobSteps.map((step) => step.step) : draft.missing;
+  };
+  assert.ok(steps('Install a gate and boom gate at a car park entry.', 'electrical').includes('Install boom gates and automatic gates'));
+  assert.ok(steps('Install pallet racking in a warehouse.', 'steel', 'yes').includes('Install pallet racking'));
+  assert.ok(steps('Install a new escalator in a shopping centre.', 'lifts', 'yes').includes('Install the escalator'));
+  assert.ok(steps('Install cyclone tie-downs to an existing house roof.', 'carpentry', 'yes').includes('Fit cyclone tie-downs'));
+  assert.ok(steps('Install a mobile phone antenna on a building rooftop.', 'communications', 'yes').includes('Install rooftop antennas and equipment'));
+  assert.ok(steps('Reseal the expansion joints on a multi-storey car park deck.', 'waterproofing', 'yes').includes('Clean out and seal floor joints'));
+  assert.ok(steps('Install new LED high bay lights in a warehouse from a scissor lift.', 'electrical', 'yes').includes('Rough-in and fit-off'));
+  assert.ok(steps('Replace a section of collapsed stormwater pipe 1.2 m deep in a backyard.', 'plumbing').includes('Lay pipes, pits and conduits'));
+  const kerb = steps('Remove and replace a damaged section of a kerb and channel.', 'structure');
+  assert.ok(kerb.indexOf('Saw cut concrete') < kerb.indexOf('Place concrete'));
 });

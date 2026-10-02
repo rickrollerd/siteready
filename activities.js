@@ -2572,12 +2572,12 @@ const ACTIVITIES = [
     when: 'jointSealing',
     steps: [{
       step: 'Clean out and seal floor joints',
-      hazards: ['Silica dust from sawing or grinding out joints.', 'Skin and lung sensitisation from polyurethane sealants.', 'Knee and back strain working at floor level.', 'Forklifts and other plant in an operating warehouse.'],
+      hazards: ['Silica dust from sawing or grinding out joints.', 'Skin and lung sensitisation from polyurethane sealants.', 'Knee and back strain working at floor level.', { only: 'siteVehicles', text: 'Forklifts, vehicles and other plant moving around the work.' }],
       controls: [
         { fact: 'safetyDataSheet' },
         src('Joints are cleaned out with a saw or grinder with on-tool extraction or water, and a fit tested P2 respirator is worn.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2')}`),
         'Knee pads, and tasks rotated to limit time kneeling.',
-        'The work area is barricaded from forklifts and other plant, as the site manager arranges.',
+        { only: 'siteVehicles', text: 'The work area is barricaded from forklifts, vehicles and other plant, as the site manager arranges.' },
       ],
     }],
     ppe: ['kneePads', 'gloveChemical', 'p2'],
@@ -2926,7 +2926,7 @@ const ACTIVITIES = [
   {
     when: 'underslabDrainage',
     steps: [{
-      step: 'Lay drainage under the slab',
+      step: 'Lay drainage under the slab or floor',
       hazards: ['Trench sides fall in.', 'Strain from digging, bending and lifting pipe.', 'Primer and solvent cement vapour.', 'Trips and falls into open trenches.'],
       controls: [
         'Trenches stay shallower than 1.5 m, with sides battered or supported where the ground is loose or wet. If a trench needs to go deeper, work stops and the SWMS is reviewed.',
@@ -3163,7 +3163,7 @@ const ACTIVITIES = [
   {
     when: 'jettyRepair',
     steps: [{
-      step: 'Remove and replace jetty timbers',
+      step: 'Remove and replace damaged timbers',
       hazards: ['A fall into the water through the opened deck.', 'Cuts and kickback from saws.', 'Dust from treated timber.', 'Heavy timbers fall or swing while they are moved.'],
       controls: [
         'Openings in the deck are barricaded or covered as soon as boards are removed.',
@@ -3323,6 +3323,88 @@ const ACTIVITIES = [
       ],
     }],
     ppe: ['p2'],
+  },
+  {
+    when: 'gateInstall',
+    steps: [{
+      step: 'Install boom gates and automatic gates',
+      hazards: ['A gate or boom falls or swings while it is fixed.', 'Struck by vehicles at the entry.', 'Crushed or struck when the gate or boom is first run.', 'Electric shock connecting the motor.'],
+      controls: [
+        'The entry is closed to vehicles, or traffic is diverted around the work with barriers and signs, while the gate or boom is installed.',
+        'Gate leaves, posts and boom housings are lifted with two people or a lifting aid and propped until fixed to their footings or anchors.',
+        'Wiring and the power connection are electrical work for a licensed electrician, with the circuit isolated first.',
+        'The gate or boom is commissioned with the area closed off, and its safety sensors, loops and force limits are tested before it is used.',
+      ],
+    }],
+    ppe: ['hivis'],
+  },
+  {
+    when: 'poolEquipment',
+    steps: [{
+      step: 'Install the pool pump and filter',
+      hazards: ['Electric shock near water.', 'Strain lifting the pump and filter.', 'Chemicals and fumes from pool water and primers.'],
+      controls: [
+        'The pump and filter are set on a level base clear of the pool edge, and lifted by two people or with a trolley.',
+        'Pipework is joined with primer and solvent cement used with ventilation and gloves.',
+        'Hard wiring, new power points and any change to the circuit are electrical work for a licensed electrician. Equipment is plugged into an RCD protected outlet, with the lead clear of water.',
+        'Pool chemicals are handled as their safety data sheets set out, with gloves and eye protection.',
+      ],
+    }],
+    ppe: ['gloveChemical'],
+  },
+  {
+    when: 'escalatorInstall',
+    steps: [{
+      step: 'Install the escalator',
+      hazards: ['The truss falls or swings while it is lifted into the building.', 'A fall into the escalator well or pit.', 'Crushing by moving steps or the drive.', 'Electric shock during commissioning.'],
+      controls: [
+        src('An escalator is plant whose design and item are registered. The registration numbers are sighted before it is installed and before it is used.', WHS('s 243, s 246, schedule 5')),
+        'The truss is lifted on the lift plan by the crane company or licensed riggers, with an exclusion zone under the load.',
+        'Openings and wells are barricaded with edge protection until the escalator and its balustrades are in place.',
+        'The drive is isolated and locked out before anyone works on the steps, drive or pit. Commissioning is done by the escalator contractor with the area closed to the public.',
+      ],
+    }],
+  },
+  {
+    when: 'tieDowns',
+    steps: [{
+      step: 'Fit cyclone tie-downs',
+      hazards: ['A fall from the roof or through the ceiling.', 'Heat in the roof space.', 'Drilling into hidden wiring.', 'Strain working in tight roof spaces.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Tie-downs, straps and bolts are fitted to the engineer\'s or the manufacturer\'s details.',
+        'In the roof space, walk only on joists or crawl boards, and plan work for the cooler part of the day, with breaks and water.',
+        'Cables in the roof space are treated as live, and checked for before drilling.',
+      ],
+    }],
+  },
+  {
+    when: 'palletRacking',
+    steps: [{
+      step: 'Install pallet racking',
+      hazards: ['Uprights or beams fall while racking is assembled.', 'A fall from the EWP or ladder.', 'Struck by forklifts in an operating warehouse.', 'Drilling the slab releases silica dust.'],
+      controls: [
+        'Racking is installed to the manufacturer\'s design and AS 4084, with base plates anchored and beams locked with their safety clips.',
+        'Upper beams are fitted from an EWP or scissor lift, never by climbing the racking.',
+        'The work area is barricaded from forklifts and other plant, as the site manager arranges.',
+        'Slab drilling for anchors is done with on-tool extraction, and a P2 respirator is worn.',
+        'Load signs showing the rated capacity are fixed to each bay before it is used.',
+      ],
+    }],
+    ppe: ['p2'],
+  },
+  {
+    when: 'antennaInstall',
+    steps: [{
+      step: 'Install rooftop antennas and equipment',
+      hazards: ['Exposure to radio frequency energy from live antennas.', 'A fall from the roof edge.', 'Equipment falls while it is lifted.', 'Electric shock connecting equipment.'],
+      controls: [
+        'Work follows the carrier\'s radio frequency safety plan: transmitters near the work are switched off or turned down by the carrier, and workers stay outside the marked exclusion zones (ARPANSA RPS S-1).',
+        { fact: 'fallControl' },
+        'Antennas, mounts and cabinets are lifted with a crane or hoist on a lift plan, with an exclusion zone below.',
+        'Power connections are electrical work for a licensed electrician.',
+      ],
+    }],
   },
   {
     when: 'glassWind',
@@ -5207,6 +5289,8 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Lift and place the tank or precast units', 'Backfill and restore');
   moveBefore('Pressure clean surfaces', 'Prepare to paint');
   moveBefore('Saw cut concrete', 'Excavate');
+  moveBefore('Saw cut concrete', 'Prepare the ground and set out');
+  moveBefore('Remove cut sections', 'Prepare the ground and set out');
   moveBefore('Remove cut sections', 'Excavate');
   moveBefore('Apply primers and liquid membranes', 'Cut tiles and stone');
   moveBefore('Apply primers and liquid membranes', 'Lay tiles');
