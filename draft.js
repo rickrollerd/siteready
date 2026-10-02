@@ -155,7 +155,7 @@ const HOUSE_JACKING = /\b(re-?stump\w*|(?:replac|chang)\w* (?:the )?(?:old |rott
 const SUBFLOOR_REPAIR = /\b(?:replac\w*|repair\w*|sister\w*)\b[^.]{0,30}\b(?:rotten |damaged |old )?(?:timber )?(?:floor )?(?:joists?|bearers?)\b/i;
 const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
 const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
-const WATER = /\b(drown(?:ing)?|in or near water|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|(?:into|in) (?:a |the )?(?:swimming )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall)\b/i;
+const WATER = /\b(drown(?:ing)?|in or near water|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|(?:into|in) (?:a |the )?(?:swimming )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall)\b/i;
 
 function isScaffoldErection(text) {
   return /\bscaffold\w*\b/i.test(String(text || '').replace(/\bmobile scaffold\w*/gi, '')) && /\b(erect\w*|dismantl\w*|strik\w* (?:the )?scaffold|alter\w*)\b/i.test(text);
@@ -1552,7 +1552,7 @@ function prepareDraft(input) {
   }
   // Powered mobile plant the SWMS lists, even where it may be used, brings the s 291 plant item.
   // A plate compactor on a small barrowed pour is not mobile plant moving around the work.
-  if (registers.plant.some((item) => /^(Mobile crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig|Turf laying machine|Trencher|Vacuum truck)/.test(item.item) && !(item.item === 'Roller or plate compactor' && SMALL_POUR.test(draft.task || '')))) {
+  if (registers.plant.some((item) => /^(Mobile crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig|Turf laying machine|Trencher|Vacuum truck)/.test(item.item) && !(item.item === 'Roller or plate compactor' && !/\brollers?\b/i.test(draft.task || '')) && !(item.item === 'Roller or plate compactor' && SMALL_POUR.test(draft.task || '')))) {
     const plantItem = highRiskMatches('movement of powered mobile plant', 'no', state).map((item) => item.label);
     for (const label of plantItem) if (!draft.highRisk.includes(label)) draft.highRisk = [...draft.highRisk, label];
   }
@@ -1969,6 +1969,22 @@ function settleFlags(flags, task) {
   off(out.beamInstall && !/\b(build\w*|lay\w*|brick\w* up|block\w* up|fill\w* in)\b/i.test(task), 'masonryLay');
   // Late rules: these follow every rule above.
   out.asbestosNamed = /\basbestos\b/i.test(task);
+  out.poolWiring = /\bpool\b/i.test(task) && /\b(wir\w*|power points?|circuits?)\b/i.test(task);
+  out.eavesWork = /\b(eaves|soffits?)\b/i.test(task);
+  out.poolFence = /\bpool\b/i.test(task) && /\b(fenc\w*|barriers?|gates?)\b/i.test(task);
+  out.weldWork = /\bweld\w*\b/i.test(task);
+  out.bollardsOnly = Boolean(out.bollards && !/\b(barriers?|wheel stops?|speed (?:humps?|bumps?)|car stops?|parking stops?)\b/i.test(task));
+  out.guttersOnly = Boolean(out.gutters && !/\b(fascias?|eaves|soffits?)\b/i.test(task));
+  out.signalWork = /\btraffic (?:lights|signals?|signal poles?)\b/i.test(task);
+  out.screens = /\bscreens?\b/i.test(task);
+  out.fromMeter = /\bfrom the meter\b|\bmeter to (?:the |a )?(?:house|home|building)\b/i.test(task);
+  out.regrout = /\b(re-?grout\w*|re-?seal\w*|seal\w* (?:a |the )?leaking (?:shower|bath)\w*|without removing (?:the )?tiles)\b/i.test(task);
+  out.toiletReplace = /\b(?:replac\w*|chang\w*|swap\w*)\b[^.]{0,30}\b(?:toilet(?: pans?| suites?)?|pans?|basins?|cisterns?)\b/i.test(task) && !/\b(rough[- ]in|new (?:pipes?|drains?))\b/i.test(task);
+  if (/\bsewer (?:junctions?|connections?)\b/i.test(task) && /\b(footpaths?|driveways?|roads?|slabs?|paving)\b/i.test(task)) out.sawCut = true;
+  if (out.batteryStorage || (out.trafficSignals || /\bstreet ?lighting\b/i.test(task))) out.commissioning = true;
+  if (out.regrout) { out.tileMix = false; out.regroutStep = true; }
+  if (out.smallPour) out.smallPourMix = true;
+  off(out.toiletReplace, 'plumbingFitOff');
   off(out.pileConcrete || out.pileCage || out.cfaCage, 'pileComplete');
   if (/\basbestos\b/i.test(task) && /\bwall sheets?\b/i.test(task) && /\btil\w*\b/i.test(task)) { out.wetAreaSheets = true; out.wpLiquid = true; }
   out.vanityReplace = /\b(?:replac\w*|remov\w*|swap\w*)\b[^.]{0,30}\bvanit/i.test(task);
@@ -2248,7 +2264,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     childcare: /\b(child ?care|early (?:childhood|learning)|kindergartens?|kindy|preschools?|schools?|aged care|nursing homes?|hospitals?)\b/i.test(task),
     publicSite: /\b(schools?|classrooms?|child ?care|kindergartens?|hospitals?|aged care|nursing homes?|residents?|shopping (?:centres?|centers?)|train stations?|railway stations?|parks?|playgrounds?|libraries|community halls?|churches?|caf(?:e|é)s?|hotels?|motels?|pubs?)\b/i.test(task),
     leadPaint: /\blead(?:[- ]based)? paint\b/i.test(task) && /\b(remov\w*|strip\w*|abrad\w*|sand\w*|scrap\w*)\b/i.test(task),
-    stumpOnly: /\bstumps?\b/i.test(task) && !/\b(fell\w*|cut\w* down|trees? (?:removal|felling)|remov\w* (?:the |a |three |two |\w+ )?(?:large |dead |gum )?trees?)\b/i.test(task),
+    stumpOnly: /\bstumps?\b/i.test(task) && !/\b(fell\w*|cut\w* down|trees? (?:removal|felling)|remov\w* (?:the |a |three |two |\w+ )?(?:large |dead |gum )?trees?(?! stumps?))\b/i.test(task),
     windowReplace: /\b(?:replac\w*|remov\w*)\b[^.]{0,40}\b(?:old |existing )?(?:aluminium |timber |steel )?(?:windows?|window frames?|frames|sliding doors?)\b|\bnew windows?\b[^.]{0,40}\bremov\w*/i.test(task),
     tileReplace: /\b(?:replac\w*|repair\w*)\b[^.]{0,20}\b(?:broken |cracked |damaged |loose )?(?:floor |wall )?tiles?\b/i.test(task) && !/\b(?:roof|carpet|vinyl|rubber|lino\w*|asbestos(?: \w+)?|ceiling) tiles?\b/i.test(task) && !(/\basbestos\b/i.test(task) && /\b(?:wall sheets?|backing|fibro)\b/i.test(task)),
     gasRun: /\b(?:run\w*|install\w*|lay\w*|extend\w*)\b[^.]{0,20}\b(?:a |the )?(?:new )?gas (?:lines?|pipes?|pipework|services?)\b/i.test(task),
