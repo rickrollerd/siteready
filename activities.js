@@ -1882,10 +1882,14 @@ const ACTIVITIES = [
   },
   {
     when: 'steelLift',
+    // The steel erector's own riggers sling and direct the steel, so the general
+    // crane company step (its crew slings the loads) does not apply.
+    replaces: ['craneInterface'],
     steps: [{
       step: 'Lift and land steel with the crane company',
       hazards: ['A steel member falls or swings into a person.', 'A badly slung load.'],
       controls: [
+        'The crane company operates the crane under its lift plan. Our licensed riggers sling, direct, land and release the steel.',
         src('Structural steel erection is basic rigging work, which includes dogging. Slinging and directing loads out of the operator\'s view is dogging. Sight each licence before work.', WHS('s 81, s 85, schedule 3, schedule 19')),
         src('Lifting gear suits the load, lifts stay within the crane\'s limits, no loads over people, and the load stays under control with tag lines.', WHS('s 219')),
         src('Enclose the area under the lift and use a spotter at ground level.', MODEL('Construction work', 'appendix K')),
@@ -3215,6 +3219,7 @@ const PPE = [
   { area: 'Breathing', items: [['p2', 'P2 respirator (fit tested)'], ['halfFace', 'Half-face respirator with filters (fit tested)']] },
   { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves'], ['gloveInsulated', 'Insulated electrical gloves'], ['gloveWelding', 'Welding or heat resistant gloves'], ['gloveCold', 'Cold resistant gloves (refrigerant)']] },
   { area: 'Body', items: [['longs', 'Long sleeves and long pants'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls'], ['arcRated', 'Arc-rated face shield and flame-resistant clothing']] },
+  { area: 'Knees', items: [['kneePads', 'Knee pads']] },
   { area: 'Feet', items: [['boots', 'Safety boots'], ['gumboots', 'Safety gumboots']] },
   { area: 'Sun', items: [['sunscreen', 'Sunscreen']] },
   { area: 'Falls and water', items: [['harness', 'Full body harness'], ['lifeJacket', 'Life jacket']] },

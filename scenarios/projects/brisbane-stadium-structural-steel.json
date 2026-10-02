@@ -18,11 +18,9 @@
       "expect": {
         "highRisk": [
           "fall",
-          "temporary",
           "plant"
         ],
         "steps": [
-          "Work with the crane crew during lifts",
           "Use an elevating work platform",
           "Lift and land steel with the crane company",
           "Erect and connect steel at height",

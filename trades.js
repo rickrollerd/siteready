@@ -60,6 +60,11 @@ function limitToTrades(flags, trades, kinds) {
   const allowed = new Set([...COMMON, ...ids.flatMap((id) => [...BY_ID.get(id).kinds, ...(BY_ID.get(id).extra || [])])]);
   const out = { ...flags };
   for (const kind of kinds) if (out[kind] && !allowed.has(kind)) out[kind] = false;
+  // Other trades' general flags add their licensing lines to Before starting
+  // ("Electrical work is done only by licensed electrical workers"), so they go too.
+  for (const trade of TRADES) {
+    if (!ids.includes(trade.id) && typeof trade.signal === 'string' && !allowed.has(trade.signal)) out[trade.signal] = false;
+  }
   return out;
 }
 
