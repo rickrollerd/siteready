@@ -1333,7 +1333,7 @@ const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for
 const MAIN_WORK = [
   [/^(?![^]*\bconnect\w*[^.]{0,30}\bto (?:the |an |its )?(?:existing )?solar inverter)[^]*\b(solar (?:panels?|pv|arrays?|systems?)|pv (?:panels?|arrays?|systems?)|inverters?)\b/i, 'solar panel and inverter installation', /\b(solar|inverters?)\b/i],
   [/^(?![^]*\bwith (?:a |an )?(?:heat pump|electric|solar))[^]*\b(gas (?:hot water|appliances?|heaters?|cooktops?|connections?|fitting|lines?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas (?:lines?|supply|mains?))\b/i, 'gas fitting', /\bgas\b/i],
-  [/\b(portal frames?|steel (?:frames?|sheds?|structures?)|(?:erect|stand)\w* [^.]{0,20}\b(?:steel|columns|rafters))\b/i, 'steel erection', /\b(Erect and connect steel|Land steel|Erect the pergola, carport or shed frame and roof)\b/],
+  [/\b(portal frames?|steel (?:frames?|sheds?|structures?)|(?:erect|stand)\w* [^.]{0,20}\b(?:steel|columns|rafters))\b/i, 'steel erection', /\b(Erect and connect steel|Land steel|Erect the frame and roof of the structure)\b/],
   [/\bretaining walls?\b/i, 'retaining wall construction', /\bretaining\b/i],
   [/\b(epoxy (?:coat\w*|floor\w*|seal\w*)|(?:apply|applying|seal\w*|coat\w*) [^.]{0,30}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(epoxy|floor coatings?)\b/i],
   [/\b(grind\w* [^.]{0,20}\bfloors?|floor grind\w*)\b/i, 'floor grinding', /\bgrind floors\b/i],
@@ -1821,6 +1821,10 @@ function settleFlags(flags, task) {
   // A lead paint job has its own removal step.
   if (out.leadPaint) out.painting = out.painting && /\b(re-?paint\w*|paint (?:the|it)|and paint)\b/i.test(task);
   if (out.tileReplace) out.tileCut = true;
+  if (out.doorSpringJob && out.doorSpring) { out.garageDoor = false; out.carpentryWork = false; }
+  if (out.highBays) out.fitOff = false;
+  if (/\b(conduits?|pits?)\b/i.test(task) && !/\bcabl\w*\b/i.test(task)) out.ictWork = false;
+  if (out.skylight && out.houseWork) out.roofSpace = true;
   if (out.applianceSwap) out.fitOff = false;
   if (out.crackInjection && !/\b(spall\w*|break\w* out|concrete cancer)\b/i.test(task)) out.concreteRepair = false;
   if (out.tankWalls) out.confined = out.confined || false;
@@ -2212,6 +2216,16 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     solarArray: /\b(solar (?:panels?|pv|arrays?|modules?|systems?)|pv|arrays?|panels?|photovoltaic)\b/i.test(task) && !/\b(battery|batteries)\b(?![^.]*\bpanels?\b)/i.test(task) || /\bsolar (?:panels?|arrays?)\b/i.test(task),
     chainWire: /\bchain ?wire\b|\bchainmesh\b|\bcyclone (?:wire|fenc\w*)\b/i.test(task),
     lintelReplace: /\b(?:replac\w*|remov\w*)\b[^.]{0,30}\blintels?\b/i.test(task),
+    smallElectrical: /\b(houses?|homes?|units?|apartments?|cooktops?|stoves?|ovens?|sports? (?:fields?|ovals?|grounds?)|ev chargers?|garages?)\b/i.test(task),
+    ewpNamed: /\b(ewps?|boom lifts?|elevating work platforms?|scissor lifts?|cherry pickers?)\b/i.test(task),
+    attachedStructure: /\battached\b/i.test(task),
+    lightStructure: /\b(sheds?|garages?|carports?|cubby houses?|pergolas?|fibro)\b/i.test(task),
+    doorSpringJob: /\b(?:replac\w*|repair\w*|fix\w*|re-?tension\w*)\b[^.]{0,30}\b(?:door )?springs?\b/i.test(task),
+    highBays: /\bhigh ?bays?\b/i.test(task),
+    polesNamed: /\b(poles?|columns?|signals?|traffic lights)\b/i.test(task) && !/\bconduits? and cables? for\b/i.test(task) || /\b(install\w*|erect\w*|stand\w*|new)\b[^.]{0,20}\b(?:light(?:ing)? )?poles?\b/i.test(task),
+    newPole: /\b(?:install\w*|erect\w*|stand\w*|new)\b[^.]{0,20}\bpoles?\b|\bpoles? (?:footings?|install\w*)\b/i.test(task),
+    exhaustFan: /\bexhaust fans?\b/i.test(task) && /\b(bathrooms?|ceilings?|houses?|toilets?|laundr\w*)\b/i.test(task),
+    pressureTank: /\bpressure (?:tanks?|vessels?)\b/i.test(task),
     poolHeater: /\bpool (?:heaters?|heat pumps?|heating)\b/i.test(task),
     appliancePower: /\b(power|electrical|electric(?:ity)?|booster heaters?)\b/i.test(task) && /\b(dishwashers?|coffee machines?|ice machines?|ovens?|fryers?|appliances?|machines?|equipment)\b/i.test(task) || /\bice machines?\b/i.test(task),
     smallMasonry: /\b(letterbox\w*|piers?|brick\w* up|block\w* up|fill\w* in|openings?|doorways?|repair\w*|patch\w*|barbecues?|bbqs?|steps|planter\w*)\b/i.test(task) && !/\b(storeys?|houses? (?:walls|brickwork)|face brick\w* (?:for|to) (?:a |the )?(?:new )?(?:\w+ )?(?:house|building)|fire walls?|block (?:walls?|fire walls?))\b/i.test(task),
