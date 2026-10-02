@@ -4,10 +4,10 @@
 // work is matched to the kinds of work the drafting library knows, and lines of
 // the same kind become one proposed task. A task is marked as needing a SWMS when
 // it is high risk construction work.
-const { workFlags, highRiskMatches, groundSlabOnly } = require('./draft');
+const { workFlags, highRiskMatches, groundSlabOnly, suggestedKinds } = require('./draft');
 const { ACTIVITIES } = require('./activities');
 const { findState, highRiskList } = require('./legislation');
-const { TRADES } = require('./trades');
+const { TRADES, tradeIds } = require('./trades');
 
 // Headings that start a part of the scope that is not the subcontractor's site work.
 const OUT_HEADING = /\b(exclu\w*|by others|not included|not in scope|omitted|n\.?i\.?c\.?|builder'?s? (?:responsibilit\w*|works?|scope)|by (?:the )?(?:builder|client|principal|head contractor)|free issue|payment|insurance|warrant\w*|retention|variations?|programme|price|pricing|tender\w*|schedule of rates|rates|invoic\w*|claims?|definitions?|interpretation|general conditions|special conditions|contract conditions|documentation|submissions?|shop drawings|o ?& ?m|operation and maintenance|as[- ]?builts?|defects?|liquidated|security of payment|commercial|qualifications?|clarifications?|hold points?|inspection and test plans?|quality assurance|program(?:me)?|samples?|handover|maintenance|manufacture|storage|overview|introduction|background|project description)\b/i;
@@ -202,7 +202,7 @@ const GENERAL = /\b(scope of works? (?:generally )?(?:comprises?|includes?)|prov
 // "The Subcontractor shall paint ..." reads as "Paint ...".
 const SUBJECT = /^(?:the )?subcontractor(?:'s)? (?:shall|is to|must|will|has allowed (?:for|to)|is required to|to)\s+(?:allow (?:for|to) )?/i;
 // Task names for the kinds whose first job step does not name the work well.
-const TITLES = {
+const TITLES = Object.freeze({
   road: 'Traffic management', power: 'Work near overhead power lines', scaffold: 'Scaffolding', roof: 'Roof work', roofStrip: 'Removing old roofing',
   trench: 'Trenching and underground services', propping: 'Temporary works and propping', demolition: 'Demolition', crane: 'Crane lifts', towerCrane: 'Tower crane lifts',
   slabGround: 'Slabs on ground, paths and driveways', slabPour: 'Placing slabs on ground', formwork: 'Formwork and falsework', reo: 'Reinforcement', concrete: 'Concrete placing and finishing', precast: 'Precast installation',
@@ -216,7 +216,7 @@ const TITLES = {
   sawCut: 'Saw cutting', asbestos: 'Asbestos removal', asbestosCheck: 'Asbestos check', confined: 'Confined space entry', roofSpace: 'Work in the roof space',
   floorGrind: 'Floor grinding', wpTorch: 'Torch-on membranes', stoneSilica: 'Cutting stone benchtops', steelErect: 'Steel erection at height',
   balustradeEdge: 'Balustrades at open edges', liftShaft: 'Work at open lift shafts', landscapeLift: 'Lifting soil and plants',
-};
+});
 const MAX_LINES = 8;
 const MAX_TASK = 900;
 
@@ -310,7 +310,7 @@ function tasksFromScope(text, stateId = 'qld') {
     || count(trade) >= Math.max(2, titled.size ? titleTop * TITLE_SHARE : top * TRADE_SHARE));
   const allowed = new Set(ours.flatMap((trade) => trade.kinds));
   const order = (when) => KINDS.findIndex((kind) => kind.when === when);
-  const makeTask = (id, step, found, trades) => {
+  const makeTask = (id, step, found, trades, groupKinds = []) => {
     const title = TITLES[id] || step;
     const task = taskText(found);
     const highRisk = highRiskMatches(task, '', state).map((item) => item.label);
@@ -324,6 +324,8 @@ function tasksFromScope(text, stateId = 'qld') {
       trade: trades.join(','),
       fallRisk: highRisk.some((label) => /falling/i.test(label)) ? 'yes' : '',
       needsSwms: highRisk.length > 0,
+      // The job steps to tick for this task when it is used.
+      kinds: [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')) })])],
     };
   };
   const tasks = [...groups.values()]
@@ -335,12 +337,13 @@ function tasksFromScope(text, stateId = 'qld') {
     .filter((group) => !(ROUTINE.has(group.kind.when) && ours.some((trade) => trade.kinds.includes(group.kind.when))))
     .map(({ kind, lines: found }) => {
       const own = ours.filter((trade) => trade.kinds.includes(kind.when) || (trade.extra || []).includes(kind.when));
-      return makeTask(kind.when, kind.steps[0].step, found, (own.length ? own : ours).map((trade) => trade.id));
+      return makeTask(kind.when, kind.steps[0].step, found, (own.length ? own : ours).map((trade) => trade.id), [kind.when]);
     });
   // Each trade's routine work is one task, named after the trade.
   for (const trade of ours) {
-    const found = [...new Set([...groups.values()].filter((group) => ROUTINE.has(group.kind.when) && trade.kinds.includes(group.kind.when)).flatMap((group) => group.lines))];
-    if (found.length) tasks.push(makeTask(trade.id, trade.name, found, [trade.id]));
+    const routine = [...groups.values()].filter((group) => ROUTINE.has(group.kind.when) && trade.kinds.includes(group.kind.when));
+    const found = [...new Set(routine.flatMap((group) => group.lines))];
+    if (found.length) tasks.push(makeTask(trade.id, trade.name, found, [trade.id], routine.map((group) => group.kind.when)));
   }
   // A trade of the scope with none of its kinds of work found still gets one task, from
   // the lines that show the trade, so its work is not missed.
@@ -363,4 +366,4 @@ function tasksFromScope(text, stateId = 'qld') {
   };
 }
 
-module.exports = { tasksFromScope, siteWorkLines };
+module.exports = { tasksFromScope, siteWorkLines, TITLES };

@@ -43,6 +43,8 @@ function draftBody(body) {
     reviewDate: field(body.reviewDate, 80),
     preparedBy: field(body.preparedBy, 300),
     swmsRef: field(body.swmsRef, 80),
+    // The job steps picked in the form, by kind of work. Unknown ones are dropped when drafted.
+    kinds: Array.isArray(body.kinds) ? body.kinds.filter((id) => typeof id === 'string').slice(0, 80).map((id) => id.slice(0, 40)) : undefined,
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {

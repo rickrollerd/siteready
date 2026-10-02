@@ -771,13 +771,31 @@ const FACT_KINDS = (() => {
 // kinds of work is not asked ("prepainted steel roof sheeting" does not need a
 // steel erection sequence).
 function requiredFactsFor(fullTask, answer, state) {
-  const facts = allRequiredFacts(fullTask, answer, state);
+  const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)];
   const allowed = allowedKinds(state && state.trades);
   if (!allowed) return facts;
   return facts.filter((item) => {
     const kinds = FACT_KINDS.get(item.id);
     return !kinds || kinds.some((when) => allowed.has(when));
   });
+}
+
+// Facts a picked job step relies on that the task's words did not call for.
+function pickedStepFacts(fullTask, answer, state) {
+  if (!state || !state.kinds) return [];
+  const added = state.kinds.filter((id) => !suggestedKinds(fullTask, {}, { ...state, kinds: null }).includes(id));
+  const asked = new Set(allRequiredFacts(fullTask, answer, state).map((item) => item.id));
+  const extra = [];
+  if (!asked.has('asbestosArrangement') && pickedDisturbsBuilding(fullTask, state.kinds)) extra.push({ id: 'asbestosArrangement', label: 'Asbestos arrangement', prompt: 'How asbestos was identified before the work (asbestos register or inspection), and what happens if any is found.' });
+  if (!added.length) return extra;
+  const uses = (id) => (FACT_KINDS.get(id) || []).some((when) => added.includes(when));
+  for (const item of CATEGORY_FACTS) {
+    if (!asked.has(item.id) && uses(item.id)) extra.push({ id: item.id, label: item.label, prompt: item.prompt, ...(item.choices ? { choices: item.choices } : {}) });
+  }
+  if (!asked.has('safetyDataSheet') && uses('safetyDataSheet')) extra.push({ id: 'safetyDataSheet', label: 'Safety data sheet', prompt: 'Safety data sheet.' });
+  if (!asked.has('trenchSupport') && uses('trenchSupport')) extra.push({ id: 'trenchSupport', label: 'Trench support', prompt: 'How the sides are secured: shoring, benching or battering, and who designed it.' });
+  if (!asked.has('fallControl') && uses('fallControl') && fallRiskFor(fullTask, answer)) extra.push({ id: 'fallControl', label: 'Fall control', prompt: 'How a fall is prevented.' });
+  return extra;
 }
 
 function allRequiredFacts(fullTask, answer, state) {
@@ -1216,10 +1234,16 @@ function stateFor(input) {
   const found = findState(input.state);
   if (!found) return found;
   // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
-  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', trades: tradeIds(input.trade) };
+  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds) };
   if (!state.residentialFallMetres) return state;
   const residential = residentialAnswer(input.residential) === 'yes';
   return { ...state, residential, fallMetres: residential ? state.residentialFallMetres : 2 };
+}
+
+function stepPicks(task, facts, state) {
+  const suggested = suggestedKinds(task, facts, state);
+  const chosen = kindsWithSteps(tradeFlags(task, facts, state));
+  return { suggested, chosen, locked: suggested.filter((id) => LOCKED_KINDS.has(id)) };
 }
 
 function questionsFor(input) {
@@ -1258,13 +1282,15 @@ function questionsFor(input) {
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
     ppe: ppeList(task, input.facts || {}, state),
+    // The job steps found from the task's words, the ones in use, and the ones that cannot be taken off.
+    steps: stepPicks(task, input.facts || {}, state),
   };
 }
 
 // Details often not known until work starts. They are filled in before the SWMS goes for approval.
 const TO_COMPLETE = 'To be completed before submitting for approval';
 
-const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for this kind of work yet. Choose the trade, describe the work in more detail (what is installed, removed or built, and how), or write this SWMS yourself.';
+const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for this kind of work yet. Pick the job steps that cover the work under Job steps, describe the work in more detail (what is installed, removed or built, and how), or write this SWMS yourself.';
 
 // Main work the library has no steps for yet. Where the task names it and no step
 // covers it, the draft is stood down rather than issued with only the access and
@@ -1274,7 +1300,7 @@ const MAIN_WORK = [
   [/\b(gas (?:hot water|appliances?|heaters?|cooktops?|connections?|fitting|lines?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas (?:lines?|supply|mains?))\b/i, 'gas fitting', /\bgas\b/i],
   [/\b(portal frames?|steel (?:frames?|sheds?|structures?)|(?:erect|stand)\w* [^.]{0,20}\b(?:steel|columns|rafters))\b/i, 'steel erection', /\b(Erect and connect steel|Land steel)\b/],
   [/\bretaining walls?\b/i, 'retaining wall construction', /\bretaining\b/i],
-  [/\b(epoxy (?:coat\w*|floor\w*)|(?:apply|applying) [^.]{0,20}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(Apply|coat\w*)\b/i],
+  [/\b(epoxy (?:coat\w*|floor\w*|seal\w*)|(?:apply|applying|seal\w*|coat\w*) [^.]{0,30}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(epoxy|floor coatings?)\b/i],
   [/\b(grind\w* [^.]{0,20}\bfloors?|floor grind\w*)\b/i, 'floor grinding', /\bgrind floors\b/i],
   [/\bhydro[- ]?demolition\b/i, 'hydro-demolition', /\bhydro/i],
   [/\b(light(?:ing)? poles?|poles?\b[^.]{0,30}\b(?:stand|erect|install)\w*|(?:stand|erect|install)\w* [^.]{0,30}\bpoles?)\b/i, 'pole erection', /\bpoles?\b/i],
@@ -1286,6 +1312,9 @@ const MAIN_WORK = [
   [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer)/i],
   [/\bpergolas?\b/i, 'pergola work', /\bpergola\b/i],
   [/\bline marking\b/i, 'line marking', /\bline marking\b/i],
+  [/\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbatter(?:y|ies)\b[^.]{0,30}\b(?:solar|garage wall|house wall)\b/i, 'battery storage installation', /\bbattery storage\b/i],
+  [/\bmeter (?:box|board|panel)s?\b/i, 'meter box installation', /\bmeter box\b/i],
+  [/\broof battens?\b|\bbattens?\b[^.]{0,20}\broofs?\b/i, 'roof batten installation', /\bbatten/i],
   [/\b(?:carports?|sheds?|awnings?|pergolas?|verandahs?)\b[^.]{0,30}\b(?:frame )?(?:and|with) (?:the |a )?roof\b|\bframe and roof\b/i, 'roof sheeting on the new structure', /\bFix new roofing\b/],
   [/\b(?:excavat|dig)\w*\b[^.]{0,30}\b(?:swimming )?pools?\b/i, 'pool excavation', /\bBulk excavate\b/],
   [/\bgarden taps?\b|\b(?:pipe|tap)s?\b[^.]{0,20}\b(?:in|across|under) (?:a |the )?(?:backyard|yard|garden|lawn)\b/i, 'laying pipe in the ground', /\b(Lay pipes|Excavate)\b/],
@@ -1314,18 +1343,27 @@ const MAIN_WORK = [
   [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(skylights?|roof windows?)\b/i, 'skylight installation', /\bskylight\b/i],
 ];
 
+// Work with a hazard of its own that no library step covers. Picking near steps does
+// not cover it, so these stay stood down until the library has steps for them.
+const HARD_MAIN_WORK = new Set(['solar panel and inverter installation', 'gas fitting', 'hydro-demolition', 'pool shell and sprayed concrete work', 'floor coating', 'membrane work inside an excavation', 'battery storage installation', 'meter box installation', 'roof batten installation']);
+
 // Steps that get people and materials to the work, rather than doing it.
 const SUPPORT_STEPS = new Set(['Before starting', 'Finish and clean up', 'Set up traffic management', 'Plan the work near overhead power lines', 'Get onto the roof and set up fall protection', 'Lift equipment and materials to the roof', 'Work with the crane crew during lifts', 'Set up the crane', 'Rig and lift the load', 'Land and release the load', 'Use an elevating work platform', 'Drill or cut concrete, masonry or stone', 'Use power tools', 'Move materials into place', 'Separate plant and people on site', 'Operate skid steers and small plant', 'Reach high walls and ceilings', 'Operate forklifts', 'Work in the roof space', 'Check for asbestos before starting', 'Operate the hoist', 'Load out floors and use loading platforms']);
 const MAIN_VERB = /\b(install\w*|erect\w*|connect\w*|build\w*|construct\w*|replac\w*|fit\w*|lay\w*|grind\w*|coat\w*|repair\w*|fix\w*|assembl\w*|weld\w*|clean\w*|paint\w*|patch\w*|sand\w*|polish\w*|remov\w*|dig\w*|demolish\w*|cut\w*)\b/i;
 
-function missingMainWork(task, steps) {
+// With job steps picked by the user, the picks say what the main work is, so only a
+// task left with nothing but access and lifting steps is stood down. A work step the
+// user added counts as main work; an access or lifting step never does.
+function missingMainWork(task, steps, added = null) {
   const names = steps.map((step) => step.step);
   const text = names.join('\n');
   for (const [pattern, label, covered] of MAIN_WORK) {
-    if (pattern.test(task) && !covered.test(text)) return label;
+    if ((!added || HARD_MAIN_WORK.has(label)) && pattern.test(task) && !covered.test(text)) return label;
   }
+  const own = new Set();
   // Where drilling into concrete is the job itself (anchors, wheel stops, fixings), the drilling step is the main work.
-  const support = /\b(drill\w*|anchor bolts?|dynabolts?|chemical anchors?)\b/i.test(task) ? new Set([...SUPPORT_STEPS].filter((name) => name !== 'Drill or cut concrete, masonry or stone')) : SUPPORT_STEPS;
+  if (/\b(drill\w*|anchor bolts?|dynabolts?|chemical anchors?)\b/i.test(task)) own.add('Drill or cut concrete, masonry or stone');
+  const support = new Set([...SUPPORT_STEPS].filter((name) => !own.has(name)));
   if (MAIN_VERB.test(task) && names.length && names.every((name) => support.has(name))) return 'the main work in this task';
   return null;
 }
@@ -1439,12 +1477,13 @@ function prepareDraft(input) {
     approved: false,
   };
   // No job steps for this kind of work: stood down, not issued with generic text.
-  const mainMissing = missingMainWork(task, draft.jobSteps || []);
+  const added = state.kinds ? state.kinds.filter((id) => !suggestedKinds(task, facts, { ...state, kinds: null }).includes(id)) : null;
+  const mainMissing = missingMainWork(task, draft.jobSteps || [], added);
   if ((draft.jobSteps || []).some((step) => step.fallback) || mainMissing) {
     return {
       kind: 'stand-down',
       ...header,
-      missing: [mainMissing && !(draft.jobSteps || []).some((step) => step.fallback) ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Describe the work in more detail, or write this SWMS yourself.` : NO_STEPS],
+      missing: [mainMissing && !(draft.jobSteps || []).some((step) => step.fallback) ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Pick the job steps that cover the work under Job steps, describe the work in more detail, or write this SWMS yourself.` : NO_STEPS],
       statement: 'This task is stood down. It does not start.',
       method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
     };
@@ -1555,6 +1594,49 @@ const KIND_IDS = [...new Set(ACTIVITIES.map((activity) => activity.when).filter(
 
 // The kinds of work in the task, limited to the task's trades when they are known.
 function tradeFlags(task, facts, state) {
+  const flags = suggestedFlags(task, facts, state);
+  if (!state.kinds) return flags;
+  // The job steps the user picked replace the ones found from the words, except the
+  // steps the law or the facts call for, which stay.
+  const picked = new Set(state.kinds);
+  const out = { ...flags };
+  for (const id of KIND_IDS) out[id] = picked.has(id) || (LOCKED_KINDS.has(id) && Boolean(flags[id]));
+  if (pickedDisturbsBuilding(task, state.kinds)) out.asbestosCheck = true;
+  return out;
+}
+
+// Job steps that cannot be taken off a task once its words call for them: asbestos,
+// isolation, confined spaces, water, traffic, power lines, propping and trench support.
+const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench']);
+const KIND_SET = new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean));
+
+// Picked steps that strip out, demolish or cut into an existing building need asbestos
+// identified first (WHS Reg s 450 to s 452), unless the building is from 2004 or later.
+const DISTURBING_KINDS = ['stripOut', 'demolition', 'structuralOpening', 'roofStrip'];
+function pickedDisturbsBuilding(task, kinds) {
+  return Boolean(kinds) && kinds.some((id) => DISTURBING_KINDS.includes(id))
+    && !/\b(new|built (?:in )?(?:200[4-9]|20[1-9]\d))\b/i.test(task) && !/\bno asbestos|asbestos[- ]free\b/i.test(task);
+}
+
+// The picked job steps from the form: known kinds of work only, or null when none were sent.
+function chosenKinds(kinds) {
+  if (!Array.isArray(kinds)) return null;
+  return [...new Set(kinds.filter((id) => typeof id === 'string' && KIND_SET.has(id)))];
+}
+
+// The kinds of work found from the task's words, for the form to show ticked.
+function suggestedKinds(task, facts, state) {
+  return kindsWithSteps(suggestedFlags(task, facts || {}, state));
+}
+
+// The kinds that give job steps: one kind can stand in for another (slab on ground for a pour).
+function kindsWithSteps(flags) {
+  const found = ACTIVITIES.filter((activity) => flags[activity.when]);
+  const replaced = new Set(found.flatMap((activity) => activity.replaces || []));
+  return [...new Set(found.map((activity) => activity.when).filter((id) => !replaced.has(id)))];
+}
+
+function suggestedFlags(task, facts, state) {
   const flags = limitToTrades(workFlags(task, facts, state.ownCrane), state.trades, KIND_IDS);
   // A cutting step that is not this trade's work is taken out, so drilling and
   // cutting comes back as the general step.
@@ -1938,6 +2020,8 @@ function stripLiftBleedText(text) {
 }
 
 module.exports = {
+  suggestedKinds,
+  LOCKED_KINDS,
   groundSlabOnly,
   isCraneOrLift,
   workFlags,

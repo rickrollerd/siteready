@@ -3775,7 +3775,7 @@ function jobStepsFor(flags, factText, fallback) {
   const close = middle.filter((step) => step.step === 'Leave and close up');
   middle = [...middle.filter((step) => step.step !== 'Leave and close up'), ...close];
   // Asbestos is checked, and the room stripped out, before anything new goes in.
-  const FIRST = ['Check for asbestos before starting', 'Strip out the room'];
+  const FIRST = ['Check for asbestos before starting', 'Prepare the asbestos work area', 'Remove the asbestos', 'Bag, label and dispose of asbestos waste', 'Strip out the room'];
   middle = [...FIRST.flatMap((name) => middle.filter((step) => step.step === name)), ...middle.filter((step) => !FIRST.includes(step.step))];
   // The circuit is isolated and proved de-energised before it is worked on.
   const isolate = middle.find((step) => step.step === 'Isolate and prove de-energised');
