@@ -27,10 +27,10 @@ const PLANT = [
   { item: 'Mobile scaffold', pattern: /\bmobile scaffolds?\b/i, inspection: 'Erected to the manufacturer\'s instructions. Castors locked, guardrails complete, checked before use. Over 4 m: handover certificate and inspections as for a scaffold (WHS Reg s 225).', licence: 'No, under 4 m. Yes (SB) where a person or object could fall more than 4 m' },
   { item: 'Turf laying machine', pattern: /\bturf laying machines?\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
   { item: 'Building maintenance unit (BMU)', pattern: /\b(building maintenance units?|bmus?)\b/i, inspection: 'Inspected and maintained to the manufacturer\'s instructions and AS 1418.13, with current certification before use.', licence: 'No. Operators trained in the unit' },
-  { item: 'Excavator', pattern: /\b(excavators?|excavat\w* by machine|mini excavators?|(?<!small )earthmoving plant)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
+  { item: 'Excavator', pattern: /\b(excavators?|excavat\w* by machine|mini excavators?|(?<!small )earthmoving plant)\b/i, skipIf: /\bRun earthmoving plant\b/, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Skid steer or posi-track', pattern: /\b(skid ?steers?|bobcats?|posi-?tracks?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
-  { item: 'Roller or plate compactor', pattern: /\b(plate compactors?|compactors?|wacker|compaction|(?:ride-on|vibrating|smooth drum|padfoot|road|trench) rollers?|paver, roller|spreader, roller|the roller|a roller or plate compactor|(?:asphalt|bitumen|hot mix|compact\w*)\b[^.]{0,40}\bwith a roller)\b/i, skipIf: /\b(paint\w*|brush\w*|roller doors?)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
-  { item: 'Piling rig', pattern: /\b(piling rigs?|cfa rigs?|bored pil\w*)\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent' },
+  { item: 'Roller or plate compactor', pattern: /\b(plate compactors?|compactors?|wacker|compaction|(?:ride-on|vibrating|smooth drum|padfoot|road|trench) rollers?|paver, roller|spreader, roller|(?:graders?|dozers?|water carts?),? (?:and )?(?:a )?rollers?|rollers? and (?:a )?water carts?|the roller|a roller or plate compactor|(?:asphalt|bitumen|hot mix|compact\w*)\b[^.]{0,40}\bwith a roller)\b/i, skipIf: /\b(paint\w*|brush\w*|roller doors?|rolling impact compact\w*)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
+  { item: 'Piling rig', pattern: /\b(piling rigs?|cfa rigs?|bored pil\w*|crawler rigs?|pile driving machines?|piling machines?)\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent' },
   { item: 'Concrete truck', pattern: /\bconcrete trucks?\b/i, inspection: 'The supplier\'s pre-start check.', licence: 'Truck driver\'s licence' },
   { item: 'Power trowel', pattern: /\bpower trowels?\b/i, inspection: `${PRESTART} Guards and stop switch checked.`, licence: 'No' },
   { item: 'Concrete saw', pattern: /\b(concrete saws?|saw cut\w*|saw-cut\w*|floor saws?|wall saws?)\b/i, inspection: `${PRESTART} Blade guard in place. Electric saws: ${TEST_TAG}`, licence: 'No' },
@@ -45,18 +45,19 @@ const PLANT = [
   { item: 'Trench shield or shoring', pattern: /\b(trench shields?|trench box\w*|(?<!re-|re)shoring|(?<!re-|re)shored)\b/i, inspection: 'Installed to the manufacturer\'s or engineer\'s design, and checked by a competent person frequently, including before each shift and after rain.', licence: 'No. Installed by competent people' },
   { item: 'Dewatering pump', pattern: /\b(dewater\w*|pump out water|pumps? (?:the )?water)\b/i, inspection: `${PRESTART} ${TEST_TAG}`, licence: 'No' },
   { item: 'Vacuum excavation unit', pattern: /\b(vacuum excavat\w*|vacuum system|non-destructive digging|hydro ?vac\w*)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
-  { item: 'Tipper or dump truck', pattern: /\b(tippers?|dump trucks?|haul trucks?|trucks? (?:cart|haul)\w*|carted by truck|cart\w* (?:spoil|topsoil|soil|fill|mulch)\w*)\b/i, inspection: PRESTART, licence: 'Truck driver\'s licence' },
+  { item: 'Tipper or dump truck', pattern: /\b(tippers?|dump trucks?|haul trucks?|trucks? (?:cart|haul)\w*|carted by truck|cart\w* (?:spoil|topsoil|soil|fill|mulch)\w*)\b/i, skipIf: /\barticulated dump trucks?\b/i, inspection: PRESTART, licence: 'Truck driver\'s licence' },
   { item: 'Gas detector', pattern: /\b(gas detectors?|gas monitor\w*|atmospheric? (?:testing|monitor\w*)|test(?:ed)? (?:the )?atmosphere|monitor the atmosphere)\b/i, inspection: 'Calibrated to the manufacturer\'s instructions and bump tested before use.', licence: 'No. User trained' },
   { item: 'Lifting gear (slings, chains, shackles)', pattern: /\b(slings?|slung|shackles?|lifting gear|lifting chains?)\b/i, inspection: 'Tagged with its working load limit, inspected before each use and periodically by a competent person. Damaged gear is withdrawn.', licence: 'No. Slinging loads is dogging or rigging work' },
   { item: 'Stump grinder', pattern: /\bstump(?:s)? (?:grind\w*|removal)|stump grinders?\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No. Operator competent' },
-  { item: 'Post hole auger', pattern: /\b(augers?|post holes?)\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No' },
+  { item: 'Post hole auger', pattern: /\b(augers?|post holes?)\b/i, skipIf: /\b(paver'?s augers?|drum, augers?)\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No' },
   { item: 'Cable winch or puller', pattern: /\b(winch\w*|cable pull\w*|pull cables?)\b/i, inspection: `${PRESTART} Guards and stop control working.`, licence: 'No' },
   { item: 'Floor grinder with H class extraction', pattern: /\b(floor grind\w*|grind\w* (?:and polish\w* )?(?:the |a )?(?:concrete )?floors?|diamond grind\w*)\b/i, inspection: `${PRESTART} Guards and dust shroud in place. ${TEST_TAG}`, licence: 'No. Operator competent' },
   { item: 'Drain jetter', pattern: /\b(jetters?|jetting)\b/i, skipIf: /\b(hydro[- ]?blast\w*|water blast\w*)\b/i, inspection: `${PRESTART} Hoses, nozzles and fittings rated for the pressure.`, licence: 'No. Operator trained' },
   { item: 'Drain cleaning machine', pattern: /\b(electric eels?|drain (?:cleaning )?machines?)\b/i, inspection: `${PRESTART} ${TEST_TAG} Guards and foot switch working.`, licence: 'No' },
   { item: 'CCTV drain camera', pattern: /\b(cctv cameras?|drain cameras?|pipe cameras?)\b/i, skipIf: /\b(security|access control|install\w* (?:an? |the |new )?(?:cctv|cameras?)|on (?:a |the )?poles?)\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Pipe relining equipment', pattern: /\b(relin(?:e|es|ed|ing)|relining equipment)\b/i, inspection: `${PRESTART} Inversion and curing equipment checked to the manufacturer's instructions.`, licence: 'No. Operator trained' },
-  { item: 'Directional drilling rig', pattern: /\b(directional drill\w*|hdd|drill(?:ing)? rigs?|boring rigs?)\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent (verification of competency)' },
+  { item: 'Directional drilling rig', pattern: /\b(directional drill\w*|hdd|boring rigs?)\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent (verification of competency)' },
+  { item: 'Drill rig', pattern: /\bdrill(?:ing)? rigs?\b/i, skipIf: /\bdirectional\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent (verification of competency)' },
   { item: 'Asphalt paver', pattern: /\b(asphalt pavers?|paving machines?|the paver)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Water blaster', pattern: /\b(water blast\w*|hydro[- ]?blast\w*|pressure clean\w*|pressure wash\w*)\b/i, inspection: `${PRESTART} Hoses, lance and fittings rated for the pressure, dead man control working.`, licence: 'No. Operator trained' },
   { item: 'Spray foam rig', pattern: /\bspray\w* (?:polyurethane |pu )?foam\b|\bspray foam\b/i, inspection: `${PRESTART} Hoses and heaters checked to the manufacturer's instructions.`, licence: 'No. Operator trained' },
@@ -77,21 +78,22 @@ const PLANT = [
   { item: 'Trencher', pattern: /\btrenchers?\b/i, inspection: PRESTART, licence: 'No. Operator trained' },
   { item: 'Vacuum truck', pattern: /\bvacuum (?:trucks?|tankers?)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
   { item: 'Tripod and winch (confined space rescue)', pattern: /\btripod\w*\b/i, inspection: 'Inspected before each entry, within its inspection date.', licence: 'No. Users trained' },
-  { item: 'Work punt or boat', pattern: /\b(work punts?|punts?|barges?|work boats?)\b/i, inspection: 'Moored and stable before use, with its safety equipment on board.', licence: 'Operated by a competent person holding any marine licence the state requires' },
+  { item: 'Work punt or boat', pattern: /\b(work punts?|punts?|barges?|work boats?|(?<=from (?:a |the ))pontoons?)\b/i, skipIf: /\b(jack-?up barges?|barge (?:cappings?|flashings?|boards?|rolls?|tiles?|rafters?)|(?:fascias?|guttering|ridges?|valleys?),? (?:or |and )?barges?|barges?,? (?:and|or) (?:similar|fascias?|ridges?))\b/i, inspection: 'Moored and stable before use, with its safety equipment on board.', licence: 'Operated by a competent person holding any marine licence the state requires' },
   { item: 'Masonry or paver saw', pattern: /\b(?:brick|block|paver|masonry|wet|tile) saws?\b|\bsaw noise\b/i, inspection: `${PRESTART} Blade guard in place, water feed or extraction working, leads tagged.`, licence: 'No. Operator trained' },
   { item: 'Dozer', pattern: /\b(dozers?|bulldozers?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Grader', pattern: /\bgraders?\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Loader', pattern: /\b(front end loaders?|wheel loaders?|(?<!skid steer |truck |low )loaders?)\b/i, skipIf: /\b(loader crane|vehicle loading crane)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
-  { item: 'Scraper', pattern: /\bscrapers?\b/i, skipIf: /\b(floor scrapers?|hand scrapers?|scrapers and)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
+  { item: 'Scraper', pattern: /\bscrapers?\b/i, skipIf: /\b(floor scrapers?|hand scrapers?|paint scrapers?|scrapers and (?:knives|blades|wire brushes))\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Articulated dump truck', pattern: /\b(articulated dump trucks?|adts?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Water cart', pattern: /\bwater carts?\b/i, inspection: PRESTART, licence: 'Truck driver\'s licence for the vehicle class' },
   { item: 'Road profiler', pattern: /\b(road profilers?|cold planers?|profilers?)\b/i, inspection: `${PRESTART} Drum guards and conveyor checked.`, licence: 'No. Operator competent (verification of competency)' },
-  { item: 'Stabiliser', pattern: /\b(stabilisers?|lime spreaders?)\b/i, skipIf: /\b(outrigger|stabiliser legs?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
+  { item: 'Stabiliser or lime spreader', pattern: /\b(stabilisers?|lime spreaders?)\b/i, skipIf: /\b(outrigger|stabiliser legs?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Truck mounted attenuator', pattern: /\b(truck mounted attenuators?|tmas?)\b/i, inspection: PRESTART, licence: 'Truck driver\'s licence for the vehicle class, and the operator training the road authority requires' },
   { item: 'Self-propelled modular transporter', pattern: /\b(self-?propelled modular transporters?|spmts?)\b/i, inspection: 'Checked by the supplier before the move, with its hydraulics and controls tested.', licence: 'Operated by the supplier\'s trained crew' },
   { item: 'Launching gantry', pattern: /\blaunching gantr(?:y|ies)\b/i, inspection: 'Erected, checked and commissioned by its supplier to the engineered procedure before use.', licence: 'Operated by the supplier\'s trained crew. The licence class depends on the gantry\'s design: confirm it with the supplier' },
-  { item: 'Pile driving hammer', pattern: /\b(impact hammers?|vibratory hammers?|vibro hammers?|pile driv\w*)\b/i, inspection: `${PRESTART} Hammer, leads and hoses checked.`, licence: 'No. Operator competent (verification of competency)' },
-  { item: 'Ground improvement rig', pattern: /\b(wick drain rigs?|vibro rigs?|stone column rigs?|rolling impact compactors?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
+  { item: 'Pile driving hammer', pattern: /\b(impact hammers?|vibratory hammers?|vibro hammers?|pile driv\w*|driv\w* (?:the |steel |h |sheet )?piles?)\b/i, inspection: `${PRESTART} Hammer, leads and hoses checked.`, licence: 'No. Operator competent (verification of competency)' },
+  { item: 'Rolling impact compactor and tractor', pattern: /\brolling impact compact\w*/i, inspection: `${PRESTART} Tow hitch, module and guards checked.`, licence: 'No. Operator competent (verification of competency)' },
+  { item: 'Ground improvement rig', pattern: /\b(wick drain rigs?|vibro rigs?|stone column rigs?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Grout pump', pattern: /\bgrout pumps?\b/i, inspection: `${PRESTART} Hoses, couplings and pressure relief checked.`, licence: 'No. Operator trained' },
   { item: 'Shotcrete rig', pattern: /\b(shotcrete rigs?|shotcrete pumps?)\b/i, inspection: `${PRESTART} Hoses, couplings and nozzle checked.`, licence: 'No. Operator trained' },
   { item: 'Roadheader', pattern: /\broadheaders?\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
@@ -101,10 +103,19 @@ const PLANT = [
   { item: 'Mulcher', pattern: /\bmulchers?\b/i, inspection: `${PRESTART} Guards, teeth and spark arrestor checked.`, licence: 'No. Operator competent' },
   { item: 'Fuel truck or trailer', pattern: /\b(fuel trucks?|fuel trailers?|refuelling trucks?)\b/i, inspection: `${PRESTART} Hoses, nozzles, earthing and spill kit checked.`, licence: 'Truck driver\'s licence for the vehicle class, and dangerous goods driver licence where the load requires it' },
   { item: 'Road rail vehicle', pattern: /\b(road rail vehicles?|rrvs?|hi-?rail)\b/i, inspection: 'Checked before going on track, as the rail manager requires.', licence: 'Operator holds the rail manager\'s competency for the vehicle' },
-  { item: 'Track maintenance machine', pattern: /\b(tamp\w* machines?|tampers?|ballast regulators?|track laying machines?|track machines?)\b/i, inspection: 'Checked before going on track, as the rail manager requires.', licence: 'Operator holds the rail manager\'s competency for the machine' },
+  { item: 'Track laying machine', pattern: /\btrack laying machines?\b/i, inspection: 'Checked before going on track, as the rail manager requires.', licence: 'Operator holds the rail manager\'s competency for the machine' },
+  { item: 'Track maintenance machine', pattern: /\b(tamp\w* machines?|tampers?|ballast regulators?|track (?:maintenance )?machines?)\b/i, inspection: 'Checked before going on track, as the rail manager requires.', licence: 'Operator holds the rail manager\'s competency for the machine' },
   { item: 'Crushing or screening plant', pattern: /\b((?<!concrete )crushers?|crushing (?:and screening )?plant|screening plant)\b/i, inspection: `${PRESTART} Guards, emergency stops and pull wires tested.`, licence: 'No. Operator competent' },
   { item: 'Concrete batching plant', pattern: /\bbatch(?:ing)? plants?\b/i, inspection: 'Installed and commissioned to the supplier\'s instructions, with guards, isolation points and emergency stops checked.', licence: 'No. Operator trained' },
   { item: 'Hydro demolition robot', pattern: /\bhydro[- ]?demoli\w*\b/i, inspection: `${PRESTART} Pump, hoses, dead man control and robot controls checked.`, licence: 'No. Operator trained' },
+  { item: 'Wire saw', pattern: /\bwire saws?\b/i, inspection: `${PRESTART} Wire, pulleys, guards and drive checked.`, licence: 'No. Operator trained' },
+  { item: 'Concrete crusher (excavator attachment)', pattern: /\b(concrete crushers?|pulveri[sz]ers?)\b/i, inspection: `${PRESTART} Jaws, pins and hoses checked.`, licence: 'No. Excavator operator competent' },
+  { item: 'Pipe laying attachment', pattern: /\b(pipe laying attachments?|pipe layers?|side ?booms?)\b/i, inspection: 'Rated for the pipe, tagged and checked before use.', licence: 'No. Operator competent' },
+  { item: 'Truck and dog trailer', pattern: /\btruck and dogs?(?: trailers?)?\b/i, inspection: PRESTART, licence: 'Heavy vehicle driver\'s licence for the combination' },
+  { item: 'Cable drum trailer', pattern: /\b(?:cable )?drum trailers?\b/i, inspection: `${PRESTART} Drum shaft, brakes and hitch checked.`, licence: 'No. Operator trained' },
+  { item: 'Variable message sign trailer', pattern: /\b(variable message (?:boards?|signs?)|vms boards?)\b/i, inspection: PRESTART, licence: 'No. Placed under the traffic management plan' },
+  { item: 'Jacking and skidding system', pattern: /\b(skid(?:ding)? (?:systems?|tracks?|beams?)|jack(?:ing)? and skid\w*)\b/i, inspection: 'Set up and checked by its supplier to the engineered procedure before the move.', licence: 'No. Operated by the supplier\'s trained crew' },
+  { item: 'Concrete conveyor', pattern: /\b(concrete conveyors?|conveyor and pump|by conveyor)\b/i, inspection: `${PRESTART} Guards, belt and emergency stops checked.`, licence: 'No. Operator trained' },
   { item: 'Ladders', pattern: /\bladders?\b/i, inspection: 'Industrial rated, at least 120 kg. Checked before each use.', licence: 'No' },
   { item: 'Electric power tools and leads', pattern: /\b(power tools?|grind(?:er|ers|ing)|drill\w*|drop saws?|circular saws?|power saws?|cut-off saws?|reglet saws?|masonry saws?|wet saws?|tile saws?|jackhammers?|demolition hammers?|chas(?:e|ed|er|ers|ing)|leads?|floor scrubbers?|test instruments?)\b/i, skipIf: /\b(core[- ]?drill\w*|stump grind\w*|lead paint|leads? (?:the|to|from|into)|lead(?:s)? hand)\b/i, inspection: TEST_TAG, licence: 'No' },
 ];
@@ -137,7 +148,7 @@ const SUBSTANCES = [
 const QUALIFICATIONS = [
   ['General construction induction (white card)', /./],
   ['Site specific induction', /./],
-  ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|distribution boards?|submains?|fit[- ]off|terminat\w*|wiring|cabling|power points?|power circuits?|light switch(?:es)?|(?:install|replac|connect|fit|wir)\w* [^.]{0,30}\b(?:ceiling fans?|hardwired smoke alarms?)|(?<!clean\w* |wip\w* |dust\w* )lighting|(?:install|replac|connect|fit)\w* [^.]{0,30}\b(?:light|led) fittings?|(?:install|replac|connect|add)\w* [^.]{0,30}\b(?:circuits?|outlets?)|(?:ev|electric vehicle|car) chargers?|inverters?|(?<!clean\w* )solar(?! hot water| powered)|(?:pull|install|run|lay|terminat)\w* [^.]{0,20}\bcables?)\b/i],
+  ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|distribution boards?|submains?|fit[- ]off|terminat\w*|wiring|cabling|power points?|power circuits?|light switch(?:es)?|(?:install|replac|connect|fit|wir)\w* [^.]{0,30}\b(?:ceiling fans?|hardwired smoke alarms?)|(?<!clean\w* |wip\w* |dust\w* )lighting|(?:install|replac|connect|fit)\w* [^.]{0,30}\b(?:light|led) fittings?|(?:install|replac|connect|add)\w* [^.]{0,30}\b(?:circuits?|outlets?)|(?:ev|electric vehicle|car) chargers?|inverters?|(?<!clean\w* )solar(?! hot water| powered| farm piles?)|(?:pull|install|run|lay|terminat)\w* [^.]{0,20}\bcables?)\b/i],
   ['Plumbing and drainage licence', /\b(vanit(?:y|ies)|plumbing|plumber|(?<!(?:wall|ag|agricultural|subsoil|retaining) )drainage(?! (?:swales?|gravel|cells?|mats?|layers?|boards?|aggregate|sheets?|composites?|fabric|and backfill|behind))|sewer\w*(?! pump stations?)|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water suppl(?:y|ies)|water mains?|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
   ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?|(?:install\w*|replac\w*|connect\w*|commission\w*|relocat\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |new )?(?:wall[- ]mounted |reverse cycle )?air ?condition\w* units?)\b/i],
   ['Gas work licence', /\b(?<!medical )(commercial (?:ranges?|cooktops?)|wok (?:burners?|stations?|ranges?)|gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|heating|meters?|cooktops?|ovens?|boilers?|stoves?|fires?|log fires?|barbecues?|bbqs?)|gasfitt\w*|(?:connect|relocat|disconnect)\w*[^.]{0,30}\bgas\b)\b/i],
@@ -201,6 +212,7 @@ function riskFor(step) {
 
 // Plant operated or erected by others: the licence belongs to them.
 function othersLicence(item, allText, task) {
+  if (item.item === 'Mobile crane or crane truck') item = craneClass(item, task);
   // Tube and coupler scaffolds need intermediate scaffolding, hung and suspended scaffolds advanced.
   if (item.item === 'Scaffold' && /\b(hung|suspended) scaffold/i.test(task)) item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SA') };
   else if (item.item === 'Scaffold' && /\btube[- ]and[- ]coupler\b|\bcantilever\w* (?:scaffold|crane loading platform)|\bspur scaffold/i.test(task)) item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SI or SA') };
@@ -208,6 +220,23 @@ function othersLicence(item, allText, task) {
   if (item.item === 'Scaffold' && !/\b(erect\w*|dismantl\w*|alter\w*|build(?!ing\b)\w*|install\w*|put up)\b(?:(?!\b(?:from|off|using|with|on)\b)[^.]){0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task)) return { ...item, licence: `Erected and altered only by a licensed scaffolder (${item.licence.match(/\(([^()]*S[BIA][^()]*)\)/)[1]}) where a fall of more than 4 m is possible. Our crew uses it and does not alter it` };
   if (/Personnel or materials hoist/.test(item.item) && !/\b(erect\w*|install\w*|operat\w*|dismantl\w*)\b[^.]{0,30}\bhoists?\b/i.test(task)) return { ...item, licence: `Held by the principal contractor's licensed hoist operator: ${item.licence.replace(/^Yes,?\s*/, '')}` };
   if (item.item === 'Concrete placing boom' && !/\b(we|our crew|our own)\b[^.]{0,30}\b(operat\w*|run\w*)\b[^.]{0,20}\b(pump|boom)/i.test(allText)) return { ...item, licence: `Held by the pumping company's licensed operator: ${item.licence.replace(/^Yes,?\s*/, '')}` };
+  return item;
+}
+
+// The crane named in the task sets the licence class (WHS Reg schedule 3): a Franna or
+// other articulated crane is non-slewing, and a stated capacity sets the slewing class.
+function craneClass(item, task) {
+  const sized = String(task || '').match(/\b(\d+(?:\.\d+)?) ?(?:t|tonnes?)\b\s+(?:\w+\s+)?(?:(crawler|mobile|slewing|all terrain|truck) )?cranes?\b/i);
+  const crawler = /\bcrawler cranes?\b/i.test(task);
+  const name = crawler ? 'Crawler crane' : 'Mobile crane';
+  const crew = ', with licensed doggers or riggers';
+  if (sized) {
+    const t = Number(sized[1]);
+    const cls = t > 100 ? 'over 100 t (C0)' : t > 60 ? 'up to 100 t (C1)' : t > 20 ? 'up to 60 t (C6)' : 'up to 20 t (C2)';
+    return { ...item, item: `${name} (${sized[1]} t)`, licence: `Yes, slewing mobile crane ${cls}${crew}` };
+  }
+  if (/\b(frannas?|pick and carry|articulated (?:mobile )?cranes?|non-slewing)\b/i.test(task) && !crawler && !/\b(mobile|slewing|all terrain|tower) cranes?\b/i.test(task)) return { ...item, item: 'Non-slewing mobile crane (Franna or pick and carry)', licence: `Yes, non-slewing mobile crane (CN)${crew}` };
+  if (crawler) return { ...item, item: 'Crawler crane', licence: `Yes, slewing mobile crane class for its capacity (C2 up to 20 t, C6 up to 60 t, C1 up to 100 t, C0 over 100 t)${crew}` };
   return item;
 }
 
@@ -275,7 +304,7 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
   if (/\bby workers holding the fire protection licence or accreditation the state requires\b/.test(allText)) needed.push('Fire protection licence or accreditation, as the state requires');
   if (/\bTraffic controllers who hold\b/.test(allText) && !needed.some((name) => /^Traffic controller/.test(name))) needed.push('Traffic controller accreditation, for anyone on our crew who directs traffic');
   // Dogging or rigging by this crew; where the crane company's crew slings, it holds the licences.
-  if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging)\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText) || /\nErect and connect steel at height\n/.test(`\n${allText}\n`)) needed.push(/\bstructural steel|steel (?:is )?erect\w*|steelwork\b|Erect and connect steel/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : /\bhoist\w* is rigging work\b/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for setting up the hoist (intermediate rigging (RI) for hoists with jibs and self-climbing hoists)' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
+  if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging|slung by licensed (?:doggers|riggers))\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText) || /\nErect and connect steel at height\n/.test(`\n${allText}\n`)) needed.push(/\bstructural steel|steel (?:is )?erect\w*|steelwork\b|Erect and connect steel/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : /\bhoist\w* is rigging work\b/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for setting up the hoist (intermediate rigging (RI) for hoists with jibs and self-climbing hoists)' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
   return [...new Set(needed)];
 }
 
@@ -368,6 +397,8 @@ function addStateLaw(sources, stateName) {
 // Licences named for the state: Queensland's gas work licence is under its own Act.
 // Water mains for a subdivision are the water utility's network, not plumbing on a property.
 function withoutNetworkPlumbing(task, list) {
+  // Trunk and large mains, treatment plants and mine process water are utility or process plant, not plumbing.
+  if (/\b(trunk (?:sewers?|mains?)|\d{3,4} ?mm (?:water |sewer |trunk )?mains?|sewage treatment plants?|wastewater treatment plants?|tailings|mine sites?|quarr(?:y|ies))\b/i.test(task)) return list.filter((name) => !/^Plumbing/.test(name));
   if (!(/\b(water reticulation|reticulation mains?|water mains?|sewer reticulation|sewer rising mains?|rising mains?|stormwater (?:pipes?|drains?|mains?|pits?))\b/i.test(task) && /\b(subdivisions?|estates?|networks?|utility|roads?)\b/i.test(task) && !/\b(?:house|home|lot|property) (?:services?|connections?)\b/i.test(task))) return list;
   return list.filter((name) => !/^Plumbing/.test(name));
 }
@@ -444,9 +475,17 @@ function registersFor(draft, input = {}) {
   const accessExtra = [];
   for (const item of fromAccess) if (!named.includes(item.item) && !maybe.some((other) => other.item === item.item) && !accessExtra.some((other) => other.item === item.item)) accessExtra.push(item);
   const plant = [...plantFor(`${useText}\n${usedInControls.join('\n')}`), ...maybe.filter((item) => !accessExtra.some((other) => other.item === item.item)), ...accessExtra].filter((item) => !(buildingGenerator && item.item === 'Generator')).map((item) => othersLicence(item, allText, task));
+  if (plant.some((item) => /^(Boom-type elevating work platform|Scissor lift)$/.test(item.item))) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Elevating work platform'));
+  // A tower crane job's "the crane" is the tower crane, and a boom pump job's pour is not a line pump.
+  if (plant.some((item) => item.item === 'Tower crane') && !/\b(mobile|crawler|franna|all terrain|slewing) cranes?\b|\bcranes?,|\btwo cranes\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => !/^Mobile crane or crane truck$/.test(item.item)));
+  if (plant.some((item) => item.item === 'Concrete placing boom') && !/\b(line pumps?|concrete pumps?|static pumps?)\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Concrete line pump'));
+  if (plant.some((item) => item.item === 'Rolling impact compactor and tractor') && !/\b(rollers?|plate compactors?)\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Roller or plate compactor'));
+  // A wire saw job is not a floor or wall saw job, and drill rigs are not hand drills.
+  if (plant.some((item) => item.item === 'Wire saw') && !/\b(floor|wall|concrete|road) saws?\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Concrete saw'));
+  if (plant.some((item) => /^(Drill rig|Directional drilling rig)$/.test(item.item)) && !/\b(power tools?|hand drills?|grind\w*|leads?)\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Electric power tools and leads'));
   // A rock breaker is carried by an excavator.
   if (plant.some((item) => item.item === 'Rock breaker (hydraulic hammer)') && /\bexcavator\b/i.test(allText) && !plant.some((item) => item.item === 'Excavator')) plant.push(...PLANT.filter((item) => item.item === 'Excavator').map((item) => othersLicence({ item: item.item, inspection: item.inspection, licence: item.licence }, allText, task)));
-  if (!/\b(punts?|barges?|boats?)\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Work punt or boat'));
+  if (!/\b(punts?|barges?|boats?)\b|\bfrom (?:a |the )pontoons?\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Work punt or boat'));
   // A vehicle hoist being installed is not a personnel or materials hoist.
   if (/\b(vehicle|car) hoists?\b/i.test(task) && !/\b(personnel|materials?|builders?'?) hoists?\b/i.test(task)) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Personnel or materials hoist'));
   // A mobile scaffold or swing stage named in the task is the scaffold used.
