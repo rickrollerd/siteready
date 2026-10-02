@@ -860,7 +860,7 @@ const ACTIVITIES = [
           src('Run leads where they will not be damaged, or protect them. Keep them off the ground on lead stands or insulated hangers, and away from doorways and sharp edges.', `${ESR('s 18')}; ${CODE('s 3')}`),
           src('Circuits have RCD protection as AS/NZS 3012 requires.', ESR('s 140')),
           'Temporary lighting at height is installed from a non-conductive platform ladder or a mobile scaffold, not from a stepladder near an open edge.',
-          src('Fixed RCDs are tested by a competent person immediately after they are connected, then at the intervals AS/NZS 3012 sets for construction sites. A faulty RCD is tagged and withdrawn from use at once.', ESR('s 139, s 140')),
+          src('RCDs and other construction equipment comply with AS/NZS 3012 and are inspected and tested by a competent person at the intervals it sets, with a tag showing the retest-by date. A faulty RCD is tagged and withdrawn from use at once.', ESR('s 140')),
           src('If an RCD trips, the circuit stays off until a competent person finds the cause.', CODE('s 3')),
         ],
       },
@@ -869,7 +869,7 @@ const ACTIVITIES = [
         hazards: ['Unsafe equipment stays in use.'],
         controls: [
           src('Unsafe equipment is disconnected, labelled unsafe, and not reconnected until it is repaired or tested and found safe.', `${ESR('s 17')}; ${CODE('s 3.1')}`),
-          src('Check hired electrical equipment carries the hire company\'s current test tag, no more than 6 months old, and reject it if not.', ESR('s 142')),
+          src('Hired electrical equipment must carry the hire company\'s tag, which is renewed at least every 6 months and shows a retest-by date. Reject it if the tag is missing or the date has passed.', ESR('s 142')),
           src('Find faults with de-energised testing methods first. Any energised testing is done only under the controls for work on or near energised parts.', CODE('s 7.5')),
           'As the work moves, relocate switchboards and leads de-energised, and tell the principal contractor of changes to the construction wiring.',
           src('Use battery tools in place of mains tools where practical.', CODE('s 2.3')),
