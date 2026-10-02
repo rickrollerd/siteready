@@ -140,7 +140,8 @@ const ACTIVITIES = [
       hazards: ['Workers struck by passing vehicles.', 'Vehicles or pedestrians enter the work area.'],
       controls: [
         'Set up traffic control to the approved traffic management plan before work starts, with the road authority\'s approval where needed.',
-        src('The principal contractor manages traffic near the site, or where there is no principal contractor, our supervisor puts the traffic management plan in place. Traffic controllers who hold Queensland traffic controller accreditation direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.', WHS('s 315')),
+        src('The principal contractor manages traffic near the site, or where there is no principal contractor, our supervisor puts the traffic management plan in place.', WHS('s 315')),
+        'Traffic controllers who hold Queensland traffic controller accreditation direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.',
         'Keep work, plant and materials inside the separated work area.',
         src('Footpath or road closures have written approval from the authority that controls the area.', WHS('s 315M')),
         'A physical barrier separates the work area from live traffic, and pedestrians are diverted on a safe, marked route.',
@@ -896,7 +897,7 @@ const ACTIVITIES = [
           src('Run leads where they will not be damaged, or protect them. Keep them off the ground on lead stands or insulated hangers, and away from doorways and sharp edges.', `${ESR('s 18')}; ${CODE('s 3')}`),
           src('Circuits have RCD protection as AS/NZS 3012 requires.', ESR('s 140')),
           'Temporary lighting at height is installed from a non-conductive platform ladder or a mobile scaffold, not from a stepladder near an open edge.',
-          src('A faulty RCD is tagged and withdrawn from use at once.', ESR('s 17')),
+          src('A faulty RCD is disconnected or isolated at once, and is not used again until it is repaired or tested as safe.', ESR('s 17')),
           src('If an RCD trips, the circuit stays off until a competent person finds the cause.', CODE('s 3')),
         ],
       },
@@ -1086,8 +1087,7 @@ const ACTIVITIES = [
       step: 'Install cast-in sleeves and puddle flanges on the deck before the pour',
       hazards: ['A person falls through an opening or penetration.', 'Falling objects from the deck edge.', 'Working among formworkers and reo fixers.'],
       controls: [
-        src('Cover or barricade every penetration as soon as it is formed. Covers withstand a fall onto them and are fixed in place.', WHS('s 306D, s 306F')),
-        src('Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', WHS('s 306F')),
+        src('Cover or barricade every penetration as soon as it is formed. Covers withstand a fall onto them, are fixed in place so they cannot be moved by accident, and are marked as covering a hole.', WHS('s 306D, s 306F')),
         src('Work only inside edge protection installed by others to the regulation. Do not remove or alter it, and report any damage.', WHS('s 306E')),
         src('Barriers or an exclusion zone below the work for falling objects.', WHS('s 55')),
         'Agree access, timing and the order of work with the formwork and reo crews before the pour.',
@@ -2049,7 +2049,7 @@ const ACTIVITIES = [
         { fact: 'fallControl' },
         { fact: 'erectionSequence' },
         src('Follow the designer\'s erection sequence, and brace and secure members as they go up so the structure stays stable.', QCODE('Steel construction', 's 2.8')),
-        src('Prevent falls first: use EWPs or edge protection. Fall arrest only where prevention is not practicable.', WHS('s 306D')),
+        src('Use EWPs or edge protection to prevent falls first. Fall arrest only where prevention is not practicable.', WHS('s 306D')),
         src('Where boom EWPs are used: the harness is attached to the EWP\'s anchor point, not the handrail, and booms of 11 m or more need a licensed operator.', `${QCODE('Managing the risk of falls', 's 5.1')}; ${WHS('schedule 3, schedule 5')}`),
         'A boom-type EWP has a registered design.',
         src('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', WHS('s 80, s 306I')),
@@ -2380,7 +2380,7 @@ const ACTIVITIES = [
       hazards: ['Cutting into live cables, pressurised pipes, gas or refrigerant.', 'Old services fall when their supports are cut.', 'Sharp edges, residues and old insulation (which may contain asbestos or synthetic mineral fibres).'],
       controls: [
         'Before removal, each service is identified and labelled, and isolated at its source: electrical circuits by a licensed electrician, locked out and proved de-energised; water and drainage drained; gas purged by a licensed gas fitter.',
-        'Refrigerant is recovered by a refrigerant handling licence holder before pipework or plant is opened.',
+        { text: 'Refrigerant is recovered by a refrigerant handling licence holder before pipework or plant is opened.', only: 'refrigerantWork' },
         'Services that stay in use are labelled, protected and kept clear of the removal.',
         'Pipework, ducts, cable trays and fittings are supported or lowered under control before their hangers are cut, from platforms set out in the fall controls, with an exclusion zone below.',
         'Lagging and insulation are checked against the asbestos register before they are disturbed.',
@@ -2392,7 +2392,7 @@ const ACTIVITIES = [
   {
     when: 'hardwareFit',
     steps: [{
-      step: 'Fit door and window hardware',
+      step: 'Fit locks, closers and other hardware',
       hazards: ['Cuts and strain from power tools and repetitive fixing.', 'A door swings or falls while hardware is fitted.', 'Dust from drilling.'],
       controls: [
         'Doors are wedged or held while closers, hinges and locks are fitted. Heavy doors are taken off only with two people or a door lifter.',
@@ -3034,8 +3034,8 @@ const ACTIVITIES = [
         src('Generators and tanks are lifted into place by the crane company or moved on skates and rollers.', `${WHS('s 219')}; ${QCODE('Hazardous manual tasks', 's 4.4')}`),
         'Keep generators and tanks under control and never move them over people.',
         src('Generators are isolated by lock-out before work on them, with automatic starting disabled, and each worker fits their own lock.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
-        src('When generators are run for testing, the exhaust is taken outside and the room ventilated so no one breathes diesel exhaust above the exposure standard.', `${WHS('s 49')}; ${QCODE('Managing risks of hazardous chemicals', 's 1.5, s 2.1, s 4.1')}`),
-        src('Noise is kept below 85 dB(A) over 8 hours and 140 dB(C) peak, with hearing protection in signposted areas.', WHS('s 56, s 57, s 58')),
+        { ...src('When generators are run for testing, the exhaust is taken outside and the room ventilated so no one breathes diesel exhaust above the exposure standard.', `${WHS('s 49')}; ${QCODE('Managing risks of hazardous chemicals', 's 1.5, s 2.1, s 4.1')}`), unless: 'generatorTest' },
+        { ...src('Noise is kept below 85 dB(A) over 8 hours and 140 dB(C) peak, with hearing protection in signposted areas.', WHS('s 56, s 57, s 58')), unless: 'generatorTest' },
       ],
     }],
     ppe: ['earMuffs', 'gloveChemical'],
@@ -3301,9 +3301,9 @@ const ACTIVITIES = [
         src('Health monitoring is provided for workers at significant risk from crystalline silica.', `${WHS('s 368, schedule 14')}; ${QCODE('Silica', 's 10, s 10.1')}`),
         src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Wear hearing protection near grinders.', `${WHS('s 56, s 57')}; ${QCODE('Managing noise and preventing hearing loss', 's 2.2, s 5.3')}`),
         src('Vacuum or wet clean dust, never dry sweep.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
-        'Grinding steel throws sparks and hot particles: do it before any solvent-based primer or membrane is opened, keep combustibles clear, and wear a face shield over safety glasses.',
-        'Cut fibre cement by scoring and snapping, or with a saw fitted with on-tool extraction.',
-        src('Reglets are cut into concrete with a saw fitted with water suppression or on-tool extraction, and the written silica assessment covers the reglet cutting.', QCODE('Silica', 's 7.4.1, s 7.4.2')),
+        { text: 'Grinding steel throws sparks and hot particles: do it before any solvent-based primer or membrane is opened, keep combustibles clear, and wear a face shield over safety glasses.', only: 'steelGrind' },
+        { text: 'Cut fibre cement by scoring and snapping, or with a saw fitted with on-tool extraction.', only: 'fibreCement' },
+        { ...src('Reglets are cut into concrete with a saw fitted with water suppression or on-tool extraction, and the written silica assessment covers the reglet cutting.', QCODE('Silica', 's 7.4.1, s 7.4.2')), only: 'regletCut' },
       ],
     }],
     ppe: ['p2', 'earMuffs', 'glassesClear', 'faceShield'],
@@ -3741,7 +3741,7 @@ addAfter(ACTIVITIES[ACTIVITIES.findIndex((item) => item.when === 'formwork') - 1
       step: 'Prepare the ground and set out',
       hazards: ['Striking underground services.', 'Plant strikes a person.', 'An excavation for edge beams, footings or thickened edges collapses, or a person falls in.', 'Dust, noise and vibration from compaction.'],
       controls: [
-        src('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
+        { ...src('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')), unless: 'trench' },
         'Excavators, bobcats and rollers are run by competent operators, checked before each shift, with an exclusion zone and a spotter where people work nearby.',
         src('Boxing out, thickened edges, edge beams and footings are dug no deeper than needed, and battered or benched where the ground needs it.', WHS('s 305')),
         // Where this SWMS has the trench steps, deeper trenches are covered by them.
