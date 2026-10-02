@@ -217,3 +217,17 @@ test('round 4: window installs, merged glass steps, waterproofing and crane lice
   assert.ok(!workFlags('Attend on site during all concrete placement to keep the reo cover.', {}).concrete);
   assert.ok(workFlags('Pizza oven exhaust system including fan, ductwork and lagging.', {}).ductwork);
 });
+
+test('round 5: national sources in every state, scope words read in context, verified citations', () => {
+  const { workFlags } = require('../draft');
+  const { localSource } = require('../citations');
+  assert.equal(localSource('Telecommunications (Cabling Provider) Rules 2025 (Cth) s 1; Work Health and Safety Regulation 2011 (Qld) s 999', 'tas'), 'Telecommunications (Cabling Provider) Rules 2025 (Cth) s 1');
+  assert.ok(!workFlags('Flush plasterboard or fibre cement ceilings.', {}).ictWork);
+  assert.ok(!workFlags('Coring for penetrations. Prior to the energisation of a Building, the coring procedure applies.', {}).isolation);
+  assert.ok(workFlags('Sewer drainage: supply and installation of the sewer/house drainage system.', {}).trench);
+  assert.ok(workFlags('Install and terminate all electronic door locking system cabling.', {}).ictCabling);
+  assert.ok(workFlags('Supply and install automatic sliding doors.', {}).autoDoors);
+  const { ACTIVITIES } = require('../activities');
+  const lines = ACTIVITIES.flatMap((activity) => (activity.steps || []).flatMap((step) => step.controls)).map((item) => (typeof item === 'string' ? item : item.text || ''));
+  assert.ok(!lines.some((line) => /\(s 302, s 306\)/.test(line)));
+});

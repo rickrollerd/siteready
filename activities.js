@@ -936,14 +936,12 @@ const ACTIVITIES = [
         src('Use non-conductive ladders for electrical work.', CODE('s 9.2')),
         src('Extension ladders used for electrical work are no longer than 9.2 m, and are used for access only. Work is done from the platforms set out in the fall controls.', WHS('s 306M')),
         'Risers and shafts are screened or covered at each level. Only the section being worked on is opened, and it is fenced.',
-        src('Restrain tools with lanyards or holders when working near switchboards.', QCODE('Managing electrical risks', 's 7.1')),
-        'Restrain tools with lanyards or holders when working above others.',
+        src('Restrain tools with lanyards or holders when working near switchboards or above others.', QCODE('Managing electrical risks', 's 7.1')),
         src('Where an exposed energised part is within 3 m, de-energise it or fit covers, and use a safety observer where needed.', `${ESR('s 193')}; ${QCODE('Managing electrical risks', 's 6.1, s 7.2')}`),
         'Before anchoring supports into a slab, scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings, and never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval. Other detected services are isolated and confirmed before drilling near them.',
         'Exclusion zone below open risers and work areas for dropped objects.',
         src('Drill anchors with on-tool dust extraction. Anyone still at risk of exposure wears a fit tested respirator (P2 or better).', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`),
         ...SILICA_FOLLOW_UP,
-        'Nearby parts are de-energised before work starts. If they cannot be, the work is planned as energised work with its own controls.',
         'In enclosed areas, use battery or electric plant where practical. Otherwise ventilate, and monitor for exhaust fumes.',
         'Fire rated sealants and mastics for penetrations are used as their safety data sheets set out, with good ventilation and gloves resistant to the product.',
       ],
@@ -1532,7 +1530,7 @@ const ACTIVITIES = [
         src('Insert-type anchors are not used for fall arrest where the load would pull them straight out. Anchors are proof tested.', MODEL('Managing the risk of falls', 's 7.3')),
         'Only the panel opening being worked on is opened, and edge protection or screens are put back before the area is left.',
         src('Tether tools, and keep fixings in closed containers, so nothing can fall. Exclusion zones on the floors below.', WHS('s 55')),
-        src('Where objects could fall onto the street or footpath, work goes ahead only once the principal contractor has a gantry, a closure approved by the authority that controls the area, or a catch platform with perimeter containment screening in place.', WHS('s 315G, s 315M')),
+        src('Where objects could fall onto the street or footpath, work goes ahead only once the principal contractor has the protection the regulation sets for the height of the work and its distance from the boundary: a barricade or hoarding, or for steep angles a gantry, a closure approved by the authority that controls the area, or a catch platform with perimeter containment screening.', WHS('s 315F, s 315G, s 315M')),
         src('Sequence the work so trades are not working above or below each other at the same time.', MODEL('Managing the risk of falls', 's 8.3')),
         src('Stop panel handling when the wind could take control of the panel.', `${MODEL('Managing the risk of falls', 's 3.2')}; ${QCODE('Hazardous manual tasks', 's 3.4, s 4.6')}`),
       ],
@@ -2051,7 +2049,7 @@ const ACTIVITIES = [
         src('Follow the designer\'s erection sequence, and brace and secure members as they go up so the structure stays stable.', QCODE('Steel construction', 's 2.8')),
         src('Prevent falls first, with EWPs or edge protection. Fall arrest only where prevention is not practicable.', WHS('s 306D')),
         src('Where boom EWPs are used: the harness is attached to the EWP\'s anchor point, not the handrail, and booms of 11 m or more need a licensed operator.', `${QCODE('Managing the risk of falls', 's 5.1')}; ${WHS('schedule 3, schedule 5')}`),
-        'The EWP has a registered design.',
+        'A boom-type EWP has a registered design.',
         src('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', WHS('s 80, s 306I')),
         src('Catch platforms or nets. Safety nets are installed by licensed riggers or scaffolders.', QCODE('Managing the risk of falls', 's 7.1, s 7.2')),
         src('Tool lanyards. Static lines are installed by licensed riggers.', WHS('schedule 3')),
@@ -3667,6 +3665,8 @@ addAfter('carpJoinery', {
       ...SILICA_FOLLOW_UP,
       'Adhesives, sealants and sealers are used as their safety data sheets set out, with good ventilation and gloves resistant to the product.',
       'Use power tools with guards in place, with eye and hearing protection.',
+      { text: 'Automatic door operators and tracks are fixed from a platform suited to the height. The mains connection is made by a licensed electrician, and the supply is isolated while the operator is fitted.', only: 'autoDoors' },
+      { text: 'Automatic doors are commissioned with the doorway closed off, and their safety sensors are tested for crush and entrapment before the doorway is opened to people.', only: 'autoDoors' },
     ],
   }],
   ppe: ['gloveGeneral', 'glassesClear'],
@@ -3683,7 +3683,7 @@ addAfter(ACTIVITIES[ACTIVITIES.findIndex((item) => item.when === 'formwork') - 1
       controls: [
         src('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
         'Excavators, bobcats and rollers are run by competent operators, checked before each shift, with an exclusion zone and a spotter where people work nearby.',
-        src('Boxing out, thickened edges, edge beams and footings are dug no deeper than needed, and battered or benched where the ground needs it.', WHS('s 302, s 306')),
+        src('Boxing out, thickened edges, edge beams and footings are dug no deeper than needed, and battered or benched where the ground needs it.', WHS('s 305')),
         // Where this SWMS has the trench steps, deeper trenches are covered by them.
         { ...src('A trench or shaft deeper than 1.5 m is high risk construction work this SWMS does not cover: stop and have the SWMS reviewed before anyone enters it.', WHS('s 291')), unless: 'trench' },
         'Open excavations are barricaded, and people cross only at set crossing points.',
@@ -4164,7 +4164,9 @@ function jobStepsFor(flags, factText, fallback) {
   const handling = middle.find((step) => step.step === 'Handle glass and panels');
   const install = middle.find((step) => step.step === 'Handle and install glass panels');
   if (handling && install) {
-    middle = middle.filter((step) => step !== handling).map((step) => (step === install ? { ...install, hazards: [...new Set([...install.hazards, ...handling.hazards])], controls: [...install.controls, ...handling.controls] } : step));
+    // Only the handling lines the installation step does not already cover (vacuum lifters under a crane, their inspection, wind).
+    const extra = handling.controls.filter((item) => !/^(Use vacuum lifters and glass panel lifters|Team lifts are an interim|Wear cut resistant gloves)/.test(typeof item === 'string' ? item : item.text || ''));
+    middle = middle.filter((step) => step !== handling).map((step) => (step === install ? { ...install, hazards: [...install.hazards, 'A vacuum lifter loses grip.'], controls: [...install.controls, ...extra] } : step));
   }
   // Safety mesh goes in before the sheets are laid over it.
   const mesh = middle.find((step) => step.step === 'Install safety mesh and sarking');

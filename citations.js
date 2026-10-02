@@ -51,7 +51,8 @@ function localSource(source, stateId) {
   if (!source) return '';
   if (stateId === 'qld') return source.split('; ').flatMap(qldCode).join('; ');
   const state = STATE_CITATIONS[stateId];
-  if (!state) return '';
+  // National sources apply everywhere, even where the state's sections are not yet mapped.
+  if (!state) return source.split('; ').filter((part) => NATIONAL.some((pattern) => pattern.test(part))).join('; ');
   const parts = [];
   for (const part of source.split('; ')) {
     if (NATIONAL.some((pattern) => pattern.test(part))) {
@@ -95,6 +96,7 @@ const OUTSIDE_QLD = [
   [/^The principal contractor manages traffic near the site, or where there is no principal contractor, our supervisor puts the traffic management plan in place\. Traffic controllers who hold Queensland traffic controller accreditation/, 'The principal contractor manages traffic near the site, or where there is no principal contractor, our supervisor puts the traffic management plan in place. Traffic controllers who hold the traffic controller accreditation the state\'s road authority requires direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.'],
   [/^Where the scaffold is next to a street, the principal contractor provides the hoarding, gantry or closure the regulation requires,/, 'Where the scaffold is next to a street, the principal contractor provides the hoarding, gantry or closure the local council or road authority requires, and lifts over the footpath happen only with the area closed or a gantry in place.'],
   [/^Security equipment such as CCTV, access control, intercoms and alarms is installed only by licensed security equipment installers\.$/, 'Security equipment such as CCTV, access control, intercoms and alarms is installed by installers holding any security licence or registration the state requires.'],
+  [/^Where objects could fall onto the street or footpath, work goes ahead only once the principal contractor has the protection the regulation sets/, 'Where objects could fall onto the street or footpath, work goes ahead only once the principal contractor has a hoarding, gantry, closure or catch platform in place as the local council or road authority requires.'],
   [/^The boom is not set up or worked over access ways or site sheds unless a 10 kPa gantry protects them\./, 'The boom is not set up or worked over access ways or site sheds unless a gantry designed for the load protects them. The pumping area is signed, and only authorised people enter it.'],
   [/^Every part of the boom and drop hose stays at least 3 m from overhead power lines up to 132 kV/, 'Every part of the boom and drop hose stays outside the safe distance from overhead power lines that the state\'s rules and the line owner set, and the boom is not worked over energised lines. De-energising or re-routing the lines is considered first.'],
 ];
@@ -134,7 +136,7 @@ function localText(text, stateId) {
     .replace(/\bthe electricity entity's\b/g, 'the network operator\'s').replace(/\bthe distribution entity\b/g, 'the network operator').replace(/\bdistribution entity\b/g, 'network operator');
   if (stateId === 'vic') out = out.replace(/\bhazardous chemicals register\b/g, 'register of hazardous substances');
   // The Northern Territory and the ACT are territories.
-  if (stateId === 'nt' || stateId === 'act') out = out.replace(/\bthe state's\b/g, 'the territory\'s').replace(/\bstate's\b/g, 'territory\'s');
+  if (stateId === 'nt' || stateId === 'act') out = out.replace(/\bthe state's\b/g, 'the territory\'s').replace(/\bstate's\b/g, 'territory\'s').replace(/\bthe state (requires|sets|allows)\b/g, 'the territory $1');
   return out;
 }
 
