@@ -4195,6 +4195,73 @@ const ACTIVITIES = [
     ppe: ['p2', 'gloveChemical'],
   },
   {
+    when: 'wallPanels',
+    steps: [{
+      step: 'Fix acoustic panels to the walls',
+      hazards: ['A fall from a ladder or platform fixing high panels.', 'Strain lifting panels.', 'Drilling into hidden cables or pipes.', 'Fibres and dust from cutting panels.'],
+      controls: [
+        'High panels are fixed from a platform ladder or mobile scaffold, not from the top of a stepladder.',
+        'Panels are carried by two people where they are large, and held or propped until fixed.',
+        'Walls are checked for cables and pipes before drilling.',
+        'Panels are cut with a knife or a saw on extraction, with gloves and a P2 respirator where they shed fibres.',
+      ],
+    }],
+    ppe: ['p2'],
+  },
+  {
+    when: 'birdNetting',
+    steps: [{
+      step: 'Install bird netting at height',
+      hazards: ['A fall from the EWP or ladder.', 'Contact with bird droppings and nests.', 'People below struck by tools or fixings.'],
+      controls: [
+        { fact: 'fallControl' },
+        'The net and its cables are fixed from an EWP or scaffold, with the area below closed off.',
+        'Droppings and nests are wetted and removed before fixing, with gloves and a P2 respirator, and hands are washed before eating.',
+        'Fixings are drilled into the structure the netting supplier specifies, and the net is tensioned to its instructions.',
+      ],
+    }],
+    ppe: ['p2', 'gloveGeneral'],
+  },
+  {
+    when: 'spaInstall',
+    steps: [{
+      step: 'Place and connect the spa',
+      hazards: ['The deck or floor fails under the full spa.', 'The spa falls or crushes someone while it is moved.', 'Electric shock near water.', 'Drowning once it is filled.'],
+      controls: [
+        'The deck or slab is checked by an engineer or the deck designer for the weight of the full spa and its occupants before it is placed.',
+        'The spa is moved with trolleys, a crane or enough people for its weight, on a planned route, and set down level.',
+        'The power supply is installed by a licensed electrician, RCD protected and bonded as the wiring rules require.',
+        'Once filled, the spa has its lockable cover fitted, and any pool barrier rules for its depth are met.',
+      ],
+    }],
+  },
+  {
+    when: 'verandahRepair',
+    steps: [{
+      step: 'Prop and repair the verandah',
+      hazards: ['The verandah roof drops while posts or beams are out.', 'A fall from the verandah edge or roof.', 'Dust from rotten or treated timber.'],
+      controls: [
+        { fact: 'temporarySupport' },
+        'The roof is propped each side of the section before a post, beam or rafter is cut out, and the props stay until the new members are fixed.',
+        'Work on the roof sheeting is done from a platform or with edge protection, not from the gutter or a leaning ladder.',
+        'Rotten and treated timber is cut with extraction or a P2 respirator, and offcuts are removed as the work goes.',
+      ],
+    }],
+    ppe: ['p2'],
+  },
+  {
+    when: 'escalatorParts',
+    steps: [{
+      step: 'Replace escalator parts',
+      hazards: ['The escalator starts while someone is working on it.', 'Crushing or entanglement at the drive, steps or handrail.', 'The public walks into the work area.'],
+      controls: [
+        'The escalator is stopped, isolated and locked out by the lift contractor, and each worker fits their own lock.',
+        'The top and bottom landings are barricaded with signs, and people are directed to another route.',
+        'Handrails, steps and parts are replaced to the manufacturer\'s instructions by the lift contractor\'s trained workers, and the escalator is tested before it is handed back.',
+      ],
+    }],
+  },
+  {
     when: 'glassWind',
     steps: [{
       step: 'Handle glass in the wind',
@@ -4900,6 +4967,7 @@ const ACTIVITIES = [
     when: 'deckBuild',
     steps: [
       {
+        unless: 'balconyDeck',
         step: 'Set out and dig post holes',
         hazards: ['Striking buried power, gas, water or sewer services.', 'Strain from digging and lifting posts.'],
         controls: [
@@ -6298,6 +6366,9 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Cut an opening in a load-bearing wall', 'Cut blocks and bricks');
   moveBefore('Remove and fit the vanity', 'Plumbing rough-in and fit-off');
   moveBefore('Mix bagged concrete', 'Place concrete');
+  moveBefore('Operate small earthmoving plant', 'Lay turf');
+  moveBefore('Replace the meter box and consumer mains connection', 'Leave unfinished work safe');
+  moveBefore('Replace the meter box and consumer mains connection', 'Test, connect and commission');
   moveBefore('Install signal or lighting poles, pits and conduits', 'Test, connect and commission');
   moveBefore('Install signal or lighting poles, pits and conduits', 'Leave unfinished work safe');
   moveBefore('Install the battery system', 'Leave unfinished work safe');
