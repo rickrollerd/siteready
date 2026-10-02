@@ -2093,7 +2093,7 @@ function settleFlags(flags, task) {
   if (out.wetLiningStrip && /\bwalls?\b/i.test(task)) { out.plasterSheets = true; out.plasterSanding = true; }
   out.solarLights = /\bsolar\b[^.]{0,20}\b(?:street ?lights?|lights?|lighting|light poles?)\b/i.test(task);
   if (out.solarLights) { out.trench = false; out.trafficSignals = false; out.cablePull = false; out.isolation = false; out.commissioning = false; out.footingHoles = true; }
-  out.railCorridor = /\b(railways?|rail (?:lines?|corridors?|tracks?|reserves?)|train lines?|railway lines?)\b/i.test(task) && !/\blight rail\b/i.test(task);
+  out.railCorridor = out.railCorridor || /\b(railways?|rail (?:lines?|corridors?|tracks?|reserves?)|train lines?|railway lines?)\b/i.test(task) && !/\blight rail\b/i.test(task);
   if (out.railCorridor && !/\b(roads?|streets?|highways?|footpaths?|level crossings?)\b/i.test(task)) out.road = false;
   out.notFibroFence = /\b(chain ?wire|chain ?mesh|cyclone|mesh|pool|steel|colorbond|timber|paling) fenc/i.test(task);
   out.boardwalk = /\bboardwalks?\b/i.test(task);
@@ -2165,7 +2165,6 @@ function settleFlags(flags, task) {
   out.gasRegulator = /\bgas\b[^.]{0,20}\bregulators?\b|\bregulators?\b[^.]{0,20}\bgas\b/i.test(task);
   out.exhaustDuctClean = /\bclean\w*\b[^.]{0,40}\b(?:kitchen )?exhaust (?:ducts?|hoods?|fans?|systems?)\b/i.test(task);
   if (out.exhaustDuctClean) { out.ductwork = false; out.kitchenEquipment = false; }
-  out.tankStand = /\btank stands?\b/i.test(task);
   out.stairInstall = /\b(?:install\w*|build\w*|new)\b[^.]{0,20}\b(?:timber |internal |new )*stair(?:case|s|way)?\b/i.test(task) && /\b(houses?|homes?|dwellings?|timber|townhouses?)\b/i.test(task) && !/\b(steel|concrete|stair ?lifts?|treads? only|carpet)\b/i.test(task);
   if (out.stairInstall) { out.accessSteel = false; out.timberStairs = false; }
   out.portableBuilding = /\b(portable|relocatable|modular|demountable|transportable) (?:classrooms?|buildings?|offices?|homes?|cabins?)\b/i.test(task) && /\b(install\w*|deliver\w*|plac\w*|set\w*|lift\w*|relocat\w*)\b/i.test(task);
@@ -2262,6 +2261,27 @@ function settleFlags(flags, task) {
   out.pumpStationNew = Boolean(/\bpump (?:stations?|wells?)\b/i.test(task) && out.tankPlace && !out.sewerPumpSwap && !out.confined && !/\b(enter\w*|inside|confined)\b/i.test(task));
   if (out.stripOut && /\b(?:19[0-9]\d|200[0-3])s?\b|\bold (?:house|home|unit|building)s?\b/i.test(task)) out.asbestosCheck = true;
   if (out.wetAreaSheets || (out.asbestos && /\bwall sheets?\b/i.test(task))) out.tileRemove = false;
+  // Banks 3 and 4 review rules.
+  out.pumpOpening = /\b(bores?|wells?|pits?|sumps?|tanks?)\b/i.test(task);
+  out.shopfront = Boolean(out.windowInstall && /\bshop ?fronts?\b/i.test(task));
+  out.louvresOnly = Boolean(out.windowInstall && out.louvres && !/\b(windows? frames?|doors?)\b/i.test(task));
+  if (out.louvresOnly && /\b(from inside|internal|inside)\b/i.test(task)) out.glassHandle = false;
+  out.greenRoof = /\b(green roofs?|roof gardens?|roof(?:top)? planters?)\b/i.test(task) || (out.landscapeLift && /\broofs?\b/i.test(task) && !/\bpodium\b/i.test(task));
+  if (out.greenRoof) out.roofAccess = true;
+  out.backflowOnly = Boolean(out.meterInstall && !/\bwater meters?\b|\bmeters?\b/i.test(task) && !/\b(water (?:services?|supply|supplies)|connections?|mains?|incoming)\b/i.test(task));
+  if (out.backflowOnly) out.waterConnection = false;
+  if (/\bfuel (?:lines?|pipes?|pipework)\b/i.test(task) && /\b(install\w*|new|lay\w*)\b/i.test(task)) out.trench = true;
+  if (/\b(cyclone|storm|hail|wind)\b/i.test(task) && /\broofs?\b/i.test(task) && /\b(repair\w*|fix\w*|replac\w*|damaged)\b/i.test(task) && !/\btiles?|tiled|skylights?|membranes?|gutters?\b/i.test(task)) { out.roofStrip = true; out.roof = true; }
+  if (/\bseptic\b/i.test(task) && /\b(upgrad\w*|replac\w*)\b/i.test(task)) { out.septicRemove = true; out.tankPlace = true; }
+  if (out.stoneWall && out.retainingWall) out.timberOnlyWall = true;
+  if (/\b(vinyl|hybrid|laminate) (?:planks?|tiles?)\b|\blvt\b/i.test(task)) out.carpetTiles = true;
+  out.sprinklerOnly = Boolean(out.fireAtHeight && /\bsprinklers?\b/i.test(task) && !/\bhydrants?\b/i.test(task));
+  out.houseRaise = /\b(rais\w*|lift\w*)\b[^.]{0,20}\b(?:the |a )?(?:\w+ )?(?:house|home|queenslander)\b/i.test(task);
+  if (out.paintExternal && /\b(fascias?|eaves|gutters?)\b/i.test(task) && /\b(?:re)?paint\w*\b/i.test(task) && !/\b(replac\w*|install\w*|new)\b[^.]{0,20}\b(?:\w+ )?(gutters?|downpipes?|linings?|fascias?|fascia boards?)\b/i.test(task)) out.gutters = false;
+  out.fasciaOnly = Boolean(out.gutters && /\bfascias?\b/i.test(task) && !/\b(gutters?|downpipes?|linings?|soffits?)\b/i.test(task));
+  if (out.garageDoor === false && /\bcool ?room doors?\b/i.test(task)) out.timberWork = false;
+  if (/\bcool ?room doors?\b/i.test(task)) out.timberWork = false;
+  if (out.floorCoating) out.sealing = false;
   // Bank 10 review rules.
   out.eaveLining = /\b(eaves?|eave linings?|soffits?)\b/i.test(task) && /\b(repair\w*|replac\w*|new|reline\w*)\b/i.test(task) && /\b(linings?|sheets?|fibro|soffits?)\b/i.test(task);
   out.roofRemoveOnly = /\b(?:remov\w*|strip\w*)\b[^.]{0,30}\broof(?:ing)? sheets?\b|\bremov\w*\b[^.]{0,20}\b(?:the )?(?:old )?roof\b/i.test(task) && !/\b(replac\w*|re-?roof\w*|re-?sheet\w*|new (?:roof|sheets?))\b/i.test(task);
@@ -2295,8 +2315,7 @@ function settleFlags(flags, task) {
   out.shaftWall = /\bshaft walls?\b/i.test(task);
   out.fanCoil = /\bfan coil (?:units?)?\b|\bfcus?\b/i.test(task);
   out.timberFenceOld = /\b(?:replac\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |old )?(?:timber|paling) fenc/i.test(task);
-  out.substation = /\bsubstations?\b/i.test(task) && /\bfenc\w*\b/i.test(task);
-  if (out.rampBuild && /\bhandrails?\b/i.test(task) && !/\b(build\w*|construct\w*|new ramps?|concrete)\b/i.test(task)) { out.rampBuild = false; out.fixtures = true; }
+  if (out.rampBuild && /\bhandrails?\b/i.test(task) && !/\b(build\w*|construct\w*|new ramps?|concrete)\b/i.test(task) && !/\b(?:install\w*|build\w*)\b[^.]{0,20}\bramps?\b/i.test(task)) { out.rampBuild = false; out.fixtures = true; }
   out.deckBoardsOnly = Boolean(out.deckReplace && /\b(decking|deck boards?|floor\w*|boards)\b/i.test(task) && !/\b(posts?|frames?|bearers?|joists?|stumps?|footings?|piles?)\b/i.test(task));
   out.noPostHoles = Boolean(out.balconyDeck || out.deckBoardsOnly);
   if (out.siteEstablish && /\btemporary (?:fence )?panels?\b|\btemporary fenc/i.test(task)) out.fenceBuild = false;
