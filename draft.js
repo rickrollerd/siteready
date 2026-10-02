@@ -1819,7 +1819,7 @@ function settleFlags(flags, task) {
   if (out.shedTakeDown) { out.structureDemolition = false; out.demolition = false; }
   // A control panel is mounted, not delivered on skates like a main switchboard.
   off(out.controlPanelInstall && !/\bswitch ?boards?\b/i.test(task), 'boardDelivery');
-  off(out.subBoardInstall, 'boardDelivery');
+  off(out.subBoardInstall && !/\b(?:install\w*|new|deliver\w*) (?:the |a )?(?:new )?(?:main switchboards?|msbs?)\b|\bswitchrooms?\b/i.test(task), 'boardDelivery');
   off(out.rampBuild, 'deckBuild', 'fixtures');
   off(out.lintelReplace, 'masonryMortar', 'openingBrickUp');
   off(out.rockLining && !/\bswales?\b/i.test(task), 'earthworks');
@@ -1861,8 +1861,6 @@ function settleFlags(flags, task) {
   // New brick and block walls involve cutting units.
   if (out.masonryLay && !out.repointing && !out.retainingWall && /\b(lay\w*|build\w*|construct\w*|brick\w* up|new)\b/i.test(task) && /\b(walls?|bricks?|blocks?|brickwork|blockwork)\b/i.test(task)) out.masonryCut = true;
   if (out.masonryLay && out.masonryFooting && !out.masonryFence && /\b(build\w*|construct\w*|new)\b/i.test(task)) out.footingHoles = true;
-  out.stairOnly = Boolean(out.accessSteel && /\bstair\w*\b/i.test(task) && !/\b(ladders?|platforms?|walkways?|mezzanine (?:floors?|platforms?|decks?))\b/i.test(task));
-  off(out.stairOnly, 'fixtures');
   out.upsWork = /\b(ups|uninterruptible|batter(?:y|ies))\b/i.test(task);
   if (/\b(floor joists?|bearers and joists|floor framing|upper floor (?:deck|frame|framing|joists?)|(?:lay|fix|install)\w* (?:the )?(?:sheet |particleboard )?flooring)\b/i.test(task) && /\b(new|build\w*|frame\w*|construct\w*|extension|storey)\b/i.test(task) && !out.subfloorRepair) out.floorFrame = true;
   // A connected battery is tested and commissioned.
@@ -1970,13 +1968,15 @@ function settleFlags(flags, task) {
   // A doorway or lintel in masonry is cut and propped, not a new wall.
   off(out.beamInstall && !/\b(build\w*|lay\w*|brick\w* up|block\w* up|fill\w* in)\b/i.test(task), 'masonryLay');
   // Late rules: these follow every rule above.
+  out.stairOnly = Boolean(out.accessSteel && /\bstair\w*\b/i.test(task) && !/\b(stair ?lifts?|ladders?|platforms?|walkways?|mezzanine (?:floors?|platforms?|decks?))\b/i.test(task));
+  off(out.stairOnly, 'fixtures');
   out.fixturePower = /\b(power|electric\w*|motor\w*|lights?|lighting|heaters?|hand dryers?|fans?|dryers?|powered|automatic)\b/i.test(task);
   if (/\b(automatic|sliding glass|aluminium|glass) (?:sliding )?doors?\b/i.test(task) && !/\b(timber|mdf|joinery|cabinets?|skirtings?|architraves?)\b/i.test(task)) out.timberWork = false;
   out.stairWork = /\b(stairs?|treads?|stairwells?)\b/i.test(task);
   if (/\b(fascias?|eaves|bargeboards?|barge boards?|soffits?)\b/i.test(task) && !/\b(gutters?|roof(?:ing)? sheets?|re-?roof\w*|ridge)\b/i.test(task)) out.roofAccess = false;
   if (out.shedTakeDown) { out.structureDemolition = false; out.demolition = false; }
   off(out.controlPanelInstall && !/\bswitch ?boards?\b/i.test(task), 'boardDelivery');
-  off(out.subBoardInstall, 'boardDelivery');
+  off(out.subBoardInstall && !/\b(?:install\w*|new|deliver\w*) (?:the |a )?(?:new )?(?:main switchboards?|msbs?)\b|\bswitchrooms?\b/i.test(task), 'boardDelivery');
   off((out.floorGrind || out.floorCoating) && out.grindOnly, 'silicaDrill');
   off(out.floorCoating && /\b(stairs?|treads?)\b/i.test(task) && !/\bgrind\w*\b/i.test(task), 'floorGrind');
   if (out.ductwork && /\b(houses?|homes?|dwellings?)\b/i.test(task) && !/\b(apartments?|units?|storeys?)\b/i.test(task)) out.roofSpace = true;
