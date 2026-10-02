@@ -22,6 +22,7 @@ const QLD_CODE_TITLES = {
   'Concrete pumping': 'Concrete pumping Code of Practice 2019 (Qld)',
   'Steel construction': 'Steel construction Code of Practice 2004 (Qld)',
   'Construction work': 'Model Code: Construction work',
+  'Demolition': 'Demolition work Code of Practice 2021 (Qld)',
   'Silica': 'Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 (Qld)',
 };
 const QCODE = (code, section) => `${QLD_CODE_TITLES[code]} ${section}`;
@@ -2403,6 +2404,75 @@ const ACTIVITIES = [
     ppe: ['glassesClear', 'gloveGeneral'],
   },
   {
+    when: 'ceilingGrid',
+    steps: [{
+      step: 'Install suspended grid ceilings',
+      hazards: ['A fall from the mobile scaffold, EWP or platform ladder.', 'Silica dust and noise drilling hanger anchors into the slab.', 'Cutting a post-tensioning tendon or a service when drilling.', 'Neck and shoulder strain from overhead work.', 'Dust and fibres from cutting ceiling tiles.', 'Contact with cables in the ceiling space.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Hangers are fixed from a mobile scaffold, EWP or platform ladder suited to the height, never from the top of a stepladder or from the grid.',
+        'Before drilling into the slab, scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings and never drill within a marked tendon zone.',
+        src('Drill hanger anchors with on-tool extraction, and wear a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`),
+        ...SILICA_FOLLOW_UP,
+        'Cables in the ceiling space are treated as live until the electrician confirms they are isolated. Light fittings and services are not moved by the ceiling crew.',
+        src('Overhead work is broken up with other tasks, and tiles are cut on a bench with a knife or a saw with dust extraction.', MODEL('Hazardous manual tasks', 's 4.7')),
+        'The area below is barricaded while the grid and tiles are installed.',
+      ],
+    }],
+    ppe: ['p2', 'glassesClear', 'earPlugs'],
+  },
+  {
+    when: 'playground',
+    steps: [{
+      step: 'Install playground equipment and softfall',
+      hazards: ['Equipment parts fall or tip while they are lifted and stood.', 'Strain lifting heavy parts.', 'Striking underground services when digging footings.', 'Skin and lung irritation from rubber softfall binders.', 'The public enters the work area.'],
+      controls: [
+        'The work area is fenced off from the public, with signs, until the equipment is complete and inspected.',
+        src('Get the current underground services information before digging footings, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
+        'Heavy parts are lifted with a machine or by two people with lifting aids, and are propped or braced until fixed, to the manufacturer\'s instructions.',
+        'Rubber softfall binders are used as their safety data sheet sets out, with gloves, eye protection and good ventilation. Workers using isocyanate binders have the respiratory protection and health monitoring the data sheet calls for.',
+        'The installed equipment is checked against the manufacturer\'s instructions before the fence comes down.',
+      ],
+    }],
+    ppe: ['gloveChemical', 'glassesClear'],
+  },
+  {
+    when: 'hddBore',
+    steps: [{
+      step: 'Bore under the road or ground with a directional drill',
+      hazards: ['The drill head strikes a buried electrical cable, gas main or other service.', 'Being caught in the rotating drill string or rod handling.', 'Drilling fluid under pressure blows out at the surface.', 'Traffic and the public near the entry and exit pits.', 'Noise from the rig.'],
+      controls: [
+        src('Get the current underground services information before boring, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
+        'Services along and across the bore path are exposed by potholing (vacuum or hand digging) and their depth confirmed before the bore passes them. The bore path is tracked and recorded as it goes.',
+        'Only the trained operator runs the rig. No one stands near the rotating rods, and the rod handler and operator use agreed signals and the rig\'s interlocks.',
+        'Entry and exit pits are fenced, and drilling fluid is contained and disposed of as the principal contractor directs.',
+        'Traffic management is in place where the rig or pits are near the road.',
+        'If a service is struck, stop at once, keep everyone clear, and call the asset owner and 000.',
+      ],
+    }],
+    ppe: ['earMuffs', 'hivis'],
+  },
+  {
+    when: 'structureDemolition',
+    steps: [{
+      step: 'Demolish the structure',
+      hazards: ['The structure collapses unexpectedly or in the wrong direction.', 'Asbestos or lead is disturbed.', 'A live service is struck or cut.', 'Falling debris strikes a worker or the public.', 'An excavator or other demolition plant overturns or strikes a person.', 'Silica dust and noise from breaking masonry and slabs.'],
+      controls: [
+        src('All gas, electricity, water, sewer, telecommunications and other services are disconnected and capped at or outside the building line by the authorities or licensed trades before demolition starts, and confirmed in writing.', QCODE('Demolition', 's 3.8')),
+        src('Asbestos likely to be disturbed is identified before demolition and, so far as is reasonably practicable, removed by a licensed asbestos removalist before demolition starts.', `${WHS('s 451, s 452, s 453')}; ${QCODE('Demolition', 's 3.6, s 4.2')}`),
+        'Demolition is done by a contractor holding any demolition licence the state requires.',
+        src('Where the structure, or a load-bearing part of it, is at least 6 m high, the regulator is given written notice at least 5 days before the work starts.', WHS('s 142')),
+        src('An exclusion zone is fenced and signed around the structure, wide enough that falling or rebounding debris cannot reach anyone outside it. No one enters while demolition is under way.', QCODE('Demolition', 's 4.3')),
+        src('The structure is demolished in the reverse order to its construction, from the roof down, and kept stable at every stage. No one works inside or under it while it is being pulled down.', QCODE('Demolition', 's 4.12')),
+        src('Excavators and other demolition plant have operator protective devices (falling object protection and a seat belt), and only the operator and a spotter in sight of the operator are near them.', QCODE('Demolition', 's 4.12')),
+        src('Debris is removed as the work goes, and is not dropped freely except into a fenced drop zone.', QCODE('Demolition', 's 4.7')),
+        src('Breaking masonry and slabs is processing a crystalline silica substance: water sprays keep dust down, and anyone still at risk wears a fit tested respirator. Hearing protection near breakers and hammers.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2')}`),
+        'Neighbours are told before work starts, and the boundary is protected from debris and dust.',
+      ],
+    }],
+    ppe: ['p2', 'earMuffs', 'hivis'],
+  },
+  {
     when: 'glassWind',
     steps: [{
       step: 'Handle glass in the wind',
@@ -4231,6 +4301,8 @@ function jobStepsFor(flags, factText, fallback) {
     const extra = handling.controls.filter((item) => !/^(Use vacuum lifters and glass panel lifters|Team lifts are an interim|Wear cut resistant gloves)/.test(typeof item === 'string' ? item : item.text || ''));
     middle = middle.filter((step) => step !== handling).map((step) => (step === install ? { ...install, hazards: [...install.hazards, 'A vacuum lifter loses grip.'], controls: [...install.controls, ...extra] } : step));
   }
+  // The whole-structure step covers the general demolition step.
+  if (middle.some((step) => step.step === 'Demolish the structure')) middle = middle.filter((step) => step.step !== 'Demolish');
   // Services are isolated and made safe before anything is demolished.
   const demolish = middle.findIndex((step) => step.step === 'Demolish');
   if (demolish >= 0) {
