@@ -25,7 +25,7 @@ const PLANT = [
   { item: 'Concrete line pump', pattern: /\b(line pumps?|concrete pumps?|pump(?:,|\s+and)?\s+(?:and\s+)?place\w*)\b/i, inspection: 'Pre-start check. Pipes, hoses and clamps checked for wear and damage before use. Inspected by a competent person at least yearly.', licence: 'No. Operator competent' },
   { item: 'Scaffold', pattern: /\bscaffold(?:s|ing)?\b/i, inspection: 'Handover certificate before first use. Inspected by a competent person before use, after an incident that could affect its stability, after repairs or alterations, and at least every 30 days (WHS Reg s 225, scaffolds over 4 m).', licence: 'Yes, for erecting or altering where a fall of more than 4 m is possible (SB, SI or SA)' },
   { item: 'Mobile scaffold', pattern: /\bmobile scaffolds?\b/i, inspection: 'Erected to the manufacturer\'s instructions. Castors locked, guardrails complete, checked before use. Over 4 m: handover certificate and inspections as for a scaffold (WHS Reg s 225).', licence: 'No, under 4 m. Yes (SB) where a person or object could fall more than 4 m' },
-  { item: 'Excavator', pattern: /\b(excavators?|excavat\w* by machine|mini excavators?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
+  { item: 'Excavator', pattern: /\b(excavators?|excavat\w* by machine|mini excavators?|earthmoving plant)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Skid steer or posi-track', pattern: /\b(skid ?steers?|bobcats?|posi-?tracks?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Roller or plate compactor', pattern: /\b(plate compactors?|compactors?|wacker|compaction|(?:ride-on|vibrating|smooth drum|padfoot|road|trench) rollers?|(?:asphalt|bitumen|hot mix|compact\w*)\b[^.]{0,40}\bwith a roller)\b/i, skipIf: /\b(paint\w*|brush\w*|roller doors?)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
   { item: 'Piling rig', pattern: /\b(piling rigs?|cfa rigs?|bored pil\w*)\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent' },
@@ -33,7 +33,7 @@ const PLANT = [
   { item: 'Power trowel', pattern: /\bpower trowels?\b/i, inspection: `${PRESTART} Guards and stop switch checked.`, licence: 'No' },
   { item: 'Concrete saw', pattern: /\b(concrete saws?|saw cut\w*|saw-cut\w*|floor saws?|wall saws?)\b/i, inspection: `${PRESTART} Blade guard in place. Electric saws: ${TEST_TAG}`, licence: 'No' },
   { item: 'Core drill', pattern: /\bcore[- ]?drill\w*\b/i, inspection: TEST_TAG, licence: 'No' },
-  { item: 'Generator', pattern: /\bgenerators?\b/i, inspection: `${PRESTART} Electrical output protected by an RCD. ${TEST_TAG}`, licence: 'No' },
+  { item: 'Generator', pattern: /\bgenerators?\b/i, skipIf: /\b(standby|load shed\w*|load test\w*|operation of (?:the )?generators?|install generators|generators and fuel|run and load test|generator (?:rooms?|sets?))\b/i, inspection: `${PRESTART} Electrical output protected by an RCD. ${TEST_TAG}`, licence: 'No' },
   { item: 'Chainsaw', pattern: /\bchainsaws?\b/i, inspection: `${PRESTART} Chain brake working.`, licence: 'No. Operator competent' },
   { item: 'Oxy-acetylene or gas torch set', pattern: /\b(oxy|acetylene|gas torch\w*|torch-on|torching|brazing|lpg)\b/i, inspection: 'Hoses, regulators and flashback arrestors checked before use.', licence: 'No' },
   { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air|heat weld\w*|blend\w* in welds|welds to)\b/i, inspection: TEST_TAG, licence: 'No' },
@@ -334,7 +334,7 @@ function registersFor(draft, input = {}) {
   const forkliftLines = steps.flatMap((step) => step.controls).filter((line) => /\b(forklifts?|telehandlers?)\b/i.test(line) && !/\b(keep|clear of|away from|exclusion|near|separat\w*)\b/i.test(line));
   // A forklift or telehandler named only in a control line may or may not be used, so its licence is conditional.
   const named = plantFor(`${useText}\n${usedInControls.join('\n')}`).map((item) => item.item);
-  const maybe = plantFor(forkliftLines.join('\n')).filter((item) => /^(Forklift|Telehandler)$/.test(item.item) && !named.includes(item.item)).map((item) => ({ ...item, licence: `${item.licence}, where one is used` }));
+  const maybe = plantFor(forkliftLines.join('\n')).filter((item) => /^(Forklift|Telehandler)$/.test(item.item) && !named.includes(item.item)).map((item) => ({ ...item, licence: /^Yes/.test(item.licence) ? `${item.licence}, where one is used` : `Where one is used: ${item.licence}` }));
   const plant = [...plantFor(`${useText}\n${usedInControls.join('\n')}`), ...maybe].map((item) => othersLicence(item, allText, task));
   const substances = substancesFor(`${task}\n${hazardText}\n${steps.map((step) => step.step).join('\n')}`, (input.facts || {}).safetyDataSheet, steps.flatMap((step) => step.controls).join('\n'));
   let sources = legislationFor([...steps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
