@@ -236,7 +236,7 @@ test('ACT: light rail, and processing crystalline silica material with a power t
   // Hand tools alone do not count.
   assert.ok(!prepareDraft({ state: 'act', task: 'Score and snap plasterboard sheets with a knife.', fallRisk: 'no' }).highRisk.some((item) => /silica/.test(item)));
 
-  const rail = prepareDraft({ state: 'act', task: 'Repair the footpath kerb beside the light rail line.', fallRisk: 'no' });
+  const rail = prepareDraft({ state: 'act', task: 'Repair the concrete footpath kerb beside the light rail line.', fallRisk: 'no' });
   assert.ok(rail.highRisk.some((item) => /including light rail/.test(item)));
 });
 
@@ -300,9 +300,10 @@ test('roof beams are not roofing, and indoor work gets no sunscreen', () => {
   assert.ok(ticked.includes('gloveChemical'));
 });
 
-test('unknown work still gets job steps from the task', () => {
-  const done = draft('Replace a 3m length of fence.');
-  assert.deepEqual(done.jobSteps.map((step) => step.step), ['Before starting', 'Replace a 3m length of fence.', 'Finish and clean up']);
+test('work SiteReady has no job steps for is stood down, not issued with generic text', () => {
+  const done = draft('Reupholster the foyer lounge chairs.');
+  assert.equal(done.kind, 'stand-down');
+  assert.match(done.missing[0], /^Job steps for this work/);
 });
 
 test('a crane company runs the crane unless the subcontractor says it runs its own', () => {
@@ -395,7 +396,7 @@ test('only the line hand and pour crew under a working placing boom, two braces 
   assert.equal(ppe.label, 'P2 respirator (fit tested)');
   assert.ok(ppe.ticked);
   assert.ok(asbestos.jobSteps[0].controls.some((line) => /fit tested to each wearer/.test(line)));
-  assert.ok(!draft('Replace a 3m length of fence.').jobSteps[0].controls.some((line) => /fit tested/.test(line)));
+  assert.ok(!draft('Lay carpet tiles in an office.').jobSteps[0].controls.some((line) => /fit tested/.test(line)));
 });
 
 test('work into a live hospital gets the hospital step, demolition and asbestos controls', () => {

@@ -11,7 +11,7 @@
 const TEST_TAG = 'Inspected, tested and tagged to AS/NZS 3012. Checked for damage before use.';
 const PRESTART = 'Pre-start check each shift. Serviced to the manufacturer\'s instructions.';
 const PLANT = [
-  { item: 'Boom-type elevating work platform', pattern: /\b(boom (?:lifts?|ewps?|type)|boom-type|knuckle booms?|cherry pickers?)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Yes, where the boom length is 11 m or more, measured as the greater of platform height and horizontal reach (WP)' },
+  { item: 'Boom-type elevating work platform', pattern: /\b(boom lifts?|boom ewps?|knuckle booms?|cherry pickers?|articulating booms?)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Yes, where the boom length is 11 m or more, measured as the greater of platform height and horizontal reach (WP)' },
   { item: 'Scissor lift', pattern: /\bscissor lifts?\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'No. Operator trained in the model used' },
   { item: 'Elevating work platform', pattern: /\b(elevating work platforms?|ewps?)\b/i, skipIf: /\b(scissor|boom)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Only for a boom-type platform with a boom length of 11 m or more (WP). No licence for a scissor lift' },
   { item: 'Tower crane', pattern: /\btower cranes?\b/i, inspection: 'Registered item of plant. Pre-erection and commissioning inspections, daily pre-operational check and log book, routine inspections, a yearly inspection if erected for 12 months or more, and a major inspection (WHS Reg s 235).', licence: 'Yes (CT, or CS for a self-erecting tower crane), with licensed doggers or riggers' },
@@ -25,7 +25,7 @@ const PLANT = [
   { item: 'Mobile scaffold', pattern: /\bmobile scaffolds?\b/i, inspection: 'Erected to the manufacturer\'s instructions. Castors locked, guardrails complete, checked before use. Over 4 m: handover certificate and inspections as for a scaffold (WHS Reg s 225).', licence: 'No, under 4 m. Yes (SB) where a person or object could fall more than 4 m' },
   { item: 'Excavator', pattern: /\b(excavators?|excavat\w* by machine|mini excavators?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Skid steer or posi-track', pattern: /\b(skid ?steers?|bobcats?|posi-?tracks?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
-  { item: 'Roller or plate compactor', pattern: /\b(rollers?|plate compactors?|compactors?|wacker)\b/i, skipIf: /\bpaint rollers?\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
+  { item: 'Roller or plate compactor', pattern: /\b(plate compactors?|compactors?|wacker|compaction|(?:ride-on|vibrating|smooth drum|padfoot|road|trench) rollers?)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
   { item: 'Piling rig', pattern: /\b(piling rigs?|cfa rigs?|bored pil\w*)\b/i, inspection: 'Daily pre-start check and the rig\'s log book.', licence: 'No. Operator competent' },
   { item: 'Concrete truck', pattern: /\bconcrete trucks?\b/i, inspection: 'The supplier\'s pre-start check.', licence: 'Truck driver\'s licence' },
   { item: 'Power trowel', pattern: /\bpower trowels?\b/i, inspection: `${PRESTART} Guards and stop switch checked.`, licence: 'No' },
@@ -34,8 +34,19 @@ const PLANT = [
   { item: 'Generator', pattern: /\bgenerators?\b/i, inspection: `${PRESTART} Electrical output protected by an RCD. ${TEST_TAG}`, licence: 'No' },
   { item: 'Chainsaw', pattern: /\bchainsaws?\b/i, inspection: `${PRESTART} Chain brake working.`, licence: 'No. Operator competent' },
   { item: 'Oxy-acetylene or gas torch set', pattern: /\b(oxy|acetylene|gas torch\w*|torch-on|torching|brazing|lpg)\b/i, inspection: 'Hoses, regulators and flashback arrestors checked before use.', licence: 'No' },
-  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\bvinyl seams?\b/i, inspection: TEST_TAG, licence: 'No' },
+  { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\b(vinyl|seams?|hot air)\b/i, inspection: TEST_TAG, licence: 'No' },
   { item: 'Nail gun', pattern: /\bnail guns?\b/i, inspection: 'Checked before use. Single shot trigger.', licence: 'No' },
+  { item: 'Air compressor', pattern: /\b(compressed air|air compressors?|compressors?)\b/i, inspection: `${PRESTART} Hoses and couplings checked and restrained.`, licence: 'No' },
+  { item: 'Concrete vibrator', pattern: /\bvibrators?\b/i, inspection: TEST_TAG, licence: 'No' },
+  { item: 'Trench shield or shoring', pattern: /\b(trench shields?|trench box\w*|shoring|shored)\b/i, inspection: 'Installed to the manufacturer\'s or engineer\'s design, and checked by a competent person frequently, including before each shift and after rain.', licence: 'No. Installed by competent people' },
+  { item: 'Dewatering pump', pattern: /\b(dewater\w*|pump out water|pumps? (?:the )?water)\b/i, inspection: `${PRESTART} ${TEST_TAG}`, licence: 'No' },
+  { item: 'Vacuum excavation unit', pattern: /\b(vacuum excavat\w*|vacuum system|non-destructive digging|hydro ?vac\w*)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
+  { item: 'Tipper or dump truck', pattern: /\b(tippers?|dump trucks?|haul trucks?|trucks? (?:cart|haul)\w*|carted by truck)\b/i, inspection: PRESTART, licence: 'Truck driver\'s licence' },
+  { item: 'Gas detector', pattern: /\b(gas detectors?|gas monitor\w*|atmospheric? (?:testing|monitor\w*)|test(?:ed)? (?:the )?atmosphere|monitor the atmosphere)\b/i, inspection: 'Calibrated to the manufacturer\'s instructions and bump tested before use.', licence: 'No. User trained' },
+  { item: 'Lifting gear (slings, chains, shackles)', pattern: /\b(slings?|slung|shackles?|lifting gear|lifting chains?)\b/i, inspection: 'Tagged with its working load limit, inspected before each use and periodically by a competent person. Damaged gear is withdrawn.', licence: 'No. Slinging loads is dogging or rigging work' },
+  { item: 'Stump grinder', pattern: /\bstump(?:s)? (?:grind\w*|removal)|stump grinders?\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No. Operator competent' },
+  { item: 'Post hole auger', pattern: /\b(augers?|post holes?)\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No' },
+  { item: 'Cable winch or puller', pattern: /\b(winch\w*|cable pull\w*|pull cables?)\b/i, inspection: `${PRESTART} Guards and stop control working.`, licence: 'No' },
   { item: 'Ladders', pattern: /\bladders?\b/i, inspection: 'Industrial rated, at least 120 kg. Checked before each use.', licence: 'No' },
   { item: 'Electric power tools and leads', pattern: /\b(power tools?|grinders?|drills?|drop saws?|circular saws?|leads?)\b/i, inspection: TEST_TAG, licence: 'No' },
 ];
@@ -43,16 +54,19 @@ const PLANT = [
 // Hazardous substances that commonly come with the work. The product names and
 // quantities are the user's to fill in.
 const SUBSTANCES = [
-  ['Paints and coatings', /\b(paints?|painting|coatings?|enamels?)\b/i],
+  ['Paints and coatings', /\b(paint\w*|coatings?|enamels?)\b/i],
   ['Solvents and thinners', /\b(solvents?|thinners?|turps)\b/i],
-  ['Adhesives', /\b(adhesives?|glues?)\b/i],
+  ['Adhesives', /\b(adhesives?|glues?|joinery|cabinets?|vinyl|carpet)\b/i],
+  ['Wood dust (MDF and hardwood)', /\b(mdf|timber|wood\w*|particleboard|hardwood|joinery|cabinets?)\b/i],
   ['Sealants, mastics and silicone', /\b(sealants?|mastics?|silicone)\b/i],
-  ['Waterproofing membranes and primers', /\b(membranes?|waterproof\w*)\b/i],
-  ['Epoxy and two-part products', /\b(epoxy|two-part|two part|2-pack)\b/i],
-  ['Cement, concrete, grout and mortar', /\b(cement|concrete|grout|mortar|render)\b/i],
-  ['Curing compounds and form release agents', /\b(curing compounds?|form oil|release agents?)\b/i],
+  ['Waterproofing membranes and primers', /\b(waterproofing membranes?|liquid membranes?|torch-on|membrane (?:primers?|rolls?)|apply\w* [^.]{0,40}membranes?|waterproof(?:ing)? (?:to|the|wet|balcon))/i],
+  ['Epoxy, resins and two-part products', /\b(epoxy|resins?|two-part|two part|2-pack)\b/i],
+  ['Cement, concrete, grout and mortar', /\b(cement|wet concrete|concrete (?:pour|plac|finish|truck)\w*|pour\w*|grout|mortar|render|core fill\w*)\b/i],
+  ['Plaster, jointing and setting compounds', /\b(plaster\w*|jointing|setting compounds?|cornices?|set(?:ting)? and sand\w*)\b/i],
+  ['Synthetic mineral fibres (insulation)', /\b(insulation|glasswool|glass wool|batts|rockwool)\b/i],
+  ['Curing compounds and form release agents', /\b(curing compounds?|cur(?:e|ing) (?:the )?concrete|form oil|release agents?|formwork|form ply)\b/i],
   ['PVC primer and solvent cement', /\b(solvent cement|pvc primer)\b/i],
-  ['Fuels (diesel, petrol)', /\b(diesel|petrol|fuel|generators?)\b/i],
+  ['Fuels (diesel, petrol)', /\b(diesel|petrol|fuel\w*|refuel\w*|generators?|chainsaws?|excavators?)\b/i],
   ['Gases (LPG, acetylene, oxygen)', /\b(lpg|acetylene|oxy\w*|gas cylinders?|brazing|torch\w*)\b/i],
   ['Refrigerants', /\brefrigerants?\b/i],
   ['Cleaning chemicals', /\b(cleaning chemicals?|detergents?|acid wash\w*|cleaning products?)\b/i],
@@ -64,14 +78,17 @@ const SUBSTANCES = [
 const QUALIFICATIONS = [
   ['General construction induction (white card)', /./],
   ['Site specific induction', /./],
-  ['Electrical work licence (electrical mechanic)', /\b(electrical work|electrician|cabling|switchboards?|fit[- ]off|terminations?|wiring)\b/i],
-  ['Plumbing and drainage licence', /\b(plumb\w*|drainage|sanitary|sewer|hot water)\b/i],
+  ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|fit[- ]off|terminations?|wiring|cabling|power points?|lighting)\b/i],
+  ['Plumbing and drainage licence', /\b(plumbing|plumber|drainage|sewer\w*|hot water|water supply|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
   ['Refrigerant handling licence (ARC)', /\brefrigerant\b/i],
   ['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)', /\basbestos\b/i],
   ['Confined space entry training', /\bconfined spaces?\b/i],
-  ['Crystalline silica training (VET accredited or regulator approved)', /\b(silica|crystalline)\b/i],
+  ['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk', /\bsilica dust\b/i],
   ['Working at heights and harness training', /\b(harness|travel restraint|fall arrest)\b/i],
   ['Traffic controller accreditation', /\btraffic controllers?\b/i],
+  ['Rescue and resuscitation (low voltage rescue and CPR), current', /\b(rescue and resuscitation|safety observer)\b/i],
+  ['Chainsaw operator competency', /\bchainsaws?\b/i],
+  ['Commercial operator licence, where powered ground spraying of herbicide is done in a regulated area', /\b(herbicides?|weed ?(?:spray|kill)\w*)\b/i],
   ['Pest management licence and QBCC termite licence', /\b(termit\w*)\b/i],
   ['Hot work permit trained', /\bhot work\b/i],
 ];
@@ -89,18 +106,19 @@ const LIKELIHOOD = { 5: 'Almost certain', 4: 'Likely', 3: 'Possible', 2: 'Unlike
 const CONSEQUENCE = { 5: 'Catastrophic', 4: 'Major', 3: 'Moderate', 2: 'Minor', 1: 'Negligible' };
 
 // How bad the worst hazard in a step could be.
-const CATASTROPHIC = /\b(falls?|falling|collapse\w*|buried|engulf\w*|electric shock|electrocut\w*|energised|struck by|strikes? a person|crush\w*|overturn\w*|rolls? over|drown\w*|asphyxi\w*|explosion|explod\w*|oxygen|toxic|tips? or falls|load falls|swings? into)\b/i;
+const CATASTROPHIC = /\b(energis\w*|live (?:cables?|parts?|electrical)|electric\w* shock|unsafe equipment|start\w* without warning|rotating parts?|entangle\w*|(?:falls?|falling) (?:from|into|through|off|down)|fall of more|from height|collapse\w*|fails? during|failure|strik\w* (?:underground |buried |live |existing )?(?:services?|cables?|gas)|buried|engulf\w*|electric shock|electrocut\w*|energised|struck by|strikes? a person|crush\w*|overturn\w*|rolls? over|drown\w*|asphyxi\w*|explosion|explod\w*|oxygen|toxic|tips? or falls|load falls|swings? into)\b/i;
 const MAJOR = /\b(silica|asbestos|amputat\w*|burns?|fire|hearing|isocyanates?|cancer|fumes?|vapour|hose whip|burst|kickback|impalement|chemical)\b/i;
 const MODERATE = /\b(cuts?|strain\w*|back|manual|vibration|noise|dust|knee|eyes?|skin|heat|sun|flying)\b/i;
 // Controls that change the hazard itself, rather than relying on people.
-const ENGINEERING = /\b(edge protection|guardrails?|guards?|barricad\w*|exclusion zones?|shor\w*|bench\w*|batter\w*|extraction|wet (?:cutting|methods?)|water suppression|isolat\w*|de-?energis\w*|locked out|covers?|scaffolds?|working platforms?|elevating work platforms?|scissor lifts?|mechanical aids?|trolleys?|lifting aids?|ventilat\w*|rcds?|interlock\w*|gantr\w*)\b/i;
+const ENGINEERING = /\b(edge protection|guardrails?|guards?|barricad\w*|exclusion zones?|shor\w*|bench\w*|batter\w*|extraction|wet (?:cutting|methods?)|water suppression|isolat\w*|de-?energis\w*|locked out|covers?|scaffolds?|working platforms?|elevating work platforms?|scissor lifts?|ventilat\w*|rcds?|interlock\w*|gantr\w*)\b/i;
 
 function consequenceOf(hazards) {
   const text = hazards.join(' ');
   if (CATASTROPHIC.test(text)) return 5;
   if (MAJOR.test(text)) return 4;
   if (MODERATE.test(text)) return 3;
-  return 2;
+  // Unmatched hazards are rated moderate for the supervisor to confirm, not played down.
+  return 3;
 }
 
 function rating(likelihood, consequence) {
@@ -119,11 +137,21 @@ function riskFor(step) {
   return { before: rating(before, consequence), after: rating(Math.min(after, before), consequence) };
 }
 
+// Plant operated or erected by others: the licence belongs to them.
+function othersLicence(item, allText, task) {
+  if (/crane/i.test(item.item) && /\bcrane company\b/i.test(allText)) return { ...item, licence: `Held by the crane company's operator and crew: ${item.licence.replace(/^Yes,?\s*/, '')}` };
+  if (item.item === 'Scaffold' && !/\b(erect\w*|dismantl\w*|alter\w*|build\w*)\b[^.]{0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task)) return { ...item, licence: 'Erected and altered only by a licensed scaffolder (SB, SI or SA) where a fall of more than 4 m is possible. Our crew uses it and does not alter it' };
+  return item;
+}
+
 function plantFor(text) {
   const found = [];
   for (const entry of PLANT) {
     if (!entry.pattern.test(text)) continue;
-    if (entry.skipIf && entry.skipIf.test(text.match(entry.pattern)[0])) continue;
+    // A skip applies to the words around the match, such as paint rollers or vinyl seam welding.
+    const match = text.match(entry.pattern);
+    if (entry.skipIf && entry.skipIf.test(text.slice(Math.max(0, match.index - 20), match.index + match[0].length + 20))) continue;
+    if (entry.item === 'Scaffold' && !/\bscaffold/i.test(text.replace(/\bmobile scaffold\w*/gi, ''))) continue;
     if (entry.item === 'Elevating work platform' && found.some((item) => /elevating work platform|Scissor lift/.test(item.item))) continue;
     found.push({ item: entry.item, inspection: entry.inspection, licence: entry.licence });
   }
@@ -135,23 +163,34 @@ function substancesFor(text, safetyDataSheet) {
   return { items: found, note: safetyDataSheet || '' };
 }
 
-function qualificationsFor(text, plant) {
-  const needed = QUALIFICATIONS.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
+// Trade licences come from the task itself, not from controls that mention other
+// trades' work. Training for a hazard comes from the hazards in the steps.
+const TASK_LICENCES = /^(Electrical work licence|Plumbing and drainage licence|Refrigerant handling|Licensed asbestos|Pest management|Traffic controller|Chainsaw|Commercial operator)/;
+
+function qualificationsFor(taskText, hazardText, allText, plant, highRisk = []) {
+  const needed = QUALIFICATIONS.filter(([name, pattern]) => {
+    if (/^Confined space/.test(name)) return highRisk.some((item) => /confined space/i.test(item));
+    if (/harness/.test(name)) return /\b(use (?:a )?(?:harness|travel restraint)|fall arrest is used|harness is attached|travel restraint is installed)\b/i.test(allText);
+    return pattern.test(TASK_LICENCES.test(name) ? taskText : /silica|Hot work/.test(name) ? hazardText : allText);
+  }).map(([name]) => name);
   for (const item of plant) {
-    if (/^Yes/.test(item.licence)) needed.push(`High risk work licence: ${item.item.toLowerCase()} (${item.licence.split('. ')[0].replace(/^Yes,?\s*/, '')})`);
+    if (/^Yes/.test(item.licence)) needed.push(`High risk work licence: ${item.item.toLowerCase()} (${item.licence.split('. ')[0].replace(/^Yes,?\s*/, '').replace(/^\((.*)\)$/, '$1')})`);
   }
-  if (/\b(dogg\w*|slung|sling\w*|rigg\w*)\b/i.test(text)) needed.push('High risk work licence: dogging or rigging (DG, RB, RI or RA)');
+  // Dogging or rigging by this crew; where the crane company's crew slings, it holds the licences.
+  if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging)\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText)) needed.push(/\bstructural steel|steel erect\w*|steelwork\b/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
   return [...new Set(needed)];
 }
 
-function emergencyFor(text, input, highRisk) {
+function emergencyFor(text, input, highRisk, plant = []) {
+  const ewp = plant.some((item) => /elevating work platform|Scissor lift/.test(item.item));
   const rows = [];
   rows.push({ type: 'Emergency', equipment: 'Call 000. Site emergency procedure and muster point', detail: input.musterPoint || '' });
   rows.push({ type: 'Fire', equipment: /\b(hot work|weld\w*|torch\w*|brazing|grinding|oxy|lpg|electric\w*)\b/i.test(text) ? 'Fire extinguisher suited to the hazard (dry powder or CO2 near electrical equipment)' : 'Fire extinguisher', detail: '' });
   rows.push({ type: 'Injury', equipment: `First aid kit${input.firstAider ? `. First aider: ${input.firstAider}` : '. First aider: ____'}`, detail: input.hospital ? `Nearest hospital: ${input.hospital}` : '' });
   if (highRisk.some((item) => /falling more than/i.test(item)) || /\b(harness|elevating work platforms?|ewps?|boom lifts?)\b/i.test(text)) {
-    rows.push({ type: 'Work at height', equipment: 'Rescue plan for a person stuck or suspended at height (EWP ground controls, rescue equipment)', detail: '' });
+    rows.push({ type: 'Work at height', equipment: ewp ? 'Rescue plan for a person stuck or suspended at height, including the EWP\'s ground controls and rescue equipment' : 'Rescue plan for a person who falls or is injured at height, including from an edge, opening or scaffold, and for a person suspended in a harness where harnesses are used', detail: '' });
   }
+  if (highRisk.some((item) => /energised electrical/i.test(item)) || /\b(electric shock|energised parts?|live cables?)\b/i.test(text)) rows.push({ type: 'Electric shock or arc flash', equipment: 'Isolate the supply before touching the person. Low voltage rescue kit, CPR and defibrillator (AED), burns first aid', detail: '' });
   if (highRisk.some((item) => /trench|shaft/i.test(item))) rows.push({ type: 'Trench', equipment: 'Rescue plan for a trench collapse (Excavation work Code of Practice s 3.8). No one enters an unsupported trench to rescue', detail: '' });
   if (highRisk.some((item) => /confined space/i.test(item))) rows.push({ type: 'Confined space', equipment: 'Rescue plan and equipment, started from outside the space', detail: '' });
   if (/\b(chemicals?|solvents?|cement|epoxy|acid)\b/i.test(text)) rows.push({ type: 'Chemical splash', equipment: 'Eye wash and running water, and the safety data sheets', detail: '' });
@@ -176,17 +215,48 @@ function legislationFor(lines) {
   };
 }
 
+// Queensland codes and Acts that apply because of the work itself, whether or
+// not a step cites them.
+const QLD_SOURCES = [
+  [(d) => d.highRisk.some((item) => /falling more than/i.test(item)), 'Managing the risk of falls at workplaces Code of Practice 2021 (Qld)'],
+  [(d) => d.highRisk.some((item) => /trench|shaft/i.test(item)) || d.plant.some((p) => /Excavator|Trench shield/.test(p.item)), 'Excavation work Code of Practice 2021 (Qld)'],
+  [(d) => d.plant.some((p) => /Concrete (?:placing boom|line pump)/.test(p.item)), 'Concrete pumping Code of Practice 2019 (Qld)'],
+  [(d) => d.plant.some((p) => !/Ladders|Electric power tools/.test(p.item)), 'Managing risks of plant in the workplace Code of Practice 2021 (Qld)'],
+  [(d) => d.hazardText.match(/\b(strain|manual|lifting|carry\w*|kneel\w*|repetit\w*|awkward)\b/i), 'Hazardous manual tasks Code of Practice 2021 (Qld)'],
+  [(d) => d.hazardText.match(/\bnoise\b/i), 'Managing noise and preventing hearing loss at work Code of Practice 2021 (Qld)'],
+  [(d) => d.substances.items.length, 'Managing risks of hazardous chemicals in the workplace Code of Practice 2021 (Qld)'],
+  [(d) => d.hazardText.match(/\bsilica\b/i), 'Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 (Qld)'],
+  [(d) => d.highRisk.some((item) => /confined space/i.test(item)), 'Confined spaces Code of Practice 2021 (Qld)'],
+  [(d) => d.plant.some((p) => /Scaffold/.test(p.item)), 'Scaffolding Code of Practice 2021 (Qld)'],
+];
+
+function addQldSources(sources, d) {
+  const codes = new Set(sources.codes);
+  for (const [applies, title] of QLD_SOURCES) if (applies(d)) codes.add(title);
+  const legislation = new Set(['Work Health and Safety Act 2011 (Qld)', ...sources.legislation]);
+  if (/\b(electrical work|electricians?|energised|switchboards?|wiring|cabling)\b/i.test(d.text)) legislation.add('Electrical Safety Act 2002 (Qld)');
+  return { legislation: [...legislation].sort(), codes: [...codes].sort() };
+}
+
 function registersFor(draft, input = {}) {
   const steps = draft.jobSteps || [];
-  const stepText = steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]).join('\n');
-  const text = `${draft.task || ''}\n${stepText}`;
-  const plant = plantFor(text);
+  const task = draft.task || '';
+  const hazardText = steps.flatMap((step) => step.hazards).join('\n');
+  const allText = `${task}\n${steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]).join('\n')}`;
+  // Plant the crew uses: named in the task, the answers and controls table, the
+  // step names or the hazards, not every control line that mentions plant to keep
+  // clear of.
+  const useText = `${task}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText}`;
+  const plant = plantFor(useText).map((item) => othersLicence(item, allText, task));
+  const substances = substancesFor(`${task}\n${hazardText}\n${steps.map((step) => step.step).join('\n')}`, (input.facts || {}).safetyDataSheet);
+  let sources = legislationFor([...steps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
+  if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant, substances, hazardText, text: allText });
   return {
     plant,
-    substances: substancesFor(text, (input.facts || {}).safetyDataSheet),
-    qualifications: qualificationsFor(text, plant),
-    emergency: emergencyFor(text, input, draft.highRisk || []),
-    sources: legislationFor([...steps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]),
+    substances,
+    qualifications: qualificationsFor(task, hazardText, allText, plant, draft.highRisk || []),
+    emergency: emergencyFor(allText, input, draft.highRisk || [], plant),
+    sources,
     // Before starting is checks and briefings, not a work step, so it is not rated.
     jobSteps: steps.map((step) => ({ ...step, risk: step.step === 'Before starting' ? null : riskFor(step) })),
   };

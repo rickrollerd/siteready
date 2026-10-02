@@ -55,7 +55,7 @@ const BEFORE = {
 // Controls added to Before starting for some kinds of work.
 const BEFORE_EXTRA = [
   { when: 'ptSlab', text: 'Check the post-tensioning drawings and scan the slab before drilling or fixing into a post-tensioned slab.' },
-  { when: 'respirator', text: src('Tight-fitting respirators are fit tested to each wearer before use and at least once a year, for the make and model they wear. Wearers are clean shaven where the mask seals, and fit check the respirator each time they put it on.', QCODE('Silica', 's 7.6.2')) },
+  { when: 'respirator', text: 'Tight-fitting respirators are fit tested to each wearer before use and at least once a year, for the make and model they wear. Wearers are clean shaven where the mask seals, and fit check the respirator each time they put it on.' },
   { when: 'electricalWork', text: src('Electrical work is done or supervised only by licensed electrical workers, for a licensed electrical contractor.', `${ESA('s 55, s 56')}`) },
   { when: 'electricalWork', text: src('Apprentices are supervised at all times by a licensed electrical worker. In their first 6 months they do not work where they could contact a live low voltage exposed part.', ESR('s 307')) },
   { when: 'electricalWork', text: src('Everyone who performs or helps in performing electrical work is competent in rescue and resuscitation.', ESR('s 211')) },
@@ -3766,7 +3766,9 @@ function jobStepsFor(flags, factText, fallback) {
   let found = ACTIVITIES.filter((activity) => flags[activity.when]);
   const replaced = new Set(found.flatMap((activity) => activity.replaces || []));
   found = found.filter((activity) => !replaced.has(activity.when));
-  let middle = found.length ? found.flatMap((activity) => activity.steps) : [fallback];
+  // With no kind of work recognised, the task itself is the only step: marked so the
+  // draft is stood down rather than issued with no real hazards or controls.
+  let middle = found.length ? found.flatMap((activity) => activity.steps) : [{ ...fallback, fallback: true }];
   // Work done inside a confined space happens before the permit is closed.
   const close = middle.filter((step) => step.step === 'Leave and close up');
   middle = [...middle.filter((step) => step.step !== 'Leave and close up'), ...close];
@@ -3790,6 +3792,7 @@ function jobStepsFor(flags, factText, fallback) {
   // Post-tensioning checks apply only where the task is on post-tensioned slabs.
   const pt = (line) => (flags.ptSlab ? line : line.replace(/a post-tensioning tendon or /gi, '').split(/(?<=\.)\s+(?=[A-Z])/).filter((part) => !/post-tension|tendon/i.test(part)).join(' '));
   return steps.map((step) => ({
+    ...(step.fallback ? { fallback: true } : {}),
     step: step.step,
     hazards: step.hazards.map(pt).filter(Boolean),
     controls: step.controls.filter((item) => !item.only || flags[item.only]).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean),
