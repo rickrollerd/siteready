@@ -187,7 +187,7 @@ test('other states: their own Act, their own sections in register notes, and no 
   // A Queensland section maps to the state's own, or is left out where it has not been matched.
   assert.match(localNote('Inspected to the manufacturer\'s instructions (WHS Reg s 213).', 'wa'), /\(Work Health and Safety \(General\) Regulations 2022 \(WA\) r 213\)/);
   assert.equal(localNote('Inspected to the manufacturer\'s instructions (WHS Reg s 213).', 'nsw'), 'Inspected to the manufacturer\'s instructions.');
-  assert.ok(!/Queensland/.test(localText('The principal contractor manages traffic near the site, or where there is no principal contractor, our supervisor puts the traffic management plan in place. Traffic controllers who hold Queensland traffic controller accreditation direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.', 'act')));
+  assert.ok(!/Queensland/.test(localText('Traffic controllers who hold Queensland traffic controller accreditation direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.', 'act')));
 });
 
 test('licences and steps follow the work, not words around it', () => {
@@ -257,4 +257,15 @@ test('round 7: removing old services, door hardware, generator testing and citat
   const draft = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'electrical', task: 'Operation of generators, including load shedding and load bank testing of the switchboards.', facts: { isolationProcedure: 'Isolated, locked and tested.', energisedWork: 'testing', safetyDataSheet: 'Diesel SDS.' } });
   assert.ok(draft.highRisk.some((item) => /energised/i.test(item)));
   assert.ok(!draft.plant.some((item) => item.item === 'Generator'));
+});
+
+test('round 8: licences from the work itself, and lines only where the work has them', () => {
+  const { workFlags } = require('../draft');
+  const fibre = prepareDraft({ state: 'nt', fallRisk: 'no', residential: 'no', trade: 'communications', task: 'Fire Detection - Fibre optic cabling and terminations.' });
+  assert.ok(!fibre.qualifications.some((item) => /Electrical/.test(item)));
+  assert.ok(!workFlags('Identifying, labelling, and protecting all plant, pipework, cabling and ductwork to be demolished and removed from site.', {}).demolition);
+  assert.ok(!workFlags('Install all architectural door and window hardware. Tape all glazing to windows and doors.', {}).glassHandle);
+  assert.ok(!workFlags('Clean, grind and prepare the concrete pool prior to membrane installation.', {}).fibreCement);
+  const forklift = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Unload and move formwork ply around the deck. Forklifts are kept clear of the pour area.' });
+  assert.ok(!forklift.qualifications.some((item) => /\(\(/.test(item)));
 });
