@@ -503,3 +503,28 @@ test('banks 1 to 4 verification: step order, main work and lines for the job', (
   // Night work has no sun line.
   assert.doesNotMatch(text('Paint road line markings on a highway at night with traffic control.', 'painting', 'nsw'), /Sun and heat/);
 });
+
+test('banks 4 and 5 verification: the work named, in order, with its own plant and lines', () => {
+  const base = { silicaControls: 'Wet cutting and on-tool extraction.', fallControl: 'Work above 2 m is done from an EWP with guardrails.', safetyDataSheet: 'Safety data sheets for each product are at the work area.', spaceAssessment: 'notConfined', asbestosArrangement: 'Asbestos register sighted. Our crew removes the asbestos under our asbestos removal licence.', isolationProcedure: 'Isolated, locked and tested.', energisedWork: 'none', trenchSupport: 'Battered to the engineer\'s design.', pressureTesting: 'Tested with nitrogen to the standard.', temporarySupport: 'Props to the engineer\'s design.', hotWorkPermit: 'Hot work permit with a fire watch.' };
+  const draft = (task, trade = '', state = 'nsw') => { const d = prepareDraft({ state, fallRisk: 'no', residential: 'no', trade, task, facts: base }); assert.equal(d.kind, 'draft', `${task}: ${JSON.stringify(d.missing)}`); return d; };
+  const text = (...args) => JSON.stringify(draft(...args));
+  const steps = (...args) => draft(...args).jobSteps.map((step) => step.step);
+  const before = (list, a, b) => list.indexOf(a) >= 0 && list.indexOf(a) < list.indexOf(b);
+  assert.ok(steps('Install an outdoor kitchen with a gas barbecue.', 'plumbing').includes('Build the outdoor kitchen'));
+  assert.ok(before(steps('Pressure test and commission a new gas line to a commercial bakery oven.', 'plumbing'), 'Pressure test the gas line', 'Connect, leak test and commission the gas appliance'));
+  assert.doesNotMatch(text('Install a commercial ice machine and connect water and drain in a pub.', 'plumbing'), /Scalds from hot water|Sun and heat/);
+  assert.ok(before(steps('Install cyclone tie-downs to an existing house roof.', 'carpentry'), 'Work in the roof space', 'Fit cyclone tie-downs'));
+  assert.ok(steps('Install a mezzanine stair and handrail in an office.', 'steel').includes('Install the steel staircase'));
+  assert.ok(before(steps('Replace 30 m of storm-damaged colorbond fencing with new posts in concrete.', 'fencing'), 'Take down the old fence', 'Dig post holes and build the fence'));
+  assert.ok(!steps('Replace rotten fascia boards and repaint the eaves of a weatherboard house.', 'carpentry').includes('Get onto the roof and set up fall protection'));
+  const shed = steps('Remove a fibro garden shed that may contain asbestos.', 'demolition');
+  assert.ok(!shed.includes('Demolish the structure') && before(shed, 'Take down the shed frame', 'Bag, label and dispose of asbestos waste'));
+  assert.ok(!steps('Grind and seal a concrete garage floor with epoxy.', 'flooring').includes('Grind concrete'));
+  assert.ok(!draft('Lay pipes for a new subdivision\'s water reticulation.', 'plumbing', 'wa').qualifications.some((item) => /^Plumbing/.test(item)));
+  assert.ok(!steps('Seal a leaking shower in an apartment without removing tiles.', 'tiling').includes('Cut tiles and stone'));
+  assert.ok(before(steps('Replace a rusted steel lintel above a shopfront window.', 'masonry'), 'Cut out the old lintel', 'Lift and fix the new beam or lintel'));
+  assert.doesNotMatch(text('Install a CCTV camera on a pole in a car park.', 'security'), /Poles are stood in footings/);
+  assert.doesNotMatch(text('Install new automatic sliding doors at a supermarket entrance.', 'carpentry', 'vic'), /MDF/);
+  assert.match(text('Replace a roof turbine vent on a factory roof.', 'roofing'), /The old vent is unfixed/);
+  assert.ok(draft('Erect a temporary grandstand for a weekend event.', 'scaffolding').qualifications.some((item) => /^Scaffolding licence/.test(item)));
+});
