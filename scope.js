@@ -123,7 +123,7 @@ const KINDS = ACTIVITIES.filter((activity) => activity.when && (activity.steps |
 // do not make a task of their own.
 // Neither do incidental kinds that any trade does (power tools, moving materials,
 // cleaning up, mixing): they are steps inside the trade's own tasks.
-const DETAIL = new Set(['ptSlab', 'craneInterface', 'cite', 'ewp', 'mobileScaffold', 'forklift', 'carpentryWork', 'carpLoad', 'sitePlant', 'tileMix', 'masonryMortar', 'masonryGrout', 'wpRolls', 'glassHandling', 'glassWind', 'gasCylinders', 'neighbours', 'siteSheds']);
+const DETAIL = new Set(['ptSlab', 'craneInterface', 'cite', 'ewp', 'mobileScaffold', 'forklift', 'carpentryWork', 'carpLoad', 'sitePlant', 'tileMix', 'masonryMortar', 'masonryGrout', 'wpRolls', 'glassHandling', 'glassWind', 'gasCylinders', 'neighbours', 'siteSheds', 'roofAccess', 'oxyCutting', 'silicaDrill', 'smallPlant', 'groundChemicals']);
 // A kind found in fewer lines than this is a passing mention, unless it is high risk work.
 const MIN_SUPPORT = 2;
 const CROSS = new Set(['demolition', 'trench', 'coreDrill', 'sawCut', 'structuralOpening', 'asbestos', 'asbestosCheck', 'confined', 'roofSpace', 'power', 'road', 'water', 'liveHospital', 'stripOut', 'crane', 'towerCrane', 'scaffold']);

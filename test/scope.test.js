@@ -117,3 +117,25 @@ test('new fibre cement is not asbestos, and handrails or crane ties are not prec
   assert.ok(!asked('Line walls with lightweight concrete shaft wall panels and close up walls at the crane ties.').includes('erectionDesign'));
   assert.ok(asked('Erect six precast concrete wall panels using a mobile crane.').includes('erectionDesign'));
 });
+
+test('review fixes: trench depth threshold, harness only when used, trade-limited questions, roof access, PPE from steps', () => {
+  const { prepareDraft, questionsFor } = require('../draft');
+  const draft = (input) => prepareDraft({ state: 'qld', fallRisk: 'no', ...input });
+  // "1.5 m deep or more" is a threshold, so the trench still counts as deep, and machine digging is mobile plant.
+  const trench = draft({ trade: 'electrical', task: 'Excavate trenches for underground conduits, backfill and compact.', facts: { trenchSupport: 'Trenches 1.5 m deep or more are shored with a trench shield.' } });
+  assert.ok(trench.highRisk.some((item) => /trench/.test(item)) && trench.highRisk.some((item) => /mobile plant/.test(item)));
+  // Scissor lifts: no harness lines and no harness ticked.
+  const scissor = draft({ trade: 'painting', fallRisk: 'yes', task: 'Paint the ceilings with water-based paint.', facts: { safetyDataSheet: 'The products used are water-based acrylics.', fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' } });
+  const lines = scissor.jobSteps.flatMap((step) => step.controls).join('\n');
+  assert.ok(!/In a boom EWP|Where fall arrest is used/.test(lines));
+  assert.ok(!scissor.ppe.flatMap((group) => group.items).find((item) => item.id === 'harness').ticked);
+  // Roofing does not ask for a steel erection sequence.
+  assert.ok(!questionsFor({ state: 'qld', trade: 'roofing', fallRisk: 'yes', task: 'Install prepainted steel roof sheeting.' }).required.some((item) => item.id === 'erectionSequence'));
+  // A plumber's roof work gets roof access; a roofer gets the roofing steps, not both.
+  const steps = (input) => draft({ fallRisk: 'yes', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' }, ...input }).jobSteps.map((step) => step.step);
+  assert.ok(steps({ trade: 'plumbing', task: 'Install the solar hot water system on the roof.' }).includes('Get onto the roof and set up fall protection'));
+  assert.ok(!steps({ trade: 'roofing', task: 'Fix roof sheeting on the roof.' }).includes('Get onto the roof and set up fall protection'));
+  // Knee pads called for in the steps are ticked.
+  const vinyl = draft({ trade: 'flooring', task: 'Install sheet vinyl and carpet tiles with adhesive.', facts: { safetyDataSheet: 'The products used are epoxy adhesive.' } });
+  assert.ok(vinyl.ppe.flatMap((group) => group.items).find((item) => item.id === 'kneePads').ticked);
+});

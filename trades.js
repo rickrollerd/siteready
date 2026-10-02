@@ -10,7 +10,7 @@ const TRADES = [
   { id: 'electrical', name: 'Electrical work', signal: 'electricalWork', kinds: ['tempPower', 'castIn', 'containment', 'cablePull', 'fitOff', 'isolation', 'commissioning', 'generatorPlant'], extra: ['trench'] },
   { id: 'communications', name: 'Communications cabling and equipment', signal: 'ictWork', kinds: ['ictCabling', 'fibre', 'commsRoom'], extra: ['trench', 'containment'] },
   { id: 'security', name: 'Security system installation', signal: 'securityWork', kinds: ['securityDevices'], extra: ['containment'] },
-  { id: 'plumbing', name: 'Plumbing and drainage work', signal: 'plumbingWork', kinds: ['sewerConnection', 'castInPlumbing', 'hydraulicRisers', 'hotWork', 'solventCement', 'plumbingFitOff', 'pressureTest', 'hotWater', 'boilerPlant'], extra: ['trench'] },
+  { id: 'plumbing', name: 'Plumbing and drainage work', signal: 'plumbingWork', kinds: ['sewerConnection', 'waterConnection', 'castInPlumbing', 'hydraulicRisers', 'hotWork', 'solventCement', 'plumbingFitOff', 'pressureTest', 'hotWater', 'boilerPlant'], extra: ['trench'] },
   { id: 'mechanical', name: 'Mechanical services installation', signal: 'mechanicalWork', kinds: ['plantLift', 'ductwork', 'refrigerantPipework', 'refrigerantTest', 'refrigerantCharge', 'roofPlant', 'jetFans', 'mechInsulation', 'mechCommissioning'], extra: ['refrigerantWork'] },
   { id: 'fire', name: 'Fire services installation', signal: 'fireWork', kinds: ['fireAtHeight', 'fireGrooving', 'fireLive', 'passiveFire'], extra: ['trench'] },
   { id: 'lifts', name: 'Lift installation', signal: 'liftWork', kinds: ['liftShaft', 'liftLifting', 'liftCar'], extra: [] },
@@ -20,7 +20,7 @@ const TRADES = [
   { id: 'masonry', name: 'Blockwork and brickwork', signal: 'masonryWork', kinds: ['masonryCut', 'masonryLay', 'masonryEdge'], extra: ['tileMix'] },
   { id: 'plasterboard', name: 'Wall and ceiling linings', signal: 'plasterWork', kinds: ['plasterSheets', 'plasterHeight', 'plasterCeiling', 'plasterSanding', 'carpFraming'], extra: ['carpLoad', 'carpEdge', 'carpentryWork'] },
   { id: 'carpentry', name: 'Carpentry and joinery', signal: /\b(carpent\w*|joinery|cabinetry|timber (?:fram\w*|floor\w*|decks?)|wall frames?|roof trusses|trusses|hang(?:ing)? doors?)\b/i, kinds: ['carpFraming', 'carpJoinery', 'carpEdge', 'timberFloor', 'houseFraming', 'deckBuild'], extra: ['carpLoad', 'stoneHandle', 'carpentryWork'] },
-  { id: 'doors', name: 'Doors, frames and hardware', signal: /\b(door ?frames?|door hardware|doorsets?|hinges|door closers|locksets?|(?:hang|install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors)\b/i, kinds: ['carpJoinery'], extra: ['carpLoad', 'carpentryWork'] },
+  { id: 'doors', name: 'Doors, frames and hardware', signal: /\b(door ?frames?|door hardware|doorsets?|hinges|door closers|locksets?|(?:hang|install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors)\b/i, kinds: ['doorHang'], extra: ['carpLoad', 'carpentryWork'] },
   { id: 'kitchens', name: 'Commercial kitchen and stainless steel installation', signal: /\b(commercial kitchens?|kitchen equipment|kitchen items|exhaust hoods?|cool ?rooms?|freezer rooms?|dishwash\w*|combi ovens?|stainless steel (?:benches|benching|sinks?|shelving|joinery))\b/i, kinds: [], extra: ['plantLift'] },
   { id: 'tiling', name: 'Floor and wall tiling', signal: 'tilingWork', kinds: ['tileCut', 'tileLay', 'tileEdge'], extra: ['tileMix'] },
   { id: 'stone', name: 'Stone benchtops', signal: 'stoneWork', kinds: ['stoneSilica', 'stoneHandle'], extra: [] },
@@ -43,7 +43,7 @@ const TRADES = [
 const COMMON = new Set([
   'craneInterface', 'crane', 'towerCrane', 'ewp', 'mobileScaffold', 'forklift', 'scaffold', 'road', 'power', 'coreDrill', 'sawCut',
   'asbestos', 'asbestosCheck', 'confined', 'roofSpace', 'water', 'demolition', 'structuralOpening', 'liveHospital', 'loadOut',
-  'sitePlant', 'stripOut', 'cite',
+  'sitePlant', 'stripOut', 'cite', 'roofAccess', 'oxyCutting', 'silicaDrill', 'smallPlant', 'treeRemoval', 'groundChemicals',
 ]);
 
 const BY_ID = new Map(TRADES.map((trade) => [trade.id, trade]));
@@ -51,6 +51,13 @@ const BY_ID = new Map(TRADES.map((trade) => [trade.id, trade]));
 // The known trade ids in a list such as "painting" or "electrical, communications".
 function tradeIds(value) {
   return String(value || '').split(/[\s,]+/).filter((id) => BY_ID.has(id));
+}
+
+// The kinds of work the trades can do, or null when no trade is known.
+function allowedKinds(trades) {
+  const ids = tradeIds(Array.isArray(trades) ? trades.join(',') : trades);
+  if (!ids.length) return null;
+  return new Set([...COMMON, ...ids.flatMap((id) => [...BY_ID.get(id).kinds, ...(BY_ID.get(id).extra || [])])]);
 }
 
 // Turns off the kinds of work outside the task's trades. `kinds` is every kind with job steps.
@@ -68,4 +75,4 @@ function limitToTrades(flags, trades, kinds) {
   return out;
 }
 
-module.exports = { TRADES, COMMON, tradeIds, limitToTrades };
+module.exports = { TRADES, COMMON, tradeIds, allowedKinds, limitToTrades };
