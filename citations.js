@@ -107,6 +107,7 @@ const OUTSIDE_QLD = [
   [/^Insulation is not fastened to the ceiling structure with metal or other conductive fasteners/, 'Insulation is not fastened with metal staples or other conductive fasteners, and is kept clear of recessed light fittings and their transformers as the wiring rules require.'],
   [/^Trestle platforms where a person could fall 2 m or more \(3 m in housing construction\)/, 'Trestle platforms where a person could fall 2 m or more have their trestles secured and edge protection; lower platforms are at least 450 mm wide. Use only purpose-made pins.'],
   [/^Housing construction: where a person could fall 3 m or more/, null],
+  [/^Cutting an opening in a load-bearing wall is demolition work: it is done by, or for, a holder of a demolition licence/, 'Cutting an opening in a load-bearing wall is demolition work, done by a contractor holding any demolition licence or registration the state requires.'],
   [/^The boom is not set up or worked over access ways or site sheds unless a 10 kPa gantry protects them\./, 'The boom is not set up or worked over access ways or site sheds unless a gantry designed for the load protects them. The pumping area is signed, and only authorised people enter it.'],
   [/^Every part of the boom and drop hose stays at least 3 m from overhead power lines up to 132 kV/, 'Every part of the boom and drop hose stays outside the safe distance from overhead power lines that the state\'s rules and the line owner set, and the boom is not worked over energised lines. De-energising or re-routing the lines is considered first.'],
 ];
@@ -144,6 +145,8 @@ function localText(text, stateId) {
   if (!done) for (const [pattern, replacement] of OUTSIDE_QLD) if (pattern.test(out)) { if (replacement === null) return null; out = replacement; break; }
   out = out.replace(/31 December 1989/g, '31 December 2003').replace(/ Qld has no piling rig licence\./g, '')
     .replace(/\bthe electricity entity's\b/g, 'the network operator\'s').replace(/\bthe distribution entity\b/g, 'the network operator').replace(/\bdistribution entity\b/g, 'network operator');
+  // Queensland's 26 degree rule for mesh on sloping edge protection (s 306E) is stated generally elsewhere.
+  out = out.replace(/(?:On slopes|Where the (?:roof|surface the work is done from|deck) slopes) (?:of |over |more than )?26 degrees[^.]*\./g, 'On steep slopes, mesh or sheeting is fitted to the edge protection as AS/NZS 4994 and the manufacturer require.');
   if (stateId === 'vic') out = out.replace(/\bhazardous chemicals register\b/g, 'register of hazardous substances').replace(/\s?\(the falls code suggests [^)]*\)/g, '');
   // The Northern Territory and the ACT are territories.
   if (stateId === 'nt' || stateId === 'act') out = out.replace(/\bthe state's\b/g, 'the territory\'s').replace(/\bstate's\b/g, 'territory\'s').replace(/\bthe state (requires|sets|allows)\b/g, 'the territory $1');
