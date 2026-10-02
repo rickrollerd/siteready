@@ -100,7 +100,9 @@ test('round 2 review: service strikes and formwork failure are catastrophic, sil
 
 test('a task whose main work has no steps is stood down, not drafted with only access or lifting steps', () => {
   const stood = (task, trade = '') => prepareDraft({ state: 'qld', fallRisk: 'yes', trade, task, facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
-  assert.equal(stood('Remove the old water heater and install new pool shell lining with sprayed concrete.').kind, 'stand-down');
+  assert.equal(stood('Remove the old water heater and blast the rock with explosives.').kind, 'stand-down');
+  // A pool shell now has its own job step.
+  assert.ok(stood('Construct a pool shell with sprayed concrete.').jobSteps.some((step) => step.step === 'Reinforce the pool shell and spray the shotcrete'));
   // Hydro demolition now has its own job step.
   const hydro = stood('Hydro-demolition and concrete repair of a balcony slab soffit from a mobile scaffold.');
   assert.ok(hydro.jobSteps.some((step) => step.step === 'Hydro demolish the concrete'));

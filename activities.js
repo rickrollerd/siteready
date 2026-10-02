@@ -5867,6 +5867,155 @@ const ACTIVITIES = [
     ppe: ['earMuffs', 'hivis'],
   },
   {
+    when: 'tensileRoof',
+    steps: [{
+      step: 'Install the fabric roof membrane',
+      hazards: ['A fall from the roof structure or the membrane edge.', 'The membrane panel catches the wind while it is lifted or spread.', 'Crushed or struck by the panel, clamping plates or tensioning gear.', 'Rope access workers stranded or injured at height.'],
+      controls: [
+        { fact: 'fallControl' },
+        'The membrane is installed to the supplier\'s installation method and the engineer\'s sequence, with panels lifted, spread and tensioned only within the wind speed limits it sets, checked at roof height before and during the work.',
+        'Panels are lifted by crane under a lift plan, slung by licensed doggers or riggers, with tag lines and no one under the load.',
+        'Rope access work is done by trained rope access technicians to a rope access plan, on two independent anchored lines, with a rescue plan and rescue equipment at hand.',
+        'Tensioning equipment is used within its rated load, and no one stands in line with a cable or strap under tension.',
+        'No one walks on the membrane except where the supplier allows, and then only attached to an anchor.',
+      ],
+    }],
+    ppe: ['harness', 'chinStrap'],
+  },
+  {
+    when: 'sportsSurface',
+    steps: [{
+      step: 'Lay the synthetic track or sports surface',
+      hazards: ['Isocyanates in polyurethane binders and coatings cause asthma and skin sensitisation.', 'Struck by the paving machine, loader or trucks.', 'Heat stress working on a dark surface in the sun.', 'Manual handling of rubber granule bags and binder drums.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        'Binders, primers and coatings are mixed and applied as their safety data sheets set out, with chemical gloves, long sleeves and eye protection, and the respiratory protection the safety data sheet specifies when spraying.',
+        'Workers who are sensitised to isocyanates do not work with them, and skin contact is washed off straight away.',
+        'The paving machine and loaders work inside a marked area, with an exclusion zone and two-way acknowledgement before anyone approaches.',
+        'Bags and drums are moved by forklift, trolley or two people, and opened at waist height.',
+        'Work in hot weather follows the heat plan: shade, cool water, rest breaks and earlier start times.',
+      ],
+    }],
+    ppe: ['gloveChemical', 'goggles', 'sunHat', 'sunscreen'],
+  },
+  {
+    when: 'poolFloor',
+    steps: [{
+      step: 'Install the moveable pool floor and bulkheads',
+      hazards: ['Crushed by the floor or bulkhead while it moves.', 'Hydraulic or drive failure lets the floor drop or move.', 'A fall into the pool or the empty pool shell.', 'Drowning or entrapment once the pool is filled.'],
+      controls: [
+        'The floor and bulkheads are installed and commissioned to the manufacturer\'s method by its trained installers.',
+        'Drives and hydraulics are isolated and locked out, and the floor is mechanically locked or supported, before anyone works under or beside it.',
+        'Edges of the empty pool shell are barricaded, and access into the shell is by a fixed ladder or stair.',
+        'Once water is in the pool, work in or over it follows the drowning controls, and the floor is not moved while anyone is in the water above or below it.',
+      ],
+    }],
+    ppe: ['chinStrap'],
+  },
+  {
+    when: 'seatingInstall',
+    steps: [{
+      step: 'Install the seating units and tiers',
+      hazards: ['Crushed by a seating unit, tier or telescopic bank while it is moved or extended.', 'A fall from the edge of a tier or the back of the seating.', 'Manual handling of seats and frames.', 'Dust and noise drilling anchors into concrete.'],
+      controls: [
+        'Seating is installed to the manufacturer\'s method and the engineer\'s anchoring details, and telescopic banks are extended and retracted only by trained people with everyone clear.',
+        'Heavy frames and units are moved with lifting equipment rated for them, not by hand.',
+        'Open edges at the back and sides of tiers are fitted with guardrails before people work near them, or workers use fall protection.',
+        'Anchor holes are drilled with on-tool extraction, and hearing protection is worn.',
+        'Seats are handled by two people or with trolleys, and stacked close to where they are fixed.',
+      ],
+    }],
+    ppe: ['earPlugs', 'gloveGeneral'],
+  },
+  {
+    when: 'marquee',
+    steps: [{
+      step: 'Erect the marquees and temporary structures',
+      hazards: ['The structure collapses or blows over in strong wind.', 'Struck by frames or poles while they are raised.', 'A fall from ladders or the frame.', 'Striking buried services with ground stakes.'],
+      controls: [
+        'Structures are erected to the supplier\'s engineered drawings for the site\'s wind conditions, with the ballast or anchoring they specify, and any building or event approval they need.',
+        'Ground stakes are driven only after buried services are located.',
+        'Frames are raised with enough people or lifting equipment for their weight, and workers stand clear of the lifting arc.',
+        'Wind is monitored. Work and occupancy stop, and the structure is cleared, at the wind speeds the engineered drawings set.',
+        'Roof sheets and walls are fixed from an elevating work platform or platform ladder, not by climbing the frame.',
+      ],
+    }],
+    ppe: ['gloveGeneral'],
+  },
+  {
+    when: 'stageRig',
+    steps: [{
+      step: 'Build the stage and rig the lighting',
+      hazards: ['A fall from the stage deck, scaffold or trusses.', 'A truss, lighting fixture or speaker falls from height.', 'Overloading the rigging points or the roof structure.', 'The stage or towers blow over in wind.'],
+      controls: [
+        'The stage, towers and roof are built to the supplier\'s engineered drawings, with ballast and wind limits as they set out.',
+        'Scaffold from which a person or thing could fall more than 4 m is erected by licensed scaffolders.',
+        'Rigging points and their loads are approved by an engineer before trusses are hung, and loads are kept within the approved limits.',
+        'Trusses are hung with chain hoists rated for the load, by licensed riggers, and every fixture has a secondary safety sling.',
+        'No one works under a truss while it is raised or lowered, and work at height is done from guarded platforms or elevating work platforms.',
+      ],
+    }],
+    ppe: ['harness', 'chinStrap'],
+  },
+  {
+    when: 'platformWiden',
+    steps: [{
+      step: 'Widen the station platform',
+      hazards: ['Struck by a train or rail plant at the platform edge.', 'Passengers enter the work area.', 'Precast units or copers fall while they are lifted.', 'Electric shock from rail overhead wiring.'],
+      controls: [
+        'Work at the platform edge or on the track side is done only inside a possession under the rail manager\'s protection arrangements.',
+        'The work area is separated from passengers by hoardings or barriers, with signed safe routes kept open.',
+        'Precast units and copers are lifted by crane or rail plant under a lift plan, slung by licensed doggers, with no one under the load.',
+        'Near overhead wiring, the rail manager\'s isolation, earthing and clearance rules apply.',
+      ],
+    }],
+    ppe: ['hivisNight'],
+  },
+  {
+    when: 'poleErect',
+    steps: [{
+      step: 'Stand and fix the poles',
+      hazards: ['The pole falls or swings while it is lifted and stood.', 'Contact with overhead power lines or overhead wiring.', 'Struck by traffic or plant.', 'A fall into an open footing hole.'],
+      controls: [
+        'Poles are lifted and stood with a crane or pole truck rated for the load, slung by licensed doggers, with no one under or within reach of the pole.',
+        'Each pole is held by the crane until its base bolts are fixed or its footing can hold it, as the engineer\'s details set out.',
+        'Overhead lines are identified before work starts, and the crane and pole stay outside the network operator\'s approach distances.',
+        'Open footing holes are covered or barricaded.',
+        'Work in or beside the road is done inside the traffic management set out for the job.',
+      ],
+    }],
+    ppe: ['chinStrap', 'hivis'],
+  },
+  {
+    when: 'greenRoofLayers',
+    steps: [{
+      step: 'Install the green roof layers and plants',
+      hazards: ['A fall from the roof edge.', 'The roof is overloaded by bulk growing media.', 'Dust from growing media.', 'Wind lifts drainage sheets or fabric.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Growing media and materials are spread across the roof within the load limits the engineer sets, not stockpiled in one place.',
+        'The waterproofing is protected before drainage and growing layers are laid, and no sharp tools are used on it.',
+        'Growing media is dampened to keep dust down, and P2 respirators are worn when handling dry media.',
+        'Sheets and fabric are weighted as they are laid, and laying stops in strong wind.',
+      ],
+    }],
+    ppe: ['p2', 'gloveGeneral'],
+  },
+  {
+    when: 'poolShell',
+    steps: [{
+      step: 'Reinforce the pool shell and spray the shotcrete',
+      hazards: ['A fall into the pool excavation.', 'The excavation sides collapse.', 'Impalement on exposed reinforcing bars.', 'Struck by the nozzle or a hose that whips when it blocks or bursts.', 'Rebound, dust and cement burns.'],
+      controls: [
+        'The excavation is battered, benched or shored as the geotechnical advice or excavation plan sets out, and its edges are barricaded.',
+        'Access into the excavation is by a secured ladder or ramp, and reo is fixed with bar ends capped or covered.',
+        'Shotcrete is sprayed by a trained nozzle operator. Hoses and couplings are rated and pinned, and the line is depressurised before a blockage is cleared.',
+        'No one stands in front of the nozzle or in the rebound area. The nozzle operator wears a face shield and respirator, and gloves, long sleeves and boots are worn by everyone in the shell.',
+      ],
+    }],
+    ppe: ['faceShield', 'p2', 'gloveChemical'],
+  },
+  {
     when: 'glassWind',
     steps: [{
       step: 'Handle glass in the wind',
