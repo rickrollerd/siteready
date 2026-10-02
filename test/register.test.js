@@ -168,7 +168,7 @@ test('library coverage: everyday jobs get their own job steps', () => {
   assert.ok(steps('Replace gutters and downpipes on a single storey house.').includes('Install gutters, fascia, downpipes and eaves linings'));
   assert.ok(steps('Install a skylight in a metal roof.').includes('Cut in and install the skylight'));
   assert.ok(steps('Build a timber retaining wall 600 mm high.').includes('Build the retaining wall'));
-  assert.ok(steps('Build a timber pergola at ground level.').includes('Erect the pergola, carport or shed frame and roof'));
+  assert.ok(steps('Build a timber pergola at ground level.').includes('Erect the frame and roof of the structure'));
   assert.ok(steps('Pressure clean and reseal a concrete driveway.').includes('Pressure clean surfaces'));
   assert.ok(steps('Install bollards in a car park.').includes('Install bollards, barriers, wheel stops and speed humps'));
   // A meter box in an older house asks how asbestos was identified.
@@ -335,7 +335,7 @@ test('task bank round 4: licences, high risk categories and main work steps', ()
   assert.ok(!steps('Install a vehicle hoist in a mechanical workshop.').includes('Install, climb and dismantle the hoist'));
   assert.deepEqual(steps('Remove a load-bearing wall between the kitchen and lounge and install a steel beam.', { facts: { temporarySupport: 'Props to the engineer\'s design, checked by the supervisor before the wall is removed.' } }).filter((step) => /support|opening|beam/.test(step)), ['Install temporary support', 'Cut an opening in a load-bearing wall', 'Lift and fix the new beam or lintel']);
   assert.ok(steps('Install new playground shade sails at a school.').includes('Install shade sail posts and sails'));
-  assert.ok(!steps('Install new playground shade sails at a school.').includes('Erect the pergola, carport or shed frame and roof'));
+  assert.ok(!steps('Install new playground shade sails at a school.').includes('Erect the frame and roof of the structure'));
   assert.ok(steps('Lay sewer drainage under a new house slab before the pour.').includes('Lay drainage under the slab or floor'));
   assert.ok(!steps('Lay sewer drainage under a new house slab before the pour.').includes('Place concrete'));
   const tank = steps('Install a stormwater detention tank under a car park.');
@@ -357,7 +357,7 @@ test('task bank round 5: everyday jobs that stood down now get their main steps'
   assert.ok(steps('Install cyclone tie-downs to an existing house roof.', 'carpentry', 'yes').includes('Fit cyclone tie-downs'));
   assert.ok(steps('Install a mobile phone antenna on a building rooftop.', 'communications', 'yes').includes('Install rooftop antennas and equipment'));
   assert.ok(steps('Reseal the expansion joints on a multi-storey car park deck.', 'waterproofing', 'yes').includes('Clean out and seal floor joints'));
-  assert.ok(steps('Install new LED high bay lights in a warehouse from a scissor lift.', 'electrical', 'yes').includes('Rough-in and fit-off'));
+  assert.ok(steps('Install new LED high bay lights in a warehouse from a scissor lift.', 'electrical', 'yes').includes('Install high bay light fittings'));
   assert.ok(steps('Replace a section of collapsed stormwater pipe 1.2 m deep in a backyard.', 'plumbing').includes('Lay pipes, pits and conduits'));
   const kerb = steps('Remove and replace a damaged section of a kerb and channel.', 'structure');
   assert.ok(kerb.indexOf('Saw cut concrete') < kerb.indexOf('Place concrete'));
@@ -438,4 +438,13 @@ test('task bank round 9: jobs that are smaller than the template get only their 
   const bollards = steps('Install steel bollards in front of a shopfront by core drilling the footpath.', 'excavation');
   assert.ok(bollards.indexOf('Core drill through the slab or wall') < bollards.indexOf('Install bollards, barriers, wheel stops and speed humps'));
   assert.ok(draft('Lay a bitumen spray seal on a rural road.', 'excavation').plant.some((item) => item.item === 'Bitumen sprayer'));
+});
+
+test('gas work alone needs a gas licence, not a plumbing licence, outside Victoria', () => {
+  const quals = (state) => prepareDraft({ state, fallRisk: 'no', residential: 'yes', trade: 'plumbing', task: 'Run a new gas line under a house to a new cooktop.', facts: {} }).qualifications;
+  for (const state of ['qld', 'nsw', 'sa', 'wa', 'tas', 'nt', 'act']) {
+    assert.ok(quals(state).some((item) => /^Gas work licence/.test(item)), state);
+    assert.ok(!quals(state).some((item) => /^Plumbing/.test(item)), state);
+  }
+  assert.ok(quals('vic').some((item) => /^Plumbing/.test(item)));
 });

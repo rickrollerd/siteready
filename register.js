@@ -319,6 +319,8 @@ function addStateLaw(sources, stateName) {
 // Licences named for the state: Queensland's gas work licence is under its own Act.
 function localLicences(stateName, trade, list, stepText) {
   const named = tradeLicences(trade, list, stepText);
+  const gasWorkOnly = named.includes('Gas work licence') && !/\b(water|drain\w*|sewer\w*|waste|plumb\w*|fixtures?|backflow|risers?|pipework at height)\b/i.test(stepText.replace(/Electrical work is done[^\n]*/g, ''));
+  // Gas work alone is licensed as gas work, except in Victoria where gasfitting is a plumbing class.
   if (/Queensland/.test(stateName || '')) {
     // In Queensland gas work is licensed under its own Act, so gas work alone needs no plumbing licence.
     const gasOnly = named.includes('Gas work licence') && !/\b(water|drain\w*|sewer\w*|waste|plumb\w*|fixtures?|backflow|risers?|pipework at height)\b/i.test(stepText.replace(/Electrical work is done[^\n]*/g, ''));
@@ -329,7 +331,8 @@ function localLicences(stateName, trade, list, stepText) {
   // Victoria has its own crystalline silica rules, not the model regulations' high risk processing.
   if (/Victoria/.test(stateName || '')) local['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk'] = 'Crystalline silica information, instruction and training, as the Occupational Health and Safety Regulations 2017 (Vic) require for high risk crystalline silica work';
   const stateId = (findState(stateName) || { id: 'qld' }).id;
-  return [...new Set(named.map((name) => localText(localNote(local[name] || name, stateId), stateId)))];
+  const kept = gasWorkOnly && !/Victoria/.test(stateName || '') ? named.filter((name) => name !== 'Plumbing and drainage licence') : named;
+  return [...new Set(kept.map((name) => localText(localNote(local[name] || name, stateId), stateId)))];
 }
 
 // A crew of a licensed trade holds that trade's licence, whatever steps were picked.
