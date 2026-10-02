@@ -420,3 +420,22 @@ test('task bank round 8: small jobs get steps for that job, not a bigger one', (
   const nsw = require('../legislation').STATES.find((state) => state.id === 'nsw');
   assert.ok(require('../draft').highRiskMatches('Excavate with an excavator.', '', nsw).some((item) => /any movement of powered mobile plant/.test(item.label)));
 });
+
+test('task bank round 9: jobs that are smaller than the template get only their own lines', () => {
+  const base = { silicaControls: 'Wet cutting and on-tool extraction.', fallControl: 'Work above 2 m is done from an EWP with guardrails.', safetyDataSheet: 'Safety data sheets for each product are at the work area.', spaceAssessment: 'notConfined', asbestosArrangement: 'Asbestos register sighted; none in the work area.', confinedSpace: 'Permit entry.', temporarySupport: 'Props to the engineer\'s design.' };
+  const draft = (task, trade = '', fallRisk = 'no') => prepareDraft({ state: 'nsw', fallRisk, residential: 'yes', trade, task, facts: base });
+  const text = (...args) => JSON.stringify(draft(...args));
+  const steps = (...args) => draft(...args).jobSteps.map((step) => step.step);
+  // A confined space arrangement is dropped when the space is assessed as not confined.
+  assert.doesNotMatch(text('Repair a concrete water tank that leaks.', 'structure'), /Permit entry/);
+  assert.doesNotMatch(text('Install a CCTV camera on a pole in a car park.', 'security', 'yes'), /walls and ceilings|CCTV drain camera/);
+  assert.ok(steps('Replace an old electric stove with a new induction cooktop.', 'electrical').includes('Disconnect the old appliance and connect the new one'));
+  assert.doesNotMatch(text('Install lighting in a sports field from a boom lift.', 'electrical', 'yes'), /crane work box|roof edge/);
+  assert.doesNotMatch(text('Install a solar battery and inverter at a farm shed.', 'electrical'), /Array conductors/);
+  assert.doesNotMatch(text('Install a commercial dishwasher with a booster heater.', 'plumbing'), /Refrigerant work/);
+  const pump = steps('Install a new septic tank pump-out line at a caravan park.', 'plumbing');
+  assert.ok(pump.indexOf('Install the pump-out line') < pump.indexOf('Backfill and restore'));
+  const bollards = steps('Install steel bollards in front of a shopfront by core drilling the footpath.', 'excavation');
+  assert.ok(bollards.indexOf('Core drill through the slab or wall') < bollards.indexOf('Install bollards, barriers, wheel stops and speed humps'));
+  assert.ok(draft('Lay a bitumen spray seal on a rural road.', 'excavation').plant.some((item) => item.item === 'Bitumen sprayer'));
+});
