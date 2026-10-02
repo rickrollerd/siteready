@@ -1470,6 +1470,7 @@ const ACTIVITIES = [
       step: 'Install security devices',
       hazards: ['A fall from a ladder or platform.', 'Silica dust from drilling.', 'Contact with energised cables in walls and ceilings.'],
       controls: [
+        { only: 'poleMount', text: 'Poles are stood in footings dug after services are located, lifted with a crane truck or by two people for light poles, and braced until the footing has cured. Cameras on poles are fitted from an EWP.' },
         src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
         src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
         src('Drill with on-tool extraction. Anyone still at risk of exposure wears a fit tested respirator (P2 or better).', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`),
@@ -2195,6 +2196,7 @@ const ACTIVITIES = [
       step: 'Fix ceiling sheets',
       hazards: ['Strain holding ceiling sheets overhead.'],
       controls: [
+        { only: 'ceilingRepair', text: 'A sagging ceiling is propped before work starts and no one stands under it. In a building built before 2004, the ceiling and anything above it are checked for asbestos and loose-fill insulation before it is disturbed.' },
         src('Use sheet lifters to hold ceiling sheets in place while fixing.', MODEL('Hazardous manual tasks', 's 2.2, s 4.5')),
       ],
     }],
@@ -3405,9 +3407,9 @@ const ACTIVITIES = [
     when: 'antennaInstall',
     steps: [{
       step: 'Install rooftop antennas and equipment',
-      hazards: ['Exposure to radio frequency energy from live antennas.', 'A fall from the roof edge.', 'Equipment falls while it is lifted.', 'Electric shock connecting equipment.'],
+      hazards: [{ only: 'rfEquipment', text: 'Exposure to radio frequency energy from live antennas.' }, 'A fall from the roof edge.', 'Equipment falls while it is lifted.', 'Electric shock connecting equipment.'],
       controls: [
-        'Work follows the carrier\'s radio frequency safety plan: transmitters near the work are switched off or turned down by the carrier, and workers stay outside the marked exclusion zones (ARPANSA RPS S-1).',
+        { only: 'rfEquipment', text: 'Work follows the carrier\'s radio frequency safety plan: transmitters near the work are switched off or turned down by the carrier, and workers stay outside the marked exclusion zones (ARPANSA RPS S-1).' },
         { fact: 'fallControl' },
         'Heavy antennas, mounts and cabinets are lifted with a crane or hoist on a lift plan, with an exclusion zone below, not carried up ladders.',
         'Power connections are electrical work for a licensed electrician.',
@@ -3484,6 +3486,87 @@ const ACTIVITIES = [
       ],
     }],
     ppe: ['gloveWelding', 'filterEye'],
+  },
+  {
+    when: 'birdDroppings',
+    steps: [{
+      step: 'Remove bird droppings and nests',
+      hazards: ['Breathing dust from dried droppings, which can carry disease.', 'A fall from the EWP or roof structure.', 'Droppings and debris falling on people below.'],
+      controls: [
+        'Droppings are wetted down with water or a disinfectant before they are scraped, and never dry swept or blown off with compressed air.',
+        'Workers wear a P2 respirator, disposable coveralls, gloves and eye protection, and wash before eating or leaving the site.',
+        'Work at height is done from an EWP with the harness clipped to its anchor, or from a platform with edge protection.',
+        'The area below is closed off and covered with plastic sheeting, and the waste is bagged, sealed and disposed of as the local council requires.',
+      ],
+    }],
+    ppe: ['p2', 'gloveChemical'],
+  },
+  {
+    when: 'roofTarps',
+    steps: [{
+      step: 'Cover the damaged roof with tarps',
+      hazards: ['A fall from the roof or through damaged sheets or tiles.', 'The tarp catches the wind and pulls a worker off balance.', 'Electric shock from storm-damaged wiring or fallen lines.', 'Slips on a wet roof.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Power to the house is checked by a licensed electrician where wiring or the service line may be damaged, and fallen lines are reported to the network operator and kept clear of.',
+        'No one walks on damaged sheets or tiles, or works on the roof in high wind, rain or lightning.',
+        'Tarps are tied down with ropes to fixed points or weighted with sandbags, never with loose bricks, and are spread from a protected position.',
+      ],
+    }],
+  },
+  {
+    when: 'gutterClean',
+    steps: [{
+      step: 'Clean the gutters',
+      hazards: ['A fall from the roof edge or a ladder.', 'Cuts and infection from debris, sharp metal and droppings.', 'Debris and tools falling on people below.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Gutters are reached from an EWP, a scaffold or a roof with edge protection, not by leaning out from a ladder.',
+        'Gloves and eye protection are worn, and debris is bagged, not thrown down.',
+        'The area below is barricaded while the gutters are cleaned.',
+      ],
+    }],
+    ppe: ['gloveCut'],
+  },
+  {
+    when: 'grandstand',
+    steps: [{
+      step: 'Erect and dismantle the temporary grandstand',
+      hazards: ['A fall from the tiers or frame while it is erected.', 'The structure collapses or overturns in wind or under crowd load.', 'Components fall onto people below.'],
+      controls: [
+        'The grandstand is erected to its engineer\'s or supplier\'s design for the crowd and wind loads, on ground checked as able to carry it.',
+        src('Where the grandstand is built from scaffolding and a person or object could fall more than 4 m, it is erected and dismantled by licensed scaffolders.', WHS('s 81, schedule 3')),
+        'Seats, handrails and stairs are complete, and a competent person inspects and certifies the structure in writing, before the public uses it.',
+        'The work area is closed to the public while the grandstand is erected and dismantled, with an exclusion zone below.',
+      ],
+    }],
+  },
+  {
+    when: 'laundryEquipment',
+    steps: [{
+      step: 'Install commercial laundry machines',
+      hazards: ['A machine tips or crushes a person while it is moved.', 'Strain moving heavy machines.', 'Electric shock or gas leaks when connecting.'],
+      controls: [
+        'Machines are moved on pallet jacks, skates or trolleys, kept upright, and lifted by a licensed forklift operator where a forklift is used.',
+        'Machines are levelled and fixed to the floor to the manufacturer\'s instructions.',
+        'Water and drain connections are plumbing work for a licensed plumber, power connections are electrical work for a licensed electrician, and gas dryers are connected by a licensed gas fitter.',
+        'Dryer exhaust ducts are fitted to the manufacturer\'s instructions and kept clear of combustible material.',
+      ],
+    }],
+  },
+  {
+    when: 'graffitiRemoval',
+    steps: [{
+      step: 'Remove graffiti with chemicals',
+      hazards: ['Chemical burns and fumes from graffiti removers.', 'High pressure water from the washer.', 'Chemical run-off into drains.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        'Graffiti removers are used as their safety data sheets set out, with chemical gloves, eye protection and the respirator they call for.',
+        'The pressure washer is used only by a trained operator, with the area closed to the public.',
+        'Run-off is contained and not let into stormwater drains.',
+      ],
+    }],
+    ppe: ['gloveChemical', 'goggles'],
   },
   {
     when: 'glassWind',
@@ -5126,6 +5209,7 @@ ACTIVITIES.push(
       step: 'Deliver and install commercial kitchen equipment',
       hazards: ['Crushing or strain moving heavy ovens, fridges, dishwashers and benches.', 'Equipment tipping while it is moved or levelled.', 'Cuts from stainless steel edges.', 'Electric shock, gas leaks or refrigerant release at connections.', 'Burns and fumes from welding or grinding stainless steel on site.'],
       controls: [
+        { only: 'fireSuppression', text: 'The hood fire suppression system is installed and commissioned by a licensed fire protection contractor to the manufacturer\'s design, and is not left isolated once cooking starts.' },
           { text: 'Coolroom panels are stood and fixed in sequence, propped until joined, and ceiling panels are lifted with a panel lifter or from a platform, never by hand overhead from a ladder.', only: 'coolroom' },
         'Heavy equipment is moved with trolleys, pallet jacks or skates on a planned route, within the floor\'s load limits, with enough people. Tall items are kept upright and secured against tipping until they are fixed.',
         'Equipment is levelled and fixed or restrained to the supplier\'s instructions.',
