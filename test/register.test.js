@@ -114,24 +114,26 @@ test('a paint roller is not a compactor, an asphalt roller is', () => {
 
 test('picked job steps replace the ones found, but required steps stay and bring their questions', () => {
   const { questionsFor } = require('../draft');
-  const task = 'Install solar panels and an inverter on a house roof.';
+  const task = 'Install whirlybird ventilators on a house roof.';
   const fall = { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' };
-  // Found from the words: roof access only, so the task is stood down without picks.
-  assert.equal(prepareDraft({ state: 'qld', fallRisk: 'yes', task, facts: fall }).kind, 'stand-down');
   const kinds = ['roofAccess', 'roofPlant', 'isolation', 'fitOff'];
   const asked = questionsFor({ state: 'qld', fallRisk: 'yes', task, kinds });
-  assert.deepEqual(asked.steps.suggested, ['roofAccess']);
+  assert.ok(asked.steps.chosen.includes('roofPlant'));
   assert.ok(asked.required.some((item) => item.id === 'isolationProcedure'));
   const draft = prepareDraft({ state: 'qld', fallRisk: 'yes', task, kinds, facts: { ...fall, isolationProcedure: 'Isolated at the main switch, locked, tagged and tested de-energised by the licensed electrician.', energisedWork: 'none' } });
   assert.equal(draft.kind, 'draft');
   assert.ok(draft.jobSteps.some((step) => step.step === 'Install plant and equipment on the roof'));
   // Only access steps picked: still stood down.
   assert.equal(prepareDraft({ state: 'qld', fallRisk: 'yes', task, kinds: ['roofAccess'], facts: fall }).kind, 'stand-down');
+  // Work with its own hazard and no library steps stays stood down whatever is picked.
+  assert.equal(prepareDraft({ state: 'qld', fallRisk: 'yes', task: 'Install solar panels and an inverter on a house roof.', kinds, facts: { ...fall, isolationProcedure: 'Isolated and tested.', energisedWork: 'none' } }).kind, 'stand-down');
   // Asbestos removal cannot be unticked, and comes first.
   const asbestos = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Remove asbestos cement sheets from a bathroom.', kinds: ['tileLay'], facts: { asbestosArrangement: 'A licensed removalist removes them under a control plan.' } });
   assert.equal(asbestos.jobSteps[1].step, 'Prepare the asbestos work area');
+  // A picked strip-out in an existing building asks how asbestos was identified.
+  assert.ok(questionsFor({ state: 'qld', fallRisk: 'no', task: 'Retile a commercial kitchen floor.', kinds: ['stripOut', 'tileLay'] }).required.some((item) => item.id === 'asbestosArrangement'));
   // Unknown kinds are ignored.
-  assert.equal(prepareDraft({ state: 'qld', fallRisk: 'yes', task, kinds: ['nonsense'], facts: fall }).kind, 'stand-down');
+  assert.equal(prepareDraft({ state: 'qld', fallRisk: 'yes', task: 'Install solar panels on a house roof.', kinds: ['nonsense'], facts: fall }).kind, 'stand-down');
 });
 
 test('the step library lists every kind with job steps once per trade group', () => {

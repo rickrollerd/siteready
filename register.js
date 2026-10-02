@@ -276,6 +276,15 @@ function addQldSources(sources, d) {
   return { legislation: [...legislation].sort(), codes: [...codes].sort() };
 }
 
+// A crew of a licensed trade holds that trade's licence, whatever steps were picked.
+function tradeLicences(trade, list) {
+  const ids = String(trade || '').split(',').map((id) => id.trim());
+  const add = [];
+  if (ids.includes('electrical')) add.push('Electrical work licence (electrical mechanic)');
+  if (ids.includes('plumbing')) add.push('Plumbing and drainage licence');
+  return [...new Set([...list, ...add])];
+}
+
 function registersFor(draft, input = {}) {
   const steps = draft.jobSteps || [];
   const task = draft.task || '';
@@ -299,7 +308,7 @@ function registersFor(draft, input = {}) {
     plant,
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.
-    qualifications: qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' ')),
+    qualifications: tradeLicences(input.trade, qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' '))),
     emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`),
     sources,
     // Before starting is checks and briefings, not a work step, so it is not rated.

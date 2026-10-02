@@ -784,10 +784,11 @@ function requiredFactsFor(fullTask, answer, state) {
 function pickedStepFacts(fullTask, answer, state) {
   if (!state || !state.kinds) return [];
   const added = state.kinds.filter((id) => !suggestedKinds(fullTask, {}, { ...state, kinds: null }).includes(id));
-  if (!added.length) return [];
   const asked = new Set(allRequiredFacts(fullTask, answer, state).map((item) => item.id));
-  const uses = (id) => (FACT_KINDS.get(id) || []).some((when) => added.includes(when));
   const extra = [];
+  if (!asked.has('asbestosArrangement') && pickedDisturbsBuilding(fullTask, state.kinds)) extra.push({ id: 'asbestosArrangement', label: 'Asbestos arrangement', prompt: 'How asbestos was identified before the work (asbestos register or inspection), and what happens if any is found.' });
+  if (!added.length) return extra;
+  const uses = (id) => (FACT_KINDS.get(id) || []).some((when) => added.includes(when));
   for (const item of CATEGORY_FACTS) {
     if (!asked.has(item.id) && uses(item.id)) extra.push({ id: item.id, label: item.label, prompt: item.prompt, ...(item.choices ? { choices: item.choices } : {}) });
   }
@@ -1311,6 +1312,8 @@ const MAIN_WORK = [
   [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer)/i],
   [/\bpergolas?\b/i, 'pergola work', /\bpergola\b/i],
   [/\bline marking\b/i, 'line marking', /\bline marking\b/i],
+  [/\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbatter(?:y|ies)\b[^.]{0,30}\b(?:solar|garage wall|house wall)\b/i, 'battery storage installation', /\bbattery storage\b/i],
+  [/\bmeter (?:box|board|panel)s?\b/i, 'meter box installation', /\bmeter box\b/i],
   [/\b(?:carports?|sheds?|awnings?|pergolas?|verandahs?)\b[^.]{0,30}\b(?:frame )?(?:and|with) (?:the |a )?roof\b|\bframe and roof\b/i, 'roof sheeting on the new structure', /\bFix new roofing\b/],
   [/\b(?:excavat|dig)\w*\b[^.]{0,30}\b(?:swimming )?pools?\b/i, 'pool excavation', /\bBulk excavate\b/],
   [/\bgarden taps?\b|\b(?:pipe|tap)s?\b[^.]{0,20}\b(?:in|across|under) (?:a |the )?(?:backyard|yard|garden|lawn)\b/i, 'laying pipe in the ground', /\b(Lay pipes|Excavate)\b/],
@@ -1339,6 +1342,10 @@ const MAIN_WORK = [
   [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(skylights?|roof windows?)\b/i, 'skylight installation', /\bskylight\b/i],
 ];
 
+// Work with a hazard of its own that no library step covers. Picking near steps does
+// not cover it, so these stay stood down until the library has steps for them.
+const HARD_MAIN_WORK = new Set(['solar panel and inverter installation', 'gas fitting', 'hydro-demolition', 'pool shell and sprayed concrete work', 'floor coating', 'membrane work inside an excavation', 'battery storage installation', 'meter box installation']);
+
 // Steps that get people and materials to the work, rather than doing it.
 const SUPPORT_STEPS = new Set(['Before starting', 'Finish and clean up', 'Set up traffic management', 'Plan the work near overhead power lines', 'Get onto the roof and set up fall protection', 'Lift equipment and materials to the roof', 'Work with the crane crew during lifts', 'Set up the crane', 'Rig and lift the load', 'Land and release the load', 'Use an elevating work platform', 'Drill or cut concrete, masonry or stone', 'Use power tools', 'Move materials into place', 'Separate plant and people on site', 'Operate skid steers and small plant', 'Reach high walls and ceilings', 'Operate forklifts', 'Work in the roof space', 'Check for asbestos before starting', 'Operate the hoist', 'Load out floors and use loading platforms']);
 const MAIN_VERB = /\b(install\w*|erect\w*|connect\w*|build\w*|construct\w*|replac\w*|fit\w*|lay\w*|grind\w*|coat\w*|repair\w*|fix\w*|assembl\w*|weld\w*|clean\w*|paint\w*|patch\w*|sand\w*|polish\w*|remov\w*|dig\w*|demolish\w*|cut\w*)\b/i;
@@ -1349,10 +1356,8 @@ const MAIN_VERB = /\b(install\w*|erect\w*|connect\w*|build\w*|construct\w*|repla
 function missingMainWork(task, steps, added = null) {
   const names = steps.map((step) => step.step);
   const text = names.join('\n');
-  if (!added) {
-    for (const [pattern, label, covered] of MAIN_WORK) {
-      if (pattern.test(task) && !covered.test(text)) return label;
-    }
+  for (const [pattern, label, covered] of MAIN_WORK) {
+    if ((!added || HARD_MAIN_WORK.has(label)) && pattern.test(task) && !covered.test(text)) return label;
   }
   const own = new Set();
   // Where drilling into concrete is the job itself (anchors, wheel stops, fixings), the drilling step is the main work.
@@ -1595,6 +1600,7 @@ function tradeFlags(task, facts, state) {
   const picked = new Set(state.kinds);
   const out = { ...flags };
   for (const id of KIND_IDS) out[id] = picked.has(id) || (LOCKED_KINDS.has(id) && Boolean(flags[id]));
+  if (pickedDisturbsBuilding(task, state.kinds)) out.asbestosCheck = true;
   return out;
 }
 
@@ -1602,6 +1608,14 @@ function tradeFlags(task, facts, state) {
 // isolation, confined spaces, water, traffic, power lines, propping and trench support.
 const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench']);
 const KIND_SET = new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean));
+
+// Picked steps that strip out, demolish or cut into an existing building need asbestos
+// identified first (WHS Reg s 450 to s 452), unless the building is from 2004 or later.
+const DISTURBING_KINDS = ['stripOut', 'demolition', 'structuralOpening', 'roofStrip'];
+function pickedDisturbsBuilding(task, kinds) {
+  return Boolean(kinds) && kinds.some((id) => DISTURBING_KINDS.includes(id))
+    && !/\b(new|built (?:in )?(?:200[4-9]|20[1-9]\d))\b/i.test(task) && !/\bno asbestos|asbestos[- ]free\b/i.test(task);
+}
 
 // The picked job steps from the form: known kinds of work only, or null when none were sent.
 function chosenKinds(kinds) {
