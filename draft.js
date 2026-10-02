@@ -1375,6 +1375,14 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     const said = jobSteps.flatMap((step) => step.controls).join('\n');
     if (/\bknee pads?\b/i.test(said)) tick('kneePads');
     if (/\bsunglasses\b/i.test(said)) tick('glassesTinted');
+    if (/\buse travel restraint\b/i.test(said)) tick('harness');
+    if (/\bheat resistant gloves\b/i.test(said)) tick('gloveWelding');
+    // Done before the sun line below, since it rebuilds the steps.
+    if (/\bP2\b|\brespirators?\b/.test(said) && !ticked(['p2', 'halfFace'])) {
+      tick('p2');
+      // A respirator brings its fit testing line into the steps.
+      jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: true });
+    }
     // Outdoor work: sun and heat are controlled where the steps do not already say how.
     if (ticked(['sunscreen']) && !/\bsun protection\b|\bsunscreen\b/i.test(said)) {
       jobSteps[0] = { ...jobSteps[0], hazards: [...jobSteps[0].hazards, 'Heat illness and sunburn working outdoors.'], controls: [...jobSteps[0].controls, 'Sun and heat: hat or brim, long sleeves, sunglasses and SPF 30 or higher sunscreen. Cool drinking water, shade and rest breaks in hot weather.'] };
@@ -1382,11 +1390,6 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
       tick('glassesTinted');
     }
     if (/\bhearing protection\b|\bear (?:muffs|plugs)\b/i.test(said) && !ticked(['earPlugs', 'earMuffs'])) tick('earMuffs');
-    if (/\bP2\b|\brespirators?\b/.test(said) && !ticked(['p2', 'halfFace'])) {
-      tick('p2');
-      // A respirator brings its fit testing line into the steps.
-      jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: true });
-    }
   }
   return { jobSteps, ppe };
 }
@@ -1681,7 +1684,7 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
 }
 
 // Harness, restraint and fall arrest lines that only apply when one is used.
-const HARNESS_ONLY = /^(?:Where (?:harnesses are used|fall arrest is used|a boom-type platform is used|boom EWPs are used)|In a boom EWP|Travel restraint is not used on fragile|A travel restraint system is installed|Travel restraint and fall arrest systems are inspected|Travel restraint is installed|Insert-type anchors|Harness anchors are|A harness user never works alone|No one uses a fall arrest harness)/;
+const HARNESS_ONLY = /^(?:Where (?:harnesses are used|fall arrest is used|travel restraint is used|a boom-type platform is used|boom EWPs are used)|In a boom EWP|Travel restraint is not used on fragile|A travel restraint system is installed|Travel restraint and fall arrest systems are inspected|Travel restraint is installed|Insert-type anchors|Harness anchors are|A harness user never works alone|No one uses a fall arrest harness)/;
 const HARNESS_USED = /\b(harness\w*|fall arrest|travel restraint|restraint systems?|boom(?:[- ]type)? (?:lifts?|ewps?|platforms?)|boom lifts?|swing ?stages?|static lines?|anchor points?)\b/i;
 
 // A harness is in use with fall arrest or restraint, in a boom lift or on a swing stage.
@@ -1694,14 +1697,36 @@ function harnessInUse(source) {
 // Tidies the steps for this task: harness lines go when no harness, restraint or
 // boom lift is used (the fall control is guardrails, a scaffold or a scissor lift),
 // and a control already given in an earlier step is not repeated.
+// Library lines that only make sense when the task names that part of the work.
+const TASK_ONLY = [
+  [/^Footings, thickenings and pits are entered/, /\b(footings?|thickenings?|pits?)\b/i],
+  [/^Where walls, lift shafts or stairwells are reinforced/, /\b(walls?|lift shafts?|cores?|stairwells?)\b/i],
+  [/^Where pipes or pits are lifted with the excavator/, /\b(pipes?|pits?|culverts?|manholes?|tanks?)\b/i],
+  [/^In risers, use cable grips/, /\b(risers?|shafts?)\b/i],
+  [/^Where our crew stays on the deck during the pour/, /\b(pour\w*|concrete is placed|placement)\b/i],
+  [/^Where concrete or paving is cut to reinstate it/, /\b(reinstat\w*|concrete|paving|pavers?|footpaths?|kerbs?)\b/i],
+  [/^Reglets are cut into concrete/, /\breglets?\b/i],
+  [/^Top courses of wall tiles/, /\b(walls?|splashbacks?)\b/i],
+  [/^Fire rated sealants and mastics/, /\bfire[- ]?(?:rat\w*|stop\w*|seal\w*)\b/i],
+  [/^Adhesives, sealants and sealers are used/, /\b(adhesives?|glue\w*|seal\w*|silicone|mastic)\b/i],
+];
+
+// Library lines already said by an answer the user gave.
+const SAID_BY_FACT = [
+  [/^A hot work permit is issued before hot work/, /\bhot work permit\b/i],
+];
+
 function tidySteps(steps, source) {
   const harness = harnessInUse(source);
+  const task = String(source || '');
   const seen = new Set();
   const key = (line) => line.replace(/\s*\([^)]*\)\s*$/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   return steps.map((step) => ({
     ...step,
     controls: step.controls.filter((line) => {
       if (!harness && HARNESS_ONLY.test(line)) return false;
+      if (TASK_ONLY.some(([pattern, needs]) => pattern.test(line) && !needs.test(task))) return false;
+      if (SAID_BY_FACT.some(([pattern, said]) => pattern.test(line) && said.test(task))) return false;
       const id = key(line);
       if (seen.has(id)) return false;
       seen.add(id);

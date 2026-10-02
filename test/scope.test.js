@@ -139,3 +139,17 @@ test('review fixes: trench depth threshold, harness only when used, trade-limite
   const vinyl = draft({ trade: 'flooring', task: 'Install sheet vinyl and carpet tiles with adhesive.', facts: { safetyDataSheet: 'The products used are epoxy adhesive.' } });
   assert.ok(vinyl.ppe.flatMap((group) => group.items).find((item) => item.id === 'kneePads').ticked);
 });
+
+test('review fixes: sun line kept when a respirator is added, task-only lines, silica assessment for door fixings', () => {
+  const { prepareDraft } = require('../draft');
+  const lines = (input) => prepareDraft({ state: 'qld', fallRisk: 'no', ...input }).jobSteps.flatMap((step) => step.controls).join('\n');
+  // Grinding brings in a respirator, which rebuilds the steps; the sun and heat line must survive that.
+  const concrete = lines({ trade: 'structure', task: 'Pump, place and finish concrete to the ground floor slab, and grind high spots.' });
+  assert.match(concrete, /Sun and heat/);
+  // Footings and pits are named only when the task has them.
+  const reo = (task) => lines({ trade: 'structure', task });
+  assert.match(reo('Fix reo to the footings and lift pit.'), /Footings, thickenings and pits are entered/);
+  assert.doesNotMatch(reo('Fix reo to the suspended slabs and landings.'), /Footings, thickenings and pits are entered/);
+  // Drilling masonry for door frames carries the written silica assessment.
+  assert.match(lines({ trade: 'doors', task: 'Install door frames and hang doors to masonry openings.' }), /Assess in writing before starting whether the processing is high risk/);
+});
