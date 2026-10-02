@@ -3776,6 +3776,13 @@ function jobStepsFor(flags, factText, fallback) {
   // Asbestos is checked, and the room stripped out, before anything new goes in.
   const FIRST = ['Check for asbestos before starting', 'Strip out the room'];
   middle = [...FIRST.flatMap((name) => middle.filter((step) => step.step === name)), ...middle.filter((step) => !FIRST.includes(step.step))];
+  // The circuit is isolated and proved de-energised before it is worked on.
+  const isolate = middle.find((step) => step.step === 'Isolate and prove de-energised');
+  const fitOff = middle.findIndex((step) => step.step === 'Rough-in and fit-off');
+  if (isolate && fitOff >= 0 && middle.indexOf(isolate) > fitOff) {
+    middle = middle.filter((step) => step !== isolate);
+    middle.splice(fitOff, 0, isolate);
+  }
   // Old roofing comes off once the roof access and fall protection are set up.
   const strip = middle.find((step) => step.step === 'Remove old roofing');
   const setUp = middle.findIndex((step) => step.step === 'Set up roof access and fall protection');
