@@ -82,7 +82,7 @@ const BULK_EXCAVATION = /\b(bulk excavat\w*|excavat\w* (?:the |out the )?basemen
 
 const STEEL_WORK = /\b(structural steel\w*|steelwork|steel[- ]framed (?:carports?|sheds?|buildings?|structures?)|portal frames?|steel (?:erect\w*|frames?|stairs?|staircases?|canop(?:y|ies)|awnings?|platforms?|roof|sheds?|carports?|portal\w*))\b/i;
 const MASONRY_WORK = /\b(blockwork|block walls?|blocklay\w*|bricklay\w*|brickwork|brick (?:boundary )?walls?|masonry|core[- ]fill\w*)\b/i;
-const PLASTER_WORK = /\b(plasterboard|gyprock|drywall|set(?:ting)? compound\w*|cornices?|suspended ceilings?|ceiling (?:grids?|sheets?|linings?)|plasterers?|sand\w* (?:the )?joints?)\b/i;
+const PLASTER_WORK = /\b(plasterboard|gyprock|drywall|set(?:ting)? compound\w*|cornices?|suspended (?:grid )?ceilings?|grid ceilings?|ceiling (?:grids?|sheets?|linings?)|plasterers?|sand\w* (?:the )?joints?)\b/i;
 const FLOOR_WORK = /\b(carpet\w*|vinyl|floor coverings?|timber floor\w*|engineered timber|floating floors?|levelling compound\w*)\b/i;
 
 const GLAZING_WORK = /\b(glass balustrades?|balustrades?|shower screens?|internal glazing|glass partitions?|mirrors?)\b/i;
@@ -1285,8 +1285,8 @@ const MAIN_WORK = [
   [/\b(pool shells?|shotcrete|gunite|spray\w* concrete)\b/i, 'pool shell and sprayed concrete work', /\b(shotcrete|sprayed concrete)\b/i],
   [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer)/i],
   [/\bpergolas?\b/i, 'pergola work', /\bpergola\b/i],
-  [/\b(sand\w* and (?:polish|coat|seal)\w*|floor sand\w*|polish\w* (?:the )?(?:timber )?floors?)\b/i, 'floor sanding and coating', /\b(floor sanding|Sand and coat)\b/i],
-  [/\b(garden sheds?|kit sheds?|colorbond sheds?|steel sheds?)\b/i, 'shed kit assembly', /\bshed kit\b/i],
+  [/\b(sand\w* and (?:polish|coat|seal)\w*|floor sand\w*)\b/i, 'floor sanding and coating', /\b(floor sanding|Sand and coat)\b/i],
+  [/\b(?:install|erect|assembl|build)\w*\s+(?:an? |the )?(?:new )?(?:garden|kit|colorbond|steel) sheds?\b/i, 'shed kit assembly', /\bshed kit\b/i],
   [/\bbollards?\b/i, 'bollard installation', /\bbollards?\b/i],
   [/\bexhaust fans?\b[^.]{0,40}\b(?:ceilings?|roof spaces?)\b|\b(?:ceilings?|roof spaces?)\b[^.]{0,40}\bexhaust fans?\b/i, 'exhaust fan work in a ceiling', /\bWork in the roof space\b/],
   [/\bremov\w*\b[^.]{0,30}\b(?:split systems?|air ?condition\w*)/i, 'removing the units', /\b(Receive plant|Install ductwork, pipework and units)\b/],
@@ -1668,7 +1668,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     plasterWork: PLASTER_WORK.test(task),
     plasterSheets: PLASTER_WORK.test(task) && /\b(sheets?|fix\w*|hang\w*)\b/i.test(task),
     plasterHeight: PLASTER_WORK.test(task),
-    plasterCeiling: PLASTER_WORK.test(task) && /\b(ceiling (?:grids?|sheets?|linings?)|suspended ceilings?|ceiling (?:plasterboard|gyprock|drywall)|(?:plasterboard|gyprock|drywall) ceiling\w*)\b/i.test(task),
+    plasterCeiling: PLASTER_WORK.test(task) && /\b(ceiling (?:grids?|sheets?|linings?)|suspended ceilings?|ceiling (?:plasterboard|gyprock|drywall)|(?:plasterboard|gyprock|drywall) ceiling\w*|suspended (?:grid )?ceilings?|grid ceilings?)\b/i.test(task),
     plasterSanding: PLASTER_WORK.test(task) && /\b(sand\w*|set\w*|cut\w*|stopping)\b/i.test(task),
     paintSpray: /\b(paint\w*|coating)\b/i.test(task) && /\b(spray\w*|airless)\b/i.test(task),
     paintExternal: /\bpaint\w*\b/i.test(task) && /\b(external\w*|outside|facade|fa[cç]ade|ewps?|elevating work platforms?|boom lifts?)\b/i.test(task),
@@ -1794,10 +1794,10 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     fibre: /\b(optical fibre|fibre optic\w*|fibre backbone|fibre cabl\w*|splic\w*)\b/i.test(task),
     commsRoom: ICT_WORK.test(task) && /\b(racks?|cabinets?|ups|batter(?:y|ies))\b/i.test(task),
     securityDevices: SECURITY_WORK.test(task) && /\binstall\w*\b/i.test(task),
-    fitOff: (/\b(rough[- ]in|fit[- ]off|rewir\w*|run\w* (?:new )?cables?)\b/i.test(task) || /\b(?:install\w*|replac\w*|add\w*)\b[^.]{0,40}\b(?:led lighting|lighting|light fittings?|lights|downlights?|power (?:points?|circuits?|outlets?)|gpos?|switches)\b/i.test(task)) && ELECTRICAL_CORE.test(task),
+    fitOff: (/\b(rough[- ]in|fit[- ]off|rewir\w*|run\w* (?:new )?cables?)\b/i.test(task) || /\b(?:install\w*|replac\w*|add\w*)\b[^.]{0,40}\b(?:led lighting|lighting|light fittings?|lights|downlights?|power (?:points?|circuits?|outlets?)|gpos?|switches|circuits?|outlets?)\b/i.test(task)) && ELECTRICAL_CORE.test(task),
     // Isolation steps for any work on the installation; commissioning only for the
     // permanent main switchboard and consumer mains, not construction power.
-    isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || ((/\b(rough[- ]in|fit[- ]off)\b/i.test(task) || /\b(?:install\w*|replac\w*|add\w*)\b[^.]{0,40}\b(?:led lighting|lighting|light fittings?|lights|downlights?|power (?:points?|circuits?|outlets?)|gpos?|switches)\b/i.test(task)) && ELECTRICAL_CORE.test(task)),
+    isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || ((/\b(rough[- ]in|fit[- ]off)\b/i.test(task) || /\b(?:install\w*|replac\w*|add\w*)\b[^.]{0,40}\b(?:led lighting|lighting|light fittings?|lights|downlights?|power (?:points?|circuits?|outlets?)|gpos?|switches|circuits?|outlets?)\b/i.test(task)) && ELECTRICAL_CORE.test(task)),
     commissioning: /\b(main switchboards?|consumer mains|commission\w*|install\w* (?:a |the )?(?:new )?switchboards?)\b/i.test(task) && ELECTRICAL_CORE.test(task) && !TEMP_POWER.test(task),
     deck: deckLaying(task),
     ewp: /\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(combinedFacts(task, facts)),
