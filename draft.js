@@ -156,10 +156,10 @@ const MASONRY_OPENING = /\b(?:cut\w*|form\w*|mak\w*|creat\w*|new|widen\w*|enlarg
 const HOUSE_JACKING = /\b(re-?stump\w*|(?:replac|chang)\w* (?:the )?(?:old |rotten |timber )*stumps|jack\w* (?:up )?(?:the |a )?(?:\w+ )?houses?|rais\w* (?:the |a )?(?:\w+ )?houses?|lift\w* (?:the |a )?(?:\w+ )?houses?|underpin\w*)\b/i;
 const SUBFLOOR_REPAIR = /\b(?:replac\w*|repair\w*|sister\w*)\b[^.]{0,30}\b(?:rotten |damaged |old )?(?:timber )?(?:floor )?(?:joists?|bearers?)\b/i;
 const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
-const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|motorways?|freeways?|next to (?:live )?traffic|rural roads?|road pavements?|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
+const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|motorways?|freeways?|next to (?:live )?traffic|rural roads?|road pavements?|road upgrades?|on-?ramps?|roundabouts?|(?:resurfac\w*|reseal\w*) (?:a |the )?(?:roads?|streets?|lanes?)|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
 // Track work and work beside running lines are in or next to a railway in use.
 const RAIL_IN_USE = /\b(rail (?:lines?|tracks?)|live track|track possessions?|during (?:a|the) possession|road rail vehicles?|rail overhead wiring|overhead wiring with|track laying|track maintenance machines?|ballast)\b/i;
-const WATER = /\b(drown(?:ing)?|in or near water|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|(?:into|in) (?:a |the )?(?:swimming )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to|along) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall|breakwaters?|(?:from|on) (?:a |the )?(?:jack-?up )?barges?|jack-?up barges?|dredg\w*)\b/i;
+const WATER = /\b(drown(?:ing)?|in or near water|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|diving (?:towers?|platforms?)|mov(?:e)?able pool floors?|(?:into|in) (?:a |the )?(?:swimming |competition |lap |\d+ ?m )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to|along) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall|breakwaters?|(?:from|on) (?:a |the )?(?:jack-?up )?barges?|jack-?up barges?|dredg\w*)\b/i;
 
 function isScaffoldErection(text) {
   return /\bscaffold\w*\b/i.test(String(text || '').replace(/\bmobile scaffold\w*/gi, '')) && (/\b(erect\w*|dismantl\w*|strik\w* (?:the )?scaffold|alter\w*)\b/i.test(text) || /\b(?:install\w*|build\w*) (?:a |the )?(?:temporary |new )?scaffold\w*/i.test(text));
@@ -475,7 +475,7 @@ function highRiskMatches(raw, answer, state) {
       || /\b(?:lay\w*|plac\w*|pav\w*)\b[^.]{0,30}\b(?:asphalt|hotmix|hot mix)\b|\basphalt (?:laying|paving|resurfac\w*|overlay)\b/i.test(String(text || '')),
     temperature: mentioned(text, /\bartificial extremes of temperature\b/i),
     water: mentioned(text, WATER) && !/\b(before the pool is filled|empty pools?|unfilled pools?|pools? (?:is )?not (?:yet )?filled|drained pools?)\b/i.test(String(text || '')),
-    diving: mentioned(text, /\bdiving\b/i),
+    diving: mentioned(String(text || '').replace(/\bdiving (?:towers?|platforms?|boards?|blocks?|pools?|wells?)\b/gi, ' '), /\bdiving\b/i),
     // Victoria, regulation 322: any demolition, trenches and shafts apart from tunnels,
     // and roads or railways without shipping lanes.
     demolitionAny: mentioned(text, DEMOLITION) || /\b(?:remov\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
@@ -2359,7 +2359,7 @@ function settleFlags(flags, task) {
   out.poleErect = T(/\b(?:overhead wiring|ohw|catenary|light rail|tram|its|cctv|camera|flag|traffic signal|signal|sign|lighting|light) poles?\b|\bpoles?\b[^.]{0,30}\b(?:in|along) (?:a |the )?(?:road reserves?|road|motorway|highway)\b/i) && T(/\b(install\w*|erect\w*|stand\w*|new)\b/i) && !out.streetLighting && !T(/\b(temporary|builder'?s?) (?:power )?poles?\b|\bsolar\b/i);
   if (out.poleErect) { out.footingHoles = true; out.craneInterface = true; out.ohwInstall = false; }
   out.greenRoofLayers = Boolean(out.greenRoof) && T(/\b(install\w*|new|build\w*|construct\w*)\b/i);
-  if (out.greenRoofLayers) out.landscapeLift = true;
+  if (out.greenRoofLayers) out.landscapeLift = false;
   if (T(/\b(diving (?:towers?|platforms?|boards?)|catwalks?|rigging (?:points?|grids?)|long span (?:steel )?(?:roof )?trusses|roof trusses)\b/i) && T(/\b(install\w*|erect\w*|construct\w*|build\w*)\b/i)) { out.steelErect = true; out.steelLift = true; }
   if (T(/\b(broadcast|media|audio ?visual|av)\b[^.]{0,20}\bcabl\w*/i)) out.ictCabling = true;
   if (T(/\bfit\w*[- ]?out\b/i) && T(/\b(corporate boxes|suites?|offices?|kitchens?|bars?|kiosks?|boxes)\b/i) && !T(/\b(strip\w*|remov\w*|demoli\w*)\b/i)) { out.carpJoinery = true; if (T(/\bkitchens?\b/i)) out.kitchenEquipment = true; }
@@ -2368,8 +2368,8 @@ function settleFlags(flags, task) {
   if (T(/\bstations?\b[^.]{0,30}\bcanop(?:y|ies)\b/i)) { out.steelErect = true; out.steelLift = true; }
   if (T(/\bgantr(?:y|ies)\b/i) && T(/\b(motorways?|highways?|roads?|its|intelligent transport|signs?)\b/i) && !T(/\b(hoarding|protection|gantry cranes?)\b/i)) { out.steelLift = true; out.steelErect = true; out.workAbove = true; if (T(/\bcabl\w*/i)) out.cablePull = true; }
   if (T(/\b(high voltage|hv|\d+ ?kv)\b/i) && T(/\bcables?\b/i) && T(/\b(relocat\w*|divert\w*|lay\w*|pull\w*)\b/i) && !T(/\b(joint\w*|terminat\w*)\b/i)) { out.cablePull = true; if (T(/\b(relocat\w*|divert\w*|energised|live|existing)\b/i)) { out.hvWork = true; out.isolation = true; } if (T(/\b(relocat\w*|divert\w*|lay\w*|trench\w*|buri\w*|underground)\b/i)) out.trench = true; }
-  if (T(/\b(?:install\w*|build\w*|construct\w*)\s+(?:a |an |the )?(?:new )?(?:\w+ )?(?:kv )?substations?\b(?! (?:transformers?|switchgear|switchboards?))/i) && !T(/\bfenc\w*/i)) { out.plantLift = true; out.craneInterface = true; out.cablePull = true; out.hvWork = true; out.commissioning = true; out.isolation = true; }
-  if (T(/\bdouble tees?\b/i)) { out.precast = true; out.craneInterface = true; }
+  if (T(/\b(?:install\w*|build\w*|construct\w*)\s+(?:a |an |the )?(?:new )?(?:\w+ )?(?:kv )?substations?\b(?! (?:transformers?|switchgear|switchboards?))/i) && !T(/\bfenc\w*/i)) { out.substationEquip = true; out.craneInterface = true; out.cablePull = true; out.hvWork = true; out.commissioning = true; out.isolation = true; }
+  if (T(/\b(double tees?|hollow ?core planks?|precast (?:floor|deck) (?:units?|planks?))\b/i)) { out.precastFloor = true; out.precast = false; out.craneInterface = true; }
   if (T(/\b(mechanical plant|chillers?|cooling towers?|ahus?|air handling units?|rooftop units?|condensers?)\b/i) && T(/\broofs?\b/i) && T(/\bcranes?\b/i)) { out.plantLift = true; out.craneInterface = true; }
   if (T(/\b(modular (?:buildings?|classrooms?)|relocatable (?:buildings?|classrooms?)|transportable (?:buildings?|classrooms?))\b/i)) out.moduleInstall = true;
   if (T(/\b(covered outdoor learning areas?|colas?|shade structures?|covered (?:walkways?|areas?))\b/i) && T(/\b(install\w*|erect\w*|build\w*|construct\w*)\b/i)) out.kitStructure = true;
@@ -2379,7 +2379,16 @@ function settleFlags(flags, task) {
   if (T(/\b(track slabs?|slab track|embedded rails?)\b/i)) { out.trackWork = false; out.concrete = true; out.slabGround = true; out.groundSlab = true; }
   if (T(/\b(on-?ramps?|off-?ramps?|interchanges?|road widening|roundabouts?|new roads?|widen\w* (?:the |a )?(?:road|motorway|highway))\b/i) && T(/\b(construct\w*|build\w*|upgrad\w*|widen\w*|new)\b/i) && !T(/\b(cables?|mains?|pipes?|services?|poles?|cut and fill|scrapers?|dozers?|bulk earthworks)\b/i)) { out.earthworks = true; out.sitePlant = true; out.roadPlant = true; out.road = true; }
   if (T(/\bgantr(?:y|ies)\b/i) && T(/\b(motorways?|highways?|its|intelligent transport)\b/i)) out.craneInterface = true;
-  if (T(/\b(overlay power|temporary power|event power)\b/i)) out.tempPower = true;
+  out.eventPower = T(/\b(events?|overlay|festivals?|ceremon\w*|venues?)\b/i) && T(/\b(power|generators?)\b/i) && T(/\b(temporary|overlay|event)\b/i);
+  if (out.eventPower) { out.tempPower = false; out.generatorPlant = false; }
+  if (out.precast && T(/\btilt-?up\b/i)) out.craneInterface = true;
+  if (T(/\bsub-?surface drain\w*|\bsubsoil drain\w*/i) && T(/\bturf\b/i)) out.shallowTrench = true;
+  if ((T(/\b(refurbish\w*|renovat\w*|strip\w*)\b/i) || (T(/\binstall\w*\b/i) && T(/\b(?:in|to) (?:the |existing )?(?:school )?(?:classrooms?|wards?)\b/i))) && T(/\b(schools?|hospitals?|wards?|classrooms?|public buildings?)\b/i) && !T(/\bnew (?:school|classroom|building|block|hospital|tower)\b/i)) out.asbestosCheck = true;
+  out.speakerHang = T(/\b(speakers?|loudspeakers?|line arrays?|pa systems?)\b/i) && T(/\b(roofs?|ceilings?|trusses?|catwalks?)\b/i) && T(/\b(install\w*|hang\w*|fix\w*)\b/i);
+  out.screensOnly = T(/\b(big screens?|video screens?|led screens?|scoreboards?)\b/i) && !T(/\blight\w*/i);
+  out.lightTowers = T(/\b(light(?:ing)? towers?|floodlight towers?|light masts?)\b/i);
+  out.standDismantle = T(/\bdismantl\w*/i) && !T(/\b(erect\w*|install\w*)\b/i);
+  out.retractSeating = T(/\b(retractable|telescopic)\b/i);
   if (T(/\bair ?condition\w*\b/i) && T(/\b(classrooms?|offices?|rooms?|wards?)\b/i) && T(/\b(install\w*|new|replac\w*)\b/i) && !T(/\b(ducted|chillers?|vrf|vrv)\b/i)) out.splitInstall = true;
   if (T(/\b(building management systems?|bms|building automation)\b/i) && T(/\b(install\w*|new|commission\w*)\b/i)) { out.ictCabling = true; out.commissioning = true; }
   // Plant review rules.
@@ -2397,7 +2406,7 @@ function settleFlags(flags, task) {
   out.tamping = Boolean(out.trackWork) && T(/\b(tamp\w*|regulat\w* (?:the )?ballast|ballast regulators?)\b/i);
   out.ohwInstall = T(/\b(overhead wiring|ohw|catenary|contact wires?)\b(?! (?:masts?|structures?|footings?|foundations?|poles?|portals?))/i) && T(/\b(install\w*|string\w*|erect\w*|replac\w*)\b/i) && T(/\b(rail\w*|track|road rail|rrvs?|tram\w*)\b/i);
   if (out.ohwInstall) { out.railCorridor = true; out.sitePlant = false; }
-  out.noDeck = Boolean(out.concrete && T(/\b(piers?|columns?|spillways?|diaphragm walls?|mass concrete|tremie|pile caps?|headwalls?|abutments?)\b/i) && !T(/\b(slabs?|decks?|floors?|suspended)\b/i));
+  out.noDeck = Boolean(out.concrete && (out.groundSlab || out.slabGround) && !out.formwork) || Boolean(out.concrete && T(/\b(piers?|columns?|spillways?|diaphragm walls?|mass concrete|tremie|pile caps?|headwalls?|abutments?)\b/i) && !T(/\b(slabs?|decks?|floors?|suspended)\b/i));
   out.tremiePour = Boolean(out.concrete && T(/\b(tremie|diaphragm walls?|secant|contiguous piles?)\b/i));
   // Diaphragm wall panels are dug under support fluid: no one works in them.
   if (out.tremiePour && T(/\bdiaphragm walls?\b/i)) { out.trench = false; out.deepTrench = false; }

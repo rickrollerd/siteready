@@ -3418,10 +3418,11 @@ const ACTIVITIES = [
     when: 'workAbove',
     steps: [{
       step: 'Work above traffic or a rail line',
-      hazards: ['Tools, paint or materials fall onto traffic or trains below.', 'Struck by passing traffic while setting up.'],
+      hazards: ['Tools or materials fall onto traffic or trains below.', 'Struck by passing traffic while setting up.'],
       controls: [
         'Lanes or tracks below are closed under the road authority\'s or rail operator\'s permit, or catch screens or platforms are fitted, before work starts above them.',
-        'Tools and materials are tethered, and drop sheets and spray are contained.',
+        'Tools and materials are tethered or contained.',
+        { only: 'painting', text: 'Drop sheets and spray are contained.' },
         'Access is from an EWP or scaffold set up inside the closure.',
       ],
     }],
@@ -3644,11 +3645,12 @@ const ACTIVITIES = [
     when: 'grandstand',
     steps: [{
       step: 'Erect and dismantle the temporary grandstand',
-      hazards: ['A fall from the tiers or frame while it is erected.', 'The structure collapses or overturns in wind or under crowd load.', 'Components fall onto people below.'],
+      hazards: ['A fall from the tiers or frame while it is erected or dismantled.', 'The structure collapses or overturns in wind or under crowd load.', 'Components fall onto people below.'],
       controls: [
-        'The grandstand is erected to its engineer\'s or supplier\'s design for the crowd and wind loads, on ground checked as able to carry it.',
+        { unless: 'standDismantle', text: 'The grandstand is erected to its engineer\'s or supplier\'s design for the crowd and wind loads, on ground checked as able to carry it.' },
+        { only: 'standDismantle', text: 'The grandstand is dismantled in the supplier\'s sequence, top down, with braces and ties left in place until the parts they hold are removed, and components are lowered, not dropped.' },
         src('Where the grandstand is built from scaffolding and a person or object could fall more than 4 m, it is erected and dismantled by licensed scaffolders.', WHS('s 81, schedule 3')),
-        'Seats, handrails and stairs are complete, and a competent person inspects and certifies the structure in writing, before the public uses it.',
+        { unless: 'standDismantle', text: 'Seats, handrails and stairs are complete, and a competent person inspects and certifies the structure in writing, before the public uses it.' },
         'The work area is closed to the public while the grandstand is erected and dismantled, with an exclusion zone below.',
       ],
     }],
@@ -5495,7 +5497,7 @@ const ACTIVITIES = [
     when: 'roadPlant',
     steps: [{
       step: 'Run the road plant inside the work zone',
-      hazards: ['A worker is struck or run over by the road plant or trucks.', 'Struck by passing traffic.', { unless: 'lineMarkOnly', text: 'Entanglement in a cutting or mixing drum, auger or conveyor.' }, { only: 'asphaltHot', text: 'Burns from hot asphalt.' }, { only: 'limeWork', text: 'Burns to skin and eyes from lime and cement.' }, 'Dust and fumes.'],
+      hazards: [{ unless: 'asphaltHot', text: 'A worker is struck or run over by the road plant or trucks.' }, { only: 'asphaltHot', text: 'A worker is struck or run over by the paver, road rollers or trucks.' }, 'Struck by passing traffic.', { unless: 'lineMarkOnly', text: 'Entanglement in a cutting or mixing drum, auger or conveyor.' }, { only: 'asphaltHot', text: 'Burns from hot asphalt.' }, { only: 'limeWork', text: 'Burns to skin and eyes from lime and cement.' }, 'Dust and fumes.'],
       controls: [
         'All plant works inside the traffic management set out for the job, with a truck mounted attenuator behind the work where the traffic management plan requires it.',
         'Each machine is run by a competent operator, checked before each shift, with its guards fitted.',
@@ -5918,7 +5920,8 @@ const ACTIVITIES = [
       step: 'Install the seating units and tiers',
       hazards: ['Crushed by a seating unit, tier or telescopic bank while it is moved or extended.', 'A fall from the edge of a tier or the back of the seating.', 'Manual handling of seats and frames.', 'Dust and noise drilling anchors into concrete.'],
       controls: [
-        'Seating is installed to the manufacturer\'s method and the engineer\'s anchoring details, and telescopic banks are extended and retracted only by trained people with everyone clear.',
+        'Seating is installed to the manufacturer\'s method and the engineer\'s anchoring details.',
+        { only: 'retractSeating', text: 'Telescopic banks are extended and retracted only by trained people with everyone clear.' },
         'Heavy frames and units are moved with lifting equipment rated for them, not by hand.',
         'Open edges at the back and sides of tiers are fitted with guardrails before people work near them, or workers use fall protection.',
         'Anchor holes are drilled with on-tool extraction, and hearing protection is worn.',
@@ -5978,6 +5981,7 @@ const ACTIVITIES = [
       hazards: ['The pole falls or swings while it is lifted and stood.', 'Contact with overhead power lines or overhead wiring.', 'Struck by traffic or plant.', 'A fall into an open footing hole.'],
       controls: [
         'Poles are lifted and stood with a crane or pole truck rated for the load, slung by licensed doggers, with no one under or within reach of the pole.',
+        'Footings are bored or excavated by machine to the engineer\'s details, with services located first and open holes covered.',
         'Each pole is held by the crane until its base bolts are fixed or its footing can hold it, as the engineer\'s details set out.',
         'Overhead lines are identified before work starts, and the crane and pole stay outside the network operator\'s approach distances.',
         'Open footing holes are covered or barricaded.',
@@ -6014,6 +6018,64 @@ const ACTIVITIES = [
       ],
     }],
     ppe: ['faceShield', 'p2', 'gloveChemical'],
+  },
+  {
+    when: 'substationEquip',
+    steps: [{
+      step: 'Set and fix the substation equipment',
+      hazards: ['A transformer, switchgear or kiosk falls or swings while it is lifted.', 'Crushed between the equipment and its plinth or the building.', 'Transformer oil spills.', 'Contact with live high voltage equipment nearby.'],
+      controls: [
+        'Transformers, switchgear and kiosks are lifted by crane under a lift plan, slung at their designed lifting points by licensed doggers, with no one under the load.',
+        'Equipment is landed on plinths or footings built and certified to the design, and fixed before the crane releases it.',
+        'Hands and feet stay clear of the plinth while the equipment is lowered, and it is guided with tag lines.',
+        'Oil-filled equipment is checked for leaks on delivery, with a spill kit at hand and bunding in place as the design requires.',
+        'Where existing equipment is live, the work follows the network operator\'s access permit and safe approach distances.',
+      ],
+    }],
+    ppe: ['chinStrap'],
+  },
+  {
+    when: 'precastFloor',
+    steps: [{
+      step: 'Land and fix the precast floor units',
+      hazards: ['A unit falls or swings while it is lifted.', 'A unit slips off its bearings.', 'A fall from the open edge of the deck or through gaps between units.', 'Hands crushed between the unit and its bearing.'],
+      controls: [
+        { fact: 'erectionDesign' },
+        'Units are lifted at their designed lifting points by crane under a lift plan, slung by licensed doggers or riggers, with tag lines and no one under the load.',
+        'Each unit is landed on its bearings to the erection design and connected or propped as it requires before the hook is released.',
+        'Edge protection or fall protection is in place at open deck edges and gaps before people work on the units.',
+        'Hands and feet stay clear of the bearings until the unit is down.',
+      ],
+    }],
+    ppe: ['harness', 'chinStrap'],
+  },
+  {
+    when: 'speakerHang',
+    steps: [{
+      step: 'Hang the speakers and equipment from the roof structure',
+      hazards: ['A speaker or bracket falls onto people below.', 'Overloading the roof steel or fixings.', 'A fall from the boom lift or catwalk.'],
+      controls: [
+        'Speakers and brackets are hung from fixing points the engineer or supplier has rated for the load, with a secondary safety sling or chain on every item.',
+        'Heavy items are lifted with a chain hoist or lifting device rated for the load, not by hand at height.',
+        'An exclusion zone is set up below while equipment is lifted and fixed.',
+        'Work from the boom lift is done with the harness attached to its anchor point.',
+      ],
+    }],
+    ppe: ['harness'],
+  },
+  {
+    when: 'eventPower',
+    steps: [{
+      step: 'Install temporary event power and generators',
+      hazards: ['Electric shock from damaged leads or connections.', 'People trip over cables in public areas.', 'Generator fire, fuel spill or exhaust fumes.', 'Cables damaged by vehicles or crowds.'],
+      controls: [
+        'The installation is designed and installed by licensed electrical workers, with RCD protection and earthing as the design requires, and is tested before it is energised.',
+        'Cables in public areas are run overhead, in cable ramps or in protected routes, and are kept out of vehicle paths.',
+        'Generators are set up outdoors on level ground, earthed as the supplier requires, fenced off from the public, and refuelled only when stopped and cool, with a spill kit and fire extinguisher at hand.',
+        'Leads, boards and connections are inspected each day of the event, and damaged items are taken out of service straight away.',
+      ],
+    }],
+    ppe: ['gloveGeneral'],
   },
   {
     when: 'glassWind',
@@ -6465,8 +6527,11 @@ const ACTIVITIES = [
         src('Plan for the EWP contacting electric lines, overturning, falls from the platform and crushing. Some EWPs are not suitable for windy conditions outdoors: work within the manufacturer\'s wind limit.', MODEL('Managing the risk of falls', 's 5.1')),
         { only: 'craneNamed', ...src('Screens and light frames are lifted by the crane company with lifting attachments suited to the load, within limits, kept under control and never over people.', WHS('s 219')) },
         { only: 'craneNamed', ...src('People are lifted in a crane work box only where plant designed to lift people, such as an EWP, is not reasonably practicable. The box has a registered design and is securely attached, people stay in it and wear a harness, and there is a way to get them out safely if the crane fails.', WHS('s 219(3), s 220(1), schedule 5')) },
-        src('Connecting the lights to the supply is electrical work, done by licensed electrical workers with the circuits isolated.', ESA('s 18, s 55, s 56')),
-        src('Light fittings and parts are moved with trolleys and lifting aids, not carried by hand at height.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 4.5')}`),
+        { only: 'lightTowers', text: 'Towers and masts are stood by crane onto footings and base bolts certified by the engineer, and held by the crane until the base bolts are tightened.' },
+        { only: 'screensOnly', text: 'Screen modules are fixed to the support frame to the manufacturer\'s details, each one secured before the next is lifted, and the frame is certified for the screen\'s weight and wind load.' },
+        { unless: 'screensOnly', ...src('Connecting the lights to the supply is electrical work, done by licensed electrical workers with the circuits isolated.', ESA('s 18, s 55, s 56')) },
+        { only: 'screensOnly', ...src('Connecting the screen to the supply is electrical work, done by licensed electrical workers with the circuits isolated.', ESA('s 18, s 55, s 56')) },
+        { unless: 'screensOnly', ...src('Light fittings and parts are moved with trolleys and lifting aids, not carried by hand at height.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 4.5')}`) },
         src('Tools and fittings at height are on lanyards, and an exclusion zone is set up below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
       ],
     }],
@@ -7830,7 +7895,7 @@ ACTIVITIES.push(
         'Footings are dug and poured to the kit supplier\'s or engineer\'s details. Open holes are covered or fenced.',
         { only: 'kitBuild', text: 'Posts are stood, plumbed and braced, and the frame is braced to the kit instructions before roof sheets go on.' },
         { unless: 'kitBuild', text: 'Posts are stood, plumbed and braced, and the frame is braced to the engineer\'s or supplier\'s details before roof sheets go on.' },
-        'Where the structure is fixed to the house, the fascia, wall or slab is checked as able to take the load, to the supplier\'s or engineer\'s details.',
+        'Where the structure is fixed to a house or other building, the fascia, wall or slab is checked as able to take the load, to the supplier\'s or engineer\'s details.',
         { only: 'roofExtension', text: 'Where the new roof ties into the existing roof, the existing roof is walked only on its purlin lines with fall protection, and the junction is flashed to the manufacturer\'s details.' },
         'Roof sheets are fixed from a scaffold, platform or EWP, and not handled in strong wind.',
       ],
@@ -8142,7 +8207,24 @@ function jobStepsFor(flags, factText, fallback) {
   moveAfter('Break out and repair damaged concrete', 'Saw cut concrete');
   moveBefore('Build the vehicle crossover', 'Saw cut concrete');
   moveAfter('Break rock with a hydraulic hammer', 'Excavate');
+  moveBefore('Set and fix the substation equipment', 'Isolate and prove de-energised');
+  moveBefore('Set and fix the substation equipment', 'Pull cables and handle cable drums');
   moveBefore('Drill with the drill rig', 'Install, stress and later remove ground anchors and props');
+  // A suspended pour runs in a fixed order: deck, reo and tendons, inspection, pour, finish, stressing, stripping.
+  const POUR = ['Erect falsework and shores', 'Install edge protection and lay the deck', 'Load ply onto the deck while it is being laid', 'Form penetrations and voids', 'Lift reo onto the deck', 'Place and tie reo', 'Place post-tensioning ducts and tendons', 'Inspect before the pour', 'Set up the concrete pump and placing boom', 'Pump and place concrete', 'During the pour', 'Finish concrete', 'Stress the tendons', 'Strip formwork and backprop'];
+  if (middle.some((item) => item.step === 'Erect falsework and shores')) {
+    const at = middle.map((item, i) => (POUR.includes(item.step) ? i : -1)).filter((i) => i >= 0);
+    const sorted = at.map((i) => middle[i]).sort((x, y) => POUR.indexOf(x.step) - POUR.indexOf(y.step));
+    at.forEach((i, k) => { middle[i] = sorted[k]; });
+  }
+  moveBefore('Use an elevating work platform', 'Strip formwork and backprop');
+  // Testing and commissioning, and leaving work safe, follow the installation.
+  for (const name of ['Leave unfinished work safe', 'Test, connect and commission']) {
+    const last = middle.find((item) => item.step === name);
+    if (last) middle = [...middle.filter((item) => item !== last), last];
+  }
+  const hospitalStep = middle.find((item) => item.step === 'Work next to the live hospital');
+  if (hospitalStep) middle = [hospitalStep, ...middle.filter((item) => item !== hospitalStep)];
   // Work in a rail corridor is set up before anything else starts.
   const railStep = middle.find((item) => item.step === 'Work in the rail corridor');
   if (railStep) middle = [railStep, ...middle.filter((item) => item !== railStep)];
