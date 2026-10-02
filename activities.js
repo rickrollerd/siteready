@@ -6298,6 +6298,9 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Cut an opening in a load-bearing wall', 'Cut blocks and bricks');
   moveBefore('Remove and fit the vanity', 'Plumbing rough-in and fit-off');
   moveBefore('Mix bagged concrete', 'Place concrete');
+  moveBefore('Install signal or lighting poles, pits and conduits', 'Test, connect and commission');
+  moveBefore('Install signal or lighting poles, pits and conduits', 'Leave unfinished work safe');
+  moveBefore('Install the battery system', 'Leave unfinished work safe');
   moveBefore('Cut an opening in a load-bearing wall', 'Mix mortar');
   moveBefore('Lift and fix the new beam or lintel', 'Cut blocks and bricks');
   moveBefore('Mix mortar', 'Lift and fix the new beam or lintel');

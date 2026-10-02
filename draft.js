@@ -1981,7 +1981,7 @@ function settleFlags(flags, task) {
   out.regrout = /\b(re-?grout\w*|re-?seal\w*|seal\w* (?:a |the )?leaking (?:shower|bath)\w*|without removing (?:the )?tiles)\b/i.test(task);
   out.toiletReplace = /\b(?:replac\w*|chang\w*|swap\w*)\b[^.]{0,30}\b(?:toilet(?: pans?| suites?)?|pans?|basins?|cisterns?)\b/i.test(task) && !/\b(rough[- ]in|new (?:pipes?|drains?))\b/i.test(task);
   if (/\bsewer (?:junctions?|connections?)\b/i.test(task) && /\b(footpaths?|driveways?|roads?|slabs?|paving)\b/i.test(task)) out.sawCut = true;
-  if (out.batteryStorage || (out.trafficSignals || /\bstreet ?lighting\b/i.test(task))) out.commissioning = true;
+  if (out.batteryStorage || out.signalWork || (/\bstreet ?light\w*\b/i.test(task) && /\b(?:pull\w*|install\w*|run\w*)\b[^.]{0,30}\bcables?\b|\bconduit and cable\b/i.test(task))) out.commissioning = true;
   if (out.regrout) { out.tileMix = false; out.regroutStep = true; }
   if (out.smallPour) out.smallPourMix = true;
   off(out.toiletReplace, 'plumbingFitOff');
