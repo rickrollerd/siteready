@@ -11,18 +11,18 @@
 const TEST_TAG = 'Inspected, tested and tagged to AS/NZS 3012. Checked for damage before use.';
 const PRESTART = 'Pre-start check each shift. Serviced to the manufacturer\'s instructions.';
 const PLANT = [
-  { item: 'Boom-type elevating work platform', pattern: /\b(boom (?:lifts?|ewps?|type)|boom-type|knuckle booms?|cherry pickers?)\b/i, inspection: `${PRESTART} Yearly inspection by a competent person.`, licence: 'Yes, where the boom can reach 11 m or more (WP)' },
-  { item: 'Scissor lift', pattern: /\bscissor lifts?\b/i, inspection: `${PRESTART} Yearly inspection by a competent person.`, licence: 'No. Operator trained in the model used' },
-  { item: 'Elevating work platform', pattern: /\b(elevating work platforms?|ewps?)\b/i, skipIf: /\b(scissor|boom)\b/i, inspection: `${PRESTART} Yearly inspection by a competent person.`, licence: 'Yes, for a boom-type platform that can reach 11 m or more (WP)' },
-  { item: 'Tower crane', pattern: /\btower cranes?\b/i, inspection: 'Operated and maintained by the crane company under its log book and inspection regime.', licence: 'Yes (CT), with licensed doggers or riggers' },
-  { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\btower crane\b/i, inspection: 'Crane company\'s log book, pre-start check and yearly inspection.', licence: 'Yes (crane class to suit), with licensed doggers or riggers' },
+  { item: 'Boom-type elevating work platform', pattern: /\b(boom (?:lifts?|ewps?|type)|boom-type|knuckle booms?|cherry pickers?)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Yes, where the boom length is 11 m or more, measured as the greater of platform height and horizontal reach (WP)' },
+  { item: 'Scissor lift', pattern: /\bscissor lifts?\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'No. Operator trained in the model used' },
+  { item: 'Elevating work platform', pattern: /\b(elevating work platforms?|ewps?)\b/i, skipIf: /\b(scissor|boom)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Only for a boom-type platform with a boom length of 11 m or more (WP). No licence for a scissor lift' },
+  { item: 'Tower crane', pattern: /\btower cranes?\b/i, inspection: 'Registered item of plant. Pre-erection and commissioning inspections, daily pre-operational check and log book, routine inspections, a yearly inspection if erected for 12 months or more, and a major inspection (WHS Reg s 235).', licence: 'Yes (CT, or CS for a self-erecting tower crane), with licensed doggers or riggers' },
+  { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\btower crane\b/i, inspection: 'Crane company\'s log book and pre-start check. Inspected to the manufacturer\'s instructions (WHS Reg s 213). Cranes over 10 t are registered plant and need a major inspection (s 235).', licence: 'Yes, crane class to suit (slewing C2, C6, C1 or C0; non-slewing over 3 t CN; vehicle loading crane of 10 metre-tonnes or more CV), with licensed doggers or riggers. No licence for a vehicle loading crane under 10 metre-tonnes or a non-slewing crane of 3 t or less' },
   { item: 'Forklift', pattern: /\bforklifts?\b/i, inspection: PRESTART, licence: 'Yes (LF)' },
-  { item: 'Telehandler', pattern: /\btelehandlers?\b/i, inspection: PRESTART, licence: 'Operator competent in the model used. A licence is needed when it is used as a crane or forklift that Schedule 3 covers' },
-  { item: 'Personnel or materials hoist', pattern: /\b(hoists?|materials lifts?)\b/i, skipIf: /\bchain hoists?\b/i, inspection: 'Inspected after each climb and as the manufacturer sets out.', licence: 'Yes (HP or HM)' },
-  { item: 'Concrete placing boom', pattern: /\b(placing booms?|boom pumps?|pump trucks?|truck-mounted pumps?)\b/i, inspection: 'Registered item of plant. Pre-start check, and pipeline checked for wear before each pour.', licence: 'Yes (PB)' },
-  { item: 'Concrete line pump', pattern: /\b(line pumps?|concrete pumps?)\b/i, inspection: 'Pre-start check, and pipeline and clamps checked for wear before each pour.', licence: 'No. Operator competent' },
-  { item: 'Scaffold', pattern: /\bscaffold(?:s|ing)?\b/i, inspection: 'Inspected before first use, after alterations or repairs, after an event that could affect it, and at least every 30 days.', licence: 'Yes, for erecting or altering where a fall of more than 4 m is possible (SB, SI or SA)' },
-  { item: 'Mobile scaffold', pattern: /\bmobile scaffolds?\b/i, inspection: 'Checked before use: castors locked, guardrails complete.', licence: 'No, under 4 m. Yes (SB) where a person or object could fall more than 4 m' },
+  { item: 'Telehandler', pattern: /\btelehandlers?\b/i, inspection: PRESTART, licence: 'No Schedule 3 class names telehandlers. Operator competent in the model used. Check with the supplier whether a non-slewing crane licence (CN) is needed when it is fitted with a jib or hook to lift suspended loads' },
+  { item: 'Personnel or materials hoist', pattern: /\b(hoists?|materials lifts?)\b/i, skipIf: /\bchain hoists?\b/i, inspection: 'Inspected, tested and maintained by a competent person to the manufacturer\'s instructions (WHS Reg s 213). Pre-start check each shift. Erected and altered by licensed riggers.', licence: 'Yes (HP or HM)' },
+  { item: 'Concrete placing boom', pattern: /\b(placing booms?|boom pumps?|pump trucks?|truck-mounted pumps?)\b/i, inspection: 'Registered item of plant. Daily pre-start check. Pipes, hoses and clamps checked for wear and damage before use. Yearly inspection and six-yearly major inspection (Concrete Pumping Code s 5).', licence: 'Yes (PB)' },
+  { item: 'Concrete line pump', pattern: /\b(line pumps?|concrete pumps?)\b/i, inspection: 'Pre-start check. Pipes, hoses and clamps checked for wear and damage before use. Inspected by a competent person at least yearly.', licence: 'No. Operator competent' },
+  { item: 'Scaffold', pattern: /\bscaffold(?:s|ing)?\b/i, inspection: 'Handover certificate before first use. Inspected by a competent person before use, after an incident that could affect its stability, after repairs or alterations, and at least every 30 days (WHS Reg s 225, scaffolds over 4 m).', licence: 'Yes, for erecting or altering where a fall of more than 4 m is possible (SB, SI or SA)' },
+  { item: 'Mobile scaffold', pattern: /\bmobile scaffolds?\b/i, inspection: 'Erected to the manufacturer\'s instructions. Castors locked, guardrails complete, checked before use. Over 4 m: handover certificate and inspections as for a scaffold (WHS Reg s 225).', licence: 'No, under 4 m. Yes (SB) where a person or object could fall more than 4 m' },
   { item: 'Excavator', pattern: /\b(excavators?|excavat\w* by machine|mini excavators?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Skid steer or posi-track', pattern: /\b(skid ?steers?|bobcats?|posi-?tracks?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
   { item: 'Roller or plate compactor', pattern: /\b(rollers?|plate compactors?|compactors?|wacker)\b/i, skipIf: /\bpaint rollers?\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
@@ -31,7 +31,7 @@ const PLANT = [
   { item: 'Power trowel', pattern: /\bpower trowels?\b/i, inspection: `${PRESTART} Guards and stop switch checked.`, licence: 'No' },
   { item: 'Concrete saw', pattern: /\b(concrete saws?|saw cut\w*|saw-cut\w*|floor saws?|wall saws?)\b/i, inspection: `${PRESTART} Blade guard in place. Electric saws: ${TEST_TAG}`, licence: 'No' },
   { item: 'Core drill', pattern: /\bcore[- ]?drill\w*\b/i, inspection: TEST_TAG, licence: 'No' },
-  { item: 'Generator', pattern: /\bgenerators?\b/i, inspection: `${PRESTART} Electrical output protected by an RCD.`, licence: 'No' },
+  { item: 'Generator', pattern: /\bgenerators?\b/i, inspection: `${PRESTART} Electrical output protected by an RCD. ${TEST_TAG}`, licence: 'No' },
   { item: 'Chainsaw', pattern: /\bchainsaws?\b/i, inspection: `${PRESTART} Chain brake working.`, licence: 'No. Operator competent' },
   { item: 'Oxy-acetylene or gas torch set', pattern: /\b(oxy|acetylene|gas torch\w*|torch-on|torching|brazing|lpg)\b/i, inspection: 'Hoses, regulators and flashback arrestors checked before use.', licence: 'No' },
   { item: 'Welder', pattern: /\bweld\w*\b/i, skipIf: /\bvinyl seams?\b/i, inspection: TEST_TAG, licence: 'No' },
@@ -64,10 +64,10 @@ const SUBSTANCES = [
 const QUALIFICATIONS = [
   ['General construction induction (white card)', /./],
   ['Site specific induction', /./],
-  ['Electrical licence (electrician)', /\b(electrical work|electrician|cabling|switchboards?|fit[- ]off|terminations?|wiring)\b/i],
+  ['Electrical work licence (electrical mechanic)', /\b(electrical work|electrician|cabling|switchboards?|fit[- ]off|terminations?|wiring)\b/i],
   ['Plumbing and drainage licence', /\b(plumb\w*|drainage|sanitary|sewer|hot water)\b/i],
   ['Refrigerant handling licence (ARC)', /\brefrigerant\b/i],
-  ['Asbestos removal licence (Class A or B), or training for non-licensed removal', /\basbestos\b/i],
+  ['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)', /\basbestos\b/i],
   ['Confined space entry training', /\bconfined spaces?\b/i],
   ['Crystalline silica training (VET accredited or regulator approved)', /\b(silica|crystalline)\b/i],
   ['Working at heights and harness training', /\b(harness|travel restraint|fall arrest)\b/i],
@@ -138,7 +138,7 @@ function substancesFor(text, safetyDataSheet) {
 function qualificationsFor(text, plant) {
   const needed = QUALIFICATIONS.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
   for (const item of plant) {
-    if (/^Yes/.test(item.licence)) needed.push(`High risk work licence: ${item.item.toLowerCase()} (${item.licence.replace(/^Yes,?\s*/, '')})`);
+    if (/^Yes/.test(item.licence)) needed.push(`High risk work licence: ${item.item.toLowerCase()} (${item.licence.split('. ')[0].replace(/^Yes,?\s*/, '')})`);
   }
   if (/\b(dogg\w*|slung|sling\w*|rigg\w*)\b/i.test(text)) needed.push('High risk work licence: dogging or rigging (DG, RB, RI or RA)');
   return [...new Set(needed)];
@@ -152,7 +152,7 @@ function emergencyFor(text, input, highRisk) {
   if (highRisk.some((item) => /falling more than/i.test(item)) || /\b(harness|elevating work platforms?|ewps?|boom lifts?)\b/i.test(text)) {
     rows.push({ type: 'Work at height', equipment: 'Rescue plan for a person stuck or suspended at height (EWP ground controls, rescue equipment)', detail: '' });
   }
-  if (highRisk.some((item) => /trench|shaft/i.test(item))) rows.push({ type: 'Trench', equipment: 'Rescue plan for a trench collapse. No one enters an unsupported trench to rescue', detail: '' });
+  if (highRisk.some((item) => /trench|shaft/i.test(item))) rows.push({ type: 'Trench', equipment: 'Rescue plan for a trench collapse (Excavation work Code of Practice s 3.8). No one enters an unsupported trench to rescue', detail: '' });
   if (highRisk.some((item) => /confined space/i.test(item))) rows.push({ type: 'Confined space', equipment: 'Rescue plan and equipment, started from outside the space', detail: '' });
   if (/\b(chemicals?|solvents?|cement|epoxy|acid)\b/i.test(text)) rows.push({ type: 'Chemical splash', equipment: 'Eye wash and running water, and the safety data sheets', detail: '' });
   return rows;
