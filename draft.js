@@ -2016,7 +2016,7 @@ function settleFlags(flags, task) {
   off(out.purlinInstall && out.steelErect, 'purlinInstall');
   if (out.artificialTurf) out.turf = false;
   off(out.stairLiftInstall, 'platformLift', 'fixtures');
-  if (/\bkitchen\w*|restaurant|caf[eé]\b/i.test(task) && /\b(commercial (?:ranges?|cooktops?)|wok (?:burners?|stations?|ranges?)|cooking equipment)\b/i.test(task)) { out.kitchenEquipment = true; out.gasFitting = true; }
+  if (/\bkitchen\w*|restaurant|caf[eé]\b/i.test(task) && /\b(commercial (?:ranges?(?! ?hoods?)|cooktops?)|wok (?:burners?|stations?|ranges?)|cooking equipment)\b/i.test(task)) { out.kitchenEquipment = true; out.gasFitting = true; }
   if (/\bclean\w*\b[^.]{0,20}\band seal\w*\b|\bseal\w*\b[^.]{0,30}\b(sandstone|stone|brick)\b/i.test(task) && /\b(sandstone|stone|brick\w*|masonry|walls?)\b/i.test(task)) { out.pressureClean = true; out.sealing = true; }
   if (/\bcubby (?:house)?s?\b/i.test(task)) out.kitStructure = true;
   if (/\b(?:repair\w*)\b[^.]{0,50}\bceilings?\b/i.test(task)) { out.ceilingRepair = true; out.plasterCeiling = true; }
@@ -2171,7 +2171,7 @@ function settleFlags(flags, task) {
   if (out.portableBuilding) out.craneInterface = true;
   out.stoneCladding = /\bstone (?:cladding|veneer|panels?|feature walls?)\b/i.test(task) && /\b(install\w*|fix\w*|lay\w*)\b/i.test(task) && !/\b(external|facade|outside)\b/i.test(task);
   if (out.stoneCladding) out.claddingInstall = false;
-  out.awningReplace = /\b(?:replac\w*|remov\w*|install\w*|new)\b[^.]{0,20}\b(?:an? |the )?(?:shop ?front |street |footpath )?awnings?\b/i.test(task) && /\b(shop\w*|street|footpath|front)\b/i.test(task);
+  out.awningReplace = !/\b(bird|netting|spikes?|signs?|signage|lights?|lighting|under|beneath)\b/i.test(task) && /\b(?:replac\w*|remov\w*|install\w*|new)\b[^.]{0,20}\b(?:an? |the )?(?:shop ?front |street |footpath )?awnings?\b/i.test(task) && /\b(shop\w*|street|footpath|front)\b/i.test(task);
   if (out.awningReplace) out.kitStructure = false;
   out.polySheets = /\b(polycarbonate|laserlite|fibreglass) (?:roof\w*|sheets?)\b/i.test(task) && /\b(repair\w*|replac\w*|fix\w*)\b/i.test(task);
   if (out.polySheets && /\bpergolas?\b/i.test(task)) { out.roof = false; out.roofStrip = false; out.verandahRepair = false; }
@@ -2188,12 +2188,12 @@ function settleFlags(flags, task) {
   if (/\b(?:install\w*|new|add\w*)\b[^.]{0,30}\bfloor (?:wastes?|drains?)\b/i.test(task) && !/\b(tiles?|tiling|bedding|grout|charged|gullies|align\w*)\b/i.test(task)) { out.kitchenEquipment = false; out.sawCut = true; out.plumbingFitOff = true; }
   // Bank 8 review rules.
   if (/\bgranny flat kits?\b|\bkit homes?\b/i.test(task)) { out.kitStructure = false; out.houseFraming = true; out.roof = true; out.claddingInstall = true; }
-  if (/\b(?:install\w*|replac\w*) (?:a |the )?(?:new )?switch ?boards?\b/i.test(task) && !/\b(main switch ?boards?|msbs?|consumer mains|existing switch ?boards?)\b/i.test(task) && !out.switchboardReplace && !out.subBoardInstall) { out.isolation = true; out.subBoardInstall = true; }
+  if (/\b(?:install\w*|replac\w*) (?:a |the )?(?:new )?switch ?boards?\b/i.test(task) && !/\b(main switch ?boards?|msbs?|consumer mains|existing switch ?boards?|meter (?:box|board|panel)s?|houses?|homes?|units?)\b/i.test(task) && !out.switchboardReplace && !out.subBoardInstall) { out.isolation = true; out.subBoardInstall = true; }
   if (/\b(roof (?:ventilators?|vents?|turbines?|exhaust fans?)|whirlybirds?|turbine vents?|rooftop exhaust fans?|exhaust fans? on (?:a |the )?(?:\w+ )?roof)\b/i.test(task) && /\b(install\w*|new|fit\w*)\b/i.test(task)) out.roofPenetration = true;
   if (out.smokeAlarms && /\b(houses?|homes?|dwellings?|units?|rental)\b/i.test(task)) out.roofSpace = true;
   out.bollardChains = Boolean(out.bollards && /\bchains?\b/i.test(task));
   out.humpsOnly = Boolean(out.bollards && /\bspeed (?:humps?|bumps?|cushions?)\b/i.test(task) && !/\b(bollards?|barriers?|wheel stops?|car stops?)\b/i.test(task));
-  if (/\b(?:replac\w*|damaged|broken|collapsed)\b[^.]{0,30}\b(?:stormwater |drainage |sewer )?pits?\b/i.test(task)) { out.pitReplace = true; out.sawCut = out.sawCut || /\b(roads?|streets?|car ?parks?|driveways?)\b/i.test(task); }
+  if (/\b(?:replac\w*|damaged|broken|collapsed)\b[^.]{0,30}\b(?:stormwater |drainage |sewer )?pits?\b(?! (?:lids?|grates?|covers?))/i.test(task)) { out.pitReplace = true; out.sawCut = out.sawCut || /\b(roads?|streets?|car ?parks?|driveways?)\b/i.test(task); }
   if (/\bducted (?:gas )?heating\b|\bgas ducted heat\w*\b/i.test(task) && !/\b(electric|reverse cycle|heat pump|refrigerat\w*)\b/i.test(task)) { out.flueInstall = true; out.gasHeater = true; out.gasFitting = true; }
   out.gravelLay = /\b(?:lay\w*|build\w*|construct\w*|form\w*|spread\w*)\b[^.]{0,30}\bgravel\b/i.test(task);
   if (out.gravelLay) out.earthworks = false;
@@ -2247,12 +2247,12 @@ function settleFlags(flags, task) {
   out.splashback = /\bsplashbacks?\b/i.test(task);
   out.oldWallTiles = Boolean(out.oldTiles && (out.splashback || out.wallTiling || /\bwall tiles?\b/i.test(task)));
   out.oldFloorTiles = Boolean(out.oldTiles && !out.oldWallTiles);
-  out.flatTactile = Boolean(out.tactileInstall && /\b(platforms?|footpaths?|kerbs?|crossings?|paths?|forecourts?)\b/i.test(task) && !/\bstairs?\b/i.test(task));
+  out.flatTactile = Boolean(out.tactileInstall && /\b(platforms?|footpaths?|kerbs?|crossings?|paths?|forecourts?|interchanges?|bus stops?|bus stations?)\b/i.test(task) && !/\bstairs?\b/i.test(task));
   if (out.exhaustDuctClean) out.roofAccess = true;
   if (out.hardwareFit && !/\b(timber|frames?|doors? (?:hung|hanging)|hang\w*)\b/i.test(task)) out.carpentryWork = false;
   if (out.steelErect && /\btrusses\b/i.test(task)) out.steelLift = true;
   if (out.ceilingFans && /\b(houses?|homes?|bedrooms?|units?|dwellings?)\b/i.test(task)) out.roofSpace = true;
-  out.motorOnly = Boolean(out.garageDoor && /\b(motors?|openers?|remotes?)\b/i.test(task) && !/\b(new (?:garage |roller )?doors?(?! (?:motors?|openers?|remotes?))|replac\w* (?:the |a )?(?:garage |roller )?doors?(?! (?:motors?|openers?|remotes?))|install\w* (?:a |the )?(?:new )?(?:garage|roller) doors?(?! (?:motors?|openers?|remotes?)))\b/i.test(task));
+  out.motorOnly = Boolean(out.garageDoor && /\b(motors?|openers?|remotes?)\b/i.test(task) && !/\b(new (?:(?:garage|roller|panel lift|sectional) )*doors?(?! (?:motors?|openers?|remotes?))|replac\w* (?:the |a )?(?:(?:garage|roller|panel lift|sectional) )*doors?(?! (?:motors?|openers?|remotes?))|install\w* (?:a |the )?(?:new )?(?:(?:garage|roller|panel lift|sectional) )+doors?(?! (?:motors?|openers?|remotes?)))\b/i.test(task));
   out.noDoorLift = Boolean(out.doorSpring || out.motorOnly);
   out.outsideLights = Boolean(out.fitOff && /\b(outside|external\w*|outdoor|exterior|security lighting)\b/i.test(task));
   out.sinkTap = /\b(?:install\w*|replac\w*|fit\w*|new)\b[^.]{0,20}\b(?:kitchen |laundry )?(?:sinks?|tubs?)\b/i.test(task);
@@ -2271,7 +2271,7 @@ function settleFlags(flags, task) {
   out.backflowOnly = Boolean(out.meterInstall && !/\bwater meters?\b|\bmeters?\b/i.test(task) && !/\b(water (?:services?|supply|supplies)|connections?|mains?|incoming)\b/i.test(task));
   if (out.backflowOnly) out.waterConnection = false;
   if (/\bfuel (?:lines?|pipes?|pipework)\b/i.test(task) && /\b(install\w*|new|lay\w*)\b/i.test(task)) out.trench = true;
-  if (/\b(cyclone|storm|hail|wind)\b/i.test(task) && /\broofs?\b/i.test(task) && /\b(repair\w*|fix\w*|replac\w*|damaged)\b/i.test(task) && !/\btiles?|tiled|skylights?|membranes?|gutters?\b/i.test(task)) { out.roofStrip = true; out.roof = true; }
+  if (!/\btarp\w*/i.test(task)) if (/\b(cyclone|storm|hail|wind)\b/i.test(task) && /\broofs?\b/i.test(task) && /\b(repair\w*|fix\w*|replac\w*|damaged)\b/i.test(task) && !/\btiles?|tiled|skylights?|membranes?|gutters?\b/i.test(task)) { out.roofStrip = true; out.roof = true; }
   if (/\bseptic\b/i.test(task) && /\b(upgrad\w*|replac\w*)\b/i.test(task)) { out.septicRemove = true; out.tankPlace = true; }
   if (out.stoneWall && out.retainingWall) out.timberOnlyWall = true;
   if (/\b(vinyl|hybrid|laminate) (?:planks?|tiles?)\b|\blvt\b/i.test(task)) out.carpetTiles = true;
@@ -2282,6 +2282,11 @@ function settleFlags(flags, task) {
   if (out.garageDoor === false && /\bcool ?room doors?\b/i.test(task)) out.timberWork = false;
   if (/\bcool ?room doors?\b/i.test(task)) out.timberWork = false;
   if (out.floorCoating) out.sealing = false;
+  // Banks 5 and 6 review rules.
+  if (out.membraneStrip === false && /\bplanters?\b/i.test(task) && /\b(waterproof\w*|membranes?)\b/i.test(task)) { out.landscape = false; out.landscapeLift = false; }
+  if (out.wallPanels) out.fixtures = false;
+  if (out.splashback) out.wallTiling = true;
+  out.wetAreaTiles = /\b(bathrooms?|showers?|ensuites?|laundr\w*|wet areas?|balcon\w*|terraces?|pools?|toilets?)\b/i.test(task);
   // Bank 10 review rules.
   out.eaveLining = /\b(eaves?|eave linings?|soffits?)\b/i.test(task) && /\b(repair\w*|replac\w*|new|reline\w*)\b/i.test(task) && /\b(linings?|sheets?|fibro|soffits?)\b/i.test(task);
   out.roofRemoveOnly = /\b(?:remov\w*|strip\w*)\b[^.]{0,30}\broof(?:ing)? sheets?\b|\bremov\w*\b[^.]{0,20}\b(?:the )?(?:old )?roof\b/i.test(task) && !/\b(replac\w*|re-?roof\w*|re-?sheet\w*|new (?:roof|sheets?))\b/i.test(task);
@@ -2308,7 +2313,7 @@ function settleFlags(flags, task) {
   if (out.greyWater) out.rainwaterTank = false;
   out.downpipesOnly = Boolean(out.gutters && /\bdownpipes?\b/i.test(task) && !/\bgutters?\b/i.test(task));
   if (out.downpipesOnly) out.roofAccess = false;
-  if (/\bpumps?\b/i.test(task) && /\btanks?\b/i.test(task) && /\b(install\w*|new)\b/i.test(task) && !/\b(septic|sewage|fuel|hot water)\b/i.test(task)) out.rainwaterTank = true;
+  if (/\bpumps?\b/i.test(task) && /\btanks?\b/i.test(task) && /\b(install\w*|new)\b/i.test(task) && !/\b(septic|sewage|fuel|hot water|bores?|pressure tanks?)\b/i.test(task)) out.rainwaterTank = true;
   if (/\bconcrete sleepers?\b/i.test(task)) { out.timberWall = false; out.timberOnlyWall = true; out.concreteSleeper = true; }
   if (/\bpot ?holes?\b/i.test(task) && /\broads?\b/i.test(task)) out.road = true;
   if (out.sinkTap && !/\b(kitchen|bench\w*)\b/i.test(task)) out.sinkTap = false;
