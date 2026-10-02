@@ -61,9 +61,18 @@ const ANSWERS = {
     ['Penetration covers', 'Each penetration is covered with a fixed, marked cover as soon as it is formed, and the area below is barricaded.'],
     ['Travel restraint', 'Workers at the open edge use a travel restraint system to engineer designed anchors installed by a competent person, so they cannot reach the edge.'],
     ['Scaffold', 'Work is done from a scaffold with full edge protection, erected and handed over by a licensed scaffolder.'],
+    ['Mobile scaffolds', 'Work above 2 m is done from mobile scaffolds with guardrails, erected to the supplier\'s instructions by a competent person, with castors locked while in use.'],
+    ['Roof guardrail and mesh', 'Roof edge guardrail is installed to every open edge, and safety mesh is fixed under the sheets, before sheeting starts. No one works outside the guardrail.'],
+    ['Boom lifts', 'Connections are made from boom lifts with guardrails, with harnesses attached to the boom lift anchor points. No one climbs the steel.'],
   ],
   controlsConsidered: [
     ['Edge protection not possible', 'Edge protection was considered but cannot be fixed at ____ because ____. An elevating work platform was considered but ____.'],
+  ],
+  constructionTesting: [
+    ['Licensed electrician tests', 'Construction wiring, switchboards, RCDs and leads are inspected and tested by ____ (licensed electrician) before first use and then at the intervals AS/NZS 3012 sets, and each is tagged with its test date.'],
+  ],
+  electricalSafety: [
+    ['Lines located and isolated', 'Overhead and underground power near the work is located and marked before work starts. Where the work comes within ____ m, the network operator isolates the lines (permit ____). Otherwise plant and people stay outside the exclusion zone, with a safety observer watching.'],
   ],
   craneChart: [
     ['Chart duty', 'Rated capacity from the crane chart: ____ t at ____ m radius. Heaviest gross load (load, lifting gear and rigging) is ____ t at ____ m radius.'],
@@ -73,7 +82,7 @@ const ANSWERS = {
     ['Landing platform rating', 'The landing platform is rated for ____ t, shown on its tag, and loads are spread to the slab load limits on drawing ____.'],
   ],
   silicaControls: [
-    ['On-tool extraction', 'Drilling and cutting are done with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS.'],
+    ['On-tool extraction', 'Drilling and cutting are done with on-tool dust extraction. Fit tested P2 respirators are worn while drilling or cutting. The written silica assessment is done before work starts and attached to this SWMS.'],
     ['Wet cutting', 'Cutting and coring are done wet with a water-fed tool. Fit tested P2 respirators are worn while cutting. The written silica assessment is done before work starts and attached to this SWMS.'],
   ],
   hotWorkPermit: [
@@ -84,13 +93,13 @@ const ANSWERS = {
     ['Nitrogen test', 'Oxygen-free nitrogen through a regulator with a relief valve, tested to ____ kPa (below the PS on the equipment plate), with the area barricaded and signed, and pressure released before any fitting is touched.'],
   ],
   safetyDataSheet: [
-    ['Kept at the work area', 'Safety data sheets for ____ are kept at the work area. Use with ventilation, keep away from ignition sources, and wear gloves and eye protection.'],
+    ['Kept at the work area', 'The products used are ____. They are used with good ventilation and away from ignition sources, with the gloves and eye protection their safety data sheets list.'],
   ],
   systemInstructions: [
     ['Supplier instructions', 'The ____ system is erected to the supplier\'s instructions (document ____, revision ____) by a crew trained by ____.'],
   ],
   isolationProcedure: [
-    ['Lock out and test', 'Circuits are isolated, locked with personal locks and danger tagged, and tested de-energised by a licensed electrician before work. Each worker holds their own lock.'],
+    ['Lock out and test', 'Circuits are isolated, locked with personal locks and danger tagged, and tested de-energised by a licensed electrician before work.'],
   ],
   plantIsolation: [
     ['Lock out and try', 'Each unit is isolated at its local isolator and locked out with personal padlocks, tested by trying to start it, and plant under building management control is put in manual off.'],
@@ -108,6 +117,7 @@ const ANSWERS = {
     ['Designer\'s sequence', 'Steel is erected to the designer\'s sequence on drawing ____ (revision ____), with temporary bracing as shown, and ____ checks the structure is stable before the crane slings are released.'],
   ],
   serviceShutdown: [
+    ['Shutdown permit', 'Each connection to a live service is made under a shutdown permit ____, approved by ____, in the agreed window of ____. The service is isolated, locked and proved dead before the connection, and the people it supplies are told beforehand.'],
     ['Hospital shutdown permit', 'Each connection is done under the hospital\'s shutdown permit ____, approved by ____ (hospital engineering), in the agreed window of ____. The ward and clinical staff are told beforehand, and ____ (backup supply, such as cylinders or a temporary feed) keeps patients supplied.'],
   ],
   tierErection: [

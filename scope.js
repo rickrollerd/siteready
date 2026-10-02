@@ -7,6 +7,7 @@
 const { workFlags, highRiskMatches } = require('./draft');
 const { ACTIVITIES } = require('./activities');
 const { findState, highRiskList } = require('./legislation');
+const { TRADES } = require('./trades');
 
 // Headings that start a part of the scope that is not the subcontractor's site work.
 const OUT_HEADING = /\b(exclu\w*|by others|not included|not in scope|omitted|n\.?i\.?c\.?|builder'?s? (?:responsibilit\w*|works?|scope)|by (?:the )?(?:builder|client|principal|head contractor)|free issue|payment|insurance|warrant\w*|retention|variations?|programme|price|pricing|tender\w*|schedule of rates|rates|invoic\w*|claims?|definitions?|interpretation|general conditions|special conditions|contract conditions|documentation|submissions?|shop drawings|o ?& ?m|operation and maintenance|as[- ]?builts?|defects?|liquidated|security of payment|commercial|qualifications?|clarifications?|hold points?|inspection and test plans?|quality assurance|program(?:me)?|samples?|handover|maintenance|manufacture|storage|overview|introduction|background|project description)\b/i;
@@ -122,43 +123,9 @@ const KINDS = ACTIVITIES.filter((activity) => activity.when && (activity.steps |
 // do not make a task of their own.
 // Neither do incidental kinds that any trade does (power tools, moving materials,
 // cleaning up, mixing): they are steps inside the trade's own tasks.
-const DETAIL = new Set(['ptSlab', 'craneInterface', 'cite', 'ewp', 'mobileScaffold', 'forklift', 'carpentryWork', 'carpLoad', 'sitePlant', 'tileMix', 'masonryMortar', 'masonryGrout', 'wpRolls', 'glassHandling', 'glassWind', 'gasCylinders', 'neighbours', 'siteSheds']);
+const DETAIL = new Set(['ptSlab', 'craneInterface', 'cite', 'ewp', 'mobileScaffold', 'forklift', 'carpentryWork', 'carpLoad', 'sitePlant', 'tileMix', 'masonryMortar', 'masonryGrout', 'wpRolls', 'glassHandling', 'glassWind', 'gasCylinders', 'neighbours', 'siteSheds', 'roofAccess', 'oxyCutting', 'silicaDrill', 'smallPlant', 'groundChemicals']);
 // A kind found in fewer lines than this is a passing mention, unless it is high risk work.
 const MIN_SUPPORT = 2;
-// The kinds of work each trade does. A scope is for one or two trades; its tasks are
-// that trade's kinds, plus work any trade can strike (CROSS) when the scope names it.
-// `signal` is a flag (or a pattern) that shows the trade even where no kind of work matches.
-const TRADES = [
-  { id: 'electrical', name: 'Electrical work', signal: 'electricalWork', kinds: ['tempPower', 'castIn', 'containment', 'cablePull', 'fitOff', 'isolation', 'commissioning', 'generatorPlant'] },
-  { id: 'communications', name: 'Communications cabling and equipment', signal: 'ictWork', kinds: ['ictCabling', 'fibre', 'commsRoom'] },
-  { id: 'security', name: 'Security system installation', signal: 'securityWork', kinds: ['securityDevices'] },
-  { id: 'plumbing', name: 'Plumbing and drainage work', signal: 'plumbingWork', kinds: ['sewerConnection', 'castInPlumbing', 'hydraulicRisers', 'hotWork', 'solventCement', 'plumbingFitOff', 'pressureTest', 'hotWater', 'boilerPlant'] },
-  { id: 'mechanical', name: 'Mechanical services installation', signal: 'mechanicalWork', kinds: ['plantLift', 'ductwork', 'refrigerantPipework', 'refrigerantTest', 'refrigerantCharge', 'roofPlant', 'jetFans', 'mechInsulation', 'mechCommissioning'] },
-  { id: 'fire', name: 'Fire services installation', signal: 'fireWork', kinds: ['fireAtHeight', 'fireGrooving', 'fireLive', 'passiveFire'] },
-  { id: 'lifts', name: 'Lift installation', signal: 'liftWork', kinds: ['liftShaft', 'liftLifting', 'liftCar'] },
-  { id: 'facade', name: 'Facade installation', signal: 'facadeWork', kinds: ['panelLoad', 'facadeCrane', 'panelInstall', 'swingStage', 'edgeBracket', 'facadeSeal'] },
-  { id: 'glazing', name: 'Windows, doors and glazing installation', signal: 'glazingWork', kinds: ['balustradeEdge', 'glassHandle', 'glazingDrill', 'glazingSeal'] },
-  { id: 'steel', name: 'Structural steel erection and rigging', signal: 'steelWork', kinds: ['steelLift', 'steelErect', 'steelWeld', 'temporaryTowers', 'dualLift'] },
-  { id: 'masonry', name: 'Blockwork and brickwork', signal: 'masonryWork', kinds: ['masonryCut', 'masonryLay', 'masonryEdge'] },
-  { id: 'plasterboard', name: 'Wall and ceiling linings', signal: 'plasterWork', kinds: ['plasterSheets', 'plasterHeight', 'plasterCeiling', 'plasterSanding', 'carpFraming'] },
-  { id: 'carpentry', name: 'Carpentry and joinery', signal: /\b(carpent\w*|joinery|cabinetry|timber (?:fram\w*|floor\w*|decks?)|wall frames?|roof trusses|trusses|hang(?:ing)? doors?)\b/i, kinds: ['carpFraming', 'carpJoinery', 'carpEdge', 'timberFloor', 'houseFraming', 'deckBuild'] },
-  { id: 'doors', name: 'Doors, frames and hardware', signal: /\b(door ?frames?|door hardware|doorsets?|hinges|door closers|locksets?|(?:hang|install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors)\b/i, kinds: ['carpJoinery'] },
-  { id: 'kitchens', name: 'Commercial kitchen and stainless steel installation', signal: /\b(commercial kitchens?|kitchen equipment|kitchen items|exhaust hoods?|cool ?rooms?|freezer rooms?|dishwash\w*|combi ovens?|stainless steel (?:benches|benching|sinks?|shelving|joinery))\b/i, kinds: [] },
-  { id: 'tiling', name: 'Floor and wall tiling', signal: 'tilingWork', kinds: ['tileCut', 'tileLay', 'tileEdge'] },
-  { id: 'stone', name: 'Stone benchtops', signal: 'stoneWork', kinds: ['stoneSilica', 'stoneHandle'] },
-  { id: 'flooring', name: 'Floor coverings', signal: 'floorWork', kinds: ['floorGrind', 'floorAdhesive', 'floorLevel', 'timberFloor', 'floorLay'] },
-  { id: 'waterproofing', name: 'Waterproofing', signal: 'waterproofing', kinds: ['wpPrep', 'wpLiquid', 'wpTorch', 'wpEdge'] },
-  { id: 'painting', name: 'Painting', signal: 'painting', kinds: ['painting', 'paintAccess', 'paintSpray', 'paintSolvent', 'paintSwing', 'paintExternal'] },
-  { id: 'roofing', name: 'Roofing', kinds: ['roof', 'roofStrip'] },
-  { id: 'landscaping', name: 'Landscaping', signal: 'landscape', kinds: ['landscape', 'landscapeLift', 'turf', 'paving'] },
-  { id: 'piling', name: 'Piling', signal: 'pilingWork', kinds: ['pilingPlatform', 'pilingRig', 'pileCage', 'cfaCage', 'openBore', 'pileConcrete', 'pileTrim'] },
-  { id: 'structure', name: 'Formwork, reinforcement and concrete', kinds: ['formwork', 'jumpform', 'reo', 'ptTendons', 'concrete', 'stressing', 'precast', 'loadOut', 'propping', 'precastTier'] },
-  { id: 'excavation', name: 'Excavation', kinds: ['bulkDig', 'anchorsProps', 'detailDig', 'dewatering', 'contaminatedSpoil', 'basementEdge', 'retentionWall', 'earthworks'] },
-  { id: 'scaffolding', name: 'Scaffolding', kinds: ['scaffold', 'hoistInstall', 'hoistOperate', 'safetyNet'] },
-  { id: 'cleaning', name: 'Cleaning', kinds: ['cleaning', 'cleaningHeight', 'cleaningStands'] },
-  { id: 'site', name: 'Site establishment', kinds: ['siteEstablish', 'road'] },
-  { id: 'fencing', name: 'Fencing and gates', kinds: ['fenceBuild'] },
-];
 const CROSS = new Set(['demolition', 'trench', 'coreDrill', 'sawCut', 'structuralOpening', 'asbestos', 'asbestosCheck', 'confined', 'roofSpace', 'power', 'road', 'water', 'liveHospital', 'stripOut', 'crane', 'towerCrane', 'scaffold']);
 // A trade is the scope's trade when it is found in this share of the lines of the most found trade.
 const TRADE_SHARE = 0.3;
@@ -280,7 +247,9 @@ function taskText(found) {
 // are mentioned in passing in most scopes, so they need more than one line.
 const STRONG = new Set(['demolition', 'asbestos', 'temporary', 'confined', 'explosives', 'gas', 'chemicalLine', 'electrical', 'atmosphere', 'precast', 'road', 'water', 'diving', 'tunnel']);
 
-function strongHighRisk(lines, state) {
+function strongHighRisk(lines, state, when) {
+  // Overhead lines are named in standard cabling clauses ("fixed to isolators in overhead lines").
+  if (when === 'power') return false;
   return lines.some((line) => highRiskMatches(line, '', state).some((item) => STRONG.has(item.check)));
 }
 
@@ -320,7 +289,7 @@ function tasksFromScope(text, stateId = 'qld') {
     || count(trade) >= Math.max(2, titled.size ? titleTop * TITLE_SHARE : top * TRADE_SHARE));
   const allowed = new Set(ours.flatMap((trade) => trade.kinds));
   const order = (when) => KINDS.findIndex((kind) => kind.when === when);
-  const makeTask = (id, step, found) => {
+  const makeTask = (id, step, found, trades) => {
     const title = TITLES[id] || step;
     const task = taskText(found);
     const highRisk = highRiskMatches(task, '', state).map((item) => item.label);
@@ -330,6 +299,8 @@ function tasksFromScope(text, stateId = 'qld') {
       task,
       lines: found,
       highRisk,
+      // The trades the task belongs to, so its SWMS uses only their job steps.
+      trade: trades.join(','),
       fallRisk: highRisk.some((label) => /falling/i.test(label)) ? 'yes' : '',
       needsSwms: highRisk.length > 0,
     };
@@ -338,14 +309,17 @@ function tasksFromScope(text, stateId = 'qld') {
     // A short pasted scope may not show a trade; then every kind found is kept.
     .filter((group) => allowed.has(group.kind.when)
       || (!ours.length && group.lines.length >= MIN_SUPPORT)
-      || (CROSS.has(group.kind.when) && (group.lines.length >= MIN_SUPPORT || strongHighRisk(group.lines, state))))
+      || (CROSS.has(group.kind.when) && (group.lines.length >= MIN_SUPPORT || strongHighRisk(group.lines, state, group.kind.when))))
     .sort((a, b) => order(a.kind.when) - order(b.kind.when))
     .filter((group) => !(ROUTINE.has(group.kind.when) && ours.some((trade) => trade.kinds.includes(group.kind.when))))
-    .map(({ kind, lines: found }) => makeTask(kind.when, kind.steps[0].step, found));
+    .map(({ kind, lines: found }) => {
+      const own = ours.filter((trade) => trade.kinds.includes(kind.when) || (trade.extra || []).includes(kind.when));
+      return makeTask(kind.when, kind.steps[0].step, found, (own.length ? own : ours).map((trade) => trade.id));
+    });
   // Each trade's routine work is one task, named after the trade.
   for (const trade of ours) {
     const found = [...new Set([...groups.values()].filter((group) => ROUTINE.has(group.kind.when) && trade.kinds.includes(group.kind.when)).flatMap((group) => group.lines))];
-    if (found.length) tasks.push(makeTask(trade.id, trade.name, found));
+    if (found.length) tasks.push(makeTask(trade.id, trade.name, found, [trade.id]));
   }
   // A trade of the scope with none of its kinds of work found still gets one task, from
   // the lines that show the trade, so its work is not missed.
@@ -353,10 +327,10 @@ function tasksFromScope(text, stateId = 'qld') {
     // A trade named in the title but not found line by line takes the lines no other task used.
     const unused = lines.filter((line) => !tasks.some((task) => task.lines.includes(line)));
     const found = tradeLines.get(trade.id) || (titled.has(trade.id) ? unused : []);
-    if (!tasks.some((task) => task.id === trade.id || trade.kinds.includes(task.id)) && found.length) tasks.push(makeTask(trade.id, trade.name, found));
+    if (!tasks.some((task) => task.id === trade.id || trade.kinds.includes(task.id)) && found.length) tasks.push(makeTask(trade.id, trade.name, found, [trade.id]));
   }
   // Site work that matches no trade still makes one task, so the work is not lost.
-  if (!tasks.length && lines.length >= MIN_SUPPORT) tasks.push(makeTask('general', documentTitle(text) || 'Work in the scope', lines));
+  if (!tasks.length && lines.length >= MIN_SUPPORT) tasks.push(makeTask('general', documentTitle(text) || 'Work in the scope', lines, []));
   tasks
     // High risk construction work needs a SWMS by law, so it comes first.
     .sort((a, b) => Number(b.needsSwms) - Number(a.needsSwms));

@@ -300,7 +300,7 @@
       "swms": [
         "joining"
       ],
-      "phrase": "hot work permit is issued",
+      "phrase": "hot work permit, and fire-fighting equipment",
       "source": "Model Code: Welding processes s 3.4",
       "quote": "the issue of a 'hot work permit'"
     },
@@ -419,7 +419,7 @@
       "swms": [
         "fit-off"
       ],
-      "phrase": "Health monitoring for workers at significant risk from crystalline silica",
+      "phrase": "Health monitoring is provided for workers at significant risk from crystalline silica",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 368, schedule 14",
       "quote": "must ensure that health monitoring is provided to a worker ... if there is a significant risk to the worker's health because of exposure to a hazardous chemical mentioned in schedule 14, table 14.1"
     }

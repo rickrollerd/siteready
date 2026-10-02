@@ -94,3 +94,76 @@ test('a pasted scope, a text file and an unreadable file', async () => {
   await assert.rejects(scopeText({ file: { name: 'scope.doc', data: 'AAAA' } }), /Save it as \.docx/);
   await assert.rejects(scopeText({}), /Attach the scope or paste it/);
 });
+
+test('a task from a scope keeps its trade, and its SWMS uses only that trade\'s job steps', () => {
+  const { prepareDraft } = require('../draft');
+  const painting = read('b-painting.txt').tasks.find((task) => task.id === 'painting');
+  assert.equal(painting.trade, 'painting');
+  const task = 'Paint all doors, architraves and plasterboard ceilings with water-based paint.';
+  const facts = { safetyDataSheet: 'Safety data sheets for the paints are kept at the work area.' };
+  const steps = (trade) => prepareDraft({ state: 'qld', task, fallRisk: 'no', trade, facts }).jobSteps.map((step) => step.step);
+  assert.ok(!steps('painting').includes('Install doors, joinery and cabinets'));
+  assert.ok(steps('painting').includes('Paint'));
+  // Without a trade, the task is read as before.
+  assert.ok(steps(undefined).includes('Install doors, joinery and cabinets'));
+});
+
+test('new fibre cement is not asbestos, and handrails or crane ties are not precast lifts', () => {
+  const { questionsFor } = require('../draft');
+  const asked = (task) => questionsFor({ state: 'qld', task, fallRisk: 'yes' }).required.map((item) => item.id);
+  assert.ok(!asked('Cut off and grind back exposed metal, then install fibre cement protection to planters.').includes('asbestosArrangement'));
+  assert.ok(asked('Cut and remove the old fibre cement eaves linings.').includes('asbestosArrangement'));
+  assert.ok(!asked('Install edge protection and handrails to precast parapets, and form penetrations.').includes('erectionDesign'));
+  assert.ok(!asked('Line walls with lightweight concrete shaft wall panels and close up walls at the crane ties.').includes('erectionDesign'));
+  assert.ok(asked('Erect six precast concrete wall panels using a mobile crane.').includes('erectionDesign'));
+});
+
+test('review fixes: trench depth threshold, harness only when used, trade-limited questions, roof access, PPE from steps', () => {
+  const { prepareDraft, questionsFor } = require('../draft');
+  const draft = (input) => prepareDraft({ state: 'qld', fallRisk: 'no', ...input });
+  // "1.5 m deep or more" is a threshold, so the trench still counts as deep, and machine digging is mobile plant.
+  const trench = draft({ trade: 'electrical', task: 'Excavate trenches for underground conduits, backfill and compact.', facts: { trenchSupport: 'Trenches 1.5 m deep or more are shored with a trench shield.' } });
+  assert.ok(trench.highRisk.some((item) => /trench/.test(item)) && trench.highRisk.some((item) => /mobile plant/.test(item)));
+  // Scissor lifts: no harness lines and no harness ticked.
+  const scissor = draft({ trade: 'painting', fallRisk: 'yes', task: 'Paint the ceilings with water-based paint.', facts: { safetyDataSheet: 'The products used are water-based acrylics.', fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' } });
+  const lines = scissor.jobSteps.flatMap((step) => step.controls).join('\n');
+  assert.ok(!/In a boom EWP|Where fall arrest is used/.test(lines));
+  assert.ok(!scissor.ppe.flatMap((group) => group.items).find((item) => item.id === 'harness').ticked);
+  // Roofing does not ask for a steel erection sequence.
+  assert.ok(!questionsFor({ state: 'qld', trade: 'roofing', fallRisk: 'yes', task: 'Install prepainted steel roof sheeting.' }).required.some((item) => item.id === 'erectionSequence'));
+  // A plumber's roof work gets roof access; a roofer gets the roofing steps, not both.
+  const steps = (input) => draft({ fallRisk: 'yes', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' }, ...input }).jobSteps.map((step) => step.step);
+  assert.ok(steps({ trade: 'plumbing', task: 'Install the solar hot water system on the roof.' }).includes('Get onto the roof and set up fall protection'));
+  assert.ok(!steps({ trade: 'roofing', task: 'Fix roof sheeting on the roof.' }).includes('Get onto the roof and set up fall protection'));
+  // Knee pads called for in the steps are ticked.
+  const vinyl = draft({ trade: 'flooring', task: 'Install sheet vinyl and carpet tiles with adhesive.', facts: { safetyDataSheet: 'The products used are epoxy adhesive.' } });
+  assert.ok(vinyl.ppe.flatMap((group) => group.items).find((item) => item.id === 'kneePads').ticked);
+});
+
+test('review fixes: sun line kept when a respirator is added, task-only lines, silica assessment for door fixings', () => {
+  const { prepareDraft } = require('../draft');
+  const lines = (input) => prepareDraft({ state: 'qld', fallRisk: 'no', ...input }).jobSteps.flatMap((step) => step.controls).join('\n');
+  // Grinding brings in a respirator, which rebuilds the steps; the sun and heat line must survive that.
+  const concrete = lines({ trade: 'structure', task: 'Pump, place and finish concrete to the ground floor slab, and grind high spots.' });
+  assert.match(concrete, /Sun and heat/);
+  // Footings and pits are named only when the task has them.
+  const reo = (task) => lines({ trade: 'structure', task });
+  assert.match(reo('Fix reo to the footings and lift pit.'), /Footings, thickenings and pits are entered/);
+  assert.doesNotMatch(reo('Fix reo to the suspended slabs and landings.'), /Footings, thickenings and pits are entered/);
+  // Drilling masonry for door frames carries the written silica assessment.
+  assert.match(lines({ trade: 'doors', task: 'Install door frames and hang doors to masonry openings.', facts: { silicaControls: 'Drilling is done with on-tool extraction.' } }), /Assess in writing before starting whether the processing is high risk/);
+});
+
+test('fixing framing to blockwork is silica processing, and work with an outdoor part gets sun protection', () => {
+  const { prepareDraft } = require('../draft');
+  const draft = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'plasterboard', task: 'Frame external and internal walls, including over blockwork, and line the eaves.', facts: { silicaControls: 'Drilling is done with on-tool extraction.' } });
+  assert.ok(draft.jobSteps.some((step) => step.step === 'Drill or cut concrete, masonry or stone'));
+  assert.ok(draft.ppe.flatMap((group) => group.items).find((item) => item.id === 'sunscreen').ticked);
+});
+
+test('a cutting step outside the trade gives way to the general drilling step', () => {
+  const { prepareDraft } = require('../draft');
+  // The silica answer mentions cutting blockwork, which is masonry work, not plasterboard work.
+  const draft = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'plasterboard', task: 'Frame internal ceilings, bulkheads and external and internal walls (including over blockwork) in steel stud.', facts: { silicaControls: 'Drilling and cutting blockwork are done with on-tool dust extraction.' } });
+  assert.ok(draft.jobSteps.some((step) => step.step === 'Drill or cut concrete, masonry or stone'));
+});

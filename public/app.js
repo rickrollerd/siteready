@@ -226,6 +226,8 @@ function payload() {
     residential: (document.querySelector('input[name="residential"]:checked') || {}).value || '',
     crane: (document.querySelector('input[name="crane"]:checked') || {}).value || 'company',
     task: value('task'),
+    // Set when the task comes from a scope of works: its SWMS uses only that trade's job steps.
+    trade: value('task-trade'),
     company: value('company'),
     companyAbn: profile.abn || '',
     companyAddress: profile.address || '',
@@ -356,7 +358,7 @@ const FORM_FIELDS = {
   principalContractor: 'principal', company: 'company', workplace: 'workplace', siteManager: 'site-manager',
   worksManager: 'works-manager', worksManagerPhone: 'works-manager-phone', complianceResponsible: 'compliance-responsible',
   reviewer: 'reviewer', reviewDate: 'review-date', scaffoldSupervisor: 'scaffold-supervisor', hospital: 'hospital',
-  firstAider: 'first-aider', musterPoint: 'muster-point', date: 'draft-date', preparedBy: 'prepared-by', task: 'task',
+  firstAider: 'first-aider', musterPoint: 'muster-point', date: 'draft-date', preparedBy: 'prepared-by', task: 'task', trade: 'task-trade',
 };
 
 function fillFields(values) {
@@ -378,6 +380,7 @@ async function fillForm(input) {
   pick('crane', input.crane || 'company');
   pick('fallRisk', input.fallRisk);
   fillFields(input);
+  document.getElementById('task-trade').value = input.trade || '';
   showFallExplanation();
   if (!(await loadQuestions())) return;
   document.querySelectorAll('[data-fact]').forEach((el) => {
@@ -439,6 +442,7 @@ presetEl.addEventListener('change', () => {
   if (taskEl.value.trim() && taskEl.value.trim() !== taskEl.dataset.preset && !confirm('Replace the task you have written?')) return;
   taskEl.value = item.task;
   taskEl.dataset.preset = item.task;
+  document.getElementById('task-trade').value = '';
   const fall = document.querySelector(`input[name="fallRisk"][value="${item.fallRisk}"]`);
   if (fall) { fall.checked = true; fall.dispatchEvent(new Event('change', { bubbles: true })); }
   const crane = document.querySelector(`input[name="crane"][value="${item.crane}"]`);

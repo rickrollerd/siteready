@@ -23,6 +23,7 @@ function draftBody(body) {
     fallRisk: field(body.fallRisk, 10),
     residential: field(body.residential, 10),
     crane: field(body.crane, 20),
+    trade: field(body.trade, 100),
     company: field(body.company || body.companyName, 200),
     companyAbn: field(body.companyAbn, 40),
     companyAddress: field(body.companyAddress, 300),
