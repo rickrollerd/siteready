@@ -1905,6 +1905,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     playground: /\b(playground (?:equipment|structures?)|play equipment|softfall|soft fall)\b/i.test(task),
     hddBore: /\b(directional drill\w*|hdd|under ?bor\w*|bored under|thrust bor\w*)\b/i.test(task),
     structureDemolition: /\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?|dwellings?|granny flats?)\b/i.test(task),
+    dampers: /\b(smoke|fire) dampers?\b/i.test(task),
+    compaction: /\b(compact\w*|rollers?)\b/i.test(task),
     autoDoors: /\b(auto(?:matic)? (?:sliding )?doors?|door operators?|sliding door operators?)\b/i.test(task),
     windowInstall: /\b(?:install\w*|fit\w*|replac\w*|supply and fix)\b[^.]{0,40}\b(?:(?:aluminium |timber )?windows?(?! hardware)|window frames?|louv(?:re|er)s?|sliding doors?)\b/i.test(task) && !/\b(?:clean\w*|wash\w*)\b[^.]{0,20}\bwindows?\b/i.test(task),
     glazingDrill: GLAZING_WORK.test(task) && ((/\bdrill\w*\b/i.test(task) && /\b(tiled|tiles?|masonry|concrete)\b/i.test(task)) || /\bshower screens?\b/i.test(task)),
@@ -1941,7 +1943,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     tempPower: TEMP_POWER.test(task),
     // Cast-in services named only as something drilling must not damage are not cast-in work.
     // Conduits protected "during pouring of concrete" are cast in.
-    castIn: (/\bconduits?\b[^.]*\b(?:during (?:the )?pour\w*|before (?:the )?pour|pouring of concrete)\b/i.test(task) || /\b(cast[- ]in|in[- ]slab)\b/i.test(task.replace(/[^.]*\b(?:impact|damag\w*|strik\w*|hit\w*|avoid\w*|integrity)\b[^.]*\bcast[- ]in\b[^.]*|[^.]*\bcast[- ]in\b[^.]*\b(?:impact|damag\w*|strik\w*|hit\w*|avoid\w*)\b[^.]*/gi, ''))) && ELECTRICAL_CORE.test(task),
+    // A builder's rule against in-slab conduits is not conduit work.
+    castIn: !/^[^.]*\bno conduits?\b[^.]*\b(?:in-?slab|unless)\b[^.]*\.?$/i.test(task.trim()) && (/\bconduits?\b[^.]*\b(?:during (?:the )?pour\w*|before (?:the )?pour|pouring of concrete)\b/i.test(task) || /\b(cast[- ]in|in[- ]slab)\b/i.test(task.replace(/[^.]*\b(?:impact|damag\w*|strik\w*|hit\w*|avoid\w*|integrity)\b[^.]*\bcast[- ]in\b[^.]*|[^.]*\bcast[- ]in\b[^.]*\b(?:impact|damag\w*|strik\w*|hit\w*|avoid\w*)\b[^.]*/gi, ''))) && ELECTRICAL_CORE.test(task),
     containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     cablePull: /\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable|submains?|consumer mains)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     ictWork: ICT_WORK.test(task),
@@ -2069,6 +2072,9 @@ const TASK_ONLY = [
   [/^Top courses of wall tiles/, /\b(walls?|splashbacks?)\b/i],
   [/^Fire rated sealants and mastics/, /\bfire[- ]?(?:rat\w*|stop\w*|seal\w*)\b/i],
   [/^Adhesives, sealants and sealers are used/, /\b(adhesives?|glue\w*|seal\w*|silicone|mastic)\b/i],
+  [/^Silica dust from cutting fibre cement/, /\b(fibre cement|fc sheet\w*|villaboard|cement sheet\w*|compressed sheet)\b/i],
+  [/^Drop saws have a self-adjusting guard/, /\b(timber|saw\w*|cut\w*|mdf|joinery|fram\w*|skirting|architraves?|decking|cladding)\b/i],
+  [/^Nail guns/, /\b(nail\w*|fram\w*|timber|skirting|architraves?|joinery|decking|cladding|battens?|trusses?)\b/i],
 ];
 
 // Library lines partly said by an answer the user gave: the repeated part is

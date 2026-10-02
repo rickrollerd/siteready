@@ -367,7 +367,7 @@ const ACTIVITIES = [
         controls: [
           { only: 'deepTrench', text: 'No one enters the trench until the support is in place and checked.' },
           { only: 'deepTrench', ...src('Work only inside the trench support, with the access ladder secured to it.', QCODE('Excavation work', 's 4.4, s 6.3')) },
-          { unless: 'deepTrench', ...src('Before anyone enters, check the depth. A trench 1.5 m deep or more is shored, benched or battered first, and work in or near it is high risk construction work: stop and have this SWMS reviewed.', WHS('s 291, s 306')) },
+          { unless: 'deepTrench', ...src('Before anyone enters, check the depth. A trench at least 1.5 m deep is shored, benched or battered first, and work in or near a trench deeper than 1.5 m is high risk construction work: stop and have this SWMS reviewed.', WHS('s 291, s 306')) },
           { fact: 'fallControl' },
           src('A competent person checks the trench walls and support at the start of each shift and frequently, including after rain. Any damage is repaired from above before work below continues.', QCODE('Excavation work', 's 6.7')),
           src('Check the air with a gas monitor before entry, with a safety observer at the surface.', MODEL('Excavation work', 's 4.6')),
@@ -899,7 +899,7 @@ const ACTIVITIES = [
           src('Circuits have RCD protection as AS/NZS 3012 requires.', ESR('s 140')),
           'Temporary lighting at height is installed from a non-conductive platform ladder or a mobile scaffold, not from a stepladder near an open edge.',
           src('A faulty RCD is disconnected or isolated at once, and is not used again until it is repaired or tested as safe.', ESR('s 17')),
-          src('If an RCD trips, the circuit stays off until a competent person finds the cause.', CODE('s 3')),
+          'If an RCD trips, the circuit stays off until a competent person finds the cause.',
         ],
       },
       {
@@ -907,7 +907,7 @@ const ACTIVITIES = [
         hazards: ['Unsafe equipment stays in use.'],
         controls: [
           src('Unsafe equipment is disconnected, labelled unsafe, and not reconnected until it is repaired or tested and found safe.', `${ESR('s 17')}; ${CODE('s 3.1')}`),
-          src('Hired electrical equipment must carry the hire company\'s tag, which is renewed at least every 6 months and shows a retest-by date. Reject it if the tag is missing or the date has passed.', ESR('s 142')),
+          src('Hired electrical equipment is inspected, tested and tagged by a competent person at least once every 6 months. Reject it if the tag is missing or out of date.', ESR('s 142')),
           src('Find faults with de-energised testing methods first. Any energised testing is done only under the controls for work on or near energised parts.', CODE('s 7.5')),
           'As the work moves, relocate switchboards and leads de-energised, and tell the principal contractor of changes to the construction wiring.',
           src('Use battery tools in place of mains tools where practical.', CODE('s 2.3')),
@@ -964,7 +964,6 @@ const ACTIVITIES = [
         src('Run the leads for winches and tools where they will not be damaged, or protect them.', ESR('s 18')),
         src('Helpers without an electrical licence assist only under the direct supervision of a licensed electrical worker, and do not touch energised equipment.', ESA('s 18(2)(g)')),
         'In risers, use cable grips and anti-runback brakes, keep radio contact between levels, and keep an exclusion zone below.',
-        'Existing cables near the pull are isolated and proved de-energised before work starts. If they cannot be, the work is planned as energised work.',
       ],
     }],
     ppe: ['gloveGeneral'],
@@ -2639,6 +2638,8 @@ const ACTIVITIES = [
       step: 'Seal penetrations and fire stop',
       hazards: ['A fall through an open penetration or riser.', 'Fibres from batts and dust from cutting.', 'Skin contact with sealants and mastics.'],
       controls: [
+        { text: 'Smoke and fire dampers are lifted into place with a hoist, lifter or two people, working from a platform suited to the height, and are fixed to the manufacturer\'s instructions.', only: 'dampers' },
+        { ...src('Damper and collar fixings drilled into concrete or masonry are drilled with on-tool extraction, and a fit tested P2 respirator is worn.', WHS('s 529B, s 529C')), only: 'dampers' },
         { fact: 'fallControl' },
         src('Penetrations keep their covers until they are sealed. Mesh over a penetration also has a solid cover over it.', `${WHS('s 79, s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`),
         'Only the penetration being worked on is opened.',
@@ -2812,7 +2813,7 @@ const ACTIVITIES = [
       step: 'Lay turf',
       hazards: ['Back strain from turf rolls.', 'Struck by plant moving turf.', 'Heat.'],
       controls: [
-        src('Large turf rolls are laid with a machine. Use mechanical aids for smaller rolls, and rotate tasks.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
+        src('Use a turf laying machine for large turf rolls. Use mechanical aids for smaller rolls, and rotate tasks.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')),
         src('Plant has a warning device, and operators and ground workers use two way acknowledgement before anyone approaches plant.', `${WHS('s 215')}; ${MODEL('Excavation work', 's 4.3')}`),
         src('Cool drinking water, shade and rest breaks in hot weather.', `${WHS('s 40, s 41')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
       ],
@@ -2929,6 +2930,7 @@ const ACTIVITIES = [
         src('Plan haul roads and plant routes for blind spots, and keep plant away from overhangs and the edges of deep excavations. Ground workers wear high visibility clothing.', MODEL('Excavation work', 's 4.3')),
         src('Where a person could fall from a cut face or batter crest, install barriers or bunds, and set up clear pedestrian detours.', MODEL('Excavation work', 's 4.4')),
         'Spoil trucks leave through the site gate under the traffic management plan.',
+        { text: 'Rollers and plate compactors are run by competent operators. Ride-on rollers have rollover protection and a seat belt, and keep back from trench and batter edges. Vibration is managed by rotating operators.', only: 'compaction' },
         src('Keep dust down with wet methods, such as water carts.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
         src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Hearing protection where noise is above the standard, with hearing tests within 3 months of starting and at least every 2 years.', WHS('s 56, s 57, s 58')),
       ],
@@ -3361,7 +3363,7 @@ const ACTIVITIES = [
     when: 'wpPrep',
     steps: [{
       step: 'Prepare surfaces by grinding',
-      hazards: ['Silica dust from grinding concrete and cutting fibre cement.', 'Noise.', 'Flying particles and sparks.'],
+      hazards: ['Silica dust from grinding concrete.', 'Silica dust from cutting fibre cement.', 'Noise.', 'Flying particles and sparks.'],
       controls: [
         { fact: 'silicaControls' },
         src('Grinding concrete is processing a crystalline silica substance and must be controlled: wet suppression, on-tool extraction or local exhaust, and respirators worn by anyone still at risk.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.4.2, s 7.6')}`),
