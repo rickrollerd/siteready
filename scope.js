@@ -130,7 +130,7 @@ const MIN_SUPPORT = 2;
 // or through an opening. A task with one of them has a fall suggested.
 const PERSON_FALL = /(?:\bperson |\bworkers? |^an? |^)(?:fall|falls|falling) (?:from (?!a ladder\b)|through\b|into (?:an? |the )?(?:open )?(?:riser|shaft|void|opening))/i;
 const FALL_KINDS = new Set(KINDS.filter((kind) => kind.steps.some((step) => (step.hazards || []).some((line) => PERSON_FALL.test(typeof line === 'string' ? line : line.text)))).map((kind) => kind.when));
-const CROSS = new Set(['demolition', 'trench', 'coreDrill', 'sawCut', 'structuralOpening', 'asbestos', 'asbestosCheck', 'confined', 'roofSpace', 'power', 'road', 'water', 'liveHospital', 'stripOut', 'crane', 'towerCrane', 'scaffold']);
+const CROSS = new Set(['demolition', 'servicesStrip', 'trench', 'coreDrill', 'sawCut', 'structuralOpening', 'asbestos', 'asbestosCheck', 'confined', 'roofSpace', 'power', 'road', 'water', 'liveHospital', 'stripOut', 'crane', 'towerCrane', 'scaffold']);
 // A trade is the scope's trade when it is found in this share of the lines of the most found trade.
 const TRADE_SHARE = 0.3;
 // A scope usually names its trade at the top ("Scope of Works - Fire Services"). That trade

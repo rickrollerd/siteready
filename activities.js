@@ -282,7 +282,7 @@ const ACTIVITIES = [
           src('Travel restraint may not be practicable on fragile roofing or slopes over 15 degrees, where fall arrest may be more appropriate. Where fall arrest is used near edges, swing down is controlled with guard rails or mobile anchors.', QCODE('Managing the risk of falls', 's 6.1, s 7.3')),
           'Travel restraint is not used on fragile roofing or slopes over 15 degrees.',
           src('Where fall arrest is used, anchors are tested and approved by a competent person before first use and meet the anchor strength in AS/NZS 1891.4, there is enough clearance below that the user cannot hit the ground or another surface, no one uses it alone, at least one other person on site can rescue them, and the rescue procedure is tested.', `${WHS('s 80, s 306I')}; ${QCODE('Managing the risk of falls', 's 7.3, s 10.1')}`),
-          src('Anchors are rated for at least 15 kN for one person.', WHS('s 306I')),
+          src('Anchors are rated for at least 15 kN for one person who could free fall (12 kN where only a limited free fall is possible, 21 kN for two people).', WHS('s 306I')),
           'Access by a scaffold stair, or a ladder secured top and bottom that extends above the landing.',
         ],
       },
@@ -782,10 +782,10 @@ const ACTIVITIES = [
           'Stay inside the edge protection.',
           'Place concrete evenly. Do not heap it on the deck beyond what the formwork design allows.',
           'Workers reach the deck only by a stair tower, scaffold stair or secured ladder. Hoses, screeds and tools are lifted up, not carried up ladders, and hose runs and walkways over the reo are kept clear and boarded.',
-          'The pour starts only once the formwork and props have been inspected and signed off by a competent person, and penetrations and voids are covered and fixed.',
-          'A competent formwork watcher checks the formwork during the pour and can stop the pour.',
+          { text: 'The pour starts only once the formwork and props have been inspected and signed off by a competent person, and penetrations and voids are covered and fixed.', unless: 'formwork' },
+          { text: 'A competent formwork watcher checks the formwork during the pour and can stop the pour.', unless: 'formwork' },
           'On a slab on ground, concrete trucks stand back from excavation edges, and people keep clear of the chute while it is swung or extended.',
-          'No one works under the deck being poured except the formwork watcher in a safe position, and the area below is barricaded and signed.',
+          { text: 'No one works under the deck being poured except the formwork watcher in a safe position, and the area below is barricaded and signed.', unless: 'formwork' },
           'The hose hand stays in contact with the operator by radio or agreed signals.',
           'Concrete trucks reverse only with a spotter, into a marked area kept clear of people.',
           'Vibrators have their leads checked and tagged and are protected by an RCD. Rotate operators to limit hand-arm vibration.',
@@ -896,7 +896,7 @@ const ACTIVITIES = [
           src('Run leads where they will not be damaged, or protect them. Keep them off the ground on lead stands or insulated hangers, and away from doorways and sharp edges.', `${ESR('s 18')}; ${CODE('s 3')}`),
           src('Circuits have RCD protection as AS/NZS 3012 requires.', ESR('s 140')),
           'Temporary lighting at height is installed from a non-conductive platform ladder or a mobile scaffold, not from a stepladder near an open edge.',
-          src('A faulty RCD is tagged and withdrawn from use at once.', ESR('s 140')),
+          src('A faulty RCD is tagged and withdrawn from use at once.', ESR('s 17')),
           src('If an RCD trips, the circuit stays off until a competent person finds the cause.', CODE('s 3')),
         ],
       },
@@ -973,8 +973,8 @@ const ACTIVITIES = [
       step: 'Rough-in and fit-off',
       hazards: ['Contact with live cables when drilling or chasing.', 'Silica dust from chasing or drilling concrete or blockwork.', 'Noise from chasing and drilling.', 'Work in ceiling spaces.', 'A fall from a ladder or platform.', 'Swarf entering switchboards and enclosures.'],
       controls: [
-        { ...src('Work in a roof space (between the roof and the top floor ceiling) only when the electrical installation is de-energised. If that is not reasonably practicable, a risk assessment is done, the risks are as low as reasonably practicable, and the work follows a written statement of the controls.', ESR('s 31, s 33, s 34')), only: 'roofSpaceRule' },
-        { text: 'Before work in a roof space, the electrical installation is de-energised where practicable. If it cannot be, cables are treated as energised and the controls are set out in this SWMS.', unless: 'roofSpaceRule' },
+        { ...src('Work in a roof space (between the roof and the top floor ceiling) only when the electrical installation is de-energised. If that is not reasonably practicable, a risk assessment is done, the risks are as low as reasonably practicable, and the work follows a written statement of the controls.', ESR('s 31, s 33, s 34')), only: 'roofSpaceRule', unless: 'noRoofSpace' },
+        { text: 'Before work in a roof space, the electrical installation is de-energised where practicable. If it cannot be, cables are treated as energised and the controls are set out in this SWMS.', unless: 'roofSpaceRule', only: 'roofSpaceWork' },
         src('In ceiling spaces between floors, treat cables as energised until they are proved de-energised.', ESR('s 196(2)')),
         src('Check for cables before drilling or chasing.', CODE('appendix C')),
         'Before drilling into a slab, scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings, and never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval. Other detected services are isolated and confirmed before drilling near them.',
@@ -2049,7 +2049,7 @@ const ACTIVITIES = [
         { fact: 'fallControl' },
         { fact: 'erectionSequence' },
         src('Follow the designer\'s erection sequence, and brace and secure members as they go up so the structure stays stable.', QCODE('Steel construction', 's 2.8')),
-        src('Prevent falls first, with EWPs or edge protection. Fall arrest only where prevention is not practicable.', WHS('s 306D')),
+        src('Prevent falls first: use EWPs or edge protection. Fall arrest only where prevention is not practicable.', WHS('s 306D')),
         src('Where boom EWPs are used: the harness is attached to the EWP\'s anchor point, not the handrail, and booms of 11 m or more need a licensed operator.', `${QCODE('Managing the risk of falls', 's 5.1')}; ${WHS('schedule 3, schedule 5')}`),
         'A boom-type EWP has a registered design.',
         src('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', WHS('s 80, s 306I')),
@@ -2372,6 +2372,35 @@ const ACTIVITIES = [
       ],
     }],
     ppe: ['gloveGeneral'],
+  },
+  {
+    when: 'servicesStrip',
+    steps: [{
+      step: 'Isolate, make safe and remove old services',
+      hazards: ['Cutting into live cables, pressurised pipes, gas or refrigerant.', 'Old services fall when their supports are cut.', 'Sharp edges, residues and old insulation (which may contain asbestos or synthetic mineral fibres).'],
+      controls: [
+        'Before removal, each service is identified and labelled, and isolated at its source: electrical circuits by a licensed electrician, locked out and proved de-energised; water and drainage drained; gas purged by a licensed gas fitter.',
+        'Refrigerant is recovered by a refrigerant handling licence holder before pipework or plant is opened.',
+        'Services that stay in use are labelled, protected and kept clear of the removal.',
+        'Pipework, ducts, cable trays and fittings are supported or lowered under control before their hangers are cut, from platforms set out in the fall controls, with an exclusion zone below.',
+        'Lagging and insulation are checked against the asbestos register before they are disturbed.',
+        'Removed items are taken down, not dropped, and stored or taken away as the principal contractor directs.',
+      ],
+    }],
+    ppe: ['gloveCut', 'glassesClear'],
+  },
+  {
+    when: 'hardwareFit',
+    steps: [{
+      step: 'Fit door and window hardware',
+      hazards: ['Cuts and strain from power tools and repetitive fixing.', 'A door swings or falls while hardware is fitted.', 'Dust from drilling.'],
+      controls: [
+        'Doors are wedged or held while closers, hinges and locks are fitted. Heavy doors are taken off only with two people or a door lifter.',
+        'Power tools are used with guards in place and with eye protection. Repetitive fixing is broken up with other tasks.',
+        'Drill dust is cleaned up with a vacuum, not by dry sweeping.',
+      ],
+    }],
+    ppe: ['glassesClear', 'gloveGeneral'],
   },
   {
     when: 'glassWind',
@@ -3005,8 +3034,8 @@ const ACTIVITIES = [
         src('Generators and tanks are lifted into place by the crane company or moved on skates and rollers.', `${WHS('s 219')}; ${QCODE('Hazardous manual tasks', 's 4.4')}`),
         'Keep generators and tanks under control and never move them over people.',
         src('Generators are isolated by lock-out before work on them, with automatic starting disabled, and each worker fits their own lock.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
-        src('When generators are run for testing, the exhaust is taken outside and the room ventilated so no one breathes diesel exhaust above the exposure standard.', `${WHS('s 49, s 57, s 58')}; ${QCODE('Managing risks of hazardous chemicals', 's 1.5, s 2.1, s 4.1')}`),
-        'Noise is kept below 85 dB(A) over 8 hours and 140 dB(C) peak, with hearing protection in signposted areas.',
+        src('When generators are run for testing, the exhaust is taken outside and the room ventilated so no one breathes diesel exhaust above the exposure standard.', `${WHS('s 49')}; ${QCODE('Managing risks of hazardous chemicals', 's 1.5, s 2.1, s 4.1')}`),
+        src('Noise is kept below 85 dB(A) over 8 hours and 140 dB(C) peak, with hearing protection in signposted areas.', WHS('s 56, s 57, s 58')),
       ],
     }],
     ppe: ['earMuffs', 'gloveChemical'],
@@ -4198,6 +4227,15 @@ function jobStepsFor(flags, factText, fallback) {
     // Only the handling lines the installation step does not already cover (vacuum lifters under a crane, their inspection, wind).
     const extra = handling.controls.filter((item) => !/^(Use vacuum lifters and glass panel lifters|Team lifts are an interim|Wear cut resistant gloves)/.test(typeof item === 'string' ? item : item.text || ''));
     middle = middle.filter((step) => step !== handling).map((step) => (step === install ? { ...install, hazards: [...install.hazards, 'A vacuum lifter loses grip.'], controls: [...install.controls, ...extra] } : step));
+  }
+  // Services are isolated and made safe before anything is demolished.
+  const demolish = middle.findIndex((step) => step.step === 'Demolish');
+  if (demolish >= 0) {
+    const first = middle.filter((step, index) => index > demolish && ['Isolate and prove de-energised', 'Isolate, make safe and remove old services'].includes(step.step));
+    if (first.length) {
+      middle = middle.filter((step) => !first.includes(step));
+      middle.splice(middle.findIndex((step) => step.step === 'Demolish'), 0, ...first);
+    }
   }
   // Safety mesh goes in before the sheets are laid over it.
   const mesh = middle.find((step) => step.step === 'Install safety mesh and sarking');
