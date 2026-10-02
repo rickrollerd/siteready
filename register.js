@@ -83,7 +83,7 @@ const QUALIFICATIONS = [
   ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|distribution boards?|submains?|fit[- ]off|terminat\w*|wiring|cabling|power points?|power circuits?|light switch(?:es)?|(?:install|replac|connect|fit|wir)\w* [^.]{0,30}\b(?:ceiling fans?|hardwired smoke alarms?)|(?<!clean\w* |wip\w* |dust\w* )lighting|(?:install|replac|connect|fit)\w* [^.]{0,30}\b(?:light|led) fittings?|(?:install|replac|connect|add)\w* [^.]{0,30}\b(?:circuits?|outlets?)|(?:ev|electric vehicle|car) chargers?|inverters?|solar(?! hot water)|(?:pull|install|run|lay|terminat)\w* [^.]{0,20}\bcables?)\b/i],
   ['Plumbing and drainage licence', /\b(plumbing|plumber|drainage(?! swales?)|sewer\w*|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water supply|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
   ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?)\b/i],
-  ['Gas work licence (Petroleum and Gas (Production and Safety) Act 2004 (Qld))', /\b(gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|meters?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas\b)\b/i],
+  ['Gas work licence', /\b(gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|meters?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas\b)\b/i],
   ['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)', /\basbestos\b/i],
   ['Confined space entry training', /\bconfined spaces?\b/i],
   ['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk', /\bsilica dust\b/i],
@@ -241,7 +241,7 @@ function legislationFor(lines) {
     const match = /\(([^()]*(?:\([^()]*\)[^()]*)*)\)\s*$/.exec(line);
     if (!match) continue;
     for (const part of match[1].split(/;\s*/)) {
-      const title = part.replace(/\s+(?:s|ss|schedule|appendix|part|chapter|table|section)\s.*$/i, '').trim();
+      const title = part.replace(/\s+(?:s|ss|r|rr|schedule|appendix|part|chapter|table|section)\s.*$/i, '').trim();
       if (/\b(Act|Regulation|Regulations|Code|Rules|standard|Council)\b/i.test(title)) sources.add(title);
     }
   }
@@ -276,6 +276,12 @@ function addQldSources(sources, d) {
   return { legislation: [...legislation].sort(), codes: [...codes].sort() };
 }
 
+// Licences named for the state: Queensland's gas work licence is under its own Act.
+function localLicences(stateName, trade, list) {
+  const named = tradeLicences(trade, list);
+  return /Queensland/.test(stateName || '') ? named.map((name) => (name === 'Gas work licence' ? 'Gas work licence (Petroleum and Gas (Production and Safety) Act 2004 (Qld))' : name)) : named.map((name) => (name === 'Gas work licence' ? 'Gas work licence or authorisation for the gas work' : name));
+}
+
 // A crew of a licensed trade holds that trade's licence, whatever steps were picked.
 function tradeLicences(trade, list) {
   const ids = String(trade || '').split(',').map((id) => id.trim());
@@ -308,7 +314,7 @@ function registersFor(draft, input = {}) {
     plant,
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.
-    qualifications: tradeLicences(input.trade, qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' '))),
+    qualifications: localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' '))),
     emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`),
     sources,
     // Before starting is checks and briefings, not a work step, so it is not rated.
