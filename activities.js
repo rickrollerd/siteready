@@ -1125,7 +1125,7 @@ const ACTIVITIES = [
         hazards: ['Cutting a post-tensioning tendon or reo.', 'Water and slurry near electrical leads.'],
         controls: [
           { only: 'groundCut', ...src('Get the current underground services information before drilling into the ground slab or footpath, and work to it.', WHS('s 304')) },
-          { unless: 'wallPenetration', text: 'Each core hole has the structural engineer\'s written approval before drilling. Scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings, and never drill within a marked tendon zone: move the hole. Other detected services are isolated and confirmed before drilling near them.' },
+          { unless: 'noFloorBelow', text: 'Each core hole has the structural engineer\'s written approval before drilling. Scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings, and never drill within a marked tendon zone: move the hole. Other detected services are isolated and confirmed before drilling near them.' },
           'Keep leads off wet floors and protect them with RCDs. Contain water and slurry.',
         ],
       },
@@ -1437,7 +1437,7 @@ const ACTIVITIES = [
       controls: [
         { fact: 'fallControl' },
         { only: 'riserWork', ...src('Risers and shafts are covered or screened at each level. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`) },
-        'Only the section being worked on is opened.',
+        { only: 'riserWork', text: 'Only the section being worked on is opened.' },
         src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
         src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
         src('Barricade and sign the area below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
@@ -2895,6 +2895,7 @@ const ACTIVITIES = [
       hazards: ['Fire or explosion from fuel vapour in the tank.', 'Contaminated soil and groundwater.', 'The excavation collapses.', 'The tank falls while it is lifted.'],
       controls: [
         'Tanks are emptied, and the vapour is removed or made inert and tested with a gas detector, before any cutting or lifting.',
+        'No one enters a tank. Work inside a tank is confined space work, done only under a confined space entry permit.',
         'No ignition sources are allowed in the hazardous area around the tank and excavation.',
         'Contaminated soil and water are tested, handled and disposed of as the environmental consultant and the regulator require.',
         'The excavation is battered, benched or shored where people work in or near it.',
@@ -2937,10 +2938,10 @@ const ACTIVITIES = [
     when: 'pumpInstall',
     steps: [{
       step: 'Install the pump and pipework',
-      hazards: ['The pump falls while it is lifted or lowered.', 'Strain handling pumps and pipe.', 'Electric shock connecting the pump.', 'A fall into an open bore, pit or well.'],
+      hazards: ['The pump falls while it is lifted or lowered.', 'Strain handling pumps and pipe.', 'Electric shock connecting the pump.', { only: 'pumpOpening', text: 'A fall into an open bore, pit or well.' }],
       controls: [
         'Where a pump is too heavy to handle by hand, it is lifted or lowered with a hoist, tripod or crane rated for the load, and no one stands under the load.',
-        'Openings, bores and pits are covered or barricaded when not being worked on.',
+        { only: 'pumpOpening', text: 'Openings, bores and pits are covered or barricaded when not being worked on.' },
         'Pipe is moved with mechanical aids or by two people.',
         { only: 'pressureTank', text: 'The pressure tank is set on a level base, its pre-charge and relief valve are set to the manufacturer\'s instructions, and the system is pressurised slowly with the area clear.' },
         'The pump\'s electrical connection is made by a licensed electrician.',
@@ -4042,7 +4043,7 @@ const ACTIVITIES = [
     when: 'fenceRemove',
     steps: [{
       step: 'Take down the old fence',
-      hazards: ['Cuts from sheet and wire edges.', 'Strain lifting panels and digging out posts.', 'Asbestos in an old fibro fence.', 'Children, animals or the public get through the gap.'],
+      hazards: ['Cuts from sheet and wire edges.', 'Strain lifting panels and digging out posts.', { unless: 'notFibroFence', text: 'Asbestos in an old fibro fence.' }, 'Children, animals or the public get through the gap.'],
       controls: [
         { unless: 'notFibroFence', text: 'An old fibro fence on a property built before 2004 (asbestos products were used until the national ban at the end of 2003) is treated as asbestos unless tested, and is not cut or broken.' },
         'The fence is taken down in sections, with the boundary kept secure by temporary fencing where a pool, animals or the public need it.',
@@ -6304,6 +6305,7 @@ const ACTIVITIES = [
         ],
       },
       {
+        unless: 'abrasiveBlast',
         step: 'Sand and fill surfaces',
         hazards: ['Dust from sanding filler and surfaces.', 'Lead dust where existing surfaces with old paint are sanded or stripped.'],
         controls: [
@@ -6494,6 +6496,7 @@ addAfter('hotWork', {
     step: 'Cut steel with oxy-acetylene (hot work)',
     hazards: ['Fire from sparks, slag or hot metal.', 'Gas cylinder leaks or flashback.', 'Fumes.', 'Burns and eye injury.'],
     controls: [
+      'Painted steel is checked for lead before it is flame cut. Where the paint may contain lead, it is stripped back from the cut line first, or the cutting is done as lead risk work with the controls the state\'s lead rules require.',
       ...without(brazing.controls, /Mark hot pipe|Hot work at height or in risers/),
       'Remove or cover combustible materials where sparks and slag can reach them, including on the floor below.',
       'A fire watch is kept during the cutting and for the time the hot work permit sets after it stops.',
@@ -6766,6 +6769,7 @@ ACTIVITIES.push(
           { only: 'solarArray', text: 'Array conductors are treated as live in daylight. Connectors stay apart until the final connection, panels are covered with an opaque cover where their conductors must be worked on, and DC connectors are never pulled apart under load: the DC isolator is opened first.' },
           { only: 'inverterReplace', text: 'The old inverter is isolated on both its AC and DC sides, and the DC isolators locked off, before it is disconnected and removed. The new inverter is mounted to the manufacturer\'s instructions and AS/NZS 4777.1 on a wall that can carry it.' },
           { only: 'solarArray', unless: 'inverterReplace', text: 'The array, inverter and isolators are installed to AS/NZS 5033, AS/NZS 4777.1 and the manufacturers\' instructions, with the required signs fitted.' },
+          { unless: 'solarArray', text: 'Battery and inverter terminals stay covered, and the isolators open, until the final connection, which is made with insulated tools.' },
           'The system is tested before it is connected, and is not connected to the grid until the distribution entity has approved the connection.',
         ],
       },
@@ -7045,7 +7049,8 @@ ACTIVITIES.push(
       hazards: ['Tiles break underfoot and a worker falls through or slides.', 'A fall from the roof edge.', 'Tiles fall onto people below.', 'Silica dust from cutting concrete or terracotta tiles.'],
       controls: [
         { fact: 'fallControl' },
-        'Walk only on the lower part of each tile, over the batten, or on roof ladders or boards that spread the load. Wet, mossy or broken tiles are not walked on.',
+        { unless: 'slateRoof', text: 'Walk only on the lower part of each tile, over the batten, or on roof ladders or boards that spread the load. Wet, mossy or broken tiles are not walked on.' },
+        { only: 'slateRoof', text: 'Slates are never walked on. Work is done from roof ladders hooked over the ridge, or from a scaffold at the eaves.' },
         'Tiles stacked on the roof are spread along the battens so they cannot slide, and the area below is fenced off.',
         { unless: 'tileRoofStrip', ...src('Drill with on-tool extraction. Anyone still at risk of exposure wears a fit tested respirator (P2 or better).', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`) },
         { unless: 'tileRoofStrip', text: 'Tiles are cut with a wet saw or a saw with on-tool extraction, never dry cut without extraction.' },
@@ -7341,6 +7346,8 @@ function jobStepsFor(flags, factText, fallback) {
   moveAfter('Break out and repair damaged concrete', 'Remove cut sections');
   moveAfter('Break out and repair damaged concrete', 'Saw cut concrete');
   moveBefore('Build the vehicle crossover', 'Saw cut concrete');
+  moveAfter('Isolate and prove de-energised', 'Install solar panels and mounting rails on the roof');
+  moveBefore('Pressure clean surfaces', 'Apply epoxy or polyurethane floor coatings');
   moveBefore('Lift materials to and from the roof', 'Bag, label and dispose of asbestos waste');
   moveBefore('Lower out and lift in the fan coil unit', 'Commission and balance the system');
   moveBefore('Fit the new eave lining', 'Finish and clean up');
@@ -7457,7 +7464,7 @@ function jobStepsFor(flags, factText, fallback) {
   // A step left with no controls (energised work answered "none") is not work this SWMS covers.
   return steps.map((step) => ({
     ...(step.fallback ? { fallback: true } : {}),
-    step: step.step === 'Erect fencing, hoardings and gantries' && !flags.hoarding ? 'Erect temporary fencing' : step.step === 'Disconnect and connect the water heater' && !flags.replaceAppliance ? 'Set and connect the water heater' : step.step === 'Prop and repair the verandah' && flags.pergolaWork ? 'Prop and repair the pergola' : step.step === 'Work on a tiled roof' && flags.slateRoof ? 'Work on a slate roof' : step.step === 'Strip roof tiles and fix new battens and sarking' && flags.slateRoof ? 'Strip slates and fix new battens and sarking' : step.step === 'Fit fly screens and security doors' && !flags.doorWork ? 'Fit fly and security screens' : step.step === 'Install rooftop antennas and equipment' && flags.towerWork ? 'Install antennas and equipment on the tower' : step.step === 'Install the hydrant booster assembly' && flags.sprinkler ? 'Install the sprinkler booster valve set' : step.step === 'Clean windows and balconies' && flags.ewpNamed ? 'Clean windows from the EWP' : step.step === 'Dig footing holes' && flags.masonryLay ? 'Dig and pour footings' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.bollardsOnly ? 'Install bollards' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.humpsOnly ? 'Install speed humps' : step.step === 'Install gutters, fascia, downpipes and eaves linings' && flags.guttersOnly ? 'Install gutters and downpipes' : step.step === 'Install sports lighting and screens at height' && !flags.screens ? 'Install sports lighting at height' : step.step === 'Install signal or lighting poles, pits and conduits' && !flags.signalWork ? 'Install lighting poles, pits and conduits' : step.step === 'Clear the collapsed wall and protect the footpath' && !flags.footpathWork ? 'Clear the collapsed wall' : step.step === 'Rough-in and fit-off' && flags.fitOffOnly ? 'Fit off' : step.step === 'Remove and fit the vanity' && !flags.vanityReplace ? 'Install vanities and fixtures' : step.step === 'Sand and finish timber floors' && flags.deckRefinish ? 'Strip, sand and refinish the deck' : step.step === 'Install signs and screens' && flags.signPostsOnly ? 'Install signs on posts' : step.step === 'Drill or cut concrete, masonry or stone' && flags.grindOnly ? 'Grind concrete' : step.step === 'Install doors, joinery and cabinets' && !flags.cabinetWork ? (flags.trimWork ? 'Install doors and trim' : 'Install doors') : step.step === 'Remove and replace the bath and shower' && flags.bathOnly ? 'Remove and replace the bath' : step.step === 'Remove and replace the bath and shower' && flags.showerOnly ? 'Remove and replace the shower' : step.step === 'Fix rails, fittings and equipment to walls and floors' && flags.boardwalk ? 'Fix the handrails to the boardwalk' : step.step === 'Apply sealers to concrete, pavers or timber' && flags.stoneSurface ? 'Apply sealer to the stone' : step.step === 'Install window frames, doors and louvres' && flags.windowsOnly ? 'Install the windows' : step.step === 'Build the deck frame and lay the decking' && flags.deckBoardsOnly ? 'Remove and replace the decking' : step.step === 'Dig a shallow trench and lay pipe or cable' && flags.cableOnlyTrench ? 'Dig a shallow trench and lay the cable' : step.step === 'Build the vehicle crossover' ? 'Set up the crossover work area' : step.step === 'Install bird netting at height' && flags.birdSpikes ? 'Install bird spikes at height' : step.step === 'Install the garage or roller door and its motor' && flags.motorOnly ? 'Install the door motor' : step.step === 'Install gutters and downpipes' && flags.downpipesOnly ? 'Install downpipes' : step.step === 'Install playground equipment and softfall' && flags.softfallOnly ? 'Lay the rubber softfall' : step.step === 'Install boom gates and automatic gates' && flags.solarGate ? 'Install the gate opener' : step.step === 'Install boom gates and automatic gates' && flags.barrierArm ? 'Install the barrier arm' : step.step === 'Break out the cracked tiles' && flags.oldTiles ? 'Remove the old tiles' : step.step === 'Connect the solar array and inverter' && !flags.solarArray ? (flags.batteryStorage ? 'Connect the inverter and battery' : 'Connect the inverter') : step.step,
+    step: step.step === 'Erect fencing, hoardings and gantries' && !flags.hoarding ? 'Erect temporary fencing' : step.step === 'Disconnect and connect the water heater' && !flags.replaceAppliance ? 'Set and connect the water heater' : step.step === 'Prop and repair the verandah' && flags.pergolaWork ? 'Prop and repair the pergola' : step.step === 'Work on a tiled roof' && flags.slateRoof ? 'Work on a slate roof' : step.step === 'Strip roof tiles and fix new battens and sarking' && flags.slateRoof ? 'Strip slates and fix new battens and sarking' : step.step === 'Fit fly screens and security doors' && !flags.doorWork ? 'Fit fly and security screens' : step.step === 'Install rooftop antennas and equipment' && flags.towerWork ? 'Install antennas and equipment on the tower' : step.step === 'Install the hydrant booster assembly' && flags.sprinkler ? 'Install the sprinkler booster valve set' : step.step === 'Clean windows and balconies' && flags.ewpNamed ? 'Clean windows from the EWP' : step.step === 'Dig footing holes' && flags.masonryLay ? 'Dig and pour footings' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.bollardsOnly ? 'Install bollards' : step.step === 'Install bollards, barriers, wheel stops and speed humps' && flags.humpsOnly ? 'Install speed humps' : step.step === 'Install gutters, fascia, downpipes and eaves linings' && flags.guttersOnly ? 'Install gutters and downpipes' : step.step === 'Install sports lighting and screens at height' && !flags.screens ? 'Install sports lighting at height' : step.step === 'Install signal or lighting poles, pits and conduits' && !flags.signalWork ? 'Install lighting poles, pits and conduits' : step.step === 'Clear the collapsed wall and protect the footpath' && !flags.footpathWork ? 'Clear the collapsed wall' : step.step === 'Rough-in and fit-off' && flags.fitOffOnly ? 'Fit off' : step.step === 'Remove and fit the vanity' && !flags.vanityReplace ? 'Install vanities and fixtures' : step.step === 'Sand and finish timber floors' && flags.deckRefinish ? 'Strip, sand and refinish the deck' : step.step === 'Install signs and screens' && flags.signPostsOnly ? 'Install signs on posts' : step.step === 'Drill or cut concrete, masonry or stone' && flags.grindOnly ? 'Grind concrete' : step.step === 'Install doors, joinery and cabinets' && !flags.cabinetWork ? (flags.trimWork ? 'Install doors and trim' : 'Install doors') : step.step === 'Remove and replace the bath and shower' && flags.bathOnly ? 'Remove and replace the bath' : step.step === 'Remove and replace the bath and shower' && flags.showerOnly ? 'Remove and replace the shower' : step.step === 'Fix rails, fittings and equipment to walls and floors' && flags.boardwalk ? 'Fix the handrails to the boardwalk' : step.step === 'Apply sealers to concrete, pavers or timber' && flags.stoneSurface ? 'Apply sealer to the stone' : step.step === 'Install window frames, doors and louvres' && flags.windowsOnly ? 'Install the windows' : step.step === 'Build the deck frame and lay the decking' && flags.deckBoardsOnly ? 'Remove and replace the decking' : step.step === 'Dig a shallow trench and lay pipe or cable' && flags.cableOnlyTrench ? 'Dig a shallow trench and lay the cable' : step.step === 'Build the vehicle crossover' ? 'Set up the crossover work area' : step.step === 'Install bird netting at height' && flags.birdSpikes ? 'Install bird spikes at height' : step.step === 'Install the garage or roller door and its motor' && flags.motorOnly ? 'Install the door motor' : step.step === 'Install gutters and downpipes' && flags.downpipesOnly ? 'Install downpipes' : step.step === 'Install playground equipment and softfall' && flags.softfallOnly ? 'Lay the rubber softfall' : step.step === 'Install boom gates and automatic gates' && flags.solarGate ? 'Install the gate opener' : step.step === 'Install boom gates and automatic gates' && flags.barrierArm ? 'Install the barrier arm' : step.step === 'Install gutters, fascia, downpipes and eaves linings' && flags.fasciaOnly ? 'Replace the fascia boards' : step.step === 'Install window frames, doors and louvres' && flags.shopfront ? 'Install the shopfront frames and doors' : step.step === 'Install window frames, doors and louvres' && flags.louvresOnly ? 'Fit the louvre frames and glass' : step.step === 'Get soil and plants to the podium' && flags.greenRoof ? 'Get soil and plants to the roof' : step.step === 'Install water meters and backflow devices' && flags.backflowOnly ? 'Install the backflow device' : step.step === 'Jack the house and replace stumps' && flags.houseRaise ? 'Jack and raise the house' : step.step === 'Install battens and external cladding' && flags.cladReplace ? 'Replace the cladding boards' : step.step === 'Install sprinkler and hydrant pipework at height' && flags.sprinklerOnly ? 'Install sprinkler pipework at height' : step.step === 'Break out the cracked tiles' && flags.oldTiles ? 'Remove the old tiles' : step.step === 'Connect the solar array and inverter' && !flags.solarArray ? (flags.batteryStorage ? 'Connect the inverter and battery' : 'Connect the inverter') : step.step,
     hazards: step.hazards.filter((item) => typeof item === 'string' || ((!item.only || flags[item.only]) && (!item.unless || !flags[item.unless]))).map((item) => (typeof item === 'string' ? item : item.text)).map((line) => localText(line, flags.cite || 'qld')).map(pt).filter(Boolean),
     controls: [...new Set(step.controls.filter((item) => (!item.only || flags[item.only]) && (!item.unless || !flags[item.unless])).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean))],
   })).map((step) => {
