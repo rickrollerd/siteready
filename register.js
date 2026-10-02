@@ -8,6 +8,8 @@
 // Regulation makes the work high risk work; otherwise the operator must be
 // competent. Electrical equipment for construction work is inspected and tested
 // to AS/NZS 3012 (Electrical Safety Regulation 2026 (Qld) s 140).
+const { localNote } = require('./citations');
+const { findState } = require('./legislation');
 const TEST_TAG = 'Inspected, tested and tagged to AS/NZS 3012. Checked for damage before use.';
 const PRESTART = 'Pre-start check each shift. Serviced to the manufacturer\'s instructions.';
 const PLANT = [
@@ -241,7 +243,7 @@ function legislationFor(lines) {
     const match = /\(([^()]*(?:\([^()]*\)[^()]*)*)\)\s*$/.exec(line);
     if (!match) continue;
     for (const part of match[1].split(/;\s*/)) {
-      const title = part.replace(/\s+(?:s|ss|r|rr|schedule|appendix|part|chapter|table|section)\s.*$/i, '').trim();
+      const title = part.replace(/\s+(?:s|ss|r|rr|reg|regs|schedule|appendix|part|chapter|table|section)\s.*$/i, '').trim();
       if (/\b(Act|Regulation|Regulations|Code|Rules|standard|Council)\b/i.test(title)) sources.add(title);
     }
   }
@@ -276,6 +278,23 @@ function addQldSources(sources, d) {
   return { legislation: [...legislation].sort(), codes: [...codes].sort() };
 }
 
+// Each state's work health and safety Act. The regulations are the state's instrument.
+const STATE_ACTS = [
+  [/New South Wales/, 'Work Health and Safety Act 2011 (NSW)', 'Work Health and Safety Regulation 2025 (NSW)'],
+  [/Victoria/, 'Occupational Health and Safety Act 2004 (Vic)', 'Occupational Health and Safety Regulations 2017 (Vic)'],
+  [/South Australia/, 'Work Health and Safety Act 2012 (SA)', 'Work Health and Safety Regulations 2012 (SA)'],
+  [/Western Australia/, 'Work Health and Safety Act 2020 (WA)', 'Work Health and Safety (General) Regulations 2022 (WA)'],
+  [/Tasmania/, 'Work Health and Safety Act 2012 (Tas)', 'Work Health and Safety Regulations 2022 (Tas)'],
+  [/Australian Capital Territory/, 'Work Health and Safety Act 2011 (ACT)', 'Work Health and Safety Regulation 2011 (ACT)'],
+  [/Northern Territory/, 'Work Health and Safety (National Uniform Legislation) Act 2011 (NT)', 'Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT)'],
+];
+
+function addStateLaw(sources, stateName) {
+  const found = STATE_ACTS.find(([name]) => name.test(stateName || ''));
+  if (!found) return sources;
+  return { ...sources, legislation: [...new Set([found[1], found[2], ...sources.legislation])].sort() };
+}
+
 // Licences named for the state: Queensland's gas work licence is under its own Act.
 function localLicences(stateName, trade, list) {
   const named = tradeLicences(trade, list);
@@ -284,7 +303,8 @@ function localLicences(stateName, trade, list) {
   const local = { 'Gas work licence': 'Gas work licence or authorisation for the gas work', 'Electrical work licence (electrical mechanic)': 'Electrical licence (licensed electrician) under the state\'s electrical licensing law', 'Plumbing and drainage licence': 'Plumbing licence or registration under the state\'s plumbing law' };
   // Victoria has its own crystalline silica rules, not the model regulations' high risk processing.
   if (/Victoria/.test(stateName || '')) local['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk'] = 'Crystalline silica information, instruction and training, as the Occupational Health and Safety Regulations 2017 (Vic) require for high risk crystalline silica work';
-  return [...new Set(named.map((name) => local[name] || name))];
+  const stateId = (findState(stateName) || { id: 'qld' }).id;
+  return [...new Set(named.map((name) => localNote(local[name] || name, stateId)))];
 }
 
 // A crew of a licensed trade holds that trade's licence, whatever steps were picked.
@@ -314,9 +334,12 @@ function registersFor(draft, input = {}) {
   const plant = [...plantFor(`${useText}\n${usedInControls.join('\n')}`), ...maybe].map((item) => othersLicence(item, allText, task));
   const substances = substancesFor(`${task}\n${hazardText}\n${steps.map((step) => step.step).join('\n')}`, (input.facts || {}).safetyDataSheet, steps.flatMap((step) => step.controls).join('\n'));
   let sources = legislationFor([...steps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
+  if (!/Queensland/.test(draft.state || '')) sources = addStateLaw(sources, draft.state);
   if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant, substances, hazardText, text: allText });
+  // Register notes cite the state's own regulation.
+  const stateId = (findState(draft.state) || { id: 'qld' }).id;
   return {
-    plant,
+    plant: plant.map((item) => ({ ...item, inspection: localNote(item.inspection, stateId), licence: localNote(item.licence, stateId) })),
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.
     qualifications: localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' '))),

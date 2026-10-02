@@ -3756,7 +3756,7 @@ function expand(control, factText, cite = 'qld') {
     const text = localText(control.text, cite);
     if (text == null) return [];
     // A line reworded for another state keeps only sources that still fit it: none for Queensland-only law.
-    const source = cite && control.source && text === control.text ? localSource(control.source, cite) : cite === 'vic' && text !== control.text && /crystalline silica/.test(text) ? localSource(control.source || '', cite) : '';
+    const source = cite && control.source && text === control.text ? localSource(control.source, cite) : '';
     return [source ? `${text} (${source})` : text];
   }
   if (control.choice) return (control.options[factText(control.choice)] || []).flatMap((item) => expand(item, factText, cite));

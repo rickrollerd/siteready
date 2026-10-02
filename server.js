@@ -18,6 +18,7 @@ const billing = require('./billing');
 const admin = require('./admin');
 const { record, recordError } = require('./events');
 const { TRADES, answersFor } = require('./presets');
+const { localText } = require('./citations');
 const { scopeText } = require('./scope-text');
 const { tasksFromScope } = require('./scope');
 
@@ -104,7 +105,9 @@ app.post('/api/draft/questions', (req, res) => {
   const result = questionsFor(draftBody(req.body || {}));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   // Standard answers the user can pick, then change.
-  result.required = (result.required || []).map((item) => (item.choices ? item : { ...item, suggestions: answersFor(item.id) }));
+  // Outside Queensland the answers use the state's wording.
+  const local = (list) => list.map((answer) => ({ ...answer, text: localText(answer.text, result.state.id) })).filter((answer) => answer.text);
+  result.required = (result.required || []).map((item) => (item.choices ? item : { ...item, suggestions: local(answersFor(item.id)) }));
   res.json(result);
 });
 

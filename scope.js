@@ -126,6 +126,10 @@ const KINDS = ACTIVITIES.filter((activity) => activity.when && (activity.steps |
 const DETAIL = new Set(['ptSlab', 'craneInterface', 'cite', 'ewp', 'mobileScaffold', 'forklift', 'carpentryWork', 'carpLoad', 'sitePlant', 'tileMix', 'masonryMortar', 'masonryGrout', 'wpRolls', 'glassHandling', 'glassWind', 'gasCylinders', 'neighbours', 'siteSheds', 'roofAccess', 'oxyCutting', 'silicaDrill', 'smallPlant', 'groundChemicals']);
 // A kind found in fewer lines than this is a passing mention, unless it is high risk work.
 const MIN_SUPPORT = 2;
+// Kinds of work whose steps have a person falling from an edge, roof or platform,
+// or through an opening. A task with one of them has a fall suggested.
+const PERSON_FALL = /(?:\bperson |\bworkers? |^an? |^)(?:fall|falls|falling) (?:from (?!a ladder\b)|through\b|into (?:an? |the )?(?:open )?(?:riser|shaft|void|opening))/i;
+const FALL_KINDS = new Set(KINDS.filter((kind) => kind.steps.some((step) => (step.hazards || []).some((line) => PERSON_FALL.test(typeof line === 'string' ? line : line.text)))).map((kind) => kind.when));
 const CROSS = new Set(['demolition', 'trench', 'coreDrill', 'sawCut', 'structuralOpening', 'asbestos', 'asbestosCheck', 'confined', 'roofSpace', 'power', 'road', 'water', 'liveHospital', 'stripOut', 'crane', 'towerCrane', 'scaffold']);
 // A trade is the scope's trade when it is found in this share of the lines of the most found trade.
 const TRADE_SHARE = 0.3;
@@ -314,6 +318,7 @@ function tasksFromScope(text, stateId = 'qld') {
     const title = TITLES[id] || step;
     const task = taskText(found);
     const highRisk = highRiskMatches(task, '', state).map((item) => item.label);
+    const kinds = [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')) })])];
     return {
       id,
       title,
@@ -323,10 +328,10 @@ function tasksFromScope(text, stateId = 'qld') {
       // The trades the task belongs to, so its SWMS uses only their job steps.
       trade: trades.join(','),
       // A fall is suggested where the work is at an edge, on a roof or at height; the user confirms it.
-      fallRisk: highRisk.some((label) => /falling/i.test(label)) || /\b(slab edges?|edges?|roofs?|roofing|eaves|balcon\w*|scaffold\w*|ewps?|elevating work platforms?|boom lifts?|scissor lifts?|at height|voids?|risers?|shafts?|parapets?|ladders?|mezzanines?)\b/i.test(task) ? 'yes' : '',
+      fallRisk: highRisk.some((label) => /falling/i.test(label)) || /\b(slab edges?|edges?|roofs?|roofing|eaves|balcon\w*|scaffold\w*|ewps?|elevating work platforms?|boom lifts?|scissor lifts?|at height|voids?|risers?|shafts?|parapets?|ladders?|mezzanines?)\b/i.test(task) || kinds.some((kind) => FALL_KINDS.has(kind)) ? 'yes' : '',
       needsSwms: highRisk.length > 0,
       // The job steps to tick for this task when it is used.
-      kinds: [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')) })])],
+      kinds,
     };
   };
   const tasks = [...groups.values()]
