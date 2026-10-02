@@ -2372,6 +2372,21 @@ function settleFlags(flags, task) {
   if (T(/\bplatform canop(?:y|ies)\b|\bcanop(?:y|ies)\b[^.]{0,20}\b(stations?|platforms?)\b/i)) { out.steelErect = true; out.steelLift = true; }
   if (T(/\b(piles?|piling)\b/i) && T(/\b(barges?|punts?|jack-?up|from the water)\b/i)) { if (T(/\b(driv\w*|hammer\w*|steel piles?|sheet piles?)\b/i)) out.drivenPiles = true; else out.pilingRig = true; out.workBoat = true; }
   if (T(/\b(wharf|jetty) decks?\b/i) && T(/\b(install\w*|construct\w*|pour\w*|build\w*)\b/i)) { out.precast = true; out.formwork = true; out.craneInterface = true; }
+  // Bank 11 review rules.
+  out.hvTermination = T(/\b(high voltage|hv|\d+ ?kv)\b/i) && T(/\b(terminat\w*|joint\w*)\b/i) && T(/\bcables?\b/i);
+  if (out.hvTermination) out.hvWork = true;
+  out.craneDismantle = Boolean(out.towerCraneErect && T(/\bdismantl\w*\b/i) && !T(/\berect\w*\b/i));
+  if (out.grandstand && !T(/\b(temporary|tiered seating|seating|stands? for)\b/i) && T(/\b(roof|truss\w*|steel)\b/i)) out.grandstand = false;
+  if (out.paintExternal && T(/\b(\d+ storey|office|residential|apartment) towers?\b/i) && !T(/\b(external\w*|exterior|outside|facade|fa[cç]ade|swing stages?|bmus?)\b/i)) out.paintExternal = false;
+  if (out.precast && !T(/\b(glass|glazing|glazed)\b/i)) { out.glassHandling = false; out.glassHandle = false; }
+  if (out.tempPower) { out.fitOff = false; out.noRoofSpace = true; }
+  out.hydrantOnly = Boolean(out.fireAtHeight && T(/\bhydrants?\b/i) && !T(/\bsprinklers?\b/i));
+  if (T(/\b(sub-?mains?|consumer mains)\b/i) && T(/\b(install\w*|run\w*|pull\w*)\b/i)) out.cablePull = true;
+  if (T(/\b(detention|retention|storage) tanks?\b/i) && T(/\b(construct\w*|install\w*|build\w*)\b/i)) out.tankPlace = true;
+  if (T(/\bpodium\b/i) && out.shallowTrench) out.shallowTrench = false;
+  out.concreteWall = Boolean(out.retainingWall && T(/\b(concrete|reinforced|in-?situ)\b[^.]{0,20}\bretaining walls?\b/i));
+  if (out.concreteWall) { out.timberOnlyWall = true; out.formwork = false; }
+  out.noWallBackfill = Boolean(out.masonryLay || out.concreteWall);
   // Commercial bank rules.
   if (/\bground anchors?\b/i.test(task) && /\b(shoring|basements?|retention|piles?|walls?)\b/i.test(task)) out.anchorsProps = true;
   out.towerCraneErect = /\b(erect\w*|dismantl\w*|climb\w*|install\w*|jump\w*)\b[^.]{0,20}\b(?:a |the )?tower cranes?\b/i.test(task) && !/\b(?:with|using|from|by) (?:a |the )?tower crane\b/i.test(task);
