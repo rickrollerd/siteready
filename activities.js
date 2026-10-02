@@ -144,6 +144,7 @@ const ACTIVITIES = [
         src('The principal contractor manages traffic near the site, or where there is no principal contractor, our supervisor puts the traffic management plan in place.', WHS('s 315')),
         'Traffic controllers who hold Queensland traffic controller accreditation direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.',
         'Keep work, plant and materials inside the separated work area.',
+        { text: 'Over or next to a railway, work goes ahead only under the rail operator\'s access permit and its protection officer arrangements.', only: 'railCorridor' },
         src('Footpath or road closures have written approval from the authority that controls the area.', WHS('s 315M')),
         'A physical barrier separates the work area from live traffic, and pedestrians are diverted on a safe, marked route.',
         src('Deliveries are unloaded inside the site or the closed work area, not from the live road, where practicable.', WHS('s 315')),
@@ -712,7 +713,7 @@ const ACTIVITIES = [
         controls: [
           'Bundles are slung by the crane crew with rated slings or chains, never by the tie wire.',
           { fact: 'loadLimits' },
-          'Land bundles on the deck over the bearers, spread out within the formwork\'s allowable load. Do not stack bundles in one place.',
+          { text: 'Land bundles on the deck over the bearers, spread out within the formwork\'s allowable load. Do not stack bundles in one place.', unless: 'groundSlab' },
         ],
       },
       {
@@ -1816,12 +1817,12 @@ const ACTIVITIES = [
       step: 'Install doors, joinery and cabinets',
       hazards: ['Strain holding heavy units in place while fixing.', 'Crush from a falling door or cabinet.'],
       controls: [
-        src('Engineered stone benchtops, panels and slabs are banned and are not installed or processed. Natural stone tops are cut and finished by the supplier; if any stone must be cut on site, this SWMS is updated with silica controls first.', WHS('s 529D')),
+        { ...src('Engineered stone benchtops, panels and slabs are banned and are not installed or processed. Natural stone tops are cut and finished by the supplier; if any stone must be cut on site, this SWMS is updated with silica controls first.', WHS('s 529D')), only: 'stoneWork' },
         src('Ask suppliers to deliver joinery ready to install and the right way up.', MODEL('Hazardous manual tasks', 's 4.7')),
         src('Use lifting aids, straps, trolleys and props to hold units while fixing, rather than holding them up by hand for long periods.', QCODE('Hazardous manual tasks', 's 2.2, s 4.4')),
         'Doors and cabinets are fixed or propped as soon as they are stood up.',
         'Adhesives, sealants and sealers are used as their safety data sheets set out, with good ventilation and gloves resistant to the product.',
-        src('Overhead cabinets and wardrobes are fitted from step platforms or platform ladders rated for at least 120 kg, not from the top of a stepladder.', `${WHS('s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
+        { ...src('Overhead cabinets and wardrobes are fitted from step platforms or platform ladders rated for at least 120 kg, not from the top of a stepladder.', `${WHS('s 306M')}; ${MODEL('Managing the risk of falls', 's 9.1')}`), only: 'cabinets' },
       ],
     }],
   },
@@ -2289,6 +2290,7 @@ const ACTIVITIES = [
       step: 'Lay floor coverings',
       hazards: ['Knee injury from kneeling.', 'Strain moving rolls.', 'Cuts from knives and blades.', 'Burns from the hot air gun.'],
       controls: [
+          { text: 'Old carpet, vinyl and adhesive are lifted with scrapers and stripping tools. Vinyl and adhesive laid before 1990 are checked for asbestos before they are lifted.', only: 'oldFloorCoverings' },
         src('Kneeling to lay floor coverings is a hazardous posture: rotate tasks and take short frequent breaks. Replace hand tools with power tools to reduce force.', MODEL('Hazardous manual tasks', 's 2.2, s 3.3, s 4.1, s 4.9')),
         'Wear knee pads.',
         { only: 'carpet', text: 'Use a power stretcher instead of a knee kicker where possible.' },
@@ -2623,6 +2625,81 @@ const ACTIVITIES = [
       ],
     }],
     ppe: ['p2', 'earMuffs', 'glassesClear', 'gloveChemical'],
+  },
+  {
+    when: 'liftInstall',
+    steps: [{
+      step: 'Install the lift rails, car and machine',
+      hazards: ['A fall down the open shaft.', 'A load falls in the shaft onto people below.', 'Being crushed by the car or counterweight.', 'Electric shock from the lift supply.'],
+      controls: [
+        'Landing openings stay barricaded except while a landing door is being fitted, and workers at an opening use travel restraint.',
+        'Lifting beams and anchors are rated, tagged and proof tested before use, and loads are slung by licensed doggers or riggers where the work needs it.',
+        'No one works under a load or below others in the shaft. Work in the pit happens only when nothing can fall from above.',
+        'The car and counterweight are secured against movement whenever anyone works under or near them, and the machine is isolated and locked out.',
+        'The lift supply is connected by a licensed electrician, and the lift is not used until it has been commissioned and certified.',
+      ],
+    }],
+    ppe: ['harness', 'glassesClear'],
+  },
+  {
+    when: 'asphaltLay',
+    steps: [{
+      step: 'Lay and roll asphalt',
+      hazards: ['Burns from hot asphalt.', 'Fumes from hot bitumen.', 'Struck by the paver, roller or trucks.', 'Traffic next to the work.', 'Heat stress.'],
+      controls: [
+        'Only the plant operators and the crew needed are inside the work area, and everyone wears high visibility clothing. Trucks reverse only with a spotter in sight of the driver.',
+        'Workers keep clear of the paver screed and roller, and make eye contact with the operator before approaching.',
+        'Hot asphalt is handled with long sleeves, gloves and boots. Burns are cooled with water straight away.',
+        'Work upwind of fumes where possible.',
+        'Traffic management is in place before work starts, as the approved plan sets out.',
+        'Cool water, shade and rest breaks in hot weather.',
+      ],
+    }],
+    ppe: ['hivisNight', 'gloveGeneral', 'sunHat'],
+  },
+  {
+    when: 'floorSanding',
+    steps: [{
+      step: 'Sand and finish timber floors',
+      hazards: ['Fine wood dust from sanding.', 'Fire from dust and from solvent coatings.', 'Fumes and sensitisation from polyurethane finishes.', 'Noise.'],
+      controls: [
+        'Sanders have dust bags or extraction, and a P2 respirator is worn while sanding.',
+        'Dust bags are emptied into a metal bin outside the building at the end of each day, not left inside, as fine dust can catch fire.',
+        { fact: 'safetyDataSheet' },
+        'Finishes are applied as their safety data sheets set out, with the room ventilated, no ignition sources, and the respirator the data sheet lists.',
+        'Hearing protection while sanding.',
+      ],
+    }],
+    ppe: ['p2', 'earMuffs', 'gloveChemical'],
+  },
+  {
+    when: 'rendering',
+    steps: [{
+      step: 'Apply render to walls',
+      hazards: ['A fall from the scaffold or platform.', 'Skin burns from cement render.', 'Silica dust from mixing render and cutting or grinding masonry.', 'Strain mixing and applying render.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Render is mixed with a mixer or paddle, and bags are moved with a trolley.',
+        'Gloves, long sleeves and eye protection are worn. Skin that touches wet render is washed straight away.',
+        'Mixing dry render and cutting or grinding masonry is done with dust controls, and a P2 respirator is worn where dust remains.',
+      ],
+    }],
+    ppe: ['gloveChemical', 'glassesClear', 'p2'],
+  },
+  {
+    when: 'roofFittings',
+    steps: [{
+      step: 'Fix gutter guard, bird spikes and other roof fittings',
+      hazards: ['A fall from the roof edge or through the roof.', 'Cuts from sheet metal and mesh edges.', 'Heat and sun on the roof.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Work at the edge is done behind edge protection or from a scaffold or EWP, not by leaning out from the roof.',
+        'Brittle or fragile roofing and skylights are found and covered or fenced before anyone walks the roof.',
+        'Cut resistant gloves are worn when handling mesh and flashings, and offcuts are bagged, not left on the roof.',
+        'Work is planned for the cooler part of the day in hot weather, with water and breaks.',
+      ],
+    }],
+    ppe: ['gloveCut', 'sunHat', 'sunscreen'],
   },
   {
     when: 'glassWind',
@@ -3378,7 +3455,7 @@ const ACTIVITIES = [
         src('Where posts are set in paving or concrete, core or cut the hole with water suppression or on-tool extraction, as cutting concrete and pavers releases silica dust. Anyone still at risk of exposure wears a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.4.2, s 7.6.1, s 7.6.2')}`),
         src('Assess in writing before drilling or cutting whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.', WHS('s 529CA')),
         SILICA_FOLLOW_UP[1],
-        'Wiring for automatic gate motors is done by a licensed electrician.',
+        { text: 'Wiring for automatic gate motors is done by a licensed electrician.', only: 'gateMotor' },
         'Heavy gate leaves are hung with lifting aids and propped until fixed. Automatic gates are commissioned with the area closed off, and their safety sensors and force limits are tested before the gates are used.',
         'Sun protection: hat, long sleeves, sunglasses and SPF 30 or higher sunscreen. Cool drinking water, shade and rest breaks in hot weather.',
       ],
@@ -3435,6 +3512,7 @@ const ACTIVITIES = [
       step: 'Clean windows and balconies',
       hazards: ['A fall from a balcony or from a ladder near an edge.', 'Items fall from balconies.'],
       controls: [
+        { text: 'Work from the building maintenance unit (BMU) only where it has been inspected and its certification is current, the operators are trained in it, harnesses are attached to its anchor points, and work stops in high wind.', only: 'bmu' },
         src('Work from the floor with extendable tools where possible. Where cleaning is near a balcony or open edge, the balustrade or barrier is in place first.', `${WHS('s 78')}; ${MODEL('Managing the risk of falls', 's 4.1, s 4.2')}`),
         'Outside glass that cannot be reached from the floor or a balcony is cleaned only from an EWP, or by a rope access or building maintenance unit contractor under their own SWMS.',
         src('No stepladders at balustrades or open edges. Ladders only for short light work.', MODEL('Managing the risk of falls', 's 9.1')),
@@ -3539,6 +3617,7 @@ const ACTIVITIES = [
       step: 'Apply primers and liquid membranes',
       hazards: ['Breathing vapour from primers and membranes.', 'Fire from flammable vapour where solvent-based products are used.', 'Skin and eye contact.', 'Knee strain from long periods kneeling.'],
       controls: [
+        { text: 'Spray rigs are run only by trained operators: the gun is never pointed at anyone, the trigger is locked when not spraying, pressure is released before the tip is cleaned, and the area downwind is closed off from overspray.', only: 'sprayApply' },
         { fact: 'safetyDataSheet' },
         src('The current safety data sheet for each product is at the work area, the product is on the hazardous chemicals register, and anything decanted is labelled.', WHS('s 342, s 344, s 346')),
         src('Use a less hazardous product where possible, such as a water-based membrane instead of a solvent or two-part epoxy system.', `${WHS('s 36')}; ${QCODE('Managing risks of hazardous chemicals', 's 4.1')}`),
@@ -3732,7 +3811,7 @@ const ACTIVITIES = [
       hazards: ['Breathing solvent fumes.', 'Fire from flammable vapour and solvent-soaked rags.'],
       controls: [
         src('No smoking, flames or sparks where flammable vapour may be present.', WHS('s 355')),
-        src('Where it is uncertain whether vapour is below the exposure standard, for example in stairwells and the basement, monitor the air.', WHS('s 49, s 50')),
+        src('Where it is uncertain whether vapour is below the exposure standard, for example in enclosed rooms, stairwells and the basement, monitor the air.', WHS('s 49, s 50')),
         src('Painters exposed to solvents and noise together: noise is reduced to 80 dB(A) or below, as the noise code recommends for ototoxic substances, with hearing tests.', QCODE('Managing noise and preventing hearing loss', 'appendix B, s 5.4')),
         'Put solvent-soaked rags in a closed metal container or take them off site.',
       ],
@@ -4252,6 +4331,7 @@ ACTIVITIES.push(
       step: 'Deliver and install commercial kitchen equipment',
       hazards: ['Crushing or strain moving heavy ovens, fridges, dishwashers and benches.', 'Equipment tipping while it is moved or levelled.', 'Cuts from stainless steel edges.', 'Electric shock, gas leaks or refrigerant release at connections.', 'Burns and fumes from welding or grinding stainless steel on site.'],
       controls: [
+          { text: 'Coolroom panels are stood and fixed in sequence, propped until joined, and ceiling panels are lifted with a panel lifter or from a platform, never by hand overhead from a ladder.', only: 'coolroom' },
         'Heavy equipment is moved with trolleys, pallet jacks or skates on a planned route, within the floor\'s load limits, with enough people. Tall items are kept upright and secured against tipping until they are fixed.',
         'Equipment is levelled and fixed or restrained to the supplier\'s instructions.',
         'Electrical connections are made by a licensed electrician, gas connections by a licensed gas fitter, and water and waste connections by a licensed plumber.',
@@ -4288,6 +4368,8 @@ ACTIVITIES.push(
         'The new heater has its temperature and pressure relief valve and drain line fitted to the manufacturer\'s instructions.',
         'Water to bathroom outlets is delivered no hotter than 50 °C, with a tempering valve where the plumbing rules require one.',
         'Heaters are moved by two people or with a trolley, and set on a base that takes their full weight.',
+        { text: 'The old gas heater is disconnected and its gas line capped and leak tested by a licensed gas fitter.', only: 'gasToElectric' },
+        { text: 'The heat pump\'s electrical connection is made by a licensed electrician.', only: 'heatPump' },
       ],
     }],
   },
@@ -4373,6 +4455,7 @@ ACTIVITIES.push(
       },
       {
         step: 'Apply sealers to concrete, pavers or timber',
+        only: 'sealing',
         hazards: ['Fire from solvent vapour.', 'Breathing sealer vapour.', 'Slips on wet sealer.'],
         controls: [
           { fact: 'safetyDataSheet' },
