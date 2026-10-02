@@ -73,7 +73,7 @@ function isPanelLift(text) {
   // Precast seating tiers sit on rakers: they are not stood up and braced like wall panels.
   if (concrete && !PRECAST_TIER.test(source) && /\b(lift\w*|erect\w*|stand\w*|stood|install\w*|plac\w*|crane\w*)\b/i.test(source)) return true;
   // Crane ties hold a tower crane to the building; they are not a lift.
-  return /\bpanels?\b/i.test(source) && /\b(lift\w*|crane\w*)\b/i.test(source.replace(/\bcrane ties?\b/gi, '')) && !FACADE_WORK.test(source) && !/\b(glass balustrades?|balustrades?|shower screens?|glass panels?|membranes?|ptfe|etfe|roof\w*)\b/i.test(source);
+  return /\bpanels?\b/i.test(source) && /\b(lift\w*|crane\w*)\b/i.test(source.replace(/\bcrane ties?\b/gi, '')) && !FACADE_WORK.test(source) && !/\b(glass balustrades?|balustrades?|shower screens?|glass panels?|membranes?|ptfe|etfe|roof\w*|access panels?|shaft wall|lightweight concrete)\b/i.test(source);
 }
 
 // Bulk and detailed excavation of a basement, as opposed to service trenches.
@@ -442,7 +442,7 @@ const ENTERED_SPACE = /\b(?:enter\w*|entry|inside|work in|working in)\b[\w\s,-]{
 const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|welding)\b/i;
 const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air test\w*)\b/i;
 const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?)\b/i;
-const SILICA_WORK = /\b((?:fram|fix|batten|anchor)\w*[^.]{0,60}\b(?:over|to|into|onto) (?:the )?(?:existing )?(?:blockwork|masonry|brickwork|block walls?|concrete walls?)|cut\w*[^.]{0,40}\b(?:lightweight|aerated|autoclaved aerated) concrete (?:\w+ ){0,2}panels?|(?:concrete|saw)[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|benchtops?\b[^.]{0,60}\b(?:cut|polish|drill)\w*|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?|tiled walls?|tiles?)|drill\w* (?:into )?(?:the )?(?:precast )?(?:concrete )?(?:seating )?(?:tiers?|treads?))\b/i;
+const SILICA_WORK = /\b((?:fram|fix|batten|anchor)\w*[^.]{0,120}\b(?:over|to|into|onto) (?:the )?(?:existing )?(?:blockwork|masonry|brickwork|block walls?|concrete walls?)|cut\w*[^.]{0,40}\b(?:lightweight|aerated|autoclaved aerated) concrete (?:\w+ ){0,2}panels?|(?:concrete|saw)[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|benchtops?\b[^.]{0,60}\b(?:cut|polish|drill)\w*|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?|tiled walls?|tiles?)|drill\w* (?:into )?(?:the )?(?:precast )?(?:concrete )?(?:seating )?(?:tiers?|treads?))\b/i;
 
 const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply)|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
 
@@ -1379,7 +1379,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     if (/\buse travel restraint\b/i.test(said)) tick('harness');
     if (/\bheat resistant gloves\b/i.test(said)) tick('gloveWelding');
     if (/\bgumboots\b/i.test(said)) tick('gumboots');
-    if (/\bgloves resistant to the product\b|\bchemical resistant gloves\b/i.test(said)) tick('gloveChemical');
+    if (/\bgloves resistant to the product\b|\bchemical resistant gloves\b|\bgloves and eye protection their safety data sheets list\b/i.test(said)) tick('gloveChemical');
     // Done before the sun line below, since it rebuilds the steps.
     if (/\bP2\b|\brespirators?\b/.test(said) && !ticked(['p2', 'halfFace'])) {
       tick('p2');
@@ -1426,7 +1426,11 @@ const KIND_IDS = [...new Set(ACTIVITIES.map((activity) => activity.when).filter(
 
 // The kinds of work in the task, limited to the task's trades when they are known.
 function tradeFlags(task, facts, state) {
-  return limitToTrades(workFlags(task, facts, state.ownCrane), state.trades, KIND_IDS);
+  const flags = limitToTrades(workFlags(task, facts, state.ownCrane), state.trades, KIND_IDS);
+  // A cutting step that is not this trade's work is taken out, so drilling and
+  // cutting comes back as the general step.
+  if (SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id])) flags.silicaDrill = true;
+  return flags;
 }
 
 // Kinds of work any trade can strike, found from the task's own words, on top of
@@ -1706,6 +1710,9 @@ function harnessInUse(source) {
 const TASK_ONLY = [
   [/^A wall cage topples/, /\b(walls?|lift shafts?|cores?|stairwells?)\b/i],
   [/^Ballast and insulation boards are moved/, /\b(ballast|insulation boards?)\b/i],
+  [/^Cable jointing resins are used/, /\b(joints?|jointing|terminat\w*|heat[- ]shrink)\b/i],
+  [/^Where spoil is carted by truck or loader/, /\b(cart\w*|haul\w*|spoil|surplus)\b/i],
+  [/^Use a power stretcher instead of a knee kicker/, /^(?![\s\S]*\bdirect[- ]stick)/i],
   [/^Footings, thickenings and pits are entered/, /\b(footings?|thickenings?|pits?)\b/i],
   [/^Where walls, lift shafts or stairwells are reinforced/, /\b(walls?|lift shafts?|cores?|stairwells?)\b/i],
   [/^In risers, use cable grips/, /\b(risers?|shafts?)\b/i],

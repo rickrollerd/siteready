@@ -160,3 +160,10 @@ test('fixing framing to blockwork is silica processing, and work with an outdoor
   assert.ok(draft.jobSteps.some((step) => step.step === 'Drill or cut concrete, masonry or stone'));
   assert.ok(draft.ppe.flatMap((group) => group.items).find((item) => item.id === 'sunscreen').ticked);
 });
+
+test('a cutting step outside the trade gives way to the general drilling step', () => {
+  const { prepareDraft } = require('../draft');
+  // The silica answer mentions cutting blockwork, which is masonry work, not plasterboard work.
+  const draft = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'plasterboard', task: 'Frame internal ceilings, bulkheads and external and internal walls (including over blockwork) in steel stud.', facts: { silicaControls: 'Drilling and cutting blockwork are done with on-tool dust extraction.' } });
+  assert.ok(draft.jobSteps.some((step) => step.step === 'Drill or cut concrete, masonry or stone'));
+});
