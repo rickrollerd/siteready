@@ -3833,7 +3833,7 @@ ACTIVITIES.push(
         step: 'Isolate the gas and disconnect the old appliance',
         hazards: ['Fire or explosion from escaping gas.', 'Strain moving the old appliance.'],
         controls: [
-          'Gas work is done only by a person holding a gas work licence for that work (Petroleum and Gas (Production and Safety) Act 2004 (Qld)).',
+          src('Gas work is done only by a person holding a gas work licence or authorisation for that work.', 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'),
           'The gas is turned off at the meter or cylinder and the line is capped as soon as it is disconnected. No smoking, flames or sparks near the work.',
           'Heavy appliances are moved by two people or with a trolley.',
         ],
