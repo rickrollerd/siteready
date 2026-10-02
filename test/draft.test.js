@@ -130,7 +130,7 @@ test('New South Wales uses its own regulation, wording and power line rule', () 
 });
 
 test('Victoria uses regulation 322 and 327 and its own SWMS contents', () => {
-  const shed = (state) => prepareDraft({ state, task: 'Demolish an internal timber stud wall with hand tools.', fallRisk: 'no' });
+  const shed = (state) => prepareDraft({ state, task: 'Demolish an internal timber stud wall with hand tools in a house built in 2015.', fallRisk: 'no' });
   const vic = shed('vic');
   assert.equal(vic.instrument, 'Occupational Health and Safety Regulations 2017 (Vic)');
   assert.equal(vic.sectionRef, 'regulation 327');
