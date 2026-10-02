@@ -1010,7 +1010,7 @@ const ACTIVITIES = [
           choice: 'energisedWork',
           options: {
             none: [
-              src('No work is done on or near energised parts (within 3 m of an exposed energised part). If that changes, stop and prepare for energised work as the regulation requires.', ESR('s 193, s 195')),
+              src('No electrical work is done on or near energised parts (within 3 m of an exposed energised part). Parts of the installation that stay energised, such as construction power, are identified, and the work is kept separated from them. If that changes, stop and prepare for energised work as the regulation requires.', ESR('s 193, s 195')),
             ],
             testing: [
               src('Work on or near energised parts is done only where the regulation allows, such as testing, and never because it is more convenient.', `${ESR('s 195')}; ${CODE('s 7.1')}`),
@@ -2327,6 +2327,22 @@ const ACTIVITIES = [
       ],
     }],
     ppe: ['gloveCut', 'glassesClear'],
+  },
+  {
+    when: 'windowInstall',
+    steps: [{
+      step: 'Install window frames, doors and louvres',
+      hazards: ['A fall through the window opening or from the platform.', 'A frame or door falls before it is fixed.', 'Silica dust from drilling fixings into concrete or masonry.', 'Strain lifting frames into openings.', 'Cuts from louvre blades and glass edges.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Openings stay protected by edge protection or a barrier until the frame is fixed in them. Frames above the ground floor are installed from inside the building where practicable.',
+        'Each frame is packed, plumbed and fixed to the manufacturer\'s instructions before it is let go. Large frames are lifted with a panel lifter or two people, with one person in charge.',
+        src('Drill fixings with on-tool extraction, and wear a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`),
+        ...SILICA_FOLLOW_UP,
+        'Louvre blades and glass are handled with cut resistant gloves that still give a good grip, and kept in their racks until fitted.',
+      ],
+    }],
+    ppe: ['gloveCut', 'p2', 'glassesClear'],
   },
   {
     when: 'glassWind',
@@ -3667,7 +3683,9 @@ addAfter(ACTIVITIES[ACTIVITIES.findIndex((item) => item.when === 'formwork') - 1
       controls: [
         src('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
         'Excavators, bobcats and rollers are run by competent operators, checked before each shift, with an exclusion zone and a spotter where people work nearby.',
-        src('Boxing out, thickened edges, edge beams and footings are dug no deeper than needed, and battered or benched where the ground needs it. A trench or shaft deeper than 1.5 m is high risk construction work this SWMS does not cover: stop and have the SWMS reviewed before anyone enters it.', WHS('s 291, s 302, s 306')),
+        src('Boxing out, thickened edges, edge beams and footings are dug no deeper than needed, and battered or benched where the ground needs it.', WHS('s 302, s 306')),
+        // Where this SWMS has the trench steps, deeper trenches are covered by them.
+        { ...src('A trench or shaft deeper than 1.5 m is high risk construction work this SWMS does not cover: stop and have the SWMS reviewed before anyone enters it.', WHS('s 291')), unless: 'trench' },
         'Open excavations are barricaded, and people cross only at set crossing points.',
         'Plate compactors and rollers are used with guards in place, operators are rotated to limit vibration, and hearing protection is worn.',
         'Dust from fill and the subgrade is kept down with water.',
@@ -3902,14 +3920,14 @@ ACTIVITIES.push(
     when: 'gutters',
     steps: [{
       step: 'Install gutters, fascia, downpipes and eaves linings',
-      hazards: ['A fall from the eaves edge or a ladder.', 'Cuts from sheet metal edges.', 'Metal gutters or ladders touching the overhead service line to the house.', 'Strain handling long lengths.'],
+      hazards: ['A fall from the eaves edge or a ladder.', 'Cuts from sheet metal edges.', 'Metal gutters or ladders touching the overhead service line to the building.', 'Strain handling long lengths.'],
       controls: [
         { fact: 'fallControl' },
         'Work at the eaves is done from a scaffold, mobile scaffold or EWP.',
         src('Single or extension ladders are used only for access, or for light work below 2 m that can be done with one hand, at 70 to 80 degrees. Ladders are industrial and rated for at least 120 kg.', WHS('s 306K, s 306L, s 306M')),
-        'Before work, find the overhead service line to the house. Keep ladders and long metal lengths well clear of it, and ask the distribution entity to cover or disconnect it where the work is close.',
+        'Before work, find the overhead service line to the building. Keep ladders and long metal lengths well clear of it, and ask the distribution entity to cover or disconnect it where the work is close.',
         'Cut-resistant gloves are worn for sheet metal, and cut edges are deburred.',
-        'On a house built before 2004, fibre cement eaves linings, gutters and downpipes are treated as asbestos unless tested, and are not cut, drilled or broken until they have been.',
+        'On a building built before 2004, fibre cement eaves linings, gutters and downpipes are treated as asbestos unless tested, and are not cut, drilled or broken until they have been.',
         src('If asbestos cement is found or suspected, work on it stops. High-pressure water and compressed air are never used on it, and power tools only where their use is controlled; the work follows the asbestos rules.', WHS('s 446')),
         'New fibre cement eaves linings are cut by scoring and snapping or with shears, or with a saw with on-tool extraction and a fit tested P2 respirator. They are never dry cut without extraction.',
         'Long lengths are carried by two people.',
@@ -4142,6 +4160,19 @@ function jobStepsFor(flags, factText, fallback) {
     middle = middle.filter((step) => step !== isolate);
     middle.splice(fitOff, 0, isolate);
   }
+  // The glass handling lines join the glass installation step rather than repeat it.
+  const handling = middle.find((step) => step.step === 'Handle glass and panels');
+  const install = middle.find((step) => step.step === 'Handle and install glass panels');
+  if (handling && install) {
+    middle = middle.filter((step) => step !== handling).map((step) => (step === install ? { ...install, hazards: [...new Set([...install.hazards, ...handling.hazards])], controls: [...install.controls, ...handling.controls] } : step));
+  }
+  // Safety mesh goes in before the sheets are laid over it.
+  const mesh = middle.find((step) => step.step === 'Install safety mesh and sarking');
+  const sheets = middle.findIndex((step) => step.step === 'Fix new roofing');
+  if (mesh && sheets >= 0 && middle.indexOf(mesh) > sheets) {
+    middle = middle.filter((step) => step !== mesh);
+    middle.splice(sheets, 0, mesh);
+  }
   // Old roofing comes off once the roof access and fall protection are set up.
   const strip = middle.find((step) => step.step === 'Remove old roofing');
   const setUp = middle.findIndex((step) => step.step === 'Set up roof access and fall protection');
@@ -4164,7 +4195,7 @@ function jobStepsFor(flags, factText, fallback) {
     ...(step.fallback ? { fallback: true } : {}),
     step: step.step,
     hazards: step.hazards.map((line) => localText(line, flags.cite || 'qld')).map(pt).filter(Boolean),
-    controls: [...new Set(step.controls.filter((item) => !item.only || flags[item.only]).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean))],
+    controls: [...new Set(step.controls.filter((item) => (!item.only || flags[item.only]) && (!item.unless || !flags[item.unless])).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean))],
   })).filter((step) => step.fallback || step.controls.length);
 }
 

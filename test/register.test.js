@@ -206,3 +206,14 @@ test('licences and steps follow the work, not words around it', () => {
   const scope = tasksFromScope('SCOPE OF WORKS\n1. The Subcontractor shall only supply materials to the Site that contain NO asbestos.\n2. Install cable tray and pull cables for lighting circuits.\n3. Terminate all cables at the distribution boards.');
   assert.ok(!scope.tasks.some((task) => /asbestos/i.test(task.title)));
 });
+
+test('round 4: window installs, merged glass steps, waterproofing and crane licences', () => {
+  const { workFlags } = require('../draft');
+  const draft = prepareDraft({ state: 'nsw', fallRisk: 'yes', residential: 'no', trade: 'glazing', task: 'Install aluminium windows, fixed glass louvres and doors.', facts: { fallControl: 'Work is done from inside the building behind edge protection.', silicaControls: 'On-tool extraction.' } });
+  const steps = draft.jobSteps.map((step) => step.step);
+  assert.ok(steps.includes('Install window frames, doors and louvres'));
+  assert.ok(!(steps.includes('Handle glass and panels') && steps.includes('Handle and install glass panels')));
+  assert.ok(!workFlags('Liquid-applied membrane with a drainage cell and drainage gravel.', {}).hydraulicRisers);
+  assert.ok(!workFlags('Attend on site during all concrete placement to keep the reo cover.', {}).concrete);
+  assert.ok(workFlags('Pizza oven exhaust system including fan, ductwork and lagging.', {}).ductwork);
+});

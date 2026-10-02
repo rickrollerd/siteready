@@ -480,7 +480,7 @@ const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air tes
 const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?)\b/i;
 const SILICA_WORK = /\b(hammer drill\w*|drill\w*[^.]{0,40}\b(?:concrete|masonry|blockwork|brick\w*)\b|(?:fram|fix|batten|anchor)\w*[^.]{0,120}\b(?:over|to|into|onto) (?:the )?(?:existing )?(?:blockwork|masonry|brickwork|block walls?|concrete walls?)|cut\w*[^.]{0,40}\b(?:lightweight|aerated|autoclaved aerated) concrete (?:\w+ ){0,2}panels?|(?:concrete|saw)[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|benchtops?\b[^.]{0,60}\b(?:cut|polish|drill)\w*|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?|tiled walls?|tiles?)|drill\w* (?:into )?(?:the )?(?:precast )?(?:concrete )?(?:seating )?(?:tiers?|treads?))\b/i;
 
-const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply)|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
+const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply|electrical (?:distribution|supply|boards?|installations?))|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
 
 // Answers for a choice fact, read from the stored value.
 function choiceAnswer(id, value) {
@@ -1731,6 +1731,7 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
 function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
   const task = ownWork(fullTask);
   const scaffold = isScaffoldErection(task);
+  const pourTask = task.replace(/\battend\w*\b[^.]*\b(?:during|at)\b[^.]*\b(?:concrete (?:placement|plac\w*|pours?)|pours?)\b[^.]*/gi, '');
   return {
     road: mentioned(task, ROAD) || /\blight rail\b/i.test(task) || /\b(in|on|along|across|under) (?:the |a )?(?:council |public )?(?:footpaths?|verges?|road reserves?|nature strips?)\b/i.test(task),
     power: mentioned(task, ENERGISED),
@@ -1750,7 +1751,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     formwork: FORMWORK.test(task.replace(new RegExp(JUMPFORM.source, 'gi'), '')),
     reo: /\b(reo|reinforc\w*|rebar|steel fixing)\b/i.test(task),
     ptTendons: PT.test(task) && /\b(place|placing|install\w*|lay\w*|fix\w*)\b/i.test(task) && /\b(ducts?|tendons?|strand)\b/i.test(task),
-    concrete: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) ? /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete)\b/i.test(task) : /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(task),
+    // Attending a pour for another trade (keeping reo cover) is not placing the concrete.
+    concrete: /\b(cast[- ]in|in[- ]slab)\b/i.test(pourTask) ? /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete)\b/i.test(pourTask) : /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(pourTask),
     stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
     jumpform: JUMPFORM.test(task),
     ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
@@ -1760,7 +1762,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     castInPlumbing: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && /\b(sleeves?|puddle flanges?|plumbing|drainage|pipes?)\b/i.test(task) && isPlumbing(task),
     coreDrill: CORE_DRILL.test(task),
     // Installing risers or pipework at height, not other work done in the risers.
-    hydraulicRisers: isPlumbing(task) && /\binstall\w*\b/i.test(task) && /\b(risers?|stacks?|shafts?|ceilings?|at height)\b/i.test(task) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
+    hydraulicRisers: isPlumbing(task) && /\binstall\w*\b/i.test(task) && /\b(risers?|stacks?|(?<!maintenance |inspection |access )shafts?|ceilings?|at height)\b/i.test(task) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
     hotWork: HOT_WORK.test(task),
     // Soil and waste pipes are PVC with solvent cement joints as a rule.
     solventCement: /\b(solvent (?:cement|weld\w*)|pvc (?:glue|cement)|pvc pip\w*|soil and waste)\b/i.test(task) || (/\bprimers?\b/i.test(task) && /\b(pvc|pipe\w*)\b/i.test(task)),
@@ -1875,6 +1877,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     glazingWork: GLAZING_WORK.test(task),
     balustradeEdge: /\bbalustrades?\b/i.test(task) && /\b(balcon\w*|edges?|terraces?)\b/i.test(task),
     glassWind: GLAZING_WORK.test(task) && /\b(balcon\w*|edges?|external|outside|facades?)\b/i.test(task),
+    windowInstall: /\b(?:install\w*|fit\w*|replac\w*|supply and fix)\b[^.]{0,40}\b(?:(?:aluminium |timber )?windows?|window frames?|louv(?:re|er)s?|sliding doors?)\b/i.test(task) && !/\b(?:clean\w*|wash\w*)\b[^.]{0,20}\bwindows?\b/i.test(task),
     glazingDrill: GLAZING_WORK.test(task) && ((/\bdrill\w*\b/i.test(task) && /\b(tiled|tiles?|masonry|concrete)\b/i.test(task)) || /\bshower screens?\b/i.test(task)),
     glassHandle: GLAZING_WORK.test(task) && /\b(glass|glazing|mirrors?|screens?|windows?)\b/i.test(task) && !/\b(clean\w*|wash\w*)\b[^.]{0,20}\bwindows?\b/i.test(task),
     glazingSeal: GLAZING_WORK.test(task) && /\b(seal\w*|silicon\w*)\b/i.test(task),
@@ -1895,7 +1898,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     refrigerantWork: REFRIGERANT.test(task),
     // Heavy plant lifted, delivered or moved into place; not scissor or boom lifts.
     plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:air[- ]?condition\w*|rooftop|package\w*|a\/?c) units?|fans?(?!\s+coil)|plant)\b/i.test(task) && /\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*|install\w*)\b/i.test(task),
-    ductwork: MECHANICAL_WORK.test(task) && /\binstall\w*\b/i.test(task) && !/\bon the roof\b/i.test(task) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task)) || /\b(split systems?|indoor units?|outdoor units?|wall[- ]hung units?)\b/i.test(task)),
+    ductwork: MECHANICAL_WORK.test(task) && /\b(install\w*|exhaust systems?|supply and fix|fit\w*)\b/i.test(task) && !/\bon the roof\b/i.test(task) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task)) || /\b(split systems?|indoor units?|outdoor units?|wall[- ]hung units?)\b/i.test(task)),
     refrigerantPipework: REFRIGERANT.test(task) && /\b(braz\w*|silver solder\w*)\b/i.test(task),
     // Installing a split system includes pressure testing, evacuating and releasing or adding the charge.
     refrigerantTest: REFRIGERANT.test(task) && (PRESSURE_TEST.test(task) || SPLIT_INSTALL.test(task)),
