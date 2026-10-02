@@ -136,7 +136,7 @@ test('review fixes: trench depth threshold, harness only when used, trade-limite
   // The plumber's solar hot water install gets roof access and the water heater connection.
   const solar = draft({ trade: 'plumbing', fallRisk: 'yes', task: 'Install the solar hot water system on the roof.', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
   assert.equal(solar.kind, 'draft');
-  assert.ok(solar.jobSteps.some((step) => step.step === 'Get onto the roof and set up fall protection') && solar.jobSteps.some((step) => step.step === 'Disconnect and connect the water heater'));
+  assert.ok(solar.jobSteps.some((step) => step.step === 'Get onto the roof and set up fall protection') && solar.jobSteps.some((step) => step.step === 'Set and connect the water heater'));
   assert.ok(!steps({ trade: 'roofing', task: 'Fix roof sheeting on the roof.' }).includes('Get onto the roof and set up fall protection'));
   // Knee pads called for in the steps are ticked.
   const vinyl = draft({ trade: 'flooring', task: 'Install sheet vinyl and carpet tiles with adhesive.', facts: { safetyDataSheet: 'The products used are epoxy adhesive.' } });
