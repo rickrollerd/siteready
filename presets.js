@@ -65,6 +65,12 @@ const ANSWERS = {
   controlsConsidered: [
     ['Edge protection not possible', 'Edge protection was considered but cannot be fixed at ____ because ____. An elevating work platform was considered but ____.'],
   ],
+  constructionTesting: [
+    ['Licensed electrician tests', 'Construction wiring, switchboards, RCDs and leads are inspected and tested by ____ (licensed electrician) before first use and then at the intervals AS/NZS 3012 sets, and each is tagged with its test date. RCDs are push-button tested ____.'],
+  ],
+  electricalSafety: [
+    ['Lines located and isolated', 'Overhead and underground power near the work is located and marked before work starts. Where the work comes within ____ m, the network operator isolates the lines (permit ____). Otherwise plant and people stay outside the exclusion zone, with a safety observer watching.'],
+  ],
   craneChart: [
     ['Chart duty', 'Rated capacity from the crane chart: ____ t at ____ m radius. Heaviest gross load (load, lifting gear and rigging) is ____ t at ____ m radius.'],
   ],

@@ -94,3 +94,26 @@ test('a pasted scope, a text file and an unreadable file', async () => {
   await assert.rejects(scopeText({ file: { name: 'scope.doc', data: 'AAAA' } }), /Save it as \.docx/);
   await assert.rejects(scopeText({}), /Attach the scope or paste it/);
 });
+
+test('a task from a scope keeps its trade, and its SWMS uses only that trade\'s job steps', () => {
+  const { prepareDraft } = require('../draft');
+  const painting = read('b-painting.txt').tasks.find((task) => task.id === 'painting');
+  assert.equal(painting.trade, 'painting');
+  const task = 'Paint all doors, architraves and plasterboard ceilings with water-based paint.';
+  const facts = { safetyDataSheet: 'Safety data sheets for the paints are kept at the work area.' };
+  const steps = (trade) => prepareDraft({ state: 'qld', task, fallRisk: 'no', trade, facts }).jobSteps.map((step) => step.step);
+  assert.ok(!steps('painting').includes('Install doors, joinery and cabinets'));
+  assert.ok(steps('painting').includes('Paint'));
+  // Without a trade, the task is read as before.
+  assert.ok(steps(undefined).includes('Install doors, joinery and cabinets'));
+});
+
+test('new fibre cement is not asbestos, and handrails or crane ties are not precast lifts', () => {
+  const { questionsFor } = require('../draft');
+  const asked = (task) => questionsFor({ state: 'qld', task, fallRisk: 'yes' }).required.map((item) => item.id);
+  assert.ok(!asked('Cut off and grind back exposed metal, then install fibre cement protection to planters.').includes('asbestosArrangement'));
+  assert.ok(asked('Cut and remove the old fibre cement eaves linings.').includes('asbestosArrangement'));
+  assert.ok(!asked('Install edge protection and handrails to precast parapets, and form penetrations.').includes('erectionDesign'));
+  assert.ok(!asked('Line walls with lightweight concrete shaft wall panels and close up walls at the crane ties.').includes('erectionDesign'));
+  assert.ok(asked('Erect six precast concrete wall panels using a mobile crane.').includes('erectionDesign'));
+});

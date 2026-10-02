@@ -1,5 +1,6 @@
 const { HIERARCHY, SITE_FIELDS, findState, highRiskList } = require('./legislation');
-const { jobStepsFor, ppeFor } = require('./activities');
+const { jobStepsFor, ppeFor, ACTIVITIES } = require('./activities');
+const { tradeIds, limitToTrades } = require('./trades');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
 
@@ -57,12 +58,22 @@ function isCraneOrLift(text) {
 
 // Precast and tilt-up panels are lifted, erected, stood up or placed under any of these
 // words. Other panels (solar, wall linings) count only when a crane or a lift is named.
+// Cutting, drilling or fixing into precast already in place ("cut reglet to roof level
+// precast") is not precast installation.
+function withoutWorkIntoPrecast(text) {
+  return String(text || '')
+    .replace(/\b(?:drill\w*|cut\w*|chas\w*|fix\w*|bolt\w*|core\w*)\b[^.]{0,40}?\b(?:to|into|in|through)\s+(?:the\s+)?(?:[\w-]+\s+){0,3}precast\b/gi, '')
+    // Handrails, edge protection or brackets fixed to precast already in place.
+    .replace(/\b(?:handrails?|guardrails?|edge protection|brackets?)\s+(?:to|on|onto)\s+(?:the\s+)?(?:[\w-]+\s+){0,2}precast(?:\s+[\w-]+)?/gi, '');
+}
+
 function isPanelLift(text) {
-  const source = String(text || '');
+  const source = withoutWorkIntoPrecast(text);
   const concrete = /\b(precast|tilt-?up|concrete (?:wall )?panels?)\b/i.test(source);
   // Precast seating tiers sit on rakers: they are not stood up and braced like wall panels.
   if (concrete && !PRECAST_TIER.test(source) && /\b(lift\w*|erect\w*|stand\w*|stood|install\w*|plac\w*|crane\w*)\b/i.test(source)) return true;
-  return /\bpanels?\b/i.test(source) && /\b(lift\w*|crane\w*)\b/i.test(source) && !FACADE_WORK.test(source) && !/\b(glass balustrades?|balustrades?|shower screens?|glass panels?|membranes?|ptfe|etfe|roof\w*)\b/i.test(source);
+  // Crane ties hold a tower crane to the building; they are not a lift.
+  return /\bpanels?\b/i.test(source) && /\b(lift\w*|crane\w*)\b/i.test(source.replace(/\bcrane ties?\b/gi, '')) && !FACADE_WORK.test(source) && !/\b(glass balustrades?|balustrades?|shower screens?|glass panels?|membranes?|ptfe|etfe|roof\w*)\b/i.test(source);
 }
 
 // Bulk and detailed excavation of a basement, as opposed to service trenches.
@@ -96,7 +107,9 @@ const BOILER = /\b(boilers?|steam (?:plant|pipe\w*|mains?)|pressure vessels?|cal
 const ASBESTOS_MATERIAL = /\b(fibro|fibre[- ]cement|ac sheets?|asbestos cement|super ?six|vinyl floor tiles|lino(?:leum)?|eaves linings?|zelemite)\b/i;
 const OLDER_BUILDING = /\b(19[0-8]\d'?s|built in 19[0-8]\d|pre[- ]?19(?:8\d|90)|older (?:house|home|building|school)s?|old (?:house|home|building)s?|heritage)\b/i;
 const DISTURB = /\b(strip\w*|remov\w*|demolish\w*|demolition|cut\w*|drill\w*|sand\w*|break\w*|renovat\w*|replac\w*|rip\w* out|knock\w*)\b/i;
-const asbestosLikely = (text) => DISTURB.test(String(text || '')) && (ASBESTOS_MATERIAL.test(String(text || '')) || (OLDER_BUILDING.test(String(text || '')) && /\b(walls?|ceilings?|floors?|eaves|roofs?|bathroom|kitchen|laundry|sheets?|linings?)\b/i.test(String(text || ''))));
+// New fibre cement being installed is not asbestos: asbestos products have been banned in Australia since 2003.
+const withoutNewMaterial = (text) => String(text || '').replace(/\b(?:install\w*|supply\w*|new|fix\w*|lay\w*)\b[^.]{0,40}?\bfibre[- ]cement\b[^.]*/gi, '');
+const asbestosLikely = (text) => DISTURB.test(String(text || '')) && (ASBESTOS_MATERIAL.test(withoutNewMaterial(text)) || (OLDER_BUILDING.test(String(text || '')) && /\b(walls?|ceilings?|floors?|eaves|roofs?|bathroom|kitchen|laundry|sheets?|linings?)\b/i.test(String(text || ''))));
 const CLEANING = /\b(builders'? clean|final clean|cleaning|cleaners?)\b/i;
 
 // Waterproofing membranes.
@@ -371,7 +384,7 @@ function highRiskMatches(text, answer, state) {
     electrical: mentioned(text, /\b(energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live (?:electrical|parts?|switchboards?|circuits?)|(?:energised|energized|live) electrical (?:installations?|services?))\b/i),
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i),
     // Drilling or fixing to precast units already in place is not precast work.
-    precast: mentioned(String(text || '').replace(/\b(?:drill\w*|fix\w* (?:to|into)|bolt\w* (?:to|into))\s+(?:the\s+)?precast\b/gi, ''), /\b(tilt-?up|precast)\b/i),
+    precast: mentioned(withoutWorkIntoPrecast(text), /\b(tilt-?up|precast)\b/i),
     road: mentioned(text, ROAD) || /\blight rail\b/i.test(String(text || '')),
     plant: mentioned(text, /\b((?:piling|cfa|bored pil\w*) rigs?|(?:excavator[- ]mounted )?pile croppers?|elevating work platforms?|ewps?|scissor lifts?|boom lifts?|powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|boom pumps?|telehandlers?|excavators?|forklifts?|trucks?|(?<!tower )cranes?(?!\s+(?:company|companies|crew|operators?)\b)|loaders?|liebherr)\b/i),
     temperature: mentioned(text, /\bartificial extremes of temperature\b/i),
@@ -1124,7 +1137,8 @@ function craneAnswer(value) {
 function stateFor(input) {
   const found = findState(input.state);
   if (!found) return found;
-  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own' };
+  // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
+  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', trades: tradeIds(input.trade) };
   if (!state.residentialFallMetres) return state;
   const residential = residentialAnswer(input.residential) === 'yes';
   return { ...state, residential, fallMetres: residential ? state.residentialFallMetres : 2 };
@@ -1284,7 +1298,7 @@ function prepareDraft(input) {
 // The PPE list, then the job steps, which add fit testing when a respirator is ticked.
 function ppeList(task, facts, state, chosen) {
   return ppeFor(
-    workFlags(task, facts, state.ownCrane),
+    tradeFlags(task, facts, state),
     chosen,
     /\b(harness|fall arrest|elevating work platform|ewp|boom lift)\b/i.test(combinedFacts(task, facts)),
     /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task),
@@ -1326,6 +1340,13 @@ function referencesFor(facts) {
 }
 
 // The kinds of work in the task, which choose the job steps and the PPE.
+const KIND_IDS = [...new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean))];
+
+// The kinds of work in the task, limited to the task's trades when they are known.
+function tradeFlags(task, facts, state) {
+  return limitToTrades(workFlags(task, facts, state.ownCrane), state.trades, KIND_IDS);
+}
+
 function workFlags(fullTask, facts = {}, ownCrane = false) {
   const task = ownWork(fullTask);
   const scaffold = isScaffoldErection(task);
@@ -1551,7 +1572,7 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
     return '';
   };
   const [first] = sentences(task);
-  return jobStepsFor({ ...workFlags(task, facts, state.ownCrane), ...extra, cite: state.id }, factText, {
+  return jobStepsFor({ ...tradeFlags(task, facts, state), ...extra, cite: state.id }, factText, {
     step: asSentence(first || task),
     hazards: hazards.map((row) => `${row.hazard}: ${row.risk}`),
     controls: controls.map((item) => item.text),
