@@ -231,3 +231,19 @@ test('round 5: national sources in every state, scope words read in context, ver
   const lines = ACTIVITIES.flatMap((activity) => (activity.steps || []).flatMap((step) => step.controls)).map((item) => (typeof item === 'string' ? item : item.text || ''));
   assert.ok(!lines.some((line) => /\(s 302, s 306\)/.test(line)));
 });
+
+test('round 6: Queensland roof space and ladder rules as the regulation states them, and scope words read in context', () => {
+  const { workFlags, highRiskMatches } = require('../draft');
+  const { findState } = require('../legislation');
+  const steps = (task, state = 'qld') => prepareDraft({ state, fallRisk: 'no', trade: 'electrical', task, facts: { isolationProcedure: 'Isolated, locked and tested.', energisedWork: 'none' } }).jobSteps.flatMap((step) => step.controls).join('\n');
+  // ESR s 31: the roof space rule is for class 1, 2 and 10a buildings.
+  assert.ok(/only when the electrical installation is de-energised/.test(steps('Rough-in new lighting circuits in the roof space of a house.')));
+  assert.ok(!/only when the electrical installation is de-energised/.test(steps('Rough-in new lighting circuits in the roof space of a warehouse office.')));
+  assert.ok(!workFlags('Supply and install all insulation and lagging materials to ductwork.', {}).ductwork);
+  assert.ok(!workFlags('The mechanical main switchboard and control panels.', {}).mainSwitchboard);
+  assert.ok(workFlags('Switchgear (switchboards and distribution boards) including connection to mains and provision of metering.', {}).commissioning);
+  assert.ok(workFlags('Operation of generators, including load shedding.', {}).generatorTest);
+  assert.ok(workFlags('Marking pipes and ductwork with colour bands and tags.', {}).serviceLabels);
+  assert.ok(!highRiskMatches('Cast in precast conduits and back boxes.', '', findState('nsw')).some((item) => item.id === 'precast'));
+  assert.ok(!highRiskMatches('Coring. Prior to the energisation of a Building, this process applies.', '', findState('qld')).some((item) => /energised/i.test(item.label)));
+});
