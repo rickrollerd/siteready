@@ -387,7 +387,8 @@ function highRiskMatches(text, answer, state) {
     temporary: mentioned(text, /\bstructural alterations?\b/i) || (mentioned(text, /\b(temporary support|propping|propped)\b/i) && mentioned(text, /\b(alter\w*|repair\w*|existing|remov\w*|demoli\w*|load[- ]bearing|openings?|underpin\w*)\b/i)),
     confined: mentioned(text, /\bconfined space\b/i),
     trench: deepExcavation(text),
-    explosives: mentioned(text, /\bexplosives?\b/i),
+    // Explosive-powered tools are not the use of explosives (Safe Work Australia SWMS guidance).
+    explosives: mentioned(String(text || '').replace(/\bexplosive[- ]?(?:powered |power |actuated )?(?:tools?|nail guns?|fixing tools?)\b/gi, ' '), /\bexplosives?\b/i),
     gas: mentioned(text, /\b(gas main|pressuri[sz]ed gas)\b/i),
     chemicalLine: mentioned(text, /\b(fuel line|refrigerant line|chemical line)\b/i),
     electrical: mentioned(text, /\b(energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live (?:electrical|parts?|switchboards?|circuits?)|(?:energised|energized|live) electrical (?:installations?|services?))\b/i),

@@ -47,3 +47,11 @@ test('sources are grouped into legislation and codes', () => {
   assert.deepEqual(sources.legislation, ['Work Health and Safety Regulation 2011 (Qld)']);
   assert.deepEqual(sources.codes, ['Managing noise and preventing hearing loss at work Code of Practice 2021 (Qld)']);
 });
+
+test('explosive power tools are not the use of explosives', () => {
+  const { highRiskMatches } = require('../draft');
+  const { findState } = require('../legislation');
+  const checks = (task) => highRiskMatches(task, 'no', findState('qld')).map((item) => item.check);
+  assert.ok(!checks('Fix brackets with explosive power tools.').includes('explosives'));
+  assert.ok(checks('Blast rock with explosives to form the footing.').includes('explosives'));
+});
