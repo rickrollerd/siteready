@@ -105,7 +105,7 @@ test('a task from a scope keeps its trade, and its SWMS uses only that trade\'s 
   assert.ok(!steps('painting').includes('Install doors, joinery and cabinets'));
   assert.ok(steps('painting').includes('Paint'));
   // Without a trade, the task is read as before.
-  assert.ok(steps(undefined).includes('Install doors, joinery and cabinets'));
+  assert.ok(steps(undefined).some((step) => /^Install doors/.test(step)));
 });
 
 test('new fibre cement is not asbestos, and handrails or crane ties are not precast lifts', () => {

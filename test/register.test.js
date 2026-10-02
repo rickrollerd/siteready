@@ -338,8 +338,8 @@ test('task bank round 4: licences, high risk categories and main work steps', ()
   assert.ok(!steps('Install new playground shade sails at a school.').includes('Erect the frame and roof of the structure'));
   assert.ok(steps('Lay sewer drainage under a new house slab before the pour.').includes('Lay drainage under the slab or floor'));
   assert.ok(!steps('Lay sewer drainage under a new house slab before the pour.').includes('Place concrete'));
-  const tank = steps('Install a stormwater detention tank under a car park.');
-  assert.ok(tank.indexOf('Lift and place the tank or precast units') < tank.indexOf('Backfill and restore'));
+  const tank = steps('Install a stormwater detention tank under a car park.', { facts: { trenchSupport: 'The excavation is battered to the geotechnical engineer\'s design.' } });
+  assert.ok(tank.indexOf('Lift and place tanks, pits or precast units') < tank.indexOf('Backfill and restore'));
   const flat = steps('Build a granny flat on a slab: frame, roof, clad and line it.', { body: { trade: 'carpentry', residential: 'yes' } });
   assert.ok(flat.indexOf('Stand and brace wall frames') < flat.indexOf('Fix new roofing'));
   assert.ok(flat.indexOf('Fix new roofing') < flat.indexOf('Install battens and external cladding'));
@@ -447,4 +447,59 @@ test('gas work alone needs a gas licence, not a plumbing licence, outside Victor
     assert.ok(!quals(state).some((item) => /^Plumbing/.test(item)), state);
   }
   assert.ok(quals('vic').some((item) => /^Plumbing/.test(item)));
+});
+
+test('banks 1 to 4 verification: step order, main work and lines for the job', () => {
+  const base = { silicaControls: 'Wet cutting and on-tool extraction.', fallControl: 'Work above 2 m is done from an EWP with guardrails.', safetyDataSheet: 'Safety data sheets for each product are at the work area.', spaceAssessment: 'notConfined', asbestosArrangement: 'Asbestos register sighted. Our crew removes the asbestos under our asbestos removal licence.', confinedSpace: 'Permit entry.', temporarySupport: 'Props to the engineer\'s design.', isolationProcedure: 'Isolated, locked and tested.', energisedWork: 'none', trenchSupport: 'Battered to the engineer\'s design.', formworkDesign: 'Formwork to the engineer\'s design.', loadLimits: 'Loads only in marked areas.', systemInstructions: 'Erected to the supplier\'s instructions.', hotWorkPermit: 'Hot work permit from the site, with a fire watch for 30 minutes after.', drowningControls: 'No one works alone near the water, with a rescue pole and life ring at the edge.' };
+  const draftOf = (task, trade, state, fallRisk) => { const d = draft(task, trade, state, fallRisk); assert.equal(d.kind, 'draft', `${task}: ${JSON.stringify(d.missing)}`); return d; };
+  const draft = (task, trade = '', state = 'qld', fallRisk = 'no') => prepareDraft({ state, fallRisk, residential: 'no', trade, task, facts: base });
+  const text = (...args) => JSON.stringify(draft(...args));
+  const steps = (...args) => draftOf(...args).jobSteps.map((step) => step.step);
+  const before = (list, a, b) => list.indexOf(a) >= 0 && list.indexOf(a) < list.indexOf(b);
+  // An asbestos meter panel comes out only once the supply is isolated.
+  const meter = steps('Replace an old meter box containing asbestos backing board on a 1965 house.', 'electrical');
+  assert.ok(before(meter, 'Isolate and prove de-energised', 'Prepare the asbestos work area'));
+  // Carpet and vinyl tiles are not ceramic tiling.
+  assert.ok(!steps('Replace carpet tiles and vinyl in a primary school during the holidays.', 'flooring').includes('Cut tiles and stone'));
+  assert.ok(!steps('Remove asbestos vinyl floor tiles from a school classroom.', 'asbestos').includes('Cut tiles and stone'));
+  // Relining a sewer is done from the surface; the drain is cleared first.
+  const reline = steps('Clean out and reline a sewer pipe with a CCTV camera and relining equipment.', 'plumbing');
+  assert.ok(!reline.includes('Enter and work'));
+  assert.ok(before(reline, 'Clear the drain with a drain machine or jetter', 'Clean, inspect and reline the pipe'));
+  // The pump is set up and the slab poured before the forms are stripped.
+  const slab = steps('Install formwork and pour a suspended slab on level 3 of an apartment building.', 'structure');
+  assert.ok(before(slab, 'Pump and place concrete', 'Strip formwork and backprop'));
+  // Lift shaft protection goes in before the rails.
+  assert.ok(before(steps('Install a lift in an existing three storey building, working in the open lift shaft.', 'lifts'), 'Work at open lift shafts and landing doors', 'Install the lift rails, car and machine'));
+  // A hood, a freezer room or an exhaust fan is not a commercial kitchen fit-out.
+  assert.doesNotMatch(text('Install a commercial kitchen exhaust hood and ductwork through the roof of a restaurant.', 'mechanical'), /benches|gas connections by a licensed gas fitter/);
+  assert.ok(!steps('Install a commercial walk-in freezer at a restaurant.', 'refrigeration').includes('Deliver and install commercial kitchen equipment'));
+  // Fit-off alone has no chasing, and is tested before it is connected.
+  const fitOff = draft('Fit off lights, power points and ceiling fans in a new house.', 'electrical');
+  assert.doesNotMatch(JSON.stringify(fitOff.jobSteps), /Chase and drill/);
+  assert.ok(fitOff.jobSteps.some((step) => step.step === 'Test, connect and commission'));
+  // Pool heat pumps have no relief valve; solar hot water on a roof gets its collector step.
+  assert.doesNotMatch(text('Install a heat pump pool heater and connect plumbing and power.', 'plumbing'), /pressure relief valve/);
+  assert.ok(steps('Install a solar hot water system on a flat roof of a motel.', 'plumbing').includes('Fix the solar collectors and tank frame to the roof'));
+  // The welding job gets a welding step, not brazing.
+  const weld = steps('Weld new steel brackets to an existing beam in an operating factory.', 'steel');
+  assert.ok(weld.includes('Bolt and weld steel') && !weld.includes('Braze and solder pipe joints (hot work)'));
+  // Dismantling only.
+  assert.ok(!steps('Dismantle a scaffold from a finished building.', 'scaffolding').includes('Erect the scaffold'));
+  // Plant and licences that match the work.
+  assert.ok(!draft('Install a vehicle hoist in a mechanical workshop.', 'mechanical').plant.some((item) => item.item === 'Personnel or materials hoist'));
+  assert.ok(draft('Spray paint steel beams in a workshop using solvent-based paint.', 'painting').plant.some((item) => item.item === 'Airless spray unit'));
+  assert.ok(!draft('Test and tag electrical equipment on a construction site.', 'electrical').qualifications.some((item) => /^Electrical/.test(item)));
+  assert.ok(draft('Install CCTV cameras and access control readers at a caravan park.', 'security').qualifications.some((item) => /^Security equipment installer licence/.test(item)));
+  assert.ok(!draft('Install retaining wall drainage and backfill behind a new sleeper wall.', 'landscaping', 'nsw').qualifications.some((item) => /plumbing/i.test(item)));
+  // High risk categories the steps call for.
+  assert.ok(draft('Re-stump a weatherboard house using hydraulic jacks.', 'carpentry').highRisk.some((item) => /temporary support/.test(item)));
+  const wetWell = prepareDraft({ state: 'qld', fallRisk: 'no', residential: 'no', trade: 'plumbing', task: 'Clean out a sewage pump station wet well.', facts: { ...base, spaceAssessment: '' } });
+  assert.ok(wetWell.highRisk.some((item) => /confined space/.test(item)));
+  assert.ok(!draft('Clean out a sewage pump station wet well.', 'plumbing').highRisk.some((item) => /in a confined space/.test(item)));
+  assert.ok(draftOf('Build a timber boardwalk through a wetland.', 'carpentry', 'vic').highRisk.some((item) => /drowning/.test(item)));
+  // A Queensland-only inspection interval is not stated elsewhere.
+  assert.doesNotMatch(text('Install glass balustrades on level 8 balconies of an apartment building.', 'glazing', 'wa', 'yes'), /every 6 months/);
+  // Night work has no sun line.
+  assert.doesNotMatch(text('Paint road line markings on a highway at night with traffic control.', 'painting', 'nsw'), /Sun and heat/);
 });
