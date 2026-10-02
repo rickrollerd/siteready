@@ -165,12 +165,12 @@ test('library coverage: everyday jobs get their own job steps', () => {
   assert.ok(steps('Install a gas cooktop and connect it to the existing gas supply.', { trade: 'plumbing' }).includes('Connect, leak test and commission the gas appliance'));
   assert.ok(steps('Seal a concrete garage floor with epoxy.').includes('Apply epoxy or polyurethane floor coatings'));
   assert.ok(steps('Install roof battens on a new house.').includes('Fix roof battens to the trusses'));
-  assert.ok(steps('Replace gutters and downpipes on a single storey house.').includes('Install gutters, fascia, downpipes and eaves linings'));
+  assert.ok(steps('Replace gutters and downpipes on a single storey house.').includes('Install gutters and downpipes'));
   assert.ok(steps('Install a skylight in a metal roof.').includes('Cut in and install the skylight'));
   assert.ok(steps('Build a timber retaining wall 600 mm high.').includes('Build the retaining wall'));
   assert.ok(steps('Build a timber pergola at ground level.').includes('Erect the frame and roof of the structure'));
   assert.ok(steps('Pressure clean and reseal a concrete driveway.').includes('Pressure clean surfaces'));
-  assert.ok(steps('Install bollards in a car park.').includes('Install bollards, barriers, wheel stops and speed humps'));
+  assert.ok(steps('Install bollards in a car park.').includes('Install bollards'));
   // A meter box in an older house asks how asbestos was identified.
   const { questionsFor } = require('../draft');
   assert.ok(questionsFor({ state: 'qld', fallRisk: 'no', task: 'Replace the old meter box on a house wall.' }).required.some((item) => item.id === 'asbestosArrangement'));
@@ -436,7 +436,7 @@ test('task bank round 9: jobs that are smaller than the template get only their 
   const pump = steps('Install a new septic tank pump-out line at a caravan park.', 'plumbing');
   assert.ok(pump.indexOf('Install the pump-out line') < pump.indexOf('Backfill and restore'));
   const bollards = steps('Install steel bollards in front of a shopfront by core drilling the footpath.', 'excavation');
-  assert.ok(bollards.indexOf('Core drill through the slab or wall') < bollards.indexOf('Install bollards, barriers, wheel stops and speed humps'));
+  assert.ok(bollards.indexOf('Core drill through the slab or wall') < bollards.indexOf('Install bollards'));
   assert.ok(draft('Lay a bitumen spray seal on a rural road.', 'excavation').plant.some((item) => item.item === 'Bitumen sprayer'));
 });
 
