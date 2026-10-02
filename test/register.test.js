@@ -225,7 +225,7 @@ test('round 5: national sources in every state, scope words read in context, ver
   assert.ok(!workFlags('Flush plasterboard or fibre cement ceilings.', {}).ictWork);
   assert.ok(!workFlags('Coring for penetrations. Prior to the energisation of a Building, the coring procedure applies.', {}).isolation);
   assert.ok(workFlags('Sewer drainage: supply and installation of the sewer/house drainage system.', {}).trench);
-  assert.ok(workFlags('Install and terminate all electronic door locking system cabling.', {}).ictCabling);
+  assert.ok(workFlags('Install and terminate all electronic door locking system cabling.', {}).securityDevices);
   assert.ok(workFlags('Supply and install automatic sliding doors.', {}).autoDoors);
   const { ACTIVITIES } = require('../activities');
   const lines = ACTIVITIES.flatMap((activity) => (activity.steps || []).flatMap((step) => step.controls)).map((item) => (typeof item === 'string' ? item : item.text || ''));
@@ -246,4 +246,15 @@ test('round 6: Queensland roof space and ladder rules as the regulation states t
   assert.ok(workFlags('Marking pipes and ductwork with colour bands and tags.', {}).serviceLabels);
   assert.ok(!highRiskMatches('Cast in precast conduits and back boxes.', '', findState('nsw')).some((item) => item.id === 'precast'));
   assert.ok(!highRiskMatches('Coring. Prior to the energisation of a Building, this process applies.', '', findState('qld')).some((item) => /energised/i.test(item.label)));
+});
+
+test('round 7: removing old services, door hardware, generator testing and citations', () => {
+  const { workFlags } = require('../draft');
+  assert.ok(workFlags('Identifying, labelling, and protecting all plant, pipework, cabling and ductwork to be demolished.', {}).servicesStrip);
+  assert.ok(workFlags('Install all architectural door and window hardware as specified.', {}).hardwareFit);
+  assert.ok(!workFlags('Install all architectural door and window hardware as specified.', {}).windowInstall);
+  assert.ok(!workFlags('Cable terminations, joints to main and sub-mains and line taps to generators.', {}).generatorPlant);
+  const draft = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'electrical', task: 'Operation of generators, including load shedding and load bank testing of the switchboards.', facts: { isolationProcedure: 'Isolated, locked and tested.', energisedWork: 'testing', safetyDataSheet: 'Diesel SDS.' } });
+  assert.ok(draft.highRisk.some((item) => /energised/i.test(item)));
+  assert.ok(!draft.plant.some((item) => item.item === 'Generator'));
 });
