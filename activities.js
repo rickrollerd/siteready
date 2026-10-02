@@ -276,7 +276,7 @@ const ACTIVITIES = [
         controls: [
           'Exclusion zone below the work, with barriers and signs.',
           src('Where a crane is used, lifts are coordinated with the crane company\'s SWMS. Loads stay under control, within limits, and never over people.', `${WHS('s 219')}; ${MODEL('Construction work', 's 4.1')}`),
-          'Use mechanical lifting where possible. Team lift long sheets.',
+          'Use mechanical lifting where possible. Team lift long sheets. Materials are lifted to the roof by crane, hoist or materials lift, never carried up a ladder.',
           src('Handle sheets in low wind. Secure sheets and offcuts stacked on the roof against wind, and do not stack them near unprotected edges or over unmeshed areas.', `${MODEL('Hazardous manual tasks', 's 4.8')}; ${MODEL('Construction work', 'appendix K')}`),
           'Agree before work starts the wind speed at which sheet handling stops, check the forecast and the wind on the roof each day, and stop when it is reached.',
         ],
@@ -533,6 +533,7 @@ const ACTIVITIES = [
         ],
         controls: [
           { fact: 'systemInstructions' },
+          'Exclusion zone below and around falsework being erected. Components are passed up, not thrown, and secured against falling.',
           'Erect, use and dismantle the system only to the supplier\'s instructions. Do not mix components from different systems, or change them, without the supplier\'s approval.',
           { fact: 'formworkDesign' },
           'Erect falsework to the formwork design, on a base that can take the load.',
@@ -685,7 +686,7 @@ const ACTIVITIES = [
         step: 'Lift reo onto the deck',
         hazards: ['Dropped bundles.', 'Overloading the formwork with stacked bundles, causing collapse.'],
         controls: [
-          'Lift bundles with rated slings or chains, never by the tie wire.',
+          'Bundles are slung by the crane crew with rated slings or chains, never by the tie wire.',
           { fact: 'loadLimits' },
           'Land bundles on the deck over the bearers, spread out within the formwork\'s allowable load. Do not stack bundles in one place.',
         ],
@@ -755,7 +756,7 @@ const ACTIVITIES = [
           'Concrete trucks reverse only with a spotter, into a marked area kept clear of people.',
           'Vibrators have their leads checked and tagged and are protected by an RCD. Rotate operators to limit hand-arm vibration.',
           'Generators run outdoors or where exhaust cannot collect, and are refuelled only when stopped and cool.',
-          'Blow out decks with compressed air only with eye protection, and keep others clear while doing it.',
+          'Vacuum decks first. Blow out with compressed air only with eye protection and a P2 respirator, and keep others clear while doing it.',
         ],
       },
       {
@@ -3137,6 +3138,7 @@ const ACTIVITIES = [
         src('Use a less hazardous product where possible, such as a water-based membrane instead of a solvent or two-part epoxy system.', MODEL('Construction work', 's 3.3')),
         src('Keep vapour below the exposure standard. Vapour heavier than air collects low down: extract from the lowest point and bring fresh air in from above.', `${WHS('s 49')}; ${MODEL('Managing risks of hazardous chemicals', 's 3.4, s 4.1')}`),
         src('No ignition sources where flammable vapour may be present. Keep only small quantities at the work area.', WHS('s 53, s 355')),
+        'A suitable fire extinguisher is kept at the work area while solvent-based primers or membranes are in use.',
         src('Lids stay on except when pouring, and spills are contained and cleaned up straight away.', `${WHS('s 357')}; ${MODEL('Managing risks of hazardous chemicals', 's 4.2')}`),
         src('Wear gloves resistant to the product used, and no eating, drinking or smoking in the work area.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
         src('Where solvent-based products are used, fans and electrical equipment are designed for hazardous areas.', MODEL('Managing risks of hazardous chemicals', 's 4.2')),
