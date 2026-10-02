@@ -1300,7 +1300,7 @@ const MAIN_WORK = [
   [/\b(gas (?:hot water|appliances?|heaters?|cooktops?|connections?|fitting|lines?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas (?:lines?|supply|mains?))\b/i, 'gas fitting', /\bgas\b/i],
   [/\b(portal frames?|steel (?:frames?|sheds?|structures?)|(?:erect|stand)\w* [^.]{0,20}\b(?:steel|columns|rafters))\b/i, 'steel erection', /\b(Erect and connect steel|Land steel)\b/],
   [/\bretaining walls?\b/i, 'retaining wall construction', /\bretaining\b/i],
-  [/\b(epoxy (?:coat\w*|floor\w*)|(?:apply|applying) [^.]{0,20}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(Apply|coat\w*)\b/i],
+  [/\b(epoxy (?:coat\w*|floor\w*|seal\w*)|(?:apply|applying|seal\w*|coat\w*) [^.]{0,30}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(Apply|coat\w*)\b/i],
   [/\b(grind\w* [^.]{0,20}\bfloors?|floor grind\w*)\b/i, 'floor grinding', /\bgrind floors\b/i],
   [/\bhydro[- ]?demolition\b/i, 'hydro-demolition', /\bhydro/i],
   [/\b(light(?:ing)? poles?|poles?\b[^.]{0,30}\b(?:stand|erect|install)\w*|(?:stand|erect|install)\w* [^.]{0,30}\bpoles?)\b/i, 'pole erection', /\bpoles?\b/i],
@@ -1314,6 +1314,7 @@ const MAIN_WORK = [
   [/\bline marking\b/i, 'line marking', /\bline marking\b/i],
   [/\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbatter(?:y|ies)\b[^.]{0,30}\b(?:solar|garage wall|house wall)\b/i, 'battery storage installation', /\bbattery storage\b/i],
   [/\bmeter (?:box|board|panel)s?\b/i, 'meter box installation', /\bmeter box\b/i],
+  [/\broof battens?\b|\bbattens?\b[^.]{0,20}\broofs?\b/i, 'roof batten installation', /\bbatten/i],
   [/\b(?:carports?|sheds?|awnings?|pergolas?|verandahs?)\b[^.]{0,30}\b(?:frame )?(?:and|with) (?:the |a )?roof\b|\bframe and roof\b/i, 'roof sheeting on the new structure', /\bFix new roofing\b/],
   [/\b(?:excavat|dig)\w*\b[^.]{0,30}\b(?:swimming )?pools?\b/i, 'pool excavation', /\bBulk excavate\b/],
   [/\bgarden taps?\b|\b(?:pipe|tap)s?\b[^.]{0,20}\b(?:in|across|under) (?:a |the )?(?:backyard|yard|garden|lawn)\b/i, 'laying pipe in the ground', /\b(Lay pipes|Excavate)\b/],
@@ -1344,7 +1345,7 @@ const MAIN_WORK = [
 
 // Work with a hazard of its own that no library step covers. Picking near steps does
 // not cover it, so these stay stood down until the library has steps for them.
-const HARD_MAIN_WORK = new Set(['solar panel and inverter installation', 'gas fitting', 'hydro-demolition', 'pool shell and sprayed concrete work', 'floor coating', 'membrane work inside an excavation', 'battery storage installation', 'meter box installation']);
+const HARD_MAIN_WORK = new Set(['solar panel and inverter installation', 'gas fitting', 'hydro-demolition', 'pool shell and sprayed concrete work', 'floor coating', 'membrane work inside an excavation', 'battery storage installation', 'meter box installation', 'roof batten installation']);
 
 // Steps that get people and materials to the work, rather than doing it.
 const SUPPORT_STEPS = new Set(['Before starting', 'Finish and clean up', 'Set up traffic management', 'Plan the work near overhead power lines', 'Get onto the roof and set up fall protection', 'Lift equipment and materials to the roof', 'Work with the crane crew during lifts', 'Set up the crane', 'Rig and lift the load', 'Land and release the load', 'Use an elevating work platform', 'Drill or cut concrete, masonry or stone', 'Use power tools', 'Move materials into place', 'Separate plant and people on site', 'Operate skid steers and small plant', 'Reach high walls and ceilings', 'Operate forklifts', 'Work in the roof space', 'Check for asbestos before starting', 'Operate the hoist', 'Load out floors and use loading platforms']);
