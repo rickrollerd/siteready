@@ -1978,7 +1978,7 @@ function settleFlags(flags, task) {
   off(out.kitStructure && !/\bdecks?|decking\b/i.test(task), 'deckBuild');
   if (/\bgrease (?:arrestors?|traps?)\b/i.test(task) && !/\b(kitchen equipment|benches|ovens?|cooktops?|fryers?)\b/i.test(task)) { out.kitchenEquipment = false; out.tankPlace = true; }
   if (out.escalatorInstall && /\b(handrails?|steps?|comb plates?|chains?)\b/i.test(task) && !/\b(new|install\w*) escalators?\b/i.test(task)) { out.escalatorInstall = false; out.escalatorParts = true; }
-  if (/\b(inside|interior|indoors?|internal)\b/i.test(task)) { out.paintExternal = false; if (!/\b(on (?:the|a) roofs?|roof ?tops?)\b/i.test(task)) out.roofAccess = false; }
+  if (/\b(inside|interior|indoors?|internal)\b/i.test(task) && !/\b(external\w*|exterior|outside|outdoors?|facades?|eaves|fascias?|roofs? sheets?)\b/i.test(task)) { out.paintExternal = false; if (!/\b(on (?:the|a) roofs?|roof ?tops?)\b/i.test(task)) out.roofAccess = false; }
   if (out.cleaningHeight && !/\b(floors?|toilets?|kitchens?|fixtures?|plant rooms?|builders'? clean|final clean)\b/i.test(task)) out.cleaning = false;
   off(out.rainwaterTank, 'pumpInstall');
   if (/\b(?:re-?seal\w*|seal\w*)\b[^.]{0,40}\b(pavers?|paving|concrete|driveways?|surrounds?|paths?)\b/i.test(task) && !out.regrout) { out.sealing = true; out.pressureClean = true; }
