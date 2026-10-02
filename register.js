@@ -355,8 +355,8 @@ function registersFor(draft, input = {}) {
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.
     qualifications: localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n')),
-    // Victoria has its own compliance codes, not the model codes of practice.
-    emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`).map((row) => (stateId === 'vic' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
+    // Codes of practice are cited only where they have been matched to the state (Queensland so far).
+    emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`).map((row) => (stateId !== 'qld' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
     sources,
     // Before starting is checks and briefings, not a work step, so it is not rated.
     jobSteps: steps.map((step) => ({ ...step, risk: step.step === 'Before starting' ? null : riskFor(step) })),
