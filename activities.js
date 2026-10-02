@@ -1036,7 +1036,7 @@ const ACTIVITIES = [
         step: 'Deliver and place switchboards',
         hazards: ['A switchboard tips or falls during delivery or placement.', 'Crushing and back strain moving heavy boards.'],
         controls: [
-          'Move boards on skates, trolleys or jacks, on a planned route within the slab\'s load limits. If a crane or forklift is needed, this SWMS is reviewed to cover powered mobile plant before it is used.',
+          'Move boards on skates, trolleys or jacks, on a planned route within the slab\'s load limits. A crane or forklift is used only by a licensed operator, inside an exclusion zone.',
           'Keep people clear of the load, and secure each board as soon as it is placed.',
           'Manual handling: no manual lifting of heavy boards; use skates, jacks and team handling for final positioning.',
         ],
@@ -3124,6 +3124,7 @@ const ACTIVITIES = [
       hazards: ['A fall from a balcony or from a ladder near an edge.', 'Items fall from balconies.'],
       controls: [
         src('Work from the floor with extendable tools where possible. Where cleaning is near a balcony or open edge, the balustrade or barrier is in place first.', `${WHS('s 78')}; ${MODEL('Managing the risk of falls', 's 4.1, s 4.2')}`),
+        'Outside glass that cannot be reached from the floor or a balcony is cleaned only from an EWP, or by a rope access or building maintenance unit contractor under their own SWMS.',
         src('No stepladders at balustrades or open edges. Ladders only for short light work.', MODEL('Managing the risk of falls', 's 9.1')),
         src('Nothing is left loose on balconies, with an exclusion zone below where items could fall.', WHS('s 55')),
       ],
