@@ -254,7 +254,7 @@ function draftToPdf(draft, options = {}) {
       })),
     });
 
-    text(doc, 'Suggested ratings from the matrix below, before and after the controls. The supervisor checks them and changes them to suit the site.', { size: 8.5, color: MUTED });
+    text(doc, 'Suggested ratings from the matrix below, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.', { size: 8.5, color: MUTED });
     riskMatrix(doc, w);
 
     heading(doc, 'Personal protective equipment');

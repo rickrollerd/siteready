@@ -304,7 +304,7 @@ function gridTable(labels, widths, rows) {
   });
 }
 
-const RISK_NOTE = 'Suggested ratings from the matrix below, before and after the controls. The supervisor checks them and changes them to suit the site.';
+const RISK_NOTE = 'Suggested ratings from the matrix below, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.';
 const riskText = (risk) => (risk ? `Before: ${risk.before.level}\n${risk.before.label}\nAfter: ${risk.after.level}\n${risk.after.label}` : '');
 
 function registerBlocks(draft) {

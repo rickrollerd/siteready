@@ -17,7 +17,7 @@ const TRADES = [
   { id: 'facade', name: 'Facade installation', signal: 'facadeWork', kinds: ['panelLoad', 'facadeCrane', 'panelInstall', 'swingStage', 'edgeBracket', 'facadeSeal'], extra: ['glassHandling', 'glassWind'] },
   { id: 'glazing', name: 'Windows, doors and glazing installation', signal: 'glazingWork', kinds: ['balustradeEdge', 'glassHandle', 'glazingDrill', 'glazingSeal'], extra: ['glassHandling', 'glassWind'] },
   { id: 'steel', name: 'Structural steel erection and rigging', signal: 'steelWork', kinds: ['steelLift', 'steelErect', 'steelWeld', 'temporaryTowers', 'dualLift'], extra: ['steelLift'] },
-  { id: 'masonry', name: 'Blockwork and brickwork', signal: 'masonryWork', kinds: ['masonryCut', 'masonryLay', 'masonryEdge'], extra: ['tileMix'] },
+  { id: 'masonry', name: 'Blockwork and brickwork', signal: 'masonryWork', kinds: ['masonryCut', 'masonryLay', 'masonryEdge'], extra: ['tileMix', 'masonryMortar', 'masonryGrout'] },
   { id: 'plasterboard', name: 'Wall and ceiling linings', signal: 'plasterWork', kinds: ['plasterSheets', 'plasterHeight', 'plasterCeiling', 'plasterSanding', 'carpFraming'], extra: ['carpLoad', 'carpEdge', 'carpentryWork'] },
   { id: 'carpentry', name: 'Carpentry and joinery', signal: /\b(carpent\w*|joinery|cabinetry|timber (?:fram\w*|floor\w*|decks?)|wall frames?|roof trusses|trusses|hang(?:ing)? doors?)\b/i, kinds: ['carpFraming', 'carpJoinery', 'carpEdge', 'timberFloor', 'houseFraming', 'deckBuild'], extra: ['carpLoad', 'stoneHandle', 'carpentryWork'] },
   { id: 'doors', name: 'Doors, frames and hardware', signal: /\b(door ?frames?|door hardware|doorsets?|hinges|door closers|locksets?|(?:hang|install|fix)\w* (?:the |all )?(?:\w+ ){0,3}doors)\b/i, kinds: ['doorHang'], extra: ['carpLoad', 'carpentryWork'] },

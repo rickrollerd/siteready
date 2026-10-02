@@ -80,7 +80,7 @@ function isPanelLift(text) {
 // Bulk and detailed excavation of a basement, as opposed to service trenches.
 const BULK_EXCAVATION = /\b(bulk excavat\w*|excavat\w* (?:the |out the )?basement|dig\w* (?:out )?(?:the )?basement|detailed excavat\w*|(?:excavat|dig)\w*[^.]{0,30}\b(?:pile caps?|lift pits?))\b/i;
 
-const STEEL_WORK = /\b(structural steel\w*|steelwork|steel (?:erect\w*|frames?|stairs?|canop(?:y|ies)|awnings?|platforms?|roof))\b/i;
+const STEEL_WORK = /\b(structural steel\w*|steelwork|steel[- ]framed (?:carports?|sheds?|buildings?|structures?)|portal frames?|steel (?:erect\w*|frames?|stairs?|canop(?:y|ies)|awnings?|platforms?|roof|sheds?|carports?|portal\w*))\b/i;
 const MASONRY_WORK = /\b(blockwork|block walls?|blocklay\w*|bricklay\w*|brickwork|masonry|core[- ]fill\w*)\b/i;
 const PLASTER_WORK = /\b(plasterboard|gyprock|drywall|set(?:ting)? compound\w*|cornices?|suspended ceilings?|ceiling (?:grids?|sheets?|linings?)|plasterers?|sand\w* (?:the )?joints?)\b/i;
 const FLOOR_WORK = /\b(carpet\w*|vinyl|floor coverings?|timber floor\w*|engineered timber|floating floors?|levelling compound\w*)\b/i;
@@ -1249,6 +1249,39 @@ const TO_COMPLETE = 'To be completed before submitting for approval';
 
 const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for this kind of work yet. Choose the trade, describe the work in more detail (what is installed, removed or built, and how), or write this SWMS yourself.';
 
+// Main work the library has no steps for yet. Where the task names it and no step
+// covers it, the draft is stood down rather than issued with only the access and
+// lifting steps around it.
+const MAIN_WORK = [
+  [/\b(solar (?:panels?|pv|arrays?|systems?)|pv (?:panels?|arrays?|systems?)|inverters?)\b/i, 'solar panel and inverter installation', /\b(solar|inverters?)\b/i],
+  [/\b(gas (?:hot water|appliances?|heaters?|cooktops?|connections?|fitting|lines?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas (?:lines?|supply|mains?))\b/i, 'gas fitting', /\bgas\b/i],
+  [/\b(portal frames?|steel (?:frames?|sheds?|structures?)|(?:erect|stand)\w* [^.]{0,20}\b(?:steel|columns|rafters))\b/i, 'steel erection', /\b(Erect and connect steel|Land steel)\b/],
+  [/\bretaining walls?\b/i, 'retaining wall construction', /\bretaining\b/i],
+  [/\b(epoxy (?:coat\w*|floor\w*)|(?:apply|applying) [^.]{0,20}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(Apply|coat\w*)\b/i],
+  [/\b(grind\w* [^.]{0,20}\bfloors?|floor grind\w*)\b/i, 'floor grinding', /\bgrind floors\b/i],
+  [/\bhydro[- ]?demolition\b/i, 'hydro-demolition', /\bhydro/i],
+  [/\b(light(?:ing)? poles?|poles?\b[^.]{0,30}\b(?:stand|erect|install)\w*|(?:stand|erect|install)\w* [^.]{0,30}\bpoles?)\b/i, 'pole erection', /\bpoles?\b/i],
+  [/\bcore fill\w*\b/i, 'core filling', /\bcore fill\b/i],
+  [/\b(sewer mains?|council mains?|connect\w*[^.]{0,30}\bsewer)\b/i, 'connection to the live sewer', /\bConnect to the live sewer\b/],
+  [/\b(air ?con\w* units?|rooftop units?|condensers?|package units?)\b/i, 'air conditioning plant installation', /\b(Install plant|Receive plant|Isolate plant|Install ductwork)\b/],
+  [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(gutters?|downpipes?)\b/i, 'gutter and downpipe installation', /\b(gutter|roofing)\b/i],
+  [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(skylights?|roof windows?)\b/i, 'skylight installation', /\b(skylight|roofing)\b/i],
+];
+
+// Steps that get people and materials to the work, rather than doing it.
+const SUPPORT_STEPS = new Set(['Before starting', 'Finish and clean up', 'Set up traffic management', 'Plan the work near overhead power lines', 'Get onto the roof and set up fall protection', 'Lift equipment and materials to the roof', 'Work with the crane crew during lifts', 'Set up the crane', 'Rig and lift the load', 'Land and release the load', 'Use an elevating work platform', 'Drill or cut concrete, masonry or stone', 'Use power tools', 'Move materials into place', 'Separate plant and people on site', 'Operate skid steers and small plant', 'Reach high walls and ceilings', 'Operate forklifts', 'Work in the roof space', 'Check for asbestos before starting', 'Operate the hoist', 'Load out floors and use loading platforms']);
+const MAIN_VERB = /\b(install\w*|erect\w*|connect\w*|build\w*|construct\w*|replac\w*|fit\w*|lay\w*|grind\w*|coat\w*|repair\w*|fix\w*|assembl\w*|weld\w*)\b/i;
+
+function missingMainWork(task, steps) {
+  const names = steps.map((step) => step.step);
+  const text = names.join('\n');
+  for (const [pattern, label, covered] of MAIN_WORK) {
+    if (pattern.test(task) && !covered.test(text)) return label;
+  }
+  if (MAIN_VERB.test(task) && names.length && names.every((name) => SUPPORT_STEPS.has(name))) return 'the main work in this task';
+  return null;
+}
+
 function prepareDraft(input) {
   const asked = questionsFor(input);
   if (asked.kind === 'refused' || asked.kind === 'error') return asked;
@@ -1358,11 +1391,12 @@ function prepareDraft(input) {
     approved: false,
   };
   // No job steps for this kind of work: stood down, not issued with generic text.
-  if ((draft.jobSteps || []).some((step) => step.fallback)) {
+  const mainMissing = missingMainWork(task, draft.jobSteps || []);
+  if ((draft.jobSteps || []).some((step) => step.fallback) || mainMissing) {
     return {
       kind: 'stand-down',
       ...header,
-      missing: [NO_STEPS],
+      missing: [mainMissing && !(draft.jobSteps || []).some((step) => step.fallback) ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Describe the work in more detail, or write this SWMS yourself.` : NO_STEPS],
       statement: 'This task is stood down. It does not start.',
       method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
     };
@@ -1547,7 +1581,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
     electricalWork: ELECTRICAL_WORK.test(task),
     plumbingWork: isPlumbing(task),
-    sewerConnection: /\b(sewer connection|connect\w* (?:to )?(?:the )?(?:council |existing |live )?sewer\w*|live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task),
+    sewerConnection: /\b(sewer connection|connect\w* (?:to )?(?:(?:the|a|new) )*(?:council |existing |live )?sewer\w*|connect\w*[^.]{0,40}\b(?:council|sewer) mains?|live sewer|sewer mains?|manholes?|maintenance holes?)\b/i.test(task),
     castInPlumbing: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && /\b(sleeves?|puddle flanges?|plumbing|drainage|pipes?)\b/i.test(task) && isPlumbing(task),
     coreDrill: CORE_DRILL.test(task),
     // Installing risers or pipework at height, not other work done in the risers.
@@ -1682,16 +1716,16 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     mechanicalWork: MECHANICAL_WORK.test(task),
     refrigerantWork: REFRIGERANT.test(task),
     // Heavy plant lifted, delivered or moved into place; not scissor or boom lifts.
-    plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|fans?(?!\s+coil)|plant)\b/i.test(task) && /\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*)\b/i.test(task),
+    plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:air[- ]?condition\w*|rooftop|package\w*|a\/?c) units?|fans?(?!\s+coil)|plant)\b/i.test(task) && /\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*)\b/i.test(task),
     ductwork: MECHANICAL_WORK.test(task) && /\binstall\w*\b/i.test(task) && !/\bon the roof\b/i.test(task) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task))),
     refrigerantPipework: REFRIGERANT.test(task) && /\b(braz\w*|silver solder\w*)\b/i.test(task),
     refrigerantTest: REFRIGERANT.test(task) && PRESSURE_TEST.test(task),
     refrigerantCharge: REFRIGERANT.test(task) && /\b(charg\w*|evacuat\w*|recover\w*|decant\w*)\b/i.test(task),
     // Plant installed on the roof, as opposed to pipework that only runs to it.
-    roofPlant: (MECHANICAL_WORK.test(task) || ICT_WORK.test(task)) && /\binstall\w*\b[^.]{0,70}\b(?:on the roof|roof plant)\b/i.test(task) && !/\b(?:pipework|pipes?|lines?)\s+(?:between|from|to)\b/i.test(task),
+    roofPlant: (MECHANICAL_WORK.test(task) || ICT_WORK.test(task)) && /\b(?:install|replac)\w*\b[^.]{0,70}\b(?:on the roof|roof plant|rooftop)\b/i.test(task) && !/\b(?:pipework|pipes?|lines?)\s+(?:between|from|to)\b/i.test(task),
     jetFans: /\b(jet fans?|car ?park (?:ventilation|exhaust)\w*)\b/i.test(task),
     mechInsulation: MECHANICAL_WORK.test(task) && /\b(insulat\w*|lagging)\b/i.test(task),
-    mechCommissioning: MECHANICAL_WORK.test(task) && /\b(commission\w*|start[- ]?up|balanc\w*)\b/i.test(task),
+    mechCommissioning: MECHANICAL_WORK.test(task) && /\b(commission\w*|start[- ]?up|balanc\w*|replac\w*)\b/i.test(task),
     tempPower: TEMP_POWER.test(task),
     castIn: /\b(cast[- ]in|in[- ]slab)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task) && ELECTRICAL_CORE.test(task),

@@ -76,3 +76,31 @@ test('registers: no paint rollers as compactors, no plumbing licence for plumb a
   const paint = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'painting', task: 'Paint the office walls with water-based paint using brushes and rollers.', facts: { safetyDataSheet: 'Water-based acrylic.' } });
   assert.ok(!paint.plant.some((item) => /compactor/i.test(item.item)));
 });
+
+test('round 2 review: service strikes and formwork failure are catastrophic, silica is a substance, others hold their licences', () => {
+  assert.equal(riskFor({ hazards: ['Striking underground electrical, gas, water or communications services.'], controls: [] }).before.consequence, 5);
+  assert.equal(riskFor({ hazards: ['Formwork or falsework fails under the wet concrete.'], controls: [] }).before.consequence, 5);
+  const { registersFor } = require('../register');
+  const step = (name, hazards, controls = []) => ({ step: name, hazards, controls });
+  const regs = (task, steps, extra = {}) => registersFor({ task, state: 'Queensland', highRisk: [], jobSteps: steps, controls: [], ...extra });
+  const tile = regs('Tile a bathroom.', [step('Cut tiles and stone', ['Respirable crystalline silica dust from cutting.'])]);
+  assert.ok(tile.substances.items.some((item) => /silica/i.test(item.product)));
+  const paint = regs('Mask and cut in around electrical and plumbing fittings, then paint the walls.', [step('Paint', ['Paint splashes.'])]);
+  assert.ok(!paint.qualifications.some((item) => /Plumbing|Electrical work licence/.test(item)));
+  const linings = regs('Fix wall linings. Leave out walls at the hoist.', [step('Fix sheets', ['Manual handling strain.'])]);
+  assert.ok(!linings.plant.some((item) => /hoist/i.test(item.item)));
+  const pour = regs('Place concrete to the suspended slab with a boom pump.', [step('Pump and place concrete', ['Hose whip.'])]);
+  assert.match(pour.plant.find((item) => item.item === 'Concrete placing boom').licence, /pumping company/);
+  const duct = regs('Install ductwork.', [step('Commission and balance the system', ['Fans, pumps or compressors start without warning.'])]);
+  assert.ok(!duct.plant.some((item) => /compressor/i.test(item.item)));
+  const dig = regs('Excavate a trench for conduits.', [step('Locate underground services', ['Striking underground electrical, gas, water or communications services.'])]);
+  assert.ok(dig.emergency.some((row) => row.type === 'Service strike'));
+  assert.ok(!dig.qualifications.some((item) => /^Rescue/.test(item)));
+});
+
+test('a task whose main work has no steps is stood down, not drafted with only access or lifting steps', () => {
+  const stood = (task, trade = '') => prepareDraft({ state: 'qld', fallRisk: 'yes', trade, task, facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
+  assert.equal(stood('Install solar panels and an inverter on a single storey house roof.').kind, 'stand-down');
+  assert.equal(stood('Install a gas hot water system and connect it to the existing gas line.', 'plumbing').kind, 'stand-down');
+  assert.equal(stood('Hydro-demolition and concrete repair of a balcony slab soffit from a mobile scaffold.').kind, 'stand-down');
+});
