@@ -3033,7 +3033,7 @@ const ACTIVITIES = [
         'All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.',
         { only: 'barrierReplace', text: 'The damaged rail and posts are unbolted and lifted out with plant or two people, with the end of the remaining barrier protected until the new section is fixed.' },
         'Underground services are located before pits and conduits are dug, and plant keeps its approach distances from overhead lines.',
-        { only: 'polesNamed', text: 'Poles are lifted and stood with a crane truck or EWP by licensed operators and doggers, with an exclusion zone under the load, and bolted to their footings before the slings are released.' },
+        { only: 'polesNamed', text: 'Poles are lifted and stood with a crane truck by licensed operators and doggers, with work at the pole head done from an EWP, with an exclusion zone under the load, and bolted to their footings before the slings are released.' },
         'Signal and lighting wiring and the connection to the supply are electrical work for a licensed electrician accredited by the road authority or network operator, and the supply is isolated and proved de-energised before the connection.',
       ],
     }],
@@ -4522,7 +4522,7 @@ const ACTIVITIES = [
       controls: [
         'Work inside the rail corridor is done only with the rail manager\'s access authority, under the protection arrangements it sets, such as a protection officer, look-outs or a track closure.',
         'Every worker has the rail corridor induction and competency the rail manager requires, and stays on the side of the fence or line the protection plan sets.',
-        'Plant and long items such as fence posts and rolls of mesh are kept outside the danger zone of the track and clear of any overhead wiring, as the rail manager directs.',
+        'Plant, ladders and long items are kept outside the danger zone of the track and clear of any overhead wiring, as the rail manager directs.',
       ],
     }],
     ppe: ['hivis'],
@@ -4759,7 +4759,7 @@ const ACTIVITIES = [
         'Alarms are fixed from a platform ladder, not from a chair or the top of a stepladder.',
         'Hardwired alarms are connected by a licensed electrician, with the circuit isolated and tested de-energised first.',
         'In a house built before 2004 (asbestos products were used until the national ban at the end of 2003), the ceiling is checked for asbestos before it is drilled, and the roof space for loose-fill insulation.',
-        'Alarms are placed and interconnected as the state\'s smoke alarm rules for rental homes and AS 3786 require, and tested before handover.',
+        'Alarms are placed and interconnected as the state\'s smoke alarm rules and AS 3786 require, and tested before handover.',
       ],
     }],
   },
@@ -7150,7 +7150,7 @@ function jobStepsFor(flags, factText, fallback) {
   middle = [...FIRST.flatMap((name) => middle.filter((step) => step.step === name)), ...middle.filter((step) => !FIRST.includes(step.step))];
   // An asbestos meter panel comes out only once the supply is disconnected.
   if (middle.some((step) => step.step === 'Replace the meter box and consumer mains connection')) {
-    const off = middle.filter((step) => ['Have the supply disconnected', 'Isolate and prove de-energised'].includes(step.step));
+    const off = ['Have the supply disconnected', 'Isolate and prove de-energised'].flatMap((name) => middle.filter((step) => step.step === name));
     const check = middle.filter((step) => step.step === 'Check for asbestos before starting');
     middle = [...check, ...off, ...middle.filter((step) => !off.includes(step) && !check.includes(step))];
   }
@@ -7380,7 +7380,10 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Stand the temporary power pole', 'Install construction power and temporary lighting');
   moveBefore('Work in the roof space', 'Leave unfinished work safe');
   moveBefore('Cut an opening in a load-bearing wall', 'Cut blocks and bricks');
-  moveBefore('Remove and fit the vanity', 'Plumbing rough-in and fit-off');
+  if (flags.vanityReplace) moveBefore('Remove and fit the vanity', 'Plumbing rough-in and fit-off');
+  else moveAfter('Remove and fit the vanity', 'Plumbing rough-in and fit-off');
+  moveBefore('Remove the old board and fit the new one', 'Rough-in and fit-off');
+  moveBefore('Install the smoke alarms', 'Leave unfinished work safe');
   moveBefore('Mix bagged concrete', 'Place concrete');
   moveBefore('Deliver and install commercial kitchen equipment', 'Connect, leak test and commission the gas appliance');
   moveBefore('Lift and place tanks, pits or precast units', 'Plumbing rough-in and fit-off');

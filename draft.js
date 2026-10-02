@@ -1578,7 +1578,7 @@ function ppeFromRegisters(ppe, registers) {
 // Trades whose work is indoors, unless the task says it is outside.
 const INDOOR_TRADES = ['flooring', 'doors', 'carpentry', 'plasterboard', 'kitchens', 'security', 'communications'];
 
-const INDOOR_WORK = /\b(coffee machines?|cold stores?|cool ?rooms?|gyms?|gymnasiums?|showers?|hotels?|factor(?:y|ies)|workshops?|dishwash\w*|commercial kitchens?|pubs?|escalators?|shopping centres?|malls?|interior|inside|indoors?|internal|shop|office|bathrooms?|bedrooms?|lounge rooms?|laundr\w*|kitchens?|ensuites?|toilets?|ceilings?|roof spaces?|car parks?|warehouse|switchboards?|plant rooms?|classrooms?|caf(?:e|é)s?|restaurants?|food courts?|corridors?|hallways?|stairwells?|wards?|hospitals?|surgery|surgeries|theatres?|comms rooms?|data centres?|lift shafts?|stair ?lifts?|underfloor|workshops?|church halls?|halls?|aged care|nursing homes?|science labs?|cupboards?|hotel rooms?|laborator\w*|cooktops?|stoves?|ovens?|toilet blocks?|corridors?)\b/i;
+const INDOOR_WORK = /\b(garages?|coffee machines?|cold stores?|cool ?rooms?|gyms?|gymnasiums?|showers?|hotels?|factor(?:y|ies)|workshops?|dishwash\w*|commercial kitchens?|pubs?|escalators?|shopping centres?|malls?|interior|inside|indoors?|internal|shop|office|bathrooms?|bedrooms?|lounge rooms?|laundr\w*|kitchens?|ensuites?|toilets?|ceilings?|roof spaces?|car parks?|warehouse|switchboards?|plant rooms?|classrooms?|caf(?:e|é)s?|restaurants?|food courts?|corridors?|hallways?|stairwells?|wards?|hospitals?|surgery|surgeries|theatres?|comms rooms?|data centres?|lift shafts?|stair ?lifts?|underfloor|workshops?|church halls?|halls?|aged care|nursing homes?|science labs?|cupboards?|hotel rooms?|laborator\w*|cooktops?|stoves?|ovens?|toilet blocks?|corridors?)\b/i;
 
 function ppeList(task, facts, state, chosen) {
   // Any outdoor part of the task brings sun protection, even with internal work as well.
@@ -2100,7 +2100,7 @@ function settleFlags(flags, task) {
   out.louvreReplace = /\b(replac\w*|broken|cracked|smashed)\b[^.]{0,30}\blouv(?:re|er)s?\b/i.test(task) && !/\bframes?\b/i.test(task);
   if (out.louvreReplace) { out.windowInstall = false; out.glassHandle = false; }
   if (out.flyScreens && /\bscreens? (?:on|to|for|across) (?:the |all |\w+ ){0,3}windows\b/i.test(task) && !/\b(?:new|replacement) windows\b|\bwindows (?:and|with)\b/i.test(task)) { out.windowInstall = false; out.glassHandle = false; }
-  if (out.floorSanding && out.timberFloor && !/\b(?:lay\w*|install\w*|new|replac\w*|fit\w*|repair\w*)\b[^.]{0,30}\b(?:floors?|boards|flooring)\b/i.test(task)) out.timberFloor = false;
+  if (out.floorSanding && out.timberFloor && !/\b(?:lay\w*|install\w*|new|replac\w*|fit\w*|repair\w*)\b[^.]{0,30}\b(?:floors?|boards|floorboards|flooring)\b/i.test(task)) out.timberFloor = false;
   out.membraneStrip = /\b(strip\w*|remov\w*)\b[^.]{0,30}\b(roofs?|membranes?)\b/i.test(task) && (out.wpTorch || /\bmembranes?\b/i.test(task)) && /\b(roofs?|membranes?|re-?cover\w*)\b/i.test(task);
   if (out.membraneStrip) out.roofStrip = false;
   out.valleyRepair = /\bvalleys?\b/i.test(task) && /\b(roofs?|tiles?|tiled|iron|gutters?)\b/i.test(task);
@@ -2140,7 +2140,7 @@ function settleFlags(flags, task) {
   out.flashingReplace = /\bflashings?\b/i.test(task) && /\b(replac\w*|repair\w*|leak\w*|re-?flash\w*)\b/i.test(task) && !/\b(re-?roof\w*|roof sheet\w*|new roof|roofing|sheeting|standing seam|cappings?)\b/i.test(task);
   if (out.flashingReplace) { out.roof = false; out.roofStrip = false; out.roofAccess = true; }
   if (/\b(cyclone|storm|hail|wind)[- ]damaged? (?:metal |tin |iron )?roofs?\b/i.test(task) && /\b(repair\w*|fix\w*|replac\w*)\b/i.test(task) && !/\btiles?|tiled\b/i.test(task)) { out.roof = true; out.roofStrip = true; out.roofAccess = true; }
-  out.benchtopReplace = /\bbench ?tops?\b/i.test(task) && /\b(replac\w*|new|install\w*|fit\w*)\b/i.test(task);
+  out.benchtopReplace = /\bbench ?tops?\b/i.test(task) && /\b(replac\w*|old)\b/i.test(task) && !/\b(new (?:apartments?|houses?|homes?|kitchens?|builds?)|stone|engineered)\b/i.test(task);
   if (out.benchtopReplace && !/\bstrip\w*\b/i.test(task)) out.stripOut = false;
   out.crossover = /\b(?:vehicle |driveway )?crossovers?\b|\bdriveway crossings?\b/i.test(task);
   if (out.crossover) { out.slabGround = true; out.slabPour = true; out.sawCut = true; out.footpathWork = true; }
@@ -2150,7 +2150,7 @@ function settleFlags(flags, task) {
   if ((out.tileLay || out.tileCut) && /\b(remov\w*|lift\w*|strip\w*)\b[^.]{0,20}\btiles?\b|\breplac\w*\b[^.]{0,30}\b(?:floor |wall )?tiles\b|\bre-?lay\w*\b[^.]{0,20}\btiles\b/i.test(task)) { out.tileRemove = true; out.tileLay = true; }
   if (out.tileRemove && /\bre-?lay\w*\b/i.test(task)) out.tileLay = true;
   if (out.tileRemove && /\b(leak\w*)\b/i.test(task) && /\bshowers?\b/i.test(task)) out.wpLiquid = true;
-  if (/\b(?:run\w*|install\w*)\b[^.]{0,20}\b(?:new )?(?:power )?(?:circuits?|power|cables?) to (?:an? |the )?(?:\w+ )?(?:sheds?|garages?|granny flats?|studios?|outbuildings?|workshops?|pool (?:pumps?|houses?)|gates?)\b/i.test(task)) { out.shallowTrench = true; out.fitOff = true; out.isolation = true; }
+  if (/\b(?:run\w*|install\w*)\b[^.]{0,20}\b(?:new )?(?:power )?(?:circuits?|power|cables?) to (?:an? |the )?(?:\w+ )?(?:sheds?|garages?|granny flats?|studios?|outbuildings?|workshops?|pool (?:pumps?|houses?)|gates?)\b/i.test(task) && !out.trench) { out.shallowTrench = true; out.fitOff = true; out.isolation = true; }
   if (out.frameRepair) out.houseFraming = false;
   out.ceilingTileReplace = /\breplac\w*\b[^.]{0,20}\bceiling tiles\b/i.test(task) && !/\bgrid\b/i.test(task);
   if (out.ceilingTileReplace) out.ceilingGrid = false;
@@ -2189,7 +2189,7 @@ function settleFlags(flags, task) {
   if (/\b(?:install\w*|new|add\w*)\b[^.]{0,30}\bfloor (?:wastes?|drains?)\b/i.test(task) && !/\b(tiles?|tiling|bedding|grout|charged|gullies|align\w*)\b/i.test(task)) { out.kitchenEquipment = false; out.sawCut = true; out.plumbingFitOff = true; }
   // Bank 8 review rules.
   if (/\bgranny flat kits?\b|\bkit homes?\b/i.test(task)) { out.kitStructure = false; out.houseFraming = true; out.roof = true; out.claddingInstall = true; }
-  if (/\b(?:install\w*|new|replac\w*)\b[^.]{0,20}\b(?:a |the )?(?:new )?(?:main )?switch ?boards?\b/i.test(task) && !out.switchboardReplace && !out.subBoardInstall) { out.isolation = true; out.subBoardInstall = true; }
+  if (/\b(?:install\w*|replac\w*) (?:a |the )?(?:new )?switch ?boards?\b/i.test(task) && !/\b(main switch ?boards?|msbs?|consumer mains|existing switch ?boards?)\b/i.test(task) && !out.switchboardReplace && !out.subBoardInstall) { out.isolation = true; out.subBoardInstall = true; }
   if (/\b(roof (?:ventilators?|vents?|turbines?|exhaust fans?)|whirlybirds?|turbine vents?|rooftop exhaust fans?|exhaust fans? on (?:a |the )?(?:\w+ )?roof)\b/i.test(task) && /\b(install\w*|new|fit\w*)\b/i.test(task)) out.roofPenetration = true;
   if (out.smokeAlarms && /\b(houses?|homes?|dwellings?|units?|rental)\b/i.test(task)) out.roofSpace = true;
   out.bollardChains = Boolean(out.bollards && /\bchains?\b/i.test(task));
@@ -2237,7 +2237,7 @@ function settleFlags(flags, task) {
   // Bank 9 review rules.
   out.liftMotor = /\b(?:replac\w*|install\w*|new)\b[^.]{0,20}\blift (?:motors?|machines?|drives?|brakes?)\b/i.test(task) && /\bexisting\b|\breplac\w*/i.test(task);
   if (out.liftMotor) { out.liftInstall = false; out.liftShaft = false; }
-  out.boilerInstall = Boolean(out.boilerPlant && /\b(install\w*|new|replac\w*)\b/i.test(task));
+  out.boilerInstall = Boolean(out.boilerPlant && /\b(install\w*|new)\b/i.test(task) && !/\breplac\w*|\bold\b/i.test(task));
   if (/\bcool ?room\b[^.]{0,20}\b(refrigeration units?|condensers?|compressors?)\b|\brefrigeration units?\b/i.test(task) && !/\bpanels?\b/i.test(task)) out.coolroomPanels = false;
   if (/\b(grease (?:traps?|arrestors?)|floor (?:wastes?|drains?))\b/i.test(task)) out.cutOpening = false;
   if (/\bpressure (?:reducing|limiting) valves?\b|\bprv\b/i.test(task)) { out.meterInstall = false; out.waterConnection = false; out.plumbingFitOff = true; }
@@ -2259,7 +2259,9 @@ function settleFlags(flags, task) {
   out.sinkTap = /\b(?:install\w*|replac\w*|fit\w*|new)\b[^.]{0,20}\b(?:kitchen |laundry )?(?:sinks?|tubs?)\b/i.test(task);
   if (out.outsideLights && !/\b(ceilings?|roof spaces?|inside)\b/i.test(task)) out.noRoofSpace = true;
   if (out.sinkTap && !/\b(new (?:kitchen|laundry|bathroom)s?|rough[- ]in|renovat\w*)\b/i.test(task)) out.fixtureSwap = true;
-  out.pumpStationNew = Boolean(/\bpump (?:stations?|wells?)\b/i.test(task) && out.tankPlace && !out.sewerPumpSwap);
+  out.pumpStationNew = Boolean(/\bpump (?:stations?|wells?)\b/i.test(task) && out.tankPlace && !out.sewerPumpSwap && !out.confined && !/\b(enter\w*|inside|confined)\b/i.test(task));
+  if (out.stripOut && /\b(?:19[0-9]\d|200[0-3])s?\b|\bold (?:house|home|unit|building)s?\b/i.test(task)) out.asbestosCheck = true;
+  if (out.wetAreaSheets || (out.asbestos && /\bwall sheets?\b/i.test(task))) out.tileRemove = false;
   // Bank 10 review rules.
   out.eaveLining = /\b(eaves?|eave linings?|soffits?)\b/i.test(task) && /\b(repair\w*|replac\w*|new|reline\w*)\b/i.test(task) && /\b(linings?|sheets?|fibro|soffits?)\b/i.test(task);
   out.roofRemoveOnly = /\b(?:remov\w*|strip\w*)\b[^.]{0,30}\broof(?:ing)? sheets?\b|\bremov\w*\b[^.]{0,20}\b(?:the )?(?:old )?roof\b/i.test(task) && !/\b(replac\w*|re-?roof\w*|re-?sheet\w*|new (?:roof|sheets?))\b/i.test(task);
