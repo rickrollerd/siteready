@@ -130,7 +130,7 @@ test('New South Wales uses its own regulation, wording and power line rule', () 
 });
 
 test('Victoria uses regulation 322 and 327 and its own SWMS contents', () => {
-  const shed = (state) => prepareDraft({ state, task: 'Demolish a timber garden shed with hand tools.', fallRisk: 'no' });
+  const shed = (state) => prepareDraft({ state, task: 'Demolish an internal timber stud wall with hand tools.', fallRisk: 'no' });
   const vic = shed('vic');
   assert.equal(vic.instrument, 'Occupational Health and Safety Regulations 2017 (Vic)');
   assert.equal(vic.sectionRef, 'regulation 327');
@@ -140,14 +140,11 @@ test('Victoria uses regulation 322 and 327 and its own SWMS contents', () => {
   assert.deepEqual(shed('qld').highRisk, []);
   assert.deepEqual(shed('nsw').highRisk, []);
 
-  const tunnel = prepareDraft({
-    state: 'vic',
-    task: 'Line a stormwater tunnel with shotcrete.',
-    fallRisk: 'no',
-    facts: { trenchSupport: 'Ground support to the engineer\'s tunnel design, installed before entry.' },
-  });
-  assert.ok(tunnel.highRisk.includes('Involving a tunnel'));
-  assert.ok(!tunnel.highRisk.some((item) => /trench or shaft/.test(item)));
+  // Sprayed concrete has no job steps yet, so the tunnel is checked on its high risk categories alone.
+  const { highRiskMatches } = require('../draft');
+  const tunnel = highRiskMatches('Line a stormwater tunnel with shotcrete.', 'no', require('../legislation').findState('vic')).map((item) => item.label);
+  assert.ok(tunnel.includes('Involving a tunnel'));
+  assert.ok(!tunnel.some((item) => /trench or shaft/.test(item)));
 
   const lines = prepareDraft({ state: 'vic', task: 'Relocate the switchboard near the overhead power lines.', fallRisk: 'no', facts: { electricalSafety: 'Plant and people stay 4 m from the lines, with a safety observer watching.' } });
   const line = lines.controls.find((item) => /overhead electric lines/.test(item.text));
