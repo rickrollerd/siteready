@@ -362,3 +362,38 @@ test('task bank round 5: everyday jobs that stood down now get their main steps'
   const kerb = steps('Remove and replace a damaged section of a kerb and channel.', 'structure');
   assert.ok(kerb.indexOf('Saw cut concrete') < kerb.indexOf('Place concrete'));
 });
+
+test('task bank round 6: categories and steps that fit the job', () => {
+  const { highRiskMatches } = require('../draft');
+  const qld = require('../legislation').STATES.find((state) => state.id === 'qld');
+  const base = { silicaControls: 'Wet cutting and on-tool extraction.', fallControl: 'Edge protection on all open edges.', safetyDataSheet: 'Safety data sheets for each product are at the work area.', spaceAssessment: 'notConfined', asbestosArrangement: 'Asbestos register sighted; none in the work area.', drowningControls: 'No one works alone over the water, with a rescue pole and life ring at the edge.' };
+  const draft = (task, trade = '', fallRisk = 'no', facts = {}) => prepareDraft({ state: 'qld', fallRisk, residential: 'yes', trade, task, facts: { ...base, ...facts } });
+  const steps = (...args) => { const d = draft(...args); return d.kind === 'draft' ? d.jobSteps.map((step) => step.step) : d.missing; };
+  // A non-load-bearing wall is not load-bearing demolition.
+  assert.ok(!highRiskMatches('Demolish an internal non-load-bearing stud wall in an office.', '', qld).some((item) => item.id === 'demolition'));
+  // Work on an existing tilt-up building is not tilt-up work.
+  assert.ok(!highRiskMatches('Install wall cladding panels on a tilt-up warehouse from an EWP.', '', qld).some((item) => item.id === 'precast'));
+  // A small barrowed pour has no trucks or mobile plant.
+  const shed = draft('Lay a concrete slab for a garden shed using a wheelbarrow and bagged concrete.', 'structure');
+  assert.ok(!shed.plant.some((item) => /Concrete truck|Power trowel|Excavator/.test(item.item)));
+  assert.ok(!(shed.highRisk || []).some((item) => /powered mobile plant/.test(item)));
+  // Fuel tank removal brings its atmosphere and plant categories.
+  assert.ok(draft('Pull out an old in-ground fuel tank on a farm.', 'excavation').highRisk.some((item) => /flammable atmosphere/.test(item)));
+  // Gas lines are leak tested, not water tested, and are gas work, not plumbing.
+  const gas = draft('Pressure test and commission a new gas line to a commercial bakery oven.', 'plumbing', 'no', { pressureTesting: require('../presets').answersFor('pressureTesting')[0].text });
+  assert.ok(!gas.jobSteps.some((step) => step.controls.some((line) => /Tested with water/.test(line))));
+  assert.ok(gas.qualifications.some((item) => /^Gas work licence/.test(item)) && !gas.qualifications.some((item) => /^Plumbing/.test(item)));
+  // Steps that fit the job.
+  assert.ok(!steps('Install a solar battery and inverter at a farm shed.', 'electrical').includes('Install solar panels and mounting rails on the roof'));
+  assert.ok(steps('Lay a bitumen spray seal on a rural road.', 'excavation').includes('Spray seal the road'));
+  assert.ok(steps('Install a vehicle crash barrier along a highway.', 'excavation').includes('Install road safety barrier'));
+  assert.ok(steps('Install a fire alarm system in a new childcare centre.', 'electrical', 'yes').includes('Install the fire detection and alarm system'));
+  assert.ok(steps('Remove old lead paint from window frames of a heritage house.', 'painting', 'yes').includes('Remove lead paint'));
+  assert.ok(steps('Replace a section of corroded steel handrail on a jetty.', 'steel').includes('Cut out and replace the steel handrail'));
+  assert.ok(!steps('Replace roof tiles broken by a storm on a single storey house.', 'roofing', 'yes').includes('Fix new roofing'));
+  assert.ok(steps('Remove the concrete roof tiles from a two storey house and replace them with metal roof sheeting.', 'roofing', 'yes').includes('Fix new roofing'));
+  const wall = steps('Construct a concrete block retaining wall 2.4 m high.', 'masonry', 'yes');
+  assert.ok(wall.indexOf('Build the retaining wall') < wall.indexOf('Lay blocks and bricks'));
+  // Early childhood centres have a lower hot water limit.
+  assert.ok(draft('Install a new hot water heat pump at a childcare centre.', 'plumbing').jobSteps.some((step) => step.controls.some((line) => /45 °C in early childhood centres/.test(line))));
+});

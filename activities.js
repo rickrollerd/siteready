@@ -55,6 +55,8 @@ const BEFORE = {
 
 // Controls added to Before starting for some kinds of work.
 const BEFORE_EXTRA = [
+  { when: 'publicSite', text: 'The work area is fenced or screened off from children, students, patients, residents and the public, with the areas and times agreed with the site or facility manager.' },
+  { when: 'nightWork', text: 'At night, work areas, stairs and access routes are lit for the work, shifts and breaks are planned to manage fatigue, and no one works alone.' },
   { when: 'ptSlab', text: 'Check the post-tensioning drawings and scan the slab before drilling or fixing into a post-tensioned slab.' },
   { when: 'respirator', text: 'Tight-fitting respirators are fit tested to each wearer before use and at least once a year, for the make and model they wear. Wearers are clean shaven where the mask seals, and fit check the respirator each time they put it on.' },
   { when: 'electricalWork', text: src('Electrical work is done or supervised only by licensed electrical workers, for a licensed electrical contractor.', `${ESA('s 55, s 56')}`) },
@@ -417,10 +419,10 @@ const ACTIVITIES = [
     steps: [
       {
         step: 'Demolish',
-        hazards: ['Falling bricks and debris.', 'Silica dust from cutting or breaking masonry or concrete.', 'Noise.'],
+        hazards: ['Falling debris.', { only: 'masonryDemo', text: 'Silica dust from cutting or breaking masonry or concrete.' }, 'Noise.'],
         controls: [
           'Exclusion zone around the demolition.',
-          'Use water suppression or on-tool dust extraction when cutting or breaking masonry or concrete.',
+          { only: 'masonryDemo', text: 'Use water suppression or on-tool dust extraction when cutting or breaking masonry or concrete.' },
           'Remove debris as the work goes.',
         ],
       },
@@ -1112,7 +1114,7 @@ const ACTIVITIES = [
       },
       {
         step: 'Core drill through the slab or wall',
-        hazards: ['Silica dust from drilling concrete.', 'Noise and vibration.', 'The core falls to the floor below.', 'A person falls through the hole.'],
+        hazards: ['Silica dust from drilling concrete.', 'Noise and vibration.', { unless: 'groundCut', text: 'The core falls to the floor below.' }, { unless: 'groundCut', text: 'A person falls through the hole.' }],
         controls: [
           { fact: 'silicaControls' },
           src('Drilling concrete is processing a crystalline silica substance. It is controlled by wet drilling, on-tool extraction or local exhaust.', `${WHS('s 529A, s 529B, s 529C')}; ${QCODE('Silica', 's 5.1, s 7.4.1, s 7.4.2')}`),
@@ -1120,7 +1122,7 @@ const ACTIVITIES = [
           src('Assess in writing before starting whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation.', WHS('s 529CA')),
           src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')),
           src('Air monitoring is done where it is not certain the exposure standard is met, and results are kept for 30 years. For high risk processing, results over the exposure standard go to the regulator within 14 days. Workers with a significant risk from ongoing exposure have health monitoring supervised by a registered medical practitioner.', `${WHS('s 50, s 368, s 371, s 529CE, schedule 14')}; ${QCODE('Silica', 's 9.1, s 9.4, s 10.1, s 10.2')}`),
-          src('Barricade and sign the area below, so a falling core cannot hit anyone.', WHS('s 55')),
+          { unless: 'groundCut', ...src('Barricade and sign the area below, so a falling core cannot hit anyone.', WHS('s 55')) },
           src('Cover or barricade the hole as soon as it is cut. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
           src('Hearing protection where noise exceeds the exposure standard. Workers who must wear it have hearing tests within 3 months of starting and at least every 2 years.', WHS('s 57, s 58')),
         ],
@@ -2001,8 +2003,9 @@ const ACTIVITIES = [
     when: 'tileLay',
     steps: [{
       step: 'Lay tiles',
-      hazards: ['Knee and back injury from long periods kneeling.', 'Strain lifting tile boxes and adhesive bags.', 'Slips on wet slurry.'],
+      hazards: ['Knee and back injury from long periods kneeling.', 'Strain lifting tile boxes and adhesive bags.', 'Slips on wet slurry.', { only: 'tileReplace', text: 'Flying chips and silica dust when cutting out broken tiles.' }],
       controls: [
+        { only: 'tileReplace', text: 'Broken tiles are cut out with a grinder or multi-tool with on-tool extraction, wearing eye protection and a P2 respirator, and the bed is cleaned back before the new tiles go in.' },
         src('Kneeling while laying tiles is a hazardous manual task. Rotate tasks and take short, frequent breaks.', `${WHS('s 60')}; ${MODEL('Hazardous manual tasks', 's 2.2, s 4.9')}`),
         src('Buy smaller or lighter bags and boxes where possible, have materials delivered as close to the work area as possible, move them between levels by hoist or crane, and use trolleys.', MODEL('Hazardous manual tasks', 's 4.1, s 4.4, s 4.5, s 4.7')),
         src('Use panel lifters or trolleys for any heavy stone and large format tiles.', MODEL('Hazardous manual tasks', 's 4.5')),
@@ -2213,10 +2216,10 @@ const ACTIVITIES = [
     when: 'paintExternal',
     steps: [{
       step: 'Paint the outside of the building at height',
-      hazards: ['A fall from height: from the EWP, scaffold, ladder or an open edge.', 'Paint or tools fall onto people below.'],
+      hazards: ['A fall from height.', 'Paint or tools fall onto people below.'],
       controls: [
         { fact: 'fallControl' },
-        src('In a boom EWP, the harness is attached to the EWP\'s anchor point, not the handrail. Boom EWPs of 11 m or more need a licensed operator. EWPs only on solid level ground and in suitable wind.', MODEL('Managing the risk of falls', 's 5.1')),
+        { unless: 'ewp', ...src('In a boom EWP, the harness is attached to the EWP\'s anchor point, not the handrail. Boom EWPs of 11 m or more need a licensed operator. EWPs only on solid level ground and in suitable wind.', MODEL('Managing the risk of falls', 's 5.1')) },
         src('No one uses a fall arrest harness while working alone.', WHS('s 306I')),
         'Platform ladders are used only for short work below 2 m, on firm level ground, and are not set up near an open edge.',
         src('Use tool lanyards and lidded paint containers so nothing falls, and set up an exclusion zone below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
@@ -2309,10 +2312,10 @@ const ACTIVITIES = [
     when: 'balustradeEdge',
     steps: [{
       step: 'Install balustrades at open edges',
-      hazards: ['A fall from the open edge while temporary edge protection is opened.', 'Glass, fixings or tools fall onto people below.'],
+      hazards: ['A fall from the open edge while temporary edge protection is opened.', 'Panels, fixings or tools fall onto people below.'],
       controls: [
         { fact: 'fallControl' },
-        src('Prevent objects falling first: tools on lanyards, glass and fixings secured at the edge until fixed, and catch screens or toe boards. Then an exclusion zone below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
+        src('Prevent objects falling first: tools on lanyards, panels and fixings secured at the edge until fixed, and catch screens or toe boards. Then an exclusion zone below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
         src('Prevent falls first. Temporary edge protection is opened only under the principal contractor\'s permit.', `${WHS('s 79, s 306D')}; ${QCODE('Managing the risk of falls', 's 8.2')}`),
         src('It is opened only at the panel being installed, and put back before the area is left.', WHS('s 79, s 306D')),
         src('Workers at the opening use travel restraint, installed by a competent person and set so they cannot reach the edge, with users trained.', `${WHS('s 306G')}; ${QCODE('Managing the risk of falls', 's 6, s 6.1')}`),
@@ -2348,6 +2351,7 @@ const ACTIVITIES = [
         src('Drill fixings with on-tool extraction, and wear a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`),
         ...SILICA_FOLLOW_UP,
         'Louvre blades and glass are handled with cut resistant gloves that still give a good grip, and kept in their racks until fitted.',
+        { only: 'windowReplace', text: 'Old windows are removed one at a time: glass is taped or taken out first, fixings are cut, and the frame is lowered inside by two people. The opening is protected until the new frame is fixed. In a building built before 2004, sealants, packers and wall linings around the frame are checked for asbestos first.' },
       ],
     }],
     ppe: ['gloveCut', 'p2', 'glassesClear'],
@@ -2625,6 +2629,7 @@ const ACTIVITIES = [
         ...SILICA_FOLLOW_UP,
         'Before breaking out, the extent is marked and the structure is checked by the engineer where reinforcement or load-bearing members are affected.',
         'Repair mortars, primers and coatings are used as their safety data sheets set out, with gloves and eye protection.',
+        { only: 'crackInjection', text: 'Epoxy or polyurethane injection resins are mixed and injected as their safety data sheets set out, with chemical gloves and eye protection. Ports and packers are checked, and pressure is released before any fitting is undone.' },
         'The area below is barricaded, and loose concrete is removed before work moves on.',
         'Hearing protection when breaking or grinding, and use of vibrating tools is rotated.',
       ],
@@ -2804,6 +2809,7 @@ const ACTIVITIES = [
         'Fixings into the facade suit the wall and the load, as the designer specifies.',
         'An exclusion zone is set up below, with any footpath closure the council requires.',
         'Power to lit signs and screens is connected by a licensed electrician.',
+        { only: 'signPosts', text: 'Sign posts are set in holes dug only after services are located, or bolted to a slab after it is scanned, and the area is closed to vehicles while they go in.' },
       ],
     }],
     ppe: ['harness'],
@@ -2818,7 +2824,8 @@ const ACTIVITIES = [
         'No ignition sources are allowed in the hazardous area around the tank and excavation.',
         'Contaminated soil and water are tested, handled and disposed of as the environmental consultant and the regulator require.',
         'The excavation is battered, benched or shored where people work in or near it.',
-        'Tanks are slung and lifted by licensed crane crews, and no one stands under the load.',
+        'The excavator is run by a competent operator, stays back from the excavation edge, and works inside an exclusion zone. Services and fuel lines are located before digging.',
+        'Where a crane lifts the tank, it is slung by licensed doggers and no one stands under the load.',
       ],
     }],
     ppe: ['gloveChemical', 'p2'],
@@ -2934,6 +2941,7 @@ const ACTIVITIES = [
         'Primer and solvent cement are used with ventilation, gloves and eye protection, and kept away from ignition sources.',
         'The drainage is tested and inspected before it is covered, as the plumbing regulator requires.',
         'Open trenches are fenced or covered when no one is working at them.',
+        { only: 'subfloor', text: 'Work under an existing floor is done from the subfloor where there is room: the access is checked, sewage is treated as infectious, and the space is assessed as a confined space only if it meets the definition. Where a slab must be cut, it is scanned and saw cut with water or extraction.' },
       ],
     }],
     ppe: ['gloveChemical', 'glassesClear'],
@@ -2941,13 +2949,13 @@ const ACTIVITIES = [
   {
     when: 'trafficSignals',
     steps: [{
-      step: 'Install traffic signal poles, pits and conduits',
+      step: 'Install signal or lighting poles, pits and conduits',
       hazards: ['Struck by passing traffic.', 'A pole falls while it is lifted or stood.', 'Striking underground services or overhead lines.', 'Electric shock connecting to the supply.'],
       controls: [
         'All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.',
         'Underground services are located before pits and conduits are dug, and plant keeps its approach distances from overhead lines.',
         'Poles are lifted and stood with a crane truck or EWP by licensed operators and doggers, with an exclusion zone under the load, and bolted to their footings before the slings are released.',
-        'Signal wiring and the connection to the supply are electrical work for a licensed electrician accredited by the road authority, and the supply is isolated and proved de-energised before the connection.',
+        'Signal and lighting wiring and the connection to the supply are electrical work for a licensed electrician accredited by the road authority or network operator, and the supply is isolated and proved de-energised before the connection.',
       ],
     }],
     ppe: ['hivis'],
@@ -3164,12 +3172,12 @@ const ACTIVITIES = [
     when: 'jettyRepair',
     steps: [{
       step: 'Remove and replace damaged timbers',
-      hazards: ['A fall into the water through the opened deck.', 'Cuts and kickback from saws.', 'Dust from treated timber.', 'Heavy timbers fall or swing while they are moved.'],
+      hazards: ['A fall through the opened deck.', 'Cuts and kickback from saws.', 'Dust from treated timber.', 'Heavy timbers fall or swing while they are moved.'],
       controls: [
         'Openings in the deck are barricaded or covered as soon as boards are removed.',
         'Saws are used with their guards, and timber is cut on a stable bench or the deck, never overhanging the water by hand.',
         'Treated timber is cut with dust extraction or outdoors with a P2 respirator, and offcuts are disposed of as the treatment requires, never burned.',
-        'Piles and bearers are lifted with plant rated for the load, with an exclusion zone and tag lines.',
+        { only: 'heavyTimbers', text: 'Piles and bearers are lifted with plant rated for the load, with an exclusion zone and tag lines.' },
       ],
     }],
     ppe: ['p2', 'earPlugs'],
@@ -3401,10 +3409,81 @@ const ACTIVITIES = [
       controls: [
         'Work follows the carrier\'s radio frequency safety plan: transmitters near the work are switched off or turned down by the carrier, and workers stay outside the marked exclusion zones (ARPANSA RPS S-1).',
         { fact: 'fallControl' },
-        'Antennas, mounts and cabinets are lifted with a crane or hoist on a lift plan, with an exclusion zone below.',
+        'Heavy antennas, mounts and cabinets are lifted with a crane or hoist on a lift plan, with an exclusion zone below, not carried up ladders.',
         'Power connections are electrical work for a licensed electrician.',
       ],
     }],
+  },
+  {
+    when: 'roadBarrier',
+    steps: [{
+      step: 'Install road safety barrier',
+      hazards: ['Struck by passing traffic.', 'Striking buried services or overhead lines when driving posts.', 'Noise and vibration from the post driver.', 'Strain and crush injuries handling barrier rails.'],
+      controls: [
+        'All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.',
+        src('Get the current underground services information, for example through Before You Dig Australia, locate services on site before posts are driven, and work to it.', WHS('s 304')),
+        'The post driver is run only by a trained operator, with an exclusion zone around it and approach distances kept from overhead lines.',
+        'Rails are lifted with two people or plant, and bolted as they are placed. Hearing protection is worn near the post driver.',
+      ],
+    }],
+    ppe: ['hivis', 'earMuffs'],
+  },
+  {
+    when: 'sprayRoad',
+    steps: [{
+      step: 'Spray seal the road',
+      hazards: ['Burns from hot bitumen.', 'Struck by the sprayer, spreader, roller or passing traffic.', 'Bitumen fumes.', 'Fire from heated bitumen or cutter.'],
+      controls: [
+        'All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.',
+        'Only trained operators run the bitumen sprayer and aggregate spreader. No one stands beside the spray bar while it is spraying.',
+        'Workers near hot bitumen wear long sleeves, gloves, boots and a face shield, and burns are cooled with water straight away.',
+        'Plant and trucks work with spotters when reversing, and workers stay out of their path.',
+        'Heated bitumen and cutters are kept away from ignition sources, with an extinguisher on the sprayer.',
+      ],
+    }],
+    ppe: ['hivis', 'faceShield'],
+  },
+  {
+    when: 'fireAlarm',
+    steps: [{
+      step: 'Install the fire detection and alarm system',
+      hazards: ['A fall from a ladder or platform fixing detectors.', 'Electric shock at the panel and power supply.', 'A false alarm or an isolated system leaves the building unprotected.'],
+      controls: [
+        { fact: 'fallControl' },
+        'The system is installed and commissioned to AS 1670.1 and the design, by workers holding the fire protection licence or accreditation the state requires.',
+        'Any existing system is isolated only under the building owner\'s procedure, with the monitoring service told before and after, and other fire safety measures in place while it is off.',
+        'The mains connection to the panel is electrical work for a licensed electrician, with the circuit isolated first.',
+      ],
+    }],
+  },
+  {
+    when: 'leadPaint',
+    steps: [{
+      step: 'Remove lead paint',
+      hazards: ['Breathing or swallowing lead dust and fumes.', 'Lead dust spreading to the house, the yard and workers\' homes.', 'A fall from a ladder or platform.'],
+      controls: [
+        'Lead paint is removed by the methods in AS/NZS 4361.2: wet scraping, wet sanding or chemical strippers. No dry sanding, open flame, or heat guns hot enough to fume the paint.',
+        src('The work area is enclosed with plastic sheeting, people who are not doing the work are kept out, and debris is collected as the work goes.', WHS('s 396')),
+        src('Workers wear a P2 or better respirator and disposable coveralls, do not eat, drink or smoke in the work area, and wash and change before leaving it.', WHS('s 398, s 399')),
+        src('Dust is cleaned up with an H class vacuum and wet wiping, never by dry sweeping. Lead waste is bagged and disposed of as the waste rules require.', WHS('s 397')),
+        src('Where the work is lead risk work, the regulator is notified and workers have health monitoring before they start.', WHS('s 402, s 403, s 405')),
+      ],
+    }],
+    ppe: ['p2'],
+  },
+  {
+    when: 'handrailReplace',
+    steps: [{
+      step: 'Cut out and replace the steel handrail',
+      hazards: ['A fall through the gap where the old handrail is removed.', 'Sparks and burns from cutting and welding.', 'Cuts from sharp corroded steel.', 'Fumes from cutting galvanised or painted steel.'],
+      controls: [
+        'A temporary barrier is fixed across the gap before the old handrail is cut out, and stays until the new handrail is fixed.',
+        'Cutting and welding are hot work under a hot work permit, with combustibles cleared, an extinguisher at hand and a fire watch afterwards.',
+        'Galvanised or painted steel is cut with ventilation or a respirator suited to the fumes.',
+        'Cut resistant gloves are worn handling cut steel, and offcuts are removed as the work goes.',
+      ],
+    }],
+    ppe: ['gloveWelding', 'filterEye'],
   },
   {
     when: 'glassWind',
@@ -4452,8 +4531,7 @@ const ACTIVITIES = [
         hazards: ['Breathing in paint vapour.', { only: 'occupied', text: 'Residents, patients or the public walk into the work or breathe paint fumes.' }, { only: 'nightWork', text: 'Poor lighting and fatigue at night.' }],
         controls: [
           { fact: 'safetyDataSheet' },
-          { only: 'occupied', text: 'Work areas are screened off from residents, patients and the public, with the facility manager agreeing the areas and times. Low odour, water-based products are used, and rooms are ventilated before they are reopened.' },
-          { only: 'nightWork', text: 'Work areas, stairs and access routes are lit for the work. Shifts and breaks are planned to manage fatigue, and no one works alone.' },
+          { only: 'occupied', text: 'Low odour, water-based products are used, and rooms are ventilated before they are reopened.' },
           src('The current safety data sheet is at the work area, the product is on the register, and containers are labelled. Use water-based paint instead of solvent-based paint where possible.', `${WHS('s 341, s 344, s 346')}; ${QCODE('Managing risks of hazardous chemicals', 's 1.6, s 2.2, s 2.3, s 4.1')}`),
           src('Ventilate as the label says: natural ventilation suits only small amounts of low toxicity products. Use fans or extraction otherwise.', MODEL('Managing risks of hazardous chemicals', 's 4.1, s 4.2')),
         ],
@@ -4692,12 +4770,12 @@ addAfter('landscape', {
   when: 'treeRemoval',
   steps: [{
     step: 'Remove trees, stumps and roots',
-    hazards: ['A tree or limb falls on a person.', 'Chainsaw cuts and kickback.', 'Stump grinder debris.', 'Striking services or overhead power lines.', 'Noise from chainsaws and stump grinders.'],
+    hazards: [{ unless: 'stumpOnly', text: 'A tree or limb falls on a person.' }, { unless: 'stumpOnly', text: 'Chainsaw cuts and kickback.' }, 'Stump grinder debris.', 'Striking services or overhead power lines.', 'Noise from chainsaws and stump grinders.'],
     controls: [
-      'Where trees are felled, they are felled from the ground only by competent chainsaw operators, with a plan for the direction of fall. A tree that must be dismantled at height is done by an arborist under their own SWMS.',
-      'Keep an exclusion zone around felling of at least twice the height of the tree, and around any work under a tree being cut.',
+      { unless: 'stumpOnly', text: 'Where trees are felled, they are felled from the ground only by competent chainsaw operators, with a plan for the direction of fall. A tree that must be dismantled at height is done by an arborist under their own SWMS.' },
+      { unless: 'stumpOnly', text: 'Keep an exclusion zone around felling of at least twice the height of the tree, and around any work under a tree being cut.' },
       'Check for overhead power lines and buried services before felling or grinding. Work near power lines only under the network operator\'s requirements.',
-      'Chainsaws have a working chain brake and are refuelled only when stopped and cool. Operators wear chainsaw chaps or trousers, a helmet with face shield, and hearing protection.',
+      { unless: 'stumpOnly', text: 'Chainsaws have a working chain brake and are refuelled only when stopped and cool. Operators wear chainsaw chaps or trousers, a helmet with face shield, and hearing protection.' },
       'Stump grinders are used with their guards in place and an exclusion zone for flying debris.',
     ],
   }],
@@ -4763,10 +4841,10 @@ addAfter(ACTIVITIES[ACTIVITIES.findIndex((item) => item.when === 'formwork') - 1
   steps: [
     {
       step: 'Prepare the ground and set out',
-      hazards: ['Striking underground services.', 'Plant strikes a person.', 'An excavation for edge beams, footings or thickened edges collapses, or a person falls in.', 'Dust, noise and vibration from compaction.'],
+      hazards: ['Striking underground services.', { unless: 'smallPour', text: 'Plant strikes a person.' }, 'An excavation for edge beams, footings or thickened edges collapses, or a person falls in.', 'Dust, noise and vibration from compaction.'],
       controls: [
         { ...src('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')), unless: 'trench' },
-        'Excavators, bobcats and rollers are run by competent operators, checked before each shift, with an exclusion zone and a spotter where people work nearby.',
+        { unless: 'smallPour', text: 'Excavators, bobcats and rollers are run by competent operators, checked before each shift, with an exclusion zone and a spotter where people work nearby.' },
         src('Boxing out, thickened edges, edge beams and footings are dug no deeper than needed, and battered or benched where the ground needs it.', WHS('s 305')),
         // Where this SWMS has the trench steps, deeper trenches are covered by them.
         { ...src('A trench or shaft deeper than 1.5 m is high risk construction work this SWMS does not cover: stop and have the SWMS reviewed before anyone enters it.', WHS('s 291')), unless: 'trench' },
@@ -4807,10 +4885,10 @@ addAfter('slabGround', {
   steps: [
     {
       step: 'Place concrete',
-      hazards: ['A reversing concrete truck strikes a person.', 'Contact with overhead power lines.', 'Struck by a swinging chute.', 'Struck by a pump hose or a burst line.', 'Cement burns to the skin and eyes.', 'Back strain from barrowing and screeding.'],
+      hazards: [{ unless: 'smallPour', text: 'A reversing concrete truck strikes a person.' }, { unless: 'smallPour', text: 'Contact with overhead power lines.' }, { unless: 'smallPour', text: 'Struck by a swinging chute.' }, { unless: 'smallPour', text: 'Struck by a pump hose or a burst line.' }, 'Cement burns to the skin and eyes.', 'Back strain from barrowing and screeding.'],
       controls: [
-        'Concrete trucks reverse only with a spotter, into a marked area kept clear of people, and stand on firm ground back from excavation edges.',
-        'Check for overhead power lines before a truck, pump or boom sets up. Keep plant outside the approach distances, with a spotter where it could come close.',
+        { unless: 'smallPour', text: 'Concrete trucks reverse only with a spotter, into a marked area kept clear of people, and stand on firm ground back from excavation edges.' },
+        { unless: 'smallPour', text: 'Check for overhead power lines before a truck, pump or boom sets up. Keep plant outside the approach distances, with a spotter where it could come close.' },
         'Keep clear of the chute while it is swung or extended.',
         'Where a line pump or boom pump is used, check pipes, clamps and the end hose before pumping, keep people clear of the end hose at start-up, and clear blockages only after the pressure is released.',
         src('Where a concrete placing boom is used, it is registered plant and its operator holds a high risk work licence for a concrete placing boom.', WHS('s 81, schedule 3, schedule 5')),
@@ -4824,9 +4902,9 @@ addAfter('slabGround', {
     },
     {
       step: 'Finish, joint and cure',
-      hazards: ['Power trowel injuries.', 'Carbon monoxide from petrol plant used where exhaust can collect.', 'Silica dust and noise from saw cutting joints.', 'Chemicals in curing compounds and sealers.', 'Knee and back strain finishing edges.'],
+      hazards: [{ unless: 'smallPour', text: 'Power trowel injuries.' }, 'Carbon monoxide from petrol plant used where exhaust can collect.', 'Silica dust and noise from saw cutting joints.', 'Chemicals in curing compounds and sealers.', 'Knee and back strain finishing edges.'],
       controls: [
-        'Power trowels have their guards in place and a working stop switch that cuts out when released, and are never left running unattended.',
+        { unless: 'smallPour', text: 'Power trowels have their guards in place and a working stop switch that cuts out when released, and are never left running unattended.' },
         'Petrol trowels, saws and generators run only outdoors or where exhaust cannot collect.',
         src('Where control joints are saw cut, or concrete is cut or drilled, it is done wet or with on-tool extraction. This is processing a crystalline silica substance. Anyone still at risk of exposure wears a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 5.1, s 7.4.1, s 7.4.2, s 7.6.1, s 7.6.2')}`),
         src('Before any saw cutting or drilling, assess in writing whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation.', WHS('s 529CA')),
@@ -4889,6 +4967,7 @@ ACTIVITIES.push(
     when: 'solarPV',
     steps: [
       {
+        only: 'solarPanels',
         step: 'Install solar panels and mounting rails on the roof',
         hazards: ['A fall from the roof edge or through a skylight or fragile sheet.', 'Panels catch the wind and pull a worker off balance or blow off the roof.', 'Strain carrying panels on the roof.', 'Panels, rails or tools fall onto people below.'],
         controls: [
@@ -4965,6 +5044,7 @@ ACTIVITIES.push(
         hazards: ['Fire or explosion from a leaking joint.', 'Carbon monoxide from a blocked flue or poor ventilation.', 'Burns from hot pipes, flues and appliances.'],
         controls: [
           { ...src('Gas work is done only by a person holding a gas work licence or authorisation for that work.', 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'), unless: 'replaceAppliance' },
+          { only: 'subfloor', text: 'New pipe under the house is run from the subfloor where there is room: the access is checked, cables are kept clear of, and the space is assessed as a confined space only if it meets the definition.' },
           'Joints are leak tested after connection with a pressure test and leak detection fluid or a gas detector, never with a flame. The line is purged of air before the appliance is lit.',
           'The appliance is commissioned to the manufacturer\'s instructions, including the gas pressure, the flue, combustion air and a check that combustion products do not spill into the room.',
         ],
@@ -5029,7 +5109,7 @@ ACTIVITIES.push(
       hazards: ['A fall through the roof opening while the skylight is out.', 'A fall from the roof edge.', 'Live cables and heat in the roof space.', 'Sparks and sharp edges when cutting roof sheet.'],
       controls: [
         { fact: 'fallControl' },
-        src('The opening is covered as soon as it is cut, with a cover strong enough to take anyone who could fall onto it, securely fixed so it cannot be moved or removed by accident, and marked as covering a hole.', WHS('s 306F')),
+        src('The opening is covered as soon as it is cut, with a cover strong enough to take anyone who could fall onto it, securely fixed so it cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${MODEL('Managing the risk of falls', 's 4.2')}`),
         'Before the sheet is cut, safety mesh is confirmed under it, or the opening is guarded or the worker uses travel restraint, until the cover or the skylight is in.',
         'Roof sheet is cut with nibblers or snips where possible, not a grinder, to avoid sparks and hot swarf.',
         'A finished skylight without a mesh guard is a fragile surface. It is marked, and no one walks on or leans on it.',
@@ -5076,14 +5156,15 @@ ACTIVITIES.push(
     when: 'waterHeater',
     steps: [{
       step: 'Disconnect and connect the water heater',
-      hazards: [{ unless: 'poolHeater', text: 'Scalds from stored hot water and hot pipes.' }, 'Water damage and slips while draining.', 'Strain or crushing moving the heater.', { only: 'poolHeater', text: 'Electric shock near pool water.' }],
+      hazards: [{ only: 'replaceAppliance', text: 'Scalds from stored hot water and hot pipes.' }, 'Water damage and slips while draining.', 'Strain or crushing moving the heater.', { only: 'poolHeater', text: 'Electric shock near pool water.' }],
       controls: [
         'The water connections are plumbing work for a licensed plumber.',
         { text: 'The old heater is turned off and left to cool before it is drained, and drained to a floor waste or outside.', only: 'replaceAppliance' },
         'The new heater has its temperature and pressure relief valve and drain line fitted to the manufacturer\'s instructions.',
-        { unless: 'poolHeater', text: 'Water to bathroom outlets is delivered no hotter than 50 °C, with a tempering valve where the plumbing rules require one.' },
+        { unless: 'poolHeater', text: 'Water to bathroom outlets is delivered no hotter than 50 °C, or 45 °C in early childhood centres, schools, and aged and health care buildings, with a tempering or thermostatic mixing valve where the plumbing rules require one.' },
         { only: 'electricHeater', text: 'Disconnecting and reconnecting the power to an electric heater is electrical work for a licensed electrician, with the circuit isolated first.' },
         'Heaters are moved by two people or with a trolley, and set on a base that takes their full weight.',
+        { only: 'upperFloor', text: 'Units go to upper floors by the goods lift, a hoist or a crane, not carried up stairs or ladders, and are set down from inside the balustrade.' },
         { text: 'The old gas heater is disconnected and its gas line capped and leak tested by a licensed gas fitter.', only: 'gasToElectric' },
         { text: 'The heat pump\'s electrical connection is made by a licensed electrician.', only: 'heatPump' },
       ],
@@ -5096,6 +5177,7 @@ ACTIVITIES.push(
       hazards: ['Strain or crushing moving a large tank.', 'An empty tank blown over by wind.', 'Striking services when digging the base or pipes.', 'Electric shock from the pump connection.', 'A tank entered by a worker is a confined space.'],
       controls: [
         'The tank sits on a base built to the tank supplier\'s specification.',
+        { only: 'tankStand', text: 'The tank stand is built to the engineer\'s or supplier\'s design. The empty tank is lifted onto it with a crane truck or other plant by licensed operators, with an exclusion zone, and work on top of the stand has fall protection.' },
         'Empty tanks are moved by enough people or with a lifting aid, and tied down when wind is forecast.',
         src('Get the current underground services information, for example through Before You Dig Australia, locate services on site before digging, and work to it.', WHS('s 304')),
         'The pump is plugged into an existing RCD-protected outlet, or its supply is installed by a licensed electrician.',
@@ -5115,8 +5197,8 @@ ACTIVITIES.push(
         'The cut face is battered back or benched, or excavated in short lengths. No one works between an unsupported cut face and the wall where the face could fall on them.',
         'Drainage and backfill are placed as the design shows, and backfill is compacted in layers.',
         'Sleepers, posts and blocks are team lifted or moved by machine.',
-        'Treated timber is cut outside with dust extraction or a P2 respirator, and hands are washed before eating.',
-        'Blocks are cut with a wet saw or a saw with on-tool extraction, never dry cut without extraction, and the cutter wears a fit tested P2 respirator.',
+        { only: 'timberWall', text: 'Treated timber is cut outside with dust extraction or a P2 respirator, and hands are washed before eating.' },
+        { unless: 'timberOnlyWall', text: 'Blocks are cut with a wet saw or a saw with on-tool extraction, never dry cut without extraction, and the cutter wears a fit tested P2 respirator.' },
       ],
     }],
     ppe: ['p2', 'gloveGeneral'],
@@ -5130,8 +5212,10 @@ ACTIVITIES.push(
         { fact: 'fallControl' },
         src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
         'Footings are dug and poured to the kit supplier\'s or engineer\'s details. Open holes are covered or fenced.',
-        'Posts are stood, plumbed and braced, and the frame is braced to the kit instructions before roof sheets go on.',
+        { only: 'kitBuild', text: 'Posts are stood, plumbed and braced, and the frame is braced to the kit instructions before roof sheets go on.' },
+        { unless: 'kitBuild', text: 'Posts are stood, plumbed and braced, and the frame is braced to the engineer\'s or supplier\'s details before roof sheets go on.' },
         'Where the structure is fixed to the house, the fascia, wall or slab is checked as able to take the load, to the supplier\'s or engineer\'s details.',
+        { only: 'roofExtension', text: 'Where the new roof ties into the existing roof, the existing roof is walked only on its purlin lines with fall protection, and the junction is flashed to the manufacturer\'s details.' },
         'Roof sheets are fixed from a scaffold, platform or EWP, and not handled in strong wind.',
       ],
     }],
@@ -5203,7 +5287,7 @@ ACTIVITIES.push(
       controls: [
         'The work area is closed to vehicles with barriers, cones and signs before work starts.',
         src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
-        'Before drilling a slab, the area is scanned for conduits, pipes and reinforcement.',
+        { unless: 'coreDrill', text: 'Before drilling a slab, the area is scanned for conduits, pipes and reinforcement.' },
         'At a service station or other fuel site, work follows the site operator\'s permit and hazardous area rules: no ignition sources in the zones around dispensers, vents and tank fill points, and underground tanks and fuel lines are located before any drilling or digging.',
         'Heavy bollards, barriers and concrete stops are lifted with a team lift, a trolley or plant, and fixed to the supplier\'s or engineer\'s details.',
       ],
@@ -5288,6 +5372,16 @@ function jobStepsFor(flags, factText, fallback) {
   };
   moveBefore('Lift and place the tank or precast units', 'Backfill and restore');
   moveBefore('Pressure clean surfaces', 'Prepare to paint');
+  moveBefore('Build the retaining wall', 'Lay blocks and bricks');
+  moveAfter('Paint the outside of the building at height', 'Sand and fill surfaces');
+  moveAfter('Handle and install glass panels', 'Install window frames, doors and louvres');
+  moveBefore('Install bollards, barriers, wheel stops and speed humps', 'Plan core holes');
+  moveBefore('Remove lead paint', 'Prepare to paint');
+  moveBefore('Install gutters, fascia, downpipes and eaves linings', 'Prepare to paint');
+  moveBefore('Cut out and replace the steel handrail', 'Work over the water');
+  // Rescue equipment is set up before anyone works over the water.
+  const rescue = middle.find((item) => item.step === 'Set up rescue equipment');
+  if (rescue) middle = [rescue, ...middle.filter((item) => item !== rescue)];
   moveBefore('Saw cut concrete', 'Excavate');
   moveBefore('Saw cut concrete', 'Prepare the ground and set out');
   moveBefore('Remove cut sections', 'Prepare the ground and set out');
