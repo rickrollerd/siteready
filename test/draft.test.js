@@ -187,7 +187,7 @@ test('Queensland section 299(4): a harness alone needs the other controls consid
   // The rule is Queensland's. NSW does not ask.
   const nsw = prepareDraft({ state: 'nsw', task, fallRisk: 'yes', facts: { fallControl: harness } });
   assert.equal(nsw.kind, 'draft');
-  assert.ok(nsw.controls.some((item) => /must be considered before administrative controls/.test(item.text)));
+  assert.ok(nsw.controls.some((item) => /was considered first for any fall of more than 2 metres, and is not reasonably practicable for this work because ____/.test(item.text)));
 });
 
 test('Western Australia: danger zones, and the regulator notice for tilt-up work', () => {
