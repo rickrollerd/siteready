@@ -1348,13 +1348,13 @@ const MAIN_WORK = [
   [/\bretaining walls?\b/i, 'retaining wall construction', /\bretaining\b/i],
   [/\b(epoxy (?:coat\w*|floor\w*|seal\w*)|(?:apply|applying|seal\w*|coat\w*) [^.]{0,30}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(epoxy|floor coatings?)\b/i],
   [/\b(grind\w* [^.]{0,20}\bfloors?|floor grind\w*)\b/i, 'floor grinding', /\bgrind floors\b/i],
-  [/\bhydro[- ]?demolition\b/i, 'hydro-demolition', /\bhydro/i],
+  [/\bhydro[- ]?demoli\w*\b/i, 'hydro-demolition', /\bhydro/i],
   [/\b(drill\w* and blast\w*|blasting|explosives?|shotfir\w*)\b/i, 'blasting with explosives (licensed shotfirer work)', /\bshotfir/i],
   [/^(?![^]*\b(?:temporary|builder'?s?) (?:power )?poles?\b)[^]*\b(light(?:ing)? poles?|poles?\b[^.]{0,30}\b(?:stand|erect|install)\w*|(?:stand|erect|install)\w* [^.]{0,30}\bpoles?)\b/i, 'pole erection', /\b(poles?|Install security devices)\b/i],
   [/\bcore fill\w*\b/i, 'core filling', /\bcore fill\b/i],
   [/\b(sewer mains?|council mains?|connect\w*[^.]{0,30}\bsewer)\b/i, 'connection to the live sewer', /\bConnect to the live sewer\b/],
   [/\b(?:install|replac|lift|remov)\w*\b[^.]{0,40}\b(?:air ?con\w* units?|rooftop units?|condensers?|package units?)\b/i, 'air conditioning plant installation', /\b(Install split system|Install plant|Receive plant|Isolate plant|Install ductwork)\b/],
-  [/\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?)\b/i, 'demolition of a whole structure', /\b(Demolish the structure|Take down the shed frame)\b/],
+  [/^(?![^]*\bhydro[- ]?demoli)[^]*\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?)\b/i, 'demolition of a whole structure', /\b(Demolish the structure|Take down the shed frame)\b/],
   [/\b(pool shells?|shotcrete|gunite|spray\w* concrete)\b/i, 'pool shell and sprayed concrete work', /\b(shotcrete|sprayed concrete)\b/i],
   [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer|seal floor joints)/i],
   [/\bpergolas?\b/i, 'pergola work', /\b(pergola|footings?|post holes?|shallow trench|Dig|frame and roof of the structure|Prop and repair)\b/i],
@@ -2284,6 +2284,51 @@ function settleFlags(flags, task) {
   if (out.floorCoating) out.sealing = false;
   // Commercial bank 12 rules.
   const T = (re) => re.test(task);
+  // Plant and infrastructure rules.
+  const EARTH_PLANT = /\b(dozers?|bulldozers?|graders?|scrapers?|articulated dump trucks?|adts?|front end loaders?|wheel loaders?|(?<!low )loaders?|water carts?|padfoot rollers?|rolling impact compactors?|haul trucks?|haul roads?|bulk earthworks|cut and fill|subgrade|mulchers?)\b/i;
+  if (T(EARTH_PLANT) && !T(/\b(skid ?steers?|bobcats?)\b/i)) { out.earthworks = true; out.sitePlant = true; }
+  out.roadPlant = T(/\b(road profilers?|profiling|cold planers?|asphalt pavers?|stabilis\w*|lime spreaders?|line marking trucks?|truck mounted attenuators?|tmas?)\b/i);
+  if (out.roadPlant) { out.road = true; if (T(/\b(profil\w*|resurfac\w*|asphalt)\b/i)) out.asphalt = false; }
+  out.heavyLift = T(/\b(\d{3,} ?t|\d{3,} tonnes?)\b[^.]{0,30}\bcranes?\b|\bcranes?\b[^.]{0,40}\b\d{3,} ?(?:t|tonnes?)\b|\b(crawler cranes?|tandem lifts?|two cranes|dual lift|heavy lift)\b/i) && !T(/\b(assembl\w*|dismantl\w*) (?:a |the )?crawler crane\b/i);
+  if (out.heavyLift) out.craneInterface = true;
+  if (out.dualLift) out.heavyLift = false;
+  out.craneAssembly = T(/\b(assembl\w*|dismantl\w*|rig\w* up)\b[^.]{0,20}\b(?:a |the )?crawler cranes?\b/i);
+  out.transportMove = T(/\b(self-?propelled modular transporters?|spmts?|launching gantr(?:y|ies)|launch\w* (?:bridge )?girders?|skidding systems?|incremental launch\w*)\b/i);
+  out.drivenPiles = T(/\b(impact hammers?|vibratory hammers?|vibro hammers?|driv\w* (?:steel |h |sheet |timber |concrete )?piles?|pile driv\w*|sheet piles?)\b/i);
+  if (out.drivenPiles) { out.pilingRig = false; out.openBore = false; }
+  out.groundImprove = T(/\b(wick drains?|stone columns?|vibro (?:rigs?|compaction|replacement)|rolling impact compact\w*|dynamic compaction|deep soil mixing|ground improvement)\b/i);
+  out.drillRig = T(/\b(rock anchors?|rock bolts?|soil nails?|drill rigs?)\b/i) && !T(/\bdirectional\b/i);
+  out.groutPump = T(/\bgrout\w* (?:the )?(?:ground )?anchors?\b|\bgrout pumps?\b/i);
+  out.tunnelWork = T(/\b(tunnel\w*|roadheaders?|tbms?|tunnel boring)\b/i) && !T(/\btunnel (?:forms?|formwork)\b/i);
+  if (out.tunnelWork) { out.trench = false; }
+  out.marinePlant = T(/\b(barges?|jack-?up|dredg\w*|work boats?|tugs?)\b/i) && !T(/\bfrom (?:a |the )?pontoon\b/i);
+  out.heavyHaulage = T(/\b(low ?loaders?|oversize|over-?mass|escorts?|truck and dog|haul\w* (?:spoil|material|fill)\w* on (?:public )?roads?|public roads?)\b/i);
+  out.processPlant = T(/\b(crushing|screening plant|(?<!concrete )crushers?|batching plants?|batch plants?|quarr(?:y|ies))\b/i);
+  out.refuelPlant = T(/\b(refuel\w*|fuel trucks?|fuel trailers?)\b/i);
+  out.plantService = T(/\b(servic(?:e|ing)|maintain\w*|repair\w*)\b[^.]{0,30}\b(plant|excavators?|machines?|trucks?|equipment)\b|\bfield workshops?\b/i) && !T(/\b(air ?condition\w*|lifts?|escalators?|rooftop units?|hvac)\b/i);
+  out.vegClearing = T(/\b(clear\w* vegetation|vegetation clearing|mulchers?|grubbing|clear and grub)\b/i);
+  out.towerLift = T(/\b(transmission towers?|wind turbines?|turbine towers?|lattice towers?)\b/i) && T(/\b(install\w*|erect\w*|lift\w*)\b/i);
+  if (out.towerLift) { out.craneInterface = true; out.heavyLift = true; }
+  out.hydroDemo = T(/\bhydro[- ]?demoli\w*\b/i);
+  if (out.hydroDemo) { out.structureDemolition = false; out.demolition = false; out.masonryDemo = false; }
+  out.vacExcavation = T(/\b(hydro ?excavat\w*|vacuum excavat\w*|non-destructive dig\w*|vacuum trucks?)\b/i) && T(/\b(locate|expos\w*|pothol\w*|excavat\w*)\b/i);
+  if (out.vacExcavation) { out.trench = false; }
+  if (T(/\b(?:operat\w*|run\w*|use)\b[^.]{0,20}\b(?:a |the )?tower cranes?\b/i)) out.towerCrane = true;
+  if (T(/\b(under-?bridge (?:inspection )?units?|ubius?|bridge inspection units?)\b/i)) { out.ewp = true; out.workAbove = true; }
+  if (T(/\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge decks?\b|\bbridge\b[^.]{0,20}\b(?:demolition|demolish\w*)\b|\bdemolish\w*\b[^.]{0,20}\bbridges?\b/i)) { out.jettyRepair = false; out.structureDemolition = true; out.demolition = true; out.workAbove = T(/\b(over|above|motorway|highway|rail\w*|roads?)\b/i); }
+  if (T(/\brock armou?r\b|\bbreakwaters?\b|\brevetments?\b/i)) { out.landscape = false; out.rockLining = true; out.water = true; }
+  if (T(/\b(?:pump|work\w*)\b[^.]{0,30}\bfrom (?:a |the )?pontoon\b/i)) { out.pontoonPlace = false; out.jettyRepair = false; }
+  if (T(/\b(noise|sound) wall panels?\b/i)) { out.wallPanels = false; out.noiseWall = true; }
+  if (T(/\b(?:lay\w*|install\w*)\b[^.]{0,30}\b(?:\d+ ?mm )?(?:water|sewer|trunk|gas) mains?\b/i) && !out.mainRepair) { out.trench = true; }
+  if (T(/\b(?:operat\w*|run\w*)\b[^.]{0,20}\bdewatering\b/i)) { out.dewatering = true; out.trench = false; }
+  if (T(/\b(temporary|haul) bridges?\b/i)) { out.steelErect = true; out.craneInterface = true; }
+  if (T(/\bsolar farm\b/i) && T(/\bpiles?\b/i)) { out.groundSolar = true; }
+  if (T(/\b(road rail vehicles?|rrvs?|hi-?rail)\b/i)) { out.railCorridor = true; out.sitePlant = true; }
+  if (T(/\b(track laying|tamp\w*|track machines?|ballast regulators?)\b/i)) { out.trackWork = true; out.railCorridor = true; }
+  if (T(/\b(mass concrete|dam spillways?|diaphragm walls?|tremie)\b/i)) out.concrete = true;
+  if (T(/\b(traffic switch|lane closures?|long term traffic|variable message (?:boards|signs))\b/i)) out.road = true;
+  if (T(/\b(cable (?:winch|drum trailers?)|pull\w* (?:high voltage |hv )?cables?)\b/i)) out.cablePull = true;
+  if (T(/\bmine (?:sites?)?\b|\bmining\b|\bon a mine\b/i)) out.mineSite = true;
   out.bridgeBearings = T(/\bbearings?\b/i) && T(/\b(bridges?|decks?|girders?)\b/i);
   if (T(/\b(conveyors?|silos?|pipe racks?|crane beams?|automated storage|asrs|stacker cranes?)\b/i) && T(/\b(steel|install\w*|erect\w*)\b/i) && !T(/\bbaggage\b/i)) { out.steelErect = true; out.steelLift = true; }
   out.conveyorInstall = T(/\b(baggage handling|conveyors?)\b/i) && T(/\b(install\w*|new)\b/i) && !T(/\bsteel\b/i);
@@ -2325,7 +2370,7 @@ function settleFlags(flags, task) {
   out.trackWork = T(/\b(sleepers?|ballast|rail track|track renewal|resleeper\w*)\b/i) && T(/\b(rail|track|possession)\b/i);
   if (T(/\b(overhead wiring|ohw|catenary) masts?\b/i)) { out.footingHoles = true; out.craneInterface = true; }
   if (T(/\bplatform canop(?:y|ies)\b|\bcanop(?:y|ies)\b[^.]{0,20}\b(stations?|platforms?)\b/i)) { out.steelErect = true; out.steelLift = true; }
-  if (T(/\b(piles?|piling)\b/i) && T(/\b(barges?|punts?|jack-?up|from the water)\b/i)) { out.pilingRig = true; out.workBoat = true; }
+  if (T(/\b(piles?|piling)\b/i) && T(/\b(barges?|punts?|jack-?up|from the water)\b/i)) { if (T(/\b(driv\w*|hammer\w*|steel piles?|sheet piles?)\b/i)) out.drivenPiles = true; else out.pilingRig = true; out.workBoat = true; }
   if (T(/\b(wharf|jetty) decks?\b/i) && T(/\b(install\w*|construct\w*|pour\w*|build\w*)\b/i)) { out.precast = true; out.formwork = true; out.craneInterface = true; }
   // Commercial bank rules.
   if (/\bground anchors?\b/i.test(task) && /\b(shoring|basements?|retention|piles?|walls?)\b/i.test(task)) out.anchorsProps = true;
@@ -2340,7 +2385,8 @@ function settleFlags(flags, task) {
   if (out.splashback) out.wallTiling = true;
   out.wetAreaTiles = /\b(bathrooms?|showers?|ensuites?|laundr\w*|wet areas?|balcon\w*|terraces?|pools?|toilets?)\b/i.test(task);
   // Bank 10 review rules.
-  out.eaveLining = /\b(eaves?|eave linings?|soffits?)\b/i.test(task) && /\b(repair\w*|replac\w*|new|reline\w*)\b/i.test(task) && /\b(linings?|sheets?|fibro|soffits?)\b/i.test(task);
+  if (/\bslab soffits?\b/i.test(task)) out.gutters = false;
+  out.eaveLining = /\b(eaves?|eave linings?|(?<!slab )soffits?)\b/i.test(task) && !/\bslab soffits?\b/i.test(task) && /\b(repair\w*|replac\w*|new|reline\w*)\b/i.test(task) && /\b(linings?|sheets?|fibro|soffits?)\b/i.test(task);
   out.roofRemoveOnly = /\b(?:remov\w*|strip\w*)\b[^.]{0,30}\broof(?:ing)? sheets?\b|\bremov\w*\b[^.]{0,20}\b(?:the )?(?:old )?roof\b/i.test(task) && !/\b(replac\w*|re-?roof\w*|re-?sheet\w*|new (?:roof|sheets?))\b/i.test(task);
   if (/\btempering valves?\b|\bthermostatic mixing valves?\b|\btmvs?\b/i.test(task)) { out.fixtureSwap = true; out.valveSwap = true; }
   out.poolLight = /\bpool (?:lights?|lighting|luminaires?)\b/i.test(task);
@@ -2381,6 +2427,7 @@ function settleFlags(flags, task) {
   if (/\b(bushfire|fire[- ]damaged|burnt)\b/i.test(task) && /\bfenc\w*\b/i.test(task)) out.fenceRemove = true;
   out.waterNoBoat = !out.poolOnly && !out.workBoat;
   out.bollardFuel = Boolean(out.bollards && out.fuelSite);
+  if (out.hydroDemo) { out.structureDemolition = false; out.demolition = false; out.masonryDemo = false; }
   return out;
 }
 

@@ -55,6 +55,7 @@ const BEFORE = {
 
 // Controls added to Before starting for some kinds of work.
 const BEFORE_EXTRA = [
+  { when: 'mineSite', text: 'On a mine or quarry site, the work also follows the site\'s safety and health management system, induction and rules, as the state\'s mining safety law requires.' },
   { when: 'airside', text: 'Work airside follows the airport operator\'s airside permit and rules: airside induction and escort, vehicle and plant permits, and stopping work when aircraft movements require it.' },
   { when: 'bollards', unless: 'footpathWork', text: 'The work area is closed to vehicles with barriers, cones and signs before work starts.' },
   { when: 'bollardFuel', text: 'At a service station or other fuel site, work follows the site operator\'s permit and hazardous area rules: no ignition sources in the zones around dispensers, vents and tank fill points, and underground tanks and fuel lines are located before any drilling or digging.' },
@@ -5449,6 +5450,261 @@ const ACTIVITIES = [
     ppe: ['hivis', 'p2'],
   },
   {
+    when: 'roadPlant',
+    steps: [{
+      step: 'Run the road plant inside the work zone',
+      hazards: ['A worker is struck or run over by the profiler, paver, stabiliser, roller or trucks.', 'Struck by passing traffic.', 'Entanglement in the profiler drum, auger or conveyor.', 'Burns from hot asphalt and lime.', 'Dust and fumes.'],
+      controls: [
+        'All plant works inside the traffic management set out for the job, with a truck mounted attenuator behind the work where the traffic management plan requires it.',
+        'Each machine is run by a competent operator, checked before each shift, with its guards fitted. The drum, auger and conveyor are stopped and isolated before anyone clears or inspects them.',
+        'Ground workers stay out of the plant\'s path and blind spots, wear high visibility clothing, and use two-way acknowledgement with operators before approaching.',
+        'Trucks reverse to the paver or profiler only on a spotter\'s signal.',
+        'Lime and cement are spread in low wind, with workers upwind, wearing eye protection, gloves and a P2 respirator. Hot asphalt is handled with gloves, long sleeves and boots.',
+        'At night, the work zone is lit, and plant has its lights and beacons working.',
+      ],
+    }],
+    ppe: ['hivisNight', 'earPlugs', 'gloveGeneral'],
+  },
+  {
+    when: 'heavyLift',
+    steps: [{
+      step: 'Plan and do the heavy lift',
+      hazards: ['The crane overturns from ground failure or overload.', 'The load drops, swings or strikes people or structures.', 'Contact with overhead power lines or rail overhead wiring.', 'Wind exceeds the crane\'s limit during the lift.'],
+      controls: [
+        'The lift is planned by a competent lift engineer or lift supervisor: a written lift study with the load weight and centre of gravity, rigging, crane configuration, radius and capacity, and the ground bearing and crane mats or outrigger pads checked against the ground conditions.',
+        'The crane is set up only on ground or mats certified for its loads, away from excavations, batters and services.',
+        'Licensed operators, doggers and riggers run the lift. Everyone not involved stays outside the exclusion zone, and a pre-lift meeting is held.',
+        'The lift stops in winds above the crane\'s or the load\'s limit, which is checked before and during the lift.',
+        'Near power lines or rail overhead wiring, the network or rail operator\'s clearances and permits apply, with a spotter.',
+      ],
+    }],
+    ppe: ['chinStrap'],
+  },
+  {
+    when: 'craneAssembly',
+    steps: [{
+      step: 'Assemble or dismantle the crawler crane',
+      hazards: ['The boom drops when pins are removed.', 'Crush injuries handling boom sections, tracks and counterweights.', 'A fall from the crane body or boom.', 'The assist crane is overloaded.'],
+      controls: [
+        'The crane is assembled and dismantled to the manufacturer\'s procedure by its trained erection crew, on firm, level ground checked for the loads.',
+        'No one stands under, inside or beside the boom while pins are driven or removed. Boom sections are supported on blocking first.',
+        'Sections, tracks and counterweights are lifted with the assist crane under a lift plan, slung by licensed riggers.',
+        'Work on the crane body or boom uses the manufacturer\'s access points and fall arrest anchors.',
+        'The crane is inspected and its safety devices tested before its first lift.',
+      ],
+    }],
+    ppe: ['harness', 'chinStrap'],
+  },
+  {
+    when: 'transportMove',
+    steps: [{
+      step: 'Move the load with transporters or a launching system',
+      hazards: ['The load tips, slides or drops during the move.', 'Hydraulic failure of jacks, transporters or the launching gantry.', 'Workers crushed between the load and the structure.', 'Ground failure under the transporters.'],
+      controls: [
+        'The move follows an engineered procedure, with the route, ground bearing, load paths and stop points set out, and the gantry or transporters set up and checked by their supplier.',
+        'Movements are directed by one supervisor with radio contact to all operators, and stop if any monitoring point goes outside its limit.',
+        'No one is under the load or between the load and the structure while it moves.',
+        'Hydraulic systems are inspected before the move and depressurised before any fitting is undone.',
+      ],
+    }],
+  },
+  {
+    when: 'drivenPiles',
+    steps: [{
+      step: 'Pitch and drive the piles',
+      hazards: ['A pile or hammer falls or swings while it is pitched.', 'The rig overturns on soft ground.', 'Noise and vibration from the hammer.', 'Struck by a pile that breaks or kicks out while it is driven.'],
+      controls: [
+        'The rig works on a working platform designed for its track loads, and the platform certificate is sighted before the rig sets up.',
+        'Piles are pitched with the rig or a crane, slung by licensed doggers, with no one under the pile or within the exclusion zone while it is pitched and driven.',
+        'The hammer is run by a competent operator, with its guards fitted, and stopped before anyone approaches the pile head.',
+        'Hearing protection is worn near the hammer, and noise and vibration at neighbouring buildings are monitored where the plan requires it.',
+      ],
+    }],
+    ppe: ['earMuffs', 'chinStrap'],
+  },
+  {
+    when: 'groundImprove',
+    steps: [{
+      step: 'Run the ground improvement rig',
+      hazards: ['The rig overturns on soft ground.', 'Struck by the mast, mandrel or vibrator.', 'Noise and vibration.', 'Plant strikes ground workers.'],
+      controls: [
+        'The rig works on a working platform designed for its loads, and keeps back from soft edges and excavations.',
+        'An exclusion zone is kept around the rig while it runs, and ground workers approach only on the operator\'s signal.',
+        'The rig is checked before each shift, run by a competent operator, and the mast is lowered for travel.',
+        'Hearing protection is worn near the rig, and vibration at neighbouring structures is monitored where the plan requires it.',
+      ],
+    }],
+    ppe: ['earMuffs'],
+  },
+  {
+    when: 'drillRig',
+    steps: [{
+      step: 'Drill with the drill rig',
+      hazards: ['The rig tips over at the edge of a bench or cut.', 'Entanglement in the rotating rods.', 'Silica dust from drilling rock.', 'Rocks fall from the face above.'],
+      controls: [
+        'The rig is set up on a bench or platform wide enough for it, back from the edge, and the face above is scaled and checked by a competent person before work below it.',
+        'The rotating rods are guarded, and no one handles rods while they turn. The rig has a working emergency stop.',
+        'Drilling uses water or dust collection, with fit tested P2 respirators for anyone still at risk.',
+        'Workers at a cut edge use fall protection where a fall is possible.',
+      ],
+    }],
+    ppe: ['p2', 'earMuffs'],
+  },
+  {
+    when: 'groutPump',
+    steps: [{
+      step: 'Mix and pump the grout',
+      hazards: ['Hose whip or a burst line under pressure.', 'Cement burns to skin and eyes.', 'Dust from cement bags.', 'Entanglement in the mixer paddles.'],
+      controls: [
+        'Hoses and couplings are rated for the pump pressure and pinned, and the line is depressurised before a blockage is cleared or a hose is undone.',
+        'The mixer is guarded and stopped before anyone reaches into it.',
+        'Bags are opened low, with eye protection, gloves and a P2 respirator, and skin contact is washed off straight away.',
+      ],
+    }],
+    ppe: ['goggles', 'gloveChemical', 'p2'],
+  },
+  {
+    when: 'tunnelWork',
+    steps: [{
+      step: 'Work underground in the tunnel',
+      hazards: ['Struck by plant in a confined tunnel.', 'Poor air, dust, diesel exhaust or gas underground.', 'Rock or ground falls from the face or crown.', 'Fire underground.', 'Being unaccounted for in an emergency.'],
+      controls: [
+        'Everyone underground is tagged in and out, and the tunnel emergency plan covers refuge chambers, self-rescuers and the rescue team.',
+        'Ventilation keeps the air within the exposure standards, and the air is monitored for oxygen, gas and diesel exhaust, with alarms.',
+        'Plant movements are controlled with traffic rules, passing bays, lighting and proximity warning, and pedestrians stay in marked walkways.',
+        'No one goes under unsupported ground. The face and crown are supported as the design requires before anyone works under them.',
+        'Fire extinguishers are carried on plant and at work areas, and hot work underground is done only under a permit.',
+      ],
+    }],
+    ppe: ['hivisNight', 'earMuffs', 'p2'],
+  },
+  {
+    when: 'marinePlant',
+    steps: [{
+      step: 'Work from the barge or marine plant',
+      hazards: ['The barge or jack-up becomes unstable or overloaded.', 'A fall into the water when moving between vessels and structures.', 'A crane on a barge is overloaded by barge movement.', 'Struck by mooring lines under tension.'],
+      controls: [
+        'The barge, jack-up or dredge is run by its licensed master or competent operator under its marine safety system, with its load limits and stability checked for the work.',
+        'Crane lifts from a barge use the crane\'s de-rated load chart for barge use and stop in sea states or winds above the limit.',
+        'Transfers between vessels and structures use a secured gangway or ladder, with life jackets worn and a rescue boat or rescue equipment ready.',
+        'No one stands in the bight or line of a mooring line under tension.',
+      ],
+    }],
+    ppe: ['lifeJacket'],
+  },
+  {
+    when: 'heavyHaulage',
+    steps: [{
+      step: 'Haul and deliver the loads on public roads',
+      hazards: ['The load shifts or falls from the truck.', 'A truck strikes the public or workers at the site gate.', 'Oversize loads strike power lines, bridges or other road users.', 'Driver fatigue.'],
+      controls: [
+        'Loads are restrained to the national load restraint guide before the truck leaves, and checked on the way.',
+        'Oversize and overmass loads travel only under their road permits, on the approved route, with the pilot or escort vehicles the permit requires, and the route is checked for power lines and clearances.',
+        'Trucks enter and leave the site only through the traffic management set out for the gate, with a spotter for reversing.',
+        'Drivers work within the heavy vehicle fatigue rules, and the work is planned to meet the chain of responsibility duties.',
+      ],
+    }],
+    ppe: ['hivis'],
+  },
+  {
+    when: 'processPlant',
+    steps: [{
+      step: 'Run and maintain the crushing, screening or batching plant',
+      hazards: ['Entanglement in conveyors, crushers and screens.', 'Struck by material falling from conveyors or stockpiles.', 'Silica dust and noise.', 'Plant starts while someone is working on it.'],
+      controls: [
+        'Conveyors, crushers and screens have guards fitted, and pull-wire and emergency stops are tested before each shift.',
+        'Plant is isolated and locked out with personal locks before anyone clears a blockage, cleans or works on it.',
+        'Dust is controlled with water sprays and enclosures, and air monitoring is done for crystalline silica, with P2 respirators where needed.',
+        'Hearing protection is worn in signed areas, and loaders keep clear of people around stockpiles and hoppers.',
+        'On a mine or quarry site, the work also follows the site\'s safety and health management system and rules, as the state\'s mining safety law requires.',
+      ],
+    }],
+    ppe: ['earMuffs', 'p2', 'hivis'],
+  },
+  {
+    when: 'refuelPlant',
+    steps: [{
+      step: 'Refuel plant on site',
+      hazards: ['Fuel fire or explosion.', 'Fuel spill into the ground or stormwater.', 'Struck by the fuel truck or plant.'],
+      controls: [
+        'Engines are off and plant is parked before refuelling, with no smoking or ignition sources within the refuelling area.',
+        'The fuel truck or trailer is earthed or bonded as its supplier requires, and nozzles are never left unattended.',
+        'A spill kit and fire extinguisher are at hand, and spills are cleaned up and reported straight away.',
+        'Refuelling happens at a set location away from drains and waterways, with the truck\'s movements controlled by a spotter.',
+      ],
+    }],
+  },
+  {
+    when: 'plantService',
+    steps: [{
+      step: 'Service and repair plant in the field',
+      hazards: ['Plant moves or starts while it is being worked on.', 'Raised buckets, blades or bodies drop.', 'Hydraulic oil injection or a hose burst.', 'Tyre or rim explosion.', 'Burns from hot engines and fluids.'],
+      controls: [
+        'Plant is parked on level ground, the engine stopped, the key removed, and the plant isolated and tagged before work starts. Wheels are chocked.',
+        'Raised buckets, blades and bodies are lowered, or blocked with their mechanical locks, before anyone works under them.',
+        'Hydraulic pressure is released before any line is undone, and no one checks for leaks with their hands.',
+        'Tyres are deflated before rims are worked on, and inflated in a cage or with a remote inflator.',
+        'Hot parts and fluids are left to cool, and used oil and filters are collected for disposal.',
+      ],
+    }],
+    ppe: ['gloveGeneral', 'glassesClear'],
+  },
+  {
+    when: 'vegClearing',
+    steps: [{
+      step: 'Clear vegetation with the mulcher and excavator',
+      hazards: ['Struck by debris thrown from the mulcher.', 'Plant rolls over on slopes or soft ground.', 'Trees fall on plant or people.', 'Fire from hot exhausts in dry vegetation.', 'Snakes and wildlife.'],
+      controls: [
+        'An exclusion zone is set around the mulcher for thrown debris, as its manufacturer specifies, and no one enters it while it runs.',
+        'Plant has rollover and falling object protection and keeps to slopes within its limits.',
+        'Large trees are felled away from plant and people by competent operators.',
+        'In dry conditions a fire extinguisher is carried, exhausts and spark arrestors are checked, and the fire danger rating is checked each day.',
+        'The area is checked for wildlife and nests as the environmental approvals require.',
+      ],
+    }],
+  },
+  {
+    when: 'towerLift',
+    steps: [{
+      step: 'Lift and erect the tower sections',
+      hazards: ['A section falls or swings while it is lifted.', 'A fall from the tower while connecting sections.', 'Wind exceeds the lifting limit.', 'Contact with live power lines nearby.'],
+      controls: [
+        'Sections are lifted with the crane under a lift plan, slung by licensed riggers, with tag lines and no one under the load.',
+        'Connectors climb and work only with fall arrest attached to anchor points on the tower, and a rescue plan for a worker suspended at height.',
+        'Lifting stops in winds above the crane\'s and the component supplier\'s limits.',
+        'Work near live lines follows the network operator\'s access permit and clearance rules.',
+      ],
+    }],
+    ppe: ['harness', 'chinStrap'],
+  },
+  {
+    when: 'hydroDemo',
+    steps: [{
+      step: 'Hydro demolish the concrete',
+      hazards: ['Injection injury from the very high pressure water jet.', 'Struck by flying concrete.', 'Noise.', 'The robot moves unexpectedly.', 'Slurry run-off.'],
+      controls: [
+        'The hydro demolition robot is run by a trained operator from outside the exclusion zone, which is fenced and signed for flying debris.',
+        'The pump has a dead man control, and no one approaches the jet until the pump is stopped and pressure released.',
+        'Hearing protection is worn in the signed area.',
+        'Slurry is collected and treated before disposal, as the environmental approvals require.',
+      ],
+    }],
+    ppe: ['earMuffs', 'faceShield'],
+  },
+  {
+    when: 'vacExcavation',
+    steps: [{
+      step: 'Hydro excavate with the vacuum truck',
+      hazards: ['Injection injury from the water lance.', 'Striking or damaging a live service.', 'Struck by the truck or its boom.', 'A person falls into the open hole.'],
+      controls: [
+        'The lance is used only by a trained operator, with low enough pressure near services that it cannot damage them, and the trigger released when not digging.',
+        'Services found are exposed, identified and protected, and their owners told of any damage straight away.',
+        'The truck is set up with an exclusion zone around the boom and hose, and a spotter while it moves.',
+        'Open holes are covered or barricaded when no one is at them.',
+      ],
+    }],
+  },
+  {
     when: 'glassWind',
     steps: [{
       step: 'Handle glass in the wind',
@@ -5680,7 +5936,7 @@ const ACTIVITIES = [
         src('Plan for blind spots. Plant operators and ground workers use two way acknowledgement before anyone approaches plant.', QCODE('Excavation work', 's 4.3')),
         'Use a spotter for reversing trucks.',
         src('An exclusion zone, with signs and barricades, around trucks and plant while they load and unload.', `${WHS('s 214, s 215')}; ${QCODE('Managing the risks of plant in the workplace', 's 3.8')}`),
-        'Traffic controllers hold pedestrians and traffic when the crane company\'s dogman asks. Crane lifts are run by the crane company.',
+        { only: 'craneInterface', text: 'Traffic controllers hold pedestrians and traffic when the crane company\'s dogman asks. Crane lifts are run by the crane company.' },
       ],
     }],
     ppe: ['hivisNight'],
