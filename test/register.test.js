@@ -267,3 +267,17 @@ test('round 8: licences from the work itself, and lines only where the work has 
   assert.ok(!workFlags('Install all architectural door and window hardware. Tape all glazing to windows and doors.', {}).glassHandle);
   assert.ok(!workFlags('Clean, grind and prepare the concrete pool prior to membrane installation.', {}).fibreCement);
 });
+
+test('round 9: Queensland-only duties are not stated in other states, and licences follow the work', () => {
+  const { localText } = require('../citations');
+  const { workFlags } = require('../draft');
+  assert.equal(localText('Extension ladders used for electrical work are no longer than 9.2 m.', 'nt'), null);
+  assert.equal(localText('Where the deck slopes more than 26 degrees, mesh or sheeting extends at least 900 mm up the edge protection.', 'nsw'), null);
+  assert.ok(!/perimeter containment screening/.test(localText('Where objects could fall on people outside the site, the principal contractor closes the adjoining area or erects perimeter containment screening before formwork is erected or dismantled.', 'nt')));
+  const plumbing = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'plumbing', task: 'Fit off plumbing and drainage fixtures for the internal toilet block and tearoom.' });
+  assert.ok(!plumbing.qualifications.some((item) => /Electrical/.test(item)));
+  assert.ok(!plumbing.sources.legislation.includes('Electrical Safety Act 2002 (Qld)'));
+  assert.ok(!workFlags('Install rangehoods complete with exhaust fan and exhaust ducting to above roof.', {}).plantLift);
+  assert.ok(workFlags('Install rangehoods complete with exhaust fan and exhaust ducting to above roof.', {}).roofAccess);
+  assert.ok(workFlags('Final connections of water supplies and gas supplies to mechanical equipment.', {}).gasFitting);
+});
