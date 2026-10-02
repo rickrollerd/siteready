@@ -376,10 +376,10 @@ test('load limits must be stated before materials or plant go on a deck or slab'
   assert.ok(!draft('Paint the interior walls of a shop with water-based paint.').missing.includes('Load limits'));
 });
 
-test('no one under a working placing boom, two braces before the hook is released, and respirators fit tested', () => {
+test('only the line hand and pour crew under a working placing boom, two braces before the hook is released, and respirators fit tested', () => {
   const pour = draft('Pump concrete with a placing boom and place and finish the slab.');
   const pump = pour.jobSteps.find((step) => step.step === 'Set up the concrete pump and placing boom');
-  assert.ok(pump.controls.includes('No one stands or works under the boom while it is operating.'));
+  assert.ok(pump.controls.some((line) => line.startsWith('Only the line hand and the pour crew work under the boom.')));
 
   const precast = draft('Install precast concrete columns with a mobile crane and brace them.', { facts: {
     craneCompany: 'Example Cranes operates the crane under its lift plan.',
