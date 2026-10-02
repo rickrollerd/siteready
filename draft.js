@@ -112,7 +112,7 @@ const DISTURB = /\b(strip\w*|remov\w*|demolish\w*|demolition|cut\w*|drill\w*|san
 const withoutNewMaterial = (text) => String(text || '').replace(/\b(?:install\w*|supply\w*|new|fix\w*|lay\w*)\b[^.]{0,40}?\bfibre[- ]cement\b[^.]*/gi, '');
 // Old switchboards often have asbestos backing panels.
 // Demolition or strip-out in an existing building needs asbestos identified first (WHS Reg s 450 to s 452).
-const asbestosLikely = (text) => (/\b(?:paint\w*|clean\w*|pressure wash\w*|re-?coat\w*)\b[^.]{0,20}\b(?:a |the )?(?:house |existing |old )?roofs?\b/i.test(String(text || '')) && !/\b(colorbond|metal|iron|steel|new|tiled?|tiles)\b/i.test(String(text || '')) && !/\bbuilt (?:in )?(?:200[4-9]|20[1-9]\d)\b/i.test(String(text || ''))) || /\b(replac|remov|chang|upgrad)\w* (?:a |the )?(?:old |existing |residential )?(?:main )?switchboards?\b/i.test(String(text || '')) || (/\b(strip[- ]?outs?|demolish\w*|demolition)\b/i.test(String(text || '')) && !/\b(temporary|formwork|falsework|scaffold\w*)\b/i.test(String(text || '')) && !/\bbuilt (?:in )?(?:200[4-9]|20[1-9]\d)\b/i.test(String(text || ''))) || DISTURB.test(String(text || '')) && (ASBESTOS_MATERIAL.test(withoutNewMaterial(text)) || (OLDER_BUILDING.test(String(text || '')) && /\b(walls?|ceilings?|floors?|eaves|roofs?|bathroom|kitchen|laundry|sheets?|linings?)\b/i.test(String(text || ''))));
+const asbestosLikely = (text) => (/\b(?:paint\w*|clean\w*|pressure wash\w*|re-?coat\w*)\b[^.]{0,20}\b(?:a |the )?(?:house |existing |old )?roofs?\b/i.test(String(text || '')) && !/\b(colorbond|metal|iron|steel|new|tiled?|tiles)\b/i.test(String(text || '')) && !/\bbuilt (?:in )?(?:200[4-9]|20[1-9]\d)\b/i.test(String(text || ''))) || /\b(replac|remov|chang|upgrad)\w* (?:a |the )?(?:old |existing |residential )?(?:main )?(?:switchboards?|meter (?:box|board|panel)s?)\b/i.test(String(text || '')) || (/\b(strip[- ]?outs?|demolish\w*|demolition)\b/i.test(String(text || '')) && !/\b(temporary|formwork|falsework|scaffold\w*)\b/i.test(String(text || '')) && !/\bbuilt (?:in )?(?:200[4-9]|20[1-9]\d)\b/i.test(String(text || ''))) || DISTURB.test(String(text || '')) && (ASBESTOS_MATERIAL.test(withoutNewMaterial(text)) || (OLDER_BUILDING.test(String(text || '')) && /\b(walls?|ceilings?|floors?|eaves|roofs?|bathroom|kitchen|laundry|sheets?|linings?)\b/i.test(String(text || ''))));
 const CLEANING = /\b(builders'? clean|final clean|cleaning|cleaners?|clean (?:a |the )?(?:building )?site|clean\w* [^.]{0,30}practical completion)\b/i;
 
 // Waterproofing membranes.
@@ -1312,12 +1312,12 @@ const MAIN_WORK = [
   [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer)/i],
   [/\bpergolas?\b/i, 'pergola work', /\bpergola\b/i],
   [/\bline marking\b/i, 'line marking', /\bline marking\b/i],
-  [/\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbatter(?:y|ies)\b[^.]{0,30}\b(?:solar|garage wall|house wall)\b/i, 'battery storage installation', /\bbattery storage\b/i],
+  [/\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbatter(?:y|ies)\b[^.]{0,30}\b(?:solar|garage wall|house wall)\b/i, 'battery storage installation', /\bbattery\b/i],
   [/\bmeter (?:box|board|panel)s?\b/i, 'meter box installation', /\bmeter box\b/i],
   [/\broof battens?\b|\bbattens?\b[^.]{0,20}\broofs?\b/i, 'roof batten installation', /\bbatten/i],
-  [/\b(?:carports?|sheds?|awnings?|pergolas?|verandahs?)\b[^.]{0,30}\b(?:frame )?(?:and|with) (?:the |a )?roof\b|\bframe and roof\b/i, 'roof sheeting on the new structure', /\bFix new roofing\b/],
+  [/\b(?:carports?|sheds?|awnings?|pergolas?|verandahs?)\b[^.]{0,30}\b(?:frame )?(?:and|with) (?:the |a )?roof\b|\bframe and roof\b/i, 'roof sheeting on the new structure', /\b(Fix new roofing|frame and roof)\b/],
   [/\b(?:excavat|dig)\w*\b[^.]{0,30}\b(?:swimming )?pools?\b/i, 'pool excavation', /\bBulk excavate\b/],
-  [/\bgarden taps?\b|\b(?:pipe|tap)s?\b[^.]{0,20}\b(?:in|across|under) (?:a |the )?(?:backyard|yard|garden|lawn)\b/i, 'laying pipe in the ground', /\b(Lay pipes|Excavate)\b/],
+  [/\bgarden taps?\b|\b(?:pipe|tap)s?\b[^.]{0,20}\b(?:in|across|under) (?:a |the )?(?:backyard|yard|garden|lawn)\b/i, 'laying pipe in the ground', /\b(Lay pipes|Excavate|shallow trench)\b/],
   [/\bre-?til\w*\b/i, 'removing the old tiles', /\bStrip out the room\b/],
   [/\b(?:membranes?|waterproof\w*|tanking)\b[^.]{0,60}\b(?:before backfill\w*|outside (?:face )?(?:of )?(?:the )?basement walls?|external face|back of (?:the )?retaining walls?)\b/i, 'membrane work inside an excavation', /\bWork in the trench\b/],
   [/\b(?:replac|chang|clean)\w* [^.]{0,20}\bfilters?\b/i, 'filter replacement', /\bfilters?\b/i],
@@ -1326,7 +1326,7 @@ const MAIN_WORK = [
   [/^(?![^]*\b(?:plasterboard|gyprock|drywall|sheets?)\b)[^]*\b(?:suspended grid ceilings?|grid ceilings?|ceiling grids?|ceiling tiles?)\b/i, 'suspended grid ceiling installation', /\bgrid\b/i],
   [/\bremov\w*\b[^.]{0,30}\b(?:concrete |old |underground )*(?:water |fuel |septic )?tanks?\b/i, 'tank removal', /\bRemove the tank\b/],
   [/\b(sand\w* and (?:polish|coat|seal)\w*|floor sand\w*)\b/i, 'floor sanding and coating', /\b(floor sanding|Sand and coat)\b/i],
-  [/\b(?:install|erect|assembl|build)\w*\s+(?:an? |the )?(?:new )?(?:(?:garden|kit|colorbond|steel|metal)\s+)+sheds?\b/i, 'shed kit assembly', /\bshed kit\b/i],
+  [/\b(?:install|erect|assembl|build)\w*\s+(?:an? |the )?(?:new )?(?:(?:garden|kit|colorbond|steel|metal)\s+)+sheds?\b/i, 'shed kit assembly', /\b(shed kit|shed frame)\b/i],
   [/\bbollards?\b/i, 'bollard installation', /\bbollards?\b/i],
   [/\bexhaust fans?\b[^.]{0,40}\b(?:ceilings?|roof spaces?)\b|\b(?:ceilings?|roof spaces?)\b[^.]{0,40}\bexhaust fans?\b/i, 'exhaust fan work in a ceiling', /\bWork in the roof space\b/],
   [/\bremov\w*\b[^.]{0,30}\b(?:split systems?|air ?condition\w*)/i, 'removing the units', /\b(Receive plant|Install ductwork, pipework and units)\b/],
@@ -1339,13 +1339,13 @@ const MAIN_WORK = [
   [/\b(?:replac|fix|repair|re-?bed|repoint|lay|install)\w*\b[^.]{0,30}\b(?:roof tiles?|tiled roofs?|ridge caps?)\b/i, 'tiled roof work', /\btiled roof\b/i],
   [/\b(ev|electric vehicle|car) chargers?\b/i, 'EV charger installation', /\b(Rough-in and fit-off|Test, connect and commission)\b/],
   [/\b(?:lay|install|run)\w*\b[^.]{0,30}\b(?:drainage|drain|sewer|stormwater) (?:lines?|pipes?|pipework)\b/i, 'laying the drainage line', /\b(Lay pipes|Excavate)\b/],
-  [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(gutters?|downpipes?)\b/i, 'gutter and downpipe installation', /\b(gutter|roofing)\b/i],
+  [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(gutters?|downpipes?)\b/i, 'gutter and downpipe installation', /\b(gutters?|roofing)\b/i],
   [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(skylights?|roof windows?)\b/i, 'skylight installation', /\bskylight\b/i],
 ];
 
 // Work with a hazard of its own that no library step covers. Picking near steps does
 // not cover it, so these stay stood down until the library has steps for them.
-const HARD_MAIN_WORK = new Set(['solar panel and inverter installation', 'gas fitting', 'hydro-demolition', 'pool shell and sprayed concrete work', 'floor coating', 'membrane work inside an excavation', 'battery storage installation', 'meter box installation', 'roof batten installation']);
+const HARD_MAIN_WORK = new Set(['hydro-demolition', 'pool shell and sprayed concrete work', 'membrane work inside an excavation']);
 
 // Steps that get people and materials to the work, rather than doing it.
 const SUPPORT_STEPS = new Set(['Before starting', 'Finish and clean up', 'Set up traffic management', 'Plan the work near overhead power lines', 'Get onto the roof and set up fall protection', 'Lift equipment and materials to the roof', 'Work with the crane crew during lifts', 'Set up the crane', 'Rig and lift the load', 'Land and release the load', 'Use an elevating work platform', 'Drill or cut concrete, masonry or stone', 'Use power tools', 'Move materials into place', 'Separate plant and people on site', 'Operate skid steers and small plant', 'Reach high walls and ceilings', 'Operate forklifts', 'Work in the roof space', 'Check for asbestos before starting', 'Operate the hoist', 'Load out floors and use loading platforms']);
@@ -1479,11 +1479,13 @@ function prepareDraft(input) {
   // No job steps for this kind of work: stood down, not issued with generic text.
   const added = state.kinds ? state.kinds.filter((id) => !suggestedKinds(task, facts, { ...state, kinds: null }).includes(id)) : null;
   const mainMissing = missingMainWork(task, draft.jobSteps || [], added);
-  if ((draft.jobSteps || []).some((step) => step.fallback) || mainMissing) {
+  // Picks that leave no step of the user's own (only the required ones) are no picks at all.
+  const nothingPicked = Boolean(state.kinds) && !state.kinds.length;
+  if ((draft.jobSteps || []).some((step) => step.fallback) || mainMissing || nothingPicked) {
     return {
       kind: 'stand-down',
       ...header,
-      missing: [mainMissing && !(draft.jobSteps || []).some((step) => step.fallback) ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Pick the job steps that cover the work under Job steps, describe the work in more detail, or write this SWMS yourself.` : NO_STEPS],
+      missing: [!nothingPicked && mainMissing && !(draft.jobSteps || []).some((step) => step.fallback) ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Pick the job steps that cover the work under Job steps, describe the work in more detail, or write this SWMS yourself.` : NO_STEPS],
       statement: 'This task is stood down. It does not start.',
       method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
     };
@@ -1892,7 +1894,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     fitOff: (/\b(rough[- ]in|fit[- ]off|rewir\w*|run\w* (?:new )?cables?)\b/i.test(task) || /\b(?:install\w*|replac\w*|add\w*)\b[^.]{0,40}\b(?:led lighting|lighting|light fittings?|lights|downlights?|floodlights?|ceiling fans?|smoke alarms?|(?:ev |car )?chargers?|power (?:points?|circuits?|outlets?)|gpos?|switch(?:es)?|circuits?|outlets?)\b/i.test(task)) && ELECTRICAL_CORE.test(task),
     // Isolation steps for any work on the installation; commissioning only for the
     // permanent main switchboard and consumer mains, not construction power.
-    isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || ((/\b(rough[- ]in|fit[- ]off)\b/i.test(task) || /\b(?:install\w*|replac\w*|add\w*)\b[^.]{0,40}\b(?:led lighting|lighting|light fittings?|lights|downlights?|floodlights?|ceiling fans?|smoke alarms?|(?:ev |car )?chargers?|power (?:points?|circuits?|outlets?)|gpos?|switch(?:es)?|circuits?|outlets?)\b/i.test(task)) && ELECTRICAL_CORE.test(task)),
+    isolation: SWITCHBOARD_WORK.test(task) || TEMP_POWER.test(task) || /\b(solar (?:panels?|pv|arrays?)|inverters?|meter (?:box|board|panel)s?|(?:home |house |solar |storage )batter(?:y|ies))\b/i.test(task) || ((/\b(rough[- ]in|fit[- ]off)\b/i.test(task) || /\b(?:install\w*|replac\w*|add\w*)\b[^.]{0,40}\b(?:led lighting|lighting|light fittings?|lights|downlights?|floodlights?|ceiling fans?|smoke alarms?|(?:ev |car )?chargers?|power (?:points?|circuits?|outlets?)|gpos?|switch(?:es)?|circuits?|outlets?)\b/i.test(task)) && ELECTRICAL_CORE.test(task)),
     commissioning: /\b(main switchboards?|consumer mains|commission\w*|install\w* (?:a |the )?(?:new )?switchboards?)\b/i.test(task) && ELECTRICAL_CORE.test(task) && !TEMP_POWER.test(task),
     deck: deckLaying(task),
     ewp: /\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(combinedFacts(task, facts)),
@@ -1901,6 +1903,23 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     asbestosCheck: asbestosLikely(task) && !/\basbestos\b/i.test(task),
     stripOut: /\b(strip\w* out|rip\w* out|strip\w* (?:the )?(?:old )?(?:bathroom|kitchen|laundry|room|ensuite|tiles?)|demolish\w* (?:the )?(?:bathroom|kitchen|laundry|walls?|tiles?)|remov\w* (?:the )?(?:\w+ )?(?:wall and floor tiles|floor tiles|wall tiles|vanit\w*|old cabinets?))\b/i.test(task) && !BULK_EXCAVATION.test(task) && !FORMWORK.test(task),
     deckBuild: /\b(timber decks?|decking boards?|pergolas?|verandahs?|patios?|(?:back|front|outdoor|house|garden|pool) decks?|decks? (?:at|on|for) (?:the )?(?:back|front) of (?:a|the) (?:house|home))\b/i.test(task) && /\b(build\w*|construct\w*|install\w*|erect\w*|frame\w*)\b/i.test(task),
+    // Everyday residential and small works.
+    solarPV: /\b(solar (?:panels?|pv|arrays?|power systems?)|pv (?:panels?|arrays?|systems?)|photovoltaic|inverters?)\b/i.test(task) && !/\bsolar hot water\b/i.test(task) && !/\bclean\w*\b/i.test(task),
+    batteryStorage: /\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbattery (?:storage|systems?)\b|\bbatter(?:y|ies)\b[^.]{0,30}\b(?:solar|garage wall|house wall)\b/i.test(task),
+    meterBox: /\bmeter (?:box|board|panel)s?\b/i.test(task),
+    gasFitting: /\b(gas (?:hot water|appliances?|heaters?|cooktops?|connections?|fitting|lines?|bayonets?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas (?:lines?|supply|mains?))\b/i.test(task),
+    floorCoating: /\b(epoxy|polyurethane (?:floor|coat\w*)|floor coatings?|anti-slip coatings?)\b/i.test(task) && /\b(floors?|slabs?|garages?|warehouse)\b/i.test(task),
+    roofBattens: /\broof battens?\b|\bbattens?\b[^.]{0,20}\b(?:roofs?|trusses)\b/i.test(task),
+    gutters: /\b(?:install\w*|replac\w*|fit\w*|fix\w*|repair\w*)\b[^.]{0,30}\b(gutters?|downpipes?|fascias?|soffits?|eaves linings?|gutter guards?)\b/i.test(task) && !/\bbox gutters?\b/i.test(task),
+    skylight: /\b(?:install\w*|replac\w*|fit\w*|cut\w* in)\b[^.]{0,30}\b(skylights?|roof windows?|solar tubes?|sky ?tubes?)\b/i.test(task),
+    rainwaterTank: /\b(?:install\w*|replac\w*|connect\w*)\b[^.]{0,40}\b(rainwater tanks?|water tanks?|tank pumps?)\b/i.test(task) && !/\b(remov\w*|septic)\b/i.test(task),
+    retainingWall: /\bretaining walls?\b/i.test(task) && /\b(build\w*|construct\w*|install\w*|replac\w*|erect\w*)\b/i.test(task),
+    kitStructure: /\b(?:build\w*|erect\w*|install\w*|construct\w*|assembl\w*)\b[^.]{0,40}\b(pergolas?|carports?|(?:garden|kit|colorbond|steel|metal) sheds?|patio roofs?|verandahs?|awnings?|shade structures?)\b/i.test(task) && !/\bsite sheds?\b/i.test(task),
+    tiledRoof: /\b(roof tiles?|tiled roofs?|terracotta tiles?|ridge capp\w* on (?:a )?tiled|re-?point\w* (?:the )?ridge|re-?bed\w* (?:the )?ridge)\b/i.test(task) && !/\b(remove the (?:\w+ )?roof tiles and replace)\b/i.test(task),
+    pressureClean: /\b(pressure clean\w*|pressure wash\w*|high[- ]pressure (?:clean|wash)\w*|water blast\w*|re-?seal\w* (?:a |the )?(?:concrete|driveway|pavers|deck|floor)|seal\w* (?:a |the )?(?:concrete|driveway|pavers|deck)|wash\w* and seal\w*)\b/i.test(task),
+    lineMarking: /\b(line marking|line-marking|linemarking|line mark\w*)\b/i.test(task),
+    bollards: /\b(bollards?|wheel stops?|speed (?:humps?|bumps?)|car stops?)\b/i.test(task),
+    shallowTrench: (/\b(garden taps?|irrigation|garden lights?|landscape lighting)\b/i.test(task) || /\b(?:dig|trench\w*)\b[^.]{0,40}\b(?:by hand|shallow|[1-9]\d{2} mm)\b/i.test(task)) && /\b(trench\w*|dig\w*|pipes?|cables?|lay\w*)\b/i.test(task) && !/\b(excavators?|sewer\w*|stormwater|conduits?|deep trench\w*|[2-9](?:\.\d+)? ?m deep|1\.[5-9]\d* ?m deep)\b/i.test(task),
     // Insulating the ceiling of an existing house is done from the roof space.
     roofSpace: /\b(roof spaces?|roof cavit\w*|attics?)\b/i.test(task) || (/\bceiling spaces?\b/i.test(task) && /\b(house|home|dwelling)\b/i.test(task)) || (/\b(insulation|batts)\b/i.test(task) && /\bceilings?\b/i.test(task) && /\bexisting\b/i.test(task) && /\b(house|home|dwelling)\b/i.test(task)),
     houseFraming: /\b(wall frames?|roof trusses?|stand\w* (?:the )?frames?|frame\w* (?:a|the) (?:new )?house)\b/i.test(task) && /\b(house|home|timber|dwelling|townhouses?|duplex)\b/i.test(task) && !STEEL_WORK.test(task),

@@ -3761,6 +3761,288 @@ function expand(control, factText, cite = 'qld') {
   return control.otherwise ? [control.otherwise] : [];
 }
 
+// Residential and small works the trades do every day, added so the step picker and
+// the task's words have job steps for them. Isolation, roof access, fall controls and
+// silica come from the steps those kinds of work already have.
+ACTIVITIES.push(
+  {
+    when: 'solarPV',
+    steps: [
+      {
+        step: 'Install solar panels and mounting rails on the roof',
+        hazards: ['A fall from the roof edge or through a skylight or fragile sheet.', 'Panels catch the wind and pull a worker off balance or blow off the roof.', 'Strain carrying panels on the roof.', 'Panels, rails or tools fall onto people below.'],
+        controls: [
+          { fact: 'fallControl' },
+          'Panels go up by a materials hoist, panel lifter, ladder lift or crane, not carried up a ladder.',
+          'Panels are not handled on the roof in strong or gusty wind, and each panel is clamped as soon as it is placed.',
+          'Rails are fixed into the rafters or purlins to the racking supplier\'s instructions, and roof penetrations are sealed.',
+          'Below the work, the area is fenced off and no one stands under the roof edge while panels and rails are moved.',
+        ],
+      },
+      {
+        step: 'Connect the solar array and inverter',
+        hazards: ['Electric shock from the array: panels make DC voltage whenever light falls on them, and cannot be switched off at the panel.', 'A DC arc and burns when connectors are pulled apart under load.', 'Electric shock from the AC supply at the switchboard.'],
+        controls: [
+          'Electrical work is done only by a licensed electrical worker.',
+          'Array conductors are treated as live in daylight. Connectors stay apart until the final connection, panels are covered with an opaque cover where their conductors must be worked on, and DC connectors are never pulled apart under load: the DC isolator is opened first.',
+          'The array, inverter and isolators are installed to AS/NZS 5033, AS/NZS 4777.1 and the manufacturers\' instructions, with the required signs fitted.',
+          'The system is tested before it is connected, and is not connected to the grid until the distribution entity has approved the connection.',
+        ],
+      },
+    ],
+    ppe: ['gloveInsulated', 'sunHat', 'sunscreen'],
+  },
+  {
+    when: 'batteryStorage',
+    steps: [{
+      step: 'Install the battery system',
+      hazards: ['Electric shock and arc flash: a battery stays energised and cannot be switched off inside.', 'Fire from a damaged or wrongly installed lithium battery.', 'Strain lifting heavy battery modules onto a wall or stand.'],
+      controls: [
+        'Electrical work is done only by a licensed electrical worker.',
+        'The battery is installed to AS/NZS 5139 and the manufacturer\'s instructions, including where it may and may not go, its clearances and its fire protection.',
+        'Battery terminals stay covered and the battery isolator open until the final connection. Only insulated tools are used at the terminals.',
+        'Modules are lifted with a team lift or a lifting aid, within the manufacturer\'s weights, onto a wall or stand checked for the load.',
+        'A module that has been dropped, is damaged or is swollen is not installed. It is moved outside, away from buildings, and handled as the supplier directs.',
+        'A fire extinguisher suited to electrical fires is at hand.',
+      ],
+    }],
+    ppe: ['gloveInsulated'],
+  },
+  {
+    when: 'meterBox',
+    steps: [{
+      step: 'Replace the meter box and consumer mains connection',
+      hazards: ['Electric shock and arc flash: the consumer mains and service fuse stay live until the distribution entity disconnects them.', 'Asbestos in an older meter panel.', 'A fall from a ladder at the meter box.'],
+      controls: [
+        'Electrical work is done only by a licensed electrical worker.',
+        'The supply is disconnected at the service fuse or pole by the distribution entity or a person it authorises, and the mains are tested de-energised before work.',
+        'Meters are removed, moved or refitted only by the distribution entity or a person it authorises.',
+        src('The consumer mains and main switchboard are not connected for the first time until the distribution entity has examined them, confirmed there are no serious defects and tested them.', ESR('s 217, s 218')),
+        src('Give the distribution entity the notice of test, and issue the certificate of testing and safety.', ESR('s 208, s 228')),
+        src('Single or extension ladders are used only for access, or for light work below 2 m that can be done with one hand, at 70 to 80 degrees. Ladders are industrial and rated for at least 120 kg.', WHS('s 306K, s 306L, s 306M')),
+      ],
+    }],
+    ppe: ['gloveInsulated', 'arcRated'],
+  },
+  {
+    when: 'gasFitting',
+    steps: [
+      {
+        step: 'Isolate the gas and disconnect the old appliance',
+        hazards: ['Fire or explosion from escaping gas.', 'Strain moving the old appliance.'],
+        controls: [
+          'Gas work is done only by a person holding a gas work licence for that work (Petroleum and Gas (Production and Safety) Act 2004 (Qld)).',
+          'The gas is turned off at the meter or cylinder and the line is capped as soon as it is disconnected. No smoking, flames or sparks near the work.',
+          'Heavy appliances are moved by two people or with a trolley.',
+        ],
+      },
+      {
+        step: 'Connect, leak test and commission the gas appliance',
+        hazards: ['Fire or explosion from a leaking joint.', 'Carbon monoxide from a blocked flue or poor ventilation.', 'Burns from hot pipes, flues and appliances.'],
+        controls: [
+          'Joints are leak tested after connection with a pressure test and leak detection fluid or a gas detector, never with a flame.',
+          'The appliance is commissioned to the manufacturer\'s instructions, including the gas pressure, the flue, combustion air and a check that combustion products do not spill into the room.',
+          'Hot water heaters are set so the water delivered to bathrooms is no hotter than the plumbing rules allow, with a tempering valve where needed.',
+        ],
+      },
+    ],
+    ppe: ['gloveGeneral'],
+  },
+  {
+    when: 'floorCoating',
+    steps: [{
+      step: 'Apply epoxy or polyurethane floor coatings',
+      hazards: ['Skin and lung sensitisation from epoxy resins and isocyanates.', 'Fire from solvent vapour in an enclosed room or garage.', 'Slips on wet or freshly coated floors.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        src('Ventilate when using solvent sealers, especially in small or enclosed rooms, and keep ignition sources away.', `${WHS('s 351, s 355')}; ${QCODE('Managing risks of hazardous chemicals', 's 4.1, s 4.2')}`),
+        'Wear the gloves, eye protection and respirator the safety data sheet lists. Skin that touches resin is washed straight away; once a worker is sensitised, any later contact can cause a reaction.',
+        src('If the safety data sheet lists isocyanates, workers who use the product as ongoing work have health monitoring supervised by a registered medical practitioner.', WHS('s 368, s 371, schedule 14')),
+        'The coated area is closed off with signs until it has cured enough to walk on.',
+      ],
+    }],
+    ppe: ['gloveChemical', 'halfFace', 'goggles', 'kneePads'],
+  },
+  {
+    when: 'roofBattens',
+    steps: [{
+      step: 'Fix roof battens to the trusses',
+      hazards: ['A fall from the roof edge.', 'A fall through the open truss frame.', 'Nail gun injuries.', 'Trusses collapse if they are not braced.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Edge protection or a perimeter scaffold is in place before work on the roof frame starts.',
+        'Trusses are braced to the truss supplier\'s layout, temporary bracing included, before battens go on.',
+        'Where a person could fall through the truss frame, a safety net or fall arrest system is used, or battens are fixed working up from the eaves so there is a fixed batten to stand on. No one walks on unsupported top chords.',
+        'Nail guns are used with the single shot (sequential) trigger, never carried with a finger on the trigger, and disconnected before clearing a jam.',
+        'Battens are lifted to the roof in bundles by a hoist or crane, or passed up from a scaffold, not carried up a ladder.',
+      ],
+    }],
+    ppe: ['harness', 'earPlugs'],
+  },
+  {
+    when: 'gutters',
+    steps: [{
+      step: 'Install gutters, fascia, downpipes and eaves linings',
+      hazards: ['A fall from the eaves edge or a ladder.', 'Cuts from sheet metal edges.', 'Metal gutters or ladders touching the overhead service line to the house.', 'Strain handling long lengths.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Work at the eaves is done from a scaffold, mobile scaffold or EWP.',
+        src('Single or extension ladders are used only for access, or for light work below 2 m that can be done with one hand, at 70 to 80 degrees. Ladders are industrial and rated for at least 120 kg.', WHS('s 306K, s 306L, s 306M')),
+        'Before work, find the overhead service line to the house. Keep ladders and long metal lengths well clear of it, and ask the distribution entity to cover or disconnect it where the work is close.',
+        'Cut-resistant gloves are worn for sheet metal, and cut edges are deburred.',
+        'Long lengths are carried by two people.',
+      ],
+    }],
+    ppe: ['gloveCut', 'sunHat', 'sunscreen'],
+  },
+  {
+    when: 'skylight',
+    steps: [{
+      step: 'Cut in and install the skylight',
+      hazards: ['A fall through the roof opening while the skylight is out.', 'A fall from the roof edge.', 'Live cables and heat in the roof space.', 'Sparks and sharp edges when cutting roof sheet.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('The opening is covered as soon as it is cut, with a cover strong enough to take anyone who could fall onto it, securely fixed so it cannot be moved or removed by accident, and marked as covering a hole.', WHS('s 306F')),
+        'Roof sheet is cut with nibblers or snips where possible, not a grinder, to avoid sparks and hot swarf.',
+        'In the roof space, cables are treated as live, workers stand only on joists or crawl boards, and roof space work is kept short in hot weather.',
+        'An older roof is checked for asbestos cement before it is cut.',
+      ],
+    }],
+    ppe: ['gloveCut'],
+  },
+  {
+    when: 'rainwaterTank',
+    steps: [{
+      step: 'Install the rainwater tank and pump',
+      hazards: ['Strain or crushing moving a large tank.', 'An empty tank blown over by wind.', 'Striking services when digging the base or pipes.', 'Electric shock from the pump connection.', 'A tank entered by a worker is a confined space.'],
+      controls: [
+        'The tank sits on a base built to the tank supplier\'s specification.',
+        'Empty tanks are moved by enough people or with a lifting aid, and tied down when wind is forecast.',
+        src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
+        'Get service plans, for example through Before You Dig Australia, and locate services on site before digging.',
+        'The pump is plugged into an existing RCD-protected outlet, or its supply is installed by a licensed electrician.',
+        'Where the tank is connected to the drinking water supply, a licensed plumber fits the backflow prevention the plumbing rules require.',
+        'No one enters the tank. Work inside a tank is confined space work under its own permit and SWMS.',
+      ],
+    }],
+  },
+  {
+    when: 'retainingWall',
+    steps: [{
+      step: 'Build the retaining wall',
+      hazards: ['The cut face behind the wall collapses onto a worker.', 'The wall fails if it is built higher or loaded more than it was designed for.', 'Striking services when digging.', 'Strain handling sleepers, posts and blocks.', 'Dust from cutting treated timber or blocks.'],
+      controls: [
+        'A wall over 1 m high, or with a load near the top such as a driveway, building or sloping ground, is built to an engineer\'s design and any building approval it needs.',
+        src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
+        'The cut face is battered back or benched, or excavated in short lengths. No one works between an unsupported cut face and the wall where the face could fall on them.',
+        'Drainage and backfill are placed as the design shows, and backfill is compacted in layers.',
+        'Sleepers, posts and blocks are team lifted or moved by machine.',
+        'Treated timber is cut outside with dust extraction or a P2 respirator, and hands are washed before eating.',
+      ],
+    }],
+    ppe: ['p2', 'gloveGeneral'],
+  },
+  {
+    when: 'kitStructure',
+    steps: [{
+      step: 'Erect the pergola, carport or shed frame and roof',
+      hazards: ['The frame collapses before it is braced.', 'A fall from the frame or roof.', 'Roof sheets caught by the wind.', 'Striking services when digging footings.'],
+      controls: [
+        { fact: 'fallControl' },
+        src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
+        'Footings are dug and poured to the kit supplier\'s or engineer\'s details. Open holes are covered or fenced.',
+        'Posts are stood, plumbed and braced, and the frame is braced to the kit instructions before roof sheets go on.',
+        'Where the structure is fixed to the house, the fascia, wall or slab is checked as able to take the load, to the supplier\'s or engineer\'s details.',
+        'Roof sheets are fixed from a scaffold, platform or EWP, and not handled in strong wind.',
+      ],
+    }],
+    ppe: ['gloveCut', 'sunHat', 'sunscreen'],
+  },
+  {
+    when: 'tiledRoof',
+    steps: [{
+      step: 'Work on a tiled roof',
+      hazards: ['Tiles break underfoot and a worker falls through or slides.', 'A fall from the roof edge.', 'Tiles fall onto people below.', 'Silica dust from cutting concrete or terracotta tiles.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Walk only on the lower part of each tile, over the batten, or on roof ladders or boards that spread the load. Wet, mossy or broken tiles are not walked on.',
+        'Tiles stacked on the roof are spread along the battens so they cannot slide, and the area below is fenced off.',
+        src('Drill with on-tool extraction. Anyone still at risk of exposure wears a fit tested respirator (P2 or better).', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`),
+        'Tiles are cut with a wet saw or a saw with on-tool extraction, never dry.',
+      ],
+    }],
+    ppe: ['p2', 'sunHat', 'sunscreen'],
+  },
+  {
+    when: 'pressureClean',
+    steps: [
+      {
+        step: 'Pressure clean surfaces',
+        hazards: ['Injection injury from the high-pressure jet.', 'Slips on wet surfaces.', 'Electric shock where water meets leads and connections.', 'Run-off of dirty water into stormwater drains.'],
+        controls: [
+          'The lance is never pointed at anyone, the trigger lock is on whenever the operator is not spraying, and the operator is trained in the machine. An injection injury is a medical emergency, even if it looks minor.',
+          'Electric machines and leads are on an RCD, and plugs and connections are kept out of the water.',
+          'Wastewater is kept out of stormwater drains: bunded, collected and disposed of as the local council requires.',
+          'The work area is closed to the public, and wet surfaces are signed.',
+        ],
+      },
+      {
+        step: 'Apply sealers to concrete, pavers or timber',
+        hazards: ['Fire from solvent vapour.', 'Breathing sealer vapour.', 'Slips on wet sealer.'],
+        controls: [
+          { fact: 'safetyDataSheet' },
+          src('Ventilate when using solvent sealers, especially in small or enclosed rooms, and keep ignition sources away.', `${WHS('s 351, s 355')}; ${QCODE('Managing risks of hazardous chemicals', 's 4.1, s 4.2')}`),
+          'The area stays closed until the sealer is dry.',
+        ],
+      },
+    ],
+    ppe: ['goggles', 'earPlugs', 'gumboots'],
+  },
+  {
+    when: 'lineMarking',
+    steps: [{
+      step: 'Paint line marking',
+      hazards: ['Struck by vehicles or forklifts.', 'Breathing paint vapour.', 'Strain from bending and kneeling.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        'The area is closed to vehicles and plant with barriers, cones and signs. On a road in use, a traffic management plan is followed and traffic controllers are used where it requires them.',
+        'In a working warehouse or car park, the area is separated from forklifts and vehicles with physical barriers agreed with the site, not just paint or tape.',
+        'Line marking machines are used with their guards in place, and kept clear of others while running.',
+      ],
+    }],
+    ppe: ['hivis', 'kneePads'],
+  },
+  {
+    when: 'bollards',
+    steps: [{
+      step: 'Install bollards, wheel stops and speed humps',
+      hazards: ['Struck by vehicles while working in a car park or driveway.', 'Strain lifting heavy bollards and stops.', 'Striking buried or embedded services when drilling or digging.'],
+      controls: [
+        'The work area is closed to vehicles with barriers, cones and signs before work starts.',
+        src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
+        'Before drilling a slab, the area is scanned for conduits, pipes and reinforcement.',
+        'Heavy bollards and concrete stops are lifted with a team lift, a trolley or plant.',
+      ],
+    }],
+    ppe: ['hivis'],
+  },
+  {
+    when: 'shallowTrench',
+    steps: [{
+      step: 'Dig a shallow trench and lay pipe or cable',
+      hazards: ['Striking buried services.', 'Entanglement in a trencher.', 'People tripping into the open trench.', 'Strain from hand digging.'],
+      controls: [
+        src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
+        'Get service plans, for example through Before You Dig Australia, and locate services on site before digging.',
+        'The trench stays shallower than 1.5 m. If it needs to go deeper, work stops and the SWMS is reviewed.',
+        'A trencher is used only by a trained operator, with its guards in place and no one near the chain. The engine is stopped before anything is cleared from it.',
+        'The open trench is fenced or covered when no one is working at it.',
+        'Connections to the water or electricity supply are made by a licensed plumber or electrician.',
+      ],
+    }],
+  },
+);
+
 // Steps for the kinds of work found, between the opening and closing steps.
 // `flags` names the kinds of work found; `factText` returns the user's text for a fact.
 // Work the library does not know uses `fallback`, a step built from the task.

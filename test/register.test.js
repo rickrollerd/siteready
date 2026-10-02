@@ -100,8 +100,7 @@ test('round 2 review: service strikes and formwork failure are catastrophic, sil
 
 test('a task whose main work has no steps is stood down, not drafted with only access or lifting steps', () => {
   const stood = (task, trade = '') => prepareDraft({ state: 'qld', fallRisk: 'yes', trade, task, facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
-  assert.equal(stood('Install solar panels and an inverter on a single storey house roof.').kind, 'stand-down');
-  assert.equal(stood('Install a gas hot water system and connect it to the existing gas line.', 'plumbing').kind, 'stand-down');
+  assert.equal(stood('Remove the old water heater and install new pool shell lining with sprayed concrete.').kind, 'stand-down');
   assert.equal(stood('Hydro-demolition and concrete repair of a balcony slab soffit from a mobile scaffold.').kind, 'stand-down');
 });
 
@@ -126,7 +125,7 @@ test('picked job steps replace the ones found, but required steps stay and bring
   // Only access steps picked: still stood down.
   assert.equal(prepareDraft({ state: 'qld', fallRisk: 'yes', task, kinds: ['roofAccess'], facts: fall }).kind, 'stand-down');
   // Work with its own hazard and no library steps stays stood down whatever is picked.
-  assert.equal(prepareDraft({ state: 'qld', fallRisk: 'yes', task: 'Install solar panels and an inverter on a house roof.', kinds, facts: { ...fall, isolationProcedure: 'Isolated and tested.', energisedWork: 'none' } }).kind, 'stand-down');
+  assert.equal(prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Hydro-demolition of a balcony slab soffit.', kinds: ['demolition', 'propping'], facts: { temporarySupport: 'Propped to the engineer\'s design PD-1.' } }).kind, 'stand-down');
   // Asbestos removal cannot be unticked, and comes first.
   const asbestos = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Remove asbestos cement sheets from a bathroom.', kinds: ['tileLay'], facts: { asbestosArrangement: 'A licensed removalist removes them under a control plan.' } });
   assert.equal(asbestos.jobSteps[1].step, 'Prepare the asbestos work area');
@@ -153,4 +152,26 @@ test('scope tasks carry the job steps to tick', () => {
   assert.ok(found.tasks.length);
   assert.ok(found.tasks.every((task) => Array.isArray(task.kinds)));
   assert.ok(found.tasks.some((task) => task.kinds.length));
+});
+
+test('library coverage: everyday jobs get their own job steps', () => {
+  const fall = { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' };
+  const steps = (task, extra = {}) => {
+    const draft = prepareDraft({ state: 'qld', fallRisk: 'yes', task, facts: { ...fall, isolationProcedure: 'Isolated at the main switch, locked, tagged and tested de-energised by the licensed electrician.', energisedWork: 'none', safetyDataSheet: 'Epoxy SDS, revision 3.', asbestosArrangement: 'The asbestos register was checked: no asbestos. A licensed removalist is called if any is found.' }, ...extra });
+    return draft.kind === 'draft' ? draft.jobSteps.map((step) => step.step) : draft.missing;
+  };
+  assert.ok(steps('Install solar panels and an inverter on a house roof.').includes('Connect the solar array and inverter'));
+  assert.ok(steps('Install a home battery on a garage wall.', { trade: 'electrical' }).includes('Install the battery system'));
+  assert.ok(steps('Install a gas cooktop and connect it to the existing gas supply.', { trade: 'plumbing' }).includes('Connect, leak test and commission the gas appliance'));
+  assert.ok(steps('Seal a concrete garage floor with epoxy.').includes('Apply epoxy or polyurethane floor coatings'));
+  assert.ok(steps('Install roof battens on a new house.').includes('Fix roof battens to the trusses'));
+  assert.ok(steps('Replace gutters and downpipes on a single storey house.').includes('Install gutters, fascia, downpipes and eaves linings'));
+  assert.ok(steps('Install a skylight in a metal roof.').includes('Cut in and install the skylight'));
+  assert.ok(steps('Build a timber retaining wall 600 mm high.').includes('Build the retaining wall'));
+  assert.ok(steps('Build a timber pergola at ground level.').includes('Erect the pergola, carport or shed frame and roof'));
+  assert.ok(steps('Pressure clean and reseal a concrete driveway.').includes('Pressure clean surfaces'));
+  assert.ok(steps('Install bollards in a car park.').includes('Install bollards, wheel stops and speed humps'));
+  // A meter box in an older house asks how asbestos was identified.
+  const { questionsFor } = require('../draft');
+  assert.ok(questionsFor({ state: 'qld', fallRisk: 'no', task: 'Replace the old meter box on a house wall.' }).required.some((item) => item.id === 'asbestosArrangement'));
 });
