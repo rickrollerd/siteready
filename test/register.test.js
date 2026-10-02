@@ -397,3 +397,26 @@ test('task bank round 6: categories and steps that fit the job', () => {
   // Early childhood centres have a lower hot water limit.
   assert.ok(draft('Install a new hot water heat pump at a childcare centre.', 'plumbing').jobSteps.some((step) => step.controls.some((line) => /45 °C in early childhood centres/.test(line))));
 });
+
+test('task bank round 8: small jobs get steps for that job, not a bigger one', () => {
+  const base = { silicaControls: 'Wet cutting and on-tool extraction.', fallControl: 'Edge protection on all open edges.', safetyDataSheet: 'Safety data sheets for each product are at the work area.', spaceAssessment: 'notConfined', asbestosArrangement: 'Asbestos register sighted; none in the work area.', drowningControls: 'No one works alone near the pool.', temporarySupport: 'Props to the engineer\'s design, checked before any member is removed.' };
+  const draft = (task, trade = '', fallRisk = 'no') => prepareDraft({ state: 'nsw', fallRisk, residential: 'yes', trade, task, facts: base });
+  const steps = (...args) => { const d = draft(...args); return d.kind === 'draft' ? d.jobSteps.map((step) => step.step) : d.missing; };
+  const text = (...args) => JSON.stringify(draft(...args).jobSteps);
+  assert.doesNotMatch(text('Lay timber decking around a swimming pool.', 'carpentry'), /tides|work boat/);
+  assert.ok(steps('Lay timber decking around a swimming pool.', 'carpentry').includes('Build the deck frame and lay the decking'));
+  assert.deepEqual(steps('Install a wheelchair lift platform at a library entrance.', 'lifts').filter((step) => /lift|shaft/i.test(step)), ['Install the platform lift']);
+  assert.ok(!steps('Replace a broken stormwater pit lid in a council road.', 'plumbing').includes('Excavate'));
+  assert.ok(steps('Replace a section of rotten timber floor joists under a house.', 'carpentry').includes('Prop the floor and replace joists or bearers'));
+  assert.ok(!steps('Replace a roof turbine vent on a factory roof.', 'roofing', 'yes').includes('Remove old roofing'));
+  assert.doesNotMatch(text('Install new carpet tiles in an office after hours.', 'flooring'), /power stretcher/);
+  assert.doesNotMatch(text('Replace a broken toilet pan in a public toilet block.', 'plumbing'), /Before chasing/);
+  // A line given once is not repeated in a later step.
+  for (const step of draft('Install an air conditioning condenser on a house roof.', 'mechanical', 'yes').jobSteps.slice(1, -1)) {
+    for (const other of draft('Install an air conditioning condenser on a house roof.', 'mechanical', 'yes').jobSteps.slice(1, -1)) {
+      if (step.step !== other.step) assert.ok(!step.controls.some((line) => other.controls.includes(line)));
+    }
+  }
+  const nsw = require('../legislation').STATES.find((state) => state.id === 'nsw');
+  assert.ok(require('../draft').highRiskMatches('Excavate with an excavator.', '', nsw).some((item) => /any movement of powered mobile plant/.test(item.label)));
+});
