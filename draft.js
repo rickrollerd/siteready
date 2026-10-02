@@ -1433,7 +1433,9 @@ function tradeFlags(task, facts, state) {
   const flags = limitToTrades(workFlags(task, facts, state.ownCrane), state.trades, KIND_IDS);
   // A cutting step that is not this trade's work is taken out, so drilling and
   // cutting comes back as the general step.
-  if (SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id])) flags.silicaDrill = true;
+  // Saw cut control joints are covered in the concrete finishing step.
+  const jointsOnly = flags.concrete && /\b(control|contraction|expansion) joints?\b/i.test(task) && !/\b(drill\w*|cor(?:e|ing)|chas\w*)\b/i.test(task);
+  if (SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id]) && !jointsOnly) flags.silicaDrill = true;
   return flags;
 }
 
@@ -1463,10 +1465,10 @@ function slabGroundFlags(task, flags) {
   return {
     // A pour on its own needs only the placing and finishing steps.
     slabGround: only || Boolean(flags.formwork),
-    slabPour: true,
+    slabPour: only,
     ...(only ? { reo: false, concrete: false, sawCut: false, silicaDrill: false } : {}),
     // Saw cutting control joints is part of the slab steps, not cutting openings.
-    ...(/\b(control|contraction|expansion) joints?\b/i.test(task) && !/\b(openings?|demoli\w*|penetrations?|remov\w*)\b/i.test(task) ? { sawCut: false } : {}),
+    ...(/\b(control|contraction|expansion) joints?\b/i.test(task) && !/\b(openings?|demoli\w*|penetrations?|remov\w*)\b/i.test(task) ? { sawCut: false, silicaDrill: false } : {}),
     ...(only && !/\b(trench\w*|pipes?|pipework|stormwater|sewer\w*|conduits?|drain\w*)\b/i.test(task) ? { trench: false } : {}),
     // Edge forms on the ground are part of the slab steps, not deck formwork.
     ...(only ? { formwork: false, propping: false } : {}),
@@ -1750,6 +1752,7 @@ const TASK_ONLY = [
   [/^Where spoil is carted by truck or loader/, /\b(cart\w*|haul\w*|spoil|surplus)\b/i],
   [/^Use a power stretcher instead of a knee kicker/, /^(?![\s\S]*\bdirect[- ]stick)/i],
   [/^Where the truck or pump stands on the road or footpath/, /\b(road|street|footpaths?|verge|traffic|crossovers?|kerbs?)\b/i],
+  [/^On a slab on ground, concrete trucks stand back/, /\b(slabs? on ground|slab-on-ground|ground (?:floor )?slabs?|driveways?|paths?|kerbs?|house slabs?)\b/i],
   [/^Struck by a pump hose or a burst line/, /\b(pump\w*|boom)\b/i],
   [/^Back strain and trips handling pods|^Pod bundles and vapour barrier rolls/, /\b(pods?|waffle|vapou?r barrier|membrane|plastic|sheeting)\b/i],
   [/^Slump tests and test cylinders/, /\b(test\w* (?:all |the )?concrete|slump|cylinders?|concrete test\w*)\b/i],

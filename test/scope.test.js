@@ -190,10 +190,12 @@ test('a civil scope with slabs on ground gives one slab on ground task', () => {
   assert.ok(!read('b-reo-placement.txt').tasks.some((task) => task.id === 'slabGround'));
 });
 
-test('a concreter pouring ground and suspended slabs gets the pour steps for the ground slab, not its preparation', () => {
+test('a concreter pouring ground and suspended slabs gets one set of pour steps, not the ground preparation', () => {
   const { prepareDraft } = require('../draft');
   const draft = prepareDraft({ state: 'qld', fallRisk: 'yes', trade: 'structure', task: 'Pump, place and finish concrete to the ground floor slab on ground and the level 1 suspended slab, and saw cut control joints.', facts: { fallControl: 'Edge protection is installed at every open edge.', loadLimits: 'Loads as marked on the drawings.', silicaControls: 'Saw cutting is done wet.' } });
   const steps = draft.jobSteps.map((step) => step.step);
-  for (const step of ['Pump and place concrete', 'Place concrete', 'Finish, joint and cure']) assert.ok(steps.includes(step), step);
-  for (const step of ['Prepare the ground and set out', 'Saw cut concrete', 'Remove cut sections']) assert.ok(!steps.includes(step), step);
+  // One set of pour steps, with the ground slab and joint cutting lines in them.
+  for (const step of ['Set up the concrete pump and placing boom', 'Pump and place concrete', 'Finish concrete']) assert.ok(steps.includes(step), step);
+  for (const step of ['Prepare the ground and set out', 'Place concrete', 'Saw cut concrete', 'Remove cut sections']) assert.ok(!steps.includes(step), step);
+  assert.ok(draft.jobSteps.flatMap((step) => step.controls).some((line) => /^Where control joints are saw cut/.test(line)));
 });
