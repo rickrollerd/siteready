@@ -3543,6 +3543,77 @@ addAfter('carpJoinery', {
   ppe: ['gloveGeneral', 'glassesClear'],
 });
 
+// Slabs on ground: house and ground floor slabs, driveways, paths, kerbs and pads.
+addAfter('concrete', {
+  when: 'slabGround',
+  steps: [
+    {
+      step: 'Prepare the ground and set out',
+      hazards: ['Striking underground services.', 'Plant strikes a person.', 'An edge beam or footing excavation collapses, or a person falls in.', 'Dust, noise and vibration from compaction.'],
+      controls: [
+        src('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
+        'Excavators, bobcats and rollers are run by competent operators, checked before each shift, with an exclusion zone and a spotter where people work nearby.',
+        src('Edge beam and footing excavations are kept shallow, and battered or benched where the ground needs it. An excavation deeper than 1.5 m is high risk construction work this SWMS does not cover: stop and have the SWMS reviewed before anyone enters it.', WHS('s 291, s 302, s 306')),
+        'Open excavations are barricaded, and people cross only at set crossing points.',
+        'Plate compactors and rollers are used with guards in place, operators are rotated to limit vibration, and hearing protection is worn.',
+        'Dust from fill and the subgrade is kept down with water.',
+      ],
+    },
+    {
+      step: 'Set edge forms, pods and vapour barrier',
+      hazards: ['Impalement on stakes, pegs and starter bars.', 'Cuts and kickback from saws.', 'Nail gun injuries.', 'Back strain from form boards, pods and rolls.', 'Trips over forms, pods and sheeting.'],
+      controls: [
+        'Cap stakes, star pickets and starter bars, or bend them over, as soon as they are in place.',
+        'Cut form boards with a saw that has its guards in place, with the work supported, and wear eye and hearing protection.',
+        'Nail guns are used with the single shot (sequential) trigger, never pointed at anyone, and disconnected before clearing a jam.',
+        'Deliver and stack materials close to where they are used, team lift long boards, and move pod bundles and rolls on trolleys.',
+        'Keep walkways clear, lay boards where people cross pods or sheeting, and weigh down sheeting and pods against wind.',
+      ],
+    },
+    {
+      step: 'Place and tie reo on the ground',
+      hazards: ['Impalement on bars.', 'Cuts and back strain handling mesh and bars.', 'Trips on bar chairs and mesh.', 'Sparks and noise from cutting bars.'],
+      controls: [
+        'Mesh sheets are handled by two people or with a mechanical aid, wearing cut resistant gloves.',
+        'Cap or cover exposed bar ends and starter bars.',
+        'Lay walkways over mesh where people need to cross it.',
+        'Cut bars with a bar cutter, or with a grinder or cut-off saw with its guards in place. Wear eye and hearing protection, and keep sparks clear of other workers and plastic sheeting.',
+        'Rotate tying tasks, and use a tying tool or long-handled tier to limit bending.',
+      ],
+    },
+    {
+      step: 'Place concrete',
+      hazards: ['A reversing concrete truck strikes a person.', 'Contact with overhead power lines.', 'Struck by a swinging chute or a pump hose.', 'Cement burns to the skin and eyes.', 'Back strain from barrowing and screeding.'],
+      controls: [
+        'Concrete trucks reverse only with a spotter, into a marked area kept clear of people, and stand on firm ground back from excavation edges.',
+        'Check for overhead power lines before a truck, pump or boom sets up. Keep plant outside the approach distances, with a spotter where it could come close.',
+        'Keep clear of the chute while it is swung or extended.',
+        'Where a line pump or boom pump is used, check pipes, clamps and the end hose before pumping, keep people clear of the end hose at start-up, and clear blockages only after the pressure is released.',
+        src('Where a concrete placing boom is used, it is registered plant and its operator holds a high risk work licence for a concrete placing boom.', WHS('s 81, schedule 3, schedule 5')),
+        'Where the truck or pump stands on the road or footpath, the traffic management set out for the work is in place and people walking past are kept clear or diverted.',
+        'Wear gumboots and chemical resistant gloves, and wash wet concrete off the skin straight away.',
+        'Barrow loads are kept to what a person can handle, on boarded runs, and barrowing and screeding are rotated.',
+        'Vibrators have their leads checked and tagged and are protected by an RCD.',
+      ],
+    },
+    {
+      step: 'Finish, joint and cure',
+      hazards: ['Power trowel injuries.', 'Carbon monoxide from petrol plant used where exhaust can collect.', 'Silica dust and noise from saw cutting joints.', 'Chemicals in curing compounds and sealers.', 'Knee and back strain finishing edges.'],
+      controls: [
+        'Power trowels have their guards in place and a working stop switch that cuts out when released, and are never left running unattended.',
+        'Petrol trowels, saws and generators run only outdoors or where exhaust cannot collect.',
+        src('Control joints are saw cut wet or with on-tool extraction. Cutting concrete is processing a crystalline silica substance. Anyone still at risk of exposure wears a fit tested P2 respirator.', WHS('s 529B, s 529C')),
+        src('Assess in writing before saw cutting whether the processing is high risk. The assessment does not count PPE, administrative controls, or the dust controls used for the processing, such as wet methods, extraction or isolation.', WHS('s 529CA')),
+        SILICA_FOLLOW_UP[1],
+        src('Hearing protection where noise exceeds the exposure standard, such as near saws, power trowels and compactors. Workers who must wear it have hearing tests within 3 months of starting and at least every 2 years.', WHS('s 57, s 58')),
+        'Curing compounds and sealers are used as their safety data sheets set out, with chemical resistant gloves and eye protection.',
+        'Use knee pads and kneeling boards for edge finishing, and rotate tasks.',
+      ],
+    },
+  ],
+  ppe: ['gloveChemical', 'gloveCut', 'gumboots', 'goggles', 'earMuffs', 'p2', 'kneePads', 'sunHat', 'sunscreen'],
+});
+
 const PPE = [
   { area: 'Head', items: [['hardHat', 'Hard hat'], ['chinStrap', 'Chin strap'], ['sunHat', 'Broad brim or neck flap']] },
   { area: 'Eyes and face', items: [['glassesClear', 'Safety glasses, clear'], ['glassesTinted', 'Safety glasses, tinted'], ['goggles', 'Goggles'], ['faceShield', 'Face shield'], ['filterEye', 'Filter eye protection (brazing or welding)']] },

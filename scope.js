@@ -4,7 +4,7 @@
 // work is matched to the kinds of work the drafting library knows, and lines of
 // the same kind become one proposed task. A task is marked as needing a SWMS when
 // it is high risk construction work.
-const { workFlags, highRiskMatches } = require('./draft');
+const { workFlags, highRiskMatches, groundSlabOnly } = require('./draft');
 const { ACTIVITIES } = require('./activities');
 const { findState, highRiskList } = require('./legislation');
 const { TRADES } = require('./trades');
@@ -205,7 +205,7 @@ const SUBJECT = /^(?:the )?subcontractor(?:'s)? (?:shall|is to|must|will|has all
 const TITLES = {
   road: 'Traffic management', power: 'Work near overhead power lines', scaffold: 'Scaffolding', roof: 'Roof work', roofStrip: 'Removing old roofing',
   trench: 'Trenching and underground services', propping: 'Temporary works and propping', demolition: 'Demolition', crane: 'Crane lifts', towerCrane: 'Tower crane lifts',
-  formwork: 'Formwork and falsework', reo: 'Reinforcement', concrete: 'Concrete placing and finishing', precast: 'Precast installation',
+  slabGround: 'Slabs on ground, paths and driveways', formwork: 'Formwork and falsework', reo: 'Reinforcement', concrete: 'Concrete placing and finishing', precast: 'Precast installation',
   tempPower: 'Construction power and temporary lighting', castIn: 'Cast-in conduits', containment: 'Cable tray and containment at height',
   isolation: 'Terminations, testing and connection to supply', commissioning: 'Switchboards and mains', coreDrill: 'Core drilling and penetrations',
   sewerConnection: 'Connection to the live sewer', hydraulicRisers: 'Risers and pipework at height', hotWork: 'Brazing and soldering (hot work)',
@@ -232,9 +232,13 @@ function taskLine(line) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+// "including but not limited to" is contract wording inside a line that names real work.
+const notLimited = (line) => line.replace(/\b(including\s+)?but not limited to,?\s*/gi, '$1');
+
 function taskText(found) {
-  const specific = found.filter((line) => !GENERAL.test(line));
-  const lines = (specific.length ? specific : found).slice(0, MAX_LINES).map(taskLine);
+  const cleaned = found.map(notLimited);
+  const specific = cleaned.filter((line) => !GENERAL.test(line));
+  const lines = (specific.length ? specific : cleaned).slice(0, MAX_LINES).map(taskLine);
   let text = '';
   for (const line of lines) {
     if ((text + ' ' + line).length > MAX_TASK) break;
@@ -279,6 +283,23 @@ function tasksFromScope(text, stateId = 'qld') {
         tradeLines.get(trade.id).push(line);
       }
     }
+  }
+  // A scope with slab on ground work and no suspended slab: its formwork, reo, concrete
+  // and saw cutting lines are all part of the slab on ground task.
+  if (groups.has('slabGround') && groundSlabOnly(lines.join('\n'))) {
+    const slab = groups.get('slabGround');
+    for (const id of ['formwork', 'reo', 'concrete', 'sawCut', 'propping']) {
+      if (!groups.has(id)) continue;
+      for (const line of groups.get(id).lines) if (!slab.lines.includes(line)) slab.lines.push(line);
+      groups.delete(id);
+    }
+    // The lines that name the slabs come first, so the task says what is being poured.
+    slab.lines.sort((a, b) => Number(groundSlabOnly(b)) - Number(groundSlabOnly(a)));
+  } else if (groups.has('slabGround')) {
+    // With suspended slabs too, a line already in the reo or concrete task is not repeated.
+    const slab = groups.get('slabGround');
+    slab.lines = slab.lines.filter((line) => !['reo', 'concrete', 'formwork'].some((id) => groups.has(id) && groups.get(id).lines.includes(line)));
+    if (!slab.lines.length) groups.delete('slabGround');
   }
   // The scope's own trades, and the kinds of work they do.
   const titled = titleTrades(text);

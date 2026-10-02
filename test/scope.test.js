@@ -167,3 +167,25 @@ test('a cutting step outside the trade gives way to the general drilling step', 
   const draft = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'plasterboard', task: 'Frame internal ceilings, bulkheads and external and internal walls (including over blockwork) in steel stud.', facts: { silicaControls: 'Drilling and cutting blockwork are done with on-tool dust extraction.' } });
   assert.ok(draft.jobSteps.some((step) => step.step === 'Drill or cut concrete, masonry or stone'));
 });
+
+test('slabs on ground: ground steps instead of deck steps, plant ticked, no deck load question', () => {
+  const { prepareDraft, questionsFor } = require('../draft');
+  const task = 'Excavate, form, reinforce and pour a concrete house slab on ground with edge beams, on a vapour barrier, finished with a power trowel.';
+  const draft = prepareDraft({ state: 'qld', fallRisk: 'no', task });
+  const steps = draft.jobSteps.map((step) => step.step);
+  for (const step of ['Prepare the ground and set out', 'Set edge forms, pods and vapour barrier', 'Place and tie reo on the ground', 'Place concrete', 'Finish, joint and cure']) assert.ok(steps.includes(step), step);
+  for (const step of ['Lift reo onto the deck', 'Pump and place concrete', 'Work in the trench']) assert.ok(!steps.includes(step), step);
+  assert.ok(draft.highRisk.some((item) => /mobile plant/.test(item)));
+  assert.ok(!questionsFor({ state: 'qld', fallRisk: 'no', task }).required.some((item) => item.id === 'loadLimits'));
+  // A reo crew on ground and suspended slabs keeps the reo steps only.
+  const reo = prepareDraft({ state: 'qld', fallRisk: 'yes', trade: 'structure', task: 'Place and tie reo to the ground slabs and suspended slabs.', facts: { fallControl: 'Edge protection is installed at every open edge.', loadLimits: 'Loads as marked on the drawings.' } });
+  assert.ok(!reo.jobSteps.some((step) => step.step === 'Place concrete'));
+});
+
+test('a civil scope with slabs on ground gives one slab on ground task', () => {
+  const ids = read('b-civil-concrete.txt').tasks.map((task) => task.id);
+  assert.ok(ids.includes('slabGround'));
+  for (const id of ['formwork', 'reo', 'concrete']) assert.ok(!ids.includes(id), id);
+  // A reo scope with suspended slabs keeps its reo task.
+  assert.ok(!read('b-reo-placement.txt').tasks.some((task) => task.id === 'slabGround'));
+});
