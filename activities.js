@@ -790,7 +790,7 @@ const ACTIVITIES = [
           'Concrete trucks reverse only with a spotter, into a marked area kept clear of people.',
           'Vibrators have their leads checked and tagged and are protected by an RCD. Rotate operators to limit hand-arm vibration.',
           'Generators, petrol trowels and petrol saws run only outdoors or where exhaust cannot collect, and are refuelled only when stopped and cool.',
-          'Vacuum decks first. Blow out with compressed air only with eye protection and a P2 respirator, and keep others clear while doing it.',
+          'Vacuum decks first. Compressed air is used only for loose debris the vacuum cannot reach, never on concrete dust or slurry, with eye protection and a P2 respirator, and others kept clear.',
         ],
       },
       {
