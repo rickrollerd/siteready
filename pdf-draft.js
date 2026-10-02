@@ -213,7 +213,7 @@ function draftToPdf(draft, options = {}) {
   text(doc, draft.status || 'Not approved. Not signed.', { size: 9, after: 0.4 });
   table(doc, { widths: pairWidths, rows: metaRows(draft) });
 
-  if (draft.kind === 'stand-down') {
+  if (draft.kind !== 'draft') {
     heading(doc, 'Stood down');
     text(doc, draft.statement, { after: 0.3 });
     text(doc, 'Missing', { bold: true });

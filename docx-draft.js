@@ -387,13 +387,14 @@ function childrenFor(draft, options = {}) {
     metaTable(metaRows(draft)),
   ];
 
-  if (draft.kind === 'stand-down') {
+  // Anything that is not a draft (stood down, or a refusal) is shown as stood down.
+  if (draft.kind !== 'draft') {
     blocks.push(
       sectionHeading('Stood down'),
       para(draft.statement, { before: 40, after: 80 }),
       para('Missing', { bold: true, size: 21, before: 80, after: 40 }),
     );
-    for (const item of draft.missing) blocks.push(para(item, { before: 0, after: 40 }));
+    for (const item of draft.missing || [draft.message || '']) blocks.push(para(item, { before: 0, after: 40 }));
     blocks.push(para('No method is included.', { before: 120, after: 0 }));
     return blocks;
   }
