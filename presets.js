@@ -89,6 +89,7 @@ const ANSWERS = {
     ['Principal contractor permit', 'The principal contractor issues a hot work permit each day. A fire extinguisher is kept at each work area, and the area is checked after hot work ends.'],
   ],
   pressureTesting: [
+    ['Gas line test', 'Gas pipework is tested with air or nitrogen to ____ kPa for the time the gas installation standard sets, never with water or oxygen, with no ignition sources nearby, and pressure released to a safe place outside before any fitting is touched.'],
     ['Water test', 'Tested with water to ____ kPa, with the area barricaded and signed during the test, and pressure released through the drain valve before any fitting is touched.'],
     ['Nitrogen test', 'Oxygen-free nitrogen through a regulator with a relief valve, tested to ____ kPa (below the PS on the equipment plate), with the area barricaded and signed, and pressure released before any fitting is touched.'],
   ],
