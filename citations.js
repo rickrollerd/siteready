@@ -103,7 +103,8 @@ const OUTSIDE_QLD = [
 // register of hazardous substances. Prescribed electrical work there is inspected by a
 // licensed electrical inspector.
 const VIC_TEXT = [
-  [/^Assess in writing before \w+ whether the processing is high risk\./, 'Before work starts, determine whether the work is high risk crystalline silica work.'],
+  [/^Assess in writing before \w+ whether the processing is high risk[.,]/, 'Before work starts, determine whether the work is high risk crystalline silica work.'],
+  [/Assess in writing before \w+ whether it is high risk, without counting PPE or administrative controls, and without relying only on the dust controls used for the processing\. If it cannot be determined, treat it as (?:a risk to health|high risk)\./, 'Before work starts, determine whether the work is high risk crystalline silica work.'],
   [/^.*silica risk control plan/, 'Before high risk crystalline silica work starts, a hazard control statement is prepared, and workers are given the information, instruction and training the crystalline silica rules in the Occupational Health and Safety Regulations 2017 (Vic) require.'],
   [/^Air monitoring is done where it is not certain the exposure standard is met/, 'Air monitoring is done where it is not certain the exposure standard is met, and health monitoring is provided where the regulations require it.'],
   [/The written silica assessment is done before work starts and attached to this SWMS\./, null],
