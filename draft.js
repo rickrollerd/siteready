@@ -113,7 +113,7 @@ const withoutNewMaterial = (text) => String(text || '').replace(/\b(?:install\w*
 // Old switchboards often have asbestos backing panels.
 // Demolition or strip-out in an existing building needs asbestos identified first (WHS Reg s 450 to s 452).
 const asbestosLikely = (text) => /\b(replac|remov|chang|upgrad)\w* (?:a |the )?(?:old |existing |residential )?(?:main )?switchboards?\b/i.test(String(text || '')) || (/\b(strip[- ]?outs?|demolish\w*|demolition)\b/i.test(String(text || '')) && !/\b(temporary|formwork|falsework|scaffold\w*)\b/i.test(String(text || '')) && !/\bbuilt (?:in )?(?:200[4-9]|20[1-9]\d)\b/i.test(String(text || ''))) || DISTURB.test(String(text || '')) && (ASBESTOS_MATERIAL.test(withoutNewMaterial(text)) || (OLDER_BUILDING.test(String(text || '')) && /\b(walls?|ceilings?|floors?|eaves|roofs?|bathroom|kitchen|laundry|sheets?|linings?)\b/i.test(String(text || ''))));
-const CLEANING = /\b(builders'? clean|final clean|cleaning|cleaners?)\b/i;
+const CLEANING = /\b(builders'? clean|final clean|cleaning|cleaners?|clean (?:a |the )?(?:building )?site|clean\w* [^.]{0,30}practical completion)\b/i;
 
 // Waterproofing membranes.
 const WATERPROOFING = /\b(waterproof\w*|(?<!(?:ptfe|etfe|fabric|tensile) )membranes?(?!\s+(?:panels?|roof\w*))|tanking|torch[- ]on)\b/i;
@@ -1797,7 +1797,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     cablePull: /\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable|submains?|consumer mains)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     ictWork: ICT_WORK.test(task),
     securityWork: SECURITY_WORK.test(task),
-    ictCabling: ICT_WORK.test(task) && !/\bon the roof\b/i.test(task) && /\b(?:install\w*|pull\w*|run\w*)\b[^.]{0,60}\b(?:cabl\w*|containment|cable trays?|catenary|conduits?)\b/i.test(task),
+    ictCabling: ICT_WORK.test(task) && !/\bon the roof\b/i.test(task) && /\b(?:install\w*|pull\w*|run\w*)\b[^.]{0,60}\b(?:cabl\w*|containment|cable trays?|catenary|conduits?|data points?|data outlets?)\b/i.test(task),
     fibre: /\b(optical fibre|fibre optic\w*|fibre backbone|fibre cabl\w*|splic\w*)\b/i.test(task),
     commsRoom: ICT_WORK.test(task) && /\b(racks?|cabinets?|ups|batter(?:y|ies))\b/i.test(task),
     securityDevices: SECURITY_WORK.test(task) && /\binstall\w*\b/i.test(task),
