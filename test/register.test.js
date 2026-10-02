@@ -304,3 +304,44 @@ test('everyday tasks get job steps for their main work', () => {
   assert.ok(steps('Remove three large gum trees near power lines at a rural property.', { electricalSafety: 'The network operator has isolated the line in writing before work starts.' }).some((step) => /tree/i.test(step)));
   assert.ok(steps('Replace carpet tiles and vinyl in a primary school during the holidays.').some((step) => /floor/i.test(step)));
 });
+
+test('task bank round 4: licences, high risk categories and main work steps', () => {
+  const { workFlags } = require('../draft');
+  const draft = (task, extra = {}) => prepareDraft({ state: 'nsw', fallRisk: 'no', residential: 'no', task, facts: { silicaControls: 'On-tool extraction.', fallControl: 'Mobile scaffold with guardrails.', safetyDataSheet: 'SDS at the work area.', ...extra.facts }, ...extra.body });
+  const steps = (task, extra) => { const d = draft(task, extra); return d.kind === 'draft' ? d.jobSteps.map((step) => step.step) : d.missing; };
+  // A forklift named only as a hazard is the site's plant, not a licence this crew needs.
+  const sealing = draft('Seal the joints in a concrete warehouse floor with polyurethane sealant.');
+  assert.ok(!sealing.qualifications.some((item) => /forklift \(LF\)$/.test(item)));
+  const marking = draft('Paint road line markings on a highway at night with traffic control.');
+  assert.ok(!marking.plant.some((item) => item.item === 'Forklift'));
+  assert.ok(!marking.jobSteps.some((step) => step.controls.some((line) => /warehouse/.test(line))));
+  // Tube and coupler scaffolds need an intermediate or advanced licence.
+  const tube = draft('Erect a 3 lift tube and coupler scaffold on the facade of a three storey shop.', { body: { fallRisk: 'yes' }, facts: { fallControl: 'Scaffolders work from a fully decked lift below.', systemInstructions: 'Erected to the scaffold design and AS/NZS 4576.' } });
+  assert.ok(tube.plant.some((item) => item.item === 'Scaffold' && /\(SI or SA\)/.test(item.licence)));
+  // A roof space is hot from the sun, not an artificial extreme of temperature.
+  assert.doesNotMatch(JSON.stringify(draft('Install a new hot water cylinder in the roof space of an old Queenslander.')), /artificial extremes/i);
+  // High risk categories from the task's own words.
+  const { highRiskMatches } = require('../draft');
+  const nsw = require('../legislation').STATES.find((state) => state.id === 'nsw');
+  const cats = (task) => highRiskMatches(task, '', nsw).map((item) => item.label).join(' | ');
+  assert.match(cats('Remove a load-bearing wall between the kitchen and lounge and install a steel beam.'), /load-bearing/);
+  assert.match(cats('Install a 5 m deep sewer manhole in a live road.'), /trench.*1\.5m|1\.5m.*trench/);
+  assert.match(cats('Install a 5 m deep sewer manhole in a live road.'), /road/);
+  assert.match(cats('Lay asphalt to a 200 m section of council road with traffic control.'), /powered mobile plant/);
+  assert.doesNotMatch(cats('Seal a concrete driveway and paths with an acrylic sealer.'), /powered mobile plant/);
+  assert.ok(!workFlags('Mitres, cut and splayed ends, intersections, special shaped or blocked ends.', {}).road);
+  // Main work steps.
+  assert.ok(steps('Install a vehicle hoist in a mechanical workshop.').includes('Install the vehicle hoist'));
+  assert.ok(!steps('Install a vehicle hoist in a mechanical workshop.').includes('Install, climb and dismantle the hoist'));
+  assert.deepEqual(steps('Remove a load-bearing wall between the kitchen and lounge and install a steel beam.', { facts: { temporarySupport: 'Props to the engineer\'s design, checked by the supervisor before the wall is removed.' } }).filter((step) => /support|opening|beam/.test(step)), ['Install temporary support', 'Cut an opening in a load-bearing wall', 'Lift and fix the new beam or lintel']);
+  assert.ok(steps('Install new playground shade sails at a school.').includes('Install shade sail posts and sails'));
+  assert.ok(!steps('Install new playground shade sails at a school.').includes('Erect the pergola, carport or shed frame and roof'));
+  assert.ok(steps('Lay sewer drainage under a new house slab before the pour.').includes('Lay drainage under the slab'));
+  assert.ok(!steps('Lay sewer drainage under a new house slab before the pour.').includes('Place concrete'));
+  const tank = steps('Install a stormwater detention tank under a car park.');
+  assert.ok(tank.indexOf('Lift and place the tank or precast units') < tank.indexOf('Backfill and restore'));
+  const flat = steps('Build a granny flat on a slab: frame, roof, clad and line it.', { body: { trade: 'carpentry', residential: 'yes' } });
+  assert.ok(flat.indexOf('Stand and brace wall frames') < flat.indexOf('Fix new roofing'));
+  assert.ok(flat.indexOf('Fix new roofing') < flat.indexOf('Install battens and external cladding'));
+  assert.ok(!steps('Install steel portal frames and purlins for a farm machinery shed using a mobile crane and EWPs.').includes('Set up site sheds'));
+});

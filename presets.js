@@ -114,7 +114,7 @@ const ANSWERS = {
     ['Permit entry', 'Entry only under a confined space entry permit, with atmospheric testing before and during entry, a standby person at the opening, and a practised rescue plan.'],
   ],
   erectionSequence: [
-    ['Designer\'s sequence', 'Steel is erected to the designer\'s sequence on drawing ____ (revision ____), with temporary bracing as shown, and ____ checks the structure is stable before the crane slings are released.'],
+    ['Designer\'s sequence', 'Steel is erected to the designer\'s sequence on drawing ____ (revision ____), with temporary bracing as shown, and ____ checks the structure is stable before each member is released from the crane or lifting gear.'],
   ],
   serviceShutdown: [
     ['Shutdown permit', 'Each connection to a live service is made under a shutdown permit ____, approved by ____, in the agreed window of ____. The service is isolated, locked and proved dead before the connection, and the people it supplies are told beforehand.'],
