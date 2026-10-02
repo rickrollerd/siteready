@@ -442,7 +442,7 @@ const ENTERED_SPACE = /\b(?:enter\w*|entry|inside|work in|working in)\b[\w\s,-]{
 const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|welding)\b/i;
 const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air test\w*)\b/i;
 const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?)\b/i;
-const SILICA_WORK = /\b(cut\w*[^.]{0,40}\b(?:lightweight|aerated|autoclaved aerated) concrete (?:\w+ ){0,2}panels?|(?:concrete|saw)[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|benchtops?\b[^.]{0,60}\b(?:cut|polish|drill)\w*|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?|tiled walls?|tiles?)|drill\w* (?:into )?(?:the )?(?:precast )?(?:concrete )?(?:seating )?(?:tiers?|treads?))\b/i;
+const SILICA_WORK = /\b((?:fram|fix|batten|anchor)\w*[^.]{0,60}\b(?:over|to|into|onto) (?:the )?(?:existing )?(?:blockwork|masonry|brickwork|block walls?|concrete walls?)|cut\w*[^.]{0,40}\b(?:lightweight|aerated|autoclaved aerated) concrete (?:\w+ ){0,2}panels?|(?:concrete|saw)[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:the )?(?:\w+ )?(?:blocks?|bricks?|benchtops?)|(?:cut|polish)\w*[^.]{0,30}\bbenchtops?|benchtops?\b[^.]{0,60}\b(?:cut|polish|drill)\w*|grind\w* (?:the )?(?:\w+ )?(?:concrete|slabs?|surfaces?|floors?)|cut\w* (?:the )?(?:\w+ )?(?:tiles?|stone|pavers?)|core[- ]?drill\w*|coring|core holes?|chas(?:e|es|ing)|break\w* (?:down )?(?:the )?pile(?: heads?|s)|pile (?:trimming|cropping)|trim\w* (?:the )?piles?|crop\w* (?:the )?piles?|drill\w* (?:into )?(?:the )?(?:post-tensioned |pt |suspended )?(?:concrete|masonry|blockwork|block walls?|slabs?|tiled walls?|tiles?)|drill\w* (?:into )?(?:the )?(?:precast )?(?:concrete )?(?:seating )?(?:tiers?|treads?))\b/i;
 
 const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power|lighting|supply)|site (?:switchboards?|power|lighting)|builders'? (?:power|supply))\b/i;
 
@@ -1349,14 +1349,15 @@ function prepareDraft(input) {
 const INDOOR_TRADES = ['flooring', 'doors', 'carpentry', 'plasterboard', 'kitchens', 'security', 'communications'];
 
 function ppeList(task, facts, state, chosen) {
-  const indoorTrade = (state.trades || []).length > 0 && state.trades.every((id) => INDOOR_TRADES.includes(id))
-    && !/\b(external\w*|outside|outdoors?|roofs?|balcon\w*|eaves|facade)\b/i.test(task);
+  // Any outdoor part of the task brings sun protection, even with internal work as well.
+  const outdoors = /\b(external\w*|outside|outdoors?|roofs?|balcon\w*|eaves|facade)\b/i.test(task);
+  const indoorTrade = (state.trades || []).length > 0 && state.trades.every((id) => INDOOR_TRADES.includes(id));
   return ppeFor(
     tradeFlags(task, facts, state),
     chosen,
     // A harness is ticked only where one is used: with fall arrest or restraint, in a boom lift or on a swing stage.
     harnessInUse(combinedFacts(task, facts)),
-    indoorTrade || /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task),
+    !outdoors && (indoorTrade || /\b(interior|inside|indoors?|internal|shop|office)\b/i.test(task)),
   );
 }
 
@@ -1377,6 +1378,8 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     if (/\bsunglasses\b/i.test(said)) tick('glassesTinted');
     if (/\buse travel restraint\b/i.test(said)) tick('harness');
     if (/\bheat resistant gloves\b/i.test(said)) tick('gloveWelding');
+    if (/\bgumboots\b/i.test(said)) tick('gumboots');
+    if (/\bgloves resistant to the product\b|\bchemical resistant gloves\b/i.test(said)) tick('gloveChemical');
     // Done before the sun line below, since it rebuilds the steps.
     if (/\bP2\b|\brespirators?\b/.test(said) && !ticked(['p2', 'halfFace'])) {
       tick('p2');
@@ -1484,7 +1487,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // Installing risers or pipework at height, not other work done in the risers.
     hydraulicRisers: isPlumbing(task) && /\binstall\w*\b/i.test(task) && /\b(risers?|stacks?|shafts?|ceilings?|at height)\b/i.test(task) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
     hotWork: HOT_WORK.test(task),
-    solventCement: /\b(solvent (?:cement|weld\w*)|pvc (?:glue|cement))\b/i.test(task) || (/\bprimers?\b/i.test(task) && /\b(pvc|pipe\w*)\b/i.test(task)),
+    // Soil and waste pipes are PVC with solvent cement joints as a rule.
+    solventCement: /\b(solvent (?:cement|weld\w*)|pvc (?:glue|cement)|pvc pip\w*|soil and waste)\b/i.test(task) || (/\bprimers?\b/i.test(task) && /\b(pvc|pipe\w*)\b/i.test(task)),
     pressureTest: PRESSURE_TEST.test(task),
     hotWater: PRESSURE_TEST.test(task) && /\b(hot water|heat pumps?|boilers?|water heaters?)\b/i.test(task),
     plumbingFitOff: /\b(rough[- ]in|fit[- ]off)\b/i.test(task) && isPlumbing(task) && !ELECTRICAL_CORE.test(task),
@@ -1680,7 +1684,8 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
     hazards: hazards.map((row) => `${row.hazard}: ${row.risk}`),
     controls: controls.map((item) => item.text),
   });
-  return tidySteps(steps, combinedFacts(task, facts));
+  const answers = Object.values(facts || {}).filter((value) => typeof value === 'string').join('\n');
+  return tidySteps(steps, combinedFacts(task, facts), answers);
 }
 
 // Harness, restraint and fall arrest lines that only apply when one is used.
@@ -1699,9 +1704,10 @@ function harnessInUse(source) {
 // and a control already given in an earlier step is not repeated.
 // Library lines that only make sense when the task names that part of the work.
 const TASK_ONLY = [
+  [/^A wall cage topples/, /\b(walls?|lift shafts?|cores?|stairwells?)\b/i],
+  [/^Ballast and insulation boards are moved/, /\b(ballast|insulation boards?)\b/i],
   [/^Footings, thickenings and pits are entered/, /\b(footings?|thickenings?|pits?)\b/i],
   [/^Where walls, lift shafts or stairwells are reinforced/, /\b(walls?|lift shafts?|cores?|stairwells?)\b/i],
-  [/^Where pipes or pits are lifted with the excavator/, /\b(pipes?|pits?|culverts?|manholes?|tanks?)\b/i],
   [/^In risers, use cable grips/, /\b(risers?|shafts?)\b/i],
   [/^Where our crew stays on the deck during the pour/, /\b(pour\w*|concrete is placed|placement)\b/i],
   [/^Where concrete or paving is cut to reinstate it/, /\b(reinstat\w*|concrete|paving|pavers?|footpaths?|kerbs?)\b/i],
@@ -1711,22 +1717,23 @@ const TASK_ONLY = [
   [/^Adhesives, sealants and sealers are used/, /\b(adhesives?|glue\w*|seal\w*|silicone|mastic)\b/i],
 ];
 
-// Library lines already said by an answer the user gave.
+// Library lines partly said by an answer the user gave: the repeated part is
+// reworded so the line adds only what the answer does not say, keeping its source.
 const SAID_BY_FACT = [
-  [/^A hot work permit is issued before hot work/, /\bhot work permit\b/i],
+  [/^A hot work permit is issued before hot work, and/, /\bhot work permit\b/i, 'Hot work is done only under the hot work permit, and'],
 ];
 
-function tidySteps(steps, source) {
+function tidySteps(steps, source, answers = '') {
   const harness = harnessInUse(source);
   const task = String(source || '');
   const seen = new Set();
   const key = (line) => line.replace(/\s*\([^)]*\)\s*$/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   return steps.map((step) => ({
     ...step,
-    controls: step.controls.filter((line) => {
+    hazards: step.hazards.filter((line) => !TASK_ONLY.some(([pattern, needs]) => pattern.test(line) && !needs.test(task))),
+    controls: step.controls.map((line) => SAID_BY_FACT.reduce((text, [pattern, said, instead]) => (said.test(answers) ? text.replace(pattern, instead) : text), line)).filter((line) => {
       if (!harness && HARNESS_ONLY.test(line)) return false;
       if (TASK_ONLY.some(([pattern, needs]) => pattern.test(line) && !needs.test(task))) return false;
-      if (SAID_BY_FACT.some(([pattern, said]) => pattern.test(line) && said.test(task))) return false;
       const id = key(line);
       if (seen.has(id)) return false;
       seen.add(id);

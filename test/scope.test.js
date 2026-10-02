@@ -151,5 +151,12 @@ test('review fixes: sun line kept when a respirator is added, task-only lines, s
   assert.match(reo('Fix reo to the footings and lift pit.'), /Footings, thickenings and pits are entered/);
   assert.doesNotMatch(reo('Fix reo to the suspended slabs and landings.'), /Footings, thickenings and pits are entered/);
   // Drilling masonry for door frames carries the written silica assessment.
-  assert.match(lines({ trade: 'doors', task: 'Install door frames and hang doors to masonry openings.' }), /Assess in writing before starting whether the processing is high risk/);
+  assert.match(lines({ trade: 'doors', task: 'Install door frames and hang doors to masonry openings.', facts: { silicaControls: 'Drilling is done with on-tool extraction.' } }), /Assess in writing before starting whether the processing is high risk/);
+});
+
+test('fixing framing to blockwork is silica processing, and work with an outdoor part gets sun protection', () => {
+  const { prepareDraft } = require('../draft');
+  const draft = prepareDraft({ state: 'qld', fallRisk: 'no', trade: 'plasterboard', task: 'Frame external and internal walls, including over blockwork, and line the eaves.', facts: { silicaControls: 'Drilling is done with on-tool extraction.' } });
+  assert.ok(draft.jobSteps.some((step) => step.step === 'Drill or cut concrete, masonry or stone'));
+  assert.ok(draft.ppe.flatMap((group) => group.items).find((item) => item.id === 'sunscreen').ticked);
 });
