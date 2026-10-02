@@ -80,7 +80,7 @@ const PLANT = [
   { item: 'Work punt or boat', pattern: /\b(work punts?|punts?|barges?|work boats?)\b/i, inspection: 'Moored and stable before use, with its safety equipment on board.', licence: 'Operated by a competent person holding any marine licence the state requires' },
   { item: 'Masonry or paver saw', pattern: /\b(?:brick|block|paver|masonry|wet|tile) saws?\b|\bsaw noise\b/i, inspection: `${PRESTART} Blade guard in place, water feed or extraction working, leads tagged.`, licence: 'No. Operator trained' },
   { item: 'Ladders', pattern: /\bladders?\b/i, inspection: 'Industrial rated, at least 120 kg. Checked before each use.', licence: 'No' },
-  { item: 'Electric power tools and leads', pattern: /\b(power tools?|grind(?:er|ers|ing)|drill\w*|drop saws?|circular saws?|power saws?|cut-off saws?|reglet saws?|masonry saws?|wet saws?|tile saws?|chas(?:e|ed|er|ers|ing)|leads?|floor scrubbers?|test instruments?)\b/i, skipIf: /\b(core[- ]?drill\w*|stump grind\w*|lead paint|leads? (?:the|to|from|into)|lead(?:s)? hand)\b/i, inspection: TEST_TAG, licence: 'No' },
+  { item: 'Electric power tools and leads', pattern: /\b(power tools?|grind(?:er|ers|ing)|drill\w*|drop saws?|circular saws?|power saws?|cut-off saws?|reglet saws?|masonry saws?|wet saws?|tile saws?|jackhammers?|demolition hammers?|chas(?:e|ed|er|ers|ing)|leads?|floor scrubbers?|test instruments?)\b/i, skipIf: /\b(core[- ]?drill\w*|stump grind\w*|lead paint|leads? (?:the|to|from|into)|lead(?:s)? hand)\b/i, inspection: TEST_TAG, licence: 'No' },
 ];
 
 // Hazardous substances that commonly come with the work. The product names and
@@ -113,8 +113,8 @@ const QUALIFICATIONS = [
   ['Site specific induction', /./],
   ['Electrical work licence (electrical mechanic)', /\b(electrical work|electricians?|electrical installation|switchboards?|distribution boards?|submains?|fit[- ]off|terminat\w*|wiring|cabling|power points?|power circuits?|light switch(?:es)?|(?:install|replac|connect|fit|wir)\w* [^.]{0,30}\b(?:ceiling fans?|hardwired smoke alarms?)|(?<!clean\w* |wip\w* |dust\w* )lighting|(?:install|replac|connect|fit)\w* [^.]{0,30}\b(?:light|led) fittings?|(?:install|replac|connect|add)\w* [^.]{0,30}\b(?:circuits?|outlets?)|(?:ev|electric vehicle|car) chargers?|inverters?|solar(?! hot water)|(?:pull|install|run|lay|terminat)\w* [^.]{0,20}\bcables?)\b/i],
   ['Plumbing and drainage licence', /\b(plumbing|plumber|(?<!(?:wall|ag|agricultural|subsoil|retaining) )drainage(?! (?:swales?|gravel|cells?|mats?|layers?|boards?|aggregate|sheets?|composites?|fabric|and backfill|behind))|sewer\w*(?! pump stations?)|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water suppl(?:y|ies)|water mains?|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
-  ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?)\b/i],
-  ['Gas work licence', /\b(gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|heating|meters?|cooktops?|ovens?|boilers?|stoves?|fires?|log fires?|barbecues?|bbqs?)|gasfitt\w*|(?:connect|relocat|disconnect)\w*[^.]{0,30}\bgas\b)\b/i],
+  ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?|(?:install\w*|replac\w*|connect\w*|commission\w*|relocat\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |new )?(?:wall[- ]mounted |reverse cycle )?air ?condition\w* units?)\b/i],
+  ['Gas work licence', /\b(commercial (?:ranges?|cooktops?)|wok (?:burners?|stations?|ranges?)|gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|heating|meters?|cooktops?|ovens?|boilers?|stoves?|fires?|log fires?|barbecues?|bbqs?)|gasfitt\w*|(?:connect|relocat|disconnect)\w*[^.]{0,30}\bgas\b)\b/i],
   ['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)', /\basbestos\b/i],
   ['Confined space entry training', /\bconfined spaces?\b/i],
   ['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk', /\bsilica dust\b/i],
@@ -179,7 +179,7 @@ function othersLicence(item, allText, task) {
   if (item.item === 'Scaffold' && /\b(hung|suspended) scaffold/i.test(task)) item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SA') };
   else if (item.item === 'Scaffold' && /\btube[- ]and[- ]coupler\b|\bcantilever\w* (?:scaffold|crane loading platform)|\bspur scaffold/i.test(task)) item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SI or SA') };
   if (/crane/i.test(item.item) && /\bcrane company\b/i.test(allText)) return { ...item, licence: `Held by the crane company's operator and crew: ${item.licence.replace(/^Yes,?\s*/, '')}` };
-  if (item.item === 'Scaffold' && !/\b(erect\w*|dismantl\w*|alter\w*|build\w*)\b[^.]{0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task)) return { ...item, licence: `Erected and altered only by a licensed scaffolder (${item.licence.match(/\(([^()]*S[BIA][^()]*)\)/)[1]}) where a fall of more than 4 m is possible. Our crew uses it and does not alter it` };
+  if (item.item === 'Scaffold' && !/\b(erect\w*|dismantl\w*|alter\w*|build(?!ing\b)\w*|install\w*|put up)\b(?:(?!\b(?:from|off|using|with|on)\b)[^.]){0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task)) return { ...item, licence: `Erected and altered only by a licensed scaffolder (${item.licence.match(/\(([^()]*S[BIA][^()]*)\)/)[1]}) where a fall of more than 4 m is possible. Our crew uses it and does not alter it` };
   if (/Personnel or materials hoist/.test(item.item) && !/\b(erect\w*|install\w*|operat\w*|dismantl\w*)\b[^.]{0,30}\bhoists?\b/i.test(task)) return { ...item, licence: `Held by the principal contractor's licensed hoist operator: ${item.licence.replace(/^Yes,?\s*/, '')}` };
   if (item.item === 'Concrete placing boom' && !/\b(we|our crew|our own)\b[^.]{0,30}\b(operat\w*|run\w*)\b[^.]{0,20}\b(pump|boom)/i.test(allText)) return { ...item, licence: `Held by the pumping company's licensed operator: ${item.licence.replace(/^Yes,?\s*/, '')}` };
   return item;
@@ -390,7 +390,6 @@ function tradeLicences(trade, list, stepText = '') {
 
 // A licence for plant that is one of several options: needed only where that plant is used.
 function whereUsed(licence) {
-  if (!/^Yes/.test(licence)) return `Where one is used: ${licence}`;
   const [first, ...rest] = licence.split('. ');
   return [`${first}, where one is used`, ...rest].join('. ');
 }
