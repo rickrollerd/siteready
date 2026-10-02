@@ -278,7 +278,7 @@ function addQldSources(sources, d) {
   for (const [applies, title] of QLD_SOURCES) if (applies(d)) codes.add(title);
   const legislation = new Set(['Work Health and Safety Act 2011 (Qld)', ...sources.legislation]);
   // The crew's own electrical work, from the task and the step names, not a hazard line about nearby circuits.
-  if (/\b(electrical work|electricians?|energised|switchboards?|wiring|cabling)\b/i.test(ownWork(d.workText || d.text))) legislation.add('Electrical Safety Act 2002 (Qld)');
+  if (/\b(electrical work|electricians?|energised|switchboards?|wiring)\b/i.test(ownWork(d.workText || d.text))) legislation.add('Electrical Safety Act 2002 (Qld)');
   return { legislation: [...legislation].sort(), codes: [...codes].sort() };
 }
 
@@ -315,9 +315,11 @@ function localLicences(stateName, trade, list, stepText) {
 // Only where the job steps show that trade's work: a painting task in an electrical
 // and painting scope does not need an electrical licence.
 function tradeLicences(trade, list, stepText = '') {
+  // The electrician lines in Before starting mean the crew does electrical work.
+  const electricianLines = /Electrical work is done or supervised only by licensed electric/.test(stepText);
   const ids = String(trade || '').split(',').map((id) => id.trim());
   const add = [];
-  if (ids.includes('electrical') && /\b(electrical|wiring|cables?|cabling|circuits?|switchboards?|distribution boards?|energised|de-energised|fit-off|terminat\w*|light fittings?|power|lighting|generators?|solar|batter(?:y|ies)|meter box)\b/i.test(stepText.replace(/\bcommunications cabling\b/gi, ''))) add.push('Electrical work licence (electrical mechanic)');
+  if (ids.includes('electrical') && (electricianLines || /\b(electrical|wiring|cables?|cabling|circuits?|switchboards?|distribution boards?|energised|de-energised|fit-off|terminat\w*|light fittings?|power|lighting|generators?|solar|batter(?:y|ies)|meter box)\b/i.test(stepText.replace(/\bcommunications cabling\b/gi, '')))) add.push('Electrical work licence (electrical mechanic)');
   if (ids.includes('plumbing') && /\b(plumb\w*|pipe\w*|drain\w*|sewer\w*|water service|fixtures?|hot water|backflow)\b/i.test(stepText)) add.push('Plumbing and drainage licence');
   return [...new Set([...list, ...add])];
 }
@@ -351,7 +353,7 @@ function registersFor(draft, input = {}) {
     plant: plant.map((item) => ({ ...item, inspection: localNote(stateId === 'qld' ? item.inspection : item.inspection.replace(/ Yearly inspection and six-yearly major inspection \(Concrete Pumping Code s 5\)\./, ' Inspected and maintained to the manufacturer\'s instructions, including its periodic and major inspections.'), stateId), licence: localNote(item.licence, stateId) })),
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.
-    qualifications: localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' ')), steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step).join('\n')),
+    qualifications: localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n')),
     // Victoria has its own compliance codes, not the model codes of practice.
     emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`).map((row) => (stateId === 'vic' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
     sources,

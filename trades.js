@@ -7,7 +7,7 @@
 // paintwork") then does not get their steps.
 // `signal` is a flag (or a pattern) that shows the trade even where no kind of work matches.
 const TRADES = [
-  { id: 'electrical', name: 'Electrical work', signal: 'electricalWork', kinds: ['tempPower', 'castIn', 'containment', 'cablePull', 'fitOff', 'isolation', 'commissioning', 'generatorPlant', 'generatorTest', 'solarPV', 'batteryStorage', 'meterBox'], extra: ['trench', 'ictCabling', 'shallowTrench', 'servicesStrip'] },
+  { id: 'electrical', name: 'Electrical work', signal: 'electricalWork', kinds: ['tempPower', 'castIn', 'containment', 'cablePull', 'fitOff', 'isolation', 'commissioning', 'generatorPlant', 'generatorTest', 'solarPV', 'batteryStorage', 'meterBox'], extra: ['trench', 'ictCabling', 'shallowTrench', 'servicesStrip', 'securityDevices'] },
   { id: 'communications', name: 'Communications cabling and equipment', signal: 'ictWork', kinds: ['ictCabling', 'fibre', 'commsRoom'], extra: ['trench', 'containment', 'securityDevices', 'servicesStrip'] },
   { id: 'security', name: 'Security system installation', signal: 'securityWork', kinds: ['securityDevices'], extra: ['containment', 'ictCabling', 'servicesStrip'] },
   { id: 'plumbing', name: 'Plumbing and drainage work', signal: 'plumbingWork', kinds: ['sewerConnection', 'waterConnection', 'castInPlumbing', 'hydraulicRisers', 'hotWork', 'solventCement', 'plumbingFitOff', 'pressureTest', 'hotWater', 'boilerPlant', 'gasFitting', 'rainwaterTank', 'waterHeater'], extra: ['trench', 'gutters', 'shallowTrench', 'servicesStrip'] },

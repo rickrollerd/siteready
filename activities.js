@@ -1087,7 +1087,7 @@ const ACTIVITIES = [
       step: 'Install cast-in sleeves and puddle flanges on the deck before the pour',
       hazards: ['A person falls through an opening or penetration.', 'Falling objects from the deck edge.', 'Working among formworkers and reo fixers.'],
       controls: [
-        src('Cover or barricade every penetration as soon as it is formed. Covers withstand a fall onto them, are fixed in place so they cannot be moved by accident, and are marked as covering a hole.', WHS('s 306D, s 306F')),
+        src('Cover or barricade every penetration as soon as it is formed. Covers withstand a fall onto them, are fixed in place so they cannot be moved by accident, and are marked as covering a hole.', `${WHS('s 306D, s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`),
         src('Work only inside edge protection installed by others to the regulation. Do not remove or alter it, and report any damage.', WHS('s 306E')),
         src('Barriers or an exclusion zone below the work for falling objects.', WHS('s 55')),
         'Agree access, timing and the order of work with the formwork and reo crews before the pour.',
@@ -3927,6 +3927,8 @@ ACTIVITIES.push(
     steps: [
       {
         step: 'Isolate the gas and disconnect the old appliance',
+        // Only where an old appliance comes out.
+        only: 'replaceAppliance',
         hazards: ['Fire or explosion from escaping gas.', 'Strain moving the old appliance.'],
         controls: [
           src('Gas work is done only by a person holding a gas work licence or authorisation for that work.', 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'),
@@ -3938,6 +3940,7 @@ ACTIVITIES.push(
         step: 'Connect, leak test and commission the gas appliance',
         hazards: ['Fire or explosion from a leaking joint.', 'Carbon monoxide from a blocked flue or poor ventilation.', 'Burns from hot pipes, flues and appliances.'],
         controls: [
+          { ...src('Gas work is done only by a person holding a gas work licence or authorisation for that work.', 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'), unless: 'replaceAppliance' },
           'Joints are leak tested after connection with a pressure test and leak detection fluid or a gas detector, never with a flame. The line is purged of air before the appliance is lit.',
           'The appliance is commissioned to the manufacturer\'s instructions, including the gas pressure, the flue, combustion air and a check that combustion products do not spill into the room.',
         ],
