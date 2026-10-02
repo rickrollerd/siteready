@@ -30,7 +30,7 @@ const TRADES = [
   { id: 'roofing', name: 'Roofing', kinds: ['roof', 'roofStrip'], extra: [] },
   { id: 'landscaping', name: 'Landscaping', signal: 'landscape', kinds: ['landscape', 'landscapeLift', 'turf', 'paving'], extra: ['trench', 'earthworks'] },
   { id: 'piling', name: 'Piling', signal: 'pilingWork', kinds: ['pilingPlatform', 'pilingRig', 'pileCage', 'cfaCage', 'openBore', 'pileConcrete', 'pileTrim'], extra: ['sitePlant'] },
-  { id: 'structure', name: 'Formwork, reinforcement and concrete', kinds: ['formwork', 'jumpform', 'reo', 'ptTendons', 'concrete', 'slabGround', 'stressing', 'precast', 'loadOut', 'propping', 'precastTier'], extra: ['ptSlab'] },
+  { id: 'structure', name: 'Formwork, reinforcement and concrete', kinds: ['formwork', 'jumpform', 'reo', 'ptTendons', 'concrete', 'slabGround', 'slabPour', 'stressing', 'precast', 'loadOut', 'propping', 'precastTier'], extra: ['ptSlab'] },
   { id: 'excavation', name: 'Excavation', kinds: ['bulkDig', 'anchorsProps', 'detailDig', 'dewatering', 'contaminatedSpoil', 'basementEdge', 'retentionWall', 'earthworks'], extra: ['trench', 'neighbours', 'sitePlant'] },
   { id: 'scaffolding', name: 'Scaffolding', kinds: ['scaffold', 'hoistInstall', 'hoistOperate', 'safetyNet'], extra: [] },
   { id: 'cleaning', name: 'Cleaning', kinds: ['cleaning', 'cleaningHeight', 'cleaningStands'], extra: [] },
@@ -43,7 +43,7 @@ const TRADES = [
 const COMMON = new Set([
   'craneInterface', 'crane', 'towerCrane', 'ewp', 'mobileScaffold', 'forklift', 'scaffold', 'road', 'power', 'coreDrill', 'sawCut',
   'asbestos', 'asbestosCheck', 'confined', 'roofSpace', 'water', 'demolition', 'structuralOpening', 'liveHospital', 'loadOut',
-  'sitePlant', 'stripOut', 'cite', 'roofAccess', 'oxyCutting', 'silicaDrill', 'smallPlant', 'treeRemoval', 'groundChemicals', 'liftCarWork', 'asphalt', 'insulation', 'slabGround',
+  'sitePlant', 'stripOut', 'cite', 'roofAccess', 'oxyCutting', 'silicaDrill', 'smallPlant', 'treeRemoval', 'groundChemicals', 'liftCarWork', 'asphalt', 'insulation', 'slabGround', 'slabPour',
 ]);
 
 const BY_ID = new Map(TRADES.map((trade) => [trade.id, trade]));

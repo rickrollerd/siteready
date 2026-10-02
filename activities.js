@@ -668,7 +668,7 @@ const ACTIVITIES = [
         controls: [
           'Pour the walls at the rate in the formwork design.',
           'Concrete is placed by placing boom or kibble, with the hose hand in contact with the operator.',
-          'The placing boom operator holds a high risk work licence for a concrete placing boom.',
+          src('The placing boom operator holds a high risk work licence for a concrete placing boom.', WHS('s 81, schedule 3')),
           'No one stands or works under the boom while it is operating.',
           'Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.',
           'Wash wet concrete off the skin straight away. Wear gloves and eye protection.',
@@ -738,7 +738,7 @@ const ACTIVITIES = [
           'Where a separate placing boom is set up on the slab, it stands on an engineer-certified base or ballast.',
           'The pipeline is restrained, pressure-rated, and checked for wear and secure clamps before each pour.',
           src('Concrete placing booms are registered items of plant. Check the registration before use.', WHS('schedule 5')),
-          'The placing boom operator holds a high risk work licence for a concrete placing boom.',
+          src('The placing boom operator holds a high risk work licence for a concrete placing boom.', WHS('s 81, schedule 3')),
           'Keep the boom within its rated reach and clear of the crane\'s working area, as coordinated with the crane crew.',
           'No one stands or works under the boom while it is operating.',
         ],
@@ -752,6 +752,7 @@ const ACTIVITIES = [
           'Stay inside the edge protection.',
           'Place concrete evenly. Do not heap it on the deck beyond what the formwork design allows.',
           'A competent formwork watcher checks the formwork during the pour and can stop the pour.',
+          'No one works under the deck being poured except the formwork watcher in a safe position, and the area below is barricaded and signed.',
           'The hose hand stays in contact with the operator by radio or agreed signals.',
           'Concrete trucks reverse only with a spotter, into a marked area kept clear of people.',
           'Vibrators have their leads checked and tagged and are protected by an RCD. Rotate operators to limit hand-arm vibration.',
@@ -3544,7 +3545,8 @@ addAfter('carpJoinery', {
 });
 
 // Slabs on ground: house and ground floor slabs, driveways, paths, kerbs and pads.
-addAfter('concrete', {
+// They come before the deck work, as a ground slab is poured first.
+addAfter(ACTIVITIES[ACTIVITIES.findIndex((item) => item.when === 'formwork') - 1].when, {
   when: 'slabGround',
   steps: [
     {
@@ -3553,21 +3555,21 @@ addAfter('concrete', {
       controls: [
         src('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
         'Excavators, bobcats and rollers are run by competent operators, checked before each shift, with an exclusion zone and a spotter where people work nearby.',
-        src('Edge beam and footing excavations are kept shallow, and battered or benched where the ground needs it. An excavation deeper than 1.5 m is high risk construction work this SWMS does not cover: stop and have the SWMS reviewed before anyone enters it.', WHS('s 291, s 302, s 306')),
+        src('Boxing out, thickened edges, edge beams and footings are dug no deeper than needed, and battered or benched where the ground needs it. A trench or shaft deeper than 1.5 m is high risk construction work this SWMS does not cover: stop and have the SWMS reviewed before anyone enters it.', WHS('s 291, s 302, s 306')),
         'Open excavations are barricaded, and people cross only at set crossing points.',
         'Plate compactors and rollers are used with guards in place, operators are rotated to limit vibration, and hearing protection is worn.',
         'Dust from fill and the subgrade is kept down with water.',
       ],
     },
     {
-      step: 'Set edge forms, pods and vapour barrier',
-      hazards: ['Impalement on stakes, pegs and starter bars.', 'Cuts and kickback from saws.', 'Nail gun injuries.', 'Back strain from form boards, pods and rolls.', 'Trips over forms, pods and sheeting.'],
+      step: 'Set edge forms and prepare the base',
+      hazards: ['Impalement on stakes, pegs and starter bars.', 'Cuts and kickback from saws.', 'Nail gun injuries.', 'Back strain from form boards and stakes.', 'Trips over forms and stakes.', 'Back strain and trips handling pods and vapour barrier rolls.'],
       controls: [
-        'Cap stakes, star pickets and starter bars, or bend them over, as soon as they are in place.',
+        'Cap stakes, star pickets and starter bars as soon as they are in place. Bars are bent over only where the engineer allows it.',
         'Cut form boards with a saw that has its guards in place, with the work supported, and wear eye and hearing protection.',
         'Nail guns are used with the single shot (sequential) trigger, never pointed at anyone, and disconnected before clearing a jam.',
-        'Deliver and stack materials close to where they are used, team lift long boards, and move pod bundles and rolls on trolleys.',
-        'Keep walkways clear, lay boards where people cross pods or sheeting, and weigh down sheeting and pods against wind.',
+        'Deliver and stack materials close to where they are used, and team lift long boards.',
+        'Pod bundles and vapour barrier rolls are moved on trolleys. Lay boards where people cross pods or sheeting, and weigh down sheeting and pods against wind.',
       ],
     },
     {
@@ -3581,9 +3583,17 @@ addAfter('concrete', {
         'Rotate tying tasks, and use a tying tool or long-handled tier to limit bending.',
       ],
     },
+  ],
+  ppe: ['gloveCut', 'earMuffs', 'sunHat', 'sunscreen'],
+});
+
+// Placing and finishing a slab on ground, also for a concreter who only pours.
+addAfter('slabGround', {
+  when: 'slabPour',
+  steps: [
     {
       step: 'Place concrete',
-      hazards: ['A reversing concrete truck strikes a person.', 'Contact with overhead power lines.', 'Struck by a swinging chute or a pump hose.', 'Cement burns to the skin and eyes.', 'Back strain from barrowing and screeding.'],
+      hazards: ['A reversing concrete truck strikes a person.', 'Contact with overhead power lines.', 'Struck by a swinging chute.', 'Struck by a pump hose or a burst line.', 'Cement burns to the skin and eyes.', 'Back strain from barrowing and screeding.'],
       controls: [
         'Concrete trucks reverse only with a spotter, into a marked area kept clear of people, and stand on firm ground back from excavation edges.',
         'Check for overhead power lines before a truck, pump or boom sets up. Keep plant outside the approach distances, with a spotter where it could come close.',
@@ -3591,9 +3601,10 @@ addAfter('concrete', {
         'Where a line pump or boom pump is used, check pipes, clamps and the end hose before pumping, keep people clear of the end hose at start-up, and clear blockages only after the pressure is released.',
         src('Where a concrete placing boom is used, it is registered plant and its operator holds a high risk work licence for a concrete placing boom.', WHS('s 81, schedule 3, schedule 5')),
         'Where the truck or pump stands on the road or footpath, the traffic management set out for the work is in place and people walking past are kept clear or diverted.',
-        'Wear gumboots and chemical resistant gloves, and wash wet concrete off the skin straight away.',
+        'Wear gumboots, chemical resistant gloves, eye protection and long sleeves, and wash wet concrete off the skin straight away.',
         'Barrow loads are kept to what a person can handle, on boarded runs, and barrowing and screeding are rotated.',
         'Vibrators have their leads checked and tagged and are protected by an RCD.',
+        'Slump tests and test cylinders are taken at the chute with the truck stopped, wearing gloves and eye protection.',
       ],
     },
     {
@@ -3602,9 +3613,12 @@ addAfter('concrete', {
       controls: [
         'Power trowels have their guards in place and a working stop switch that cuts out when released, and are never left running unattended.',
         'Petrol trowels, saws and generators run only outdoors or where exhaust cannot collect.',
-        src('Control joints are saw cut wet or with on-tool extraction. Cutting concrete is processing a crystalline silica substance. Anyone still at risk of exposure wears a fit tested P2 respirator.', WHS('s 529B, s 529C')),
-        src('Assess in writing before saw cutting whether the processing is high risk. The assessment does not count PPE, administrative controls, or the dust controls used for the processing, such as wet methods, extraction or isolation.', WHS('s 529CA')),
+        src('Where control joints are saw cut, or concrete is cut or drilled (for dowels, or to break into an existing kerb or path), it is done wet or with on-tool extraction. This is processing a crystalline silica substance. Anyone still at risk of exposure wears a fit tested P2 respirator.', WHS('s 529B, s 529C')),
+        src('Before any saw cutting or drilling, assess in writing whether the processing is high risk. The assessment does not count PPE, administrative controls, or the dust controls used for the processing, such as wet methods, extraction or isolation.', WHS('s 529CA')),
         SILICA_FOLLOW_UP[1],
+        src('Where it is uncertain whether dust is below the exposure standard, monitor the air.', WHS('s 50')),
+        src('Health monitoring is provided for workers at significant risk from crystalline silica.', WHS('s 368, schedule 14')),
+        'Concrete saws have their blade guards in place, and electric saws used wet are protected by an RCD, with leads kept out of water.',
         src('Hearing protection where noise exceeds the exposure standard, such as near saws, power trowels and compactors. Workers who must wear it have hearing tests within 3 months of starting and at least every 2 years.', WHS('s 57, s 58')),
         'Curing compounds and sealers are used as their safety data sheets set out, with chemical resistant gloves and eye protection.',
         'Use knee pads and kneeling boards for edge finishing, and rotate tasks.',

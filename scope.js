@@ -205,7 +205,7 @@ const SUBJECT = /^(?:the )?subcontractor(?:'s)? (?:shall|is to|must|will|has all
 const TITLES = {
   road: 'Traffic management', power: 'Work near overhead power lines', scaffold: 'Scaffolding', roof: 'Roof work', roofStrip: 'Removing old roofing',
   trench: 'Trenching and underground services', propping: 'Temporary works and propping', demolition: 'Demolition', crane: 'Crane lifts', towerCrane: 'Tower crane lifts',
-  slabGround: 'Slabs on ground, paths and driveways', formwork: 'Formwork and falsework', reo: 'Reinforcement', concrete: 'Concrete placing and finishing', precast: 'Precast installation',
+  slabGround: 'Slabs on ground, paths and driveways', slabPour: 'Placing slabs on ground', formwork: 'Formwork and falsework', reo: 'Reinforcement', concrete: 'Concrete placing and finishing', precast: 'Precast installation',
   tempPower: 'Construction power and temporary lighting', castIn: 'Cast-in conduits', containment: 'Cable tray and containment at height',
   isolation: 'Terminations, testing and connection to supply', commissioning: 'Switchboards and mains', coreDrill: 'Core drilling and penetrations',
   sewerConnection: 'Connection to the live sewer', hydraulicRisers: 'Risers and pipework at height', hotWork: 'Brazing and soldering (hot work)',
@@ -288,7 +288,7 @@ function tasksFromScope(text, stateId = 'qld') {
   // and saw cutting lines are all part of the slab on ground task.
   if (groups.has('slabGround') && groundSlabOnly(lines.join('\n'))) {
     const slab = groups.get('slabGround');
-    for (const id of ['formwork', 'reo', 'concrete', 'sawCut', 'propping']) {
+    for (const id of ['slabPour', 'formwork', 'reo', 'concrete', 'sawCut', 'propping']) {
       if (!groups.has(id)) continue;
       for (const line of groups.get(id).lines) if (!slab.lines.includes(line)) slab.lines.push(line);
       groups.delete(id);

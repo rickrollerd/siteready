@@ -1440,7 +1440,7 @@ function tradeFlags(task, facts, state) {
 // Kinds of work any trade can strike, found from the task's own words, on top of
 // the trade kinds below. Drilling or cutting concrete counts only where no other
 // cutting step (tiles, masonry, saw cutting, coring, stone, grinding) covers it.
-const OWN_CUTTING = ['tileCut', 'masonryCut', 'sawCut', 'coreDrill', 'stoneSilica', 'floorGrind', 'wpPrep', 'pileTrim', 'structuralOpening', 'slabGround'];
+const OWN_CUTTING = ['tileCut', 'masonryCut', 'sawCut', 'coreDrill', 'stoneSilica', 'floorGrind', 'wpPrep', 'pileTrim', 'structuralOpening', 'slabGround', 'slabPour'];
 
 // Concrete slabs on the ground: house and ground floor slabs, driveways, paths, kerbs,
 // crossovers and pads. With no suspended slab in the task, the ground steps take the
@@ -1461,8 +1461,12 @@ function slabGroundFlags(task, flags) {
   // With suspended slabs too, the ground steps are added only for the crew forming or placing the concrete.
   if (!only && !flags.concrete && !flags.formwork) return {};
   return {
-    slabGround: true,
+    // A pour on its own needs only the placing and finishing steps.
+    slabGround: only || Boolean(flags.formwork),
+    slabPour: true,
     ...(only ? { reo: false, concrete: false, sawCut: false, silicaDrill: false } : {}),
+    // Saw cutting control joints is part of the slab steps, not cutting openings.
+    ...(/\b(control|contraction|expansion) joints?\b/i.test(task) && !/\b(openings?|demoli\w*|penetrations?|remov\w*)\b/i.test(task) ? { sawCut: false } : {}),
     ...(only && !/\b(trench\w*|pipes?|pipework|stormwater|sewer\w*|conduits?|drain\w*)\b/i.test(task) ? { trench: false } : {}),
     // Edge forms on the ground are part of the slab steps, not deck formwork.
     ...(only ? { formwork: false, propping: false } : {}),
@@ -1746,8 +1750,9 @@ const TASK_ONLY = [
   [/^Where spoil is carted by truck or loader/, /\b(cart\w*|haul\w*|spoil|surplus)\b/i],
   [/^Use a power stretcher instead of a knee kicker/, /^(?![\s\S]*\bdirect[- ]stick)/i],
   [/^Where the truck or pump stands on the road or footpath/, /\b(road|street|footpaths?|verge|traffic|crossovers?|kerbs?)\b/i],
-  [/^Control joints are saw cut|^Assess in writing before saw cutting/, /\b(saw\w*|control joints?|cut\w*)\b/i],
-  [/^Silica dust and noise from saw cutting joints/, /\b(saw\w*|control joints?|cut\w*)\b/i],
+  [/^Struck by a pump hose or a burst line/, /\b(pump\w*|boom)\b/i],
+  [/^Back strain and trips handling pods|^Pod bundles and vapour barrier rolls/, /\b(pods?|waffle|vapou?r barrier|membrane|plastic|sheeting)\b/i],
+  [/^Slump tests and test cylinders/, /\b(test\w* (?:all |the )?concrete|slump|cylinders?|concrete test\w*)\b/i],
   [/^Where a concrete placing boom is used/, /\b(boom|pump\w*)\b/i],
   [/^Where a line pump or boom pump is used/, /\b(pump\w*|boom)\b/i],
   [/^Footings, thickenings and pits are entered/, /\b(footings?|thickenings?|pits?)\b/i],
