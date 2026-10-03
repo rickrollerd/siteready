@@ -255,3 +255,22 @@ test('WA tilt-up work: removing temporary braces is tilt-up work; grinding erect
   const text = lines(draft('wa', 'Erect tilt-up concrete wall panels for a warehouse using a 200 tonne mobile crane, with temporary braces.')).join('\n');
   assert.match(text, /and people authorised under a written law enter or stay in the area where it is done \(regulation 306I\)\./);
 });
+
+test('asbestos removal licence classes: Class A for friable, Class B or A over 10 m2 of non-friable (s 458, s 485, s 487)', () => {
+  const task = 'Remove 80 square metres of friable asbestos pipe lagging from the plant room of a 1975 commercial building as a licensed Class A removal.';
+  for (const [state, reg] of [['qld', 'WHS Reg s'], ['nsw', 'Work Health and Safety Regulation 2025 (NSW) s'], ['sa', 'Work Health and Safety Regulations 2012 (SA) r'], ['wa', 'Work Health and Safety (General) Regulations 2022 (WA) r'], ['tas', 'Work Health and Safety Regulations 2022 (Tas) r'], ['nt', 'Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT) r']]) {
+    const unit = reg.slice(-1);
+    const item = draft(state, task).qualifications.find((name) => /^Licensed asbestos removalist/.test(name));
+    assert.equal(item, `Licensed asbestos removalist (Class A for friable asbestos, Class B or A for more than 10 m2 of non-friable asbestos) with workers holding the VET asbestos removal certification. 10 m2 or less of non-friable asbestos may be removed without a licence by a competent person trained in identifying and safely handling asbestos (${reg} 445, ${unit} 458, ${unit} 460, ${unit} 485, ${unit} 487)`, state);
+  }
+  // Victoria: r 250 limited removal, r 264 and r 265 classes, r 269 training.
+  assert.match(draft('vic', task).qualifications.find((name) => /^Licensed asbestos removalist/.test(name)), /Class A for friable asbestos, Class B or A for non-friable asbestos\)[^(]*for no more than 1 hour in any 7 days[^(]*\(Occupational Health and Safety Regulations 2017 \(Vic\) r 250, r 264, r 265, r 269\)$/);
+});
+
+test('sections each state has under the same heading are cited (NSW, WA)', () => {
+  assert.equal(localSource(`${QLD}s 466`, 'wa'), 'Work Health and Safety (General) Regulations 2022 (WA) r 466');
+  assert.equal(localSource(`${QLD}s 529D, s 529F, s 529G`, 'wa'), 'Work Health and Safety (General) Regulations 2022 (WA) r 529D, r 529F, r 529G');
+  assert.equal(localSource(`${QLD}schedule 10`, 'wa'), 'Work Health and Safety (General) Regulations 2022 (WA) Schedule 10');
+  assert.equal(localSource(`${QLD}s 529A, s 529B`, 'nsw'), 'Work Health and Safety Regulation 2025 (NSW) s 529A, s 529B');
+  assert.equal(localSource(`${QLD}s 36, s 41, s 44, s 302, s 315, s 453, s 473`, 'wa'), 'Work Health and Safety (General) Regulations 2022 (WA) r 36, r 41, r 44, r 302, r 315, r 453, r 473');
+});

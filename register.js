@@ -147,6 +147,10 @@ const SUBSTANCES = [
 ];
 
 // Licences, tickets and training the work needs.
+// Class A for friable asbestos (s 485), Class B or A for more than 10 m2 of non-friable asbestos
+// (s 487), and no licence for 10 m2 or less of non-friable asbestos removed by a competent person
+// trained under s 445 (s 458(2), (3)).
+const ASBESTOS_REMOVALIST = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for more than 10 m2 of non-friable asbestos) with workers holding the VET asbestos removal certification. 10 m2 or less of non-friable asbestos may be removed without a licence by a competent person trained in identifying and safely handling asbestos (WHS Reg s 445, s 458, s 460, s 485, s 487)';
 const QUALIFICATIONS = [
   ['General construction induction (white card)', /./],
   ['Site specific induction', /./],
@@ -154,7 +158,7 @@ const QUALIFICATIONS = [
   ['Plumbing and drainage licence', /\b(vanit(?:y|ies)|plumbing|plumber|(?<!(?:wall|ag|agricultural|subsoil|retaining) )drainage(?! (?:swales?|gravel|cells?|mats?|layers?|boards?|aggregate|sheets?|composites?|fabric|and backfill|behind))|sewer\w*(?! pump stations?)|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water suppl(?:y|ies)|water mains?|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
   ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?|(?:install\w*|replac\w*|connect\w*|commission\w*|relocat\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |new )?(?:wall[- ]mounted |reverse cycle )?air ?condition\w* units?|install\w* (?:split |reverse cycle )?air ?condition\w*)\b/i],
   ['Gas work licence', /\b(?<!medical )(commercial (?:ranges?(?! ?hoods?)|cooktops?)|wok (?:burners?|stations?|ranges?)|gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|heating|meters?|cooktops?|ovens?|boilers?|stoves?|fires?|log fires?|barbecues?|bbqs?)|gasfitt\w*|(?:connect|relocat|disconnect)\w*[^.]{0,30}\bgas\b)\b/i],
-  ['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)', /\basbestos\b/i],
+  [ASBESTOS_REMOVALIST, /\basbestos\b/i],
   ['Confined space entry training', /\bconfined spaces?\b/i],
   ['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk', /\bsilica dust\b/i],
   ['Working at heights and harness training', /\b(harness|travel restraint|fall arrest)\b/i],
@@ -449,7 +453,12 @@ function localLicences(stateName, trade, list, stepText) {
   // and no asbestos removal without a licence, whatever the amount (s 458, s 487).
   if (/Australian Capital Territory/.test(stateName || '')) {
     local['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk'] = 'Crystalline silica awareness training (the course the Minister declares under section 418D), for workers who carry out high risk crystalline silica work';
-    local['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)'] = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for non-friable asbestos, whatever the amount) with workers holding the VET asbestos removal certification. Other workers who work with asbestos have done the asbestos awareness course the Minister declares (Work Health and Safety Regulation 2011 (ACT) s 445, s 458, s 460, s 487)';
+    local[ASBESTOS_REMOVALIST] = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for non-friable asbestos, whatever the amount) with workers holding the VET asbestos removal certification. Other workers who work with asbestos have done the asbestos awareness course the Minister declares (Work Health and Safety Regulation 2011 (ACT) s 445, s 458, s 460, s 487)';
+  }
+  // Victoria: Class A for friable asbestos (r 264), Class B or A for non-friable asbestos (r 265), and
+  // limited removal without a licence (r 250); licence holders train their workers (r 269).
+  if (/Victoria/.test(stateName || '')) {
+    local[ASBESTOS_REMOVALIST] = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for non-friable asbestos) whose workers are informed, instructed and trained in the work. Up to 10 m2 of non-friable asbestos, for no more than 1 hour in any 7 days, may be removed without a licence (Occupational Health and Safety Regulations 2017 (Vic) r 250, r 264, r 265, r 269)';
   }
   const stateId = (findState(stateName) || { id: 'qld' }).id;
   const kept = gasWorkOnly && !/Victoria/.test(stateName || '') ? named.filter((name) => name !== 'Plumbing and drainage licence') : named;
