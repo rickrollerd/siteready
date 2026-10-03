@@ -85,7 +85,8 @@
       "fallRisk": "yes",
       "facts": {
         "excavationPlan": "Excavation follows the geotechnical design GT-01 (revision C) in stages to the levels shown, with batters no steeper than 1 to 1, and plant and trucks follow the site traffic management plan TMP-02.",
-        "fallControl": "Edge protection is installed along the basement edge before excavation goes below 2 m, and access is by a scaffold stair."
+        "fallControl": "Edge protection is installed along the basement edge before excavation goes below 2 m, and access is by a scaffold stair.",
+        "spoilPlan": "Spoil is classified as clean fill (tested by the geotechnical engineer, report G-201-T) and taken to a licensed fill site, with the waste records the state environment regulator requires. Stockpiles are kept only in the laydown area the principal contractor allows, and covered with tarps when dry and windy."
       },
       "expect": {
         "highRisk": [
@@ -102,7 +103,8 @@
         ],
         "missing": [
           "Fall control",
-          "Excavation and traffic plan"
+          "Excavation and traffic plan",
+          "Spoil plan"
         ]
       }
     }

@@ -113,6 +113,13 @@ const SCHEMA = [
     review_due_at TIMESTAMPTZ NOT NULL,
     reminder_sent_at TIMESTAMPTZ
   )`,
+  `CREATE TABLE IF NOT EXISTS signins (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    network TEXT NOT NULL DEFAULT '',
+    device TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS events (
     id TEXT PRIMARY KEY,
     company_id TEXT,

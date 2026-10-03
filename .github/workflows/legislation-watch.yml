@@ -10,6 +10,8 @@ on:
     paths:
       - 'legislation-watch/check.js'
       - 'legislation-watch/sources.json'
+      - 'legislation-watch/codes.json'
+      - 'legislation-watch/news.json'
       - '.github/workflows/legislation-watch.yml'
 
 permissions:
@@ -45,7 +47,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh issue create \
-            --title "Legislation check $(date -u +%Y-%m-%d): action needed" \
+            --title "Legislation, codes and news check $(date -u +%Y-%m-%d): action needed" \
             --body-file legislation-watch/report.md
 
       - name: Send an email
@@ -62,7 +64,7 @@ jobs:
           {
             echo "From: SiteReady <$SMTP_USERNAME>"
             echo "To: $ALERT_EMAIL"
-            echo "Subject: SiteReady legislation check: action needed"
+            echo "Subject: SiteReady legislation, codes and news check: action needed"
             echo "Content-Type: text/plain; charset=UTF-8"
             echo
             # The issue keeps the Markdown. The email drops headings, bold and code marks.

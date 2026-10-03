@@ -1,4 +1,4 @@
-// Fetches the NSW, Victorian and WA regulations in full, with a real browser
+// Fetches the state and territory WHS regulations in full, with a real browser
 // where a site needs one, and writes each as text to state-sources/, so the
 // citations SiteReady prints for those states can be checked against them.
 //
@@ -74,6 +74,32 @@ async function nsw(browser) {
   }
 }
 
+// Opens a legislation page, finds the PDF of the version in force and saves its text.
+async function pdfFromPage(browser, name, title, url, pick = /\.pdf|\/pdf\//i, direct = []) {
+  for (const pdfUrl of direct) {
+    try {
+      const response = await fetch(pdfUrl, { signal: AbortSignal.timeout(120000), headers: { 'User-Agent': 'SiteReady legislation check (github.com/rickrollerd/siteready)' } });
+      const buffer = Buffer.from(await response.arrayBuffer());
+      console.log(`${name} ${pdfUrl}: HTTP ${response.status}, ${buffer.length} bytes`);
+      if (buffer.subarray(0, 4).toString() === '%PDF') return save(name, title, pdfUrl, pdfText(buffer));
+    } catch (error) {
+      console.log(`${name} ${pdfUrl}: ${error.message}`);
+    }
+  }
+  const page = await browser.newPage();
+  await page.goto(url, { waitUntil: 'networkidle', timeout: 120000 }).catch((error) => console.log(`${name} page: ${error.message}`));
+  const links = await page.evaluate(() => [...document.querySelectorAll('a')].map((a) => ({ href: a.href, text: a.innerText.trim() })));
+  const pdfs = links.filter((link) => pick.test(`${link.href} ${link.text}`));
+  console.log(`${name} PDF links: ${pdfs.slice(0, 10).map((l) => `${l.text.slice(0, 40)} -> ${l.href}`).join(' || ')}`);
+  for (const link of pdfs.slice(0, 4)) {
+    const response = await page.request.get(link.href, { timeout: 120000 }).catch(() => null);
+    if (!response) continue;
+    const buffer = await response.body();
+    if (buffer.subarray(0, 4).toString() === '%PDF') return save(name, title, link.href, pdfText(buffer));
+  }
+  console.log(`${name}: no PDF could be read`);
+}
+
 async function vic(browser) {
   const page = await browser.newPage();
   const url = 'https://www.legislation.vic.gov.au/in-force/statutory-rules/occupational-health-and-safety-regulations-2017';
@@ -109,7 +135,18 @@ async function wa() {
 
 (async () => {
   const browser = await chromium.launch();
-  for (const [name, job] of [['WA', () => wa()], ['Vic', () => vic(browser)], ['NSW', () => nsw(browser)]]) {
+  const only = (process.env.ONLY || '').split(',').filter(Boolean);
+  const jobs = [
+    ['WA', () => wa()],
+    ['Vic', () => vic(browser)],
+    ['NSW', () => nsw(browser)],
+    ['Qld', () => pdfFromPage(browser, 'qldReg', 'Work Health and Safety Regulation 2011 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2011-0240', /\/pdf\//i, ['https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/sl-2011-0240'])],
+    ['Tas', () => pdfFromPage(browser, 'tasReg', 'Work Health and Safety Regulations 2022 (Tas), current', 'https://www.legislation.tas.gov.au/view/html/inforce/current/sr-2022-109', /\/pdf\//i, ['https://www.legislation.tas.gov.au/view/whole/pdf/inforce/current/sr-2022-109'])],
+    ['SA', () => pdfFromPage(browser, 'saReg', 'Work Health and Safety Regulations 2012 (SA), current', 'https://www.legislation.sa.gov.au/lz?path=%2Fc%2Fr%2Fwork+health+and+safety+regulations+2012', /\.pdf/i)],
+    ['ACT', () => pdfFromPage(browser, 'actReg', 'Work Health and Safety Regulation 2011 (ACT), current', 'https://www.legislation.act.gov.au/sl/2011-36/', /current\/pdf|\.pdf/i, ['https://www.legislation.act.gov.au/View/sl/2011-36/current/PDF/2011-36.PDF'])],
+    ['NT', () => pdfFromPage(browser, 'ntReg', 'Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT), current', 'https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011', /pdf/i)],
+  ].filter(([name]) => !only.length || only.includes(name));
+  for (const [name, job] of jobs) {
     await job().catch((error) => console.log(`${name} failed: ${error.message}`));
   }
   await browser.close();

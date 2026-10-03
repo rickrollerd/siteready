@@ -43,3 +43,37 @@ test('a WA draft prints WA citations and no Queensland ones', () => {
   const wa = JSON.stringify(prepareDraft({ state: 'wa', task, fallRisk: 'no', residential: 'yes', facts }).jobSteps);
   assert.match(wa, /Work Health and Safety \(General\) Regulations 2022 \(WA\) r \d+/);
 });
+
+test('SA, Tas, ACT and NT controls carry their own regulation numbers', () => {
+  const { localSource } = require('../citations');
+  const src = 'Work Health and Safety Regulation 2011 (Qld) s 214, s 215';
+  assert.equal(localSource(src, 'sa'), 'Work Health and Safety Regulations 2012 (SA) r 214, r 215');
+  assert.equal(localSource(src, 'tas'), 'Work Health and Safety Regulations 2022 (Tas) r 214, r 215');
+  assert.equal(localSource(src, 'act'), 'Work Health and Safety Regulation 2011 (ACT) s 214, s 215');
+  assert.equal(localSource(src, 'nt'), 'Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT) r 214, r 215');
+  // Queensland-only rules are left out, and the ACT's engineered stone ban is r 418F there.
+  assert.equal(localSource('Work Health and Safety Regulation 2011 (Qld) s 306G', 'sa'), '');
+  assert.equal(localSource('Work Health and Safety Regulation 2011 (Qld) s 529A, s 529D', 'act'), 'Work Health and Safety Regulation 2011 (ACT) s 418F');
+});
+
+test('ACT drafts do not give the 10 m2 asbestos exception, which the ACT does not have', () => {
+  const { localText } = require('../citations');
+  const line = 'Asbestos is removed by a licensed asbestos removalist, except for 10 m2 or less of non-friable asbestos removed under the regulation.';
+  assert.equal(localText(line, 'act'), 'Asbestos is removed only by a licensed asbestos removalist, whatever the amount.');
+  assert.equal(localText(line, 'sa'), line);
+});
+
+test('ACT drafts use the ACT crystalline silica rules, and the 14 day silica report is Queensland only', () => {
+  const { localText } = require('../citations');
+  const assess = 'Assess in writing before cutting whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.';
+  const act = localText(assess, 'act');
+  assert.match(act, /^Before cutting, a continuous water feed is used with at least one other crystalline silica control/);
+  assert.doesNotMatch(act, /assess in writing|high risk\./i);
+  assert.equal(localText(assess, 'sa'), assess);
+  const plan = 'Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course.';
+  assert.equal(localText(plan, 'act'), 'Workers who carry out high risk crystalline silica work have completed the crystalline silica awareness course the ACT regulator declares.');
+  const report = 'Monitor the air and keep the results for 30 years. For high risk processing, results above the exposure standard are reported to the regulator within 14 days.';
+  assert.equal(localText(report, 'qld'), report);
+  assert.equal(localText(report, 'sa'), 'Monitor the air and keep the results for 30 years. Results above the exposure standard are reported to the regulator where the state\'s rules require it.');
+  assert.match(localText(report, 'nt'), /where the territory's rules require it\.$/);
+});

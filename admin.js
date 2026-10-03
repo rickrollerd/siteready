@@ -28,6 +28,22 @@ router.get('/admin/stats', auth.requireUser, route(async (req, res) => {
     return Object.fromEntries(rows.map((row) => [row.type, Number(row.n)]));
   };
   const errors = await db.query('SELECT route, message, created_at FROM errors ORDER BY created_at DESC LIMIT 25');
+  // One sign-in used on many devices or from many networks may be shared outside the company.
+  const signins = await db.query(`SELECT s.user_id, u.email, c.name AS company, s.network, s.device, s.created_at
+    FROM signins s JOIN users u ON u.id = s.user_id LEFT JOIN companies c ON c.id = u.company_id WHERE s.created_at >= $1`, [since(30)]);
+  const byUser = new Map();
+  for (const row of signins) {
+    const entry = byUser.get(row.user_id) || { email: row.email, company: row.company || '', devices: new Set(), networks7: new Set(), signins: 0, last: row.created_at };
+    entry.devices.add(row.device);
+    if (new Date(row.created_at) >= since(7)) entry.networks7.add(row.network);
+    entry.signins += 1;
+    if (new Date(row.created_at) > new Date(entry.last)) entry.last = row.created_at;
+    byUser.set(row.user_id, entry);
+  }
+  const unusualSignins = [...byUser.values()]
+    .filter((entry) => entry.devices.size >= 4 || entry.networks7.size >= 4)
+    .map((entry) => ({ email: entry.email, company: entry.company, devices30: entry.devices.size, networks7: entry.networks7.size, signins30: entry.signins, last: entry.last }))
+    .sort((a, b) => (b.devices30 + b.networks7) - (a.devices30 + a.networks7));
   const price = Number(process.env.PRICE_MONTHLY || 49);
   res.json({
     companies: companies.length,
@@ -36,6 +52,7 @@ router.get('/admin/stats', auth.requireUser, route(async (req, res) => {
     monthlyRevenue: (plans.active + plans.past_due) * price,
     actions: { days7: await count(7), days30: await count(30) },
     errors,
+    unusualSignins,
   });
 }));
 

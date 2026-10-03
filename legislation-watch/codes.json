@@ -1,0 +1,61 @@
+[
+  {
+    "id": "swa-model-codes",
+    "jurisdiction": "Safe Work Australia",
+    "title": "Model codes of practice",
+    "url": "https://www.safeworkaustralia.gov.au/law-and-regulation/codes-practice"
+  },
+  {
+    "id": "qld-codes",
+    "jurisdiction": "Queensland",
+    "title": "Codes of practice",
+    "url": "https://www.worksafe.qld.gov.au/laws-and-compliance/workplace-health-and-safety-laws/codes-of-practice",
+    "knownBlocked": "WorkSafe Queensland refuses automated requests. Queensland's approved codes are still watched daily through the Work Health and Safety (Codes of Practice) Notice 2022 on the legislation site. Check this page by hand monthly."
+  },
+  {
+    "id": "nsw-codes",
+    "jurisdiction": "New South Wales",
+    "title": "Codes of practice",
+    "url": "https://www.safework.nsw.gov.au/resource-library/list-of-all-codes-of-practice"
+  },
+  {
+    "id": "vic-codes",
+    "jurisdiction": "Victoria",
+    "title": "Compliance codes",
+    "url": "https://www.worksafe.vic.gov.au/compliance-codes-and-practice-notes",
+    "knownBlocked": "WorkSafe Victoria's page cannot be read automatically. Check the compliance codes by hand monthly; the news search covers WorkSafe Victoria compliance codes."
+  },
+  {
+    "id": "wa-codes",
+    "jurisdiction": "Western Australia",
+    "title": "Codes of practice",
+    "url": "https://www.worksafe.wa.gov.au/work-health-and-safety-and-transitional-codes-practice"
+  },
+  {
+    "id": "sa-codes",
+    "jurisdiction": "South Australia",
+    "title": "Codes of practice",
+    "url": "https://safework.sa.gov.au/resources/codes-of-practice"
+  },
+  {
+    "id": "tas-codes",
+    "jurisdiction": "Tasmania",
+    "title": "Codes of practice",
+    "url": "https://worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice",
+    "knownBlocked": "WorkSafe Tasmania refuses automated requests. Check by hand monthly; the news search covers WorkSafe Tasmania codes."
+  },
+  {
+    "id": "act-codes",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Work Safety Group public notices (new and updated codes)",
+    "url": "https://www.act.gov.au/open/work-safety-group-public-notices",
+    "knownBlocked": "The ACT Government site refuses automated requests. Check by hand monthly; the news search covers WorkSafe ACT codes."
+  },
+  {
+    "id": "nt-codes",
+    "jurisdiction": "Northern Territory",
+    "title": "Codes of practice",
+    "url": "https://worksafe.nt.gov.au/codes-of-practice",
+    "knownBlocked": "NT WorkSafe refuses automated requests. Check by hand monthly; the news search covers NT WorkSafe codes."
+  }
+]

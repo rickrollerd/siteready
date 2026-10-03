@@ -53,11 +53,36 @@ async function sendLoginLink(req, email, companyId = null, invitedBy = '') {
   });
 }
 
-async function createSession(userId) {
+async function createSession(userId, req = null) {
   const token = newToken();
   await db.query('INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES ($1, $2, $3, $4)',
     [hash(token), userId, new Date(), later(SESSION_DAYS * DAY)]);
+  if (req) await recordSignin(userId, req);
   return token;
+}
+
+// The network (IP address without its last part) and the kind of device, for spotting
+// one sign-in shared across many places. Kept 90 days.
+function networkOf(req) {
+  const ip = String(req.ip || '').replace(/^::ffff:/, '');
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(ip)) return ip.split('.').slice(0, 3).join('.');
+  return ip.split(':').slice(0, 4).join(':');
+}
+
+function deviceOf(req) {
+  const agent = String((req.headers && req.headers['user-agent']) || '');
+  const system = /iphone|ipad/i.test(agent) ? 'iPhone or iPad' : /android/i.test(agent) ? 'Android' : /windows/i.test(agent) ? 'Windows' : /mac os/i.test(agent) ? 'Mac' : /linux/i.test(agent) ? 'Linux' : 'Other';
+  const browser = /edg\//i.test(agent) ? 'Edge' : /chrome|crios/i.test(agent) ? 'Chrome' : /firefox|fxios/i.test(agent) ? 'Firefox' : /safari/i.test(agent) ? 'Safari' : 'Other';
+  return `${system}, ${browser}, ${crypto.createHash('sha256').update(agent).digest('hex').slice(0, 8)}`;
+}
+
+async function recordSignin(userId, req) {
+  try {
+    await db.query('INSERT INTO signins (id, user_id, network, device, created_at) VALUES ($1, $2, $3, $4, $5)', [newToken(), userId, networkOf(req), deviceOf(req), new Date()]);
+    await db.query('DELETE FROM signins WHERE created_at < $1', [new Date(Date.now() - 90 * DAY)]);
+  } catch {
+    // A missed record never stops a sign-in.
+  }
 }
 
 // A first sign-in makes the company, with its free trial. An invited person
@@ -79,12 +104,12 @@ async function userForEmail(email, companyId) {
   return db.one('SELECT * FROM users WHERE id = $1', [id]);
 }
 
-async function finishLogin(token) {
+async function finishLogin(token, req = null) {
   const row = await db.one('SELECT * FROM login_tokens WHERE token_hash = $1', [hash(token)]);
   if (!row || row.used_at || new Date(row.expires_at) < new Date()) throw fail(400, 'This sign-in link has expired or has been used. Ask for a new one.');
   await db.query('UPDATE login_tokens SET used_at = $1 WHERE token_hash = $2', [new Date(), row.token_hash]);
   const user = await userForEmail(row.email, row.company_id);
-  return createSession(user.id);
+  return createSession(user.id, req);
 }
 
 function hasAccess(company) {
@@ -208,7 +233,7 @@ async function passkeyLogin(req) {
   }
   if (!result.verified) throw fail(400, 'Face ID sign-in failed. Try again, or use an email link.');
   await db.query('UPDATE passkeys SET counter = $1, last_used_at = $2 WHERE id = $3', [result.authenticationInfo.newCounter, new Date(), key.id]);
-  return createSession(key.user_id);
+  return createSession(key.user_id, req);
 }
 
 module.exports = {

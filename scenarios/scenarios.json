@@ -112,7 +112,8 @@
     "facts": {
       "fallControl": "Access is by a fixed ladder with a full body harness attached to a retrieval tripod over the hatch.",
       "controlsConsidered": "Removing the need to enter was considered, but the valve cannot be reached from outside. A fixed platform cannot be installed inside the tank.",
-      "confinedSpace": "An entry permit is issued for each entry. The air is tested for oxygen, flammable gas and toxic gas before entry and continuously during the work. A standby person stays at the hatch with a radio. The retrieval tripod and winch are used for rescue, and the rescue plan is practised before the work starts."
+      "confinedSpace": "An entry permit is issued for each entry. The air is tested for oxygen, flammable gas and toxic gas before entry and continuously during the work. A standby person stays at the hatch with a radio. The retrieval tripod and winch are used for rescue, and the rescue plan is practised before the work starts.",
+      "harnessSystem": "Workers wear a full body harness with a dorsal or shoulder retrieval point, connected to a self-retracting fall arrest and retrieval winch on a tripod rated for the purpose and set up over the hatch by a competent person. Harnesses and the tripod are checked before each use and inspected by a competent person every 6 months, recorded on the tag. Users and the standby person are trained in confined space entry and rescue by a registered training organisation."
     },
     "expect": {
       "missing": [

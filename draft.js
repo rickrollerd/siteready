@@ -590,6 +590,17 @@ function isPlumbing(text) {
 }
 const PLUMBING_WORK = /\b(plumb\w*|hydraulic (?:services|risers?|pipework|pipes?|stacks?)|drain\w*|sewer\w*|sanitary|pipes?|pipework|sleeves?|puddle flanges?|hot water|cold water|tapware|toilets?|basins?|pump rooms?|sumps?|ejection pits?|water tanks?)\b/i;
 
+// A fall control that relies on a harness.
+const HARNESS_WORDS = /\b(harness\w*|travel restraint|fall arrest|restraint lanyards?|static lines?|lifelines?)\b/i;
+
+// A fall control answer that relies on a harness brings the harness question.
+function withHarness(list, facts) {
+  if (list.some((item) => item.id === 'harnessSystem')) return list;
+  if (!HARNESS_WORDS.test(String((facts && facts.fallControl) || ''))) return list;
+  const item = CATEGORY_FACTS.find((entry) => entry.id === 'harnessSystem');
+  return [...list, { id: item.id, label: item.label, prompt: item.prompt }];
+}
+
 const CATEGORY_FACTS = [
   {
     // Pits, sumps, tanks and manholes are confined spaces only if they meet the
@@ -745,6 +756,22 @@ const CATEGORY_FACTS = [
     prompt: 'The engineer\'s erection design for the precast units (drawing and revision): the bearing and fixing details, the placing sequence, and any temporary propping.',
     level: 'Isolate or engineer',
     applies: (text) => /\bprecast\b/i.test(String(text || '')) && PRECAST_TIER.test(String(text || '')) && /\b(install\w*|plac\w*|lift\w*|erect\w*|land\w*)\b/i.test(String(text || '')),
+  },
+  {
+    // A harness is only as good as its anchors, its inspection and the user's training.
+    id: 'harnessSystem',
+    label: 'Harness and anchors',
+    prompt: 'The harness and lanyard or line used, the anchor points and who rated or installed them, when the harness was last inspected, who trained the users, and the rescue plan.',
+    level: 'Administrative',
+    applies: (text) => HARNESS_WORDS.test(String(text || '')),
+  },
+  {
+    // Where spoil goes, and whether it is contaminated, decides how it is stockpiled and carted.
+    id: 'spoilPlan',
+    label: 'Spoil plan',
+    prompt: 'Where the spoil goes, whether it is tested or known to be contaminated, and where stockpiles may be kept.',
+    level: 'Administrative',
+    applies: (text) => /\b(spoil|stockpil\w*|cart\w* (?:the )?(?:spoil |soil |fill )?(?:away|off ?site)|muck\w* (?:away|out)|tip\w* off ?site)\b/i.test(String(text || '')),
   },
   {
     id: 'excavationPlan',
@@ -920,9 +947,15 @@ function allRequiredFacts(fullTask, answer, state) {
   return facts;
 }
 
+// The site answers (live services, access and so on) as one piece of text, slang read.
+function siteConditions(site) {
+  return readSlang(Object.values(site || {}).map(supplied).filter(Boolean).join('\n'));
+}
+
 function combinedFacts(task, facts) {
   return [
     task,
+    facts.siteConditions,
     facts.craneChart,
     facts.erectionDesign,
     facts.centreOfGravity,
@@ -1006,7 +1039,7 @@ function factState(item, task, facts) {
 }
 
 function missingFacts(task, facts, answer, state) {
-  return requiredFactsFor(task, answer, state)
+  return withHarness(requiredFactsFor(task, answer, state), facts)
     .map((item) => ({ ...item, state: factState(item, task, facts) }))
     .filter((item) => item.state !== 'supplied');
 }
@@ -1281,14 +1314,16 @@ function residentialAnswer(value) {
 // The state, with the fall height that applies to this task.
 // Who runs the crane: a crane company unless the subcontractor says it runs its own.
 function craneAnswer(value) {
-  return /^(own|ours?|us|we|our company|yes)$/i.test(String(value || '').trim()) ? 'own' : 'company';
+  const answer = String(value || '').trim();
+  if (/^(none|no|no crane|not used)$/i.test(answer)) return 'none';
+  return /^(own|ours?|us|we|our company|yes)$/i.test(answer) ? 'own' : 'company';
 }
 
 function stateFor(input) {
   const found = findState(input.state);
   if (!found) return found;
   // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
-  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds) };
+  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds) };
   if (!state.residentialFallMetres) return state;
   const residential = residentialAnswer(input.residential) === 'yes';
   return { ...state, residential, fallMetres: residential ? state.residentialFallMetres : 2 };
@@ -1338,12 +1373,13 @@ function questionsFor(input) {
     },
     task,
     fall: fallCheck(task, answer, state),
-    required: requiredFactsFor(task, answer, state),
+    required: withHarness(requiredFactsFor(task, answer, state), input.facts),
+    // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
-    ppe: ppeList(task, input.facts || {}, state),
+    ppe: ppeList(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
     // The job steps found from the task's words, the ones in use, and the ones that cannot be taken off.
-    steps: stepPicks(task, input.facts || {}, state),
+    steps: stepPicks(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
   };
 }
 
@@ -1440,7 +1476,7 @@ function prepareDraft(input) {
   const typed = cleanLine(input.task || input.jobDescription);
   const task = readSlang(typed);
   // A space the user has assessed as not a confined space drops any confined space arrangement.
-  const facts = { ...(input.facts || {}) };
+  const facts = { ...(input.facts || {}), siteConditions: siteConditions(input.site) };
   if (choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'notConfined' && !/\bconfined space\b/i.test(task)) delete facts.confinedSpace;
   const site = siteFromPack(task, input.site || {});
   const pack = {
@@ -1570,7 +1606,7 @@ function prepareDraft(input) {
   }
   // Powered mobile plant the SWMS lists, even where it may be used, brings the s 291 plant item.
   // A plate compactor on a small barrowed pour is not mobile plant moving around the work.
-  if (registers.plant.some((item) => /^(Mobile crane|Crawler crane|Non-slewing mobile crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig|Turf laying machine|Trencher|Vacuum truck|Elevating work platform|Scissor lift|Boom-type elevating|Dozer|Grader|Loader|Scraper|Articulated dump truck|Water cart|Road profiler|Stabiliser|Asphalt paver|Bitumen sprayer|Aggregate spreader|Truck mounted attenuator|Self-propelled modular transporter|Pile driving hammer|Ground improvement rig|Rolling impact compactor|Shotcrete rig|Roadheader|Low loader|Mulcher|Fuel truck|Road rail vehicle|Track laying machine|Track maintenance machine|Hydro demolition robot|Directional drilling rig|Drill rig|Post driver|Vacuum excavation unit|Truck and dog)/.test(item.item) && !(item.item === 'Roller or plate compactor' && !/\brollers?\b/i.test(draft.task || '')) && !(item.item === 'Roller or plate compactor' && SMALL_POUR.test(draft.task || '')))) {
+  if (registers.plant.some((item) => /^(Mobile crane|Crawler crane|Non-slewing mobile crane|Vehicle loading crane|Tower crane|Forklift|Telehandler|Excavator|Skid steer|Concrete placing boom|Roller|Tipper|Piling rig|Turf laying machine|Trencher|Vacuum truck|Elevating work platform|Scissor lift|Boom-type elevating|Dozer|Grader|Loader|Scraper|Articulated dump truck|Water cart|Road profiler|Stabiliser|Asphalt paver|Bitumen sprayer|Aggregate spreader|Truck mounted attenuator|Self-propelled modular transporter|Pile driving hammer|Ground improvement rig|Rolling impact compactor|Shotcrete rig|Roadheader|Low loader|Mulcher|Fuel truck|Road rail vehicle|Track laying machine|Track maintenance machine|Hydro demolition robot|Directional drilling rig|Drill rig|Post driver|Vacuum excavation unit|Truck and dog)/.test(item.item) && !(item.item === 'Roller or plate compactor' && !/\brollers?\b/i.test(draft.task || '')) && !(item.item === 'Roller or plate compactor' && SMALL_POUR.test(draft.task || '')))) {
     const plantItem = highRiskMatches('movement of powered mobile plant', 'no', state).map((item) => item.label);
     for (const label of plantItem) if (!draft.highRisk.includes(label)) draft.highRisk = [...draft.highRisk, label];
   }
@@ -1678,16 +1714,16 @@ const KIND_IDS = [...new Set(ACTIVITIES.map((activity) => activity.when).filter(
 function tradeFlags(task, facts, state) {
   const flags = suggestedFlags(task, facts, state);
   if (!state.kinds) return flags;
-  // The job steps the user picked replace the ones found from the words, except the
-  // steps the law or the facts call for, which stay.
+  // The job steps the user picked replace the ones found from the words. The user can
+  // take off any step, including the ones the task's words call for (they are warned).
   const picked = new Set(state.kinds);
   const out = { ...flags };
-  for (const id of KIND_IDS) out[id] = picked.has(id) || (LOCKED_KINDS.has(id) && Boolean(flags[id]));
+  for (const id of KIND_IDS) out[id] = picked.has(id);
   if (pickedDisturbsBuilding(task, state.kinds)) out.asbestosCheck = true;
   return out;
 }
 
-// Job steps that cannot be taken off a task once its words call for them: asbestos,
+// Job steps the task's words call for that are flagged when taken off: asbestos,
 // isolation, confined spaces, water, traffic, power lines, propping and trench support.
 const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench']);
 const KIND_SET = new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean));
@@ -1720,6 +1756,17 @@ function kindsWithSteps(flags) {
 
 function suggestedFlags(task, facts, state) {
   const flags = limitToTrades(workFlags(task, facts, state.ownCrane), state.trades, KIND_IDS);
+  // What the site answers say about power lines and access brings their steps.
+  const site = String((facts && facts.siteConditions) || '');
+  if (site) {
+    if (mentioned(site, ENERGISED) || /\b(hv|high voltage|\d+ ?kv)\b[^.\n]{0,20}\blines?\b/i.test(site)) flags.power = true;
+    if (/\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(site)) flags.ewp = true;
+    if (/\bladders?\b/i.test(site)) flags.ladderUse = true;
+  }
+  // No crane on this job: crane steps come only from a crane the task itself names.
+  if (state.noCrane && !/\b(cranes?|hiabs?|frannas?|vehicle loading cranes?)\b/i.test(task)) {
+    for (const id of ['craneInterface', 'crane', 'heavyLift', 'dualLift', 'craneAssembly']) flags[id] = false;
+  }
   // A cutting step that is not this trade's work is taken out, so drilling and
   // cutting comes back as the general step.
   // Saw cut control joints are covered in the concrete finishing step.
@@ -2346,6 +2393,9 @@ function settleFlags(flags, task) {
   if (T(/\b(cable (?:winch|drum trailers?)|pull\w* (?:high voltage |hv )?cables?)\b/i)) out.cablePull = true;
   if (T(/\bmine (?:sites?)?\b|\bmining\b|\bon a mine\b/i)) out.mineSite = true;
   // Venue and government project rules.
+  out.spoilManage = T(/\b(spoil|stockpil\w*|cart\w* (?:the )?(?:spoil |soil |fill )?(?:away|off ?site)|muck\w* (?:away|out)|tip\w* off ?site|dispos\w* of (?:the )?(?:soil|fill|spoil))\b/i) && !T(/\b(spoil(?:s|ed)? the|unspoil\w*)\b/i);
+  out.loaderCrane = T(/\b(vehicle loading cranes?|loader cranes?|truck[- ]mounted cranes?|knuckle boom cranes?|crane trucks?)\b/i);
+  if (out.loaderCrane && !T(/\b(mobile|crawler|tower|franna|all terrain|slewing) cranes?\b/i)) out.craneInterface = false;
   out.poolShell = T(/\b(pool shells?|(?:construct\w*|build\w*)\b[^.]{0,30}\b(?:swimming |competition |lap |\d+ ?m )?pools?)\b/i) && T(/\b(shotcrete|gunite|sprayed concrete|spray\w* concrete)\b/i);
   if (out.poolShell) out.shotcrete = false;
   if (T(/\b(athletics|track|field|venues?|arenas?|ovals?)\b[^.]{0,30}\blight\w*|\b(field|flood) light\w*/i) && T(/\b(install\w*|new|erect\w*)\b/i) && !out.stageRig) { out.sportsLighting = true; out.fitOff = false; }
@@ -2381,7 +2431,7 @@ function settleFlags(flags, task) {
   if (T(/\b(refurbish\w*|renovat\w*|upgrad\w*)\b/i) && T(/\b(toilets?|bathrooms?|amenities|change ?rooms?|wet areas?)\b/i)) out.plumbingFitOff = true;
   if (T(/\b(pedestrian bridges?|footbridges?|foot bridges?)\b/i) && T(/\b(install\w*|lift\w*|erect\w*|place\w*)\b/i)) { out.steelLift = true; out.craneInterface = true; if (T(/\b(over|above|across)\b[^.]{0,20}\b(roads?|motorways?|highways?|rail\w*|tracks?)\b/i)) { out.workAbove = true; } }
   if (T(/\b(track slabs?|slab track|embedded rails?)\b/i)) { out.trackWork = false; out.concrete = true; out.slabGround = true; out.groundSlab = true; }
-  if (T(/\b(on-?ramps?|off-?ramps?|interchanges?|road widening|roundabouts?|new roads?|widen\w* (?:the |a )?(?:road|motorway|highway))\b/i) && T(/\b(construct\w*|build\w*|upgrad\w*|widen\w*|new)\b/i) && !T(/\b(cables?|mains?|pipes?|services?|poles?|cut and fill|scrapers?|dozers?|bulk earthworks)\b/i)) { out.earthworks = true; out.sitePlant = true; out.roadPlant = true; out.road = true; }
+  if (T(/\b(?:construct\w*|build\w*|upgrad\w*|widen\w*)\b[^.]{0,30}\b(?:on-?ramps?|off-?ramps?|interchanges?|roundabouts?|roads?|motorways?|highways?|freeways?)\b|\bnew (?:on-?ramps?|off-?ramps?|roundabouts?|interchanges?)\b|\broad widening\b/i) && !T(/\b(cables?|mains?|pipes?|services?|poles?|cut and fill|scrapers?|dozers?|bulk earthworks)\b/i)) { out.earthworks = true; out.sitePlant = true; out.roadPlant = true; out.road = true; }
   if (T(/\bgantr(?:y|ies)\b/i) && T(/\b(motorways?|highways?|its|intelligent transport)\b/i)) out.craneInterface = true;
   out.eventPower = T(/\b(events?|overlay|festivals?|ceremon\w*|venues?)\b/i) && T(/\b(power|generators?)\b/i) && T(/\b(temporary|overlay|event)\b/i);
   if (out.eventPower) { out.tempPower = false; out.generatorPlant = false; }
@@ -2390,7 +2440,7 @@ function settleFlags(flags, task) {
   out.turnstiles = T(/\b(turnstiles?|speed gates?|entry gates?|access gates?)\b/i);
   out.podOnly = T(/\bbathroom pods?\b/i) && !T(/\bmodul\w*/i);
   out.expansionJoints = T(/\bexpansion joints?\b/i) && T(/\b(bridges?|overpass\w*|decks?)\b/i);
-  out.roadBuild = T(/\b(on-?ramps?|off-?ramps?|interchanges?|road widening|roundabouts?|new roads?)\b/i) && T(/\b(construct\w*|build\w*|upgrad\w*|widen\w*|new)\b/i);
+  out.roadBuild = T(/\b(?:construct\w*|build\w*|upgrad\w*|widen\w*)\b[^.]{0,30}\b(?:on-?ramps?|off-?ramps?|interchanges?|roundabouts?|roads?|motorways?|highways?|freeways?)\b|\bnew (?:on-?ramps?|off-?ramps?|roundabouts?|interchanges?)\b|\broad widening\b/i);
   if (T(/\b(construct\w*|erect\w*|build\w*|stand\w*|lift\w*|install\w*)\b[^.]{0,40}\btilt-?up (?:panels?|walls?)\b|\bwith tilt-?up panels\b/i)) out.craneInterface = true;
   if (out.helipad && !T(/\bhoists?\b/i)) out.craneInterface = true;
   if (T(/\b(sprung (?:timber )?(?:sports )?floor\w*|timber sports floor\w*)\b/i)) { out.timberFloor = true; out.floorLay = false; }

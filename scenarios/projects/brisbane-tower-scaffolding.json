@@ -12,7 +12,8 @@
       "facts": {
         "fallControl": "Scaffolders install platforms, edge protection and access at each lift before going higher, and wear harnesses clipped to the scaffold where edge protection is not yet in place.",
         "controlsConsidered": "Installing edge protection from the lift below with advance guardrails was considered for every lift; harnesses are used only where the scaffold layout prevents it.",
-        "systemInstructions": "Tube and coupler scaffold to the scaffold designer's drawings SC-01 (revision B), erected by licensed intermediate scaffolders."
+        "systemInstructions": "Tube and coupler scaffold to the scaffold designer's drawings SC-01 (revision B), erected by licensed intermediate scaffolders.",
+        "harnessSystem": "Workers wear a full body harness with a shock-absorbing lanyard, clipped to anchors rated for at least 15 kN for one person and installed by the anchor installer, with enough clear distance below to stop a fall before anyone hits the ground or a structure. Harnesses are checked before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights and rescue by a registered training organisation. The rescue plan is RP-01, with the rescue equipment on site."
       },
       "expect": {
         "highRisk": [
@@ -59,7 +60,8 @@
       "fallRisk": "yes",
       "facts": {
         "systemInstructions": "The hoist is installed to the manufacturer's manual (model and revision on the plant register) by our crew holding intermediate rigging licences.",
-        "fallControl": "Riggers work from the hoist car roof inside its guardrails and wear harnesses clipped to the mast anchor points when outside them."
+        "fallControl": "Riggers work from the hoist car roof inside its guardrails and wear harnesses clipped to the mast anchor points when outside them.",
+        "harnessSystem": "Workers wear a full body harness with a shock-absorbing lanyard, clipped to anchors rated for at least 15 kN for one person and installed by the anchor installer, with enough clear distance below to stop a fall before anyone hits the ground or a structure. Harnesses are checked before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights and rescue by a registered training organisation. The rescue plan is RP-01, with the rescue equipment on site."
       },
       "expect": {
         "highRisk": [

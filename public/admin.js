@@ -26,6 +26,8 @@
   const types = [...new Set([...Object.keys(data.actions.days30), ...Object.keys(data.actions.days7)])].sort();
   document.getElementById('actions').innerHTML = `<tr><th>Action</th><th class="n">7 days</th><th class="n">30 days</th></tr>` +
     (types.map((type) => `<tr><td>${esc(LABELS[type] || type)}</td><td class="n">${data.actions.days7[type] || 0}</td><td class="n">${data.actions.days30[type] || 0}</td></tr>`).join('') || '<tr><td colspan="3">Nothing yet.</td></tr>');
+  document.getElementById('signins').innerHTML = `<tr><th>Person</th><th>Company</th><th class="n">Devices (30 days)</th><th class="n">Networks (7 days)</th><th class="n">Sign-ins (30 days)</th><th>Last</th></tr>` +
+    ((data.unusualSignins || []).map((item) => `<tr><td>${esc(item.email)}</td><td>${esc(item.company)}</td><td class="n">${esc(item.devices30)}</td><td class="n">${esc(item.networks7)}</td><td class="n">${esc(item.signins30)}</td><td>${esc(item.last ? new Date(item.last).toLocaleString('en-AU') : '')}</td></tr>`).join('') || '<tr><td colspan="6">Nothing unusual.</td></tr>');
   document.getElementById('errors').innerHTML = `<tr><th>When</th><th>Where</th><th>Message</th></tr>` +
     (data.errors.map((item) => `<tr><td>${esc(new Date(item.created_at).toLocaleString('en-AU'))}</td><td>${esc(item.route)}</td><td>${esc(item.message)}</td></tr>`).join('') || '<tr><td colspan="3">No errors.</td></tr>');
 })();

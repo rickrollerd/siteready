@@ -28,6 +28,13 @@
     "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2026-0113"
   },
   {
+    "id": "qld-codes-notice",
+    "jurisdiction": "Queensland",
+    "title": "Work Health and Safety (Codes of Practice) Notice 2022 (the list of approved codes)",
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2022-0096",
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2022-0096"
+  },
+  {
     "id": "nsw-whs-act",
     "jurisdiction": "New South Wales",
     "title": "Work Health and Safety Act 2011",

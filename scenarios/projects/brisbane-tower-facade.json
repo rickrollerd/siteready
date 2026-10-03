@@ -12,7 +12,8 @@
       "facts": {
         "loadLimits": "Stillages are stacked only in the areas marked on the structural engineer's drawing S-502 (5 kPa), checked by the structural engineer before loading starts.",
         "fallControl": "Panels are received only at the landing platform, inside its edge protection. While the gate is open to land a load, the dogman receiving it wears a harness on a travel restraint line so they cannot reach the open edge.",
-        "systemInstructions": "The landing platforms are the scaffold contractor's proprietary platforms, erected to the supplier's instructions (document and revision on the platform tag) and rated for 2 t."
+        "systemInstructions": "The landing platforms are the scaffold contractor's proprietary platforms, erected to the supplier's instructions (document and revision on the platform tag) and rated for 2 t.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard of 1.5 m, set so they cannot reach the edge, clipped to anchors installed and rated by the anchor installer. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights by a registered training organisation."
       },
       "expect": {
         "highRisk": [
@@ -39,7 +40,8 @@
         "systemInstructions": "The mini crawler crane and monorail are set up to the manufacturer's manuals (model and revision on the plant register), by our crew holding intermediate rigging licences, and inspected before use.",
         "loadLimits": "The structural engineer's letter SE-14 gives the allowable outrigger and monorail loads on the slab edge.",
         "fallControl": "Work at the slab edge is done with a travel restraint system to engineer designed anchors, and edge protection stays in place except at the panel being installed.",
-        "craneChart": "Mini crawler crane rated capacity chart (outriggers set, main boom): 1.6 t at 4.5 m radius. Heaviest gross load is 1.25 t (panel 1.1 t, vacuum lifter 0.12 t, slings and shackles 0.03 t) at 4.5 m radius."
+        "craneChart": "Mini crawler crane rated capacity chart (outriggers set, main boom): 1.6 t at 4.5 m radius. Heaviest gross load is 1.25 t (panel 1.1 t, vacuum lifter 0.12 t, slings and shackles 0.03 t) at 4.5 m radius.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard of 1.5 m, set so they cannot reach the edge, clipped to anchors installed and rated by the anchor installer. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights by a registered training organisation."
       },
       "expect": {
         "highRisk": [
@@ -65,7 +67,8 @@
       "task": "Install unitised curtain wall panels and spandrel panels from inside the floor at the open slab edge, removing edge protection only at the panel being installed, using vacuum lifters.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Workers at the open edge use a travel restraint system to engineer designed anchors installed by a competent person, so they cannot reach the edge, and edge protection is removed only at the panel being installed and put back straight after."
+        "fallControl": "Workers at the open edge use a travel restraint system to engineer designed anchors installed by a competent person, so they cannot reach the edge, and edge protection is removed only at the panel being installed and put back straight after.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard of 1.5 m, set so they cannot reach the edge, clipped to anchors installed and rated by the anchor installer. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights by a registered training organisation."
       },
       "expect": {
         "highRisk": [
@@ -86,7 +89,8 @@
       "facts": {
         "fallControl": "Each worker on the swing stage wears a harness attached to the stage's anchor point.",
         "safetyDataSheet": "Safety data sheets for the silicone sealant, primer and glass cleaner are kept at the work area: use with ventilation, wear gloves and eye protection.",
-        "controlsConsidered": "Edge protection cannot be used on the outside face. Elevating work platforms cannot reach above level 6, and the building maintenance unit is not yet installed, so swing stages with harnesses attached to the stage are used."
+        "controlsConsidered": "Edge protection cannot be used on the outside face. Elevating work platforms cannot reach above level 6, and the building maintenance unit is not yet installed, so swing stages with harnesses attached to the stage are used.",
+        "harnessSystem": "Workers wear a full body harness with a shock-absorbing lanyard, clipped to anchors rated for at least 15 kN for one person and installed by the anchor installer, with enough clear distance below to stop a fall before anyone hits the ground or a structure. Harnesses are checked before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights and rescue by a registered training organisation. The rescue plan is RP-01, with the rescue equipment on site."
       },
       "expect": {
         "highRisk": [
@@ -110,7 +114,8 @@
       "facts": {
         "silicaControls": "Fixing holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS.",
         "safetyDataSheet": "Safety data sheets for the silicone sealant and primer are kept at the work area: use with ventilation, wear gloves and eye protection.",
-        "fallControl": "Brackets at the slab edge are fixed with a travel restraint system to engineer designed anchors, so workers cannot reach the open edge."
+        "fallControl": "Brackets at the slab edge are fixed with a travel restraint system to engineer designed anchors, so workers cannot reach the open edge.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard of 1.5 m, set so they cannot reach the edge, clipped to anchors installed and rated by the anchor installer. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights by a registered training organisation."
       },
       "expect": {
         "highRisk": [

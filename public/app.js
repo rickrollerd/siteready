@@ -130,6 +130,8 @@ showProfile();
 function setProfile(next) {
   const company = document.getElementById('company');
   if (!company.value || company.value === profile.name) company.value = next.name || '';
+  // Signed in, the company on every SWMS is the account's own.
+  if (next.name) { company.value = next.name; company.readOnly = true; company.title = 'Set from your company details.'; }
   profile = next;
   pendingLogo = next.logo || '';
   showProfile();
@@ -490,10 +492,25 @@ function renderSteps(steps) {
     const kind = stepById.get(id) || { label: id, steps: [] };
     const others = kind.steps.filter((name) => name !== kind.label);
     const names = others.length ? `<span class="step-names">${esc(others.join('; '))}</span>` : '';
-    return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) || locked.has(id) ? ' checked' : ''}${locked.has(id) ? ' disabled' : ''}><span>${esc(kind.label)}${locked.has(id) ? '<span class="tag">Required</span>' : ''}${names}</span></label></li>`;
+    const off = locked.has(id) && !chosen.has(id);
+    const warning = off ? `<span class="step-warning">${esc(REMOVED_WARNINGS[id] || 'The task calls for this step. Make sure this risk is covered another way before work starts.')}</span>` : '';
+    return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) ? ' checked' : ''}><span>${esc(kind.label)}${locked.has(id) ? '<span class="tag">Recommended</span>' : ''}${names}${warning}</span></label></li>`;
   }).join('') : '<li>No job steps were found in the task. Add the steps for the work below.</li>';
   fillStepAdd();
 }
+
+// Shown when a step the task's words call for is taken off.
+const REMOVED_WARNINGS = {
+  road: 'The task mentions a road or street. Make sure traffic is managed before work starts, for example under the principal contractor\'s traffic management plan.',
+  asbestosCheck: 'The work could disturb asbestos. Make sure asbestos is identified before work starts.',
+  asbestos: 'The task involves asbestos. It must be removed under the asbestos rules, by a licensed removalist where required.',
+  isolation: 'The work needs power or plant isolated. Make sure it is isolated and proved before work starts.',
+  confined: 'The task mentions a confined space. Entry needs its own controls and permit.',
+  water: 'The work is near water. Make sure drowning risks are controlled.',
+  power: 'The work is near power lines. Make sure approach distances are kept.',
+  propping: 'The work needs temporary support. Make sure the structure is propped before it is cut or loaded.',
+  trench: 'The work involves a trench. Make sure the trench is supported or kept shallow before anyone enters it.',
+};
 
 // Changing the steps asks the questions again, keeping what has been filled in.
 async function refreshSteps() {
@@ -512,6 +529,7 @@ async function refreshSteps() {
     else el.value = value;
   });
   document.querySelectorAll('[data-site]').forEach((el) => { if (site[el.dataset.site] !== undefined) el.value = site[el.dataset.site]; });
+  (questions && questions.required || []).forEach((item) => markPicks(item.id));
   document.querySelectorAll('[data-ppe]').forEach((el) => { if (ppe.has(el.value)) el.checked = true; });
 }
 
@@ -636,6 +654,7 @@ async function fillForm(input) {
     else el.value = value;
   });
   document.querySelectorAll('[data-site]').forEach((el) => { el.value = (input.site || {})[el.dataset.site] || ''; });
+  (questions && questions.required || []).forEach((item) => markPicks(item.id));
   if (Array.isArray(input.ppe)) document.querySelectorAll('[data-ppe]').forEach((el) => { el.checked = input.ppe.includes(el.value); });
 }
 
@@ -645,7 +664,25 @@ factsForm.addEventListener('change', (event) => {
   document.querySelectorAll('[data-ppe]').forEach((el) => { if (['arcRated', 'gloveInsulated'].includes(el.value)) el.checked = true; });
 });
 
+// A standard answer's wording as a pattern: blanks (____) match whatever was filled in.
+function pickPattern(text) {
+  const parts = String(text).split('____').map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp(parts.join('[^]*?'));
+}
+
+// Highlights the standard answers whose wording is in the box.
+function markPicks(id) {
+  const item = (questions && questions.required || []).find((entry) => entry.id === id);
+  const box = document.getElementById(`fact-${id}`);
+  if (!item || !box) return;
+  document.querySelectorAll(`[data-pick-for="${id}"]`).forEach((button) => {
+    const pick = (item.suggestions || [])[Number(button.dataset.pick)];
+    button.setAttribute('aria-pressed', String(Boolean(pick && pickPattern(pick.text).test(box.value))));
+  });
+}
+
 // A standard answer is added to the box, where it can be changed. Blanks (____) are left to fill in.
+// Clicking it again takes its wording back out.
 document.getElementById('required-block').addEventListener('click', (event) => {
   const button = event.target.closest('[data-pick-for]');
   if (!button || !questions) return;
@@ -653,10 +690,23 @@ document.getElementById('required-block').addEventListener('click', (event) => {
   const pick = item && (item.suggestions || [])[Number(button.dataset.pick)];
   if (!pick) return;
   const box = document.getElementById(`fact-${item.id}`);
+  const pattern = pickPattern(pick.text);
+  if (pattern.test(box.value)) {
+    box.value = box.value.replace(pattern, '').replace(/\s{2,}/g, ' ').trim();
+    markPicks(item.id);
+    box.focus();
+    return;
+  }
   box.value = box.value.trim() ? `${box.value.trim()} ${pick.text}` : pick.text;
+  markPicks(item.id);
   box.focus();
   const blank = box.value.indexOf('____');
   if (blank >= 0) box.setSelectionRange(blank, blank + 4);
+});
+
+document.getElementById('required-block').addEventListener('input', (event) => {
+  const id = event.target.id && event.target.id.startsWith('fact-') ? event.target.id.slice(5) : '';
+  if (id) markPicks(id);
 });
 
 // Trade and task pick lists fill in the task, the fall question and who runs the crane.

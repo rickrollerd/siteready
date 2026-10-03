@@ -1,0 +1,19 @@
+{
+  "note": "Google News searches. A new article whose title matches keep is reported for reading. Articles are not confirmed changes.",
+  "keep": "codes? of practice|compliance codes?|regulations? (?:change|amend|update|reform)|amendment|amended|new (?:WHS |OHS |safety )?laws?|law changes?|law reform|reforms?|comes? into (?:effect|force)|commenc|licen[cs]e changes?|high risk work licen[cs]e|mandatory",
+  "searches": [
+    "\"code of practice\" (WHS OR \"work health and safety\")",
+    "\"codes of practice\" (SafeWork OR WorkSafe) construction",
+    "\"compliance code\" WorkSafe Victoria",
+    "\"work health and safety\" regulation amendment",
+    "\"WHS regulation\" changes construction",
+    "\"high risk work licence\" changes",
+    "SafeWork NSW new laws construction",
+    "WorkSafe Queensland new laws construction",
+    "\"code of practice\" WorkSafe Tasmania",
+    "\"code of practice\" WorkSafe ACT",
+    "\"code of practice\" NT WorkSafe",
+    "\"code of practice\" WorkSafe Queensland",
+    "\"compliance code\" OR \"code of practice\" WorkSafe Victoria"
+  ]
+}

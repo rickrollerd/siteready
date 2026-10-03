@@ -10,7 +10,8 @@
       "task": "Install the lift rails and landing doors in the lift shafts, working at the open shaft openings, and lift the lift machines into the motor rooms.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Every shaft opening has a fixed barrier until its landing door is installed, and installers in the shaft work from the installation platform with harnesses to engineer rated anchors."
+        "fallControl": "Every shaft opening has a fixed barrier until its landing door is installed, and installers in the shaft work from the installation platform with harnesses to engineer rated anchors.",
+        "harnessSystem": "Workers wear a full body harness with a shock-absorbing lanyard, clipped to anchors rated for at least 15 kN for one person and installed by the anchor installer, with enough clear distance below to stop a fall before anyone hits the ground or a structure. Harnesses are checked before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights and rescue by a registered training organisation. The rescue plan is RP-01, with the rescue equipment on site."
       },
       "expect": {
         "highRisk": [

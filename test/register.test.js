@@ -131,9 +131,13 @@ test('picked job steps replace the ones found, but required steps stay and bring
   assert.equal(prepareDraft({ state: 'qld', fallRisk: 'yes', task, kinds: ['roofAccess'], facts: fall }).kind, 'stand-down');
   // Work with its own hazard and no library steps stays stood down whatever is picked.
   assert.equal(prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Hydro-demolition of a balcony slab soffit.', kinds: ['demolition', 'propping'], facts: { temporarySupport: 'Propped to the engineer\'s design PD-1.' } }).kind, 'stand-down');
-  // Asbestos removal cannot be unticked, and comes first.
+  // Any step can be unticked (the form warns). The task's words still set the high risk categories.
   const asbestos = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Remove asbestos cement sheets from a bathroom.', kinds: ['tileLay'], facts: { asbestosArrangement: 'A licensed removalist removes them under a control plan.' } });
-  assert.equal(asbestos.jobSteps[1].step, 'Prepare the asbestos work area');
+  assert.ok(!asbestos.jobSteps.some((step) => step.step === 'Prepare the asbestos work area'));
+  assert.ok(asbestos.highRisk.some((item) => /asbestos/i.test(item)));
+  // Ticked, asbestos removal comes first.
+  const ticked = prepareDraft({ state: 'qld', fallRisk: 'no', task: 'Remove asbestos cement sheets from a bathroom.', kinds: ['tileLay', 'asbestos'], facts: { asbestosArrangement: 'A licensed removalist removes them under a control plan.' } });
+  assert.equal(ticked.jobSteps[1].step, 'Prepare the asbestos work area');
   // A picked strip-out in an existing building asks how asbestos was identified.
   assert.ok(questionsFor({ state: 'qld', fallRisk: 'no', task: 'Retile a commercial kitchen floor.', kinds: ['stripOut', 'tileLay'] }).required.some((item) => item.id === 'asbestosArrangement'));
   // Unknown kinds are ignored.
