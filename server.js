@@ -21,6 +21,7 @@ const { TRADES, answersFor } = require('./presets');
 const { localText } = require('./citations');
 const { scopeText } = require('./scope-text');
 const { tasksFromScope } = require('./scope');
+const places = require('./places');
 
 require('dotenv').config();
 
@@ -86,6 +87,17 @@ app.use('/api', limiter(
 ));
 
 const { draftBody } = require('./input');
+
+// Job address suggestions. Each one is a paid Google request, so it has its own limit.
+app.use('/api/address', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300)));
+app.get('/api/address', async (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    res.json(await places.suggest(req.query.q));
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get('/api/states', (_req, res) => {
   res.json({ states: listStates() });
