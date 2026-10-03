@@ -335,3 +335,18 @@ test('Victoria: no demolition notice, r 355 excavation notice, r 298 asbestos no
   // Other states keep the 6 m notice and r 80 on anchor lines.
   assert.match(localControl('Where harnesses are used, anchors are approved by a competent person, no one works alone, and a rescue procedure is set up and tested.', `${QLD}s 80`, 'nsw'), /s 80\)$/);
 });
+
+test('edge protection installed by others: "to the regulation" only in Queensland (s 306E)', () => {
+  const text = 'Work only inside edge protection installed by others to the regulation. Do not remove or alter it, and report any damage.';
+  assert.equal(localControl(text, `${QLD}s 306E`, 'qld'), `${text} (${QLD}s 306E)`);
+  for (const state of ['nsw', 'vic', 'sa', 'wa', 'tas', 'act', 'nt']) {
+    assert.equal(localControl(text, `${QLD}s 306E`, state), 'Work only inside edge protection installed by others to its design or the manufacturer\'s instructions. Do not remove or alter it, and report any damage.', state);
+  }
+});
+
+test('Tasmania: a SWMS stands in for the silica risk control plan only with everything r 529CB(2) lists', () => {
+  const tas = lines(draft('tas', SILICA)).find((item) => /this SWMS can be the plan only/.test(item));
+  assert.match(tas, /documents the processing, the form and proportion \(w\/w\) of crystalline silica,.*past air and health monitoring results at the workplace, and previous silica incidents, illnesses and diseases there\).*\(Work Health and Safety Regulations 2022 \(Tas\) r 529CB, r 529CC, r 529CD\)$/);
+  // The model text stays in the other model states.
+  assert.match(lines(draft('sa', SILICA)).find((item) => /this SWMS can be the plan only/.test(item)), /names the high risk processing, includes the written assessment/);
+});

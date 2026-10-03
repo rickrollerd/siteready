@@ -130,6 +130,8 @@ const OUTSIDE_QLD = [
   [/^The boom is not set up or worked over access ways or site sheds unless a 10 kPa gantry protects them\./, 'The boom is not set up or worked over access ways or site sheds unless a gantry designed for the load protects them. The pumping area is signed, and only authorised people enter it.'],
   // Queensland's 2 m barrier rule is s 306D. Elsewhere a trench at least 1.5 m deep is secured from unauthorised access (r 306(1)).
   [/^Barriers go up around a pit or trench as it is dug, before it is 2 m deep \(3 m in housing construction\)\.$/, 'Barriers go up around a pit or trench as it is dug, and the work area around a trench 1.5 m deep or more is secured from unauthorised access, including inadvertent entry.'],
+  // Queensland's edge protection rules are s 306E; the model regulations set none.
+  [/^Work only inside edge protection installed by others to the regulation\./, 'Work only inside edge protection installed by others to its design or the manufacturer\'s instructions. Do not remove or alter it, and report any damage.'],
   [/^Every part of the boom and drop hose stays at least 3 m from overhead power lines up to 132 kV/, 'Every part of the boom and drop hose stays outside the safe distance from overhead power lines that the state\'s rules and the line owner set, and the boom is not worked over energised lines. De-energising or re-routing the lines is considered first.'],
 ];
 
@@ -267,12 +269,18 @@ const ACT_TEXT = [
   [/^Before installed engineered stone is processed, written notice of the work/, `Before installed engineered stone is processed, written notice of the work, its type, and its frequency and duration is given to the regulator, and a copy is kept for 5 years.${cite('act', '418I', '418J')}`],
 ];
 
+// Tasmania's r 529CB(2) asks more of a silica risk control plan than the model regulations, so a
+// SWMS stands in for it only where it documents all of that (r 529CB(3)(c)).
+const TAS_TEXT = [
+  [/\(this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed\)/, '(this SWMS can be the plan only where the work is also high risk construction work and the SWMS identifies all the high risk processing and, for each, documents the processing, the form and proportion (w/w) of crystalline silica, the hazards and the likely frequency and duration of exposure, whether airborne respirable crystalline silica is likely to exceed half the exposure standard, why the processing is high risk, the controls and how they are implemented, monitored and reviewed, past air and health monitoring results at the workplace, and previous silica incidents, illnesses and diseases there)', KEEP],
+];
+
 const STATE_TEXT = {
   vic: VIC_TEXT,
   nsw: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   sa: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   wa: [...WA_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
-  tas: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  tas: [...TAS_TEXT, ...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   nt: [...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   act: [...ACT_TEXT, ...ENERGISED_TEXT, ...MODEL_TEXT],
 };
