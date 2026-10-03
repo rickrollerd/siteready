@@ -7,6 +7,7 @@ on:
   push:
     paths:
       - '.github/workflows/fetch-guidance.yml'
+      - 'legislation-watch/fetch-browser.js'
 
 permissions:
   contents: write
@@ -23,9 +24,16 @@ jobs:
       - run: sudo apt-get install -y -qq poppler-utils > /dev/null
       - name: Fetch each source
         run: |
-          for name in scaffoldCode mobilePlantSupport constructionCode plant falls; do
+          for name in constructionCode plant falls; do
             SOURCE=$name OUT=guidance-sources/$name.txt node legislation-watch/fetch-source.js || echo "$name failed"
           done
+      - name: Fetch the sources behind a bot check with a browser
+        run: |
+          npm install --no-save playwright@1 && npx playwright install --with-deps chromium > /dev/null
+          URL=https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0027/76347/scaffolding-cop-2021.pdf NAME='Scaffolding Code of Practice 2021 (Qld)' OUT=guidance-sources/scaffoldCode.txt node legislation-watch/fetch-browser.js || true
+          URL=https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0008/20150/safe-support-mobile-plant-guide.pdf NAME='Safe support of mobile plant guide (Qld)' OUT=guidance-sources/mobilePlantSupport.txt node legislation-watch/fetch-browser.js || true
+          URL=https://www.safework.nsw.gov.au/__data/assets/pdf_file/0004/1411429/Work_near_electric_lines-COP.pdf NAME='Work near overhead and underground electric lines (SafeWork NSW)' OUT=guidance-sources/nswLinesCode.txt node legislation-watch/fetch-browser.js || true
+          ls -la guidance-sources
           ls -la guidance-sources
       - name: Commit the texts to the guidance-sources branch
         run: |
