@@ -944,6 +944,13 @@ function allRequiredFacts(fullTask, answer, state) {
       label: 'Crane chart',
       prompt: 'From the crane chart: the rated capacity in tonnes at the working radius in metres.',
     });
+    // The crane's outrigger or track loads need ground confirmed by a competent person.
+    // On a piling job the working platform certificate covers it.
+    if (!PILING_WORK.test(task)) facts.push({
+      id: 'groundBearing',
+      label: 'Ground conditions for the crane',
+      prompt: 'Who confirmed the ground, slab or platform can carry the crane\'s outrigger or track loads (for example a geotechnical engineer\'s report, or a structural engineer for a slab or deck), the report or certificate, and the mats or pads used.',
+    });
   }
   if (isPanelLift(task)) {
     facts.push(

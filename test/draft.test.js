@@ -51,13 +51,13 @@ test('a trench of 1 m is not high risk trench work', () => {
 });
 
 test('a fact that only says it was supplied does not count', () => {
-  const vague = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Chart supplied.' } });
+  const vague = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Chart supplied.', groundBearing: 'Geotechnical report GR-4 by the site engineer: 150 kPa allowable; crane set up on 1.2 m steel mats.' } });
   assert.equal(vague.kind, 'stand-down');
   assert.deepEqual(vague.missing, ['Crane chart (the text given does not state it)']);
   assert.equal(draft('Lift steel beams with a crane, chart supplied.', { crane: 'own' }).kind, 'stand-down');
   assert.equal(draft('Paint the office walls.', { facts: { safetyDataSheet: 'Attached.' } }).kind, 'stand-down');
 
-  const stated = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.' } });
+  const stated = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.', groundBearing: 'Geotechnical report GR-4 by the site engineer: 150 kPa allowable; crane set up on 1.2 m steel mats.' } });
   assert.equal(stated.kind, 'draft');
 });
 
@@ -289,7 +289,7 @@ test('a draft has job steps with hazards and controls, and a PPE list', () => {
 });
 
 test('roof beams are not roofing, and indoor work gets no sunscreen', () => {
-  const beams = draft('Lift the carport roof beams into place with a crane truck.', { crane: 'own', facts: { craneChart: '1.5 t at 6 m radius.' } });
+  const beams = draft('Lift the carport roof beams into place with a crane truck.', { crane: 'own', facts: { craneChart: '1.5 t at 6 m radius.', groundBearing: 'Geotechnical report GR-4 by the site engineer: 150 kPa allowable; crane set up on 1.2 m steel mats.' } });
   assert.ok(!beams.jobSteps.some((step) => step.step === 'Remove old roofing'));
   const paint = draft('Paint the interior walls of a shop with solvent-based enamel paint.', { facts: { safetyDataSheet: 'Flammable liquid, ventilate, gloves and eye protection.' } });
   const ticked = paint.ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
@@ -315,9 +315,12 @@ test('a crane company runs the crane unless the subcontractor says it runs its o
   assert.ok(!steps.includes('Set up the crane'));
   assert.ok(!done.controls.some((item) => /free-fall/.test(item.text)));
   const own = draft(task, { crane: 'own' });
-  assert.deepEqual(own.missing, ['Crane chart']);
-  const ownDone = draft(task, { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.' } });
+  assert.deepEqual(own.missing, ['Crane chart', 'Ground conditions for the crane']);
+  const ownDone = draft(task, { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.', groundBearing: 'Geotechnical report GR-4: 150 kPa allowable; crane set up on 1.2 m steel mats.' } });
   assert.ok(ownDone.jobSteps.some((step) => step.step === 'Set up the crane'));
+  const setup = ownDone.jobSteps.find((step) => step.step === 'Set up the crane');
+  assert.ok(setup.controls.some((line) => /GR-4/.test(line)), 'the ground answer is in the set-up step');
+  assert.ok(done.jobSteps.flatMap((step) => step.controls).some((line) => /ground information for the set-up area/.test(line)), 'with a crane company, the principal contractor gives it the ground information');
   assert.equal(ownDone.craneOperator, 'Our company');
 });
 

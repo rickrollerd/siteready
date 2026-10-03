@@ -166,13 +166,15 @@
     "facts": {
       "craneChart": "Rated capacity 1.5 t at 6 m radius from the crane truck load chart.",
       "electricalSafety": "The crane truck is set up so the boom and load stay more than 3 m from the lines at all times. A safety observer watches the boom and has no other duties. The network operator's requirements are obtained before the lift.",
-      "erectionSequence": "Posts are stood and braced first, then the roof beams are lifted in and bolted to the carport supplier's drawing, and the crane does not release a beam until both ends are bolted."
+      "erectionSequence": "Posts are stood and braced first, then the roof beams are lifted in and bolted to the carport supplier's drawing, and the crane does not release a beam until both ends are bolted.",
+      "groundBearing": "The crane truck sets up on the concrete driveway, checked by the builder's engineer (letter E-3) for its outrigger loads, with 600 mm outrigger pads. It stays back from the stormwater trench."
     },
     "expect": {
       "missing": [
         "Crane chart",
         "Electrical safety arrangement",
-        "Erection sequence and temporary bracing"
+        "Erection sequence and temporary bracing",
+        "Ground conditions for the crane"
       ],
       "highRisk": [
         "electrical",

@@ -89,6 +89,7 @@ function draftBody(body) {
       spoilPlan: field(facts.spoilPlan, 2000),
       lifeJacketDetails: field(facts.lifeJacketDetails, 2000),
       scaffoldType: field(facts.scaffoldType, 40),
+      groundBearing: field(facts.groundBearing, 2000),
     },
     site: {
       liveServices: field(site.liveServices, 1000),
