@@ -122,3 +122,40 @@ test('required questions carry standard answers, and each answer is accepted', a
     assert.equal(done.kind, 'draft', `${pick.label}: ${(done.missing || []).join('; ')}`);
   }
 });
+
+test('a project downloads as one zip with a Word file for each ready SWMS', async () => {
+  const fence = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no' };
+  const paint = { state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', residential: 'no', facts: { safetyDataSheet: 'Water-based acrylic paint SDS, revision 2, at the work area.' } };
+  const unready = { state: 'qld', task: 'Lift steel beams with a crane.', fallRisk: 'no', crane: 'own' };
+  const refused = await post('/api/project.zip', { swms: [fence] }, null, session);
+  assert.equal(refused.status, 400, 'needs the review confirmation');
+  const response = await post('/api/project.zip', { swms: [fence, paint, unready], reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /zip/);
+  const JSZip = require('jszip');
+  const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
+  const names = Object.keys(zip.files).sort();
+  assert.equal(names.filter((name) => name.endsWith('.docx')).length, 2);
+  assert.ok(names.includes('Not included.txt'));
+  assert.match(await zip.file('Not included.txt').async('string'), /Lift steel beams/);
+});
+
+test('project zip files are named by the task titles from the scope', async () => {
+  const fence = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing' };
+  const response = await post('/api/project.zip', { swms: [fence], reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
+  const zip = await require('jszip').loadAsync(Buffer.from(await response.arrayBuffer()));
+  assert.deepEqual(Object.keys(zip.files), ['01 Fencing.docx']);
+});
+
+test('the welcome page figures match what the app offers (Australian Consumer Law: claims must be provable)', () => {
+  const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'welcome.html'), 'utf8');
+  const { TRADES } = require('../presets');
+  const trades = TRADES.length;
+  const tasks = TRADES.reduce((n, trade) => n + (trade.tasks || []).length, 0);
+  const claimed = html.match(/(\d+) trades and over (\d+) common tasks/);
+  assert.ok(claimed, 'the figures are on the page');
+  assert.equal(Number(claimed[1]), trades, 'trades');
+  assert.ok(tasks > Number(claimed[2]), `over ${claimed[2]} tasks (now ${tasks})`);
+  const { STATES } = require('../legislation');
+  assert.equal(STATES.filter((state) => state.loaded).length, 8, 'every state and territory');
+});

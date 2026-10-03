@@ -3,6 +3,7 @@
 const express = require('express');
 const QRCode = require('qrcode');
 const db = require('./db');
+const JSZip = require('jszip');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
@@ -232,6 +233,27 @@ function titleFor(body, input) {
   return `${sentence.slice(0, 100).replace(/[\s,;:]+\S*$/, '')}…`;
 }
 
+// Every saved SWMS in one zip of Word files, with their sign-ons: the business's export.
+// Open to any signed-in user, so data can be taken out even after a subscription ends.
+router.get('/swms/export.zip', requireUser, route(async (req, res) => {
+  const rows = await db.query('SELECT * FROM swms WHERE company_id = $1 AND archived = FALSE ORDER BY created_at', [req.company.id]);
+  if (!rows.length) throw fail(404, 'There are no saved SWMS to export.');
+  const zip = new JSZip();
+  const used = new Set();
+  for (const row of rows) {
+    const parts = await documentParts(req, row);
+    const buffer = await draftToDocx(parts.draft, parts);
+    let name = fileName(row, 'docx');
+    for (let n = 2; used.has(name); n += 1) name = fileName(row, 'docx').replace(/\.docx$/, ` ${n}.docx`);
+    used.add(name);
+    zip.file(name, Buffer.from(buffer));
+  }
+  const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', 'attachment; filename="SiteReady-saved-SWMS.zip"');
+  res.send(out);
+}));
+
 router.get('/swms', requireUser, route(async (req, res) => {
   const rows = await db.query('SELECT * FROM swms WHERE company_id = $1 AND archived = FALSE ORDER BY updated_at DESC', [req.company.id]);
   const counts = await db.query('SELECT swms_id, COUNT(*) AS n FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE company_id = $1) GROUP BY swms_id', [req.company.id]);
@@ -411,6 +433,11 @@ async function removeExpired(now = new Date()) {
   await db.query('DELETE FROM login_tokens WHERE expires_at < $1', [now]);
   await db.query('DELETE FROM sessions WHERE expires_at < $1', [now]);
   await db.query('DELETE FROM challenges WHERE expires_at < $1', [now]);
+  // A deleted SWMS is hidden at once and removed, with its sign-ons, after 30 days.
+  const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  await db.query('DELETE FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
+  await db.query('DELETE FROM swms WHERE archived = TRUE AND updated_at < $1', [cutoff]);
+  await db.query('DELETE FROM signins WHERE created_at < $1', [new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)]);
 }
 
 module.exports = { router, sendReviewReminders, removeExpired, withCompany, REVIEW_MONTHS };

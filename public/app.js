@@ -956,6 +956,8 @@ async function prepareDraft({ scroll = true } = {}) {
     resultEl.classList.remove('hidden');
     // Downloading and saving need an account; the account script adds those buttons.
     window.SiteReady.showActions(data, JSON.parse(body));
+    // A SWMS in a project is recorded against its task.
+    if (window.SiteReady.onDraft) window.SiteReady.onDraft(data, JSON.parse(body));
     if (scroll) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;

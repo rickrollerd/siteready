@@ -60,7 +60,8 @@ const SCOPE_ROUTE = '/api/scope';
 const smallJson = express.json({ limit: '100kb' });
 const wordJson = express.json({ limit: '1mb' });
 const scopeJson = express.json({ limit: '15mb' });
-app.use((req, res, next) => (req.path === SCOPE_ROUTE ? scopeJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
+const projectJson = express.json({ limit: '5mb' });
+app.use((req, res, next) => (req.path === SCOPE_ROUTE ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(auth.readSession);
 
@@ -144,6 +145,7 @@ app.post('/api/draft/questions', (req, res) => {
 });
 
 // Reading a scope takes more work than a draft, so it has a lower limit.
+app.use('/api/project.zip', limiter(positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300) / 10));
 app.use(SCOPE_ROUTE, limiter(positiveNumber(process.env.RATE_LIMIT_SCOPE_REQUESTS, 60)));
 app.post(SCOPE_ROUTE, async (req, res, next) => {
   try {
@@ -216,6 +218,41 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.send(Buffer.from(buffer));
+});
+
+// Every SWMS for a project in one zip of Word files. One review confirmation covers the set.
+const JSZip = require('jszip');
+const PROJECT_LIMIT = 40;
+app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
+  if (needsCompanyDetails(req)) return res.status(400).json({ kind: 'error', message: COMPANY_DETAILS_MESSAGE });
+  const body = req.body || {};
+  const confirmation = reviewConfirmation(body);
+  if (!confirmation) return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve these SWMS, and enter your name, before downloading.' });
+  const items = Array.isArray(body.swms) ? body.swms.slice(0, PROJECT_LIMIT) : [];
+  if (!items.length) return res.status(400).json({ kind: 'error', message: 'There are no SWMS in this project yet.' });
+  const zip = new JSZip();
+  const used = new Set();
+  const skipped = [];
+  const logo = readLogo(req.company ? req.company.logo : body.logo);
+  for (const [index, item] of items.entries()) {
+    const result = prepareDraft(signedInBody({ ...req, body: item || {} }));
+    if (result.kind !== 'draft') { skipped.push(`${index + 1}. ${String((item && item.task) || '').slice(0, 80)}`); continue; }
+    const buffer = await draftToDocx(result, { logo, confirmation });
+    // Named by the task's title from the scope where there is one.
+    const title = typeof item.swmsTitle === 'string' && item.swmsTitle.trim() ? item.swmsTitle : result.task;
+    const base = `${String(index + 1).padStart(2, '0')} ${String(title || 'SWMS').replace(/[^A-Za-z0-9 ,()-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)}`;
+    let name = `${base}.docx`;
+    for (let n = 2; used.has(name); n += 1) name = `${base} ${n}.docx`;
+    used.add(name);
+    zip.file(name, Buffer.from(buffer));
+    record('download_word', req.company && req.company.id);
+  }
+  if (!used.size) return res.status(400).json({ kind: 'error', message: 'None of the SWMS is ready to download. Answer the questions for each one first.' });
+  if (skipped.length) zip.file('Not included.txt', `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n`);
+  const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', 'attachment; filename="SiteReady-project-SWMS.zip"');
+  res.send(out);
 });
 
 app.get('/api/config', (_req, res) => {
