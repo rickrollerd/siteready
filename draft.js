@@ -88,6 +88,17 @@ function isPanelLift(text) {
   return /\bpanels?\b/i.test(source) && /\b(lift\w*|crane\w*)\b/i.test(source.replace(/\bcrane ties?\b|\b(?:boom|scissor|cherry picker) lifts?\b/gi, '')) && !FACADE_WORK.test(source) && !/\b(glass balustrades?|balustrades?|shower screens?|glass panels?|membranes?|ptfe|etfe|roof\w*|access panels?|shaft wall|lightweight concrete)\b/i.test(source);
 }
 
+// Western Australia's tilt-up rules (r 306A to r 306I) apply to a "concrete panel": one made
+// as a separate movable panel to be part of a wall or retaining wall, not a column, beam,
+// paving slab or decorative panel. Floor planks and insulated panels are not concrete wall panels.
+function isConcreteWallPanel(text) {
+  const source = withoutWorkIntoPrecast(text);
+  if (!isPanelLift(source)) return false;
+  if (!/\b(tilt[- ]?up|tilt (?:panels?|slabs?|walls?)|precast|concrete)\b/i.test(source)) return false;
+  if (/\b(sandwich|insulated|decorative)\b/i.test(source)) return false;
+  return /\b(tilt[- ]?up|tilt (?:panels?|slabs?|walls?)|panels?)\b/i.test(source.replace(/\b(?:floor|roof|ceiling|access|solar|glass) panels?\b/gi, ''));
+}
+
 // Bulk and detailed excavation of a basement, as opposed to service trenches.
 const BULK_EXCAVATION = /\b(bulk excavat\w*|excavat\w* (?:the |a |out the )?basements?|dig\w* (?:out )?(?:a |the )?basements?|detailed excavat\w*|(?:excavat|dig)\w*[^.]{0,30}\b(?:pile caps?|lift pits?))\b/i;
 // Ground known or suspected to be contaminated, in any kind of digging.
@@ -990,7 +1001,7 @@ function allRequiredFacts(fullTask, answer, state) {
     });
   }
   // State facts for precast and tilt-up panels, such as Western Australia's regulator notice.
-  if (state && Array.isArray(state.panelFacts) && isPanelLift(task)) {
+  if (state && Array.isArray(state.panelFacts) && isConcreteWallPanel(task)) {
     for (const item of state.panelFacts) facts.push({ ...item });
   }
   // Queensland, section 299(4): when the only fall controls are administrative or PPE,
@@ -1204,7 +1215,7 @@ function controlsFor(task, facts, pack) {
   }
 
   const state = pack && pack.state;
-  if (state && isPanelLift(source)) {
+  if (state && isConcreteWallPanel(source)) {
     for (const item of state.panelFacts || []) {
       const value = keptFact(facts[item.id]);
       if (value) push('Administrative', `${item.label}: ${value.replace(/[.]+$/, '')}.`);

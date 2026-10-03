@@ -430,7 +430,7 @@ test('task bank round 8: small jobs get steps for that job, not a bigger one', (
     }
   }
   const nsw = require('../legislation').STATES.find((state) => state.id === 'nsw');
-  assert.ok(require('../draft').highRiskMatches('Excavate with an excavator.', '', nsw).some((item) => /any movement of powered mobile plant/.test(item.label)));
+  assert.ok(require('../draft').highRiskMatches('Excavate with an excavator.', '', nsw).some((item) => /there is movement of powered mobile plant/.test(item.label)));
 });
 
 test('task bank round 9: jobs that are smaller than the template get only their own lines', () => {

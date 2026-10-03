@@ -26,7 +26,7 @@ const QLD_CODE_TITLES = {
   'Silica': 'Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 (Qld)',
 };
 const QCODE = (code, section) => `${QLD_CODE_TITLES[code]} ${section}`;
-const { localSource, localText } = require('./citations');
+const { localControl, localText } = require('./citations');
 
 // Drilling, chasing or cutting concrete, masonry or stone is processing a crystalline
 // silica substance. These lines go with any step that does it.
@@ -7685,11 +7685,9 @@ function expand(control, factText, cite = 'qld') {
     return text == null ? [] : [text];
   }
   if (control.text) {
-    const text = localText(control.text, cite);
-    if (text == null) return [];
     // A line reworded for another state keeps only sources that still fit it: none for Queensland-only law.
-    const source = cite && control.source && text === control.text ? localSource(control.source, cite) : '';
-    return [source ? `${text} (${source})` : text];
+    const line = localControl(control.text, control.source, cite);
+    return line == null ? [] : [line];
   }
   if (control.choice) return (control.options[factText(control.choice)] || []).flatMap((item) => expand(item, factText, cite));
   const text = factText(control.fact);

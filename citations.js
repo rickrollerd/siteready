@@ -112,8 +112,22 @@ const OUTSIDE_QLD = [
   [/^Housing construction: where a person could fall 3 m or more/, null],
   [/^Cutting an opening in a load-bearing wall is demolition work: it is done by, or for, a holder of a demolition licence/, 'Cutting an opening in a load-bearing wall is demolition work, done by a contractor holding any demolition licence or registration the state requires.'],
   [/^The boom is not set up or worked over access ways or site sheds unless a 10 kPa gantry protects them\./, 'The boom is not set up or worked over access ways or site sheds unless a gantry designed for the load protects them. The pumping area is signed, and only authorised people enter it.'],
+  // Queensland's 2 m barrier rule is s 306D. Elsewhere a trench at least 1.5 m deep is secured from unauthorised access (r 306(1)).
+  [/^Barriers go up around a pit or trench as it is dug, before it is deeper than 2 m\.$/, 'Barriers go up around a pit or trench as it is dug, and the work area around a trench 1.5 m deep or more is secured from unauthorised access, including inadvertent entry.'],
   [/^Every part of the boom and drop hose stays at least 3 m from overhead power lines up to 132 kV/, 'Every part of the boom and drop hose stays outside the safe distance from overhead power lines that the state\'s rules and the line owner set, and the boom is not worked over energised lines. De-energising or re-routing the lines is considered first.'],
 ];
+
+// A state's own regulation, cited in a line reworded for that state.
+function cite(stateId, ...refs) {
+  const { regulation, unit } = STATE_CITATIONS[stateId];
+  return ` (${regulation} ${refs.map((ref) => (/^Schedule /.test(ref) ? ref : `${unit} ${ref}`)).join(', ')})`;
+}
+
+// Lines reworded for one state. A pattern starting with ^ replaces the whole line, any
+// other pattern only the words it matches, and null removes them. A replacement may be
+// a function of the state. Rewordings marked KEEP still hold for the line's own sources,
+// so those stay; any other rewording carries its own citation or none.
+const KEEP = true;
 
 // Victoria has its own crystalline silica rules (high risk crystalline silica work and
 // a hazard control statement), not the model regulations' high risk processing and
@@ -129,17 +143,71 @@ const VIC_TEXT = [
   [/^This SWMS takes into account the principal contractor's WHS management plan for the site\.$/, 'This SWMS takes into account the principal contractor\'s health and safety coordination plan for the site.'],
   [/^The consumer mains and main switchboard are not connected for the first time until the distribution entity has examined them/, 'Consumer mains, main switchboards and other prescribed electrical work are inspected by a licensed electrical inspector, and the certificate of electrical safety is issued, before the installation is connected by the network operator.'],
 ];
+
+// The model regulations, except where a state differs (each checked against the state's text).
+// Regulation 219(7): a load is lifted by more than one item of plant only where the method of
+// lifting keeps the load on each within its design capacity. Queensland's s 219(7) asks instead
+// that each is specifically designed to lift a load.
+const MODEL_TEXT = [
+  [/only where each crane is specifically designed to lift a load\./, 'only where the method of lifting keeps the load on each crane within its design capacity.', KEEP],
+  [/only where each machine is designed to lift a load\./, 'only where the method of lifting keeps the load on each machine within its design capacity.', KEEP],
+  [/Dual lifts only where each machine is designed to lift\./, 'Dual lifts only where the method of lifting keeps the load on each machine within its design capacity.', KEEP],
+];
+// Regulations 529CA and 529CE as the model states have them: the assessment does not rely on
+// the dust controls at all; processing that cannot be assessed is taken to be high risk; and
+// high risk processing has air monitoring, results over the exposure standard given to the
+// regulator within 14 days, and health monitoring for every worker doing it. The ACT has its
+// own rules and is not one of these.
+const MODEL_SILICA_TEXT = [
+  [/\brely only on the dust controls\b/, 'rely on the dust controls', KEEP],
+  [/\brelying only on the dust controls\b/, 'relying on the dust controls', KEEP],
+  [/treat it as a risk to health(?: until that is determined)?\./, 'treat it as high risk until it is determined that it is not.', KEEP],
+  [/For high risk processing, (?:air monitoring )?results (over|above) the exposure standard (go to|are reported to) the regulator within 14 days\./, 'For high risk processing, air monitoring is done, results $1 the exposure standard $2 the regulator within 14 days, and all workers doing the processing have health monitoring.', KEEP],
+];
+// Regulations 161(4) and 162 on energised electrical work, in the states whose text has them
+// (Western Australia leaves them out, and the Northern Territory text read has no Part 4.7).
+const ENERGISED_TEXT = [
+  [/^A safety observer, assessed in the last 12 months as competent in rescue and resuscitation, watches the work and does no other work\.$/, (id) => `A safety observer, competent to apply the emergency controls and to rescue and resuscitate the worker, and assessed in the previous 12 months as competent to rescue and resuscitate a person, watches the work and does no other work.${cite(id, '161')}`],
+  [/^Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, both readily available to the workers\.$/, (id) => `Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, or both for at least 2 years after a notifiable incident, readily available to the workers.${cite(id, '162')}`],
+];
+// Western Australia has no 6 m notice (r 142 is not used). Class 1 and Class 2 demolition work
+// is licensed (r 142B, r 142C), and notified 5 working days ahead when done to AS 2601 (r 142F),
+// or approved by the regulator when it is not (r 142G, r 142I).
+const WA_TEXT = [
+  [/^Where the structure(?:, or a load-bearing part of it,)? is at least 6 m high, (?:the regulator is given written notice|written notice is given to the regulator) at least 5 days before the work starts\.$/, `Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs. Done to AS 2601, it is notified to the regulator at least 5 working days before it begins; done any other way, the regulator's approval is applied for at least 10 working days before, and the work waits for it.${cite('wa', '142B', '142C', '142F', '142G', '142I')}`],
+];
 // The ACT has no 10 m2 exception: any asbestos is removed by a licensed asbestos
-// removalist (Work Health and Safety Regulation 2011 (ACT) r 458).
+// removalist (Work Health and Safety Regulation 2011 (ACT) s 458, s 487), and every licensed
+// removal is cleared by an independent licensed asbestos assessor (s 473, s 474).
 const ACT_TEXT = [
   [/^Asbestos is removed by a licensed asbestos removalist, except for 10 m2 or less of non-friable asbestos removed under the regulation\.$/, 'Asbestos is removed only by a licensed asbestos removalist, whatever the amount.'],
+  [/ unless the regulation allows otherwise\./, '.', KEEP],
+  [/^When licensed asbestos removal is finished, a clearance inspection is done by an independent competent person/, `When licensed asbestos removal is finished, an independent licensed asbestos assessor inspects the removal area and the area around it, and issues a clearance certificate before the area is reoccupied.${cite('act', '473', '474')}`],
+  // Porcelain and sintered stone are stone-substitute material (s 418A): water and one other control, and respirators (s 418B, s 418C).
+  [/^Natural stone and porcelain with 1% or more crystalline silica: .*$/, `Porcelain and sintered stone containing crystalline silica are stone-substitute material: they are processed with power tools only with a continuous water feed and at least one other crystalline silica control, and exposed workers wear respiratory protective equipment. Natural stone is processed with the controls section 418CAA requires. Cut in the factory where possible.${cite('act', '418B', '418C', '418CAA')}`],
+  [/a product with 1% or more crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, 'a product containing crystalline silica, such as plasterboard, grout, render or a concrete product, is crystalline silica material, and power sanding or cutting it is processing that must use the crystalline silica controls sections 418BAA and 418CAA require.', KEEP],
+  [/Where rock is drilled or broken with plant, control the silica dust \(wet methods or extraction\) and assess it in writing before starting\./, () => `Where rock is drilled or broken with plant, ${ACT_MATERIAL}.`, KEEP],
 ];
+
+const STATE_TEXT = {
+  vic: VIC_TEXT,
+  nsw: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  sa: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  wa: [...WA_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  tas: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  nt: [...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  act: [...ACT_TEXT, ...ENERGISED_TEXT, ...MODEL_TEXT],
+};
+const MODEL_SILICA = new Set(['nsw', 'sa', 'wa', 'tas', 'nt']);
+
 // The ACT has its own crystalline silica rules (Work Health and Safety Regulation 2011 (ACT)
 // chapter 7A): no written high risk assessment or silica risk control plan, but set controls
-// for processing with a power tool (r 418B to 418CAA) and an awareness course for high risk
-// crystalline silica work (r 418D).
+// for processing with a power tool (s 418B to 418CAA) and an awareness course the Minister
+// declares for high risk crystalline silica work (s 418D).
 const ACT_SILICA_CONTROLS = 'a continuous water feed is used with at least one other crystalline silica control, such as a Class H vacuum on the tool or isolating the area. For material other than stone-substitute material, where water cannot reasonably be used, the next control the ACT crystalline silica rules allow is used.';
-const ACT_SILICA_TRAINING = 'Workers who carry out high risk crystalline silica work have completed the crystalline silica awareness course the ACT regulator declares.';
+const ACT_SILICA_TRAINING = 'Workers who carry out high risk crystalline silica work have completed the crystalline silica awareness course the Minister declares under section 418D.';
+// Section 418CAA for crystalline silica material other than stone-substitute material.
+const ACT_MATERIAL = 'a continuous water feed is used with at least one other crystalline silica control, or the next control section 418CAA allows where that is not reasonably practicable, and anyone still at risk wears a fit tested respirator';
 function actSilica(text) {
   return text
     .replace(/^Where (?:the processing|it) is high risk[:,].*$/s, ACT_SILICA_TRAINING)
@@ -147,37 +215,78 @@ function actSilica(text) {
     .replace(/Before ([^,.]+), assess in writing whether the processing is high risk\.(?: The assessment does not count[^.]*\.)?(?: If it cannot be determined, treat it as [^.]*\.)?/g, (all, when) => `Before ${when}, ${ACT_SILICA_CONTROLS}`)
     .replace(/,? and the written silica assessment covers the [^.]*\./g, '.');
 }
+// The ACT names concrete, masonry, tiles and stone "crystalline silica material", with no 1%
+// test, and sets its controls in s 418BAA and s 418CAA: a line's own "wet or extraction" is
+// replaced with them, unless the line goes on to give them.
+function actMaterial(text) {
+  const controls = text.includes(ACT_SILICA_CONTROLS) ? '' : `: ${ACT_MATERIAL}`;
+  return text
+    .replace(/, it is done wet or with on-tool extraction\. This is processing a crystalline silica substance\. Anyone still at risk of exposure wears a fit tested P2 respirator\./, `, it is processing crystalline silica material${controls}.`)
+    .replace(/^Saw cut existing asphalt and concrete wet or with dust extraction, with hearing and eye protection\. Cutting concrete is processing a crystalline silica substance\./, `Saw cut existing asphalt and concrete with hearing and eye protection. Cutting concrete is processing crystalline silica material${controls}.`)
+    .replace(/ with 1% or more crystalline silica\b/g, ' containing crystalline silica')
+    .replace(/\bare a crystalline silica substance\b/g, 'are crystalline silica material')
+    // A reason given after the controls ("..., as cutting it is processing crystalline silica") only takes the ACT term.
+    .replace(/\b(is|are) processing (?:a crystalline silica substance|crystalline silica)\b(?! material)(?: and must be controlled)?(?:: [^.]*|, controlled by [^.]*)?\.(?: (?:It is controlled by|Control it with) [^.]*\.)?/g, (all, verb, at, whole) => `${verb} processing crystalline silica material${/, as [^.]*$/.test(whole.slice(0, at)) ? '' : controls}.`)
+    .replace(/\bis processing that must be controlled(?:: [^.]*|, with [^.]*)\./g, `is processing that must be controlled${controls}.`);
+}
 const VIC_SILICA = /\b(processing is high risk|high risk processing|VET accredited or regulator approved)\b/i;
 
-function localText(text, stateId) {
-  if (stateId === 'qld' || text == null) return text;
+function applyLine(out, pattern, replacement, stateId) {
+  const value = typeof replacement === 'function' ? replacement(stateId) : replacement;
+  // A preset answer keeps its other sentences; a whole control line is replaced.
+  if (value === null) return out.replace(pattern, '').replace(/\s{2,}/g, ' ').trim() || null;
+  return pattern.source.startsWith('^') ? value : out.replace(pattern, value);
+}
+
+// The line as it reads in the state, and the wording it had after the KEEP rewordings,
+// which still hold for its own sources.
+function rewrite(text, stateId) {
+  if (stateId === 'qld' || text == null) return { text, kept: text };
+  const table = STATE_TEXT[stateId] || [];
   let out = text;
+  for (const [pattern, replacement, keep] of table) {
+    if (keep && out != null && pattern.test(out)) out = applyLine(out, pattern, replacement, stateId);
+  }
+  if (out == null) return { text: null, kept: null };
+  const kept = out;
   let done = false;
-  if (stateId === 'vic') {
-    for (const [pattern, replacement] of VIC_TEXT) {
-      if (!pattern.test(out)) continue;
-      // A preset answer keeps its other sentences; a whole control line is replaced.
-      if (replacement === null) { out = out.replace(pattern, '').replace(/\s{2,}/g, ' ').trim(); if (!out) return null; } else out = pattern.source.startsWith('^') ? replacement : out.replace(pattern, replacement);
-      done = true;
-      break;
-    }
-    if (!done && VIC_SILICA.test(out)) return null;
+  for (const [pattern, replacement, keep] of table) {
+    if (keep || !pattern.test(out)) continue;
+    out = applyLine(out, pattern, replacement, stateId);
+    if (out == null) return { text: null, kept };
+    done = true;
+    break;
   }
-  if (stateId === 'act') {
-    for (const [pattern, replacement] of ACT_TEXT) if (pattern.test(out)) { out = replacement; done = true; break; }
-    out = actSilica(out);
-  }
-  if (!done) for (const [pattern, replacement] of OUTSIDE_QLD) if (pattern.test(out)) { if (replacement === null) return null; out = replacement; break; }
-  // Reporting silica air monitoring results to the regulator within 14 days is Queensland's rule (s 529CE).
-  out = out.replace(/ ?For high risk processing, (?:air monitoring )?results (?:over|above) the exposure standard (?:go to|are reported to) the regulator within 14 days\./g, ' Results above the exposure standard are reported to the regulator where the state\'s rules require it.').trim();
+  if (stateId === 'vic' && !done && VIC_SILICA.test(out)) return { text: null, kept };
+  if (stateId === 'act') out = actMaterial(actSilica(out));
+  if (!done) for (const [pattern, replacement] of OUTSIDE_QLD) if (pattern.test(out)) { if (replacement === null) return { text: null, kept }; out = replacement; break; }
+  // Where the state has no rule like s 529CE, the 14 day silica report is stated generally.
+  if (!MODEL_SILICA.has(stateId)) out = out.replace(/ ?For high risk processing, (?:air monitoring )?results (?:over|above) the exposure standard (?:go to|are reported to) the regulator within 14 days\./g, ' Results above the exposure standard are reported to the regulator where the state\'s rules require it.').trim();
   out = out.replace(/31 December 1989/g, '31 December 2003').replace(/ Qld has no piling rig licence\./g, '')
     .replace(/\bthe electricity entity's\b/g, 'the network operator\'s').replace(/\bthe distribution entity\b/g, 'the network operator').replace(/\bdistribution entity\b/g, 'network operator');
   // Queensland's 26 degree rule for mesh on sloping edge protection (s 306E) is stated generally elsewhere.
   out = out.replace(/(?:On slopes|Where the (?:roof|surface the work is done from|deck) slopes) (?:of |over |more than )?26 degrees[^.]*\./g, 'On steep slopes, mesh or sheeting is fitted to the edge protection as AS/NZS 4994 and the manufacturer require.');
+  // Queensland Health and QBCC licences, and Queensland's regulated areas for herbicide spraying, are Queensland's.
+  out = out.replace(/Termite treatments are applied only by a holder of a Queensland Health pest management licence for timber pests, who also holds a QBCC termite management \(chemical\) licence for treatments to new building work\./g, 'Termite treatments are applied only by a holder of the pest management licence the state requires, and any termite management licence it requires for new building work.')
+    .replace(/Herbicide spraying with powered ground equipment in a regulated area is done only by a licensed commercial operator\./g, 'Herbicide spraying is done by a holder of any chemical application licence the state requires.');
   if (stateId === 'vic') out = out.replace(/\bhazardous chemicals register\b/g, 'register of hazardous substances').replace(/\s?\(the falls code suggests [^)]*\)/g, '');
   // The Northern Territory and the ACT are territories.
   if (stateId === 'nt' || stateId === 'act') out = out.replace(/\bthe state's\b/g, 'the territory\'s').replace(/\bstate's\b/g, 'territory\'s').replace(/\bthe state (requires|sets|allows)\b/g, 'the territory $1');
-  return out;
+  return { text: out, kept };
+}
+
+function localText(text, stateId) {
+  return rewrite(text, stateId).text;
+}
+
+// A control line with its sources, as printed for the state. A line reworded for the state
+// keeps its own sources only where the rewording still holds for them (KEEP); otherwise it
+// carries the citation written into it, or none.
+function localControl(text, source, stateId) {
+  const { text: out, kept } = rewrite(text, stateId);
+  if (out == null) return null;
+  const cited = stateId && source && out === kept ? localSource(source, stateId) : '';
+  return cited ? `${out} (${cited})` : out;
 }
 
 // Short Queensland regulation references in register notes, such as "(WHS Reg s 213)",
@@ -194,4 +303,4 @@ function localNote(text, stateId) {
 
 const citedStates = () => ['qld', ...Object.keys(STATE_CITATIONS)];
 
-module.exports = { localSource, localText, localNote, citedStates };
+module.exports = { localSource, localText, localControl, localNote, citedStates };
