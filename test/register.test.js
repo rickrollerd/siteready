@@ -552,3 +552,14 @@ test('the scaffold type sets the licence class, as schedule 3 sets it', () => {
   assert.equal(prepareDraft({ state: 'qld', fallRisk: 'yes', task: 'Erect the scaffold around the house.', facts }).missing.includes('Scaffold type'), true);
   assert.match(licence('Erect the scaffold around the house.', { scaffoldType: 'tubeCoupler' }), /\(SI or SA\)$/);
 });
+
+test('Queensland drafts say who designs the scaffold, from the Scaffolding Code of Practice 2021 Table 1', () => {
+  const facts = { fallControl: 'Scaffolders install platforms, edge protection and access at each lift before going higher.', systemInstructions: 'Erected to the scaffold supplier\'s instructions and the scaffold design SD-2.' };
+  const lines = (state, task) => {
+    const d = prepareDraft({ state, fallRisk: 'yes', task, facts });
+    return (d.jobSteps.find((step) => step.step === 'Erect the scaffold') || { controls: [] }).controls.filter((line) => /Scaffolding Code of Practice 2021 \(Qld\)/.test(line));
+  };
+  assert.match(lines('qld', 'Erect a hung scaffold under the bridge deck.').join('\n'), /designed by an engineer/);
+  assert.match(lines('qld', 'Erect a tube and coupler scaffold with a loading bay.').join('\n'), /above 33 m[\s\S]*Loading bays/);
+  assert.deepEqual(lines('nsw', 'Erect a hung scaffold under the bridge deck.'), [], 'a Queensland code is not cited in NSW');
+});

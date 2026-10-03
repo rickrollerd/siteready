@@ -3263,7 +3263,32 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
     controls: controls.map((item) => item.text),
   });
   const answers = Object.values(facts || {}).filter((value) => typeof value === 'string').join('\n');
-  return scaffoldLicenceLine(tidySteps(steps, combinedFacts(task, facts), answers), scaffoldTypeAnswer(task) || choiceAnswer('scaffoldType', facts.scaffoldType));
+  const scaffoldType = scaffoldTypeAnswer(task) || choiceAnswer('scaffoldType', facts.scaffoldType);
+  const withClass = scaffoldLicenceLine(tidySteps(steps, combinedFacts(task, facts), answers), scaffoldType);
+  return state.id === 'qld' ? scaffoldDesignLines(withClass, scaffoldType, task) : withClass;
+}
+
+// Queensland's Scaffolding Code of Practice 2021, Table 1: who designs and first inspects each scaffold.
+const QLD_SCAFFOLD_CODE = 'Scaffolding Code of Practice 2021 (Qld) s 2.2, Table 1';
+const SCAFFOLD_DESIGN = {
+  modular: 'Modular scaffold is designed by the supplier or a competent person to the manufacturer\'s documented configurations, by the supplier or an engineer where it is clad above 4 m, and by an engineer where it is outside the manufacturer\'s documented parameters.',
+  tubeCoupler: 'Tube and coupler scaffold with a top working platform above 33 m, or outside the scope of AS/NZS 1576.6, and cantilevered or spurred scaffold more than 6 m high, are designed by an engineer.',
+  hung: 'Hung and drop scaffolds are designed by an engineer. Suspended scaffolds (swing stages and their supports) are designed and first inspected by an engineer.',
+  mobile: 'Standard aluminium mobile scaffolds are erected to the manufacturer\'s instructions. Aluminium towers with a top working platform above 9 m, and other free-standing towers above 4 m, are designed by an engineer.',
+};
+function scaffoldDesignLines(steps, type, task) {
+  const lines = [];
+  if (SCAFFOLD_DESIGN[type]) lines.push(SCAFFOLD_DESIGN[type]);
+  if (/\b(loading (?:bays?|platforms?)|landing bays?)\b/i.test(task)) lines.push('Loading bays with a top working platform above 9 m or a load over 2 t, or beyond the scaffold\'s duty rating, are designed and first inspected by an engineer.');
+  if (/\bdemoli\w*\b/i.test(task)) lines.push('Perimeter demolition scaffold more than 9 m high is designed and first inspected by an engineer.');
+  if (/\b(gantr\w*|overhead protection|covered ways?|public access|grandstands?|seating)\b/i.test(task)) lines.push('Gantries and overhead protection are designed by an engineer, and public access structures needing Building Code of Australia compliance are designed and first inspected by an engineer.');
+  if (!lines.length) return steps;
+  let added = false;
+  return steps.map((step) => {
+    if (added || step.step !== 'Erect the scaffold') return step;
+    added = true;
+    return { ...step, controls: [...step.controls, ...lines.map((line) => `${line} (${QLD_SCAFFOLD_CODE})`)] };
+  });
 }
 
 // The licence line names the class for the scaffold used, once its type is known.
