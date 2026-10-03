@@ -64,6 +64,7 @@ const ANSWERS = {
     ['Mobile scaffolds', 'Work above 2 m is done from mobile scaffolds with guardrails, erected to the supplier\'s instructions by a competent person, with castors locked while in use.'],
     ['Roof guardrail and mesh', 'Roof edge guardrail is installed to every open edge, and safety mesh is fixed under the sheets, before sheeting starts. No one works outside the guardrail.'],
     ['Boom lifts', 'Connections are made from boom lifts with guardrails, with harnesses attached to the boom lift anchor points. No one climbs the steel.'],
+    ['Advance guardrails', 'Scaffolders work from a fully decked platform, with advance guardrails or temporary edge protection fitted before they step up to each new lift.'],
     ['EWP or mobile scaffold', 'Work above 2 m is done from an EWP or a mobile scaffold with guardrails, and platform ladders are used only for short work below 2 m.'],
     ['Roof edge guardrail', 'Roof edge guardrail is installed to every open edge before work starts, and no one works outside it.'],
     ['Stair void platforms', 'Work over the stair void is done from stair platforms or a scaffold with guardrails, built to fit the stairs, and no one works from a ladder on the stairs or leans over the balustrade.'],
@@ -160,6 +161,8 @@ const ANSWERS = {
 // The fall control that fits the work comes first, so the first standard answer is not
 // edge protection for a job with no open edge (a roller door, ceiling cabling, a stairwell).
 const FALL_FIRST = [
+  // Putting up a scaffold: the scaffold is the work, not the fall control.
+  ['Advance guardrails', /\b(?:erect|dismantl|put up|install|build|strik)\w*\b(?:(?!\b(?:from|off|using|with|on)\b)[^.]){0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(?:erect|dismantl)\w*/i],
   ['Stair void platforms', /\b(stairwells?|stair voids?)\b/i],
   ['Risers screened', /\b(risers?|lift shafts?|service shafts?|landing doors?)\b/i],
   ['Travel restraint', /\bbalustrad\w*\b/i],
@@ -171,7 +174,7 @@ const FALL_FIRST = [
   ['Scissor lifts', /\bscissor lifts?\b/i],
   ['Boom lifts', /\b(steel (?:columns?|beams?|frames?|erect\w*)|structural steel|portal frames?)\b/i],
   // Work reached from below, with no open edge: doors, ceilings, cabling, lights, signs and walls.
-  ['EWP or mobile scaffold', /\b(doors?|ceilings?|cabl\w*|data|wi-?fi|access points?|lights?|lighting|ducts?|ductwork|dampers?|signs?|signage|pylons?|cameras?|cctv|sprinklers?|alarms?|detectors?|screens?|windows?|pergolas?|walls?|paint\w*|exterior|cladding|awnings?|netting|spikes|frames?|beams?|pipework|pipes?|trays?|conduits?|fans?|heaters?|shelving|racking|curtains?|blinds?|poles?|street ?lights?)\b/i],
+  ['EWP or mobile scaffold', /\b(shade (?:structures?|sails?|covers?)|carports?|awnings?|verandahs?|patio (?:roofs?|covers?)|doors?|ceilings?|cabl\w*|data|wi-?fi|access points?|lights?|lighting|ducts?|ductwork|dampers?|signs?|signage|pylons?|cameras?|cctv|sprinklers?|alarms?|detectors?|screens?|windows?|pergolas?|walls?|paint\w*|exterior|cladding|awnings?|netting|spikes|frames?|beams?|pipework|pipes?|trays?|conduits?|fans?|heaters?|shelving|racking|curtains?|blinds?|poles?|street ?lights?)\b/i],
 ];
 
 // Standard answers for a required fact, as { label, text }. With the task, the fall

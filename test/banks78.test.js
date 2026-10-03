@@ -28,6 +28,8 @@ const step = (done, name) => done.jobSteps.find((item) => item.step === name);
 const plant = (done) => done.plant.map((item) => item.item);
 const has = (done, pattern) => lines(done).some((line) => pattern.test(line));
 const PLANT_RISK = /powered mobile plant/i;
+// The asbestos question has no standard answer: this is the one a user gives where a removalist does it first.
+const REMOVALIST = { asbestosArrangement: 'Asbestos register sighted. A licensed asbestos removalist (licence ____) removes any asbestos before this work starts. Clearance certificate sighted.' };
 
 test('the first fall control offered suits the work: no open edge for a door, ceiling cabling or dampers', () => {
   for (const task of ['Remove and replace a damaged roller door at a warehouse.', 'Install data cabling and Wi-Fi access points in a school.', 'Install fire dampers in ductwork in a hospital.', 'Repaint the exterior of a two storey weatherboard house.', 'Build a timber pergola over a backyard patio.']) {
@@ -226,4 +228,283 @@ test('a nail gun is a hazard only where its control is', () => {
   const done = draft('Lay a polished concrete floor in a new café.');
   assert.ok(!has(done, /^Nail gun injuries/));
   assert.ok(!plant(done).includes('Nail gun'));
+});
+
+test('hail damaged warehouse skylights are taken out and replaced, not cut in', () => {
+  const done = draft('Repair hail damaged skylights on a warehouse.', { fallRisk: 'yes', state: 'wa' });
+  assert.ok(steps(done).includes('Remove and replace the damaged skylights'));
+  assert.ok(!has(done, /Before the sheet is cut|Roof sheet is cut with nibblers|crawl boards|covered as soon as it is cut/));
+  assert.ok(has(done, /Each damaged skylight is fenced off/));
+});
+
+test('a playground is its equipment and footings as well as the softfall', () => {
+  const done = draft('Install a playground with soft fall at a school.', { state: 'vic' });
+  assert.ok(steps(done).includes('Install playground equipment and softfall'));
+  assert.ok(has(done, /Footing holes are dug/) && has(done, /services information before digging footings/));
+  assert.ok(has(done, /paddle mixer/));
+});
+
+test('a battery and inverter: inverter mounted, terminals and testing each said once', () => {
+  const done = draft('Install a solar inverter and battery in a farm workshop.');
+  const names = steps(done);
+  assert.ok(names.indexOf('Isolate and prove de-energised') < names.indexOf('Connect the inverter and battery'));
+  assert.ok(has(done, /The inverter is mounted to the manufacturer's instructions/));
+  assert.equal(lines(done).filter((line) => /terminals stay covered/.test(line)).length, 2);
+  assert.ok(!has(done, /Battery and inverter terminals stay covered/));
+  assert.ok(!has(done, /^The system is tested before it is connected/));
+});
+
+test('a solar system on a house is electrical work, with its hoist listed and the ladder line said once', () => {
+  const done = draft('Install a solar system on a Perth house roof.', { fallRisk: 'yes', residential: 'yes' });
+  assert.ok(done.sources.legislation.includes('Electrical Safety Act 2002 (Qld)'));
+  assert.ok(has(done, /\(Electrical Safety Act 2002 \(Qld\) s 55, s 56\)$/));
+  assert.ok(plant(done).includes('Personnel or materials hoist'));
+  assert.equal(lines(done).filter((line) => /never carried up a ladder/.test(line)).length, 1);
+});
+
+test('pruning from an EWP with no one in the tree has no climbing line', () => {
+  const done = draft('Prune trees over a school playground.', { fallRisk: 'yes', facts: { fallControl: 'Pruning at height is done by an arborist from an EWP with its guardrails in place, harness clipped to its anchor point, and no one climbs the tree.', harnessSystem: answersFor('harnessSystem')[0].text } });
+  assert.ok(!has(done, /climbing system/));
+  assert.ok(has(done, /^Pruning at height is done by an arborist from the EWP/));
+});
+
+test('road markings in a school car park: no forklifts, and the paint line is not said twice', () => {
+  const done = draft('Paint road markings in a school car park on the weekend.');
+  assert.ok(!has(done, /forklifts/));
+  assert.ok(!has(done, /^Line marking paint is used outdoors or with ventilation/));
+  assert.ok(has(draft('Paint line markings in a working warehouse.'), /separated from forklifts/));
+});
+
+test('a new main switchboard has its cables pulled in and terminated', () => {
+  const done = draft('Install a new main switchboard in a hospital plant room.');
+  const names = steps(done);
+  assert.ok(names.includes('Pull in and terminate the cables'));
+  assert.ok(names.indexOf('Pull in and terminate the cables') < names.indexOf('Test, connect and commission'));
+  assert.ok(has(done, /terminated at the new board only once each is proved de-energised/));
+});
+
+test('a scaffold stair tower has its stairs, and the first fall answer suits erecting a scaffold', () => {
+  const task = 'Install a temporary scaffold stair tower on a construction site.';
+  assert.equal(answersFor('fallControl', task)[0].label, 'Advance guardrails');
+  const done = draft(task, { fallRisk: 'yes', state: 'nt' });
+  assert.ok(has(done, /stair modules, stair handrails and landing guardrails are fitted as each lift goes up/));
+  assert.ok(has(done, /Every flight, handrail, landing and gate is checked at handover/));
+  // A fall answer that already has a licensed scaffolder erecting it is not repeated.
+  const again = draft(task, { fallRisk: 'yes', state: 'nt', facts: { fallControl: 'Work is done from a scaffold with full edge protection, erected and handed over by a licensed scaffolder.' } });
+  assert.ok(!has(again, /^A licensed scaffolder erects the scaffold/));
+});
+
+test('a sewage treatment plant has its tank pit dug from outside and its pumps wired by an electrician', () => {
+  const done = draft('Install a sewage treatment plant at a rural property.', { residential: 'yes', state: 'nt' });
+  assert.ok(has(done, /The tank pit is dug to the tank maker's dimensions/));
+  assert.ok(has(done, /pumps, blower and alarm are wired and connected by a licensed electrician/));
+  assert.ok(has(done, /The pipe trenches are kept shallower than 1\.5 m/));
+  assert.ok(steps(done).includes('Lay pipes and pits') && !has(done, /conduit/));
+  assert.ok(has(draft('Replace an old septic tank with a new one.', { residential: 'yes', state: 'tas' }), /The tank pit is dug/));
+});
+
+test('a pothole repair with a roller brings the mobile plant category', () => {
+  assert.ok(draft('Repair a pothole in a council car park.', { state: 'nt' }).highRisk.some((item) => PLANT_RISK.test(item)));
+});
+
+test('drilling or cutting a silica material with a power tool brings the written assessment', () => {
+  for (const task of ['Install pallet racking in a new distribution centre.', 'Install new fire hose reels and extinguishers in a factory.', 'Install bike racks at a train station.']) {
+    assert.ok(has(draft(task, { fallRisk: 'yes' }), /^Assess in writing before starting whether the processing is high risk/), task);
+  }
+  // A chimney taken down by hand is not processing with a power tool.
+  assert.ok(!has(draft('Remove a brick chimney from the roof of a house.', { fallRisk: 'yes', residential: 'yes' }), /^Assess in writing/));
+});
+
+test('bollards: services found before drilling, and in-ground bollards concreted in', () => {
+  const done = draft('Install bollards around a petrol station forecourt.');
+  assert.ok(step(done, 'Before starting').controls.some((line) => /services information before drilling or digging/.test(line)));
+  assert.ok(has(done, /In-ground bollards are set in footing holes/));
+});
+
+test('doors are not cabinets, and cabinets are not doors or wardrobes', () => {
+  const doors = draft('Install skirting and doors in a new aged care building.');
+  assert.ok(!has(doors, /hold units while fixing/));
+  const cabinets = draft('Install new kitchen cabinets in a staff room.', { state: 'vic' });
+  assert.ok(steps(cabinets).includes('Install joinery and cabinets'));
+  assert.ok(!has(cabinets, /\bdoors?\b|wardrobes/i));
+});
+
+test('a new distribution centre is not an operating warehouse, and indoor work has no sun line', () => {
+  const done = draft('Install pallet racking in a new distribution centre.', { fallRisk: 'yes', state: 'nsw' });
+  assert.ok(!has(done, /operating warehouse/) && !has(done, /Sun and heat/));
+  for (const task of ['Strip wallpaper and paint walls in a 1960s house.', 'Install smoke alarms in a rental house.', 'Fit off lights and power points in a new house.']) {
+    assert.ok(!has(draft(task, { residential: 'yes', facts: REMOVALIST }), /Sun and heat/), task);
+  }
+});
+
+test('trucks are guided into the work area, not a loading zone', () => {
+  assert.ok(!has(draft('Install fibre optic cable through existing conduits in a street.'), /loading zone/));
+});
+
+test('new lighting is tested before it is energised, with no unused respirator line', () => {
+  const done = draft('Install new lighting in a car park at night.', { fallRisk: 'yes', state: 'wa' });
+  assert.ok(steps(done).includes('Test, connect and commission'));
+  assert.ok(!has(done, /Tight-fitting respirators are fit tested/));
+});
+
+test('access control door strikes are cut into the frames, with the exits kept usable', () => {
+  const done = draft('Install access control readers and door strikes in an office.', { state: 'sa' });
+  assert.ok(steps(done).includes('Install the security devices and door strikes'));
+  assert.ok(has(done, /Door frames are cut out for strikes/) && has(done, /Doors stay usable as exits/));
+});
+
+test('old roof sheets come off bay by bay in the removal step, not the set-up step', () => {
+  const done = draft('Replace roof sheets damaged by hail on a factory.', { fallRisk: 'yes', state: 'wa' });
+  assert.ok(!step(done, 'Set up roof access and fall protection').controls.some((line) => /bay by bay/.test(line)));
+  assert.ok(step(done, 'Remove old roofing').controls.some((line) => /bay by bay/.test(line)));
+});
+
+test('cutting tiles wet or with extraction is said once', () => {
+  const done = draft('Fix cracked tiles on a commercial balcony.', { fallRisk: 'yes', state: 'nsw' });
+  assert.ok(!has(done, /^No dry cutting/));
+  assert.ok(has(done, /wet cutting or on-tool extraction, never dry cutting/));
+});
+
+test('a farm shed switchboard is carried in, its EWP listed and its electric shock first aid set out', () => {
+  const done = draft('Install a new switchboard in a farm shed.', { state: 'nt' });
+  assert.ok(!steps(done).includes('Deliver and place switchboards'));
+  assert.ok(plant(done).includes('Elevating work platform'));
+  assert.ok(done.emergency.some((row) => /Electric shock/.test(row.type)));
+});
+
+test('a granny flat kit and a dumbwaiter are recognised as work at height', () => {
+  for (const task of ['Install a granny flat kit on a concrete slab.', 'Install a dumbwaiter in a restaurant.']) {
+    assert.ok(questionsFor({ state: 'vic', task, fallRisk: 'no' }).fall.detected, task);
+  }
+  const flat = draft('Install a granny flat kit on a concrete slab.', { state: 'vic', residential: 'yes', fallRisk: 'yes' });
+  assert.ok(has(flat, /^Before the first truss is stood, edge protection or a scaffold is in place along the top plate/));
+});
+
+test('a broken sewer under a driveway: flow stopped, sewage handled and the driveway reinstated', () => {
+  const done = draft('Replace a broken sewer pipe under a driveway.', { residential: 'yes', state: 'sa' });
+  assert.ok(has(done, /the flow is stopped/) && has(done, /sewage-soaked soil/));
+  assert.ok(has(done, /The driveway or path is reinstated/));
+});
+
+test('a damaged pit is broken out in its own step, with the breaker listed', () => {
+  const done = draft('Replace a damaged stormwater pit in a council road.', { state: 'wa' });
+  const names = steps(done);
+  assert.ok(names.indexOf('Break out the damaged pit') < names.indexOf('Work in the trench'));
+  assert.ok(!step(done, 'Lay pipes and pits').controls.some((line) => /broken out/.test(line)));
+  assert.ok(plant(done).includes('Rock breaker (hydraulic hammer)'));
+});
+
+test('ducted heating in a house: no slab drilling, the flue reached safely, and gas work licensed', () => {
+  const done = draft('Install ducted heating in a Ballarat house.', { residential: 'yes', state: 'vic' });
+  assert.ok(!has(done, /slab|hanger anchors|above or below each other/));
+  assert.ok(has(done, /flue and cowl above the roof are fitted from a platform/));
+  assert.ok(done.qualifications.some((name) => /^Gas work licence/.test(name)));
+});
+
+test('a rooftop fan on a sheet roof is fixed to the purlins, with no slab drilling', () => {
+  const done = draft('Install a rooftop exhaust fan on a restaurant.', { fallRisk: 'yes' });
+  assert.ok(!has(done, /roof slab/) && has(done, /fixed to the purlins or a support frame/));
+});
+
+test('a timber pergola is cut and fixed on site, with no kit or roof sheet wording', () => {
+  const done = draft('Build a timber pergola over a backyard patio.', { fallRisk: 'yes', residential: 'yes', state: 'act' });
+  assert.ok(!has(done, /kit supplier|Roof sheets|every open edge/));
+  assert.ok(has(done, /Posts, beams and rafters are cut with a drop saw/));
+  assert.ok(plant(done).includes('Nail gun') && plant(done).includes('Electric power tools and leads'));
+});
+
+test('an outdoor shower has its trench and none of the indoor rough-in lines', () => {
+  const done = draft('Install an outdoor shower at a beach surf club.');
+  const names = steps(done);
+  assert.ok(names.indexOf('Dig a shallow trench and lay the pipes') < names.indexOf('Plumbing rough-in and fit-off'));
+  assert.ok(!has(done, /open penetration|drilling into a slab/));
+});
+
+test('a basement wall is dug out before it is waterproofed, with the excavator and code listed', () => {
+  const done = draft('Waterproof a basement wall in an Adelaide house.', { residential: 'yes' });
+  const wall = step(done, 'Waterproof walls below ground').controls;
+  assert.ok(wall.findIndex((line) => /services information/.test(line)) < wall.findIndex((line) => /No one works in the excavation/.test(line)));
+  assert.ok(plant(done).includes('Excavator'));
+  assert.ok(done.sources.codes.includes('Excavation work Code of Practice 2021 (Qld)'));
+});
+
+test('fibro removed by a licensed removalist is not removed by the crew', () => {
+  const done = draft('Demolish an old garden shed with a fibro roof.', { residential: 'yes', state: 'act', facts: REMOVALIST });
+  assert.ok(has(done, /removed by the licensed asbestos removalist before the rest of the shed is taken down/));
+});
+
+test('industrial steel is prepared under AS/NZS 4361.1, not the house and building part', () => {
+  const done = draft('Paint steel beams in a warehouse from a boom lift.', { fallRisk: 'yes', state: 'tas' });
+  assert.ok(steps(done).includes('Prepare the steel surfaces'));
+  assert.ok(has(done, /AS\/NZS 4361\.1/) && !has(done, /4361\.2|filler/));
+});
+
+test('glass pool fencing closes the pool while the barrier is open', () => {
+  assert.ok(has(draft('Install glass pool fencing around a hotel pool.', { state: 'nsw' }), /The pool is closed to guests and children while the barrier is open/));
+});
+
+test('saws named in the steps are listed as plant', () => {
+  assert.ok(plant(draft('Replace kitchen benchtops with laminate in a house.', { residential: 'yes', state: 'nsw' })).includes('Electric power tools and leads'));
+  assert.ok(plant(draft('Erect a colorbond fence between two houses.', { residential: 'yes', state: 'nt' })).includes('Electric power tools and leads'));
+  assert.ok(plant(draft('Lay a new gravel driveway on a rural property.', { residential: 'yes', state: 'act' })).includes('Water cart'));
+});
+
+test('a range hood is not gas work', () => {
+  const done = draft('Install a commercial range hood in a café kitchen.', { fallRisk: 'yes' });
+  assert.ok(!done.qualifications.some((name) => /^Gas work/.test(name)));
+  assert.ok(!done.sources.legislation.some((act) => /Petroleum and Gas/.test(act)));
+});
+
+test('a shade structure is covered in fabric, not roof sheets', () => {
+  const done = draft('Install a playground shade structure at a kindergarten.', { fallRisk: 'yes', state: 'act' });
+  assert.ok(steps(done).includes('Erect the frame and fix the shade fabric'));
+  assert.ok(!has(done, /Roof sheets|fixed to an existing building/));
+});
+
+test('one window frame, and a ground floor shopfront with its glass doors', () => {
+  const frame = draft('Replace a timber window frame in a Canberra townhouse.', { residential: 'yes', state: 'tas' });
+  assert.ok(steps(frame).includes('Replace the window frame'));
+  assert.ok(!has(frame, /\bdoors\b|from the platform\./));
+  const shop = draft('Install a new shopfront with glass doors in a shopping strip.', { state: 'nsw' });
+  assert.ok(has(shop, /Glass doors are hung/) && !has(shop, /above the ground floor|through the window opening/));
+});
+
+test('jetty deck boards: boards, not bearers, and openings covered once', () => {
+  const water = { drowningControls: 'Where people work over or next to the water, no one works alone, a rescue pole and life ring are at the edge, and a person trained in CPR is on site.', lifeJacketDetails: 'Level 150 inflatable life jackets, checked before use and serviced yearly.' };
+  const done = draft('Replace a section of timber deck boards on a jetty.', { state: 'nt', facts: water });
+  assert.ok(steps(done).includes('Remove and replace the deck boards'));
+  assert.ok(!has(done, /Bearers/) && !has(done, /^Openings in the deck are barricaded/));
+});
+
+test('speed humps are not bollards, and a street has no walls', () => {
+  const done = draft('Install traffic calming speed humps on a council street.', { state: 'wa' });
+  assert.ok(!has(done, /bollards|walls and slabs/));
+});
+
+test('stripping vinyl lifts only vinyl, with its adhesives covered', () => {
+  const done = draft('Strip and replace vinyl flooring in a medical clinic.', { state: 'nt' });
+  assert.ok(!has(done, /carpet/i));
+  assert.ok(has(done, /Floor primers, adhesives and levelling compounds/));
+});
+
+test('a vehicle crossover is boxed out to the council detail, with no ladders or edge beams', () => {
+  const done = draft('Install a vehicle crossover at a new house.', { residential: 'yes', state: 'wa' });
+  assert.ok(steps(done).includes('Box out the crossover'));
+  assert.ok(!has(done, /concrete saws on ladders|edge beams|Nail gun/));
+});
+
+test('laying turf cites no excavation code, and the water line is said once', () => {
+  const done = draft('Lay turf at a new housing estate park.');
+  assert.ok(!has(done, /Excavation work Code of Practice/));
+  assert.equal(lines(done).filter((line) => /Cool drinking water, shade and rest breaks/.test(line)).length, 1);
+});
+
+test('a shower re-tile has no hoist, crane or panel lifters', () => {
+  assert.ok(!has(draft('Repair a leaking shower by removing and relaying the tiles.', { residential: 'yes', state: 'tas' }), /hoist or crane|panel lifters/));
+});
+
+test('a laboratory eyewash is connected, flushed and tested in a cleared lab', () => {
+  const done = draft('Install an emergency eyewash station in a laboratory.', { state: 'nt' });
+  assert.ok(steps(done).includes('Install, connect and test the eyewash station'));
+  assert.ok(has(done, /laboratory manager confirms which chemicals/) && has(done, /flushed and tested for flow/));
 });
