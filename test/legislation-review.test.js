@@ -274,3 +274,11 @@ test('sections each state has under the same heading are cited (NSW, WA)', () =>
   assert.equal(localSource(`${QLD}s 529A, s 529B`, 'nsw'), 'Work Health and Safety Regulation 2025 (NSW) s 529A, s 529B');
   assert.equal(localSource(`${QLD}s 36, s 41, s 44, s 302, s 315, s 453, s 473`, 'wa'), 'Work Health and Safety (General) Regulations 2022 (WA) r 36, r 41, r 44, r 302, r 315, r 453, r 473');
 });
+
+test('confined space records: 28 days and completion, or 2 years after a notifiable incident (s 77(3))', () => {
+  const task = 'Enter a 4 m deep sewer pump station wet well to replace a pump and valves.';
+  for (const state of ['qld', 'nsw', 'sa', 'wa', 'tas', 'act', 'nt']) {
+    const text = line(draft(state, task, { facts: { spaceAssessment: 'confined' } }), /^Close and sign off the entry permit/);
+    assert.match(text, /^Close and sign off the entry permit, confirming everyone has left\. Keep the risk assessment until at least 28 days after the work and the permit until the work is complete, or both for at least 2 years after a notifiable incident, available for inspection and to workers on request\. \(.*\b77\)$/, state);
+  }
+});

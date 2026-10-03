@@ -7197,7 +7197,7 @@ const ACTIVITIES = [
         hazards: ['A person or tool is left inside.'],
         controls: [
           'Account for everyone and all tools before closing the access.',
-          src('Close and sign off the entry permit, confirming everyone has left. Keep the risk assessment for 28 days after the work and the permit until the work is complete.', WHS('s 67, s 77')),
+          src('Close and sign off the entry permit, confirming everyone has left. Keep the risk assessment until at least 28 days after the work and the permit until the work is complete, or both for at least 2 years after a notifiable incident, available for inspection and to workers on request.', WHS('s 67, s 77')),
         ],
       },
     ],
