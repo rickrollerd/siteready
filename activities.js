@@ -8151,6 +8151,9 @@ function jobStepsFor(flags, factText, fallback) {
   moveAfter('Lay floor joists and the floor deck', 'Stand and brace wall frames');
   moveBefore('Install the shoring wall', 'Bulk excavate and load trucks');
   moveBefore('Protect neighbouring buildings and the street', 'Bulk excavate and load trucks');
+  // Spoil is stockpiled and carted once the digging that makes it is under way.
+  for (const dig of ['Dig footing holes', 'Dig a shallow trench and lay pipe or cable', 'Excavate', 'Excavate pile caps, lift pits and trenches', 'Excavate in front of the retention wall', 'Bulk excavate and load trucks', 'Run earthmoving plant']) moveAfter('Stockpile, cover and cart away spoil', dig);
+  moveBefore('Stockpile, cover and cart away spoil', 'Backfill and restore');
   moveAfter('Strip formwork and backprop', 'Pump and place concrete');
   moveAfter('Strip formwork and backprop', 'Finish concrete');
   moveBefore('Work at open lift shafts and landing doors', 'Install the lift rails, car and machine');
