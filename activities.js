@@ -6123,6 +6123,20 @@ const ACTIVITIES = [
     ppe: ['hivis', 'gloveGeneral'],
   },
   {
+    when: 'ladderUse',
+    steps: [{
+      step: 'Work from ladders',
+      hazards: ['A fall from the ladder.', 'The ladder slips, tips or breaks.', 'Contact with power lines or live electrical parts.'],
+      controls: [
+        'A platform ladder, EWP or scaffold is used where the work is more than short and light, or needs both hands.',
+        src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
+        src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
+        'Single and extension ladders are used for access or short, light work only, set on firm level ground at about 1 in 4, secured top and bottom, and extending 900 mm above the landing.',
+        'Near power lines or live electrical parts, ladders are non-conductive and kept outside the approach distances.',
+      ],
+    }],
+  },
+  {
     when: 'glassWind',
     steps: [{
       step: 'Handle glass in the wind',

@@ -947,9 +947,15 @@ function allRequiredFacts(fullTask, answer, state) {
   return facts;
 }
 
+// The site answers (live services, access and so on) as one piece of text, slang read.
+function siteConditions(site) {
+  return readSlang(Object.values(site || {}).map(supplied).filter(Boolean).join('\n'));
+}
+
 function combinedFacts(task, facts) {
   return [
     task,
+    facts.siteConditions,
     facts.craneChart,
     facts.erectionDesign,
     facts.centreOfGravity,
@@ -1368,11 +1374,12 @@ function questionsFor(input) {
     task,
     fall: fallCheck(task, answer, state),
     required: withHarness(requiredFactsFor(task, answer, state), input.facts),
+    // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
-    ppe: ppeList(task, input.facts || {}, state),
+    ppe: ppeList(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
     // The job steps found from the task's words, the ones in use, and the ones that cannot be taken off.
-    steps: stepPicks(task, input.facts || {}, state),
+    steps: stepPicks(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
   };
 }
 
@@ -1469,7 +1476,7 @@ function prepareDraft(input) {
   const typed = cleanLine(input.task || input.jobDescription);
   const task = readSlang(typed);
   // A space the user has assessed as not a confined space drops any confined space arrangement.
-  const facts = { ...(input.facts || {}) };
+  const facts = { ...(input.facts || {}), siteConditions: siteConditions(input.site) };
   if (choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'notConfined' && !/\bconfined space\b/i.test(task)) delete facts.confinedSpace;
   const site = siteFromPack(task, input.site || {});
   const pack = {
@@ -1749,6 +1756,13 @@ function kindsWithSteps(flags) {
 
 function suggestedFlags(task, facts, state) {
   const flags = limitToTrades(workFlags(task, facts, state.ownCrane), state.trades, KIND_IDS);
+  // What the site answers say about power lines and access brings their steps.
+  const site = String((facts && facts.siteConditions) || '');
+  if (site) {
+    if (mentioned(site, ENERGISED) || /\b(hv|high voltage|\d+ ?kv)\b[^.\n]{0,20}\blines?\b/i.test(site)) flags.power = true;
+    if (/\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(site)) flags.ewp = true;
+    if (/\bladders?\b/i.test(site)) flags.ladderUse = true;
+  }
   // No crane on this job: crane steps come only from a crane the task itself names.
   if (state.noCrane && !/\b(cranes?|hiabs?|frannas?|vehicle loading cranes?)\b/i.test(task)) {
     for (const id of ['craneInterface', 'crane', 'heavyLift', 'dualLift', 'craneAssembly']) flags[id] = false;
