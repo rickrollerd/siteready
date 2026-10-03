@@ -86,6 +86,33 @@ document.getElementById('profile-logo').addEventListener('change', async (event)
   preview.classList.toggle('hidden', !pendingLogo);
 });
 
+// The ABN looks up the business on the Australian Business Register and offers its names.
+let abnLooked = '';
+async function lookUpAbn() {
+  const digits = document.getElementById('profile-abn').value.replace(/\D/g, '');
+  const box = document.getElementById('abn-found');
+  if (digits.length !== 11 || digits === abnLooked) return;
+  abnLooked = digits;
+  try {
+    const data = await (await fetch(api(`/api/abn?abn=${digits}`))).json();
+    if (!data.enabled) { box.classList.add('hidden'); return; }
+    if (!data.found) { box.textContent = data.error || 'ABN not found.'; box.classList.remove('hidden'); return; }
+    const names = [...new Set([...(data.businessNames || []), data.entityName].filter(Boolean))];
+    const nameBox = document.getElementById('profile-company');
+    if (!nameBox.value.trim() && names.length) nameBox.value = names[0];
+    box.innerHTML = `<strong>${esc(data.entityName)}</strong>${data.active ? '' : ` <span class="warn">ABN ${esc(data.status || 'not active').toLowerCase()}</span>`}${data.state ? ` · ${esc(data.state)} ${esc(data.postcode)}` : ''}${names.length > 1 ? `<br>Use name: ${names.map((name) => `<button type="button" class="link" data-abn-name="${esc(name)}">${esc(name)}</button>`).join(' · ')}` : ''}`;
+    box.classList.remove('hidden');
+  } catch {
+    box.classList.add('hidden');
+  }
+}
+document.getElementById('profile-abn').addEventListener('change', lookUpAbn);
+document.getElementById('profile-abn').addEventListener('input', () => { if (document.getElementById('profile-abn').value.replace(/\D/g, '').length === 11) lookUpAbn(); });
+document.getElementById('abn-found').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-abn-name]');
+  if (button) document.getElementById('profile-company').value = button.dataset.abnName;
+});
+
 document.getElementById('profile-save').addEventListener('click', async () => {
   const next = {};
   Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { next[key] = document.getElementById(id).value.trim(); });

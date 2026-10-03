@@ -109,6 +109,16 @@ app.get('/api/address', async (req, res, next) => {
   }
 });
 
+app.use('/api/abn', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
+app.get('/api/abn', async (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    res.json(await require('./abn').lookupAbn(req.query.abn));
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get('/api/states', (_req, res) => {
   res.json({ states: listStates() });
 });
