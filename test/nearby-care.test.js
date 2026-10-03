@@ -26,7 +26,7 @@ test('nearest hospitals and medical centres are found from the job address, near
   assert.ok(nearby.every((call) => !/phone|rating|opening/i.test(call.fields)));
   // The same address again comes from the cache.
   await places.nearbyCare('100 Queen St, Brisbane City QLD 4000', { fetchImpl });
-  assert.equal(calls.length, 6);
+  assert.equal(calls.length, 7);
   delete process.env.GOOGLE_PLACES_API_KEY;
 });
 
@@ -91,7 +91,8 @@ test('Sydney CBD: Google type decides what is a hospital, and medical centres re
     return reply({ places: [place('Involution Healthcare Pty Ltd', at(-33.8620, 151.2120)), place('Enhanced Shockwave Solutions Pty Ltd', at(-33.8621, 151.2121)), place('Dr Helen Peric', at(-33.8622, 151.2122)), place('Macquarie Street Medical Centre', at(-33.8640, 151.2130))] });
   };
   const result = await places.nearbyCare('1 Macquarie Street, Sydney NSW 2000', { fetchImpl });
-  assert.deepEqual(result.hospitals.map((item) => item.name), ['Sydney Hospital and Sydney Eye Hospital', "St Vincent's Hospital Sydney"]);
+  // St Vincent's came back from the emergency department search, so it is listed first.
+  assert.deepEqual(result.hospitals.map((item) => item.name), ["St Vincent's Hospital Sydney", 'Sydney Hospital and Sydney Eye Hospital']);
   assert.deepEqual(result.clinics.map((item) => item.name), ['Macquarie Street Medical Centre']);
   assert.ok(result.hospitals.every((item) => !('type' in item)));
   delete process.env.GOOGLE_PLACES_API_KEY;
@@ -116,5 +117,53 @@ test('the raw view lists every place Google returned with whether the filter kep
   assert.equal(raw.errors.length, 1);
   const result = await places.nearbyCare('50 Darling Street, Dubbo NSW 2830', { fetchImpl });
   assert.deepEqual(result.hospitals.map((item) => item.name), ['Dubbo Base Hospital']);
+  delete process.env.GOOGLE_PLACES_API_KEY;
+});
+
+// Testing agent F-002, third pass: private and specialist hospitals came before the nearest
+// public emergency departments, and one practice filled all three medical centre places.
+test('public emergency departments first, private hospitals last, one entry per practice', async () => {
+  process.env.GOOGLE_PLACES_API_KEY = 'test-key';
+  const at = (latitude, longitude) => ({ latitude, longitude });
+  const place = (id, text, location, primaryType = 'hospital') => ({ id, displayName: { text }, formattedAddress: 'Brisbane QLD, Australia', location, primaryType });
+  const reply = (body) => ({ ok: true, json: async () => body });
+  const fetchImpl = async (url, options) => {
+    const body = JSON.parse(options.body);
+    if (url.endsWith(':searchText') && body.pageSize === 1) return reply({ places: [{ location: at(-27.4690, 153.0260) }] });
+    if (url.endsWith(':searchText') && /emergency/.test(body.textQuery)) return reply({ places: [place('mater', 'Mater Hospital Brisbane', at(-27.4850, 153.0280)), place('pa', 'Princess Alexandra Hospital', at(-27.4990, 153.0330))] });
+    if (url.endsWith(':searchText') && /medical/.test(body.textQuery)) return reply({ places: [] });
+    if (url.endsWith(':searchText')) return reply({ places: [place('wesley', 'St Andrew\'s War Memorial Private Hospital', at(-27.4630, 153.0230)), place('ee', 'Royal Victorian Eye and Ear Hospital', at(-27.4700, 153.0270))] });
+    if (body.includedPrimaryTypes.includes('hospital')) return reply({ places: [place('mater', 'Mater Hospital Brisbane', at(-27.4850, 153.0280)), place('hand', 'Sydney Hospital Hand Unit', at(-27.4695, 153.0265))] });
+    return reply({ places: [
+      place('f1', 'Ferrers Medical Clinic', at(-27.4691, 153.0261), 'medical_clinic'),
+      place('f2', 'Ferrers Medical Clinic - Skin', at(-27.4692, 153.0262), 'medical_clinic'),
+      place('t1', 'Travellers Medical Services', at(-27.4693, 153.0263), 'medical_clinic'),
+      place('g1', 'Queen Street Family Practice', at(-27.4699, 153.0269), 'medical_clinic'),
+    ] });
+  };
+  const result = await places.nearbyCare('100 Queen Street, Brisbane City QLD 4000', { fetchImpl });
+  assert.deepEqual(result.hospitals.map((item) => item.name), ['Mater Hospital Brisbane', 'Princess Alexandra Hospital', "St Andrew's War Memorial Private Hospital"]);
+  assert.deepEqual(result.clinics.map((item) => item.name), ['Ferrers Medical Clinic', 'Queen Street Family Practice']);
+  delete process.env.GOOGLE_PLACES_API_KEY;
+});
+
+// Testing agent raw data, 100 Queen St Brisbane: the Royal Brisbane and Women's emergency
+// department is listed by Google as a "service", and a suites building is typed "hospital".
+test('an emergency department listing is kept whatever its type, comes first, and is not doubled up', async () => {
+  process.env.GOOGLE_PLACES_API_KEY = 'test-key';
+  const at = (latitude, longitude) => ({ latitude, longitude });
+  const place = (id, text, location, primaryType) => ({ id, displayName: { text }, formattedAddress: 'Brisbane QLD, Australia', location, primaryType });
+  const reply = (body) => ({ ok: true, json: async () => body });
+  const fetchImpl = async (url, options) => {
+    const body = JSON.parse(options.body);
+    if (url.endsWith(':searchText') && body.pageSize === 1) return reply({ places: [{ location: at(-27.4690, 153.0260) }] });
+    if (url.endsWith(':searchText') && /emergency/.test(body.textQuery)) return reply({ places: [place('rbwh-ed', "Royal Brisbane and Women's Hospital Emergency Room", at(-27.4480, 153.0280), 'service')] });
+    if (url.endsWith(':searchText')) return reply({ places: [] });
+    if (body.includedPrimaryTypes.includes('hospital')) return reply({ places: [place('ang', 'Hospital Angeles', at(-27.4650, 153.0240), 'hospital'), place('rbwh', "Royal Brisbane and Women's Hospital", at(-27.4485, 153.0285), 'hospital'), place('blk', 'Metro North Health Block 7, RBWH', at(-27.4490, 153.0290), 'hospital')] });
+    return reply({ places: [] });
+  };
+  const result = await places.nearbyCare('120 Queen Street, Brisbane City QLD 4000', { fetchImpl });
+  assert.equal(result.hospitals[0].name, "Royal Brisbane and Women's Hospital Emergency Room");
+  assert.ok(!result.hospitals.some((item) => item.name === "Royal Brisbane and Women's Hospital"), 'the hospital is not listed twice');
   delete process.env.GOOGLE_PLACES_API_KEY;
 });
