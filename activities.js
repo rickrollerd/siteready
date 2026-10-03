@@ -568,6 +568,7 @@ const ACTIVITIES = [
     replaces: ['propping'],
     steps: [
       {
+        unless: 'formStripOnly',
         step: 'Erect falsework and shores',
         hazards: [
           'Falsework collapse.',
@@ -588,6 +589,7 @@ const ACTIVITIES = [
         ],
       },
       {
+        unless: 'formStripOnly',
         step: 'Install edge protection and lay the deck',
         hazards: ['A person falls from an open edge of the deck or through gaps in it.', 'Materials fall from the edge.', 'Cuts, dust and noise from power saws.', 'Manual handling: carrying and placing ply sheets, often in wind.'],
         controls: [
@@ -616,6 +618,7 @@ const ACTIVITIES = [
         ],
       },
       {
+        unless: 'formStripOnly',
         step: 'Load ply onto the deck while it is being laid',
         hazards: [
           'Overloading the deck or the joists with ply packs.',
@@ -633,16 +636,19 @@ const ACTIVITIES = [
         ],
       },
       {
+        unless: 'formStripOnly',
         step: 'Form penetrations and voids',
         hazards: ['A person falls through a penetration or void.'],
         controls: ['Cover penetrations straight away with fixed covers that can take the load and are marked, or fence them off.'],
       },
       {
+        unless: 'formStripOnly',
         step: 'Inspect before the pour',
         hazards: ['Formwork fails during the pour.'],
         controls: ['A competent person checks the formwork and falsework are built to the design, and signs it off, before the pour.'],
       },
       {
+        unless: 'formStripOnly',
         step: 'During the pour',
         hazards: ['Formwork or falsework fails under the wet concrete.', 'A person under the loaded deck is struck if it fails.'],
         controls: [
@@ -655,6 +661,7 @@ const ACTIVITIES = [
         step: 'Strip formwork and backprop',
         hazards: ['The slab or falsework collapses.', 'Falling formwork strikes a person.', 'Manual handling: lowering ply and beams from overhead.'],
         controls: [
+          { only: 'tableForms', text: 'Table forms are flown out by the crane only from a landing point set up to the supplier\'s procedure, rigged by licensed riggers, with no one under the load and edge protection put back straight after.' },
           'Strip only when the engineer confirms the concrete strength, in the order in the formwork design. For a post-tensioned slab, strip only after stressing is complete and the post-tensioning engineer releases the slab.',
           'Install backprops progressively as each bay is stripped, to the design, and leave them until the design allows removal.',
           'Exclusion zone below and around the area being stripped.',
@@ -730,7 +737,7 @@ const ACTIVITIES = [
     when: 'reo',
     steps: [
       {
-        unless: 'groundSlab',
+        unless: 'reoNoDeck',
         step: 'Lift reo onto the deck',
         hazards: ['Dropped bundles.', 'Overloading the formwork with stacked bundles, causing collapse.'],
         controls: [
@@ -1830,6 +1837,7 @@ const ACTIVITIES = [
   {
     when: 'carpFraming',
     steps: [{
+      unless: 'timberFramingOnly',
       step: 'Cut and fix steel studs and track',
       hazards: ['Hot swarf, sparks and sharp burrs from cutting metal.', 'Cuts from stud edges.'],
       controls: [
