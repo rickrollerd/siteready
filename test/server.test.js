@@ -146,3 +146,16 @@ test('project zip files are named by the task titles from the scope', async () =
   const zip = await require('jszip').loadAsync(Buffer.from(await response.arrayBuffer()));
   assert.deepEqual(Object.keys(zip.files), ['01 Fencing.docx']);
 });
+
+test('the welcome page figures match what the app offers (Australian Consumer Law: claims must be provable)', () => {
+  const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'welcome.html'), 'utf8');
+  const { TRADES } = require('../presets');
+  const trades = TRADES.length;
+  const tasks = TRADES.reduce((n, trade) => n + (trade.tasks || []).length, 0);
+  const claimed = html.match(/(\d+) trades and over (\d+) common tasks/);
+  assert.ok(claimed, 'the figures are on the page');
+  assert.equal(Number(claimed[1]), trades, 'trades');
+  assert.ok(tasks > Number(claimed[2]), `over ${claimed[2]} tasks (now ${tasks})`);
+  const { STATES } = require('../legislation');
+  assert.equal(STATES.filter((state) => state.loaded).length, 8, 'every state and territory');
+});
