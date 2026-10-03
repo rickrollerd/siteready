@@ -2,6 +2,7 @@
 // recent errors. Only emails listed in ADMIN_EMAILS can see them.
 const express = require('express');
 const db = require('./db');
+const { releasableFigures } = require('./industry');
 const auth = require('./auth');
 
 const router = express.Router();
@@ -60,12 +61,19 @@ router.get('/admin/stats', auth.requireUser, route(async (req, res) => {
 router.get('/admin/industry', auth.requireUser, route(async (req, res) => {
   if (!isAdmin(req.user)) throw auth.fail(403, 'Not available.');
   const total = await db.one('SELECT COUNT(*) AS n FROM industry_records');
-  const recent = await db.query('SELECT month, state, postcode_area, trade, project_type, steps, kinds, high_risk, plant, licences FROM industry_records ORDER BY month DESC LIMIT 50');
+  const recent = await db.query('SELECT month, state, postcode, postcode_area, trade, project_type, steps, kinds, high_risk, plant, licences FROM industry_records ORDER BY month DESC LIMIT 50');
   const parse = (value) => { try { return JSON.parse(value); } catch { return []; } };
   res.json({
     total: Number(total.n),
-    records: recent.map((row) => ({ month: row.month, state: row.state, postcodeArea: row.postcode_area, trade: row.trade, projectType: row.project_type, steps: parse(row.steps), kinds: parse(row.kinds), highRisk: parse(row.high_risk), plant: parse(row.plant), licences: parse(row.licences) })),
+    records: recent.map((row) => ({ month: row.month, state: row.state, postcode: row.postcode, postcodeArea: row.postcode_area, trade: row.trade, projectType: row.project_type, steps: parse(row.steps), kinds: parse(row.kinds), highRisk: parse(row.high_risk), plant: parse(row.plant), licences: parse(row.licences) })),
   });
+}));
+
+// Figures safe to release: every place shown counts at least 10 businesses.
+router.get('/admin/industry/figures', auth.requireUser, route(async (req, res) => {
+  if (!isAdmin(req.user)) throw auth.fail(403, 'Not available.');
+  const { month, trade, projectType } = req.query || {};
+  res.json(await releasableFigures({ month, trade, projectType }));
 }));
 
 // A business that emails to opt out is left out from that day (terms section 8). Found by ABN.
