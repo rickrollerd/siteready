@@ -539,12 +539,27 @@ function choiceAnswer(id, value) {
     if (/\b(a2l?|mildly flammable|r32|r454b|r1234\w*)\b/.test(text)) return 'a2l';
     if (/\b(a1|non-?flammable|r410a|r134a|r407c|co2|r744)\b/.test(text)) return 'a1';
   }
+  if (id === 'scaffoldType') return scaffoldTypeAnswer(text);
   if (id === 'energisedWork') {
     if (/\b(testing|commissioning|energised parts|within 3 ?m)\b/.test(text)) return 'testing';
     if (/\b(none|no|de-energised)\b/.test(text)) return 'none';
   }
   return '';
 }
+
+// The kind of scaffold, from the choice or from words in the task. It sets the licence class.
+function scaffoldTypeAnswer(text) {
+  const value = String(text || '').toLowerCase();
+  if (['modular', 'tubecoupler', 'hung', 'mobile'].includes(value.replace(/[^a-z]/g, ''))) return value.replace(/[^a-z]/g, '') === 'tubecoupler' ? 'tubeCoupler' : value.replace(/[^a-z]/g, '');
+  // Schedule 3: hung and suspended scaffolds are advanced; cantilevered, spur and tube and coupler intermediate.
+  if (/\b(hung|suspended) scaffold\w*|\bhung\b/.test(value)) return 'hung';
+  if (/\btube[- ]and[- ](?:coupler|fittings?)\b|\bcantilever\w* scaffold\w*|\bspur scaffold\w*/.test(value)) return 'tubeCoupler';
+  if (/\b(mobile|aluminium tower|alloy tower|tower scaffold)\b/.test(value)) return 'mobile';
+  if (/\b(modular|system scaffold\w*|kwik-?stage|ringlock|cuplock|layher|frame scaffold\w*)\b/.test(value)) return 'modular';
+  return '';
+}
+// The crew erects, alters or dismantles a scaffold (not one only used by them).
+const SCAFFOLD_ERECTED = /\b(erect\w*|dismantl\w*|alter\w*|build(?!ing\b)\w*|install\w*|put up|strip\w*)\b(?:(?!\b(?:from|off|using|with|on)\b)[^.]){0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i;
 
 function deckLaying(text) {
   const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
@@ -705,6 +720,20 @@ const CATEGORY_FACTS = [
     ],
     level: 'Isolate or engineer',
     applies: (text) => deckLaying(text),
+  },
+  {
+    // The kind of scaffold sets the licence class: basic, intermediate or advanced.
+    id: 'scaffoldType',
+    label: 'Scaffold type',
+    prompt: 'Which scaffold the crew erects, alters or dismantles. It sets the scaffolding licence class.',
+    choices: [
+      { value: 'modular', label: 'Modular (system) scaffold, such as Kwikstage, Ringlock or Cuplock' },
+      { value: 'tubeCoupler', label: 'Tube and coupler, cantilevered or spur scaffold' },
+      { value: 'hung', label: 'Hung or suspended scaffold' },
+      { value: 'mobile', label: 'Mobile scaffold tower' },
+    ],
+    level: 'Administrative',
+    applies: (text) => SCAFFOLD_ERECTED.test(String(text || '').replace(/\bmobile scaffold\w*/gi, 'scaffold')) && !scaffoldTypeAnswer(text),
   },
   {
     id: 'silicaControls',
@@ -3205,7 +3234,7 @@ function asSentence(text) {
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
-    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass'].includes(id)) return choiceAnswer(id, facts[id]);
+    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass', 'scaffoldType'].includes(id)) return choiceAnswer(id, facts[id]);
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));
@@ -3222,7 +3251,22 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
     controls: controls.map((item) => item.text),
   });
   const answers = Object.values(facts || {}).filter((value) => typeof value === 'string').join('\n');
-  return tidySteps(steps, combinedFacts(task, facts), answers);
+  return scaffoldLicenceLine(tidySteps(steps, combinedFacts(task, facts), answers), scaffoldTypeAnswer(task) || choiceAnswer('scaffoldType', facts.scaffoldType));
+}
+
+// The licence line names the class for the scaffold used, once its type is known.
+const SCAFFOLD_CLASS = {
+  modular: 'This scaffold is modular: a basic scaffolding licence (SB) or higher.',
+  tubeCoupler: 'This scaffold is tube and coupler, cantilevered or spur: an intermediate scaffolding licence (SI) or advanced (SA).',
+  hung: 'This scaffold is hung or suspended: an advanced scaffolding licence (SA).',
+  mobile: 'This scaffold is a mobile tower: a basic scaffolding licence (SB) or higher where a person or object could fall more than 4 m from it.',
+};
+function scaffoldLicenceLine(steps, type) {
+  if (!SCAFFOLD_CLASS[type]) return steps;
+  return steps.map((step) => ({
+    ...step,
+    controls: step.controls.map((line) => line.replace(/^Licence class: basic for modular scaffolds, intermediate for tube and coupler[^.]*\. Sight each licence before work\./, `${SCAFFOLD_CLASS[type]} Sight each licence before work.`)),
+  }));
 }
 
 // Harness, restraint and fall arrest lines that only apply when one is used.

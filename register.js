@@ -215,7 +215,12 @@ function riskFor(step) {
 function othersLicence(item, allText, task) {
   if (item.item === 'Mobile crane or crane truck') item = craneClass(item, task);
   // Tube and coupler scaffolds need intermediate scaffolding, hung and suspended scaffolds advanced.
-  if (item.item === 'Scaffold' && /\b(hung|suspended) scaffold/i.test(task)) item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SA') };
+  // The scaffold type answered sets the class too (the line SiteReady writes for it).
+  const typed = (allText.match(/\bThis scaffold is (modular|tube and coupler|hung|a mobile tower)\b/) || [])[1];
+  if (item.item === 'Scaffold' && typed === 'hung') item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SA') };
+  else if (item.item === 'Scaffold' && typed === 'tube and coupler') item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SI or SA') };
+  else if (item.item === 'Scaffold' && typed) item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SB or higher') };
+  else if (item.item === 'Scaffold' && /\b(hung|suspended) scaffold/i.test(task)) item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SA') };
   else if (item.item === 'Scaffold' && /\btube[- ]and[- ]coupler\b|\bcantilever\w* (?:scaffold|crane loading platform)|\bspur scaffold/i.test(task)) item = { ...item, licence: item.licence.replace('SB, SI or SA', 'SI or SA') };
   if (/crane/i.test(item.item) && /\bcrane company\b/i.test(allText)) return { ...item, licence: `Held by the crane company's operator and crew: ${item.licence.replace(/^Yes,?\s*/, '')}` };
   if (item.item === 'Scaffold' && !/\b(erect\w*|dismantl\w*|alter\w*|build(?!ing\b)\w*|install\w*|put up)\b(?:(?!\b(?:from|off|using|with|on)\b)[^.]){0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task)) return { ...item, licence: `Erected and altered only by a licensed scaffolder (${item.licence.match(/\(([^()]*S[BIA][^()]*)\)/)[1]}) where a fall of more than 4 m is possible. Our crew uses it and does not alter it` };

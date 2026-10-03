@@ -88,6 +88,7 @@ function draftBody(body) {
       harnessSystem: field(facts.harnessSystem, 2000),
       spoilPlan: field(facts.spoilPlan, 2000),
       lifeJacketDetails: field(facts.lifeJacketDetails, 2000),
+      scaffoldType: field(facts.scaffoldType, 40),
     },
     site: {
       liveServices: field(site.liveServices, 1000),
