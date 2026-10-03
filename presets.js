@@ -64,6 +64,9 @@ const ANSWERS = {
     ['Mobile scaffolds', 'Work above 2 m is done from mobile scaffolds with guardrails, erected to the supplier\'s instructions by a competent person, with castors locked while in use.'],
     ['Roof guardrail and mesh', 'Roof edge guardrail is installed to every open edge, and safety mesh is fixed under the sheets, before sheeting starts. No one works outside the guardrail.'],
     ['Boom lifts', 'Connections are made from boom lifts with guardrails, with harnesses attached to the boom lift anchor points. No one climbs the steel.'],
+    ['EWP or mobile scaffold', 'Work above 2 m is done from an EWP or a mobile scaffold with guardrails, and platform ladders are used only for short work below 2 m.'],
+    ['Roof edge guardrail', 'Roof edge guardrail is installed to every open edge before work starts, and no one works outside it.'],
+    ['Stair void platforms', 'Work over the stair void is done from stair platforms or a scaffold with guardrails, built to fit the stairs, and no one works from a ladder on the stairs or leans over the balustrade.'],
   ],
   controlsConsidered: [
     ['Edge protection not possible', 'Edge protection was considered but cannot be fixed at ____ because ____. An elevating work platform was considered but ____.'],
@@ -154,9 +157,32 @@ const ANSWERS = {
   ],
 };
 
-// Standard answers for a required fact, as { label, text }.
-function answersFor(id) {
-  return (ANSWERS[id] || []).map(([label, text]) => ({ label, text }));
+// The fall control that fits the work comes first, so the first standard answer is not
+// edge protection for a job with no open edge (a roller door, ceiling cabling, a stairwell).
+const FALL_FIRST = [
+  ['Stair void platforms', /\b(stairwells?|stair voids?)\b/i],
+  ['Risers screened', /\b(risers?|lift shafts?|service shafts?|landing doors?)\b/i],
+  ['Travel restraint', /\bbalustrad\w*\b/i],
+  ['Roof guardrail and mesh', /\b(re-?sheet\w*|re-?roof\w*|roof sheet\w*|sheet\w* (?:the |a )?(?:\w+ )?roofs?|new (?:metal |colorbond |iron )?roof(?:ing)?|(?:install|fix|lay)\w* (?:a |the )?(?:new )?(?:metal |colorbond |iron )?roof(?:ing)?\b(?! (?:ventilators?|vents?|fans?|plant|units?|hatch\w*|access)))/i],
+  ['Roof edge guardrail', /\b(roofs?|roof ?tops?|gutters?|fascias?|skylights?|chimneys?|flues?|valleys?|flashings?)\b/i],
+  // Work with a real open edge: a slab, deck, balcony, bridge, stand or excavation.
+  ['Edge protection', /\b(edges?|edge protection|decks?|decking|balcon(?:y|ies)|bridges?|overpass\w*|wharf|wharves|jett(?:y|ies)|pontoons?|mezzanine\w*|stairs?|staircases?|landings?|basements?|excavat\w*|batters?|grandstands?|stands?|tiers?|rakers?|multi[- ]?storey|slabs?|floors?|level \d+|\d+ storey|podiums?|terraces?|platforms?|voids?|penetrations?|formwork|falsework|piles?|gantr(?:y|ies)|hoardings?|canop(?:y|ies)|silos?|spires?|towers?|cliffs?|shafts?|escalators?|seating)\b/i],
+  ['Scaffold', /(?<!mobile )\bscaffold\w*\b|\b(brick\w*|blockwork|block walls?|render\w*)\b/i],
+  ['Scissor lifts', /\bscissor lifts?\b/i],
+  ['Boom lifts', /\b(steel (?:columns?|beams?|frames?|erect\w*)|structural steel|portal frames?)\b/i],
+  // Work reached from below, with no open edge: doors, ceilings, cabling, lights, signs and walls.
+  ['EWP or mobile scaffold', /\b(doors?|ceilings?|cabl\w*|data|wi-?fi|access points?|lights?|lighting|ducts?|ductwork|dampers?|signs?|signage|pylons?|cameras?|cctv|sprinklers?|alarms?|detectors?|screens?|windows?|pergolas?|walls?|paint\w*|exterior|cladding|awnings?|netting|spikes|frames?|beams?|pipework|pipes?|trays?|conduits?|fans?|heaters?|shelving|racking|curtains?|blinds?|poles?|street ?lights?)\b/i],
+];
+
+// Standard answers for a required fact, as { label, text }. With the task, the fall
+// control answers are put in the order that suits it.
+function answersFor(id, task) {
+  const list = (ANSWERS[id] || []).map(([label, text]) => ({ label, text }));
+  if (id !== 'fallControl' || !task) return list;
+  const first = FALL_FIRST.find(([, pattern]) => pattern.test(task));
+  if (!first) return list;
+  const pick = list.find((answer) => answer.label === first[0]);
+  return [pick, ...list.filter((answer) => answer !== pick)];
 }
 
 module.exports = { TRADES, answersFor };

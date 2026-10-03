@@ -148,7 +148,7 @@ app.post('/api/draft/questions', (req, res) => {
   // Gas pipework is tested with air or nitrogen; water and refrigeration tests come first otherwise.
   const gasOnly = /\bgas\b/i.test(result.task || '') && !/\b(water|hydraulic|plumbing|refrigera\w*|air ?con\w*|split systems?)\b/i.test(result.task || '');
   const ordered = (id) => {
-    const list = answersFor(id);
+    const list = answersFor(id, result.task);
     if (id !== 'pressureTesting') return list;
     return gasOnly ? list : [...list.filter((answer) => answer.label !== 'Gas line test'), ...list.filter((answer) => answer.label === 'Gas line test')];
   };
