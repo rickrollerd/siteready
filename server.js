@@ -272,6 +272,7 @@ app.get('/api/health', async (_req, res) => {
 app.use('/api', accounts.router);
 app.use('/api', billing.router);
 app.use('/api', admin.router);
+require('./testhooks').install(app, accounts);
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ kind: 'error', message: 'Not found.' });
