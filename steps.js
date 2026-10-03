@@ -34,6 +34,9 @@ const SYNONYMS = {
   muck: ['spoil', 'muck'], tip: ['tip', 'spoil'], hiab: ['hiab', 'loading crane'], ewp: ['ewp', 'elevating work platform', 'boom lift', 'scissor'],
   scaff: ['scaffold'], reo: ['reo', 'reinforc'], pour: ['pour', 'concrete'], demo: ['demoli'], sparky: ['electric'], chippy: ['carpent', 'timber'],
   dig: ['dig', 'excavat', 'trench'], hole: ['hole', 'excavat', 'trench'], lift: ['lift', 'crane'], height: ['height', 'fall', 'edge'],
+  earthwork: ['earthmov', 'earthwork', 'excavat', 'trench', 'cut and fill', 'compaction', 'grader', 'dozer', 'spoil', 'batters'],
+  earthworks: ['earthmov', 'earthwork', 'excavat', 'trench', 'cut and fill', 'compaction', 'grader', 'dozer', 'spoil', 'batters'],
+  bulk: ['bulk excavat', 'bulk earthwork', 'earthmov', 'excavat'], civil: ['civil', 'road', 'pavement', 'kerb', 'drain', 'earthmov', 'excavat'], roadworks: ['road', 'pavement', 'traffic', 'asphalt', 'kerb'],
   asbestos: ['asbestos', 'fibro'], silica: ['silica', 'dust'], dust: ['dust', 'silica'], noise: ['noise', 'hearing'], confined: ['confined'],
 };
 
@@ -62,9 +65,11 @@ function searchSteps(query) {
     for (const kind of group.kinds) {
       if (results.some((item) => item.id === kind.id)) continue;
       const name = `${kind.label} ${kind.steps.join(' ')}`.toLowerCase();
-      const body = SEARCH_TEXT.get(kind.id) || name;
-      if (!terms.every((options) => options.some((term) => body.includes(term) || name.includes(term)))) continue;
-      const score = terms.filter((options) => options.some((term) => name.includes(term))).length;
+      const body = (SEARCH_TEXT.get(kind.id) || name).replace(/[^a-z0-9]+/g, ' ');
+      // A term matches from the start of a word, so "dozer" does not find "bulldozer" text by accident and "lift" not "forklift".
+      const has = (text, term) => text.includes(` ${term}`) || text.startsWith(term);
+      if (!terms.every((options) => options.some((term) => has(body, term) || has(name, term)))) continue;
+      const score = terms.filter((options) => options.some((term) => has(name, term))).length;
       results.push({ id: kind.id, score });
     }
   }

@@ -418,3 +418,11 @@ test('every question the draft asks is kept when the answer comes from the brows
   const kept = draftBody({ facts }).facts;
   assert.deepEqual(ids.filter((id) => kept[id] !== 'answer'), []);
 });
+
+test('step search finds earthworks steps by the words used on site, and only whole words', () => {
+  const { searchSteps } = require('../steps');
+  const found = searchSteps('earthworks');
+  assert.ok(found.length >= 10);
+  for (const id of ['spoilManage']) assert.ok(found.includes(id), id);
+  assert.ok(!searchSteps('earthworks').some((id) => /batter|door|paint/i.test(id)));
+});
