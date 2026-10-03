@@ -35,6 +35,11 @@
     .field { margin: 0 0 14px; }
     label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
     .hint { display: block; font-weight: 400; color: #5c6773; margin-top: 2px; }
+    .address-box { position: relative; }
+    .address-list { position: absolute; z-index: 20; left: 0; right: 0; margin: 2px 0 0; padding: 0; list-style: none; background: #fff; border: 1px solid #c8ced6; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); max-height: 260px; overflow-y: auto; }
+    .address-list li { padding: 10px 12px; cursor: pointer; }
+    .address-list li[aria-selected="true"], .address-list li:hover { background: #fff4d1; }
+    .state-warning { color: #9a3b00; }
     input[type="text"], textarea {
       width: 100%;
       border: 1px solid #c5cdd6;
@@ -318,6 +323,16 @@
     <form id="start" class="panel">
       <h2>State and task</h2>
       <div class="field">
+        <label for="workplace">Job address
+          <span class="hint">Where the work is done. The state, and its law, are set from this address.</span>
+        </label>
+        <div class="address-box">
+          <input id="workplace" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="workplace-list">
+          <ul id="workplace-list" class="address-list hidden" role="listbox"></ul>
+        </div>
+        <p class="hint" id="workplace-state" aria-live="polite"></p>
+      </div>
+      <div class="field">
         <label>State</label>
         <ul class="states" id="states"></ul>
       </div>
@@ -336,10 +351,6 @@
       <div class="field">
         <label for="company">Subcontractor</label>
         <input id="company" type="text" autocomplete="organization">
-      </div>
-      <div class="field">
-        <label for="workplace">Workplace</label>
-        <input id="workplace" type="text" autocomplete="off">
       </div>
       <div class="field">
         <label for="site-manager">Site manager</label>
@@ -462,6 +473,7 @@
     <section id="result" class="hidden"></section>
     <p class="site-footer">SiteReady prepares draft SWMS. Your business reviews, approves and is responsible for every SWMS it uses. <a href="/terms.html">Terms of use</a> · <a href="/privacy.html">Privacy</a></p>
   </div>
+  <script src="/address.js"></script>
   <script src="/app.js"></script>
   <script src="/account.js"></script>
   <script src="/scope.js"></script>

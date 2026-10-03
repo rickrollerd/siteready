@@ -277,6 +277,123 @@ async function loadStates() {
 
 let stateList = [];
 
+// The state comes from the job address: the law that applies is the law where the work is done.
+const workplaceEl = document.getElementById('workplace');
+const workplaceList = document.getElementById('workplace-list');
+const workplaceState = document.getElementById('workplace-state');
+let addressPicks = [];
+let addressActive = -1;
+let addressTimer = null;
+let addressSeq = 0;
+
+function stateName(id) {
+  const state = stateList.find((item) => item.id === id);
+  return state ? state.name : '';
+}
+
+// Ticks the state the address is in, and says so. A state picked by hand that differs is flagged.
+function applyAddressState() {
+  const found = window.SiteReadyAddress ? window.SiteReadyAddress.stateFromAddress(workplaceEl.value) : { state: '' };
+  workplaceState.classList.remove('state-warning');
+  if (!found.state) {
+    workplaceState.textContent = workplaceEl.value.trim() ? 'Include the state or postcode in the job address, so the right state law is used.' : '';
+    return;
+  }
+  const radio = document.querySelector(`input[name="state"][value="${found.state}"]`);
+  if (radio && !radio.disabled && !radio.checked) {
+    radio.checked = true;
+    radio.dispatchEvent(new Event('change'));
+  }
+  workplaceState.textContent = found.from === 'postcode'
+    ? `State set to ${stateName(found.state)} from the postcode. Check it is right.`
+    : `State set to ${stateName(found.state)} from the job address.`;
+}
+
+function checkStateMatchesAddress() {
+  const found = window.SiteReadyAddress ? window.SiteReadyAddress.stateFromAddress(workplaceEl.value) : { state: '' };
+  const chosen = document.querySelector('input[name="state"]:checked');
+  if (found.state && chosen && chosen.value !== found.state) {
+    workplaceState.textContent = `The job address is in ${stateName(found.state)}, but ${stateName(chosen.value)} is picked. The SWMS must use the law of the state where the work is done.`;
+    workplaceState.classList.add('state-warning');
+  } else if (found.state) {
+    applyAddressState();
+  }
+}
+
+function closeAddressList() {
+  workplaceList.classList.add('hidden');
+  workplaceList.innerHTML = '';
+  workplaceEl.setAttribute('aria-expanded', 'false');
+  addressPicks = [];
+  addressActive = -1;
+}
+
+function showAddressList() {
+  if (!addressPicks.length) return closeAddressList();
+  workplaceList.innerHTML = addressPicks.map((item, i) => `<li role="option" id="address-${i}" aria-selected="${i === addressActive}" data-i="${i}">${esc(item.text)}</li>`).join('');
+  workplaceList.classList.remove('hidden');
+  workplaceEl.setAttribute('aria-expanded', 'true');
+}
+
+function chooseAddress(i) {
+  const item = addressPicks[i];
+  if (!item) return;
+  workplaceEl.value = item.text;
+  closeAddressList();
+  applyAddressState();
+}
+
+async function lookUpAddress(text) {
+  const seq = ++addressSeq;
+  try {
+    const response = await fetch(api(`/api/address?q=${encodeURIComponent(text)}`));
+    if (!response.ok) return;
+    const data = await response.json();
+    // Only the latest lookup is shown.
+    if (seq !== addressSeq || workplaceEl.value !== text) return;
+    addressPicks = data.suggestions || [];
+    addressActive = -1;
+    showAddressList();
+  } catch {
+    // Without suggestions the address is typed in full.
+  }
+}
+
+workplaceEl.addEventListener('input', () => {
+  clearTimeout(addressTimer);
+  applyAddressState();
+  const text = workplaceEl.value.trim();
+  if (text.length < 3) return closeAddressList();
+  addressTimer = setTimeout(() => lookUpAddress(workplaceEl.value), 300);
+});
+
+workplaceEl.addEventListener('keydown', (event) => {
+  if (workplaceList.classList.contains('hidden')) return;
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault();
+    const step = event.key === 'ArrowDown' ? 1 : -1;
+    addressActive = (addressActive + step + addressPicks.length) % addressPicks.length;
+    showAddressList();
+    workplaceEl.setAttribute('aria-activedescendant', `address-${addressActive}`);
+  } else if (event.key === 'Enter' && addressActive >= 0) {
+    event.preventDefault();
+    chooseAddress(addressActive);
+  } else if (event.key === 'Escape') {
+    closeAddressList();
+  }
+});
+
+// mousedown, not click, so the choice lands before the field loses focus.
+workplaceList.addEventListener('mousedown', (event) => {
+  const li = event.target.closest('li[data-i]');
+  if (!li) return;
+  event.preventDefault();
+  chooseAddress(Number(li.dataset.i));
+});
+
+workplaceEl.addEventListener('blur', () => setTimeout(closeAddressList, 150));
+statesEl.addEventListener('change', checkStateMatchesAddress);
+
 // A No shows what a fall from height is, in the chosen state's law, in case the question was not clear.
 function showFallExplanation() {
   const chosen = document.querySelector('input[name="state"]:checked');
@@ -296,6 +413,8 @@ function showFallExplanation() {
 
 document.getElementById('start').addEventListener('submit', (event) => {
   event.preventDefault();
+  // The state always follows the job address.
+  applyAddressState();
   // A new task starts from the steps found in it, or the steps the scope reader found for it.
   const scope = window.siteReadyScopeTask;
   stepPicks = scope && scope.task === document.getElementById('task').value.trim() && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
@@ -460,6 +579,7 @@ function fillFields(values) {
     if (DATE_FIELDS.has(id)) el.value = isoDate(values[key]) || (id === 'draft-date' ? isoToday() : '');
     else el.value = values[key] || '';
   });
+  applyAddressState();
 }
 
 async function fillForm(input) {
