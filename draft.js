@@ -2391,7 +2391,7 @@ function settleFlags(flags, task) {
   if (out.helipad && !T(/\bhoists?\b/i)) out.craneInterface = true;
   if (T(/\b(sprung (?:timber )?(?:sports )?floor\w*|timber sports floor\w*)\b/i)) { out.timberFloor = true; out.floorLay = false; }
   if (T(/\b(warm-?up tracks?|athletics tracks?|running tracks?)\b/i) && T(/\b(install\w*|construct\w*|lay\w*|build\w*|new)\b/i)) out.sportsSurface = true;
-  if (T(/\b(demolish\w*|demolition)\b/i) && T(/\b(grandstands?|stands?|stadiums?|buildings?|blocks?|car ?parks?)\b/i) && !T(/\b(sheds?|garages?|carports?|cubby)\b/i)) { out.structureDemolition = true; out.demolition = false; }
+  if (T(/\bdemolish\w*\s+(?:an? |the )?(?:[\w-]+ ){0,4}(?:grandstands?|stands?|stadiums?|buildings?|blocks?|car ?parks?)\b/i) && !T(/\b(sheds?|garages?|carports?|cubby|associated)\b/i)) { out.structureDemolition = true; out.demolition = false; }
   out.speakerHang = T(/\b(speakers?|loudspeakers?|line arrays?|pa systems?)\b/i) && T(/\b(roofs?|ceilings?|trusses?|catwalks?)\b/i) && T(/\b(install\w*|hang\w*|fix\w*)\b/i);
   out.screensOnly = T(/\b(big screens?|video screens?|led screens?|scoreboards?)\b/i) && !T(/\blight\w*/i);
   out.lightTowers = T(/\b(light(?:ing)? towers?|floodlight towers?|light masts?)\b/i);
