@@ -168,11 +168,14 @@
     .note { background: #f4f6f8; border: 1px solid #d5dbe3; }
     .warning { background: #fdf3e3; border: 1px solid #e3b76b; margin: 0 0 14px; }
     .hidden { display: none; }
+    .warn { color: #a11; font-weight: 600; }
+    #abn-found { margin-top: 6px; }
     details.panel > summary { cursor: pointer; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #3d4a59; }
     details.panel[open] > summary { margin-bottom: 14px; }
     .saved-name { text-transform: none; letter-spacing: 0; font-weight: 400; color: #5c6773; margin-left: 6px; }
     .logo-preview { max-width: 180px; max-height: 60px; display: block; margin-top: 8px; }
     .confirm .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin-bottom: 12px; }
+    .logo-preview.hidden { display: none; }
     .confirm .check input { margin-top: 4px; flex: none; }
     .site-footer { font-size: 13px; color: #5c6773; margin: 28px 0 12px; }
     .sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 10px; }
@@ -291,6 +294,7 @@
           <span class="hint">Your 11 digit ABN. Needed to save or download a SWMS. One free trial per ABN.</span>
         </label>
         <input id="profile-abn" type="text" inputmode="numeric" autocomplete="off" required>
+        <div id="abn-found" class="meta hidden" aria-live="polite"></div>
       </div>
       <div class="field">
         <label for="profile-address">Address</label>
