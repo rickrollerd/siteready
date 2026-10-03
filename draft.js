@@ -156,7 +156,7 @@ const MASONRY_OPENING = /\b(?:cut\w*|form\w*|mak\w*|creat\w*|new|widen\w*|enlarg
 const HOUSE_JACKING = /\b(re-?stump\w*|(?:replac|chang)\w* (?:the )?(?:old |rotten |timber )*stumps|jack\w* (?:up )?(?:the |a )?(?:\w+ )?houses?|rais\w* (?:the |a )?(?:\w+ )?houses?|lift\w* (?:the |a )?(?:\w+ )?houses?|underpin\w*)\b/i;
 const SUBFLOOR_REPAIR = /\b(?:replac\w*|repair\w*|sister\w*)\b[^.]{0,30}\b(?:rotten |damaged |old )?(?:timber )?(?:floor )?(?:joists?|bearers?)\b/i;
 const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
-const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|motorways?|freeways?|next to (?:live )?traffic|rural roads?|road pavements?|road upgrades?|on-?ramps?|roundabouts?|(?:resurfac\w*|reseal\w*) (?:a |the )?(?:roads?|streets?|lanes?)|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
+const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|motorways?|freeways?|next to (?:live )?traffic|rural roads?|road pavements?|road upgrades?|on-?ramps?|roundabouts?|overpass(?:es)?|bridges? over (?:a |the )?(?:busy |live )?(?:roads?|motorways?|highways?)|(?:resurfac\w*|reseal\w*) (?:a |the )?(?:roads?|streets?|lanes?)|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
 // Track work and work beside running lines are in or next to a railway in use.
 const RAIL_IN_USE = /\b(rail (?:lines?|tracks?)|live track|track possessions?|during (?:a|the) possession|road rail vehicles?|rail overhead wiring|overhead wiring with|track laying|track maintenance machines?|ballast)\b/i;
 const WATER = /\b(drown(?:ing)?|in or near water|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|diving (?:towers?|platforms?)|mov(?:e)?able pool floors?|(?:into|in) (?:a |the )?(?:swimming |competition |lap |\d+ ?m )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to|along) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|jetty|wharf|pontoon|boat ramp|sea ?wall|breakwaters?|(?:from|on) (?:a |the )?(?:jack-?up )?barges?|jack-?up barges?|dredg\w*)\b/i;
@@ -2381,10 +2381,17 @@ function settleFlags(flags, task) {
   if (T(/\bgantr(?:y|ies)\b/i) && T(/\b(motorways?|highways?|its|intelligent transport)\b/i)) out.craneInterface = true;
   out.eventPower = T(/\b(events?|overlay|festivals?|ceremon\w*|venues?)\b/i) && T(/\b(power|generators?)\b/i) && T(/\b(temporary|overlay|event)\b/i);
   if (out.eventPower) { out.tempPower = false; out.generatorPlant = false; }
-  if (out.precast && T(/\btilt-?up\b/i)) out.craneInterface = true;
   if (T(/\bsub-?surface drain\w*|\bsubsoil drain\w*/i) && T(/\bturf\b/i)) out.shallowTrench = true;
   if ((T(/\b(refurbish\w*|renovat\w*|strip\w*)\b/i) || (T(/\binstall\w*\b/i) && T(/\b(?:in|to) (?:the |existing )?(?:school )?(?:classrooms?|wards?)\b/i))) && T(/\b(schools?|hospitals?|wards?|classrooms?|public buildings?)\b/i) && !T(/\bnew (?:school|classroom|building|block|hospital|tower)\b/i)) out.asbestosCheck = true;
   out.turnstiles = T(/\b(turnstiles?|speed gates?|entry gates?|access gates?)\b/i);
+  out.podOnly = T(/\bbathroom pods?\b/i) && !T(/\bmodul\w*/i);
+  out.expansionJoints = T(/\bexpansion joints?\b/i) && T(/\b(bridges?|overpass\w*|decks?)\b/i);
+  out.roadBuild = T(/\b(on-?ramps?|off-?ramps?|interchanges?|road widening|roundabouts?|new roads?)\b/i) && T(/\b(construct\w*|build\w*|upgrad\w*|widen\w*|new)\b/i);
+  if (T(/\b(construct\w*|erect\w*|build\w*|stand\w*|lift\w*|install\w*)\b[^.]{0,40}\btilt-?up (?:panels?|walls?)\b|\bwith tilt-?up panels\b/i)) out.craneInterface = true;
+  if (out.helipad && !T(/\bhoists?\b/i)) out.craneInterface = true;
+  if (T(/\b(sprung (?:timber )?(?:sports )?floor\w*|timber sports floor\w*)\b/i)) { out.timberFloor = true; out.floorLay = false; }
+  if (T(/\b(warm-?up tracks?|athletics tracks?|running tracks?)\b/i) && T(/\b(install\w*|construct\w*|lay\w*|build\w*|new)\b/i)) out.sportsSurface = true;
+  if (T(/\b(demolish\w*|demolition)\b/i) && T(/\b(grandstands?|stands?|stadiums?|buildings?|blocks?|car ?parks?)\b/i) && !T(/\b(sheds?|garages?|carports?|cubby)\b/i)) { out.structureDemolition = true; out.demolition = false; }
   out.speakerHang = T(/\b(speakers?|loudspeakers?|line arrays?|pa systems?)\b/i) && T(/\b(roofs?|ceilings?|trusses?|catwalks?)\b/i) && T(/\b(install\w*|hang\w*|fix\w*)\b/i);
   out.screensOnly = T(/\b(big screens?|video screens?|led screens?|scoreboards?)\b/i) && !T(/\blight\w*/i);
   out.lightTowers = T(/\b(light(?:ing)? towers?|floodlight towers?|light masts?)\b/i);
@@ -2411,7 +2418,7 @@ function settleFlags(flags, task) {
   out.tremiePour = Boolean(out.concrete && T(/\b(tremie|diaphragm walls?|secant|contiguous piles?)\b/i));
   // Diaphragm wall panels are dug under support fluid: no one works in them.
   if (out.tremiePour && T(/\bdiaphragm walls?\b/i)) { out.trench = false; out.deepTrench = false; }
-  out.noFormWatch = Boolean(out.formwork || out.tremiePour);
+  out.noFormWatch = Boolean(out.formwork || out.tremiePour || ((out.groundSlab || out.slabGround) && !out.formwork));
   out.noUnderDeck = Boolean(out.formwork || out.noDeck);
   out.concreteConveyor = Boolean(out.concrete && T(/\bconveyors?\b/i));
   out.telehandlerOnly = Boolean(out.forklift && T(/\btelehandlers?\b/i) && !T(/\bforklifts?\b/i));
@@ -2465,8 +2472,8 @@ function settleFlags(flags, task) {
   out.mriShield = T(/\b(mri|rf) (?:shield\w*|room)\b|\bfaraday cage\b/i);
   if (T(/\b(?:install\w*|new|provide|cabl\w*)\b[^.]{0,30}\b(nurse call|duress|pa systems?|public address)\b/i) && !T(/\btrolley\b/i)) out.ictCabling = true;
   out.fumeCupboard = T(/\bfume (?:cupboards?|hoods?)\b/i);
-  if (T(/\btilt-?up\b/i)) out.precast = true;
-  if (T(/\b(sports? (?:hall )?floor\w*|gym(?:nasium)? floor\w*|sprung floor\w*)\b/i)) out.floorLay = true;
+  if (T(/\btilt-?up\b/i) && !T(/\b(seal\w*|inject\w*|repair\w*|paint\w*|clad\w*|cracks?|clean\w*|drill\w*|fix\w* to|on (?:a |the )?tilt-?up)\b/i)) out.precast = true;
+  if (T(/\b(sports? (?:hall )?floor\w*|gym(?:nasium)? floor\w*|sprung floor\w*)\b/i) && !T(/\btimber\b/i)) out.floorLay = true;
   out.poolPlant = T(/\bpool (?:plant|filtration|chemical dosing)\b|\b(aquatic|swimming) centre (?:pool )?plant\b/i);
   if (T(/\bbusways?\b|\bbus ?ducts?\b/i)) out.containment = true;
   out.gasSuppression = T(/\b(gas suppression|suppression gas|gaseous (?:fire )?suppression|fm-?200|inergen|clean agent)\b/i);
