@@ -7,7 +7,7 @@ const cluster = require('cluster');
 const os = require('os');
 const { listStates } = require('./legislation');
 const { questionsFor, prepareDraft } = require('./draft');
-const { stepLibrary } = require('./steps');
+const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote } = require('./docx-draft');
 const { readLogo } = require('./logo');
 const { draftToPdf } = require('./pdf-draft');
@@ -105,6 +105,11 @@ app.get('/api/states', (_req, res) => {
 
 app.get('/api/presets', (_req, res) => {
   res.json({ trades: TRADES });
+});
+
+// Job steps whose name, hazards or controls match the words searched.
+app.get('/api/steps/search', (req, res) => {
+  res.json({ ids: searchSteps(String(req.query.q || '').slice(0, 80)) });
 });
 
 // The job step library for the step picker.
