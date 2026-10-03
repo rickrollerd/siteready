@@ -28,4 +28,47 @@ function stepLibrary() {
 // Built once: the library does not change while the server runs.
 const LIBRARY = stepLibrary();
 
-module.exports = { stepLibrary: () => LIBRARY };
+// Site words for the same thing, so a search finds the step whichever word is typed.
+const SYNONYMS = {
+  tc: ['traffic'], traffic: ['traffic'], spoil: ['spoil', 'stockpil', 'muck', 'excavated material'], stockpile: ['stockpil', 'spoil'],
+  muck: ['spoil', 'muck'], tip: ['tip', 'spoil'], hiab: ['hiab', 'loading crane'], ewp: ['ewp', 'elevating work platform', 'boom lift', 'scissor'],
+  scaff: ['scaffold'], reo: ['reo', 'reinforc'], pour: ['pour', 'concrete'], demo: ['demoli'], sparky: ['electric'], chippy: ['carpent', 'timber'],
+  dig: ['dig', 'excavat', 'trench'], hole: ['hole', 'excavat', 'trench'], lift: ['lift', 'crane'], height: ['height', 'fall', 'edge'],
+  asbestos: ['asbestos', 'fibro'], silica: ['silica', 'dust'], dust: ['dust', 'silica'], noise: ['noise', 'hearing'], confined: ['confined'],
+};
+
+// A word reduced to its stem, so "controls" finds "control" and "stockpiles" finds "stockpil".
+function stem(word) {
+  return word.replace(/(?:ies)$/, 'y').replace(/(?:ing|ed|es|s)$/, '').replace(/e$/, '');
+}
+
+const SEARCH_TEXT = (() => {
+  const text = new Map();
+  for (const activity of ACTIVITIES) {
+    if (!activity.when || !activity.steps) continue;
+    const parts = activity.steps.flatMap((step) => [step.step, ...(step.hazards || []), ...(step.controls || [])].map((item) => (typeof item === 'string' ? item : item && item.text) || ''));
+    text.set(activity.when, `${text.get(activity.when) || ''} ${parts.join(' ')}`.toLowerCase());
+  }
+  return text;
+})();
+
+// The kinds of work whose name, hazards or controls hold every word searched, best match first.
+function searchSteps(query) {
+  const words = String(query || '').toLowerCase().match(/[a-z0-9]+/g) || [];
+  const terms = words.filter((word) => word.length > 1 && !['the', 'and', 'for', 'with', 'of', 'to', 'a', 'an', 'on', 'in'].includes(word)).map((word) => SYNONYMS[word] || SYNONYMS[stem(word)] || [stem(word)]);
+  if (!terms.length) return [];
+  const results = [];
+  for (const group of LIBRARY.groups) {
+    for (const kind of group.kinds) {
+      if (results.some((item) => item.id === kind.id)) continue;
+      const name = `${kind.label} ${kind.steps.join(' ')}`.toLowerCase();
+      const body = SEARCH_TEXT.get(kind.id) || name;
+      if (!terms.every((options) => options.some((term) => body.includes(term) || name.includes(term)))) continue;
+      const score = terms.filter((options) => options.some((term) => name.includes(term))).length;
+      results.push({ id: kind.id, score });
+    }
+  }
+  return results.sort((a, b) => b.score - a.score).map((item) => item.id);
+}
+
+module.exports = { stepLibrary: () => LIBRARY, searchSteps };

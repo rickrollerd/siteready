@@ -16,7 +16,7 @@ const TRADES = [
   { id: 'lifts', name: 'Lift installation', signal: 'liftWork', kinds: ['liftShaft', 'liftLifting', 'liftCar'], extra: [, 'fixtures', 'liftShaft', 'liftInstall'] },
   { id: 'facade', name: 'Facade installation', signal: 'facadeWork', kinds: ['panelLoad', 'facadeCrane', 'panelInstall', 'swingStage', 'edgeBracket', 'facadeSeal'], extra: ['glassHandling', 'glassWind', 'claddingInstall'] },
   { id: 'glazing', name: 'Windows, doors and glazing installation', signal: 'glazingWork', kinds: ['balustradeEdge', 'glassHandle', 'windowInstall', 'hardwareFit', 'glazingDrill', 'glazingSeal'], extra: ['panelInstall', 'glassHandling', 'glassWind'] },
-  { id: 'steel', name: 'Structural steel erection and rigging', signal: 'steelWork', kinds: ['steelLift', 'steelErect', 'steelWeld', 'temporaryTowers', 'dualLift'], extra: ['steelLift', 'kitStructure', 'accessSteel', 'hotWork', 'oxyCutting'] },
+  { id: 'steel', name: 'Structural steel erection and rigging', signal: 'steelWork', kinds: ['steelLift', 'steelErect', 'steelWeld', 'temporaryTowers', 'dualLift'], extra: ['balustradeEdge', 'steelLift', 'kitStructure', 'accessSteel', 'hotWork', 'oxyCutting'] },
   { id: 'masonry', name: 'Blockwork and brickwork', signal: 'masonryWork', kinds: ['masonryCut', 'masonryLay', 'masonryEdge'], extra: ['tileMix', 'masonryMortar', 'masonryGrout', 'paving', 'retainingWall', 'repointing', 'fixtures', 'concreteRepair', 'rendering', 'painting', 'paintExternal', 'claddingInstall'] },
   { id: 'plasterboard', name: 'Wall and ceiling linings', signal: 'plasterWork', kinds: ['plasterSheets', 'plasterHeight', 'plasterCeiling', 'plasterSanding', 'carpFraming', 'ceilingGrid'], extra: ['leadShielding', 'carpLoad', 'carpEdge', 'carpentryWork'] },
   { id: 'carpentry', name: 'Carpentry and joinery', signal: /\b(carpent\w*|joinery|cabinetry|timber (?:fram\w*|floor\w*|decks?)|wall frames?|roof trusses|trusses|hang(?:ing)? doors?)\b/i, kinds: ['carpFraming', 'carpJoinery', 'carpEdge', 'timberFloor', 'houseFraming', 'deckBuild', 'roofBattens', 'kitStructure'], extra: ['claddingInstall', 'floorSanding', 'carpLoad', 'roof', 'roofStrip', 'plasterSheets', 'painting', 'paintExternal', 'stoneHandle', 'carpentryWork', 'gutters', 'retainingWall', 'claddingInstall', 'fixtures', 'shallowTrench', 'garageDoor', 'gasFitting', 'restump', 'claddingInstall'] },
@@ -34,7 +34,7 @@ const TRADES = [
   { id: 'excavation', name: 'Excavation', kinds: ['bulkDig', 'anchorsProps', 'detailDig', 'dewatering', 'contaminatedSpoil', 'basementEdge', 'retentionWall', 'earthworks'], extra: ['trench', 'sewerConnection', 'neighbours', 'sitePlant', 'retainingWall', 'shallowTrench', 'bollards', 'hddBore', 'structureDemolition', 'lineMarking', 'asphaltLay', 'rockBreak', 'fuelTankRemoval', 'confined'] },
   { id: 'scaffolding', name: 'Scaffolding', kinds: ['scaffold', 'hoistInstall', 'hoistOperate', 'safetyNet'], extra: [, 'edgeProtectionInstall'] },
   { id: 'cleaning', name: 'Cleaning', kinds: ['cleaning', 'cleaningHeight', 'cleaningStands', 'pressureClean'], extra: [] },
-  { id: 'site', name: 'Site establishment', kinds: ['siteEstablish', 'siteSheds', 'road'], extra: ['sitePlant', 'structureDemolition', 'fenceBuild', 'kitStructure', 'fixtures', 'bollards'] },
+  { id: 'site', name: 'Site establishment', kinds: ['siteEstablish', 'siteSheds', 'road'], extra: ['roadBarrier', 'lineMarking', 'sitePlant', 'structureDemolition', 'fenceBuild', 'kitStructure', 'fixtures', 'bollards'] },
   { id: 'fencing', name: 'Fencing and gates', kinds: ['fenceBuild'], extra: [] },
 ];
 

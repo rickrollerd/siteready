@@ -438,14 +438,47 @@ async function loadStepLibrary() {
   }
 }
 
+// Steps found by the server search: words matched anywhere in a step, with site synonyms.
+let stepSearchIds = null;
+let stepSearchSeq = 0;
+
 function fillStepAdd() {
   const search = document.getElementById('step-search').value.trim().toLowerCase();
   const shown = new Set(stepPicks || (questions && questions.steps ? questions.steps.chosen : []));
+  const select = document.getElementById('step-add');
+  if (search && stepSearchIds) {
+    // Best matches first, as one list.
+    const kinds = stepSearchIds.filter((id) => !shown.has(id)).map((id) => stepById.get(id)).filter(Boolean);
+    select.innerHTML = kinds.length
+      ? `<option value="">${kinds.length} step${kinds.length === 1 ? '' : 's'} found. Choose one to add</option>${kinds.map((kind) => `<option value="${esc(kind.id)}">${esc(kind.label)}</option>`).join('')}`
+      : '<option value="">No steps found. Try another word</option>';
+    return;
+  }
   const match = (kind) => !search || `${kind.label} ${kind.steps.join(' ')}`.toLowerCase().includes(search);
-  document.getElementById('step-add').innerHTML = '<option value="">Choose a step to add</option>' + stepLibrary.groups.map((group) => {
+  select.innerHTML = '<option value="">Choose a step to add</option>' + stepLibrary.groups.map((group) => {
     const kinds = group.kinds.filter((kind) => !shown.has(kind.id) && match(kind));
     return kinds.length ? `<optgroup label="${esc(group.trade)}">${kinds.map((kind) => `<option value="${esc(kind.id)}">${esc(kind.label)}</option>`).join('')}</optgroup>` : '';
   }).join('');
+}
+
+let stepSearchTimer = null;
+function searchStepsLater() {
+  clearTimeout(stepSearchTimer);
+  const search = document.getElementById('step-search').value.trim();
+  if (search.length < 2) { stepSearchIds = null; fillStepAdd(); return; }
+  fillStepAdd();
+  stepSearchTimer = setTimeout(async () => {
+    const seq = ++stepSearchSeq;
+    try {
+      const response = await fetch(api(`/api/steps/search?q=${encodeURIComponent(search)}`));
+      const data = await response.json();
+      if (seq !== stepSearchSeq) return;
+      stepSearchIds = data.ids || [];
+    } catch {
+      stepSearchIds = null;
+    }
+    fillStepAdd();
+  }, 200);
 }
 
 function renderSteps(steps) {
@@ -494,10 +527,11 @@ document.getElementById('step-add').addEventListener('change', (event) => {
   const current = stepPicks || [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value);
   stepPicks = [...new Set([...current, id])];
   document.getElementById('step-search').value = '';
+  stepSearchIds = null;
   refreshSteps();
 });
 
-document.getElementById('step-search').addEventListener('input', fillStepAdd);
+document.getElementById('step-search').addEventListener('input', searchStepsLater);
 
 document.getElementById('steps-reset').addEventListener('click', () => {
   stepPicks = null;
