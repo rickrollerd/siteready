@@ -61,6 +61,7 @@ function versionDate(text, pattern) {
 // removed or re-issued code (a new file address) shows as a changed line.
 function codeLinks(html) {
   const items = new Set();
+  const byHref = new Map();
   for (const match of String(html || '').matchAll(/<a\b[^>]*href="([^"#]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
     const href = match[1].replace(/&amp;/g, '&').replace(/[?].*$/, '').replace(/^https?:\/\/[^/]+/i, '');
     let text = pageText(match[2]).replace(/\s*\((?:PDF|DOCX?|Word|external site)[^)]*\)/gi, '').trim();
@@ -71,8 +72,11 @@ function codeLinks(html) {
     if (!/\bcodes? of practice\b|\bcompliance code\b|\bcode\b.*\b(?:19|20)\d{2}\b|\bcop\b|\/cop-|code-practice|codes-practice|compliance-code|code-of-practice/i.test(`${text} ${href}`)) continue;
     // Menus and headings that point back to the list itself are not codes.
     if (/^(?:codes? of practice|compliance codes|model codes of practice|back|more|read more|view all)$/i.test(text)) continue;
-    items.add(`${text} | ${href}`);
+    // The same file linked twice (its name, then "Download") is one code, named by its title.
+    const named = !/\.(?:pdf|docx?)$/i.test(text);
+    if (!byHref.has(href) || (named && !byHref.get(href).named)) byHref.set(href, { text, named });
   }
+  for (const [href, { text }] of byHref) items.add(`${text} | ${href}`);
   return [...items].sort();
 }
 
@@ -89,6 +93,26 @@ function newsItems(xml) {
     if (title && link) out.push({ title, link, date: field('pubDate') });
   }
   return out;
+}
+
+// Pages that refuse plain requests or build their list with JavaScript are read
+// with a headless browser (Playwright, installed by the workflow).
+let browserPromise = null;
+async function renderPage(url) {
+  try {
+    if (!browserPromise) browserPromise = require('playwright').chromium.launch();
+    const browser = await browserPromise;
+    const page = await browser.newPage();
+    try {
+      const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 90000 });
+      if (response && response.status() >= 400) return { ok: false, error: `HTTP ${response.status()}` };
+      return { ok: true, html: await page.content() };
+    } finally {
+      await page.close();
+    }
+  } catch (error) {
+    return { ok: false, error: error.message.split('\n')[0] };
+  }
 }
 
 async function fetchPage(url, { browser = false, timeout = 20000 } = {}) {
@@ -185,7 +209,9 @@ async function main() {
   // Codes of practice: each regulator's list of codes.
   const codes = readJson(CODES, []);
   const codeChanges = [];
-  const codePages = await Promise.all(codes.map((source) => fetchPage(source.url, { browser: true, timeout: 45000 })));
+  const codePages = [];
+  for (const source of codes) codePages.push(source.render ? await renderPage(source.url) : await fetchPage(source.url, { browser: true, timeout: 45000 }));
+  if (browserPromise) await (await browserPromise).close().catch(() => {});
   codes.forEach((source, index) => {
     const page = codePages[index];
     const key = `code:${source.id}`;

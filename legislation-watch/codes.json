@@ -9,7 +9,8 @@
     "id": "qld-codes",
     "jurisdiction": "Queensland",
     "title": "Codes of practice",
-    "url": "https://www.worksafe.qld.gov.au/laws-and-compliance/workplace-health-and-safety-laws/codes-of-practice"
+    "url": "https://www.worksafe.qld.gov.au/laws-and-compliance/workplace-health-and-safety-laws/codes-of-practice",
+    "render": true
   },
   {
     "id": "nsw-codes",
@@ -21,19 +22,14 @@
     "id": "vic-codes",
     "jurisdiction": "Victoria",
     "title": "Compliance codes",
-    "url": "https://www.worksafe.vic.gov.au/compliance-codes"
+    "url": "https://www.worksafe.vic.gov.au/compliance-codes-and-practice-notes",
+    "render": true
   },
   {
     "id": "wa-codes",
     "jurisdiction": "Western Australia",
     "title": "Codes of practice",
     "url": "https://www.worksafe.wa.gov.au/work-health-and-safety-and-transitional-codes-practice"
-  },
-  {
-    "id": "vic-construction-codes",
-    "jurisdiction": "Victoria",
-    "title": "Construction compliance codes",
-    "url": "https://www.worksafe.vic.gov.au/construction-compliance-codes"
   },
   {
     "id": "sa-codes",
@@ -45,18 +41,21 @@
     "id": "tas-codes",
     "jurisdiction": "Tasmania",
     "title": "Codes of practice",
-    "url": "https://worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice"
+    "url": "https://worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice",
+    "render": true
   },
   {
     "id": "act-codes",
     "jurisdiction": "Australian Capital Territory",
     "title": "Work Safety Group public notices (new and updated codes)",
-    "url": "https://www.act.gov.au/open/work-safety-group-public-notices"
+    "url": "https://www.act.gov.au/open/work-safety-group-public-notices",
+    "render": true
   },
   {
     "id": "nt-codes",
     "jurisdiction": "Northern Territory",
     "title": "Codes of practice",
-    "url": "https://worksafe.nt.gov.au/codes-of-practice"
+    "url": "https://worksafe.nt.gov.au/codes-of-practice",
+    "render": true
   }
 ]
