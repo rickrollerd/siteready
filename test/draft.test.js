@@ -170,11 +170,11 @@ test('Queensland section 299(4): a harness alone needs the other controls consid
 
   const bare = draft(task, { fallRisk: 'yes', facts: { fallControl: harness } });
   assert.equal(bare.kind, 'stand-down');
-  assert.deepEqual(bare.missing, ['Other fall controls considered']);
+  assert.deepEqual(bare.missing, ['Other fall controls considered', 'Harness and anchors']);
 
   const done = draft(task, {
     fallRisk: 'yes',
-    facts: { fallControl: harness, controlsConsidered: 'Edge protection was considered but the roof edge has no fixing points; a scaffold cannot be placed on the neighbouring boundary.' },
+    facts: { fallControl: harness, harnessSystem: 'Full body harness on a restraint lanyard to the engineer-rated static line SL-1, inspected every 6 months, users trained by ABC Training.', controlsConsidered: 'Edge protection was considered but the roof edge has no fixing points; a scaffold cannot be placed on the neighbouring boundary.' },
   });
   assert.equal(done.kind, 'draft');
   assert.ok(done.controls.some((item) => /^Other fall controls considered: Edge protection/.test(item.text)));
@@ -185,7 +185,7 @@ test('Queensland section 299(4): a harness alone needs the other controls consid
   assert.equal(edge.kind, 'draft');
 
   // The rule is Queensland's. NSW does not ask.
-  const nsw = prepareDraft({ state: 'nsw', task, fallRisk: 'yes', facts: { fallControl: harness } });
+  const nsw = prepareDraft({ state: 'nsw', task, fallRisk: 'yes', facts: { fallControl: harness, harnessSystem: 'Full body harness on a restraint lanyard to the rated static line, inspected every 6 months, users trained.' } });
   assert.equal(nsw.kind, 'draft');
   assert.ok(nsw.controls.some((item) => /was considered first for any fall of more than 2 metres, and is not reasonably practicable for this work because ____/.test(item.text)));
 });

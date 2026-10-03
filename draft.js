@@ -590,6 +590,17 @@ function isPlumbing(text) {
 }
 const PLUMBING_WORK = /\b(plumb\w*|hydraulic (?:services|risers?|pipework|pipes?|stacks?)|drain\w*|sewer\w*|sanitary|pipes?|pipework|sleeves?|puddle flanges?|hot water|cold water|tapware|toilets?|basins?|pump rooms?|sumps?|ejection pits?|water tanks?)\b/i;
 
+// A fall control that relies on a harness.
+const HARNESS_WORDS = /\b(harness\w*|travel restraint|fall arrest|restraint lanyards?|static lines?|lifelines?)\b/i;
+
+// A fall control answer that relies on a harness brings the harness question.
+function withHarness(list, facts) {
+  if (list.some((item) => item.id === 'harnessSystem')) return list;
+  if (!HARNESS_WORDS.test(String((facts && facts.fallControl) || ''))) return list;
+  const item = CATEGORY_FACTS.find((entry) => entry.id === 'harnessSystem');
+  return [...list, { id: item.id, label: item.label, prompt: item.prompt }];
+}
+
 const CATEGORY_FACTS = [
   {
     // Pits, sumps, tanks and manholes are confined spaces only if they meet the
@@ -745,6 +756,14 @@ const CATEGORY_FACTS = [
     prompt: 'The engineer\'s erection design for the precast units (drawing and revision): the bearing and fixing details, the placing sequence, and any temporary propping.',
     level: 'Isolate or engineer',
     applies: (text) => /\bprecast\b/i.test(String(text || '')) && PRECAST_TIER.test(String(text || '')) && /\b(install\w*|plac\w*|lift\w*|erect\w*|land\w*)\b/i.test(String(text || '')),
+  },
+  {
+    // A harness is only as good as its anchors, its inspection and the user's training.
+    id: 'harnessSystem',
+    label: 'Harness and anchors',
+    prompt: 'The harness and lanyard or line used, the anchor points and who rated or installed them, when the harness was last inspected, who trained the users, and the rescue plan.',
+    level: 'Administrative',
+    applies: (text) => HARNESS_WORDS.test(String(text || '')),
   },
   {
     // Where spoil goes, and whether it is contaminated, decides how it is stockpiled and carted.
@@ -1014,7 +1033,7 @@ function factState(item, task, facts) {
 }
 
 function missingFacts(task, facts, answer, state) {
-  return requiredFactsFor(task, answer, state)
+  return withHarness(requiredFactsFor(task, answer, state), facts)
     .map((item) => ({ ...item, state: factState(item, task, facts) }))
     .filter((item) => item.state !== 'supplied');
 }
@@ -1348,7 +1367,7 @@ function questionsFor(input) {
     },
     task,
     fall: fallCheck(task, answer, state),
-    required: requiredFactsFor(task, answer, state),
+    required: withHarness(requiredFactsFor(task, answer, state), input.facts),
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
     ppe: ppeList(task, input.facts || {}, state),

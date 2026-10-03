@@ -100,7 +100,8 @@ test('required questions carry standard answers, and each answer is accepted', a
   const fall = data.required.find((item) => item.id === 'fallControl');
   assert.ok(fall.suggestions.length >= 3);
   for (const pick of answersFor('fallControl')) {
-    const done = prepareDraft({ state: 'qld', task, fallRisk: 'yes', facts: { fallControl: pick.text, silicaControls: answersFor('silicaControls')[0].text } });
+    // A harness answer brings the harness question, answered with its standard answer.
+    const done = prepareDraft({ state: 'qld', task, fallRisk: 'yes', facts: { fallControl: pick.text, harnessSystem: answersFor('harnessSystem')[0].text, silicaControls: answersFor('silicaControls')[0].text } });
     assert.equal(done.kind, 'draft', `${pick.label}: ${(done.missing || []).join('; ')}`);
   }
 });

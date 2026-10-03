@@ -124,6 +124,10 @@ const ANSWERS = {
   tierErection: [
     ['Engineer\'s erection design', 'Units are placed to the engineer\'s erection design ____ (revision ____): bearing pads and fixings as detailed, placed in the sequence shown, with temporary propping where the design shows it, checked by ____ before the hook is released.'],
   ],
+  harnessSystem: [
+    ['Travel restraint', 'Workers wear a full body harness with a restraint lanyard of ____ m, set so they cannot reach the edge, clipped to anchors ____ installed and rated by ____. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every ____ months, recorded on the tag. Users are trained in working at heights by ____.'],
+    ['Fall arrest', 'Workers wear a full body harness with a shock-absorbing lanyard, clipped to anchors ____ rated for at least 15 kN for one person and installed by ____, with enough clear distance below to stop a fall before anyone hits the ground or a structure. Harnesses are checked before each use and inspected by a competent person every ____ months, recorded on the tag. Users are trained in working at heights and rescue by ____. The rescue plan is ____, with the rescue equipment on site.'],
+  ],
   spoilPlan: [
     ['Clean spoil to a licensed site', 'Spoil is classified as ____ (for example clean fill, or tested by ____, report ____) and taken to ____ (a site or facility able to receive it), with the waste records the state environment regulator requires. Stockpiles are kept only at ____, as the principal contractor allows, and covered with ____.'],
     ['Contaminated or unknown spoil', 'Spoil is treated as contaminated until test report ____ shows otherwise. It is kept apart and covered at ____, handled under ____ (remediation or asbestos plan), and taken only to ____ (a facility licensed for that waste), with the waste tracking records the state environment regulator requires.'],

@@ -527,6 +527,7 @@ async function refreshSteps() {
     else el.value = value;
   });
   document.querySelectorAll('[data-site]').forEach((el) => { if (site[el.dataset.site] !== undefined) el.value = site[el.dataset.site]; });
+  (questions && questions.required || []).forEach((item) => markPicks(item.id));
   document.querySelectorAll('[data-ppe]').forEach((el) => { if (ppe.has(el.value)) el.checked = true; });
 }
 
@@ -651,6 +652,7 @@ async function fillForm(input) {
     else el.value = value;
   });
   document.querySelectorAll('[data-site]').forEach((el) => { el.value = (input.site || {})[el.dataset.site] || ''; });
+  (questions && questions.required || []).forEach((item) => markPicks(item.id));
   if (Array.isArray(input.ppe)) document.querySelectorAll('[data-ppe]').forEach((el) => { el.checked = input.ppe.includes(el.value); });
 }
 
@@ -660,7 +662,25 @@ factsForm.addEventListener('change', (event) => {
   document.querySelectorAll('[data-ppe]').forEach((el) => { if (['arcRated', 'gloveInsulated'].includes(el.value)) el.checked = true; });
 });
 
+// A standard answer's wording as a pattern: blanks (____) match whatever was filled in.
+function pickPattern(text) {
+  const parts = String(text).split('____').map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp(parts.join('[^]*?'));
+}
+
+// Highlights the standard answers whose wording is in the box.
+function markPicks(id) {
+  const item = (questions && questions.required || []).find((entry) => entry.id === id);
+  const box = document.getElementById(`fact-${id}`);
+  if (!item || !box) return;
+  document.querySelectorAll(`[data-pick-for="${id}"]`).forEach((button) => {
+    const pick = (item.suggestions || [])[Number(button.dataset.pick)];
+    button.setAttribute('aria-pressed', String(Boolean(pick && pickPattern(pick.text).test(box.value))));
+  });
+}
+
 // A standard answer is added to the box, where it can be changed. Blanks (____) are left to fill in.
+// Clicking it again takes its wording back out.
 document.getElementById('required-block').addEventListener('click', (event) => {
   const button = event.target.closest('[data-pick-for]');
   if (!button || !questions) return;
@@ -668,10 +688,23 @@ document.getElementById('required-block').addEventListener('click', (event) => {
   const pick = item && (item.suggestions || [])[Number(button.dataset.pick)];
   if (!pick) return;
   const box = document.getElementById(`fact-${item.id}`);
+  const pattern = pickPattern(pick.text);
+  if (pattern.test(box.value)) {
+    box.value = box.value.replace(pattern, '').replace(/\s{2,}/g, ' ').trim();
+    markPicks(item.id);
+    box.focus();
+    return;
+  }
   box.value = box.value.trim() ? `${box.value.trim()} ${pick.text}` : pick.text;
+  markPicks(item.id);
   box.focus();
   const blank = box.value.indexOf('____');
   if (blank >= 0) box.setSelectionRange(blank, blank + 4);
+});
+
+document.getElementById('required-block').addEventListener('input', (event) => {
+  const id = event.target.id && event.target.id.startsWith('fact-') ? event.target.id.slice(5) : '';
+  if (id) markPicks(id);
 });
 
 // Trade and task pick lists fill in the task, the fall question and who runs the crane.
