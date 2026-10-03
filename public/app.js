@@ -93,8 +93,9 @@ document.getElementById('profile-save').addEventListener('click', async () => {
   // Signed in, the profile is the company's and is kept on the server for the whole team.
   if (window.SiteReady && window.SiteReady.saveCompany && window.SiteReady.signedIn()) {
     try {
+      window.SiteReady.lastCompanyNotice = '';
       setProfile(await window.SiteReady.saveCompany(next));
-      profileStatus('Saved for your company.');
+      profileStatus(window.SiteReady.lastCompanyNotice || 'Saved for your company.');
     } catch (error) {
       profileStatus(error.message);
     }

@@ -574,7 +574,12 @@
   S.accountsOn = () => Boolean(config.accounts);
   S.confirmBlock = (prefix) => confirmBlock(prefix);
   S.download = (route, fallbackName, body) => download(route, fallbackName, body);
-  S.saveCompany = async (profile) => (await call('PUT', '/api/company', profile)).company;
+  S.saveCompany = async (profile) => {
+    const data = await call('PUT', '/api/company', profile);
+    // A business whose ABN has had its trial is told so, and the account panel shows it has no access.
+    if (data.notice) { S.lastCompanyNotice = data.notice; if (me) { me.company = data.company; } }
+    return data.company;
+  };
 
   // ---- Start ----
 

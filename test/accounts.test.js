@@ -26,12 +26,30 @@ function call(method, route, { body, token } = {}) {
   });
 }
 
-async function signIn(email) {
+// A valid ABN for each test business: nine digits from the email, and the two leading
+// digits that make the ABN check work.
+function abnFor(seed) {
+  let n = 0;
+  for (const ch of seed) n = (n * 31 + ch.charCodeAt(0)) % 1000000000;
+  const tail = String(n).padStart(9, '0');
+  const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+  for (let head = 10; head <= 99; head += 1) {
+    const digits = `${head}${tail}`;
+    const total = [...digits].reduce((sum, d, i) => sum + (Number(d) - (i === 0 ? 1 : 0)) * weights[i], 0);
+    if (total % 89 === 0) return digits;
+  }
+  return abnFor(`${seed}x`);
+}
+
+async function signIn(email, { company = true } = {}) {
   const sent = await call('POST', '/api/auth/email', { body: { email } });
   assert.equal(sent.status, 200);
   const response = await call('POST', '/api/auth/verify', { body: { token: lastLinkToken(email) } });
   assert.equal(response.status, 200);
-  return (await response.json()).token;
+  const { token } = await response.json();
+  // Saving and downloading need the business name and ABN.
+  if (company) await call('PUT', '/api/company', { token, body: { name: `Test business ${email}`, abn: abnFor(email) } });
+  return token;
 }
 
 const INPUT = {
@@ -63,7 +81,7 @@ test('an email link signs in once, and the first sign-in starts a 14 day trial',
 
 test('company profile, sites and saved SWMS, with Word and PDF downloads', async () => {
   const token = await signIn('owner@builder.example');
-  const profile = await call('PUT', '/api/company', { token, body: { name: 'Builder Co', abn: '11 222 333 444', address: '1 Site St, Brisbane' } });
+  const profile = await call('PUT', '/api/company', { token, body: { name: 'Builder Co', abn: '53 004 085 616', address: '1 Site St, Brisbane' } });
   assert.equal((await profile.json()).company.name, 'Builder Co');
 
   const site = await (await call('POST', '/api/sites', { token, body: { name: 'Hospital job', workplace: '10 Ward Rd, Brisbane', principalContractor: 'Main Builder Pty Ltd' } })).json();
@@ -211,4 +229,22 @@ test('a business can export all its saved SWMS in one zip', async () => {
   assert.equal(response.status, 200);
   const zip = await require('jszip').loadAsync(Buffer.from(await response.arrayBuffer()));
   assert.equal(Object.keys(zip.files).filter((name) => name.endsWith('.docx')).length, 2);
+});
+
+test('one free trial per ABN, and the ABN must be a valid ABN', async () => {
+  const first = await signIn('first@abn.example', { company: false });
+  const bad = await call('PUT', '/api/company', { token: first, body: { name: 'First Co', abn: '12 345 678 901' } });
+  assert.equal(bad.status, 400);
+  assert.match((await bad.json()).message, /not a valid ABN/);
+  const ok = await call('PUT', '/api/company', { token: first, body: { name: 'First Co', abn: '83 914 571 673' } });
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).company.hasAccess, true, 'the first business with the ABN gets the trial');
+  const second = await signIn('second@abn.example', { company: false });
+  const again = await call('PUT', '/api/company', { token: second, body: { name: 'Second Co', abn: '83914571673' } });
+  const data = await again.json();
+  assert.equal(again.status, 200);
+  assert.match(data.notice, /already had its free trial/);
+  assert.equal(data.company.hasAccess, false, 'a second account with the same ABN gets no trial');
+  const save = await call('POST', '/api/swms', { token: await signIn('nocompany@abn.example', { company: false }), body: { input: INPUT, ...CONFIRM } });
+  assert.equal(save.status, 400, 'saving needs the business name and ABN');
 });

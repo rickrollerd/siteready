@@ -56,4 +56,28 @@ router.get('/admin/stats', auth.requireUser, route(async (req, res) => {
   });
 }));
 
+// Industry data records, for the owner to inspect (terms section 8). Nothing in them identifies a business.
+router.get('/admin/industry', auth.requireUser, route(async (req, res) => {
+  if (!isAdmin(req.user)) throw auth.fail(403, 'Not available.');
+  const total = await db.one('SELECT COUNT(*) AS n FROM industry_records');
+  const recent = await db.query('SELECT month, state, postcode_area, trade, project_type, steps, kinds, high_risk, plant, licences FROM industry_records ORDER BY month DESC LIMIT 50');
+  const parse = (value) => { try { return JSON.parse(value); } catch { return []; } };
+  res.json({
+    total: Number(total.n),
+    records: recent.map((row) => ({ month: row.month, state: row.state, postcodeArea: row.postcode_area, trade: row.trade, projectType: row.project_type, steps: parse(row.steps), kinds: parse(row.kinds), highRisk: parse(row.high_risk), plant: parse(row.plant), licences: parse(row.licences) })),
+  });
+}));
+
+// A business that emails to opt out is left out from that day (terms section 8). Found by ABN.
+router.post('/admin/industry/opt-out', auth.requireUser, route(async (req, res) => {
+  if (!isAdmin(req.user)) throw auth.fail(403, 'Not available.');
+  const abn = String((req.body || {}).abn || '').replace(/\D/g, '');
+  const optOut = (req.body || {}).optOut !== false;
+  if (abn.length !== 11) throw auth.fail(400, 'Enter an 11 digit ABN.');
+  const rows = (await db.query("SELECT id, name, abn FROM companies WHERE abn IS NOT NULL AND abn <> ''")).filter((row) => String(row.abn).replace(/\D/g, '') === abn);
+  if (!rows.length) throw auth.fail(404, 'No business with that ABN.');
+  for (const row of rows) await db.query('UPDATE companies SET industry_opt_out = $1 WHERE id = $2', [optOut, row.id]);
+  res.json({ ok: true, businesses: rows.map((row) => row.name), optOut });
+}));
+
 module.exports = { router, isAdmin };

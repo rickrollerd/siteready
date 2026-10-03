@@ -22,6 +22,7 @@ const { localText } = require('./citations');
 const { scopeText } = require('./scope-text');
 const { tasksFromScope } = require('./scope');
 const places = require('./places');
+const { recordIndustry } = require('./industry');
 
 require('dotenv').config();
 
@@ -196,6 +197,7 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
     const buffer = await draftToPdf(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), note: draftedNote(confirmation) });
     record('download_pdf', req.company && req.company.id);
+    await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${result.kind === 'stand-down' ? 'SiteReady-stood-down.pdf' : 'SiteReady.pdf'}"`);
     res.send(buffer);
@@ -214,6 +216,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   const buffer = await draftToDocx(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), confirmation });
   record('download_word', req.company && req.company.id);
+  await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
   const filename = result.kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -246,6 +249,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     used.add(name);
     zip.file(name, Buffer.from(buffer));
     record('download_word', req.company && req.company.id);
+    await recordIndustry(result, signedInBody({ ...req, body: item || {} }), req.company).catch(() => {});
   }
   if (!used.size) return res.status(400).json({ kind: 'error', message: 'None of the SWMS is ready to download. Answer the questions for each one first.' });
   if (skipped.length) zip.file('Not included.txt', `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n`);

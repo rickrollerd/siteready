@@ -113,6 +113,28 @@ const SCHEMA = [
     review_due_at TIMESTAMPTZ NOT NULL,
     reminder_sent_at TIMESTAMPTZ
   )`,
+  // Industry data (terms section 8): de-identified, not linked to any account.
+  `CREATE TABLE IF NOT EXISTS industry_records (
+    id TEXT PRIMARY KEY,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL,
+    postcode_area TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    project_type TEXT NOT NULL DEFAULT '',
+    steps TEXT NOT NULL DEFAULT '[]',
+    kinds TEXT NOT NULL DEFAULT '[]',
+    high_risk TEXT NOT NULL DEFAULT '[]',
+    plant TEXT NOT NULL DEFAULT '[]',
+    licences TEXT NOT NULL DEFAULT '[]',
+    business TEXT NOT NULL,
+    dedupe TEXT NOT NULL UNIQUE
+  )`,
+  // Each ABN gets one free trial. Kept apart from companies so deleting an account does not reset it.
+  `CREATE TABLE IF NOT EXISTS trial_abns (
+    abn TEXT PRIMARY KEY,
+    company_id TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS signins (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
@@ -152,6 +174,17 @@ async function migrate() {
   for (const companyId of [...companies].filter((id) => !withAdmin.has(id))) {
     const first = await one('SELECT id FROM users WHERE company_id = $1 ORDER BY created_at LIMIT 1', [companyId]);
     await query('UPDATE users SET is_admin = TRUE WHERE id = $1', [first.id]);
+  }
+  // A business that asked to be left out of industry data (terms section 8).
+  const optOut = await query("SELECT column_name FROM information_schema.columns WHERE table_name = 'companies' AND column_name = 'industry_opt_out'");
+  if (!optOut.length) await query('ALTER TABLE companies ADD COLUMN industry_opt_out BOOLEAN NOT NULL DEFAULT FALSE');
+  // ABNs entered before the one-trial rule are registered to the first company that used each.
+  const registered = new Set((await query('SELECT abn FROM trial_abns')).map((row) => row.abn));
+  for (const row of await query("SELECT id, abn FROM companies WHERE abn <> '' ORDER BY created_at")) {
+    const abn = String(row.abn).replace(/\D/g, '');
+    if (abn.length !== 11 || registered.has(abn)) continue;
+    registered.add(abn);
+    await query('INSERT INTO trial_abns (abn, company_id, created_at) VALUES ($1, $2, $3)', [abn, row.id, new Date()]);
   }
 }
 
