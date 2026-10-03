@@ -153,7 +153,7 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000 } = 
       return items.filter((item) => keep(item.name) && !seen.has(item.name.toLowerCase()) && seen.add(item.name.toLowerCase()))
         .sort((a, b) => a.km - b.km).slice(0, count);
     };
-    const hospitals = nearest([...list(nearHospitals), ...list(edSearch)], isHospital, 3);
+    const hospitals = nearest([...list(nearHospitals), ...list(edSearch)], isHospital, 5);
     const result = { enabled: true, hospitals, clinics: nearest(list(clinics), isGeneralClinic, 3) };
     if (careCache.size >= CACHE_LIMIT) careCache.delete(careCache.keys().next().value);
     careCache.set(key, { at: Date.now(), result });
