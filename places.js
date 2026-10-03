@@ -194,7 +194,10 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
       return { centre, errors, hospitals: show(hospitalPool, isHospital), clinics: show(clinicPool, isGeneralClinic) };
     }
     if (errors.length === 6) throw new Error(errors.join('; '));
-    const hospitals = nearest(hospitalPool, isHospital, 5, hospitalRank);
+    // At a remote site the next hospitals can be hundreds of kilometres away: past 150 km (or
+    // twice the first one's distance) they are left out, but the first is always kept.
+    const ranked = nearest(hospitalPool, isHospital, 5, hospitalRank);
+    const hospitals = ranked.filter((item, index) => index === 0 || item.km <= Math.max(150, ranked[0].km * 2));
     const result = { enabled: true, hospitals, clinics: nearest(clinicPool, isGeneralClinic, 3, clinicRank) };
     if (careCache.size >= CACHE_LIMIT) careCache.delete(careCache.keys().next().value);
     careCache.set(key, { at: Date.now(), result });

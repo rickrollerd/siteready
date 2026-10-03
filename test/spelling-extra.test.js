@@ -9,7 +9,7 @@ test('everyday words one letter out are corrected; site words and brands are not
     assert.equal(fixSpelling(`install ${typo} now`).text, `install ${word} now`);
   }
   // Testing agent F-005: "nightshift" became "nightshirt". Run-together site words are left alone.
-  for (const word of ['bunnings', 'concretor', 'bondek', 'tamarind', 'screeding', 'acrows', 'nightshift', 'nightwork', 'laydown', 'hardstand']) {
+  for (const word of ['bunnings', 'concretor', 'bondek', 'tamarind', 'screeding', 'acrows', 'nightshift', 'nightwork', 'laydown', 'hardstand', 'vibro']) {
     assert.equal(fixSpelling(`install ${word} now`).text, `install ${word} now`, word);
   }
 });
@@ -21,4 +21,16 @@ test('a 1.2 m trench is not high risk work for trenches over 1.5 m; a deeper or 
   assert.equal(trench('Excavate a 2.4 m trench for a sewer main with an excavator.'), true);
   assert.equal(trench('Excavate a 30 m trench for a sewer main, 2 m deep, with an excavator.'), true);
   assert.equal(trench('Excavate a trench for a sewer main with an excavator.'), true);
+});
+
+// Testing agent F-007: tilt-up work written as "tilt panels" or "tilt up" was not tilt-up high risk work.
+test('tilt panels and tilt up are tilt-up or precast high risk work', () => {
+  const { questionsFor } = require('../draft');
+  for (const task of ['Erect tilt panels and portal frame to the new data centre with a 300t crane.', 'Tilt up concrete wall panels for the warehouse with a mobile crane.']) {
+    const q = questionsFor({ state: 'nsw', task, fallRisk: 'yes' });
+    const facts = {};
+    for (const item of q.required || []) facts[item.id] = item.choices ? item.choices[0].value : 'Done to engineer design ED-01 and checked by the site manager before work starts.';
+    const draft = prepareDraft({ state: 'nsw', task, fallRisk: 'yes', facts });
+    assert.ok(draft.highRisk.some((item) => /tilt-up or precast/i.test(item)), task);
+  }
 });
