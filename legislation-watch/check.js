@@ -95,26 +95,6 @@ function newsItems(xml) {
   return out;
 }
 
-// Pages that refuse plain requests or build their list with JavaScript are read
-// with a headless browser (Playwright, installed by the workflow).
-let browserPromise = null;
-async function renderPage(url) {
-  try {
-    if (!browserPromise) browserPromise = require('playwright').chromium.launch();
-    const browser = await browserPromise;
-    const page = await browser.newPage();
-    try {
-      const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 90000 });
-      if (response && response.status() >= 400) return { ok: false, error: `HTTP ${response.status()}` };
-      return { ok: true, html: await page.content() };
-    } finally {
-      await page.close();
-    }
-  } catch (error) {
-    return { ok: false, error: error.message.split('\n')[0] };
-  }
-}
-
 async function fetchPage(url, { browser = false, timeout = 20000 } = {}) {
   let lastError = '';
   for (let attempt = 1; attempt <= 2; attempt += 1) {
@@ -209,9 +189,7 @@ async function main() {
   // Codes of practice: each regulator's list of codes.
   const codes = readJson(CODES, []);
   const codeChanges = [];
-  const codePages = [];
-  for (const source of codes) codePages.push(source.render ? await renderPage(source.url) : await fetchPage(source.url, { browser: true, timeout: 45000 }));
-  if (browserPromise) await (await browserPromise).close().catch(() => {});
+  const codePages = await Promise.all(codes.map((source) => fetchPage(source.url, { browser: true, timeout: 45000 })));
   codes.forEach((source, index) => {
     const page = codePages[index];
     const key = `code:${source.id}`;
