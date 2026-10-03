@@ -47,7 +47,22 @@ function qldCode(part) {
   return [part];
 }
 
-function localSource(source, stateId) {
+// Lines whose wording goes further than a state's section that the Queensland source maps
+// to. The section is left off for that state; the rest of the line's sources stay.
+const DROP_SOURCES = {
+  vic: [
+    // Regulation 118 sets no written handover and no 30 day inspection.
+    [/\b(?:written confirmation|handed over in writing|written handover|every 30 days)\b/, ['s 225']],
+    // Regulation 112 says nothing about parking a forklift.
+    [/\bA forklift left unattended is parked\b/, ['s 218']],
+    // Regulation 327 has no duty to take the workplace's circumstances into account.
+    [/^This SWMS takes into account that the work is next to an operating hospital\b/, ['s 299']],
+    // Regulation 49 covers rescue, not anchor ratings or clearances.
+    [/\b\d+ kN\b/, ['s 80']],
+  ],
+};
+
+function localSource(source, stateId, text = '') {
   if (!source) return '';
   if (stateId === 'qld') return source.split('; ').flatMap(qldCode).join('; ');
   const state = STATE_CITATIONS[stateId];
@@ -60,7 +75,8 @@ function localSource(source, stateId) {
       continue;
     }
     if (!part.startsWith(QLD_REG)) continue;
-    const references = [...new Set(part.slice(QLD_REG.length).split(', ').map((ref) => mapReference(ref, state)).filter(Boolean))];
+    const dropped = (DROP_SOURCES[stateId] || []).filter(([pattern]) => pattern.test(text)).flatMap(([, refs]) => refs);
+    const references = [...new Set(part.slice(QLD_REG.length).split(', ').filter((ref) => !dropped.includes(ref)).map((ref) => mapReference(ref, state)).filter(Boolean))];
     if (references.length) parts.push(`${state.regulation} ${references.join(', ')}`);
   }
   return parts.join('; ');
@@ -142,6 +158,44 @@ const VIC_TEXT = [
   [/The written silica assessment is done before work starts and attached to this SWMS\./, null],
   [/^This SWMS takes into account the principal contractor's WHS management plan for the site\.$/, 'This SWMS takes into account the principal contractor\'s health and safety coordination plan for the site.'],
   [/^The consumer mains and main switchboard are not connected for the first time until the distribution entity has examined them/, 'Consumer mains, main switchboards and other prescribed electrical work are inspected by a licensed electrical inspector, and the certificate of electrical safety is issued, before the installation is connected by the network operator.'],
+  // Regulation 115(3)(d): one load is lifted by more than one piece of plant only where that cannot reasonably be avoided.
+  [/only where each crane is specifically designed to lift a load\./, 'only where a single crane cannot reasonably be used, and each crane is designed to lift a load.', KEEP],
+  [/only where each machine is designed to lift a load\./, 'only where one machine cannot reasonably do it, and each machine is designed to lift a load.', KEEP],
+  [/Dual lifts only where each machine is designed to lift\./, 'Dual lifts only where one machine cannot reasonably do the lift, and each machine is designed to lift.', KEEP],
+  // Confined spaces: regulation 56 sets the matters to take into account, not a written
+  // assessment; the employer issues the permit (r 63); permits are kept as r 64 says, with
+  // a record that everyone has left (r 68); r 73 keeps no training records.
+  [/^A competent person does a written risk assessment first, including whether the work can be done without entering\.$/, 'Entry is avoided where the work can be done from outside. Otherwise the risks are reduced, taking into account the space, its atmosphere, the work and the method, any work outside the space, the way in and out, and the emergency procedures.', KEEP],
+  [/after a competent person's risk assessment recorded in writing,/, 'after its risks have been assessed and controlled,', KEEP],
+  [/^No one enters without a written entry permit from a competent person, naming the space, the people entering, the time and the controls\.$/, 'No one enters without a written entry permit issued by the employer for that space, listing the controls, the people permitted to enter, the standby person and the period it covers.', KEEP],
+  [/a written entry permit from a competent person,/, 'a written entry permit issued by the employer,', KEEP],
+  [/^Workers are trained in the hazards, controls, permit and emergency procedures, with training records kept for 2 years\.$/, 'Workers are given information, instruction and training in the hazards, the risk controls, PPE, the entry permit and the emergency procedures.', KEEP],
+  [/^Close and sign off the entry permit, confirming everyone has left\. Keep the risk assessment for 28 days after the work and the permit until the work is complete\.$/, `Close and sign off the entry permit, and keep a written record that everyone has left. Keep the permit until the work is complete, or for at least 2 years if a notifiable incident occurs.${cite('vic', '64', '68')}`],
+  // Asbestos: no licensed asbestos assessor; a clearance certificate from an independent
+  // person after Class A or B removal (r 294, r 296, r 297). Asbestos is identified before
+  // any demolition or refurbishment, whatever the building's age (r 240, r 245).
+  [/^When licensed asbestos removal is finished, a clearance inspection is done by an independent competent person/, `When Class A or Class B asbestos removal is finished, the person who commissioned it obtains a clearance certificate from an independent person with the knowledge, skills and experience to give it, before the area is re-occupied. For Class A work that needed air monitoring, the airborne fibre level is first shown to be less than 0.01 f/ml. No certificate is needed for 10 m2 or less of non-friable asbestos.${cite('vic', '294', '296', '297')}`],
+  [/^Buildings built before 31 December 1989 are checked for asbestos before demolition or refurbishment\./, `Before demolition or refurbishment, asbestos likely to be disturbed is identified from the asbestos register. Where there is no register, the work does not start until it has been determined whether asbestos is present. Where that is uncertain, or areas cannot be reached, asbestos is assumed to be present or a sample is analysed.${cite('vic', '226', '240', '245')}`],
+  [/In a building built before 31 December 1989, asbestos likely/, 'Asbestos likely', KEEP],
+  // Victoria registers plant designs (r 125, Schedule 2). Only amusement structures are registered items (r 127C).
+  [/^An escalator is plant whose design and item are registered\. The registration numbers are sighted before it is installed and before it is used\.$/, `An escalator is a lift, and its design is registered. The design registration number is sighted before it is installed.${cite('vic', '125', 'Schedule 2')}`],
+  [/^Boilers and pressure vessels at hazard level A, B or C have a registered design and are registered items before they are used\.$/, `Boilers, pressure vessels and other pressure equipment have a registered design before they are used, unless Schedule 2 item 1.1 leaves them out.${cite('vic', '125', 'Schedule 2')}`],
+  [/^A concrete placing boom used for core filling has a registered design and is a registered item, with a licensed operator\./, `A concrete placing boom used for core filling has a registered design and a licensed operator. Never stand under a working boom.${cite('vic', '125', '128', 'Schedule 2', 'Schedule 3')}`],
+  [/^Where a concrete placing boom is used, it is registered plant and its operator holds a high risk work licence for a concrete placing boom\.$/, `Where a concrete placing boom is used, it has a registered design and its operator holds a high risk work licence for a concrete placing boom.${cite('vic', '125', '128', 'Schedule 2', 'Schedule 3')}`],
+  [/^Concrete placing booms are registered items of plant\. Check the registration before use\.$/, 'Concrete placing booms have a registered design. Check the design registration before use.'],
+  [/\bThe crane is a registered item of plant and/, 'The crane has a registered design and'],
+  [/^Mobile and crawler cranes over 10 t are registered items\. Get the registration details from the crane company\.$/, 'Mobile and crawler cranes over 10 t have a registered design. Get the design registration details from the crane company.'],
+  [/^A mobile crane with a maximum rated capacity over 10 t is registered, and its registration is current\.$/, `A mobile crane with a rated capacity over 10 t has a registered design.${cite('vic', '125', 'Schedule 2')}`],
+  [/^The lift design is registered before it is supplied, and the lift is registered before it is commissioned for use\./, `The lift design is registered before it is supplied.${cite('vic', '125', 'Schedule 2')}`],
+  // Schedule 3 item 18A licenses non-slewing telehandlers over 3 t; a slewing telehandler is a slewing mobile crane (r 5).
+  [/, and hold a crane licence where its set-up needs one\./, '. A non-slewing telehandler rated over 3 t needs the non-slewing telehandler licence or a mobile crane licence, and a slewing telehandler the slewing mobile crane licence for its capacity.'],
+  // Regulation 322(g): a trench deeper than 1.5 m. The regulations set no shoring rule.
+  [/a trench deeper than 1\.5 m is high risk construction work, and a trench 1\.5 m deep or more is shored, benched or battered before anyone enters\./, 'a trench deeper than 1.5 m is high risk construction work, and its sides are supported before anyone enters.', KEEP],
+  // Part 3.3 applies to falls of more than 2 m, and sets no rail sizes.
+  [/\bWork from a solid surface with edge protection wherever a fall of 2 m or more is possible:/, 'Work from a solid surface with edge protection wherever a fall of more than 2 m is possible:'],
+  // Regulation 5: a crystalline silica substance contains more than 1%; r 341 names the construction induction card.
+  [/\b1% or more crystalline silica\b/, 'more than 1% crystalline silica', KEEP],
+  [/\bgeneral construction induction card\b/, 'construction induction card', KEEP],
 ];
 
 // The model regulations, except where a state differs (each checked against the state's text).
@@ -269,7 +323,8 @@ function rewrite(text, stateId) {
   // Queensland Health and QBCC licences, and Queensland's regulated areas for herbicide spraying, are Queensland's.
   out = out.replace(/Termite treatments are applied only by a holder of a Queensland Health pest management licence for timber pests, who also holds a QBCC termite management \(chemical\) licence for treatments to new building work\./g, 'Termite treatments are applied only by a holder of the pest management licence the state requires, and any termite management licence it requires for new building work.')
     .replace(/Herbicide spraying with powered ground equipment in a regulated area is done only by a licensed commercial operator\./g, 'Herbicide spraying is done by a holder of any chemical application licence the state requires.');
-  if (stateId === 'vic') out = out.replace(/\bhazardous chemicals register\b/g, 'register of hazardous substances').replace(/\s?\(the falls code suggests [^)]*\)/g, '');
+  if (stateId === 'vic') out = out.replace(/\bhazardous chemicals register\b/g, 'register of hazardous substances').replace(/\s?\(the falls code suggests [^)]*\)/g, '')
+    .replace(/\bthe state's WHS or electrical safety law\b/g, 'the state\'s occupational health and safety or electrical safety law');
   // The Northern Territory and the ACT are territories.
   if (stateId === 'nt' || stateId === 'act') out = out.replace(/\bthe state's\b/g, 'the territory\'s').replace(/\bstate's\b/g, 'territory\'s').replace(/\bthe state (requires|sets|allows)\b/g, 'the territory $1');
   return { text: out, kept };
@@ -285,7 +340,7 @@ function localText(text, stateId) {
 function localControl(text, source, stateId) {
   const { text: out, kept } = rewrite(text, stateId);
   if (out == null) return null;
-  const cited = stateId && source && out === kept ? localSource(source, stateId) : '';
+  const cited = stateId && source && out === kept ? localSource(source, stateId, text) : '';
   return cited ? `${out} (${cited})` : out;
 }
 
