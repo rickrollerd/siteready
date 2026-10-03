@@ -98,10 +98,12 @@ const NOT_EMERGENCY = /\b(day (?:hospital|surgery|procedure)|rehab\w*|mental hea
 // Google's own type must also say hospital: a clinic that calls itself a "medical hospital" is left out.
 // The nearest public emergency department matters most: hospitals Google returns for an
 // emergency department search come first, then other public hospitals, then private ones.
-const hospitalRank = (item) => (/\bprivate\b/i.test(item.name) ? 2 : item.ed ? 0 : 1);
+const EMERGENCY_NAME = /\bemergency (?:room|department|dept)\b/i;
+const hospitalRank = (item) => (EMERGENCY_NAME.test(item.name) ? 0 : /\bprivate\b/i.test(item.name) ? 3 : item.ed ? 1 : 2);
 // General practices and medical centres before other practices.
 const clinicRank = (item) => (/\b(medical (?:centre|center|clinic|practice|group)|family (?:medical|practice|doctors)|general practice|GP|doctors)\b/i.test(item.name) ? 0 : 1);
-const isHospital = (name, type = 'hospital') => /hospital/i.test(type) && HOSPITAL_NAME.test(name) && !NOT_EMERGENCY.test(name) && !/\b(pty|ltd|limited|medical hospital)\b/i.test(name);
+// A listing named as an emergency department is kept whatever Google types it (often "service").
+const isHospital = (name, type = 'hospital') => (/hospital/i.test(type) || (EMERGENCY_NAME.test(name) && HOSPITAL_NAME.test(name))) && HOSPITAL_NAME.test(name) && !NOT_EMERGENCY.test(name) && !/\b(pty|ltd|limited|medical hospital)\b/i.test(name);
 // A general practice or medical centre. Specialist and cosmetic practices are left out.
 const NOT_GENERAL = /\b(travel\w*|mental|youth|fit lab|skin|aesthetic\w*|cosmetic\w*|beauty|laser|skin cancer|skin clinic|dermatolog\w*|dental|dentists?|orthodont\w*|physio\w*|chiro\w*|osteo\w*|podiatr\w*|optom\w*|optical|eye|hearing|audiolog\w*|psycholog\w*|counsell\w*|fertility|IVF|vet\w*|animal|pharmacy|chemist|radiology|imaging|x-?ray|pathology|blood|massage|naturopath\w*|acupunct\w*|weight loss|sleep|plastic surg\w*|vein|hair|botox|dietitian|speech|cardiolog\w*|specialists?|surgeons?)\b/i;
 // The name must read as a general practice or medical centre, not a company or one specialist.
@@ -165,20 +167,23 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw
       .filter((place) => place.displayName && place.displayName.text && place.location)
       .map((place) => ({ id: place.id || '', name: place.displayName.text, address: String(place.formattedAddress || '').replace(/,\s*Australia$/i, ''), km: Math.round(km(centre, place.location) * 10) / 10, type: String(place.primaryType || fallbackType), ed: fallbackType === 'ed' }));
     // Each place once: by Google's id, then by name, then (for practices) by the first two words of the name.
+    // Best first (rank, then distance), then each place once: by Google's id, by name without
+    // "emergency room", and by the first two words of the name, so a hospital and its emergency
+    // department listing, or one practice's several listings, show once.
     const nearest = (items, keep, count, rank) => {
       const ed = new Set(items.filter((item) => item.ed).map((item) => item.id || item.name.toLowerCase()));
       const seen = new Set();
       return items
         .filter((item) => keep(item.name, item.type === 'ed' ? 'hospital' : item.type))
-        .sort((a, b) => a.km - b.km)
+        .map((item) => ({ ...item, ed: ed.has(item.id || item.name.toLowerCase()) }))
+        .sort((a, b) => rank(a) - rank(b) || a.km - b.km)
         .filter((item) => {
-          const keys = [item.id, item.name.toLowerCase().replace(/[^a-z ]/g, ''), rank === clinicRank ? item.name.toLowerCase().split(/\s+/).slice(0, 2).join(' ') : ''].filter(Boolean);
+          const plain = item.name.toLowerCase().replace(EMERGENCY_NAME, ' ').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
+          const keys = [item.id, plain, plain.split(' ').slice(0, 2).join(' ')].filter(Boolean);
           if (keys.some((k) => seen.has(k))) return false;
           keys.forEach((k) => seen.add(k));
           return true;
         })
-        .map((item) => ({ ...item, ed: ed.has(item.id || item.name.toLowerCase()) }))
-        .sort((a, b) => rank(a) - rank(b) || a.km - b.km)
         .slice(0, count)
         .map(({ type, id, ed: _ed, ...item }) => item);
     };

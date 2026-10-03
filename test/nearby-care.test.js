@@ -146,3 +146,24 @@ test('public emergency departments first, private hospitals last, one entry per 
   assert.deepEqual(result.clinics.map((item) => item.name), ['Ferrers Medical Clinic', 'Queen Street Family Practice']);
   delete process.env.GOOGLE_PLACES_API_KEY;
 });
+
+// Testing agent raw data, 100 Queen St Brisbane: the Royal Brisbane and Women's emergency
+// department is listed by Google as a "service", and a suites building is typed "hospital".
+test('an emergency department listing is kept whatever its type, comes first, and is not doubled up', async () => {
+  process.env.GOOGLE_PLACES_API_KEY = 'test-key';
+  const at = (latitude, longitude) => ({ latitude, longitude });
+  const place = (id, text, location, primaryType) => ({ id, displayName: { text }, formattedAddress: 'Brisbane QLD, Australia', location, primaryType });
+  const reply = (body) => ({ ok: true, json: async () => body });
+  const fetchImpl = async (url, options) => {
+    const body = JSON.parse(options.body);
+    if (url.endsWith(':searchText') && body.pageSize === 1) return reply({ places: [{ location: at(-27.4690, 153.0260) }] });
+    if (url.endsWith(':searchText') && /emergency/.test(body.textQuery)) return reply({ places: [place('rbwh-ed', "Royal Brisbane and Women's Hospital Emergency Room", at(-27.4480, 153.0280), 'service')] });
+    if (url.endsWith(':searchText')) return reply({ places: [] });
+    if (body.includedPrimaryTypes.includes('hospital')) return reply({ places: [place('ang', 'Hospital Angeles', at(-27.4650, 153.0240), 'hospital'), place('rbwh', "Royal Brisbane and Women's Hospital", at(-27.4485, 153.0285), 'hospital'), place('blk', 'Metro North Health Block 7, RBWH', at(-27.4490, 153.0290), 'hospital')] });
+    return reply({ places: [] });
+  };
+  const result = await places.nearbyCare('120 Queen Street, Brisbane City QLD 4000', { fetchImpl });
+  assert.equal(result.hospitals[0].name, "Royal Brisbane and Women's Hospital Emergency Room");
+  assert.ok(!result.hospitals.some((item) => item.name === "Royal Brisbane and Women's Hospital"), 'the hospital is not listed twice');
+  delete process.env.GOOGLE_PLACES_API_KEY;
+});
