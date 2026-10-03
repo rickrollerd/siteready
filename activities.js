@@ -384,7 +384,7 @@ const ACTIVITIES = [
         controls: [
           { only: 'deepTrench', text: 'No one enters the trench until the support is in place and checked.' },
           { only: 'deepTrench', ...src('Work only inside the trench support, with the access ladder secured to it.', QCODE('Excavation work', 's 4.4, s 6.3')) },
-          { unless: 'deepTrench', ...src('Before anyone enters, check the depth. The trench is kept shallower than 1.5 m. If it must go deeper, work stops and this SWMS is reviewed: a trench of 1.5 m or more is high risk construction work, and is shored, benched or battered before anyone enters.', WHS('s 291, s 306')) },
+          { unless: 'deepTrench', ...src('Before anyone enters, check the depth. The trench is kept shallower than 1.5 m. If it must go deeper, work stops and this SWMS is reviewed: a trench deeper than 1.5 m is high risk construction work, and a trench 1.5 m deep or more is shored, benched or battered before anyone enters.', WHS('s 291, s 306')) },
           { fact: 'fallControl' },
           src('A competent person checks the trench walls and support at the start of each shift and frequently, including after rain. Any damage is repaired from above before work below continues.', QCODE('Excavation work', 's 6.7')),
           src('Check the air with a gas monitor before entry, with a safety observer at the surface.', MODEL('Excavation work', 's 4.6')),
@@ -6728,7 +6728,7 @@ const ACTIVITIES = [
         'Valves are closed when cylinders are empty, valves are never lubricated, and leaks are never repaired by the user. Treat empty cylinders as if they were full.',
         src('Move cylinders with a cylinder trolley, not by rolling or carrying.', MODEL('Hazardous manual tasks', 's 4.5')),
         src('Each cylinder carries a current inspection mark.', WHS('s 224')),
-        src('Monitor the manifold room atmosphere for oxygen enrichment (above 23%) while cylinders are connected or changed, and ventilate the room.', `${WHS('s 51, schedule 19')}; ${QCODE('Welding processes', 's 3.6')}`),
+        src('Monitor the manifold room atmosphere for oxygen enrichment (above 23.5%, the top of the safe oxygen level) while cylinders are connected or changed, and ventilate the room.', `${WHS('s 51, schedule 19')}; ${QCODE('Welding processes', 's 3.6')}`),
       ],
     }],
   },

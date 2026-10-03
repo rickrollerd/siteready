@@ -454,6 +454,11 @@ function silicaProcessing(text) {
   return SILICA_MATERIAL.test(source) && SILICA_POWER.test(source);
 }
 
+// Demolishing a whole building or structure, as opposed to strip-out of linings, partitions or
+// fit-outs. A longer description, such as "a three storey concrete commercial building", or a
+// warehouse or car park, is a whole structure too.
+const WHOLE_DEMOLITION = /\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|dwellings?|granny flats?|bridges?)\b|\bdemolish\w*\b(?:(?!\b(?:non[- ]load[- ]bearing|partitions?|internal|interior|fit-?outs?|linings?|ceilings?|kitchens?|bathrooms?|inside|within|in the)\b)[^.]){0,60}\b(?:buildings?|warehouses?|car ?parks?|factor(?:y|ies)|towers?|structures?|grandstands?)\b/i;
+
 function highRiskMatches(raw, answer, state) {
   // "Prior to the energisation of a building" is a point in time, not work near energised parts.
   const text = String(raw || '').replace(BUILDING_ENERGISATION, ' ');
@@ -461,7 +466,7 @@ function highRiskMatches(raw, answer, state) {
     fall: fallRiskFor(text, answer),
     tower: mentioned(text, /\btelecommunication tower\b/i),
     // Demolishing a whole building takes down its load-bearing parts.
-    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || mentioned(text, DEMOLITION) && (mentioned(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, ''), /\b(load-bearing|load bearing|structur\w*)\b/i) || /\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|dwellings?|granny flats?|bridges?)\b/i.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
+    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || mentioned(text, DEMOLITION) && (mentioned(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, ''), /\b(load-bearing|load bearing|structur\w*)\b/i) || WHOLE_DEMOLITION.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
     asbestos: mentioned(text, /\basbestos\b/i),
     // Structural alterations or repairs to an existing structure that need temporary support.
     // Propping and backpropping new formwork and slabs is not an alteration or repair.
@@ -1531,7 +1536,8 @@ const MAIN_WORK = [
   [/\bbollards?\b/i, 'bollard installation', /\bbollards\b/i],
   [/\bexhaust fans?\b[^.]{0,40}\b(?:ceilings?|roof spaces?)\b|\b(?:ceilings?|roof spaces?)\b[^.]{0,40}\bexhaust fans?\b/i, 'exhaust fan work in a ceiling', /\bWork in the roof space\b/],
   [/\bremov\w*\b[^.]{0,30}\b(?:split systems?|air ?condition\w*)/i, 'removing the units', /\b(Receive plant|Install ductwork, pipework and units)\b/],
-  [/\b(jackhammer\w*|break\w* (?:out|up)|breakers?)\b/i, 'breaking out concrete', /\b(break|Trim pile heads|Demolish|Saw cut)/i],
+  // A circuit breaker is electrical work, not concrete breaking.
+  [/\b(jackhammer\w*|break\w* (?:out|up)|(?<!circuit[- ])breakers?)\b/i, 'breaking out concrete', /\b(break|Trim pile heads|Demolish|Saw cut)/i],
   [/^(?![^]*\b(?:repoint\w*|sandstone|brick\w*|masonry|stone walls?|render\w*|concrete|retaining walls?|fire ?walls?|fibro|asbestos)\b)[^]*\b(?:patch\w*|repair\w*)\b[^.]{0,30}\b(?:plasterboard|linings?|walls?(?! frames?| framing)|ceilings?)\b/i, 'patching linings', /\bCut, set and sand\b/],
   [/\b(underfloor heating|heating cables?|heating mats?)\b/i, 'underfloor heating installation', /\b(heating|Rough-in and fit-off)\b/i],
   [/^\s*(?:install|fix|replac)\w*\s+(?:[\w-]+\s+){0,3}(?:cladding|weatherboards?)\b/i, 'cladding installation', /\bcladding\b/i],
