@@ -112,6 +112,8 @@ const PLASTER_WORK = /\b(plasterboard|gyprock|drywall|set(?:ting)? compound\w*|c
 const FLOOR_WORK = /\b(carpet\w*|vinyl|rubber floor\w*|floor coverings?|timber floor\w*|engineered timber|floating floors?|levelling compound\w*)\b/i;
 
 const GLAZING_WORK = /\b(glass balustrades?|balustrades?|shower screens?|internal glazing|glass partitions?|mirrors?|mullions?|(?:install|replac|fit|glaz)\w*\b[^.]{0,30}\b(?:windows?|window panes?|glass(?! ?wool| ?fibre)))\b/i;
+// Work on engineered stone already installed: removing, repairing, modifying or disposing of it.
+const ENG_STONE_INSTALLED = /\b(remov\w*|repair\w*|modif\w*|dispos\w*|existing|already installed|installed engineered stone|demolish\w*|strip\w*)\b/i;
 const STONE_WORK = /\b(benchtops?|stone (?:slabs?|vanit\w*)|splashbacks?)\b/i;
 
 const FIRE_SERVICES = /\b(sprinklers?|hydrants?|fire services?|fire mains?|fire pumps?|fire pipework|fire hose reels?)\b/i;
@@ -1480,8 +1482,13 @@ function questionsFor(input) {
   if (!task) return { kind: 'error', message: 'Write the task.' };
   // Engineered stone: supplying, installing or processing it is prohibited, except
   // removing, repairing, making minor modifications to or disposing of installed stone.
-  if (/\bengineered stone\b/i.test(task) && /\b(install\w*|supply\w*|fabricat\w*|manufactur\w*|cut\w*|process\w*|fit\w*|polish\w*)\b/i.test(task) && !/\b(remov\w*|repair\w*|minor modifications?|dispos\w*|existing|already installed|demolish\w*|strip\w*)\b/i.test(task)) {
-    return { kind: 'refused', state: state.name, message: 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under work health and safety law, so SiteReady does not prepare a SWMS for it. Removing, repairing, making minor modifications to or disposing of installed engineered stone is allowed with controls, and the regulator may need to be notified: describe that work instead, or use natural stone or another material.' };
+  if (/\bengineered stone\b/i.test(task) && /\b(install\w*|supply\w*|fabricat\w*|manufactur\w*|cut\w*|process\w*|fit\w*|polish\w*)\b/i.test(task) && !ENG_STONE_INSTALLED.test(task)) {
+    // Victoria: regulations 319Y and 319ZB, with no notice to the regulator. Elsewhere written notice
+    // is given before the work (s 529G; ACT s 418I).
+    const message = state.id === 'vic'
+      ? 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under the Occupational Health and Safety Regulations 2017 (Vic) (regulation 319Y), so SiteReady does not prepare a SWMS for it. Removing, repairing, modifying or disposing of installed engineered stone is allowed with the engineered stone controls: describe that work instead, or use natural stone or another material.'
+      : 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under work health and safety law, so SiteReady does not prepare a SWMS for it. Removing, repairing, making minor modifications to or disposing of installed engineered stone is allowed if the processing is controlled, and the regulator must be given written notice before the work starts: describe that work instead, or use natural stone or another material.';
+    return { kind: 'refused', state: state.name, message };
   }
   if (state.residentialFallMetres && !residentialAnswer(input.residential)) {
     return { kind: 'error', message: 'Answer whether this is residential construction work.' };
@@ -2130,6 +2137,13 @@ function settleFlags(flags, task) {
   if (/\b(conduits?|pits?)\b/i.test(task) && !/\bcabl\w*\b/i.test(task)) out.ictWork = false;
   if (out.skylight && out.houseWork) out.roofSpace = true;
   if (out.applianceSwap) out.fitOff = false;
+  // Installed engineered stone has its own step; it is not cut, finished or set like new stone.
+  if (out.engStoneWork) {
+    out.stoneSilica = false;
+    if (!/\b(replac\w*|new)\b/i.test(task)) out.stoneHandle = false;
+    // An appliance swap prints the engineered stone lines in its own step.
+    if (out.applianceSwap) out.engStoneWork = false;
+  }
   if (out.crackInjection && !/\b(spall\w*|break\w* out|concrete cancer)\b/i.test(task)) out.concreteRepair = false;
   if (out.tankWalls) out.confined = out.confined || false;
   if (out.slabRemoval && out.groundCut) out.cutOpening = false;
@@ -3309,6 +3323,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     stoneWork: STONE_WORK.test(task),
     siteSheds: /\b(site sheds?|site offices?|temporary (?:site )?offices?|site amenities|amenities (?:sheds?|blocks?)|site toilets?|portable toilets?|crib (?:rooms?|sheds?)|dongas?|demountables?|(?:site|temporary) (?:office|toilets?|crib))\b/i.test(task) && !/\bslabs? for (?:an? |the )?(?:\w+ )?sheds?\b/i.test(task) && /\b(set up|install\w*|erect\w*|lift\w*|place\w*)\b/i.test(task),
     stoneSilica: STONE_WORK.test(task) && /\b(cut\w*|drill\w*|polish\w*|grind\w*)\b/i.test(task),
+    // Removing, repairing, modifying or disposing of installed engineered stone (s 529F).
+    engStoneWork: ENG_STONE_INSTALLED.test(task) && /\bengineered stone\b/i.test(task),
     stoneHandle: STONE_WORK.test(task) && /\b(install\w*|set\w*|carr\w*|mov\w*|lift\w*|fit\w*|replac\w*)\b/i.test(task) && !/\blaminate\b/i.test(task),
     roofStrip: /\broof\w*\b/i.test(roofTask) && /\b(remov\w*|replac\w*|strip\w*|re-?roof\w*)\b/i.test(roofTask),
     facadeWork: FACADE_WORK.test(task),

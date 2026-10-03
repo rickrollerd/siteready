@@ -193,6 +193,13 @@ const VIC_TEXT = [
   [/a trench deeper than 1\.5 m is high risk construction work, and a trench 1\.5 m deep or more is shored, benched or battered before anyone enters\./, 'a trench deeper than 1.5 m is high risk construction work, and its sides are supported before anyone enters.', KEEP],
   // Part 3.3 applies to falls of more than 2 m, and sets no rail sizes.
   [/\bWork from a solid surface with edge protection wherever a fall of 2 m or more is possible:/, 'Work from a solid surface with edge protection wherever a fall of more than 2 m is possible:'],
+  // Installed engineered stone: regulation 319ZB allows removal, repair, modification and disposal
+  // done with the engineered stone controls (r 319S to r 319X), and sets no notice to the regulator.
+  [/^Installed engineered stone is cut, drilled or broken only to remove, repair, make minor modifications to or dispose of it, and only if the processing is controlled:/, `Installed engineered stone is cut, drilled or broken only to remove, repair, modify or dispose of it. The power tool or plant is used with an integrated water delivery system giving a continuous supply of water to the point of contact, or on-tool extraction connected to a Dust Class H vacuum or another system that captures the dust, and with local exhaust ventilation only where neither is reasonably practicable. Employees wear the respiratory protective equipment provided and are trained in the tool and the equipment, and compressed air is not used to clean the work area or clothing.${cite('vic', '319S', '319V', '319W', '319X', '319Y', '319ZB')}`],
+  [/^Before installed engineered stone is processed, written notice of the work.*$/, null],
+  // Regulation 5: porcelain and sintered stone are not engineered stone only where they contain no resin.
+  [/\bPorcelain and sintered stone are not engineered stone\./, 'Porcelain and sintered stone products that contain no resin are not engineered stone.', KEEP],
+  [/\bCeramic and porcelain tiles and grout are not engineered stone\./, 'Ceramic tiles, porcelain tiles that contain no resin, and grout are not engineered stone.', KEEP],
   // Regulation 5: a crystalline silica substance contains more than 1%; r 341 names the construction induction card.
   [/\b1% or more crystalline silica\b/, 'more than 1% crystalline silica', KEEP],
   [/\bgeneral construction induction card\b/, 'construction induction card', KEEP],
@@ -241,6 +248,11 @@ const ACT_TEXT = [
   [/^Natural stone and porcelain with 1% or more crystalline silica: .*$/, `Porcelain and sintered stone containing crystalline silica are stone-substitute material: they are processed with power tools only with a continuous water feed and at least one other crystalline silica control, and exposed workers wear respiratory protective equipment. Natural stone is processed with the controls section 418CAA requires. Cut in the factory where possible.${cite('act', '418B', '418C', '418CAA')}`],
   [/a product with 1% or more crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, 'a product containing crystalline silica, such as plasterboard, grout, render or a concrete product, is crystalline silica material, and power sanding or cutting it is processing that must use the crystalline silica controls sections 418BAA and 418CAA require.', KEEP],
   [/Where rock is drilled or broken with plant, control the silica dust \(wet methods or extraction\) and assess it in writing before starting\./, () => `Where rock is drilled or broken with plant, ${ACT_MATERIAL}.`, KEEP],
+  // Installed engineered stone (s 418H): stone installed before 1 July 2024 or as s 418G allows, a
+  // continuous water feed with one other control and respiratory protective equipment; notice
+  // before the work, kept for 5 years (s 418I, s 418J). The ACT has no change or 12 month notice.
+  [/^Installed engineered stone is cut, drilled or broken only to remove, repair, make minor modifications to or dispose of it, and only if the processing is controlled:/, `Installed engineered stone is cut, drilled or broken only to remove, repair or make minor modifications to stone installed before 1 July 2024 (or as section 418G allows), or to dispose of it, and only if the work is controlled: the risk is eliminated so far as is reasonably practicable or, where it cannot be, minimised with a continuous water feed over the processing area, at least one other crystalline silica control, and respiratory protective equipment provided to and worn by each worker who may be exposed.${cite('act', '418F', '418H')}`],
+  [/^Before installed engineered stone is processed, written notice of the work/, `Before installed engineered stone is processed, written notice of the work, its type, and its frequency and duration is given to the regulator, and a copy is kept for 5 years.${cite('act', '418I', '418J')}`],
 ];
 
 const STATE_TEXT = {

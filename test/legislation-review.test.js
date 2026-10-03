@@ -282,3 +282,37 @@ test('confined space records: 28 days and completion, or 2 years after a notifia
     assert.match(text, /^Close and sign off the entry permit, confirming everyone has left\. Keep the risk assessment until at least 28 days after the work and the permit until the work is complete, or both for at least 2 years after a notifiable incident, available for inspection and to workers on request\. \(.*\b77\)$/, state);
   }
 });
+
+test('installed engineered stone: removal, repair and disposal are controlled processing with notice (s 529F, s 529G)', () => {
+  const removal = 'Remove and dispose of installed engineered stone benchtops from a commercial kitchen during a refurbishment.';
+  const repair = 'Repair a chip and make a minor cut-out modification to an installed engineered stone benchtop in an office.';
+  const cooktop = 'Replace a cooktop in an existing commercial kitchen, cutting the engineered stone benchtop cut-out to suit.';
+  for (const [state, refs] of [['qld', 's 529G, s 529H, s 529I, s 529J'], ['nsw', 's 529G, s 529H, s 529I, s 529J'], ['sa', 'r 529G, r 529H, r 529I, r 529J'], ['wa', 'r 529G, r 529H, r 529I, r 529J'], ['tas', 'r 529G, r 529H, r 529I, r 529J'], ['nt', 'r 529G, r 529H, r 529J, r 529K']]) {
+    for (const task of [removal, repair, cooktop]) {
+      const text = lines(draft(state, task));
+      assert.ok(text.some((item) => /^Installed engineered stone is cut, drilled or broken only to remove, repair, make minor modifications to or dispose of it, and only if the processing is controlled: .*529B, [rs] 529D, [rs] 529F\)$/.test(item)), `${state}: ${task}`);
+      assert.ok(text.some((item) => item.startsWith('Before installed engineered stone is processed, written notice of the work') && item.endsWith(`${refs})`)), `${state}: ${task}`);
+      assert.ok(!text.some((item) => /^No engineered stone benchtops, panels or slabs are supplied, installed or processed\./.test(item)), `${state}: ${task}`);
+    }
+  }
+  // Victoria: r 319ZB with the r 319S to r 319X controls, and no notice.
+  const vic = lines(draft('vic', removal));
+  assert.ok(vic.some((item) => /^Installed engineered stone is cut, drilled or broken only to remove, repair, modify or dispose of it\. .*\(Occupational Health and Safety Regulations 2017 \(Vic\) r 319S, r 319V, r 319W, r 319X, r 319Y, r 319ZB\)$/.test(item)));
+  assert.ok(!vic.some((item) => /written notice|its type, and its frequency/.test(item)));
+  // The ACT: stone installed before 1 July 2024, water and one other control, notice kept 5 years.
+  const act = lines(draft('act', removal));
+  assert.ok(act.some((item) => /installed before 1 July 2024 .*continuous water feed.*\(Work Health and Safety Regulation 2011 \(ACT\) s 418F, s 418H\)$/.test(item)));
+  assert.ok(act.includes('Before installed engineered stone is processed, written notice of the work, its type, and its frequency and duration is given to the regulator, and a copy is kept for 5 years. (Work Health and Safety Regulation 2011 (ACT) s 418I, s 418J)'));
+});
+
+test('engineered stone refusal: notice is required (s 529G); Victoria names r 319Y and sets no notice', () => {
+  const task = 'Cut and install engineered stone benchtops in a commercial office fitout.';
+  const nsw = prepareDraft({ state: 'nsw', task, fallRisk: 'no', residential: 'no' });
+  assert.equal(nsw.kind, 'refused');
+  assert.match(nsw.message, /the regulator must be given written notice before the work starts/);
+  const vic = prepareDraft({ state: 'vic', task, fallRisk: 'no', residential: 'no' });
+  assert.match(vic.message, /Occupational Health and Safety Regulations 2017 \(Vic\) \(regulation 319Y\)/);
+  assert.doesNotMatch(vic.message, /notif|notice/);
+  // Victoria: porcelain and sintered stone are excluded only without resin (r 5).
+  assert.match(localControl('No engineered stone benchtops, panels or slabs are supplied, installed or processed. Porcelain and sintered stone are not engineered stone.', `${QLD}s 529A, s 529D`, 'vic'), /Porcelain and sintered stone products that contain no resin are not engineered stone\. \(Occupational Health and Safety Regulations 2017 \(Vic\) r 319Y\)$/);
+});
