@@ -248,3 +248,12 @@ test('one free trial per ABN, and the ABN must be a valid ABN', async () => {
   const save = await call('POST', '/api/swms', { token: await signIn('nocompany@abn.example', { company: false }), body: { input: INPUT, ...CONFIRM } });
   assert.equal(save.status, 400, 'saving needs the business name and ABN');
 });
+
+test('the session also works in X-Session-Token, which wins over a replaced Authorization header', async () => {
+  const token = await signIn('header@co.example');
+  const me = (headers) => fetch(`${base}/api/me`, { headers });
+  assert.equal((await me({ 'X-Session-Token': token })).status, 200);
+  assert.equal((await me({ Authorization: 'Bearer something-else', 'X-Session-Token': token })).status, 200);
+  assert.equal((await me({ Authorization: `Bearer ${token}` })).status, 200);
+  assert.equal((await me({ 'X-Session-Token': 'not-a-session' })).status, 401);
+});
