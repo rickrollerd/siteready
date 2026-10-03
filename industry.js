@@ -1,9 +1,11 @@
 // Industry data (terms of use section 8). For each SWMS saved or downloaded by a business,
-// one de-identified record: the state, the first two digits of the job's postcode, the trade,
+// one de-identified record: the state, the job's postcode, the trade,
 // the job steps and kinds of work, high risk work categories, plant and licence classes, the
 // general type of project and the month. No names, ABN, address, email, account id or free
 // text is kept. The business is kept only as a keyed one-way code, so figures can be limited
 // to at least 10 businesses; it cannot be turned back into the account without the key.
+// Figures for a postcode are only released where at least 10 businesses are counted in it;
+// smaller counts roll up to the first two digits, then the state, then are left out.
 const crypto = require('crypto');
 const db = require('./db');
 
@@ -38,6 +40,7 @@ function recordFor(draft, input, company) {
   return {
     month,
     state: String(input.state || '').toLowerCase().slice(0, 3),
+    postcode,
     postcodeArea: postcode ? postcode.slice(0, 2) : '',
     trade: String(input.trade || '').slice(0, 60),
     projectType: projectType(`${draft.task || ''} ${input.workplace || ''}`),
@@ -57,11 +60,50 @@ async function recordIndustry(draft, input, company) {
   const record = recordFor(draft, input || {}, company);
   const seen = await db.one('SELECT 1 AS found FROM industry_records WHERE dedupe = $1', [record.dedupe]);
   if (seen) return;
-  await db.query('INSERT INTO industry_records (id, month, state, postcode_area, trade, project_type, steps, kinds, high_risk, plant, licences, business, dedupe) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)', [
-    crypto.randomBytes(12).toString('hex'), record.month, record.state, record.postcodeArea, record.trade, record.projectType,
+  await db.query('INSERT INTO industry_records (id, month, state, postcode, postcode_area, trade, project_type, steps, kinds, high_risk, plant, licences, business, dedupe) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [
+    crypto.randomBytes(12).toString('hex'), record.month, record.state, record.postcode, record.postcodeArea, record.trade, record.projectType,
     JSON.stringify(record.steps), JSON.stringify(record.kinds), JSON.stringify(record.highRisk), JSON.stringify(record.plant), JSON.stringify(record.licences),
     record.business, record.dedupe,
   ]);
 }
 
-module.exports = { recordIndustry, recordFor, projectType };
+const MIN_BUSINESSES = 10;
+
+// Counts of SWMS and businesses by place, safe to release. A postcode with fewer than 10
+// businesses is folded into its two digit area, an area into its state, and a state with
+// fewer than 10 is left out. Optional filters narrow the records first (month, trade, project type).
+async function releasableFigures({ month, trade, projectType: type } = {}) {
+  const where = [];
+  const values = [];
+  for (const [column, value] of [['month', month], ['trade', trade], ['project_type', type]]) {
+    if (value) { values.push(String(value)); where.push(`${column} = $${values.length}`); }
+  }
+  const rows = await db.query(`SELECT state, postcode, postcode_area, business FROM industry_records${where.length ? ` WHERE ${where.join(' AND ')}` : ''}`, values);
+  const group = (items, key) => {
+    const out = new Map();
+    for (const item of items) out.set(key(item), [...(out.get(key(item)) || []), item]);
+    return out;
+  };
+  const businesses = (items) => new Set(items.map((item) => item.business)).size;
+  const figures = [];
+  let leftover = [];
+  for (const [, items] of group(rows.filter((row) => row.postcode), (row) => `${row.state}|${row.postcode}`)) {
+    if (businesses(items) >= MIN_BUSINESSES) figures.push({ level: 'postcode', state: items[0].state, place: items[0].postcode, swms: items.length, businesses: businesses(items) });
+    else leftover.push(...items);
+  }
+  leftover.push(...rows.filter((row) => !row.postcode && row.postcode_area));
+  const next = [];
+  for (const [, items] of group(leftover, (row) => `${row.state}|${row.postcode_area}`)) {
+    if (businesses(items) >= MIN_BUSINESSES) figures.push({ level: 'area', state: items[0].state, place: `${items[0].postcode_area}xx`, swms: items.length, businesses: businesses(items) });
+    else next.push(...items);
+  }
+  leftover = [...next, ...rows.filter((row) => !row.postcode && !row.postcode_area)];
+  let withheld = 0;
+  for (const [, items] of group(leftover, (row) => row.state)) {
+    if (businesses(items) >= MIN_BUSINESSES) figures.push({ level: 'state', state: items[0].state, place: items[0].state, swms: items.length, businesses: businesses(items) });
+    else withheld += items.length;
+  }
+  return { figures, withheldSwms: withheld, minBusinesses: MIN_BUSINESSES };
+}
+
+module.exports = { recordIndustry, recordFor, projectType, releasableFigures, MIN_BUSINESSES };

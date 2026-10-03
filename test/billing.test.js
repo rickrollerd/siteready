@@ -128,15 +128,16 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
   assert.equal((await call('POST', '/api/swms', { token, body: { input, ...confirm } })).status, 201);
   const rows = await db.query('SELECT * FROM industry_records');
   assert.equal(rows.length, before + 1, 'one record per business, task and month');
-  const row = rows.find((item) => item.postcode_area === '43');
-  assert.ok(row, 'the record keeps the first two digits of the postcode');
+  const row = rows.find((item) => item.postcode === '4350');
+  assert.ok(row, 'the record keeps the postcode');
+  assert.equal(row.postcode_area, '43');
   assert.equal(row.state, 'qld');
   assert.equal(row.trade, 'Plumber');
   assert.equal(row.project_type, 'hospital');
   assert.match(row.month, /^\d{4}-\d{2}$/);
   assert.ok(JSON.parse(row.steps).length > 0);
   const text = JSON.stringify(row);
-  for (const secret of ['Secret Builders', '83914571673', '83 914', 'industry@co.example', 'Toowoomba', 'Pechey', '4350', 'sprinkler pipework in the ward', 'Alex Chen']) {
+  for (const secret of ['Secret Builders', '83914571673', '83 914', 'industry@co.example', 'Toowoomba', 'Pechey', 'sprinkler pipework in the ward', 'Alex Chen']) {
     assert.ok(!text.includes(secret), `the record does not keep ${secret}`);
   }
   const company = await db.one('SELECT id FROM companies WHERE name = $1', ['Secret Builders Pty Ltd']);
@@ -152,4 +153,21 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
   const other = { ...input, task: 'Cut and fit copper pipe to the hand basins in the ward.' };
   assert.equal((await call('POST', '/api/swms', { token, body: { input: other, ...confirm } })).status, 201);
   assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM industry_records')).n), before + 1, 'no record after opting out');
+});
+
+test('figures by place are released only where at least 10 businesses are counted', async () => {
+  const owner = await signIn('owner@siteready.example');
+  await db.query("DELETE FROM industry_records");
+  const add = (n, postcode, state = 'qld') => db.query('INSERT INTO industry_records (id, month, state, postcode, postcode_area, trade, business, dedupe) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [`r${n}${postcode}`, '2026-10', state, postcode, postcode.slice(0, 2), 'Plumber', `b${n}${postcode}`, `d${n}${postcode}`]);
+  for (let n = 0; n < 12; n += 1) await add(n, '4000');      // 12 businesses: released as a postcode
+  for (let n = 0; n < 6; n += 1) await add(n, '4350');       // 6 + 5 in area 43: released as the area
+  for (let n = 0; n < 5; n += 1) await add(n, '4352');
+  for (let n = 0; n < 3; n += 1) await add(n, '4870');       // 3 left over in Qld: withheld
+  for (let n = 0; n < 4; n += 1) await add(n, '0800', 'nt'); // 4 in the NT: withheld
+  assert.equal((await call('GET', '/api/admin/industry/figures', { token: await signIn('nosy2@co.example') })).status, 403);
+  const result = await (await call('GET', '/api/admin/industry/figures', { token: owner })).json();
+  const places = result.figures.map((item) => `${item.level}:${item.place}:${item.businesses}`).sort();
+  assert.deepEqual(places, ['area:43xx:11', 'postcode:4000:12']);
+  assert.ok(result.figures.every((item) => item.businesses >= 10));
+  assert.equal(result.withheldSwms, 7);
 });
