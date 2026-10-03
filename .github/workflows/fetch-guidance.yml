@@ -1,0 +1,38 @@
+name: Fetch guidance texts
+
+# Reads codes of practice and guides in full and commits the text to the
+# guidance-sources branch, so SiteReady's lines can be checked against them.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fetch-guidance.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - name: Fetch each source
+        run: |
+          for name in scaffoldCode mobilePlantSupport constructionCode plant falls; do
+            SOURCE=$name OUT=guidance-sources/$name.txt node legislation-watch/fetch-source.js || echo "$name failed"
+          done
+          ls -la guidance-sources
+      - name: Commit the texts to the guidance-sources branch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan guidance-sources-tmp
+          git rm -rqf --cached .
+          git add guidance-sources
+          git commit -qm "Guidance texts, fetched $(date -u +%Y-%m-%d)"
+          git push -f origin HEAD:refs/heads/guidance-sources
