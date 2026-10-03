@@ -108,3 +108,48 @@ test('the health check reports the database', async () => {
   const health = await (await call('GET', '/api/health')).json();
   assert.deepEqual(health, { ok: true, database: 'ok' });
 });
+
+test('a saved SWMS leaves one de-identified industry record, and an opted out business leaves none', async () => {
+  const owner = await signIn('owner@siteready.example');
+  const token = await signIn('industry@co.example');
+  const abn = '83 914 571 673';
+  assert.equal((await call('PUT', '/api/company', { token, body: { name: 'Secret Builders Pty Ltd', abn } })).status, 200);
+  const input = {
+    state: 'qld',
+    trade: 'Plumber',
+    workplace: 'Ward 3, Toowoomba Hospital, Pechey St, Toowoomba QLD 4350',
+    task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
+    fallRisk: 'yes',
+    facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
+  };
+  const confirm = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
+  const before = Number((await db.one('SELECT COUNT(*) AS n FROM industry_records')).n);
+  assert.equal((await call('POST', '/api/swms', { token, body: { input, ...confirm } })).status, 201);
+  assert.equal((await call('POST', '/api/swms', { token, body: { input, ...confirm } })).status, 201);
+  const rows = await db.query('SELECT * FROM industry_records');
+  assert.equal(rows.length, before + 1, 'one record per business, task and month');
+  const row = rows.find((item) => item.postcode_area === '43');
+  assert.ok(row, 'the record keeps the first two digits of the postcode');
+  assert.equal(row.state, 'qld');
+  assert.equal(row.trade, 'Plumber');
+  assert.equal(row.project_type, 'hospital');
+  assert.match(row.month, /^\d{4}-\d{2}$/);
+  assert.ok(JSON.parse(row.steps).length > 0);
+  const text = JSON.stringify(row);
+  for (const secret of ['Secret Builders', '83914571673', '83 914', 'industry@co.example', 'Toowoomba', 'Pechey', '4350', 'sprinkler pipework in the ward', 'Alex Chen']) {
+    assert.ok(!text.includes(secret), `the record does not keep ${secret}`);
+  }
+  const company = await db.one('SELECT id FROM companies WHERE name = $1', ['Secret Builders Pty Ltd']);
+  assert.ok(!text.includes(company.id), 'the record does not keep the account id');
+
+  const seen = await (await call('GET', '/api/admin/industry', { token: owner })).json();
+  assert.ok(seen.total >= 1);
+  assert.ok(seen.records.every((record) => !('business' in record)));
+  assert.equal((await call('GET', '/api/admin/industry', { token })).status, 403);
+
+  assert.equal((await call('POST', '/api/admin/industry/opt-out', { token, body: { abn } })).status, 403);
+  assert.equal((await call('POST', '/api/admin/industry/opt-out', { token: owner, body: { abn } })).status, 200);
+  const other = { ...input, task: 'Cut and fit copper pipe to the hand basins in the ward.' };
+  assert.equal((await call('POST', '/api/swms', { token, body: { input: other, ...confirm } })).status, 201);
+  assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM industry_records')).n), before + 1, 'no record after opting out');
+});

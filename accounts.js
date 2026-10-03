@@ -4,6 +4,7 @@ const express = require('express');
 const QRCode = require('qrcode');
 const db = require('./db');
 const JSZip = require('jszip');
+const { recordIndustry } = require('./industry');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
@@ -102,11 +103,23 @@ router.put('/me', requireUser, route(async (req, res) => {
 
 router.get('/company', requireUser, (req, res) => res.json({ company: companyView(req.company) }));
 
+// An ABN is valid when its check digits work: take 1 from the first digit, weight the
+// digits 10, 1, 3, 5 ... 19, and the total divides by 89 (Australian Business Register).
+function validAbn(value) {
+  const digits = String(value || '').replace(/\s/g, '');
+  if (!/^\d{11}$/.test(digits)) return false;
+  const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+  const total = [...digits].reduce((sum, digit, index) => sum + (Number(digit) - (index === 0 ? 1 : 0)) * weights[index], 0);
+  return total % 89 === 0;
+}
+
 router.put('/company', requireUser, route(async (req, res) => {
   const body = req.body || {};
   // Once a SWMS has been saved or downloaded, the company name and ABN are fixed.
   const name = textField(body.name, 200);
   const abn = textField(body.abn, 40);
+  if (!name) throw fail(400, 'Enter your business name.');
+  if (!validAbn(abn)) throw fail(400, 'Enter your business\'s 11 digit ABN. The one entered is not a valid ABN.');
   const changed = (req.company.name && name !== req.company.name) || (req.company.abn && abn.replace(/\s/g, '') !== req.company.abn.replace(/\s/g, ''));
   if (changed) {
     const used = await db.one("SELECT COUNT(*) AS n FROM events WHERE company_id = $1 AND type IN ('download_pdf', 'download_word', 'swms_saved')", [req.company.id]);
@@ -116,8 +129,18 @@ router.put('/company', requireUser, route(async (req, res) => {
   await db.query('UPDATE companies SET name = $1, abn = $2, address = $3, phone = $4, email = $5, logo = $6 WHERE id = $7', [
     textField(body.name, 200), textField(body.abn, 40), textField(body.address, 300), textField(body.phone, 60), textField(body.email, 200), logo, req.company.id,
   ]);
+  // One free trial per ABN: a business whose ABN has already had a trial goes straight to subscribing.
+  const digits = abn.replace(/\s/g, '');
+  const holder = await db.one('SELECT company_id FROM trial_abns WHERE abn = $1', [digits]);
+  let notice = '';
+  if (!holder) {
+    await db.query('INSERT INTO trial_abns (abn, company_id, created_at) VALUES ($1, $2, $3)', [digits, req.company.id, new Date()]);
+  } else if (holder.company_id !== req.company.id && req.company.plan_status === 'trial' && new Date(req.company.trial_ends_at) > new Date()) {
+    await db.query('UPDATE companies SET trial_ends_at = $1 WHERE id = $2', [new Date(), req.company.id]);
+    notice = 'This ABN has already had its free trial, so this account has no trial. Subscribe to download, save and share SWMS.';
+  }
   const company = await db.one('SELECT * FROM companies WHERE id = $1', [req.company.id]);
-  res.json({ company: companyView(company) });
+  res.json({ company: companyView(company), ...(notice ? { notice } : {}) });
 }));
 
 // Only the company's administrator adds and removes people.
@@ -262,6 +285,8 @@ router.get('/swms', requireUser, route(async (req, res) => {
 }));
 
 router.post('/swms', requireAccess, route(async (req, res) => {
+  // Saving, like downloading, needs the business name and ABN, which are printed on every SWMS.
+  if (!String(req.company.name || '').trim() || !String(req.company.abn || '').trim()) throw fail(400, 'Add your business name and ABN under Company details before saving. They are printed on every SWMS.');
   const body = req.body || {};
   const name = reviewer(body);
   const input = cleanInput(body.input);
@@ -276,6 +301,7 @@ router.post('/swms', requireAccess, route(async (req, res) => {
     [id, req.company.id, site ? site.id : null, titleFor(body, input), JSON.stringify(input), name, req.user.id, auth.newToken(), now, addMonths(now, REVIEW_MONTHS)],
   );
   record('swms_saved', req.company.id);
+  await recordIndustry(draft, input, req.company).catch(() => {});
   res.status(201).json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [id])) });
 }));
 
@@ -348,6 +374,7 @@ router.get('/swms/:id/docx', requireAccess, route(async (req, res) => {
   const parts = await documentParts(req, row);
   const buffer = await draftToDocx(parts.draft, parts);
   record('download_word', req.company.id);
+  await recordIndustry(parts.draft, typeof row.input === 'string' ? JSON.parse(row.input) : row.input, req.company).catch(() => {});
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${fileName(row, 'docx')}"`);
   res.send(Buffer.from(buffer));
@@ -358,6 +385,7 @@ router.get('/swms/:id/pdf', requireAccess, route(async (req, res) => {
   const parts = await documentParts(req, row);
   const buffer = await draftToPdf(parts.draft, { ...parts, note: draftedNote(parts.confirmation) });
   record('download_pdf', req.company.id);
+  await recordIndustry(parts.draft, typeof row.input === 'string' ? JSON.parse(row.input) : row.input, req.company).catch(() => {});
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="${fileName(row, 'pdf')}"`);
   res.send(buffer);
@@ -440,4 +468,4 @@ async function removeExpired(now = new Date()) {
   await db.query('DELETE FROM signins WHERE created_at < $1', [new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)]);
 }
 
-module.exports = { router, sendReviewReminders, removeExpired, withCompany, REVIEW_MONTHS };
+module.exports = { validAbn, router, sendReviewReminders, removeExpired, withCompany, REVIEW_MONTHS };
