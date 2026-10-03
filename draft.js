@@ -386,6 +386,13 @@ function trenchDepths(text) {
     if (/^\s*(?:or|and)\s+(?:more|deeper|over|greater)\b/i.test(String(text || '').slice(pattern.lastIndex))) continue;
     depths.push(Number(match[1] || match[2] || match[3]));
   }
+  // "A 1.2 m trench" and "excavate to 1.2 m": a figure of 6 m or less before the word trench,
+  // or after "to" following a dig, is the depth (a longer figure is the trench's length).
+  const before = /\b(\d+(?:\.\d+)?)\s*m(?:etre|eter)?s?\s+(?:deep\s+)?(?:trench(?:es)?|excavations?|shafts?|pits?)\b|\b(?:excavat\w*|dig\w*|trench\w*)\b[^.]{0,25}?\bto\s+(?:a depth of\s+)?(\d+(?:\.\d+)?)\s*m\b(?!\s*(?:long|wide|from|away))/gi;
+  while ((match = before.exec(String(text || '')))) {
+    const value = Number(match[1] || match[2]);
+    if (value > 0 && value <= 6) depths.push(value);
+  }
   // Millimetres: "400 mm deep".
   const mm = /\b(\d+)\s*mm\s+deep\b|\bdepth of\s+(\d+)\s*mm\b/gi;
   while ((match = mm.exec(String(text || '')))) {

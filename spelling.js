@@ -20,7 +20,7 @@ function englishWords() {
 
 // Construction words SiteReady knows: the words in its job steps, plus trade words.
 // Site words and brands that are not in the dictionary, so they are never "corrected".
-const SITE_WORDS = ['bondek', 'highset', 'lowset', 'porte', 'cochere', 'bulkfill', 'flange', 'flanges', 'formworker', 'formworkers', 'switchroom', 'switchrooms', 'telehandler', 'telehandlers', 'hebel', 'gyprock', 'villaboard', 'colorbond', 'zincalume', 'kliplok', 'trimdek', 'speedpanel', 'ringlock', 'kwikstage', 'cuplock', 'layher', 'franna', 'frannas', 'hiabs', 'dincel', 'bondor', 'weatherboard', 'weatherboards', 'fibro', 'besser', 'versiclad', 'scyon', 'linea', 'axon', 'stria', 'matrix', 'cemintel', 'blueboard', 'aquaboard', 'fyrchek', 'boral', 'holcim', 'hanson', 'humes', 'reln', 'nylex', 'xypex', 'ardex', 'mapei', 'davco', 'wattyl', 'dulux', 'taubmans', 'haymes', 'stramit', 'lysaght', 'onesteel', 'liberty', 'ramset', 'hilti', 'makita', 'dewalt', 'genie', 'haulotte', 'manitou', 'merlo', 'skyjack', 'bobcat', 'dingo', 'kanga', 'acrow', 'acrows', 'formply', 'tilt', 'tiltup', 'shotcreting', 'spoon', 'screeding', 'screed', 'grano', 'mudmap', 'mudmaps', 'setout', 'setouts', 'downpipe', 'soffit', 'soffits', 'reveal', 'reveals', 'mullion', 'mullions', 'transom', 'transoms', 'plasterer', 'plasterers', 'renderer', 'renderers', 'tiler', 'tilers', 'glazier', 'glaziers', 'sparkies', 'chippies', 'brickies', 'scaffies', 'subbies', 'dogmen', 'riggers', 'concreter', 'concreters', 'concretor', 'concretors', 'demolisher', 'demolishers', 'hydrovac', 'vactruck', 'jetter', 'jetting', 'relining', 'bitumen', 'bituminous', 'geotextile', 'geofabric', 'geogrid', 'gabion', 'gabions', 'culvert', 'culverts', 'pavement', 'stabilised', 'stabilisation', 'crusher', 'crushers', 'screening', 'pugmill', 'shoring', 'shotcrete', 'secant', 'contiguous', 'soldier', 'whaler', 'whalers', 'waler', 'walers', 'formtie', 'formties', 'backprop', 'backprops', 'backpropping', 'reshore', 'reshoring', 'falsework', 'jumpform', 'jumpforms', 'slipform', 'tableform', 'tableforms', 'bracket', 'brackets'];
+const SITE_WORDS = ['bunnings', 'bondek', 'highset', 'lowset', 'porte', 'cochere', 'bulkfill', 'flange', 'flanges', 'formworker', 'formworkers', 'switchroom', 'switchrooms', 'telehandler', 'telehandlers', 'hebel', 'gyprock', 'villaboard', 'colorbond', 'zincalume', 'kliplok', 'trimdek', 'speedpanel', 'ringlock', 'kwikstage', 'cuplock', 'layher', 'franna', 'frannas', 'hiabs', 'dincel', 'bondor', 'weatherboard', 'weatherboards', 'fibro', 'besser', 'versiclad', 'scyon', 'linea', 'axon', 'stria', 'matrix', 'cemintel', 'blueboard', 'aquaboard', 'fyrchek', 'boral', 'holcim', 'hanson', 'humes', 'reln', 'nylex', 'xypex', 'ardex', 'mapei', 'davco', 'wattyl', 'dulux', 'taubmans', 'haymes', 'stramit', 'lysaght', 'onesteel', 'liberty', 'ramset', 'hilti', 'makita', 'dewalt', 'genie', 'haulotte', 'manitou', 'merlo', 'skyjack', 'bobcat', 'dingo', 'kanga', 'acrow', 'acrows', 'formply', 'tilt', 'tiltup', 'shotcreting', 'spoon', 'screeding', 'screed', 'grano', 'mudmap', 'mudmaps', 'setout', 'setouts', 'downpipe', 'soffit', 'soffits', 'reveal', 'reveals', 'mullion', 'mullions', 'transom', 'transoms', 'plasterer', 'plasterers', 'renderer', 'renderers', 'tiler', 'tilers', 'glazier', 'glaziers', 'sparkies', 'chippies', 'brickies', 'scaffies', 'subbies', 'dogmen', 'riggers', 'concreter', 'concreters', 'concretor', 'concretors', 'demolisher', 'demolishers', 'hydrovac', 'vactruck', 'jetter', 'jetting', 'relining', 'bitumen', 'bituminous', 'geotextile', 'geofabric', 'geogrid', 'gabion', 'gabions', 'culvert', 'culverts', 'pavement', 'stabilised', 'stabilisation', 'crusher', 'crushers', 'screening', 'pugmill', 'shoring', 'shotcrete', 'secant', 'contiguous', 'soldier', 'whaler', 'whalers', 'waler', 'walers', 'formtie', 'formties', 'backprop', 'backprops', 'backpropping', 'reshore', 'reshoring', 'falsework', 'jumpform', 'jumpforms', 'slipform', 'tableform', 'tableforms', 'bracket', 'brackets'];
 const EXTRA = ['plasterboard', 'formwork', 'falsework', 'scaffolding', 'scaffold', 'excavator', 'excavation', 'telehandler', 'balustrade', 'balustrades', 'waterproofing', 'downpipes', 'downpipe', 'blockwork', 'brickwork', 'blockwall', 'jumpform', 'precast', 'shotcrete', 'stormwater', 'switchboard', 'switchboards', 'subcontractor', 'penetrations', 'reinforcement', 'asbestos', 'demolition', 'demolish', 'concrete', 'electrical', 'plumbing', 'carpentry', 'skylight', 'sarking', 'flashing', 'flashings', 'guttering', 'cladding', 'insulation', 'sprinklers', 'hydrant', 'hydrants', 'ductwork', 'refrigerant', 'condenser', 'chiller', 'generator', 'substation', 'transformer', 'conduit', 'containment', 'trench', 'trenching', 'backfill', 'compaction', 'asphalt', 'bitumen', 'pavers', 'retaining', 'footings', 'lintel', 'lintels', 'pergola', 'decking', 'joinery', 'benchtop', 'benchtops', 'membrane', 'membranes', 'sealant', 'silicone', 'grandstand', 'stadium', 'concourse', 'hospital', 'classroom', 'basement', 'dewatering', 'piling', 'stockpile', 'stockpiles', 'spoil', 'kerb', 'kerbs', 'bollards', 'hoarding', 'gantry', 'crane', 'cranes', 'forklift', 'elevating', 'platform', 'scissor', 'electrician', 'plumber', 'carpenter', 'bricklayer', 'scaffolder', 'rigger', 'dogman'];
 
 let vocabulary = null;
@@ -73,20 +73,53 @@ function correction(word) {
   // A plural or singular of a known word is not a typo.
   if (known(lower.replace(/s$/, '')) || known(lower.replace(/ies$/, 'y')) || known(lower.replace(/es$/, '')) || known(`${lower}s`)) return null;
   const max = lower.length >= 8 ? 2 : 1;
-  let best = null;
   let bestDistance = max + 1;
-  let tied = false;
+  let closest = [];
   for (const candidate of vocab) {
     // The first letter is almost always typed right.
     if (candidate[0] !== lower[0]) continue;
     const gap = distance(lower, candidate, max);
-    if (gap < bestDistance) { best = candidate; bestDistance = gap; tied = false; } else if (gap === bestDistance && candidate !== best) tied = true;
+    if (gap < bestDistance) { bestDistance = gap; closest = [candidate]; } else if (gap === bestDistance && gap <= max) closest.push(candidate);
   }
-  if (!best || tied || bestDistance > max) return null;
+  if (!closest.length) return englishCorrection(lower, word);
+  let best = closest.length === 1 ? closest[0] : null;
+  // A tie is settled by a missed double letter, then by the English dictionary.
+  if (!best && closest.filter((candidate) => doubled(lower, candidate)).length === 1) best = closest.find((candidate) => doubled(lower, candidate));
+  if (!best) return englishCorrection(lower, word);
   // Only the ending differs by an s: a plural, not a typo.
   if (best === `${lower}s` || `${best}s` === lower) return null;
   // Keep a capital first letter.
   return word[0] === word[0].toUpperCase() ? best[0].toUpperCase() + best.slice(1) : best;
+}
+
+// A missed letter ("truses" for "trusses", "amenites" for "amenities") is the commonest
+// slip, so a candidate that only adds one letter settles a tie.
+const doubled = (typo, candidate) => candidate.length === typo.length + 1 && [...candidate].some((_ch, i) => candidate.slice(0, i) + candidate.slice(i + 1) === typo);
+
+// Words outside the construction vocabulary, such as "resedential", are corrected to an
+// English word only when one letter is wrong and one word is clearly meant.
+let byStart = null;
+function englishByStart(first, length) {
+  if (!byStart) {
+    byStart = new Map();
+    for (const candidate of englishWords()) {
+      const key = `${candidate[0]}${candidate.length}`;
+      if (!byStart.has(key)) byStart.set(key, []);
+      byStart.get(key).push(candidate);
+    }
+  }
+  return byStart.get(`${first}${length}`) || [];
+}
+
+function englishCorrection(lower, word) {
+  if (!englishWords().size) return null;
+  const close = [];
+  for (const length of [lower.length - 1, lower.length, lower.length + 1]) {
+    for (const candidate of englishByStart(lower[0], length)) if (distance(lower, candidate, 1) === 1) close.push(candidate);
+  }
+  const pick = close.length === 1 ? close[0] : (close.filter((candidate) => doubled(lower, candidate)).length === 1 ? close.find((candidate) => doubled(lower, candidate)) : null);
+  if (!pick || pick === `${lower}s` || `${pick}s` === lower) return null;
+  return word[0] === word[0].toUpperCase() ? pick[0].toUpperCase() + pick.slice(1) : pick;
 }
 
 // { text, fixes: [{ from, to }] }
