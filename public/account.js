@@ -345,13 +345,19 @@
             <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${item.signons} signed on · ${item.reviewDue ? '<span class="due">Review due</span>' : `Review by ${shortDate(item.reviewDueAt)}`}</span>
           </div>
           <button type="button" class="small" data-swms="${esc(item.id)}">Open</button>
-        </div>`).join('') : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>';
+        </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (Word, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>';
     } catch (error) {
       list.innerHTML = `<p class="error">${esc(error.message)}</p>`;
     }
   }
 
-  $('swms-list').addEventListener('click', (event) => {
+  $('swms-list').addEventListener('click', async (event) => {
+    if (event.target.closest('#swms-export')) {
+      const exportButton = event.target.closest('#swms-export');
+      exportButton.disabled = true;
+      try { await download('/api/swms/export.zip', 'SiteReady-saved-SWMS.zip'); } catch (error) { alert(error.message); } finally { exportButton.disabled = false; }
+      return;
+    }
     const button = event.target.closest('[data-swms]');
     if (button) openSwms(button.dataset.swms);
   });

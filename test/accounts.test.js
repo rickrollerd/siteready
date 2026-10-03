@@ -188,3 +188,27 @@ test('expired sign-in links and sessions are removed', async () => {
   await removeExpired();
   assert.equal((await db.query('SELECT * FROM login_tokens WHERE email = $1', ['old@link.example'])).length, 0);
 });
+
+test('a deleted SWMS is hidden at once and removed with its sign-ons after 30 days', async () => {
+  const token = await signIn('purge@delete.example');
+  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  await db.query('INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at) VALUES ($1, $2, $3, $4, $5, $6)', ['s-purge', swms.id, 'Pat', 'Crew Co', 'data:image/png;base64,AA', new Date()]);
+  assert.equal((await call('DELETE', `/api/swms/${swms.id}`, { token })).status, 200);
+  await removeExpired();
+  assert.equal((await db.query('SELECT * FROM swms WHERE id = $1', [swms.id])).length, 1, 'kept for 30 days');
+  await db.query('UPDATE swms SET updated_at = $1 WHERE id = $2', [new Date(Date.now() - 31 * 24 * 60 * 60 * 1000), swms.id]);
+  await removeExpired();
+  assert.equal((await db.query('SELECT * FROM swms WHERE id = $1', [swms.id])).length, 0);
+  assert.equal((await db.query('SELECT * FROM signons WHERE swms_id = $1', [swms.id])).length, 0);
+});
+
+test('a business can export all its saved SWMS in one zip', async () => {
+  const token = await signIn('export@all.example');
+  assert.equal((await call('GET', '/api/swms/export.zip', { token })).status, 404, 'nothing saved yet');
+  await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } });
+  await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } });
+  const response = await call('GET', '/api/swms/export.zip', { token });
+  assert.equal(response.status, 200);
+  const zip = await require('jszip').loadAsync(Buffer.from(await response.arrayBuffer()));
+  assert.equal(Object.keys(zip.files).filter((name) => name.endsWith('.docx')).length, 2);
+});
