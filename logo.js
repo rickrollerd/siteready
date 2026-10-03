@@ -9,6 +9,26 @@ function pngSize(data) {
   return { width: data.readUInt32BE(16), height: data.readUInt32BE(20) };
 }
 
+// The PDF library decodes a PNG with transparency out of line, where a damaged file throws
+// an error nothing can catch. So a PNG's image data must decompress here, or it is refused.
+function pngDecodes(data) {
+  try {
+    const parts = [];
+    let offset = 8;
+    while (offset + 8 <= data.length) {
+      const length = data.readUInt32BE(offset);
+      const type = data.subarray(offset + 4, offset + 8).toString('ascii');
+      if (offset + 12 + length > data.length) return false;
+      if (type === 'IDAT') parts.push(data.subarray(offset + 8, offset + 8 + length));
+      if (type === 'IEND') break;
+      offset += 12 + length;
+    }
+    return parts.length > 0 && require('zlib').inflateSync(Buffer.concat(parts)).length > 0;
+  } catch {
+    return false;
+  }
+}
+
 function jpegSize(data) {
   if (data.length < 4 || data[0] !== 0xff || data[1] !== 0xd8) return null;
   let offset = 2;
@@ -35,6 +55,7 @@ function readLogo(value) {
   const type = match[1] === 'png' ? 'png' : 'jpg';
   const size = type === 'png' ? pngSize(data) : jpegSize(data);
   if (!size || !size.width || !size.height || size.width > 4000 || size.height > 4000) return null;
+  if (type === 'png' && !pngDecodes(data)) return null;
   return { type, data, ...size };
 }
 

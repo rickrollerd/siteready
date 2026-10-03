@@ -125,6 +125,8 @@ router.put('/company', requireUser, route(async (req, res) => {
     const used = await db.one("SELECT COUNT(*) AS n FROM events WHERE company_id = $1 AND type IN ('download_pdf', 'download_word', 'swms_saved')", [req.company.id]);
     if (used && Number(used.n) > 0) throw fail(403, 'Your company name and ABN are fixed once a SWMS has been saved or downloaded, because they are printed on every SWMS. Contact support to change them.');
   }
+  // A logo that is not a readable PNG or JPEG is refused with a plain message, not kept.
+  if (body.logo && !readLogo(body.logo)) throw fail(400, 'The logo could not be read. Use a PNG or JPEG image under 400 KB.');
   const logo = body.logo === '' ? '' : (readLogo(body.logo) ? body.logo : req.company.logo);
   await db.query('UPDATE companies SET name = $1, abn = $2, address = $3, phone = $4, email = $5, logo = $6 WHERE id = $7', [
     textField(body.name, 200), textField(body.abn, 40), textField(body.address, 300), textField(body.phone, 60), textField(body.email, 200), logo, req.company.id,
