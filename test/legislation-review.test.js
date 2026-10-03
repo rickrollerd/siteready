@@ -197,7 +197,7 @@ test('Victoria: citations that went further than the regulation are left off', (
   assert.equal(localControl('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', `${QLD}s 80`, 'vic'), 'Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.');
   assert.equal(localControl('Rescue procedures are set up and tested, and workers are trained in them.', `${QLD}s 80`, 'vic'), `Rescue procedures are set up and tested, and workers are trained in them. (${reg} r 49)`);
   assert.equal(localControl('Work from a solid surface with edge protection wherever a fall of 2 m or more is possible: top rail at least 900 mm, rails no more than 450 mm apart, toe board at least 150 mm.', `${QLD}s 78, s 306D, s 306E`, 'vic'), 'Work from a solid surface with edge protection wherever a fall of more than 2 m is possible: top rail at least 900 mm, rails no more than 450 mm apart, toe board at least 150 mm.');
-  assert.match(localControl('Tiles and stone with 1% or more crystalline silica are a crystalline silica substance.', `${QLD}s 529A`, 'vic'), /^Tiles and stone with more than 1% crystalline silica/);
+  assert.match(localControl('Tiles and stone with 1% or more crystalline silica are a crystalline silica substance.', `${QLD}s 529A`, 'vic'), /^Tiles and stone contain crystalline silica\./);
   assert.match(localControl('No electrical work is done on or near energised parts (within 3 m of an exposed energised part).', '', 'vic'), /the state's occupational health and safety or electrical safety law requires\.$/);
   // The anchor and hospital sources stay in other states.
   assert.match(localControl('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', `${QLD}s 80`, 'nsw'), /\(Work Health and Safety Regulation 2025 \(NSW\) s 80\)$/);
@@ -315,4 +315,23 @@ test('engineered stone refusal: notice is required (s 529G); Victoria names r 31
   assert.doesNotMatch(vic.message, /notif|notice/);
   // Victoria: porcelain and sintered stone are excluded only without resin (r 5).
   assert.match(localControl('No engineered stone benchtops, panels or slabs are supplied, installed or processed. Porcelain and sintered stone are not engineered stone.', `${QLD}s 529A, s 529D`, 'vic'), /Porcelain and sintered stone products that contain no resin are not engineered stone\. \(Occupational Health and Safety Regulations 2017 \(Vic\) r 319Y\)$/);
+});
+
+test('Victoria: no demolition notice, r 355 excavation notice, r 298 asbestos notice, and no 1% threshold for Part 4.5', () => {
+  const reg = 'Occupational Health and Safety Regulations 2017 (Vic)';
+  const demolition = lines(draft('vic', 'Demolish a three storey concrete commercial building, 12 m high, with excavators and a high reach demolition machine.'));
+  assert.ok(!demolition.some((item) => /6 m high/.test(item)));
+  const trench = lines(draft('vic', 'Dig a 2.5 m deep trench with an excavator and lay a sewer main, with trench shields.'));
+  assert.ok(trench.some((item) => /the Authority is notified in writing at least 3 days before the excavation work starts, unless it is part of building work under a building permit\. \(Occupational Health and Safety Regulations 2017 \(Vic\) r 354, r 355\)$/.test(item)));
+  const asbestos = lines(draft('vic', 'Remove 60 square metres of bonded asbestos cement roof sheeting from a 1970s factory.'));
+  assert.ok(asbestos.includes(`For licensed removal, the licence holder gives the Authority written notice at least 5 days before the work starts (24 hours for 10 m2 or less of non-friable asbestos), unless a licence condition sets other notice. (${reg} r 298)`));
+  const sds = localControl('Keep dust below the exposure standard, and monitor the air if unsure. Check each product\'s safety data sheet: a product with 1% or more crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts.', `${QLD}s 49, s 50, s 529A, s 529C, s 529CA`, 'vic');
+  assert.match(sds, /power sanding or cutting a product that contains crystalline silica is a crystalline silica process\. Before it starts, it is assessed, with a written record,[^(]*\(Occupational Health and Safety Regulations 2017 \(Vic\) r 165, r 166, r 319B, r 319J, r 319K\)$/);
+  assert.doesNotMatch(lines(draft('vic', 'Cut and grind porcelain tiles and natural stone pavers with power tools for a commercial plaza.')).join('\n'), /1%|crystalline silica substance/);
+  // Regulation 49 is left off anchor lines; r 125 and Schedule 2 for the hoist, without the number kept at it.
+  assert.equal(localControl('Where harnesses are used, anchors are approved by a competent person, no one works alone, and a rescue procedure is set up and tested.', `${QLD}s 80`, 'vic'), 'Where harnesses are used, anchors are approved by a competent person, no one works alone, and a rescue procedure is set up and tested.');
+  assert.equal(localControl('A personnel hoist with platform travel over 2.4 m has a registered design, and the registration number is kept at the hoist.', `${QLD}s 243, s 260, schedule 5`, 'vic'), `A personnel hoist with platform travel over 2.4 m has a registered design. (${reg} r 125, Schedule 2)`);
+  assert.equal(localControl('Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder, handed over in writing by a competent person, and inspected at least every 30 days.', `${QLD}s 81, s 225, schedule 3`, 'vic'), `Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder. (${reg} r 128, Schedule 3)`);
+  // Other states keep the 6 m notice and r 80 on anchor lines.
+  assert.match(localControl('Where harnesses are used, anchors are approved by a competent person, no one works alone, and a rescue procedure is set up and tested.', `${QLD}s 80`, 'nsw'), /s 80\)$/);
 });

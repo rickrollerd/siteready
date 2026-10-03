@@ -57,8 +57,8 @@ const DROP_SOURCES = {
     [/\bA forklift left unattended is parked\b/, ['s 218']],
     // Regulation 327 has no duty to take the workplace's circumstances into account.
     [/^This SWMS takes into account that the work is next to an operating hospital\b/, ['s 299']],
-    // Regulation 49 covers rescue, not anchor ratings or clearances.
-    [/\b\d+ kN\b/, ['s 80']],
+    // Regulation 49 covers rescue, not anchor ratings, approval, clearances or lone work.
+    [/\b\d+ kN\b|\banchors (?:are|is)\b/, ['s 80']],
   ],
 };
 
@@ -200,8 +200,20 @@ const VIC_TEXT = [
   // Regulation 5: porcelain and sintered stone are not engineered stone only where they contain no resin.
   [/\bPorcelain and sintered stone are not engineered stone\./, 'Porcelain and sintered stone products that contain no resin are not engineered stone.', KEEP],
   [/\bCeramic and porcelain tiles and grout are not engineered stone\./, 'Ceramic tiles, porcelain tiles that contain no resin, and grout are not engineered stone.', KEEP],
-  // Regulation 5: a crystalline silica substance contains more than 1%; r 341 names the construction induction card.
-  [/\b1% or more crystalline silica\b/, 'more than 1% crystalline silica', KEEP],
+  // Part 4.5 duties apply to any material containing crystalline silica (r 319B, r 319J); the 1%
+  // "crystalline silica substance" (r 5) is used only for manufacturers and suppliers.
+  [/\b(?:with )?1% or more crystalline silica\b/, 'containing crystalline silica', KEEP],
+  [/a product containing crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, `power sanding or cutting a product that contains crystalline silica is a crystalline silica process. Before it starts, it is assessed, with a written record, to find whether it is high risk crystalline silica work, or it is treated as high risk crystalline silica work.${cite('vic', '165', '166', '319B', '319J', '319K')}`],
+  // Victoria has no demolition notice (Part 5.1 has none); r 355 requires notice of excavation work.
+  [/^Where the structure(?:, or a load-bearing part of it,)? is at least 6 m high, (?:the regulator is given written notice|written notice is given to the regulator) at least 5 days before the work starts\.$/, null],
+  [/^Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it\.$/, `Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it. Where a shaft, trench or tunnel will be big enough for a person to enter, or poses a risk, the Authority is notified in writing at least 3 days before the excavation work starts, unless it is part of building work under a building permit.${cite('vic', '354', '355')}`],
+  // Regulations 118, 128 and Schedule 3: the licence, not a written handover or a 30 day inspection.
+  [/^Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder, handed over in writing by a competent person, and inspected at least every 30 days\.$/, `Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder.${cite('vic', '128', 'Schedule 3')}`],
+  // Schedule 2 item 1.6; no regulation requires the registration number to be kept at the hoist.
+  [/^A personnel hoist with platform travel over 2\.4 m has a registered design, and the registration number is kept at the hoist\.$/, `A personnel hoist with platform travel over 2.4 m has a registered design.${cite('vic', '125', 'Schedule 2')}`],
+  // Regulation 298(1): 24 hours for 10 m2 or less of non-friable asbestos, unless a licence condition varies it.
+  [/^For licensed removal, the licensed removalist gives the regulator written notice at least 5 days before the work starts\.$/, `For licensed removal, the licence holder gives the Authority written notice at least 5 days before the work starts (24 hours for 10 m2 or less of non-friable asbestos), unless a licence condition sets other notice.${cite('vic', '298')}`],
+  // Regulation 341 names the construction induction card.
   [/\bgeneral construction induction card\b/, 'construction induction card', KEEP],
 ];
 
@@ -335,6 +347,11 @@ function rewrite(text, stateId) {
   // Queensland Health and QBCC licences, and Queensland's regulated areas for herbicide spraying, are Queensland's.
   out = out.replace(/Termite treatments are applied only by a holder of a Queensland Health pest management licence for timber pests, who also holds a QBCC termite management \(chemical\) licence for treatments to new building work\./g, 'Termite treatments are applied only by a holder of the pest management licence the state requires, and any termite management licence it requires for new building work.')
     .replace(/Herbicide spraying with powered ground equipment in a regulated area is done only by a licensed commercial operator\./g, 'Herbicide spraying is done by a holder of any chemical application licence the state requires.');
+  // Victoria: processing any material containing crystalline silica is a crystalline silica process (r 319B).
+  if (stateId === 'vic') out = out.replace(/\b(?:is )?processing (?:a crystalline silica substance|crystalline silica)\b/g, (all) => (all.startsWith('is ') ? 'is a crystalline silica process' : 'a crystalline silica process'))
+    .replace(/\bis processing that must be controlled\b/g, 'is a crystalline silica process that must be controlled')
+    .replace(/^Tiles and stone containing crystalline silica are a crystalline silica substance\. Cutting them with power tools is a crystalline silica process/, 'Cutting tiles and stone containing crystalline silica with power tools is a crystalline silica process')
+    .replace(/ containing crystalline silica are a crystalline silica substance\./g, ' contain crystalline silica.');
   if (stateId === 'vic') out = out.replace(/\bhazardous chemicals register\b/g, 'register of hazardous substances').replace(/\s?\(the falls code suggests [^)]*\)/g, '')
     .replace(/\bthe state's WHS or electrical safety law\b/g, 'the state\'s occupational health and safety or electrical safety law');
   // The Northern Territory and the ACT are territories.
