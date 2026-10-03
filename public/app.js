@@ -583,6 +583,11 @@ async function loadQuestions(options = {}) {
     return false;
   }
   questions = data;
+  // Spelling SiteReady fixed in the task, shown so the user can check it.
+  const note = document.getElementById('spelling-note');
+  const fixes = data.spellingFixes || [];
+  note.textContent = fixes.length ? `Spelling fixed in the SWMS: ${fixes.map((fix) => `${fix.from} to ${fix.to}`).join(', ')}.` : '';
+  note.classList.toggle('hidden', !fixes.length);
   const warning = document.getElementById('fall-warning');
   warning.textContent = (data.fall && data.fall.warning) || '';
   warning.classList.toggle('hidden', !warning.textContent);
@@ -605,7 +610,7 @@ async function loadQuestions(options = {}) {
       <div class="field">
         <label for="fact-${esc(item.id)}">${esc(item.label)}${extra}</label>
         ${picks}
-        <textarea id="fact-${esc(item.id)}" data-fact="${esc(item.id)}"></textarea>
+        <textarea id="fact-${esc(item.id)}" data-fact="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
       </div>`;
     }).join('')
     : '<p class="lede">No further fact is required for this task.</p>';
@@ -618,7 +623,7 @@ async function loadQuestions(options = {}) {
   document.getElementById('site-block').innerHTML = (data.site || []).map((item) => `
     <div class="field">
       <label for="site-${esc(item.id)}">${esc(item.label)}</label>
-      <textarea id="site-${esc(item.id)}" data-site="${esc(item.id)}"></textarea>
+      <textarea id="site-${esc(item.id)}" data-site="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
     </div>
   `).join('');
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });

@@ -426,7 +426,8 @@
         <label for="task">Task
           <span class="hint">One task. Write what the work is.</span>
         </label>
-        <textarea id="task" required></textarea>
+        <textarea id="task" required spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
+        <p id="spelling-note" class="meta hidden" aria-live="polite"></p>
         <input type="hidden" id="task-trade">
       </div>
       <fieldset class="field choice hidden" id="residential-question">

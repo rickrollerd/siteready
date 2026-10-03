@@ -2,6 +2,7 @@ const { HIERARCHY, SITE_FIELDS, findState, highRiskList } = require('./legislati
 const { jobStepsFor, ppeFor, ACTIVITIES } = require('./activities');
 const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
 const { readSlang } = require('./slang');
+const { fixSpelling } = require('./spelling');
 const { registersFor } = require('./register');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
@@ -1407,8 +1408,9 @@ function questionsFor(input) {
       message: `${state.name} is not available. Its legislation is not loaded, so a statement is not prepared for that state.`,
     };
   }
-  // Site slang and shorthand are read the way they are meant ("demo", "rd", "AC pipe").
-  const task = readSlang(cleanLine(input.task || input.jobDescription));
+  // Typos are fixed, then site slang and shorthand are read the way they are meant ("demo", "rd", "AC pipe").
+  const spelling = fixSpelling(cleanLine(input.task || input.jobDescription));
+  const task = readSlang(spelling.text);
   if (!task) return { kind: 'error', message: 'Write the task.' };
   // Engineered stone: supplying, installing or processing it is prohibited, except
   // removing, repairing, making minor modifications to or disposing of installed stone.
@@ -1432,6 +1434,8 @@ function questionsFor(input) {
       section: state.section,
     },
     task,
+    // Spelling fixed in the task, so the user sees each change.
+    spellingFixes: spelling.fixes,
     fall: fallCheck(task, answer, state),
     required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state, input.ppe)),
     // (Site answers are read with the facts below.)
@@ -1533,7 +1537,8 @@ function prepareDraft(input) {
   if (asked.kind === 'refused' || asked.kind === 'error') return asked;
   const state = stateFor(input);
   // The SWMS shows the task as typed; the work is read from it with site slang expanded.
-  const typed = cleanLine(input.task || input.jobDescription);
+  // The SWMS keeps the task as typed, with typos fixed but slang left as written.
+  const typed = fixSpelling(cleanLine(input.task || input.jobDescription)).text;
   const task = readSlang(typed);
   // A space the user has assessed as not a confined space drops any confined space arrangement.
   const facts = { ...(input.facts || {}), siteConditions: siteConditions(input.site) };
