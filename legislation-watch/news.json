@@ -1,0 +1,14 @@
+{
+  "note": "Google News searches. A new article whose title matches keep is reported for reading. Articles are not confirmed changes.",
+  "keep": "codes? of practice|compliance codes?|regulations?\\b|amendment|amended|new laws?|law changes?|\\bWHS\\b|\\bOHS\\b|work health and safety|high risk work|scaffold|crane|silica|asbestos",
+  "searches": [
+    "\"code of practice\" (WHS OR \"work health and safety\")",
+    "\"codes of practice\" (SafeWork OR WorkSafe) construction",
+    "\"compliance code\" WorkSafe Victoria",
+    "\"work health and safety\" regulation amendment",
+    "\"WHS regulation\" changes construction",
+    "\"high risk work licence\" changes",
+    "SafeWork NSW new laws construction",
+    "WorkSafe Queensland new laws construction"
+  ]
+}

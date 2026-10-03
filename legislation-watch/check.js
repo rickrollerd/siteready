@@ -1,4 +1,5 @@
-// Daily check of each jurisdiction's legislation page. It reads the version
+// Daily check of each jurisdiction's legislation page, each regulator's list of codes of
+// practice, and news searches about changes. For legislation it reads the version
 // date on the page and compares it with the date seen last time.
 //
 //   node legislation-watch/check.js            record changes in state.json and write report.md
@@ -8,11 +9,14 @@
 // A change or a page that cannot be read is written to report.md. The workflow
 // turns that report into a GitHub issue and an email.
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
 const DIR = __dirname;
 const SOURCES = path.join(DIR, 'sources.json');
+const CODES = path.join(DIR, 'codes.json');
+const NEWS = path.join(DIR, 'news.json');
 const STATE = path.join(DIR, 'state.json');
 const REPORT = path.join(DIR, 'report.md');
 
@@ -53,6 +57,37 @@ function versionDate(text, pattern) {
   return '';
 }
 
+// The codes on a regulator's list page, as "title | address" lines. A new, renamed,
+// removed or re-issued code (a new file address) shows as a changed line.
+function codeLinks(html) {
+  const items = new Set();
+  for (const match of String(html || '').matchAll(/<a\b[^>]*href="([^"#]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const text = pageText(match[2]).replace(/\s*\((?:PDF|DOCX?|Word)[^)]*\)\s*/gi, ' ').trim();
+    const href = match[1].replace(/&amp;/g, '&').replace(/[?].*$/, '').replace(/^https?:\/\/[^/]+/i, '');
+    if (!text || text.length > 200) continue;
+    if (!/\bcodes? of practice\b|\bcompliance code\b|\bcode\b.*\b(?:19|20)\d{2}\b|\bcop\b|\/cop-|code-practice|codes-practice|compliance-code|code-of-practice/i.test(`${text} ${href}`)) continue;
+    // Menus and headings that point back to the list itself are not codes.
+    if (/^(?:codes? of practice|compliance codes|model codes of practice|back|more|read more|view all)$/i.test(text)) continue;
+    items.add(`${text} | ${href}`);
+  }
+  return [...items].sort();
+}
+
+// Google News items as { title, link, date }.
+function newsItems(xml) {
+  const out = [];
+  for (const match of String(xml || '').matchAll(/<item>([\s\S]*?)<\/item>/gi)) {
+    const field = (name) => {
+      const found = match[1].match(new RegExp(`<${name}>([\\s\\S]*?)<\\/${name}>`, 'i'));
+      return found ? found[1].replace(/<!\[CDATA\[|\]\]>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim() : '';
+    };
+    const title = field('title');
+    const link = field('link');
+    if (title && link) out.push({ title, link, date: field('pubDate') });
+  }
+  return out;
+}
+
 async function fetchPage(url) {
   let lastError = '';
   for (let attempt = 1; attempt <= 2; attempt += 1) {
@@ -60,7 +95,7 @@ async function fetchPage(url) {
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'SiteReady legislation check (github.com/rickrollerd/siteready)',
-          Accept: 'text/html,application/xhtml+xml',
+          Accept: 'text/html,application/xhtml+xml,application/rss+xml,application/xml',
           'Accept-Language': 'en-AU,en;q=0.9',
         },
         redirect: 'follow',
@@ -143,6 +178,66 @@ async function main() {
     state[source.id] = { version: result.version, status: 'ok' };
   });
 
+  // Codes of practice: each regulator's list of codes.
+  const codes = readJson(CODES, []);
+  const codeChanges = [];
+  const codePages = await Promise.all(codes.map((source) => fetchPage(source.url)));
+  codes.forEach((source, index) => {
+    const page = codePages[index];
+    const key = `code:${source.id}`;
+    const before = state[key] || {};
+    const label = `${source.jurisdiction}: ${source.title}`;
+    const items = page.ok ? codeLinks(page.html) : [];
+    if (!page.ok || !items.length) {
+      const detail = page.ok ? 'The page was read but no codes were found on it. The page layout may have changed.' : `The page could not be read (${page.error}).`;
+      console.log(`FAIL ${label} | ${detail} | ${source.url}`);
+      if (!source.knownBlocked) failures += 1;
+      // Reported once, when it starts, like the legislation pages.
+      if (before.status !== 'unreadable') problems.push(`- **${label}**: ${source.knownBlocked || detail}\n  ${source.url}`);
+      state[key] = { ...before, status: 'unreadable' };
+      return;
+    }
+    console.log(`OK   ${label} | ${items.length} codes | ${source.url}`);
+    if (process.argv.includes('--show')) for (const item of items) console.log(`    ${item}`);
+    if (before.items) {
+      const was = new Set(before.items);
+      const now = new Set(items);
+      const added = items.filter((item) => !was.has(item));
+      const removed = before.items.filter((item) => !now.has(item));
+      if (added.length || removed.length) {
+        codeChanges.push(`- **${label}** (${source.url})\n${added.map((item) => `  - New or changed: ${item}`).join('\n')}${added.length && removed.length ? '\n' : ''}${removed.map((item) => `  - Gone or replaced: ${item}`).join('\n')}`);
+      }
+    } else {
+      recorded.push(`- ${label}: ${items.length} codes recorded.`);
+    }
+    state[key] = { items, status: 'ok' };
+  });
+
+  // News: articles about changes, from Google News. Reported once each, for reading.
+  const news = readJson(NEWS, { searches: [] });
+  const keep = new RegExp(news.keep || '.', 'i');
+  const seen = new Set((state['news:seen'] || []));
+  const firstNewsRun = !state['news:seen'];
+  const fresh = [];
+  const feeds = await Promise.all(news.searches.map((query) => fetchPage(`https://news.google.com/rss/search?q=${encodeURIComponent(`${query} when:7d`)}&hl=en-AU&gl=AU&ceid=AU:en`)));
+  feeds.forEach((feed, index) => {
+    if (!feed.ok) { console.log(`FAIL news search "${news.searches[index]}" | ${feed.error}`); return; }
+    const items = newsItems(feed.html);
+    console.log(`OK   news search "${news.searches[index]}" | ${items.length} articles`);
+    for (const item of items) {
+      // A short fingerprint of the headline, without the publisher, keeps the file small.
+      const id = crypto.createHash('sha1').update(item.title.toLowerCase().replace(/\s+-\s+[^-]+$/, '').replace(/[^a-z0-9]+/g, ' ').trim()).digest('hex').slice(0, 10);
+      if (seen.has(id)) continue;
+      seen.add(id);
+      if (keep.test(item.title) && !fresh.some((other) => other.title === item.title)) fresh.push(item);
+    }
+  });
+  if (process.argv.includes('--show')) for (const item of fresh) console.log(`    news: ${item.title}`);
+  // Only the most recent titles are kept so the file stays small.
+  if (feeds.some((feed) => feed.ok)) state['news:seen'] = [...seen].slice(-4000);
+  const newsLines = firstNewsRun ? [] : fresh.slice(0, 25).map((item) => `- ${item.title}${item.date ? ` (${item.date.replace(/ \d\d:\d\d:\d\d .*$/, '')})` : ''}\n  ${item.link}`);
+  if (firstNewsRun) recorded.push(`- News: ${seen.size} articles recorded as already seen.`);
+
   if (dryRun) {
     if (failures) {
       console.error(`${failures} page(s) could not be read or had no version date.`);
@@ -155,6 +250,12 @@ async function main() {
   const sections = [];
   if (changes.length) {
     sections.push(`## Legislation changed\n\nThe app may be out of date. Check the change, update \`legislation.js\` and \`draft.js\`, and have the update signed off before it goes live.\n\n${changes.join('\n')}`);
+  }
+  if (codeChanges.length) {
+    sections.push(`## Codes of practice changed\n\nA code was added, re-issued or removed. Check whether SiteReady cites it (\`register.js\`, \`activities.js\`, \`scenarios/qld-codes.json\`), update the titles, years and section numbers, and have the update signed off before it goes live.\n\n${codeChanges.join('\n')}`);
+  }
+  if (newsLines.length) {
+    sections.push(`## News to read\n\nArticles about possible changes. These are not confirmed changes: check the official source before changing anything.\n\n${newsLines.join('\n')}`);
   }
   if (problems.length) {
     sections.push(`## Pages that could not be checked\n\nThese were not checked today, so a change could be missed. Check them by hand, or fix the address in \`legislation-watch/sources.json\`.\n\n${problems.join('\n')}`);
@@ -174,4 +275,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { pageText, versionDate };
+module.exports = { pageText, versionDate, codeLinks, newsItems };
