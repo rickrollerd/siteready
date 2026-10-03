@@ -122,8 +122,10 @@ function hasAccess(company) {
 // Reads the session if there is one. Routes decide whether they need it.
 async function readSession(req, _res, next) {
   try {
+    // The app also sends the session in X-Session-Token, which wins when present: some test
+    // and proxy setups replace the Authorization header on the way.
     const header = req.get('authorization') || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+    const token = String(req.get('x-session-token') || '').trim() || (header.startsWith('Bearer ') ? header.slice(7).trim() : '');
     if (token && db.enabled()) {
       const user = await db.one(
         'SELECT users.* FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.token_hash = $1 AND sessions.expires_at > $2',
