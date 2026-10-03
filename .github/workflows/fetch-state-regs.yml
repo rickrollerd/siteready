@@ -1,6 +1,6 @@
 name: Fetch state WHS regulations
 
-# Fetches the NSW, Victorian and WA regulations in full and commits the text to
+# Fetches each state and territory's WHS regulation in full and commits the text to
 # the state-sources branch, so SiteReady's citations for those states can be
 # checked against them.
 on:

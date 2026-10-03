@@ -1,6 +1,6 @@
 {
   "note": "Google News searches. A new article whose title matches keep is reported for reading. Articles are not confirmed changes.",
-  "keep": "codes? of practice|compliance codes?|regulations?\\b|amendment|amended|new laws?|law changes?|\\bWHS\\b|\\bOHS\\b|work health and safety|high risk work|scaffold|crane|silica|asbestos",
+  "keep": "codes? of practice|compliance codes?|regulations? (?:change|amend|update|reform)|amendment|amended|new (?:WHS |OHS |safety )?laws?|law changes?|law reform|reforms?|comes? into (?:effect|force)|commenc|licen[cs]e changes?|high risk work licen[cs]e|mandatory",
   "searches": [
     "\"code of practice\" (WHS OR \"work health and safety\")",
     "\"codes of practice\" (SafeWork OR WorkSafe) construction",

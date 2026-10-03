@@ -62,9 +62,12 @@ function versionDate(text, pattern) {
 function codeLinks(html) {
   const items = new Set();
   for (const match of String(html || '').matchAll(/<a\b[^>]*href="([^"#]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
-    const text = pageText(match[2]).replace(/\s*\((?:PDF|DOCX?|Word)[^)]*\)\s*/gi, ' ').trim();
     const href = match[1].replace(/&amp;/g, '&').replace(/[?].*$/, '').replace(/^https?:\/\/[^/]+/i, '');
+    let text = pageText(match[2]).replace(/\s*\((?:PDF|DOCX?|Word|external site)[^)]*\)/gi, '').trim();
+    // A bare "Download" link is named by its file.
+    if (/^(?:download|view|open|pdf|docx?)$/i.test(text)) text = decodeURIComponent(href.split('/').pop() || '');
     if (!text || text.length > 200) continue;
+    if (/^(?:mailto|tel|javascript):/i.test(match[1])) continue;
     if (!/\bcodes? of practice\b|\bcompliance code\b|\bcode\b.*\b(?:19|20)\d{2}\b|\bcop\b|\/cop-|code-practice|codes-practice|compliance-code|code-of-practice/i.test(`${text} ${href}`)) continue;
     // Menus and headings that point back to the list itself are not codes.
     if (/^(?:codes? of practice|compliance codes|model codes of practice|back|more|read more|view all)$/i.test(text)) continue;
@@ -88,18 +91,19 @@ function newsItems(xml) {
   return out;
 }
 
-async function fetchPage(url) {
+async function fetchPage(url, { browser = false, timeout = 20000 } = {}) {
   let lastError = '';
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'SiteReady legislation check (github.com/rickrollerd/siteready)',
+          // Some regulators' sites refuse anything but a browser, so the code pages are asked for as one.
+          'User-Agent': browser ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36' : 'SiteReady legislation check (github.com/rickrollerd/siteready)',
           Accept: 'text/html,application/xhtml+xml,application/rss+xml,application/xml',
           'Accept-Language': 'en-AU,en;q=0.9',
         },
         redirect: 'follow',
-        signal: AbortSignal.timeout(20000),
+        signal: AbortSignal.timeout(timeout),
       });
       if (response.ok) return { ok: true, html: await response.text() };
       lastError = `HTTP ${response.status}`;
@@ -181,7 +185,7 @@ async function main() {
   // Codes of practice: each regulator's list of codes.
   const codes = readJson(CODES, []);
   const codeChanges = [];
-  const codePages = await Promise.all(codes.map((source) => fetchPage(source.url)));
+  const codePages = await Promise.all(codes.map((source) => fetchPage(source.url, { browser: true, timeout: 45000 })));
   codes.forEach((source, index) => {
     const page = codePages[index];
     const key = `code:${source.id}`;
@@ -191,6 +195,10 @@ async function main() {
     if (!page.ok || !items.length) {
       const detail = page.ok ? 'The page was read but no codes were found on it. The page layout may have changed.' : `The page could not be read (${page.error}).`;
       console.log(`FAIL ${label} | ${detail} | ${source.url}`);
+      if (page.ok && process.argv.includes('--show')) {
+        const anchors = [...page.html.matchAll(/<a\b[^>]*href="([^"#]+)"[^>]*>([\s\S]*?)<\/a>/gi)].map((m) => `${pageText(m[2]).slice(0, 80)} | ${m[1]}`);
+        console.log(`    ${page.html.length} characters, ${anchors.length} links: ${anchors.slice(0, 60).join(' || ')}`);
+      }
       if (!source.knownBlocked) failures += 1;
       // Reported once, when it starts, like the legislation pages.
       if (before.status !== 'unreadable') problems.push(`- **${label}**: ${source.knownBlocked || detail}\n  ${source.url}`);

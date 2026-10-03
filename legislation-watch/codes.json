@@ -21,13 +21,19 @@
     "id": "vic-codes",
     "jurisdiction": "Victoria",
     "title": "Compliance codes",
-    "url": "https://www.worksafe.vic.gov.au/summary-ohs-act-2004-compliance-codes"
+    "url": "https://www.worksafe.vic.gov.au/compliance-codes"
   },
   {
     "id": "wa-codes",
     "jurisdiction": "Western Australia",
     "title": "Codes of practice",
-    "url": "https://www.worksafe.wa.gov.au/codes-practice"
+    "url": "https://www.worksafe.wa.gov.au/work-health-and-safety-and-transitional-codes-practice"
+  },
+  {
+    "id": "vic-construction-codes",
+    "jurisdiction": "Victoria",
+    "title": "Construction compliance codes",
+    "url": "https://www.worksafe.vic.gov.au/construction-compliance-codes"
   },
   {
     "id": "sa-codes",
