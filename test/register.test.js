@@ -195,7 +195,7 @@ test('other states: their own Act, their own sections in register notes, and no 
   assert.ok(!/silica risk control plan|processing is high risk|Where the processing is high risk: a Before/.test(vicText));
   // A Queensland section maps to the state's own, or is left out where it has not been matched.
   assert.match(localNote('Inspected to the manufacturer\'s instructions (WHS Reg s 213).', 'wa'), /\(Work Health and Safety \(General\) Regulations 2022 \(WA\) r 213\)/);
-  assert.equal(localNote('Inspected to the manufacturer\'s instructions (WHS Reg s 213).', 'nsw'), 'Inspected to the manufacturer\'s instructions.');
+  assert.equal(localNote('Inspected to the manufacturer\'s instructions (WHS Reg s 213).', 'nsw'), 'Inspected to the manufacturer\'s instructions (Work Health and Safety Regulation 2025 (NSW) s 213).');
   assert.ok(!/Queensland/.test(localText('Traffic controllers who hold Queensland traffic controller accreditation direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.', 'act')));
 });
 

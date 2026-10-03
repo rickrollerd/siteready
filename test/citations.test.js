@@ -21,8 +21,8 @@ test('WA and Vic drafts cite their own regulation, and leave out what has no mat
   assert.equal(localSource(source, 'wa'), 'Work Health and Safety (General) Regulations 2022 (WA) r 78, r 79, Schedule 3; Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth) r 111');
   assert.equal(localSource(source, 'vic'), 'Occupational Health and Safety Regulations 2017 (Vic) r 44, Schedule 3; Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth) r 111');
   assert.equal(localSource(`${QLD}s 299`, 'vic'), 'Occupational Health and Safety Regulations 2017 (Vic) r 327');
-  // States not yet checked print no state citation rather than a Queensland one.
-  assert.equal(localSource(`${QLD}s 299`, 'nsw'), '');
+  // NSW is mapped from the Work Health and Safety Regulation 2025 (NSW) text.
+  assert.equal(localSource(`${QLD}s 299`, 'nsw'), 'Work Health and Safety Regulation 2025 (NSW) s 299');
 });
 
 test('the asbestos date follows the state', () => {
@@ -51,6 +51,9 @@ test('SA, Tas, ACT and NT controls carry their own regulation numbers', () => {
   assert.equal(localSource(src, 'tas'), 'Work Health and Safety Regulations 2022 (Tas) r 214, r 215');
   assert.equal(localSource(src, 'act'), 'Work Health and Safety Regulation 2011 (ACT) s 214, s 215');
   assert.equal(localSource(src, 'nt'), 'Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT) r 214, r 215');
+  // NSW numbers its provisions as sections; s 85 (evidence of licence) is s 85 there too, not the diving rule.
+  assert.equal(localSource(src, 'nsw'), 'Work Health and Safety Regulation 2025 (NSW) s 214, s 215');
+  assert.equal(localSource('Work Health and Safety Regulation 2011 (Qld) s 85', 'nsw'), 'Work Health and Safety Regulation 2025 (NSW) s 85');
   // Queensland-only rules are left out, and the ACT's engineered stone ban is r 418F there.
   assert.equal(localSource('Work Health and Safety Regulation 2011 (Qld) s 306G', 'sa'), '');
   assert.equal(localSource('Work Health and Safety Regulation 2011 (Qld) s 529A, s 529D', 'act'), 'Work Health and Safety Regulation 2011 (ACT) s 418F');
