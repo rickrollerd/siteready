@@ -34,3 +34,21 @@ test('tilt panels and tilt up are tilt-up or precast high risk work', () => {
     assert.ok(draft.highRisk.some((item) => /tilt-up or precast/i.test(item)), task);
   }
 });
+
+// Testing agent F-008: a 100,000-character entry made the PDF add pages forever (502 on staging).
+test('a PDF with an entry taller than a page is still made, quickly', async () => {
+  const { draftToPdf } = require('../pdf-draft');
+  const { draftBody } = require('../input');
+  const { questionsFor } = require('../draft');
+  const big = 'A'.repeat(100000);
+  for (const task of ['Install sprinkler pipework in the ward ceilings from scissor lifts above 2 m. ' + big, 'Install sprinkler pipework in the ward ceilings from scissor lifts above 2 m.']) {
+    const base = { state: 'qld', task, fallRisk: 'yes' };
+    const facts = {};
+    for (const item of questionsFor(draftBody(base)).required || []) facts[item.id] = item.choices ? item.choices[0].value : big;
+    const draft = prepareDraft(draftBody({ ...base, facts, workplace: big, siteManager: big }));
+    const started = Date.now();
+    const pdf = await draftToPdf(draft);
+    assert.ok(pdf.length > 1000);
+    assert.ok(Date.now() - started < 10000, `took ${Date.now() - started} ms`);
+  }
+});

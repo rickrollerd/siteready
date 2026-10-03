@@ -88,8 +88,18 @@ function table(doc, { widths, header, rows, size = 8.5 }) {
   };
   if (doc.y + (headerCells ? rowHeight(headerCells) : 0) + 30 > bottom(doc)) doc.addPage();
   startPage();
+  // A paragraph taller than a whole page never fits, and would add pages forever: when nothing
+  // fits on a fresh page, the first paragraph of each cell is halved at a space and tried again.
+  const halve = (cells) => cells.map((cell) => {
+    if (!cell.length || cell[0].image) return cell;
+    const text = String(cell[0].text || '');
+    if (text.length < 2) return cell;
+    const cut = text.lastIndexOf(' ', Math.floor(text.length / 2)) > 0 ? text.lastIndexOf(' ', Math.floor(text.length / 2)) : Math.floor(text.length / 2);
+    return [{ ...cell[0], text: text.slice(0, cut) }, { ...cell[0], text: text.slice(cut).trim() || ' ' }, ...cell.slice(1)];
+  });
   for (const row of rows) {
     let remaining = row.cells;
+    let freshPage = false;
     while (remaining) {
       const space = bottom(doc) - doc.y;
       if (rowHeight(remaining) <= space) {
@@ -113,15 +123,24 @@ function table(doc, { widths, header, rows, size = 8.5 }) {
         fitted.push(take);
         rest.push(cell.slice(k));
       });
+      // On a fresh page, a cell whose first paragraph still does not fit is halved and tried again.
+      const stuck = remaining.map((cell, i) => freshPage && cell.length > 0 && !fitted[i].length);
+      if (stuck.some(Boolean)) {
+        remaining = remaining.map((cell, i) => (stuck[i] ? halve([cell])[0] : cell));
+        continue;
+      }
       if (fitted.every((cell) => !cell.length) || space < 40) {
         doc.addPage();
         startPage();
+        freshPage = true;
         continue;
       }
+      freshPage = false;
       doc.y += drawRow(fitted, row.fill, doc.y);
       remaining = rest.some((cell) => cell.length) ? rest.map((cell) => (cell.length ? cell : [{ text: ' ' }])) : null;
       doc.addPage();
       startPage();
+      freshPage = true;
     }
   }
   doc.x = MARGIN;
