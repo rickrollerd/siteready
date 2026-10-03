@@ -41,12 +41,12 @@ test('without a key, no lookup is made', async () => {
 test('clinics and health centres do not crowd out the hospital (Bogangar)', async () => {
   process.env.GOOGLE_PLACES_API_KEY = 'test-key';
   const at = (latitude, longitude) => ({ latitude, longitude });
-  const place = (text, address, location) => ({ displayName: { text }, formattedAddress: `${address}, Australia`, location });
+  const place = (text, address, location, primaryType) => ({ displayName: { text }, formattedAddress: `${address}, Australia`, location, primaryType });
   const reply = (body) => ({ ok: true, json: async () => body });
   const fetchImpl = async (url, options) => {
     const body = JSON.parse(options.body);
     if (url.endsWith(':searchText') && body.pageSize === 1) return reply({ places: [{ location: at(-28.3305, 153.5632) }] });
-    if (url.endsWith(':searchText')) return reply({ places: [place('Tweed Valley Hospital', '771 Cudgen Rd, Cudgen NSW 2487', at(-28.2654, 153.5640)), place('Gold Coast University Hospital', '1 Hospital Blvd, Southport QLD 4215', at(-27.9617, 153.3818))] });
+    if (url.endsWith(':searchText')) return reply({ places: [place('Tweed Valley Hospital', '771 Cudgen Rd, Cudgen NSW 2487', at(-28.2654, 153.5640), 'hospital'), place('Gold Coast University Hospital', '1 Hospital Blvd, Southport QLD 4215', at(-27.9617, 153.3818), 'hospital')] });
     if (body.includedPrimaryTypes.includes('hospital')) {
       return reply({ places: [
         place('Cabarita Beach Health Centre', '2/5/33 Tweed Coast Rd, Cabarita Beach NSW 2488', at(-28.3320, 153.5660)),
@@ -74,4 +74,25 @@ test('hospital and clinic names are sorted from the rest', () => {
   for (const name of ['Cabarita Beach Health Centre', 'Pottsville Medical Centre', 'Sydney Day Hospital', 'Brisbane Rehabilitation Hospital', 'Gold Coast Veterinary Hospital', 'Hospital Pharmacy', 'Mater Mental Health Hospital', 'Tweed Hospital Car Park']) assert.ok(!places.isHospital(name), name);
   for (const name of ['SunDoctors Skin Cancer Clinics Pottsville', "Angela's Aesthetic Club", 'Coast Dental', 'Pottsville Physiotherapy', 'QScan Radiology']) assert.ok(!places.isGeneralClinic(name), name);
   for (const name of ['Pottsville Medical Centre', 'The Health Cove', 'Cabarita Beach Medical']) assert.ok(places.isGeneralClinic(name), name);
+});
+
+// Reported by the testing agent at 1 Macquarie Street, Sydney: a clinic calling itself a
+// "medical hospital" came first, and companies and a single doctor filled the medical centres.
+test('Sydney CBD: Google type decides what is a hospital, and medical centres read as a practice', async () => {
+  process.env.GOOGLE_PLACES_API_KEY = 'test-key';
+  const at = (latitude, longitude) => ({ latitude, longitude });
+  const place = (text, location, primaryType) => ({ displayName: { text }, formattedAddress: 'Sydney NSW 2000, Australia', location, primaryType });
+  const reply = (body) => ({ ok: true, json: async () => body });
+  const fetchImpl = async (url, options) => {
+    const body = JSON.parse(options.body);
+    if (url.endsWith(':searchText') && body.pageSize === 1) return reply({ places: [{ location: at(-33.8615, 151.2125) }] });
+    if (url.endsWith(':searchText')) return reply({ places: [place('Climax life way medical hospital', at(-33.8650, 151.2100), 'medical_clinic'), place("St Vincent's Hospital Sydney", at(-33.8810, 151.2210), 'hospital')] });
+    if (body.includedPrimaryTypes.includes('hospital')) return reply({ places: [place('Sydney Hospital and Sydney Eye Hospital', at(-33.8680, 151.2130), 'hospital')] });
+    return reply({ places: [place('Involution Healthcare Pty Ltd', at(-33.8620, 151.2120)), place('Enhanced Shockwave Solutions Pty Ltd', at(-33.8621, 151.2121)), place('Dr Helen Peric', at(-33.8622, 151.2122)), place('Macquarie Street Medical Centre', at(-33.8640, 151.2130))] });
+  };
+  const result = await places.nearbyCare('1 Macquarie Street, Sydney NSW 2000', { fetchImpl });
+  assert.deepEqual(result.hospitals.map((item) => item.name), ['Sydney Hospital and Sydney Eye Hospital', "St Vincent's Hospital Sydney"]);
+  assert.deepEqual(result.clinics.map((item) => item.name), ['Macquarie Street Medical Centre']);
+  assert.ok(result.hospitals.every((item) => !('type' in item)));
+  delete process.env.GOOGLE_PLACES_API_KEY;
 });
