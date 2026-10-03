@@ -3,7 +3,7 @@
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   let token = '';
   try { token = localStorage.getItem('siteready.session') || ''; } catch { /* none */ }
-  const response = await fetch('/api/admin/stats', { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  const response = await fetch('/api/admin/stats', { headers: token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {} });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     document.getElementById('error').textContent = response.status === 401 ? 'Sign in on the main page first.' : (data.message || 'Not available.');

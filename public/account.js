@@ -22,7 +22,7 @@
   async function call(method, route, body) {
     const response = await fetch(api(route), {
       method,
-      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(session ? { Authorization: `Bearer ${session}` } : {}) },
+      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(session ? { Authorization: `Bearer ${session}`, 'X-Session-Token': session } : {}) },
       body: body ? JSON.stringify(body) : undefined,
     });
     if (response.status === 401 && session) signedOut();
