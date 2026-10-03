@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 
 let transport = null;
 let capture = null;
+let divert = null;
 
 function configured() {
   return Boolean(process.env.SMTP_HOST && process.env.SMTP_USERNAME && process.env.SMTP_PASSWORD);
@@ -28,7 +29,13 @@ function captureMail(fn) {
   capture = fn;
 }
 
+// Staging test hooks keep mail to test addresses instead of sending it.
+function divertMail(fn) {
+  divert = fn;
+}
+
 async function sendMail({ to, subject, text }) {
+  if (divert && await divert({ to, subject, text })) return null;
   if (capture) return capture({ to, subject, text });
   if (!configured()) {
     if (process.env.NODE_ENV === 'production') throw Object.assign(new Error('Email is not set up on this server.'), { status: 503, publicMessage: true });
@@ -43,4 +50,4 @@ async function sendMail({ to, subject, text }) {
   }
 }
 
-module.exports = { sendMail, captureMail, configured };
+module.exports = { sendMail, captureMail, divertMail, configured };
