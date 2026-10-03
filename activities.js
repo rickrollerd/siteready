@@ -1505,6 +1505,7 @@ const ACTIVITIES = [
       controls: [
         { only: 'newPole', text: 'Poles are stood in footings dug after services are located, lifted with a crane truck or by two people for light poles, and braced until the footing has cured.' },
         { only: 'poleMount', text: 'Use an EWP to fit cameras and devices at the top of the pole, with the harness clipped to its anchor.' },
+        { only: 'turnstiles', text: 'Turnstiles, gates and barriers are moved with trolleys or lifting equipment, not carried, and anchored to the slab to the manufacturer\'s details.' },
         src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
         src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
         { unless: 'poleMount', ...src('Drill with on-tool extraction. Anyone still at risk of exposure wears a fit tested respirator (P2 or better).', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`) },
@@ -6593,6 +6594,7 @@ const ACTIVITIES = [
         src('Keep oil, grease and other hydrocarbons away from oxygen pipework, fittings and tools: oxygen in contact with them can ignite and cause a fire or explosion.', MODEL('Welding processes', 's 3.4')),
         src('Nitrogen and other inert gases are an asphyxiation hazard in high concentrations. Ventilate the work area, and monitor the atmosphere where gas could collect.', MODEL('Welding processes', 's 3.6')),
         'Pipework is purged with oxygen-free nitrogen while brazing, to the medical gas installer\'s procedure.',
+        'Before new pipework is used, it is pressure tested, purged, and tested for gas identity and purity to the medical gas installer\'s procedure, and it is connected to a live system only under the hospital\'s shutdown or tie-in permit.',
         src('Gas cylinders are secured at all times and stored upright, with flashback arrestors on the gas hoses.', MODEL('Welding processes', 's 3.4, s 3.6')),
       ],
     }],

@@ -2384,13 +2384,14 @@ function settleFlags(flags, task) {
   if (out.precast && T(/\btilt-?up\b/i)) out.craneInterface = true;
   if (T(/\bsub-?surface drain\w*|\bsubsoil drain\w*/i) && T(/\bturf\b/i)) out.shallowTrench = true;
   if ((T(/\b(refurbish\w*|renovat\w*|strip\w*)\b/i) || (T(/\binstall\w*\b/i) && T(/\b(?:in|to) (?:the |existing )?(?:school )?(?:classrooms?|wards?)\b/i))) && T(/\b(schools?|hospitals?|wards?|classrooms?|public buildings?)\b/i) && !T(/\bnew (?:school|classroom|building|block|hospital|tower)\b/i)) out.asbestosCheck = true;
+  out.turnstiles = T(/\b(turnstiles?|speed gates?|entry gates?|access gates?)\b/i);
   out.speakerHang = T(/\b(speakers?|loudspeakers?|line arrays?|pa systems?)\b/i) && T(/\b(roofs?|ceilings?|trusses?|catwalks?)\b/i) && T(/\b(install\w*|hang\w*|fix\w*)\b/i);
   out.screensOnly = T(/\b(big screens?|video screens?|led screens?|scoreboards?)\b/i) && !T(/\blight\w*/i);
   out.lightTowers = T(/\b(light(?:ing)? towers?|floodlight towers?|light masts?)\b/i);
   out.standDismantle = T(/\bdismantl\w*/i) && !T(/\b(erect\w*|install\w*)\b/i);
   out.retractSeating = T(/\b(retractable|telescopic)\b/i);
   if (T(/\bair ?condition\w*\b/i) && T(/\b(classrooms?|offices?|rooms?|wards?)\b/i) && T(/\b(install\w*|new|replac\w*)\b/i) && !T(/\b(ducted|chillers?|vrf|vrv)\b/i)) out.splitInstall = true;
-  if (T(/\b(building management systems?|bms|building automation)\b/i) && T(/\b(install\w*|new|commission\w*)\b/i)) { out.ictCabling = true; out.commissioning = true; }
+  if (T(/\b(?:install\w*|commission\w*)\s+(?:a |an |the |new )*(?:building management systems?|bms|building automation)\b/i)) { out.ictCabling = true; out.commissioning = true; }
   // Plant review rules.
   out.civilSite = T(/\b(bridges?|motorways?|highways?|freeways?|railways?|rail (?:lines?|corridors?|tracks?)|track possessions?|tunnel\w*|mines?|mining|quarr(?:y|ies)|solar farms?|wind (?:farms?|turbines?)|dams?|spillways?|wharf|breakwaters?|haul roads?|interchanges?|culverts?|transmission|road corridors?)\b/i);
   out.noDigWork = Boolean(out.earthworks && T(/\b(water carts?|load\w* trucks?|stockpiles?|dust control|haul spoil|muck\w* out)\b/i) && !T(/\b(excavat\w*|dig\w*|cut and fill|trench\w*|bulk earthworks|construct\w*|build\w*)\b/i));
