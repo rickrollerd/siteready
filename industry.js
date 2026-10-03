@@ -1,6 +1,7 @@
 // Industry data (terms of use section 8). For each SWMS saved or downloaded by a business,
 // one de-identified record: the state, the job's postcode, the trade,
 // the job steps and kinds of work, high risk work categories, plant and licence classes, the
+// controls chosen (as fixed codes, control levels, listed choices and PPE ticked), the
 // general type of project and the month. No names, ABN, address, email, account id or free
 // text is kept. The business is kept only as a keyed one-way code, so figures can be limited
 // to at least 10 businesses; it cannot be turned back into the account without the key.
@@ -28,6 +29,61 @@ function projectType(text) {
   return found ? found[0] : 'other';
 }
 
+// Controls chosen, kept only as fixed codes. Free text answers are read for these words and
+// then dropped: only the code is kept.
+const CONTROL_CODES = [
+  ['guardrails', /\b(guard ?rails?|edge protection|handrails?)\b/i],
+  ['scaffold', /\bscaffold\w*/i],
+  ['ewp', /\b(EWPs?|elevating work platforms?|scissor lifts?|boom lifts?|cherry pickers?)\b/i],
+  ['harness', /\b(harness\w*|fall arrest|travel restraint|restraint lines?|anchor points?|static lines?)\b/i],
+  ['safetyMesh', /\b(safety mesh|catch nets?|safety nets?)\b/i],
+  ['ladder', /\b(ladders?|platform ladders?|step ?ladders?)\b/i],
+  ['propping', /\b(propp\w*|props|temporary (?:support|bracing))\b/i],
+  ['shoring', /\b(shor\w*|trench (?:shields?|boxes?)|benching|battering|battered)\b/i],
+  ['exclusionZone', /\b(exclusion zones?|barricad\w*|no[- ]go zones?|para-?webbing|bunting)\b/i],
+  ['spotter', /\b(spotters?|safety observers?|sentries|sentry)\b/i],
+  ['trafficControl', /\b(traffic (?:controllers?|management|control plan)|TMP|TGS|lane closures?)\b/i],
+  ['isolation', /\b(isolat(?:e|ed|ion|ing)\b[^.]{0,40}\b(?:power|energy|supply|circuits?|services?|plant|gas|water|valves?|electric\w*)|lock ?out|LOTO|proved? de-?energised|test before (?:you )?touch)\b/i],
+  ['permit', /\b(permits? to work|hot work permits?|entry permits?|excavation permits?|dig permits?)\b/i],
+  ['serviceLocation', /\b(DBYD|before you dig|BYDA|service locat\w*|potholing|vacuum excavat\w*|non-?destructive dig\w*)\b/i],
+  ['gasTest', /\b(gas (?:test\w*|detectors?|monitor\w*)|atmospheric (?:test\w*|monitor\w*)|atmosphere (?:test\w*|monitor\w*))\b/i],
+  ['ventilation', /\b(ventilat\w*|extraction fans?|forced air)\b/i],
+  ['dustSuppression', /\b(on-tool (?:water|extraction)|water suppression|wet cutting|dust extraction|H class vacuum|M class vacuum|shrouds?)\b/i],
+  ['rpe', /\b(P2|P3|respirators?|PAPR|half[- ]face|full[- ]face|RPE)\b/i],
+  ['hearing', /\b(ear ?plugs?|ear ?muffs?|hearing protection)\b/i],
+  ['liftPlan', /\b(lift (?:plan|study)|crane (?:plan|study)|dogm[ae]n|riggers?|tag lines?)\b/i],
+  ['engineerSignOff', /\b(?:engineers?|engineer's|geotech\w*)\b[^.]{0,40}\b(design\w*|certif\w*|sign\w*|inspect\w*|approv\w*)\b/i],
+  ['inspection', /\b(pre-?start (?:checks?|inspections?)|daily inspections?|scaff ?tags?|inspected (?:daily|before))\b/i],
+  ['rescuePlan', /\b(rescue (?:plan|procedure|equipment)|standby person|stand-?by person)\b/i],
+  ['eyeWash', /\b(eye ?wash|emergency showers?)\b/i],
+  ['training', /\b(trained|training|VOC|verification of competency)\b/i],
+  ['heatStress', /\b(shade|rest breaks|drinking water|heat (?:stress|illness))\b/i],
+  ['manualHandling', /\b(team lift\w*|mechanical aids?|trolleys?|lifting aids?|vacuum lifters?)\b/i],
+];
+// Questions answered by picking from a list. Only these listed values are kept.
+const CHOICE_VALUES = {
+  spaceAssessment: ['confined', 'notConfined'],
+  energisedWork: ['none', 'testing'],
+  deckMethod: ['below', 'top'],
+  scaffoldType: ['modular', 'tubeCoupler', 'hung', 'mobile'],
+  refrigerantClass: ['a1', 'a2l', 'a3'],
+};
+
+function controlsFor(draft, input) {
+  const levels = {};
+  for (const item of draft.controls || []) levels[item.level] = (levels[item.level] || 0) + 1;
+  const text = [...(draft.controls || []).map((item) => item.text), ...(draft.jobSteps || []).flatMap((step) => step.controls || [])].join('\n');
+  const codes = CONTROL_CODES.filter(([, pattern]) => pattern.test(text)).map(([code]) => code);
+  const facts = input.facts || {};
+  const choices = {};
+  for (const [id, values] of Object.entries(CHOICE_VALUES)) {
+    const value = values.find((item) => item.toLowerCase() === String(facts[id] || '').trim().toLowerCase());
+    if (value) choices[id] = value;
+  }
+  const ppe = (draft.ppe || []).flatMap((area) => (area.items || []).filter((item) => item.ticked).map((item) => item.id)).sort();
+  return { levels, codes, choices, ppe };
+}
+
 const LICENCE = /\b(S[BIA]|R[BIA]|DG|C[NV2601]|CT|CS|CD|CB|CP|CO|WP|PB|HM|HP|LF|LO|BS|BA|TO|ES)\b/g;
 
 function recordFor(draft, input, company) {
@@ -49,6 +105,7 @@ function recordFor(draft, input, company) {
     highRisk: [...(draft.highRisk || [])],
     plant,
     licences,
+    controls: controlsFor(draft, input),
     business: code(company.id),
     // One record per business, task and month, however often it is downloaded.
     dedupe: code(`${company.id}|${month}|${String(input.state || '')}|${String(draft.task || '').toLowerCase()}`),
@@ -60,9 +117,9 @@ async function recordIndustry(draft, input, company) {
   const record = recordFor(draft, input || {}, company);
   const seen = await db.one('SELECT 1 AS found FROM industry_records WHERE dedupe = $1', [record.dedupe]);
   if (seen) return;
-  await db.query('INSERT INTO industry_records (id, month, state, postcode, postcode_area, trade, project_type, steps, kinds, high_risk, plant, licences, business, dedupe) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [
+  await db.query('INSERT INTO industry_records (id, month, state, postcode, postcode_area, trade, project_type, steps, kinds, high_risk, plant, licences, controls, business, dedupe) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)', [
     crypto.randomBytes(12).toString('hex'), record.month, record.state, record.postcode, record.postcodeArea, record.trade, record.projectType,
-    JSON.stringify(record.steps), JSON.stringify(record.kinds), JSON.stringify(record.highRisk), JSON.stringify(record.plant), JSON.stringify(record.licences),
+    JSON.stringify(record.steps), JSON.stringify(record.kinds), JSON.stringify(record.highRisk), JSON.stringify(record.plant), JSON.stringify(record.licences), JSON.stringify(record.controls),
     record.business, record.dedupe,
   ]);
 }
@@ -106,4 +163,4 @@ async function releasableFigures({ month, trade, projectType: type } = {}) {
   return { figures, withheldSwms: withheld, minBusinesses: MIN_BUSINESSES };
 }
 
-module.exports = { recordIndustry, recordFor, projectType, releasableFigures, MIN_BUSINESSES };
+module.exports = { recordIndustry, recordFor, controlsFor, CONTROL_CODES, projectType, releasableFigures, MIN_BUSINESSES };

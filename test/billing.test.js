@@ -136,6 +136,11 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
   assert.equal(row.project_type, 'hospital');
   assert.match(row.month, /^\d{4}-\d{2}$/);
   assert.ok(JSON.parse(row.steps).length > 0);
+  const controls = JSON.parse(row.controls);
+  assert.ok(controls.codes.includes('ewp') && controls.codes.includes('guardrails'), 'the controls chosen are kept as codes');
+  assert.ok(Object.keys(controls.levels).length > 0);
+  assert.ok(controls.ppe.includes('hardHat'));
+  assert.ok(!row.controls.includes('Scissor lifts with guardrails'), 'the answer text itself is not kept');
   const text = JSON.stringify(row);
   for (const secret of ['Secret Builders', '83914571673', '83 914', 'industry@co.example', 'Toowoomba', 'Pechey', 'sprinkler pipework in the ward', 'Alex Chen']) {
     assert.ok(!text.includes(secret), `the record does not keep ${secret}`);

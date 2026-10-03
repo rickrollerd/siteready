@@ -180,6 +180,8 @@ async function migrate() {
   if (!optOut.length) await query('ALTER TABLE companies ADD COLUMN industry_opt_out BOOLEAN NOT NULL DEFAULT FALSE');
   const postcode = await query("SELECT column_name FROM information_schema.columns WHERE table_name = 'industry_records' AND column_name = 'postcode'");
   if (!postcode.length) await query("ALTER TABLE industry_records ADD COLUMN postcode TEXT NOT NULL DEFAULT ''");
+  const controls = await query("SELECT column_name FROM information_schema.columns WHERE table_name = 'industry_records' AND column_name = 'controls'");
+  if (!controls.length) await query("ALTER TABLE industry_records ADD COLUMN controls TEXT NOT NULL DEFAULT '{}'");
   // ABNs entered before the one-trial rule are registered to the first company that used each.
   const registered = new Set((await query('SELECT abn FROM trial_abns')).map((row) => row.abn));
   for (const row of await query("SELECT id, abn FROM companies WHERE abn <> '' ORDER BY created_at")) {
