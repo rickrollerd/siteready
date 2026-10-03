@@ -862,6 +862,32 @@ function render(draft, { movable = false } = {}) {
     <p class="meta">The Word file has two pages of lines for workers to sign.</p>`;
 }
 
+// The nearest hospitals and medical centres to the job address. Each lookup is a paid
+// Google request, so it runs only when asked.
+document.getElementById('hospital-find').addEventListener('click', async () => {
+  const box = document.getElementById('hospital-list');
+  const address = document.getElementById('workplace').value.trim();
+  box.classList.remove('hidden');
+  if (!address) { box.innerHTML = '<p class="meta">Enter the job address first.</p>'; return; }
+  box.innerHTML = '<p class="meta">Looking up...</p>';
+  try {
+    const data = await (await fetch(api(`/api/nearby-care?address=${encodeURIComponent(address)}`))).json();
+    if (!data.enabled) { box.innerHTML = '<p class="meta">Suggestions are not set up. Type the hospital.</p>'; return; }
+    if (data.error) { box.innerHTML = `<p class="meta">${esc(data.error)}</p>`; return; }
+    const option = (place) => `<li><button type="button" data-care="${esc(`${place.name}, ${place.address}`)}"><strong>${esc(place.name)}</strong><br>${esc(place.address)}<br><span class="meta">About ${esc(place.km)} km away in a straight line</span></button></li>`;
+    box.innerHTML = `${data.hospitals.length ? `<p class="meta"><strong>Hospitals.</strong> Check the one you pick has a 24 hour emergency department.</p><ul class="care-list">${data.hospitals.map(option).join('')}</ul>` : '<p class="meta">No hospital found nearby. Type the hospital.</p>'}
+      ${data.clinics.length ? `<p class="meta"><strong>Medical centres</strong>, for minor injuries in opening hours. Serious injuries go to an emergency department.</p><ul class="care-list">${data.clinics.map(option).join('')}</ul>` : ''}`;
+  } catch {
+    box.innerHTML = '<p class="meta">Suggestions are not available right now. Type the hospital.</p>';
+  }
+});
+document.getElementById('hospital-list').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-care]');
+  if (!button) return;
+  document.getElementById('hospital').value = button.dataset.care;
+  document.getElementById('hospital-list').classList.add('hidden');
+});
+
 // Each box remembers what was typed in the last few SWMS on this device, and offers it
 // again. Nothing leaves the device. Storage can be off (private browsing): then nothing is kept.
 const MEMORY_KEY = 'siteready.fieldMemory';

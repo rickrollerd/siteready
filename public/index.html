@@ -41,6 +41,9 @@
     .address-list li[aria-selected="true"], .address-list li:hover { background: #fff4d1; }
     .state-warning { color: #9a3b00; }
     .step-warning { display: block; color: #9a3b00; font-size: 0.95em; margin-top: 4px; }
+    .care-list { list-style: none; margin: 6px 0 0; padding: 0; }
+    .care-list li { margin: 4px 0; }
+    .care-list button { width: 100%; text-align: left; background: #fff; color: #1f2933; border: 1px solid #c5cdd6; font-weight: normal; padding: 8px 10px; }
     .step-move { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
     .step-move button { width: 40px; min-width: 40px; height: 36px; padding: 0; font-size: 0.9em; line-height: 1; background: #fff; color: #1f2933; border: 1px solid #c5cdd6; }
     .step-move button:disabled { opacity: 0.35; cursor: default; }
@@ -410,6 +413,8 @@
           <span class="hint">The nearest hospital with an emergency department.</span>
         </label>
         <input id="hospital" type="text" autocomplete="off">
+        <button type="button" class="pick-button" id="hospital-find">Find nearest from the job address</button>
+        <div id="hospital-list" class="hidden" aria-live="polite"></div>
       </div>
       <div class="field">
         <label for="first-aider">First aider
