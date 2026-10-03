@@ -167,3 +167,19 @@ test('an emergency department listing is kept whatever its type, comes first, an
   assert.ok(!result.hospitals.some((item) => item.name === "Royal Brisbane and Women's Hospital"), 'the hospital is not listed twice');
   delete process.env.GOOGLE_PLACES_API_KEY;
 });
+
+test('at a remote site, hospitals far past the nearest are left out, but the nearest is always kept', async () => {
+  process.env.GOOGLE_PLACES_API_KEY = 'test-key';
+  const place = (id, text, latitude, longitude) => ({ id, displayName: { text }, formattedAddress: 'QLD, Australia', location: { latitude, longitude }, primaryType: 'hospital' });
+  const reply = (body) => ({ ok: true, json: async () => body });
+  const fetchImpl = async (url, options) => {
+    const body = JSON.parse(options.body);
+    if (url.endsWith(':searchText') && body.pageSize === 1) return reply({ places: [{ location: { latitude: -20.7256, longitude: 139.4927 } }] });
+    if (url.endsWith(':searchText')) return reply({ places: [] });
+    if (body.includedPrimaryTypes.includes('hospital')) return reply({ places: [place('mi', 'Mount Isa Hospital', -20.7300, 139.4950), place('tv', 'Townsville University Hospital', -19.3200, 146.7600)] });
+    return reply({ places: [] });
+  };
+  const result = await places.nearbyCare('1 Camooweal Street, Mount Isa QLD 4825', { fetchImpl });
+  assert.deepEqual(result.hospitals.map((item) => item.name), ['Mount Isa Hospital']);
+  delete process.env.GOOGLE_PLACES_API_KEY;
+});

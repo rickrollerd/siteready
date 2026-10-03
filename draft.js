@@ -473,7 +473,8 @@ function highRiskMatches(raw, answer, state) {
     electrical: mentioned(text, /\b(connect\w*[^.]{0,40}\b(?:to|into) (?:the )?(?:electricity )?supply|solar (?:panels?|pv|photovoltaic|arrays?|systems?)|photovoltaic|inverters?|energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live (?:electrical|parts?|switchboards?|circuits?)|(?:energised|energized|live) electrical (?:installations?|services?))\b/i),
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i),
     // Drilling or fixing to precast units already in place is not precast work.
-    precast: mentioned(withoutWorkIntoPrecast(text), /\b(tilt-?up|precast)\b/i),
+    // "Tilt up", "tilt panels" and "tilt slabs" are tilt-up work as much as "tilt-up".
+    precast: mentioned(withoutWorkIntoPrecast(text), /\b(tilt[- ]?up|tilt (?:panels?|slabs?|walls?)|precast)\b/i),
     // Work in a footpath or verge is next to the road it runs beside.
     road: mentioned(text, ROAD) || mentioned(text, RAIL_IN_USE) || /\blight rail\b/i.test(String(text || '')) || /\b(in|on|along|across|under) (?:the |a )?(?:council |public )?(?:footpaths?|verges?|road reserves?|nature strips?)\b/i.test(String(text || '')),
     // Trenches and site excavation are dug by machine unless the task says by hand.
