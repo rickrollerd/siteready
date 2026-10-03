@@ -1680,7 +1680,21 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     }
     if (/\bhearing protection\b|\bear (?:muffs|plugs)\b/i.test(said) && !ticked(['earPlugs', 'earMuffs'])) tick('earMuffs');
   }
-  return { jobSteps, ppe };
+  return { jobSteps: inOrder(jobSteps, input.stepOrder), ppe };
+}
+
+// The job steps in the order the user chose. A step not in that order, such as one added
+// since, stays just after the step it followed.
+function inOrder(jobSteps, order) {
+  if (!Array.isArray(order) || !order.length) return jobSteps;
+  const at = new Map(order.map((name, index) => [name, index]));
+  let last = -1;
+  const keyed = jobSteps.map((step, index) => {
+    const key = at.has(step.step) ? at.get(step.step) : last + 0.5;
+    if (at.has(step.step)) last = at.get(step.step);
+    return { step, key, index };
+  });
+  return keyed.sort((a, b) => a.key - b.key || a.index - b.index).map((item) => item.step);
 }
 
 // Documents the SWMS relies on, to be kept on site with it.

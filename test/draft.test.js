@@ -426,3 +426,16 @@ test('step search finds earthworks steps by the words used on site, and only who
   for (const id of ['spoilManage']) assert.ok(found.includes(id), id);
   assert.ok(!searchSteps('earthworks').some((id) => /batter|door|paint/i.test(id)));
 });
+
+test('job steps follow the order the user chose, and a step not in it stays after the one it followed', () => {
+  const { draftBody } = require('../input');
+  const body = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no' };
+  const names = prepareDraft(draftBody(body)).jobSteps.map((step) => step.step);
+  assert.ok(names.length >= 3);
+  const reversed = [...names].reverse();
+  assert.deepEqual(prepareDraft(draftBody({ ...body, stepOrder: reversed })).jobSteps.map((step) => step.step), reversed);
+  // Steps left out of the order keep their place around the ones named.
+  const partial = prepareDraft(draftBody({ ...body, stepOrder: [names[2], names[1]] })).jobSteps.map((step) => step.step);
+  // The first step was before any named one; the fourth followed the third, so it moves with it.
+  assert.deepEqual(partial.slice(0, 4), [names[0], names[2], names[3], names[1]]);
+});

@@ -41,6 +41,11 @@
     .address-list li[aria-selected="true"], .address-list li:hover { background: #fff4d1; }
     .state-warning { color: #9a3b00; }
     .step-warning { display: block; color: #9a3b00; font-size: 0.95em; margin-top: 4px; }
+    .step-move { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
+    .step-move button { width: 40px; min-width: 40px; height: 36px; padding: 0; font-size: 0.9em; line-height: 1; background: #fff; color: #1f2933; border: 1px solid #c5cdd6; }
+    .step-move button:disabled { opacity: 0.35; cursor: default; }
+    tr[draggable="true"] { cursor: grab; }
+    tr.dragging { opacity: 0.5; }
     input[type="text"], textarea {
       width: 100%;
       border: 1px solid #c5cdd6;
