@@ -22,6 +22,12 @@ const post = (route, body, raw, token) => fetch(`${base}${route}`, {
   body: raw || JSON.stringify(body),
 });
 
+const put = (route, body, token) => fetch(`${base}${route}`, {
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+  body: JSON.stringify(body),
+});
+
 async function signIn(email) {
   await post('/api/auth/email', { email });
   const response = await post('/api/auth/verify', { token: lastLinkToken(email) });
@@ -58,6 +64,10 @@ test('a draft and its Word file are prepared', async () => {
   const anonymous = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' });
   assert.equal(anonymous.status, 401, 'without an account the SWMS is preview only');
   session = await signIn('sam@example.com');
+  const noCompany = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
+  assert.equal(noCompany.status, 400, 'no download until the company name and ABN are added');
+  assert.match((await noCompany.json()).message, /company name and ABN/);
+  assert.equal((await put('/api/company', { name: 'Lee Fencing', abn: '51 824 753 556' }, session)).status, 200);
   const refused = await post('/api/draft.docx', body, null, session);
   assert.equal(refused.status, 400);
   assert.match((await refused.json()).message, /review and approve/);
@@ -66,6 +76,13 @@ test('a draft and its Word file are prepared', async () => {
   assert.match(docx.headers.get('content-type'), /wordprocessingml/);
   const zip = Buffer.from(await docx.arrayBuffer()).toString('latin1');
   assert.ok(zip.includes('footer'), 'the file has a footer');
+});
+
+test('the company name and ABN are fixed once a SWMS is downloaded', async () => {
+  const renamed = await put('/api/company', { name: 'Someone Else Pty Ltd', abn: '51 824 753 556' }, session);
+  assert.equal(renamed.status, 403);
+  assert.match((await renamed.json()).message, /fixed once a SWMS/);
+  assert.equal((await put('/api/company', { name: 'Lee Fencing', abn: '51824753556', phone: '0400 000 000' }, session)).status, 200, 'other details can still change');
 });
 
 test('the Word file is refused without a name, even when confirmed', async () => {

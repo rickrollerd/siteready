@@ -130,6 +130,8 @@ showProfile();
 function setProfile(next) {
   const company = document.getElementById('company');
   if (!company.value || company.value === profile.name) company.value = next.name || '';
+  // Signed in, the company on every SWMS is the account's own.
+  if (next.name) { company.value = next.name; company.readOnly = true; company.title = 'Set from your company details.'; }
   profile = next;
   pendingLogo = next.logo || '';
   showProfile();

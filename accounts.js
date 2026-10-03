@@ -46,14 +46,16 @@ function companyView(company) {
 }
 
 // The company's saved details always go on its SWMS.
+// A signed-in company's SWMS always carry its own saved details, so an account
+// cannot be used to make SWMS for another business.
 function withCompany(input, company) {
   return {
     ...input,
-    company: company.name || input.company,
-    companyAbn: company.abn || input.companyAbn,
-    companyAddress: company.address || input.companyAddress,
-    companyPhone: company.phone || input.companyPhone,
-    companyEmail: company.email || input.companyEmail,
+    company: company.name || '',
+    companyAbn: company.abn || '',
+    companyAddress: company.address || '',
+    companyPhone: company.phone || '',
+    companyEmail: company.email || '',
   };
 }
 
@@ -67,7 +69,7 @@ router.post('/auth/email', route(async (req, res) => {
 }));
 
 router.post('/auth/verify', route(async (req, res) => {
-  const token = await auth.finishLogin(String((req.body && req.body.token) || ''));
+  const token = await auth.finishLogin(String((req.body && req.body.token) || ''), req);
   res.json({ token });
 }));
 
@@ -101,6 +103,14 @@ router.get('/company', requireUser, (req, res) => res.json({ company: companyVie
 
 router.put('/company', requireUser, route(async (req, res) => {
   const body = req.body || {};
+  // Once a SWMS has been saved or downloaded, the company name and ABN are fixed.
+  const name = textField(body.name, 200);
+  const abn = textField(body.abn, 40);
+  const changed = (req.company.name && name !== req.company.name) || (req.company.abn && abn.replace(/\s/g, '') !== req.company.abn.replace(/\s/g, ''));
+  if (changed) {
+    const used = await db.one("SELECT COUNT(*) AS n FROM events WHERE company_id = $1 AND type IN ('download_pdf', 'download_word', 'swms_saved')", [req.company.id]);
+    if (used && Number(used.n) > 0) throw fail(403, 'Your company name and ABN are fixed once a SWMS has been saved or downloaded, because they are printed on every SWMS. Contact support to change them.');
+  }
   const logo = body.logo === '' ? '' : (readLogo(body.logo) ? body.logo : req.company.logo);
   await db.query('UPDATE companies SET name = $1, abn = $2, address = $3, phone = $4, email = $5, logo = $6 WHERE id = $7', [
     textField(body.name, 200), textField(body.abn, 40), textField(body.address, 300), textField(body.phone, 60), textField(body.email, 200), logo, req.company.id,
