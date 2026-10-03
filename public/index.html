@@ -41,6 +41,12 @@
     .address-list li[aria-selected="true"], .address-list li:hover { background: #fff4d1; }
     .state-warning { color: #9a3b00; }
     .step-warning { display: block; color: #9a3b00; font-size: 0.95em; margin-top: 4px; }
+    .project-list { list-style: none; margin: 8px 0; padding: 0; }
+    .project-list li { display: flex; gap: 8px; align-items: center; justify-content: space-between; border-top: 1px solid #e1e6ec; padding: 8px 0; }
+    .project-list li.current { font-weight: 600; }
+    .project-status { font-size: 13px; white-space: nowrap; }
+    .project-status.ready { color: #1e7e34; }
+    .project-status.needs { color: #9a3b00; }
     .care-list { list-style: none; margin: 6px 0 0; padding: 0; }
     .care-list li { margin: 4px 0; }
     .care-list button { width: 100%; text-align: left; background: #fff; color: #1f2933; border: 1px solid #c5cdd6; font-weight: normal; padding: 8px 10px; }
@@ -330,6 +336,7 @@
       <div id="scope-results"></div>
     </details>
 
+    <section id="project-panel" class="panel hidden" aria-live="polite"></section>
     <form id="start" class="panel">
       <h2>State and task</h2>
       <div class="field">

@@ -563,6 +563,11 @@
   });
 
   S.signedIn = () => Boolean(me);
+  // For the project download: whether downloads are open, the review box, and the download itself.
+  S.canDownload = () => !config.accounts || Boolean(me && me.company.hasAccess);
+  S.accountsOn = () => Boolean(config.accounts);
+  S.confirmBlock = (prefix) => confirmBlock(prefix);
+  S.download = (route, fallbackName, body) => download(route, fallbackName, body);
   S.saveCompany = async (profile) => (await call('PUT', '/api/company', profile)).company;
 
   // ---- Start ----
