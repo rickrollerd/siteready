@@ -257,3 +257,17 @@ test('the session also works in X-Session-Token, which wins over a replaced Auth
   assert.equal((await me({ Authorization: `Bearer ${token}` })).status, 200);
   assert.equal((await me({ 'X-Session-Token': 'not-a-session' })).status, 401);
 });
+
+test('a database that cannot answer gives 503 (busy), not 401 (signed out)', async () => {
+  const token = await signIn('busy@co.example');
+  const one = db.one;
+  db.one = async () => { throw new Error('timeout exceeded when trying to connect'); };
+  try {
+    const res = await fetch(`${base}/api/swms/export.zip`, { headers: { 'X-Session-Token': token } });
+    assert.equal(res.status, 503);
+    assert.match((await res.json()).message, /busy/);
+  } finally {
+    db.one = one;
+  }
+  assert.equal((await fetch(`${base}/api/me`, { headers: { 'X-Session-Token': token } })).status, 200);
+});
