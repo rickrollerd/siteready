@@ -10,11 +10,11 @@ const HIERARCHY = [
 ];
 
 const SITE_FIELDS = [
-  { id: 'liveServices', label: 'Live services' },
-  { id: 'publicInterface', label: 'Public interface' },
-  { id: 'otherTrades', label: 'Other trades' },
-  { id: 'ground', label: 'Ground' },
-  { id: 'access', label: 'Access' },
+  { id: 'liveServices', label: 'Live services', hint: 'Power, gas, water, data or other live services in or near the work, including overhead power lines.' },
+  { id: 'publicInterface', label: 'Public interface', hint: 'Where the public, traffic or neighbours are close to the work.' },
+  { id: 'otherTrades', label: 'Other trades', hint: 'Other trades working nearby, or above or below you.' },
+  { id: 'ground', label: 'Ground', hint: 'Soft or sloping ground, open excavations, or slab and deck loads.' },
+  { id: 'access', label: 'Access', hint: 'How the crew gets to the work area, for example ladder, stairs or EWP, and how plant and materials get there.' },
 ];
 
 // Section 291 categories, as they stand in the Work Health and Safety

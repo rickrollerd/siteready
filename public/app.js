@@ -253,6 +253,7 @@ function payload() {
     ppe: document.querySelector('[data-ppe]') ? [...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value) : undefined,
     // The job steps picked, or none to use the ones SiteReady finds in the task.
     kinds: stepPicks || undefined,
+    stepOrder: stepOrder || undefined,
     facts,
     site,
   };
@@ -425,6 +426,8 @@ document.getElementById('start').addEventListener('submit', (event) => {
 
 // Job steps: null follows the steps SiteReady finds in the task; a list is the user's own picks.
 let stepPicks = null;
+// The job steps in the order the user put them in the preview, by name.
+let stepOrder = null;
 let stepLibrary = { groups: [] };
 const stepById = new Map();
 
@@ -530,8 +533,16 @@ async function refreshSteps() {
   });
   document.querySelectorAll('[data-site]').forEach((el) => { if (site[el.dataset.site] !== undefined) el.value = site[el.dataset.site]; });
   (questions && questions.required || []).forEach((item) => markPicks(item.id));
-  document.querySelectorAll('[data-ppe]').forEach((el) => { if (ppe.has(el.value)) el.checked = true; });
+  // PPE the user ticked or unticked stays as they set it; the rest follows the new suggestion.
+  document.querySelectorAll('[data-ppe]').forEach((el) => { if (ppeTouched.has(el.value)) el.checked = ppe.has(el.value); else if (ppe.has(el.value)) el.checked = true; });
 }
+
+// Ticking a harness or life jacket asks about it; unticking one takes the question away.
+const ppeTouched = new Set();
+document.getElementById('ppe-block').addEventListener('change', (event) => {
+  if (event.target.matches('[data-ppe]')) ppeTouched.add(event.target.value);
+  if (event.target.matches('[data-ppe][value="harness"], [data-ppe][value="lifeJacket"]')) refreshSteps();
+});
 
 document.getElementById('steps-block').addEventListener('change', (event) => {
   if (!event.target.matches('[data-step]')) return;
@@ -572,6 +583,11 @@ async function loadQuestions(options = {}) {
     return false;
   }
   questions = data;
+  // Spelling SiteReady fixed in the task, shown so the user can check it.
+  const note = document.getElementById('spelling-note');
+  const fixes = data.spellingFixes || [];
+  note.textContent = fixes.length ? `Spelling fixed in the SWMS: ${fixes.map((fix) => `${fix.from} to ${fix.to}`).join(', ')}.` : '';
+  note.classList.toggle('hidden', !fixes.length);
   const warning = document.getElementById('fall-warning');
   warning.textContent = (data.fall && data.fall.warning) || '';
   warning.classList.toggle('hidden', !warning.textContent);
@@ -594,7 +610,7 @@ async function loadQuestions(options = {}) {
       <div class="field">
         <label for="fact-${esc(item.id)}">${esc(item.label)}${extra}</label>
         ${picks}
-        <textarea id="fact-${esc(item.id)}" data-fact="${esc(item.id)}"></textarea>
+        <textarea id="fact-${esc(item.id)}" data-fact="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
       </div>`;
     }).join('')
     : '<p class="lede">No further fact is required for this task.</p>';
@@ -606,8 +622,9 @@ async function loadQuestions(options = {}) {
   `).join('');
   document.getElementById('site-block').innerHTML = (data.site || []).map((item) => `
     <div class="field">
-      <label for="site-${esc(item.id)}">${esc(item.label)}</label>
-      <textarea id="site-${esc(item.id)}" data-site="${esc(item.id)}"></textarea>
+      <label for="site-${esc(item.id)}">${esc(item.label)}${item.hint ? `<span class="hint">${esc(item.hint)}</span>` : ''}</label>
+      ${lastUsed(`site-${item.id}`) ? `<button type="button" class="pick-button" data-same-as-last="site-${esc(item.id)}">Same as last SWMS</button>` : ''}
+      <textarea id="site-${esc(item.id)}" data-site="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
     </div>
   `).join('');
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
@@ -646,6 +663,7 @@ async function fillForm(input) {
   fillFields(input);
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
+  stepOrder = Array.isArray(input.stepOrder) ? [...input.stepOrder] : null;
   showFallExplanation();
   if (!(await loadQuestions())) return;
   document.querySelectorAll('[data-fact]').forEach((el) => {
@@ -757,7 +775,7 @@ document.getElementById('back').addEventListener('click', () => {
   resultEl.classList.add('hidden');
 });
 
-function render(draft) {
+function render(draft, { movable = false } = {}) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
   const logo = profile.logo ? `<img class="sheet-logo" src="${esc(profile.logo)}" alt="">` : '';
   const company = draft.companyDetails ? `<p class="meta">${esc(draft.companyDetails)}</p>` : '';
@@ -800,7 +818,7 @@ function render(draft) {
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
   const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}` : '');
-  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index) => `<tr><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong></td><td data-label="Hazards and risks">${list(step.hazards)}</td><td data-label="Controls">${list(step.controls)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td></tr>`).join('')}</tbody></table>
+  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${list(step.hazards)}</td><td data-label="Controls">${list(step.controls)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td></tr>`).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const registers = `${(draft.plant || []).length ? `<h4>Plant and equipment</h4>${grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence]))}` : ''}
@@ -820,7 +838,7 @@ function render(draft) {
     <h4>Responsibilities</h4>${people}
     <h4>High risk construction work</h4>${risks}
     <h4>Controls</h4>${controls}
-    <h4>Job steps</h4>${steps}
+    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done.</p>' : ''}${steps}
     <h4>Personal protective equipment</h4>${ppe}
     ${registers}
     <h4>${esc(draft.reviewHeading)}</h4>
@@ -844,8 +862,81 @@ function render(draft) {
     <p class="meta">The Word file has two pages of lines for workers to sign.</p>`;
 }
 
-factsForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
+// The nearest hospitals and medical centres to the job address. Each lookup is a paid
+// Google request, so it runs only when asked.
+document.getElementById('hospital-find').addEventListener('click', async () => {
+  const box = document.getElementById('hospital-list');
+  const address = document.getElementById('workplace').value.trim();
+  box.classList.remove('hidden');
+  if (!address) { box.innerHTML = '<p class="meta">Enter the job address first.</p>'; return; }
+  box.innerHTML = '<p class="meta">Looking up...</p>';
+  try {
+    const data = await (await fetch(api(`/api/nearby-care?address=${encodeURIComponent(address)}`))).json();
+    if (!data.enabled) { box.innerHTML = '<p class="meta">Suggestions are not set up. Type the hospital.</p>'; return; }
+    if (data.error) { box.innerHTML = `<p class="meta">${esc(data.error)}</p>`; return; }
+    const option = (place) => `<li><button type="button" data-care="${esc(`${place.name}, ${place.address}`)}"><strong>${esc(place.name)}</strong><br>${esc(place.address)}<br><span class="meta">About ${esc(place.km)} km away in a straight line</span></button></li>`;
+    box.innerHTML = `${data.hospitals.length ? `<p class="meta"><strong>Hospitals.</strong> Check the one you pick has a 24 hour emergency department.</p><ul class="care-list">${data.hospitals.map(option).join('')}</ul>` : '<p class="meta">No hospital found nearby. Type the hospital.</p>'}
+      ${data.clinics.length ? `<p class="meta"><strong>Medical centres</strong>, for minor injuries in opening hours. Serious injuries go to an emergency department.</p><ul class="care-list">${data.clinics.map(option).join('')}</ul>` : ''}`;
+  } catch {
+    box.innerHTML = '<p class="meta">Suggestions are not available right now. Type the hospital.</p>';
+  }
+});
+document.getElementById('hospital-list').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-care]');
+  if (!button) return;
+  document.getElementById('hospital').value = button.dataset.care;
+  document.getElementById('hospital-list').classList.add('hidden');
+});
+
+// Each box remembers what was typed in the last few SWMS on this device, and offers it
+// again. Nothing leaves the device. Storage can be off (private browsing): then nothing is kept.
+const MEMORY_KEY = 'siteready.fieldMemory';
+const REMEMBERED = ['site-manager', 'works-manager', 'works-manager-phone', 'compliance-responsible', 'reviewer', 'scaffold-supervisor', 'hospital', 'first-aider', 'muster-point', 'prepared-by'];
+function readMemory() {
+  try { return JSON.parse(localStorage.getItem(MEMORY_KEY) || '{}') || {}; } catch { return {}; }
+}
+function lastUsed(id) {
+  const list = readMemory()[id];
+  return Array.isArray(list) && list.length ? list[0] : '';
+}
+function rememberFields() {
+  const memory = readMemory();
+  const ids = [...REMEMBERED, ...[...document.querySelectorAll('[data-site]')].map((el) => el.id)];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    const value = el && el.value.trim();
+    if (!value || /^If not known yet/.test(value)) continue;
+    memory[id] = [value, ...(memory[id] || []).filter((item) => item !== value)].slice(0, 8);
+  }
+  try { localStorage.setItem(MEMORY_KEY, JSON.stringify(memory)); } catch { /* not kept */ }
+  offerRemembered();
+}
+function offerRemembered() {
+  const memory = readMemory();
+  for (const id of REMEMBERED) {
+    const el = document.getElementById(id);
+    if (!el || !(memory[id] || []).length) continue;
+    let list = document.getElementById(`memory-${id}`);
+    if (!list) {
+      list = document.createElement('datalist');
+      list.id = `memory-${id}`;
+      el.after(list);
+      el.setAttribute('list', list.id);
+    }
+    list.innerHTML = memory[id].map((value) => `<option value="${esc(value)}"></option>`).join('');
+  }
+}
+offerRemembered();
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-same-as-last]');
+  if (!button) return;
+  const el = document.getElementById(button.dataset.sameAsLast);
+  if (el) { el.value = lastUsed(button.dataset.sameAsLast); el.focus(); }
+});
+
+// Prepares the draft and shows it. Moving a job step prepares it again in the new order.
+let shownSteps = [];
+async function prepareDraft({ scroll = true } = {}) {
   const button = document.getElementById('prepare');
   button.disabled = true;
   document.getElementById('facts-error').textContent = '';
@@ -859,17 +950,69 @@ factsForm.addEventListener('submit', async (event) => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || 'The statement could not be prepared.');
     addPrincipals([JSON.parse(body).principalContractor], true);
-    resultEl.innerHTML = `<div class="sheet">${render(data)}</div><div id="result-actions"></div>`;
+    shownSteps = (data.jobSteps || []).map((step) => step.step);
+    rememberFields();
+    resultEl.innerHTML = `<div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
     // Downloading and saving need an account; the account script adds those buttons.
     window.SiteReady.showActions(data, JSON.parse(body));
-    resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scroll) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;
   } finally {
     button.disabled = false;
   }
+}
+
+factsForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  prepareDraft();
 });
+
+function moveStep(from, to) {
+  if (from === to || from < 0 || to < 0 || from >= shownSteps.length || to >= shownSteps.length) return;
+  const order = [...shownSteps];
+  const [moved] = order.splice(from, 1);
+  order.splice(to, 0, moved);
+  stepOrder = order;
+  prepareDraft({ scroll: false }).then(() => {
+    const row = resultEl.querySelector(`[data-step-row="${to}"] button`);
+    if (row) row.focus();
+  });
+}
+
+resultEl.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-move]');
+  if (!button) return;
+  const index = Number(button.dataset.index);
+  moveStep(index, index + Number(button.dataset.move));
+});
+let dragFrom = null;
+resultEl.addEventListener('dragstart', (event) => {
+  const row = event.target.closest('[data-step-row]');
+  if (!row) return;
+  dragFrom = Number(row.dataset.stepRow);
+  event.dataTransfer.effectAllowed = 'move';
+  row.classList.add('dragging');
+});
+resultEl.addEventListener('dragover', (event) => {
+  if (dragFrom !== null && event.target.closest('[data-step-row]')) event.preventDefault();
+});
+resultEl.addEventListener('drop', (event) => {
+  const row = event.target.closest('[data-step-row]');
+  if (dragFrom === null || !row) return;
+  event.preventDefault();
+  const to = Number(row.dataset.stepRow);
+  const from = dragFrom;
+  dragFrom = null;
+  moveStep(from, to);
+});
+resultEl.addEventListener('dragend', () => {
+  dragFrom = null;
+  resultEl.querySelectorAll('.dragging').forEach((row) => row.classList.remove('dragging'));
+});
+// A new task starts with SiteReady's order again.
+document.getElementById('task').addEventListener('input', () => { stepOrder = null; ppeTouched.clear(); });
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
   api, esc, payload, render, fillForm, fillFields, setProfile, getProfile: () => profile, resultEl, addPrincipals,

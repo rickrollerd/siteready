@@ -2,6 +2,7 @@ const { HIERARCHY, SITE_FIELDS, findState, highRiskList } = require('./legislati
 const { jobStepsFor, ppeFor, ACTIVITIES } = require('./activities');
 const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
 const { readSlang } = require('./slang');
+const { fixSpelling } = require('./spelling');
 const { registersFor } = require('./register');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
@@ -539,12 +540,27 @@ function choiceAnswer(id, value) {
     if (/\b(a2l?|mildly flammable|r32|r454b|r1234\w*)\b/.test(text)) return 'a2l';
     if (/\b(a1|non-?flammable|r410a|r134a|r407c|co2|r744)\b/.test(text)) return 'a1';
   }
+  if (id === 'scaffoldType') return scaffoldTypeAnswer(text);
   if (id === 'energisedWork') {
     if (/\b(testing|commissioning|energised parts|within 3 ?m)\b/.test(text)) return 'testing';
     if (/\b(none|no|de-energised)\b/.test(text)) return 'none';
   }
   return '';
 }
+
+// The kind of scaffold, from the choice or from words in the task. It sets the licence class.
+function scaffoldTypeAnswer(text) {
+  const value = String(text || '').toLowerCase();
+  if (['modular', 'tubecoupler', 'hung', 'mobile'].includes(value.replace(/[^a-z]/g, ''))) return value.replace(/[^a-z]/g, '') === 'tubecoupler' ? 'tubeCoupler' : value.replace(/[^a-z]/g, '');
+  // Schedule 3: hung and suspended scaffolds are advanced; cantilevered, spur and tube and coupler intermediate.
+  if (/\b(hung|suspended) scaffold\w*|\bhung\b/.test(value)) return 'hung';
+  if (/\btube[- ]and[- ](?:coupler|fittings?)\b|\bcantilever\w* scaffold\w*|\bspur scaffold\w*/.test(value)) return 'tubeCoupler';
+  if (/\b(mobile|aluminium tower|alloy tower|tower scaffold)\b/.test(value)) return 'mobile';
+  if (/\b(modular|system scaffold\w*|kwik-?stage|ringlock|cuplock|layher|frame scaffold\w*)\b/.test(value)) return 'modular';
+  return '';
+}
+// The crew erects, alters or dismantles a scaffold (not one only used by them).
+const SCAFFOLD_ERECTED = /\b(erect\w*|dismantl\w*|alter\w*|build(?!ing\b)\w*|install\w*|put up|strip\w*)\b(?:(?!\b(?:from|off|using|with|on)\b)[^.]){0,40}\bscaffold|\bscaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i;
 
 function deckLaying(text) {
   const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
@@ -594,11 +610,24 @@ const PLUMBING_WORK = /\b(plumb\w*|hydraulic (?:services|risers?|pipework|pipes?
 const HARNESS_WORDS = /\b(harness\w*|travel restraint|fall arrest|restraint lanyards?|static lines?|lifelines?)\b/i;
 
 // A fall control answer that relies on a harness brings the harness question.
-function withHarness(list, facts) {
-  if (list.some((item) => item.id === 'harnessSystem')) return list;
-  if (!HARNESS_WORDS.test(String((facts && facts.fallControl) || ''))) return list;
-  const item = CATEGORY_FACTS.find((entry) => entry.id === 'harnessSystem');
-  return [...list, { id: item.id, label: item.label, prompt: item.prompt }];
+// A harness or life jacket in use brings questions on the equipment, its checks and the
+// user's training: from a harness named in the fall control, or either one in the PPE.
+function withHarness(list, facts, ppeIds = []) {
+  const out = [...list];
+  const add = (id) => {
+    if (out.some((item) => item.id === id)) return;
+    const item = CATEGORY_FACTS.find((entry) => entry.id === id);
+    out.push({ id: item.id, label: item.label, prompt: item.prompt });
+  };
+  if (HARNESS_WORDS.test(String((facts && facts.fallControl) || '')) || ppeIds.includes('harness')) add('harnessSystem');
+  if (ppeIds.includes('lifeJacket')) add('lifeJacketDetails');
+  return out;
+}
+
+// The PPE in use: the list the user chose, or the one SiteReady ticks for the task.
+function ppeInUse(task, facts, state, chosen) {
+  if (Array.isArray(chosen)) return chosen;
+  return ppeList(task, facts, state).flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
 }
 
 const CATEGORY_FACTS = [
@@ -694,6 +723,20 @@ const CATEGORY_FACTS = [
     applies: (text) => deckLaying(text),
   },
   {
+    // The kind of scaffold sets the licence class: basic, intermediate or advanced.
+    id: 'scaffoldType',
+    label: 'Scaffold type',
+    prompt: 'Which scaffold the crew erects, alters or dismantles. It sets the scaffolding licence class.',
+    choices: [
+      { value: 'modular', label: 'Modular (system) scaffold, such as Kwikstage, Ringlock or Cuplock' },
+      { value: 'tubeCoupler', label: 'Tube and coupler, cantilevered or spur scaffold' },
+      { value: 'hung', label: 'Hung or suspended scaffold' },
+      { value: 'mobile', label: 'Mobile scaffold tower' },
+    ],
+    level: 'Administrative',
+    applies: (text) => SCAFFOLD_ERECTED.test(String(text || '').replace(/\bmobile scaffold\w*/gi, 'scaffold')) && !scaffoldTypeAnswer(text),
+  },
+  {
     id: 'silicaControls',
     label: 'Silica dust controls',
     prompt: 'How silica dust is controlled (wet cutting, on-tool extraction or local exhaust), the respirator and its fit testing, and the written assessment of whether the work is high risk.',
@@ -764,6 +807,17 @@ const CATEGORY_FACTS = [
     prompt: 'The harness and lanyard or line used, the anchor points and who rated or installed them, when the harness was last inspected, who trained the users, and the rescue plan.',
     level: 'Administrative',
     applies: (text) => HARNESS_WORDS.test(String(text || '')),
+  },
+  {
+    // Life jackets: the type, their checks and servicing, and rescue from the water. Asked
+    // when a life jacket is in the PPE.
+    id: 'lifeJacketDetails',
+    label: 'Life jackets',
+    prompt: 'The type of life jacket (for example level 150 or level 100 to AS 4758), who checks them before use and services inflatable ones as the maker requires, when they must be worn, and how anyone in the water is rescued.',
+    level: 'PPE',
+    // Asked from the PPE list, not the task's words, so an answer always goes in the SWMS.
+    applies: () => false,
+    fromPpe: true,
   },
   {
     // Where spoil goes, and whether it is contaminated, decides how it is stockpiled and carted.
@@ -890,6 +944,13 @@ function allRequiredFacts(fullTask, answer, state) {
       id: 'craneChart',
       label: 'Crane chart',
       prompt: 'From the crane chart: the rated capacity in tonnes at the working radius in metres.',
+    });
+    // The crane's outrigger or track loads need ground confirmed by a competent person.
+    // On a piling job the working platform certificate covers it.
+    if (!PILING_WORK.test(task)) facts.push({
+      id: 'groundBearing',
+      label: 'Ground conditions for the crane',
+      prompt: 'Who confirmed the ground, slab or platform can carry the crane\'s outrigger or track loads (for example a geotechnical engineer\'s report, or a structural engineer for a slab or deck), the report or certificate, and the mats or pads used.',
     });
   }
   if (isPanelLift(task)) {
@@ -1038,8 +1099,8 @@ function factState(item, task, facts) {
   return hasSubstance(item.id, field) ? 'supplied' : 'vague';
 }
 
-function missingFacts(task, facts, answer, state) {
-  return withHarness(requiredFactsFor(task, answer, state), facts)
+function missingFacts(task, facts, answer, state, ppeIds = []) {
+  return withHarness(requiredFactsFor(task, answer, state), facts, ppeIds)
     .map((item) => ({ ...item, state: factState(item, task, facts) }))
     .filter((item) => item.state !== 'supplied');
 }
@@ -1143,7 +1204,7 @@ function controlsFor(task, facts, pack) {
       if (chosen && item.applies(source) && item.id === 'deckMethod') push(item.level, `Deck laid ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
       continue;
     }
-    if (value && item.applies(source)) {
+    if (value && (item.applies(source) || item.fromPpe)) {
       for (const line of controlRows(value)) {
         push(/\brespirators?\b/i.test(line) && !/\b(extraction|wet|water)\b/i.test(line) ? 'PPE' : /\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?|assess\w*)\b/i.test(line) ? 'Administrative' : item.level, line);
       }
@@ -1347,8 +1408,9 @@ function questionsFor(input) {
       message: `${state.name} is not available. Its legislation is not loaded, so a statement is not prepared for that state.`,
     };
   }
-  // Site slang and shorthand are read the way they are meant ("demo", "rd", "AC pipe").
-  const task = readSlang(cleanLine(input.task || input.jobDescription));
+  // Typos are fixed, then site slang and shorthand are read the way they are meant ("demo", "rd", "AC pipe").
+  const spelling = fixSpelling(cleanLine(input.task || input.jobDescription));
+  const task = readSlang(spelling.text);
   if (!task) return { kind: 'error', message: 'Write the task.' };
   // Engineered stone: supplying, installing or processing it is prohibited, except
   // removing, repairing, making minor modifications to or disposing of installed stone.
@@ -1372,10 +1434,12 @@ function questionsFor(input) {
       section: state.section,
     },
     task,
+    // Spelling fixed in the task, so the user sees each change.
+    spellingFixes: spelling.fixes,
     fall: fallCheck(task, answer, state),
-    required: withHarness(requiredFactsFor(task, answer, state), input.facts),
+    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state, input.ppe)),
     // (Site answers are read with the facts below.)
-    site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
+    site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
     ppe: ppeList(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
     // The job steps found from the task's words, the ones in use, and the ones that cannot be taken off.
@@ -1473,7 +1537,8 @@ function prepareDraft(input) {
   if (asked.kind === 'refused' || asked.kind === 'error') return asked;
   const state = stateFor(input);
   // The SWMS shows the task as typed; the work is read from it with site slang expanded.
-  const typed = cleanLine(input.task || input.jobDescription);
+  // The SWMS keeps the task as typed, with typos fixed but slang left as written.
+  const typed = fixSpelling(cleanLine(input.task || input.jobDescription)).text;
   const task = readSlang(typed);
   // A space the user has assessed as not a confined space drops any confined space arrangement.
   const facts = { ...(input.facts || {}), siteConditions: siteConditions(input.site) };
@@ -1489,7 +1554,7 @@ function prepareDraft(input) {
     fallAnswer: fallAnswer(input.fallRisk),
     state,
   };
-  const missing = missingFacts(task, facts, pack.fallAnswer, state);
+  const missing = missingFacts(task, facts, pack.fallAnswer, state, ppeInUse(task, facts, state, input.ppe));
   const status = packIsTest(input)
     ? 'Not approved. Not signed. A test, not a site record.'
     : 'Not approved. Not signed.';
@@ -1680,7 +1745,21 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     }
     if (/\bhearing protection\b|\bear (?:muffs|plugs)\b/i.test(said) && !ticked(['earPlugs', 'earMuffs'])) tick('earMuffs');
   }
-  return { jobSteps, ppe };
+  return { jobSteps: inOrder(jobSteps, input.stepOrder), ppe };
+}
+
+// The job steps in the order the user chose. A step not in that order, such as one added
+// since, stays just after the step it followed.
+function inOrder(jobSteps, order) {
+  if (!Array.isArray(order) || !order.length) return jobSteps;
+  const at = new Map(order.map((name, index) => [name, index]));
+  let last = -1;
+  const keyed = jobSteps.map((step, index) => {
+    const key = at.has(step.step) ? at.get(step.step) : last + 0.5;
+    if (at.has(step.step)) last = at.get(step.step);
+    return { step, key, index };
+  });
+  return keyed.sort((a, b) => a.key - b.key || a.index - b.index).map((item) => item.step);
 }
 
 // Documents the SWMS relies on, to be kept on site with it.
@@ -3167,7 +3246,7 @@ function asSentence(text) {
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
-    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass'].includes(id)) return choiceAnswer(id, facts[id]);
+    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass', 'scaffoldType'].includes(id)) return choiceAnswer(id, facts[id]);
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));
@@ -3184,7 +3263,22 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
     controls: controls.map((item) => item.text),
   });
   const answers = Object.values(facts || {}).filter((value) => typeof value === 'string').join('\n');
-  return tidySteps(steps, combinedFacts(task, facts), answers);
+  return scaffoldLicenceLine(tidySteps(steps, combinedFacts(task, facts), answers), scaffoldTypeAnswer(task) || choiceAnswer('scaffoldType', facts.scaffoldType));
+}
+
+// The licence line names the class for the scaffold used, once its type is known.
+const SCAFFOLD_CLASS = {
+  modular: 'This scaffold is modular: a basic scaffolding licence (SB) or higher.',
+  tubeCoupler: 'This scaffold is tube and coupler, cantilevered or spur: an intermediate scaffolding licence (SI) or advanced (SA).',
+  hung: 'This scaffold is hung or suspended: an advanced scaffolding licence (SA).',
+  mobile: 'This scaffold is a mobile tower: a basic scaffolding licence (SB) or higher where a person or object could fall more than 4 m from it.',
+};
+function scaffoldLicenceLine(steps, type) {
+  if (!SCAFFOLD_CLASS[type]) return steps;
+  return steps.map((step) => ({
+    ...step,
+    controls: step.controls.map((line) => line.replace(/^Licence class: basic for modular scaffolds, intermediate for tube and coupler[^.]*\. Sight each licence before work\./, `${SCAFFOLD_CLASS[type]} Sight each licence before work.`)),
+  }));
 }
 
 // Harness, restraint and fall arrest lines that only apply when one is used.

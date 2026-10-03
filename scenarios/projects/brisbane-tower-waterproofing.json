@@ -14,7 +14,8 @@
         "safetyDataSheet": "Safety data sheets for the primer and polyurethane membrane are kept at the work area: flammable, use with ventilation, keep away from ignition sources, wear gloves, goggles and a half-face respirator.",
         "fallControl": "Lift pits and sumps have a guard rail with a gate, and access is by a secured ladder.",
         "spaceAssessment": "confined",
-        "confinedSpace": "Entry to lift pits and sumps is only under a confined space entry permit, with atmospheric testing before and during entry, vapour extracted from the lowest point with fresh air introduced from above, a standby person at the opening, and a practised rescue plan."
+        "confinedSpace": "Entry to lift pits and sumps is only under a confined space entry permit, with atmospheric testing before and during entry, vapour extracted from the lowest point with fresh air introduced from above, a standby person at the opening, and a practised rescue plan.",
+        "harnessSystem": "Workers entering the pit or sump wear a full body harness with a dorsal or shoulder retrieval point, connected to the retrieval winch on a tripod or davit set up over the opening by a competent person. Harnesses and the winch are checked before each use and inspected by a competent person every 6 months, recorded on the tag. Entrants and the standby person are trained in confined space entry and rescue by a registered training organisation."
       },
       "expect": {
         "highRisk": [

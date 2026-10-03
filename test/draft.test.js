@@ -51,18 +51,18 @@ test('a trench of 1 m is not high risk trench work', () => {
 });
 
 test('a fact that only says it was supplied does not count', () => {
-  const vague = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Chart supplied.' } });
+  const vague = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Chart supplied.', groundBearing: 'Geotechnical report GR-4 by the site engineer: 150 kPa allowable; crane set up on 1.2 m steel mats.' } });
   assert.equal(vague.kind, 'stand-down');
   assert.deepEqual(vague.missing, ['Crane chart (the text given does not state it)']);
   assert.equal(draft('Lift steel beams with a crane, chart supplied.', { crane: 'own' }).kind, 'stand-down');
   assert.equal(draft('Paint the office walls.', { facts: { safetyDataSheet: 'Attached.' } }).kind, 'stand-down');
 
-  const stated = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.' } });
+  const stated = draft('Lift steel beams with a crane.', { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.', groundBearing: 'Geotechnical report GR-4 by the site engineer: 150 kPa allowable; crane set up on 1.2 m steel mats.' } });
   assert.equal(stated.kind, 'draft');
 });
 
 test('each high risk category found has a hazard row', () => {
-  const done = draft('Install a pump in a confined space.', { facts: { confinedSpace: 'Entry permit issued, air tested before and during entry, standby person at the hatch with rescue gear.' } });
+  const done = draft('Install a pump in a confined space.', { facts: { confinedSpace: 'Entry permit issued, air tested before and during entry, standby person at the hatch with rescue gear.', harnessSystem: 'Full body harness with a dorsal retrieval point on the tripod winch, inspected and tagged by a competent person; users trained in confined space entry and rescue.' } });
   assert.ok(done.highRisk.some((item) => /confined space/i.test(item)));
   assert.ok(done.hazards.some((row) => row.hazard === 'Confined space'));
 });
@@ -289,7 +289,7 @@ test('a draft has job steps with hazards and controls, and a PPE list', () => {
 });
 
 test('roof beams are not roofing, and indoor work gets no sunscreen', () => {
-  const beams = draft('Lift the carport roof beams into place with a crane truck.', { crane: 'own', facts: { craneChart: '1.5 t at 6 m radius.' } });
+  const beams = draft('Lift the carport roof beams into place with a crane truck.', { crane: 'own', facts: { craneChart: '1.5 t at 6 m radius.', groundBearing: 'Geotechnical report GR-4 by the site engineer: 150 kPa allowable; crane set up on 1.2 m steel mats.' } });
   assert.ok(!beams.jobSteps.some((step) => step.step === 'Remove old roofing'));
   const paint = draft('Paint the interior walls of a shop with solvent-based enamel paint.', { facts: { safetyDataSheet: 'Flammable liquid, ventilate, gloves and eye protection.' } });
   const ticked = paint.ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
@@ -315,9 +315,12 @@ test('a crane company runs the crane unless the subcontractor says it runs its o
   assert.ok(!steps.includes('Set up the crane'));
   assert.ok(!done.controls.some((item) => /free-fall/.test(item.text)));
   const own = draft(task, { crane: 'own' });
-  assert.deepEqual(own.missing, ['Crane chart']);
-  const ownDone = draft(task, { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.' } });
+  assert.deepEqual(own.missing, ['Crane chart', 'Ground conditions for the crane']);
+  const ownDone = draft(task, { crane: 'own', facts: { craneChart: 'Rated capacity 6.2 t at 14 m radius.', groundBearing: 'Geotechnical report GR-4: 150 kPa allowable; crane set up on 1.2 m steel mats.' } });
   assert.ok(ownDone.jobSteps.some((step) => step.step === 'Set up the crane'));
+  const setup = ownDone.jobSteps.find((step) => step.step === 'Set up the crane');
+  assert.ok(setup.controls.some((line) => /GR-4/.test(line)), 'the ground answer is in the set-up step');
+  assert.ok(done.jobSteps.flatMap((step) => step.controls).some((line) => /ground information for the set-up area/.test(line)), 'with a crane company, the principal contractor gives it the ground information');
   assert.equal(ownDone.craneOperator, 'Our company');
 });
 
@@ -417,4 +420,40 @@ test('every question the draft asks is kept when the answer comes from the brows
   const facts = Object.fromEntries(ids.map((id) => [id, 'answer']));
   const kept = draftBody({ facts }).facts;
   assert.deepEqual(ids.filter((id) => kept[id] !== 'answer'), []);
+});
+
+test('step search finds earthworks steps by the words used on site, and only whole words', () => {
+  const { searchSteps } = require('../steps');
+  const found = searchSteps('earthworks');
+  assert.ok(found.length >= 10);
+  for (const id of ['spoilManage']) assert.ok(found.includes(id), id);
+  assert.ok(!searchSteps('earthworks').some((id) => /batter|door|paint/i.test(id)));
+});
+
+test('job steps follow the order the user chose, and a step not in it stays after the one it followed', () => {
+  const { draftBody } = require('../input');
+  const body = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no' };
+  const names = prepareDraft(draftBody(body)).jobSteps.map((step) => step.step);
+  assert.ok(names.length >= 3);
+  const reversed = [...names].reverse();
+  assert.deepEqual(prepareDraft(draftBody({ ...body, stepOrder: reversed })).jobSteps.map((step) => step.step), reversed);
+  // Steps left out of the order keep their place around the ones named.
+  const partial = prepareDraft(draftBody({ ...body, stepOrder: [names[2], names[1]] })).jobSteps.map((step) => step.step);
+  // The first step was before any named one; the fourth followed the third, so it moves with it.
+  assert.deepEqual(partial.slice(0, 4), [names[0], names[2], names[3], names[1]]);
+});
+
+test('a harness or life jacket in the PPE brings its question, and taking it out removes it', () => {
+  const body = { state: 'qld', task: 'Paint the handrails on the jetty over the river.', fallRisk: 'no' };
+  const ids = (extra) => questionsFor({ ...body, ...extra }).required.map((item) => item.id);
+  assert.ok(ids({}).includes('lifeJacketDetails'), 'ticked for work over water');
+  assert.ok(!ids({ ppe: ['hardHat', 'boots'] }).includes('lifeJacketDetails'), 'unticked by the user');
+  assert.ok(ids({ ppe: ['hardHat', 'harness'] }).includes('harnessSystem'), 'ticked by the user');
+  const facts = { safetyDataSheet: 'Paint SDS revision 2 at the work area.', drowningControls: 'No one works alone near the water, with a life ring at the edge.' };
+  const stood = prepareDraft({ ...body, facts });
+  assert.equal(stood.kind, 'stand-down');
+  assert.ok(stood.missing.includes('Life jackets'));
+  const done = prepareDraft({ ...body, facts: { ...facts, lifeJacketDetails: 'Level 150 inflatable life jackets to AS 4758, checked before use and serviced yearly by the supplier.' } });
+  assert.equal(done.kind, 'draft');
+  assert.ok(done.controls.some((item) => /AS 4758/.test(item.text)), 'the answer is in the SWMS');
 });

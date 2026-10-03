@@ -60,7 +60,8 @@
       "task": "Install cable tray, containment and cabling in the risers, the apartment ceilings, the double height foyer and the 3 level basement carpark, working from elevating work platforms and ladders, more than 2 m above the floor.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Elevating work platforms with guardrails are used for work above 2 m, risers are screened at each level, and only the section being worked on is opened and fenced."
+        "fallControl": "Elevating work platforms with guardrails are used for work above 2 m, risers are screened at each level, and only the section being worked on is opened and fenced.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard short enough that they cannot be thrown from the basket, clipped to the boom lift anchor point. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights and boom lift operation by a registered training organisation."
       },
       "expect": {
         "highRisk": [
@@ -72,7 +73,8 @@
           "Install cable tray, containment and cabling at height"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Harness and anchors"
         ]
       }
     },

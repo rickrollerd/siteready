@@ -1,0 +1,52 @@
+name: Fetch guidance texts
+
+# Reads codes of practice and guides in full and commits the text to the
+# guidance-sources branch, so SiteReady's lines can be checked against them.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fetch-guidance.yml'
+      - 'legislation-watch/fetch-browser.js'
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: sudo apt-get install -y -qq poppler-utils > /dev/null
+      - name: Fetch each source
+        run: |
+          for name in constructionCode plant falls; do
+            SOURCE=$name OUT=guidance-sources/$name.txt node legislation-watch/fetch-source.js || echo "$name failed"
+          done
+      - name: Fetch the sources behind a bot check with a browser
+        run: |
+          npm install --no-save playwright@1 && npx playwright install --with-deps chromium > /dev/null
+          URL=https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0027/76347/scaffolding-cop-2021.pdf NAME='Scaffolding Code of Practice 2021 (Qld)' OUT=guidance-sources/scaffoldCode.txt node legislation-watch/fetch-browser.js || true
+          URL=https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0008/20150/safe-support-mobile-plant-guide.pdf NAME='Safe support of mobile plant guide (Qld)' OUT=guidance-sources/mobilePlantSupport.txt node legislation-watch/fetch-browser.js || true
+          URL=https://www.safework.nsw.gov.au/__data/assets/pdf_file/0004/1411429/Work_near_electric_lines-COP.pdf NAME='Work near overhead and underground electric lines (SafeWork NSW)' OUT=guidance-sources/nswLinesCode.txt node legislation-watch/fetch-browser.js || true
+          # Second sources quoting the Queensland scaffolding code's engineer table.
+          curl -sSL -A 'Mozilla/5.0' -o qh.pdf https://qldhydro.com.au/wp-content/uploads/2025/06/HS-GUI-0008-Queensland-Hydro-Scaffold-Guideline-CD23_33.pdf && head -c 4 qh.pdf | grep -q '%PDF' && { printf 'Queensland Hydro scaffold guideline HS-GUI-0008\nhttps://qldhydro.com.au/\n\n'; pdftotext -layout qh.pdf -; } > guidance-sources/qldHydroScaffold.txt || echo "qldhydro failed"
+          for u in https://www.masulacompliance.com.au/new-scaffolding-code-of-practice-2021/ https://www.buildaustralia.com.au/news_article/new-scaffolding-rules-protect-building-workers-in-queensland/ https://sourceable.net/queensland-overhauls-scaffolding-safety-rules/; do
+            n=$(echo "$u" | sed -E 's#https?://(www\.)?([^/]+).*#\2#')
+            curl -sSL -A 'Mozilla/5.0' "$u" | sed -e 's/<[^>]*>/ /g' | tr -s ' \n' > "guidance-sources/web-$n.txt" || true
+          done
+          ls -la guidance-sources
+          ls -la guidance-sources
+      - name: Commit the texts to the guidance-sources branch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan guidance-sources-tmp
+          git rm -rqf --cached .
+          git add guidance-sources
+          git commit -qm "Guidance texts, fetched $(date -u +%Y-%m-%d)"
+          git push -f origin HEAD:refs/heads/guidance-sources

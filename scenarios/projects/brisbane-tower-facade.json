@@ -41,7 +41,8 @@
         "loadLimits": "The structural engineer's letter SE-14 gives the allowable outrigger and monorail loads on the slab edge.",
         "fallControl": "Work at the slab edge is done with a travel restraint system to engineer designed anchors, and edge protection stays in place except at the panel being installed.",
         "craneChart": "Mini crawler crane rated capacity chart (outriggers set, main boom): 1.6 t at 4.5 m radius. Heaviest gross load is 1.25 t (panel 1.1 t, vacuum lifter 0.12 t, slings and shackles 0.03 t) at 4.5 m radius.",
-        "harnessSystem": "Workers wear a full body harness with a restraint lanyard of 1.5 m, set so they cannot reach the edge, clipped to anchors installed and rated by the anchor installer. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights by a registered training organisation."
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard of 1.5 m, set so they cannot reach the edge, clipped to anchors installed and rated by the anchor installer. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights by a registered training organisation.",
+        "groundBearing": "The slab and edge were checked by the structural engineer (letter SE-12) for the crane's base and outrigger loads at the heaviest lift, with back propping below. The crane sets up only at the marked positions on spreader mats."
       },
       "expect": {
         "highRisk": [
@@ -56,6 +57,7 @@
         "missing": [
           "Crane chart",
           "Fall control",
+          "Ground conditions for the crane",
           "Load limits"
         ]
       },
@@ -102,7 +104,8 @@
           "Fix, seal and finish"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Harness and anchors"
         ]
       }
     },

@@ -460,6 +460,7 @@ const ACTIVITIES = [
         hazards: ['A person is struck or crushed by a load.', 'A badly prepared load falls apart in the air.', 'Miscommunication with the crane crew.'],
         controls: [
           'The crane company plans and does the lifts under its own lift plan. Its licensed crew slings, directs and releases loads.',
+          'The principal contractor gives the crane company the ground information for the set-up area (geotechnical report, slab or deck capacity, services and excavations below), and the crane is set up only where that confirms the ground can take its outrigger or track loads.',
           'Prepare loads as the crane crew directs: bundled, strapped, and with loose items removed.',
           'Stay out from under suspended loads and out of the crane\'s exclusion zones.',
           'Stop and tell the crane crew straight away if a load is unstable or a lift looks unsafe.',
@@ -503,6 +504,7 @@ const ACTIVITIES = [
         hazards: ['The crane overturns from poor ground or an overload.'],
         controls: [
           { fact: 'craneChart' },
+          { fact: 'groundBearing' },
           'Check the ground or working platform can carry the crane\'s outrigger or track loads under the heaviest lift before setting up.',
           'The crane operator, and the dogman or rigger, hold current high risk work licences.',
         ],
@@ -8151,6 +8153,9 @@ function jobStepsFor(flags, factText, fallback) {
   moveAfter('Lay floor joists and the floor deck', 'Stand and brace wall frames');
   moveBefore('Install the shoring wall', 'Bulk excavate and load trucks');
   moveBefore('Protect neighbouring buildings and the street', 'Bulk excavate and load trucks');
+  // Spoil is stockpiled and carted once the digging that makes it is under way.
+  for (const dig of ['Dig footing holes', 'Dig a shallow trench and lay pipe or cable', 'Excavate', 'Excavate pile caps, lift pits and trenches', 'Excavate in front of the retention wall', 'Bulk excavate and load trucks', 'Run earthmoving plant']) moveAfter('Stockpile, cover and cart away spoil', dig);
+  moveBefore('Stockpile, cover and cart away spoil', 'Backfill and restore');
   moveAfter('Strip formwork and backprop', 'Pump and place concrete');
   moveAfter('Strip formwork and backprop', 'Finish concrete');
   moveBefore('Work at open lift shafts and landing doors', 'Install the lift rails, car and machine');

@@ -90,6 +90,14 @@ const { draftBody } = require('./input');
 
 // Job address suggestions. Each one is a paid Google request, so it has its own limit.
 app.use('/api/address', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300)));
+app.use('/api/nearby-care', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
+app.get('/api/nearby-care', async (req, res, next) => {
+  try {
+    res.json(await places.nearbyCare(req.query.address));
+  } catch (error) {
+    next(error);
+  }
+});
 app.get('/api/address', async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
