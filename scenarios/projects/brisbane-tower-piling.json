@@ -11,7 +11,8 @@
       "fallRisk": "yes",
       "facts": {
         "pilingPlatform": "The working platform is designed by the project geotechnical engineer for the 90 t CFA rig and the 100 t bored pile rig, with a maximum plant loading of 250 kPa. The platform certificate is given to each rig operator before the rig goes on it.",
-        "fallControl": "Work at height during rig assembly is done from an elevating work platform with guardrails."
+        "fallControl": "Work at height during rig assembly is done from an elevating work platform with guardrails.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard short enough that they cannot be thrown from the basket, clipped to the boom lift anchor point. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights and boom lift operation by a registered training organisation."
       },
       "expect": {
         "highRisk": [

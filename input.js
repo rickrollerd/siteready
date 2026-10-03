@@ -87,6 +87,7 @@ function draftBody(body) {
       stressingProcedure: field(facts.stressingProcedure, 2000),
       harnessSystem: field(facts.harnessSystem, 2000),
       spoilPlan: field(facts.spoilPlan, 2000),
+      lifeJacketDetails: field(facts.lifeJacketDetails, 2000),
     },
     site: {
       liveServices: field(site.liveServices, 1000),

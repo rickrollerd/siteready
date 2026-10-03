@@ -85,7 +85,8 @@
       "task": "Install hydraulic risers and stacks in the shafts, and pipework in the basement ceilings and the double height foyer, working from elevating work platforms and ladders, more than 2 m above the floor.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Shafts are screened at each level with only the section being worked on opened, and elevating work platforms with guardrails are used for work above 2 m."
+        "fallControl": "Shafts are screened at each level with only the section being worked on opened, and elevating work platforms with guardrails are used for work above 2 m.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard short enough that they cannot be thrown from the basket, clipped to the boom lift anchor point. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights and boom lift operation by a registered training organisation."
       },
       "expect": {
         "highRisk": [
@@ -97,7 +98,8 @@
           "Install risers and pipework at height"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Harness and anchors"
         ]
       }
     },
@@ -109,7 +111,8 @@
       "facts": {
         "hotWorkPermit": "The principal contractor issues a hot work permit each day; a fire watch stays for 30 minutes after hot work ends, with a fire extinguisher at each work area.",
         "safetyDataSheet": "Safety data sheets for the primer and solvent cement: flammable liquids, use with ventilation, keep away from ignition sources, wear gloves and eye protection.",
-        "fallControl": "Joints in risers and ceilings are made from platforms with guardrails inside the screened shafts, or from elevating work platforms."
+        "fallControl": "Joints in risers and ceilings are made from platforms with guardrails inside the screened shafts, or from elevating work platforms.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard short enough that they cannot be thrown from the basket, clipped to the boom lift anchor point. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights and boom lift operation by a registered training organisation."
       },
       "expect": {
         "highRisk": [
@@ -137,7 +140,8 @@
       "facts": {
         "spaceAssessment": "confined",
         "confinedSpace": "An entry permit is issued for each entry. The air is tested for oxygen, flammable gas and toxic gas before entry and continuously during the work. A standby person stays at the opening, and the rescue plan with a tripod and winch is practised before work starts.",
-        "pressureTesting": "Pipework is hydrostatically tested with water to the design test pressure; the test area is barricaded and signed, and pressure is released through the drain valve before any fitting is touched."
+        "pressureTesting": "Pipework is hydrostatically tested with water to the design test pressure; the test area is barricaded and signed, and pressure is released through the drain valve before any fitting is touched.",
+        "harnessSystem": "Workers entering the pit or sump wear a full body harness with a dorsal or shoulder retrieval point, connected to the retrieval winch on a tripod or davit set up over the opening by a competent person. Harnesses and the winch are checked before each use and inspected by a competent person every 6 months, recorded on the tag. Entrants and the standby person are trained in confined space entry and rescue by a registered training organisation."
       },
       "expect": {
         "highRisk": [
@@ -151,8 +155,9 @@
           "Leave and close up"
         ],
         "missing": [
-          "Pits, tanks, sumps or manholes entered",
           "Confined space entry",
+          "Harness and anchors",
+          "Pits, tanks, sumps or manholes entered",
           "Pressure testing method"
         ]
       }

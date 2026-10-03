@@ -594,11 +594,24 @@ const PLUMBING_WORK = /\b(plumb\w*|hydraulic (?:services|risers?|pipework|pipes?
 const HARNESS_WORDS = /\b(harness\w*|travel restraint|fall arrest|restraint lanyards?|static lines?|lifelines?)\b/i;
 
 // A fall control answer that relies on a harness brings the harness question.
-function withHarness(list, facts) {
-  if (list.some((item) => item.id === 'harnessSystem')) return list;
-  if (!HARNESS_WORDS.test(String((facts && facts.fallControl) || ''))) return list;
-  const item = CATEGORY_FACTS.find((entry) => entry.id === 'harnessSystem');
-  return [...list, { id: item.id, label: item.label, prompt: item.prompt }];
+// A harness or life jacket in use brings questions on the equipment, its checks and the
+// user's training: from a harness named in the fall control, or either one in the PPE.
+function withHarness(list, facts, ppeIds = []) {
+  const out = [...list];
+  const add = (id) => {
+    if (out.some((item) => item.id === id)) return;
+    const item = CATEGORY_FACTS.find((entry) => entry.id === id);
+    out.push({ id: item.id, label: item.label, prompt: item.prompt });
+  };
+  if (HARNESS_WORDS.test(String((facts && facts.fallControl) || '')) || ppeIds.includes('harness')) add('harnessSystem');
+  if (ppeIds.includes('lifeJacket')) add('lifeJacketDetails');
+  return out;
+}
+
+// The PPE in use: the list the user chose, or the one SiteReady ticks for the task.
+function ppeInUse(task, facts, state, chosen) {
+  if (Array.isArray(chosen)) return chosen;
+  return ppeList(task, facts, state).flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
 }
 
 const CATEGORY_FACTS = [
@@ -764,6 +777,17 @@ const CATEGORY_FACTS = [
     prompt: 'The harness and lanyard or line used, the anchor points and who rated or installed them, when the harness was last inspected, who trained the users, and the rescue plan.',
     level: 'Administrative',
     applies: (text) => HARNESS_WORDS.test(String(text || '')),
+  },
+  {
+    // Life jackets: the type, their checks and servicing, and rescue from the water. Asked
+    // when a life jacket is in the PPE.
+    id: 'lifeJacketDetails',
+    label: 'Life jackets',
+    prompt: 'The type of life jacket (for example level 150 or level 100 to AS 4758), who checks them before use and services inflatable ones as the maker requires, when they must be worn, and how anyone in the water is rescued.',
+    level: 'PPE',
+    // Asked from the PPE list, not the task's words, so an answer always goes in the SWMS.
+    applies: () => false,
+    fromPpe: true,
   },
   {
     // Where spoil goes, and whether it is contaminated, decides how it is stockpiled and carted.
@@ -1038,8 +1062,8 @@ function factState(item, task, facts) {
   return hasSubstance(item.id, field) ? 'supplied' : 'vague';
 }
 
-function missingFacts(task, facts, answer, state) {
-  return withHarness(requiredFactsFor(task, answer, state), facts)
+function missingFacts(task, facts, answer, state, ppeIds = []) {
+  return withHarness(requiredFactsFor(task, answer, state), facts, ppeIds)
     .map((item) => ({ ...item, state: factState(item, task, facts) }))
     .filter((item) => item.state !== 'supplied');
 }
@@ -1143,7 +1167,7 @@ function controlsFor(task, facts, pack) {
       if (chosen && item.applies(source) && item.id === 'deckMethod') push(item.level, `Deck laid ${chosen.label.charAt(0).toLowerCase()}${chosen.label.slice(1)}.`);
       continue;
     }
-    if (value && item.applies(source)) {
+    if (value && (item.applies(source) || item.fromPpe)) {
       for (const line of controlRows(value)) {
         push(/\brespirators?\b/i.test(line) && !/\b(extraction|wet|water)\b/i.test(line) ? 'PPE' : /\b(inspect\w*|check\w*|signs?|signed|supervis\w*|trained|procedure|permits?|follows?|assess\w*)\b/i.test(line) ? 'Administrative' : item.level, line);
       }
@@ -1373,7 +1397,7 @@ function questionsFor(input) {
     },
     task,
     fall: fallCheck(task, answer, state),
-    required: withHarness(requiredFactsFor(task, answer, state), input.facts),
+    required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state, input.ppe)),
     // (Site answers are read with the facts below.)
     site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
@@ -1489,7 +1513,7 @@ function prepareDraft(input) {
     fallAnswer: fallAnswer(input.fallRisk),
     state,
   };
-  const missing = missingFacts(task, facts, pack.fallAnswer, state);
+  const missing = missingFacts(task, facts, pack.fallAnswer, state, ppeInUse(task, facts, state, input.ppe));
   const status = packIsTest(input)
     ? 'Not approved. Not signed. A test, not a site record.'
     : 'Not approved. Not signed.';

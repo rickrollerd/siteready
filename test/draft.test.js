@@ -62,7 +62,7 @@ test('a fact that only says it was supplied does not count', () => {
 });
 
 test('each high risk category found has a hazard row', () => {
-  const done = draft('Install a pump in a confined space.', { facts: { confinedSpace: 'Entry permit issued, air tested before and during entry, standby person at the hatch with rescue gear.' } });
+  const done = draft('Install a pump in a confined space.', { facts: { confinedSpace: 'Entry permit issued, air tested before and during entry, standby person at the hatch with rescue gear.', harnessSystem: 'Full body harness with a dorsal retrieval point on the tripod winch, inspected and tagged by a competent person; users trained in confined space entry and rescue.' } });
   assert.ok(done.highRisk.some((item) => /confined space/i.test(item)));
   assert.ok(done.hazards.some((row) => row.hazard === 'Confined space'));
 });
@@ -438,4 +438,19 @@ test('job steps follow the order the user chose, and a step not in it stays afte
   const partial = prepareDraft(draftBody({ ...body, stepOrder: [names[2], names[1]] })).jobSteps.map((step) => step.step);
   // The first step was before any named one; the fourth followed the third, so it moves with it.
   assert.deepEqual(partial.slice(0, 4), [names[0], names[2], names[3], names[1]]);
+});
+
+test('a harness or life jacket in the PPE brings its question, and taking it out removes it', () => {
+  const body = { state: 'qld', task: 'Paint the handrails on the jetty over the river.', fallRisk: 'no' };
+  const ids = (extra) => questionsFor({ ...body, ...extra }).required.map((item) => item.id);
+  assert.ok(ids({}).includes('lifeJacketDetails'), 'ticked for work over water');
+  assert.ok(!ids({ ppe: ['hardHat', 'boots'] }).includes('lifeJacketDetails'), 'unticked by the user');
+  assert.ok(ids({ ppe: ['hardHat', 'harness'] }).includes('harnessSystem'), 'ticked by the user');
+  const facts = { safetyDataSheet: 'Paint SDS revision 2 at the work area.', drowningControls: 'No one works alone near the water, with a life ring at the edge.' };
+  const stood = prepareDraft({ ...body, facts });
+  assert.equal(stood.kind, 'stand-down');
+  assert.ok(stood.missing.includes('Life jackets'));
+  const done = prepareDraft({ ...body, facts: { ...facts, lifeJacketDetails: 'Level 150 inflatable life jackets to AS 4758, checked before use and serviced yearly by the supplier.' } });
+  assert.equal(done.kind, 'draft');
+  assert.ok(done.controls.some((item) => /AS 4758/.test(item.text)), 'the answer is in the SWMS');
 });

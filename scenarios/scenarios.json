@@ -118,7 +118,8 @@
     "expect": {
       "missing": [
         "Fall control",
-        "Confined space entry"
+        "Confined space entry",
+        "Harness and anchors"
       ],
       "highRisk": [
         "fall",
@@ -234,11 +235,13 @@
     "task": "Replace timber decking boards on a jetty over a tidal river. Workers kneel on the jetty deck about 1.5 m above the water.",
     "fallRisk": "no",
     "facts": {
-      "drowningControls": "Workers wear life jackets on the jetty. Boards are removed one bay at a time and the open bay is covered or barricaded. A life ring with a throw line is kept on the jetty, and a second worker is always present to raise the alarm and do the rescue from the jetty."
+      "drowningControls": "Workers wear life jackets on the jetty. Boards are removed one bay at a time and the open bay is covered or barricaded. A life ring with a throw line is kept on the jetty, and a second worker is always present to raise the alarm and do the rescue from the jetty.",
+      "lifeJacketDetails": "Workers wear level 150 inflatable life jackets to AS 4758 whenever they are on the jetty or within 3 m of the water. Each wearer checks the cylinder, indicator and straps before use, and they are serviced by the supplier every 12 months as the maker requires, recorded on the tag. Rescue: life ring and throw line at the work area and a rescue boat on standby, and workers are trained in their use at induction."
     },
     "expect": {
       "missing": [
-        "Drowning controls"
+        "Drowning controls",
+        "Life jackets"
       ],
       "highRisk": [
         "water"

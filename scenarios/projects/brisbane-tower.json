@@ -176,7 +176,8 @@
         "erectionDesign": "Precast erection design and sequence drawings PC-300 to PC-305 by the precast engineer.",
         "centreOfGravity": "The centre of gravity is marked on each element's shop drawing.",
         "braceArrangement": "Two braces per column and three per blade wall, fixed to the slab with cast-in ferrules as shown on drawing PC-310.",
-        "fallControl": "Work is done from inside the perimeter screens, and rigging at height is released from an elevating work platform."
+        "fallControl": "Work is done from inside the perimeter screens, and rigging at height is released from an elevating work platform.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard short enough that they cannot be thrown from the basket, clipped to the boom lift anchor point. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights and boom lift operation by a registered training organisation."
       },
       "expect": {
         "highRisk": [

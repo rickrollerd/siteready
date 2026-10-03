@@ -533,8 +533,16 @@ async function refreshSteps() {
   });
   document.querySelectorAll('[data-site]').forEach((el) => { if (site[el.dataset.site] !== undefined) el.value = site[el.dataset.site]; });
   (questions && questions.required || []).forEach((item) => markPicks(item.id));
-  document.querySelectorAll('[data-ppe]').forEach((el) => { if (ppe.has(el.value)) el.checked = true; });
+  // PPE the user ticked or unticked stays as they set it; the rest follows the new suggestion.
+  document.querySelectorAll('[data-ppe]').forEach((el) => { if (ppeTouched.has(el.value)) el.checked = ppe.has(el.value); else if (ppe.has(el.value)) el.checked = true; });
 }
+
+// Ticking a harness or life jacket asks about it; unticking one takes the question away.
+const ppeTouched = new Set();
+document.getElementById('ppe-block').addEventListener('change', (event) => {
+  if (event.target.matches('[data-ppe]')) ppeTouched.add(event.target.value);
+  if (event.target.matches('[data-ppe][value="harness"], [data-ppe][value="lifeJacket"]')) refreshSteps();
+});
 
 document.getElementById('steps-block').addEventListener('change', (event) => {
   if (!event.target.matches('[data-step]')) return;
@@ -925,7 +933,7 @@ resultEl.addEventListener('dragend', () => {
   resultEl.querySelectorAll('.dragging').forEach((row) => row.classList.remove('dragging'));
 });
 // A new task starts with SiteReady's order again.
-document.getElementById('task').addEventListener('input', () => { stepOrder = null; });
+document.getElementById('task').addEventListener('input', () => { stepOrder = null; ppeTouched.clear(); });
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
   api, esc, payload, render, fillForm, fillFields, setProfile, getProfile: () => profile, resultEl, addPrincipals,
