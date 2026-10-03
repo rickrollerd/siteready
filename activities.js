@@ -2006,7 +2006,7 @@ const ACTIVITIES = [
         src('Get the underground services information and pothole to confirm services before digging.', `${WHS('s 304')}; ${MODEL('Excavation work', 's 3.5')}`),
         src('No combustion engine plant in a trench or pit while workers are in it. Check the atmosphere before starting.', MODEL('Excavation work', 's 4.6')),
         src('Trench shields protect workers if a collapse happens, but do not support the ground: they are not loaded beyond their design, and are used to the manufacturer\'s instructions. Enter sheeted areas only by ladder.', MODEL('Excavation work', 's 6.2, s 6.4')),
-        src('Barriers go up around a pit or trench as it is dug, before it is deeper than 2 m.', WHS('s 306D')),
+        src('Barriers go up around a pit or trench as it is dug, before it is 2 m deep (3 m in housing construction).', WHS('s 306D')),
         src('A competent person inspects the sides and support often, and after rain.', MODEL('Excavation work', 's 6.6')),
       ],
     }],

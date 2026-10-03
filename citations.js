@@ -129,7 +129,7 @@ const OUTSIDE_QLD = [
   [/^Cutting an opening in a load-bearing wall is demolition work: it is done by, or for, a holder of a demolition licence/, 'Cutting an opening in a load-bearing wall is demolition work, done by a contractor holding any demolition licence or registration the state requires.'],
   [/^The boom is not set up or worked over access ways or site sheds unless a 10 kPa gantry protects them\./, 'The boom is not set up or worked over access ways or site sheds unless a gantry designed for the load protects them. The pumping area is signed, and only authorised people enter it.'],
   // Queensland's 2 m barrier rule is s 306D. Elsewhere a trench at least 1.5 m deep is secured from unauthorised access (r 306(1)).
-  [/^Barriers go up around a pit or trench as it is dug, before it is deeper than 2 m\.$/, 'Barriers go up around a pit or trench as it is dug, and the work area around a trench 1.5 m deep or more is secured from unauthorised access, including inadvertent entry.'],
+  [/^Barriers go up around a pit or trench as it is dug, before it is 2 m deep \(3 m in housing construction\)\.$/, 'Barriers go up around a pit or trench as it is dug, and the work area around a trench 1.5 m deep or more is secured from unauthorised access, including inadvertent entry.'],
   [/^Every part of the boom and drop hose stays at least 3 m from overhead power lines up to 132 kV/, 'Every part of the boom and drop hose stays outside the safe distance from overhead power lines that the state\'s rules and the line owner set, and the boom is not worked over energised lines. De-energising or re-routing the lines is considered first.'],
 ];
 

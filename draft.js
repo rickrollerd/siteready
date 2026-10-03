@@ -72,8 +72,8 @@ function withoutWorkIntoPrecast(text) {
     .replace(/\b(?:handrails?|guardrails?|edge protection|brackets?)\s+(?:to|on|onto)\s+(?:the\s+)?(?:[\w-]+\s+){0,2}precast(?:\s+[\w-]+)?/gi, '')
     // Conduits and boxes cast into precast units are services work, not precast erection.
     .replace(/\bcast[- ]in(?:to)?\s+(?:the\s+)?precast\s+(?:conduits?|back ?boxes|boxes|services|items|ferrules)\b|\b(?:conduits?|back ?boxes|services)\s+(?:cast\s+)?in(?:to)?\s+(?:the\s+)?precast\b/gi, '')
-    // Finishing precast already in place: staining, cleaning, sealing, painting or patching it.
-    .replace(/\b(?:stain\w*|clean\w*|seal\w*|paint\w*|patch\w*|coat\w*)\b(?:\s+(?:of|to))?\s+(?:the\s+)?(?:[\w-]+\s+){0,3}precast(?:\s+(?:panels?|units?|walls?|elements?))?/gi, '');
+    // Finishing precast already in place: staining, cleaning, sealing, painting, patching, grinding or repairing it.
+    .replace(/\b(?:stain\w*|clean\w*|seal\w*|paint\w*|patch\w*|coat\w*|grind\w*|repair\w*|rub\w* (?:up|down)|polish\w*)\b(?:\s+(?:of|to))?\s+(?:the\s+)?(?:[\w-]+\s+){0,3}precast(?:\s+concrete)?(?:\s+(?:wall\s+)?(?:panels?|units?|walls?|elements?))?/gi, '');
 }
 
 function isPanelLift(text) {
@@ -93,6 +93,8 @@ function isPanelLift(text) {
 // paving slab or decorative panel. Floor planks and insulated panels are not concrete wall panels.
 function isConcreteWallPanel(text) {
   const source = withoutWorkIntoPrecast(text);
+  // Removing the temporary bracing of a concrete panel is tilt-up work too (r 306A(c)).
+  if (/\bremov\w*[^.]{0,30}\b(?:temporary )?brac(?:es|ing)\b[^.]{0,30}\b(?:tilt[- ]?up|precast|concrete)\s+(?:concrete\s+)?(?:wall\s+)?panels?\b/i.test(source) && !/\b(sandwich|insulated|decorative)\b/i.test(source)) return true;
   if (!isPanelLift(source)) return false;
   if (!/\b(tilt[- ]?up|tilt (?:panels?|slabs?|walls?)|precast|concrete)\b/i.test(source)) return false;
   if (/\b(sandwich|insulated|decorative)\b/i.test(source)) return false;
@@ -481,7 +483,8 @@ function highRiskMatches(raw, answer, state) {
     tower: mentioned(text, /\b(telecommunications? towers?|(?:mobile (?:phone )?|phone|radio|comms|communications) towers?)\b/i),
     // Demolishing a whole building takes down its load-bearing parts.
     // Removing a wall's bracing takes out a load-bearing element (Safe Work Australia's example).
-    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || /\bremov\w*[^.]{0,20}\b(?:the |a )?(?:wall |roof |structural |temporary )?bracing\b/i.test(String(text || '')) || mentioned(text, DEMOLITION) && (mentioned(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, ''), /\b(load-bearing|load bearing|structur\w*)\b/i) || WHOLE_DEMOLITION.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
+    // Temporary bracing, props, formwork and falsework are left out of demolition work (schedule 19).
+    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || sentences(text).some((line) => /\bremov\w*[^.]{0,20}\b(?:the |a )?(?:wall |roof |structural )?bracing\b/i.test(line) && !/\b(temporary|temp|props?|falsework|formwork|tilt[- ]?up|precast)\b/i.test(line)) || mentioned(text, DEMOLITION) && (mentioned(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, ''), /\b(load-bearing|load bearing|structur\w*)\b/i) || WHOLE_DEMOLITION.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
     asbestos: mentioned(text, /\basbestos\b/i),
     // Structural alterations or repairs to an existing structure that need temporary support.
     // Propping and backpropping new formwork and slabs is not an alteration or repair.
@@ -492,7 +495,9 @@ function highRiskMatches(raw, answer, state) {
     explosives: mentioned(String(text || '').replace(/\bexplosive[- ]?(?:powered |power |actuated )?(?:tools?|nail guns?|fixing tools?)\b/gi, ' ').replace(/\b(?:abrasive|sand|grit|garnet|water|soda|bead|shot|dry ice|hydro|ice|media|pressure)[- ]?blast\w*|\bblast\w* (?:and (?:paint|coat)\w*|clean\w*)/gi, ' '), /\b(explosives?|blasting|drill\w* and blast\w*|blast (?:holes?|patterns?)|shot ?fir\w*|charg\w* (?:the )?(?:blast )?holes?)\b/i),
     gas: mentioned(text, /\b(gas mains?|pressuri[sz]ed gas|(?:existing |live |natural |reticulated )?gas (?:lines?|pipe\w*|supply|services?|meters?)|connect\w*[^.]{0,30}\bgas\b)\b/i),
     chemicalLine: mentioned(text, /\b((?:fuel|refrigerant|chemical)(?: or (?:fuel|refrigerant|chemical))? lines?)\b/i),
-    electrical: mentioned(text, /\b(connect\w*[^.]{0,40}\b(?:to|into) (?:the )?(?:electricity )?supply|solar (?:panels?|pv|photovoltaic|arrays?|systems?)|photovoltaic|inverters?|energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live (?:electrical|parts?|switchboards?|circuits?)|(?:energised|energized|live) electrical (?:installations?|services?))\b/i),
+    electrical: mentioned(text, /\b(connect\w*[^.]{0,40}\b(?:to|into) (?:the )?(?:electricity )?supply|solar (?:panels?|pv|photovoltaic|arrays?|systems?)|photovoltaic|inverters?|energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live (?:electrical|parts?|switchboards?|circuits?)|(?:energised|energized|live) electrical (?:installations?|services?))\b/i)
+      // Live or existing underground power cables are energised electrical services.
+      || /\b(?:live|energised|energized)\s+(?:(?:underground|buried|electrical|electric|power|hv|high voltage|\d+(?:\.\d+)? ?kv)\s+){0,2}cables?\b|(?<!\bnew\s)\b(?:underground|buried)\s+(?:(?:live|energised|energized|electrical|electric|power|hv|high voltage|\d+(?:\.\d+)? ?kv)\s+){1,2}(?:cables?|lines?|services?|mains)\b|\b\d+(?:\.\d+)? ?kv\s+(?:underground\s+)?cables?\b/i.test(String(text || '')),
     // Hot cutting into pipework or tanks that may hold chemical or fuel residue (Safe Work Australia's example).
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i) || /\b(residues?|traces?)\b[^.]{0,30}\b(?:hazardous )?(chemicals?|fuels?|flammable|hydrocarbons?|solvents?)\b|\b(?:pipework|pipes?|tanks?|drums?|vessels?)\b[^.]{0,30}\b(?:may |that |which )?(?:contain|held|hold)\w*\b[^.]{0,30}\b(chemicals?|fuels?|flammable|hydrocarbons?|solvents?)\b/i.test(String(text || '')),
     // Drilling or fixing to precast units already in place is not precast work.

@@ -239,8 +239,8 @@ const WESTERN_AUSTRALIA = {
     },
   ],
   panelControls: [
-    ['Isolate or engineer', 'Only people doing the tilt-up work, or with written authority for a purpose connected with it, enter or stay in the area where it is done (regulation 306I).'],
-    ['Administrative', 'Keep at the site the regulator notification, the shop drawings of each panel, a current plan for the work, any written advice from a qualified practising engineer, and each panel\'s inspection report (regulation 306H).'],
+    ['Isolate or engineer', 'Only people doing the tilt-up work, people with written authority for a purpose connected with it, and people authorised under a written law enter or stay in the area where it is done (regulation 306I).'],
+    ['Administrative', 'Keep at the site the regulator notification, the shop drawings of each panel, a current plan for the work, any written advice from a qualified practising engineer, each panel\'s inspection report, and any exemption that relates to the work (regulation 306H).'],
   ],
 };
 

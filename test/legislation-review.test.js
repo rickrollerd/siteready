@@ -46,7 +46,7 @@ test('a trench deeper than 1.5 m is high risk construction work; one 1.5 m deep 
 
 test('trench barriers follow s 306D in Queensland and r 306(1) elsewhere', () => {
   const task = 'Excavate pile caps and lift pits for a commercial building with an excavator.';
-  assert.ok(lines(draft('qld', task)).includes(`Barriers go up around a pit or trench as it is dug, before it is deeper than 2 m. (${QLD}s 306D)`));
+  assert.ok(lines(draft('qld', task)).includes(`Barriers go up around a pit or trench as it is dug, before it is 2 m deep (3 m in housing construction). (${QLD}s 306D)`));
   assert.ok(lines(draft('nsw', task)).includes('Barriers go up around a pit or trench as it is dug, and the work area around a trench 1.5 m deep or more is secured from unauthorised access, including inadvertent entry.'));
 });
 
@@ -227,4 +227,31 @@ test('NT: the Electricity Reform Act 2000', () => {
   const text = [...lines(nt), ...nt.controls.map((item) => item.text)].join('\n');
   assert.match(text, /The Electricity Reform Act 2000 \(NT\) also imposes obligations for work near electric lines\./);
   assert.doesNotMatch(text, /Electrical Reform/);
+});
+
+test('removing temporary bracing is not demolition work; removing a wall\'s bracing still is', () => {
+  for (const state of ['qld', 'nsw', 'wa', 'act']) {
+    const ids = highRiskMatches('Remove temporary bracing from precast panels after the roof is fixed.', '', findState(state)).map((item) => item.id);
+    assert.ok(!ids.includes('demolition'), state);
+    assert.ok(ids.includes('precast'), state);
+  }
+  assert.ok(highRiskMatches('Remove the wall bracing and replace the wall frame in an existing commercial building.', '', findState('qld')).some((item) => item.id === 'demolition'));
+});
+
+test('live or existing underground power cables are energised electrical services (s 291(k))', () => {
+  for (const task of ['Excavate with a vacuum truck to locate underground electrical cables and gas mains in a footpath.', 'Excavate near live underground power cables.', 'Hydro excavate to expose live high voltage cables in the road reserve.', 'Dig a trench across an 11 kV cable route.']) {
+    for (const state of ['qld', 'wa', 'act']) assert.ok(highRiskMatches(task, '', findState(state)).some((item) => item.id === 'electrical'), `${state}: ${task}`);
+  }
+  // New cables are not yet energised, and an underground conduit is not a cable.
+  for (const task of ['Lay new underground power cables in a trench to the shed.', 'Install underground conduits for telecommunications.']) {
+    assert.ok(!highRiskMatches(task, '', findState('qld')).some((item) => item.id === 'electrical'), task);
+  }
+});
+
+test('WA tilt-up work: removing temporary braces is tilt-up work; grinding erected panels is not (r 306A)', () => {
+  const asked = (task) => (questionsFor({ state: 'wa', task, fallRisk: 'no' }).required || []).some((item) => item.id === 'regulatorNotified');
+  assert.ok(asked('Remove temporary braces from tilt-up wall panels after the roof is fixed.'));
+  assert.ok(!asked('Grind and patch precast concrete wall panels after they are erected on a warehouse.'));
+  const text = lines(draft('wa', 'Erect tilt-up concrete wall panels for a warehouse using a 200 tonne mobile crane, with temporary braces.')).join('\n');
+  assert.match(text, /and people authorised under a written law enter or stay in the area where it is done \(regulation 306I\)\./);
 });
