@@ -52,3 +52,23 @@ test('a PDF with an entry taller than a page is still made, quickly', async () =
     assert.ok(Date.now() - started < 10000, `took ${Date.now() - started} ms`);
   }
 });
+
+// Testing agent F-009: a logo made the PDF fail. A PNG with transparency whose image data
+// does not decompress crashed the PDF library out of line; such a logo is now refused.
+test('a damaged PNG logo is refused; good logos with or without transparency are kept', () => {
+  const zlib = require('zlib');
+  const { readLogo } = require('../logo');
+  const png = (colourType, idat) => {
+    const chunk = (type, body) => {
+      const length = Buffer.alloc(4); length.writeUInt32BE(body.length);
+      const typed = Buffer.concat([Buffer.from(type), body]);
+      const crc = Buffer.alloc(4); crc.writeUInt32BE(zlib.crc32(typed) >>> 0);
+      return Buffer.concat([length, typed, crc]);
+    };
+    const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(8, 0); ihdr.writeUInt32BE(8, 4); ihdr[8] = 8; ihdr[9] = colourType;
+    return `data:image/png;base64,${Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), chunk('IHDR', ihdr), chunk('IDAT', idat), chunk('IEND', Buffer.alloc(0))]).toString('base64')}`;
+  };
+  assert.ok(readLogo(png(6, zlib.deflateSync(Buffer.alloc(8 * 33)))));
+  assert.ok(readLogo(png(2, zlib.deflateSync(Buffer.alloc(8 * 25)))));
+  assert.equal(readLogo(png(6, Buffer.from('garbage-not-zlib'))), null);
+});
