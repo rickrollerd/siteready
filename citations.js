@@ -129,6 +129,11 @@ const VIC_TEXT = [
   [/^This SWMS takes into account the principal contractor's WHS management plan for the site\.$/, 'This SWMS takes into account the principal contractor\'s health and safety coordination plan for the site.'],
   [/^The consumer mains and main switchboard are not connected for the first time until the distribution entity has examined them/, 'Consumer mains, main switchboards and other prescribed electrical work are inspected by a licensed electrical inspector, and the certificate of electrical safety is issued, before the installation is connected by the network operator.'],
 ];
+// The ACT has no 10 m2 exception: any asbestos is removed by a licensed asbestos
+// removalist (Work Health and Safety Regulation 2011 (ACT) r 458).
+const ACT_TEXT = [
+  [/^Asbestos is removed by a licensed asbestos removalist, except for 10 m2 or less of non-friable asbestos removed under the regulation\.$/, 'Asbestos is removed only by a licensed asbestos removalist, whatever the amount.'],
+];
 const VIC_SILICA = /\b(processing is high risk|high risk processing|VET accredited or regulator approved)\b/i;
 
 function localText(text, stateId) {
@@ -144,6 +149,9 @@ function localText(text, stateId) {
       break;
     }
     if (!done && VIC_SILICA.test(out)) return null;
+  }
+  if (stateId === 'act') {
+    for (const [pattern, replacement] of ACT_TEXT) if (pattern.test(out)) { out = replacement; done = true; break; }
   }
   if (!done) for (const [pattern, replacement] of OUTSIDE_QLD) if (pattern.test(out)) { if (replacement === null) return null; out = replacement; break; }
   out = out.replace(/31 December 1989/g, '31 December 2003').replace(/ Qld has no piling rig licence\./g, '')
