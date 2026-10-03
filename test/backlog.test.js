@@ -46,3 +46,26 @@ test('#43 river below is work near water; welding and cutting bring a hot work h
   assert.ok(names(weld).includes('Hot work'));
   assert.ok(!names(draft('nsw', 'Replace the hot water heater near the water tanks', facts)).includes('Water or other liquid'));
 });
+
+test('Safe Work Australia\'s 18 worked examples each raise their own high risk category', () => {
+  const examples = [
+    ['Telecommunications equipment maintenance on a telecommunications tower', /telecommunication/i],
+    ['Removing bracing from a wall using an excavator', /demolition/i],
+    ['Blasting to prepare for construction of a road', /explosives/i],
+    ['Working near fuel or refrigerant lines', /fuel|refrigerant|chemical/i],
+    ['Using an oxy torch to remove pipework that may contain the residue of hazardous chemicals', /contaminated or flammable atmosphere/i],
+    ['Building a road adjacent to an existing roadway', /road/i],
+    ['Working inside enclosed roof cavity in hot weather', /temperature/i],
+    ['Installing shade sails over a swimming pool', /drowning|water/i],
+    ['Diver undertaking structural repairs to the jetty of a waterfront home', /diving/i],
+  ];
+  const { highRiskMatches } = require('../draft');
+  for (const [task, label] of examples) {
+    const found = prepareDraft({ state: 'nsw', task, fallRisk: 'no' });
+    const labels = found.highRisk && found.highRisk.length ? found.highRisk : (highRiskMatches ? highRiskMatches(task, 'no', require('../legislation').findState('nsw')).map((item) => item.label) : []);
+    assert.ok(labels.some((text) => label.test(text)), `${task}: ${labels.join(' / ')}`);
+  }
+  // Abrasive blasting and a pool deck are not explosives or work over water.
+  assert.equal(prepareDraft({ state: 'nsw', task: 'Abrasive blasting of the bridge girders before repainting', fallRisk: 'no' }).kind, 'draft');
+  assert.ok(!prepareDraft({ state: 'nsw', task: 'Install the pool fence over the pool deck', fallRisk: 'no' }).highRisk.length);
+});
