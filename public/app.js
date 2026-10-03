@@ -490,10 +490,25 @@ function renderSteps(steps) {
     const kind = stepById.get(id) || { label: id, steps: [] };
     const others = kind.steps.filter((name) => name !== kind.label);
     const names = others.length ? `<span class="step-names">${esc(others.join('; '))}</span>` : '';
-    return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) || locked.has(id) ? ' checked' : ''}${locked.has(id) ? ' disabled' : ''}><span>${esc(kind.label)}${locked.has(id) ? '<span class="tag">Required</span>' : ''}${names}</span></label></li>`;
+    const off = locked.has(id) && !chosen.has(id);
+    const warning = off ? `<span class="step-warning">${esc(REMOVED_WARNINGS[id] || 'The task calls for this step. Make sure this risk is covered another way before work starts.')}</span>` : '';
+    return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) ? ' checked' : ''}><span>${esc(kind.label)}${locked.has(id) ? '<span class="tag">Recommended</span>' : ''}${names}${warning}</span></label></li>`;
   }).join('') : '<li>No job steps were found in the task. Add the steps for the work below.</li>';
   fillStepAdd();
 }
+
+// Shown when a step the task's words call for is taken off.
+const REMOVED_WARNINGS = {
+  road: 'The task mentions a road or street. Make sure traffic is managed before work starts, for example under the principal contractor\'s traffic management plan.',
+  asbestosCheck: 'The work could disturb asbestos. Make sure asbestos is identified before work starts.',
+  asbestos: 'The task involves asbestos. It must be removed under the asbestos rules, by a licensed removalist where required.',
+  isolation: 'The work needs power or plant isolated. Make sure it is isolated and proved before work starts.',
+  confined: 'The task mentions a confined space. Entry needs its own controls and permit.',
+  water: 'The work is near water. Make sure drowning risks are controlled.',
+  power: 'The work is near power lines. Make sure approach distances are kept.',
+  propping: 'The work needs temporary support. Make sure the structure is propped before it is cut or loaded.',
+  trench: 'The work involves a trench. Make sure the trench is supported or kept shallow before anyone enters it.',
+};
 
 // Changing the steps asks the questions again, keeping what has been filled in.
 async function refreshSteps() {

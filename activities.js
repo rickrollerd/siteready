@@ -6090,6 +6090,39 @@ const ACTIVITIES = [
     ppe: ['gloveGeneral'],
   },
   {
+    when: 'spoilManage',
+    steps: [{
+      step: 'Stockpile, cover and cart away spoil',
+      hazards: ['Struck by trucks or plant at the stockpile or loading area.', 'A stockpile or its face slumps onto a worker, or overloads the edge of an excavation.', 'Dust from stockpiles and loads, including silica, and asbestos where fill is unknown.', 'Skin contact with contaminated soil.', 'Mud, sediment and loose material on roads and in drains.'],
+      controls: [
+        { fact: 'spoilPlan' },
+        'Spoil is stockpiled only where the principal contractor allows, back from excavation edges and outside their zone of influence, away from drains and site boundaries, and no higher or steeper than it stays stable.',
+        'Stockpiles are covered with tarps or kept damp with water sprays to stop dust and runoff, and work stops in winds that lift dust off them. Contaminated or unknown spoil is kept in its own covered stockpile, apart from clean spoil.',
+        'Trucks are loaded in a set loading area with a spotter, and no one stands beside a truck while it is loaded or tips.',
+        'Loads are covered and restrained before trucks leave, wheels are cleaned or a shaker grid is used at the gate, and trucks leave under the site traffic management plan.',
+        'Spoil leaves site only for a facility or site licensed or approved to take that type of waste, with the waste records the state environment regulator requires.',
+        'Where spoil is contaminated or may contain asbestos, workers wear gloves and coveralls, wash before eating, and the material is handled under the remediation or asbestos plan.',
+      ],
+    }],
+    ppe: ['hivis', 'p2', 'gloveGeneral'],
+  },
+  {
+    when: 'loaderCrane',
+    steps: [{
+      step: 'Unload with the truck loading crane (hiab)',
+      hazards: ['The truck tips or the crane overloads when outriggers are not set on firm ground.', 'The load falls, swings or strikes a person.', 'The crane boom or load contacts overhead power lines.', 'A fall from the truck tray or the load.', 'Crushed between the load and the truck, a wall or a stack.'],
+      controls: [
+        src('A vehicle loading crane rated at 10 metre-tonnes or more is operated only by a person holding the vehicle loading crane licence (CV). A smaller crane is operated by a person trained and competent on it.', WHS('s 81, schedule 3')),
+        'The truck is parked level, with the outriggers fully extended on firm ground and pads, back from excavation edges, pits and kerbs, as the crane manufacturer requires.',
+        'Overhead power lines are checked before the crane is set up, and the boom and load stay outside the network operator\'s approach distances, with a spotter where they could come close.',
+        'Loads are lifted within the crane\'s load chart for the radius, slung with rated lifting gear, and controlled with tag lines. Slinging and directing a load out of the operator\'s view is done by a licensed dogger.',
+        'No one stands under the load or between the load and the truck, wall or stack, and an exclusion zone is set around the lift. On a street, the public is kept out under the traffic or pedestrian management for the delivery.',
+        'Loads are slung from the ground where possible. No one climbs onto the load, and work on the tray is kept clear of the open edges.',
+      ],
+    }],
+    ppe: ['hivis', 'gloveGeneral'],
+  },
+  {
     when: 'glassWind',
     steps: [{
       step: 'Handle glass in the wind',

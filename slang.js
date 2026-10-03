@@ -45,7 +45,7 @@ const SLANG = [
   // Plant and gear known by brand
   [/\bkangas?\b/gi, 'jackhammer'],
   [/\bdingos?\b/gi, 'mini loader'],
-  [/\bhiabs?\b/gi, 'vehicle loading crane'],
+  [/\bhi-?abs?\b/gi, 'vehicle loading crane'],
   [/\bacrows?\b/gi, 'props'],
   [/\bdunn(?:y|ies)\b/gi, 'toilets'],
 ];

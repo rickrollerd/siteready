@@ -40,6 +40,7 @@
     .address-list li { padding: 10px 12px; cursor: pointer; }
     .address-list li[aria-selected="true"], .address-list li:hover { background: #fff4d1; }
     .state-warning { color: #9a3b00; }
+    .step-warning { display: block; color: #9a3b00; font-size: 0.95em; margin-top: 4px; }
     input[type="text"], textarea {
       width: 100%;
       border: 1px solid #c5cdd6;
@@ -428,7 +429,8 @@
         <label><input type="radio" name="residential" value="no"> No</label>
       </fieldset>
       <fieldset class="field choice">
-        <legend>If a crane is used, who operates it?</legend>
+        <legend>Is a crane used, and who operates it?</legend>
+        <label><input type="radio" name="crane" value="none"> No crane</label>
         <label><input type="radio" name="crane" value="company" checked> A crane company</label>
         <label><input type="radio" name="crane" value="own"> Our company</label>
       </fieldset>
@@ -447,7 +449,7 @@
     <form id="facts" class="panel hidden">
       <p class="warning hidden" id="fall-warning"></p>
       <h2>Job steps</h2>
-      <p class="lede" style="margin-bottom:12px">Ticked steps go into the SWMS. SiteReady ticks the ones it found in the task. Untick any that are not part of this job, and add any that are missing. Steps marked required stay because of the work or the law.</p>
+      <p class="lede" style="margin-bottom:12px">Ticked steps go into the SWMS. SiteReady ticks the ones it found in the task. Untick any that are not part of this job, and add any that are missing. Steps marked recommended are called for by the task's words; if you untick one, make sure that risk is covered another way.</p>
       <ul class="step-list" id="steps-block"></ul>
       <div class="field step-add">
         <label for="step-search" style="flex-basis:100%">Add a step</label>

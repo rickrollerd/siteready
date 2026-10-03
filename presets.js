@@ -124,6 +124,10 @@ const ANSWERS = {
   tierErection: [
     ['Engineer\'s erection design', 'Units are placed to the engineer\'s erection design ____ (revision ____): bearing pads and fixings as detailed, placed in the sequence shown, with temporary propping where the design shows it, checked by ____ before the hook is released.'],
   ],
+  spoilPlan: [
+    ['Clean spoil to a licensed site', 'Spoil is classified as ____ (for example clean fill, or tested by ____, report ____) and taken to ____ (a site or facility able to receive it), with the waste records the state environment regulator requires. Stockpiles are kept only at ____, as the principal contractor allows, and covered with ____.'],
+    ['Contaminated or unknown spoil', 'Spoil is treated as contaminated until test report ____ shows otherwise. It is kept apart and covered at ____, handled under ____ (remediation or asbestos plan), and taken only to ____ (a facility licensed for that waste), with the waste tracking records the state environment regulator requires.'],
+  ],
   excavationPlan: [
     ['Geotechnical design', 'Excavation follows the geotechnical design ____ (revision ____) in stages to the levels shown, with batters no steeper than ____, and plant and trucks follow the site traffic management plan ____.'],
   ],
