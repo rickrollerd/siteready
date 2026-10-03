@@ -78,7 +78,8 @@ const PLANT = [
   { item: 'Bar cutter or cut-off saw', pattern: /\b(bar cutters?|cut-off saws?)\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No' },
   { item: 'Trencher', pattern: /\btrenchers?\b/i, inspection: PRESTART, licence: 'No. Operator trained' },
   { item: 'Vacuum truck', pattern: /\bvacuum (?:trucks?|tankers?)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
-  { item: 'Tripod and winch (confined space rescue)', pattern: /\btripod\w*\b/i, inspection: 'Inspected before each entry, within its inspection date.', licence: 'No. Users trained' },
+  { item: 'Davit or tripod (pump lifting)', pattern: /\bdavits?\b/i, inspection: 'Rated for the load, tagged and checked before each lift, with its winch or chain block working.', licence: 'No. Users trained' },
+  { item: 'Tripod and winch (confined space rescue)', pattern: /\btripod\w*\b/i, skipIf: /\b(?:davits? or (?:a )?tripods?|davit or tripod)\b/i, inspection: 'Inspected before each entry, within its inspection date.', licence: 'No. Users trained' },
   { item: 'Work punt or boat', pattern: /\b(work punts?|punts?|barges?|work boats?|(?<=from (?:a |the ))pontoons?)\b/i, skipIf: /\b(jack-?up barges?|barge (?:cappings?|flashings?|boards?|rolls?|tiles?|rafters?)|(?:fascias?|guttering|ridges?|valleys?),? (?:or |and )?barges?|barges?,? (?:and|or) (?:similar|fascias?|ridges?))\b/i, inspection: 'Moored and stable before use, with its safety equipment on board.', licence: 'Operated by a competent person holding any marine licence the state requires' },
   { item: 'Masonry or paver saw', pattern: /\b(?:brick|block|paver|masonry|wet|tile) saws?\b|\bsaw noise\b/i, inspection: `${PRESTART} Blade guard in place, water feed or extraction working, leads tagged.`, licence: 'No. Operator trained' },
   { item: 'Dozer', pattern: /\b(dozers?|bulldozers?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
@@ -294,7 +295,8 @@ const TASK_LICENCES = /^(Gas work licence|Electrical work licence|Plumbing and d
 
 function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], silicaText = hazardText) {
   const needed = QUALIFICATIONS.filter(([name, pattern]) => {
-    if (/^Confined space/.test(name)) return highRisk.some((item) => /confined space/i.test(item));
+    // Entry training is for work that enters the space, not work kept at its opening.
+    if (/^Confined space/.test(name)) return highRisk.some((item) => /confined space/i.test(item)) && !/\bis not entered\b/i.test(allText);
     if (/harness/.test(name)) return /\b(use (?:a )?(?:harness|travel restraint)|fall arrest is used|harness is attached|travel restraint is installed)\b/i.test(allText.replace(/\b(?:where|if|when)\b[^.]*/gi, ""));
     // Work done around another trade's fittings ("mask and cut in around electrical fittings") is not that trade's work.
     // Data, fibre and communications cabling is not electrical work.
@@ -434,12 +436,43 @@ function localLicences(stateName, trade, list, stepText) {
     return named.filter((name) => !(gasOnly && name === 'Plumbing and drainage licence')).map((name) => (name === 'Gas work licence' ? 'Gas work licence (Petroleum and Gas (Production and Safety) Act 2004 (Qld))' : name));
   }
   // Licence names outside Queensland: the state's own class names are not yet checked, so they are named generally.
-  const local = { 'Security equipment installer licence (Security Providers Act 1993 (Qld))': 'Security licence or registration for installing security equipment, under the state\'s security industry law', 'Gas work licence': 'Gas work licence or authorisation for the gas work', 'Electrical work licence (electrical mechanic)': 'Electrical licence (licensed electrician) under the state\'s electrical licensing law', 'Plumbing and drainage licence': 'Plumbing licence or registration under the state\'s plumbing law', 'Pest management licence and QBCC termite licence': 'Pest management licence, and any termite management licence the state requires' };
-  // Victoria has its own crystalline silica rules, not the model regulations' high risk processing.
-  if (/Victoria/.test(stateName || '')) local['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk'] = 'Crystalline silica information, instruction and training, as the Occupational Health and Safety Regulations 2017 (Vic) require for high risk crystalline silica work';
+  const local = { 'Security equipment installer licence (Security Providers Act 1993 (Qld))': 'Security licence or registration for installing security equipment, under the state\'s security industry law', 'Gas work licence': 'Gas work licence or authorisation for the gas work', 'Electrical work licence (electrical mechanic)': 'Electrical licence (licensed electrician) under the state\'s electrical licensing law', 'Plumbing and drainage licence': 'Plumbing licence or registration under the state\'s plumbing law', 'Pest management licence and QBCC termite licence': 'Pest management licence, and any termite management licence the state requires', 'Commercial operator licence, where powered ground spraying of herbicide is done in a regulated area': 'Chemical application licence, where the state requires one for herbicide spraying' };
+  // Victoria has its own crystalline silica rules, not the model regulations' high risk processing,
+  // and names the card a construction induction card (r 341).
+  if (/Victoria/.test(stateName || '')) {
+    local['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk'] = 'Crystalline silica information, instruction and training, as the Occupational Health and Safety Regulations 2017 (Vic) require for high risk crystalline silica work';
+    local['General construction induction (white card)'] = 'Construction induction card (white card)';
+  }
+  // The ACT: an awareness course the Minister declares for high risk crystalline silica work (s 418D),
+  // and no asbestos removal without a licence, whatever the amount (s 458, s 487).
+  if (/Australian Capital Territory/.test(stateName || '')) {
+    local['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk'] = 'Crystalline silica awareness training (the course the Minister declares under section 418D), for workers who carry out high risk crystalline silica work';
+    local['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)'] = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for non-friable asbestos, whatever the amount) with workers holding the VET asbestos removal certification. Other workers who work with asbestos have done the asbestos awareness course the Minister declares (Work Health and Safety Regulation 2011 (ACT) s 445, s 458, s 460, s 487)';
+  }
   const stateId = (findState(stateName) || { id: 'qld' }).id;
   const kept = gasWorkOnly && !/Victoria/.test(stateName || '') ? named.filter((name) => name !== 'Plumbing and drainage licence') : named;
   return [...new Set(kept.map((name) => localText(localNote(local[name] || name, stateId), stateId)))];
+}
+
+// Plant notes that read differently in a state. Victoria registers plant designs, not items
+// (r 125, Schedule 2; only amusement structures are registered items, r 127C), sets no major
+// inspection, and r 118 sets no scaffold handover or 30 day inspection. Its Schedule 3 item 18A
+// licenses non-slewing telehandlers over 3 t, and a slewing telehandler is a slewing mobile crane.
+const STATE_PLANT = {
+  vic: [
+    ['inspection', /^Registered item of plant\./, 'Registered design.'],
+    ['inspection', /Cranes over 10 t are registered plant and need a major inspection \(s 235\)\./, 'Cranes over 10 t have a registered design.'],
+    ['inspection', /, a yearly inspection if erected for 12 months or more, and a major inspection \(WHS Reg s 235\)\./, ' and a yearly inspection if erected for 12 months or more.'],
+    ['inspection', /^Handover certificate before first use\. Inspected by a competent person before use, after an incident that could affect its stability, after repairs or alterations, and at least every 30 days \(WHS Reg s 225, scaffolds over 4 m\)\./, 'Not used for work until it, or the part used, is complete; kept secure and able to support the work; repaired before use if it becomes unsafe; and access blocked when it is left unattended (WHS Reg s 225). Handover certificate before first use, and inspected by a competent person before use, after an incident or repairs, and at least every 30 days.'],
+    ['inspection', /Over 4 m: handover certificate and inspections as for a scaffold \(WHS Reg s 225\)\./, 'Over 4 m: handover certificate and inspections as for a scaffold.'],
+    ['inspection', /, and at least every 30 days \(WHS Reg s 225\)\./, ', and at least every 30 days.'],
+    ['licence', /^No Schedule 3 class names telehandlers(, where one is used)?\. .*$/, 'Yes for a non-slewing telehandler rated over 3 t: the non-slewing telehandler licence, or a mobile crane licence$1. A slewing telehandler is a slewing mobile crane and needs the slewing mobile crane licence for its capacity'],
+  ],
+};
+function localPlant(item, stateId) {
+  let out = item;
+  for (const [field, pattern, replacement] of STATE_PLANT[stateId] || []) if (pattern.test(out[field])) out = { ...out, [field]: out[field].replace(pattern, replacement) };
+  return out;
 }
 
 // A crew of a licensed trade holds that trade's licence, whatever steps were picked.
@@ -483,7 +516,7 @@ function registersFor(draft, input = {}) {
   const maybe = plantFor(forkliftLines.join('\n')).filter((item) => /^(Forklift|Telehandler)$/.test(item.item) && !named.includes(item.item)).map((item) => ({ ...item, licence: whereUsed(item.licence) }));
   // A generator being installed or load tested is the building's plant, not a portable site generator.
   const buildingGenerator = steps.some((step) => ['Install generators and fuel systems', 'Run and load test generators'].includes(step.step));
-  const fromAccess = accessLines.flatMap((line) => { const found = plantFor(line); return found.length > 1 || /\sor\s/i.test(line) ? found.map((item) => ({ ...item, licence: whereUsed(item.licence) })) : found; });
+  const fromAccess = accessLines.flatMap((line) => { const found = plantFor(line); return found.length > 1 || /\sor\s|\bwhere one is used\b/i.test(line) ? found.map((item) => ({ ...item, licence: whereUsed(item.licence) })) : found; });
   const accessExtra = [];
   for (const item of fromAccess) if (!named.includes(item.item) && !maybe.some((other) => other.item === item.item) && !accessExtra.some((other) => other.item === item.item)) accessExtra.push(item);
   const plant = [...plantFor(`${useText}\n${usedInControls.join('\n')}`), ...maybe.filter((item) => !accessExtra.some((other) => other.item === item.item)), ...accessExtra].filter((item) => !(buildingGenerator && item.item === 'Generator')).map((item) => othersLicence(item, allText, task));
@@ -510,14 +543,14 @@ function registersFor(draft, input = {}) {
   const substances = substancesFor(`${task}\n${hazardText}\n${steps.map((step) => step.step).join('\n')}`, (input.facts || {}).safetyDataSheet, steps.flatMap((step) => step.controls).join('\n'));
   let sources = legislationFor([...steps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
   if (!/Queensland/.test(draft.state || '')) sources = addStateLaw(sources, draft.state);
-  const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant, draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
+  const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant.map((item) => localPlant(item, (findState(draft.state) || { id: 'qld' }).id)), draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
   if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` });
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Plumbing and drainage licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Plumbing and Drainage Act 2018 (Qld)'])].sort() };
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Gas work licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'])].sort() };
   // Register notes cite the state's own regulation.
   const stateId = (findState(draft.state) || { id: 'qld' }).id;
   return {
-    plant: plant.map((item) => ({ ...item, inspection: localNote(stateId === 'qld' ? item.inspection : item.inspection.replace(/ Yearly inspection and six-yearly major inspection \(Concrete Pumping Code s 5\)\./, ' Inspected and maintained to the manufacturer\'s instructions, including its periodic and major inspections.'), stateId), licence: localNote(item.licence, stateId) })),
+    plant: plant.map((item) => localPlant(item, stateId)).map((item) => ({ ...item, inspection: localNote(stateId === 'qld' ? item.inspection : item.inspection.replace(/ Yearly inspection and six-yearly major inspection \(Concrete Pumping Code s 5\)\./, ' Inspected and maintained to the manufacturer\'s instructions, including its periodic and major inspections.'), stateId), licence: localNote(item.licence, stateId) })),
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.
     qualifications,

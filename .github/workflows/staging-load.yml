@@ -1,0 +1,54 @@
+name: Staging load test from many addresses
+
+# Runs the load script from several GitHub runners at once, each with its own
+# internet address, against the staging copy only. Run it by hand, one step of the
+# ramp at a time. Staging's rate limits must be raised for the run, or each runner
+# is refused after its first few hundred requests.
+on:
+  workflow_dispatch:
+    inputs:
+      users:
+        description: 'Simulated users on each runner'
+        default: '25'
+      seconds:
+        description: 'How long each runner runs'
+        default: '300'
+      runners:
+        description: 'Number of runners (separate addresses), 1 to 20'
+        default: '10'
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.list.outputs.list }}
+    steps:
+      - id: list
+        env:
+          RUNNERS: ${{ inputs.runners }}
+        run: |
+          node -e 'const n = Math.min(20, Math.max(1, Number(process.env.RUNNERS) || 10)); console.log("list=" + JSON.stringify(Array.from({ length: n }, (_, i) => i + 1)))' >> "$GITHUB_OUTPUT"
+  load:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: ${{ fromJSON(needs.plan.outputs.list) }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund > /dev/null
+      - name: Address of this runner
+        run: curl -s https://api.ipify.org; echo
+      - name: Load staging
+        env:
+          USERS: ${{ inputs.users }}
+          SECONDS_TO_RUN: ${{ inputs.seconds }}
+        run: node scenarios/load.js "$USERS" "$SECONDS_TO_RUN" https://siteready-staging.up.railway.app --no-word

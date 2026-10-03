@@ -66,17 +66,19 @@ test('ACT drafts do not give the 10 m2 asbestos exception, which the ACT does no
   assert.equal(localText(line, 'sa'), line);
 });
 
-test('ACT drafts use the ACT crystalline silica rules, and the 14 day silica report is Queensland only', () => {
+test('ACT drafts use the ACT crystalline silica rules, and the 14 day silica report is stated generally where a state has no such rule', () => {
   const { localText } = require('../citations');
   const assess = 'Assess in writing before cutting whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.';
   const act = localText(assess, 'act');
   assert.match(act, /^Before cutting, a continuous water feed is used with at least one other crystalline silica control/);
   assert.doesNotMatch(act, /assess in writing|high risk\./i);
-  assert.equal(localText(assess, 'sa'), assess);
+  // SA r 529CA(3) and (5): the dust controls are not relied on, and an unknown is high risk.
+  assert.equal(localText(assess, 'sa'), 'Assess in writing before cutting whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as high risk until it is determined that it is not.');
   const plan = 'Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work), and workers have completed a VET accredited or regulator approved crystalline silica course.';
-  assert.equal(localText(plan, 'act'), 'Workers who carry out high risk crystalline silica work have completed the crystalline silica awareness course the ACT regulator declares.');
+  assert.equal(localText(plan, 'act'), 'Workers who carry out high risk crystalline silica work have completed the crystalline silica awareness course the Minister declares under section 418D.');
   const report = 'Monitor the air and keep the results for 30 years. For high risk processing, results above the exposure standard are reported to the regulator within 14 days.';
   assert.equal(localText(report, 'qld'), report);
-  assert.equal(localText(report, 'sa'), 'Monitor the air and keep the results for 30 years. Results above the exposure standard are reported to the regulator where the state\'s rules require it.');
-  assert.match(localText(report, 'nt'), /where the territory's rules require it\.$/);
+  // The model states have r 529CE; the ACT and Victoria do not.
+  assert.equal(localText(report, 'sa'), 'Monitor the air and keep the results for 30 years. For high risk processing, air monitoring is done, results above the exposure standard are reported to the regulator within 14 days, and all workers doing the processing have health monitoring.');
+  assert.match(localText(report, 'act'), /where the territory's rules require it\.$/);
 });

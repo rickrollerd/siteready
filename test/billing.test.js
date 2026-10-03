@@ -14,12 +14,13 @@ const { setupAccounts, lastLinkToken } = require('./helpers');
 // library to sign and check webhooks.
 const real = new Stripe('sk_test_not_used');
 const asked = [];
-billing.useStripe({
+const fakeStripe = {
   customers: { create: async (args) => { asked.push(['customer', args]); return { id: 'cus_1' }; } },
   checkout: { sessions: { create: async (args) => { asked.push(['checkout', args]); return { url: 'https://checkout.stripe.test/s1' }; } } },
   billingPortal: { sessions: { create: async (args) => { asked.push(['portal', args]); return { url: 'https://billing.stripe.test/p1' }; } } },
   webhooks: real.webhooks,
-});
+};
+billing.useStripe(fakeStripe);
 
 let server;
 let base;
@@ -64,6 +65,24 @@ test('subscribing during the trial keeps the rest of the trial', async () => {
   const company = await db.one('SELECT * FROM companies WHERE id = $1', [checkout.client_reference_id]);
   assert.equal(checkout.subscription_data.trial_end, Math.floor(new Date(company.trial_ends_at).getTime() / 1000));
   assert.equal(company.stripe_customer_id, 'cus_1');
+  // An existing customer must let checkout save the name and address before an ABN can be collected.
+  assert.deepEqual(checkout.customer_update, { name: 'auto', address: 'auto' });
+  assert.equal(checkout.tax_id_collection.enabled, true);
+});
+
+test('a checkout Stripe refuses is a 502 with a plain message, and Stripe\'s reason is logged', async () => {
+  const token = await signIn('refused@co.example');
+  const create = fakeStripe.checkout.sessions.create;
+  fakeStripe.checkout.sessions.create = async () => { throw Object.assign(new Error('No such price'), { type: 'StripeInvalidRequestError', statusCode: 400 }); };
+  try {
+    const response = await call('POST', '/api/billing/checkout', { token });
+    assert.equal(response.status, 502);
+    assert.match((await response.json()).message, /payment page could not be opened/);
+    const logged = await db.query("SELECT message FROM errors WHERE route = 'Stripe checkout'");
+    assert.ok(logged.some((row) => /No such price/.test(row.message)));
+  } finally {
+    fakeStripe.checkout.sessions.create = create;
+  }
 });
 
 test('Stripe webhooks set the plan, and a bad signature is refused', async () => {

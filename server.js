@@ -64,7 +64,6 @@ const scopeJson = express.json({ limit: '15mb' });
 const projectJson = express.json({ limit: '5mb' });
 app.use((req, res, next) => (req.path === SCOPE_ROUTE ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(auth.readSession);
 
 // Limits are per client address. Phones on mobile data and a site office on one
 // connection often share an address, so the limits are set for a busy site, not
@@ -87,6 +86,8 @@ app.use('/api', limiter(
   positiveNumber(process.env.RATE_LIMIT_MAX_REQUESTS, 600),
   (req) => req.originalUrl.startsWith(WORD_ROUTE),
 ));
+// Sessions are read after the limits, so a refused request never reaches the database.
+app.use(auth.readSession);
 
 const { draftBody } = require('./input');
 
@@ -147,7 +148,7 @@ app.post('/api/draft/questions', (req, res) => {
   // Gas pipework is tested with air or nitrogen; water and refrigeration tests come first otherwise.
   const gasOnly = /\bgas\b/i.test(result.task || '') && !/\b(water|hydraulic|plumbing|refrigera\w*|air ?con\w*|split systems?)\b/i.test(result.task || '');
   const ordered = (id) => {
-    const list = answersFor(id);
+    const list = answersFor(id, result.task);
     if (id !== 'pressureTesting') return list;
     return gasOnly ? list : [...list.filter((answer) => answer.label !== 'Gas line test'), ...list.filter((answer) => answer.label === 'Gas line test')];
   };

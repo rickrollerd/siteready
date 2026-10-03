@@ -100,7 +100,10 @@ test('round 2 review: service strikes and formwork failure are catastrophic, sil
 
 test('a task whose main work has no steps is stood down, not drafted with only access or lifting steps', () => {
   const stood = (task, trade = '') => prepareDraft({ state: 'qld', fallRisk: 'yes', trade, task, facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
-  assert.equal(stood('Remove the old water heater and blast the rock with explosives.').kind, 'stand-down');
+  // Blasting now has its own job step, done by the licensed shotfirer.
+  const blast = stood('Remove the old water heater and blast the rock with explosives.');
+  assert.ok(blast.jobSteps.some((step) => step.step === 'Drill, charge and fire the blast'));
+  assert.ok(blast.jobSteps.flatMap((step) => step.controls).some((line) => /shotfirer holding the licence/.test(line)));
   // A pool shell now has its own job step.
   assert.ok(stood('Construct a pool shell with sprayed concrete.').jobSteps.some((step) => step.step === 'Reinforce the pool shell and spray the shotcrete'));
   // Hydro demolition now has its own job step.
@@ -427,7 +430,7 @@ test('task bank round 8: small jobs get steps for that job, not a bigger one', (
     }
   }
   const nsw = require('../legislation').STATES.find((state) => state.id === 'nsw');
-  assert.ok(require('../draft').highRiskMatches('Excavate with an excavator.', '', nsw).some((item) => /any movement of powered mobile plant/.test(item.label)));
+  assert.ok(require('../draft').highRiskMatches('Excavate with an excavator.', '', nsw).some((item) => /there is movement of powered mobile plant/.test(item.label)));
 });
 
 test('task bank round 9: jobs that are smaller than the template get only their own lines', () => {

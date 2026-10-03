@@ -129,7 +129,7 @@ const NEW_SOUTH_WALES = {
     atmosphere: 'Is carried out in an area that may have a contaminated or flammable atmosphere',
     precast: 'Involves tilt-up or precast concrete',
     road: 'Is carried out on, in or adjacent to a road, railway, shipping lane or other traffic corridor that is in use by traffic other than pedestrians',
-    plant: 'Is carried out in an area at a workplace in which there is any movement of powered mobile plant',
+    plant: 'Is carried out in an area at a workplace in which there is movement of powered mobile plant',
     temperature: 'Is carried out in an area in which there are artificial extremes of temperature',
     water: 'Is carried out in or near water or other liquid that involves a risk of drowning',
     diving: 'Involves diving work',
@@ -382,9 +382,10 @@ const NORTHERN_TERRITORY = {
   },
   fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT), regulation 291, construction work that is not residential is high risk construction work where a person could fall more than 2 metres. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
   residentialFallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT), regulation 291, residential construction work (a house, or a garage, carport or shed attached to or next to a house) is high risk construction work where a person could fall more than 3 metres. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
-  // The text of regulation 166 could not be read from the published PDF. Regulation 729's
-  // note confirms the Electrical Reform Act 2000 also applies to work near electric lines.
-  overheadLineControl: 'Keep people, plant and things away from overhead and underground electric lines. Get the electricity supply authority\'s requirements before work starts and follow them. The Electrical Reform Act 2000 also imposes obligations for work near electric lines.',
+  // Part 4.7, with regulation 166, is missing from the text read from the published PDF.
+  // Regulation 729's note says another Act also applies to work near electric lines; its
+  // title, Electricity Reform Act 2000, is as regulation 5 gives it.
+  overheadLineControl: 'Keep people, plant and things away from overhead and underground electric lines. Get the electricity supply authority\'s requirements before work starts and follow them. The Electricity Reform Act 2000 (NT) also imposes obligations for work near electric lines.',
 };
 
 // Checked against the authorised PDF of the Occupational Health and Safety Regulations 2017

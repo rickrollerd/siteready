@@ -139,7 +139,10 @@ async function readSession(req, _res, next) {
     }
     next();
   } catch (error) {
-    next(error);
+    // A database that cannot answer is not a signed-out user: say so, so the app retries.
+    const busy = fail(503, 'SiteReady is busy. Try again in a moment.');
+    busy.cause = error;
+    next(busy);
   }
 }
 

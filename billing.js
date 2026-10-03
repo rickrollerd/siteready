@@ -6,7 +6,7 @@ const express = require('express');
 const Stripe = require('stripe');
 const db = require('./db');
 const auth = require('./auth');
-const { record } = require('./events');
+const { record, recordError } = require('./events');
 
 let client = null;
 
@@ -25,6 +25,19 @@ function enabled() {
 }
 
 const route = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+
+// A request Stripe turns down is a set-up fault on our side, not a bad request from the
+// user: Stripe's reason is kept in the error log for the admin page, and the user is told
+// plainly that the payment page could not be opened.
+async function fromStripe(where, call) {
+  try {
+    return await call();
+  } catch (error) {
+    if (!error || !String(error.type || '').startsWith('Stripe')) throw error;
+    await recordError(`Stripe ${where}`, error);
+    throw auth.fail(502, 'The payment page could not be opened. Try again shortly, or contact us if it keeps happening.');
+  }
+}
 const router = express.Router();
 
 async function customerFor(company, email) {
@@ -45,9 +58,13 @@ router.post('/billing/checkout', auth.requireUser, route(async (req, res) => {
   const base = auth.appUrl(req);
   const trialEnd = Math.floor(new Date(req.company.trial_ends_at).getTime() / 1000);
   const keepTrial = req.company.plan_status === 'trial' && trialEnd > Math.floor(Date.now() / 1000) + 48 * 3600;
-  const session = await stripe().checkout.sessions.create({
+  const customer = await fromStripe('customer', () => customerFor(req.company, req.user.email));
+  const session = await fromStripe('checkout', () => stripe().checkout.sessions.create({
     mode: 'subscription',
-    customer: await customerFor(req.company, req.user.email),
+    customer,
+    // With an existing customer, Stripe needs leave to save the name and address
+    // entered at checkout before it will collect a tax ID (ABN).
+    customer_update: { name: 'auto', address: 'auto' },
     client_reference_id: req.company.id,
     line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
     subscription_data: { metadata: { companyId: req.company.id }, ...(keepTrial ? { trial_end: trialEnd } : {}) },
@@ -56,14 +73,14 @@ router.post('/billing/checkout', auth.requireUser, route(async (req, res) => {
     tax_id_collection: { enabled: true },
     success_url: `${base}/?billing=success`,
     cancel_url: `${base}/?billing=cancelled`,
-  });
+  }));
   res.json({ url: session.url });
 }));
 
 // Change card, see invoices, or cancel, on Stripe's own page.
 router.post('/billing/portal', auth.requireUser, route(async (req, res) => {
   if (!enabled() || !req.company.stripe_customer_id) throw auth.fail(400, 'There is no subscription to manage yet.');
-  const session = await stripe().billingPortal.sessions.create({ customer: req.company.stripe_customer_id, return_url: `${auth.appUrl(req)}/` });
+  const session = await fromStripe('portal', () => stripe().billingPortal.sessions.create({ customer: req.company.stripe_customer_id, return_url: `${auth.appUrl(req)}/` }));
   res.json({ url: session.url });
 }));
 
