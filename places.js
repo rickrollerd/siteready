@@ -94,22 +94,22 @@ function km(a, b) {
 // A place that reads as a hospital that could take an injured worker. Clinics, health
 // centres, day surgeries, rehabilitation, mental health, vets and the like are left out.
 const HOSPITAL_NAME = /\b(hospitals?|health service|health campus|multi-?purpose (?:service|centre|health)|MPS)\b/i;
-const NOT_EMERGENCY = /\b(day (?:hospital|surgery|procedure)|rehab\w*|mental health|psychiatr\w*|veterinar\w*|vets?|animals?|pets?|equine|dental|dentists?|fertility|sleep|cosmetic|aesthetic\w*|hospice|palliative|aged care|nursing home|pharmacy|chemist|car ?park|parking|caf[eé]|kiosk|auxiliary|foundation|chapel|lodge|accommodation|school|clinic)\b/i;
+const NOT_EMERGENCY = /\b(day (?:hospital|surgery|procedure)|rehab\w*|mental health|psychiatr\w*|veterinar\w*|vets?|animals?|pets?|equine|dental|dentists?|skin|fertility|sleep|cosmetic|aesthetic\w*|hospice|palliative|aged care|nursing home|pharmacy|chemist|car ?park|parking|caf[eé]|kiosk|auxiliary|foundation|chapel|lodge|accommodation|school|clinic)\b/i;
 // Google's own type must also say hospital: a clinic that calls itself a "medical hospital" is left out.
 const isHospital = (name, type = 'hospital') => /hospital/i.test(type) && HOSPITAL_NAME.test(name) && !NOT_EMERGENCY.test(name) && !/\b(pty|ltd|limited|medical hospital)\b/i.test(name);
 // A general practice or medical centre. Specialist and cosmetic practices are left out.
 const NOT_GENERAL = /\b(aesthetic\w*|cosmetic\w*|beauty|laser|skin cancer|skin clinic|dermatolog\w*|dental|dentists?|orthodont\w*|physio\w*|chiro\w*|osteo\w*|podiatr\w*|optom\w*|optical|eye|hearing|audiolog\w*|psycholog\w*|counsell\w*|fertility|IVF|vet\w*|animal|pharmacy|chemist|radiology|imaging|x-?ray|pathology|blood|massage|naturopath\w*|acupunct\w*|weight loss|sleep|plastic surg\w*|vein|hair|botox|dietitian|speech|cardiolog\w*|specialists?|surgeons?)\b/i;
 // The name must read as a general practice or medical centre, not a company or one specialist.
 const GENERAL_NAME = /\b(medical|clinic|doctors|GP|general practice|family practice|health)\b/i;
-const isGeneralClinic = (name) => GENERAL_NAME.test(name) && !NOT_GENERAL.test(name) && !/\b(pty|ltd|limited|solutions)\b/i.test(name);
+const isGeneralClinic = (name) => GENERAL_NAME.test(name) && !NOT_GENERAL.test(name) && !/\b(pty|ltd|limited|solutions|hospitals?)\b/i.test(name);
 
-async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000 } = {}) {
+async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000, raw = false } = {}) {
   const address = cleanQuery(rawAddress);
   if (!enabled()) return { enabled: false, hospitals: [], clinics: [] };
   if (address.length < 8) return { enabled: true, hospitals: [], clinics: [], error: 'Enter the job address first.' };
   const key = address.toLowerCase();
   const hit = careCache.get(key);
-  if (hit && Date.now() - hit.at < CARE_MS) return hit.result;
+  if (!raw && hit && Date.now() - hit.at < CARE_MS) return hit.result;
   if (!underCap()) return { enabled: true, hospitals: [], clinics: [], error: 'Hospital suggestions are paused for today. Type the hospital.' };
   const post = async (url, body, fields) => {
     const controller = new AbortController();
@@ -140,13 +140,20 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000 } = 
       regionCode: 'au',
       locationRestriction: { circle: { center: centre, radius: 50000 } },
     }, fields);
-    // Google's hospital type also covers health centres and clinics, so a town's clinics can
-    // fill every place before the hospital. So: up to 20 by distance, a second search worded
-    // for emergency departments, then only names that read as a hospital are kept.
-    const [nearHospitals, edSearch, clinics] = await Promise.all([
-      near(['hospital'], 20),
-      post(SEARCH_TEXT, { textQuery: 'public hospital emergency department', regionCode: 'au', languageCode: 'en-AU', pageSize: 10, locationBias: { circle: { center: centre, radius: 50000 } } }, fields),
-      near(['medical_clinic', 'medical_center', 'doctor'], 15),
+    // Google's hospital type also covers health centres and clinics, and in a city the 20
+    // nearest "hospital" places can all be clinics. So several searches are merged: nearby by
+    // type, the nearest places Google strictly types as hospitals, and one worded for emergency
+    // departments. Only names that read as a hospital are kept. A search that fails is skipped.
+    const errors = [];
+    const safe = (label, promise) => promise.catch((error) => { errors.push(`${label}: ${error.message}`); return { places: [] }; });
+    const bias = { circle: { center: centre, radius: 50000 } };
+    const text = (textQuery, extra) => post(SEARCH_TEXT, { textQuery, regionCode: 'au', languageCode: 'en-AU', pageSize: 20, locationBias: bias, ...extra }, fields);
+    const [nearHospitals, typedHospitals, edSearch, clinics, clinicSearch] = await Promise.all([
+      safe('nearby hospitals', near(['hospital'], 20)),
+      safe('typed hospitals', text('hospital', { includedType: 'hospital', strictTypeFiltering: true, rankPreference: 'DISTANCE' })),
+      safe('emergency departments', text('public hospital emergency department', { pageSize: 10 })),
+      safe('nearby clinics', near(['medical_clinic', 'medical_center', 'doctor'], 20)),
+      safe('medical centres', text('medical centre general practice', { rankPreference: 'DISTANCE' })),
     ]);
     const list = (data, fallbackType = '') => (data.places || [])
       .filter((place) => place.displayName && place.displayName.text && place.location)
@@ -156,8 +163,15 @@ async function nearbyCare(rawAddress, { fetchImpl = fetch, timeoutMs = 6000 } = 
       return items.filter((item) => keep(item.name, item.type) && !seen.has(item.name.toLowerCase()) && seen.add(item.name.toLowerCase()))
         .sort((a, b) => a.km - b.km).slice(0, count).map(({ type, ...item }) => item);
     };
-    const hospitals = nearest([...list(nearHospitals, 'hospital'), ...list(edSearch)], isHospital, 5);
-    const result = { enabled: true, hospitals, clinics: nearest(list(clinics), isGeneralClinic, 3) };
+    const hospitalPool = [...list(nearHospitals, 'hospital'), ...list(typedHospitals, 'hospital'), ...list(edSearch)];
+    const clinicPool = [...list(clinics), ...list(clinicSearch)];
+    if (raw) {
+      const show = (items, keep) => items.map((item) => ({ ...item, kept: keep(item.name, item.type) })).sort((a, b) => a.km - b.km);
+      return { centre, errors, hospitals: show(hospitalPool, isHospital), clinics: show(clinicPool, isGeneralClinic) };
+    }
+    if (errors.length === 5) throw new Error(errors.join('; '));
+    const hospitals = nearest(hospitalPool, isHospital, 5);
+    const result = { enabled: true, hospitals, clinics: nearest(clinicPool, isGeneralClinic, 3) };
     if (careCache.size >= CACHE_LIMIT) careCache.delete(careCache.keys().next().value);
     careCache.set(key, { at: Date.now(), result });
     return result;

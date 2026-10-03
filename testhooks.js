@@ -51,6 +51,12 @@ function install(app, { sendReviewReminders, removeExpired }) {
       return res.json({ messages: rows.map((row) => ({ subject: row.subject, text: row.body, at: row.created_at })) });
     } catch (error) { return next(error); }
   });
+  // Google's raw results for Find nearest, with what the filter kept, so it can be tuned on real data.
+  router.get('/nearby-raw', async (req, res, next) => {
+    try {
+      return res.json(await require('./places').nearbyCare(String(req.query.address || ''), { raw: true }));
+    } catch (error) { return next(error); }
+  });
   // Runs the review reminders and clean-up as if it were the given date, so a 12 month review can be tested now.
   router.post('/run-reminders', async (req, res, next) => {
     try {
