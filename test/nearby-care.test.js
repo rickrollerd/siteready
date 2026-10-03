@@ -26,7 +26,7 @@ test('nearest hospitals and medical centres are found from the job address, near
   assert.ok(nearby.every((call) => !/phone|rating|opening/i.test(call.fields)));
   // The same address again comes from the cache.
   await places.nearbyCare('100 Queen St, Brisbane City QLD 4000', { fetchImpl });
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 6);
   delete process.env.GOOGLE_PLACES_API_KEY;
 });
 
@@ -94,5 +94,27 @@ test('Sydney CBD: Google type decides what is a hospital, and medical centres re
   assert.deepEqual(result.hospitals.map((item) => item.name), ['Sydney Hospital and Sydney Eye Hospital', "St Vincent's Hospital Sydney"]);
   assert.deepEqual(result.clinics.map((item) => item.name), ['Macquarie Street Medical Centre']);
   assert.ok(result.hospitals.every((item) => !('type' in item)));
+  delete process.env.GOOGLE_PLACES_API_KEY;
+});
+
+test('the raw view lists every place Google returned with whether the filter kept it, and a failed search is skipped', async () => {
+  process.env.GOOGLE_PLACES_API_KEY = 'test-key';
+  const reply = (body) => ({ ok: true, json: async () => body });
+  const fetchImpl = async (url, options) => {
+    const body = JSON.parse(options.body);
+    if (url.endsWith(':searchText') && body.pageSize === 1) return reply({ places: [{ location: { latitude: -32.2569, longitude: 148.6011 } }] });
+    if (url.endsWith(':searchText') && body.strictTypeFiltering) return { ok: false, status: 400, json: async () => ({}) };
+    if (url.endsWith(':searchText')) return reply({ places: [] });
+    if (body.includedPrimaryTypes.includes('hospital')) return reply({ places: [
+      { displayName: { text: 'Dubbo Base Hospital' }, formattedAddress: 'Myall St, Dubbo NSW 2830, Australia', location: { latitude: -32.2440, longitude: 148.6100 }, primaryType: 'hospital' },
+      { displayName: { text: 'The Skin Hospital Dubbo' }, formattedAddress: 'Dubbo NSW 2830, Australia', location: { latitude: -32.2500, longitude: 148.6050 }, primaryType: 'hospital' },
+    ] });
+    return reply({ places: [] });
+  };
+  const raw = await places.nearbyCare('50 Darling Street, Dubbo NSW 2830', { fetchImpl, raw: true });
+  assert.deepEqual(raw.hospitals.map((item) => [item.name, item.kept]), [['The Skin Hospital Dubbo', false], ['Dubbo Base Hospital', true]]);
+  assert.equal(raw.errors.length, 1);
+  const result = await places.nearbyCare('50 Darling Street, Dubbo NSW 2830', { fetchImpl });
+  assert.deepEqual(result.hospitals.map((item) => item.name), ['Dubbo Base Hospital']);
   delete process.env.GOOGLE_PLACES_API_KEY;
 });
