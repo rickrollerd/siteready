@@ -133,11 +133,12 @@ router.put('/company', requireUser, route(async (req, res) => {
   ]);
   // One free trial per ABN: a business whose ABN has already had a trial goes straight to subscribing.
   const digits = abn.replace(/\s/g, '');
+  // The insert decides who holds the ABN, so two accounts saving the same ABN at the same
+  // moment cannot both keep a trial.
+  await db.query('INSERT INTO trial_abns (abn, company_id, created_at) VALUES ($1, $2, $3) ON CONFLICT (abn) DO NOTHING', [digits, req.company.id, new Date()]);
   const holder = await db.one('SELECT company_id FROM trial_abns WHERE abn = $1', [digits]);
   let notice = '';
-  if (!holder) {
-    await db.query('INSERT INTO trial_abns (abn, company_id, created_at) VALUES ($1, $2, $3)', [digits, req.company.id, new Date()]);
-  } else if (holder.company_id !== req.company.id && req.company.plan_status === 'trial' && new Date(req.company.trial_ends_at) > new Date()) {
+  if (holder && holder.company_id !== req.company.id && req.company.plan_status === 'trial' && new Date(req.company.trial_ends_at) > new Date()) {
     await db.query('UPDATE companies SET trial_ends_at = $1 WHERE id = $2', [new Date(), req.company.id]);
     notice = 'This ABN has already had its free trial, so this account has no trial. Subscribe to download, save and share SWMS.';
   }

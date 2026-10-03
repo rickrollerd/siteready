@@ -271,3 +271,12 @@ test('a database that cannot answer gives 503 (busy), not 401 (signed out)', asy
   }
   assert.equal((await fetch(`${base}/api/me`, { headers: { 'X-Session-Token': token } })).status, 200);
 });
+
+test('ten accounts saving the same ABN at the same moment leave exactly one trial', async () => {
+  const abn = abnFor('race@abn.example');
+  const tokens = await Promise.all(Array.from({ length: 10 }, (_, i) => signIn(`race${i}@abn.example`, { company: false })));
+  const results = await Promise.all(tokens.map((token, i) => call('PUT', '/api/company', { token, body: { name: `Race Co ${i}`, abn } })));
+  assert.ok(results.every((res) => res.status === 200), results.map((res) => res.status).join(','));
+  const companies = await Promise.all(results.map((res) => res.json()));
+  assert.equal(companies.filter((data) => data.company.hasAccess).length, 1);
+});
