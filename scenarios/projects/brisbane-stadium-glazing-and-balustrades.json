@@ -12,7 +12,8 @@
       "facts": {
         "safetyDataSheet": "Safety data sheets for the silicone sealant are kept at the work area: avoid skin contact, wear gloves.",
         "fallControl": "Workers at the open box edge use a travel restraint system to engineer designed anchors installed by a competent person, so they cannot reach the edge.",
-        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed."
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "harnessSystem": "Workers wear a full body harness with a restraint lanyard of 1.5 m, set so they cannot reach the edge, clipped to anchors on the box slab installed and rated by the anchor installer. Harnesses and lanyards are checked by the user before each use and inspected by a competent person every 6 months, recorded on the tag. Users are trained in working at heights by a registered training organisation."
       },
       "expect": {
         "highRisk": [

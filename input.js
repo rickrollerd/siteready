@@ -83,6 +83,8 @@ function draftBody(body) {
       formworkDesign: field(facts.formworkDesign, 2000),
       jumpformProcedure: field(facts.jumpformProcedure, 2000),
       stressingProcedure: field(facts.stressingProcedure, 2000),
+      harnessSystem: field(facts.harnessSystem, 2000),
+      spoilPlan: field(facts.spoilPlan, 2000),
     },
     site: {
       liveServices: field(site.liveServices, 1000),

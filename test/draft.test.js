@@ -407,3 +407,14 @@ test('work into a live hospital gets the hospital step, demolition and asbestos 
   assert.match(text, /asbestos register/);
   assert.match(text, /demolition licence/);
 });
+
+test('every question the draft asks is kept when the answer comes from the browser', () => {
+  const { draftBody } = require('../input');
+  const source = require('fs').readFileSync(require('path').join(__dirname, '..', 'draft.js'), 'utf8');
+  const start = source.indexOf('const CATEGORY_FACTS');
+  const ids = [...source.slice(start).matchAll(/\bid: '([a-zA-Z]+)'/g)].map((match) => match[1]);
+  assert.ok(ids.includes('harnessSystem') && ids.includes('spoilPlan'));
+  const facts = Object.fromEntries(ids.map((id) => [id, 'answer']));
+  const kept = draftBody({ facts }).facts;
+  assert.deepEqual(ids.filter((id) => kept[id] !== 'answer'), []);
+});
