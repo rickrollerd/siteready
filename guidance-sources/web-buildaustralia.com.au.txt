@@ -1,0 +1,898 @@
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+	 
+	 New scaffolding rules protect building workers in Queensland - Build Australia 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 {"@context":"https:\/\/schema.org","@graph":[{"@type":"NewsArticle","@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/#article","isPartOf":{"@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/"},"author":{"name":"Alannah Scorer","@id":"https:\/\/www.buildaustralia.com.au\/#\/schema\/person\/39e1f0deab7227bee69b8028e4633e58"},"headline":"New scaffolding rules protect building workers in Queensland","datePublished":"2021-07-02T02:53:46+00:00","dateModified":"2021-07-11T02:41:01+00:00","mainEntityOfPage":{"@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/"},"wordCount":392,"commentCount":0,"image":{"@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/#primaryimage"},"thumbnailUrl":"https:\/\/www.buildaustralia.com.au\/wp-content\/uploads\/2021\/07\/shutterstock_697054036.jpg","keywords":["Queensland","safety"],"inLanguage":"en-US","potentialAction":[{"@type":"CommentAction","name":"Comment","target":["https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/#respond"]}]},{"@type":"WebPage","@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/","url":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/","name":"New scaffolding rules protect building workers in Queensland - Build Australia","isPartOf":{"@id":"https:\/\/www.buildaustralia.com.au\/#website"},"primaryImageOfPage":{"@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/#primaryimage"},"image":{"@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/#primaryimage"},"thumbnailUrl":"https:\/\/www.buildaustralia.com.au\/wp-content\/uploads\/2021\/07\/shutterstock_697054036.jpg","datePublished":"2021-07-02T02:53:46+00:00","dateModified":"2021-07-11T02:41:01+00:00","description":"The Scaffolding Code of Practice 2021 came into effect in Queensland on Wednesday, 1 July 2021.","breadcrumb":{"@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/#breadcrumb"},"inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/"]}]},{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/#primaryimage","url":"https:\/\/www.buildaustralia.com.au\/wp-content\/uploads\/2021\/07\/shutterstock_697054036.jpg","contentUrl":"https:\/\/www.buildaustralia.com.au\/wp-content\/uploads\/2021\/07\/shutterstock_697054036.jpg","width":1000,"height":569,"caption":"New scaffolding rules protect building workers"},{"@type":"BreadcrumbList","@id":"https:\/\/www.buildaustralia.com.au\/news_article\/new-scaffolding-rules-protect-building-workers-in-queensland\/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https:\/\/www.buildaustralia.com.au\/"},{"@type":"ListItem","position":2,"name":"News","item":"https:\/\/www.buildaustralia.com.au\/news_article\/"},{"@type":"ListItem","position":3,"name":"New scaffolding rules protect building workers in Queensland"}]},{"@type":"WebSite","@id":"https:\/\/www.buildaustralia.com.au\/#website","url":"https:\/\/www.buildaustralia.com.au\/","name":"Build Australia","description":"A Construction Magazine","potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https:\/\/www.buildaustralia.com.au\/?s={search_term_string}"},"query-input":{"@type":"PropertyValueSpecification","valueRequired":true,"valueName":"search_term_string"}}],"inLanguage":"en-US"},{"@type":"Person","@id":"https:\/\/www.buildaustralia.com.au\/#\/schema\/person\/39e1f0deab7227bee69b8028e4633e58","name":"Alannah Scorer","image":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/secure.gravatar.com\/avatar\/d661853248145beca3286e95541ac7d183e322995a21234b15b51b599081582e?s=96&d=blank&r=g","url":"https:\/\/secure.gravatar.com\/avatar\/d661853248145beca3286e95541ac7d183e322995a21234b15b51b599081582e?s=96&d=blank&r=g","contentUrl":"https:\/\/secure.gravatar.com\/avatar\/d661853248145beca3286e95541ac7d183e322995a21234b15b51b599081582e?s=96&d=blank&r=g","caption":"Alannah Scorer"}}]} 
+	 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}
+gtag("set","linker",{"domains":["www.buildaustralia.com.au"]});
+gtag("js", new Date());
+gtag("set", "developer_id.dZTNiMT", true);
+gtag("config", "GT-M3996X6");
+//# sourceURL=google_gtagjs-js-after
+ 
+ 
+ 
+ 
+ 			 
+		 
+ 
+ 
+ 
+ 
+/*Remove Magaizne image on Registration Page for smaller devices*/
+@media(max-width:768px){
+	.contact-image{display:none;}
+}
+#tabsStyle1-2 img{
+width:35%!important;
+}
+/*Change unsubscribe form poll color bullet point*/
+.forminator-ui#forminator-module-42967.forminator-design--default .forminator-radio .forminator-radio-bullet:before{
+ background-color: #f9b754!important;
+}
+.widget.feedburner_subscribe form .field input{
+	display:none;
+}
+/*Hustle Newsletter Link*/
+.hustle-icon-social-newsletter {
+	background: transparent url("https://petroleumaustralia.com.au/wp-content/uploads/2024/10/Newsletter.png") no-repeat center;
+	background-size: 28px 20px;
+}
+ 
+ 
+ 
+ 
+ 
+ !
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 			 
+ 
+ 	 
+ 
+ 
+ 
+ 
+ Subscribe to Newsletter and Print Magazine 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+			 
+			 
+ 
+ 
+					 
+ 
+ 	 
+ 	 
+ 
+ 	 
+ 	 
+ 
+ 	 
+ 	 
+ 
+ 	 
+ 	 
+ 
+ 	 
+ 	 
+ 
+ 	 
+ 	 
+ 
+ 	 
+ 	 
+ 
+ 	 
+ 	 
+ 
+ 	 
+ 	 
+ 
+ 	 
+ 	 
+ 
+ 
+ 
+		
+			 
+ 
+ Build Australia: A construction Magazine 
+ Build Australia -->
+ 
+ 
+ 
+	 
+ 
+		 
+ 
+ 
+ 
+ 
+ 
+ 
+ News 
+ Projects 
+ Trending 
+ Grand Designs 
+ Mega Structures -->
+ Events 
+ Business Insight 
+ Online Magazine 
+ Advertise 
+ Contact 
+ 
+ 
+ 
+ 
+ 
+ 
+ Home 
+ 
+ News 
+ Projects 
+ Trending 
+ Grand Designs 
+ Mega Structures -->
+ Events 
+ Business Insight 
+			 Online Magazine 
+			 Advertise 
+ Contact 
+ 
+ 
+ 
+ 
+		 
+ 
+	 
+ 	 
+ 	
+				 Australia’s steel future hinges on containing energy costs 
+					 
+ 
+ 
+ 
+ 
+ 
+ 	 
+		 
+ 		 
+ 			 
+ 			 
+			 
+ New scaffolding rules protect building workers in Queensland 
+ 
+ 
+ 
+ 02 Jul, 2021 
+ 0 -->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ The Scaffolding Code of Practice 2021 came into effect in Queensland on Wednesday, 1 July 2021. The new code of practice (COP) follows a review of the previous COP by an industry steering group. 
+ Industrial Relations Minister, the Hon. Grace Grace MP, said the revised COP will make working on scaffolds much safer. 
+ “Construction activity has increased substantially in recent years and so has the potentially high-risk activity of using scaffolds,” Minister Grace said. 
+ “More than 60 workers every year are seriously injured using scaffolding, with their workers compensation claims requiring five or more days off work.” 
+ “The code brings a raft of features to substantially boost safety for workers.” 
+ “In particular, reducing the step height between scaffolds and working platforms addresses a significant risk of falls.” 
+ Some key changes include: 
+ 
+ New entry and exit requirements for scaffolds to allow emergency stretcher retrievals; 
+ A requirement for engineers, rather than scaffolders, to design and sign off on scaffolds; 
+ A smaller step height between scaffold stairs and work platforms; 
+ More detailed requirements around managing the risk of debris, falling objects and hazardous substances; and 
+ Regular testing of scaffold welds. 
+ 
+ &nbsp; 
+ Master Builders Workplace Health and Safety Manager, Melanie Dawson, said the changes to the Code are an important step in addressing construction industry safety and are supported by WHS experts. 
+ “We will work closely with government and industry on the introduction of the Code as there will be an inevitable cost posed on industry; however, codes of practice are important in addressing serious safety concerns and providing safe workplaces for everyone,” Ms Dawson said. 
+ It has been nearly 10 years since the current work health and safety laws commenced, and in that time nearly 6,000 notices have been issued for non-compliant scaffolding. These notices have led to fines totalling around $150,000. 
+ Minister Grace said the safety improvements build on the State Government’s record of protecting Queensland workers. 
+ “Queensland was the first state in Australia to make industrial manslaughter an offence, with maximum penalties of 20-year jail terms and $10 million fines,” she said. 
+ “We have led the nation in responding to the threat of silicosis and provided improved compensation and support for workers with coal worker’s pneumoconiosis and other work-related lung disease.” 
+ “And we restored rights of injured workers to common law workers’ compensation.” 
+ Read more about the Scaffolding Code of Practice 2021 . 
+ Share this story 
+ <div class="hustle-ui hustle-inline hustle_module_id_2 " 
+			data-id="2"
+			data-render-id="0"
+			data-tracking="disabled"
+			data-sub-type="shortcode"
+			
+				data-delay="0"
+				data-intro="no_animation"
+				 style="opacity:0;"> Share on LinkedIn Share on Twitter Share on Facebook 
+ 
+ 
+ Share 
+ 
+ 
+				 
+					 (function(d, s, id) {
+					var js, fjs = d.getElementsByTagName(s)[0];
+					if (d.getElementById(id)) return;
+					js = d.createElement(s); js.id = id;
+					js.src = "//connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v2.6";
+					fjs.parentNode.insertBefore(js, fjs);
+					}(document, 'script', 'facebook-jssdk')); 
+					 
+					 
+ <a href="http://twitter.com/share" class="twitter-share-button"
+ data-url="https://www.buildaustralia.com.au/news_article/new-scaffolding-rules-protect-building-workers-in-queensland/"
+ data-text="New scaffolding rules protect building workers in Queensland"
+ data-count="vertical">Tweet 
+ 
+ 
+ -->
+ 
+ 
+ Related Articles 
+ 	
+ 
+ Queensland releases roadmap to drive freight growth across state 
+ 
+ 
+ 	
+ 
+ Queensland boosts infrastructure investment to unlock more regional homes 
+ 
+ 
+ 	
+ 
+ Queensland construction training gets record $83.5m funding boost 
+ 
+ 
+ 	
+ 
+ Queensland government releases draft plan for Rosslyn Bay Harbour revitalisation 
+ 
+ 
+ 
+ 
+			 
+ 
+ 
+ Comments 
+ 
+ 
+ 
+ 
+	 
+		 Leave a comment Cancel reply You must be logged in to post a comment. 	 
+	
+ 
+	 
+	 	 
+ 
+ 
+ 
+ 
+	 
+	
+	 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Breaking 
+ 
+ 
+ 
+ 
+ 
+ News 
+ Projects 
+ Trending 
+ 
+ 
+ 
+ 
+ 					 
+ 
+ 02 Oct 
+ 
+	 Victoria expands scheme to subsidise ceiling insulation installations 
+ 
+ 
+ 
+ 02 Oct 
+ 
+	 Cambridge launches framework to boost construction productivity 
+ 
+ 
+ 
+ 01 Oct 
+ 
+	 Tasmania releases draft apartment code to streamline housing approvals 
+ 
+ 
+ 
+ 01 Oct 
+ 
+	 NSW declares 15 housing projects as State Significant to unlock 4,300 new homes 
+ 
+ 
+ 
+ 01 Oct 
+ 
+	 Workplaces urged to strengthen electrical hazard training 
+ 
+ 
+ 
+ 
+					 
+ 
+ 01 Oct 
+ 
+	 Barwon Heads Road project moves into final stage 
+ 
+ 
+ 
+ 30 Sep 
+ 
+	 The Prescott development approved for Lindfield Upper North Shore 
+ 
+ 
+ 
+ 28 Sep 
+ 
+	 Safer Melbourne intersection opens seven months early 
+ 
+ 
+ 
+ 25 Sep 
+ 
+	 NSW government reveals plans for Bradfield Park revitalisation 
+ 
+ 
+ 
+ 23 Sep 
+ 
+	 Construction now underway on AURA tower in Melbourne 
+ 
+ 
+ 
+					 
+ 
+ 29 Sep 
+ 
+	 System 600 and the race to standardise Australian prefab 
+ 
+ 
+ 
+ 16 Sep 
+ 
+	 Creating pathways into construction with initiatives that attract new talent 
+ 
+ 
+ 
+ 16 Sep 
+ 
+	 The hidden equipment cost destroying Australian construction margins 
+ 
+ 
+ 
+ 07 Sep 
+ 
+	 How heavy vehicle telematics can track unsafe habits on jobsites 
+ 
+ 
+ 
+ 25 Aug 
+ 
+	 Who will still be prepared to build Australia 
+ 
+ 
+ 
+ 
+ 		 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+		 
+ 
+ 
+ 
+ 
+ 
+ Online Magazine 
+ 	 
+ 	 
+ 
+ 
+ Registration -->
+		 
+ Login 
+ Subscribe 
+ 		 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Subscribe 
+ 
+ 
+ Subscribe Newsletter and Print Magazine 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+		 
+		 
+		 
+ 		 
+ 			 
+ 
+ 
+ Product News 
+ 
+ 
+ 
+ 	 
+ 
+ 
+ -->
+ 
+		 
+		 
+		 				 
+ 
+ 
+ 	 
+ 
+				 
+ 		 
+ 
+ 
+ 
+ 
+ 
+				 
+ 
+ 
+ 
+ 
+		 
+ 
+ 
+ 
+		 
+		 		 
+		 
+ 
+ 
+ 
+ All Associations -->
+ Featured Association -->
+ 			 	 Associations 
+ 	 
+ 	 
+ 
+ 				
+			 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 		
+				 
+ 
+ 
+ Our Titles 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+		
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/NRR/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+ 
+<div class="hustle-ui hustle-float hustle_module_id_1 " 
+			data-id="1"
+			data-render-id="0"
+			data-tracking="disabled"
+			data-sub-type="floating"
+			
+					data-desktop="true"
+					data-desktop-offset="screen"
+					data-desktop-selector=""
+					data-desktop-positionX="left"
+					data-desktop-positionY="bottom"
+					
+					data-mobiles="true"
+					data-mobiles-offset="screen"
+					data-mobiles-selector=""
+					data-mobiles-positionX="left"
+					data-mobiles-positionY="bottom"
+					 style="opacity:0;"> Share on Newsletter Share on LinkedIn Share on Twitter Share on Facebook 
+ 
+jQuery.uiBackCompat = true;
+//# sourceURL=jquery-ui-core-js-before
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );
+//# sourceURL=wp-i18n-js-after
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+var mejsL10n = {"language":"en","strings":{"mejs.download-file":"Download File","mejs.install-flash":"You are using a browser that does not have Flash player enabled or installed. Please turn on your Flash player plugin or download the latest version from https://get.adobe.com/flashplayer/","mejs.fullscreen":"Fullscreen","mejs.play":"Play","mejs.pause":"Pause","mejs.time-slider":"Time Slider","mejs.time-help-text":"Use Left/Right Arrow keys to advance one second, Up/Down arrows to advance ten seconds.","mejs.live-broadcast":"Live Broadcast","mejs.volume-help-text":"Use Up/Down Arrow keys to increase or decrease volume.","mejs.unmute":"Unmute","mejs.mute":"Mute","mejs.volume-slider":"Volume Slider","mejs.video-player":"Video Player","mejs.audio-player":"Audio Player","mejs.captions-subtitles":"Captions/Subtitles","mejs.captions-chapters":"Chapters","mejs.none":"None","mejs.afrikaans":"Afrikaans","mejs.albanian":"Albanian","mejs.arabic":"Arabic","mejs.belarusian":"Belarusian","mejs.bulgarian":"Bulgarian","mejs.catalan":"Catalan","mejs.chinese":"Chinese","mejs.chinese-simplified":"Chinese (Simplified)","mejs.chinese-traditional":"Chinese (Traditional)","mejs.croatian":"Croatian","mejs.czech":"Czech","mejs.danish":"Danish","mejs.dutch":"Dutch","mejs.english":"English","mejs.estonian":"Estonian","mejs.filipino":"Filipino","mejs.finnish":"Finnish","mejs.french":"French","mejs.galician":"Galician","mejs.german":"German","mejs.greek":"Greek","mejs.haitian-creole":"Haitian Creole","mejs.hebrew":"Hebrew","mejs.hindi":"Hindi","mejs.hungarian":"Hungarian","mejs.icelandic":"Icelandic","mejs.indonesian":"Indonesian","mejs.irish":"Irish","mejs.italian":"Italian","mejs.japanese":"Japanese","mejs.korean":"Korean","mejs.latvian":"Latvian","mejs.lithuanian":"Lithuanian","mejs.macedonian":"Macedonian","mejs.malay":"Malay","mejs.maltese":"Maltese","mejs.norwegian":"Norwegian","mejs.persian":"Persian","mejs.polish":"Polish","mejs.portuguese":"Portuguese","mejs.romanian":"Romanian","mejs.russian":"Russian","mejs.serbian":"Serbian","mejs.slovak":"Slovak","mejs.slovenian":"Slovenian","mejs.spanish":"Spanish","mejs.swahili":"Swahili","mejs.swedish":"Swedish","mejs.tagalog":"Tagalog","mejs.thai":"Thai","mejs.turkish":"Turkish","mejs.ukrainian":"Ukrainian","mejs.vietnamese":"Vietnamese","mejs.welsh":"Welsh","mejs.yiddish":"Yiddish"}};
+//# sourceURL=mediaelement-core-js-before
+ 
+ 
+ 
+ 
+var _wpmejsSettings = {"pluginPath":"/wp-includes/js/mediaelement/","classPrefix":"mejs-","stretching":"responsive","audioShortcodeLibrary":"mediaelement","videoShortcodeLibrary":"mediaelement"};
+//# sourceURL=mediaelement-js-extra
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+var hustleSettings = {"mobile_breakpoint":"782"};
+//# sourceURL=hui_scripts-js-extra
+ 
+ 
+ 
+ 
+var Modules = [{"module_id":"2","blog_id":"0","module_name":"Article Share","module_type":"social_sharing","active":"1","module_mode":""},{"module_id":"1","blog_id":"0","module_name":"Share -Default","module_type":"social_sharing","active":"1","module_mode":""}];
+var incOpt = {"conditional_tags":{"is_single":true,"is_singular":true,"is_tag":false,"is_category":false,"is_author":false,"is_date":false,"is_post_type_archive":false,"is_404":false,"is_front_page":false,"is_search":false},"is_admin":"","real_page_id":"","thereferrer":"","actual_url":"http://www.buildaustralia.com.au/news_article/new-scaffolding-rules-protect-building-workers-in-queensland/","full_actual_url":"https://www.buildaustralia.com.au/news_article/new-scaffolding-rules-protect-building-workers-in-queensland/","native_share_enpoints":{"facebook":"https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.buildaustralia.com.au%2Fnews_article%2Fnew-scaffolding-rules-protect-building-workers-in-queensland","twitter":"https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.buildaustralia.com.au%2Fnews_article%2Fnew-scaffolding-rules-protect-building-workers-in-queensland&text=New%20scaffolding%20rules%20protect%20building%20workers%20in%20Queensland","pinterest":"https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fwww.buildaustralia.com.au%2Fnews_article%2Fnew-scaffolding-rules-protect-building-workers-in-queensland","reddit":"https://www.reddit.com/submit?url=https%3A%2F%2Fwww.buildaustralia.com.au%2Fnews_article%2Fnew-scaffolding-rules-protect-building-workers-in-queensland","linkedin":"https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fwww.buildaustralia.com.au%2Fnews_article%2Fnew-scaffolding-rules-protect-building-workers-in-queensland","vkontakte":"https://vk.com/share.php?url=https%3A%2F%2Fwww.buildaustralia.com.au%2Fnews_article%2Fnew-scaffolding-rules-protect-building-workers-in-queensland","whatsapp":"https://api.whatsapp.com/send?text=https%3A%2F%2Fwww.buildaustralia.com.au%2Fnews_article%2Fnew-scaffolding-rules-protect-building-workers-in-queensland","telegram":"https://t.me/share/url?url=https%3A%2F%2Fwww.buildaustralia.com.au%2Fnews_article%2Fnew-scaffolding-rules-protect-building-workers-in-queensland&text=New%20scaffolding%20rules%20protect%20building%20workers%20in%20Queensland","email":"mailto:?subject=New%20scaffolding%20rules%20protect%20building%20workers%20in%20Queensland&body=https%3A%2F%2Fwww.buildaustralia.com.au%2Fnews_article%2Fnew-scaffolding-rules-protect-building-workers-in-queensland"},"ajaxurl":"https://www.buildaustralia.com.au/wp-admin/admin-ajax.php","page_id":"36019","page_slug":"news_article-new-scaffolding-rules-protect-building-workers-in-queensland","is_upfront":"","script_delay":"3000","display_check_nonce":"981bc4c306","conversion_nonce":"d02d002416","form_submit_nonce":"bf08f87c76"};
+//# sourceURL=hustle_front-js-extra
+ 
+ 
+ 
+ 
+{"baseUrl":"https://s.w.org/images/core/emoji/17.0.2/72x72/","ext":".png","svgUrl":"https://s.w.org/images/core/emoji/17.0.2/svg/","svgExt":".svg","source":{"concatemoji":"https://www.buildaustralia.com.au/wp-includes/js/wp-emoji-release.min.js?ver=7.1.2"}}
+ 
+ 
+/*! This file is auto-generated */
+var e="script#wp-emoji-settings",t=document.querySelector(e);if(!(t instanceof HTMLScriptElement))throw new Error("Element missing: "+e);const r=JSON.parse(t.text),s=(window._wpemojiSettings=r,"wpEmojiSettingsSupports"),o=["flag","emoji"];function i(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(s,JSON.stringify(t))}catch(e){}}function c(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0);const r=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);return t.every((e,t)=>e===r[t])}function p(e,t){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var n=e.getImageData(16,16,1,1);for(let e=0;e {o[e]=t(s,e,n,r)}),o}function a(e){var t=document.createElement("script");t.src=e,t.defer=!0,document.head.appendChild(t)}r.supports={everything:!0,everythingExceptFlag:!0},new Promise(t=>{let n=function(){try{var e=JSON.parse(sessionStorage.getItem(s));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf() {i(n=e.data),a.terminate(),t(n)})}catch(e){}i(n=f(o,u,c,p))}t(n)}).then(e=>{for(const n in e)r.supports[n]=e[n],r.supports.everything=r.supports.everything&&r.supports[n],"flag"!==n&&(r.supports.everythingExceptFlag=r.supports.everythingExceptFlag&&r.supports[n]);var t;r.supports.everythingExceptFlag=r.supports.everythingExceptFlag&&!r.supports.flag,r.supports.everything||((t=r.source||{}).concatemoji?a(t.concatemoji):t.wpemoji&&t.twemoji&&(a(t.twemoji),a(t.wpemoji)))});
+//# sourceURL=https://www.buildaustralia.com.au/wp-includes/js/wp-emoji-loader.min.js
+ 
+	 
+	(function($) {
+		$(window).on('load', function() {
+			$(document).trigger('forminator.front.init');
+			$('.forminator-custom-form').trigger('forminator.front.init');
+		});
+	})(jQuery);
+	 
+	
+ 
+ 
+ 
+	 
+		 
+	 
+ 
+ Home 
+ Contact Us 
+ Terms and Conditions 
+ Privacy 
+ 
+		
+ 
+		 
+ &copy; Sage Media Group 2026 All Rights Reserved. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ × 
+ 
+ Authorization 
+ 
+ 
+ 
+ 
+ 
+ Registration 
+ 
+ 
+ 
+ &nbspThis feature has been disabled 
+ &nbspThis feature has been disabled until further notice, however you may still register 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ × 
+ 
+ Registration 
+ 
+ 
+ 
+ 
+ 
+ Name 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Email 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Password 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Confirm Password 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Autorization 
+ 
+ 
+ Register 
+ * All fields required 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ window.lazyLoadOptions=Object.assign({},{threshold:300},window.lazyLoadOptions||{});!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):(t="undefined"!=typeof globalThis?globalThis:t||self).LazyLoad=e()}(this,function(){"use strict";function e(){return(e=Object.assign||function(t){for(var e=1;e 
+ -->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ -->
+ 
+ 
+ 

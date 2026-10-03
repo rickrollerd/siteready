@@ -1,0 +1,2672 @@
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+{
+ "@context": "http://schema.org",
+ "@type": "Organization",
+ "name": "Sourceable",
+ "url": "https://sourceable.net/wp-content/uploads/2017/12/sourceable-logosingle.png",
+ "logo": "",
+ "contactPoint": [{
+ "@type": "ContactPoint",
+ "telephone": "+(416) 410-5570",
+ "contactType": "customer service"
+ }],
+ "sameAs": [
+ "https://www.facebook.com/sourceable/",
+ "https://twitter.com/Sourceable_",
+ "https://plus.google.com/+SourceableNet",
+ "https://www.linkedin.com/groups/4021819/profile"
+ ]
+}
+ 
+ 
+ 
+ 
+ 
+ 
+ -->
+ 
+ 
+ Queensland Overhauls Scaffolding Safety Rules &#8211; Architecture . Construction . Engineering . Property 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+/* <![CDATA[ */
+var pluploadL10n = {"queue_limit_exceeded":"You have attempted to queue too many files.","file_exceeds_size_limit":"%s exceeds the maximum upload size for this site.","zero_byte_file":"This file is empty. Please try another.","invalid_filetype":"Sorry, this file type is not permitted for security reasons.","not_an_image":"This file is not an image. Please try another.","image_memory_exceeded":"Memory exceeded. Please try another smaller file.","image_dimensions_exceeded":"This is larger than the maximum size. Please try another.","default_error":"An error occurred in the upload. Please try again later.","missing_upload_url":"There was a configuration error. Please contact the server administrator.","upload_limit_exceeded":"You may only upload 1 file.","http_error":"Unexpected response from the server. The file may have been uploaded successfully. Check in the Media Library or reload the page.","http_error_image":"Post-processing of the image failed likely because the server is busy or does not have enough resources. Uploading a smaller image may help. Suggested maximum size is 2500 pixels.","upload_failed":"Upload failed.","big_upload_failed":"Please try uploading this file with the %1$sbrowser uploader%2$s.","big_upload_queued":"%s exceeds the maximum upload size for the multi-file uploader when used in your browser.","io_error":"IO error.","security_error":"Security error.","file_cancelled":"File canceled.","upload_stopped":"Upload stopped.","dismiss":"Dismiss","crunching":"Crunching\u2026","deleted":"moved to the Trash.","error_uploading":"\u201c%s\u201d has failed to upload."};
+/* ]]> */
+ 
+ 
+ 
+/* <![CDATA[ */
+var wppas_vbc_upload = {"ajaxurl":"https:\/\/sourceable.net\/wp-admin\/admin-ajax.php","nonce":"89627f0aeb","remove":"fe7bb58895","number":"1","upload_enabled":"1","confirmMsg":"Are you sure you want to delete this?","plupload":{"runtimes":"html5,flash,html4","browse_button":"wppas-vbc-uploader","container":"wppas-vbc-upload-container","file_data_name":"wppas_vbc_upload_file","max_file_size":"100000000b","url":"https:\/\/sourceable.net\/wp-admin\/admin-ajax.php?action=wppas_vbc_upload&nonce=b7e401a607","flash_swf_url":"https:\/\/sourceable.net\/wp-includes\/js\/plupload\/plupload.flash.swf","filters":[{"title":"Allowed Files","extensions":"jpg,gif,png"}],"multipart":true,"urlstream_upload":true,"multipart_params":{"upload_folder":""}}};
+/* ]]> */
+ 
+ 
+ 
+/* <![CDATA[ */
+var flaggedc_ajax_object = {"ajax_url":"https:\/\/sourceable.net\/wp-admin\/admin-ajax.php","nonce":"8d60783d72","user_id":"0","debug_mode":"0"};
+/* ]]> */
+ 
+ 
+ 
+ 
+ 
+/* <![CDATA[ */
+var handl_utm = [];
+/* ]]> */
+ 
+ 
+ 
+/* <![CDATA[ */
+var ajax_var = {"url":"https:\/\/sourceable.net\/wp-json\/","nonce":"0583f921f5"};
+/* ]]> */
+ 
+ 
+ 
+function getHomeURL() {return "https://sourceable.net";}
+function getPostID() {return 353374;}
+function showClickCounts() {return false;}
+function getClicksToGA() {return false;}
+ 
+ 
+ 
+/* <![CDATA[ */
+var WP_Statistics_Tracker_Object = {"hitRequestUrl":"https:\/\/sourceable.net\/wp-json\/wp-statistics\/v2\/hit?wp_statistics_hit_rest=yes&track_all=1&current_page_type=post&current_page_id=353374&search_query&page_uri=L3F1ZWVuc2xhbmQtb3ZlcmhhdWxzLXNjYWZmb2xkaW5nLXNhZmV0eS1ydWxlcy8","keepOnlineRequestUrl":"https:\/\/sourceable.net\/wp-json\/wp-statistics\/v2\/online?wp_statistics_hit_rest=yes&track_all=1&current_page_type=post&current_page_id=353374&search_query&page_uri=L3F1ZWVuc2xhbmQtb3ZlcmhhdWxzLXNjYWZmb2xkaW5nLXNhZmV0eS1ydWxlcy8","option":{"dntEnabled":true,"cacheCompatibility":false}};
+/* ]]> */
+ 
+ 
+ 
+/* <![CDATA[ */
+var cld_js_object = {"admin_ajax_url":"https:\/\/sourceable.net\/wp-admin\/admin-ajax.php","admin_ajax_nonce":"056d6b660e"};
+/* ]]> */
+ 
+ 
+ 
+ 
+/* <![CDATA[ */
+var favorites_data = {"ajaxurl":"https:\/\/sourceable.net\/wp-admin\/admin-ajax.php","nonce":"76d0ecf4be","favorite":"Favorite ","favorited":"Favorited ","includecount":"","indicate_loading":"1","loading_text":"Loading","loading_image":"","loading_image_active":"","loading_image_preload":"","cache_enabled":"1","button_options":{"button_type":{"label":"Like","icon":" ","icon_class":"sf-icon-like","state_default":"Like","state_active":"Liked"},"custom_colors":true,"box_shadow":false,"include_count":false,"default":{"background_default":false,"border_default":false,"text_default":false,"icon_default":false,"count_default":false},"active":{"background_active":false,"border_active":false,"text_active":false,"icon_active":false,"count_active":false}},"authentication_modal_content":" Please login to add favorites. Dismiss this notice ","authentication_redirect":"","dev_mode":"","logged_in":"","user_id":"0","authentication_redirect_url":"https:\/\/sourceable.net\/wp-login.php"};
+/* ]]> */
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+		 
+		 
+			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+			ga('create', 'UA-9104582-17', 'auto');
+			ga('require', 'displayfeatures');
+			ga('send', 'pageview');
+		 
+	 ul.rp4wp-posts-list {float: left;}
+					.rp4wp-col {
+						width: 100%;
+						margin-bottom: 30px;
+						list-style:none;
+						box-sizing: border-box;
+						overflow:hidden;
+						float: left;
+					}
+					.rp4wp_component_wrapper {
+						width: 100%;
+						float: left;
+					}
+					.rp4wp_component {
+						width: 100%;
+						padding: 0 0 5%;
+						box-sizing: border-box;
+						float: left;
+						overflow: hidden;
+					}
+					.rp4wp_component a {border:0;}
+					.rp4wp_component_image a {display:block; height:100%} .rp4wp_component_image img {width:100%;height:100%;}
+					.rp4wp_component_title a {text-decoration: none; font-weight: bold; border: 0;}
+					@media (min-width: 768px) {
+						.rp4wp-col {
+							width: 51%;
+							height:325px;
+							padding: 0 2%;
+						}
+						.rp4wp-col-first {
+							width: 49%;
+							padding-left:0;
+							padding-right: 2%;
+						}
+						.rp4wp-col-last {
+							width: 49%;
+							padding-right:0;
+							padding-left: 2%;
+						}
+						.rp4wp_component_wrapper {
+							width: 50%;
+						}
+						.rp4wp_component_wrapper_left {
+							padding-right: 5%;
+						}
+						.rp4wp_component_wrapper_right {
+							padding-left:5%;
+						}
+					}
+			.rp4wp_component_2{
+					height: 20%;
+				}.rp4wp_component_3{
+					height: 40%;
+				}.rp4wp_component_4{
+					height: 40%;
+				} 
+ 
+ 
+ jQuery(document).ready(function() {
+ jQuery("input[name='email']").removeAttr('readonly');
+ jQuery("input[name='email']").removeClass('read_only');
+ jQuery("input[name='email1']").removeAttr('readonly');
+ jQuery("input[name='email1']").removeClass('read_only');
+ jQuery("input[name='email2']").removeAttr('readonly');
+ jQuery("input[name='email2']").removeClass('read_only');
+});
+ 
+ 
+ jQuery(document).ready(function() {
+ jQuery("input[name='first_name']").removeAttr('readonly');
+ jQuery("input[name='first_name']").removeClass('read_only');
+ jQuery("input[name='first_name1']").removeAttr('readonly');
+ jQuery("input[name='first_name1']").removeClass('read_only');
+ jQuery("input[name='first_name2']").removeAttr('readonly');
+ jQuery("input[name='first_name2']").removeClass('read_only');
+});
+ 
+ 
+jQuery(document).ready(function() {
+ jQuery("input[name='last_name']").removeAttr('readonly');
+ jQuery("input[name='last_name']").removeClass('read_only');
+ jQuery("input[name='last_name1']").removeAttr('readonly');
+ jQuery("input[name='last_name1']").removeClass('read_only');
+ jQuery("input[name='last_name2']").removeAttr('readonly');
+ jQuery("input[name='last_name2']").removeClass('read_only');
+});
+ 
+ 
+jQuery(document).ready(function() {
+ jQuery(".read_only").removeAttr('readonly');
+});
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ -->
+ 
+ 
+News 
+ jQuery( document ).ready(function() {
+/*----------------------comment form show js--------------------------*/
+jQuery(".comment-froms").click(function(){
+	jQuery(".comment_from_section").slideToggle();
+});
+
+jQuery( '.cub_title_comment' ).on( 'click', 'a', function () {
+ jQuery(".comment_from_section").slideToggle();
+ });
+});
+ 
+ var switchTo5x = false; 
+ 
+ 
+ stLight.options({"publisher": "wp.03327248-536a-4d95-a0e6-28df2d26b73f", "doNotCopy": true, "hashAddressBar": false, "doNotHash": true,"servicePopup":false});
+var st_type = "wordpress4.1.1";
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+
+
+jQuery(document).ready(function(){
+	 var effect = 'slide';
+ var options = { direction: 'left' };
+ var duration = 500;
+ 
+ 
+ 
+
+ 
+jQuery("#mm-menu-toggle").click(function () {
+	jQuery(".mm-menu-mask").addClass('active');
+	jQuery('.box').css("display", "block");
+	jQuery('.boxsector').css("display", "block");
+	 jQuery('.compose').css("display", "block");
+	 jQuery('.search11').css("display", "block");
+	 jQuery('.sourceablemenu').css("display", "block");
+	 jQuery('.boxallmenu').css("display", "block");
+	 jQuery('.usermenu').css("display", "block");
+	
+	 jQuery('.left_btn').css("display", "none");
+	 jQuery('.left_p').css("display", "block");
+	 jQuery('.right_p').css("display", "block");
+	 jQuery('.menu_background').css("display", "block");
+	
+	 
+	 
+}); 
+ 
+
+jQuery("#mm-menu-toggle-right, .mm-menu-mask").click(function () {
+
+	jQuery(".mm-menu-mask").removeClass('active');
+	 jQuery('.right_p').css("display", "none");
+	jQuery('.box').css("display", "none");
+	jQuery('.boxsector').css("display", "none");
+	 jQuery('.compose').css("display", "none");
+	 jQuery('.search11').css("display", "none");
+	 jQuery('.sourceablemenu').css("display", "none");
+	 jQuery('.boxallmenu').css("display", "none");
+	 jQuery('.usermenu').css("display", "none");
+	
+	 jQuery('.left_btn').css("display", "inline");
+	 jQuery('.left_p').css("display", "none");
+	 jQuery('.menu_background').css("display", "none");
+	 
+	 
+	 	 
+	 
+}); 
+
+
+});
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ Toggle Menu 
+ 
+ 
+ -->
+ 
+ 
+ 
+ News --> Toggle Menu 
+ 
+ Toggle Menu 
+ 
+ 
+ Menu 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sourceable 
+ 
+ Daily News Brief 
+ 
+ Today's News 
+ Edit 
+ 
+ -->
+ 
+ 
+ 
+ 
+ Daily News 
+ 
+ 
+ Daily News Brief -->
+ 
+ 
+ Today's News 
+ 
+ 
+ 
+ 
+ 
+ Sectors 
+ 
+ 
+ Sector Coverage -->
+ 
+ 
+ Architecture 
+ Construction 
+ Engineering 
+ Property 
+ 
+ 
+ 
+ 
+ 
+ Post Article 
+ 
+ 
+ Post Article -->
+ 
+ 
+ Compose 
+ 
+ 
+ 
+ 
+ 
+ Search 
+ 
+ 
+ 
+ 
+ Search -->
+ 
+ 
+ 
+ -->
+ 
+ 
+ 
+ -->
+ 
+ 
+ Submit 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ -->
+ 
+ 
+ 
+ 
+ 
+ 
+ News 
+ 
+ Contributores 
+ 
+ People 
+ 
+ Business -->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Corporate 
+ 
+ 
+ Sourceable -->
+ 
+ 
+ 
+ 
+ Advertise 
+ 
+ Contact Us 
+ 
+ Contribute 
+ 
+ RSS Feed 
+ 
+ Terms & Conditions 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Account Settings -->
+ Settings 
+ 
+ 
+ 
+ 
+ 
+ 
+			 .menu-iteam.user-toggle {min-height: 100px !important;}
+			 a.user_profile img {margin-top: 0px !important;}
+			 
+ 
+ 
+ Login 
+ 
+ 
+ 
+ Register 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ a A 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Construction 
+ 
+ 
+ Queensland Overhauls Scaffolding Safety Rules 
+ 
+ 
+ 
+ 
+ 
+ 
+ by Andrew Heaton 
+ June 30th, 2021 
+ 2,829 Total Views 
+ 
+ 
+ Engineers should design and inspect scaffolding in certain circumstances. whilst two means of access and egress will be needed for scaffolding of a certain size, step heights on stair modules should be minimised and non-destructive testing of certain scaffold components will be needed every three years under the first major overhaul of scaffolding safety rules for Queensland for twelve years. 
+ On July 1, the Scaffolding Code of Practice 2021 came into force. 
+ This has now replaced the previous code which was issued in 2009. 
+ A key change involves the addition of a new table which specifies the circumstances whereby scaffolding design and inspection of installed scaffolding should be performed by an engineer rather than simply by a scaffolder or another competent person. 
+ According to that table, it is recommended that engineers should design all scaffolding other than minor scaffolding or modular scaffolding which is constructed in accordance with the manufacturers parameters. 
+ Engineers should also inspect the following scaffolds: 
+ 
+ loading bays greater than 9 metres or 2 tonnes 
+ perimeter demolition scaffold more than 9 metres 
+ public access structures. 
+ 
+ Next, the code contains a new requirement to provide two means of access for external perimeter scaffolds above a certain height – one of which should be suitable for emergency stretcher access. 
+ This will apply to scaffolds with a top working platform of more than eight metres in height and a length of more than sixty lineal meters. 
+ A third change involves a recommendation that the step height from the scaffold stair module on to the working platform should be minimised so it is no more than 300 millimetres when there is a change in direction between landings. 
+ A cost-effective way for industry to meet this new requirement involves replacing existing 1.5 metre stair modules with 2 metre modules. 
+ This section will have a delayed commencement and will only apply to stand-alone scaffolding where erection commences 12 months after 1 July 2021. 
+ A fourth change involves an amendment which applies where it has been identified that non-destructive testing should be carried out every three years for cracks in high stress areas of suspended scaffold components to identify cracks which are not readily visible. 
+ The amendment advises that such tests be carried out every three years. 
+ The code is being introduced amid ongoing concern about scaffold safety throughout Queensland. 
+ Across the state, more than 60 workers every year suffer seriously injuries which require five days or more off work when using scaffolding each year. 
+ Meanwhile, almost six thousand notices have been issued for non-compliant scaffolding since the current WHS Act as introduced in 2011. 
+ As an approved code of practice under section 274 of the Work Health and Safety Act 2011, the new code is recognised as being a practical guide to achieving the standards of health, safety and welfare which are required under the Act and its associated Work Health and Safety Regulation 2011. 
+ Under section 26A of the Act, those who hold a duty of care under the Act are required to either comply with the code or otherwise follow other methods (such as technical or industry standards) if these deliver an equivalent or higher standard of safety than the standard required in the code. 
+ According to the WorkSafe Queensland web site, the changes will deliver several benefits. 
+ The new table will provide greater clarity on the types of scaffold which should be designed and verified by an engineer and will reduce the likelihood of high-risk scaffolds being inadequately designed or of installed scaffolding collapsing. 
+ Having two means of access and egress, meanwhile, means that workers will still be able to be safety evacuated from the scaffold in case of emergency even if one entry/exit point becomes temporarily unavailable. 
+ Finally reducing step heights, meanwhile, will minimise the likelihood of falls from heights. 
+ Queensland Industrial Relations Minister Grace Grace said the revised code would make working on scaffolds safer. 
+ “Construction activity has increased substantially in recent years and so has the potentially high-risk activity of using scaffolds,” she said. 
+ “The code brings a raft of features to substantially boost safety for workers 
+ Like 
+ 
+ 
+ 
+ 
+ by Andrew Heaton 
+ Andrew is an established writer in the building and construction industry. After graduating wit..... View Profile 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Report 
+ Embed 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Comments Join the conversion 
+ +Add Comment 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+							 you must LOGIN to comment
+ 
+ 
+ 	 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Successful Comment 
+ Your Comment Publish Soon. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+						jQuery( document ).on( 'click', '#hmk_add_comment', function(event) {
+ 	event.preventDefault();
+ var comment_text = jQuery('#hmk_comment_text').val();
+								var conf_email = jQuery('#conf_email').val();
+								var comment_name = jQuery('#hmk_conf_name').val();
+ if(comment_text !== ''){
+									 jQuery('.comment_wrape').css("display", "none");
+									 jQuery('.comment_success').css("display", "block");
+ jQuery('#comment_response').html('Submitting comment...');
+ }
+								else{
+ jQuery('#comment_response').html(' Empty comment ');
+ return false;
+ }
+
+ 	jQuery.ajax({
+ 		url : "https://sourceable.net/wp-admin/admin-ajax.php",
+ 		type : 'post',
+ 		data : {
+ 			action : 'hmk_post_add_comment',
+ 			post_id : 353374,
+ comment_content : comment_text,
+									comment_email : conf_email,
+									comment_name : comment_name,
+ 		},
+ 		success : function( response ) {
+ 			jQuery('#comment_response').html('Comment added');
+ 		}
+ 	});
+ })
+						jQuery( document ).on( 'click', '#hmk_cancel_comment', function(event) {
+								
+ 	event.preventDefault();
+								jQuery(".comment_from_section").slideToggle();
+ 
+ })	 
+ 
+ 
+ 
+ 
+ 
+ Don't: 
+ 
+ Use sexist, classist, racist or hornophobic language 
+ Libel or defarne 
+ Bully, theaten, name-call or troll 
+ Troll patrol, instead, downvote, or flag suspect activity 
+ Attempt to guess other commenters" real-life identities 
+ 
+ 
+ 
+ Do: 
+ 
+ Verify facts, debunk rumours 
+ Add context and background 
+ Spot typos and logical fallacies 
+ Highlight reporting blid spots 
+ Ignore trolls respect and curiosity 
+ Treat all with respect and curiosity 
+ Stay on topic 
+ Connect with each other 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 	 
+ 	 Industry News Alerts 
+ Daily coverage you can't afford to miss 
+ 
+ 
+ 	 Subscribe 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Related Coverage 
+ 
+ 
+ 
+ 
+ 
+ Construction 
+ Conflict Isn’t the Problem: Learning to Disagree Well 
+ 
+ 
+ 
+ 
+ 
+ 
+ Property 
+ Six years on with the NSW Construction Reform… 
+ 
+ 
+ 
+ 
+ 
+ 
+ Construction 
+ Snowy 2.0 workers demand safety action on one of Australia’s biggest construction projects 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Latest News 
+ 
+ 
+ 
+ 
+ 
+ Construction 
+ Data centres the bright spot in sluggish Aussie economy 
+ 
+ 
+ 
+ 
+ 
+ 
+ Construction 
+ Australia has more cranes in the sky than ever before 
+ 
+ 
+ 
+ 
+ 
+ 
+ Engineering 
+ NSW turns on one of the world’s most powerful batteries 
+ 
+ 
+ 
+ 
+ 
+ 
+ Property 
+ The digital economy needs a spatial plan 
+ 
+ 
+ 
+ 
+ 
+ 
+ Architecture 
+ Are modern construction practices putting heritage buildings at risk? 
+ 
+ 
+ 
+ 	 view all 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+<!-- ======================================= 
+ ==Start ContactUs Modal section== 
+=======================================-->
+ 
+ 
+ 
+ 
+ Back to news feed 
+						 Header Text will goes here -->
+ Contact Us 
+ Open News in a new window -->
+ &times; 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Thank you for your interest in Sourceable. As a valued reader, advertiser, contributor or other interested party, we are committed to serving you. Please get in touch by completing the form below. Alternatively, our managing editor Andrew Heaton would be delighted to speak with you. Andrew can be contacted on (+61) 0437 595 848 or via email at andrew(dot)heaton(at)sourceable.net. We look forward to hearing from you. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Submit 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Back to news feed 
+							 Header Text will goes here -->
+ Contribute 
+ 
+ Suggest a Story 
+ 
+ &times; 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Thank you for your interest in becoming a Sourceable contributor. Please express your interest by filling out the form below. Alternatively, ourr managing editor Andrew Heaton would be delighted to hear from you. Andrew can be contacted on (+61) 0437 595 848 or via email at andrew(dot)heaton(at)Sourceable.net. We look forward to hearing from you. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Submit 
+ 
+ 
+ 
+ 
+ 
+ " target="_blank"> Suggest a Story 	
+ -->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<!-- ======================================= 
+ ==Start RSS Modal section== 
+ =======================================-->
+ 
+ 
+ 
+ 
+ Back to news feed 
+							 Header Text will goes here -->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Rss Feed 
+ &times; 
+ 
+ 
+ 
+ 
+ 
+ 
+ Automatically repost Sourceable's industry coverage in "Realtime" on you website, or within your newsletter. 
+ 
+ 
+ 
+ 
+ 
+ AUSTRALIA 
+ 
+ 
+ Architecture Feed 
+ XML 
+ 
+ 
+ Construction Feed 
+ XML 
+ 
+ 
+ Engineering Feed 
+ XML 
+ 
+ 
+ Property Feed 
+ XML 
+ 
+ 
+ All 
+ XML 
+ 
+ 
+ 
+ 
+ CANADA 
+ 
+ 
+ Architecture Feed 
+ XML 
+ 
+ 
+ Construction Feed 
+ XML 
+ 
+ 
+ Engineering Feed 
+ XML 
+ 
+ 
+ Property Feed 
+ XML 
+ 
+ 
+ All 
+ XML 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ -->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<!-- ======================================= 
+ ==End RSS Modal section== 
+ =======================================-->
+<!-- ======================================= 
+ ==Start termsCondition Modal section== 
+ =======================================-->
+	 
+		 
+			 
+ 
+				 
+					
+ 		 Back to news feed 
+							 Header Text will goes here -->
+					 		 Open News in a new window 
+						 &times; 
+				 
+				 
+ 
+ 		 
+ 	 
+ 	 
+ 
+ 
+ 
+ 
+ Terms &#038; Conditions 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Privacy Policy 
+ Our mission is to connect the world&#8217;s professionals by delivering a comprehensive online vehicle to learn, interact and share.The information you choose to share with us will be protected using industry-standard safeguards. As required by law, we may share your information as detailed in this policy; however, not without your prior consent. Any significant changes to this Privacy Policy will be communicated. Sourceable&#8217;s mission is to connect the world&#8217;s professionals through highly specific and informative news, analysis and industry discussions; providing a comprehensive business tool for each of the industries we cover.Our registered users (&#8220;Members&#8221;) share their professional identities, engage with their network, exchange knowledge and professional insights, and find business opportunities. We believe that our service allows our Members to effectively compete and achieve their full business potential. The cornerstone of our business is our Members. Maintaining your trust is our top priority, so we adhere to the following principles to protect your privacy: 
+ 
+ We protect your personal information and will only provide it to third: (1) with your consent; (2) where it is necessary to carry out your instructions; (3) as reasonably necessary in order to provide Sourceable features and functionality to you; (4) as we reasonably believe is permitted by law or regulation; or (5) as necessary to enforce our User Agreement or protect the rights, property, or safety of Sourceable, its Members, and the public. 
+ We have implemented appropriate security safeguards designed to protect your information in accordance with industry standards. 
+ 
+ We may modify this Privacy Policy from time to time, and if we make material changes to it, we will provide notice through our website, apps, or other services or by other means so that you may review the changes before you continue to use Sourceable. If you object to any changes, you may terminate your account. Continuing to use Sourceable after we publish or communicate a notice about any changes to this Privacy Policy means that you are consenting to the changes. 
+ 1. What information we collect Our Privacy Policy applies to anyone with a Sourceable account. The information you choose to share will be controlled by Mediasource Pty Ltd., PO Box 6257 Chapel Street North, South Yarra Victoria Australia, 3141 
+ A. Data Controllers If you have any concern about providing information to us or having such information displayed on the Sourceable services or otherwise used in any manner permitted in this Privacy Policy and the User Agreement, you should not become a Member of Sourceable or visit our website. If you have already registered, you should close your account. We collect your personal information in the following ways: When you create an account with us, you provide us with information (including your name, email address, and password) that we use to offer you a personalised, relevant experience on Sourceable. 
+ B. Customer Service When you contact Sourceable for help, we collect information that helps us categorize your question, respond to it, and, if applicable, investigate any breach of our User Agreement or this Privacy Policy. We also use this information to track potential problems and trends and customize our support responses to better serve you. We collect information when you visit Sourceable, use our mobile applications, and interact with advertising on Sourceable. 
+ C. Using the Sourceable Site and Applications We collect information when you use the Sourceable website, Sourceable applications (for example, Sourceable for iPhone or Android), and Sourceable platform technology such as &#8220;import your address book, join and participate in groups, participate in polls, install a Sourceable mobile application, and share articles on Sourceable. We use cookies to help personalise your Sourceable experience and show you relevant ads. 
+ D. Cookies We use cookies and similar technologies, including mobile device identifiers, to help us recognize you, improve your Sourceable experience, increase security, measure use of our Services, and serve advertising. You can control cookies through your browser settings and other tools. For more information, including the types of cookies found on Sourceable. By visiting Sourceable, you consent to the placement of cookies and beacons in your browser in accordance with this Privacy Policy and Sourceable&#8217;s Cookie Policy. 
+ E. Advertising Technologies and Web Beacons We target ads to Members both on and off Sourceable through a variety of ad networks and ad exchanges, using: 
+ 
+ Advertising technologies like web beacons, pixels, ad tags, cookies, and mobile identifiers as permitted by mobile platforms; 
+ Member-provided profile information and categories (for example, &#8220;architect in Melbourne&#8221;); 
+ Information inferred from a Member&#8217;s profile (for example, using job titles to infer age, industry, seniority, and compensation bracket; or names to infer gender). 
+ Your use of Sourceable (for example, your Sourceable search history) or clicking on a Sourceable ad. 
+ Information from advertising partners which we use to help deliver ads more relevant to you. 
+ 
+ We do not share personally identifiable information with any third-party advertiser or ad network, although your profile is visible to other Sourceable Members and through public search depending on your settings. We collect information from the devices and networks that you use to access Sourceable. This information helps us improve and secure our Services. 
+ F. Log files, IP Addresses, and Information About Your Computer and Mobile Device When you visit or leave Sourceable by clicking a hyperlink or view a plugin on a third-party site, we automatically receive the URL of the site from which you came or the one to which you are directed. Also, advertisers receive the section of website that you are on when you click an ad on Sourceable. We also receive the internet protocol (&#8220;IP&#8221;) address of your computer or the proxy server that you use to access the web, your computer operating system, your type of web browser, your mobile device (including your mobile device identifier provided by your mobile device operating system), your mobile operating system (if you are accessing Sourceable using a mobile device), and the name of your ISP or your mobile carrier. We may also receive location data passed to us from third-party services or GPS-enabled devices that you have set up, which we use to show you local information (for example, weather information) on our iPad application. We are constantly innovating to improve our Services, which means we may create new ways to collect information on the Service. 
+ G. Other Sourceable is a dynamic, innovative environment, which means we are always seeking to improve the services we offer you. New partnerships or corporate acquisitions may result in new features, and we may potentially collect new types of information. 
+ 2. How we use your personal information 
+ At Sourceable, we take pride in our mantra putting our &#8220;Members first,&#8221; which means that above all else we strive to use your information to provide you world-class services in a professional and trustworthy manner. When you join Sourceable, you acknowledge that information you provide on your profile can be seen by others and used by us as described in this Privacy Policy and our User Agreement. 
+ A. Consent to Sourceable Processing Information About You 
+ The personal information you provide to us may reveal or allow others to identify aspects of your life that are not expressly stated on your profile (for example, your picture or your name may reveal your gender). By providing personal information to us when you create or update your account and profile, you are expressly and voluntarily accepting the terms and conditions of Sourceable&#8217;s User Agreement and freely accepting and agreeing to our processing of your personal information in ways set out by this Privacy Policy. Supplying information to us, including any information deemed &#8220;sensitive&#8221; by applicable law, is entirely voluntary on your part. You have the right to withdraw or modify your consent to Sourceable&#8217;s collection and processing of the information you provide at any time, in accordance with the terms of this Privacy Policy and the User Agreement, by changing your Settings or by closing your account. We communicate with you using Sourceable messaging, email, and other ways available to us. We may send you messages relating to the availability of the Services, security, or other service-related issues. We also may send promotional InMail messages to your Sourceable inbox. You can change your email settings at any time. 
+ B. Sourceable Communications 
+ Examples of these messages include: (1) welcome and engagement messages &#8211; when you register on Sourceable, we may send you a series of emails to inform you about how to best use Sourceable as well as new features; (2) service messages – these will cover service availability, security, and other issues about the functioning of Sourceable; (3) promotional messages – these include both email and InMail messages (InMail messages are only delivered to your Sourceable InBox), and may contain promotional information directly or on behalf of our partners, including business opportunities and information and promotional messaging. (4) Subscriptions and notifications – Sourceable will email and InMail messages (InMail messages are only delivered to your Sourceable InBox) related to subscriptions feeds that you have registered to received (such as – news and discussion updates). These messages will be sent to you based on your profile information and messaging preferences. Sourceable tracks the open rate of your InMails to provide your InMail acceptance score. You may change your email and contact preferences at any time by signing into your account and changing your email settings. You can also opt out of promotional messages by sending a request to Sourceable Help. Please be aware that you cannot opt out of receiving service messages from Sourceable. With certain communications you send on Sourceable, the recipient can see your name, email address, and some network information. 
+ C. Customized Content 
+ For example, when you sign in to your account, we may display the names of new Members who have recently joined your network or recent updates from your connections and companies you follow. We also use aggregated information from your network to show you content, such as news relevant to you, your industry, or your profession. 
+ D. Sharing Information with Affiliates 
+ We may share your personal information with our Sourceable affiliates outside of the sourceable entity that is your data controller. By agreeing to this Privacy Policy, you are consenting to this sharing. Any information you put on your profile and any content you post on Sourceable may be seen by others. We don&#8217;t provide any of your non-public information (like your email address) to third parties without your consent, unless required by law, or as described in Section 2.H of this policy. Other people may find your Sourceable profile information through search engines. 
+ E. Developers using Sourceable Platform Services 
+ We collaborate with and allow third parties to use Sourceable&#8217;s developer platform to offer services and functionality in conjunction with Sourceable. These third-party developers have either negotiated an agreement to use Sourceable&#8217;s platform technology or have agreed to our self-service API and Plugin terms in order to build applications (&#8220;Platform Applications&#8221;). Both the negotiated agreements and our API and Plugin terms contain restrictions on how third parties may access, store, and use the personal information you provide to Sourceable. If you choose to use a Platform Application, you will be asked to confirm acceptance of the privacy policy and user agreement of the third-party developer. We conduct our own surveys and polls and also help third parties do this type of research. Your participation in surveys or polls is up to you. You may also opt out of getting invitations to participate in surveys. 
+ F. Compliance with Legal Process and Other Disclosures 
+ It is possible that we may need to disclose personal information, profile information, or information about your activities as a Sourceable Member when required by law, subpoena, or other legal process, or if Sourceable has a good faith belief that disclosure is reasonably necessary to (1) investigate, prevent, or take action regarding suspected or actual illegal activities or to assist government enforcement agencies; (2) enforce the User Agreement, investigate and defend ourselves against any third-party claims or allegations, or protect the security or integrity of our Service; or (3) exercise or protect the rights, property, or safety of Sourceable, our Members, personnel, or others. If there is a change in control or sale of all or part of Sourceable, we may share your information with a third party, who will have the right to use that information in line with this Privacy Policy. 
+ G. Disclosures to Others as the Result of a Change in Control or Sale of Sourceable.net or Mediasource Pty Ltd 
+ We may also disclose your personal information to a third party as part of a sale of the assets of Sourceable, a subsidiary, or division, or as the result of a change in control of the company or one of its affiliates, or in preparation for any of these events. Any third party to which Sourceable transfers or sells Sourceable&#8217;s assets will have the right to continue to use the personal and other information that you provide to us in the manner set out in this Privacy Policy. 
+ 3. Important Information 
+ You have to meet Sourceable&#8217;s minimum age requirements to create an account. 
+ A. Minimum Age 
+ As described in Section 2.C. of the User Agreement, persons must be of Minimum Age to use Sourceable. We will notify you when we change this Privacy Policy. 
+ C. Changes to this Privacy Policy 
+ We may change this Privacy Policy from time to time. If we make significant changes in the way we treat your personal information, or to the Privacy Policy, we will provide notice to you on the Service or by some other means, such as email. Please review the changes carefully. If you agree to the changes, simply continue to use our Service. If you object to any of the changes to our terms and you no longer wish to use Sourceable, you may close your account. Unless stated otherwise, our current Privacy Policy applies to all information that Sourceable has about you and your account. Using Sourceable after a notice of changes has been communicated to you or published on our Service shall constitute consent to the changed terms or practices. 
+ D. We don&#8217;t share any of your personal information with third parties for direct marketing. We take privacy and security seriously and have enabled HTTPS access to our, in addition to existing SSL access over mobile devices. Also, please know that the Internet is not a secure environment, so be careful and select strong passwords. 
+ E. Security 
+ 
+ 
+ We have implemented security safeguards designed to protect the personal information that you provide in accordance with industry standards. Access to your data on Sourceable is password-protected, and sensitive data (such as credit card information) is protected by SSL encryption when it is exchanged between your web browser and the Sourceable Services. We also offer secure https access to the website. To protect any data you store on our servers, we also regularly monitor our system for possible vulnerabilities and attacks, and we use a tier-one secured-access data center. However, since the Internet is not a 100% secure environment, we cannot ensure or warrant the security of any information that you transmit to Sourceable. There is no guarantee that information may not be accessed, disclosed, altered, or destroyed by breach of any of our physical, technical, or managerial safeguards. It is your responsibility to protect the security of your login information. Please note that emails, instant messaging, and similar means of communication with other Sourceable Members are not encrypted, and we strongly advise you not to communicate any confidential information through these means. Please help keep your account safe by using a strong password. 
+ 4. Comment Policy 
+ We welcome you to leave comments on our website. All comments will go through a moderation process; they will not be published immediately. We are not obligated to post any comment submitted and not obligated to justify any decision. • If you quote someone or use their ideas or theories, please let us know who they are! Referencing is cool. • We won&#8217;t publish anything that is (or could be reasonably expected to be): defamatory to any person or thing; racially or religiously vilifies, incites violence or hatred; is likely to offend, insult or humiliate others based on race, religion, ethnicity, gender, age, sexual orientation or any physical or mental disability. • We won&#8217;t publish anything which advertises or promotes goods or services that are not directly related, or in context to the discussion taking place. The views expressed in comments areas are not our views, nor the views of any of our stakeholders. We accept no liability in respect of any material posted in the comments areas. We are not responsible for its content and accuracy. If you think that a comment that has been posted is offensive please email info at sourceable.net , include a link to the page on which the comment resides and state your reasons for objecting to it. 
+ 
+ 
+ 
+ 
+ Copyright Policy 
+ COMPLAINTS REGARDING CONTENT POSTED ON THE SOURCEABLE WEBSITE Sourceable desires to offer a website where our Users share truthful and accurate information. We respect the intellectual property rights of others and desire to offer a website which contains no content that violates those rights. Our User Agreement requires that information posted by Users be accurate, lawful and not in violation of the intellectual property rights of third parties. To promote these objectives, Sourceable provides a process for submission of complaints concerning content posted by our Users. Our policy and procedures are described in the sections that follow. In accordance with our User Agreement and these procedures, and regardless of whether Sourceable may be liable for any alleged violation of rights or inaccurate or unlawful content, Sourceable may remove or disable access to specified content appearing on the Sourceable website upon receipt of a verified notice asserting that the content infringes intellectual property rights, is inaccurate, or is otherwise unlawful. Whether or not we disable access to or remove content, Sourceable may make a good faith attempt to forward the written notification, including the complainant&#8217;s contact information, to the User who posted the content and/or take other reasonable steps to notify the User that Sourceable has received notice of an alleged violation of intellectual property rights or other content violation. The User may refute a claim by submitting a counter-notice as permitted in these procedures. Any counter-notice submitted may be provided to the complainant with the User&#8217;s contact information. Our policies and procedures for removing or disabling access to content alleged to be infringing, inaccurate or otherwise unlawful are and remain at our sole discretion. It is also our policy, in appropriate circumstances and in our discretion, to disable and/or terminate the accounts of Users, or groups as the case may be, who may infringe or repeatedly infringe the intellectual property rights of others, or who otherwise post inaccurate or unlawful content. Please note that any notice or counter-notice you submit must be truthful and must be submitted under penalty of perjury. A false notice or counter-notice may give rise to personal liability. You may therefore want to seek the advice of legal counsel before submitting a notice or a counter-notice. 
+ CLAIMS REGARDING COPYRIGHT INFRINGEMENT 
+ Notice of Copyright Infringement Pursuant to the Digital Millennium Copyright Act (17 U.S.C. § 512), Sourceable has implemented procedures for receiving written notification of claimed infringements. Sourceable has also designated an agent to receive notices of claimed copyright infringement. If you believe in good faith that your copyright has been infringed, you may complete and submit a Notice of Copyright Infringement communication which contains: 
+ 
+ An electronic or physical signature of the person authorized to act on behalf of the owner of the copyright interest; 
+ A description of the copyrighted work that you claim has been infringed; 
+ A description specifying the location on our website of the material that you claim is infringing; 
+ Your telephone number and e-mail address; 
+ A statement by you that you have a good faith belief that the disputed use is not authorized by the copyright owner, its agent, or the law; and 
+ A statement by you, made under penalty of perjury, that the information in your notice is accurate and that you are the copyright owner or authorized to act on the copyright owner&#8217;s behalf. 
+ 
+ Please submit your notice to Mediasource Pty Ltd Copyright Agent as follows: Or contact us by mail at: Sourceable.net ATTN: Copyright Agent Po Box 6257 Chapel Street, South Yarra Victoria, Australia 3141 
+ 
+ 
+ 
+ 
+ 
+ User Agreement 
+ Welcome, and thanks for using Sourceable! When you use our products and services, you&#8217;re agreeing to our terms, so please take a few minutes to read over the User Agreement below. Note: You are entering into a legally binding agreement. Last revised on June 1st, 2013 
+ 1. Introduction 
+ About us and this agreement We are a social network for professionals. 
+ A. Purpose The mission of Sourceable is to connect the world&#8217;s professionals to enable them to be more productive and successful. To achieve our mission, we make services available through our website, mobile applications, and developer platform, to help you, your connections, and millions of other professionals meet, exchange ideas, learn, make deals, find opportunities or employees, work, and make decisions in a network of trusted relationships and groups. When you use Sourceable, you are entering into a legal agreement and you agree to all of these terms. You also agree to our Privacy Policy, which covers how we collect, use, share and store your personal information. 
+ B. Scope and Intent You agree that by registering on Sourceable, or by using our website, including our mobile applications, developer platform, premium services, or other information provided as part of the Sourceable services (collectively &#8220;Sourceable&#8221; or the &#8220;Services&#8221;), you are entering into a legally binding agreement with Sourceable PO Box 6257 Chapel Street North South Yarra Victoria, Australia 3141 (&#8220;we,&#8221; &#8220;us,&#8221; &#8220;our,&#8221; and &#8220;Sourceable&#8221;) based on the terms of this Sourceable User Agreement and the Sourceable Privacy Policy , which is hereby incorporated by reference (collectively referred to as the &#8220;Agreement&#8221;) and become a Sourceable member (&#8220;Member&#8221;). If you are using Sourceable on behalf of a company or other legal entity, you are nevertheless individually bound by this Agreement even if your company has a separate agreement with us. If you do not want to register an account and become a Sourceable Member, do not enter into this Agreement, do NOT click &#8220;Join Now&#8221; and do not access, view, download or otherwise use any Sourceable webpage, information or services. By clicking &#8220;Join Now&#8221; (or &#8220;Join Sourceable&#8221; or similar), you acknowledge that you have read and understood the terms and conditions of this Agreement and that you agree to be bound by all of its provisions. By clicking &#8220;Join Now,&#8221; you also consent to use electronic signatures and acknowledge your click of the &#8220;Join Now&#8221; button as one. Please note that the Sourceable User Agreement and Privacy Policy are also collectively referred to as Sourceable&#8217;s &#8220;Terms of Service.&#8221; 
+ 2. Your Obligations 
+ Some promises you make to us in this agreement: You will follow the law and Sourceable&#8217;s rules. 
+ A. Applicable laws and this Agreement You must comply with all applicable laws and this Agreement, as may be amended from time to time with or without advance notice, and the policies and processes explained in the following sections: 
+ 
+ Sourceable&#8217;s Copyright Policy; 
+ Complaints Regarding Content Posted on the Sourceable&#8217;s Website; and 
+ Sourceable&#8217;s Privacy Policy. 
+ 
+ You grant us a license to the information you provide us. 
+ B. License and warranty for your submissions to Sourceable You own the information you provide Sourceable under this Agreement, and may request its deletion at any time, unless you have shared information or content with others and they have not deleted it, or it was copied or stored by other users. Additionally, you grant Sourceable a nonexclusive, irrevocable, worldwide, perpetual, unlimited, assignable, sublicenseable, fully paid up and royalty-free right to us to copy, prepare derivative works of, improve, distribute, publish, remove, retain, add, process, analyze, use and commercialize, in any way now known or in the future discovered, any information you provide, directly or indirectly to Sourceable, including, but not limited to, any user generated content, ideas, concepts, techniques and/or data to the services, you submit to Sourceable, without any further consent, notice and/or compensation to you or to any third parties. Any information you submit to us is at your own risk of loss. By providing information to us, you represent and warrant that you are entitled to submit the information and that the information is accurate, not confidential, and not in violation of any contractual restrictions or other third party rights. It is your responsibility to keep your Sourceable profile information accurate and updated. You are eligible to enter into this contract and you are at least our &#8220;Minimum Age&#8221; The information you provide is truthful. 
+ C. Service Eligibility To be eligible to use the Service, you must meet the following criteria and represent and warrant that you: (1) are the &#8220; Minimum Age &#8221; (defined below) or older; (2) are not currently restricted from the Services, or not otherwise prohibited from having a Sourceable account, (3) are not a competitor of Sourceable or are not using the Services for reasons that are in competition with Sourceable; (4) will only maintain one Sourceable account at any given time; (5) will use your real name and only provide accurate information to Sourceable; (6) have full power and authority to enter into this Agreement and doing so will not violate any other agreement to which you are a party; (7) will not violate any rights of Sourceable or third party, including intellectual property rights such as copyright or trademark rights; and (8) agree to provide at your cost all equipment, software, mobile access, and internet access necessary to use the Services. &#8221; 
+ Minimum Age &#8221; means 18 years old. You will keep your password a secret. You will not share an account with anyone else. You will not copy or transfer any part of the Service. 
+ D. Your Membership The profile you create on Sourceable will become part of Sourceable and except for the information that you license to us is owned by Sourceable. However, between you and others, your account belongs to you. You agree to: (1) keep your password secure and confidential; (2) not permit others to use your account; (3) not use other&#8217;s accounts; (4) not sell, trade, or transfer your Sourceable account to another party; and (5) not charge anyone for access to any portion of Sourceable, or any information therein. Further, you are responsible for anything that happens through your account until you close down your account or prove that your account security was compromised due to no fault of your own. To close your account, please visit you&#8217;re account settings. You will pay us for any losses that you cause. 
+ E. Indemnification You agree to indemnify us and hold us harmless for all damages, losses and costs (including, but not limited to, reasonable attorneys&#8217; fees and costs) related to all third party claims, charges, and investigations, caused by (1) your failure to comply with this Agreement, including, without limitation, your submission of content that violates third party rights or applicable laws, (2) any content you submit to the Services, and (3) any activity in which you engage on or through Sourceable. You will honor your payment obligations and you approve with us storing your historicial billing information. Also there can be fees and taxes that are added to our prices. We don&#8217;t guarantee refunds. 
+ F. Payment If you purchase any services that we offer for a fee, either on a one-time or subscription basis (&#8220;Premium Services&#8221;), you agree to Sourceable storing your billing transactional information; your credit card details will not be stored by Sourceable. You also agree to pay the applicable fees for the Premium Services (including, without limitation, periodic fees for premium accounts) as they become due plus all related taxes, and to reimburse us for all collection costs and interest for any overdue amounts. Failure to pay may result in the termination of your subscription. Depending on where you transact with us, the type of payment method used and where your payment method was issued, your transaction with us may be subject to foreign exchange fees or differences in prices, including because of exchange rates. Sourceable does not support all payment methods, currencies or locations for payment. Your obligation to pay fees continues through the end of the subscription period during which you cancel your subscription. All applicable taxes are calculated based on the billing information you provide us at the time of purchase. You may not cancel or suspend your Premium Services until its subscription term has concluded. We do not guarantee refunds for lack of usage or dissatisfaction. You also acknowledge that Sourceable&#8217;s Premium Services are subject to this Agreement and any additional terms related to the provision of the Premium Service. Additionally, if you require a printed invoice for your transaction with us, request one by contacting our Customer Support. If you think you have to breach this agreement you will let us know before. 
+ G. Notify us of acts contrary to the Agreement If you believe that you are entitled or obligated to act contrary to this Agreement under any mandatory law, you agree to provide us with detailed and substantiated explanation of your reasons in writing at least 30 days before you act contrary to this Agreement, to allow us to assess whether we may, at our sole discretion, provide an alternative remedy for the situation, though we are under no obligation to do so. You approve Sourceable providing you with important notices on the website, mobile apps, or email. The contact information you provide must be accurate or you may not receive important notices. 
+ H. Notifications and Service Messages For purposes of service messages and notices about the Services, Sourceable may place a banner notice across its pages to alert you to certain changes such as modifications to this Agreement. Alternatively, notice may consist of an email from Sourceable to an email address associated with your account, even if we have other contact information. You also agree that Sourceable may communicate with you through your Sourceable account or through other means including email, mobile number, telephone, or delivery services including the postal service about your Sourceable account or services associated with Sourceable. Please review your Account Settings to control what kind of messages you receive from Sourceable. You acknowledge and agree that we shall have no liability associated with or arising from your failure to do so maintain accurate contact or other information, including, but not limited to, your failure to receive critical information about the Service. This Agreement applies to mobile applications as well. Also, you agree certain additional information can be shared to Sourceable. 
+ I. Sourceable Applications Sourceable may offer the Services through applications built using Sourceable&#8217;s platform (&#8220;Sourceable Applications&#8221;). Examples of Sourceable Applications include its smart phone applications (Sourceable for Android, Sourceable for Blackberry or Sourceable for iPhone), and Sourceable&#8217;s &#8220;Share&#8221; buttons and other interactive plugins distributed on websites across the web. Sourceable Applications are distinct from third party Platform Applications addressed in Section 4.B. If you use a Sourceable Application or interact with a website that has deployed a plugin, you agree that information about you and your use of the Services, including, but not limited to, your device, your mobile carrier, your internet access provider, your physical location, or web pages containing Sourceable plugins that load in your browser may be communicated to us. Further, by importing any of your Sourceable data through the Sourceable Application, you represent that you have authority to share the transferred data with your mobile carrier or other access provider. In the event you change or deactivate your mobile account, you must promptly update your Sourceable account information to ensure that your messages are not sent to the person that acquires your old number and failure to do so is your responsibility. You acknowledge you are responsible for all charges and necessary permissions related to accessing Sourceable through your mobile access provider. Therefore, you should check with your provider to find out if the Services are available and the terms for these services for your specific mobile devices. Finally, by using any downloadable application to enable your use of the Services, you are explicitly confirming your acceptance of the terms of the End User License Agreement associated with the application provided at download or installation, or as may be updated from time to time. When you share information, others can see, copy and use that information. 
+ J. User-to-User Communication and Sharing (Sourceable Groups, Discussions, Updates, Company Pages, etc.) Sourceable offers various forums such as Sourceable Groups, Discussions, and Network Updates, where you can post your observations and comments on designated topics. Sourceable also enables sharing of information by allowing users to post updates, including links to news articles and other information such as job opportunities, product recommendations, and other content to their profile and other parts of the site, such as Sourceable Groups and Sourceable Company Pages. Sourceable members can create Sourceable Groups and Discussions for free, however, Sourceable, in its sole discretion, may close or transfer Sourceable Groups or Discussions, or remove content from them if the content violates this Agreement or others&#8217; intellectual property rights. Please note that ideas you post and information you share may be seen and used by other Members, and Sourceable cannot guarantee that other Members will not use the ideas and information that you share on Sourceable. Therefore, if you have an idea or information that you would like to keep confidential or don&#8217;t want others to use, or that is subject to third party rights that may be infringed by your sharing it, do not post it to any Sourceable Group, into your Network Updates, or elsewhere on Sourceable. SOURCEABLE IS NOT RESPONSIBLE FOR A ANOTHER&#8217;S MISUSE OR MISAPPROPRIATION OF ANY CONTENT OR INFORMATION YOU POST ON SOURCEABLE. You approve with us collecting, using, storing, and disclosing information about you in keeping with our Privacy Policy. 
+ K. Privacy You should carefully read our full Privacy Policy before using Sourceable as it is hereby incorporated into this Agreement by reference, and governs our treatment of any information, including personally identifiable information you submit to us. Please note that certain information, statements, data, and content (such as photographs) which you may submit to Sourceable, or groups you choose to join might, or are likely to, reveal your gender, ethnic origin, nationality, age, and/or other personal information about you. You acknowledge that your submission of any information, statements, data, and content to us is voluntary on your part and that Sourceable may process such information, within the terms of the Privacy Policy. You won&#8217;t break export laws. 
+ L. Export Control Your use of Sourceable services, including our software, is subject to export and re-export control laws and regulations, including the Export Administration Regulations (&#8220;EAR&#8221;) maintained by the United States Department of Commerce and sanctions programs maintained by the Treasury Department&#8217;s Office of Foreign Assets Control. You shall not — directly or indirectly — sell, export, re-export, transfer, divert, or otherwise dispose of any software or service to any end-user without obtaining the required authorisations from the appropriate government authorities. You also warrant that you are not prohibited from receiving US origin products, including services or software. If you provide feedback to Sourceable, make sure you don&#8217;t include confidential or infringing materials, and you grant Sourceable rights to such feedback. 
+ M. Contributions to Sourceable By submitting ideas, suggestions, documents, or proposals (&#8220;Contributions&#8221;) to Sourceable through its suggestion or feedback systems, you acknowledge and agree that: (a) your Contributions do not contain confidential or proprietary information; (b) Sourceable is not under any obligation of confidentiality, express or implied, with respect to the Contributions; (c) Sourceable shall be entitled to use or disclose (or choose not to use or disclose) such Contributions for any purpose, in any way, in any media worldwide; (d) Sourceable may have something similar to the Contributions already under consideration or in development; (e) you irrevocably non-exclusively license to Sourceable rights to exploit your Contributions; and (f) you are not entitled to any compensation or reimbursement of any kind from Sourceable under any circumstances. 
+ 3. Your Rights If you follow this agreement, we grant you a limited right to use Sourceable. You will only access and use Sourceable in the way this agreement allows you. On the condition that you comply with all your obligations under this Agreement, including, but not limited to, the Do&#8217;s and Don&#8217;ts listed in Section 10, we grant you a limited, revocable, nonexclusive, nonassignable, nonsublicenseable license and right to access the Sourceable Services, through a generally available web browser, mobile device or Sourceable authorized application (but not through scraping, spidering, crawling or other technology or software used to access data without the express written consent of Sourceable or its Members), view information and use the Services that we provide on Sourceable webpages and in accordance with this Agreement. Any other use of Sourceable contrary to our mission and purpose (such as seeking to connect to someone you do not know or trust, or to use information gathered from Sourceable commercially unless expressly authorised by Sourceable) is strictly prohibited and a violation of this Agreement. We reserve all rights not expressly granted in this Agreement, including, without limitation, title, ownership, intellectual property rights, and all other rights and interest in Sourceable and all related items, including any and all copies made of the Sourceable website. 
+ 4. Our Rights &amp; Obligations We may change or discontinue Services, and in such case, we do not promise to keep showing or storing your information and materials. 
+ A. Services Availability For as long as Sourceable continues to offer the Services, Sourceable shall provide and seek to update, improve and expand the Services. As a result, we allow you to access Sourceable as it may exist and be available on any given day and we have no other obligations, except as expressly stated in this Agreement. We may modify, replace, refuse access to, suspend or discontinue Sourceable, partially or entirely, or change and modify prices for all or part of the Services for you or for all our Members in our sole discretion. All of these changes shall be effective upon their posting on Sourceable or by direct communication to you unless otherwise noted. Sourceable further reserves the right to withhold, remove or discard any content available as part of your account, with or without notice if deemed by Sourceable to be contrary to this Agreement. For avoidance of doubt, Sourceable has no obligation to store, maintain or provide you a copy of any content that you or other Members provide when using the Services. Third parties may offer their own products and services through Sourceable, and we are not responsible for these third-party activities. 
+ B. Third Party Sites and Developers Sourceable may include links to third party web sites (&#8220;Third Party Sites&#8221;). Sourceable also enables third party developers (&#8220;Platform Developers&#8221;) to create applications (&#8220;Platform Applications&#8221;) that provide features and functionality using data and developer tools made available by Sourceable through its developer platform. You are responsible for evaluating whether you want to access or use a Third Party Site or Platform Application. You should review any applicable terms or privacy policy of a Third Party Site or Platform Application before using it or sharing any information with it, because you may give the third-party permission to use your information in ways we would not. Sourceable is not responsible for and does not endorse any features, content, advertising, products or other materials on or available from Third Party Sites or Platform Applications. Sourceable also does not screen, audit, or endorse Platform Applications. Accordingly, if you decide to use Third Party Sites or use Platform Applications, you do so at your own risk and agree that your use of any Platform Application is on an &#8220;as-is&#8221; basis without any warranty as to the Platform Developer&#8217;s actions, and that this Agreement does not apply to your use of any Third Party Site or Developer Application. Please note: If you allow an Platform Application or Third Party Site to authenticate you or connect with your Sourceable account, that application or website can access information on Sourceable related to you and your connections. For additional information regarding Platform Developers and Platform Applications, please refer to Sourceable&#8217;s Privacy Policy . You agree that we can use, store and share information about you as permitted in our Privacy Policy. 
+ C. Disclosure of User Information You acknowledge, consent and agree that we may access, preserve, and disclose your registration and any other information you provide in accordance with the terms of the Privacy Policy if required to do so by law or in a good faith belief that such access preservation or disclosure is reasonably necessary in our opinion to: (1) comply with legal process, including, but not limited to, civil and criminal subpoenas, court orders or other compulsory disclosures; (2) enforce this Agreement; (3) respond to claims of a violation of the rights of third parties, whether or not the third party is a Member, individual, or government agency; (4) respond to customer service inquiries; or (5) protect the rights, property, or personal safety of Sourceable, our Members or the public. Disclosures of Member information to third parties other than those required to provide customer support, administer this agreement, or comply with legal requirements are addressed in the Privacy Policy . We have the right to limit the connections and interactions on the Service. 
+ D. Connections and Interactions with other Members You are solely responsible for your interactions with other Members. Sourceable may limit the number of connections you may have to other Members and may, in certain circumstances, prohibit you from contacting other Users through use of the Services or otherwise limit your use of the Services. Sourceable reserves the right, but has no obligation, to monitor disputes between you and other members and to restrict, suspend, or close your account if Sourceable determines, in our sole discretion, that doing so is necessary to enforce this Agreement. We are providing you notice about our intellectual property rights. 
+ E. Intellectual Property Notices The Service includes the copyrights and Intellectual property rights of Sourceable and except for the limited license granted to you in Section 3, Sourceable reserves all of its intellectual property rights in the Service. Sourceable, the Sourceable and &#8220;S&#8221; logos and other Sourceable trademarks, service marks, graphics, and logos used in connection with Sourceable are trademarks or registered trademarks of Sourceable in Australia. and/or other countries. Other trademarks and logos used in connection with Sourceable may be the trademarks of their respective owners. This Agreement does not grant you any right or license with respect to any such trademarks and logos. 
+ 5. Disclaimer We disclaim any legal liability for the quality, safety or reliability of Sourceable. SOME COUNTRIES AND JURISDICTIONS DO NOT ALLOW THE DISCLAIMER OF IMPLIED TERMS IN CONTRACTS WITH CONSUMERS AND AS A RESULT THE CONTENTS OF THIS SECTION MAY NOT APPLY TO YOU. DO NOT RELY ON SOURCEABLE OR ITS SUPPLIERS, ANY INFORMATION THEREIN, OR ITS CONTINUATION. WE PROVIDE THE PLATFORM FOR SOURCEABLE AND ALL INFORMATION AND SERVICES ON AN &#8220;AS IS&#8221; AND &#8220;AS AVAILABLE&#8221; BASIS. SOURCEABLE DOES NOT CONTROL OR VET USER GENERATED CONTENT FOR ACCURACY. WE DO NOT PROVIDE ANY EXPRESS WARRANTIES OR REPRESENTATIONS. TO THE FULLEST EXTENT PERMISSIBLE UNDER APPLICABLE LAW, SOURCEABLE AND ITS SUPPLIERS DISCLAIM ANY AND ALL IMPLIED WARRANTIES AND REPRESENTATIONS, INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, ACCURACY OF DATA, AND NONINFRINGEMENT. IF YOU ARE DISSATISFIED OR HARMED BY SOURCEABLE OR ANYTHING RELATED TO SOURCEABLE, YOU MAY CLOSE YOUR SOURCEABLE ACCOUNT AND TERMINATE THIS AGREEMENT IN ACCORDANCE WITH SECTION 7 (&#8220;TERMINATION&#8221;) AND SUCH TERMINATION SHALL BE YOUR SOLE AND EXCLUSIVE REMEDY. SOURCEABLE IS NOT RESPONSIBLE, AND MAKES NO REPRESENTATIONS OR WARRANTIES FOR THE DELIVERY OF ANY MESSAGES (SUCH AS INMAILS, POSTING OF ANSWERS OR TRANSMISSION OF ANY OTHER USER GENERATED CONTENT) SENT THROUGH SOURCEABLE TO ANYONE. IN ADDITION, WE NEITHER WARRANT NOR REPRESENT THAT YOUR USE OF THE SERVICE WILL NOT INFRINGE THE RIGHTS OF THIRD PARTIES. ANY MATERIAL, SERVICE, OR TECHNOLOGY DESCRIBED OR USED ON THE WEBSITE MAY BE SUBJECT TO INTELLECTUAL PROPERTY RIGHTS OWNED BY THIRD PARTIES WHO HAVE LICENSED SUCH MATERIAL, SERVICE, OR TECHNOLOGY TO US. SOURCEABLE DOES NOT HAVE ANY OBLIGATION TO VERIFY THE IDENTITY OF THE PERSONS SUBSCRIBING TO ITS SERVICES, NOR DOES IT HAVE ANY OBLIGATION TO MONITOR THE USE OF ITS SERVICES BY OTHER USERS OF THE COMMUNITY; THEREFORE, SOURCEABLE DISCLAIMS ALL LIABILITY FOR IDENTITY THEFT OR ANY OTHER MISUSE OF YOUR IDENTITY OR INFORMATION BY OTHERS. SOURCEABLE DOES NOT GUARANTEE THAT THE SERVICES IT PROVIDES WILL FUNCTION WITHOUT INTERRUPTION OR ERRORS IN FUNCTIONING. IN PARTICULAR, THE OPERATION OF THE SERVICES MAY BE INTERRUPTED DUE TO MAINTENANCE, UPDATES, OR SYSTEM OR NETWORK FAILURES. SOURCEABLE DISCLAIMS ALL LIABILITY FOR DAMAGES CAUSED BY ANY SUCH INTERRUPTION OR ERRORS IN FUNCTIONING. FURTHERMORE, SOURCEABLE DISCLAIMS ALL LIABILITY FOR ANY MALFUNCTIONING, IMPOSSIBILITY OF ACCESS, OR POOR USE CONDITIONS OF THE SOURCEABLE SITE DUE TO INAPPROPRIATE EQUIPMENT, DISTURBANCES RELATED TO INTERNET SERVICE PROVIDERS, TO THE SATURATION OF THE INTERNET NETWORK, AND FOR ANY OTHER REASON. 
+ 6. Limitation of Liability We are trying to limit any legal liability Sourceable may have to you. LIMITATION OF LIABILITY. SOME COUNTRIES DO NOT ALLOW THE LIMITATION OR EXCLUSION OF LIABILITY IN CONTRACTS WITH CONSUMERS AND AS A RESULT THE CONTENTS OF THIS SECTION MAY NOT APPLY TO YOU. Neither Sourceable nor any of our subsidiaries, affiliated companies, suppliers, employees, shareholders, or directors (&#8220;Sourceable Affiliates&#8221;) shall be cumulatively liable for (a) any damages in excess of five times the most recent monthly fee that you paid for a Premium Service, if any, or US $100, whichever amount is greater, or (b) any special, incidental, indirect, punitive or consequential damages or loss of use, profit, revenue or data to you or any third person arising from your use of the Service, any Platform Applications or any of the content or other materials on, accessed through or downloaded from Sourceable. This limitation of liability is part of the basis of the bargain between the parties and without it the terms and prices charged would be different. This limitation of liability shall: 
+ 
+ Apply regardless of whether (1) you base your claim on contract, tort, statute or any other legal theory, (2) we knew or should have known about the possibility of such damages, or (3) the limited remedies provided in this section fail of their essential purpose; and 
+ Not apply to any damage that Sourceable may cause you intentionally or knowingly in violation of this Agreement or applicable law, or as otherwise mandated by applicable law that cannot be disclaimed in this Agreement. 
+ Not apply if you have entered into a separate agreement to purchase Premium Services with a separate Limitation of Liability provision that supersedes this section in relation to those Premium Services. 
+ 
+ 7. Termination We can each end this agreement anytime we want. 
+ A. Mutual rights of termination You may terminate this Agreement, for any or no reason, at any time, with notice to Sourceable pursuant to Section 9.C. This notice will be effective upon Sourceable processing your notice; you are still required for all subscription commitments until the term of which has terminated. Sourceable may terminate this Agreement and your account for any reason or no reason, at any time, with or without notice. This cancellation shall be effective immediately or as may be specified in the notice. For avoidance of doubt, only Sourceable or the party paying for the services may terminate your access to any Premium Services. Termination of your Sourceable account includes disabling your access to Sourceable and may also bar you from any future use of Sourceable. 
+ B. Misuse of the Services Sourceable may restrict, suspend or terminate the account of any Member who abuses or misuses the Services. Misuse of the Services includes inviting other Members with whom you do not know to connect; abusing the Sourceable messaging services; creating multiple or false profiles; using the Services commercially without Sourceable&#8217;s authorisation, infringing any intellectual property rights, violating any of the Do&#8217;s and Don&#8217;ts listed in Section 10, or any other behavior that Sourceable, in its sole discretion, deems contrary to its purpose. In addition, and without limiting the foregoing, Sourceable has adopted a policy of terminating accounts of Members who, in Sourceable&#8217;s sole discretion, are deemed to be repeat infringers under the United States Copyright Act. 
+ C. Effect of Termination Upon termination of your Sourceable account, you lose access to the Services. The terms of this Agreement shall survive any termination, except Section 3 (&#8220;Your Rights&#8221;) and Sections 4(a) (b) and (d) (&#8220;Our Rights and Obligations&#8221;). 
+ 8. Dispute Resolution In the unlikely event we end up in a legal dispute, it will take place in Victoria court in the country of Australia. 
+ A. Law and Forum for Legal Disputes This Agreement or any claim, cause of action or dispute (&#8220;claim&#8221;) arising out of or related to this Agreement shall be governed by the laws of the state of Victroia regardless of your country of origin or where you access Sourceable, and notwithstanding of any conflicts of law principles and the United Nations Convention for the International Sale of Goods. You and Sourceable agree that all claims arising out of or related to this Agreement must be resolved exclusively by a state or federal court located in Melbourne, Victoria, Australia except as otherwise agreed by the parties or as described in the Arbitration Option paragraph below. You and Sourceable agree to submit to the personal jurisdiction of the courts located within Melbourne, Victoria for the purpose of litigating all such claims. Notwithstanding the above, you agree that Sourceable shall still be allowed to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction. Each of us will have the right to choose arbitration. 
+ B. Arbitration Option For any claim (excluding claims for injunctive or other equitable relief) where the total amount of the award sought is less than $10,000, the party requesting relief may elect to resolve the dispute in a cost effective manner through binding non-appearance-based arbitration. In the event a party elects arbitration, they shall initiate such arbitration through an established alternative dispute resolution (&#8220;ADR&#8221;) provider mutually agreed upon by the parties. The ADR provider and the parties must comply with the following rules: (a) the arbitration shall be conducted by telephone, online and/or be solely based on written submissions, the specific manner shall be chosen by the party initiating the arbitration; (b) the arbitration shall not involve any personal appearance by the parties or witnesses unless otherwise mutually agreed by the parties; and (c) any judgment on the award rendered by the arbitrator shall be final and may be entered in any court of competent jurisdiction. 
+ 9. General Terms Important details about how to read the agreement. 
+ A. Severability If any provision of this Agreement is found by a court of competent jurisdiction or arbitrator to be illegal, void, or unenforceable, the unenforceable provision will be modified so as to render it enforceable and effective to the maximum extent possible in order to effect the intention of the provision; if a court or arbitrator finds the modified provision invalid, illegal, void or unenforceable, the validity, legality and enforceability of the remaining provisions of this Agreement will not be affected in any way. 
+ B. Language Where Sourceable has provided you with a translation of the English language version of this Agreement, the Privacy Policy, or any other documentation, you agree that the translation is provided for your convenience only and that the English language versions of this Agreement, the Privacy Policy, and any other documentation, including additional terms of service for Premium Services, will govern your relationship with Sourceable. 
+ C. Notices and Service of Process In addition to Section 2.h. (&#8220;Notices and Service Messages&#8221;), we may notify you via postings on www.sourceable.net. Or via mail or courier at: Sourceable C/O Mediasource Pty Ltd. ATTN: Legal Department PO Box 6257 Chapel Street North South Yarra, Victoria Australia 3141. Additionally, Sourceable accepts service of process at this address. Any notices that you provide without compliance with this section shall have no legal effect. 
+ D. Entire Agreement You agree that this Agreement constitutes the entire, complete and exclusive agreement between you and Sourceable regarding the Services and supersedes all prior agreements and understandings, whether written or oral, or whether established by custom, practice, policy or precedent, with respect to the subject matter of this Agreement. You also may be subject to additional terms and conditions that may apply when you use or purchase certain other Sourceable services, third-party content or third party software. 
+ E. Amendments to this Agreement We reserve the right to modify, supplement or replace the terms of this Agreement, effective upon posting at www.sourceable.net or notifying you otherwise. For example, we may present a banner on the Services when we have amended this Agreement or the Privacy Policy so that you may access and review the changes prior to your continued use of the site. If you do not want to agree to changes to this Agreement, you can terminate this Agreement at any time per Section 7 (Termination). 
+ F. No informal waivers, agreements or representations Our failure to act with respect to a breach of this Agreement by you or others does not waive our right to act with respect to that breach or subsequent similar or other breaches. Except as expressly and specifically contemplated by the Agreement, no representations, statements, consents, waivers or other acts or omissions by any Sourceable Affiliate shall be deemed legally binding on any Sourceable Affiliate, unless documented in a physical writing hand signed by a duly appointed officer of Sourceable. You waive your rights to try to stop Sourceable, but we don&#8217;t waive our rights to ask a court to stop your actions. 
+ G. No Injunctive Relief In no event shall you seek or be entitled to rescission, injunctive or other equitable relief, or to enjoin or restrain the operation of the Service, exploitation of any advertising or other materials issued in connection therewith, or exploitation of the Services or any content or other material used or displayed through the Services. 
+ H. Beneficiaries Entities other than Mediasource Pty Ltd and Mediasource Inc, that owns a 50% or greater interest in (&#8220;Affiliate&#8221;) are not parties, but intended third party beneficiaries of this Agreement, with a right to enforce this Agreement directly against you. You can&#8217;t assign your rights under this agreement, but we can. 
+ I. Assignment and Delegation You may not assign or delegate any rights or obligations under the Agreement. Any purported assignment and delegation shall be ineffective. We may freely assign or delegate all rights and obligations under the Agreement, fully or partially without notice to you. We may also substitute, by way of unilateral novation, effective upon notice to you, Sourceable Corporation for any third party that assumes our rights and obligations under this Agreement. 
+ J. Potential Other Rights and Obligations You may have rights or obligations under local law other than those enumerated here if you are located outside the United States. 
+ 10. Sourceable &#8220;DOs&#8221; and &#8220;DON&#8217;Ts.&#8221; As a condition to access Sourceable, you agree to this User Agreement and to strictly observe the following DOs and DON&#8217;Ts: Here&#8217;s a list of some of the specific things we ask you to do and not do on Sourceable. If you want a high-level summary of these, please check out our Professional Community Guidelines 
+ A. Do undertake the following: 
+ 
+ Comply with all applicable laws, including, without limitation, privacy laws, intellectual property laws, export control laws, tax laws, and regulatory requirements; 
+ Provide accurate information to us and update it as necessary; 
+ Review and comply with our Privacy Policy ; 
+ Review and comply with notices sent by Sourceable concerning the Services; 
+ Use the Services in a professional manner; and 
+ Use your real name on your profile. 
+ 
+ B. Don&#8217;t undertake the following: 
+ 
+ Act dishonestly or unprofessionally by engaging in unprofessional behavior by posting inappropriate, inaccurate, or objectionable content to Sourceable; 
+ Publish inaccurate information in the designated fields on the profile form (e.g., do not include a link or an email address in the name field). Please also protect sensitive personal information such as your email address, phone number, street address, or other information that is confidential in nature; 
+ Create a Member profile for anyone other than a natural person; 
+ Harass, abuse or harm another person, including sending unwelcomed communications to others using Sourceable; 
+ Invite people you do not know to join your network; 
+ Upload a profile image that is not your likeness or a head-shot photo; 
+ Use or attempt to use another&#8217;s account or create a false identity on Sourceable; 
+ Upload, post, email, InMail, transmit or otherwise make available or initiate any content that:
+ 
+ Falsely states, impersonates or otherwise misrepresents your identity, including but not limited to the use of a pseudonym, or misrepresenting your current or previous positions and qualifications, or misrepresents your affiliations with a person or entity, past or present; 
+ Is unlawful, libelous, abusive, obscene, discriminatory or otherwise objectionable; 
+ Adds to a content field content that is not intended for such field (e.g. submitting a telephone number in the &#8220;title&#8221; or any other field, or including telephone numbers, email addresses, street addresses or any personally identifiable information for which there is not a field provided by Sourceable); 
+ Includes information that you do not have the right to disclose or make available under any law or under contractual or fiduciary relationships (such as insider information, or proprietary and confidential information learned or disclosed as part of employment relationships or under nondisclosure agreements); 
+ Infringes upon patents, trademarks, trade secrets, copyrights or other proprietary rights; 
+ Includes any unsolicited or unauthorized advertising, promotional materials, &#8220;junk mail,&#8221; &#8220;spam,&#8221; &#8220;chain letters,&#8221; &#8220;pyramid schemes,&#8221; or any other form of solicitation. This prohibition includes but is not limited to (a) using Sourceable invitations to send messages to people who don&#8217;t know you or who are unlikely to recognize you as a known contact; (b) using Sourceable to connect to people who don&#8217;t know you and then sending unsolicited promotional messages to those direct connections without their permission; and (c) sending messages to distribution lists, newsgroup aliases, or group aliases; 
+ Contains software viruses, worms, or any other computer code, files or programs that interrupt, destroy or limit the functionality of any computer software or hardware or telecommunications equipment of Sourceable or any user of Sourceable; 
+ Forges headers or otherwise manipulate identifiers in order to disguise the origin of any communication transmitted through the Services; or 
+ Even if it is legal where you are located, create profiles or provide content that promotes escort services or prostitution. 
+ 
+ 
+ 
+ Participate, directly or indirectly, in the setting up or development of a network that seeks to implement practices that are similar to sales by network or the recruitment of independent home salespeople for the purposes of creating a pyramid scheme or other similar practices; Duplicate, license, sublicense, publish, broadcast, transmit, distribute, perform, display, sell, rebrand, or otherwise transfer information found on Sourceable (excluding content posted by you) except as permitted in this Agreement, or as expressly authorized by Sourceable; Reverse engineer, decompile, disassemble, decipher or otherwise attempt to derive the source code for any underlying intellectual property used to provide the Services, or any part thereof; Utilize or copy information, content or any data you view on or obtain from Sourceable to provide any service that is competitive, in Sourceable&#8217;s sole discretion, with Sourceable; Imply or state, directly or indirectly, that you are affiliated with or endorsed by Sourceable unless you have entered into a written agreement with Sourceable (this includes, but is not limited to, representing yourself as an accredited Sourceable trainer if you have not been certified by Sourceable as such); Adapt, modify or create derivative works based on Sourceable or technology underlying the Services, or other Members&#8217; content, in whole or part, except as permitted under Sourceable&#8217;s developer program; Rent, lease, loan, trade, sell/re-sell access to Sourceable or any information therein, or the equivalent, in whole or part; Sell, sponsor, or otherwise monetize a Sourceable Group or any other service or functionality of Sourceable, without the express written permission of Sourceable; Deep-link to the Site for any purpose, (i.e. creating or posting a link to a Sourceable web page other than Sourceable&#8217;s home page) unless expressly authorized in writing by Sourceable or for the purpose of promoting your profile or a Group on Sourceable as set forth in the Brand Guidelines ; Remove any copyright, trademark or other proprietary rights notices contained in or on Sourceable, including those of both Sourceable and any of its licensors; Remove, cover or otherwise obscure any form of advertisement included on Sourceable; Collect, use, copy, or transfer any information, including, but not limited to, personally identifiable information obtained from Sourceable except as expressly permitted in this Agreement or as the owner of such information may expressly permit; Share information of non- Members without their express consent; Infringe or use Sourceable&#8217;s brand, logos or trademarks, including, without limitation, using the word &#8220;Sourceable&#8221; in any business name, email, or URL or including Sourceable&#8217;s trademarks and logos except as provided in the Brand Guidelines or as expressly permitted by Sourceable; Use manual or automated software, devices, scripts robots, other means or processes to access, &#8220;scrape,&#8221; &#8220;crawl&#8221; or &#8220;spider&#8221; any web pages or other services contained in the site; Use bots or other automated methods to access Sourceable, add or download contacts, send or redirect messages, or perform other similar activities through Sourceable, unless explicitly permitted by Sourceable; Access, via automated or manual means or processes, Sourceable for purposes of monitoring Sourceable availability, performance or functionality for any competitive purpose; Engage in &#8220;framing,&#8221; &#8220;mirroring,&#8221; or otherwise simulating the appearance or function of Sourceable&#8217;s website; Attempt to or actually access Sourceable by any means other than through the interfaces provided by Sourceable such as its mobile application or by navigating to http://www.sourceable.net using a web browser. This prohibition includes accessing or attempting to access Sourceable using any third-party service, including software-as-a-service platforms that aggregate access to multiple services, including Sourceable; Attempt to or actually override any security component included in or underlying Sourceable; Engage in any action that directly or indirectly interferes with the proper working of or places an unreasonable load on Sourceable&#8217;s infrastructure, including, but not limited to, sending unsolicited communications to other Members or Sourceable personnel, attempting to gain unauthorized access to Sourceable, or transmitting or activating computer viruses through or on Sourceable; and/or Interfere or disrupt or game Sourceable or the Services, including, but not limited to, any servers or networks connected to Sourceable, or Sourceable &#8216;s search algorithms. 
+ 11. Complaints Regarding Content Posted on the Sourceable Website If you think someone has stolen or misused your intellectual property on Sourceable, please check out our Copyright Policy. We built Sourceable to help you be a more successful professional, and to help professionals succeed. To achieving this purpose, we encourage our Members to share truthful and accurate information. We also respect the intellectual property rights of others. Accordingly, this Agreement requires that information posted by Members be accurate and not in violation of the intellectual property rights or other rights of third parties. To promote these objectives, Sourceable provides a process for submission of complaints concerning content posted by our Members. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 	
+ 
+ 
+ 	 
+ 
+				 
+			 
+		 
+	 
+ 
+ <!-- ======================================= 
+ ==end termsCondition Modal section== 
+ =======================================--> 
+ 
+		 
+			 
+ 
+ 
+ 		 
+ 	 
+ 	 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ -->
+ 
+ 	 Enter Username and password to log on: -->
+ Welcome back 
+ Login 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ Login Successfull 
+
+ 
+ 
+ 
+ Sign in! -->
+ 
+ 
+ 
+ 
+ 
+ 
+ 	 Forgot Password? 
+ 
+ 
+
+ 
+ 
+ 
+ Instant Access 
+ 	 
+ 
+ 
+
+
+
+ 
+ 
+ 
+ 
+ 
+				
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Back to news feed 
+							 Header Text will goes here -->
+ Advertise 
+ Open News in a new window -->
+ &times; 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Thank you for your interest in advertising on Sourceable. As a valued advertiser, we are committed to serving you. Please get in touch by completing the form below. Alternatively, our managing editor Andrew Heaton would be delighted to speak with you. Andrew can be contacted on (+61) 0437 595 848 or via email at andrew(dot)heaton(at)sourceable.net. We look forward to hearing from you. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Submit 
+ 
+ 
+ 
+ 
+ 
+ -->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<!-- ======================================= 
+ ==End ContactUs Modal section== 
+ =======================================--> 
+<!-- ======================================= 
+ ==Start Modal section== 
+ =======================================-->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<!-- ======================================= 
+ ==End Modal section== 
+ =======================================--> 
+<!-- ======================================= 
+ ==Start edit-profile Modal section== 
+ =======================================-->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<!-- ======================================= 
+ ==End edit-profile Modal section== 
+ =======================================--> 
+<!-- ======================================= 
+ ==Start right Modal section== 
+ =======================================-->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<!-- ======================================= 
+ ==End Modal section== 
+ =======================================--> 
+<!-- ======================================= 
+ ==Start view-profile Modal section== 
+ =======================================-->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<!-- ======================================= 
+ ==End view-profile Modal section== 
+ =======================================--> 
+<!-- ======================================= 
+ ==Start scroll top== 
+ =======================================-->
+ 
+<!-- =======================================
+ ==End scroll top== 
+ =======================================-->
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+	
+		//jQuery(".content-right").find('.overlay-bottom a h3').attr("data-toggle", ''); 
+		
+jQuery(document).ready(function(){
+ jQuery('.scrollbar-macosx').scrollbar();
+});
+ jQuery(document).ready(function () {
+	 
+ var weekdays = new Array(7);
+ weekdays[0] = "Sunday";
+ weekdays[1] = "Monday";
+ weekdays[2] = "Tuesday";
+ weekdays[3] = "Wednesday";
+ weekdays[4] = "Thursday";
+ weekdays[5] = "Friday";
+ weekdays[6] = "Saturday";
+ 	var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+ var d = new Date();
+ var month = d.getMonth();
+ var day = d.getDate();
+ var monthname = monthNames[month]; 
+ weekday_value = d.getDay();
+ var dayname = weekdays[weekday_value];
+ var output = dayname +' '+ monthname + ' ' + day + ', ' + d.getFullYear(); 
+ jQuery('.rflex_text').text(output);
+ 	jQuery("#overlaywhilepagelaod").hide();
+	jQuery(".content-right").find('.overlay-bottom a h3').attr("data-toggle", 'modal');
+	jQuery(".user_blog_post_load").find('.newContent a h5').attr("data-toggle", 'modal');
+ });
+ 
+ 
+ var menu = new Menu;
+ 
+ 
+ jQuery( document ).ready(function($) {
+ });
+		 jQuery('.submit_contact_load').on("click",function(){
+			 jQuery('.processing').show();
+	 jQuery('.not_processing').hide();
+			 setTimeout(function() {
+ jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+ }, 2000);
+ 		 });
+ 		jQuery('.desktop_ad .pasli').removeAttr('bid');
+		jQuery('.mobile_ad .pasli').removeAttr('bid');
+	 embedly('button', 'embed');
+	 var showpost = 1; 
+	 var bshowpost = 1;	
+	 var page = 1; // What page we are on.
+ var ppp = 9; // Post per page
+ isPreviousEventComplete = true, isDataAvailable = true;
+	 isPreviousEventComplete1 = true, isDataAvailable1 = true;
+	
+	/**************** mobile load post ********/
+ 	
+	jQuery(".load_more_post").click(function(){
+	jQuery('.loading_image13').show();
+	var errormsg = jQuery("#error_section").val();
+	var page_nohome =jQuery('.page_nohome').val();
+	if(errormsg == 'false'){
+			jQuery(".loader-icon").css("display", "block");
+		 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=more_post_ajax',
+ type: 'POST',
+			data: {'offset':(page * ppp),'ppp':ppp,'page_nohome': page_nohome},
+ success: function(posts){
+			if(!posts.error){
+ 			page++;
+			page_nohome++;
+			if(posts=='0'){
+	 	jQuery(".scrollbar-macosx1").append('End');
+			jQuery('.load_more_post').hide();
+			isPreviousEventComplete = false;
+			showpost=0;
+			}
+			else
+			{
+ 			jQuery('.page_nohome').val(page_nohome);
+ jQuery(".scrollbar-macosx1").append(posts); // CHANGE THIS!
+ isPreviousEventComplete = true;
+			}
+		 }
+		 else{
+			jQuery("#error_section").val(posts.error);
+ 		 jQuery(".loader-icon1").css("display", "none");
+		 }
+ jQuery(".loader-icon1").css("display", "none");
+			jQuery('.loading_image13').hide();
+ },
+ });
+		}
+	});
+ /*********** end post by click *******************/
+	
+	/***************** mobile load blog ***********/
+	jQuery(".load_more_blog").click(function(){
+		var errormsg = jQuery("#error_section1").val();
+			var page_nohome =jQuery('.page_nohome1').val();
+			jQuery('.loading_image134').show();
+			if(errormsg == 'false'){
+			jQuery(".loader-icon").css("display", "block");
+		 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=blog_post_ajax',
+ type: 'POST',
+			data: {'offset':(page * ppp),'ppp':ppp,'page_nohome': page_nohome},
+ success: function(posts){
+			jQuery('.loading_image134').hide();
+			if(!posts.error){
+ 			page++;
+			if(posts=='0'){
+				//jQuery(".blog-macosx").append('End');
+				jQuery('.load_more_blog').hide();
+				isPreviousEventComplete1 = false;
+			bshowpost=0;}
+			else
+			{
+			page_nohome++;
+			jQuery('.page_nohome1').val(page_nohome);
+ jQuery(".blog-macosx").append(posts); // CHANGE THIS!
+ isPreviousEventComplete1 = true;
+			}
+		 }
+		 else{
+			jQuery("#error_section").val(posts.error);
+ 		 jQuery(".loader-icon").css("display", "none");
+		 }
+ 
+	 },
+ });
+		}
+	}); 
+	/*********** end blog by click *******************/
+	
+//return false;
+/*********************** blog load more **************************/
+ 	/*********************** news and blog show according post date **************************/ 
+ jQuery('.current-date p').on("click",function(){
+		//alert('jfgh');
+		jQuery('.calendar').slideToggle();
+		});
+		
+		
+		 jQuery('.headerlogin').on("click",function(){
+			 var texttitle = jQuery(this).attr('data-title');
+			 jQuery('.close').trigger('click');
+			 if(texttitle=='Welcome Back to sourceable')
+			 {
+			 jQuery('.login_from_index h1').text(texttitle);
+			 jQuery('.modal-header').hide();
+			 }
+			 else
+			 {
+			 jQuery('.modal-header').show();
+			 }
+		 });
+ 
+ jQuery('.news_modal').on("click",function(){
+	var postid = jQuery(this).attr('data-id');
+	
+	var posttype = jQuery(this).attr('data-type');
+ jQuery('#myModal2 .modal-body').empty();
+	jQuery('#myModal2 .modal-body').css('margin-top','150px');
+		jQuery('.loading_image12').show();
+	//return false;
+	jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=single_popup_ajax',
+ type: 'POST',
+			data: {'postid':postid,'posttype':posttype},
+ success: function(posts){
+ 		jQuery('.modal-content.right').html(posts);
+				jQuery('.loading_image12').hide();
+				jQuery('.popupscrollcall').scrollbar();
+				 jQuery(".comment-froms").on('click',function(){
+				 jQuery(".comment_from_section").slideToggle();
+});
+ jQuery( '.cub_title_comment' ).on( 'click', 'a', function () {
+ jQuery(".comment_from_section").slideToggle();
+ });
+ /*-------------------------------load more text-----------------------------------*/
+ jQuery(".morelink").click(function(){
+ 	// alert(jQuery(this).parent(like-report));
+	jQuery(this).parents('.like-report').prev('.comment').children('.more').addClass("add_text");
+	 
+	jQuery(this).hide();
+	jQuery(this).next().show();
+	});
+	jQuery(".moreless").click(function(){
+	 //jQuery(this).parents('.author-box-content').children('.more').removeClass("add_text");
+	 //jQuery('.more').removeClass("add_text");
+	 jQuery(this).parents('.like-report').prev('.comment').children('.more').removeClass("add_text");
+	 jQuery(this).hide();
+	jQuery(this).prev().show();
+	 });
+	 		 
+ jQuery(".parent_menu").click(function(){
+		/// alert('menu ');
+	jQuery(this).parents('.embed').children(".sub_menu_top_section").slideToggle();
+	//jQuery(".sub_menu_top_section").slideToggle();
+	});
+	
+jQuery('.modal-body').click(function (e) {
+ if (!jQuery(e.target).hasClass("parent_menu")
+ && jQuery(e.target).parents(".embed").length === 0)
+ {
+		
+ jQuery(".sub_menu_top_section").hide('slow');
+ }
+	
+}); 	
+ /*----------------------------font size add class-----------------*/
+	jQuery(document).on('click', '#normal', function () {
+	 jQuery("body").removeClass("add_size");
+	 jQuery("body").addClass("less_size");
+	});
+	jQuery(document).on('click', '#sizeUp', function () {
+	 jQuery("body").removeClass("less_size");
+	jQuery("body").addClass("add_size");
+	});
+	
+	 jQuery('.view-profile-au').on("click",function(){
+	var memberid = jQuery(this).attr('data-member');
+	 
+	jQuery('.loading_image12').show();
+	 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=search_user_profile',
+ type: 'POST',
+			data: {'memberid':memberid},
+ success: function(posts){
+			jQuery('.author_detail').html(posts);
+			jQuery('.loading_image12').hide();
+			jQuery('.scrollbar-macosx').scrollbar();
+ 			
+	 /***************load more news ***********************/
+	
+	 var page = 1; // What page we are on.
+ var ppp = 10; // Post per page
+			
+ isPreviousEventComplete = true, isDataAvailable = true;
+ jQuery('.modaluser').on("scroll",function(){
+	 var container = jQuery(".modaluser") 
+ var box1_height = container.height(); 
+ var scroll_height = container[0].scrollHeight; 
+ var scroll_pos = container.scrollTop(); 
+	 if (box1_height + scroll_pos >= scroll_height-200) {
+			 if (isPreviousEventComplete && isDataAvailable) { 
+ 			 isPreviousEventComplete = false;
+			 var errormsg = jQuery(".error_section1").val();
+			 var page_nohome =jQuery('.page_nohome').val();
+						 var member_id = jQuery('#member_id').val();
+			var author_id = jQuery('#authorid').val();
+		 if(errormsg == 'false'){
+				jQuery('.loading_image13').show();
+			
+			jQuery(".loader-icon").css("display", "block");
+		 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=user_member_load_more',
+ type: 'POST',
+			data: {'offset':(page * ppp),'ppp':ppp,'page_nohome': page_nohome,'author_id':member_id},
+ success: function(posts){
+			//if(!posts.error){
+ 			page++;
+			page_nohome++;
+			if(jQuery.trim(posts)=='0')
+			{
+				//alert('testif');
+				jQuery(".user_member").append('End');
+					jQuery(".loading_image13").hide();
+				 isPreviousEventComplete = false;
+				//jQuery("#error_section").val(posts.error);
+			showblogsearch=0;
+		
+			}
+			else
+			{
+				//alert('testelse');
+			jQuery('.page_nohome').val(page_nohome);
+ jQuery(".user_member").append(posts); // CHANGE THIS!
+ isPreviousEventComplete = true;
+			}
+			
+		 // }
+		 // else{
+		 // }
+			jQuery('.loading_image13').hide();
+			}
+			});
+			//}
+			}
+			}
+	 }
+	 });
+				jQuery('.following_button').on("click",function(){
+				 var author_id = jQuery(this).attr('data-author');
+				 
+				 //var total_follow = jQuery(this).attr('data-follow');
+				 var obj = jQuery('.user_follow');
+				 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=hmk_contribute',
+ type: 'POST',
+		 	data: {'author_id':author_id},
+ success: function(posts){
+					jQuery('.folloing span').html(posts);
+					jQuery('.follower.btn').text('Follow');
+					jQuery('.follower.btn').removeClass('following_button');
+ 				 obj.parents('.author-channel-content').find('.follower').html(posts);
+					 
+ },
+ });
+			 });
+ },
+ });
+	 });
+ },
+ });
+});
+ jQuery('.blog_modal').on("click",function(){
+	var postid = jQuery(this).attr('data-id');
+	var posttype = jQuery(this).attr('data-type');
+	jQuery('#myModal .modal-body').empty();
+		jQuery('.loading_image12').show();
+	 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=single_popup_ajax',
+ type: 'POST',
+			data: {'postid':postid,'posttype':posttype},
+ success: function(posts){
+				jQuery('.modal-content.left').html(posts);
+				jQuery('.popupscrollcall').scrollbar();
+				jQuery('.loading_image12').hide();
+				jQuery(".comment-froms").on('click',function(){
+				 jQuery(".comment_from_section").slideToggle();
+});
+ jQuery( '.cub_title_comment' ).on( 'click', 'a', function () {
+	 
+ jQuery(".comment_from_section").slideToggle();
+ });
+			 /*-------------------------------load more text-----------------------------------*/
+ jQuery(".morelink").click(function(){
+	 
+	// alert(jQuery(this).parent(like-report));
+	jQuery(this).parents('.like-report').prev('.comment').children('.more').addClass("add_text");
+	 
+	jQuery(this).hide();
+	jQuery(this).next().show();
+	});
+	jQuery(".moreless").click(function(){
+	 //jQuery(this).parents('.author-box-content').children('.more').removeClass("add_text");
+	 //jQuery('.more').removeClass("add_text");
+	 jQuery(this).parents('.like-report').prev('.comment').children('.more').removeClass("add_text");
+	 jQuery(this).hide();
+	jQuery(this).prev().show();
+	 });
+	 		 
+ jQuery(".parent_menu").click(function(){
+		/// alert('menu ');
+	jQuery(this).parents('.embed').children(".sub_menu_top_section").slideToggle();
+	//jQuery(".sub_menu_top_section").slideToggle();
+	});
+	
+jQuery('.modal-body').click(function (e) {
+ if (!jQuery(e.target).hasClass("parent_menu")
+ && jQuery(e.target).parents(".embed").length === 0)
+ {
+ jQuery(".sub_menu_top_section").hide('slow');
+ }
+}); 	
+			 jQuery('.view-profile-au').on("click",function(){
+	var memberid = jQuery(this).attr('data-member');
+	 
+	jQuery('.loading_image12').show();
+	 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=search_user_profile',
+ type: 'POST',
+			data: {'memberid':memberid},
+ success: function(posts){
+			jQuery('.author_detail').html(posts);
+			jQuery('.loading_image12').hide();
+			jQuery('.scrollbar-macosx').scrollbar();
+ 			
+	 /***************load more news ***********************/
+	
+	 var page = 1; // What page we are on.
+ var ppp = 10; // Post per page
+			
+ isPreviousEventComplete = true, isDataAvailable = true;
+ jQuery('.modaluser').on("scroll",function(){
+	 var container = jQuery(".modaluser") 
+ var box1_height = container.height(); 
+ var scroll_height = container[0].scrollHeight; 
+ var scroll_pos = container.scrollTop(); 
+	 if (box1_height + scroll_pos >= scroll_height-200) {
+			 if (isPreviousEventComplete && isDataAvailable) { 
+ 			 isPreviousEventComplete = false;
+			 var errormsg = jQuery(".error_section1").val();
+			 var page_nohome =jQuery('.page_nohome').val();
+						 var member_id = jQuery('#member_id').val();
+			var author_id = jQuery('#authorid').val();
+		 if(errormsg == 'false'){
+				jQuery('.loading_image13').show();
+			
+			jQuery(".loader-icon").css("display", "block");
+		 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=user_member_load_more',
+ type: 'POST',
+			data: {'offset':(page * ppp),'ppp':ppp,'page_nohome': page_nohome,'author_id':member_id},
+ success: function(posts){
+			//if(!posts.error){
+ 			page++;
+			page_nohome++;
+			if(jQuery.trim(posts)=='0')
+			{
+				//alert('testif');
+				jQuery(".user_member").append('End');
+					jQuery(".loading_image13").hide();
+				 isPreviousEventComplete = false;
+				//jQuery("#error_section").val(posts.error);
+			showblogsearch=0;
+		
+			}
+			else
+			{
+				//alert('testelse');
+			jQuery('.page_nohome').val(page_nohome);
+ jQuery(".user_member").append(posts); // CHANGE THIS!
+ isPreviousEventComplete = true;
+			}
+			
+		 // }
+		 // else{
+		 // }
+			jQuery('.loading_image13').hide();
+			}
+			});
+			//}
+			}
+			}
+	 }
+	 });
+				jQuery('.following_button').on("click",function(){
+				 var author_id = jQuery(this).attr('data-author');
+				 
+				 //var total_follow = jQuery(this).attr('data-follow');
+				 var obj = jQuery('.user_follow');
+				 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=hmk_contribute',
+ type: 'POST',
+		 	data: {'author_id':author_id},
+ success: function(posts){
+					jQuery('.folloing span').html(posts);
+					jQuery('.follower.btn').text('Follow');
+					jQuery('.follower.btn').removeClass('following_button');
+ 				 obj.parents('.author-channel-content').find('.follower').html(posts);
+					 
+ },
+ });
+			 });
+ },
+ });
+	 });	
+ },
+ });
+});
+/*--------------edit profile -----------------------------*/
+jQuery( "#edit_profile" ).click(function(event) { 
+ if (event.preventDefault) {
+ event.preventDefault();
+ } else {
+ event.returnValue = false;
+ }
+	jQuery('.processing').show();
+	 jQuery('.not_processing').hide();
+	var fname = jQuery('#first-name').val();
+	var company = jQuery('#company').val();
+	var job_title = jQuery('#job-title').val();
+	var sector = jQuery('#sector').val();
+	var industry = jQuery('#industry').val();
+	var company_website = jQuery('#company_website').val();
+	var country = jQuery('#json-one').val();
+	var state = jQuery('#state').val();
+	var password = jQuery('#pass1').val();
+	var rep_password = jQuery('#pass2').val();
+	if(password!= rep_password){
+		jQuery('.pasword_match').css('display','block');
+		return false;}
+	var user_mail = jQuery('#user_mail').val();
+	var repeat_mail = jQuery('#repeat_mail').val();
+	if(repeat_mail!=user_mail){
+		jQuery('.email_match').css('display','block');
+		return false;}	
+	var city = jQuery('#city').val();
+	var job_start_date = jQuery('#job_start_date').val();
+	var comment_policy = jQuery('#comment_policy').val();
+	var australia_areas='';
+ jQuery ('.australia_areas input[type=checkbox]:checked').each(function(i){
+ if(australia_areas==''){
+	australia_areas = jQuery(this).val();
+	}else{
+	australia_areas = australia_areas + "," + jQuery(this).val();
+		 }});
+	var canada_areas='';
+	 jQuery ('.canada_areas input[type=checkbox]:checked').each(function(i){
+		 if(canada_areas==''){	
+		 	 canada_areas = jQuery(this).val();
+		 }else{
+ 	canada_areas = canada_areas + "," + jQuery(this).val();
+		 }});
+		if(fname=='' || company=='' || industry=='' || company_website=='' || country=='' || state=='' || city=='' || job_start_date=='' || job_title=='' || sector==''){
+			alert('Empty Fields');
+		return false;
+			}
+var ajax_url = cld_js_object.admin_ajax_url; 
+ data = {
+ action: 'update_user_profile',
+			 name: fname,
+			 company: company,
+			 job_title: job_title,
+			 sector: sector,
+			 industry: industry,
+			 company_website: company_website,
+			 country:country,
+			 state:state,
+			 city:city,
+			 job_start_date:job_start_date,
+			 comment_policy:comment_policy,
+			 australia:australia_areas,
+			 canada:canada_areas, 'user_pass': rep_password, 'user_mail': repeat_mail
+ };
+ jQuery.post( ajax_url, data, function(response) { 
+ if( response ) {
+		 jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+ if( response == '1' ) {
+			alert('Successfully Save Your Data'); 
+ } else {
+			alert('Oops Something Wrong'); 
+ } 
+ }
+ }, 'json'
+	);	});
+/*----------------------------------------------------------*/
+ /*-------------------------------load more text-----------------------------------*/
+ jQuery(".morelink").click(function(){
+	 
+	// alert(jQuery(this).parent(like-report));
+	jQuery(this).parents('.like-report').prev('.comment').children('.more').addClass("add_text");
+	 
+	jQuery(this).hide();
+	jQuery(this).next().show();
+	});
+	jQuery(".moreless").click(function(){
+	 //jQuery(this).parents('.author-box-content').children('.more').removeClass("add_text");
+	 //jQuery('.more').removeClass("add_text");
+	 jQuery(this).parents('.like-report').prev('.comment').children('.more').removeClass("add_text");
+	 jQuery(this).hide();
+	jQuery(this).prev().show();
+	 });
+	 		 
+ jQuery(".parent_menu").click(function(){
+		/// alert('menu ');
+	jQuery(this).parents('.embed').children(".sub_menu_top_section").slideToggle();
+	//jQuery(".sub_menu_top_section").slideToggle();
+	});
+	
+jQuery('.wrapper').click(function (e) {
+ if (!jQuery(e.target).hasClass("parent_menu")
+ && jQuery(e.target).parents(".embed").length === 0)
+ {
+		
+ jQuery(".sub_menu_top_section").hide('slow');
+ }
+	
+}); 
+ /*----------------------------font size add class-----------------*/ 
+	jQuery(document).on('click', '#normal', function () {
+	 jQuery("body").removeClass("add_size");
+	 jQuery("body").addClass("less_size");
+	});
+ 
+	jQuery(document).on('click', '#sizeUp', function () {
+		var moretext =jQuery('.more').height();
+	 jQuery("body").removeClass("less_size");
+	jQuery("body").addClass("add_size");
+	});
+	
+	/********************* search form value ******/
+	jQuery(".mobile_search .search-option .search_news label").click(function(){
+		var text =jQuery('.mobile_search .search-input').val();
+		window.location.href = 'https://sourceable.net/search//?text='+text;
+		return false;
+	});
+	
+	 jQuery(".mobile_search .search-option .search_member label").click(function(){
+		var text =jQuery('.mobile_search .search-input').val();
+		
+		window.location.href = 'https://sourceable.net/people//?text='+text;
+		return false;
+	 });
+	
+	jQuery(".desktop_search .search-option .search_news label").click(function(){
+		var text =jQuery('.desktop_search .search-input').val();
+		window.location.href = 'https://sourceable.net/search//?text='+text;
+		return false;
+	});
+	
+	 jQuery(".desktop_search .search-option .search_member label").click(function(){
+		var text =jQuery('.desktop_search .search-input').val();
+		
+		window.location.href = 'https://sourceable.net/people//?text='+text;
+		return false;
+	 });
+ jQuery(document).on('click', 'a.embed', function () { 
+ embedly.modal(); // This is the important line!
+ return false;
+ });
+ 	 
+/*************************** user edit profile ******************/
+ jQuery('.member-ids').on("click",function(){
+		 jQuery('.close').trigger('click');
+		 jQuery('.right1 .modal-body').empty();
+	 var memberid = jQuery(this).attr('data-user');
+	 jQuery('.loading_image12').show();
+	 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=user_edit_profile',
+ type: 'POST',
+			data: {'memberid':memberid},
+ success: function(posts){
+				jQuery('.member_result').html(posts);
+				jQuery('.loading_image12').hide();
+				
+				/***************load more news ***********************/
+	 var page = 1; // What page we are on.
+ var ppp = 10; // Post per page
+			var userload = 1; 
+ isPreviousEventComplete = true, isDataAvailable = true;
+ jQuery('.modaluser').on("scroll",function(){
+	 var container = jQuery(".modaluser") 
+ var box1_height = container.height(); 
+ var scroll_height = container[0].scrollHeight; 
+ var scroll_pos = container.scrollTop(); 
+	 if (box1_height + scroll_pos >= scroll_height-200 &&userload) {
+ 	 jQuery('.loading_image13').show();
+			 if (isPreviousEventComplete && isDataAvailable) {
+			 isPreviousEventComplete = false;
+			 var errormsg = jQuery("#error_section").val();
+			 var page_nohome =jQuery('.page_nohome').val();
+						 var member_id = jQuery('#member_id').val();
+			var author_id = jQuery('#authorid').val();
+		 if(errormsg == 'false'){
+			jQuery(".loader-icon").css("display", "block");
+		 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=user_member_load_more',
+ type: 'POST',
+			data: {'offset':(page * ppp),'ppp':ppp,'page_nohome': page_nohome,'author_id':member_id},
+ success: function(posts){
+				 jQuery('.loading_image13').hide();
+			if(!posts.error){
+ 			page++;
+			page_nohome++;
+			if(posts==0)
+			{
+			 jQuery(".user_member").append('End'); // CHANGE THIS!
+			 isPreviousEventComplete = false;
+			 userload=0;
+			}
+			else
+			{
+			jQuery('.page_nohome').val(page_nohome);
+ jQuery(".user_member").append(posts); // CHANGE THIS!
+ isPreviousEventComplete = true;
+			}
+		 }
+		 else{
+			jQuery("#error_section").val(posts.error);
+ 		 jQuery(".loader-icon1").css("display", "none");
+		 }
+			jQuery('.loading_image13').hide();
+			}
+			});
+			}
+			}
+	 }
+	 });
+			window.outerRepeater = jQuery('.outer-repeater').repeater({
+ isFirstItemUndeletable: true,
+ defaultValues: { 'text-input': 'outer-default' },
+ show: function () {
+ console.log('outer show');
+ jQuery(this).slideDown();
+ },
+ hide: function (deleteElement) {
+ console.log('outer delete');
+ jQuery(this).slideUp(deleteElement);
+ },
+ repeaters: [{
+ isFirstItemUndeletable: true,
+ selector: '.inner-repeater',
+ defaultValues: { 'inner-text-input': 'inner-default' },
+ show: function () {
+ console.log('inner show');
+ jQuery(this).slideDown();
+ },
+ hide: function (deleteElement) {
+ console.log('inner delete');
+ jQuery(this).slideUp(deleteElement);
+ }
+ }]
+ });
+		
+		jQuery('.bio-edit').on("click",function(){
+				jQuery('.edit_bio_field').toggle();
+				jQuery('.edit_bio_result').toggle();
+				return false;
+			});
+			jQuery('.exp_edit').on("click",function(){
+				jQuery('.exp_update').toggle();
+				jQuery('.exp_show').toggle();
+				return false;
+			});
+			jQuery('.edu_update').on("click",function(){
+				jQuery('.education_update').toggle();
+				jQuery('.edu_show').toggle();
+				return false;
+			});
+			var count = 1;
+			jQuery('.add_row').on("click",function(){
+			count++;
+			jQuery('#total_row').val(count);
+			});
+ 			jQuery('.update_exp').on("click",function(){
+				jQuery('.processing').show();
+	 jQuery('.not_processing').hide();
+			var form=jQuery("#updateform");
+ var total = jQuery('#total_row').val(count);
+			var ins = jQuery('input[name="outer-group[0][companylogo]"]').files;
+ 			 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=experience_update',
+ type: 'POST',
+			data: form.serialize(),
+ success: function(posts){
+			jQuery('.exp_show').html(posts);
+			jQuery('.exp_update').toggle();
+			jQuery('.exp_show').toggle();
+			jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+			}
+			});
+			return false;
+			});
+ 			jQuery('.update_edu').on("click",function(){
+				jQuery('.processing').show();
+	 jQuery('.not_processing').hide();
+			var form=jQuery("#educationform");
+ 			jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=education_update',
+ type: 'POST',
+			data: form.serialize(),
+ success: function(posts){
+				jQuery('.edu_show').html(posts);
+				jQuery('.education_update').toggle();
+				jQuery('.edu_show').toggle();
+				jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+			}
+			});
+			return false;
+			});
+			jQuery('.update_desc').on("click",function(){
+				jQuery('.processing').show();
+	 jQuery('.not_processing').hide();
+			var descrption = jQuery('#edit_descrp').val();
+ 			jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=user_descrption_update',
+ type: 'POST',
+			data: {'descrption':descrption},
+ success: function(posts){
+				jQuery('.edit_bio_result').html(posts);
+				jQuery('.edit_bio_field').toggle();
+				jQuery('.edit_bio_result').toggle();
+				jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+			}
+			});
+			return false;
+			});
+			
+			jQuery('.edit_profile_img').on("click",function(){
+				jQuery('.image_update').toggle();
+				jQuery('.member_result_edit').toggle();
+				return false;
+			});
+ jQuery('.update_social').on("click",function(){
+			
+			jQuery('.processing').show();
+	 jQuery('.not_processing').hide();
+	
+			var city = jQuery('#location_field').val();
+			
+			var google = jQuery('#google_plus').val();
+			
+			var twitter = jQuery('#twitter_field').val();
+			
+			var linked = jQuery('#linked_field').val();
+			
+			var facebook = jQuery('#facebook_field').val();
+			
+			var stumbleupon = jQuery('#stumbleupon_field').val();
+			
+ var FBurl = /^(http|https)\:\/\/www.facebook.com\/.*/i;
+			 var TWurl = /^(http|https)\:\/\/twitter.com\/.*/i;
+			 var gurl = /^(http|https)\:\/\/plus.google.com\/.*/i;
+			 var Lnurl = /^(http|https)\:\/\/www.linkedin.com\/.*/i;
+			 
+			 if(!facebook.match(FBurl) && facebook!='') {
+ jQuery('.facebook_error').show();
+			 jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+			 return false;
+ }
+ if(!twitter.match(TWurl) && twitter!='')
+			 {
+				 jQuery('.twiiter_error').show();
+					jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+					return false;
+			 }
+			 if(!google.match(gurl) && google!='')
+			 {
+				 jQuery('.google_error').show();
+					jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+					return false;
+			 }
+			 
+			 if(!linked.match(Lnurl) && linked!='')
+			 {
+				 jQuery('.linked_error').show();
+					jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+					return false;
+			 }
+ 
+			 			
+ 			jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=user_profile_img_update',
+ type: 'POST',
+			dataType: 'json',
+			data: {'city':city,'google':google,'twitter':twitter,'linked':linked,'facebook':facebook,'stumbleupon':stumbleupon},
+ success: function(posts){
+				jQuery('.city_').html(posts.city);
+				jQuery('.social-share').html(posts.social);
+				jQuery('.image_update').toggle();
+				jQuery('.member_result_edit').toggle();
+				jQuery('.processing').hide();
+	 jQuery('.not_processing').show();
+			}
+			});
+			return false;
+			});
+					 /****************************************** upload user avatar image ************************/
+			
+		jQuery("#uploadForm").on('submit',(function(e) {
+		e.preventDefault();
+		jQuery.ajax({
+ 	url: "https://sourceable.net/wp-admin/admin-ajax.php?action=user_avatar_image",
+			type: "POST",
+			data: new FormData(this),
+			contentType: false,
+ 	 cache: false,
+			processData:false,
+			success: function(data)
+		 {
+			jQuery("#targetLayer").html(data);
+		 },
+		 	error: function() 
+	 	{
+	 	} 	 
+	 });
+	}));
+			},
+ });
+	});
+ 	 
+jQuery("#logmein1").click(function(event) { 
+//alert('jhkhg');
+ if (event.preventDefault) {
+ event.preventDefault();
+ } else {
+ event.returnValue = false;
+ }
+	
+	var usrname = jQuery('#loginuser').val();
+ var password = jQuery('#loginpass').val();
+	var postid =	jQuery(this).data('postid');
+	//alert(postid);
+	jQuery('.loading_img_registrationpaage').css('display','inline-block');
+	
+	var ajax_url = cld_js_object.admin_ajax_url;
+	jQuery.ajax({
+		 type : "post",
+		 dataType : "json",
+		 url: ajax_url, 
+		 data : {action: 'user_login_popup', 'usrname': usrname, 'password': password},
+		 success: function(response) {	
+		 // alert(response);
+ 			 if(response==1)
+			 {
+			 window.location.href = postid;
+			 jQuery('.loading_img_registrationpaage').css('display','none');
+			 
+			 }
+			 else
+			 {
+				 jQuery('.loading_img_registrationpaage').css('display','none');
+			 alert('Username or password is not correct please try again');
+			 }
+			 }
+ 	 });	
+});
+	
+/**************end profile ***********************/
+ 
+ 
+ //(function(h,o,t,j,a,r){
+// h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+// h._hjSettings={hjid:644493,hjsv:5};
+// a=o.getElementsByTagName('head')[0];
+// r=o.createElement('script');r.async=1; 
+// r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+// a.appendChild(r);
+// })(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');	
+jQuery(document).ready(function(event) {
+			
+			if (event.preventDefault) {
+ 		event.preventDefault();
+ 		} else {
+ 		event.returnValue = false;
+ 		}
+	
+		 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=advertise_ajax',
+ type: 'POST',
+			data: {'offset':(page * ppp),'ppp':ppp},
+ success: function(posts){
+			jQuery(".advertize_byajax").append(posts); // CHANGE THIS!
+ isPreviousEventComplete = true;
+			
+			return false;
+ 
+ },
+ });
+	});
+	
+jQuery(document).ready(function(event) {
+			
+			if (event.preventDefault) {
+ 		event.preventDefault();
+ 		} else {
+ 		event.returnValue = false;
+ 		}
+	
+		 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=advertise_ajax',
+ type: 'POST',
+			data: {'offset':(page * ppp),'ppp':ppp},
+ success: function(posts){
+			jQuery(".advertize_byajax2").append(posts); // CHANGE THIS!
+ isPreviousEventComplete = true;
+			
+			return false;
+ 
+ },
+ });
+	});	
+ jQuery('.view-profile-au').on("click",function(){
+	var memberid = jQuery(this).attr('data-member');
+	jQuery('.loading_image12').show();
+	 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=search_user_profile',
+ type: 'POST',
+			data: {'memberid':memberid},
+ success: function(posts){
+			jQuery('.member_result').html(posts);
+			jQuery('.loading_image12').hide();
+ 			 jQuery('.scrollbar-macosx').scrollbar();
+			
+	/***************load more news ***********************/
+	
+	 var page = 1; // What page we are on.
+ var ppp = 10; // Post per page
+			
+ isPreviousEventComplete = true, isDataAvailable = true;
+ jQuery('.modaluser').on("scroll",function(){
+	 var container = jQuery(".modaluser") 
+ var box1_height = container.height(); 
+ var scroll_height = container[0].scrollHeight; 
+ var scroll_pos = container.scrollTop(); 
+	 if (box1_height + scroll_pos >= scroll_height-200) {
+			 if (isPreviousEventComplete && isDataAvailable) { 
+ 			 isPreviousEventComplete = false;
+			 var errormsg = jQuery(".error_section1").val();
+			 var page_nohome =jQuery('.page_nohome').val();
+						 var member_id = jQuery('#member_id').val();
+			var author_id = jQuery('#authorid').val();
+		 if(errormsg == 'false'){
+				jQuery('.loading_image13').show();
+			
+			jQuery(".loader-icon").css("display", "block");
+		 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=user_member_load_more',
+ type: 'POST',
+			data: {'offset':(page * ppp),'ppp':ppp,'page_nohome': page_nohome,'author_id':member_id},
+ success: function(posts){
+			//if(!posts.error){
+ 			page++;
+			page_nohome++;
+			if(jQuery.trim(posts)=='0')
+			{
+				//alert('testif');
+				jQuery(".user_member").append('End');
+					jQuery(".loading_image13").hide();
+				 isPreviousEventComplete = false;
+				//jQuery("#error_section").val(posts.error);
+			showblogsearch=0;
+		
+			}
+			else
+			{
+				//alert('testelse');
+			jQuery('.page_nohome').val(page_nohome);
+ jQuery(".user_member").append(posts); // CHANGE THIS!
+ isPreviousEventComplete = true;
+			}
+			
+		 // }
+		 // else{
+		 // }
+			jQuery('.loading_image13').hide();
+			}
+			});
+			//}
+			}
+			}
+	 }
+	 });
+				jQuery('.following_button').on("click",function(){
+				 var author_id = jQuery(this).attr('data-author');
+				 
+				 //var total_follow = jQuery(this).attr('data-follow');
+				 var obj = jQuery('.user_follow');
+				 jQuery.ajax({
+ url: 'https://sourceable.net/wp-admin/admin-ajax.php?action=hmk_contribute',
+ type: 'POST',
+		 	data: {'author_id':author_id},
+ success: function(posts){
+					jQuery('.folloing span').html(posts);
+					jQuery('.follower.btn').text('Follow');
+					jQuery('.follower.btn').removeClass('following_button');
+ 				 obj.parents('.author-channel-content').find('.follower').html(posts);
+					 
+ },
+ });
+			 });
+ },
+ });	});
+ 
+ 
+/* <![CDATA[ */
+var wpcf7 = {"apiSettings":{"root":"https:\/\/sourceable.net\/wp-json\/contact-form-7\/v1","namespace":"contact-form-7\/v1"}};
+/* ]]> */
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+/* <![CDATA[ */
+var wpcf7_recaptcha = {"sitekey":"6LfG0LwUAAAAAM1dMRam0RdOzh6PvkKMOctzviRi","actions":{"homepage":"homepage","contactform":"contactform"}};
+/* ]]> */
+ 
+ 
+ 
+ 
+ (function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a448f3ea1a2910cd',t:'MTc5MDk5OTExMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})(); 
+
+ 
