@@ -2018,6 +2018,11 @@ function settleFlags(flags, task) {
   out.grindOnly = Boolean(out.grinding && !/\b(drill\w*|cut\w*|cor(?:e|ing)|chas\w*|saw\w*)\b/i.test(task));
   // Grinding a floor for a coating is covered by the floor step, not the drilling step.
   off((out.floorGrind || out.floorCoating) && out.grindOnly, 'silicaDrill');
+  // Repairing cracks or trip hazards in an existing slab, path or driveway is a patch:
+  // no new slab is dug out, formed for edge beams or poured from trucks.
+  out.slabRepair = Boolean(/\b(repair\w*|patch\w*|crack\w*|trip hazards?|make good|spall\w*)\b/i.test(task) && !/\b(new (?:concrete )?(?:slabs?|driveways?|paths?|footpaths?|crossovers?)|pour\w* (?:a |the )?(?:new )?(?:slabs?|driveways?)|lay\w* (?:a |the )?(?:new )?(?:concrete )?(?:slabs?|driveways?|paths?))\b/i.test(task));
+  if (out.slabRepair && out.slabGround && !/\b(concrete trucks?|agitators?|pumps?|ready[- ]?mix\w*|pre-?mix\w*)\b/i.test(task)) out.smallPour = true;
+  out.repairNoReo = Boolean(out.slabRepair && !/\b(reo|reinforc\w*|mesh|dowel\w*|bars?)\b/i.test(task));
   out.smallPourOrKerb = Boolean(out.smallPour || out.kerbWork);
   // Sealing without removing tiles does not cut tiles.
   off(/\bwithout (?:removing|lifting|replacing) (?:the )?tiles\b/i.test(task), 'tileCut', 'tileLay');
@@ -2223,6 +2228,20 @@ function settleFlags(flags, task) {
   if (/\bkitchen\w*|restaurant|caf[eé]\b/i.test(task) && /\b(commercial (?:ranges?(?! ?hoods?)|cooktops?)|wok (?:burners?|stations?|ranges?)|cooking equipment)\b/i.test(task)) { out.kitchenEquipment = true; out.gasFitting = true; }
   if (/\bclean\w*\b[^.]{0,20}\band seal\w*\b|\bseal\w*\b[^.]{0,30}\b(sandstone|stone|brick)\b/i.test(task) && /\b(sandstone|stone|brick\w*|masonry|walls?)\b/i.test(task)) { out.pressureClean = true; out.sealing = true; }
   if (/\bcubby (?:house)?s?\b/i.test(task)) out.kitStructure = true;
+  // A roof over an existing deck or patio stands on its own posts, beams and rafters.
+  out.roofOverDeck = /\b(?:roofs?|roofing|covers?|awnings?)\b[^.]{0,30}\bover (?:an? |the )?(?:existing )?(?:timber |back |rear |front )?(?:decks?|patios?|courtyards?|alfresco\w*|outdoor areas?|terraces?)\b/i.test(task) && !/\b(re-?roof\w*|re-?sheet\w*|replac\w*|repair\w*)\b/i.test(task);
+  if (out.roofOverDeck) out.kitStructure = true;
+  out.wifiAp = /\b(?:wi-?fi|wireless)\b[^.]{0,20}\baccess points?\b|\bwireless access points?\b|\bwi-?fi (?:units?|points?|aps?)\b|\bwaps\b/i.test(task);
+  out.securityScreens = /\bsecurity (?:screens?|mesh|grilles?)\b/i.test(task);
+  out.bathTiling = /\b(bath\w*|ensuites?|showers?|wet areas?|laundr\w*|homes?|houses?|units?|apartments?)\b/i.test(task) || !/\b(commercial|kitchens?|cafe|caf\u00e9|restaurants?|shops?|offices?|schools?|hospitals?|splashbacks?)\b/i.test(task);
+  out.outdoorSeal = /\b(driveways?|paths?|footpaths?|pavers?|paving|decks?|patios?|courtyards?|pool surrounds?|external\w*|exterior|outside|facades?|(?:sandstone|stone|brick|bluestone|limestone) walls?)\b/i.test(task) && !/\b(inside|interior|indoors?|internal|rooms?|garages?|basements?|bathrooms?|showers?|kitchens?)\b/i.test(task);
+  out.screenWork = /\b(screens?|displays?|led panels?)\b/i.test(task);
+  out.signNoScreen = !out.screenWork;
+  out.cubbyHouse = /\b(cubby (?:house)?s?|cubbies|play ?houses?|cubbyhouses?)\b/i.test(task);
+  // A cubby house, or posts and rafters for a roof the roofing steps sheet, has no kit roof sheet lines.
+  out.noRoofSheets = Boolean(out.cubbyHouse || out.roofOverDeck);
+  // A free-standing structure at a school or park is not fixed to a house.
+  out.standaloneStructure = /\b(free[- ]?standing|schools?|kindergartens?|kindys?|childcare|parks?|playgrounds?|reserves?|ovals?)\b/i.test(task);
   if (/\b(?:repair\w*)\b[^.]{0,50}\bceilings?\b/i.test(task)) { out.ceilingRepair = true; out.plasterCeiling = true; }
   if (/\b(?:lay\w*|pour\w*)\b[^.]{0,20}\bpolished concrete\b/i.test(task)) { out.slabGround = true; out.slabPour = true; out.floorGrind = true; }
   if (/\b(fans?|flues?|ducts?|vents?)\b/i.test(task) && /\bthrough (?:a |the )?(?:house |the )?roof\b/i.test(task)) { out.roofPenetration = true; out.roofSpace = true; }
@@ -2309,8 +2328,13 @@ function settleFlags(flags, task) {
   if (out.membraneStrip) out.roofStrip = false;
   out.valleyRepair = /\bvalleys?\b/i.test(task) && /\b(roofs?|tiles?|tiled|iron|gutters?)\b/i.test(task);
   if (out.valleyRepair && out.tiledRoof) { out.tileCut = false; out.tileLay = false; }
+  out.tileStackElsewhere = Boolean(out.tiledRoof && (out.valleyRepair || out.skylight));
+  out.tileDrill = Boolean(!out.tileRoofStrip && /\b(drill\w*|brackets?|solar|antennas?|aerials?|anchors?|mounts?|conduits?|vents?|flues?|cowls?|fix\w* (?:to|into) (?:the )?(?:roof|rafters?|battens?))\b/i.test(task));
   out.rollerDoorRemove = Boolean(out.garageDoor && !out.doorSpring && /\b(remov\w*|replac\w*|take down|taking down)\b/i.test(task) && /\b(roller|garage|panel lift|sectional|shutter) doors?\b/i.test(task));
   if (out.garageDoor && !/\b(timber|frames?|jambs?|lintels?|joinery|architraves?)\b/i.test(task)) out.carpentryWork = false;
+  // A roller door or shutter on a warehouse or factory is too big to lift by hand, and its motor is wired in.
+  out.largeDoor = Boolean(/\b(warehouses?|factor(?:y|ies)|commercial|industrial|loading (?:docks?|bays?)|distribution centres?|depots?|workshops?)\b/i.test(task) && !/\bgarage doors?\b/i.test(task));
+  out.rollerDoorOnly = Boolean(out.garageDoor && !/\b(garage|sectional|panel lift|tilt) doors?\b/i.test(task));
   out.stairwellAccess = Boolean(out.painting && /\bstair ?wells?\b|\bstairs?\b/i.test(task));
   out.stoneSurface = /\b(sandstone|bluestone|limestone|natural stone|stone (?:walls?|facades?|walling|cladding))\b/i.test(task);
   out.sandstone = /\bsandstone\b/i.test(task);
@@ -2751,7 +2775,14 @@ function settleFlags(flags, task) {
   if (out.trenchNoPipes) out.noPipeLaying = true;
   out.roofLeak = /\b(?:repair\w*|fix\w*|find\w*)\b[^.]{0,30}\bleak\w*\b[^.]{0,20}\broofs?\b|\bleak\w* roofs?\b|\broof leaks?\b/i.test(task) && !/\b(valleys?|flashings?|membranes?|re-?roof\w*|replac\w* the roof|skylights?|gutters?)\b/i.test(task);
   if (out.roofLeak) { out.roof = false; out.roofStrip = false; out.roofAccess = true; }
-  if (/\broofs?\b/i.test(task) && /\b(?:re)?paint\w*\b/i.test(task)) out.paintExternal = true;
+  // A painted roof is reached from the roof; the walls are painted from their own access only where the task names them.
+  out.roofPaint = /\broofs?\b(?! spaces?)/i.test(task) && /\b(?:re)?paint\w*\b/i.test(task);
+  if (out.roofPaint) out.paintExternal = /\b(walls?|exterior|external\w*|outside|eaves|fascias?|cladding|weatherboards?|gutters?|downpipes?|whole (?:house|building|shed))\b|\bfrom (?:a |an |the )?(?:scissor lifts?|ewps?|elevating work platforms?|boom lifts?|cherry pickers?|scaffold\w*)\b/i.test(task);
+  out.roofOnlyPaint = Boolean(out.roofPaint && !out.paintExternal);
+  out.noSandFill = Boolean(out.abrasiveBlast || out.roofOnlyPaint);
+  out.gutterMesh = /\b(gutter guards?|gutter mesh|leaf guards?|ember guards?|bird (?:mesh|proofing))\b/i.test(task);
+  // Paint, gutter guard, a flashing or a valley iron goes up by hand line, not by crane.
+  out.lightRoofLoad = Boolean(out.roofAccess && /\b(paint\w*|gutter guards?|flashings?|valleys?|bird (?:spikes|proofing)|ridge caps?|cappings?|leak\w*|whirlybirds?|cowls?|gutters?|deck ?tites?|sealants?|silicone|antennas?|aerials?)\b/i.test(task) && !/\b(solar|hot water|tanks?|air ?condition\w*|plant|units?|condensers?|heat pumps?|sheets?|sheeting|re-?roof\w*|roofing|steel|beams?|skylights?|ventilators?|exhaust fans?|cranes?|ballast|batteries|inverters?)\b/i.test(task));
   out.pileJacket = /\bpile (?:jackets?|wraps?|encapsulat\w*)\b/i.test(task);
   if (out.pileJacket) { out.jettyRepair = false; out.workBoat = true; }
   out.ceilingHatch = /\b(access|ceiling|manhole) hatch(?:es)?\b/i.test(task) && /\b(install\w*|fit\w*|cut\w*|new)\b/i.test(task);
@@ -2768,6 +2799,11 @@ function settleFlags(flags, task) {
   if (out.sinkTap && !/\b(kitchen|bench\w*)\b/i.test(task)) out.sinkTap = false;
   out.shaftWall = /\bshaft walls?\b/i.test(task);
   out.fanCoil = /\bfan coil (?:units?)?\b|\bfcus?\b/i.test(task);
+  // A retaining wall of natural stone or boulders is placed stone by stone, not built from blocks.
+  // (A dry stone wall has its own step, which says how its stones are handled.)
+  out.stoneRetaining = Boolean(/\b(stone|rock|sandstone|bluestone|boulders?|granite|basalt)\b[^.]{0,20}\b(?:retaining )?walls?\b|\bboulder walls?\b/i.test(task) && !out.stoneWall && !out.timberOnlyWall);
+  out.blockWall = Boolean(!out.timberOnlyWall && !out.stoneRetaining);
+  out.sheetFenceOld = !/\bchain ?wire\b|\bchainmesh\b|\bcyclone (?:wire|fenc\w*)\b/i.test(task) && !/\b(?:replac\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |old )?(?:timber|paling) fenc/i.test(task);
   out.timberFenceOld = /\b(?:replac\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |old )?(?:timber|paling) fenc/i.test(task);
   if (out.rampBuild && /\bhandrails?\b/i.test(task) && !/\b(build\w*|construct\w*|new ramps?|concrete)\b/i.test(task) && !/\b(?:install\w*|build\w*)\b[^.]{0,20}\bramps?\b/i.test(task)) { out.rampBuild = false; out.fixtures = true; }
   out.deckBoardsOnly = Boolean(out.deckReplace && /\b(decking|deck boards?|floor\w*|boards)\b/i.test(task) && !/\b(posts?|frames?|bearers?|joists?|stumps?|footings?|piles?)\b/i.test(task));
@@ -3169,7 +3205,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     treePruning: /\b(prun\w*|lopp\w*|trim\w*) (?:the |back )?(?:\w+ )?(?:trees?|branches)\b/i.test(task),
     poolHeater: /\bpool (?:heaters?|heat pumps?|heating)\b/i.test(task),
     appliancePower: /\b(power|electrical|electric(?:ity)?|booster heaters?)\b/i.test(task) && /\b(dishwashers?|coffee machines?|ice machines?|ovens?|fryers?|appliances?|machines?|equipment)\b/i.test(task) || /\bice machines?\b/i.test(task),
-    smallMasonry: /\b(letterbox\w*|piers?|brick\w* up|block\w* up|fill\w* in|openings?|doorways?|repair\w*|patch\w*|barbecues?|bbqs?|steps|planter\w*)\b/i.test(task) && !/\b(storeys?|houses? (?:walls|brickwork)|face brick\w* (?:for|to) (?:a |the )?(?:new )?(?:\w+ )?(?:house|building)|fire walls?|block (?:walls?|fire walls?))\b/i.test(task),
+    smallMasonry: /\b(letterbox\w*|fences?|fence walls?|garden walls?|piers?|brick\w* up|block\w* up|fill\w* in|openings?|doorways?|repair\w*|patch\w*|barbecues?|bbqs?|steps|planter\w*)\b/i.test(task) && !/\b(storeys?|houses? (?:walls|brickwork)|face brick\w* (?:for|to) (?:a |the )?(?:new )?(?:\w+ )?(?:house|building)|fire walls?|block (?:walls?|fire walls?))\b/i.test(task),
     gantry: /\b(gantr(?:y|ies)|covered ways?)\b/i.test(task),
     hoarding: /\b(gantr(?:y|ies)|covered ways?|hoardings?)\b/i.test(task),
     substation: /\bsubstations?\b/i.test(task),
@@ -3413,7 +3449,7 @@ const TASK_ONLY = [
   [/^Adhesives, sealants and sealers are used/, /\b(adhesives?|glue\w*|seal\w*|silicone|mastic)\b/i],
   [/^Silica dust from cutting fibre cement/, /\b(fibre cement|fc sheet\w*|villaboard|cement sheet\w*|compressed sheet)\b/i],
   [/^Drop saws have a self-adjusting guard/, /\b(timber|saw\w*|cut\w*|mdf|joinery|fram\w*|skirting|architraves?|decking|cladding)\b/i],
-  [/^Nail guns/, /\b(nail\w*|fram\w*|timber|skirting|architraves?|joinery|decking|cladding|battens?|trusses?)\b/i],
+  [/^Nail guns?\b/, /\b(nail\w*|fram\w*|timber|skirting|architraves?|joinery|decking|cladding|battens?|trusses?)\b/i],
 ];
 
 // Library lines partly said by an answer the user gave: the repeated part is

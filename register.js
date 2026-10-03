@@ -78,7 +78,8 @@ const PLANT = [
   { item: 'Bar cutter or cut-off saw', pattern: /\b(bar cutters?|cut-off saws?)\b/i, inspection: `${PRESTART} Guards in place.`, licence: 'No' },
   { item: 'Trencher', pattern: /\btrenchers?\b/i, inspection: PRESTART, licence: 'No. Operator trained' },
   { item: 'Vacuum truck', pattern: /\bvacuum (?:trucks?|tankers?)\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
-  { item: 'Tripod and winch (confined space rescue)', pattern: /\btripod\w*\b/i, inspection: 'Inspected before each entry, within its inspection date.', licence: 'No. Users trained' },
+  { item: 'Davit or tripod (pump lifting)', pattern: /\bdavits?\b/i, inspection: 'Rated for the load, tagged and checked before each lift, with its winch or chain block working.', licence: 'No. Users trained' },
+  { item: 'Tripod and winch (confined space rescue)', pattern: /\btripod\w*\b/i, skipIf: /\b(?:davits? or (?:a )?tripods?|davit or tripod)\b/i, inspection: 'Inspected before each entry, within its inspection date.', licence: 'No. Users trained' },
   { item: 'Work punt or boat', pattern: /\b(work punts?|punts?|barges?|work boats?|(?<=from (?:a |the ))pontoons?)\b/i, skipIf: /\b(jack-?up barges?|barge (?:cappings?|flashings?|boards?|rolls?|tiles?|rafters?)|(?:fascias?|guttering|ridges?|valleys?),? (?:or |and )?barges?|barges?,? (?:and|or) (?:similar|fascias?|ridges?))\b/i, inspection: 'Moored and stable before use, with its safety equipment on board.', licence: 'Operated by a competent person holding any marine licence the state requires' },
   { item: 'Masonry or paver saw', pattern: /\b(?:brick|block|paver|masonry|wet|tile) saws?\b|\bsaw noise\b/i, inspection: `${PRESTART} Blade guard in place, water feed or extraction working, leads tagged.`, licence: 'No. Operator trained' },
   { item: 'Dozer', pattern: /\b(dozers?|bulldozers?)\b/i, inspection: PRESTART, licence: 'No. Operator competent (verification of competency)' },
@@ -294,7 +295,8 @@ const TASK_LICENCES = /^(Gas work licence|Electrical work licence|Plumbing and d
 
 function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], silicaText = hazardText) {
   const needed = QUALIFICATIONS.filter(([name, pattern]) => {
-    if (/^Confined space/.test(name)) return highRisk.some((item) => /confined space/i.test(item));
+    // Entry training is for work that enters the space, not work kept at its opening.
+    if (/^Confined space/.test(name)) return highRisk.some((item) => /confined space/i.test(item)) && !/\bis not entered\b/i.test(allText);
     if (/harness/.test(name)) return /\b(use (?:a )?(?:harness|travel restraint)|fall arrest is used|harness is attached|travel restraint is installed)\b/i.test(allText.replace(/\b(?:where|if|when)\b[^.]*/gi, ""));
     // Work done around another trade's fittings ("mask and cut in around electrical fittings") is not that trade's work.
     // Data, fibre and communications cabling is not electrical work.
@@ -514,7 +516,7 @@ function registersFor(draft, input = {}) {
   const maybe = plantFor(forkliftLines.join('\n')).filter((item) => /^(Forklift|Telehandler)$/.test(item.item) && !named.includes(item.item)).map((item) => ({ ...item, licence: whereUsed(item.licence) }));
   // A generator being installed or load tested is the building's plant, not a portable site generator.
   const buildingGenerator = steps.some((step) => ['Install generators and fuel systems', 'Run and load test generators'].includes(step.step));
-  const fromAccess = accessLines.flatMap((line) => { const found = plantFor(line); return found.length > 1 || /\sor\s/i.test(line) ? found.map((item) => ({ ...item, licence: whereUsed(item.licence) })) : found; });
+  const fromAccess = accessLines.flatMap((line) => { const found = plantFor(line); return found.length > 1 || /\sor\s|\bwhere one is used\b/i.test(line) ? found.map((item) => ({ ...item, licence: whereUsed(item.licence) })) : found; });
   const accessExtra = [];
   for (const item of fromAccess) if (!named.includes(item.item) && !maybe.some((other) => other.item === item.item) && !accessExtra.some((other) => other.item === item.item)) accessExtra.push(item);
   const plant = [...plantFor(`${useText}\n${usedInControls.join('\n')}`), ...maybe.filter((item) => !accessExtra.some((other) => other.item === item.item)), ...accessExtra].filter((item) => !(buildingGenerator && item.item === 'Generator')).map((item) => othersLicence(item, allText, task));
