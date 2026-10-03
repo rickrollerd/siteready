@@ -71,7 +71,7 @@ test('clinics and health centres do not crowd out the hospital (Bogangar)', asyn
 
 test('hospital and clinic names are sorted from the rest', () => {
   for (const name of ['Tweed Valley Hospital', 'Royal Brisbane and Women\'s Hospital', 'Bourke Multipurpose Service', 'Fiona Stanley Hospital', 'Mareeba Hospital', 'John Flynn Private Hospital']) assert.ok(places.isHospital(name), name);
-  for (const name of ['Cabarita Beach Health Centre', 'Pottsville Medical Centre', 'Sydney Day Hospital', 'Brisbane Rehabilitation Hospital', 'Gold Coast Veterinary Hospital', 'Hospital Pharmacy', 'Mater Mental Health Hospital', 'Tweed Hospital Car Park']) assert.ok(!places.isHospital(name), name);
+  for (const name of ['Cabarita Beach Health Centre', 'Pottsville Medical Centre', 'Sydney Day Hospital', 'Brisbane Rehabilitation Hospital', 'Gold Coast Veterinary Hospital', 'Hospital Pharmacy', 'Emergency Department Radiology - Royal Melbourne Hospital', 'Mater Mental Health Hospital', 'Tweed Hospital Car Park']) assert.ok(!places.isHospital(name), name);
   for (const name of ['SunDoctors Skin Cancer Clinics Pottsville', "Angela's Aesthetic Club", 'Coast Dental', 'Pottsville Physiotherapy', 'QScan Radiology']) assert.ok(!places.isGeneralClinic(name), name);
   for (const name of ['Pottsville Medical Centre', 'The Health Cove', 'Cabarita Beach Medical']) assert.ok(places.isGeneralClinic(name), name);
 });

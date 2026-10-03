@@ -8,7 +8,8 @@ test('everyday words one letter out are corrected; site words and brands are not
   for (const [typo, word] of [['truses', 'trusses'], ['resedential', 'residential'], ['amenites', 'amenities']]) {
     assert.equal(fixSpelling(`install ${typo} now`).text, `install ${word} now`);
   }
-  for (const word of ['bunnings', 'concretor', 'bondek', 'tamarind', 'screeding', 'acrows']) {
+  // Testing agent F-005: "nightshift" became "nightshirt". Run-together site words are left alone.
+  for (const word of ['bunnings', 'concretor', 'bondek', 'tamarind', 'screeding', 'acrows', 'nightshift', 'nightwork', 'laydown', 'hardstand']) {
     assert.equal(fixSpelling(`install ${word} now`).text, `install ${word} now`, word);
   }
 });
