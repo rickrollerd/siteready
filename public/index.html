@@ -351,52 +351,76 @@
         <button type="button" class="pick-button" id="site-save-current">Save these details as a site</button>
       </div>
       <div class="field">
-        <label for="principal">Principal contractor</label>
+        <label for="principal">Principal contractor
+          <span class="hint">The main contractor (MC) running the site.</span>
+        </label>
         <input id="principal" type="text" autocomplete="off" list="principal-list">
         <datalist id="principal-list"></datalist>
       </div>
       <div class="field">
-        <label for="company">Subcontractor</label>
+        <label for="company">Subcontractor
+          <span class="hint">Your company, doing this work.</span>
+        </label>
         <input id="company" type="text" autocomplete="organization">
       </div>
       <div class="field">
-        <label for="site-manager">Site manager</label>
+        <label for="site-manager">Site manager
+          <span class="hint">The main contractor's site manager, not your own supervisor.</span>
+        </label>
         <input id="site-manager" type="text" autocomplete="off">
       </div>
       <div class="field">
-        <label for="works-manager">Works manager</label>
+        <label for="works-manager">Works manager
+          <span class="hint">Your own person in charge of this work, such as your supervisor or foreman.</span>
+        </label>
         <input id="works-manager" type="text" autocomplete="name">
       </div>
       <div class="field">
-        <label for="works-manager-phone">Works manager phone</label>
+        <label for="works-manager-phone">Works manager phone
+          <span class="hint">Their mobile, so the site can reach them.</span>
+        </label>
         <input id="works-manager-phone" type="text" inputmode="tel" autocomplete="tel">
       </div>
       <div class="field">
-        <label for="compliance-responsible">Person who makes sure the SWMS is followed</label>
+        <label for="compliance-responsible">Person who makes sure the SWMS is followed
+          <span class="hint">Who makes sure the crew follows this SWMS on site, usually your supervisor or leading hand.</span>
+        </label>
         <input id="compliance-responsible" type="text" autocomplete="off">
       </div>
       <div class="field">
-        <label for="reviewer">Person who reviews the controls</label>
+        <label for="reviewer">Person who reviews the controls
+          <span class="hint">Who checks the controls are working and updates this SWMS if the job changes.</span>
+        </label>
         <input id="reviewer" type="text" autocomplete="off">
       </div>
       <div class="field">
-        <label for="review-date">Review date</label>
+        <label for="review-date">Review date
+          <span class="hint">When this SWMS is next checked. Often the end of the job, or sooner if the work changes.</span>
+        </label>
         <input id="review-date" type="date" autocomplete="off">
       </div>
       <div class="field">
-        <label for="scaffold-supervisor">Scaffold supervisor</label>
+        <label for="scaffold-supervisor">Scaffold supervisor
+          <span class="hint">The scaffolding company's supervisor who hands over and tags the scaffold.</span>
+        </label>
         <input id="scaffold-supervisor" type="text" autocomplete="off" placeholder="If not known yet, complete before submitting for approval">
       </div>
       <div class="field">
-        <label for="hospital">Hospital</label>
+        <label for="hospital">Hospital
+          <span class="hint">The nearest hospital with an emergency department.</span>
+        </label>
         <input id="hospital" type="text" autocomplete="off">
       </div>
       <div class="field">
-        <label for="first-aider">First aider</label>
+        <label for="first-aider">First aider
+          <span class="hint">A trained first aider on site, yours or the main contractor's.</span>
+        </label>
         <input id="first-aider" type="text" autocomplete="off">
       </div>
       <div class="field">
-        <label for="muster-point">Muster point</label>
+        <label for="muster-point">Muster point
+          <span class="hint">Where everyone meets in an emergency. Ask the main contractor.</span>
+        </label>
         <input id="muster-point" type="text" autocomplete="off" placeholder="If not known yet, complete before submitting for approval">
       </div>
       <div class="field">

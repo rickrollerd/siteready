@@ -1439,7 +1439,7 @@ function questionsFor(input) {
     fall: fallCheck(task, answer, state),
     required: withHarness(requiredFactsFor(task, answer, state), input.facts, ppeInUse(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state, input.ppe)),
     // (Site answers are read with the facts below.)
-    site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label })),
+    site: SITE_FIELDS.map((field) => ({ id: field.id, label: field.label, hint: field.hint })),
     // The PPE suggested for this task, for the user to change before the draft is prepared.
     ppe: ppeList(task, { ...(input.facts || {}), siteConditions: siteConditions(input.site) }, state),
     // The job steps found from the task's words, the ones in use, and the ones that cannot be taken off.

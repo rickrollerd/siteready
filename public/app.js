@@ -622,7 +622,8 @@ async function loadQuestions(options = {}) {
   `).join('');
   document.getElementById('site-block').innerHTML = (data.site || []).map((item) => `
     <div class="field">
-      <label for="site-${esc(item.id)}">${esc(item.label)}</label>
+      <label for="site-${esc(item.id)}">${esc(item.label)}${item.hint ? `<span class="hint">${esc(item.hint)}</span>` : ''}</label>
+      ${lastUsed(`site-${item.id}`) ? `<button type="button" class="pick-button" data-same-as-last="site-${esc(item.id)}">Same as last SWMS</button>` : ''}
       <textarea id="site-${esc(item.id)}" data-site="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
     </div>
   `).join('');
@@ -861,6 +862,52 @@ function render(draft, { movable = false } = {}) {
     <p class="meta">The Word file has two pages of lines for workers to sign.</p>`;
 }
 
+// Each box remembers what was typed in the last few SWMS on this device, and offers it
+// again. Nothing leaves the device. Storage can be off (private browsing): then nothing is kept.
+const MEMORY_KEY = 'siteready.fieldMemory';
+const REMEMBERED = ['site-manager', 'works-manager', 'works-manager-phone', 'compliance-responsible', 'reviewer', 'scaffold-supervisor', 'hospital', 'first-aider', 'muster-point', 'prepared-by'];
+function readMemory() {
+  try { return JSON.parse(localStorage.getItem(MEMORY_KEY) || '{}') || {}; } catch { return {}; }
+}
+function lastUsed(id) {
+  const list = readMemory()[id];
+  return Array.isArray(list) && list.length ? list[0] : '';
+}
+function rememberFields() {
+  const memory = readMemory();
+  const ids = [...REMEMBERED, ...[...document.querySelectorAll('[data-site]')].map((el) => el.id)];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    const value = el && el.value.trim();
+    if (!value || /^If not known yet/.test(value)) continue;
+    memory[id] = [value, ...(memory[id] || []).filter((item) => item !== value)].slice(0, 8);
+  }
+  try { localStorage.setItem(MEMORY_KEY, JSON.stringify(memory)); } catch { /* not kept */ }
+  offerRemembered();
+}
+function offerRemembered() {
+  const memory = readMemory();
+  for (const id of REMEMBERED) {
+    const el = document.getElementById(id);
+    if (!el || !(memory[id] || []).length) continue;
+    let list = document.getElementById(`memory-${id}`);
+    if (!list) {
+      list = document.createElement('datalist');
+      list.id = `memory-${id}`;
+      el.after(list);
+      el.setAttribute('list', list.id);
+    }
+    list.innerHTML = memory[id].map((value) => `<option value="${esc(value)}"></option>`).join('');
+  }
+}
+offerRemembered();
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-same-as-last]');
+  if (!button) return;
+  const el = document.getElementById(button.dataset.sameAsLast);
+  if (el) { el.value = lastUsed(button.dataset.sameAsLast); el.focus(); }
+});
+
 // Prepares the draft and shows it. Moving a job step prepares it again in the new order.
 let shownSteps = [];
 async function prepareDraft({ scroll = true } = {}) {
@@ -878,6 +925,7 @@ async function prepareDraft({ scroll = true } = {}) {
     if (!response.ok) throw new Error(data.message || 'The statement could not be prepared.');
     addPrincipals([JSON.parse(body).principalContractor], true);
     shownSteps = (data.jobSteps || []).map((step) => step.step);
+    rememberFields();
     resultEl.innerHTML = `<div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
     // Downloading and saving need an account; the account script adds those buttons.
