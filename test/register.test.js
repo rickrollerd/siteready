@@ -370,7 +370,7 @@ test('task bank round 5: everyday jobs that stood down now get their main steps'
   assert.ok(steps('Install a mobile phone antenna on a building rooftop.', 'communications', 'yes').includes('Install rooftop antennas and equipment'));
   assert.ok(steps('Reseal the expansion joints on a multi-storey car park deck.', 'waterproofing', 'yes').includes('Clean out and seal floor joints'));
   assert.ok(steps('Install new LED high bay lights in a warehouse from a scissor lift.', 'electrical', 'yes').includes('Install high bay light fittings'));
-  assert.ok(steps('Replace a section of collapsed stormwater pipe 1.2 m deep in a backyard.', 'plumbing').includes('Lay pipes, pits and conduits'));
+  assert.ok(steps('Replace a section of collapsed stormwater pipe 1.2 m deep in a backyard.', 'plumbing').includes('Lay pipes and pits'));
   const kerb = steps('Remove and replace a damaged section of a kerb and channel.', 'structure');
   assert.ok(kerb.indexOf('Saw cut concrete') < kerb.indexOf('Place concrete'));
 });
