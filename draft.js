@@ -106,7 +106,7 @@ const LIFT_WORK = /\b(install\w*[^.]{0,30}\blifts?\b(?!\s+pits?)|lift (?:shafts?
 const PASSIVE_FIRE = /\b(fire stopping|firestopping|fire[- ]stop\w*|passive fire|fire collars?|penetration seal\w*|fire[- ]rated (?:sealants?|mastics?|foams?|batts?)|(?:seal\w*|fill\w*)[^.]{0,30}\b(?:fire ?walls?|fire[- ]rated walls?))\b/i;
 const LANDSCAPE = /\b(landscap\w*|planters?|planting|plant\w* (?:\d+ )?(?:new )?trees|green roofs?|roof gardens?|plant (?:a |the )?hedges?|hedges?|mulch|turf|paving|pavers?|irrigation)\b/i;
 // Stadium work.
-const EARTHWORKS = /\b(cut and fill|bulk earthworks|earthworks|(?:bull)?dozers?|graders?|scrapers?|excavation works? for (?:the )?site|site excavation|backfill\w* and compact\w*|compact\w* (?:the )?subgrades?|grade to level|site cut)\b/i;
+const EARTHWORKS = /\b(cut and fill|bulk earthworks|earthworks|(?:bull)?dozers?|graders?|(?<!belt )(?<!conveyor )scrapers?|excavation works? for (?:the )?site|site excavation|backfill\w* and compact\w*|compact\w* (?:the )?subgrades?|grade to level|site cut)\b/i;
 const SPORTS_LIGHTING = /\b(sports lighting|floodlights?|light towers?|lighting (?:towers?|frames?|rigs?)|big screens?|video screens?|led screens?(?! on (?:a |the )?(?:building|facade|shop))|scoreboards?)\b/i;
 const PRECAST_TIER = /\b(seating tiers?|tiers?|rakers?|seating units?|stadia units?|precast planks?|stair units?)\b/i;
 // Hospital work.
@@ -469,7 +469,7 @@ function highRiskMatches(raw, answer, state) {
     confined: mentioned(text, /\bconfined space\b/i),
     trench: deepExcavation(text),
     // Explosive-powered tools are not the use of explosives (Safe Work Australia SWMS guidance).
-    explosives: mentioned(String(text || '').replace(/\bexplosive[- ]?(?:powered |power |actuated )?(?:tools?|nail guns?|fixing tools?)\b/gi, ' '), /\bexplosives?\b/i),
+    explosives: mentioned(String(text || '').replace(/\bexplosive[- ]?(?:powered |power |actuated )?(?:tools?|nail guns?|fixing tools?)\b/gi, ' '), /\b(explosives?|drill\w* and blast\w*|blast (?:holes?|patterns?)|shot ?fir\w*|charg\w* (?:the )?(?:blast )?holes?)\b/i),
     gas: mentioned(text, /\b(gas mains?|pressuri[sz]ed gas|(?:existing |live |natural |reticulated )?gas (?:lines?|pipe\w*|supply|services?|meters?)|connect\w*[^.]{0,30}\bgas\b)\b/i),
     chemicalLine: mentioned(text, /\b(fuel line|refrigerant line|chemical line)\b/i),
     electrical: mentioned(text, /\b(connect\w*[^.]{0,40}\b(?:to|into) (?:the )?(?:electricity )?supply|solar (?:panels?|pv|photovoltaic|arrays?|systems?)|photovoltaic|inverters?|energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live (?:electrical|parts?|switchboards?|circuits?)|(?:energised|energized|live) electrical (?:installations?|services?))\b/i),
@@ -1502,7 +1502,7 @@ const MAIN_WORK = [
   [/\b(epoxy (?:coat\w*|floor\w*|seal\w*)|(?:apply|applying|seal\w*|coat\w*) [^.]{0,30}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(epoxy|floor coatings?)\b/i],
   [/\b(grind\w* [^.]{0,20}\bfloors?|floor grind\w*)\b/i, 'floor grinding', /\bgrind floors\b/i],
   [/\bhydro[- ]?demoli\w*\b/i, 'hydro-demolition', /\bhydro/i],
-  [/\b(drill\w* and blast\w*|blasting|explosives?|shotfir\w*)\b/i, 'blasting with explosives (licensed shotfirer work)', /\bshotfir/i],
+  [/\b(drill\w* and blast\w*|blasting|explosives?|shotfir\w*)\b/i, 'blasting with explosives (licensed shotfirer work)', /\b(shotfir\w*|Drill, charge and fire the blast)\b/i],
   [/^(?![^]*\b(?:temporary|builder'?s?) (?:power )?poles?\b)[^]*\b(light(?:ing)? poles?|poles?\b[^.]{0,30}\b(?:stand|erect|install)\w*|(?:stand|erect|install)\w* [^.]{0,30}\bpoles?)\b/i, 'pole erection', /\b(poles?|Install security devices)\b/i],
   [/\bcore fill\w*\b/i, 'core filling', /\bcore fill\b/i],
   [/\b(sewer mains?|council mains?|connect\w*[^.]{0,30}\bsewer)\b/i, 'connection to the live sewer', /\bConnect to the live sewer\b/],
@@ -1875,6 +1875,8 @@ function kindsWithSteps(flags) {
 
 function suggestedFlags(task, facts, state) {
   const flags = limitToTrades(workFlags(task, facts, state.ownCrane), state.trades, KIND_IDS);
+  // A conveyor's loader or treatment plant is not earthmoving plant.
+  if (flags.conveyorMaintain && !/\b(excavat\w*|dig\w*|trench\w*|earthworks?|bulldoz\w*|front[- ]end loaders?|wheel loaders?)\b/i.test(task)) { flags.earthworks = false; flags.sitePlant = false; }
   // What the site answers say about power lines and access brings their steps.
   const site = String((facts && facts.siteConditions) || '');
   if (site) {
@@ -2642,6 +2644,8 @@ function settleFlags(flags, task) {
   if (T(/\bmanholes?\b/i) && !T(/\b(pipes?|sewer (?:mains?|lines?)|connect\w*)\b/i)) out.trenchNoPipes = true;
   out.bridgeBearings = T(/\bbearings?\b/i) && T(/\b(bridges?|decks?|girders?)\b/i);
   if (T(/\b(conveyors?|silos?|pipe racks?|crane beams?|automated storage|asrs|stacker cranes?)\b/i) && T(/\b(steel|install\w*|erect\w*)\b/i) && !T(/\bbaggage\b/i)) { out.steelErect = true; out.steelLift = true; }
+  out.blasting = T(/\b(drill\w* and blast\w*|blast(?:ing)? (?:holes?|faces?|patterns?)|shot ?fir\w*|charg\w* (?:the )?(?:blast )?holes?|explosives?)\b/i);
+  out.conveyorMaintain = T(/\bconveyors?\b/i) && T(/\b(idlers?|rollers?|pulleys?|belts?|splic\w*|scrapers?|skirt\w*|maintain\w*|maintenance|repair\w*|replac\w*|chang\w*)\b/i) && !T(/\b(install\w*|new)\b/i) && !out.concreteConveyor;
   out.conveyorInstall = T(/\b(baggage handling|conveyors?)\b/i) && T(/\b(install\w*|new)\b/i) && !T(/\bsteel\b/i);
   if (T(/\b(?:install\w*|deliver\w*|lift\w*|set\w*)\b[^.]{0,30}\b(?:electrical )?(?:switch ?rooms?|e-?houses?|substation (?:modules?|buildings?))\b/i) && !T(/\bto (?:the )?switch ?rooms?\b/i)) { out.plantLift = true; out.craneInterface = true; }
   if (T(/\b(bunded|tank farms?|reservoirs?|concrete tanks?)\b/i) && T(/\b(build\w*|construct\w*|pour\w*)\b/i)) { out.formwork = true; out.reo = true; out.concrete = true; }

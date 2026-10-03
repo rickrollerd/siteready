@@ -1974,6 +1974,37 @@ const ACTIVITIES = [
     }],
   },
   {
+    when: 'conveyorMaintain',
+    steps: [{
+      step: 'Isolate the conveyor and replace parts',
+      hazards: ['Entanglement or crushing at nip points, pulleys and idlers if the conveyor starts.', 'Stored energy in belt tension, take-ups and counterweights.', 'Material falling from the belt or chutes.', 'Strain lifting idlers and rollers.', 'A fall from a conveyor walkway or gantry.'],
+      controls: [
+        src('Each worker isolates, locks and tags every energy source to the conveyor, stored energy (belt tension, take-ups, counterweights, gravity) is released or restrained, and a start attempt from the controls proves it is isolated before anyone reaches in.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
+        'The site\'s isolation and permit procedure applies, and the plant owner agrees when the conveyor can restart.',
+        'Material on the belt and in chutes above the work is cleared or secured first.',
+        'Heavy or awkward idlers and rollers are lifted with mechanical aids, and hands stay out of nip points.',
+        'Work is done from walkways and platforms with handrails. Where there are none, the fall controls in this SWMS apply.',
+        src('Guards taken off for the work are refitted and checked before the isolation is removed.', WHS('s 208')),
+        src('Emergency stops and pull-wire switches along the conveyor are tested before it runs again.', WHS('s 211')),
+      ],
+    }],
+  },
+  {
+    when: 'blasting',
+    steps: [{
+      step: 'Drill, charge and fire the blast',
+      hazards: ['Flyrock or an unplanned explosion injures a person.', 'A misfire is left in the face or the muckpile.', 'Blast fumes and dust.', 'Rock falls from the face during drilling, scaling and mucking out.', 'Noise and vibration.'],
+      controls: [
+        'The blast is designed, and explosives are handled, charged and fired, only by a shotfirer holding the licence the state\'s explosives law requires, under the site\'s blast management plan. The shotfirer\'s own SWMS covers the charging and firing.',
+        'Explosives are stored, carried and kept on site only as the state\'s explosives law and the blast plan allow, away from heat, flame and sparks.',
+        'Before firing, the exclusion zone in the blast plan is cleared and guarded, the warning signals are given, and nobody returns until the shotfirer gives the all clear.',
+        'After firing, the face is ventilated and the fumes cleared before anyone goes back in. The shotfirer checks for misfires, and only the shotfirer deals with a misfire, as the blast plan sets out.',
+        'Loose rock is scaled and a competent person checks the face before drilling or mucking out starts again.',
+        'Drilling uses water or dust extraction, and workers wear hearing protection.',
+      ],
+    }],
+  },
+  {
     when: 'contaminatedSpoil',
     steps: [{
       step: 'Handle contaminated or unknown material in the spoil',
