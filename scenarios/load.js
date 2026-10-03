@@ -23,6 +23,8 @@ const projectAt = process.argv.indexOf('--project');
 const project = projectAt > 0 ? JSON.parse(fs.readFileSync(path.resolve(process.argv[projectAt + 1]), 'utf8')) : null;
 const scenarios = project ? project.swms : JSON.parse(fs.readFileSync(path.join(__dirname, 'scenarios.json'), 'utf8'));
 const states = project ? STATES.filter((state) => state.id === project.state) : STATES;
+// --no-word skips the Word file, which needs a signed-in account on a server with a database.
+const noWord = process.argv.includes('--no-word');
 const jobs = states.flatMap((state) => scenarios.map((scenario) => ({ state, scenario })));
 
 const timings = { questions: [], draft: [], docx: [] };
@@ -74,8 +76,10 @@ async function user(number, until) {
         const problem = compare(`${name} ${label}`, result.data, prepareDraft(body));
         if (problem) failures.push(problem);
       }
-      const word = await call('/api/draft.docx', { ...input, facts: scenario.facts, reviewConfirmed: true, reviewedBy: 'Load test' }, address);
-      if (word.status !== 200 || word.data.subarray(0, 2).toString() !== 'PK') throw new Error(`Word file answered ${word.status}`);
+      if (!noWord) {
+        const word = await call('/api/draft.docx', { ...input, facts: scenario.facts, reviewConfirmed: true, reviewedBy: 'Load test' }, address);
+        if (word.status !== 200 || word.data.subarray(0, 2).toString() !== 'PK') throw new Error(`Word file answered ${word.status}`);
+      }
       seen.add(name);
     } catch (error) {
       errors += 1;
