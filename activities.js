@@ -1980,7 +1980,11 @@ const ACTIVITIES = [
       hazards: ['Exposure to contaminated soil, gases or asbestos.', 'Gases collecting in the excavation.'],
       controls: [
         src('Workers are trained to recognise buried contaminants and what action to take.', QCODE('Excavation work', 's 2.1, Table 2')),
+        'Before digging, the site contamination report or the environmental consultant\'s advice sets out what is in the ground, the air monitoring and PPE needed, and how the soil is handled. Without one, the soil is treated as contaminated until tested.',
         'If buried contaminants are found, stop, keep clear, and report.',
+        'Contaminated soil is kept in its own covered stockpile, sampled and classified before it leaves site, and carted only to a facility licensed to take it, with the waste tracked as the state environment protection authority requires.',
+        'Dust is kept down with water sprays. Workers wear the gloves, coveralls and respiratory protection the assessment sets, wash hands and face before eating, drinking or smoking, and leave dirty clothing and boots on site.',
+        'Plant and trucks are cleaned before leaving the contaminated area so soil is not tracked onto roads.',
         src('Manage exposure to airborne contaminants in the excavation, with gas monitors and mechanical ventilation where needed.', `${WHS('s 305')}; ${MODEL('Excavation work', 's 4, s 4.6')}`),
         src('If asbestos is found or suspected, stop and keep clear. A competent person identifies it, or it is assumed to be asbestos, and it is removed by a licensed asbestos removalist unless the regulation allows otherwise.', WHS('s 422, s 458')),
         src('Plan haul routes and disposal for spoil.', MODEL('Excavation work', 's 2.2')),
