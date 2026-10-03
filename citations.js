@@ -134,6 +134,19 @@ const VIC_TEXT = [
 const ACT_TEXT = [
   [/^Asbestos is removed by a licensed asbestos removalist, except for 10 m2 or less of non-friable asbestos removed under the regulation\.$/, 'Asbestos is removed only by a licensed asbestos removalist, whatever the amount.'],
 ];
+// The ACT has its own crystalline silica rules (Work Health and Safety Regulation 2011 (ACT)
+// chapter 7A): no written high risk assessment or silica risk control plan, but set controls
+// for processing with a power tool (r 418B to 418CAA) and an awareness course for high risk
+// crystalline silica work (r 418D).
+const ACT_SILICA_CONTROLS = 'a continuous water feed is used with at least one other crystalline silica control, such as a Class H vacuum on the tool or isolating the area. For material other than stone-substitute material, where water cannot reasonably be used, the next control the ACT crystalline silica rules allow is used.';
+const ACT_SILICA_TRAINING = 'Workers who carry out high risk crystalline silica work have completed the crystalline silica awareness course the ACT regulator declares.';
+function actSilica(text) {
+  return text
+    .replace(/^Where (?:the processing|it) is high risk[:,].*$/s, ACT_SILICA_TRAINING)
+    .replace(/Assess in writing before (\w+(?: or \w+)?) whether (?:the processing|it) is high risk[^.]*\.(?: The assessment does not count[^.]*\.)?(?: If it cannot be determined, treat it as [^.]*\.)?(?: (?:If it is|Where it is high risk), [^.]*\.)?/g, (all, when) => `Before ${when === 'starting' ? 'starting' : when}, ${ACT_SILICA_CONTROLS}${/silica risk control plan/.test(all) ? ` ${ACT_SILICA_TRAINING}` : ''}`)
+    .replace(/Before ([^,.]+), assess in writing whether the processing is high risk\.(?: The assessment does not count[^.]*\.)?(?: If it cannot be determined, treat it as [^.]*\.)?/g, (all, when) => `Before ${when}, ${ACT_SILICA_CONTROLS}`)
+    .replace(/,? and the written silica assessment covers the [^.]*\./g, '.');
+}
 const VIC_SILICA = /\b(processing is high risk|high risk processing|VET accredited or regulator approved)\b/i;
 
 function localText(text, stateId) {
@@ -152,8 +165,11 @@ function localText(text, stateId) {
   }
   if (stateId === 'act') {
     for (const [pattern, replacement] of ACT_TEXT) if (pattern.test(out)) { out = replacement; done = true; break; }
+    out = actSilica(out);
   }
   if (!done) for (const [pattern, replacement] of OUTSIDE_QLD) if (pattern.test(out)) { if (replacement === null) return null; out = replacement; break; }
+  // Reporting silica air monitoring results to the regulator within 14 days is Queensland's rule (s 529CE).
+  out = out.replace(/ ?For high risk processing, (?:air monitoring )?results (?:over|above) the exposure standard (?:go to|are reported to) the regulator within 14 days\./g, ' Results above the exposure standard are reported to the regulator where the state\'s rules require it.').trim();
   out = out.replace(/31 December 1989/g, '31 December 2003').replace(/ Qld has no piling rig licence\./g, '')
     .replace(/\bthe electricity entity's\b/g, 'the network operator\'s').replace(/\bthe distribution entity\b/g, 'the network operator').replace(/\bdistribution entity\b/g, 'network operator');
   // Queensland's 26 degree rule for mesh on sloping edge protection (s 306E) is stated generally elsewhere.
