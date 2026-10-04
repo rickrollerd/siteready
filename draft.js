@@ -116,7 +116,7 @@ const GLAZING_WORK = /\b(glass balustrades?|balustrades?|shower screens?|interna
 const ENG_STONE_INSTALLED = /\b(remov\w*|repair\w*|modif\w*|dispos\w*|existing|already installed|installed engineered stone|demolish\w*|strip\w*)\b/i;
 const STONE_WORK = /\b(benchtops?|stone (?:slabs?|vanit\w*)|splashbacks?)\b/i;
 
-const FIRE_SERVICES = /\b(sprinklers?|hydrants?|fire services?|fire mains?|fire pumps?|fire pipework|fire hose reels?)\b/i;
+const FIRE_SERVICES = /\b(sprinklers?|hydrants?|fire services?|fire mains?|fire pump(?:s| ?sets?)?|fire pipework|fire hose reels?)\b/i;
 const LIFT_WORK = /\b(install\w*[^.]{0,30}\blifts?\b(?!\s+pits?)|lift (?:shafts?|wells?|cars?|rails?|motor rooms?|machines?|landing doors?)|car tops?|landing doors?)\b/i;
 const PASSIVE_FIRE = /\b(fire stopping|firestopping|fire[- ]stop\w*|passive fire|fire collars?|penetration seal\w*|fire[- ]rated (?:sealants?|mastics?|foams?|batts?)|(?:seal\w*|fill\w*)[^.]{0,30}\b(?:fire ?walls?|fire[- ]rated walls?))\b/i;
 const LANDSCAPE = /\b(landscap\w*|planters?|planting|plant\w* (?:\d+ )?(?:new )?trees|green roofs?|roof gardens?|plant (?:a |the )?hedges?|hedges?|mulch|turf|paving|pavers?|irrigation)\b/i;
@@ -2527,6 +2527,11 @@ function settleFlags(flags, task) {
   out.crackStitch = /\bhelical (?:ties?|bars?)\b|\bcrack stitch\w*/i.test(task);
   if (out.crackStitch) { out.masonryLay = false; out.masonryMortar = false; }
   out.septicRemove = /\bseptic\b/i.test(task) && /\b(replac\w*|remov\w*|old|decommission\w*)\b/i.test(task);
+  // A septic tank pumped out and filled in is decommissioned, not fitted with a pump-out line.
+  if (/\bseptic\b/i.test(task) && /\bpump\w*[- ]?out\b/i.test(task) && /\b(fill\w*|backfill\w*)\b/i.test(task)) {
+    out.septicRemove = true;
+    if (!/\bpump[- ]?out (?:lines?|points?|pipes?)\b/i.test(task)) out.pumpOutLine = false;
+  }
   if (out.septicRemove && /\b(replac\w*|new|install\w*)\b/i.test(task)) out.tankPlace = true;
   out.flashingReplace = /\bflashings?\b/i.test(task) && /\b(replac\w*|repair\w*|leak\w*|re-?flash\w*)\b/i.test(task) && !/\b(re-?roof\w*|roof sheet\w*|new roof|roofing|sheeting|standing seam|cappings?)\b/i.test(task);
   if (out.flashingReplace) { out.roof = false; out.roofStrip = false; out.roofAccess = true; }
@@ -2643,6 +2648,8 @@ function settleFlags(flags, task) {
   if (out.steelErect && /\btrusses\b/i.test(task)) out.steelLift = true;
   if (out.ceilingFans && /\b(houses?|homes?|bedrooms?|units?|dwellings?)\b/i.test(task)) out.roofSpace = true;
   out.motorOnly = Boolean(out.garageDoor && /\b(motors?|openers?|remotes?)\b/i.test(task) && !/\b(new (?:(?:garage|roller|panel lift|sectional) )*doors?(?! (?:motors?|openers?|remotes?))|replac\w* (?:the |a )?(?:(?:garage|roller|panel lift|sectional) )*doors?(?! (?:motors?|openers?|remotes?))|install\w* (?:a |the )?(?:new )?(?:(?:garage|roller|panel lift|sectional) )+doors?(?! (?:motors?|openers?|remotes?)))\b/i.test(task));
+  // Replacing a door motor takes down no door, unless the door itself is named as removed.
+  if (out.motorOnly && !/\b(?:remov\w*|take down|taking down)\b[^.]{0,30}\bdoors?\b(?! (?:motors?|openers?|remotes?))/i.test(task)) out.rollerDoorRemove = false;
   out.noDoorLift = Boolean(out.doorSpring || out.motorOnly);
   out.outsideLights = Boolean(out.fitOff && /\b(outside|external\w*|outdoor|exterior|security lighting)\b/i.test(task));
   out.sinkTap = /\b(?:install\w*|replac\w*|fit\w*|new)\b[^.]{0,20}\b(?:kitchen |laundry )?(?:sinks?|tubs?)\b/i.test(task);
@@ -2858,7 +2865,8 @@ function settleFlags(flags, task) {
   if (T(/\b(bunded|tank farms?|reservoirs?|concrete tanks?)\b/i) && T(/\b(build\w*|construct\w*|pour\w*)\b/i)) { out.formwork = true; out.reo = true; out.concrete = true; }
   if (T(/\b(process pipework|pipe racks?|pipework on (?:a |the )?(?:pipe )?racks?)\b/i)) { out.hydraulicRisers = true; out.pressureTest = true; }
   if (T(/\bprecast (?:planks?|hollow ?core|floor units?|beams?)\b|\bhollow ?core\b/i)) { out.precast = true; out.craneInterface = true; }
-  if (T(/\b(band beams?|post-?tensioned (?:slabs?|beams?|band))\b/i) && T(/\b(install\w*|pour\w*|construct\w*)\b/i)) { out.ptTendons = true; out.stressing = true; out.formwork = true; out.reo = true; out.concrete = true; }
+  // Drilling or fixing into a post-tensioned slab is not building one.
+  if (T(/\b(band beams?|post-?tensioned (?:slabs?|beams?|band))\b/i) && T(/\b(install\w*|pour\w*|construct\w*)\b/i) && !(T(/\b(?:drill\w*|fix\w*|anchor\w*|cor(?:e|ing)\w*|scan\w*)\b[^.]{0,20}\b(?:into|through|in|to) (?:the |a )?(?:existing )?post-?tensioned (?:slabs?|beams?|band)/i) && !T(/\b(pour\w*|construct\w*|formwork|tendons?|stress\w*)\b/i))) { out.ptTendons = true; out.stressing = true; out.formwork = true; out.reo = true; out.concrete = true; }
   if (T(/\b(facade|building) louv(?:re|er)s?\b|\blouv(?:re|er)s? on (?:a |the )?(?:\w+ )?(?:facade|building)\b/i)) { out.claddingInstall = true; out.windowInstall = false; }
   out.greenWall = T(/\bgreen walls?\b|\bvertical gardens?\b/i);
   out.pendants = T(/\b(?:theatre|ceiling|medical|surgical) pendants?\b/i);
@@ -2924,7 +2932,7 @@ function settleFlags(flags, task) {
   out.wetAreaTiles = /\b(bathrooms?|showers?|ensuites?|laundr\w*|wet areas?|balcon\w*|terraces?|pools?|toilets?)\b/i.test(task);
   // Bank 10 review rules.
   if (/\bslab soffits?\b/i.test(task)) out.gutters = false;
-  out.eaveLining = /\b(eaves?|eave linings?|(?<!slab )soffits?)\b/i.test(task) && !/\bslab soffits?\b/i.test(task) && /\b(repair\w*|replac\w*|new|reline\w*)\b/i.test(task) && /\b(linings?|sheets?|fibro|soffits?)\b/i.test(task);
+  out.eaveLining = /\b(eaves?|eave linings?|(?<!slab )soffits?)\b/i.test(task) && !/\bslab soffits?\b/i.test(task) && !/\bcar ?parks?\b/i.test(task) && /\b(repair\w*|replac\w*|new|reline\w*)\b/i.test(task) && /\b(linings?|sheets?|fibro|soffits?)\b/i.test(task);
   out.roofRemoveOnly = /\b(?:remov\w*|strip\w*)\b[^.]{0,30}\broof(?:ing)? sheets?\b|\bremov\w*\b[^.]{0,20}\b(?:the )?(?:old )?roof\b/i.test(task) && !/\b(replac\w*|re-?roof\w*|re-?sheet\w*|new (?:roof|sheets?))\b/i.test(task);
   if (/\btempering valves?\b|\bthermostatic mixing valves?\b|\btmvs?\b/i.test(task)) { out.fixtureSwap = true; out.valveSwap = true; }
   out.poolLight = /\bpool (?:lights?|lighting|luminaires?)\b/i.test(task);
@@ -3147,6 +3155,26 @@ function settleFlags(flags, task) {
   const meshSarkingNamed = /\b(sarking|anticon|insulation blankets?|reflective foil)\b/i.test(task);
   out.meshStep = meshNamed || !meshSarkingNamed;
   out.meshSarkingStep = meshSarkingNamed || !meshNamed;
+  // Drilling and blasting rock in a basement digs no trench and lays no pipe unless a trench is named.
+  if (out.blasting && out.trench && /\bbasements?\b/i.test(task) && !/\btrench\w*\b/i.test(task)) out.trench = false;
+  // Blasting or stripping the old paint off is not painting, unless repainting is named.
+  const paintLeft = task.replace(/\b(?:remov\w*|strip\w*|(?:sand ?|abrasive |grit )?blast\w*|grind\w*|scrap\w*) (?:of )?(?:all )?(?:the )?(?:old |existing |loose |flaking |lead )?paint(?:work)?\b(?: off)?|\b(?:old |existing |loose |flaking )?paint(?:work)? off\b/gi, ' ');
+  if (out.painting && !/\b((?:re)?paint\w*|enamel|(?:re-?)?coat\w*|primers?|prim(?:e|ing))\b/i.test(paintLeft)) out.painting = false;
+  // Grinding stumps is tree work, not restumping a house.
+  if (/\b(?:grind\w*|grinder)\b[^.]{0,20}\bstumps?\b|\bstump grind\w*/i.test(task) && !/\b(re-?stump\w*|houses?|homes?|underpin\w*|stumps? under)\b/i.test(task)) { out.restump = false; out.treeRemoval = true; }
+  // A roof built over an existing deck builds no deck, and is roofed.
+  if (out.roofOverDeck) {
+    if (!/\b(?:build\w*|construct\w*|replac\w*|install\w*|lay\w*)\b[^.]{0,20}\b(?:a |the )?(?:new )?(?:timber )?decks?\b|\bdecking\b/i.test(task)) out.deckBuild = false;
+    if (/\b(?:build\w*|construct\w*|erect\w*)\b[^.]{0,20}\broof\b/i.test(task)) out.roof = true;
+  }
+  // A trench for irrigation or a garden tap is the shallow trench, unless the trench is deep or for a main.
+  if (out.trench && out.shallowTrench && /\b(irrigation|garden taps?)\b/i.test(task)) {
+    if (/\b(excavat(?!ors?\b)\w*|deep|\d(?:\.\d+)? ?m\b|mains?)\b/i.test(task)) out.shallowTrench = false;
+    else out.trench = false;
+  }
+  // Laying tiles always means adhesive and grout: the tiling products come with the tiles
+  // (screed and sealer only when named).
+  if (out.tileLay && !out.regrout) out.tileMix = true;
   // Group A splits: one activity per step.
   // A hoist mast climbed or extended alone is not installed or dismantled.
   out.hoistClimbOnly = Boolean(out.hoistInstall) && /\b(climb\w*|extend\w*|jump\w*|rais\w* (?:the )?(?:hoist )?mast)\b/i.test(task) && !/\b(install\w*|erect\w*|dismantl\w*|remov\w*|set up|take down)\b/i.test(task);
@@ -3430,7 +3458,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     gasTest: /\bgas\b/i.test(task) && /\bpressure test\w*|\bleak test\w*|\btest\w* and commission\w*/i.test(task),
     roofExtension: /\b(skillion (?:roofs?|extensions?)|roof extensions?|lean-to\w*|extend\w* (?:the )?roof)\b/i.test(task),
     kitBuild: /\b(kit|colorbond|garden) (?:sheds?|carports?|garages?)\b|\bkit\b/i.test(task),
-    tankStand: /\btank stands?\b|\b(?:on|onto) (?:a |the )?(?:\d+ ?m )?(?:steel |timber )?stands?\b/i.test(task),
+    tankStand: /\btank stands?\b|\b(?:on|onto) (?:a |the )?(?:new )?(?:\d+ ?m )?(?:steel |timber )?stands?\b/i.test(task),
     signPosts: /\b(sign ?posts?|signs? on posts|pole[- ]mounted signs?|car parks?|carparks?)\b/i.test(task),
     spigots: /\bglass (?:pool )?fenc\w*|\bspigots?\b/i.test(task),
     sprayRoad: /\b(spray seal\w*|bitumen seal\w*|chip seal\w*|bitumen spray\w*)\b/i.test(task),
