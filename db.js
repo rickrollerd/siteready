@@ -138,6 +138,11 @@ const SCHEMA = [
     title TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL
   )`,
+  // Added later: the job's state and postcode (never the full address), so the owner can see
+  // where an account's SWMS are for. Older references keep them blank.
+  "ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS state TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS postcode TEXT NOT NULL DEFAULT ''",
+  'CREATE INDEX IF NOT EXISTS swms_refs_company ON swms_refs (company_id, created_at)',
   // Each ABN gets one free trial. Kept apart from companies so deleting an account does not reset it.
   `CREATE TABLE IF NOT EXISTS trial_abns (
     abn TEXT PRIMARY KEY,
@@ -155,6 +160,15 @@ const SCHEMA = [
     id TEXT PRIMARY KEY,
     company_id TEXT,
     type TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS events_company ON events (company_id, created_at)',
+  // Each time the owner looks up a reference, opens an account or searches accounts.
+  `CREATE TABLE IF NOT EXISTS admin_access_log (
+    id TEXT PRIMARY KEY,
+    admin_email TEXT NOT NULL,
+    action TEXT NOT NULL,
+    target TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS errors (

@@ -9,7 +9,7 @@ const { listStates, findState } = require('./legislation');
 const { questionsFor, prepareDraft } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
-const { issueRef } = require('./refs');
+const { issueRef, placeOf } = require('./refs');
 const { readLogo } = require('./logo');
 const { draftToPdf } = require('./pdf-draft');
 const db = require('./db');
@@ -209,7 +209,7 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     if (!confirmation) return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve this SWMS, and enter your name, before downloading.' });
     const result = prepareDraft(signedInBody(req));
     if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
-    const ref = await issueRef(req.company, result.task);
+    const ref = await issueRef(req.company, result.task, placeOf(signedInBody(req)));
     const buffer = await draftToPdf(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), note: draftedNote(confirmation), prepared: preparedFor(req.company, ref) });
     record('download_pdf', req.company && req.company.id);
     await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
@@ -229,7 +229,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   }
   const result = prepareDraft(signedInBody(req));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
-  const ref = await issueRef(req.company, result.task);
+  const ref = await issueRef(req.company, result.task, placeOf(signedInBody(req)));
   const buffer = await draftToDocx(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), confirmation, ref, company: req.company });
   record('download_word', req.company && req.company.id);
   await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
@@ -256,7 +256,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
   for (const [index, item] of items.entries()) {
     const result = prepareDraft(signedInBody({ ...req, body: item || {} }));
     if (result.kind !== 'draft') { skipped.push(`${index + 1}. ${String((item && item.task) || '').slice(0, 80)}`); continue; }
-    const ref = await issueRef(req.company, (item && item.swmsTitle) || result.task);
+    const ref = await issueRef(req.company, (item && item.swmsTitle) || result.task, placeOf(signedInBody({ ...req, body: item || {} })));
     const buffer = await draftToDocx(result, { logo, confirmation, ref, company: req.company });
     // Named by the task's title from the scope where there is one.
     const title = typeof item.swmsTitle === 'string' && item.swmsTitle.trim() ? item.swmsTitle : result.task;
