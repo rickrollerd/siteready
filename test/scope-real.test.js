@@ -15,9 +15,9 @@ test('items lettered "a." under a lead-in of contract wording are each a line of
     'c. Fire dampers including operating motors and fusible links;',
     '2. Balancing and commissioning of all new air conditioning installations.',
   ].join('\n'));
-  assert.ok(lines.includes('Split air conditioning systems to the switch room and the comms room.'), lines.join('\n'));
-  assert.ok(lines.includes('Ductwork including straight and curved sections.'));
-  assert.ok(lines.includes('Fire dampers including operating motors and fusible links.'));
+  assert.ok(lines.includes('Install split air conditioning systems to the switch room and the comms room.'), lines.join('\n'));
+  assert.ok(lines.includes('Install ductwork including straight and curved sections.'));
+  assert.ok(lines.includes('Install fire dampers including operating motors and fusible links.'));
   // The lead-in sentence itself is contract wording, not a line of work.
   assert.ok(!lines.some((line) => /hoist/i.test(line)), lines.join('\n'));
 });
@@ -31,7 +31,7 @@ test('short items under a lead-in read as the work, without the handling verbs',
     '· Mulching;',
     '· Root barriers;',
   ].join('\n'));
-  assert.deepEqual(lines, ['Turfing.', 'Mulching.', 'Install Root barriers.']);
+  assert.deepEqual(lines, ['Install turfing.', 'Install mulching.', 'Install root barriers.']);
 });
 
 test('a trade\'s systems listed without a verb under its heading make the trade\'s main task', () => {
@@ -146,7 +146,7 @@ test('an item named in the exclusions is left out of a list of items', () => {
     'EXCLUSIONS:',
     '· CCTV',
   ].join('\n'));
-  assert.deepEqual(lines, ['Install Distribution boards.']);
+  assert.deepEqual(lines, ['Install distribution boards.']);
 });
 
 test('two tasks made from the same lines are one task with both kinds of work', () => {
@@ -181,4 +181,60 @@ test('a cleaning scope titled "final clean" is a cleaning scope, whatever surfac
   ].join('\n'), 'qld');
   assert.ok(result.trades.includes('cleaning'), result.trades.join(', '));
   assert.ok(!result.trades.includes('painting'), result.trades.join(', '));
+});
+
+test('work the head contractor does, and legal clauses, are not the subcontractor\'s work', () => {
+  const lines = siteWorkLines([
+    'SCOPE OF WORKS',
+    'The high propping to the towers will be supplied, erected and dismantled by the Contractor.',
+    'Set out all slab edges and penetrations. The Contractor shall provide one benchmark and four grid lines.',
+    'Materials demolished as a result of the works shall become the property of the Subcontractor.',
+    'Demolishing or destroying any reproduction of those documents without notice is not permitted.',
+  ].join('\n'));
+  assert.deepEqual(lines, ['Set out all slab edges and penetrations.']);
+});
+
+test('the general trade conditions that sit in every subcontract are not this trade\'s work', () => {
+  const lines = siteWorkLines([
+    'TRADE CONDITIONS OF CONTRACT - FORMWORK',
+    '1. Strip and remove all formwork and back prop the slabs.',
+    'TRADE CONDITIONS OF CONTRACT - GENERAL (ALL SUBCONTRACTS)',
+    '1. Locate and identify existing services before excavation commences.',
+  ].join('\n'));
+  assert.deepEqual(lines, ['Strip and remove all formwork and back prop the slabs.']);
+});
+
+test('a lead-in naming the work carries over the headings of the work areas under it', () => {
+  const lines = siteWorkLines([
+    'Description of Work Area',
+    'The works include the supply, installation and or erection of formwork and associated items to the following general building elements and as further defined by the drawings:',
+    'Basement',
+    '· The suspended slabs, beams and ramps to basement 2',
+    '· In situ stair flights and landings',
+    'Tower',
+    '· Suspended slabs and beams level 1 to 12',
+  ].join('\n'));
+  assert.deepEqual(lines, [
+    'Formwork to the suspended slabs, beams and ramps to basement 2.',
+    'Formwork to in situ stair flights and landings.',
+    'Formwork to suspended slabs and beams level 1 to 12.',
+  ]);
+});
+
+test('a deck left clear for the following trades is not their work', () => {
+  const result = tasksFromScope([
+    'FORMWORK',
+    'SCOPE OF WORKS',
+    'Erect the suspended deck formwork and falsework to all levels.',
+    'Strip the deck formwork and falsework after each pour is approved.',
+    'Provide a clear deck for precast, reinforcement and PT placement, with edge protection to allow following trades to commence.',
+  ].join('\n'), 'qld');
+  assert.ok(!result.tasks.some((task) => ['reo', 'precast'].includes(task.id)), result.tasks.map((task) => task.title).join(', '));
+});
+
+test('a task with very many lines is split into the parts of the scope they come from', () => {
+  const area = (name, count) => [name, ...Array.from({ length: count }, (_, i) => `${i + 1}. Erect and strip the suspended deck formwork to ${name.toLowerCase()} pour ${i + 1}.`)];
+  const result = tasksFromScope(['FORMWORK', 'SCOPE OF WORKS', ...area('Basement', 14), ...area('Tower', 14)].join('\n'), 'qld');
+  const formwork = result.tasks.filter((task) => task.id === 'formwork');
+  assert.deepEqual(formwork.map((task) => task.title).sort(), ['Formwork and falsework: Basement', 'Formwork and falsework: Tower']);
 });
