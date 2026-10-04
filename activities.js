@@ -1839,7 +1839,7 @@ const ACTIVITIES = [
         src('Choose low vibration tools, or plant such as hydraulic pile croppers, to reduce hand-held breaking.', MODEL('Hazardous manual tasks', 's 4.8')),
         'Where hand-held breakers are used: rotate operators to limit time on the tool, use the lightest breaker that does the job, keep both hands on it, and keep others outside the fragment zone.',
         'Exposed starter bars are capped or bent over, and broken pile heads are lifted with lifting gear, not by hand.',
-        src('An excavator lifts broken pile heads only where it is designed to lift that load, or the lift creates no greater risk than with plant designed for it.', WHS('s 219')),
+        src('Broken pile heads are lifted with plant designed to lift them. An excavator is used to lift them only where plant designed to lift is not reasonably practicable, and the lift creates no greater risk than with plant designed for it.', WHS('s 219')),
         src('Keep people clear of the excavator and croppers while they work.', WHS('s 215')),
         src('Isolate the work area for flying fragments, and wear a face shield.', MODEL('Managing the risks of plant in the workplace', 's 2.3')),
       ],
