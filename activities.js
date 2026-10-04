@@ -1326,7 +1326,7 @@ const ACTIVITIES = [
     when: 'ductwork',
     steps: [
       {
-        step: 'Install ductwork, pipework and units at height',
+        step: 'Install ductwork, pipework and units',
         hazards: [{ only: 'riserWork', text: 'A fall from a platform, ladder or open riser.' }, { unless: 'riserWork', text: 'A fall from a platform or ladder.' }, 'Tools, fixings and duct sections fall onto people below.', { unless: 'houseRoofDucts', text: 'Silica dust from drilling hanger anchors.' }, { unless: 'houseRoofDucts', text: 'Cutting a post-tensioning tendon when drilling.' }, { only: 'houseRoofDucts', text: 'Dust from cutting outlet holes in the ceiling.' }, 'Cuts from duct edges and strain from lifting duct overhead.'],
         controls: [
           { fact: 'fallControl' },
@@ -5414,12 +5414,23 @@ const ACTIVITIES = [
   {
     when: 'fanCoil',
     steps: [{
-      step: 'Lower out and lift in the fan coil unit',
+      // Replacing a unit: the old one is lowered out before the new one is lifted in.
+      only: 'fanCoilReplace',
+      step: 'Lower the old fan coil unit down and lift the new one into place',
       hazards: ['The unit falls while it is lowered or lifted.', 'Strain holding the unit overhead.', 'Condensate and water spill onto ceilings and power.', 'Electric shock from the unit supply.'],
       controls: [
         'The unit is isolated electrically and its chilled or heating water valves closed and drained before it is disconnected.',
         'The unit is lowered and lifted with a material lifter rated for its weight, never held overhead by hand.',
         'The area below is closed off, and condensate trays and pipes are drained into buckets.',
+      ],
+    }, {
+      unless: 'fanCoilReplace',
+      step: 'Lift the fan coil unit into place and fix it',
+      hazards: ['The unit falls while it is lifted or before it is fixed.', 'Strain holding the unit overhead.', 'Electric shock when the unit is connected to its supply.'],
+      controls: [
+        'The unit is lifted with a material lifter rated for its weight, never held overhead by hand, and is fixed to its hangers or supports before the lifter is lowered.',
+        'The area below is closed off while the unit is lifted and fixed.',
+        'The unit is connected to its supply only by a licensed electrician, with the circuit isolated and locked out.',
       ],
     }],
   },
@@ -5848,7 +5859,7 @@ const ACTIVITIES = [
   {
     when: 'plantService',
     steps: [{
-      step: 'Service and repair plant in the field',
+      step: 'Service and repair mobile plant on site',
       hazards: ['Plant moves or starts while it is being worked on.', 'Raised buckets, blades or bodies drop.', 'Hydraulic oil injection or a hose burst.', 'Tyre or rim explosion.', 'Burns from hot engines and fluids.'],
       controls: [
         'Plant is parked on level ground, the engine stopped, the key removed, and the plant isolated and tagged before work starts. Wheels are chocked.',
@@ -8376,7 +8387,7 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Set up site sheds', 'Install construction power and temporary lighting');
   moveBefore('Isolate and prove de-energised', 'Install construction power and temporary lighting');
   moveAfter('Inspect, test and maintain construction power', 'Work on or near energised parts');
-  moveBefore('Cut and flash the roof penetration', 'Install ductwork, pipework and units at height');
+  moveBefore('Cut and flash the roof penetration', 'Install ductwork, pipework and units');
   moveBefore('Clear the drain with a drain machine or jetter', 'Clean, inspect and reline the pipe');
   moveBefore('Install water meters and backflow devices', 'Connect to the water supply');
   moveBefore('Isolate the gas and disconnect the old appliance', 'Install doors, joinery and cabinets');
@@ -8519,7 +8530,8 @@ function jobStepsFor(flags, factText, fallback) {
   moveAfter('Isolate and prove de-energised', 'Install solar panels and mounting rails on the roof');
   moveBefore('Pressure clean surfaces', 'Apply epoxy or polyurethane floor coatings');
   moveBefore('Lift materials to and from the roof', 'Bag, label and dispose of asbestos waste');
-  moveBefore('Lower out and lift in the fan coil unit', 'Commission and balance the system');
+  moveBefore('Lower the old fan coil unit down and lift the new one into place', 'Commission and balance the system');
+  moveBefore('Lift the fan coil unit into place and fix it', 'Commission and balance the system');
   moveBefore('Fit the new eave lining', 'Finish and clean up');
   moveBefore('Receive plant and move it into position', 'Lift equipment and materials to the roof');
   moveBefore('Paint the outside of the structure at height', 'Prepare to paint');
@@ -8564,7 +8576,7 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Mix bagged concrete', 'Place concrete');
   moveBefore('Deliver and install commercial kitchen equipment', 'Connect, leak test and commission the gas appliance');
   moveBefore('Lift and place tanks, pits or precast units', 'Plumbing rough-in and fit-off');
-  moveBefore('Work in the roof space', 'Install ductwork, pipework and units at height');
+  moveBefore('Work in the roof space', 'Install ductwork, pipework and units');
   moveBefore('Disconnect and connect the water heater', 'Connect, leak test and commission the gas appliance');
   moveBefore('Lift and fix the purlins', 'Fix new roofing');
   moveBefore('Lift and fix the purlins', 'Set up roof access and fall protection');

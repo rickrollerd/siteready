@@ -225,3 +225,17 @@ test('plant set on a footpath is not work beside a road in use; a footpath besid
   assert.ok(kinds(kerb, 'structure').includes('road'));
   assert.ok(highRiskMatches('Excavate a sewer trench in the road reserve.', '', findState('qld')).some((item) => item.check === 'road'));
 });
+
+test('a new fan coil unit is lifted into place, a replaced one is lowered out first', () => {
+  const { prepareDraft } = require('../draft');
+  const steps = (task) => prepareDraft({ state: 'qld', task, fallRisk: 'no', residential: 'no' }).jobSteps.map((step) => step.step);
+  assert.ok(steps('Supply and install fan coil units in the server room, with drip trays drained outside.').includes('Lift the fan coil unit into place and fix it'));
+  assert.ok(steps('Replace the existing fan coil units on level 2.').includes('Lower the old fan coil unit down and lift the new one into place'));
+});
+
+test('a search for mech lists mechanical work, not steps that only mention mechanical aids', () => {
+  const { searchSteps } = require('../steps');
+  const ids = searchSteps('mech');
+  assert.ok(ids.includes('ductwork'));
+  assert.ok(!ids.includes('turf') && !ids.includes('floorLay') && !ids.includes('masonryMortar'), ids.join(','));
+});

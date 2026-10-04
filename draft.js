@@ -2968,6 +2968,8 @@ function settleFlags(flags, task) {
   if (out.sinkTap && !/\b(kitchen|bench\w*)\b/i.test(task)) out.sinkTap = false;
   out.shaftWall = /\bshaft walls?\b/i.test(task);
   out.fanCoil = /\bfan coil (?:units?)?\b|\bfcus?\b/i.test(task);
+  // Replacing a unit lowers the old one out first; a new install only lifts one in.
+  out.fanCoilReplace = out.fanCoil && /\b(replac\w*|swap\w*|change[sd]? (?:out|over)|remov\w*|existing|old)\b[^.]{0,60}\b(?:fan coil|fcus?)\b|\b(?:fan coil|fcus?)\b[^.]{0,40}\b(?:replac\w*|swap\w*|removed?)\b/i.test(task);
   // A retaining wall of natural stone or boulders is placed stone by stone, not built from blocks.
   // (A dry stone wall has its own step, which says how its stones are handled.)
   out.stoneRetaining = Boolean(/\b(stone|rock|sandstone|bluestone|boulders?|granite|basalt)\b[^.]{0,20}\b(?:retaining )?walls?\b|\bboulder walls?\b/i.test(task) && !out.stoneWall && !out.timberOnlyWall);

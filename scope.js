@@ -408,7 +408,7 @@ const TITLES = Object.freeze({
   tempPower: 'Construction power and temporary lighting', castIn: 'Cast-in conduits', containment: 'Cable tray and containment at height',
   isolation: 'Terminations, testing and connection to supply', commissioning: 'Switchboards and mains', coreDrill: 'Core drilling and penetrations',
   sewerConnection: 'Connection to the live sewer', hydraulicRisers: 'Risers and pipework at height', hotWork: 'Brazing and soldering (hot work)',
-  plantLift: 'Plant delivery and lifting', ductwork: 'Ductwork and units at height', roofPlant: 'Plant on the roof', commsRoom: 'Comms rooms, racks and UPS batteries',
+  plantLift: 'Plant delivery and lifting', ductwork: 'Ductwork and mechanical units', roofPlant: 'Plant on the roof', commsRoom: 'Comms rooms, racks and UPS batteries',
   fibre: 'Optical fibre', generatorPlant: 'Generators and fuel systems', boilerPlant: 'Boilers and pressure vessels', fireLive: 'Work on live fire systems',
   fireAtHeight: 'Sprinkler and hydrant pipework at height', passiveFire: 'Fire stopping', paintExternal: 'External painting at height', paintSpray: 'Spray painting',
   tileEdge: 'Tiling near balcony and terrace edges', cleaningHeight: 'Window and balcony cleaning', panelInstall: 'Panel installation at the slab edge',
