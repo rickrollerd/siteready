@@ -25,8 +25,11 @@ function fail(status, message) {
   return Object.assign(new Error(message), { status, publicMessage: true });
 }
 
+// Only a plain string is an email address: an array or object that happens to turn into
+// one when written out is refused.
 function cleanEmail(value) {
-  const email = String(value || '').trim().toLowerCase();
+  if (typeof value !== 'string') return '';
+  const email = value.trim().toLowerCase();
   return /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/.test(email) ? email : '';
 }
 

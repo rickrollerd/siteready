@@ -280,3 +280,10 @@ test('ten accounts saving the same ABN at the same moment leave exactly one tria
   const companies = await Promise.all(results.map((res) => res.json()));
   assert.equal(companies.filter((data) => data.company.hasAccess).length, 1);
 });
+
+test('a sign-in request whose email is not a plain string is refused with 400, not a server error', async () => {
+  for (const email of [['first@co.example'], { address: 'first@co.example' }, 42, null]) {
+    const res = await call('POST', '/api/auth/email', { body: { email } });
+    assert.equal(res.status, 400, JSON.stringify(email));
+  }
+});

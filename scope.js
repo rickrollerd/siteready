@@ -181,7 +181,12 @@ function titleTrades(text) {
   const head = String(text || '').slice(0, TITLE_CHARS);
   const named = /\bscope of (?:the )?works?\b[^\n]{0,80}|\bcomprises? the [^\n]{0,80}/gi;
   // The document title is in its first few lines, often on a line of its own.
-  const title = head.split('\n').map((line) => line.trim()).filter(Boolean).slice(0, TITLE_LINES).filter((line) => words(line) <= 8);
+  // A line that excludes trades or leaves work to others names trades that are not ours.
+  // A labelled package or trade line names ours, however long it is.
+  const title = head.split('\n').map((line) => line.trim()).filter(Boolean).slice(0, TITLE_LINES)
+    .filter((line) => !NOT_OURS.test(line) && !/^(?:\d+(?:\.\d+)*\.?\s*)?(?:exclu\w*|by others|not included|not in scope|omitted|n\.?i\.?c\.?)\b/i.test(line))
+    .map((line) => (/^(?:package|trade|subcontract|works? package|trade package)\s*:/i.test(line) ? line.replace(/\([^)]*\)/g, '').replace(/^[^:]*:\s*/, '') : line))
+    .filter((line) => words(line) <= 8);
   const found = new Set();
   for (const match of [...title, ...(head.match(named) || [])]) {
     for (const [id, words] of Object.entries(TITLE_WORDS)) if (words.test(match)) found.add(id);
