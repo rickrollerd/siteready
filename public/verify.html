@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify a SWMS</title>
+  <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.45; color: #1c2430; background: #eef1f4; }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 18px 14px 48px; }
+    h1 { font-size: 24px; margin: 0 0 4px; }
+    .meta { color: #5c6773; font-size: 14px; margin: 0 0 4px; }
+    .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    input[type="text"] { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; padding: 10px 11px; font: inherit; text-transform: uppercase; }
+    button { border: 1px solid #1f4e3d; background: #1f4e3d; color: #fff; border-radius: 6px; padding: 12px 14px; font: inherit; font-weight: 600; width: 100%; cursor: pointer; margin-top: 12px; }
+    .ok { background: #e8f3ee; border: 1px solid #9cc9b3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    .bad { background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    dt { font-weight: 600; font-size: 14px; margin-top: 8px; }
+    dd { margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Verify a SWMS</h1>
+    <p class="meta">Every SWMS prepared with SiteReady has a reference in its footer, such as SR-ABCD-2345. Enter it to check the SWMS is genuine and see the business it was prepared for.</p>
+    <form class="panel" id="verify">
+      <label for="ref">SiteReady reference</label>
+      <input id="ref" type="text" autocomplete="off" placeholder="SR-ABCD-2345" required>
+      <button type="submit">Check the reference</button>
+    </form>
+    <div id="result" aria-live="polite"></div>
+    <p class="meta" style="margin-top:14px">A genuine reference shows the SWMS was prepared with SiteReady for the business named. That business reviews, approves and is responsible for its SWMS. Check the business named here matches the one named on the SWMS.</p>
+  </div>
+  <script src="/verify.js"></script>
+</body>
+</html>

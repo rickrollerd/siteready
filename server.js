@@ -111,6 +111,23 @@ app.get('/api/address', async (req, res, next) => {
   }
 });
 
+// Anyone holding a SWMS can check its SiteReady reference: whether it is genuine, and the
+// business it was prepared for. Only what is printed on the SWMS itself is shown.
+app.use('/api/verify', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
+app.get('/api/verify/:ref', async (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    const ref = String(req.params.ref || '').trim().toUpperCase();
+    if (!/^SR-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/.test(ref)) return res.status(400).json({ found: false, message: 'A SiteReady reference looks like SR-ABCD-2345. Check the footer of the SWMS.' });
+    const found = await require('./refs').findRef(ref).catch(() => null);
+    record('verify_ref', null);
+    if (!found) return res.json({ found: false, message: 'This reference is not in SiteReady\'s records. The SWMS was not prepared with SiteReady under this reference, or the reference was changed.' });
+    res.json({ found: true, ref: found.ref, business: found.company_name, abn: found.abn, title: found.title, preparedAt: found.created_at });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use('/api/abn', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
 app.get('/api/abn', async (req, res, next) => {
   try {
