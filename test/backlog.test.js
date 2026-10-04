@@ -69,3 +69,28 @@ test('Safe Work Australia\'s 18 worked examples each raise their own high risk c
   assert.equal(prepareDraft({ state: 'nsw', task: 'Abrasive blasting of the bridge girders before repainting', fallRisk: 'no' }).kind, 'draft');
   assert.ok(!prepareDraft({ state: 'nsw', task: 'Install the pool fence over the pool deck', fallRisk: 'no' }).highRisk.length);
 });
+
+test('F-011 cutting a concrete floor slab with a power saw gets the cutting step and silica controls', () => {
+  const d = draft('nsw', 'Cut the concrete floor slab with a power saw, silica dust');
+  assert.equal(d.kind, 'draft');
+  assert.ok(steps(d).includes('Saw cut concrete'));
+  assert.ok(names(d).includes('Respirable crystalline silica'));
+  assert.ok(d.jobSteps.flatMap((step) => step.controls).some((line) => /s 529CA/.test(line)), 'written silica assessment');
+  assert.ok(!steps(draft('nsw', 'Cut the timber floor with a power saw')).includes('Saw cut concrete'));
+});
+
+test('F-012 Wi-Fi access points are recognised without the word cabling', () => {
+  for (const task of ['Install Wi-Fi access points in the school classrooms', 'Install the Wi-Fi access points and cabling in the office ceiling']) {
+    const d = draft('nsw', task);
+    assert.equal(d.kind, 'draft', task);
+    assert.ok(steps(d).includes('Mount the Wi-Fi access points'), task);
+  }
+});
+
+test('#48 directional bore wording gets the directional drill step; its entry and exit pits are not spaces entered', () => {
+  const d = draft('act', 'Directional bore the comms duct under the roundabout, entry and exit pits, traffic control and services');
+  assert.equal(d.kind, 'draft');
+  assert.ok(steps(d).some((step) => /directional drill/.test(step)));
+  assert.ok(!(d.missing || []).includes('Confined space entry'));
+  assert.ok(draft('qld', 'Enter the sewer pit to replace the pump').missing.includes('Confined space entry'), 'a pit that is entered still asks');
+});

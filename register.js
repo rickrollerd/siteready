@@ -18,13 +18,13 @@ const PLANT = [
   { item: 'Elevating work platform', pattern: /\b(elevating work platforms?|ewps?)\b/i, skipIf: /\b(scissor|boom|considered)\b/i, inspection: `${PRESTART} Inspected and maintained by a competent person to the manufacturer\'s instructions, including its periodic (usually yearly) inspection.`, licence: 'Only for a boom-type platform with a boom length of 11 m or more (WP). No licence for a scissor lift' },
   { item: 'Tower crane', pattern: /\btower cranes?\b/i, inspection: 'Registered item of plant. Pre-erection and commissioning inspections, daily pre-operational check and log book, routine inspections, a yearly inspection if erected for 12 months or more, and a major inspection (WHS Reg s 235).', licence: 'Yes (CT, or CS for a self-erecting tower crane), with licensed doggers or riggers' },
   { item: 'Vehicle loading crane (hiab)', pattern: /\b(vehicle loading cranes?|loader cranes?|hiabs?|truck loading crane|truck[- ]mounted cranes?|knuckle boom cranes?)\b/i, inspection: 'Pre-start check and log book. Inspected and maintained to the manufacturer\'s instructions (WHS Reg s 213).', licence: 'Yes (CV) where the crane is rated at 10 metre-tonnes or more. Under 10 metre-tonnes no licence, the operator is trained and competent on it' },
-  { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\b(tower crane|crane ties?|crane or lifting gear|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|where a crane|if a crane|crane or forklift|forklift or crane|forklift, crane|people, cranes|cranes, plant|keep cranes)\b/i, inspection: 'Crane company\'s log book and pre-start check. Inspected to the manufacturer\'s instructions (WHS Reg s 213). Cranes over 10 t are registered plant and need a major inspection (s 235).', licence: 'Yes, crane class to suit (slewing C2, C6, C1 or C0; non-slewing over 3 t CN; vehicle loading crane of 10 metre-tonnes or more CV), with licensed doggers or riggers. No licence for a vehicle loading crane under 10 metre-tonnes or a non-slewing crane of 3 t or less' },
+  { item: 'Mobile crane or crane truck', pattern: /\b(mobile cranes?|crane trucks?|franna|slewing cranes?|the crane|a crane|cranes?)\b/i, skipIf: /\b(tower crane|crane ties?|crane or lifting gear|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|where a crane|if a crane|crane or forklift|forklift or crane|forklift, crane|people, cranes|cranes, plant|keep cranes|used as a crane)\b/i, inspection: 'Crane company\'s log book and pre-start check. Inspected to the manufacturer\'s instructions (WHS Reg s 213). Cranes over 10 t are registered plant and need a major inspection (s 235).', licence: 'Yes, crane class to suit (slewing C2, C6, C1 or C0; non-slewing over 3 t CN; vehicle loading crane of 10 metre-tonnes or more CV), with licensed doggers or riggers. No licence for a vehicle loading crane under 10 metre-tonnes or a non-slewing crane of 3 t or less' },
   { item: 'Forklift', pattern: /\bforklifts?\b/i, inspection: PRESTART, licence: 'Yes (LF)' },
   { item: 'Telehandler', pattern: /\btelehandlers?\b/i, inspection: PRESTART, licence: 'No Schedule 3 class names telehandlers. Operator competent in the model used. Check with the supplier whether a non-slewing crane licence (CN) is needed when it is fitted with a jib or hook to lift suspended loads' },
   { item: 'Personnel or materials hoist', pattern: /(?<!(?:vehicle|car|chain) )\b(hoists?|materials lifts?)\b/i, skipIf: /\b(chain hoists?|leave out|at the hoist|where there is|near the hoist|clear of|crane, hoist|crane or (?:a )?hoist|hoist or (?:a )?crane|hoist, crane|by (?:a )?hoist|lift, (?:a )?hoist|lifts?, (?:a )?hoist or)\b/i, inspection: 'Inspected, tested and maintained by a competent person to the manufacturer\'s instructions (WHS Reg s 213). Pre-start check each shift. Erected and altered by licensed riggers.', licence: 'Yes (HP or HM)' },
   { item: 'Concrete placing boom', pattern: /\b(placing booms?|boom pumps?|pump trucks?|truck-mounted pumps?)\b/i, inspection: 'Registered item of plant. Daily pre-start check. Pipes, hoses and clamps checked for wear and damage before use. Yearly inspection and six-yearly major inspection (Concrete Pumping Code s 5).', licence: 'Yes (PB)' },
   { item: 'Concrete line pump', pattern: /\b(line pumps?|concrete pumps?|pump(?:,|\s+and)?\s+(?:and\s+)?place\w*)\b/i, inspection: 'Pre-start check. Pipes, hoses and clamps checked for wear and damage before use. Inspected by a competent person at least yearly.', licence: 'No. Operator competent' },
-  { item: 'Scaffold', pattern: /(?<!mobile )\bscaffold(?:s|ing)?\b/i, inspection: 'Handover certificate before first use. Inspected by a competent person before use, after an incident that could affect its stability, after repairs or alterations, and at least every 30 days (WHS Reg s 225, scaffolds over 4 m).', licence: 'Yes, for erecting, altering or dismantling where a fall of more than 4 m is possible (SB, SI or SA)' },
+  { item: 'Scaffold', pattern: /(?<!mobile )\bscaffold(?:s|ing)?\b/i, inspection: 'Handover certificate before first use. Inspected by a competent person before use, after an incident that could affect its stability, after repairs or alterations, and at least every 30 days (WHS Reg s 225, for suspended, cantilevered, spur and hung scaffolds, and others over 4 m).', licence: 'Yes, for erecting, altering or dismantling where a fall of more than 4 m is possible (SB, SI or SA)' },
   { item: 'Mobile scaffold', pattern: /\bmobile scaffolds?\b/i, inspection: 'Erected to the manufacturer\'s instructions. Castors locked, guardrails complete, checked before use. Over 4 m: handover certificate and inspections as for a scaffold (WHS Reg s 225).', licence: 'No, under 4 m. Yes (SB) where a person or object could fall more than 4 m' },
   { item: 'Turf laying machine', pattern: /\bturf laying machines?\b/i, inspection: PRESTART, licence: 'No. Operator competent' },
   { item: 'Building maintenance unit (BMU)', pattern: /\b(building maintenance units?|bmus?)\b/i, inspection: 'Inspected and maintained to the manufacturer\'s instructions and AS 1418.13, with current certification before use.', licence: 'No. Operators trained in the unit' },
@@ -147,6 +147,10 @@ const SUBSTANCES = [
 ];
 
 // Licences, tickets and training the work needs.
+// Class A for friable asbestos (s 485), Class B or A for more than 10 m2 of non-friable asbestos
+// (s 487), and no licence for 10 m2 or less of non-friable asbestos removed by a competent person
+// trained under s 445 (s 458(2), (3)).
+const ASBESTOS_REMOVALIST = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for more than 10 m2 of non-friable asbestos) with workers holding the VET asbestos removal certification. 10 m2 or less of non-friable asbestos may be removed without a licence by a competent person trained in identifying and safely handling asbestos (WHS Reg s 445, s 458, s 460, s 485, s 487)';
 const QUALIFICATIONS = [
   ['General construction induction (white card)', /./],
   ['Site specific induction', /./],
@@ -154,7 +158,7 @@ const QUALIFICATIONS = [
   ['Plumbing and drainage licence', /\b(vanit(?:y|ies)|plumbing|plumber|(?<!(?:wall|ag|agricultural|subsoil|retaining) )drainage(?! (?:swales?|gravel|cells?|mats?|layers?|boards?|aggregate|sheets?|composites?|fabric|and backfill|behind))|sewer\w*(?! pump stations?)|grease traps?|trade waste|stormwater (?:lines?|pipes?|drains?)|hot water|water suppl(?:y|ies)|water mains?|gas fitting|gasfitting|gas (?:hot water|line|appliance)s?)\b/i],
   ['Refrigerant handling licence (ARC)', /\b(refrigerants?|split systems?|refrigeration|vrf|vrv|condensing units?|(?:install\w*|replac\w*|connect\w*|commission\w*|relocat\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |new )?(?:wall[- ]mounted |reverse cycle )?air ?condition\w* units?|install\w* (?:split |reverse cycle )?air ?condition\w*)\b/i],
   ['Gas work licence', /\b(?<!medical )(commercial (?:ranges?(?! ?hoods?)|cooktops?)|wok (?:burners?|stations?|ranges?)|gas (?:fitting|lines?|pipe\w*|supply|appliances?|hot water|heaters?|heating|meters?|cooktops?|ovens?|boilers?|stoves?|fires?|log fires?|barbecues?|bbqs?)|gasfitt\w*|(?:connect|relocat|disconnect)\w*[^.]{0,30}\bgas\b)\b/i],
-  ['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)', /\basbestos\b/i],
+  [ASBESTOS_REMOVALIST, /\basbestos\b/i],
   ['Confined space entry training', /\bconfined spaces?\b/i],
   ['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk', /\bsilica dust\b/i],
   ['Working at heights and harness training', /\b(harness|travel restraint|fall arrest)\b/i],
@@ -449,7 +453,12 @@ function localLicences(stateName, trade, list, stepText) {
   // and no asbestos removal without a licence, whatever the amount (s 458, s 487).
   if (/Australian Capital Territory/.test(stateName || '')) {
     local['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk'] = 'Crystalline silica awareness training (the course the Minister declares under section 418D), for workers who carry out high risk crystalline silica work';
-    local['Licensed asbestos removalist (Class A or B) with workers holding the VET asbestos removal certification, or asbestos training for non-licensed removal (WHS Reg s 445, s 460)'] = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for non-friable asbestos, whatever the amount) with workers holding the VET asbestos removal certification. Other workers who work with asbestos have done the asbestos awareness course the Minister declares (Work Health and Safety Regulation 2011 (ACT) s 445, s 458, s 460, s 487)';
+    local[ASBESTOS_REMOVALIST] = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for non-friable asbestos, whatever the amount) with workers holding the VET asbestos removal certification. Other workers who work with asbestos have done the asbestos awareness course the Minister declares (Work Health and Safety Regulation 2011 (ACT) s 445, s 458, s 460, s 487)';
+  }
+  // Victoria: Class A for friable asbestos (r 264), Class B or A for non-friable asbestos (r 265), and
+  // limited removal without a licence (r 250); licence holders train their workers (r 269).
+  if (/Victoria/.test(stateName || '')) {
+    local[ASBESTOS_REMOVALIST] = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for non-friable asbestos) whose workers are informed, instructed and trained in the work. Up to 10 m2 of non-friable asbestos, for no more than 1 hour in any 7 days, may be removed without a licence (Occupational Health and Safety Regulations 2017 (Vic) r 250, r 264, r 265, r 269)';
   }
   const stateId = (findState(stateName) || { id: 'qld' }).id;
   const kept = gasWorkOnly && !/Victoria/.test(stateName || '') ? named.filter((name) => name !== 'Plumbing and drainage licence') : named;
@@ -461,11 +470,16 @@ function localLicences(stateName, trade, list, stepText) {
 // inspection, and r 118 sets no scaffold handover or 30 day inspection. Its Schedule 3 item 18A
 // licenses non-slewing telehandlers over 3 t, and a slewing telehandler is a slewing mobile crane.
 const STATE_PLANT = {
+  // Western Australia: earthmoving machinery used as a crane, with a safe working load over 3 t,
+  // needs a high risk work licence (r 5 "crane", r 81, Schedule 3 items 14A and 15A).
+  wa: [
+    ['licence', /^No\. Operator competent \(verification of competency\)$/, 'Yes where it is used as a crane with a safe working load over 3 t: the licence for earthmoving machinery used as a crane (Schedule 3 item 14A, non-slewing, or 15A, slewing). Otherwise no: operator competent (verification of competency)', /^Excavator$/],
+  ],
   vic: [
     ['inspection', /^Registered item of plant\./, 'Registered design.'],
     ['inspection', /Cranes over 10 t are registered plant and need a major inspection \(s 235\)\./, 'Cranes over 10 t have a registered design.'],
     ['inspection', /, a yearly inspection if erected for 12 months or more, and a major inspection \(WHS Reg s 235\)\./, ' and a yearly inspection if erected for 12 months or more.'],
-    ['inspection', /^Handover certificate before first use\. Inspected by a competent person before use, after an incident that could affect its stability, after repairs or alterations, and at least every 30 days \(WHS Reg s 225, scaffolds over 4 m\)\./, 'Not used for work until it, or the part used, is complete; kept secure and able to support the work; repaired before use if it becomes unsafe; and access blocked when it is left unattended (WHS Reg s 225). Handover certificate before first use, and inspected by a competent person before use, after an incident or repairs, and at least every 30 days.'],
+    ['inspection', /^Handover certificate before first use\. Inspected by a competent person before use, after an incident that could affect its stability, after repairs or alterations, and at least every 30 days \(WHS Reg s 225, for suspended, cantilevered, spur and hung scaffolds, and others over 4 m\)\./, 'Not used for work until it, or the part used, is complete; kept secure and able to support the work; repaired before use if it becomes unsafe; and access blocked when it is left unattended (WHS Reg s 225). Handover certificate before first use, and inspected by a competent person before use, after an incident or repairs, and at least every 30 days.'],
     ['inspection', /Over 4 m: handover certificate and inspections as for a scaffold \(WHS Reg s 225\)\./, 'Over 4 m: handover certificate and inspections as for a scaffold.'],
     ['inspection', /, and at least every 30 days \(WHS Reg s 225\)\./, ', and at least every 30 days.'],
     ['licence', /^No Schedule 3 class names telehandlers(, where one is used)?\. .*$/, 'Yes for a non-slewing telehandler rated over 3 t: the non-slewing telehandler licence, or a mobile crane licence$1. A slewing telehandler is a slewing mobile crane and needs the slewing mobile crane licence for its capacity'],
@@ -473,7 +487,7 @@ const STATE_PLANT = {
 };
 function localPlant(item, stateId) {
   let out = item;
-  for (const [field, pattern, replacement] of STATE_PLANT[stateId] || []) if (pattern.test(out[field])) out = { ...out, [field]: out[field].replace(pattern, replacement) };
+  for (const [field, pattern, replacement, only] of STATE_PLANT[stateId] || []) if ((!only || only.test(out.item)) && pattern.test(out[field])) out = { ...out, [field]: out[field].replace(pattern, replacement) };
   return out;
 }
 

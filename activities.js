@@ -36,6 +36,14 @@ const SILICA_FOLLOW_UP = [
   src('Dust and slurry are cleaned up at least at the end of each day or task, with an H class vacuum (M class only where H class is not reasonably practicable) or wet methods. No dry sweeping, compressed air or blowers, including for clothing.', QCODE('Silica', 's 7.4.2, s 8.1, s 8.2, s 8.3')),
 ];
 
+// Processing installed engineered stone: allowed only to remove, repair, make minor modifications
+// to or dispose of it, and only if it is controlled (s 529B, s 529D, s 529F), with notice to the
+// regulator before the work, of any change and after 12 months, each kept for 5 years (s 529G to s 529J).
+const ENG_STONE = [
+  src('Installed engineered stone is cut, drilled or broken only to remove, repair, make minor modifications to or dispose of it, and only if the processing is controlled: the risks are minimised so far as is reasonably practicable, at least one of isolation from the dust, an enclosed operator cabin with high efficiency air filtration, wet dust suppression, on-tool extraction or local exhaust ventilation is used, and anyone still at risk wears respiratory protective equipment.', WHS('s 529B, s 529D, s 529F')),
+  src('Before installed engineered stone is processed, written notice of the work, its type, and its frequency and duration is given to the regulator in the form it requires. Any change is notified within 30 days, work still going 12 months after the last notice is notified again within 30 days, and a copy of each notice is kept for 5 years.', WHS('s 529G, s 529H, s 529I, s 529J')),
+];
+
 const BEFORE = {
   step: 'Before starting',
   hazards: [
@@ -1085,15 +1093,15 @@ const ACTIVITIES = [
             ],
             testing: [
               src('Work on or near energised parts is done only where the regulation allows, such as testing, and never because it is more convenient.', `${ESR('s 195')}; ${CODE('s 7.1')}`),
-              src('Before the work: a competent person\'s recorded risk assessment, this SWMS, clear access and exit, the isolation point labelled and quick to operate, and authorisation after consulting the principal contractor.', ESR('s 199, s 200')),
+              src('Before the work: a competent person\'s recorded risk assessment, this SWMS, clear access and exit, the isolation point labelled and quick to operate, and authorisation after consulting the person with management or control of the workplace, usually the principal contractor.', ESR('s 199, s 200')),
               src('Only authorised people enter the area, and barriers prevent contact with exposed energised parts.', ESR('s 201, s 202')),
               src('A safety observer, assessed in the last 12 months as competent in rescue and resuscitation, watches the work and does no other work.', `${ESR('s 203, schedule 10')}; ${CODE('s 7.3')}`),
               src('Tools, test equipment and PPE are suitable for the work, properly tested and in good working order.', ESR('s 203')),
               src('PPE rated for the energy at the point of work, such as an arc-rated face shield, insulated gloves and flame-resistant clothing.', CODE('s 9.5')),
               src('No watches, jewellery or other metal personal items. Fire extinguishers suitable for electrical fires are at hand.', QCODE('Managing electrical risks', 's 6.3, appendix C')),
-              src('Energised work is authorised by: ____________ (position), after the principal contractor\'s ____________ (position) has been consulted.', `${ESR('s 199(1)(e)')}; ${QCODE('Managing electrical risks', 's 6.2, s 6.3')}`),
+              src('Energised work is authorised by: ____________ (position), after consulting ____________ (position) for the person with management or control of the workplace, usually the principal contractor.', `${ESR('s 199(1)(e)')}; ${QCODE('Managing electrical risks', 's 6.2, s 6.3')}`),
               'The principal contractor\'s ____________ (position) signs the permit.',
-              src('Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, both readily available to the workers.', ESR('s 204')),
+              src('Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, or both for at least 2 years after a serious electrical incident or dangerous electrical event, readily available to the workers.', ESR('s 204')),
             ],
           },
         }],
@@ -2006,7 +2014,7 @@ const ACTIVITIES = [
         src('Get the underground services information and pothole to confirm services before digging.', `${WHS('s 304')}; ${MODEL('Excavation work', 's 3.5')}`),
         src('No combustion engine plant in a trench or pit while workers are in it. Check the atmosphere before starting.', MODEL('Excavation work', 's 4.6')),
         src('Trench shields protect workers if a collapse happens, but do not support the ground: they are not loaded beyond their design, and are used to the manufacturer\'s instructions. Enter sheeted areas only by ladder.', MODEL('Excavation work', 's 6.2, s 6.4')),
-        src('Barriers go up around a pit or trench as it is dug, before it is deeper than 2 m.', WHS('s 306D')),
+        src('Barriers go up around a pit or trench as it is dug, before it is 2 m deep (3 m in housing construction).', WHS('s 306D')),
         src('A competent person inspects the sides and support often, and after rain.', MODEL('Excavation work', 's 6.6')),
       ],
     }],
@@ -2646,13 +2654,13 @@ const ACTIVITIES = [
         src('Asbestos likely to be disturbed is identified before demolition and, so far as is reasonably practicable, removed by a licensed asbestos removalist before demolition starts.', `${WHS('s 451, s 452, s 453')}; ${QCODE('Demolition', 's 3.6, s 4.2')}`),
         { only: 'attachedStructure', text: 'Services to the attached structure are isolated and capped back to the house by the licensed trades, the shared wall is propped or protected, and the house stays weatherproof and safe to use.' },
         'Demolition is done by a contractor holding any demolition licence the state requires.',
-        src('Where the structure, or a load-bearing part of it, is at least 6 m high, the regulator is given written notice at least 5 days before the work starts.', WHS('s 142')),
+        src('Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high, where load shifting machinery is used on a suspended floor, or where explosives are used.', WHS('s 142')),
         src('An exclusion zone is fenced and signed around the structure, wide enough that falling or rebounding debris cannot reach anyone outside it. No one enters while demolition is under way.', QCODE('Demolition', 's 4.3')),
         { only: 'bridgeDemo', text: 'The bridge is taken down in the sequence the engineer\'s demolition plan sets, with spans propped or supported as it requires, and kept stable at every stage. No one works on or under a span while it is cut, broken or lifted out.' },
         { unless: 'noRoofDown', ...src('The structure is demolished in the reverse order to its construction, from the roof down, and kept stable at every stage. No one works inside or under it while it is being pulled down.', QCODE('Demolition', 's 4.12')) },
         src('Excavators and other demolition plant have operator protective devices (falling object protection and a seat belt), and only the operator and a spotter in sight of the operator are near them.', QCODE('Demolition', 's 4.12')),
         src('Debris is removed as the work goes, and is not dropped freely except into a fenced drop zone.', QCODE('Demolition', 's 4.7')),
-        { only: 'masonryDemo', ...src('Breaking masonry and slabs is processing a crystalline silica substance: water sprays keep dust down, and anyone still at risk wears a fit tested respirator. Hearing protection near breakers and hammers.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2')}`) },
+        { only: 'masonryDemo', ...src('Breaking masonry and slabs is processing a crystalline silica substance: water sprays keep dust down, and anyone still at risk wears a fit tested respirator. Hearing protection near breakers and hammers.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.6, s 7.6.2')}`) },
         { unless: 'bridgeDemo', text: 'Neighbours are told before work starts, and the boundary is protected from debris and dust.' },
       ],
     }],
@@ -3895,7 +3903,7 @@ const ACTIVITIES = [
         'The circuit is isolated at the switchboard, locked and tagged, and proved de-energised before the old appliance is disconnected.',
         'The old appliance is moved out by two people or on a trolley.',
         'Benchtop cut-outs are cut with on-tool extraction, and natural stone benchtops are cut wet or with extraction and a P2 respirator.',
-        src('An installed engineered stone benchtop is cut only as a minor modification that is controlled, and only after written notice of the work is given to the regulator.', WHS('s 529D, s 529F, s 529G')),
+        ...ENG_STONE,
         SILICA_FOLLOW_UP[0],
         'The new appliance is connected and tested to the manufacturer\'s instructions and the wiring rules before the circuit is re-energised.',
       ],
@@ -6308,6 +6316,20 @@ const ACTIVITIES = [
     ppe: ['gloveChemical'],
   },
   {
+    when: 'engStoneWork',
+    steps: [{
+      step: 'Remove, repair or modify installed engineered stone',
+      hazards: ['Silica dust from cutting, drilling or breaking engineered stone.', 'Back injury and crush from heavy pieces of stone.', 'Noise.'],
+      controls: [
+        ...ENG_STONE,
+        ...SILICA_FOLLOW_UP,
+        'Benchtops are cut into pieces two people can carry, or moved on a trolley or with a lifting aid.',
+        src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Hearing protection worn for the whole time of the noise, with hearing tests within 3 months of starting and at least every 2 years.', `${WHS('s 56, s 57, s 58')}; ${QCODE('Managing noise and preventing hearing loss', 's 2.2, s 5.3, s 5.4')}`),
+      ],
+    }],
+    ppe: ['p2', 'earMuffs'],
+  },
+  {
     when: 'stoneSilica',
     steps: [{
       step: 'Cut and finish stone and porcelain benchtops',
@@ -6908,7 +6930,7 @@ const ACTIVITIES = [
       hazards: ['The wall or the structure above collapses.', 'A cut section falls.'],
       controls: [
         src('Cutting an opening in a load-bearing wall is demolition work: it is done by, or for, a holder of a demolition licence, with the licence holder\'s nominated supervisor readily available whenever the work is done.', WHS('s 143, s 144')),
-        src('Where the structure is at least 6 m high, written notice is given to the regulator at least 5 days before the work starts.', WHS('s 142')),
+        src('Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high, where load shifting machinery is used on a suspended floor, or where explosives are used.', WHS('s 142')),
         'Props stay in place until the engineer confirms the new opening and its supports are complete.',
         src('Before the work starts, the principal contractor closes the adjoining area or erects perimeter containment screening where objects could fall.', WHS('s 315H, s 315I')),
       ],
@@ -7149,7 +7171,8 @@ const ACTIVITIES = [
         step: 'Remove the asbestos',
         hazards: ['Breathing in asbestos fibres.'],
         controls: [
-          'Keep the material wet and remove it whole, by hand.',
+          { unless: 'friableAsbestos', text: 'Keep the material wet and remove it whole, by hand.' },
+          { only: 'friableAsbestos', ...src('Friable asbestos is removed inside an enclosure that is tested for leaks, under negative pressure, using the wet method, with air monitoring by an independent licensed asbestos assessor immediately before the work starts and while it is carried out (negative pressure and the monitoring before the start are not needed where glove bags are used). The enclosure is not dismantled until monitoring shows the fibre level inside it is below 0.01 fibres/ml.', WHS('s 475, s 477')) },
           'Wear disposable coveralls and a respirator rated P2 or higher.',
         ],
       },
@@ -7158,7 +7181,7 @@ const ACTIVITIES = [
         hazards: ['Fibres spread beyond the work area.'],
         controls: [
           'Wrap the waste in heavy duty plastic, label it as asbestos waste and take it to a facility licensed to accept it.',
-          src('When licensed asbestos removal is finished, a clearance inspection is done by an independent competent person (an independent licensed asbestos assessor for friable asbestos) before the area is reopened.', WHS('s 473')),
+          src('When licensed asbestos removal is finished, a clearance inspection is done by an independent competent person (an independent licensed asbestos assessor where the work needed a Class A licence, as friable asbestos does) before the area is reopened.', WHS('s 473')),
         ],
       },
     ],
@@ -7197,7 +7220,7 @@ const ACTIVITIES = [
         hazards: ['A person or tool is left inside.'],
         controls: [
           'Account for everyone and all tools before closing the access.',
-          src('Close and sign off the entry permit, confirming everyone has left. Keep the risk assessment for 28 days after the work and the permit until the work is complete.', WHS('s 67, s 77')),
+          src('Close and sign off the entry permit, confirming everyone has left. Keep the risk assessment until at least 28 days after the work and the permit until the work is complete, or both for at least 2 years after a notifiable incident, available for inspection and to workers on request.', WHS('s 67, s 77')),
         ],
       },
     ],

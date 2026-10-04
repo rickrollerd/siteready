@@ -84,9 +84,10 @@ const QUEENSLAND = {
   },
   // Plain wording for a user who is not sure what a fall from height is.
   fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulation 2011 (Qld), section 291, work where a person could fall more than 2 metres is high risk construction work. Section 299 says high risk construction work needs a safe work method statement before it starts.',
-  // Electrical Safety Regulation 2026 (Qld), which replaced the 2013 regulation on 1 September 2026
-  // with no policy change. 3.0 m is the exclusion zone for untrained persons and operating plant
-  // near lines up to 132 kV; higher voltages need more.
+  // Electrical Safety Regulation 2026 (Qld), which commenced on 1 September 2026 in place of the
+  // expired Electrical Safety Regulation 2013 (s 2, s 344). Schedule 2: 3.0 m is the largest
+  // exclusion zone for untrained persons and operating plant near uninsulated lines up to 132 kV;
+  // higher voltages need more.
   // Section 299(4): a statement whose only fall controls are administrative or PPE must
   // describe all control measures considered, including the section 79(3) requirements.
   fallControlsConsidered: 'Only needed if the fall control is a procedure or a harness. List the other controls considered, such as edge protection, a scaffold or an elevating work platform, and why they were not used (section 299(4)).',
@@ -239,8 +240,8 @@ const WESTERN_AUSTRALIA = {
     },
   ],
   panelControls: [
-    ['Isolate or engineer', 'Only people doing the tilt-up work, or with written authority for a purpose connected with it, enter or stay in the area where it is done (regulation 306I).'],
-    ['Administrative', 'Keep at the site the regulator notification, the shop drawings of each panel, a current plan for the work, any written advice from a qualified practising engineer, and each panel\'s inspection report (regulation 306H).'],
+    ['Isolate or engineer', 'Only people doing the tilt-up work, people with written authority for a purpose connected with it, and people authorised under a written law enter or stay in the area where it is done (regulation 306I).'],
+    ['Administrative', 'Keep at the site the regulator notification, the shop drawings of each panel, a current plan for the work, any written advice from a qualified practising engineer, each panel\'s inspection report, and any exemption that relates to the work (regulation 306H).'],
   ],
 };
 
@@ -382,10 +383,10 @@ const NORTHERN_TERRITORY = {
   },
   fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT), regulation 291, construction work that is not residential is high risk construction work where a person could fall more than 2 metres. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
   residentialFallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT), regulation 291, residential construction work (a house, or a garage, carport or shed attached to or next to a house) is high risk construction work where a person could fall more than 3 metres. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
-  // Part 4.7, with regulation 166, is missing from the text read from the published PDF.
-  // Regulation 729's note says another Act also applies to work near electric lines; its
-  // title, Electricity Reform Act 2000, is as regulation 5 gives it.
-  overheadLineControl: 'Keep people, plant and things away from overhead and underground electric lines. Get the electricity supply authority\'s requirements before work starts and follow them. The Electricity Reform Act 2000 (NT) also imposes obligations for work near electric lines.',
+  // Part 4.7, with regulation 166, was repealed by the Electrical Safety Act 2022 (NT) s 300 from
+  // 1 July 2024 (endnotes). Regulation 729's note says the Electricity Reform Act 2000 (its title as
+  // regulation 5 gives it) imposes obligations in relation to electric lines in certain circumstances.
+  overheadLineControl: 'Keep people, plant and things away from overhead and underground electric lines. Get the electricity supply authority\'s requirements before work starts and follow them. Since 1 July 2024 the Electrical Safety Act 2022 (NT) has applied in place of Part 4.7 of the regulations, and the Electricity Reform Act 2000 (NT) also imposes obligations in relation to electric lines in certain circumstances.',
 };
 
 // Checked against the authorised PDF of the Occupational Health and Safety Regulations 2017

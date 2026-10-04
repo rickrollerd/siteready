@@ -72,8 +72,8 @@ function withoutWorkIntoPrecast(text) {
     .replace(/\b(?:handrails?|guardrails?|edge protection|brackets?)\s+(?:to|on|onto)\s+(?:the\s+)?(?:[\w-]+\s+){0,2}precast(?:\s+[\w-]+)?/gi, '')
     // Conduits and boxes cast into precast units are services work, not precast erection.
     .replace(/\bcast[- ]in(?:to)?\s+(?:the\s+)?precast\s+(?:conduits?|back ?boxes|boxes|services|items|ferrules)\b|\b(?:conduits?|back ?boxes|services)\s+(?:cast\s+)?in(?:to)?\s+(?:the\s+)?precast\b/gi, '')
-    // Finishing precast already in place: staining, cleaning, sealing, painting or patching it.
-    .replace(/\b(?:stain\w*|clean\w*|seal\w*|paint\w*|patch\w*|coat\w*)\b(?:\s+(?:of|to))?\s+(?:the\s+)?(?:[\w-]+\s+){0,3}precast(?:\s+(?:panels?|units?|walls?|elements?))?/gi, '');
+    // Finishing precast already in place: staining, cleaning, sealing, painting, patching, grinding or repairing it.
+    .replace(/\b(?:stain\w*|clean\w*|seal\w*|paint\w*|patch\w*|coat\w*|grind\w*|repair\w*|rub\w* (?:up|down)|polish\w*)\b(?:\s+(?:of|to))?\s+(?:the\s+)?(?:[\w-]+\s+){0,3}precast(?:\s+concrete)?(?:\s+(?:wall\s+)?(?:panels?|units?|walls?|elements?))?/gi, '');
 }
 
 function isPanelLift(text) {
@@ -93,6 +93,8 @@ function isPanelLift(text) {
 // paving slab or decorative panel. Floor planks and insulated panels are not concrete wall panels.
 function isConcreteWallPanel(text) {
   const source = withoutWorkIntoPrecast(text);
+  // Removing the temporary bracing of a concrete panel is tilt-up work too (r 306A(c)).
+  if (/\bremov\w*[^.]{0,30}\b(?:temporary )?brac(?:es|ing)\b[^.]{0,30}\b(?:tilt[- ]?up|precast|concrete)\s+(?:concrete\s+)?(?:wall\s+)?panels?\b/i.test(source) && !/\b(sandwich|insulated|decorative)\b/i.test(source)) return true;
   if (!isPanelLift(source)) return false;
   if (!/\b(tilt[- ]?up|tilt (?:panels?|slabs?|walls?)|precast|concrete)\b/i.test(source)) return false;
   if (/\b(sandwich|insulated|decorative)\b/i.test(source)) return false;
@@ -110,6 +112,8 @@ const PLASTER_WORK = /\b(plasterboard|gyprock|drywall|set(?:ting)? compound\w*|c
 const FLOOR_WORK = /\b(carpet\w*|vinyl|rubber floor\w*|floor coverings?|timber floor\w*|engineered timber|floating floors?|levelling compound\w*)\b/i;
 
 const GLAZING_WORK = /\b(glass balustrades?|balustrades?|shower screens?|internal glazing|glass partitions?|mirrors?|mullions?|(?:install|replac|fit|glaz)\w*\b[^.]{0,30}\b(?:windows?|window panes?|glass(?! ?wool| ?fibre)))\b/i;
+// Work on engineered stone already installed: removing, repairing, modifying or disposing of it.
+const ENG_STONE_INSTALLED = /\b(remov\w*|repair\w*|modif\w*|dispos\w*|existing|already installed|installed engineered stone|demolish\w*|strip\w*)\b/i;
 const STONE_WORK = /\b(benchtops?|stone (?:slabs?|vanit\w*)|splashbacks?)\b/i;
 
 const FIRE_SERVICES = /\b(sprinklers?|hydrants?|fire services?|fire mains?|fire pumps?|fire pipework|fire hose reels?)\b/i;
@@ -481,7 +485,8 @@ function highRiskMatches(raw, answer, state) {
     tower: mentioned(text, /\b(telecommunications? towers?|(?:mobile (?:phone )?|phone|radio|comms|communications) towers?)\b/i),
     // Demolishing a whole building takes down its load-bearing parts.
     // Removing a wall's bracing takes out a load-bearing element (Safe Work Australia's example).
-    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || /\bremov\w*[^.]{0,20}\b(?:the |a )?(?:wall |roof |structural |temporary )?bracing\b/i.test(String(text || '')) || mentioned(text, DEMOLITION) && (mentioned(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, ''), /\b(load-bearing|load bearing|structur\w*)\b/i) || WHOLE_DEMOLITION.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
+    // Temporary bracing, props, formwork and falsework are left out of demolition work (schedule 19).
+    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || sentences(text).some((line) => /\bremov\w*[^.]{0,20}\b(?:the |a )?(?:wall |roof |structural )?bracing\b/i.test(line) && !/\b(temporary|temp|props?|falsework|formwork|tilt[- ]?up|precast)\b/i.test(line)) || mentioned(text, DEMOLITION) && (mentioned(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, ''), /\b(load-bearing|load bearing|structur\w*)\b/i) || WHOLE_DEMOLITION.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
     asbestos: mentioned(text, /\basbestos\b/i),
     // Structural alterations or repairs to an existing structure that need temporary support.
     // Propping and backpropping new formwork and slabs is not an alteration or repair.
@@ -492,7 +497,9 @@ function highRiskMatches(raw, answer, state) {
     explosives: mentioned(String(text || '').replace(/\bexplosive[- ]?(?:powered |power |actuated )?(?:tools?|nail guns?|fixing tools?)\b/gi, ' ').replace(/\b(?:abrasive|sand|grit|garnet|water|soda|bead|shot|dry ice|hydro|ice|media|pressure)[- ]?blast\w*|\bblast\w* (?:and (?:paint|coat)\w*|clean\w*)/gi, ' '), /\b(explosives?|blasting|drill\w* and blast\w*|blast (?:holes?|patterns?)|shot ?fir\w*|charg\w* (?:the )?(?:blast )?holes?)\b/i),
     gas: mentioned(text, /\b(gas mains?|pressuri[sz]ed gas|(?:existing |live |natural |reticulated )?gas (?:lines?|pipe\w*|supply|services?|meters?)|connect\w*[^.]{0,30}\bgas\b)\b/i),
     chemicalLine: mentioned(text, /\b((?:fuel|refrigerant|chemical)(?: or (?:fuel|refrigerant|chemical))? lines?)\b/i),
-    electrical: mentioned(text, /\b(connect\w*[^.]{0,40}\b(?:to|into) (?:the )?(?:electricity )?supply|solar (?:panels?|pv|photovoltaic|arrays?|systems?)|photovoltaic|inverters?|energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live (?:electrical|parts?|switchboards?|circuits?)|(?:energised|energized|live) electrical (?:installations?|services?))\b/i),
+    electrical: mentioned(text, /\b(connect\w*[^.]{0,40}\b(?:to|into) (?:the )?(?:electricity )?supply|solar (?:panels?|pv|photovoltaic|arrays?|systems?)|photovoltaic|inverters?|energised|energized|energis(?:e|ing|ation)|overhead (?:power |electric )?lines?|power lines?|live (?:electrical|parts?|switchboards?|circuits?)|(?:energised|energized|live) electrical (?:installations?|services?))\b/i)
+      // Live or existing underground power cables are energised electrical services.
+      || /\b(?:live|energised|energized)\s+(?:(?:underground|buried|electrical|electric|power|hv|high voltage|\d+(?:\.\d+)? ?kv)\s+){0,2}cables?\b|(?<!\bnew\s)\b(?:underground|buried)\s+(?:(?:live|energised|energized|electrical|electric|power|hv|high voltage|\d+(?:\.\d+)? ?kv)\s+){1,2}(?:cables?|lines?|services?|mains)\b|\b\d+(?:\.\d+)? ?kv\s+(?:underground\s+)?cables?\b/i.test(String(text || '')),
     // Hot cutting into pipework or tanks that may hold chemical or fuel residue (Safe Work Australia's example).
     atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i) || /\b(residues?|traces?)\b[^.]{0,30}\b(?:hazardous )?(chemicals?|fuels?|flammable|hydrocarbons?|solvents?)\b|\b(?:pipework|pipes?|tanks?|drums?|vessels?)\b[^.]{0,30}\b(?:may |that |which )?(?:contain|held|hold)\w*\b[^.]{0,30}\b(chemicals?|fuels?|flammable|hydrocarbons?|solvents?)\b/i.test(String(text || '')),
     // Drilling or fixing to precast units already in place is not precast work.
@@ -501,7 +508,7 @@ function highRiskMatches(raw, answer, state) {
     // Work in a footpath or verge is next to the road it runs beside.
     road: mentioned(text, ROAD) || /\b(?:adjacent to|next to|alongside) (?:an? |the )?(?:existing |live |busy |public |operating )?(?:roads?|roadways?|streets?|highways?|motorways?|freeways?)\b/i.test(String(text || '')) || mentioned(text, RAIL_IN_USE) || /\blight rail\b/i.test(String(text || '')) || /\b(in|on|along|across|under) (?:the |a )?(?:council |public )?(?:footpaths?|verges?|road reserves?|nature strips?)\b/i.test(String(text || '')),
     // Trenches and site excavation are dug by machine unless the task says by hand.
-    plant: (/\b(excavat\w*|dig\w*)\s+(?:the\s+|all\s+|new\s+|and\s+\w+\s+(?:a\s+|the\s+)?(?:new\s+)?)?(?:\w+\s+)?(?:trench\w*|site|footings?|pits?|basement|swales?|sewer|line|drains?|stormwater|services?|pipes?)\b|\bbulk excavat\w*/i.test(String(text || '')) && !/\b(?:by hand|hand[- ]dig\w*|hand excavat\w*)\b/i.test(String(text || ''))) || mentioned(text, /\b((?:piling|cfa|bored pil\w*|drill(?:ing)?|hdd) rigs?|directional drill\w*|(?:excavator[- ]mounted )?pile croppers?|rock break(?:ers?|ing)|hydraulic hammers?|elevating work platforms?|ewps?|scissor lifts?|boom lifts?|powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|boom pumps?|telehandlers?|excavators?|forklifts?|trucks?|(?<!tower )cranes?(?!\s+(?:company|companies|crew|operators?)\b)|loaders?|liebherr|skid ?steers?|bobcats?|posi-?tracks?|(?:vibrating|smooth drum|padfoot|ride-on|road|compaction) rollers?)\b/i)
+    plant: (/\b(excavat\w*|dig\w*)\s+(?:the\s+|all\s+|new\s+|and\s+\w+\s+(?:a\s+|the\s+)?(?:new\s+)?)?(?:\w+\s+)?(?:trench\w*|site|footings?|pits?|basement|swales?|sewer|line|drains?|stormwater|services?|pipes?)\b|\bbulk excavat\w*/i.test(String(text || '')) && !/\b(?:by hand|hand[- ]dig\w*|hand excavat\w*)\b/i.test(String(text || ''))) || mentioned(text, /\b((?:piling|cfa|bored pil\w*|drill(?:ing)?|hdd) rigs?|directional(?:ly)? (?:drill|bor)\w*|(?:excavator[- ]mounted )?pile croppers?|rock break(?:ers?|ing)|hydraulic hammers?|elevating work platforms?|ewps?|scissor lifts?|boom lifts?|powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|boom pumps?|telehandlers?|excavators?|forklifts?|trucks?|(?<!tower )cranes?(?!\s+(?:company|companies|crew|operators?)\b)|loaders?|liebherr|skid ?steers?|bobcats?|posi-?tracks?|(?:vibrating|smooth drum|padfoot|ride-on|road|compaction) rollers?)\b/i)
       // Concrete trucks come into the work area for every slab, path or driveway pour.
       || (SLAB_GROUND.test(String(text || '')) && !SMALL_POUR.test(String(text || '')) && !/\bbefore (?:the )?(?:slab )?(?:is )?pour\w*\b/i.test(String(text || '')) && (/\bpour\w*\b/i.test(String(text || '')) || /\bconcrete\b/i.test(String(text || '')) && /\b(lay\w*|plac\w*|construct\w*|build\w*|install\w*|form\w*)\b/i.test(String(text || ''))))
       // Pavers, rollers and trucks lay asphalt.
@@ -551,7 +558,8 @@ function loadsOnDeckOrSlab(text) {
 }
 
 // Entering a pit, sump, tank, manhole or sewer.
-const ENTERED_SPACE = /\b(?:(?:enter\w*|entry|inside|work in|working in)\b[\w\s,-]{0,40}\b(?:pits?|sumps?|tanks?|manholes?|maintenance holes?|sewers?|wet wells?)|(?:repair\w*|re-?lin\w*|coat\w*|clean\w*)\b[\w\s,-]{0,40}\b(?:inside of|inside|interior of|internal\w*)?\b[\w\s,-]{0,20}\b(?:water |rain\w* |concrete |fuel |storage )?tanks?)\b/i;
+// A directional drill's 'entry and exit pits' are where the bore starts and ends, not spaces entered.
+const ENTERED_SPACE = /\b(?:(?:enter\w*|entry(?!(?: and exit| or exit|\/exit)? pits?\b)|inside|work in|working in)\b[\w\s,-]{0,40}\b(?:pits?|sumps?|tanks?|manholes?|maintenance holes?|sewers?|wet wells?)|(?:repair\w*|re-?lin\w*|coat\w*|clean\w*)\b[\w\s,-]{0,40}\b(?:inside of|inside|interior of|internal\w*)?\b[\w\s,-]{0,20}\b(?:water |rain\w* |concrete |fuel |storage )?tanks?)\b/i;
 const HOT_WORK = /\b(braz\w*|solder\w*|hot work|gas torch\w*|oxy[- ]?acetylene|(?<!heat |hot air |plastic |poly |vinyl |seam )weld(?:ing|s|ed)?(?! (?:the )?(?:vinyl|seams?|joins)))\b/i;
 const PRESSURE_TEST = /\b(pressure test\w*|hydrostatic|pneumatic test\w*|air test\w*)\b/i;
 const CORE_DRILL = /\b(core[- ]?drill\w*|coring|core holes?)\b/i;
@@ -615,7 +623,7 @@ const ENERGISED = /\b(overhead (?:power |electric )?lines?|power lines?)\b/i;
 const ELECTRICAL_RAW = /\b(electrician|electrical|wiring|rewir\w*|exit signs?|emergency light\w*|downlights?|led (?:strip )?light\w*|(?:led )?high ?bays?(?: lights?)?|(?:install\w*|replac\w*) (?:a |an |the )?(?:new )?(?:[\w-]+ ){0,4}(?:control panels?|sub-?boards?)|(?:install\w*|replac\w*) (?:\w+ ){0,3}lights\b|(?:electric|induction) (?:stoves?|cooktops?|ovens?)|strip lighting|underfloor heating|heating cables?|switchboards?|distribution boards?|consumer mains|cabl\w*|circuits?|conduits?|light fittings?|floodlights?|ceiling fans?|ev chargers?|light switch(?:es)?|hardwired smoke alarms?|install\w* (?:\w+ )?lighting|lights? fittings?|power points?|busduct|construction (?:power|wiring)|temporary (?:power|lighting))\b/i;
 // Communications and security cabling is extra low voltage work by registered cablers
 // and security installers, so it is electrical work only when power words are used too.
-const ICT_WORK = /\b(data cabl\w*|data points?|data networks?|network cabl\w*|comms|communications|telecommunications|ict|structured cabling|optical fibre|fibre optic\w*|fibre(?![- ]?(?:cement|glass|board|reinforced|optic))|cat ?6a?|cctv|access control|intercoms?|security (?:systems?|cameras?|equipment)|card readers?|nbn|wireless access points?|matv|antennas?|nurse call|pabx|ip telephony|(?:tele)?phone systems?|handsets?|phone points?|server racks?|comms racks?)\b/i;
+const ICT_WORK = /\b(wi-?fi|wireless (?:access points?|aps?|networks?)|waps?|data cabl\w*|data points?|data networks?|network cabl\w*|comms|communications|telecommunications|ict|structured cabling|optical fibre|fibre optic\w*|fibre(?![- ]?(?:cement|glass|board|reinforced|optic))|cat ?6a?|cctv|access control|intercoms?|security (?:systems?|cameras?|equipment)|card readers?|nbn|wireless access points?|matv|antennas?|nurse call|pabx|ip telephony|(?:tele)?phone systems?|handsets?|phone points?|server racks?|comms racks?)\b/i;
 const SECURITY_WORK = /\b(cctv|access control|electronic (?:door )?lock\w*|door locking systems?|intercoms?|security (?:systems?|cameras?|equipment)|card readers?|alarms?|intrusion detect\w*)\b/i;
 const POWER_WORDS = /\b(electrician|electrical|switchboards?|distribution boards?|consumer mains|light fittings?|power points?|busduct|construction (?:power|wiring)|temporary (?:power|lighting)|mains power)\b/i;
 const ELECTRICAL_CORE = { test: (text) => ELECTRICAL_RAW.test(String(text || '')) && (!ICT_WORK.test(String(text || '')) || POWER_WORDS.test(String(text || ''))) };
@@ -772,6 +780,9 @@ const CATEGORY_FACTS = [
     id: 'silicaControls',
     label: 'Silica dust controls',
     prompt: 'How silica dust is controlled (wet cutting, on-tool extraction or local exhaust), the respirator and its fit testing, and the written assessment of whether the work is high risk.',
+    // The ACT has no written high risk assessment; it sets the controls (s 418B, s 418C, s 418CAA)
+    // and an awareness course for high risk crystalline silica work (s 418D).
+    statePrompts: { act: 'How silica dust is controlled: the continuous water feed and the other crystalline silica control used (for porcelain, sintered stone and engineered stone, water is always used), any step down section 418CAA allows and why, the respirators and their fit testing, and who carries out high risk crystalline silica work and has done the declared awareness course.' },
     level: 'Isolate or engineer',
     applies: (text) => SILICA_WORK.test(String(text || '')),
   },
@@ -937,6 +948,11 @@ const FACT_KINDS = (() => {
 // The facts the task needs. With a known trade, a fact used only by other trades'
 // kinds of work is not asked ("prepainted steel roof sheeting" does not need a
 // steel erection sequence).
+// A fact's question as the state's law puts it.
+function factPrompt(item, state) {
+  return (item.statePrompts && state && item.statePrompts[state.id]) || item.prompt;
+}
+
 function requiredFactsFor(fullTask, answer, state) {
   const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)];
   const allowed = allowedKinds(state && state.trades);
@@ -957,7 +973,7 @@ function pickedStepFacts(fullTask, answer, state) {
   if (!added.length) return extra;
   const uses = (id) => (FACT_KINDS.get(id) || []).some((when) => added.includes(when));
   for (const item of CATEGORY_FACTS) {
-    if (!asked.has(item.id) && uses(item.id)) extra.push({ id: item.id, label: item.label, prompt: item.prompt, ...(item.choices ? { choices: item.choices } : {}) });
+    if (!asked.has(item.id) && uses(item.id)) extra.push({ id: item.id, label: item.label, prompt: factPrompt(item, state), ...(item.choices ? { choices: item.choices } : {}) });
   }
   if (!asked.has('safetyDataSheet') && uses('safetyDataSheet')) extra.push({ id: 'safetyDataSheet', label: 'Safety data sheet', prompt: 'Safety data sheet.' });
   if (!asked.has('trenchSupport') && uses('trenchSupport')) extra.push({ id: 'trenchSupport', label: 'Trench support', prompt: 'How the sides are secured: shoring, benching or battering, and who designed it.' });
@@ -1028,7 +1044,7 @@ function allRequiredFacts(fullTask, answer, state) {
   }
   // Facts the high risk categories below cannot be done safely without.
   for (const item of CATEGORY_FACTS) {
-    if (item.applies(task)) facts.push({ id: item.id, label: item.label, prompt: item.prompt, ...(item.choices ? { choices: item.choices } : {}) });
+    if (item.applies(task)) facts.push({ id: item.id, label: item.label, prompt: factPrompt(item, state), ...(item.choices ? { choices: item.choices } : {}) });
   }
   if ((/\basbestos\b/i.test(task) || asbestosLikely(task)) && !asbestosArrangement(task)) {
     facts.push({
@@ -1313,6 +1329,7 @@ const STEP_HAZARDS = [
   [/^Set up traffic management/, 'Traffic', 'A person or a vehicle is struck.'],
   [/^(Excavate|Backfill and restore)/, 'Moving plant', 'A person is struck by plant.'],
   [/^Lay pipes, pits and conduits/, 'Suspended load', 'A person is struck or crushed by a pipe or pit being lowered.'],
+  [/^(Saw cut concrete|Drill or cut concrete, masonry or stone|Break out)/, 'Respirable crystalline silica', 'A person breathes in silica dust.'],
 ];
 const PUBLIC_NEARBY = /\b(schools?|footpaths?|pedestrians?|members? of the public|public (?:areas?|access)|shopping (?:centres?|centers?)|playgrounds?|hospitals?|occupied (?:buildings?|premises|sites?)|live (?:roads?|streets?))\b/i;
 
@@ -1475,8 +1492,13 @@ function questionsFor(input) {
   if (!task) return { kind: 'error', message: 'Write the task.' };
   // Engineered stone: supplying, installing or processing it is prohibited, except
   // removing, repairing, making minor modifications to or disposing of installed stone.
-  if (/\bengineered stone\b/i.test(task) && /\b(install\w*|supply\w*|fabricat\w*|manufactur\w*|cut\w*|process\w*|fit\w*|polish\w*)\b/i.test(task) && !/\b(remov\w*|repair\w*|minor modifications?|dispos\w*|existing|already installed|demolish\w*|strip\w*)\b/i.test(task)) {
-    return { kind: 'refused', state: state.name, message: 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under work health and safety law, so SiteReady does not prepare a SWMS for it. Removing, repairing, making minor modifications to or disposing of installed engineered stone is allowed with controls, and the regulator may need to be notified: describe that work instead, or use natural stone or another material.' };
+  if (/\bengineered stone\b/i.test(task) && /\b(install\w*|supply\w*|fabricat\w*|manufactur\w*|cut\w*|process\w*|fit\w*|polish\w*)\b/i.test(task) && !ENG_STONE_INSTALLED.test(task)) {
+    // Victoria: regulations 319Y and 319ZB, with no notice to the regulator. Elsewhere written notice
+    // is given before the work (s 529G; ACT s 418I).
+    const message = state.id === 'vic'
+      ? 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under the Occupational Health and Safety Regulations 2017 (Vic) (regulation 319Y), so SiteReady does not prepare a SWMS for it. Removing, repairing, modifying or disposing of installed engineered stone is allowed with the engineered stone controls: describe that work instead, or use natural stone or another material.'
+      : 'Supplying, installing or processing engineered stone benchtops, panels or slabs is prohibited under work health and safety law, so SiteReady does not prepare a SWMS for it. Removing, repairing, making minor modifications to or disposing of installed engineered stone is allowed if the processing is controlled, and the regulator must be given written notice before the work starts: describe that work instead, or use natural stone or another material.';
+    return { kind: 'refused', state: state.name, message };
   }
   if (state.residentialFallMetres && !residentialAnswer(input.residential)) {
     return { kind: 'error', message: 'Answer whether this is residential construction work.' };
@@ -1692,7 +1714,7 @@ function prepareDraft(input) {
     kind: 'draft',
     ...header,
     ...stepsAndPpe(task, facts, hazards, finalControls, state, input),
-    references: referencesFor(facts),
+    references: referencesFor(facts, state.id),
     missing: [],
     statement: '',
     // Testing on or near energised parts is high risk construction work, however the task is worded.
@@ -1846,9 +1868,12 @@ const REFERENCE_FACTS = [
   ['safetyDataSheet', 'Safety data sheet'],
 ];
 
-function referencesFor(facts) {
+// The ACT sets no written silica assessment, so its reference is the silica controls.
+const STATE_REFERENCE_LABELS = { act: { silicaControls: 'Silica controls' } };
+
+function referencesFor(facts, stateId) {
   return REFERENCE_FACTS
-    .map(([id, label]) => ({ label, text: keptFact(facts[id]) }))
+    .map(([id, label]) => ({ label: (STATE_REFERENCE_LABELS[stateId] || {})[id] || label, text: keptFact(facts[id]) }))
     .filter((item) => item.text);
 }
 
@@ -2125,6 +2150,13 @@ function settleFlags(flags, task) {
   if (/\b(conduits?|pits?)\b/i.test(task) && !/\bcabl\w*\b/i.test(task)) out.ictWork = false;
   if (out.skylight && out.houseWork) out.roofSpace = true;
   if (out.applianceSwap) out.fitOff = false;
+  // Installed engineered stone has its own step; it is not cut, finished or set like new stone.
+  if (out.engStoneWork) {
+    out.stoneSilica = false;
+    if (!/\b(replac\w*|new)\b/i.test(task)) out.stoneHandle = false;
+    // An appliance swap prints the engineered stone lines in its own step.
+    if (out.applianceSwap) out.engStoneWork = false;
+  }
   if (out.crackInjection && !/\b(spall\w*|break\w* out|concrete cancer)\b/i.test(task)) out.concreteRepair = false;
   if (out.tankWalls) out.confined = out.confined || false;
   if (out.slabRemoval && out.groundCut) out.cutOpening = false;
@@ -2889,7 +2921,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     roof: !SPORTS_LIGHTING.test(task) && (/\b(?:frame|clad)\w*,? (?:and )?roof\b|\broof,? (?:and )?(?:clad|line)\b|\breplac\w* (?:the |a )?(?:section of (?:the )?)?(?:\w+ )?roof\b(?! spaces?| cavit\w*| plant| trusses?| beams?| turbines?| vents?| fans?| ventilators?| gutters?)/i.test(roofTask) || /\b(roof(?:ing)? sheet\w*|roofing|re-?roof\w*|re-?sheet\w*|roof tiles?|slate (?:roof\w*|tiles?)|on (?:the|a) roof|roof work|roof repairs?|repair\w* (?:the |a )?(?:\w+ )?roof|ridge capp\w*|ridge caps?|roof flashings?|roof (?:screws|fixings|fasteners)|(?:install|fix|lay)\w* (?:a |the )?(?:new )?(?:colorbond |metal |steel |corrugated )roofs?)\b/i.test(roofTask) || /\b(cappings?|(?:under|over)?flashings?)\b/i.test(roofTask) && /\b(decktites?|sarking|fascias?|ridges?|roof\w*|gutters?)\b/i.test(roofTask)) && !scaffold && !MECHANICAL_WORK.test(roofTask) && !ICT_WORK.test(roofTask) && !WATERPROOFING.test(roofTask),
     // Piling contractors excavate bores and basements, not trenches, unless a trench is named.
     deepTrench: trenchDig(task),
-    trench: (trenchDig(task) || /\b(excavat(?!ors?\b)\w*|trench\w*)\b/i.test(task) || /\b(?:install\w*|lay\w*|replac\w*|repair\w*)\b[^.]{0,40}\b(?:underground (?:run )?(?:pipework|pipes?|services)|(?:collapsed |broken |damaged |cracked )(?:stormwater|sewer|drainage|water) pipes?|(?:stormwater|sewer|drainage) pipes? \d|water reticulation|pipes? for (?:a |the )?(?:new )?\w+'?s? (?:water|sewer|stormwater|drainage)|(?:pipework|pipes?|mains?|services|conduits?) underground|in-?ground (?:drainage|pipework)|(?:sewer|house|stormwater)(?:\/house)? drainage (?:systems?|lines?)|(?:stormwater|sewer|drainage) (?:pipes?|lines?|mains?)|(?:precast |concrete )?(?:pits?|manholes?)|(?:detention|underground|storage|onsite detention) tanks?|grease traps?|septic (?:tanks?|systems?)|absorption trench\w*|culverts?|culvert pipes?|cattle grids?)\b/i.test(task) && !/\b(?:directional drill\w*|hdd|under ?bor\w*|bored under)\b/i.test(task)) && !((PILING_WORK.test(task) || BULK_EXCAVATION.test(task) || EARTHWORKS.test(task)) && !/\btrench\w*\b/i.test(task)),
+    trench: (trenchDig(task) || /\b(excavat(?!ors?\b)\w*|trench\w*)\b/i.test(task) || /\b(?:install\w*|lay\w*|replac\w*|repair\w*)\b[^.]{0,40}\b(?:underground (?:run )?(?:pipework|pipes?|services)|(?:collapsed |broken |damaged |cracked )(?:stormwater|sewer|drainage|water) pipes?|(?:stormwater|sewer|drainage) pipes? \d|water reticulation|pipes? for (?:a |the )?(?:new )?\w+'?s? (?:water|sewer|stormwater|drainage)|(?:pipework|pipes?|mains?|services|conduits?) underground|in-?ground (?:drainage|pipework)|(?:sewer|house|stormwater)(?:\/house)? drainage (?:systems?|lines?)|(?:stormwater|sewer|drainage) (?:pipes?|lines?|mains?)|(?:precast |concrete )?(?:pits?|manholes?)|(?:detention|underground|storage|onsite detention) tanks?|grease traps?|septic (?:tanks?|systems?)|absorption trench\w*|culverts?|culvert pipes?|cattle grids?)\b/i.test(task) && !/\b(?:directional(?:ly)? (?:drill|bor)\w*|hdd|under ?bor\w*|bored under)\b/i.test(task)) && !((PILING_WORK.test(task) || BULK_EXCAVATION.test(task) || EARTHWORKS.test(task)) && !/\btrench\w*\b/i.test(task)),
     propping: CATEGORY_FACTS.find((item) => item.id === 'temporarySupport').applies(task),
     // Removing old services (pipework, cabling, ductwork) is not building demolition unless the building fabric is named.
     demolition: mentioned(task, DEMOLITION) && !(/\b(?:plant|pipework|pipes|cabling|cables|cable (?:trays?|ladders?)|ductwork|light fittings|services)\b[^.]{0,60}\bto be (?:demolished|removed)\b|\b(?:demoli\w*|remov\w*|strip\w*)\b[^.]{0,60}\b(?:plant|pipework|pipes|cabling|cables|cable (?:trays?|ladders?)|ductwork|light fittings|services)\b/i.test(task) && !/\b(walls?|slabs?|masonry|brick\w*|concrete|structur\w*|roofs?|floors?|ceilings?|partitions?|blockwork|stairs?)\b/i.test(task)),
@@ -2990,7 +3022,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     passiveFire: PASSIVE_FIRE.test(task),
     siteEstablish: /\b(hoardings?|gantr(?:y|ies)|site fenc\w*|site sheds?|site establishment|temporary fenc\w*|temporary (?:fence )?panels?|fenc\w* around (?:a |the )?(?:construction |building )?site)\b/i.test(task),
     sitePlant: /\b(traffic controllers?|traffic management|site gate|separat\w* (?:plant|people|pedestrians))\b/i.test(task),
-    sawCut: /\b(concrete cutt\w*|saw[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:and remov\w* )?(?:out )?(?:a |the )?(?:existing |old )?(?:concrete )?slabs?)\b/i.test(task),
+    sawCut: /\b(concrete cutt\w*|saw[- ]?cut\w*|wall saw\w*|floor saw\w*|wire saw\w*|cut\w* (?:and remov\w* )?(?:out )?(?:a |the )?(?:existing |old )?(?:concrete |floor |ground |suspended |basement )*slabs?|(?:concrete|demolition|quick[- ]?cut|power|cut[- ]?off|masonry) saws?[^.]{0,30}\b(?:concrete|slabs?|floors?|walls?|pavers?|blocks?|kerbs?|pavement)\b|cut\w*\b[^.]{0,40}\b(?:concrete|slabs?|kerbs?|pavement)\b[^.]{0,30}\b(?:concrete|demolition|quick[- ]?cut|power|cut[- ]?off|masonry) saws?)\b/i.test(task),
     // Sections are cut out (an opening), not only reglets, joints or chases cut.
     cutOpening: /\b(?:saw[- ]?cut\w*|cut\w*|wall saw\w*|floor saw\w*|wire saw\w*)\b[^.]{0,60}\b(?:openings?|penetrations?|doorways?|sections?|holes?)\b|\b(?:openings?|penetrations?|doorways?|cut[- ]?outs?|slab cuts?|wall cuts?)\b[^.]{0,30}\b(?:cut\w*|saw\w*|enlarg\w*|form\w*)\b/i.test(task) || !/\b(reglets?|joints?|chas\w*|asphalt|bitumen|pavement|trench\w*)\b/i.test(task),
     landscape: LANDSCAPE.test(task) && /\b(soil|mulch|plant\w*|planters?|landscap\w*|irrigation)\b/i.test(task) || /\b(swales?|rock (?:lining|beaching|armour\w*)|batters? (?:stabilis|protect)\w*)\b/i.test(task),
@@ -3045,7 +3077,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     replaceAppliance: /\b(replac\w*|old|existing|remov\w*|swap\w*|upgrad\w*|relocat\w*|mov(?:e|ing) (?:the )?(?:gas )?(?:cooktop|oven|heater|appliance))\b/i.test(task),
     ceilingGrid: /\b(suspended (?:grid )?ceilings?|grid ceilings?|ceiling grids?|ceiling tiles?|acoustic (?:ceiling )?panels?)\b/i.test(task) && /\b(install\w*|fit\w*|supply|replac\w*)\b/i.test(task),
     playground: /\b(playground (?:equipment|structures?)|play equipment|softfall|soft fall)\b/i.test(task),
-    hddBore: /\b(directional drill\w*|hdd|under ?bor\w*|bored under|thrust bor\w*)\b/i.test(task),
+    hddBore: /\b(directional(?:ly)? (?:drill|bor)\w*|hdd|under ?bor\w*|bored under|thrust bor\w*)\b/i.test(task),
     structureDemolition: /\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?|dwellings?|granny flats?)\b/i.test(task),
     dampers: /\b(smoke|fire) dampers?\b/i.test(task),
     compaction: /\b(compact\w*|rollers?)\b/i.test(task),
@@ -3304,6 +3336,10 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     stoneWork: STONE_WORK.test(task),
     siteSheds: /\b(site sheds?|site offices?|temporary (?:site )?offices?|site amenities|amenities (?:sheds?|blocks?)|site toilets?|portable toilets?|crib (?:rooms?|sheds?)|dongas?|demountables?|(?:site|temporary) (?:office|toilets?|crib))\b/i.test(task) && !/\bslabs? for (?:an? |the )?(?:\w+ )?sheds?\b/i.test(task) && /\b(set up|install\w*|erect\w*|lift\w*|place\w*)\b/i.test(task),
     stoneSilica: STONE_WORK.test(task) && /\b(cut\w*|drill\w*|polish\w*|grind\w*)\b/i.test(task),
+    // Friable asbestos is removed under a Class A licence, in an enclosure (s 475, s 477).
+    friableAsbestos: /\basbestos\b/i.test(task) && /\b(friable|class a\b|lagging|loose[- ]fill|limpet|sprayed asbestos|asbestos[- ]contaminated dust)/i.test(task),
+    // Removing, repairing, modifying or disposing of installed engineered stone (s 529F).
+    engStoneWork: ENG_STONE_INSTALLED.test(task) && /\bengineered stone\b/i.test(task),
     stoneHandle: STONE_WORK.test(task) && /\b(install\w*|set\w*|carr\w*|mov\w*|lift\w*|fit\w*|replac\w*)\b/i.test(task) && !/\blaminate\b/i.test(task),
     roofStrip: /\broof\w*\b/i.test(roofTask) && /\b(remov\w*|replac\w*|strip\w*|re-?roof\w*)\b/i.test(roofTask),
     facadeWork: FACADE_WORK.test(task),
@@ -3337,7 +3373,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     cablePull: (/\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable|submains?|consumer mains)\b/i.test(task) && ELECTRICAL_CORE.test(task)) || /\b(?:run\w*|lay\w*|install\w*)\b[^.]{0,20}\b(?:underground )?(?:power|supply|cable)\b[^.]{0,30}\bto (?:a |the )?(?:shed|garage|granny flat|pump|outbuilding|gate)\b/i.test(task),
     ictWork: ICT_WORK.test(task),
     securityWork: SECURITY_WORK.test(task),
-    ictCabling: ICT_WORK.test(task) && !/\bon the roof\b/i.test(task) && (/\b(?:install\w*|pull\w*|run\w*)\b[^.]{0,60}\b(?:cabl\w*|containment|cable trays?|catenary|conduits?|data points?|data outlets?|cat ?6a?|cat ?5e?|fibre|copper)\b/i.test(task) || /\b(pabx|ip telephony|(?:tele)?phone systems?|handsets?)\b[^.]{0,80}\binstall\w*|\binstall\w*[^.]{0,80}\b(pabx|ip telephony|(?:tele)?phone systems?|handsets?)\b/i.test(task)),
+    ictCabling: ICT_WORK.test(task) && !/\bon the roof\b/i.test(task) && (/\b(?:install\w*|pull\w*|run\w*)\b[^.]{0,60}\b(?:cabl\w*|containment|cable trays?|catenary|conduits?|data points?|data outlets?|cat ?6a?|cat ?5e?|fibre|copper|wi-?fi|wireless access points?|access points?|waps?)\b/i.test(task) || /\b(pabx|ip telephony|(?:tele)?phone systems?|handsets?)\b[^.]{0,80}\binstall\w*|\binstall\w*[^.]{0,80}\b(pabx|ip telephony|(?:tele)?phone systems?|handsets?)\b/i.test(task)),
     fibre: /\b(optical fibre|fibre optic\w*|fibre backbone|fibre cabl\w*|splic\w*)\b/i.test(task),
     commsRoom: ICT_WORK.test(task) && /\b(racks?|cabinets?|ups|batter(?:y|ies))\b/i.test(task) && /\b(install\w*|supply|provid\w*|fit\w*|mount\w*|head end|server)\b/i.test(task.replace(/\b(?:daily |regular )?inspections? of [^.]*/gi, '')),
     securityDevices: SECURITY_WORK.test(task) && /\b(install\w*|provid\w*|fit\w*)\b/i.test(task),

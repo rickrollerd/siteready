@@ -57,8 +57,8 @@ const DROP_SOURCES = {
     [/\bA forklift left unattended is parked\b/, ['s 218']],
     // Regulation 327 has no duty to take the workplace's circumstances into account.
     [/^This SWMS takes into account that the work is next to an operating hospital\b/, ['s 299']],
-    // Regulation 49 covers rescue, not anchor ratings or clearances.
-    [/\b\d+ kN\b/, ['s 80']],
+    // Regulation 49 covers rescue, not anchor ratings, approval, clearances or lone work.
+    [/\b\d+ kN\b|\banchors (?:are|is)\b/, ['s 80']],
   ],
 };
 
@@ -129,7 +129,9 @@ const OUTSIDE_QLD = [
   [/^Cutting an opening in a load-bearing wall is demolition work: it is done by, or for, a holder of a demolition licence/, 'Cutting an opening in a load-bearing wall is demolition work, done by a contractor holding any demolition licence or registration the state requires.'],
   [/^The boom is not set up or worked over access ways or site sheds unless a 10 kPa gantry protects them\./, 'The boom is not set up or worked over access ways or site sheds unless a gantry designed for the load protects them. The pumping area is signed, and only authorised people enter it.'],
   // Queensland's 2 m barrier rule is s 306D. Elsewhere a trench at least 1.5 m deep is secured from unauthorised access (r 306(1)).
-  [/^Barriers go up around a pit or trench as it is dug, before it is deeper than 2 m\.$/, 'Barriers go up around a pit or trench as it is dug, and the work area around a trench 1.5 m deep or more is secured from unauthorised access, including inadvertent entry.'],
+  [/^Barriers go up around a pit or trench as it is dug, before it is 2 m deep \(3 m in housing construction\)\.$/, 'Barriers go up around a pit or trench as it is dug, and the work area around a trench 1.5 m deep or more is secured from unauthorised access, including inadvertent entry.'],
+  // Queensland's edge protection rules are s 306E; the model regulations set none.
+  [/^Work only inside edge protection installed by others to the regulation\./, 'Work only inside edge protection installed by others to its design or the manufacturer\'s instructions. Do not remove or alter it, and report any damage.'],
   [/^Every part of the boom and drop hose stays at least 3 m from overhead power lines up to 132 kV/, 'Every part of the boom and drop hose stays outside the safe distance from overhead power lines that the state\'s rules and the line owner set, and the boom is not worked over energised lines. De-energising or re-routing the lines is considered first.'],
 ];
 
@@ -170,7 +172,7 @@ const VIC_TEXT = [
   [/^No one enters without a written entry permit from a competent person, naming the space, the people entering, the time and the controls\.$/, 'No one enters without a written entry permit issued by the employer for that space, listing the controls, the people permitted to enter, the standby person and the period it covers.', KEEP],
   [/a written entry permit from a competent person,/, 'a written entry permit issued by the employer,', KEEP],
   [/^Workers are trained in the hazards, controls, permit and emergency procedures, with training records kept for 2 years\.$/, 'Workers are given information, instruction and training in the hazards, the risk controls, PPE, the entry permit and the emergency procedures.', KEEP],
-  [/^Close and sign off the entry permit, confirming everyone has left\. Keep the risk assessment for 28 days after the work and the permit until the work is complete\.$/, `Close and sign off the entry permit, and keep a written record that everyone has left. Keep the permit until the work is complete, or for at least 2 years if a notifiable incident occurs.${cite('vic', '64', '68')}`],
+  [/^Close and sign off the entry permit, confirming everyone has left\. Keep the risk assessment until at least 28 days after the work and the permit until the work is complete, or both for at least 2 years after a notifiable incident, available for inspection and to workers on request\.$/, `Close and sign off the entry permit, and keep a written record that everyone has left. Keep the permit until the work is complete, or for at least 2 years if a notifiable incident occurs.${cite('vic', '64', '68')}`],
   // Asbestos: no licensed asbestos assessor; a clearance certificate from an independent
   // person after Class A or B removal (r 294, r 296, r 297). Asbestos is identified before
   // any demolition or refurbishment, whatever the building's age (r 240, r 245).
@@ -193,8 +195,29 @@ const VIC_TEXT = [
   [/a trench deeper than 1\.5 m is high risk construction work, and a trench 1\.5 m deep or more is shored, benched or battered before anyone enters\./, 'a trench deeper than 1.5 m is high risk construction work, and its sides are supported before anyone enters.', KEEP],
   // Part 3.3 applies to falls of more than 2 m, and sets no rail sizes.
   [/\bWork from a solid surface with edge protection wherever a fall of 2 m or more is possible:/, 'Work from a solid surface with edge protection wherever a fall of more than 2 m is possible:'],
-  // Regulation 5: a crystalline silica substance contains more than 1%; r 341 names the construction induction card.
-  [/\b1% or more crystalline silica\b/, 'more than 1% crystalline silica', KEEP],
+  // Installed engineered stone: regulation 319ZB allows removal, repair, modification and disposal
+  // done with the engineered stone controls (r 319S to r 319X), and sets no notice to the regulator.
+  [/^Installed engineered stone is cut, drilled or broken only to remove, repair, make minor modifications to or dispose of it, and only if the processing is controlled:/, `Installed engineered stone is cut, drilled or broken only to remove, repair, modify or dispose of it. The power tool or plant is used with an integrated water delivery system giving a continuous supply of water to the point of contact, or on-tool extraction connected to a Dust Class H vacuum or another system that captures the dust, and with local exhaust ventilation only where neither is reasonably practicable. Employees wear the respiratory protective equipment provided and are trained in the tool and the equipment, and compressed air is not used to clean the work area or clothing.${cite('vic', '319S', '319V', '319W', '319X', '319Y', '319ZB')}`],
+  [/^Before installed engineered stone is processed, written notice of the work.*$/, null],
+  // Regulation 5: porcelain and sintered stone are not engineered stone only where they contain no resin.
+  [/\bPorcelain and sintered stone are not engineered stone\./, 'Porcelain and sintered stone products that contain no resin are not engineered stone.', KEEP],
+  [/\bCeramic and porcelain tiles and grout are not engineered stone\./, 'Ceramic tiles, porcelain tiles that contain no resin, and grout are not engineered stone.', KEEP],
+  // Part 4.5 duties apply to any material containing crystalline silica (r 319B, r 319J); the 1%
+  // "crystalline silica substance" (r 5) is used only for manufacturers and suppliers.
+  [/\b(?:with )?1% or more crystalline silica\b/, 'containing crystalline silica', KEEP],
+  [/a product containing crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, `power sanding or cutting a product that contains crystalline silica is a crystalline silica process. Before it starts, it is assessed, with a written record, to find whether it is high risk crystalline silica work, or it is treated as high risk crystalline silica work.${cite('vic', '165', '166', '319B', '319J', '319K')}`],
+  // Victoria's Class A removal duties are set out differently (Part 4.4 Subdivision 4) and are not stated here.
+  [/^Friable asbestos is removed inside an enclosure that is tested for leaks.*$/, null],
+  // Victoria has no demolition notice (Part 5.1 has none); r 355 requires notice of excavation work.
+  [/^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high,.*$/, null],
+  [/^Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it\.$/, `Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it. Where a shaft, trench or tunnel will be big enough for a person to enter, or poses a risk, the Authority is notified in writing at least 3 days before the excavation work starts, unless it is part of building work under a building permit.${cite('vic', '354', '355')}`],
+  // Regulations 118, 128 and Schedule 3: the licence, not a written handover or a 30 day inspection.
+  [/^Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder, handed over in writing by a competent person, and inspected at least every 30 days\.$/, `Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder.${cite('vic', '128', 'Schedule 3')}`],
+  // Schedule 2 item 1.6; no regulation requires the registration number to be kept at the hoist.
+  [/^A personnel hoist with platform travel over 2\.4 m has a registered design, and the registration number is kept at the hoist\.$/, `A personnel hoist with platform travel over 2.4 m has a registered design.${cite('vic', '125', 'Schedule 2')}`],
+  // Regulation 298(1): 24 hours for 10 m2 or less of non-friable asbestos, unless a licence condition varies it.
+  [/^For licensed removal, the licensed removalist gives the regulator written notice at least 5 days before the work starts\.$/, `For licensed removal, the licence holder gives the Authority written notice at least 5 days before the work starts (24 hours for 10 m2 or less of non-friable asbestos), unless a licence condition sets other notice.${cite('vic', '298')}`],
+  // Regulation 341 names the construction induction card.
   [/\bgeneral construction induction card\b/, 'construction induction card', KEEP],
 ];
 
@@ -222,13 +245,21 @@ const MODEL_SILICA_TEXT = [
 // (Western Australia leaves them out, and the Northern Territory text read has no Part 4.7).
 const ENERGISED_TEXT = [
   [/^A safety observer, assessed in the last 12 months as competent in rescue and resuscitation, watches the work and does no other work\.$/, (id) => `A safety observer, competent to apply the emergency controls and to rescue and resuscitate the worker, and assessed in the previous 12 months as competent to rescue and resuscitate a person, watches the work and does no other work.${cite(id, '161')}`],
-  [/^Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, both readily available to the workers\.$/, (id) => `Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, or both for at least 2 years after a notifiable incident, readily available to the workers.${cite(id, '162')}`],
+  [/^Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, or both for at least 2 years after a serious electrical incident or dangerous electrical event, readily available to the workers\.$/, (id) => `Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, or both for at least 2 years after a notifiable incident, readily available to the workers.${cite(id, '162')}`],
 ];
 // Western Australia has no 6 m notice (r 142 is not used). Class 1 and Class 2 demolition work
 // is licensed (r 142B, r 142C), and notified 5 working days ahead when done to AS 2601 (r 142F),
 // or approved by the regulator when it is not (r 142G, r 142I).
 const WA_TEXT = [
-  [/^Where the structure(?:, or a load-bearing part of it,)? is at least 6 m high, (?:the regulator is given written notice|written notice is given to the regulator) at least 5 days before the work starts\.$/, `Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs. Done to AS 2601, it is notified to the regulator at least 5 working days before it begins; done any other way, the regulator's approval is applied for at least 10 working days before, and the work waits for it.${cite('wa', '142B', '142C', '142F', '142G', '142I')}`],
+  // Regulation 153: before work in the roof space of a Class 1, 2 or 10a building, its electrical
+  // installation is de-energised by a competent person, with no "where practicable" exception.
+  [/^Work in a roof space \(between the roof and the top floor ceiling\) only when the electrical installation is de-energised\./, `Before anyone works in the roof space of a house, a unit building or a Class 10a building such as a garage or shed, a competent person de-energises the building's electrical installation, and no one works there until it is. Service apparatus, and the supply cables regulation 153(6) leaves out, stay live; where the roof space is divided between separate dwellings, only the dwelling the work is in is de-energised. A competent person testing, servicing or commissioning an appliance may energise it only as regulation 153(5) allows, after a risk assessment.${cite('wa', '153')}`],
+  [/^Before the insulation is installed, an on-site assessment of the electrical risk is done by a worker trained to do it/, `Before the insulation is installed, the electrical risk in the ceiling space is assessed by a competent person, and live cables and fittings are isolated or kept clear of. In the roof space of a house, a unit building or a Class 10a building, a competent person de-energises the building's electrical installation before the work starts.${cite('wa', '153')}`],
+  // Schedule 3 items 14A and 15A: earthmoving machinery used as a crane, with a safe working load
+  // over 3 t, needs a high risk work licence (r 5 "crane", r 81).
+  [/^Where (pipes, pits or conduit bundles|pipes or pits) are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it\.$/, (id, all) => `Where ${all} are lifted with the excavator, this is done only where it has a rated lifting point and the load is within its lifting chart. An excavator with a safe working load over 3 t used as a crane is operated by the holder of the high risk work licence for earthmoving machinery used as a crane (Schedule 3 item 14A, non-slewing, or item 15A, slewing); otherwise the operator is competent to lift with it.${cite('wa', '81', 'Schedule 3')}`],
+  [/^(An excavator lifts broken pile heads only where it is designed to lift that load, or the lift creates no greater risk than with plant designed for it\.|Props and walers are lifted with plant designed to lift them, never over people, and slung by a licensed dogman\. An excavator is used to lift only where plant designed to lift is not reasonably practicable, and it creates no greater risk\.)$/, (id, line) => `${line} An excavator with a safe working load over 3 t used as a crane is operated by the holder of the high risk work licence for earthmoving machinery used as a crane (Schedule 3 item 14A or 15A).${cite('wa', '81', '219', 'Schedule 3')}`],
+  [/^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high,/, `Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs. Done to AS 2601, it is notified to the regulator at least 5 working days before it begins; done any other way, the regulator's approval is applied for at least 10 working days before, and the work waits for it.${cite('wa', '142B', '142C', '142F', '142G', '142I')}`],
 ];
 // The ACT has no 10 m2 exception: any asbestos is removed by a licensed asbestos
 // removalist (Work Health and Safety Regulation 2011 (ACT) s 458, s 487), and every licensed
@@ -236,11 +267,29 @@ const WA_TEXT = [
 const ACT_TEXT = [
   [/^Asbestos is removed by a licensed asbestos removalist, except for 10 m2 or less of non-friable asbestos removed under the regulation\.$/, 'Asbestos is removed only by a licensed asbestos removalist, whatever the amount.'],
   [/ unless the regulation allows otherwise\./, '.', KEEP],
+  // Section 477 has no glove bag exception.
+  [/ \(negative pressure and the monitoring before the start are not needed where glove bags are used\)/, '', KEEP],
+  // Porcelain tiles and sintered stone are stone-substitute material (s 418A, s 418B, s 418C);
+  // ceramic tiles and natural stone are crystalline silica material (s 418CAA).
+  [/^Tiles and stone with 1% or more crystalline silica are a crystalline silica substance\. Cutting them with power tools/, `Porcelain tiles and sintered stone containing crystalline silica are stone-substitute material: they are cut with power tools only with a continuous water feed and at least one other crystalline silica control, and everyone who may be exposed wears respiratory protective equipment. Ceramic tiles, natural stone and other crystalline silica material are cut with a continuous water feed and at least one other control, or the next control section 418CAA allows where that is not reasonably practicable.${cite('act', '418A', '418B', '418C', '418CAA')}`],
+  // Section 142(1)(d): demolishing a structure that contains, or has contained, loose-fill asbestos insulation.
+  [/, where load shifting machinery is used on a suspended floor, or where explosives are used\./, ', where load shifting machinery is used on a suspended floor, where explosives are used, or where the structure contains or has contained loose-fill asbestos insulation.', KEEP],
   [/^When licensed asbestos removal is finished, a clearance inspection is done by an independent competent person/, `When licensed asbestos removal is finished, an independent licensed asbestos assessor inspects the removal area and the area around it, and issues a clearance certificate before the area is reoccupied.${cite('act', '473', '474')}`],
   // Porcelain and sintered stone are stone-substitute material (s 418A): water and one other control, and respirators (s 418B, s 418C).
   [/^Natural stone and porcelain with 1% or more crystalline silica: .*$/, `Porcelain and sintered stone containing crystalline silica are stone-substitute material: they are processed with power tools only with a continuous water feed and at least one other crystalline silica control, and exposed workers wear respiratory protective equipment. Natural stone is processed with the controls section 418CAA requires. Cut in the factory where possible.${cite('act', '418B', '418C', '418CAA')}`],
   [/a product with 1% or more crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, 'a product containing crystalline silica, such as plasterboard, grout, render or a concrete product, is crystalline silica material, and power sanding or cutting it is processing that must use the crystalline silica controls sections 418BAA and 418CAA require.', KEEP],
   [/Where rock is drilled or broken with plant, control the silica dust \(wet methods or extraction\) and assess it in writing before starting\./, () => `Where rock is drilled or broken with plant, ${ACT_MATERIAL}.`, KEEP],
+  // Installed engineered stone (s 418H): stone installed before 1 July 2024 or as s 418G allows, a
+  // continuous water feed with one other control and respiratory protective equipment; notice
+  // before the work, kept for 5 years (s 418I, s 418J). The ACT has no change or 12 month notice.
+  [/^Installed engineered stone is cut, drilled or broken only to remove, repair, make minor modifications to or dispose of it, and only if the processing is controlled:/, `Installed engineered stone is cut, drilled or broken only to remove, repair or make minor modifications to stone installed before 1 July 2024 (or as section 418G allows), or to dispose of it, and only if the work is controlled: the risk is eliminated so far as is reasonably practicable or, where it cannot be, minimised with a continuous water feed over the processing area, at least one other crystalline silica control, and respiratory protective equipment provided to and worn by each worker who may be exposed.${cite('act', '418F', '418H')}`],
+  [/^Before installed engineered stone is processed, written notice of the work/, `Before installed engineered stone is processed, written notice of the work, its type, and its frequency and duration is given to the regulator, and a copy is kept for 5 years.${cite('act', '418I', '418J')}`],
+];
+
+// Tasmania's r 529CB(2) asks more of a silica risk control plan than the model regulations, so a
+// SWMS stands in for it only where it documents all of that (r 529CB(3)(c)).
+const TAS_TEXT = [
+  [/\(this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed\)/, '(this SWMS can be the plan only where the work is also high risk construction work and the SWMS identifies all the high risk processing and, for each, documents the processing, the form and proportion (w/w) of crystalline silica, the hazards and the likely frequency and duration of exposure, whether airborne respirable crystalline silica is likely to exceed half the exposure standard, why the processing is high risk, the controls and how they are implemented, monitored and reviewed, past air and health monitoring results at the workplace, and previous silica incidents, illnesses and diseases there)', KEEP],
 ];
 
 const STATE_TEXT = {
@@ -248,7 +297,7 @@ const STATE_TEXT = {
   nsw: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   sa: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   wa: [...WA_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
-  tas: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  tas: [...TAS_TEXT, ...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   nt: [...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   act: [...ACT_TEXT, ...ENERGISED_TEXT, ...MODEL_TEXT],
 };
@@ -258,7 +307,7 @@ const MODEL_SILICA = new Set(['nsw', 'sa', 'wa', 'tas', 'nt']);
 // chapter 7A): no written high risk assessment or silica risk control plan, but set controls
 // for processing with a power tool (s 418B to 418CAA) and an awareness course the Minister
 // declares for high risk crystalline silica work (s 418D).
-const ACT_SILICA_CONTROLS = 'a continuous water feed is used with at least one other crystalline silica control, such as a Class H vacuum on the tool or isolating the area. For material other than stone-substitute material, where water cannot reasonably be used, the next control the ACT crystalline silica rules allow is used.';
+const ACT_SILICA_CONTROLS = 'a continuous water feed is used with at least one other crystalline silica control, such as a Class H vacuum on the tool or isolating the area. For material other than stone-substitute material, where water cannot reasonably be used, the next control the ACT crystalline silica rules allow is used. Everyone who may be exposed while porcelain, sintered stone or engineered stone is processed wears respiratory protective equipment.';
 const ACT_SILICA_TRAINING = 'Workers who carry out high risk crystalline silica work have completed the crystalline silica awareness course the Minister declares under section 418D.';
 // Section 418CAA for crystalline silica material other than stone-substitute material.
 const ACT_MATERIAL = 'a continuous water feed is used with at least one other crystalline silica control, or the next control section 418CAA allows where that is not reasonably practicable, and anyone still at risk wears a fit tested respirator';
@@ -272,8 +321,11 @@ function actSilica(text) {
 // The ACT names concrete, masonry, tiles and stone "crystalline silica material", with no 1%
 // test, and sets its controls in s 418BAA and s 418CAA: a line's own "wet or extraction" is
 // replaced with them, unless the line goes on to give them.
+// Porcelain tiles are stone-substitute material (s 418A): never cut with extraction alone (s 418B).
+const ACT_TILE_CUT = /\b(cut|drilled) (?:with a wet saw or a saw with on-tool extraction|wet or with on-tool extraction|with on-tool extraction or water|with water or on-tool extraction)\b(?:, never dry cut without extraction)?/g;
 function actMaterial(text) {
   const controls = text.includes(ACT_SILICA_CONTROLS) ? '' : `: ${ACT_MATERIAL}`;
+  if (/\btiles?\b|\bporcelain\b/i.test(text)) text = text.replace(ACT_TILE_CUT, (all, verb) => `${verb} with water and at least one other control, such as on-tool extraction (porcelain is never processed dry)`);
   return text
     .replace(/, it is done wet or with on-tool extraction\. This is processing a crystalline silica substance\. Anyone still at risk of exposure wears a fit tested P2 respirator\./, `, it is processing crystalline silica material${controls}.`)
     .replace(/^Saw cut existing asphalt and concrete wet or with dust extraction, with hearing and eye protection\. Cutting concrete is processing a crystalline silica substance\./, `Saw cut existing asphalt and concrete with hearing and eye protection. Cutting concrete is processing crystalline silica material${controls}.`)
@@ -286,7 +338,8 @@ function actMaterial(text) {
 const VIC_SILICA = /\b(processing is high risk|high risk processing|VET accredited or regulator approved)\b/i;
 
 function applyLine(out, pattern, replacement, stateId) {
-  const value = typeof replacement === 'function' ? replacement(stateId) : replacement;
+  // A function is given the state and what the pattern's groups matched.
+  const value = typeof replacement === 'function' ? replacement(stateId, ...(pattern.exec(out) || []).slice(1)) : replacement;
   // A preset answer keeps its other sentences; a whole control line is replaced.
   if (value === null) return out.replace(pattern, '').replace(/\s{2,}/g, ' ').trim() || null;
   return pattern.source.startsWith('^') ? value : out.replace(pattern, value);
@@ -323,6 +376,11 @@ function rewrite(text, stateId) {
   // Queensland Health and QBCC licences, and Queensland's regulated areas for herbicide spraying, are Queensland's.
   out = out.replace(/Termite treatments are applied only by a holder of a Queensland Health pest management licence for timber pests, who also holds a QBCC termite management \(chemical\) licence for treatments to new building work\./g, 'Termite treatments are applied only by a holder of the pest management licence the state requires, and any termite management licence it requires for new building work.')
     .replace(/Herbicide spraying with powered ground equipment in a regulated area is done only by a licensed commercial operator\./g, 'Herbicide spraying is done by a holder of any chemical application licence the state requires.');
+  // Victoria: processing any material containing crystalline silica is a crystalline silica process (r 319B).
+  if (stateId === 'vic') out = out.replace(/\b(?:is )?processing (?:a crystalline silica substance|crystalline silica)\b/g, (all) => (all.startsWith('is ') ? 'is a crystalline silica process' : 'a crystalline silica process'))
+    .replace(/\bis processing that must be controlled\b/g, 'is a crystalline silica process that must be controlled')
+    .replace(/^Tiles and stone containing crystalline silica are a crystalline silica substance\. Cutting them with power tools is a crystalline silica process/, 'Cutting tiles and stone containing crystalline silica with power tools is a crystalline silica process')
+    .replace(/ containing crystalline silica are a crystalline silica substance\./g, ' contain crystalline silica.');
   if (stateId === 'vic') out = out.replace(/\bhazardous chemicals register\b/g, 'register of hazardous substances').replace(/\s?\(the falls code suggests [^)]*\)/g, '')
     .replace(/\bthe state's WHS or electrical safety law\b/g, 'the state\'s occupational health and safety or electrical safety law');
   // The Northern Territory and the ACT are territories.
