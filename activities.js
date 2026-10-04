@@ -2654,7 +2654,7 @@ const ACTIVITIES = [
         src('Asbestos likely to be disturbed is identified before demolition and, so far as is reasonably practicable, removed by a licensed asbestos removalist before demolition starts.', `${WHS('s 451, s 452, s 453')}; ${QCODE('Demolition', 's 3.6, s 4.2')}`),
         { only: 'attachedStructure', text: 'Services to the attached structure are isolated and capped back to the house by the licensed trades, the shared wall is propped or protected, and the house stays weatherproof and safe to use.' },
         'Demolition is done by a contractor holding any demolition licence the state requires.',
-        src('Where the structure, or a load-bearing part of it, is at least 6 m high, the regulator is given written notice at least 5 days before the work starts.', WHS('s 142')),
+        src('Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high, where load shifting machinery is used on a suspended floor, or where explosives are used.', WHS('s 142')),
         src('An exclusion zone is fenced and signed around the structure, wide enough that falling or rebounding debris cannot reach anyone outside it. No one enters while demolition is under way.', QCODE('Demolition', 's 4.3')),
         { only: 'bridgeDemo', text: 'The bridge is taken down in the sequence the engineer\'s demolition plan sets, with spans propped or supported as it requires, and kept stable at every stage. No one works on or under a span while it is cut, broken or lifted out.' },
         { unless: 'noRoofDown', ...src('The structure is demolished in the reverse order to its construction, from the roof down, and kept stable at every stage. No one works inside or under it while it is being pulled down.', QCODE('Demolition', 's 4.12')) },
@@ -6930,7 +6930,7 @@ const ACTIVITIES = [
       hazards: ['The wall or the structure above collapses.', 'A cut section falls.'],
       controls: [
         src('Cutting an opening in a load-bearing wall is demolition work: it is done by, or for, a holder of a demolition licence, with the licence holder\'s nominated supervisor readily available whenever the work is done.', WHS('s 143, s 144')),
-        src('Where the structure is at least 6 m high, written notice is given to the regulator at least 5 days before the work starts.', WHS('s 142')),
+        src('Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high, where load shifting machinery is used on a suspended floor, or where explosives are used.', WHS('s 142')),
         'Props stay in place until the engineer confirms the new opening and its supports are complete.',
         src('Before the work starts, the principal contractor closes the adjoining area or erects perimeter containment screening where objects could fall.', WHS('s 315H, s 315I')),
       ],

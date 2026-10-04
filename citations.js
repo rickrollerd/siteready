@@ -207,7 +207,7 @@ const VIC_TEXT = [
   [/\b(?:with )?1% or more crystalline silica\b/, 'containing crystalline silica', KEEP],
   [/a product containing crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, `power sanding or cutting a product that contains crystalline silica is a crystalline silica process. Before it starts, it is assessed, with a written record, to find whether it is high risk crystalline silica work, or it is treated as high risk crystalline silica work.${cite('vic', '165', '166', '319B', '319J', '319K')}`],
   // Victoria has no demolition notice (Part 5.1 has none); r 355 requires notice of excavation work.
-  [/^Where the structure(?:, or a load-bearing part of it,)? is at least 6 m high, (?:the regulator is given written notice|written notice is given to the regulator) at least 5 days before the work starts\.$/, null],
+  [/^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high,.*$/, null],
   [/^Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it\.$/, `Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it. Where a shaft, trench or tunnel will be big enough for a person to enter, or poses a risk, the Authority is notified in writing at least 3 days before the excavation work starts, unless it is part of building work under a building permit.${cite('vic', '354', '355')}`],
   // Regulations 118, 128 and Schedule 3: the licence, not a written handover or a 30 day inspection.
   [/^Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder, handed over in writing by a competent person, and inspected at least every 30 days\.$/, `Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder.${cite('vic', '128', 'Schedule 3')}`],
@@ -249,7 +249,7 @@ const ENERGISED_TEXT = [
 // is licensed (r 142B, r 142C), and notified 5 working days ahead when done to AS 2601 (r 142F),
 // or approved by the regulator when it is not (r 142G, r 142I).
 const WA_TEXT = [
-  [/^Where the structure(?:, or a load-bearing part of it,)? is at least 6 m high, (?:the regulator is given written notice|written notice is given to the regulator) at least 5 days before the work starts\.$/, `Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs. Done to AS 2601, it is notified to the regulator at least 5 working days before it begins; done any other way, the regulator's approval is applied for at least 10 working days before, and the work waits for it.${cite('wa', '142B', '142C', '142F', '142G', '142I')}`],
+  [/^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high,/, `Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs. Done to AS 2601, it is notified to the regulator at least 5 working days before it begins; done any other way, the regulator's approval is applied for at least 10 working days before, and the work waits for it.${cite('wa', '142B', '142C', '142F', '142G', '142I')}`],
 ];
 // The ACT has no 10 m2 exception: any asbestos is removed by a licensed asbestos
 // removalist (Work Health and Safety Regulation 2011 (ACT) s 458, s 487), and every licensed
@@ -257,6 +257,11 @@ const WA_TEXT = [
 const ACT_TEXT = [
   [/^Asbestos is removed by a licensed asbestos removalist, except for 10 m2 or less of non-friable asbestos removed under the regulation\.$/, 'Asbestos is removed only by a licensed asbestos removalist, whatever the amount.'],
   [/ unless the regulation allows otherwise\./, '.', KEEP],
+  // Porcelain tiles and sintered stone are stone-substitute material (s 418A, s 418B, s 418C);
+  // ceramic tiles and natural stone are crystalline silica material (s 418CAA).
+  [/^Tiles and stone with 1% or more crystalline silica are a crystalline silica substance\. Cutting them with power tools/, `Porcelain tiles and sintered stone containing crystalline silica are stone-substitute material: they are cut with power tools only with a continuous water feed and at least one other crystalline silica control, and everyone who may be exposed wears respiratory protective equipment. Ceramic tiles, natural stone and other crystalline silica material are cut with a continuous water feed and at least one other control, or the next control section 418CAA allows where that is not reasonably practicable.${cite('act', '418A', '418B', '418C', '418CAA')}`],
+  // Section 142(1)(d): demolishing a structure that contains, or has contained, loose-fill asbestos insulation.
+  [/, where load shifting machinery is used on a suspended floor, or where explosives are used\./, ', where load shifting machinery is used on a suspended floor, where explosives are used, or where the structure contains or has contained loose-fill asbestos insulation.', KEEP],
   [/^When licensed asbestos removal is finished, a clearance inspection is done by an independent competent person/, `When licensed asbestos removal is finished, an independent licensed asbestos assessor inspects the removal area and the area around it, and issues a clearance certificate before the area is reoccupied.${cite('act', '473', '474')}`],
   // Porcelain and sintered stone are stone-substitute material (s 418A): water and one other control, and respirators (s 418B, s 418C).
   [/^Natural stone and porcelain with 1% or more crystalline silica: .*$/, `Porcelain and sintered stone containing crystalline silica are stone-substitute material: they are processed with power tools only with a continuous water feed and at least one other crystalline silica control, and exposed workers wear respiratory protective equipment. Natural stone is processed with the controls section 418CAA requires. Cut in the factory where possible.${cite('act', '418B', '418C', '418CAA')}`],
@@ -290,7 +295,7 @@ const MODEL_SILICA = new Set(['nsw', 'sa', 'wa', 'tas', 'nt']);
 // chapter 7A): no written high risk assessment or silica risk control plan, but set controls
 // for processing with a power tool (s 418B to 418CAA) and an awareness course the Minister
 // declares for high risk crystalline silica work (s 418D).
-const ACT_SILICA_CONTROLS = 'a continuous water feed is used with at least one other crystalline silica control, such as a Class H vacuum on the tool or isolating the area. For material other than stone-substitute material, where water cannot reasonably be used, the next control the ACT crystalline silica rules allow is used.';
+const ACT_SILICA_CONTROLS = 'a continuous water feed is used with at least one other crystalline silica control, such as a Class H vacuum on the tool or isolating the area. For material other than stone-substitute material, where water cannot reasonably be used, the next control the ACT crystalline silica rules allow is used. Everyone who may be exposed while porcelain, sintered stone or engineered stone is processed wears respiratory protective equipment.';
 const ACT_SILICA_TRAINING = 'Workers who carry out high risk crystalline silica work have completed the crystalline silica awareness course the Minister declares under section 418D.';
 // Section 418CAA for crystalline silica material other than stone-substitute material.
 const ACT_MATERIAL = 'a continuous water feed is used with at least one other crystalline silica control, or the next control section 418CAA allows where that is not reasonably practicable, and anyone still at risk wears a fit tested respirator';
@@ -304,8 +309,11 @@ function actSilica(text) {
 // The ACT names concrete, masonry, tiles and stone "crystalline silica material", with no 1%
 // test, and sets its controls in s 418BAA and s 418CAA: a line's own "wet or extraction" is
 // replaced with them, unless the line goes on to give them.
+// Porcelain tiles are stone-substitute material (s 418A): never cut with extraction alone (s 418B).
+const ACT_TILE_CUT = /\b(cut|drilled) (?:with a wet saw or a saw with on-tool extraction|wet or with on-tool extraction|with on-tool extraction or water|with water or on-tool extraction)\b(?:, never dry cut without extraction)?/g;
 function actMaterial(text) {
   const controls = text.includes(ACT_SILICA_CONTROLS) ? '' : `: ${ACT_MATERIAL}`;
+  if (/\btiles?\b|\bporcelain\b/i.test(text)) text = text.replace(ACT_TILE_CUT, (all, verb) => `${verb} with water and at least one other control, such as on-tool extraction (porcelain is never processed dry)`);
   return text
     .replace(/, it is done wet or with on-tool extraction\. This is processing a crystalline silica substance\. Anyone still at risk of exposure wears a fit tested P2 respirator\./, `, it is processing crystalline silica material${controls}.`)
     .replace(/^Saw cut existing asphalt and concrete wet or with dust extraction, with hearing and eye protection\. Cutting concrete is processing a crystalline silica substance\./, `Saw cut existing asphalt and concrete with hearing and eye protection. Cutting concrete is processing crystalline silica material${controls}.`)

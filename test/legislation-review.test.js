@@ -128,7 +128,7 @@ test('demolishing a whole concrete building, warehouse or car park is load-beari
 test('WA demolition: licence classes and 5 working days, not the 6 m notice', () => {
   const wa = line(draft('wa', 'Demolish a two storey commercial building with excavators.'), /demolition work|6 m high/);
   assert.equal(wa, 'Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs. Done to AS 2601, it is notified to the regulator at least 5 working days before it begins; done any other way, the regulator\'s approval is applied for at least 10 working days before, and the work waits for it. (Work Health and Safety (General) Regulations 2022 (WA) r 142B, r 142C, r 142F, r 142G, r 142I)');
-  assert.match(line(draft('nsw', 'Demolish a two storey commercial building with excavators.'), /6 m high/), /at least 5 days before the work starts\. \(Work Health and Safety Regulation 2025 \(NSW\) s 142\)$/);
+  assert.match(line(draft('nsw', 'Demolish a two storey commercial building with excavators.'), /6 m high/), /^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high, where load shifting machinery is used on a suspended floor, or where explosives are used\. \(Work Health and Safety Regulation 2025 \(NSW\) s 142\)$/);
 });
 
 test('WA tilt-up rules apply only to concrete wall panels (r 306A)', () => {
@@ -349,4 +349,23 @@ test('Tasmania: a SWMS stands in for the silica risk control plan only with ever
   assert.match(tas, /documents the processing, the form and proportion \(w\/w\) of crystalline silica,.*past air and health monitoring results at the workplace, and previous silica incidents, illnesses and diseases there\).*\(Work Health and Safety Regulations 2022 \(Tas\) r 529CB, r 529CC, r 529CD\)$/);
   // The model text stays in the other model states.
   assert.match(lines(draft('sa', SILICA)).find((item) => /this SWMS can be the plan only/.test(item)), /names the high risk processing, includes the written assessment/);
+});
+
+test('ACT: loose-fill demolition notice (s 142(1)(d)), porcelain as stone-substitute material, and the silica question', () => {
+  const reg = 'Work Health and Safety Regulation 2011 (ACT)';
+  const notice = line(draft('act', 'Demolish a three storey concrete commercial building, 12 m high, with excavators and a high reach demolition machine.'), /^Written notice is given to the regulator/);
+  assert.equal(notice, `Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high, where load shifting machinery is used on a suspended floor, where explosives are used, or where the structure contains or has contained loose-fill asbestos insulation. (${reg} s 142)`);
+  // The model states and Queensland: s 142(1)(a) to (c).
+  for (const state of ['qld', 'nsw', 'sa', 'tas', 'nt']) {
+    assert.match(line(draft(state, 'Demolish a three storey concrete commercial building, 12 m high, with excavators and a high reach demolition machine.'), /^Written notice is given to the regulator/), /where load shifting machinery is used on a suspended floor, or where explosives are used\. \(.*142\)$/, state);
+  }
+  const tiles = lines(draft('act', 'Cut and grind porcelain tiles and natural stone pavers with power tools for a commercial plaza.'));
+  assert.ok(tiles.some((item) => item.startsWith('Porcelain tiles and sintered stone containing crystalline silica are stone-substitute material') && item.endsWith(`(${reg} s 418A, s 418B, s 418C, s 418CAA)`)));
+  assert.ok(!tiles.some((item) => /\btiles?\b/i.test(item) && /wet or with on-tool extraction|saw with on-tool extraction/.test(item)));
+  assert.match(localControl('Tiles are cut with a wet saw or a saw with on-tool extraction, and a fit tested P2 respirator is worn.', '', 'act'), /^Tiles are cut with water and at least one other control, such as on-tool extraction \(porcelain is never processed dry\)/);
+  const asked = questionsFor({ state: 'act', task: SILICA, fallRisk: 'no' }).required.find((item) => item.id === 'silicaControls');
+  assert.doesNotMatch(asked.prompt, /written assessment/);
+  assert.match(asked.prompt, /continuous water feed/);
+  assert.ok(draft('act', SILICA).references.some((item) => item.label === 'Silica controls'));
+  assert.match(questionsFor({ state: 'nsw', task: SILICA, fallRisk: 'no' }).required.find((item) => item.id === 'silicaControls').prompt, /written assessment/);
 });

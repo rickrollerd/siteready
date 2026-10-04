@@ -779,6 +779,9 @@ const CATEGORY_FACTS = [
     id: 'silicaControls',
     label: 'Silica dust controls',
     prompt: 'How silica dust is controlled (wet cutting, on-tool extraction or local exhaust), the respirator and its fit testing, and the written assessment of whether the work is high risk.',
+    // The ACT has no written high risk assessment; it sets the controls (s 418B, s 418C, s 418CAA)
+    // and an awareness course for high risk crystalline silica work (s 418D).
+    statePrompts: { act: 'How silica dust is controlled: the continuous water feed and the other crystalline silica control used (for porcelain, sintered stone and engineered stone, water is always used), any step down section 418CAA allows and why, the respirators and their fit testing, and who carries out high risk crystalline silica work and has done the declared awareness course.' },
     level: 'Isolate or engineer',
     applies: (text) => SILICA_WORK.test(String(text || '')),
   },
@@ -944,6 +947,11 @@ const FACT_KINDS = (() => {
 // The facts the task needs. With a known trade, a fact used only by other trades'
 // kinds of work is not asked ("prepainted steel roof sheeting" does not need a
 // steel erection sequence).
+// A fact's question as the state's law puts it.
+function factPrompt(item, state) {
+  return (item.statePrompts && state && item.statePrompts[state.id]) || item.prompt;
+}
+
 function requiredFactsFor(fullTask, answer, state) {
   const facts = [...allRequiredFacts(fullTask, answer, state), ...pickedStepFacts(fullTask, answer, state)];
   const allowed = allowedKinds(state && state.trades);
@@ -964,7 +972,7 @@ function pickedStepFacts(fullTask, answer, state) {
   if (!added.length) return extra;
   const uses = (id) => (FACT_KINDS.get(id) || []).some((when) => added.includes(when));
   for (const item of CATEGORY_FACTS) {
-    if (!asked.has(item.id) && uses(item.id)) extra.push({ id: item.id, label: item.label, prompt: item.prompt, ...(item.choices ? { choices: item.choices } : {}) });
+    if (!asked.has(item.id) && uses(item.id)) extra.push({ id: item.id, label: item.label, prompt: factPrompt(item, state), ...(item.choices ? { choices: item.choices } : {}) });
   }
   if (!asked.has('safetyDataSheet') && uses('safetyDataSheet')) extra.push({ id: 'safetyDataSheet', label: 'Safety data sheet', prompt: 'Safety data sheet.' });
   if (!asked.has('trenchSupport') && uses('trenchSupport')) extra.push({ id: 'trenchSupport', label: 'Trench support', prompt: 'How the sides are secured: shoring, benching or battering, and who designed it.' });
@@ -1035,7 +1043,7 @@ function allRequiredFacts(fullTask, answer, state) {
   }
   // Facts the high risk categories below cannot be done safely without.
   for (const item of CATEGORY_FACTS) {
-    if (item.applies(task)) facts.push({ id: item.id, label: item.label, prompt: item.prompt, ...(item.choices ? { choices: item.choices } : {}) });
+    if (item.applies(task)) facts.push({ id: item.id, label: item.label, prompt: factPrompt(item, state), ...(item.choices ? { choices: item.choices } : {}) });
   }
   if ((/\basbestos\b/i.test(task) || asbestosLikely(task)) && !asbestosArrangement(task)) {
     facts.push({
@@ -1704,7 +1712,7 @@ function prepareDraft(input) {
     kind: 'draft',
     ...header,
     ...stepsAndPpe(task, facts, hazards, finalControls, state, input),
-    references: referencesFor(facts),
+    references: referencesFor(facts, state.id),
     missing: [],
     statement: '',
     // Testing on or near energised parts is high risk construction work, however the task is worded.
@@ -1858,9 +1866,12 @@ const REFERENCE_FACTS = [
   ['safetyDataSheet', 'Safety data sheet'],
 ];
 
-function referencesFor(facts) {
+// The ACT sets no written silica assessment, so its reference is the silica controls.
+const STATE_REFERENCE_LABELS = { act: { silicaControls: 'Silica controls' } };
+
+function referencesFor(facts, stateId) {
   return REFERENCE_FACTS
-    .map(([id, label]) => ({ label, text: keptFact(facts[id]) }))
+    .map(([id, label]) => ({ label: (STATE_REFERENCE_LABELS[stateId] || {})[id] || label, text: keptFact(facts[id]) }))
     .filter((item) => item.text);
 }
 
