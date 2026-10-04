@@ -25,7 +25,8 @@
           "Bulk excavate and load trucks",
           "Install and later remove ground anchors",
           "Stress the ground anchors",
-          "Protect the basement edge and provide access",
+          "Protect the basement edge",
+          "Provide access into the basement",
           "Protect neighbouring buildings and the street"
         ],
         "missing": [

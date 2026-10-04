@@ -327,7 +327,7 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
   // (WHS Reg schedule 3 item 6(c)), which basic rigging leaves out (item 5).
   if (/\nErect or dismantle the tower crane\n/.test(`\n${allText}\n`)) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: (?:basic rigging|dogging or rigging)/.test(needed[i])) needed.splice(i, 1); needed.push('High risk work licence: intermediate rigging (RI) or advanced rigging (RA), for erecting, climbing or dismantling the crane, and dogging (DG) or higher for slinging'); }
   // Dual lifts need at least intermediate rigging (WHS Reg schedule 3).
-  if (/\nPlan and do the dual lift\n/.test(`\n${allText}\n`)) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: (?:basic rigging|dogging or rigging)/.test(needed[i])) needed.splice(i, 1); needed.push('High risk work licence: intermediate rigging (RI) or higher, for the dual lift'); }
+  if (/\nCarry out the dual lift\n/.test(`\n${allText}\n`)) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: (?:basic rigging|dogging or rigging)/.test(needed[i])) needed.splice(i, 1); needed.push('High risk work licence: intermediate rigging (RI) or higher, for the dual lift'); }
   return [...new Set(needed)];
 }
 

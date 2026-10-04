@@ -92,7 +92,7 @@ test('painting a metal shed roof is roof work, in order, with no wall painting o
 test('a driveway repair is a patch, not a new slab, with each line said once', () => {
   const done = draft('Repair a concrete driveway with cracks and trip hazards.', { residential: 'yes' });
   const names = steps(done);
-  assert.ok(names.indexOf('Break out and repair damaged concrete') < names.indexOf('Prepare the ground and set out'));
+  assert.ok(names.indexOf('Break out damaged concrete') < names.indexOf('Prepare the ground'));
   assert.ok(!names.includes('Place and tie reo on the ground'));
   assert.ok(!has(done, /edge beams|Excavators, bobcats|deeper than 1\.5 m|Concrete trucks reverse|Power trowels/));
   assert.ok(!plant(done).some((item) => /^(Excavator|Skid steer|Concrete truck|Power trowel)/.test(item)));
@@ -355,7 +355,7 @@ test('access control door strikes are cut into the frames, with the exits kept u
 
 test('old roof sheets come off bay by bay in the removal step, not the set-up step', () => {
   const done = draft('Replace roof sheets damaged by hail on a factory.', { fallRisk: 'yes', state: 'wa' });
-  assert.ok(!step(done, 'Set up roof access and fall protection').controls.some((line) => /bay by bay/.test(line)));
+  assert.ok(!step(done, 'Install roof edge protection').controls.some((line) => /bay by bay/.test(line)));
   assert.ok(step(done, 'Remove old roofing').controls.some((line) => /bay by bay/.test(line)));
 });
 
@@ -416,7 +416,7 @@ test('a timber pergola is cut and fixed on site, with no kit or roof sheet wordi
 test('an outdoor shower has its trench and none of the indoor rough-in lines', () => {
   const done = draft('Install an outdoor shower at a beach surf club.');
   const names = steps(done);
-  assert.ok(names.indexOf('Dig a shallow trench and lay the pipes') < names.indexOf('Plumbing fit-off'));
+  assert.ok(names.indexOf('Lay the pipes') < names.indexOf('Plumbing fit-off'));
   assert.ok(!names.includes('Plumbing rough-in'));
   assert.ok(!has(done, /open penetration|drilling into a slab/));
 });
@@ -458,7 +458,7 @@ test('a range hood is not gas work', () => {
 
 test('a shade structure is covered in fabric, not roof sheets', () => {
   const done = draft('Install a playground shade structure at a kindergarten.', { fallRisk: 'yes', state: 'act' });
-  assert.ok(steps(done).includes('Erect the frame and fix the shade fabric'));
+  assert.ok(steps(done).includes('Erect the frame') && steps(done).includes('Fix the shade fabric'));
   assert.ok(!has(done, /Roof sheets|fixed to an existing building/));
 });
 

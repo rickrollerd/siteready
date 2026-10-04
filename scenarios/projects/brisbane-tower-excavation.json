@@ -20,7 +20,8 @@
         ],
         "steps": [
           "Bulk excavate and load trucks",
-          "Protect the basement edge and provide access",
+          "Protect the basement edge",
+          "Provide access into the basement",
           "Protect neighbouring buildings and the street"
         ],
         "missing": [
@@ -49,7 +50,8 @@
           "Install and later remove ground anchors",
           "Stress the ground anchors",
           "Install and later remove props",
-          "Protect the basement edge and provide access"
+          "Protect the basement edge",
+          "Provide access into the basement"
         ],
         "missing": [
           "Fall control",
@@ -101,7 +103,8 @@
           "Bulk excavate and load trucks",
           "Dewater the excavation",
           "Handle contaminated or unknown material in the spoil",
-          "Protect the basement edge and provide access"
+          "Protect the basement edge",
+          "Provide access into the basement"
         ],
         "missing": [
           "Fall control",

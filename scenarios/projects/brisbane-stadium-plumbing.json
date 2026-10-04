@@ -21,7 +21,7 @@
           "Locate underground services",
           "Excavate",
           "Work in the trench",
-          "Backfill and restore"
+          "Backfill the trench"
         ],
         "missing": [
           "Trench support"

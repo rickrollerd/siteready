@@ -284,7 +284,7 @@ test('a trench lays pipes, sets pits and lays conduits in separate steps, each o
 
 test('asphalt is saw cut and reinstated in separate steps; a pothole patch has no cut', () => {
   const road = steps(draft('Saw cut and reinstate the asphalt over the new sewer trench in the road.', 'plumbing'));
-  assert.ok(road.includes('Reinstate asphalt') && road.indexOf('Reinstate asphalt') > road.indexOf('Backfill and restore'));
+  assert.ok(road.includes('Reinstate asphalt') && road.indexOf('Reinstate asphalt') > road.indexOf('Backfill the trench'));
   const cut = steps(draft('Reinstate the asphalt over the backfilled trench.'));
   assert.ok(cut.indexOf('Saw cut asphalt') >= 0 && cut.indexOf('Saw cut asphalt') < cut.indexOf('Reinstate asphalt'));
   const pothole = steps(draft('Repair potholes in the car park with hot asphalt and a roller.'));
@@ -715,4 +715,104 @@ test('safety mesh and sarking are separate steps, each when named', () => {
 test('solvent-based paint is applied as its own step, after the painting and before the clean-up', () => {
   const done = steps(draft('Paint the interior walls with solvent-based enamel.', 'painting'));
   assert.ok(done.indexOf('Apply solvent-based paint') > done.indexOf('Paint') && done.indexOf('Apply solvent-based paint') < done.indexOf('Clean brushes and rollers'));
+});
+// Site set-up, civil, concrete and structure steps: one activity per step.
+test('the hoist is installed and its mast climbed as separate steps; a climb alone installs nothing', () => {
+  const both = steps(draft('Install, climb and dismantle the personnel and materials hoist on the building face.', 'builder'));
+  assert.ok(both.includes('Install and dismantle the hoist') && both.includes('Climb the hoist mast'));
+  const climb = steps(draft('Climb the materials hoist mast to level 12.', 'builder'));
+  assert.ok(climb.includes('Climb the hoist mast') && !climb.includes('Install and dismantle the hoist'));
+});
+
+test('roof access and roof edge protection are separate steps, for the roofer and for other trades', () => {
+  const roofer = steps(draft('Remove and replace the corrugated iron roof sheets on a two storey house.', 'roofing'));
+  assert.ok(roofer.includes('Set up roof access') && roofer.includes('Install roof edge protection'));
+  assert.ok(roofer.indexOf('Install roof edge protection') < roofer.indexOf('Remove old roofing'));
+  const other = steps(draft('Install condensing units and exhaust fans on the roof, next to the roof edge.', 'mechanical'));
+  assert.ok(other.includes('Get onto the roof') && other.includes('Set up roof fall protection'));
+});
+
+test('a trench is backfilled, and its surface reinstated only where there is one', () => {
+  const plain = steps(draft('Excavate a 1.2 m trench and lay a new sewer line to the house.', 'plumbing'));
+  assert.ok(plain.includes('Backfill the trench') && !plain.includes('Reinstate the surface'));
+  const lawn = steps(draft('Excavate a trench across the lawn for a new stormwater pipe and backfill.', 'plumbing'));
+  assert.ok(lawn.includes('Backfill the trench') && lawn.indexOf('Reinstate the surface') > lawn.indexOf('Backfill the trench'));
+});
+
+test('loading platforms are installed in their own step only when the task installs them', () => {
+  const use = steps(draft('Load out each floor using the tower crane and the loading platforms.'));
+  assert.ok(use.includes('Load out the floors') && !use.includes('Install loading platforms'));
+  const both = steps(draft('Relocate the loading platform up a level and load out the floor with the tower crane.'));
+  assert.ok(both.includes('Install loading platforms') && both.includes('Load out the floors'));
+});
+
+test('a slab on ground is set out, prepared, finished, joint cut and cured as separate steps', () => {
+  const slab = steps(draft('Excavate, form, reinforce and pour a concrete house slab on ground with edge beams, finished with a power trowel, and saw cut control joints.', 'concreting'));
+  for (const name of ['Set out', 'Prepare the ground', 'Finish the concrete', 'Saw cut the joints', 'Cure the concrete']) assert.ok(slab.includes(name), name);
+  const noJoints = steps(draft('Form and pour a concrete driveway at a house.', 'concreting'));
+  assert.ok(noJoints.includes('Finish the concrete') && !noJoints.includes('Saw cut the joints'));
+  const crossover = steps(draft('Build a new vehicle crossover to council standards.', 'concreting'));
+  assert.ok(crossover.includes('Box out the crossover') && !crossover.includes('Prepare the ground'));
+});
+
+test('formwork edge protection, the deck, the pour watch, stripping and backprops are separate steps', () => {
+  const form = steps(draft('Erect the slab formwork and falsework, lay the deck, install edge protection, then strip the formwork and install backprops.', 'formwork'));
+  for (const name of ['Install edge protection', 'Lay the formwork deck', 'Monitor the formwork during the pour', 'Strip the formwork', 'Install backprops']) assert.ok(form.includes(name), name);
+  assert.ok(!form.includes('Install or remove edge protection'), 'one edge protection step');
+  assert.ok(form.indexOf('Strip the formwork') < form.indexOf('Install backprops'));
+});
+
+test('basement edge, wall drainage, concrete repair, collapsed wall and spoil are split by activity', () => {
+  const basement = steps(draft('Bulk excavate the basement with excavators and trucks.', 'civil'));
+  assert.ok(basement.includes('Protect the basement edge') && basement.includes('Provide access into the basement'));
+  const wall = steps(draft('Install ag drainage and backfill behind the new retaining wall.', 'landscaping'));
+  assert.ok(wall.includes('Install drainage behind the retaining wall') && wall.includes('Backfill behind the retaining wall'));
+  const repair = steps(draft('Break out and repair spalled concrete on the car park columns.'));
+  assert.ok(repair.includes('Break out damaged concrete') && repair.includes('Repair the concrete'));
+  const driveway = steps(draft('Repair a concrete driveway with cracks and trip hazards.'));
+  assert.ok(driveway.includes('Break out damaged concrete') && !driveway.includes('Repair the concrete') && !driveway.includes('Set out'));
+  const street = steps(draft('Clear the collapsed front brick wall next to the footpath and rebuild it.'));
+  assert.ok(street.indexOf('Protect the footpath') >= 0 && street.indexOf('Protect the footpath') < street.indexOf('Clear the collapsed wall'));
+  assert.ok(!steps(draft('Clear the collapsed brick boundary wall in the back yard.')).includes('Protect the footpath'));
+  const spoil = steps(draft('Excavate the basement, stockpile the spoil and cart it away to a licensed tip.', 'civil'));
+  assert.ok(spoil.includes('Stockpile and cover spoil') && spoil.includes('Cart away spoil'));
+});
+
+test('heavy and dual lifts are planned and carried out as separate steps', () => {
+  const heavy = steps(draft('Heavy lift of the 120 t transformer onto its plinth with a 400 t crawler crane.'));
+  assert.ok(heavy.includes('Plan the heavy lift') && heavy.includes('Carry out the heavy lift'));
+  const dual = draft('Dual lift the bridge girder with two mobile cranes.');
+  assert.ok(steps(dual).includes('Plan the dual lift') && steps(dual).includes('Carry out the dual lift'));
+  assert.ok(dual.qualifications.some((name) => /intermediate rigging \(RI\) or higher, for the dual lift/.test(name)));
+});
+
+test('a shallow trench is dug and the pipe or cable laid as separate steps', () => {
+  const pipes = steps(draft('Dig a shallow trench by hand and lay irrigation pipe to the garden tap.', 'plumbing'));
+  assert.ok(pipes.includes('Dig the trench') && pipes.includes('Lay the pipes'));
+});
+
+test('trees, stumps, soil, planting and the green roof are split by activity', () => {
+  const trees = steps(draft('Fell and remove two dead gum trees and grind out the roots.', 'landscaping'));
+  assert.ok(trees.includes('Remove trees') && trees.includes('Remove stumps and roots'));
+  const mulch = steps(draft('Spread mulch over the garden beds.', 'landscaping'));
+  assert.ok(mulch.includes('Move soil and mulch') && !mulch.includes('Plant'));
+  const both = steps(draft('Plant shrubs and trees and spread mulch in the new garden beds.', 'landscaping'));
+  assert.ok(both.includes('Move soil and mulch') && both.includes('Plant'));
+  const roof = steps(draft('Install the green roof drainage layers, growing media and plants.'));
+  assert.ok(roof.includes('Install the green roof layers') && roof.includes('Plant the green roof') && !roof.includes('Plant'));
+});
+
+test('decks, floor frames, kit structures and ground mount solar are split by activity', () => {
+  const deck = steps(draft('Build a timber deck 2.5 m above the ground at the back of a house, digging post holes and concreting the posts.', 'carpentry'));
+  for (const name of ['Set out', 'Dig post holes', 'Build the deck frame', 'Lay the decking']) assert.ok(deck.includes(name), name);
+  const boards = steps(draft('Replace the rotten deck boards on the back deck.', 'carpentry'));
+  assert.ok(boards.includes('Remove and replace the decking') && !boards.includes('Build the deck frame') && !boards.includes('Dig post holes'));
+  const floor = steps(draft('Lay floor joists and particleboard flooring for the new upper storey extension.', 'carpentry'));
+  assert.ok(floor.includes('Lay floor joists') && floor.includes('Lay the floor deck'));
+  const carport = steps(draft('Build a colorbond carport with a skillion roof.', 'carpentry'));
+  assert.ok(carport.includes('Erect the frame') && carport.includes('Fix the roof'));
+  const pergola = steps(draft('Build a timber pergola at ground level.', 'carpentry'));
+  assert.ok(pergola.includes('Erect the frame') && !pergola.includes('Fix the roof'));
+  const solar = steps(draft('Install a ground mount solar array on the farm.', 'electrical'));
+  assert.ok(solar.includes('Install the ground mount frame') && solar.includes('Install the solar panels'));
 });

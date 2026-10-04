@@ -17,10 +17,12 @@
         ],
         "steps": [
           "Set up traffic management",
-          "Prepare the ground and set out",
+          "Set out",
+          "Prepare the ground",
           "Set edge forms and prepare the base",
           "Place concrete",
-          "Finish, joint and cure"
+          "Finish the concrete",
+          "Cure the concrete"
         ],
         "missing": []
       }
