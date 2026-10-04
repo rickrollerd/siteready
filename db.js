@@ -185,6 +185,25 @@ const SCHEMA = [
     signature TEXT NOT NULL,
     signed_at TIMESTAMPTZ NOT NULL
   )`,
+  // The AI's reading of a scope, kept against the company and the document's fingerprint
+  // (never the document itself), with its check against the brief and what it cost.
+  `CREATE TABLE IF NOT EXISTS ai_readings (
+    id TEXT PRIMARY KEY,
+    company_id TEXT NOT NULL,
+    doc_hash TEXT NOT NULL,
+    brief_version TEXT NOT NULL,
+    model TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL,
+    characters INTEGER NOT NULL DEFAULT 0,
+    reading TEXT,
+    checks TEXT,
+    usage TEXT,
+    cost_usd NUMERIC NOT NULL DEFAULT 0,
+    error TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL,
+    finished_at TIMESTAMPTZ
+  )`,
+  'CREATE INDEX IF NOT EXISTS ai_readings_doc ON ai_readings (company_id, doc_hash, brief_version)',
 ];
 
 async function migrate() {

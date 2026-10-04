@@ -81,7 +81,7 @@ const logRows = (action, target) => db.query('SELECT * FROM admin_access_log WHE
 
 test('only the owner can use the admin views, and refused looks are not logged', async () => {
   const before = Number((await db.one('SELECT COUNT(*) AS n FROM admin_access_log')).n);
-  const routes = ['/api/admin/stats', '/api/admin/refs/SR-AAAA-BBBB', '/api/admin/companies?q=a', '/api/admin/companies/x', '/api/admin/warnings', '/api/admin/access-log'];
+  const routes = ['/api/admin/stats', '/api/admin/refs/SR-AAAA-BBBB', '/api/admin/companies?q=a', '/api/admin/companies/x', '/api/admin/warnings', '/api/admin/access-log', '/api/admin/ai-readings'];
   for (const route of routes) {
     assert.equal((await call('GET', route, { token: someone })).status, 403, route);
     assert.equal((await call('GET', route)).status, 401, route);
@@ -325,4 +325,20 @@ test('the access log shows the last 100 looks, newest first', async () => {
   assert.deepEqual(data.entries[0], { adminEmail: 'owner@siteready.example', action: 'ref_lookup', target: 'SR-LAST-LOOK', createdAt: data.entries[0].createdAt });
   const times = data.entries.map((item) => new Date(item.createdAt).getTime());
   assert.deepEqual(times, [...times].sort((a, b) => b - a));
+});
+
+test('the owner sees each AI reading checked against the brief, with its cost, but not the reading', async () => {
+  await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, reading, checks, cost_usd, created_at, finished_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
+    ['reading-1', 'no-such-company', 'hash', 'v3', 'claude-opus-5-5', 'done', 1000, '{"activities":[]}',
+      JSON.stringify({ passed: false, activities: 2, conflicts: 1, quotes: 3, quotesNotFound: [{ where: 'x', quote: 'y' }], quotesShortened: [], otherPackages: ['Big lifts'], rowsWithoutQuote: [] }),
+      0.78, new Date(Date.now() - 180000), new Date()]);
+  const { status, data } = await get('/api/admin/ai-readings');
+  assert.equal(status, 200);
+  const item = data.readings.find((row) => row.id === 'reading-1');
+  assert.equal(item.checks.passed, false);
+  assert.equal(item.checks.quotesNotFound, 1);
+  assert.deepEqual(item.checks.otherPackages, ['Big lifts']);
+  assert.equal(item.costUsd, 0.78);
+  assert.equal(item.minutes, 3);
+  assert.equal(item.reading, undefined);
 });

@@ -208,3 +208,10 @@ test('a SiteReady reference can be verified by anyone, and a wrong one is not fo
   assert.equal((await fetch(`${base}/api/verify/not-a-ref`)).status, 400);
   assert.equal((await fetch(`${base}/verify.html`)).status, 200);
 });
+
+test('the AI scope reading says whether it is on, and needs a signed-in account', async () => {
+  const status = await (await fetch(`${base}/api/scope/ai`)).json();
+  assert.equal(status.enabled, Boolean(process.env.ANTHROPIC_API_KEY));
+  const anonymous = await post('/api/scope/ai', { text: 'Install ductwork in the ceilings.' });
+  assert.equal(anonymous.status, 401);
+});

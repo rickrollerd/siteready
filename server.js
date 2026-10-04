@@ -22,6 +22,7 @@ const { TRADES, answersFor } = require('./presets');
 const { localText } = require('./citations');
 const { scopeText } = require('./scope-text');
 const { tasksFromScope } = require('./scope');
+const aiScope = require('./ai-scope');
 const places = require('./places');
 const { recordIndustry } = require('./industry');
 
@@ -63,7 +64,7 @@ const smallJson = express.json({ limit: '100kb' });
 const wordJson = express.json({ limit: '1mb' });
 const scopeJson = express.json({ limit: '15mb' });
 const projectJson = express.json({ limit: '5mb' });
-app.use((req, res, next) => (req.path === SCOPE_ROUTE ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
+app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Limits are per client address. Phones on mobile data and a site office on one
@@ -184,6 +185,29 @@ app.post(SCOPE_ROUTE, async (req, res, next) => {
     // The state picked on the form sets which work is high risk and how it is named.
     const state = req.body && findState(req.body.state);
     res.json(tasksFromScope(text, state ? state.id : 'qld'));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// The AI reading of a scope. It takes a few minutes, so it is started here and the page
+// asks for it by its id. Signed-in accounts only; the quick read above stays for everyone.
+app.use('/api/scope/ai', limiter(positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20)));
+app.get('/api/scope/ai', (req, res) => res.json({ enabled: aiScope.enabled() }));
+app.post('/api/scope/ai', auth.requireAccess, async (req, res, next) => {
+  try {
+    const text = await scopeText(req.body || {});
+    const started = await aiScope.startReading(req.company, text);
+    record(started.kept ? 'ai_scope_kept' : 'ai_scope', req.company && req.company.id);
+    const { done, ...out } = started;
+    res.status(started.status === 'reading' ? 202 : 200).json(out);
+  } catch (error) {
+    next(error);
+  }
+});
+app.get('/api/scope/ai/:id', auth.requireUser, async (req, res, next) => {
+  try {
+    res.json(await aiScope.getReading(req.company, req.params.id));
   } catch (error) {
     next(error);
   }

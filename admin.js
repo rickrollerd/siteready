@@ -382,6 +382,44 @@ router.get('/admin/warnings', auth.requireUser, route(async (req, res) => {
   res.json({ limits: LIMITS, warnings: await warningSigns() });
 }));
 
+// ---- AI readings checked against the brief ----
+
+// The last 50 AI readings of a scope, each with its check against the brief (quotes word for
+// word, no "...", package names) and what it cost, so the output is checked on a regular basis.
+// The readings themselves stay with each account; only their counts and checks are shown here.
+router.get('/admin/ai-readings', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  const rows = await db.query(`SELECT r.id, r.status, r.brief_version, r.model, r.characters, r.checks, r.cost_usd, r.error, r.created_at, r.finished_at, c.name AS company_name
+    FROM ai_readings r LEFT JOIN companies c ON c.id = r.company_id ORDER BY r.created_at DESC LIMIT 50`);
+  res.json({
+    readings: rows.map((row) => {
+      const checks = row.checks ? JSON.parse(row.checks) : null;
+      return {
+        id: row.id,
+        company: row.company_name || '',
+        status: row.status,
+        briefVersion: row.brief_version,
+        model: row.model,
+        characters: row.characters,
+        costUsd: Number(row.cost_usd || 0),
+        error: row.error,
+        createdAt: row.created_at,
+        minutes: row.finished_at ? Math.round((new Date(row.finished_at) - new Date(row.created_at)) / 6000) / 10 : null,
+        checks: checks && {
+          passed: checks.passed,
+          activities: checks.activities,
+          conflicts: checks.conflicts,
+          quotes: checks.quotes,
+          quotesNotFound: checks.quotesNotFound.length,
+          quotesShortened: checks.quotesShortened.length,
+          otherPackages: checks.otherPackages,
+          rowsWithoutQuote: checks.rowsWithoutQuote.length,
+        },
+      };
+    }),
+  });
+}));
+
 // ---- Access log ----
 
 router.get('/admin/access-log', auth.requireUser, route(async (req, res) => {

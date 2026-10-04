@@ -574,6 +574,8 @@
   S.accountsOn = () => Boolean(config.accounts);
   S.confirmBlock = (prefix) => confirmBlock(prefix);
   S.download = (route, fallbackName, body) => download(route, fallbackName, body);
+  // A signed-in request, for the AI reading of a scope.
+  S.call = (method, route, body) => call(method, route, body);
   S.saveCompany = async (profile) => {
     const data = await call('PUT', '/api/company', profile);
     // A business whose ABN has had its trial is told so, and the account panel shows it has no access.
