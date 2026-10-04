@@ -37,7 +37,7 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Plumbing rough-in and fit-off"
+          "Plumbing fit-off"
         ],
         "missing": []
       }

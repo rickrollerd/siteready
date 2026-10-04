@@ -132,7 +132,8 @@
         ],
         "steps": [
           "Stress the tendons",
-          "Cut tails and grout"
+          "Cut the tendon tails",
+          "Grout the tendon ducts"
         ],
         "missing": [
           "Fall control",
@@ -158,7 +159,8 @@
           "Prepare to climb the jumpform",
           "Climb the jumpform",
           "Work on the jumpform platforms",
-          "Fix reo and set the wall forms from the platforms",
+          "Fix the wall reo from the platforms",
+          "Set the wall forms from the platforms",
           "Pour the core walls"
         ],
         "missing": [
@@ -191,7 +193,8 @@
           "Work with the crane crew during lifts",
           "Use an elevating work platform",
           "Stand and brace the precast elements",
-          "Grout the base and remove the braces"
+          "Grout the base",
+          "Remove the braces"
         ],
         "missing": [
           "Erection design",

@@ -23,7 +23,8 @@
         "steps": [
           "Set up traffic management",
           "Bulk excavate and load trucks",
-          "Install, stress and later remove ground anchors and props",
+          "Install and later remove ground anchors",
+          "Stress the ground anchors",
           "Protect the basement edge and provide access",
           "Protect neighbouring buildings and the street"
         ],

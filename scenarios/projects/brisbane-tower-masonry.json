@@ -21,7 +21,7 @@
         "steps": [
           "Cut blocks and bricks",
           "Lay blocks and bricks",
-          "Mix mortar and core fill"
+          "Core fill blockwork"
         ],
         "missing": [
           "Fall control",

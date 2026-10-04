@@ -21,7 +21,8 @@
         ],
         "steps": [
           "Use an elevating work platform",
-          "Install containment and pull communications cabling"
+          "Install communications containment",
+          "Pull communications cabling"
         ],
         "missing": [
           "Fall control",
@@ -43,8 +44,8 @@
           "electrical"
         ],
         "steps": [
-          "Install containment and pull communications cabling",
-          "Install, splice and test optical fibre"
+          "Pull communications cabling",
+          "Splice and test optical fibre"
         ],
         "missing": [
           "Fall control"

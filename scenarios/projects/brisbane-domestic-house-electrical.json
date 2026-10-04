@@ -17,7 +17,8 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Rough-in and fit-off",
+          "Rough-in",
+          "Fit off",
           "Isolate and prove de-energised",
           "Work on or near energised parts",
           "Work in the roof space"

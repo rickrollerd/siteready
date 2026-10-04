@@ -102,10 +102,10 @@ test('a task whose main work has no steps is stood down, not drafted with only a
   const stood = (task, trade = '') => prepareDraft({ state: 'qld', fallRisk: 'yes', trade, task, facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
   // Blasting now has its own job step, done by the licensed shotfirer.
   const blast = stood('Remove the old water heater and blast the rock with explosives.');
-  assert.ok(blast.jobSteps.some((step) => step.step === 'Drill, charge and fire the blast'));
+  assert.ok(blast.jobSteps.some((step) => step.step === 'Charge and fire the blast'));
   assert.ok(blast.jobSteps.flatMap((step) => step.controls).some((line) => /shotfirer holding the licence/.test(line)));
   // A pool shell now has its own job step.
-  assert.ok(stood('Construct a pool shell with sprayed concrete.').jobSteps.some((step) => step.step === 'Reinforce the pool shell and spray the shotcrete'));
+  assert.ok(stood('Construct a pool shell with sprayed concrete.').jobSteps.some((step) => step.step === 'Spray the pool shell'));
   // Hydro demolition now has its own job step.
   const hydro = stood('Hydro-demolition and concrete repair of a balcony slab soffit from a mobile scaffold.');
   assert.ok(hydro.jobSteps.some((step) => step.step === 'Hydro demolish the concrete'));
@@ -370,7 +370,7 @@ test('task bank round 5: everyday jobs that stood down now get their main steps'
   assert.ok(steps('Install a mobile phone antenna on a building rooftop.', 'communications', 'yes').includes('Install rooftop antennas and equipment'));
   assert.ok(steps('Reseal the expansion joints on a multi-storey car park deck.', 'waterproofing', 'yes').includes('Clean out and seal floor joints'));
   assert.ok(steps('Install new LED high bay lights in a warehouse from a scissor lift.', 'electrical', 'yes').includes('Install high bay light fittings'));
-  assert.ok(steps('Replace a section of collapsed stormwater pipe 1.2 m deep in a backyard.', 'plumbing').includes('Lay pipes and pits'));
+  assert.ok(steps('Replace a section of collapsed stormwater pipe 1.2 m deep in a backyard.', 'plumbing').includes('Lay pipes'));
   const kerb = steps('Remove and replace a damaged section of a kerb and channel.', 'structure');
   assert.ok(kerb.indexOf('Saw cut concrete') < kerb.indexOf('Place concrete'));
 });
@@ -477,7 +477,7 @@ test('banks 1 to 4 verification: step order, main work and lines for the job', (
   // Relining a sewer is done from the surface; the drain is cleared first.
   const reline = steps('Clean out and reline a sewer pipe with a CCTV camera and relining equipment.', 'plumbing');
   assert.ok(!reline.includes('Enter and work'));
-  assert.ok(before(reline, 'Clear the drain with a drain machine or jetter', 'Clean, inspect and reline the pipe'));
+  assert.ok(before(reline, 'Clear the drain with a drain machine or jetter', 'Reline the pipe'));
   // The pump is set up and the slab poured before the forms are stripped.
   const slab = steps('Install formwork and pour a suspended slab on level 3 of an apartment building.', 'structure');
   assert.ok(before(slab, 'Pump and place concrete', 'Strip formwork and backprop'));
@@ -489,7 +489,8 @@ test('banks 1 to 4 verification: step order, main work and lines for the job', (
   // Fit-off alone has no chasing, and is tested before it is connected.
   const fitOff = draft('Fit off lights, power points and ceiling fans in a new house.', 'electrical');
   assert.doesNotMatch(JSON.stringify(fitOff.jobSteps), /Chase and drill/);
-  assert.ok(fitOff.jobSteps.some((step) => step.step === 'Test, connect and commission'));
+  assert.ok(fitOff.jobSteps.some((step) => step.step === 'Test the new work'));
+  assert.ok(!fitOff.jobSteps.some((step) => step.step === 'Rough-in'));
   // Pool heat pumps have no relief valve; solar hot water on a roof gets its collector step.
   assert.doesNotMatch(text('Install a heat pump pool heater and connect plumbing and power.', 'plumbing'), /pressure relief valve/);
   assert.ok(steps('Install a solar hot water system on a flat roof of a motel.', 'plumbing').includes('Fix the solar collectors and tank frame to the roof'));
