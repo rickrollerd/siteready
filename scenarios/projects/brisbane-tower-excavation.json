@@ -46,7 +46,9 @@
         ],
         "steps": [
           "Bulk excavate and load trucks",
-          "Install, stress and later remove ground anchors and props",
+          "Install and later remove ground anchors",
+          "Stress the ground anchors",
+          "Install and later remove props",
           "Protect the basement edge and provide access"
         ],
         "missing": [
