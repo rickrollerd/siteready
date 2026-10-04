@@ -128,15 +128,28 @@
     $('project-start').textContent = projectButton();
   });
 
+  // The scope task's name goes once the task is replaced with the user's own.
+  $('task').addEventListener('input', () => {
+    const taskEl = $('task');
+    if (taskEl.dataset.preset && !taskEl.value.trim()) $('task-from').classList.add('hidden');
+  });
+
   function useTask(item) {
     const taskEl = $('task');
-    taskEl.value = item.task;
+    // One sentence to a line, so the task can be read and checked.
+    const text = item.task.replace(/([.;])\s+(?=[A-Z(])/g, '$1\n');
+    taskEl.value = text;
+    const from = $('task-from');
+    if (from) {
+      from.textContent = `From the scope: ${item.title}`;
+      from.classList.remove('hidden');
+    }
     // A new task starts from SiteReady's step order and PPE again.
     taskEl.dispatchEvent(new Event('input', { bubbles: true }));
-    taskEl.dataset.preset = item.task;
+    taskEl.dataset.preset = text;
     $('task-trade').value = item.trade || '';
     // The scope reader's steps for this task are ticked when the task is used as it stands.
-    window.siteReadyScopeTask = { task: item.task, kinds: item.kinds || null };
+    window.siteReadyScopeTask = { task: text, kinds: item.kinds || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });
     document.querySelector('input[name="fallRisk"]').dispatchEvent(new Event('change', { bubbles: true }));
     $('start').scrollIntoView({ behavior: 'smooth', block: 'start' });
