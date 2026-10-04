@@ -382,10 +382,10 @@ const NORTHERN_TERRITORY = {
   },
   fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT), regulation 291, construction work that is not residential is high risk construction work where a person could fall more than 2 metres. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
   residentialFallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT), regulation 291, residential construction work (a house, or a garage, carport or shed attached to or next to a house) is high risk construction work where a person could fall more than 3 metres. Regulation 299 says high risk construction work needs a safe work method statement before it starts.',
-  // Part 4.7, with regulation 166, is missing from the text read from the published PDF.
-  // Regulation 729's note says another Act also applies to work near electric lines; its
-  // title, Electricity Reform Act 2000, is as regulation 5 gives it.
-  overheadLineControl: 'Keep people, plant and things away from overhead and underground electric lines. Get the electricity supply authority\'s requirements before work starts and follow them. The Electricity Reform Act 2000 (NT) also imposes obligations for work near electric lines.',
+  // Part 4.7, with regulation 166, was repealed by the Electrical Safety Act 2022 (NT) s 300 from
+  // 1 July 2024 (endnotes). Regulation 729's note says the Electricity Reform Act 2000 (its title as
+  // regulation 5 gives it) imposes obligations in relation to electric lines in certain circumstances.
+  overheadLineControl: 'Keep people, plant and things away from overhead and underground electric lines. Get the electricity supply authority\'s requirements before work starts and follow them. Since 1 July 2024 the Electrical Safety Act 2022 (NT) has applied in place of Part 4.7 of the regulations, and the Electricity Reform Act 2000 (NT) also imposes obligations in relation to electric lines in certain circumstances.',
 };
 
 // Checked against the authorised PDF of the Occupational Health and Safety Regulations 2017

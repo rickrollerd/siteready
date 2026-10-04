@@ -225,7 +225,7 @@ test('ACT: Minister declared silica course, s 418CAA controls, porcelain and asb
 test('NT: the Electricity Reform Act 2000', () => {
   const nt = draft('nt', 'Lift steel roof trusses with a crane truck next to overhead power lines.');
   const text = [...lines(nt), ...nt.controls.map((item) => item.text)].join('\n');
-  assert.match(text, /The Electricity Reform Act 2000 \(NT\) also imposes obligations for work near electric lines\./);
+  assert.match(text, /Since 1 July 2024 the Electrical Safety Act 2022 \(NT\) has applied in place of Part 4\.7 of the regulations, and the Electricity Reform Act 2000 \(NT\) also imposes obligations in relation to electric lines in certain circumstances\./);
   assert.doesNotMatch(text, /Electrical Reform/);
 });
 
