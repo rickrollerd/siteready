@@ -282,7 +282,7 @@ test('a draft has job steps with hazards and controls, and a PPE list', () => {
   assert.equal(names[0], 'Before starting');
   assert.equal(names[names.length - 1], 'Finish and clean up');
   assert.ok(names.includes('Remove old roofing'));
-  const access = done.jobSteps.find((step) => step.step === 'Set up roof access and fall protection');
+  const access = done.jobSteps.find((step) => step.step === 'Install roof edge protection');
   assert.ok(access.controls.some((line) => /Perimeter guardrail scaffold/.test(line)), 'the fall control goes in its step');
   const ticked = done.ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
   assert.ok(['hardHat', 'boots', 'hivis', 'siteClothing', 'gloveCut', 'sunscreen'].every((id) => ticked.includes(id)));
@@ -354,7 +354,7 @@ test('the deck is laid the way the user chooses, and ply loading onto the deck i
   assert.ok(draft(task, { facts }).missing.includes('How the deck is laid'));
 
   const deckStep = (method) => draft(task, { facts: { ...facts, deckMethod: method } })
-    .jobSteps.find((step) => step.step === 'Install edge protection and lay the deck').controls.join(' ');
+    .jobSteps.find((step) => step.step === 'Lay the formwork deck').controls.join(' ');
   assert.match(deckStep('below'), /working platform below the joists/);
   assert.doesNotMatch(deckStep('below'), /Never step onto joists/);
   assert.match(deckStep('top'), /Never step onto joists or unfixed sheets/);

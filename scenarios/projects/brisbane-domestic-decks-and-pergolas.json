@@ -18,8 +18,10 @@
           "fall"
         ],
         "steps": [
-          "Set out and dig post holes",
-          "Build the deck frame and lay the decking"
+          "Set out",
+          "Dig post holes",
+          "Build the deck frame",
+          "Lay the decking"
         ],
         "missing": [
           "Fall control"

@@ -73,7 +73,7 @@ test('a scope line ending in a number is left alone', () => {
 
 test('the silica hazard row is the same in every state for a trench with pipe cutting', () => {
   const { prepareDraft, questionsFor } = require('../draft');
-  const task = 'Supply and lay 450mm RCP stormwater in shored trenches (to 3.2 m deep), 320 lm.';
+  const task = 'Supply and lay 450mm RCP stormwater in shored trenches (to 3.2 m deep), 320 lm, and reinstate the concrete paving.';
   for (const state of ['qld', 'nsw', 'vic', 'sa', 'wa', 'tas', 'act', 'nt']) {
     const base = { state, task, fallRisk: 'no', residential: 'no', company: 'T', principalContractor: 'P', kinds: ['trench'] };
     const facts = {};
