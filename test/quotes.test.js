@@ -70,3 +70,27 @@ test('a deep trench in one quote line is enough for a trench task', () => {
 test('a scope line ending in a number is left alone', () => {
   assert.deepStrictEqual(siteWorkLines('Install handrails to the stairs from ground to level 3'), ['Install handrails to the stairs from ground to level 3.']);
 });
+
+test('the silica hazard row is the same in every state for a trench with pipe cutting', () => {
+  const { prepareDraft, questionsFor } = require('../draft');
+  const task = 'Supply and lay 450mm RCP stormwater in shored trenches (to 3.2 m deep), 320 lm.';
+  for (const state of ['qld', 'nsw', 'vic', 'sa', 'wa', 'tas', 'act', 'nt']) {
+    const base = { state, task, fallRisk: 'no', residential: 'no', company: 'T', principalContractor: 'P', kinds: ['trench'] };
+    const facts = {};
+    let done;
+    for (let round = 0; round < 5; round += 1) {
+      for (const item of questionsFor({ ...base, facts }).required || []) {
+        const options = item.choices || item.options;
+        if (!facts[item.id]) facts[item.id] = options && options.length ? options[0].value : `As planned: ${item.label}`;
+      }
+      done = prepareDraft({ ...base, facts });
+      if (done.kind !== 'stand-down') break;
+    }
+    assert.ok(JSON.stringify(done.hazards).includes('Respirable crystalline silica'), state);
+  }
+});
+
+test('one line of deep trench or road work makes a task in Victoria as in the other states', () => {
+  const ids = (state) => tasksFromScope(CIVIL, state).tasks.map((task) => task.id).sort().join(',');
+  for (const state of ['nsw', 'vic', 'sa', 'wa', 'tas', 'act', 'nt']) assert.equal(ids(state), ids('qld'), state);
+});

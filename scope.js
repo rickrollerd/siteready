@@ -267,12 +267,13 @@ function taskText(found) {
 
 // High risk categories that a single line is enough to raise. Falls and mobile plant
 // are mentioned in passing in most scopes, so they need more than one line.
+// Matched by the item id, which is the same in every state (Victoria names its checks differently).
 const STRONG = new Set(['demolition', 'asbestos', 'temporary', 'confined', 'explosives', 'gas', 'chemicalLine', 'electrical', 'atmosphere', 'precast', 'road', 'water', 'diving', 'tunnel', 'trench']);
 
 function strongHighRisk(lines, state, when) {
   // Overhead lines are named in standard cabling clauses ("fixed to isolators in overhead lines").
   if (when === 'power') return false;
-  return lines.some((line) => highRiskMatches(line, '', state).some((item) => STRONG.has(item.check)));
+  return lines.some((line) => highRiskMatches(line, '', state).some((item) => STRONG.has(item.id)));
 }
 
 function tasksFromScope(text, stateId = 'qld') {

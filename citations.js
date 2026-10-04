@@ -338,6 +338,9 @@ function actSilica(text) {
     .replace(/^Where (?:the processing|it) is high risk[:,].*$/s, ACT_SILICA_TRAINING)
     .replace(/Assess in writing before (\w+(?: or \w+)?) whether (?:the processing|it) is high risk[^.]*\.(?: The assessment does not count[^.]*\.)?(?: If it cannot be determined, treat it as [^.]*\.)?(?: (?:If it is|Where it is high risk), [^.]*\.)?/g, (all, when) => `Before ${when === 'starting' ? 'starting' : when}, ${ACT_SILICA_CONTROLS}${/silica risk control plan/.test(all) ? ` ${ACT_SILICA_TRAINING}` : ''}`)
     .replace(/Before ([^,.]+), assess in writing whether the processing is high risk\.(?: The assessment does not count[^.]*\.)?(?: If it cannot be determined, treat it as [^.]*\.)?/g, (all, when) => `Before ${when}, ${ACT_SILICA_CONTROLS}`)
+    // Cutting concrete or paving is processing crystalline silica material, so the ACT controls replace wet or extraction alone.
+    .replace(/, it is cut wet or with on-tool extraction, anyone still at risk wears a fit tested P2 respirator, and the written silica assessment covers the cutting\./, `, cutting it is processing crystalline silica material: ${ACT_MATERIAL}.${cite('act', '418A', '418CAA')}`)
+    .replace(/ with a saw fitted with water suppression or on-tool extraction, and the written silica assessment covers the reglet cutting\./, ` with a saw, and cutting them is processing crystalline silica material: ${ACT_MATERIAL}.${cite('act', '418A', '418CAA')}`)
     .replace(/,? and the written silica assessment covers the [^.]*\./g, '.');
 }
 // The ACT names concrete, masonry, tiles and stone "crystalline silica material", with no 1%
