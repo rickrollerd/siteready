@@ -292,9 +292,15 @@ const TAS_TEXT = [
   [/\(this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed\)/, '(this SWMS can be the plan only where the work is also high risk construction work and the SWMS identifies all the high risk processing and, for each, documents the processing, the form and proportion (w/w) of crystalline silica, the hazards and the likely frequency and duration of exposure, whether airborne respirable crystalline silica is likely to exceed half the exposure standard, why the processing is high risk, the controls and how they are implemented, monitored and reviewed, past air and health monitoring results at the workplace, and previous silica incidents, illnesses and diseases there)', KEEP],
 ];
 
+// New South Wales: traffic control work is done only by holders of a traffic control work
+// training card for that type of work, issued by the regulator (s 184A, s 184C, s 184D).
+const NSW_TEXT = [
+  [/^Traffic controllers who hold Queensland traffic controller accreditation/, `Traffic control work (directing traffic on a public road, and implementing, designing, amending or inspecting the work zone traffic management plan) is done only by workers holding a traffic control work training card, or a temporary card, for that type of work, who have done that type of work in the last 2 years if they trained more than 2 years ago, or by a trainee under supervision as section 184C(2) allows. Traffic controllers direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.${cite('nsw', '184A', '184C')}`],
+];
+
 const STATE_TEXT = {
   vic: VIC_TEXT,
-  nsw: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  nsw: [...NSW_TEXT, ...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   sa: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   wa: [...WA_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   tas: [...TAS_TEXT, ...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
