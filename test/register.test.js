@@ -310,7 +310,7 @@ test('everyday tasks get job steps for their main work', () => {
     return draft.kind === 'draft' ? draft.jobSteps.map((step) => step.step) : draft.missing;
   };
   assert.ok(steps('Install ceiling grid and tiles in an open plan office from mobile scaffolds.').includes('Install suspended grid ceilings'));
-  assert.ok(steps('Install new playground equipment and rubber softfall at a council park.').includes('Install playground equipment and softfall'));
+  assert.ok(steps('Install new playground equipment and rubber softfall at a council park.').includes('Install playground equipment') && steps('Install new playground equipment and rubber softfall at a council park.').includes('Lay the rubber softfall'));
   assert.ok(steps('Install a 20 m sewer rising main by horizontal directional drilling under a road.').includes('Bore under the road or ground with a directional drill'));
   assert.ok(steps('Demolish a single storey brick veneer house and remove the slab.', { asbestosArrangement: 'A licensed removalist removed all asbestos; clearance certificate sighted.' }).includes('Demolish the structure'));
   assert.ok(steps('Remove three large gum trees near power lines at a rural property.', { electricalSafety: 'The network operator has isolated the line in writing before work starts.' }).some((step) => /tree/i.test(step)));
@@ -346,7 +346,7 @@ test('task bank round 4: licences, high risk categories and main work steps', ()
   assert.ok(steps('Install a vehicle hoist in a mechanical workshop.').includes('Install the vehicle hoist'));
   assert.ok(!steps('Install a vehicle hoist in a mechanical workshop.').includes('Install, climb and dismantle the hoist'));
   assert.deepEqual(steps('Remove a load-bearing wall between the kitchen and lounge and install a steel beam.', { facts: { temporarySupport: 'Props to the engineer\'s design, checked by the supervisor before the wall is removed.' } }).filter((step) => /support|opening|beam/.test(step)), ['Install temporary support', 'Cut an opening in a load-bearing wall', 'Lift and fix the new beam or lintel']);
-  assert.ok(steps('Install new playground shade sails at a school.').includes('Install shade sail posts and sails'));
+  assert.ok(steps('Install new playground shade sails at a school.').includes('Fit and tension the shade sails'));
   assert.ok(!steps('Install new playground shade sails at a school.').includes('Erect the frame and roof of the structure'));
   assert.ok(steps('Lay sewer drainage under a new house slab before the pour.').includes('Lay drainage under the slab or floor'));
   assert.ok(!steps('Lay sewer drainage under a new house slab before the pour.').includes('Place concrete'));
@@ -496,7 +496,7 @@ test('banks 1 to 4 verification: step order, main work and lines for the job', (
   assert.ok(steps('Install a solar hot water system on a flat roof of a motel.', 'plumbing').includes('Fix the solar collectors and tank frame to the roof'));
   // The welding job gets a welding step, not brazing.
   const weld = steps('Weld new steel brackets to an existing beam in an operating factory.', 'steel');
-  assert.ok(weld.includes('Bolt and weld steel') && !weld.includes('Braze and solder pipe joints (hot work)'));
+  assert.ok(weld.includes('Weld steel') && !weld.includes('Braze and solder pipe joints (hot work)'));
   // Dismantling only.
   assert.ok(!steps('Dismantle a scaffold from a finished building.', 'scaffolding').includes('Erect the scaffold'));
   // Plant and licences that match the work.
@@ -528,7 +528,7 @@ test('banks 4 and 5 verification: the work named, in order, with its own plant a
   assert.doesNotMatch(text('Install a commercial ice machine and connect water and drain in a pub.', 'plumbing'), /Scalds from hot water|Sun and heat/);
   assert.ok(before(steps('Install cyclone tie-downs to an existing house roof.', 'carpentry'), 'Work in the roof space', 'Fit cyclone tie-downs'));
   assert.ok(steps('Install a mezzanine stair and handrail in an office.', 'steel').includes('Install the steel staircase'));
-  assert.ok(before(steps('Replace 30 m of storm-damaged colorbond fencing with new posts in concrete.', 'fencing'), 'Take down the old fence', 'Dig post holes and build the fence'));
+  assert.ok(before(steps('Replace 30 m of storm-damaged colorbond fencing with new posts in concrete.', 'fencing'), 'Take down the old fence', 'Dig post holes'));
   assert.ok(!steps('Replace rotten fascia boards and repaint the eaves of a weatherboard house.', 'carpentry').includes('Get onto the roof and set up fall protection'));
   const shed = steps('Remove a fibro garden shed that may contain asbestos.', 'demolition');
   assert.ok(!shed.includes('Demolish the structure') && before(shed, 'Take down the shed frame', 'Bag, label and dispose of asbestos waste'));
