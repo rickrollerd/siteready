@@ -2509,8 +2509,9 @@ function settleFlags(flags, task) {
   if (out.streetPits) { out.ictCabling = false; out.networkCable = true; }
   out.gasHeater = Boolean(out.flueInstall && /\bgas\b/i.test(task));
   out.pontoonPlace = /\bpontoons?\b/i.test(task) && /\b(install\w*|plac\w*|build\w*|replac\w*|new)\b/i.test(task);
-  out.fireDampers = /\b(fire|smoke|fire and smoke) dampers?\b/i.test(task);
-  if (out.fireDampers && !/\b(?:new|install\w*|run\w*) (?:the )?ductwork\b/i.test(task)) out.ductwork = false;
+  // "Fire dampeners" is a common way of writing fire dampers.
+  out.fireDampers = /\b(fire|smoke|fire and smoke) damp(?:en)?ers?\b/i.test(task);
+  if (out.fireDampers && !/\b(?:new|install\w*|run\w*|connect\w*) (?:the )?(?:ductwork|ducting|ducts?)\b/i.test(task)) out.ductwork = false;
   out.tileRemove = Boolean((out.tileLay || out.tileCut) && /\b(cracked|broken|drummy|loose|damaged|chipped)\b[^.]{0,20}\btiles?\b/i.test(task) && /\b(fix\w*|repair\w*|replac\w*)\b/i.test(task));
   out.timberHouse = Boolean(out.windowInstall && /\b(timber|weatherboard|queenslander|fibro|cottage)\b/i.test(task) && !/\b(brick|masonry|concrete|block\w*)\b/i.test(task));
   out.windowsOnly = Boolean(out.windowInstall && !/\bdoors?\b/i.test(task) && !out.louvres);
@@ -3451,7 +3452,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // Heavy plant lifted, delivered or moved into place; not scissor or boom lifts.
     plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:air[- ]?condition\w*|rooftop|package\w*|a\/?c) units?|fans?(?!\s+coil)|plant)\b/i.test(task) && (/\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*)\b/i.test(task) || (/\binstall\w*/i.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:rooftop|package\w*) units?|plant)\b/i.test(task) && !/\b(range ?hoods?|exhaust fans?)\b/i.test(task))),
     // A sentence that only marks or labels services names them; it does not install them.
-    ductwork: /\bducted\b/i.test(task) && /\b(install\w*|replac\w*)\b/i.test(task) || MECHANICAL_WORK.test(task) && /\b(install\w*|exhaust systems?|supply and fix|fit(?:s|ted|ting)?)\b/i.test(task.replace(/\b(?:supply and )?install\w* (?:all )?(?:the )?(?:insulation|lagging)\b[^.]*/gi, '').replace(/[^.]+\.?/g, (sentence) => (/\b(mark\w*|label\w*|colour bands?|pipe markers?|flow arrows?)\b/i.test(sentence) && !/\b(?:install|supply|fit|run|replace)(?:s|ed|ing)?\b/i.test(sentence) ? ' ' : sentence))) && !/\bon the roof\b/i.test(task) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task)) || /\b(split systems?|indoor units?|outdoor units?|wall[- ]hung units?)\b/i.test(task)),
+    ductwork: /\bducted\b/i.test(task) && /\b(install\w*|replac\w*)\b/i.test(task) || MECHANICAL_WORK.test(task) && /\b(install\w*|exhaust systems?|supply and fix|fit(?:s|ted|ting)?)\b/i.test(task.replace(/\b(?:supply and )?install\w* (?:all )?(?:the )?(?:insulation|lagging)\b[^.]*/gi, '').replace(/[^.]+\.?/g, (sentence) => (/\b(mark\w*|label\w*|colour bands?|pipe markers?|flow arrows?)\b/i.test(sentence) && !/\b(?:install|supply|fit|run|replace)(?:s|ed|ing)?\b/i.test(sentence) ? ' ' : sentence))) && (!/\bon the roof\b/i.test(task) || /\b(?:install\w*|run\w*|connect\w*|fix\w*) (?:the |new )?(?:ductwork|ducting|ducts?)\b/i.test(task)) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task)) || /\b(split systems?|indoor units?|outdoor units?|wall[- ]hung units?)\b/i.test(task)),
     refrigerantPipework: REFRIGERANT.test(task) && /\b(braz\w*|silver solder\w*)\b/i.test(task),
     // Installing a split system includes pressure testing, evacuating and releasing or adding the charge.
     refrigerantTest: REFRIGERANT.test(task) && (PRESSURE_TEST.test(task) || SPLIT_INSTALL.test(task)),

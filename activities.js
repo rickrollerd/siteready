@@ -7821,14 +7821,15 @@ const PPE = [
   { area: 'Hearing', items: [['earPlugs', 'Ear plugs'], ['earMuffs', 'Ear muffs']] },
   { area: 'Breathing', items: [['p2', 'P2 respirator (fit tested)'], ['halfFace', 'Half-face respirator with filters (fit tested)']] },
   { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves'], ['gloveInsulated', 'Insulated electrical gloves'], ['gloveWelding', 'Welding or heat resistant gloves'], ['gloveCold', 'Cold resistant gloves (refrigerant)']] },
-  { area: 'Body', items: [['longs', 'Long sleeves and long pants'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls'], ['chaps', 'Chainsaw chaps or trousers'], ['arcRated', 'Arc-rated face shield and flame-resistant clothing']] },
+  { area: 'Body', items: [['siteClothing', 'Clothing to the site rules (sleeves and pants as the principal contractor requires)'], ['longs', 'Long sleeves and long pants'], ['sleevesShorts', 'Long sleeves, shorts allowed'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls'], ['chaps', 'Chainsaw chaps or trousers'], ['arcRated', 'Arc-rated face shield and flame-resistant clothing']] },
   { area: 'Knees', items: [['kneePads', 'Knee pads']] },
   { area: 'Feet', items: [['boots', 'Safety boots'], ['gumboots', 'Safety gumboots']] },
   { area: 'Sun', items: [['sunscreen', 'Sunscreen']] },
   { area: 'Falls and water', items: [['harness', 'Full body harness'], ['lifeJacket', 'Life jacket']] },
 ];
 
-const SITE_MINIMUM = ['hardHat', 'glassesClear', 'gloveGeneral', 'longs', 'hivis', 'boots'];
+// Sleeves and pants follow the site's rules unless the work needs long clothing (hot work, chemicals, silica).
+const SITE_MINIMUM = ['hardHat', 'glassesClear', 'gloveGeneral', 'siteClothing', 'hivis', 'boots'];
 const PPE_IDS = new Set(PPE.flatMap((group) => group.items.map(([id]) => id)));
 
 // A fact control may carry `otherwise`, a line used only when the fact is not given.

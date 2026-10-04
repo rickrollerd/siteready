@@ -239,3 +239,14 @@ test('a search for mech lists mechanical work, not steps that only mention mecha
   assert.ok(ids.includes('ductwork'));
   assert.ok(!ids.includes('turf') && !ids.includes('floorLay') && !ids.includes('masonryMortar'), ids.join(','));
 });
+
+test('ducting connected on the roof is ductwork, and fire dampeners are fire dampers', () => {
+  const flags = workFlags('Install fan coil units on the roof, connecting ducting to roof connections and install fire dampeners');
+  assert.ok(flags.ductwork && flags.fireDampers);
+});
+
+test('sleeves and pants follow the site rules unless the work needs long clothing', () => {
+  const ticked = (task) => prepareDraft({ state: 'qld', task, fallRisk: 'no', residential: 'no' }).ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
+  assert.ok(ticked('Install ductwork in the ceiling.').includes('siteClothing'));
+  assert.ok(!ticked('Install ductwork in the ceiling.').includes('longs'));
+});
