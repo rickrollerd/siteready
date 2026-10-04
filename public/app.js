@@ -312,10 +312,6 @@ let stateList = [];
 const workplaceEl = document.getElementById('workplace');
 const workplaceList = document.getElementById('workplace-list');
 const workplaceState = document.getElementById('workplace-state');
-let addressPicks = [];
-let addressActive = -1;
-let addressTimer = null;
-let addressSeq = 0;
 
 function stateName(id) {
   const state = stateList.find((item) => item.id === id);
@@ -351,78 +347,83 @@ function checkStateMatchesAddress() {
   }
 }
 
-function closeAddressList() {
-  workplaceList.classList.add('hidden');
-  workplaceList.innerHTML = '';
-  workplaceEl.setAttribute('aria-expanded', 'false');
-  addressPicks = [];
-  addressActive = -1;
-}
-
-function showAddressList() {
-  if (!addressPicks.length) return closeAddressList();
-  workplaceList.innerHTML = addressPicks.map((item, i) => `<li role="option" id="address-${i}" aria-selected="${i === addressActive}" data-i="${i}">${esc(item.text)}</li>`).join('');
-  workplaceList.classList.remove('hidden');
-  workplaceEl.setAttribute('aria-expanded', 'true');
-}
-
-function chooseAddress(i) {
-  const item = addressPicks[i];
-  if (!item) return;
-  workplaceEl.value = item.text;
-  closeAddressList();
-  applyAddressState();
-}
-
-async function lookUpAddress(text) {
-  const seq = ++addressSeq;
-  try {
-    const response = await fetch(api(`/api/address?q=${encodeURIComponent(text)}`));
-    if (!response.ok) return;
-    const data = await response.json();
-    // Only the latest lookup is shown.
-    if (seq !== addressSeq || workplaceEl.value !== text) return;
-    addressPicks = data.suggestions || [];
-    addressActive = -1;
-    showAddressList();
-  } catch {
-    // Without suggestions the address is typed in full.
-  }
-}
-
-workplaceEl.addEventListener('input', () => {
-  clearTimeout(addressTimer);
-  applyAddressState();
-  const text = workplaceEl.value.trim();
-  if (text.length < 3) return closeAddressList();
-  addressTimer = setTimeout(() => lookUpAddress(workplaceEl.value), 300);
-});
-
-workplaceEl.addEventListener('keydown', (event) => {
-  if (workplaceList.classList.contains('hidden')) return;
-  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+// Address suggestions under an address box, from the server's address lookup.
+// onPick runs after the box changes, by typing or by picking a suggestion.
+function addressLookup(input, list, onPick = () => {}) {
+  let picks = [];
+  let active = -1;
+  let timer = null;
+  let seq = 0;
+  const close = () => {
+    list.classList.add('hidden');
+    list.innerHTML = '';
+    input.setAttribute('aria-expanded', 'false');
+    picks = [];
+    active = -1;
+  };
+  const show = () => {
+    if (!picks.length) return close();
+    list.innerHTML = picks.map((item, i) => `<li role="option" id="${list.id}-${i}" aria-selected="${i === active}" data-i="${i}">${esc(item.text)}</li>`).join('');
+    list.classList.remove('hidden');
+    input.setAttribute('aria-expanded', 'true');
+  };
+  const choose = (i) => {
+    const item = picks[i];
+    if (!item) return;
+    input.value = item.text;
+    close();
+    onPick();
+  };
+  const lookUp = async (text) => {
+    const mine = ++seq;
+    try {
+      const response = await fetch(api(`/api/address?q=${encodeURIComponent(text)}`));
+      if (!response.ok) return;
+      const data = await response.json();
+      // Only the latest lookup is shown.
+      if (mine !== seq || input.value !== text) return;
+      picks = data.suggestions || [];
+      active = -1;
+      show();
+    } catch {
+      // Without suggestions the address is typed in full.
+    }
+  };
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    onPick();
+    const text = input.value.trim();
+    if (text.length < 3) return close();
+    timer = setTimeout(() => lookUp(input.value), 300);
+  });
+  input.addEventListener('keydown', (event) => {
+    if (list.classList.contains('hidden')) return;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      active = (active + step + picks.length) % picks.length;
+      show();
+      input.setAttribute('aria-activedescendant', `${list.id}-${active}`);
+    } else if (event.key === 'Enter' && active >= 0) {
+      event.preventDefault();
+      choose(active);
+    } else if (event.key === 'Escape') {
+      close();
+    }
+  });
+  // mousedown, not click, so the choice lands before the field loses focus.
+  list.addEventListener('mousedown', (event) => {
+    const li = event.target.closest('li[data-i]');
+    if (!li) return;
     event.preventDefault();
-    const step = event.key === 'ArrowDown' ? 1 : -1;
-    addressActive = (addressActive + step + addressPicks.length) % addressPicks.length;
-    showAddressList();
-    workplaceEl.setAttribute('aria-activedescendant', `address-${addressActive}`);
-  } else if (event.key === 'Enter' && addressActive >= 0) {
-    event.preventDefault();
-    chooseAddress(addressActive);
-  } else if (event.key === 'Escape') {
-    closeAddressList();
-  }
-});
+    choose(Number(li.dataset.i));
+  });
+  input.addEventListener('blur', () => setTimeout(close, 150));
+}
 
-// mousedown, not click, so the choice lands before the field loses focus.
-workplaceList.addEventListener('mousedown', (event) => {
-  const li = event.target.closest('li[data-i]');
-  if (!li) return;
-  event.preventDefault();
-  chooseAddress(Number(li.dataset.i));
-});
-
-workplaceEl.addEventListener('blur', () => setTimeout(closeAddressList, 150));
+addressLookup(workplaceEl, workplaceList, applyAddressState);
+const profileAddressEl = document.getElementById('profile-address');
+if (profileAddressEl) addressLookup(profileAddressEl, document.getElementById('profile-address-list'));
 statesEl.addEventListener('change', checkStateMatchesAddress);
 
 // A No shows what a fall from height is, in the chosen state's law, in case the question was not clear.

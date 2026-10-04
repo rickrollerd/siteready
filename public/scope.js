@@ -45,7 +45,8 @@
     }
     button.disabled = true;
     try {
-      const body = file ? { file: { name: file.name, data: await readFile(file) } } : { text };
+      const state = (document.querySelector('input[name="state"]:checked') || {}).value || '';
+      const body = file ? { file: { name: file.name, data: await readFile(file) }, state } : { text, state };
       const response = await fetch(api('/api/scope'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'The scope could not be read.');
