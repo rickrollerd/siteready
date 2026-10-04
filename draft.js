@@ -2102,7 +2102,8 @@ function settleFlags(flags, task) {
   }
   // Automatic doors are hung and their operators fitted and commissioned.
   if (out.autoDoors && /\b(install\w*|supply|fit\w*|replac\w*|commission\w*)\b/i.test(task)) out.doorHang = true;
-  out.autoDoorsOnly = Boolean(out.autoDoors && !/\b(door ?frames?|doorsets?|hang\w*|timber doors?|solid core|fire doors?|hinged doors?)\b/i.test(task));
+  // A specification section named by its number and title ("Section 0820 Doors and Door Frames") is a reference, not work.
+  out.autoDoorsOnly = Boolean(out.autoDoors && !/\b(door ?frames?|doorsets?|hang\w*|timber doors?|solid core|fire doors?|hinged doors?)\b/i.test(task.replace(/\bsection\s+\d[\d.]*\s[^.]*/gi, ' ')));
   // Windows, louvres and doors are not facade panels landed at an open slab edge.
   off(out.windowInstall && !/\b(fa[cç]ades?|curtain wall\w*|unitised|cladding|spandrels?|panels?)\b/i.test(task), 'panelInstall');
   // Pipework cast into an in-ground pool or a slab on ground is not set out on a deck.

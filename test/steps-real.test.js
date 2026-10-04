@@ -122,6 +122,7 @@ test('automatic doors are installed and commissioned, not only hung', () => {
   assert.ok(steps(done).includes('Install and commission the automatic doors'));
   assert.ok(!steps(done).includes('Stand frames and hang doors'));
   assert.ok(done.jobSteps.flatMap((step) => step.controls).some((line) => /sensors are tested for crush and entrapment/.test(line)));
+  assert.ok(steps(draft('Supply and install the automatic doors, including commissioning. Section 0820 Doors and Door Frames.', 'doors')).includes('Install and commission the automatic doors'));
   assert.ok(steps(draft('Stand the door frames and hang the timber doors.', 'doors')).includes('Stand frames and hang doors'));
 });
 
