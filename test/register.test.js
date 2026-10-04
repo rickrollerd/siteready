@@ -223,7 +223,7 @@ test('round 4: window installs, merged glass steps, waterproofing and crane lice
   const { workFlags } = require('../draft');
   const draft = prepareDraft({ state: 'nsw', fallRisk: 'yes', residential: 'no', trade: 'glazing', task: 'Install aluminium windows, fixed glass louvres and doors.', facts: { fallControl: 'Work is done from inside the building behind edge protection.', silicaControls: 'On-tool extraction.' } });
   const steps = draft.jobSteps.map((step) => step.step);
-  assert.ok(steps.includes('Install window frames, doors and louvres'));
+  assert.ok(['Install windows', 'Install doors', 'Install louvres'].every((name) => steps.includes(name)));
   assert.ok(!(steps.includes('Handle glass and panels') && steps.includes('Handle and install glass panels')));
   assert.ok(!workFlags('Liquid-applied membrane with a drainage cell and drainage gravel.', {}).hydraulicRisers);
   assert.ok(!workFlags('Attend on site during all concrete placement to keep the reo cover.', {}).concrete);
@@ -354,7 +354,7 @@ test('task bank round 4: licences, high risk categories and main work steps', ()
   assert.ok(tank.indexOf('Lift and place tanks, pits or precast units') < tank.indexOf('Backfill and restore'));
   const flat = steps('Build a granny flat on a slab: frame, roof, clad and line it.', { body: { trade: 'carpentry', residential: 'yes' } });
   assert.ok(flat.indexOf('Stand and brace wall frames') < flat.indexOf('Fix new roofing'));
-  assert.ok(flat.indexOf('Fix new roofing') < flat.indexOf('Install battens and external cladding'));
+  assert.ok(flat.indexOf('Fix new roofing') < flat.indexOf('Fix the battens') && flat.indexOf('Fix the battens') < flat.indexOf('Install the external cladding'));
   assert.ok(!steps('Install steel portal frames and purlins for a farm machinery shed using a mobile crane and EWPs.').includes('Set up site sheds'));
 });
 
