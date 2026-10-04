@@ -94,3 +94,12 @@ test('#48 directional bore wording gets the directional drill step; its entry an
   assert.ok(!(d.missing || []).includes('Confined space entry'));
   assert.ok(draft('qld', 'Enter the sewer pit to replace the pump').missing.includes('Confined space entry'), 'a pit that is entered still asks');
 });
+
+test('F-013 core drilling and chasing put respirable crystalline silica in the hazard summary', () => {
+  const facts = { silicaControls: 'Wet coring and on-tool extraction with an H class vacuum, P2 respirators fit tested.' };
+  for (const task of ['Core drill and chase the office walls for the new services, concrete dust and silica, water and RPE', 'Chase the brick walls for conduits']) {
+    const d = draft('nsw', task, facts);
+    assert.equal(d.kind, 'draft', task);
+    assert.ok(names(d).includes('Respirable crystalline silica'), task);
+  }
+});
