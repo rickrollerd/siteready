@@ -68,7 +68,8 @@
           "fall"
         ],
         "steps": [
-          "Install, climb and dismantle the hoist"
+          "Install and dismantle the hoist",
+          "Climb the hoist mast"
         ],
         "missing": [
           "Fall control"

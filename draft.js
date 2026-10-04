@@ -1375,10 +1375,10 @@ const HRCW_HAZARDS = {
 // The summary also names the main hazards of the job steps, so a job with no high risk
 // category still lists what it is exposed to: a trench, buried services, the public.
 const STEP_HAZARDS = [
-  [/^(Excavate|Work in the trench|Dig the trench)/, 'Trench or excavation collapse', 'A person is buried or crushed.'],
+  [/^(Excavate|Work in the trench)/, 'Trench or excavation collapse', 'A person is buried or crushed.'],
   [/^Locate underground services/, 'Underground services', 'A person strikes a live electrical, gas or water service.'],
   [/^Set up traffic management/, 'Traffic', 'A person or a vehicle is struck.'],
-  [/^(Excavate|Backfill and restore)/, 'Moving plant', 'A person is struck by plant.'],
+  [/^(Excavate|Backfill the trench|Reinstate the surface)/, 'Moving plant', 'A person is struck by plant.'],
   [/^Lay pipes, pits and conduits/, 'Suspended load', 'A person is struck or crushed by a pipe or pit being lowered.'],
   [/^(Saw cut concrete|Drill or cut concrete, masonry or stone|Break out)/, 'Respirable crystalline silica', 'A person breathes in silica dust.'],
 ];
@@ -1597,7 +1597,7 @@ const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for
 const MAIN_WORK = [
   [/^(?![^]*\bconnect\w*[^.]{0,30}\bto (?:the |an |its )?(?:existing )?solar inverter)[^]*\b(solar (?:panels?|pv|arrays?|systems?)|pv (?:panels?|arrays?|systems?)|inverters?)\b/i, 'solar panel and inverter installation', /\b(solar|inverters?)\b/i],
   [/^(?![^]*\bwith (?:a |an )?(?:heat pump|electric|solar))[^]*\b(gas (?:hot water|appliances?|heaters?|cooktops?|connections?|fitting|lines?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas (?:lines?|supply|mains?))\b/i, 'gas fitting', /\bgas\b/i],
-  [/\b(portal frames?|(?<!existing )steel (?:frames?|sheds?|structures?)|(?:erect|stand)\w* [^.]{0,20}\b(?:steel|columns|rafters))\b/i, 'steel erection', /\b(Erect and connect steel|Land steel|Erect the frame and roof of the structure)\b/],
+  [/\b(portal frames?|(?<!existing )steel (?:frames?|sheds?|structures?)|(?:erect|stand)\w* [^.]{0,20}\b(?:steel|columns|rafters))\b/i, 'steel erection', /\b(Erect and connect steel|Land steel|Erect the frame)\b/],
   [/\bretaining walls?\b/i, 'retaining wall construction', /\b(retaining|ground anchors|Install and later remove props)\b/i],
   [/\b(epoxy (?:coat\w*|floor\w*|seal\w*)|(?:apply|applying|seal\w*|coat\w*) [^.]{0,30}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(epoxy|floor coatings?)\b/i],
   [/\b(grind\w* [^.]{0,20}\bfloors?|floor grind\w*)\b/i, 'floor grinding', /\bgrind floors\b/i],
@@ -1610,7 +1610,7 @@ const MAIN_WORK = [
   [/^(?![^]*\bhydro[- ]?demoli)[^]*\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?)\b/i, 'demolition of a whole structure', /\b(Demolish the structure|Take down the shed frame)\b/],
   [/\b(pool shells?|shotcrete|gunite|spray\w* concrete)\b/i, 'pool shell and sprayed concrete work', /\b(shotcrete|sprayed concrete|Spray the pool shell)\b/i],
   [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer|seal floor joints)/i],
-  [/\bpergolas?\b/i, 'pergola work', /\b(pergola|footings?|post holes?|shallow trench|Dig|frame and roof of the structure|Prop and repair)\b/i],
+  [/\bpergolas?\b/i, 'pergola work', /\b(pergola|footings?|post holes?|shallow trench|Dig|Erect the frame|Prop and repair)\b/i],
   [/\bline marking\b/i, 'line marking', /\bline marking\b/i],
   [/\btank stands?\b/i, 'tank stand construction', /\btank stand\b/i],
   [/\b(?:home |house |solar |storage |lithium )batter(?:y|ies)\b|\bbatter(?:y|ies)\b[^.]{0,30}\b(?:solar|garage wall|house wall)\b/i, 'battery storage installation', /\bbattery\b/i],
@@ -1650,7 +1650,7 @@ const MAIN_WORK = [
 const HARD_MAIN_WORK = new Set(['hydro-demolition', 'blasting with explosives (licensed shotfirer work)', 'pool shell and sprayed concrete work', 'membrane work inside an excavation']);
 
 // Steps that get people and materials to the work, rather than doing it.
-const SUPPORT_STEPS = new Set(['Before starting', 'Finish and clean up', 'Set up traffic management', 'Plan the work near overhead power lines', 'Get onto the roof and set up fall protection', 'Lift equipment and materials to the roof', 'Work with the crane crew during lifts', 'Set up the crane', 'Rig and lift the load', 'Land and release the load', 'Use an elevating work platform', 'Drill or cut concrete, masonry or stone', 'Use power tools', 'Move materials into place', 'Separate plant and people on site', 'Operate small earthmoving plant', 'Reach high walls and ceilings', 'Operate forklifts', 'Work in the roof space', 'Check for asbestos before starting', 'Operate the hoist', 'Load out floors and use loading platforms']);
+const SUPPORT_STEPS = new Set(['Before starting', 'Finish and clean up', 'Set up traffic management', 'Plan the work near overhead power lines', 'Get onto the roof', 'Set up roof fall protection', 'Lift equipment and materials to the roof', 'Work with the crane crew during lifts', 'Set up the crane', 'Rig and lift the load', 'Land and release the load', 'Use an elevating work platform', 'Drill or cut concrete, masonry or stone', 'Use power tools', 'Move materials into place', 'Separate plant and people on site', 'Operate small earthmoving plant', 'Reach high walls and ceilings', 'Operate forklifts', 'Work in the roof space', 'Check for asbestos before starting', 'Operate the hoist', 'Load out the floors']);
 const MAIN_VERB = /\b(install\w*|erect\w*|connect\w*|build\w*|construct\w*|replac\w*|fit\w*|lay\w*|grind\w*|coat\w*|repair\w*|fix\w*|assembl\w*|weld\w*|clean\w*|paint\w*|patch\w*|sand\w*|polish\w*|remov\w*|dig\w*|demolish\w*|cut\w*)\b/i;
 
 // With job steps picked by the user, the picks say what the main work is, so only a
@@ -3147,6 +3147,30 @@ function settleFlags(flags, task) {
   const meshSarkingNamed = /\b(sarking|anticon|insulation blankets?|reflective foil)\b/i.test(task);
   out.meshStep = meshNamed || !meshSarkingNamed;
   out.meshSarkingStep = meshSarkingNamed || !meshNamed;
+  // Group A splits: one activity per step.
+  // A hoist mast climbed or extended alone is not installed or dismantled.
+  out.hoistClimbOnly = Boolean(out.hoistInstall) && /\b(climb\w*|extend\w*|jump\w*|rais\w* (?:the )?(?:hoist )?mast)\b/i.test(task) && !/\b(install\w*|erect\w*|dismantl\w*|remov\w*|set up|take down)\b/i.test(task);
+  // Loading platforms are installed in their own step only when the task names installing them.
+  out.loadPlatformInstall = Boolean(out.loadOut) && /\b(install\w*|erect\w*|fit\w*|relocat\w*|jump\w*|climb\w*|dismantl\w*|remov\w*|strip\w*)\b[^.]{0,30}\b(?:loading|landing) platforms?\b/i.test(task);
+  out.loadPlatformOnly = out.loadPlatformInstall && !/\b(load(?:ing)?[- ]?out|materials?|loads?|deliver\w*|stillages?|pallets?)\b/i.test(task);
+  // A backfilled trench has its surface reinstated in its own step only when a surface is named
+  // or the trench is in a road or footpath; asphalt has its own reinstatement step.
+  const noAsphalt = out.asphalt ? task.replace(/\b(?:saw cut and )?reinstat\w* (?:the )?(?:asphalt|bitumen|hot ?mix)\b|\b(?:asphalt|bitumen|hot ?mix)\b/gi, ' ') : task;
+  // New turf laid in its own step is not reinstated here.
+  out.trenchReinstate = Boolean(out.pavedReinstate || out.footpathWork) || /\b(surfaces?|footpaths?|paths?|pav(?:ing|ed|ers?)|driveways?|kerbs?|concrete (?:slabs?|paths?|driveways?|paving)|reinstat\w*|restor\w*|mak\w* good)\b/i.test(noAsphalt) || (!out.turf && /\b(turf|grass|lawns?)\b/i.test(task)) || (!out.asphalt && /\b(roads?|streets?|carriageways?)\b/i.test(task));
+  // Joints are saw cut in their own step only when the task names joints or saw cutting.
+  out.slabJointCut = Boolean(out.jointSaw) || /\bjoints?\b/i.test(task);
+  // A slab on ground broken out in sections is re-poured in the slab steps, not patched.
+  out.slabRepairPour = Boolean(out.slabGround) && !out.crackInjection;
+  // Spoil kept on site for reuse is not carted away.
+  out.spoilStaysOnSite = Boolean(out.spoilManage) && /\b(re-?us\w*|kept on site|keep\w* (?:it )?on site|retain\w* on site|stays? on site)\b/i.test(task) && !/\b(cart\w*|trucks?|tip\w*|dispos\w*|off ?site|surplus|excess)\b/i.test(task);
+  // Landscaping: moving soil and mulch, and planting, are separate steps, each when named and both when neither is.
+  const plantsNamed = /\b(plants|planting|planted|trees?|shrubs?|seedlings?|tubestock|hedges?|reveg\w*|seed(?:s|ed|ing)?)\b|\b(?:and|then|to) plant\b|\bplant (?:them|it|out|up|the (?:beds?|planters?|gardens?|trees|shrubs))\b/i.test(task.replace(/\bplant\w* rooms?\b/gi, ''));
+  const soilNamed = /\b(soils?|topsoil|mulch\w*|compost|potting mix|growing media|garden beds?|planter boxes?|landscap\w*)\b/i.test(task);
+  out.landscapeSoil = soilNamed || (!plantsNamed && !/\birrigation\b/i.test(task));
+  out.landscapePlant = (plantsNamed || !soilNamed || /\blandscap\w*\b/i.test(task)) && !out.greenRoofLayers;
+  // A kit structure's roof is fixed in its own step; a roof over a deck is sheeted in the roofing steps and an open pergola has none.
+  out.kitRoof = Boolean(out.kitStructure) && (!out.noRoofSheets || Boolean(out.shadeFabric || out.cubbyHouse));
   return out;
 }
 
@@ -3242,7 +3266,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // Edge strips, trims and angles finish a tile edge; they are not an open edge.
     tileEdge: isTiling(task) && /\b(balcon\w*|terraces?|edges?(?![- ](?:strips?|trims?|profiles?|angles?|beads?|tiles?|bands?|grips?|finish\w*))|podium)\b/i.test(task),
     mobileScaffold: /\bmobile scaffold\w*\b/i.test(task) && /\b(erect\w*|assembl\w*|set up|us(?:e|ing)|from)\b/i.test(task),
-    hoistInstall: /\b(install\w*|erect\w*|climb\w*|dismantl\w*|jump\w*)\b[^.]{0,40}\b(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
+    hoistInstall: /\b(install\w*|erect\w*|climb\w*|dismantl\w*|jump\w*|extend\w*)\b[^.]{0,40}\b(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
     hoistOperate: /\b(operat\w*|run\w*|driv\w*)\b (?:the )?(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
     carpentryWork: CARPENTRY_WORK.test(task) && !FORMWORK.test(task),
     carpLoad: CARPENTRY_WORK.test(task) && !FORMWORK.test(task) && /\b(hoists?|deliver\w*|carr\w*|mov\w*|sheets?|joinery|cabinets?)\b/i.test(task),

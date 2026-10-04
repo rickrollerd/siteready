@@ -26,7 +26,8 @@
           "Lift and land steel with the crane company",
           "Erect and connect steel at height",
           "Land steel on temporary support towers",
-          "Plan and do the dual lift"
+          "Plan the dual lift",
+          "Carry out the dual lift"
         ],
         "missing": [
           "Erection sequence and temporary bracing",

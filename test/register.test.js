@@ -180,7 +180,7 @@ test('library coverage: everyday jobs get their own job steps', () => {
   assert.ok(steps('Replace gutters and downpipes on a single storey house.').includes('Install gutters and downpipes'));
   assert.ok(steps('Install a skylight in a metal roof.').includes('Cut in and install the skylight'));
   assert.ok(steps('Build a timber retaining wall 600 mm high.').includes('Build the retaining wall'));
-  assert.ok(steps('Build a timber pergola at ground level.').includes('Erect the frame and roof of the structure'));
+  assert.ok(steps('Build a timber pergola at ground level.').includes('Erect the frame'));
   assert.ok(steps('Pressure clean and reseal a concrete driveway.').includes('Pressure clean surfaces'));
   assert.ok(steps('Install bollards in a car park.').includes('Install bollards'));
   // A meter box in an older house asks how asbestos was identified.
@@ -344,14 +344,14 @@ test('task bank round 4: licences, high risk categories and main work steps', ()
   assert.ok(!workFlags('Mitres, cut and splayed ends, intersections, special shaped or blocked ends.', {}).road);
   // Main work steps.
   assert.ok(steps('Install a vehicle hoist in a mechanical workshop.').includes('Install the vehicle hoist'));
-  assert.ok(!steps('Install a vehicle hoist in a mechanical workshop.').includes('Install, climb and dismantle the hoist'));
+  assert.ok(!steps('Install a vehicle hoist in a mechanical workshop.').includes('Install and dismantle the hoist'));
   assert.deepEqual(steps('Remove a load-bearing wall between the kitchen and lounge and install a steel beam.', { facts: { temporarySupport: 'Props to the engineer\'s design, checked by the supervisor before the wall is removed.' } }).filter((step) => /support|opening|beam/.test(step)), ['Install temporary support', 'Cut an opening in a load-bearing wall', 'Lift and fix the new beam or lintel']);
   assert.ok(steps('Install new playground shade sails at a school.').includes('Fit and tension the shade sails'));
-  assert.ok(!steps('Install new playground shade sails at a school.').includes('Erect the frame and roof of the structure'));
+  assert.ok(!steps('Install new playground shade sails at a school.').includes('Erect the frame'));
   assert.ok(steps('Lay sewer drainage under a new house slab before the pour.').includes('Lay drainage under the slab or floor'));
   assert.ok(!steps('Lay sewer drainage under a new house slab before the pour.').includes('Place concrete'));
   const tank = steps('Install a stormwater detention tank under a car park.', { facts: { trenchSupport: 'The excavation is battered to the geotechnical engineer\'s design.' } });
-  assert.ok(tank.indexOf('Lift and place tanks, pits or precast units') < tank.indexOf('Backfill and restore'));
+  assert.ok(tank.indexOf('Lift and place tanks, pits or precast units') < tank.indexOf('Backfill the trench'));
   const flat = steps('Build a granny flat on a slab: frame, roof, clad and line it.', { body: { trade: 'carpentry', residential: 'yes' } });
   assert.ok(flat.indexOf('Stand and brace wall frames') < flat.indexOf('Fix new roofing'));
   assert.ok(flat.indexOf('Fix new roofing') < flat.indexOf('Fix the battens') && flat.indexOf('Fix the battens') < flat.indexOf('Install the external cladding'));
@@ -416,7 +416,7 @@ test('task bank round 8: small jobs get steps for that job, not a bigger one', (
   const steps = (...args) => { const d = draft(...args); return d.kind === 'draft' ? d.jobSteps.map((step) => step.step) : d.missing; };
   const text = (...args) => JSON.stringify(draft(...args).jobSteps);
   assert.doesNotMatch(text('Lay timber decking around a swimming pool.', 'carpentry'), /tides|work boat/);
-  assert.ok(steps('Lay timber decking around a swimming pool.', 'carpentry').includes('Build the deck frame and lay the decking'));
+  assert.ok(steps('Lay timber decking around a swimming pool.', 'carpentry').includes('Lay the decking'));
   assert.deepEqual(steps('Install a wheelchair lift platform at a library entrance.', 'lifts').filter((step) => /lift|shaft/i.test(step)), ['Install the platform lift']);
   assert.ok(!steps('Replace a broken stormwater pit lid in a council road.', 'plumbing').includes('Excavate'));
   assert.ok(steps('Replace a section of rotten timber floor joists under a house.', 'carpentry').includes('Prop the floor and replace joists or bearers'));
@@ -446,7 +446,7 @@ test('task bank round 9: jobs that are smaller than the template get only their 
   assert.doesNotMatch(text('Install a solar battery and inverter at a farm shed.', 'electrical'), /Array conductors/);
   assert.doesNotMatch(text('Install a commercial dishwasher with a booster heater.', 'plumbing'), /Refrigerant work/);
   const pump = steps('Install a new septic tank pump-out line at a caravan park.', 'plumbing');
-  assert.ok(pump.indexOf('Install the pump-out line') < pump.indexOf('Backfill and restore'));
+  assert.ok(pump.indexOf('Install the pump-out line') < pump.indexOf('Backfill the trench'));
   const bollards = steps('Install steel bollards in front of a shopfront by core drilling the footpath.', 'excavation');
   assert.ok(bollards.indexOf('Core drill through the slab or wall') < bollards.indexOf('Install bollards'));
   assert.ok(draft('Lay a bitumen spray seal on a rural road.', 'excavation').plant.some((item) => item.item === 'Bitumen sprayer'));
@@ -480,7 +480,7 @@ test('banks 1 to 4 verification: step order, main work and lines for the job', (
   assert.ok(before(reline, 'Clear the drain with a drain machine or jetter', 'Reline the pipe'));
   // The pump is set up and the slab poured before the forms are stripped.
   const slab = steps('Install formwork and pour a suspended slab on level 3 of an apartment building.', 'structure');
-  assert.ok(before(slab, 'Pump and place concrete', 'Strip formwork and backprop'));
+  assert.ok(before(slab, 'Pump and place concrete', 'Strip the formwork'));
   // Lift shaft protection goes in before the rails.
   assert.ok(before(steps('Install a lift in an existing three storey building, working in the open lift shaft.', 'lifts'), 'Work at open lift shafts and landing doors', 'Install the lift rails, car and machine'));
   // A hood, a freezer room or an exhaust fan is not a commercial kitchen fit-out.
@@ -529,7 +529,7 @@ test('banks 4 and 5 verification: the work named, in order, with its own plant a
   assert.ok(before(steps('Install cyclone tie-downs to an existing house roof.', 'carpentry'), 'Work in the roof space', 'Fit cyclone tie-downs'));
   assert.ok(steps('Install a mezzanine stair and handrail in an office.', 'steel').includes('Install the steel staircase'));
   assert.ok(before(steps('Replace 30 m of storm-damaged colorbond fencing with new posts in concrete.', 'fencing'), 'Take down the old fence', 'Dig post holes'));
-  assert.ok(!steps('Replace rotten fascia boards and repaint the eaves of a weatherboard house.', 'carpentry').includes('Get onto the roof and set up fall protection'));
+  assert.ok(!steps('Replace rotten fascia boards and repaint the eaves of a weatherboard house.', 'carpentry').includes('Get onto the roof'));
   const shed = steps('Remove a fibro garden shed that may contain asbestos.', 'demolition');
   assert.ok(!shed.includes('Demolish the structure') && before(shed, 'Take down the shed frame', 'Bag, label and dispose of asbestos waste'));
   assert.ok(!steps('Grind and seal a concrete garage floor with epoxy.', 'flooring').includes('Grind concrete'));

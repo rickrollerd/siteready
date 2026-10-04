@@ -23,7 +23,7 @@
         "steps": [
           "Set up traffic management",
           "Work with the crane crew during lifts",
-          "Load out floors and use loading platforms",
+          "Load out the floors",
           "Operate forklifts",
           "Separate plant and people on site"
         ],
@@ -53,11 +53,13 @@
         "steps": [
           "Work with the crane crew during lifts",
           "Erect falsework and shores",
-          "Install edge protection and lay the deck",
+          "Install edge protection",
+          "Lay the formwork deck",
           "Load ply onto the deck while it is being laid",
           "Form penetrations and voids",
           "Inspect before the pour",
-          "Strip formwork and backprop"
+          "Strip the formwork",
+          "Install backprops"
         ],
         "missing": [
           "Formwork design",

@@ -136,8 +136,8 @@ test('review fixes: trench depth threshold, harness only when used, trade-limite
   // The plumber's solar hot water install gets roof access and the water heater connection.
   const solar = draft({ trade: 'plumbing', fallRisk: 'yes', task: 'Install the solar hot water system on the roof.', facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
   assert.equal(solar.kind, 'draft');
-  assert.ok(solar.jobSteps.some((step) => step.step === 'Get onto the roof and set up fall protection') && solar.jobSteps.some((step) => step.step === 'Set and connect the water heater'));
-  assert.ok(!steps({ trade: 'roofing', task: 'Fix roof sheeting on the roof.' }).includes('Get onto the roof and set up fall protection'));
+  assert.ok(solar.jobSteps.some((step) => step.step === 'Get onto the roof') && solar.jobSteps.some((step) => step.step === 'Set and connect the water heater'));
+  assert.ok(!steps({ trade: 'roofing', task: 'Fix roof sheeting on the roof.' }).includes('Get onto the roof'));
   // Knee pads called for in the steps are ticked.
   const vinyl = draft({ trade: 'flooring', task: 'Install sheet vinyl and carpet tiles with adhesive.', facts: { safetyDataSheet: 'The products used are epoxy adhesive.' } });
   assert.ok(vinyl.ppe.flatMap((group) => group.items).find((item) => item.id === 'kneePads').ticked);
@@ -176,7 +176,7 @@ test('slabs on ground: ground steps instead of deck steps, plant ticked, no deck
   const task = 'Excavate, form, reinforce and pour a concrete house slab on ground with edge beams, on a vapour barrier, finished with a power trowel.';
   const draft = prepareDraft({ state: 'qld', fallRisk: 'no', task });
   const steps = draft.jobSteps.map((step) => step.step);
-  for (const step of ['Prepare the ground and set out', 'Set edge forms and prepare the base', 'Place and tie reo on the ground', 'Place concrete', 'Finish, joint and cure']) assert.ok(steps.includes(step), step);
+  for (const step of ['Set out', 'Prepare the ground', 'Set edge forms and prepare the base', 'Place and tie reo on the ground', 'Place concrete', 'Finish the concrete', 'Cure the concrete']) assert.ok(steps.includes(step), step);
   for (const step of ['Lift reo onto the deck', 'Pump and place concrete', 'Work in the trench']) assert.ok(!steps.includes(step), step);
   assert.ok(draft.highRisk.some((item) => /mobile plant/.test(item)));
   assert.ok(!questionsFor({ state: 'qld', fallRisk: 'no', task }).required.some((item) => item.id === 'loadLimits'));
@@ -199,6 +199,6 @@ test('a concreter pouring ground and suspended slabs gets one set of pour steps,
   const steps = draft.jobSteps.map((step) => step.step);
   // One set of pour steps, with the ground slab and joint cutting lines in them.
   for (const step of ['Set up the concrete pump and placing boom', 'Pump and place concrete', 'Finish concrete']) assert.ok(steps.includes(step), step);
-  for (const step of ['Prepare the ground and set out', 'Place concrete', 'Saw cut concrete', 'Remove cut sections']) assert.ok(!steps.includes(step), step);
+  for (const step of ['Set out', 'Prepare the ground', 'Place concrete', 'Saw cut concrete', 'Remove cut sections']) assert.ok(!steps.includes(step), step);
   assert.ok(draft.jobSteps.flatMap((step) => step.controls).some((line) => /^Where control joints are saw cut/.test(line)));
 });
