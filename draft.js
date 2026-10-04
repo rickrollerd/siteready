@@ -174,7 +174,7 @@ const LOAD_BEARING_REMOVAL = /\b(remov\w*|cut\w*|knock\w* out|tak\w* out|demolis
 const MASONRY_OPENING = /\b(?:cut\w*|form\w*|mak\w*|creat\w*|new|widen\w*|enlarg\w*)\b[^.]{0,20}\b(?:doorways?|openings?|window openings?)\b[^.]{0,40}\b(?:brick|block|masonry|stone|concrete)\b|\b(?:install\w*|insert\w*|fit\w*|replac\w*)\b[^.]{0,20}\b(?:rusted |steel |new |old )*lintels?\b[^.]{0,60}\b(?:existing|old|brick|block|masonry|above|over)\b/i;
 const HOUSE_JACKING = /\b(re-?stump\w*|(?:replac|chang)\w* (?:the )?(?:old |rotten |timber )*stumps|jack\w* (?:up )?(?:the |a )?(?:\w+ )?houses?|rais\w* (?:the |a )?(?:\w+ )?houses?|lift\w* (?:the |a )?(?:\w+ )?houses?|underpin\w*)\b/i;
 const SUBFLOOR_REPAIR = /\b(?:replac\w*|repair\w*|sister\w*)\b[^.]{0,30}\b(?:rotten |damaged |old )?(?:timber )?(?:floor )?(?:joists?|bearers?)\b/i;
-const DEMOLITION = /\b(demolition|demolish\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
+const DEMOLITION = /\b(demolition|demolish\w*|implod\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
 const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|motorways?|freeways?|next to (?:live )?traffic|rural roads?|road pavements?|road upgrades?|on-?ramps?|roundabouts?|live buses|bypass(?:es)?|overpass(?:es)?|bridges? over (?:a |the )?(?:busy |live )?(?:roads?|motorways?|highways?)|(?:resurfac\w*|reseal\w*) (?:a |the )?(?:roads?|streets?|lanes?)|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
 // Track work and work beside running lines are in or next to a railway in use.
 const RAIL_IN_USE = /\b(rail (?:lines?|tracks?)|live track|track possessions?|during (?:a|the) possession|road rail vehicles?|rail overhead wiring|overhead wiring with|track laying|track maintenance machines?|ballast)\b/i;
@@ -475,7 +475,9 @@ function silicaProcessing(text) {
 // Demolishing a whole building or structure, as opposed to strip-out of linings, partitions or
 // fit-outs. A longer description, such as "a three storey concrete commercial building", or a
 // warehouse or car park, is a whole structure too.
-const WHOLE_DEMOLITION = /\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|dwellings?|granny flats?|bridges?)\b|\bdemolish\w*\b(?:(?!\b(?:non[- ]load[- ]bearing|partitions?|internal|interior|fit-?outs?|linings?|ceilings?|kitchens?|bathrooms?|inside|within|in the)\b)[^.]){0,60}\b(?:buildings?|warehouses?|car ?parks?|factor(?:y|ies)|towers?|structures?|grandstands?)\b/i;
+// Bringing a chimney, stack, silo or other structure down with explosives is demolishing it.
+const DEMOLISH_STRUCTURE = /\b(?:(?:demolish|implod)\w*|(?:knock|pull)(?:s|ed|ing)? down)\b(?:(?!\b(?:non[- ]load[- ]bearing|partitions?|internal|interior|fit-?outs?|linings?|ceilings?|kitchens?|bathrooms?|inside|within|in the)\b)[^.]){0,60}\b(?:buildings?|warehouses?|car ?parks?|factor(?:y|ies)|towers?|structures?|grandstands?|chimneys?|(?:chimney )?stacks?|silos?|offices?|office blocks?|schools?|hospitals?|hotels?)\b/i;
+const WHOLE_DEMOLITION = new RegExp(`\\bdemolish\\w*\\b[^.]{0,30}\\b(?:garages?|sheds?|houses?|buildings?|dwellings?|granny flats?|bridges?)\\b|${DEMOLISH_STRUCTURE.source}`, 'i');
 
 function highRiskMatches(raw, answer, state) {
   // "Prior to the energisation of a building" is a point in time, not work near energised parts.
@@ -2699,7 +2701,8 @@ function settleFlags(flags, task) {
   if (out.helipad && !T(/\bhoists?\b/i)) out.craneInterface = true;
   if (T(/\b(sprung (?:timber )?(?:sports )?floor\w*|timber sports floor\w*)\b/i)) { out.timberFloor = true; out.floorLay = false; }
   if (T(/\b(warm-?up tracks?|athletics tracks?|running tracks?)\b/i) && T(/\b(install\w*|construct\w*|lay\w*|build\w*|new)\b/i)) out.sportsSurface = true;
-  if (T(/\bdemolish\w*\s+(?:an? |the )?(?:[\w-]+ ){0,4}(?:grandstands?|stands?|stadiums?|buildings?|blocks?|car ?parks?)\b/i) && !T(/\b(sheds?|garages?|carports?|cubby|associated)\b/i)) { out.structureDemolition = true; out.demolition = false; }
+  // A whole building or structure, however it is described, is demolished with the notice and licence lines.
+  if ((T(/\bdemolish\w*\s+(?:an? |the )?(?:[\w-]+ ){0,4}(?:grandstands?|stands?|stadiums?|buildings?|blocks?|car ?parks?)\b/i) || T(DEMOLISH_STRUCTURE)) && !T(/\b(sheds?|garages?|carports?|cubby|associated)\b/i)) { out.structureDemolition = true; out.demolition = false; }
   // Stripping and cycling forms is not building and pouring a new deck.
   out.timberFramingOnly = T(/\btimber (?:fram\w*|studs?|wall frames?)\b/i) && !T(/\bsteel (?:fram\w*|studs?)\b/i);
   out.formStripOnly = Boolean(out.formwork) && T(/\b(strip\w*|cycl\w*|fly\w*|flown)\b/i) && !T(/\b(erect\w*|set\w* up|install\w* (?:the )?formwork|pour\w*|build\w*)\b/i);
@@ -2743,7 +2746,8 @@ function settleFlags(flags, task) {
   out.trailerUnload = T(/\bunload\w*\b/i) && T(/\b(trailers?|semis?|trucks?)\b/i);
   out.bridgeDemo = T(/\b(bridges?|overpass\w*|culverts?)\b/i) && Boolean(out.structureDemolition || out.hydroDemo || out.asbestosCheck);
   out.noBuildingLine = Boolean(out.attachedStructure || out.bridgeDemo);
-  out.noRoofDown = Boolean(out.lightStructure || out.bridgeDemo);
+  // A structure brought down with explosives is not taken down from the roof.
+  out.noRoofDown = Boolean(out.lightStructure || out.bridgeDemo || (out.structureDemolition && T(/\b(explosives?|implod\w*)\b/i)));
   out.wireSaw = T(/\bwire saw\w*/i);
   out.anchorWork = T(/\b(rock anchors?|ground anchors?|soil nails?|rock bolts?)\b/i);
   if (out.anchorWork && T(/\bon (?:a |the )?(?:\w+ )?retaining walls?\b/i)) out.retainingWall = false;
@@ -2791,7 +2795,8 @@ function settleFlags(flags, task) {
   out.mriShield = T(/\b(mri|rf) (?:shield\w*|room)\b|\bfaraday cage\b/i);
   if (T(/\b(?:install\w*|new|provide|cabl\w*)\b[^.]{0,30}\b(nurse call|duress|pa systems?|public address)\b/i) && !T(/\btrolley\b/i)) out.ictCabling = true;
   out.fumeCupboard = T(/\bfume (?:cupboards?|hoods?)\b/i);
-  if (T(/\btilt-?up\b/i) && !T(/\b(seal\w*|inject\w*|repair\w*|paint\w*|clad\w*|cracks?|clean\w*|drill\w*|fix\w* to|on (?:a |the )?tilt-?up)\b/i)) out.precast = true;
+  // Demolishing a tilt-up building is not standing and bracing panels.
+  if (T(/\btilt-?up\b/i) && !T(/\b(seal\w*|inject\w*|repair\w*|paint\w*|clad\w*|cracks?|clean\w*|drill\w*|fix\w* to|on (?:a |the )?tilt-?up|demoli\w*|implod\w*)\b/i)) out.precast = true;
   if (T(/\b(sports? (?:hall )?floor\w*|gym(?:nasium)? floor\w*|sprung floor\w*)\b/i) && !T(/\btimber\b/i)) out.floorLay = true;
   out.poolPlant = T(/\bpool (?:plant|filtration|chemical dosing)\b|\b(aquatic|swimming) centre (?:pool )?plant\b/i);
   if (T(/\bbusways?\b|\bbus ?ducts?\b/i)) out.containment = true;
