@@ -54,9 +54,12 @@ test('plant named only as checked during a generator load test brings no pump, t
   assert.match(risks(draft(station, 'plumbing')), /confined space/i);
 });
 
-test('testing an existing and a new generator system is not installing generators', () => {
+test('testing an existing and a new generator system is not installing generators or work on fuel lines', () => {
   assert.ok(!kinds('Test and commission the existing and new generator systems with resistive load banks.', 'electrical').includes('generatorPlant'));
   assert.ok(kinds('Install a new diesel generator and its day tank.', 'electrical').includes('generatorPlant'));
+  // A load test is not work on the fuel lines; installing the generator and its day tank is.
+  assert.doesNotMatch(risks(draft('Test and commission the existing and new generator systems with resistive load banks.', 'electrical')), /fuel/i);
+  assert.match(risks(draft('Install a new diesel generator and its day tank.', 'electrical')), /fuel/i);
 });
 
 test('flues named as penetrations to flash and seal are not a heater and flue install', () => {
@@ -202,4 +205,11 @@ test('grinding a concrete surface is not hot work; grinding steel is', () => {
 test('cast-in pipework in an in-ground pool is not work on a deck before the pour', () => {
   assert.ok(!kinds('Install the cast-in pipework in the in-ground pool shell before the pour, and the plumbing and drainage.', 'plumbing').includes('castInPlumbing'));
   assert.ok(kinds('Install cast-in sleeves and puddle flanges on the suspended slab before the pour.', 'plumbing').includes('castInPlumbing'));
+});
+
+test('preparing a floor for a skim coat is levelling, not grinding', () => {
+  const found = kinds('Prepare the subfloor for a 1 mm skim coat before the sheet vinyl.', 'flooring');
+  assert.ok(!found.includes('floorGrind'));
+  assert.ok(found.includes('floorLevel'));
+  assert.ok(kinds('Grind and prepare the subfloor before the sheet vinyl.', 'flooring').includes('floorGrind'));
 });
