@@ -219,7 +219,7 @@ test('ACT: Minister declared silica course, s 418CAA controls, porcelain and asb
   assert.ok(!asbestos.qualifications.some((item) => /non-licensed removal/.test(item)));
   assert.match(localControl('If asbestos is found or suspected, stop and keep clear. A competent person identifies it, or it is assumed to be asbestos, and it is removed by a licensed asbestos removalist unless the regulation allows otherwise.', `${QLD}s 422, s 458`, 'act'), /removed by a licensed asbestos removalist\. \(Work Health and Safety Regulation 2011 \(ACT\) s 422\)$/);
   // Elsewhere the friable and non-friable split stays.
-  assert.ok(lines(draft('nsw', 'Remove 60 square metres of bonded asbestos cement sheeting from the walls of a commercial building as a licensed Class B removal.')).some((item) => /an independent licensed asbestos assessor for friable asbestos/.test(item)));
+  assert.ok(lines(draft('nsw', 'Remove 60 square metres of bonded asbestos cement sheeting from the walls of a commercial building as a licensed Class B removal.')).some((item) => /an independent licensed asbestos assessor where the work needed a Class A licence, as friable asbestos does/.test(item)));
 });
 
 test('NT: the Electricity Reform Act 2000', () => {
@@ -395,4 +395,20 @@ test('Queensland electrical safety: s 204(3) 2 year records, s 199(1)(e) consult
   const walk = (value) => { if (value && typeof value === 'object') { if (typeof value.text === 'string' && /^Breaking masonry and slabs is processing/.test(value.text)) found.push(value.source); Object.values(value).forEach(walk); } };
   walk(require('../activities').ACTIVITIES);
   assert.ok(found.length && found.every((source) => /Code of Practice 2022 \(Qld\) s 7\.4\.1, s 7\.6, s 7\.6\.2$/.test(source)), found.join('\n'));
+});
+
+test('friable asbestos: enclosure, negative pressure, wet method and air monitoring (s 475, s 477); s 225 scope', () => {
+  const task = 'Remove 80 square metres of friable asbestos pipe lagging from the plant room of a 1975 commercial building as a licensed Class A removal.';
+  for (const state of ['qld', 'nsw', 'sa', 'wa', 'tas', 'nt', 'act']) {
+    const text = lines(draft(state, task));
+    const friable = text.find((item) => /^Friable asbestos is removed inside an enclosure that is tested for leaks, under negative pressure, using the wet method/.test(item));
+    assert.match(friable, /below 0\.01 fibres\/ml\. \(.*\b475, [rs] 477\)$/, state);
+    assert.ok(!text.includes('Keep the material wet and remove it whole, by hand.'), state);
+    // The ACT's s 477 has no glove bag exception.
+    assert.equal(/glove bags/.test(friable), state !== 'act', state);
+  }
+  assert.ok(!lines(draft('vic', task)).some((item) => /enclosure that is tested for leaks|negative pressure/.test(item)));
+  assert.ok(lines(draft('nsw', 'Remove 60 square metres of bonded asbestos cement roof sheeting from a 1970s factory.')).includes('Keep the material wet and remove it whole, by hand.'));
+  const scaffold = draft('nsw', 'Erect a tube and coupler scaffold 20 m high on the facade of a commercial office building next to a public footpath.').plant.find((item) => item.item === 'Scaffold');
+  assert.match(scaffold.inspection, /\(Work Health and Safety Regulation 2025 \(NSW\) s 225, for suspended, cantilevered, spur and hung scaffolds, and others over 4 m\)\.$/);
 });

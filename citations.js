@@ -206,6 +206,8 @@ const VIC_TEXT = [
   // "crystalline silica substance" (r 5) is used only for manufacturers and suppliers.
   [/\b(?:with )?1% or more crystalline silica\b/, 'containing crystalline silica', KEEP],
   [/a product containing crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, `power sanding or cutting a product that contains crystalline silica is a crystalline silica process. Before it starts, it is assessed, with a written record, to find whether it is high risk crystalline silica work, or it is treated as high risk crystalline silica work.${cite('vic', '165', '166', '319B', '319J', '319K')}`],
+  // Victoria's Class A removal duties are set out differently (Part 4.4 Subdivision 4) and are not stated here.
+  [/^Friable asbestos is removed inside an enclosure that is tested for leaks.*$/, null],
   // Victoria has no demolition notice (Part 5.1 has none); r 355 requires notice of excavation work.
   [/^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high,.*$/, null],
   [/^Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it\.$/, `Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it. Where a shaft, trench or tunnel will be big enough for a person to enter, or poses a risk, the Authority is notified in writing at least 3 days before the excavation work starts, unless it is part of building work under a building permit.${cite('vic', '354', '355')}`],
@@ -265,6 +267,8 @@ const WA_TEXT = [
 const ACT_TEXT = [
   [/^Asbestos is removed by a licensed asbestos removalist, except for 10 m2 or less of non-friable asbestos removed under the regulation\.$/, 'Asbestos is removed only by a licensed asbestos removalist, whatever the amount.'],
   [/ unless the regulation allows otherwise\./, '.', KEEP],
+  // Section 477 has no glove bag exception.
+  [/ \(negative pressure and the monitoring before the start are not needed where glove bags are used\)/, '', KEEP],
   // Porcelain tiles and sintered stone are stone-substitute material (s 418A, s 418B, s 418C);
   // ceramic tiles and natural stone are crystalline silica material (s 418CAA).
   [/^Tiles and stone with 1% or more crystalline silica are a crystalline silica substance\. Cutting them with power tools/, `Porcelain tiles and sintered stone containing crystalline silica are stone-substitute material: they are cut with power tools only with a continuous water feed and at least one other crystalline silica control, and everyone who may be exposed wears respiratory protective equipment. Ceramic tiles, natural stone and other crystalline silica material are cut with a continuous water feed and at least one other control, or the next control section 418CAA allows where that is not reasonably practicable.${cite('act', '418A', '418B', '418C', '418CAA')}`],

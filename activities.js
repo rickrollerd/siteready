@@ -7171,7 +7171,8 @@ const ACTIVITIES = [
         step: 'Remove the asbestos',
         hazards: ['Breathing in asbestos fibres.'],
         controls: [
-          'Keep the material wet and remove it whole, by hand.',
+          { unless: 'friableAsbestos', text: 'Keep the material wet and remove it whole, by hand.' },
+          { only: 'friableAsbestos', ...src('Friable asbestos is removed inside an enclosure that is tested for leaks, under negative pressure, using the wet method, with air monitoring by an independent licensed asbestos assessor immediately before the work starts and while it is carried out (negative pressure and the monitoring before the start are not needed where glove bags are used). The enclosure is not dismantled until monitoring shows the fibre level inside it is below 0.01 fibres/ml.', WHS('s 475, s 477')) },
           'Wear disposable coveralls and a respirator rated P2 or higher.',
         ],
       },
@@ -7180,7 +7181,7 @@ const ACTIVITIES = [
         hazards: ['Fibres spread beyond the work area.'],
         controls: [
           'Wrap the waste in heavy duty plastic, label it as asbestos waste and take it to a facility licensed to accept it.',
-          src('When licensed asbestos removal is finished, a clearance inspection is done by an independent competent person (an independent licensed asbestos assessor for friable asbestos) before the area is reopened.', WHS('s 473')),
+          src('When licensed asbestos removal is finished, a clearance inspection is done by an independent competent person (an independent licensed asbestos assessor where the work needed a Class A licence, as friable asbestos does) before the area is reopened.', WHS('s 473')),
         ],
       },
     ],
