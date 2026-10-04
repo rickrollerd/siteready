@@ -134,14 +134,14 @@
     if (taskEl.dataset.preset && !taskEl.value.trim()) $('task-from').classList.add('hidden');
   });
 
-  function useTask(item) {
+  function useTask(item, label = '') {
     const taskEl = $('task');
     // One sentence to a line, so the task can be read and checked.
     const text = item.task.replace(/([.;])\s+(?=[A-Z(])/g, '$1\n');
     taskEl.value = text;
     const from = $('task-from');
     if (from) {
-      from.textContent = `From the scope: ${item.title}`;
+      from.textContent = label || `From the scope: ${item.title}`;
       from.classList.remove('hidden');
     }
     // A new task starts from SiteReady's step order and PPE again.
@@ -152,8 +152,9 @@
     window.siteReadyScopeTask = { task: text, kinds: item.kinds || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });
     document.querySelector('input[name="fallRisk"]').dispatchEvent(new Event('change', { bubbles: true }));
-    $('start').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    taskEl.focus();
+    // In a project, openItem moves the page once the project box is drawn.
+    if (!label) $('start').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    taskEl.focus({ preventScroll: true });
   }
 
   // A project: every task from the scope, each prepared in turn with the same site details.
@@ -167,6 +168,8 @@
     const chosen = added.size ? found.filter((_item, index) => added.has(index)) : found;
     project = { current: 0, items: chosen.map((item) => ({ title: item.title, task: item.task, trade: item.trade || '', kinds: item.kinds || null, fallRisk: item.fallRisk || '', body: null, status: 'todo' })) };
     saveProject();
+    // The task list has done its job; closing it keeps the page short.
+    $('scope-panel').open = false;
     openItem(0);
   }
 
@@ -180,8 +183,10 @@
     result.innerHTML = '';
     // The last task's questions go too; this task's come once its start details are in.
     document.getElementById('facts').classList.add('hidden');
-    useTask(project.items[index]);
+    useTask(project.items[index], `SWMS ${index + 1} of ${project.items.length}: ${project.items[index].title}`);
     renderProject();
+    // The page goes to the project box, which says which SWMS is open, after the layout has settled.
+    requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
     // With the site details already filled in, go straight to this SWMS's questions.
     const start = $('start');
     if (index > 0 && start.checkValidity() && document.querySelector('input[name="fallRisk"]:checked')) start.requestSubmit($('continue'));
@@ -192,9 +197,11 @@
     if (!project) { panel.classList.add('hidden'); return; }
     const ready = project.items.filter((item) => item.status === 'ready').length;
     const label = { ready: 'Ready', needs: 'Needs answers', todo: 'To do' };
+    const current = project.items[project.current];
     panel.innerHTML = `<h2>Project SWMS</h2>
-      <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next.</p>
-      <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : item.status === 'needs' ? 'needs' : ''}">${label[item.status]}${index === project.current ? ', open now' : ''}</span> <button type="button" class="small secondary" data-project-open="${index}">${item.status === 'todo' ? 'Start' : 'Open'}</button></span></li>`).join('')}</ul>
+      ${current ? `<p class="project-now">Now preparing SWMS ${project.current + 1} of ${project.items.length}: <strong>${esc(current.title)}</strong>. It is open in the form below: fill in the details and press Continue. When it is ready, a button under it opens the next one.</p>` : ''}
+      <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next. You can also open any SWMS in the list.</p>
+      <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : item.status === 'needs' ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
       <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
       <div class="actions"><button type="button" class="small secondary" id="project-close">Close project</button></div>`;
