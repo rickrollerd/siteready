@@ -816,3 +816,100 @@ test('decks, floor frames, kit structures and ground mount solar are split by ac
   const solar = steps(draft('Install a ground mount solar array on the farm.', 'electrical'));
   assert.ok(solar.includes('Install the ground mount frame') && solar.includes('Install the solar panels'));
 });
+test('drill and blast work is the excavation trade\'s, and a basement blast digs no trench', () => {
+  const task = 'Drill and blast rock in the basement excavation.';
+  assert.ok(kinds(task, 'excavation').includes('blasting'));
+  const done = steps(draft(task, 'excavation'));
+  assert.ok(done.includes('Drill the blast holes') && done.includes('Charge and fire the blast'));
+  for (const name of ['Lay pipes', 'Work in the trench', 'Excavate']) assert.ok(!done.includes(name), name);
+  // A trench that is named is still dug.
+  assert.ok(kinds('Drill and blast rock in the basement for the sewer trench.', 'excavation').includes('trench'));
+});
+
+test('a septic tank pumped out and filled with sand is decommissioned, with no pump-out line', () => {
+  const done = steps(draft('Pump out the septic tank and fill it with sand.'));
+  assert.ok(done.includes('Pump out the septic tank'));
+  assert.ok(!done.includes('Install the pump-out line'));
+  assert.ok(steps(draft('Install a pump-out line to the septic tank.', 'plumbing')).includes('Install the pump-out line'));
+});
+
+test('drilling into post-tensioned slabs for anchors is not pouring a slab', () => {
+  const task = 'Install cable tray and pull structured data cabling in the tower risers, drilling into the post-tensioned slabs for tray anchors.';
+  for (const trade of ['', 'communications', 'electrical']) {
+    for (const id of ['formwork', 'reo', 'ptTendons', 'concrete', 'stressing']) assert.ok(!kinds(task, trade).includes(id), `${trade}: ${id}`);
+  }
+  assert.ok(steps(draft(task, 'communications')).includes('Pull communications cabling'));
+  // Building the post-tensioned slab is still that work.
+  assert.ok(kinds('Install and pour the post-tensioned slabs on level 3.', 'structure').includes('stressing'));
+});
+
+test('blasting the old paint off is not painting, unless repainting is named', () => {
+  const done = steps(draft('Sandblast the old paint off the steel.', 'painting'));
+  assert.ok(done.includes('Abrasive blast the surfaces') && !done.includes('Paint') && !done.includes('Prepare to paint'));
+  assert.ok(steps(draft('Sandblast the old paint off the steel and repaint it.', 'painting')).includes('Paint'));
+  assert.ok(steps(draft('Strip wallpaper and paint walls in a 1960s house.')).includes('Paint'));
+});
+
+test('a rainwater tank on a new steel stand gets the tank stand steps', () => {
+  const done = steps(draft('Install the rainwater tank on a new 2 m steel stand.', 'plumbing'));
+  assert.ok(done.includes('Build the tank stand') && done.includes('Install the rainwater tank'));
+});
+
+test('tiling always mixes adhesive and grouts; screed and sealer only when named', () => {
+  for (const trade of ['tiling', '']) {
+    const done = steps(draft('Tile the bathroom floors and walls.', trade));
+    assert.ok(done.includes('Mix and spread the tile adhesive') && done.includes('Grout the tiles'), trade);
+    assert.ok(!done.includes('Lay the screed') && !done.includes('Apply sealer to the tiles and grout'), trade);
+  }
+  const named = steps(draft('Screed and tile the bathroom floor, then seal the tiles.', 'tiling'));
+  assert.ok(named.includes('Lay the screed') && named.includes('Apply sealer to the tiles and grout'));
+});
+
+test('commissioning a diesel fire pumpset gets the pump room step', () => {
+  for (const trade of ['fire', '']) assert.ok(steps(draft('Commission the diesel fire pumpset in the pump room.', trade)).includes('Work in pump rooms'), trade);
+});
+
+test('replacing a garage door motor takes down no door', () => {
+  for (const trade of ['doors', '']) {
+    const done = steps(draft('Replace the garage door motor.', trade));
+    assert.ok(done.includes('Install the door motor') && !done.includes('Take down the old roller door'), trade);
+  }
+  assert.ok(steps(draft('Remove the old roller door and install a new roller door with a motor.', 'doors')).includes('Take down the old roller door'));
+});
+
+test('comms racks and cabinets are electrical trade work too', () => {
+  assert.ok(steps(draft('Install communications racks and cabinets in the comms rooms.', 'electrical')).includes('Install comms racks and cabinets'));
+});
+
+test('grinding tree stumps is tree work, not restumping a house', () => {
+  for (const task of ['Remove three trees and grind the stumps.', 'Grind the old stumps.']) {
+    const done = steps(draft(task));
+    assert.ok(done.includes('Remove stumps and roots') && !done.includes('Jack the house and replace stumps'), task);
+  }
+  assert.ok(steps(draft('Restump the house with new steel stumps.')).includes('Jack the house and replace stumps'));
+});
+
+test('a flat roof built over an existing deck is roofed and builds no deck', () => {
+  for (const trade of ['carpentry', '']) {
+    const done = steps(draft('Build a flat roof over the existing back deck.', trade));
+    assert.ok(done.includes('Erect the posts, beams and rafters') && done.includes('Fix new roofing'), trade);
+    assert.ok(!done.includes('Build the deck frame and lay the decking') && !done.includes('Set out and dig post holes'), trade);
+  }
+});
+
+test('painting car park columns and soffits relines no eaves', () => {
+  for (const task of ['Paint the car park columns and soffits.', 'Paint the new car park columns and soffits.']) {
+    const done = steps(draft(task, 'painting'));
+    assert.ok(done.includes('Paint') && !done.includes('Fit the new eave lining'), task);
+  }
+});
+
+test('a trench for irrigation or a garden tap gets one set of trench steps', () => {
+  for (const trade of ['plumbing', 'landscaping', '']) {
+    const done = steps(draft('Dig a trench for the irrigation line and a garden tap.', trade));
+    assert.ok(done.includes('Dig the trench') && done.includes('Lay the pipes'), trade);
+    assert.ok(!done.includes('Lay pipes') && !done.includes('Work in the trench'), trade);
+  }
+  const deep = steps(draft('Dig the subsoil drainage trenches across the pitch with an excavator, up to 1 m deep, lay the drainage pipe and irrigation, then lay the turf rolls.', 'landscaping'));
+  assert.ok(deep.includes('Excavate') && !deep.includes('Dig the trench') && !deep.includes('Lay the pipe or cable'));
+});
