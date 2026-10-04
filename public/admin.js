@@ -145,6 +145,14 @@
       'Nothing to look at.')
     : `<tr><td class="error">${esc(warnings.data.message || 'Not available.')}</td></tr>`;
 
+  // AI readings checked against the brief.
+  const ai = await api('/api/admin/ai-readings');
+  $('ai-readings').innerHTML = ai.ok
+    ? rows('<tr><th>When</th><th>Account</th><th>Status</th><th>Check</th><th>Activities</th><th>Quotes not found / shortened</th><th>Other package names</th><th>Minutes</th><th>Cost (US$)</th></tr>',
+      ai.data.readings.map((item) => `<tr><td>${esc(new Date(item.createdAt).toLocaleString('en-NZ'))}</td><td>${esc(item.company)}</td><td>${esc(item.status)}${item.error ? `: ${esc(item.error)}` : ''}</td><td>${item.checks ? (item.checks.passed ? 'Passed' : '<strong>Failed</strong>') : ''}</td><td>${item.checks ? item.checks.activities : ''}</td><td>${item.checks ? `${item.checks.quotesNotFound} / ${item.checks.quotesShortened} of ${item.checks.quotes}` : ''}</td><td>${item.checks ? esc(item.checks.otherPackages.join('; ')) : ''}</td><td>${item.minutes ?? ''}</td><td>${item.costUsd.toFixed(2)}</td></tr>`),
+      'No AI readings yet.')
+    : `<tr><td class="error">${esc(ai.data.message || 'Not available.')}</td></tr>`;
+
   await loadAccessLog();
   fromHash();
 })();

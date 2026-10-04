@@ -33,7 +33,7 @@
           <h3>${esc(item.title)}${item.needsSwms ? ' <span class="tag-risk">High risk</span>' : ''}</h3>
           <p>${esc(item.task)}</p>
           ${(item.highRisk || []).length ? `<p class="meta">High risk construction work: ${esc(item.highRisk.join('; '))}</p>` : ''}
-          <details><summary>From the scope (${item.lines.length} ${item.lines.length === 1 ? 'line' : 'lines'})</summary><ul>${item.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>
+          ${item.clauses ? `<button type="button" class="small secondary" data-scope-clauses="${index}" aria-expanded="false">Show scope clauses</button><div class="scope-clauses hidden" id="scope-clauses-${index}">${item.clauses.map((row) => `<p><strong>${esc(row.activity)}</strong>${row.clause ? ` <span class="meta">${esc(row.clause)}${row.matrixColumn ? `, ${esc(row.matrixColumn)}` : ''}</span>` : ''}</p>${row.quotes.map((quote) => `<blockquote>${esc(quote)}</blockquote>`).join('')}`).join('')}</div>` : `<details><summary>From the scope (${item.lines.length} ${item.lines.length === 1 ? 'line' : 'lines'})</summary><ul>${item.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>`}
           <button type="button" class="small" data-scope-task="${index}" aria-pressed="false">Add this task</button>
         </div>`).join('') + `<div class="actions scope-go"><button type="button" id="project-start">${projectButton()}</button></div><p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>`
       : (note ? '' : '<p class="note">No site work that needs a SWMS was found. If the scope does include site work, paste the part that describes it.</p>'));
@@ -101,10 +101,9 @@
     try {
       const state = (document.querySelector('input[name="state"]:checked') || {}).value || '';
       const body = file ? { file: { name: file.name, data: await readFile(file) }, state } : { text, state };
-      const response = await fetch(api('/api/scope'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'The scope could not be read.');
-      show(data);
+      lastBody = body;
+      if (await aiOn()) { await readWithAi(body); return; }
+      await quickRead(body);
     } catch (error) {
       $('scope-error').textContent = error.message;
     } finally {
@@ -112,8 +111,102 @@
     }
   });
 
+  // The quick read: SiteReady's own reader, for everyone, and the fallback when the AI is off.
+  async function quickRead(body) {
+    {
+      const response = await fetch(api('/api/scope'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'The scope could not be read.');
+      show(data);
+    }
+  }
+
+  // The AI reading (Claude Opus 5.5 with the owner's brief), for signed-in accounts when it is
+  // switched on. It reads every word, so it takes a few minutes; the page asks for it until done.
+  let lastBody = null;
+  let aiStatus = null;
+  async function aiOn() {
+    if (!S.signedIn || !S.signedIn() || !S.call) return false;
+    if (aiStatus === null) {
+      try { aiStatus = Boolean((await (await fetch(api('/api/scope/ai'))).json()).enabled); } catch { aiStatus = false; }
+    }
+    return aiStatus;
+  }
+  const wait = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+  async function readWithAi(body) {
+    $('scope-results').innerHTML = '<p class="note" aria-live="polite">The AI is reading every word of the scope, including tables and appendices. This usually takes a few minutes. You can leave this page open and come back.</p>';
+    let reading = await S.call('POST', '/api/scope/ai', body);
+    const started = Date.now();
+    while (reading.status === 'reading') {
+      if (Date.now() - started > 20 * 60 * 1000) throw new Error('The AI reading is taking too long. Try again later, or use the quick read.');
+      await wait(5000);
+      reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}`);
+    }
+    if (reading.status !== 'done') {
+      $('scope-results').innerHTML = `<p class="note">${esc(reading.error || 'The AI reading failed.')}</p><div class="actions"><button type="button" class="secondary" id="scope-quick">Use the quick read instead</button></div>`;
+      return;
+    }
+    showPackages(reading);
+  }
+
+  // The AI's work packages, for the user to confirm before any task is listed. A package of
+  // duties only (supervision, records, meetings) needs no SWMS, so it starts unticked.
+  let aiReading = null;
+  function packagesOf(reading) {
+    const groups = new Map();
+    for (const row of reading.activities) {
+      const name = row.package || 'Other work';
+      if (!groups.has(name)) groups.set(name, []);
+      groups.get(name).push(row);
+    }
+    return [...groups.entries()].map(([name, rows]) => ({ name, rows, work: rows.some((row) => row.type !== 'Duty') }));
+  }
+  function showPackages(reading) {
+    aiReading = reading;
+    const packages = packagesOf(reading.reading);
+    const checks = reading.checks || {};
+    const warn = checks.passed === false ? `<p class="note">Some of the AI's quotes could not be matched word for word to the document (${(checks.quotesNotFound || []).length + (checks.quotesShortened || []).length}). Check those tasks against the scope.</p>` : '';
+    const conflicts = reading.reading.conflicts || [];
+    $('scope-results').innerHTML = `${warn}<p class="meta" style="margin-top:10px">The AI found ${reading.reading.activities.length} activities in ${packages.length} work packages. Each package you confirm becomes one SWMS. Untick any package that is not yours, then confirm.</p>
+      <div class="scope-packages">${packages.map((pack, index) => `<label class="scope-package"><input type="checkbox" data-package="${index}" ${pack.work ? 'checked' : ''}> <strong>${esc(pack.name)}</strong> <span class="meta">(${pack.rows.length} ${pack.rows.length === 1 ? 'activity' : 'activities'}${pack.work ? '' : ', duties only: no SWMS needed'})</span><span class="meta scope-package-list">${pack.rows.map((row) => esc(row.activity)).join('; ')}</span></label>`).join('')}</div>
+      ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul></details>` : ''}
+      <div class="actions"><button type="button" id="scope-confirm">Confirm these work packages</button></div>`;
+  }
+  function confirmPackages() {
+    const packages = packagesOf(aiReading.reading);
+    const ticked = [...document.querySelectorAll('[data-package]')].filter((box) => box.checked).map((box) => packages[Number(box.dataset.package)]);
+    if (!ticked.length) { $('scope-error').textContent = 'Tick at least one work package.'; return; }
+    $('scope-error').textContent = '';
+    show({
+      tasks: ticked.map((pack) => {
+        const rows = pack.rows.filter((row) => row.type !== 'Duty');
+        const use = rows.length ? rows : pack.rows;
+        return {
+          title: pack.name,
+          task: use.map((row) => `${row.activity.replace(/\.$/, '')}${row.where ? ` (${row.where})` : ''}.`).join(' '),
+          lines: [],
+          clauses: use.map((row) => ({ activity: row.activity, clause: row.clause, quotes: row.quotes, matrixColumn: row.matrixColumn })),
+          needsSwms: false,
+        };
+      }),
+    });
+  }
+
   $('scope-results').addEventListener('click', (event) => {
     if (event.target.closest('#project-start')) { startProject(); return; }
+    if (event.target.closest('#scope-confirm')) { confirmPackages(); return; }
+    if (event.target.closest('#scope-quick')) {
+      quickRead(lastBody).catch((error) => { $('scope-error').textContent = error.message; });
+      return;
+    }
+    const clauses = event.target.closest('[data-scope-clauses]');
+    if (clauses) {
+      const box = $(`scope-clauses-${clauses.dataset.scopeClauses}`);
+      const open = box.classList.toggle('hidden') === false;
+      clauses.textContent = open ? 'Hide scope clauses' : 'Show scope clauses';
+      clauses.setAttribute('aria-expanded', String(open));
+      return;
+    }
     // Adding a task marks it and stays on the list, so the next one can be added.
     const button = event.target.closest('[data-scope-task]');
     if (!button) return;
