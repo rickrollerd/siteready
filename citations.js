@@ -59,6 +59,8 @@ const DROP_SOURCES = {
     [/^This SWMS takes into account that the work is next to an operating hospital\b/, ['s 299']],
     // Regulation 49 covers rescue, not anchor ratings, approval, clearances or lone work.
     [/\b\d+ kN\b|\banchors (?:are|is)\b/, ['s 80']],
+    // Regulation 109 has no counterpart to the model r 214(1)(e) on pressurised elements of plant.
+    [/\bpressurised\b/, ['s 214']],
   ],
 };
 
@@ -153,6 +155,9 @@ const KEEP = true;
 // register of hazardous substances. Prescribed electrical work there is inspected by a
 // licensed electrical inspector.
 const VIC_TEXT = [
+  // Regulations 319C(a), 319E and 319B(2): an engineered stone process is always high risk crystalline
+  // silica work, and is not a crystalline silica process to be assessed under r 319J.
+  [/^Assess in writing before starting whether the processing is high risk, including where the stone is only removed, repaired or modified\./, `Cutting, drilling or breaking engineered stone is an engineered stone process, which is always high risk crystalline silica work.${cite('vic', '319C', '319E')}`],
   [/^Assess in writing before \w+ whether the processing is high risk[.,]/, 'Before work starts, determine whether the work is high risk crystalline silica work.'],
   [/Assess in writing before \w+ whether it is high risk, without counting PPE or administrative controls, and without relying only on the dust controls used for the processing\. If it cannot be determined, treat it as (?:a risk to health|high risk)\./, 'Before work starts, determine whether the work is high risk crystalline silica work.'],
   [/^.*silica risk control plan/, 'Before high risk crystalline silica work starts, a hazard control statement is prepared, and workers are given the information, instruction and training the crystalline silica rules in the Occupational Health and Safety Regulations 2017 (Vic) require.'],
@@ -208,15 +213,20 @@ const VIC_TEXT = [
   [/a product containing crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, `power sanding or cutting a product that contains crystalline silica is a crystalline silica process. Before it starts, it is assessed, with a written record, to find whether it is high risk crystalline silica work, or it is treated as high risk crystalline silica work.${cite('vic', '165', '166', '319B', '319J', '319K')}`],
   // Victoria's Class A removal duties are set out differently (Part 4.4 Subdivision 4) and are not stated here.
   [/^Friable asbestos is removed inside an enclosure that is tested for leaks.*$/, null],
-  // Victoria has no demolition notice (Part 5.1 has none); r 355 requires notice of excavation work.
+  // Victoria has no demolition notice (Part 5.1 has none); r 355 requires notice of a construction
+  // excavation (r 5: a trench more than 1.5 m deep, a shaft more than 2 m deep, or a tunnel), and the
+  // building permit exception covers only a shaft or trench (r 354(2)).
   [/^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high,.*$/, null],
-  [/^Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it\.$/, `Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it. Where a shaft, trench or tunnel will be big enough for a person to enter, or poses a risk, the Authority is notified in writing at least 3 days before the excavation work starts, unless it is part of building work under a building permit.${cite('vic', '354', '355')}`],
+  [/^Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it\.$/, `Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it. Where a trench more than 1.5 m deep, a shaft more than 2 m deep or a tunnel is to be dug, and a person could enter it or it poses a risk to anyone, the Authority is notified in writing at least 3 days before the excavation work starts. A trench or shaft dug as part of building work under a building permit that is in force needs no notice.${cite('vic', '5', '354', '355')}`],
   // Regulations 118, 128 and Schedule 3: the licence, not a written handover or a 30 day inspection.
   [/^Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder, handed over in writing by a competent person, and inspected at least every 30 days\.$/, `Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder.${cite('vic', '128', 'Schedule 3')}`],
   // Schedule 2 item 1.6; no regulation requires the registration number to be kept at the hoist.
   [/^A personnel hoist with platform travel over 2\.4 m has a registered design, and the registration number is kept at the hoist\.$/, `A personnel hoist with platform travel over 2.4 m has a registered design.${cite('vic', '125', 'Schedule 2')}`],
   // Regulation 298(1): 24 hours for 10 m2 or less of non-friable asbestos, unless a licence condition varies it.
   [/^For licensed removal, the licensed removalist gives the regulator written notice at least 5 days before the work starts\.$/, `For licensed removal, the licence holder gives the Authority written notice at least 5 days before the work starts (24 hours for 10 m2 or less of non-friable asbestos), unless a licence condition sets other notice.${cite('vic', '298')}`],
+  // Building maintenance units have a registered design (r 125, Schedule 2 item 1.5), not item registration,
+  // and their inspection and maintenance records are kept (r 106).
+  [/^The BMU has a current inspection and registration, and workers wear a harness attached to the anchor in the cradle\.$/, `The BMU's design is registered and its inspection and maintenance records are kept${cite('vic', '106', '125', 'Schedule 2')}. Workers wear a harness attached to the anchor in the cradle.`],
   // Regulation 341 names the construction induction card.
   [/\bgeneral construction induction card\b/, 'construction induction card', KEEP],
 ];

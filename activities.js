@@ -36,6 +36,13 @@ const SILICA_FOLLOW_UP = [
   src('Dust and slurry are cleaned up at least at the end of each day or task, with an H class vacuum (M class only where H class is not reasonably practicable) or wet methods. No dry sweeping, compressed air or blowers, including for clothing.', QCODE('Silica', 's 7.4.2, s 8.1, s 8.2, s 8.3')),
 ];
 
+// The same lines for installed engineered stone, which says the assessment covers removal and repair
+// too (Victoria words this line as an engineered stone process, always high risk, r 319C, r 319E).
+const ENG_STONE_SILICA = [
+  { ...SILICA_FOLLOW_UP[0], text: SILICA_FOLLOW_UP[0].text.replace('whether the processing is high risk.', 'whether the processing is high risk, including where the stone is only removed, repaired or modified.') },
+  ...SILICA_FOLLOW_UP.slice(1),
+];
+
 // Processing installed engineered stone: allowed only to remove, repair, make minor modifications
 // to or dispose of it, and only if it is controlled (s 529B, s 529D, s 529F), with notice to the
 // regulator before the work, of any change and after 12 months, each kept for 5 years (s 529G to s 529J).
@@ -6322,7 +6329,7 @@ const ACTIVITIES = [
       hazards: ['Silica dust from cutting, drilling or breaking engineered stone.', 'Back injury and crush from heavy pieces of stone.', 'Noise.'],
       controls: [
         ...ENG_STONE,
-        ...SILICA_FOLLOW_UP,
+        ...ENG_STONE_SILICA,
         'Benchtops are cut into pieces two people can carry, or moved on a trolley or with a lifting aid.',
         src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Hearing protection worn for the whole time of the noise, with hearing tests within 3 months of starting and at least every 2 years.', `${WHS('s 56, s 57, s 58')}; ${QCODE('Managing noise and preventing hearing loss', 's 2.2, s 5.3, s 5.4')}`),
       ],
