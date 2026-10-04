@@ -369,3 +369,19 @@ test('ACT: loose-fill demolition notice (s 142(1)(d)), porcelain as stone-substi
   assert.ok(draft('act', SILICA).references.some((item) => item.label === 'Silica controls'));
   assert.match(questionsFor({ state: 'nsw', task: SILICA, fallRisk: 'no' }).required.find((item) => item.id === 'silicaControls').prompt, /written assessment/);
 });
+
+test('WA: roof spaces of Class 1, 2 and 10a buildings are de-energised (r 153); earthmoving machinery used as a crane is licensed (Schedule 3 items 14A, 15A)', () => {
+  const reg = 'Work Health and Safety (General) Regulations 2022 (WA)';
+  const roof = lines(draft('wa', 'Run new cables and install exhaust fans through the roof space of a three storey apartment building.'));
+  assert.ok(roof.some((item) => /^Before anyone works in the roof space of a house, a unit building or a Class 10a building such as a garage or shed, a competent person de-energises the building's electrical installation/.test(item) && item.endsWith(`(${reg} r 153)`)));
+  assert.ok(!roof.some((item) => /de-energised where practicable/.test(item)));
+  assert.ok(lines(draft('nsw', 'Run new cables and install exhaust fans through the roof space of a three storey apartment building.')).some((item) => /de-energised where practicable/.test(item)));
+  const insulation = lines(draft('wa', 'Install ceiling insulation batts in the roof space of townhouses in a medium density development.'));
+  assert.ok(insulation.some((item) => /a competent person de-energises the building's electrical installation before the work starts\./.test(item) && item.endsWith(`(${reg} r 153)`)));
+  const pipes = draft('wa', 'Lay 900 mm concrete stormwater pipes in a 2 m deep trench, lifting each pipe into place with a 30 tonne excavator.');
+  assert.ok(lines(pipes).some((item) => /An excavator with a safe working load over 3 t used as a crane is operated by the holder of the high risk work licence for earthmoving machinery used as a crane/.test(item) && item.endsWith(`(${reg} r 81, Schedule 3)`)));
+  assert.match(pipes.plant.find((item) => item.item === 'Excavator').licence, /^Yes where it is used as a crane with a safe working load over 3 t/);
+  assert.ok(!pipes.plant.some((item) => /^Mobile crane/.test(item.item)));
+  // Elsewhere an excavator is not a crane (r 5), so no licence.
+  assert.equal(draft('sa', 'Lay 900 mm concrete stormwater pipes in a 2 m deep trench, lifting each pipe into place with a 30 tonne excavator.').plant.find((item) => item.item === 'Excavator').licence, 'No. Operator competent (verification of competency)');
+});

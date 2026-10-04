@@ -249,6 +249,14 @@ const ENERGISED_TEXT = [
 // is licensed (r 142B, r 142C), and notified 5 working days ahead when done to AS 2601 (r 142F),
 // or approved by the regulator when it is not (r 142G, r 142I).
 const WA_TEXT = [
+  // Regulation 153: before work in the roof space of a Class 1, 2 or 10a building, its electrical
+  // installation is de-energised by a competent person, with no "where practicable" exception.
+  [/^Work in a roof space \(between the roof and the top floor ceiling\) only when the electrical installation is de-energised\./, `Before anyone works in the roof space of a house, a unit building or a Class 10a building such as a garage or shed, a competent person de-energises the building's electrical installation, and no one works there until it is. Service apparatus, and the supply cables regulation 153(6) leaves out, stay live; where the roof space is divided between separate dwellings, only the dwelling the work is in is de-energised. A competent person testing, servicing or commissioning an appliance may energise it only as regulation 153(5) allows, after a risk assessment.${cite('wa', '153')}`],
+  [/^Before the insulation is installed, an on-site assessment of the electrical risk is done by a worker trained to do it/, `Before the insulation is installed, the electrical risk in the ceiling space is assessed by a competent person, and live cables and fittings are isolated or kept clear of. In the roof space of a house, a unit building or a Class 10a building, a competent person de-energises the building's electrical installation before the work starts.${cite('wa', '153')}`],
+  // Schedule 3 items 14A and 15A: earthmoving machinery used as a crane, with a safe working load
+  // over 3 t, needs a high risk work licence (r 5 "crane", r 81).
+  [/^Where (pipes, pits or conduit bundles|pipes or pits) are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it\.$/, (id, all) => `Where ${all} are lifted with the excavator, this is done only where it has a rated lifting point and the load is within its lifting chart. An excavator with a safe working load over 3 t used as a crane is operated by the holder of the high risk work licence for earthmoving machinery used as a crane (Schedule 3 item 14A, non-slewing, or item 15A, slewing); otherwise the operator is competent to lift with it.${cite('wa', '81', 'Schedule 3')}`],
+  [/^(An excavator lifts broken pile heads only where it is designed to lift that load, or the lift creates no greater risk than with plant designed for it\.|Props and walers are lifted with plant designed to lift them, never over people, and slung by a licensed dogman\. An excavator is used to lift only where plant designed to lift is not reasonably practicable, and it creates no greater risk\.)$/, (id, line) => `${line} An excavator with a safe working load over 3 t used as a crane is operated by the holder of the high risk work licence for earthmoving machinery used as a crane (Schedule 3 item 14A or 15A).${cite('wa', '81', '219', 'Schedule 3')}`],
   [/^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high,/, `Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs. Done to AS 2601, it is notified to the regulator at least 5 working days before it begins; done any other way, the regulator's approval is applied for at least 10 working days before, and the work waits for it.${cite('wa', '142B', '142C', '142F', '142G', '142I')}`],
 ];
 // The ACT has no 10 m2 exception: any asbestos is removed by a licensed asbestos
@@ -326,7 +334,8 @@ function actMaterial(text) {
 const VIC_SILICA = /\b(processing is high risk|high risk processing|VET accredited or regulator approved)\b/i;
 
 function applyLine(out, pattern, replacement, stateId) {
-  const value = typeof replacement === 'function' ? replacement(stateId) : replacement;
+  // A function is given the state and what the pattern's groups matched.
+  const value = typeof replacement === 'function' ? replacement(stateId, ...(pattern.exec(out) || []).slice(1)) : replacement;
   // A preset answer keeps its other sentences; a whole control line is replaced.
   if (value === null) return out.replace(pattern, '').replace(/\s{2,}/g, ' ').trim() || null;
   return pattern.source.startsWith('^') ? value : out.replace(pattern, value);
