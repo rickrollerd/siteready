@@ -44,7 +44,7 @@
         ],
         "steps": [
           "Use an elevating work platform",
-          "Install ductwork, pipework and units"
+          "Install ductwork"
         ],
         "missing": [
           "Fall control",
@@ -120,7 +120,7 @@
         ],
         "steps": [
           "Use an elevating work platform",
-          "Install ductwork, pipework and units",
+          "Install ductwork",
           "Install car park fans over traffic areas"
         ],
         "missing": [
@@ -173,7 +173,7 @@
         ],
         "steps": [
           "Use an elevating work platform",
-          "Evacuate, charge and recover refrigerant",
+          "Evacuate and charge the system",
           "Isolate plant before work on it",
           "Commission and balance the system"
         ],

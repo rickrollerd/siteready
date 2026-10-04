@@ -250,3 +250,22 @@ test('sleeves and pants follow the site rules unless the work needs long clothin
   assert.ok(ticked('Install ductwork in the ceiling.').includes('siteClothing'));
   assert.ok(!ticked('Install ductwork in the ceiling.').includes('longs'));
 });
+
+test('mechanical work has one step per activity: hangers, ductwork, pipework and units are separate', () => {
+  const duct = steps(draft('Install ductwork in the ceilings.', 'mechanical'));
+  assert.ok(duct.includes('Fix hangers and supports') && duct.includes('Install ductwork'));
+  assert.ok(!duct.includes('Install mechanical pipework') && !duct.includes('Fix the units in place'));
+  const pipe = steps(draft('Install chilled water pipework in the plant room.', 'mechanical'));
+  assert.ok(pipe.includes('Install mechanical pipework') && pipe.includes('Fix hangers and supports'));
+  assert.ok(!pipe.includes('Install ductwork'));
+  const both = steps(draft('Install ductwork, chilled water pipework and fan coil units in the apartment ceilings and risers.', 'mechanical'));
+  assert.equal(both.filter((name) => name === 'Fix hangers and supports').length, 1);
+  assert.ok(!both.includes('Work in the roof space'), 'fan coil units are not homes');
+});
+
+test('refrigerant is recovered only when a system is emptied or taken out', () => {
+  const install = steps(draft('Install split systems and charge with refrigerant.', 'mechanical'));
+  assert.ok(install.includes('Evacuate and charge the system') && !install.includes('Recover refrigerant'));
+  const removal = steps(draft('Recover refrigerant from the old split systems and remove them.', 'mechanical'));
+  assert.ok(removal.includes('Recover refrigerant') && !removal.includes('Evacuate and charge the system'));
+});

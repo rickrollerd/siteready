@@ -157,6 +157,34 @@ const FINISH = {
   ],
 };
 
+// Fixing hangers and supports for ducts and pipes, drilled into the slab above.
+const HANGERS_STEP = {
+  step: 'Fix hangers and supports',
+  hazards: [{ unless: 'houseRoofDucts', text: 'Silica dust from drilling hanger anchors.' }, { unless: 'houseRoofDucts', text: 'Cutting a post-tensioning tendon when drilling.' }, { only: 'houseRoofDucts', text: 'Dust from cutting outlet holes in the ceiling.' }, 'Tools and fixings fall onto people below.'],
+  controls: [
+    { unless: 'houseRoofDucts', text: 'Before drilling into a slab, scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings, and never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval. Other detected services are isolated and confirmed before drilling near them.' },
+    { unless: 'houseRoofDucts', ...src('Drill anchors with on-tool extraction, and wear a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`) },
+    { unless: 'houseRoofDucts', ...src('Assess in writing before drilling whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.', WHS('s 529CA')) },
+    { unless: 'houseRoofDucts', ...src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')) },
+    { only: 'houseRoofDucts', text: 'Ducts are hung from the roof framing on straps. Outlet holes in the ceiling are cut with a hole saw with dust extraction, from below and after checking for cables.' },
+    src('Barricade and sign the area below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
+    'Stop tools and materials falling.',
+  ],
+};
+
+// Working from ladders: its own step wherever ladders are the likely access.
+const LADDER_STEP = {
+  step: 'Work from ladders',
+  hazards: ['A fall from the ladder.', 'The ladder slips, tips or breaks.', 'Contact with power lines or live electrical parts.'],
+  controls: [
+    'A platform ladder, EWP or scaffold is used where the work is more than short and light, or needs both hands.',
+    src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
+    src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
+    'Single and extension ladders are used for access or short, light work only, set on firm level ground at about 1 in 4, secured top and bottom, and extending 900 mm above the landing.',
+    'Near power lines or live electrical parts, ladders are non-conductive and kept outside the approach distances.',
+  ],
+};
+
 const ACTIVITIES = [
   {
     when: 'road',
@@ -1325,30 +1353,53 @@ const ACTIVITIES = [
   {
     when: 'ductwork',
     steps: [
+      HANGERS_STEP,
+      { ...LADDER_STEP, unless: 'ladderUse' },
       {
-        step: 'Install ductwork, pipework and units',
-        hazards: [{ only: 'riserWork', text: 'A fall from a platform, ladder or open riser.' }, { unless: 'riserWork', text: 'A fall from a platform or ladder.' }, 'Tools, fixings and duct sections fall onto people below.', { unless: 'houseRoofDucts', text: 'Silica dust from drilling hanger anchors.' }, { unless: 'houseRoofDucts', text: 'Cutting a post-tensioning tendon when drilling.' }, { only: 'houseRoofDucts', text: 'Dust from cutting outlet holes in the ceiling.' }, 'Cuts from duct edges and strain from lifting duct overhead.'],
+        step: 'Install ductwork',
+        only: 'ductNamed',
+        hazards: [{ only: 'riserWork', text: 'A fall from a platform, ladder or open riser.' }, { unless: 'riserWork', text: 'A fall from a platform or ladder.' }, 'Tools, fixings and duct sections fall onto people below.', 'Cuts from duct edges and strain from lifting duct overhead.'],
         controls: [
           { fact: 'fallControl' },
           src('Work from the floor or a platform where possible. Fall prevention comes before work positioning or fall arrest.', WHS('s 78, s 79')),
           { only: 'riserWork', ...src('Risers and shafts are covered or screened at each level. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`) },
           { only: 'riserWork', text: 'Only the section being worked on is opened.' },
-          src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
-          src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
           src('Barricade and sign the area below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
           'Stop tools and materials falling.',
-          // In a house the ducts hang from the roof framing: no other trades overhead and no slab to drill.
           { unless: 'houseRoofDucts', ...src('Sequence the work so trades are not working above or below each other at the same time.', MODEL('Managing the risk of falls', 's 8.3')) },
-          { unless: 'houseRoofDucts', text: 'Before drilling into a slab, scan and mark reinforcement, conduits and pipes. In a post-tensioned slab, check the post-tensioning drawings, and never drill within a marked tendon zone: move the hole, or get the structural engineer\'s written approval. Other detected services are isolated and confirmed before drilling near them.' },
-          { unless: 'houseRoofDucts', ...src('Drill anchors with on-tool extraction, and wear a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`) },
-          { unless: 'houseRoofDucts', ...src('Assess in writing before drilling whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.', WHS('s 529CA')) },
-          { unless: 'houseRoofDucts', ...src('Where the processing is high risk: a silica risk control plan is given to workers before they start (this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed), and workers doing the processing or at risk of exposure have completed a VET accredited or regulator approved crystalline silica course, with training records kept until 5 years after the worker leaves.', WHS('s 529CB, s 529CC, s 529CD')) },
-          { only: 'houseRoofDucts', text: 'Ducts are hung from the roof framing on straps. Outlet holes in the ceiling are cut with a hole saw with dust extraction, from below and after checking for cables.' },
           src('Use lifting aids such as duct lifters for overhead duct sections, rather than holding them up by hand.', MODEL('Hazardous manual tasks', 's 4.5')),
+        ],
+      },
+      {
+        step: 'Fix the units in place',
+        only: 'mechUnits',
+        hazards: ['A unit falls while it is lifted into position.', 'Strain from lifting units overhead.'],
+        controls: [
+          'Units are lifted into position with a material lift or other mechanical aid, and fixed to their supports before they are let go.',
+          src('Barricade and sign the area below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
         ],
       },
     ],
     ppe: ['gloveCut', 'p2'],
+  },
+  {
+    when: 'mechPipework',
+    steps: [
+      { ...HANGERS_STEP, unless: 'ductwork' },
+      {
+        step: 'Install mechanical pipework',
+        hazards: [{ only: 'riserWork', text: 'A fall from a platform, ladder or open riser.' }, { unless: 'riserWork', text: 'A fall from a platform or ladder.' }, 'Pipe lengths and fittings fall onto people below.', 'Strain from lifting pipe overhead.'],
+        controls: [
+          { fact: 'fallControl' },
+          src('Work from the floor or a platform where possible. Fall prevention comes before work positioning or fall arrest.', WHS('s 78, s 79')),
+          { only: 'riserWork', ...src('Risers and shafts are covered or screened at each level. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`) },
+          src('Barricade and sign the area below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
+          'Stop tools and materials falling.',
+          'Use pipe lifters or jacks to hold pipe overhead, rather than holding it up by hand.',
+        ],
+      },
+    ],
+    ppe: ['gloveCut'],
   },
   {
     when: 'refrigerantPipework',
@@ -1386,7 +1437,8 @@ const ACTIVITIES = [
   {
     when: 'refrigerantCharge',
     steps: [{
-      step: 'Evacuate, charge and recover refrigerant',
+      step: 'Evacuate and charge the system',
+      unless: 'refrigerantRecoverOnly',
       hazards: ['Freeze burns from liquid refrigerant.', 'Asphyxiation from a leak in an enclosed space.', 'Fire from a flammable refrigerant.', 'A cylinder bursts.'],
       controls: [
         src('Read the refrigerant\'s safety data sheet before handling it.', ARC('s 13.1')),
@@ -1412,7 +1464,17 @@ const ACTIVITIES = [
         src('Leak test charging hoses before fully opening the cylinder valve. Never let refrigerant flow back into the cylinder.', ARC('s 6.3, s 6.5')),
         src('Do not overfill the system. Keep charging lines short and do not trap liquid refrigerant between closed valves. Wear cold resistant gloves and eye protection when connecting and disconnecting.', ARC('s 6.4, s 6.5')),
         src('Recover into in-date cylinders suited to the refrigerant (A2 and A2L into their own cylinders). Never vent refrigerant.', ARC('s 10.1, s 12.2.3')),
+        src('Close cylinder valves and fit the sealing caps when not in use.', ARC('s 13.6.3')),
+      ],
+    }, {
+      step: 'Recover refrigerant',
+      only: 'refrigerantRecover',
+      hazards: ['Freeze burns from liquid refrigerant.', 'Asphyxiation from a leak in an enclosed space.', 'A recovery cylinder is overfilled and bursts.'],
+      controls: [
+        src('Read the refrigerant\'s safety data sheet before handling it.', ARC('s 13.1')),
+        src('Recover into in-date cylinders suited to the refrigerant (A2 and A2L into their own cylinders). Never vent refrigerant.', ARC('s 10.1, s 12.2.3')),
         src('Store refrigerant only in refillable containers, and give recovered refrigerant to a refrigerant trading authorisation holder or a destruction facility.', OZONE('reg 135')),
+        'Wear cold resistant gloves and eye protection when connecting and disconnecting hoses.',
         src('Close cylinder valves and fit the sealing caps when not in use.', ARC('s 13.6.3')),
       ],
     }],
@@ -5539,13 +5601,18 @@ const ACTIVITIES = [
   {
     when: 'fumeCupboard',
     steps: [{
-      step: 'Install the fume cupboards and their exhaust',
-      hazards: ['A fume cupboard tips or falls while it is moved.', 'Strain lifting cabinets and benches.', 'Chemical residues in an existing laboratory.', 'A fall from the roof while fitting the exhaust fan and stack.'],
+      step: 'Install the fume cupboards',
+      hazards: ['A fume cupboard tips or falls while it is moved.', 'Strain lifting cabinets and benches.', 'Chemical residues in an existing laboratory.'],
       controls: [
         'Fume cupboards are moved on trolleys or skates and lifted with mechanical aids, and fixed before they are let go.',
         'In an existing laboratory, the area is cleared and decontaminated by the occupier before work starts.',
-        'The exhaust fan and stack on the roof are installed with the roof fall protection in place.',
         'Fume cupboards are tested and commissioned to AS/NZS 2243.8 before use, with electrical and plumbing connections made by licensed trades.',
+      ],
+    }, {
+      step: 'Install the exhaust fan and stack on the roof',
+      hazards: ['A fall from the roof while fitting the exhaust fan and stack.'],
+      controls: [
+        'The exhaust fan and stack on the roof are installed with the roof fall protection in place.',
       ],
     }],
   },
@@ -6014,11 +6081,16 @@ const ACTIVITIES = [
   {
     when: 'plantErect',
     steps: [{
-      step: 'Erect and commission the plant',
-      hazards: ['A silo, frame or conveyor section falls while it is lifted.', 'A fall from silos, frames or conveyor walkways.', 'Plant starts while someone is working on it during commissioning.'],
+      step: 'Erect the plant',
+      hazards: ['A silo, frame or conveyor section falls while it is lifted.', 'A fall from silos, frames or conveyor walkways.'],
       controls: [
         'The plant is erected to its supplier\'s procedure on footings designed for it, and sections and silos are lifted by crane under a lift plan, slung by licensed doggers or riggers.',
         'Work at height uses the plant\'s walkways and ladders once fitted with guardrails, or an elevating work platform, with harnesses where those are not yet in place.',
+      ],
+    }, {
+      step: 'Commission the plant',
+      hazards: ['Plant starts while someone is working on it during commissioning.'],
+      controls: [
         'Guards, pull-wires and emergency stops are fitted and tested before the plant is run, and it is isolated and locked out while anyone works on it.',
       ],
     }],
@@ -6282,17 +6354,7 @@ const ACTIVITIES = [
   },
   {
     when: 'ladderUse',
-    steps: [{
-      step: 'Work from ladders',
-      hazards: ['A fall from the ladder.', 'The ladder slips, tips or breaks.', 'Contact with power lines or live electrical parts.'],
-      controls: [
-        'A platform ladder, EWP or scaffold is used where the work is more than short and light, or needs both hands.',
-        src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
-        src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
-        'Single and extension ladders are used for access or short, light work only, set on firm level ground at about 1 in 4, secured top and bottom, and extending 900 mm above the landing.',
-        'Near power lines or live electrical parts, ladders are non-conductive and kept outside the approach distances.',
-      ],
-    }],
+    steps: [LADDER_STEP],
   },
   {
     when: 'glassWind',
@@ -6957,12 +7019,9 @@ const ACTIVITIES = [
   {
     when: 'generatorPlant',
     steps: [{
-      step: 'Install generators and fuel systems',
-      hazards: ['Fire or explosion from diesel or its vapour.', 'Fuel spills.', 'Diesel exhaust and noise when generators run.', 'The generator starts while someone is working on it.'],
+      step: 'Install the generators',
+      hazards: ['The generator falls or swings while it is lifted or moved.', 'Diesel exhaust and noise when generators run.', 'The generator starts while someone is working on it.'],
       controls: [
-        { fact: 'safetyDataSheet' },
-        src('Work on or near fuel lines is high risk construction work.', WHS('s 291')),
-        src('Keep the least practicable quantity of fuel at the work area, keep ignition sources out of hazardous areas, and contain and clean up spills straight away.', WHS('s 53, s 355, s 357')),
         src('Generators and tanks are lifted into place by the crane company or moved on skates and rollers.', `${WHS('s 219')}; ${QCODE('Hazardous manual tasks', 's 4.4')}`),
         'Keep generators and tanks under control and never move them over people.',
         { unless: 'generatorTest', ...src('The generator\'s connection, changeover switch and switchboard work are electrical work for a licensed electrician, with the supply isolated and proved de-energised first.', ESA('s 55, s 56')) },
@@ -6970,21 +7029,35 @@ const ACTIVITIES = [
         { ...src('When generators are run for testing, the exhaust is taken outside and the room ventilated so no one breathes diesel exhaust above the exposure standard.', `${WHS('s 49')}; ${QCODE('Managing risks of hazardous chemicals', 's 1.5, s 2.1, s 4.1')}`), unless: 'generatorTest' },
         { ...src('Noise is kept below 85 dB(A) over 8 hours and 140 dB(C) peak, with hearing protection in signposted areas.', WHS('s 56, s 57, s 58')), unless: 'generatorTest' },
       ],
+    }, {
+      step: 'Install the fuel tanks and fuel lines',
+      hazards: ['Fire or explosion from diesel or its vapour.', 'Fuel spills.'],
+      controls: [
+        { fact: 'safetyDataSheet' },
+        src('Work on or near fuel lines is high risk construction work.', WHS('s 291')),
+        src('Keep the least practicable quantity of fuel at the work area, keep ignition sources out of hazardous areas, and contain and clean up spills straight away.', WHS('s 53, s 355, s 357')),
+      ],
     }],
     ppe: ['earMuffs', 'gloveChemical'],
   },
   {
     when: 'boilerPlant',
     steps: [{
-      step: 'Install and commission boilers and pressure vessels',
-      hazards: ['Release of steam or pressure.', 'Burns from hot surfaces.', 'Fire or explosion from fuel.', 'Heat stress next to operating plant.'],
+      step: 'Install boilers and pressure vessels',
+      hazards: ['Fire or explosion from fuel.', 'Heat stress next to operating plant.'],
       controls: [
-        src('Boilers and pressure vessels at hazard level A, B or C have a registered design and are registered items before they are used.', WHS('s 243, s 246, schedule 5')),
-        src('Boilers are operated only by a person holding a standard or advanced boiler operation licence as the boiler requires.', WHS('s 81, schedule 3')),
         src('Isolate steam, water and fuel by lock-out before work, and release stored pressure.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
         src('No ignition sources are taken into a hazardous area around fuel systems. Work on or near gas or fuel lines is high risk construction work, listed above where it applies.', WHS('s 291, s 355')),
         src('Where other boilers or hot plant in the room stay in operation, the area has artificial extremes of temperature, which makes the work high risk construction work: plan breaks, cool water and limits on time near hot plant.', `${WHS('s 40, s 41, s 291')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
         { only: 'gasBoiler', text: 'The gas supply is isolated and the old boiler disconnected, and the new boiler connected, leak tested and commissioned, only by a gas fitter holding the licence or authorisation the appliance needs.' },
+      ],
+    }, {
+      step: 'Commission boilers and pressure vessels',
+      hazards: ['Release of steam or pressure.', 'Burns from hot surfaces.'],
+      controls: [
+        src('Boilers and pressure vessels at hazard level A, B or C have a registered design and are registered items before they are used.', WHS('s 243, s 246, schedule 5')),
+        src('Boilers are operated only by a person holding a standard or advanced boiler operation licence as the boiler requires.', WHS('s 81, schedule 3')),
+        src('Isolate steam, water and fuel by lock-out before work, and release stored pressure.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
       ],
     }],
   },
@@ -8388,7 +8461,7 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Set up site sheds', 'Install construction power and temporary lighting');
   moveBefore('Isolate and prove de-energised', 'Install construction power and temporary lighting');
   moveAfter('Inspect, test and maintain construction power', 'Work on or near energised parts');
-  moveBefore('Cut and flash the roof penetration', 'Install ductwork, pipework and units');
+  moveBefore('Cut and flash the roof penetration', 'Fix hangers and supports');
   moveBefore('Clear the drain with a drain machine or jetter', 'Clean, inspect and reline the pipe');
   moveBefore('Install water meters and backflow devices', 'Connect to the water supply');
   moveBefore('Isolate the gas and disconnect the old appliance', 'Install doors, joinery and cabinets');
@@ -8577,7 +8650,7 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Mix bagged concrete', 'Place concrete');
   moveBefore('Deliver and install commercial kitchen equipment', 'Connect, leak test and commission the gas appliance');
   moveBefore('Lift and place tanks, pits or precast units', 'Plumbing rough-in and fit-off');
-  moveBefore('Work in the roof space', 'Install ductwork, pipework and units');
+  moveBefore('Work in the roof space', 'Fix hangers and supports');
   moveBefore('Disconnect and connect the water heater', 'Connect, leak test and commission the gas appliance');
   moveBefore('Lift and fix the purlins', 'Fix new roofing');
   moveBefore('Lift and fix the purlins', 'Set up roof access and fall protection');

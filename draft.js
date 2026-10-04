@@ -1630,7 +1630,7 @@ const MAIN_WORK = [
   [/\b(?:install|erect|assembl|build)\w*\s+(?:an? |the )?(?:new )?(?:(?:garden|kit|colorbond|steel|metal)\s+)+sheds?\b/i, 'shed kit assembly', /\b(shed kit|shed frame)\b/i],
   [/\bbollards?\b/i, 'bollard installation', /\bbollards\b/i],
   [/\bexhaust fans?\b[^.]{0,40}\b(?:ceilings?|roof spaces?)\b|\b(?:ceilings?|roof spaces?)\b[^.]{0,40}\bexhaust fans?\b/i, 'exhaust fan work in a ceiling', /\bWork in the roof space\b/],
-  [/\bremov\w*\b[^.]{0,30}\b(?:split systems?|air ?condition\w*)/i, 'removing the units', /\b(Receive plant|Install ductwork, pipework and units)\b/],
+  [/\bremov\w*\b[^.]{0,30}\b(?:split systems?|air ?condition\w*)/i, 'removing the units', /\b(Receive plant|Fix the units in place|Install ductwork)\b/],
   // A circuit breaker is electrical work, not concrete breaking.
   [/\b(jackhammer\w*|break\w* (?:out|up)|(?<!circuit[- ])breakers?)\b/i, 'breaking out concrete', /\b(break|Trim pile heads|Demolish|Saw cut)/i],
   [/^(?![^]*\b(?:repoint\w*|sandstone|brick\w*|masonry|stone walls?|render\w*|concrete|retaining walls?|fire ?walls?|fibro|asbestos)\b)[^]*\b(?:patch\w*|repair\w*)\b[^.]{0,30}\b(?:plasterboard|linings?|walls?(?! frames?| framing)|ceilings?)\b/i, 'patching linings', /\bCut, set and sand\b/],
@@ -2257,7 +2257,7 @@ function settleFlags(flags, task) {
   if (out.doorSpring) out.carpentryWork = false;
   if (/\bconstruct\w*[^.]{0,30}\bconcrete (?:water )?tanks?\b/i.test(task)) out.reo = false;
   if (out.passiveFire && /\bceiling spaces?\b/i.test(task)) out.roofSpace = true;
-  if (out.ductwork && out.houseWork) out.roofSpace = true;
+  if (out.ductwork && out.houseWork && !/\b(apartments?|storeys?|towers?|levels?)\b/i.test(task)) out.roofSpace = true;
   if (/\b(sports? (?:fields?|ovals?|grounds?|courts?)|stadiums?)\b/i.test(task) && /\blight\w*\b/i.test(task)) { out.sportsLighting = true; out.fitOff = false; }
   if (/\b(cooktops?|stoves?|ovens?)\b/i.test(task) && /\b(replac\w*|install\w*)\b/i.test(task) && /\b(electric|induction)\b/i.test(task)) out.isolation = true;
   if (/\brewir\w*\b/i.test(task)) out.isolation = true;
@@ -2993,6 +2993,15 @@ function settleFlags(flags, task) {
   // including valves") is supplied and installed, so it has the install step. It is set last, so it
   // brings no other step with it.
   if (MECHANICAL_WORK.test(task) && sentencesWith(task, /^\s*(?:(?:chilled|condenser|heating|heated|hot) water |refrigerant |condensate )?(?:pipework|piping|ductwork)\b(?! insulation| lagging)/i).some((sentence) => !/\b(shall|must|will|to be|is|are|be)\b/i.test(sentence))) out.ductwork = true;
+  // The mechanical install is split into one step per activity: ductwork, pipework and units
+  // each come only when the task names them, and ductwork when it names none of them.
+  out.mechPipework = /\b(?:(?:chilled|condenser|heating|heated|hot) water|hydronic|mechanical|condensate) (?:pipework|piping|pipes)\b|(?<!refrigerant |refrigeration |copper )\b(?:pipework|piping)\b/i.test(task) && MECHANICAL_WORK.test(task);
+  if (out.mechPipework && !/\b(replac\w*|repair\w*|re-?pip\w*)\b/i.test(task)) out.ceilingPipework = false;
+  out.mechUnits = /\b(air handling units?|ahus?|(?:exhaust|supply|in-?line|toilet exhaust|kitchen exhaust) fans?|heat recovery (?:ventilat\w*|units?)|hrvs?|ervs?|package units?|evaporative coolers?)\b/i.test(task);
+  out.ductNamed = /\b(ductwork|duct(?:ing|s)?|ducted)\b/i.test(task) || (!out.mechPipework && !out.mechUnits);
+  // Refrigerant is recovered only when a system is emptied, repaired or taken out.
+  out.refrigerantRecover = REFRIGERANT.test(task) && /\b(recover\w*|decant\w*|decommission\w*|de-?gas\w*|remov\w*|replac\w*|repair\w*|leaks?)\b/i.test(task);
+  out.refrigerantRecoverOnly = out.refrigerantRecover && !/\b(charg\w*|evacuat\w*|install\w*|commission\w*|re-?gas\w*|top(?:ping)? up)\b/i.test(task);
   return out;
 }
 
@@ -3393,7 +3402,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     substation: /\bsubstations?\b/i.test(task),
     nightWork: /\b(at night|night ?(?:work|shifts?)|overnight)\b/i.test(task),
     occupied: /\b(occupied|aged care|nursing homes?|hospitals?|while (?:the )?(?:\w+ )?(?:stay|remain)s? open|residents?|patients?|students? on site|during term)\b/i.test(task),
-    houseWork: /\b(houses?|homes?|dwellings?|units?|apartments?|townhouses?|queenslanders?|residential|granny flats?)\b/i.test(task) && !/\b(commercial|strata|apartment (?:building|block)s?|shopping|hospital|school|factory|warehouse)\b/i.test(task),
+    // "Units" here are homes, not equipment such as fan coil or air handling units.
+    houseWork: /\b(houses?|homes?|dwellings?|units?|apartments?|townhouses?|queenslanders?|residential|granny flats?)\b/i.test(task.replace(/\b(?:fan coil|air handling|condensing|indoor|outdoor|package(?:d)?|rooftop|wall[- ]hung|ceiling cassette|cassette|air ?condition\w*|split system|heat recovery|exhaust|power|control|pump|filter|terminal|treatment|dosing|chiller) units?\b/gi, '')) && !/\b(commercial|strata|apartment (?:building|block)s?|shopping|hospital|school|factory|warehouse)\b/i.test(task),
     oldHouse: /\b(1[89]\d0s|19[0-7]\d|pre-?19[0-7]\d|federation|queenslanders?|old (?:house|home)|weatherboard)\b/i.test(task),
     deckStairs: /\b(stairs?|steps|balustrad\w*|handrails?)\b/i.test(task),
     splitSystem: /\bsplit[- ]systems?\b/i.test(task) && !/\bduct\w*\b/i.test(task),

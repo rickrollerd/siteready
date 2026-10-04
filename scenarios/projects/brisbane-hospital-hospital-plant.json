@@ -17,7 +17,7 @@
         ],
         "steps": [
           "Work with the crane crew during lifts",
-          "Install and commission boilers and pressure vessels"
+          "Install boilers and pressure vessels"
         ],
         "missing": []
       }
@@ -37,7 +37,7 @@
         ],
         "steps": [
           "Work with the crane crew during lifts",
-          "Install generators and fuel systems"
+          "Install the generators"
         ],
         "missing": [
           "Safety data sheet"
