@@ -298,7 +298,10 @@
       </div>
       <div class="field">
         <label for="profile-address">Address</label>
-        <input id="profile-address" type="text" autocomplete="street-address">
+        <div class="address-box">
+          <input id="profile-address" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="profile-address-list">
+          <ul id="profile-address-list" class="address-list hidden" role="listbox"></ul>
+        </div>
       </div>
       <div class="field">
         <label for="profile-phone">Phone</label>
