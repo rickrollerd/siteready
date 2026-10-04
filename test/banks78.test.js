@@ -49,13 +49,13 @@ test('the first fall control offered suits the work: no open edge for a door, ce
 
 test('a warehouse roller door is lifted by plant, its motor wired in, and the forklift listed', () => {
   const done = draft('Remove and replace a damaged roller door at a warehouse.', { fallRisk: 'yes' });
-  assert.ok(steps(done).includes('Install the roller door and its motor'));
+  assert.ok(steps(done).includes('Install the roller door') && steps(done).includes('Install the door motor'));
   assert.ok(!has(done, /plugged into a socket|lifted into place by two people/));
   assert.ok(has(done, /curtain and drum are lifted into place from an EWP or scissor lift, or with a forklift/));
   assert.ok(plant(done).includes('Forklift'));
   // A house garage door is still lifted by two people.
   const garage = draft('Replace a garage door and motor on a house.', { residential: 'yes' });
-  assert.ok(steps(garage).includes('Install the garage or roller door and its motor'));
+  assert.ok(steps(garage).includes('Install the door') && steps(garage).includes('Install the door motor'));
   assert.ok(has(garage, /lifted into place by two people/));
 });
 

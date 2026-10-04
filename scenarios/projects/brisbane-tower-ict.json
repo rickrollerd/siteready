@@ -63,7 +63,8 @@
           "electrical"
         ],
         "steps": [
-          "Install comms racks, cabinets and equipment"
+          "Install comms racks and cabinets",
+          "Install comms equipment"
         ],
         "missing": []
       }

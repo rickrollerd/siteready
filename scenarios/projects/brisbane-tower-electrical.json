@@ -21,7 +21,8 @@
           "electrical"
         ],
         "steps": [
-          "Install construction power and temporary lighting",
+          "Install construction power",
+          "Install temporary lighting",
           "Inspect, test and maintain construction power",
           "Isolate and prove de-energised",
           "Work on or near energised parts"

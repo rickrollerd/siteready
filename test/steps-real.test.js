@@ -232,7 +232,8 @@ test('a new fan coil unit is lifted into place, a replaced one is lowered out fi
   const { prepareDraft } = require('../draft');
   const steps = (task) => prepareDraft({ state: 'qld', task, fallRisk: 'no', residential: 'no' }).jobSteps.map((step) => step.step);
   assert.ok(steps('Supply and install fan coil units in the server room, with drip trays drained outside.').includes('Lift the fan coil unit into place and fix it'));
-  assert.ok(steps('Replace the existing fan coil units on level 2.').includes('Lower the old fan coil unit down and lift the new one into place'));
+  const replace = steps('Replace the existing fan coil units on level 2.');
+  assert.ok(replace.includes('Remove the old fan coil unit') && replace.includes('Lift the fan coil unit into place and fix it'));
 });
 
 test('a search for mech lists mechanical work, not steps that only mention mechanical aids', () => {
@@ -557,4 +558,97 @@ test('site fencing, hoardings and gantries are separate steps', () => {
   assert.ok(street.includes('Erect the hoardings') && street.includes('Erect the gantry') && !street.includes('Erect temporary fencing'));
   const fence = steps(draft('Erect temporary fencing around the site.', 'site'));
   assert.ok(fence.includes('Erect temporary fencing') && !fence.includes('Erect the hoardings') && !fence.includes('Erect the gantry'));
+});
+
+test('construction power and temporary lighting are separate steps; lighting alone installs no power', () => {
+  const both = steps(draft('Install construction power and temporary lighting for the new building.', 'electrical'));
+  assert.ok(both.includes('Install construction power') && both.includes('Install temporary lighting'));
+  const light = steps(draft('Install temporary lighting in the stairwells.', 'electrical'));
+  assert.ok(light.includes('Install temporary lighting') && !light.includes('Install construction power'));
+});
+
+test('comms racks and cabinets are stood before the equipment goes in, as separate steps', () => {
+  const done = steps(draft('Install comms racks and equipment in the comms room.'));
+  assert.ok(done.includes('Install comms racks and cabinets') && done.includes('Install comms equipment'));
+});
+
+test('hydraulic risers and pipework are installed in a step that does not name the height', () => {
+  assert.ok(steps(draft('Install hydraulic risers and pipework in the shafts.', 'plumbing')).includes('Install risers and pipework'));
+});
+
+test('hydronic pipes are laid and fixed, then pressure tested, as separate steps', () => {
+  const done = steps(draft('Install hydronic heating pipes in the slab and pressure test.', 'plumbing'));
+  assert.ok(done.includes('Lay and fix the hydronic pipes') && done.includes('Pressure test the hydronic pipes'));
+});
+
+test('the boiler is moved and set, then connected, as separate steps', () => {
+  const done = steps(draft('Install the new gas boiler in the plant room.', 'plumbing'));
+  assert.ok(done.includes('Move and set the boiler') && done.includes('Connect the boiler'));
+});
+
+test('pool plant and chemical dosing are separate steps; dosing alone installs no pool plant', () => {
+  const both = steps(draft('Install the pool plant and chemical dosing at the aquatic centre.', 'plumbing'));
+  assert.ok(both.includes('Install the pool plant') && both.includes('Install the chemical dosing'));
+  const dosing = steps(draft('Install the pool chemical dosing system.', 'plumbing'));
+  assert.ok(dosing.includes('Install the chemical dosing') && !dosing.includes('Install the pool plant'));
+});
+
+test('a processing plant is run and maintained as separate steps, named for the plant', () => {
+  const crush = steps(draft('Operate the crushing and screening plant at the quarry.'));
+  assert.ok(crush.includes('Run the crushing and screening plant') && crush.includes('Maintain the crushing and screening plant'));
+  const batch = steps(draft('Run the concrete batching plant.'));
+  assert.ok(batch.includes('Run the batching plant') && batch.includes('Maintain the batching plant'));
+});
+
+test('high voltage cables are prepared and terminated, then tested, as separate steps', () => {
+  const done = steps(draft('Terminate and test the 11 kV high voltage cables at the substation.', 'electrical'));
+  assert.ok(done.includes('Prepare and terminate the high voltage cables') && done.includes('Test the high voltage cables'));
+});
+
+test('sprinkler and hydrant pipework are separate steps, each when named and both when neither is', () => {
+  const both = steps(draft('Install sprinkler and hydrant pipework on levels 1 to 5.', 'fire'));
+  assert.ok(both.includes('Install sprinkler pipework') && both.includes('Install hydrant pipework'));
+  const sprinkler = steps(draft('Install sprinkler pipework in the ceilings on level 4.', 'fire'));
+  assert.ok(sprinkler.includes('Install sprinkler pipework') && !sprinkler.includes('Install hydrant pipework'));
+  const hydrant = steps(draft('Install hydrant pipework in the risers.', 'fire'));
+  assert.ok(hydrant.includes('Install hydrant pipework') && !hydrant.includes('Install sprinkler pipework'));
+  const neither = steps(draft('Install fire services pipework at height.', 'fire'));
+  assert.ok(neither.includes('Install sprinkler pipework') && neither.includes('Install hydrant pipework'));
+});
+
+test('work on live fire systems and work in the pump room are separate steps; the pump room only when named', () => {
+  const both = steps(draft('Isolate the fire pumps in the pump room and drain the sprinkler system.', 'fire'));
+  assert.ok(both.includes('Work on live fire systems') && both.includes('Work in pump rooms'));
+  const live = steps(draft('Isolate the live sprinkler system to connect new heads.', 'fire'));
+  assert.ok(live.includes('Work on live fire systems') && !live.includes('Work in pump rooms'));
+});
+
+test('the door and its motor are installed as separate steps; a motor alone hangs no door', () => {
+  const both = steps(draft('Install a new garage door and motor on a house.'));
+  assert.ok(both.includes('Install the door') && both.includes('Install the door motor'));
+  const motor = steps(draft('Replace the garage door motor.'));
+  assert.ok(motor.includes('Install the door motor') && !motor.includes('Install the door'));
+});
+
+test('the rainwater tank and its pump are separate steps; the pump only when named', () => {
+  const both = steps(draft('Install a rainwater tank and pump at the house.', 'plumbing'));
+  assert.ok(both.includes('Install the rainwater tank') && both.includes('Install the pump'));
+  const tank = steps(draft('Install a rainwater tank at the house.', 'plumbing'));
+  assert.ok(tank.includes('Install the rainwater tank') && !tank.includes('Install the pump'));
+  const pump = steps(draft('Replace the rainwater tank pump.', 'plumbing'));
+  assert.ok(pump.includes('Install the pump') && !pump.includes('Install the rainwater tank'));
+});
+
+test('fuel lines and fuel dispensers are separate steps, each when named', () => {
+  const both = steps(draft('Install new fuel dispensers and fuel lines at the service station.'));
+  assert.ok(both.includes('Install fuel lines') && both.includes('Install fuel dispensers'));
+  const dispensers = steps(draft('Replace the fuel dispensers at the service station.'));
+  assert.ok(dispensers.includes('Install fuel dispensers') && !dispensers.includes('Install fuel lines'));
+});
+
+test('clean room walls and ceilings and the clean room flooring are separate steps, each when named', () => {
+  const both = steps(draft('Install the clean room walls, ceilings and floor for the pharmacy.'));
+  assert.ok(both.includes('Install clean room walls and ceilings') && both.includes('Install clean room flooring'));
+  const panels = steps(draft('Install clean room wall and ceiling panels.'));
+  assert.ok(panels.includes('Install clean room walls and ceilings') && !panels.includes('Install clean room flooring'));
 });
