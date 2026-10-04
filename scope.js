@@ -10,19 +10,19 @@ const { findState, highRiskList } = require('./legislation');
 const { TRADES, tradeIds } = require('./trades');
 
 // Headings that start a part of the scope that is not the subcontractor's site work.
-const OUT_HEADING = /\b(exclu\w*|by others|not included|not in scope|omitted|n\.?i\.?c\.?|builder'?s? (?:responsibilit\w*|works?|scope)|by (?:the )?(?:builder|client|principal|head contractor)|free issue|payment|insurance|warrant\w*|retention|variations?|programme|price|pricing|tender\w*|schedule of rates|rates|invoic\w*|claims?|definitions?|interpretation|general conditions|special conditions|contract conditions|documentation|submissions?|shop drawings|o ?& ?m|operation and maintenance|as[- ]?builts?|defects?|liquidated|security of payment|commercial|qualifications?|clarifications?|hold points?|inspection and test plans?|quality assurance|program(?:me)?|samples?|handover|maintenance|manufacture|storage|overview|introduction|background|project description)\b/i;
+const OUT_HEADING = /\b(exclu\w*|by others|not included|not in scope|omitted|n\.?i\.?c\.?|builder'?s? (?:responsibilit\w*|works?|scope)|by (?:the )?(?:builder|client|principal|head contractor)|free issue|payment|insurance|warrant\w*|retention|variations?|programme|price|pricing|tender\w*|schedule of rates|rates|invoic\w*|claims?|definitions?|interpretation|general conditions|special conditions|contract conditions|documentation|submissions?|shop drawings|o ?& ?m|operation and maintenance|as[- ]?builts?|defects?|liquidated|security of payment|commercial|qualifications?|clarifications?|hold points?|inspection and test plans?|quality assurance|program(?:me)?|samples?|handover|maintenance|manufacture|storage|overview|introduction|background|project description|completion|witness\w*|levels? (?:of|for) testing)\b/i;
 // Headings that bring the reader back to the work.
 const WORK_HEADING = /\b(scope of works?|extent of (?:the )?works?|trade specific|specific inclusions|works? included|inclusions?|the works|work to be (?:done|carried out)|description of (?:the )?works?|specific (?:works|requirements)|trade works?|installation|supply and install|general scope|subcontract works)\b/i;
 
 // A line that is not the subcontractor's site work.
 const NOT_OURS = /\b(by others|by (?:the )?(?:builder|client|principal|head contractor|main contractor|electrician|plumber|other trades?)|excluded|exclusions?|not included|not part of|n\.?i\.?c\b|supply only|supplied by (?:the )?(?:builder|client|others)|free issued?|builder (?:will|to) (?:supply|provide|install)|(?:client|builder) supplied)\b/i;
 // Paperwork, money and meetings: no site work.
-const PAPERWORK = /\b(shop drawings?|submit\w*|submissions?|certificat\w*|warrant\w*|manuals?|as[- ]?built|samples?|invoice\w*|payment|price\w*|pricing|rates?\b|cost\w*|insurance|meetings?|programme|schedule|retention|variation\w*|tender\w*|quotation|documentation|records?|registers?|reports?|approvals?|permits? fees?|nominat\w*|allowance|provisional sum|prime cost|liquidated|defects liability|ITPs?\b|inspection and test plans?|design\w*|engineer\w* (?:certif\w*|sign\w*)|fabricat\w* (?:off[- ]site|in the (?:shop|factory|workshop))|off[- ]site)\b/i;
+const PAPERWORK = /\b(shop drawings?|submit\w*|submissions?|certificat\w*|warrant\w*|manuals?|as[- ]?built|samples?|invoice\w*|payment|price\w*|pricing|rates?\b|cost\w*|insurance|meetings?|programme|schedule|retention|variation\w*|tender\w*|quotation|documentation|records?|registers?|reports?|approvals?|permits? fees?|nominat\w*|allowance|provisional sum|prime cost|liquidated|defects liability|ITPs?\b|inspection and test plans?|design\w*|engineer\w* (?:certif\w*|sign\w*)|fabricat\w* (?:off[- ]site|in the (?:shop|factory|workshop))|off[- ]site|train(?:ing)? (?:of |for )?(?:the )?(?:[\w-]+ ){0,3}(?:users?|staff|operators?|client|end users?|managers?|personnel)|(?:user|client|staff|operator) training)\b/i;
 // Verbs for work done on site. A line naming only materials or a drawing is not work.
 const SITE_WORK = /\b(install\w*|supply and install|erect\w*|dismantl\w*|fix\w*|lay(?:s|ing)?\b|construct\w*|demoli\w*|remov\w*|strip\w*|excavat\w*|trench\w*|backfill\w*|pour\w*|place(?:s|d)?\b|placing|cut(?:s|ting)?\b|core[- ]?drill\w*|coring|drill\w*|weld\w*|braz\w*|paint(?:s|ed|ing)?\b|apply|applied|application of|spray\w*|connect\w*|terminat\w*|test(?:s|ed|ing)?\b|commission\w*|seal(?:s|ed|ing)?\b|caulk\w*|grout\w*|tiling|hang(?:s|ing)?\b|set ?out|lift(?:s|ed|ing)?\b|hoist\w*|unload\w*|break(?:s|ing)? out|grind\w*|polish\w*|clean(?:s|ed|ing)?\b|torch\w*|screed\w*|render(?:s|ed|ing)?\b|sheet(?:ed|ing)\b|clad(?:ding)?\b|glaz(?:e|ed|ing)\b|pump(?:s|ed|ing)?\b|scaffold\w*|compact\w*|bolt(?:s|ed|ing)\b|anchor(?:s|ed|ing)\b|mount(?:s|ed|ing)\b|suspend\w*|penetrat\w*|isolat(?:e|es|ed|ing)\b|energis\w*|charg(?:e|ed|ing)\b|purg\w*|flush\w*|planting|mulch\w*|irrigat\w*|pav(?:e|ed|ing)\b|line ?mark\w*|rig(?:s|ged|ging)\b|dogg\w*|reinstat\w*|relocat\w*|pull(?:s|ed|ing)?\b|reticulat\w*|run(?:s|ning)? (?:the |all |new )?(?:cables?|pipes?|pipework|ducts?|ductwork|conduits?|services)|form(?:s|ed|ing)? (?:up|the|all)|tie(?:s|d)? (?:the |all )?(?:reo|reinforc\w*|bars?)|stress(?:ed|ing)\b|turf(?:ed|ing)\b|fill(?:ed|ing)?\b)\b/i;
 
 // Not this trade's site work: drawing and document titles, and other subcontractors' work.
-const NOT_WORK = /(\b(?:layout|sheet \d+|part \d+|drawing ____|document ____|specification\s*[-–:]|schedule\s*[-–:]|appendix\b|annexure\b|attachment\b)|\b(?!(?:the|this|our|each|a|any|all|such)\b)(?:\w+\/)?\w+ subcontractors? (?:to|will|shall|is|are)\b|\bother (?:sub)?contractors?\b|\bpreliminar\w*|^comment by\b|\bnational code of practice\b|\bunderstood\b|\bfit for construction\b|\breserves? the right\b|\bunless noted otherwise\b|\b(?:is|are) to be (?:of )?(?:an? )?(?:class|grade|type) \w+ finish\b|^\W*\d*\.?\s*(?:screws|nails|bolts|fixings|fasteners)\b[^.]*\b(?:similar items|accessories|sundries)\b|\bcontain(?:s|ing)? no asbestos\b|\bban on the import\w* of\b|\basbestos[- ]free\b)/i;
+const NOT_WORK = /(\b(?:layout|sheet \d+|part \d+|drawing ____|document ____|specification\s*[-–:]|schedule\s*[-–:]|appendix\b|annexure\b|attachment\b)|\b(?!(?:the|this|our|each|a|any|all|such)\b)(?:\w+\/)?\w+ (?:sub)?contractors? (?:to|will|shall|is|are)\b|\bother (?:sub)?contractors?\b|\bpreliminar\w*|^comment by\b|\bnational code of practice\b|\bunderstood\b|\bnot intended to (?:describe|be an? (?:exhaustive|complete))\b|\bin no way intended\b|\bfit for construction\b|\breserves? the right\b|\bunless noted otherwise\b|\b(?:is|are) to be (?:of )?(?:an? )?(?:class|grade|type) \w+ finish\b|^\W*\d*\.?\s*(?:screws|nails|bolts|fixings|fasteners)\b[^.]*\b(?:similar items|accessories|sundries)\b|\bcontain(?:s|ing)? no asbestos\b|\bban on the import\w* of\b|\basbestos[- ]free\b)/i;
 
 // Quotes put the price at the end of each item, after leader dots, a dash or the
 // quantity, unit and rate columns ("Precast pits (12 No.) set by crane .... $46,200").
@@ -40,14 +40,14 @@ function words(line) {
 function cleanLine(line) {
   return line
     .replace(/ /g, ' ')
-    .replace(/^\s*(?:[•·▪◦‣○●■□\-–—*>]+|\(?[a-z]{1,3}\)|\(?[ivx]{1,5}[.)]|\d+(?:\.\d+)*\.?\)?)\s+/i, '')
+    .replace(/^\s*(?:[•·▪◦‣○●■□\-–—*>]+|\(?[a-z]{1,3}\)|[a-z]\.(?=\s)|\(?[ivx]{1,5}[.)]|\d+(?:\.\d+)*\.?\)?)\s+/i, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-// A bullet or lettered item ("· Roof frame", "(a) Ductwork") is never a heading.
+// A bullet or lettered item ("· Roof frame", "(a) Ductwork", "b. Pipework") is never a heading.
 function isBullet(raw) {
-  return /^\s*(?:[•·▪◦‣○●■□\-–—*>]+|\(?[a-z]{1,3}\)|\(?[ivx]{1,5}\))\s+/i.test(raw);
+  return /^\s*(?:[•·▪◦‣○●■□\-–—*>]+|\(?[a-z]{1,3}\)|[a-z]\.|\(?[ivx]{1,5}\))\s+/i.test(raw);
 }
 
 // A short line with no full stop, often numbered or in capitals, starts a part of the scope.
@@ -68,62 +68,205 @@ function isWork(line) {
   return SITE_WORK.test(line) || kindsOf(line).length > 0;
 }
 
-// Whether a line describes the subcontractor's own site work.
-function keep(line) {
-  if (words(line) < MIN_WORDS) return false;
+// Whether a line names a trade's own systems ("Wet pipe sprinkler protection", "Air
+// handling units and fans"). A listed item under a work heading often has no verb.
+function namesTrade(line) {
+  const flags = workFlags(line);
+  return TRADES.some((trade) => (trade.signal instanceof RegExp ? trade.signal.test(line) : Boolean(trade.signal && flags[trade.signal])));
+}
+
+// A line that only says the work must meet standards or codes.
+const STANDARDS_ONLY = /^(?:all |the )?(?:works?|installations?|materials|workmanship|systems?|items?)\b[^.]{0,40}?\b(?:to be|shall be|must be|are to be|is to be|will be)\b[^.]{0,30}?\b(?:in accordance with|to comply with|compl\w* with|conform\w* (?:to|with)|to (?:the|a) (?:highest|high|best) (?:standard|quality))\b/i;
+// Site rules and general duties, not a description of work: "It is a site requirement
+// that no ...", "Provide any traffic control associated with their works".
+const RULE = /^(?:it is an? (?:[\w-]+ ){0,3}requirement that\b|no (?:[\w-]+ ){1,3}(?:are|is|shall|may|will|to) (?:be )?\w+)|^(?:the )?(?:builder|principal|client|head contractor|main contractor|managing contractor|superintendent)(?:'s)? (?:has|have|will|is|are|shall|must|to)\b|\bunless there is no alternative\b|^(?:all|any) [^.]{0,60}\bmust (?:have|hold|only|be done)\b|\bmay only be (?:used|done|carried out)\b|\bany (?:required |necessary )?[\w/ -]{0,40}\bassociated with (?:their|its|the subcontract(?:or'?s)?) works?\b/i;
+// Work left ready for the next trade ("supplied ready to be painted") is that trade's work.
+const READY_FOR = /\bready (?:to be|for) (?:the )?\w+/i;
+// Time clauses ("prior to concrete being poured") do not make a paperwork line site work.
+const WHEN_CLAUSE = /\b(?:prior to|before|after|until|once|following|during)\b[^,.;]*/gi;
+const PAPER_SITE_VERB = /\b(install\w*|erect\w*|lay\w*|fix(?:e[sd])?\b|fixing (?:of|to|the|all)\b|construct\w*|demoli\w*|excavat\w*|pour\w*|weld\w*|cut\w*|core[- ]drill\w*|lift\w*|rigg\w*)/i;
+
+function paperworkOnly(line) {
+  return PAPERWORK.test(line) && !PAPER_SITE_VERB.test(line.replace(WHEN_CLAUSE, ''));
+}
+
+// The part of a line that is the subcontractor's own work. A note in brackets or a
+// sentence that leaves work to others ("(Fans and controls by others)", "Under flashings
+// by the builder."), or that is only paperwork, is taken out and the rest is kept.
+function ownPart(line) {
+  const others = (text) => NOT_OURS.test(text) || READY_FOR.test(text);
+  // A bare "(by others)" is about the whole line, so it stays and the line is left out.
+  const text = line.replace(/\s*\([^()]*\)/g, (note) => (others(note) && /[a-z]{3,}/i.test(note.replace(NOT_OURS, '').replace(READY_FOR, '')) ? '' : note));
+  // Sentences end at a full stop after a word, not after an abbreviation such as "No.".
+  const sentences = text.split(/(?<=(?:[a-z]{2}|[)\d])[.;])\s+(?=[A-Z(])/);
+  // A line that starts with others' work is not ours at all.
+  if (sentences.length < 2 || others(sentences[0])) return text;
+  return [sentences[0], ...sentences.slice(1).filter((sentence) => !others(sentence))].filter((sentence) => !paperworkOnly(sentence)).join(' ');
+}
+
+// Whether a line describes the subcontractor's own site work. A listed item counts
+// when it names the trade's systems, even without a verb.
+function keep(line, listed = false, short = false) {
+  if (words(line) < (short ? 1 : MIN_WORDS)) return false;
   // Scopes often list the work without a verb ("Duct work including access panels"),
   // so a line that names a kind of work counts too.
-  if (QUOTE_TERMS.test(line) || NOT_OURS.test(line) || NOT_WORK.test(line) || !isWork(line)) return false;
+  if (QUOTE_TERMS.test(line) || NOT_OURS.test(line) || READY_FOR.test(line) || NOT_WORK.test(line) || STANDARDS_ONLY.test(line) || RULE.test(line) || SUPPLY_ONLY.test(line)) return false;
+  if (!isWork(line) && !(listed && namesTrade(line))) return false;
   // Mostly capitals is a title, not a description of work.
   const letters = line.replace(/[^A-Za-z]/g, '');
   if (letters.length > 12 && letters.replace(/[^A-Z]/g, '').length / letters.length > 0.6) return false;
   // A paperwork line is kept only if it also names work done on site.
-  return !(PAPERWORK.test(line) && !/\b(install\w*|erect\w*|lay\w*|fix\w*|construct\w*|demoli\w*|excavat\w*|pour\w*|weld\w*|cut\w*|core[- ]drill\w*|lift\w*|rigg\w*)\b/i.test(line));
+  return !paperworkOnly(line);
 }
 
-// The lines that describe the subcontractor's own site work. A line that leads into a
-// list ("Rigging of the structural steel for buildings 1 to 3:") is joined to its
+// Interface matrices give each item a row with a mark ("X") under the party that does it.
+// Rows marked for another party, and rows with no mark (group labels), are not our work;
+// rows marked for the subcontractor are.
+// Template rows still to be filled in ("<<Main Contractor / Subcontractor>>") are not ours either.
+const MARK = /^[\s ]*(?:x|✓|✔)[\s ]*$/i;
+const isBlankCell = (raw) => /^[\s ]*$/.test(raw) && /[\t ]/.test(raw);
+const CHOICE = /^\s*<<[^>]*>>\s*$/;
+const OTHER_PARTY = /\b(builder|principal|client|head contractor|main contractor|managing contractor|others?)\b/i;
+
+function othersRows(raws) {
+  const skip = new Set();
+  const mine = new Set();
+  let ours = 0;
+  for (let i = 0; i < raws.length; i += 1) {
+    const raw = raws[i];
+    if (/^\s*responsib\w*\s*$/i.test(raw)) {
+      // The parties are named in the cells after the heading; the first that is not
+      // the builder or another party is the subcontractor's column.
+      const names = raws.slice(i + 1, i + 8).filter((line) => line.trim() && !isBlankCell(line)).slice(0, 2);
+      const index = names.findIndex((name) => !OTHER_PARTY.test(name));
+      ours = index < 0 ? 0 : index;
+      continue;
+    }
+    if (CHOICE.test(raw)) {
+      skip.add(i);
+      for (let j = i - 1; j >= Math.max(0, i - 3); j -= 1) {
+        if (raws[j].trim()) {
+          skip.add(j);
+          break;
+        }
+      }
+      continue;
+    }
+    if (!raw.trim() || MARK.test(raw) || isBlankCell(raw)) continue;
+    const cells = [];
+    for (let j = i + 1; j < raws.length && (MARK.test(raws[j]) || isBlankCell(raws[j])); j += 1) cells.push(MARK.test(raws[j]));
+    if (cells.length < 2) continue;
+    if (cells.indexOf(true) === ours) mine.add(i);
+    else skip.add(i);
+  }
+  return { skip, mine };
+}
+
+// A line that leads into a list of items. A long lead-in of contract wording ("Document,
+// fabricate, supply, deliver, install and certify the following items in accordance with
+// ...:") says nothing of the work itself; each item under it is a line of its own.
+const LIST_LEAD = /\b(?:the following|as follows|includ\w*|compris\w*|consist\w* of)\b/i;
+const LONG_LEAD = 15;
+// A rate or price in a list of items ("Day labour $____ per hour").
+const RATE = /\$|\bper (?:hour|day|week|tonne|t|kg|m|m2|m²|m3|m³|square met\w*|lineal met\w*|linear met\w*|lm|item)\b|\b(?:agreed|schedule of) rates\b/i;
+// Supplying, delivering or certifying is not site work in itself.
+const HANDLING = /^(?:document|shop draw|design|fabricate|manufacture|supply|deliver|transport|unload|handle|hoist|certify|provide)$/i;
+// "Supply only door grilles", "Supply all metal door frames": supplied, not installed.
+const SUPPLY_ONLY = /^supply\b(?![^.]*\b(?:install|fix|lay|erect|plac|hang|fit|connect|commission)\w*)/i;
+
+// The site work a lead-in of contract wording names, without the handling verbs:
+// "Supply, deliver, hoist, install and certify the following items" gives "Install".
+const LEAD_VERB = /^(?:install|erect|fix|lay|construct|place|connect|commission|test|hang|build|apply|fit)$/i;
+function leadVerb(text) {
+  const match = text.replace(SUBJECT, '').match(/^((?:[a-z][a-z ]*?,\s*)*[a-z][a-z& ]*?)\s+(?=(?:the following|all|the)\b)/i);
+  const verbs = match ? match[1].split(/\s*(?:,|&|\band\b)\s*/).map((verb) => verb.trim()).filter((verb) => LEAD_VERB.test(verb)) : [];
+  const verb = verbs.map((word) => word.toLowerCase()).join(' and ');
+  return verb.charAt(0).toUpperCase() + verb.slice(1);
+}
+
+// The lines that describe the subcontractor's own site work. A short line that leads into
+// a list ("Rigging of the structural steel for buildings 1 to 3:") is joined to its
 // items ("Roof frame", "Window and door heads"), as the items alone do not say what the work is.
-function siteWorkLines(text) {
+function readLines(text) {
   let out = false;
   let lead = null;
   const kept = [];
+  // Items under a lead-in of the scope's own work, and matrix rows marked for the
+  // subcontractor: whatever they mention, they are the scope's own trade's work.
+  const owned = new Set();
+  // Items in a list, which may name a system without saying which trade does it.
+  const listedLines = new Set();
   const seen = new Set();
-  const add = (line) => {
-    const tidy = line.replace(/[;,:\s-]+$/, '').replace(/([^.])$/, '$1.');
+  const add = (line, listed = false, own = false, short = false) => {
+    const tidy = ownPart(line).trim().replace(/\.\s*\.$/, '.').replace(/[;,:\s-]+$/, '').replace(/([^.])$/, '$1.');
     const key = tidy.toLowerCase();
-    if (!keep(tidy) || seen.has(key)) return;
+    if (!keep(tidy, listed, short) || seen.has(key)) return;
     seen.add(key);
     kept.push(tidy);
+    if (own) owned.add(tidy);
+    if (listed) listedLines.add(tidy);
   };
   const flush = () => {
-    if (lead) add(lead.items.length ? `${lead.text.replace(/[:\s-]+$/, '')}: ${lead.items.join(', ')}` : lead.text);
+    // Items supplied only, and rates and prices, are not site work.
+    const items = lead ? lead.items.filter((item) => !SUPPLY_ONLY.test(item) && !QUOTE_TERMS.test(item) && !RATE.test(item) && !paperworkOnly(item)) : [];
+    const verb = lead && lead.split ? leadVerb(lead.text) : '';
+    // Each item under a lead-in of contract wording is the work it names ("Install the cool rooms").
+    if (verb) for (const item of items) add(SITE_WORK.test(item.split(' ')[0]) ? item : `${verb} ${item}`, true, true, true);
+    else if (lead && (items.length || !lead.split)) add(items.length ? `${lead.text.replace(/[:\s-]+$/, '')}: ${items.join(', ')}` : lead.text);
     lead = null;
   };
-  for (const raw of splitLines(text)) {
+  // Items named under an exclusions heading ("CCTV", "Duress alarms").
+  const excluded = [];
+  let excluding = false;
+  const raws = splitLines(text);
+  const { skip, mine } = othersRows(raws);
+  raws.forEach((raw, index) => {
+    if (skip.has(index)) return;
+    // A row of an interface matrix marked for the subcontractor is its work, wherever the matrix is.
+    if (mine.has(index)) {
+      flush();
+      add(cleanLine(raw), true, true);
+      return;
+    }
     const full = cleanLine(raw);
     // A priced line is an item of work, never a heading. Its price is not part of the work.
     const priced = PRICE_TAIL.test(full);
     const line = priced ? full.replace(PRICE_TAIL, '').trim() : full;
-    if (!line) continue;
-    if (lead && isBullet(raw) && words(line) <= 15) {
-      lead.items.push(line.replace(/[.;,]+$/, ''));
-      continue;
+    if (!line) return;
+    if (lead && isBullet(raw) && (lead.split || words(line) <= 15)) {
+      // Under a lead-in of contract wording, an item that says what the work is stands
+      // on its own; a bare name ("Refrigeration equipment") still needs the lead-in.
+      if (lead.split && words(line) >= MIN_WORDS && (isWork(line) || namesTrade(line))) add(line, true, true);
+      else lead.items.push(line.replace(/[.;,]+$/, ''));
+      return;
     }
     flush();
-    if (!out && /:\s*-?$/.test(line) && isWork(line) && !OUT_HEADING.test(line) && !NOT_OURS.test(line)) {
-      lead = { text: line, items: [] };
-      continue;
+    const leadsList = /:\s*-?$/.test(line) || (/;\s*$/.test(line) && /\b(?:the following|as follows)\b/i.test(line));
+    if (!out && leadsList && (isWork(line) || LIST_LEAD.test(line)) && !OUT_HEADING.test(line) && !NOT_OURS.test(line)) {
+      lead = { text: line, items: [], split: words(line) > LONG_LEAD && (OFF_SITE.test(line.replace(SUBJECT, '')) || /\bthe following\b/i.test(line)) };
+      return;
     }
     if (!priced && isHeading(raw, line)) {
+      excluding = OUT_HEADING.test(line) && NOT_OURS.test(line);
+      // A cell of a table ("Caulking" in a warranty table) can end the work, but does
+      // not bring the reader back to it.
       if (OUT_HEADING.test(line)) out = true;
-      else if (WORK_HEADING.test(line) || isWork(line)) out = false;
-      continue;
+      else if (!/^\t/.test(raw) && (WORK_HEADING.test(line) || isWork(line))) out = false;
+      return;
     }
-    if (!out) add(line);
-  }
+    if (excluding && words(line) <= 8) excluded.push(line.toLowerCase().replace(/^supply (?:of )?/, '').replace(/[^a-z0-9 ]+/g, ' ').trim());
+    // A listed or numbered item under a work heading may name the trade's systems without a verb.
+    if (!out) add(line, isBullet(raw) || /^\s*\d+(?:\.\d+)*\.?\s+\S/.test(raw));
+  });
   flush();
-  return kept;
+  // A short item that names something the exclusions list ("Install CCTV system") is not ours.
+  const plain = (line) => ` ${line.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ')} `;
+  const ours = kept.filter((line) => words(line) > 8 || !excluded.some((item) => item && plain(line).includes(` ${item} `)));
+  return { lines: ours, owned, listed: listedLines };
+}
+
+function siteWorkLines(text) {
+  return readLines(text).lines;
 }
 
 // The kinds of work with their own job steps, in the library's order.
@@ -173,7 +316,7 @@ const TITLE_WORDS = {
   structure: /\b(formwork|concrete|reinforc\w*|frp)\b/i,
   excavation: /\b(excavation|earthworks|civil)\b/i,
   scaffolding: /\bscaffold\w*/i,
-  cleaning: /\bcleaning\b/i,
+  cleaning: /\bclean(?:ing|s)?\b/i,
   fencing: /\bfenc\w*/i,
 };
 
@@ -259,6 +402,11 @@ function taskText(found) {
   const lines = [...new Set((specific.length ? specific : cleaned).map(taskLine))].slice(0, MAX_LINES);
   let text = '';
   for (const line of lines) {
+    // A very long first line is cut at the last item that fits.
+    if (!text && line.length > MAX_TASK) {
+      text = `${line.slice(0, MAX_TASK).replace(/,[^,]*$/, '')}.`;
+      break;
+    }
     if ((text + ' ' + line).length > MAX_TASK) break;
     text = text ? `${text} ${line}` : line;
   }
@@ -277,13 +425,16 @@ function strongHighRisk(lines, state, when) {
 
 function tasksFromScope(text, stateId = 'qld') {
   const state = findState(stateId);
-  const lines = siteWorkLines(text);
+  const { lines, owned, listed } = readLines(text);
   if (!lines.length) {
     return { tasks: [], lines: 0, note: 'No site work was found in this text. If it is a contract or a cover letter, attach the scope of works or quote on its own.' };
   }
   const groups = new Map();
   const tradeCount = new Map();
   const tradeLines = new Map();
+  // The trades the scope names at the top.
+  const titled = titleTrades(text);
+  const titledKinds = new Set(TRADES.filter((trade) => titled.has(trade.id)).flatMap((trade) => trade.kinds));
   for (const line of lines) {
     const flags = workFlags(line);
     const kinds = kindsOf(line, flags);
@@ -291,7 +442,12 @@ function tasksFromScope(text, stateId = 'qld') {
       if (!groups.has(kind.when)) groups.set(kind.when, { kind, lines: [] });
       groups.get(kind.when).lines.push(line);
     }
+    // A line of the named trade's own work that mentions another trade's materials ("mop
+    // and polish the tiles" in a cleaning scope), or an item under a lead-in of its work,
+    // does not show that other trade.
+    const titledWork = owned.has(line) || kinds.some((kind) => titledKinds.has(kind.when));
     for (const trade of TRADES) {
+      if (titled.size && !titled.has(trade.id) && titledWork) continue;
       const signal = trade.signal instanceof RegExp ? trade.signal.test(line) : Boolean(trade.signal && flags[trade.signal]);
       // A trade with its own signal is counted by that alone: its kinds of work are
       // found in passing in other trades' scopes (doors in a painting scope).
@@ -299,6 +455,16 @@ function tasksFromScope(text, stateId = 'qld') {
         tradeCount.set(trade.id, (tradeCount.get(trade.id) || 0) + 1);
         if (!tradeLines.has(trade.id)) tradeLines.set(trade.id, []);
         tradeLines.get(trade.id).push(line);
+      }
+    }
+    // An item under a lead-in of the scope's own work that shows no trade ("Install the
+    // refrigeration equipment"), or a listed item that no trade of the scope took ("Fire
+    // ring main and hydrants" in a hydraulic scope), is the named trade's work.
+    const counted = [...tradeLines.values()].some((found) => found.includes(line));
+    if (!kinds.length && (owned.has(line) || (listed.has(line) && !counted && namesTrade(line)))) {
+      for (const id of titled) {
+        if (!tradeLines.has(id)) tradeLines.set(id, []);
+        if (!tradeLines.get(id).includes(line)) tradeLines.get(id).push(line);
       }
     }
   }
@@ -320,7 +486,6 @@ function tasksFromScope(text, stateId = 'qld') {
     if (!slab.lines.length) groups.delete('slabGround');
   }
   // The scope's own trades, and the kinds of work they do.
-  const titled = titleTrades(text);
   const count = (trade) => tradeCount.get(trade.id) || 0;
   const top = Math.max(0, ...tradeCount.values());
   const titleTop = Math.max(0, ...TRADES.filter((trade) => titled.has(trade.id)).map(count));
@@ -349,9 +514,10 @@ function tasksFromScope(text, stateId = 'qld') {
     };
   };
   const tasks = [...groups.values()]
-    // A short pasted scope may not show a trade; then every kind found is kept.
+    // A short pasted scope may not show a trade; then every kind found in lines that say
+    // what is done is kept (a description of the building names plant and rooms, not work).
     .filter((group) => allowed.has(group.kind.when)
-      || (!ours.length && group.lines.length >= MIN_SUPPORT)
+      || (!ours.length && group.lines.filter((line) => SITE_WORK.test(line)).length >= MIN_SUPPORT)
       || (CROSS.has(group.kind.when) && (group.lines.length >= MIN_SUPPORT || strongHighRisk(group.lines, state, group.kind.when))))
     .sort((a, b) => order(a.kind.when) - order(b.kind.when))
     .filter((group) => !(ROUTINE.has(group.kind.when) && ours.some((trade) => trade.kinds.includes(group.kind.when))))
@@ -359,31 +525,87 @@ function tasksFromScope(text, stateId = 'qld') {
       const own = ours.filter((trade) => trade.kinds.includes(kind.when) || (trade.extra || []).includes(kind.when));
       return makeTask(kind.when, kind.steps[0].step, found, (own.length ? own : ours).map((trade) => trade.id), [kind.when]);
     });
-  // Each trade's routine work is one task, named after the trade.
+  // Each trade's main task, named after the trade, holds its routine work and the lines
+  // that name the trade's own systems but no kind of work ("Air handling units and fans").
+  const position = (line) => lines.indexOf(line);
   for (const trade of ours) {
     const routine = [...groups.values()].filter((group) => ROUTINE.has(group.kind.when) && trade.kinds.includes(group.kind.when));
-    const found = [...new Set(routine.flatMap((group) => group.lines))];
+    // Only the scope's named trade takes these lines; another trade's are often passing mentions.
+    const main = !titled.size || titled.has(trade.id);
+    const own = main ? (tradeLines.get(trade.id) || []).filter((line) => !tasks.some((task) => task.lines.includes(line))) : [];
+    const found = [...new Set([...routine.flatMap((group) => group.lines), ...(routine.length ? own : [])])].sort((a, b) => position(a) - position(b));
     if (found.length) tasks.push(makeTask(trade.id, trade.name, found, [trade.id], routine.map((group) => group.kind.when)));
   }
-  // A trade of the scope with none of its kinds of work found still gets one task, from
-  // the lines that show the trade, so its work is not missed.
+  // A trade of the scope with none of its routine work found still gets one task, from
+  // the lines that show the trade and no other task used, so its work is not missed.
   for (const trade of ours) {
-    // A trade named in the title but not found line by line takes the lines no other task used.
+    if (tasks.some((task) => task.id === trade.id)) continue;
     const unused = lines.filter((line) => !tasks.some((task) => task.lines.includes(line)));
-    const found = tradeLines.get(trade.id) || (titled.has(trade.id) ? unused : []);
-    if (!tasks.some((task) => task.id === trade.id || trade.kinds.includes(task.id)) && found.length) tasks.push(makeTask(trade.id, trade.name, found, [trade.id]));
+    // A trade named in the title but not found line by line takes the lines no other task used.
+    const covered = tasks.some((task) => trade.kinds.includes(task.id));
+    // The named trade with tasks of its own already takes only the lines no task used.
+    const own = (tradeLines.get(trade.id) || []).filter((line) => unused.includes(line));
+    const found = covered ? (!titled.size || titled.has(trade.id) ? own : []) : (tradeLines.get(trade.id) || (titled.has(trade.id) ? unused : []));
+    if (found.length) tasks.push(makeTask(trade.id, trade.name, found, [trade.id]));
   }
-  // Site work that matches no trade still makes one task, so the work is not lost.
-  if (!tasks.length && lines.length >= MIN_SUPPORT) tasks.push(makeTask('general', documentTitle(text) || 'Work in the scope', lines, []));
-  tasks
+  // Site work that matches no trade still makes one task, so the work is not lost. Only
+  // lines that say what is done count: a description of the building that names rooms
+  // and plant (a kitchen, a pool, a plant room) is not work.
+  const doing = lines.filter((line) => SITE_WORK.test(line));
+  if (!tasks.length && doing.length >= MIN_SUPPORT) tasks.push(makeTask('general', documentTitle(text) || 'Work in the scope', doing, []));
+  const merged = mergeTasks(tasks)
     // High risk construction work needs a SWMS by law, so it comes first.
     .sort((a, b) => Number(b.needsSwms) - Number(a.needsSwms));
   return {
     trades: ours.map((trade) => trade.id),
-    tasks,
+    tasks: merged,
     lines: lines.length,
-    note: tasks.length ? '' : 'Site work was found, but none matched a kind of work SiteReady drafts. Write the task in the form instead.',
+    note: merged.length ? '' : 'Site work was found, but none matched a kind of work SiteReady drafts. Write the task in the form instead.',
   };
+}
+
+// A task made from the same lines as another is the same work. So is a task made from
+// some of the lines of another kind of work's task whose job steps already cover it
+// ("Saw cutting" from the flashings line of the roof task). It joins that task (the first,
+// when they have the same lines), which takes on its kinds of work and trades, so the
+// user gets one SWMS for it, not two. Distinct work kept apart from a trade's main task
+// (external painting at height beside the painting task) stays apart.
+function mergeTasks(tasks) {
+  const tradeTask = (task) => TRADES.some((trade) => trade.id === task.id);
+  // A line of several clauses ("bulk earthworks; trenches; pits set by crane") can hold
+  // separate pieces of work, so tasks found only in it stay apart.
+  const clauses = (task) => task.lines.length === 1 && (task.lines[0].match(/;/g) || []).length >= 2;
+  const within = (a, b) => a.lines.every((line) => b.lines.includes(line)) && !clauses(a)
+    && (a.lines.length === b.lines.length || (!tradeTask(b) && b.kinds.includes(a.id)));
+  const union = (x, y) => [...new Set([...x, ...y])];
+  const join = (host, other) => {
+    host.kinds = union(host.kinds, other.kinds);
+    host.trade = union(host.trade.split(',').filter(Boolean), other.trade.split(',').filter(Boolean)).join(',');
+    host.highRisk = union(host.highRisk, other.highRisk);
+    host.needsSwms = host.highRisk.length > 0;
+    if (other.fallRisk === 'yes') host.fallRisk = 'yes';
+  };
+  const atHeight = (task) => /\bat height\b/i.test(task.title);
+  const out = [];
+  for (const task of tasks) {
+    const host = out.find((other) => within(task, other));
+    // Of two tasks with the same lines, the one for work at height names the work better
+    // ("Steel erection at height" over "Lift and land steel"), so it takes the other's place.
+    if (host && host.lines.length === task.lines.length && atHeight(task) && !atHeight(host)) {
+      join(task, host);
+      out[out.indexOf(host)] = task;
+      continue;
+    }
+    if (host) {
+      join(host, task);
+      continue;
+    }
+    const smaller = out.filter((other) => within(other, task));
+    for (const other of smaller) join(task, other);
+    out.splice(smaller.length ? out.indexOf(smaller[0]) : out.length, 0, task);
+    for (const other of smaller) out.splice(out.indexOf(other), 1);
+  }
+  return out;
 }
 
 module.exports = { tasksFromScope, siteWorkLines, TITLES };
