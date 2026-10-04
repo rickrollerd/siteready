@@ -195,3 +195,16 @@ test('the prepared-for line names the business, its ABN and the reference', () =
   assert.equal(preparedFor({ name: 'Lee Fencing', abn: '51824753556' }, 'SR-ABCD-EFGH'), 'Prepared with SiteReady for Lee Fencing (ABN 51824753556). SiteReady reference SR-ABCD-EFGH.');
   assert.equal(preparedFor({ name: 'Lee Fencing' }, ''), '');
 });
+
+test('a SiteReady reference can be verified by anyone, and a wrong one is not found', async () => {
+  const { issueRef } = require('../refs');
+  const ref = await issueRef({ id: 'c-verify', name: 'Verify Co Pty Ltd', abn: '33102417000' }, 'Install the fence');
+  const good = await (await fetch(`${base}/api/verify/${ref}`)).json();
+  assert.equal(good.found, true);
+  assert.equal(good.business, 'Verify Co Pty Ltd');
+  assert.equal(good.title, 'Install the fence');
+  const missing = await (await fetch(`${base}/api/verify/SR-AAAA-BBBB`)).json();
+  assert.equal(missing.found, false);
+  assert.equal((await fetch(`${base}/api/verify/not-a-ref`)).status, 400);
+  assert.equal((await fetch(`${base}/verify.html`)).status, 200);
+});
