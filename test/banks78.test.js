@@ -299,7 +299,7 @@ test('a sewage treatment plant has its tank pit dug from outside and its pumps w
   assert.ok(has(done, /The tank pit is dug to the tank maker's dimensions/));
   assert.ok(has(done, /pumps, blower and alarm are wired and connected by a licensed electrician/));
   assert.ok(has(done, /The pipe trenches are kept shallower than 1\.5 m/));
-  assert.ok(steps(done).includes('Lay pipes and pits') && !has(done, /conduit/));
+  assert.ok(steps(done).includes('Lay pipes') && !has(done, /conduit/));
   assert.ok(has(draft('Replace an old septic tank with a new one.', { residential: 'yes', state: 'tas' }), /The tank pit is dug/));
 });
 
@@ -390,7 +390,7 @@ test('a damaged pit is broken out in its own step, with the breaker listed', () 
   const done = draft('Replace a damaged stormwater pit in a council road.', { state: 'wa' });
   const names = steps(done);
   assert.ok(names.indexOf('Break out the damaged pit') < names.indexOf('Work in the trench'));
-  assert.ok(!step(done, 'Lay pipes and pits').controls.some((line) => /broken out/.test(line)));
+  assert.ok(!step(done, 'Install pits').controls.some((line) => /broken out/.test(line)));
   assert.ok(plant(done).includes('Rock breaker (hydraulic hammer)'));
 });
 

@@ -28,9 +28,9 @@ test('#39 conveyor idler replacement gets isolation steps, not earthmoving', () 
 test('#40 drill and blast has a shotfirer step and the explosives category', () => {
   const d = draft('tas', 'Drill and blast the hydro headrace tunnel heading, licensed shotfirer, 3 m advances');
   assert.equal(d.kind, 'draft');
-  assert.ok(steps(d).includes('Drill, charge and fire the blast'));
+  assert.ok(steps(d).includes('Charge and fire the blast'));
   assert.ok(names(d).includes('Explosives'));
-  assert.ok(!steps(draft('nsw', 'Abrasive blast the steel girders')).includes('Drill, charge and fire the blast'));
+  assert.ok(!steps(draft('nsw', 'Abrasive blast the steel girders')).includes('Charge and fire the blast'));
 });
 
 test('#41 the hazard summary carries the main hazards of the job steps', () => {

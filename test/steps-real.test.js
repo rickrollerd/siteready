@@ -269,3 +269,89 @@ test('refrigerant is recovered only when a system is emptied or taken out', () =
   const removal = steps(draft('Recover refrigerant from the old split systems and remove them.', 'mechanical'));
   assert.ok(removal.includes('Recover refrigerant') && !removal.includes('Evacuate and charge the system'));
 });
+
+test('a trench lays pipes, sets pits and lays conduits in separate steps, each only when named', () => {
+  const both = steps(draft('Excavate a trench for stormwater pipes and pits, and comms conduits.', 'plumbing'));
+  assert.ok(both.includes('Lay pipes') && both.includes('Install pits') && both.includes('Lay conduits'));
+  const conduits = steps(draft('Excavate a trench for underground power conduits to the shed.', 'electrical'));
+  assert.ok(conduits.includes('Lay conduits') && !conduits.includes('Lay pipes') && !conduits.includes('Install pits'));
+  const pit = steps(draft('Replace a damaged stormwater pit in a council road.', 'plumbing'));
+  assert.ok(pit.includes('Install pits') && !pit.includes('Lay pipes'));
+});
+
+test('asphalt is saw cut and reinstated in separate steps; a pothole patch has no cut', () => {
+  const road = steps(draft('Saw cut and reinstate the asphalt over the new sewer trench in the road.', 'plumbing'));
+  assert.ok(road.includes('Reinstate asphalt') && road.indexOf('Reinstate asphalt') > road.indexOf('Backfill and restore'));
+  const cut = steps(draft('Reinstate the asphalt over the backfilled trench.'));
+  assert.ok(cut.indexOf('Saw cut asphalt') >= 0 && cut.indexOf('Saw cut asphalt') < cut.indexOf('Reinstate asphalt'));
+  const pothole = steps(draft('Repair potholes in the car park with hot asphalt and a roller.'));
+  assert.ok(pothole.includes('Reinstate asphalt') && !pothole.includes('Saw cut asphalt'));
+});
+
+test('demolition removes the props only where it was propped', () => {
+  assert.ok(steps(draft('Demolish the internal load-bearing wall with temporary propping.')).includes('Remove the props'));
+  assert.ok(!steps(draft('Demolish the internal brick wall in the kitchen.')).includes('Remove the props'));
+});
+
+test('structure: jumpform reo and forms, tendon tails and grout, precast grout and braces are separate steps', () => {
+  const jump = steps(draft('Climb the jumpform on the core and pour the core walls.', 'structure'));
+  assert.ok(jump.indexOf('Fix the wall reo from the platforms') >= 0 && jump.indexOf('Fix the wall reo from the platforms') < jump.indexOf('Set the wall forms from the platforms'));
+  const pt = steps(draft('Stress the post-tensioned tendons on level 5, cut tails and grout the ducts.', 'structure'));
+  assert.ok(pt.includes('Cut the tendon tails') && pt.includes('Grout the tendon ducts'));
+  const precast = steps(draft('Erect the precast wall panels with a mobile crane, brace, grout and remove the braces.', 'structure'));
+  assert.ok(precast.indexOf('Grout the base') >= 0 && precast.indexOf('Grout the base') < precast.indexOf('Remove the braces'));
+});
+
+test('ground anchors and props are their own steps, each only when named', () => {
+  const anchors = steps(draft('Bulk excavate the basement installing ground anchors.', 'excavation'));
+  assert.ok(anchors.includes('Install and later remove ground anchors') && anchors.includes('Stress the ground anchors') && !anchors.includes('Install and later remove props'));
+  const props = steps(draft('Bulk excavate the basement with hydraulic props and walers.', 'excavation'));
+  assert.ok(props.includes('Install and later remove props') && !props.includes('Stress the ground anchors'));
+});
+
+test('blast holes are drilled in one step, and the shotfirer charges and fires in the next', () => {
+  const blast = draft('Drill and blast rock in the basement excavation.');
+  const names = steps(blast);
+  assert.ok(names.indexOf('Drill the blast holes') >= 0 && names.indexOf('Drill the blast holes') < names.indexOf('Charge and fire the blast'));
+  assert.ok(blast.jobSteps.find((step) => step.step === 'Charge and fire the blast').controls.some((line) => /shotfirer holding the licence/.test(line)));
+});
+
+test('core fill comes after the blocks are laid, apart from mixing mortar', () => {
+  const names = steps(draft('Lay blockwork walls with mortar and core fill.', 'masonry'));
+  assert.ok(names.indexOf('Mix mortar') < names.indexOf('Lay blocks and bricks') && names.indexOf('Lay blocks and bricks') < names.indexOf('Core fill blockwork'));
+  assert.equal(names.filter((name) => name === 'Mix mortar').length, 1);
+});
+
+test('concrete and tank walls are formed, reinforced and poured in separate steps', () => {
+  const wall = steps(draft('Construct a reinforced concrete retaining wall along the boundary.'));
+  assert.ok(wall.indexOf('Form the retaining wall') >= 0 && wall.indexOf('Form the retaining wall') < wall.indexOf('Fix the retaining wall reo') && wall.indexOf('Fix the retaining wall reo') < wall.indexOf('Pour the retaining wall'));
+  const tank = steps(draft('Construct concrete water tanks: form, reinforce and pour the tank walls.'));
+  assert.ok(tank.includes('Form the tank walls') && tank.includes('Fix the tank wall reo') && tank.includes('Pour the tank walls'));
+});
+
+test('concrete steps, pool shells and pool removal are split into their stages', () => {
+  const stairs = steps(draft('Break out and replace the concrete steps at the front entry.'));
+  assert.ok(stairs.indexOf('Break out the old concrete steps') >= 0 && stairs.indexOf('Break out the old concrete steps') < stairs.indexOf('Form and pour the new concrete steps'));
+  const shell = steps(draft('Construct a pool shell with sprayed concrete.'));
+  assert.ok(shell.indexOf('Fix the pool shell reo') >= 0 && shell.indexOf('Fix the pool shell reo') < shell.indexOf('Spray the pool shell'));
+  const removal = steps(draft('Remove the old in-ground pool and fill it with compacted sand.'));
+  assert.ok(removal.indexOf('Break out the pool') >= 0 && removal.indexOf('Break out the pool') < removal.indexOf('Fill the pool void'));
+});
+
+test('bollards, barriers, wheel stops and speed humps are each their own step, only when named', () => {
+  const stops = steps(draft('Install wheel stops and speed humps in the car park.'));
+  assert.ok(stops.includes('Install wheel stops') && stops.includes('Install speed humps') && !stops.includes('Install bollards'));
+  const mixed = steps(draft('Install traffic barriers and bollards at the loading dock.'));
+  assert.ok(mixed.includes('Install bollards') && mixed.includes('Install barriers') && !mixed.includes('Install speed humps'));
+});
+
+test('old services are isolated by the licensed trades in one step and removed in the next', () => {
+  const names = steps(draft('Strip out the old services in the plant room: isolate, make safe and remove the old pipework and cable trays.'));
+  assert.ok(names.indexOf('Isolate and make safe the old services') >= 0 && names.indexOf('Isolate and make safe the old services') < names.indexOf('Remove the old services'));
+});
+
+test('bricking up an opening removes the old frames and cuts the lintel bearings in separate steps', () => {
+  const names = steps(draft('Remove the old window frames, prop the brickwork and brick up the window openings with a new lintel.', 'masonry'));
+  assert.ok(names.indexOf('Remove the old frames') >= 0 && names.indexOf('Remove the old frames') < names.indexOf('Cut the lintel bearings'));
+  assert.ok(names.indexOf('Cut the lintel bearings') < names.indexOf('Cut blocks and bricks'));
+});

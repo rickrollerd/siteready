@@ -102,10 +102,10 @@ test('a task whose main work has no steps is stood down, not drafted with only a
   const stood = (task, trade = '') => prepareDraft({ state: 'qld', fallRisk: 'yes', trade, task, facts: { fallControl: 'Edge protection is installed around every open edge, and no one works outside it.' } });
   // Blasting now has its own job step, done by the licensed shotfirer.
   const blast = stood('Remove the old water heater and blast the rock with explosives.');
-  assert.ok(blast.jobSteps.some((step) => step.step === 'Drill, charge and fire the blast'));
+  assert.ok(blast.jobSteps.some((step) => step.step === 'Charge and fire the blast'));
   assert.ok(blast.jobSteps.flatMap((step) => step.controls).some((line) => /shotfirer holding the licence/.test(line)));
   // A pool shell now has its own job step.
-  assert.ok(stood('Construct a pool shell with sprayed concrete.').jobSteps.some((step) => step.step === 'Reinforce the pool shell and spray the shotcrete'));
+  assert.ok(stood('Construct a pool shell with sprayed concrete.').jobSteps.some((step) => step.step === 'Spray the pool shell'));
   // Hydro demolition now has its own job step.
   const hydro = stood('Hydro-demolition and concrete repair of a balcony slab soffit from a mobile scaffold.');
   assert.ok(hydro.jobSteps.some((step) => step.step === 'Hydro demolish the concrete'));
@@ -370,7 +370,7 @@ test('task bank round 5: everyday jobs that stood down now get their main steps'
   assert.ok(steps('Install a mobile phone antenna on a building rooftop.', 'communications', 'yes').includes('Install rooftop antennas and equipment'));
   assert.ok(steps('Reseal the expansion joints on a multi-storey car park deck.', 'waterproofing', 'yes').includes('Clean out and seal floor joints'));
   assert.ok(steps('Install new LED high bay lights in a warehouse from a scissor lift.', 'electrical', 'yes').includes('Install high bay light fittings'));
-  assert.ok(steps('Replace a section of collapsed stormwater pipe 1.2 m deep in a backyard.', 'plumbing').includes('Lay pipes and pits'));
+  assert.ok(steps('Replace a section of collapsed stormwater pipe 1.2 m deep in a backyard.', 'plumbing').includes('Lay pipes'));
   const kerb = steps('Remove and replace a damaged section of a kerb and channel.', 'structure');
   assert.ok(kerb.indexOf('Saw cut concrete') < kerb.indexOf('Place concrete'));
 });

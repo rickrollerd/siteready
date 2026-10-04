@@ -1598,17 +1598,17 @@ const MAIN_WORK = [
   [/^(?![^]*\bconnect\w*[^.]{0,30}\bto (?:the |an |its )?(?:existing )?solar inverter)[^]*\b(solar (?:panels?|pv|arrays?|systems?)|pv (?:panels?|arrays?|systems?)|inverters?)\b/i, 'solar panel and inverter installation', /\b(solar|inverters?)\b/i],
   [/^(?![^]*\bwith (?:a |an )?(?:heat pump|electric|solar))[^]*\b(gas (?:hot water|appliances?|heaters?|cooktops?|connections?|fitting|lines?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas (?:lines?|supply|mains?))\b/i, 'gas fitting', /\bgas\b/i],
   [/\b(portal frames?|(?<!existing )steel (?:frames?|sheds?|structures?)|(?:erect|stand)\w* [^.]{0,20}\b(?:steel|columns|rafters))\b/i, 'steel erection', /\b(Erect and connect steel|Land steel|Erect the frame and roof of the structure)\b/],
-  [/\bretaining walls?\b/i, 'retaining wall construction', /\b(retaining|ground anchors)\b/i],
+  [/\bretaining walls?\b/i, 'retaining wall construction', /\b(retaining|ground anchors|Install and later remove props)\b/i],
   [/\b(epoxy (?:coat\w*|floor\w*|seal\w*)|(?:apply|applying|seal\w*|coat\w*) [^.]{0,30}\bepoxy|floor coatings?)\b/i, 'floor coating', /\b(epoxy|floor coatings?)\b/i],
   [/\b(grind\w* [^.]{0,20}\bfloors?|floor grind\w*)\b/i, 'floor grinding', /\bgrind floors\b/i],
   [/\bhydro[- ]?demoli\w*\b/i, 'hydro-demolition', /\bhydro/i],
-  [/\b(drill\w* and blast\w*|(?<!(?:abrasive|sand|grit|garnet|water|soda|bead|shot|dry ice|hydro|ice|media|pressure)[- ]?)blasting|explosives?|shotfir\w*)\b/i, 'blasting with explosives (licensed shotfirer work)', /\b(shotfir\w*|Drill, charge and fire the blast)\b/i],
+  [/\b(drill\w* and blast\w*|(?<!(?:abrasive|sand|grit|garnet|water|soda|bead|shot|dry ice|hydro|ice|media|pressure)[- ]?)blasting|explosives?|shotfir\w*)\b/i, 'blasting with explosives (licensed shotfirer work)', /\b(shotfir\w*|Charge and fire the blast)\b/i],
   [/^(?![^]*\b(?:temporary|builder'?s?) (?:power )?poles?\b)[^]*\b(light(?:ing)? poles?|poles?\b[^.]{0,30}\b(?:stand|erect|install)\w*|(?:stand|erect|install)\w* [^.]{0,30}\bpoles?)\b/i, 'pole erection', /\b(poles?|Install security devices)\b/i],
   [/\bcore fill\w*\b/i, 'core filling', /\bcore fill\b/i],
   [/\b(sewer mains?|council mains?|connect\w*[^.]{0,30}\bsewer)\b/i, 'connection to the live sewer', /\bConnect to the live sewer\b/],
   [/\b(?:install|replac|lift|remov)\w*\b[^.]{0,40}\b(?:air ?con\w* units?|rooftop units?|condensers?|package units?)\b/i, 'air conditioning plant installation', /\b(Install split system|Install plant|Receive plant|Isolate plant|Install ductwork)\b/],
   [/^(?![^]*\bhydro[- ]?demoli)[^]*\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?)\b/i, 'demolition of a whole structure', /\b(Demolish the structure|Take down the shed frame)\b/],
-  [/\b(pool shells?|shotcrete|gunite|spray\w* concrete)\b/i, 'pool shell and sprayed concrete work', /\b(shotcrete|sprayed concrete)\b/i],
+  [/\b(pool shells?|shotcrete|gunite|spray\w* concrete)\b/i, 'pool shell and sprayed concrete work', /\b(shotcrete|sprayed concrete|Spray the pool shell)\b/i],
   [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer|seal floor joints)/i],
   [/\bpergolas?\b/i, 'pergola work', /\b(pergola|footings?|post holes?|shallow trench|Dig|frame and roof of the structure|Prop and repair)\b/i],
   [/\bline marking\b/i, 'line marking', /\bline marking\b/i],
@@ -2419,7 +2419,6 @@ function settleFlags(flags, task) {
   out.eavesWork = /\b(eaves|soffits?)\b/i.test(task);
   out.poolFence = /\bpool\b/i.test(task) && /\b(fenc\w*|barriers?|gates?)\b/i.test(task);
   out.weldWork = /\bweld\w*\b/i.test(task);
-  out.bollardsOnly = Boolean(out.bollards && !/\b(barriers?|wheel stops?|speed (?:humps?|bumps?)|car stops?|parking stops?)\b/i.test(task));
   out.guttersOnly = Boolean(out.gutters && !/\b(fascias?|eaves|soffits?)\b/i.test(task));
   out.signalWork = /\btraffic (?:lights|signals?|signal poles?)\b/i.test(task);
   out.screens = /\bscreens?\b/i.test(task);
@@ -2583,7 +2582,6 @@ function settleFlags(flags, task) {
   if (/\b(roof (?:ventilators?|vents?|turbines?|exhaust fans?)|whirlybirds?|turbine vents?|rooftop exhaust fans?|exhaust fans? on (?:a |the )?(?:\w+ )?roof)\b/i.test(task) && /\b(install\w*|new|fit\w*)\b/i.test(task)) out.roofPenetration = true;
   if (out.smokeAlarms && /\b(houses?|homes?|dwellings?|units?|rental)\b/i.test(task)) out.roofSpace = true;
   out.bollardChains = Boolean(out.bollards && /\bchains?\b/i.test(task));
-  out.humpsOnly = Boolean(out.bollards && /\bspeed (?:humps?|bumps?|cushions?)\b/i.test(task) && !/\b(bollards?|barriers?|wheel stops?|car stops?)\b/i.test(task));
   if (/\b(?:replac\w*|damaged|broken|collapsed)\b[^.]{0,30}\b(?:stormwater |drainage |sewer )?pits?\b(?! (?:lids?|grates?|covers?))/i.test(task)) { out.pitReplace = true; out.sawCut = out.sawCut || /\b(roads?|streets?|car ?parks?|driveways?)\b/i.test(task); }
   if (/\bducted (?:gas )?heating\b|\bgas ducted heat\w*\b/i.test(task) && !/\b(electric|reverse cycle|heat pump|refrigerat\w*)\b/i.test(task)) { out.flueInstall = true; out.gasHeater = true; out.gasFitting = true; }
   out.gravelLay = /\b(?:lay\w*|build\w*|construct\w*|form\w*|spread\w*)\b[^.]{0,30}\bgravel\b/i.test(task);
@@ -3002,6 +3000,26 @@ function settleFlags(flags, task) {
   // Refrigerant is recovered only when a system is emptied, repaired or taken out.
   out.refrigerantRecover = REFRIGERANT.test(task) && /\b(recover\w*|decant\w*|decommission\w*|de-?gas\w*|remov\w*|replac\w*|repair\w*|leaks?)\b/i.test(task);
   out.refrigerantRecoverOnly = out.refrigerantRecover && !/\b(charg\w*|evacuat\w*|install\w*|commission\w*|re-?gas\w*|top(?:ping)? up)\b/i.test(task);
+  // Asphalt is saw cut in its own step, unless the saw cut concrete step makes the cut or a pothole is patched without one.
+  out.asphaltCut = Boolean(out.asphalt && !out.sawCut && (!out.potholeRepair || /\bcut\w*\b/i.test(task)));
+  // Pipes, pits and conduits laid in a trench are each their own step, named by the task.
+  // Pits lifted in by the tank and pit step are not set again here; pipes come when nothing is named.
+  const trenchPipesNamed = /\b(pipes?|pipework|pipelines?|piping|(?<!consumer |electrical |power )mains?|(?:drains?|drainage|sewers?|sewerage|stormwater)(?! (?:pits?|manholes?|maintenance holes?|grates?))|culverts?|water (?:lines?|services?)|gas lines?|irrigation|ag lines?|subsoil)\b/i.test(task) || Boolean(out.sewerRepair);
+  out.trenchPits = Boolean(out.pitReplace) || (/\b(?<!lift |tank |test |borrow |sump )pits?\b(?! lids?| covers?| grates?)|\b(manholes?|maintenance holes?|access chambers?)\b/i.test(task) && !out.tankPlace);
+  out.trenchConduits = /\b(conduits?|cables?|cabling|comms|communications|nbn|telecom\w*|fibre|data)\b/i.test(task) || Boolean(out.conduitWork && !trenchPipesNamed);
+  out.trenchPipes = trenchPipesNamed || (!out.trenchPits && !out.trenchConduits);
+  // Ground anchors and excavation props are each their own step; both when the task names neither.
+  const anchorsNamed = /\b(anchors?|tie-?backs?|de-?stress\w*)\b/i.test(task);
+  const propsNamed = /\b(props?|propping|walers?|struts?|strutting|kingposts?)\b/i.test(task);
+  out.groundAnchors = anchorsNamed || !propsNamed;
+  out.excavationProps = propsNamed || !anchorsNamed;
+  // Mortar is mixed in the core fill kind only where the task names mortar.
+  out.groutMortar = Boolean(out.masonryGrout && /\bmortar\b/i.test(task));
+  // Bollards, barriers, wheel stops and speed humps are each their own step; bollards when none is named.
+  out.barrierNamed = /\b(?:traffic|crash|vehicle|safety|w-beam|thrie-beam|wire rope|concrete|jersey|steel|car ?park) barriers?\b|\bbarrier kerbs?\b|\b(?:install\w*|fix\w*|supply)\b[^.]{0,30}\bbarriers?\b/i.test(task);
+  out.wheelStopNamed = /\b(wheel stops?|car stops?|parking stops?)\b/i.test(task);
+  out.humpNamed = /\bspeed (?:humps?|bumps?|cushions?)\b/i.test(task);
+  out.bollardNamed = /\bbollards?\b/i.test(task) || (!out.barrierNamed && !out.wheelStopNamed && !out.humpNamed);
   return out;
 }
 
