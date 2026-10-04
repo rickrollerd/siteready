@@ -45,6 +45,10 @@ function passkeySettings(req) {
 
 async function sendLoginLink(req, email, companyId = null, invitedBy = '') {
   const token = newToken();
+  // A new link replaces any earlier unused link for the same email (and the same company invite),
+  // so an old link left in an inbox stops working.
+  if (companyId) await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id = $2 AND used_at IS NULL', [email, companyId]);
+  else await db.query('DELETE FROM login_tokens WHERE email = $1 AND company_id IS NULL AND used_at IS NULL', [email]);
   await db.query('INSERT INTO login_tokens (token_hash, email, company_id, expires_at) VALUES ($1, $2, $3, $4)',
     [hash(token), email, companyId, later(LINK_MINUTES * 60 * 1000)]);
   const link = `${appUrl(req)}/?login=${token}`;
