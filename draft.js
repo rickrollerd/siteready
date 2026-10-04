@@ -1345,6 +1345,8 @@ function withStepHazards(hazards, jobSteps, task) {
   for (const step of jobSteps) {
     for (const [pattern, hazard, risk] of STEP_HAZARDS) if (pattern.test(step.step || '')) add(hazard, risk);
   }
+  // Any step with silica controls (cutting, coring, chasing, grinding) puts silica in the summary.
+  if (jobSteps.some((step) => (step.controls || []).some((line) => /\bcrystalline silica\b/i.test(line)))) add('Respirable crystalline silica', 'A person breathes in silica dust.');
   if (PUBLIC_NEARBY.test(task)) add('Public near the work', 'A member of the public enters the work area or is struck.');
   return rows;
 }
