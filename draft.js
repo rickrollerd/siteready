@@ -1638,7 +1638,7 @@ const MAIN_WORK = [
   [/^\s*(?:install|fix|replac)\w*\s+(?:[\w-]+\s+){0,3}(?:cladding|weatherboards?)\b/i, 'cladding installation', /\bcladding\b/i],
   [/^\s*install\w*\s+(?:an? |the |new )*(?:passenger |goods )?(?:lifts?|elevators?)\b(?! (?:pits?|shafts?|cores?|the|materials|equipment|it|them|panels?|sheets?|landing doors?|doors?))/i, 'lift installation', /\b(Work on the car top|Lift machines, rails|Install the lift rails|Replace the lift motor|Erect and connect steel)\b/],
   [/\btrees?\b[^.]{0,40}\b(cranes?)\b|\bcranes?\b[^.]{0,40}\btrees?\b/i, 'tree removal', /\bRemove trees\b/],
-  [/\b(?:replac|fix|repair|re-?bed|repoint|lay|install)\w*\b[^.]{0,30}\b(?:roof tiles?|tiled roofs?|ridge caps?)\b/i, 'tiled roof work', /\b(?:tiled|slate) roof\b|\bStrip slates\b/i],
+  [/\b(?:replac|fix|repair|re-?bed|repoint|lay|install)\w*\b[^.]{0,30}\b(?:roof tiles?|tiled roofs?|ridge caps?)\b/i, 'tiled roof work', /\b(?:tiled|slate) roof\b|\bStrip the (?:slates|roof tiles)\b/i],
   [/\b(ev|electric vehicle|car) chargers?\b/i, 'EV charger installation', /\b(Rough-in|Fit off|Test the new work|Connect and commission)\b/],
   [/\b(?:lay|install|run)\w*\b[^.]{0,30}\b(?:drainage|drain|sewer|stormwater) (?:lines?|pipes?|pipework)\b/i, 'laying the drainage line', /\b(Lay pipes|Excavate)\b/],
   [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(gutters?(?! guards?)|downpipes?)\b/i, 'gutter and downpipe installation', /\b(gutters?|roofing)\b/i],
@@ -2419,7 +2419,6 @@ function settleFlags(flags, task) {
   out.eavesWork = /\b(eaves|soffits?)\b/i.test(task);
   out.poolFence = /\bpool\b/i.test(task) && /\b(fenc\w*|barriers?|gates?)\b/i.test(task);
   out.weldWork = /\bweld\w*\b/i.test(task);
-  out.guttersOnly = Boolean(out.gutters && !/\b(fascias?|eaves|soffits?)\b/i.test(task));
   out.signalWork = /\btraffic (?:lights|signals?|signal poles?)\b/i.test(task);
   out.screens = /\bscreens?\b/i.test(task);
   out.fromMeter = /\bfrom the meter\b|\bmeter to (?:the |a )?(?:house|home|building)\b/i.test(task);
@@ -2667,9 +2666,6 @@ function settleFlags(flags, task) {
   out.sprinklerOnly = Boolean(out.fireAtHeight && /\bsprinklers?\b/i.test(task) && !/\bhydrants?\b/i.test(task));
   out.houseRaise = /\b(rais\w*|lift\w*)\b[^.]{0,20}\b(?:the |a )?(?:\w+ )?(?:house|home|queenslander)\b/i.test(task);
   if (out.paintExternal && /\b(fascias?|eaves|gutters?)\b/i.test(task) && /\b(?:re)?paint\w*\b/i.test(task) && !/\b(replac\w*|install\w*|new)\b[^.]{0,20}\b(?:\w+ )?(gutters?|downpipes?|linings?|fascias?|fascia boards?)\b/i.test(task)) out.gutters = false;
-  out.fasciaOnly = Boolean(out.gutters && /\bfascias?\b/i.test(task) && !/\b(gutters?|downpipes?|linings?|soffits?)\b/i.test(task));
-  // A fascia on new work is fixed, not replaced.
-  out.fasciaNew = Boolean(out.fasciaOnly && !/\b(replac\w*|repair\w*|rotten|damaged|old|existing|remov\w*)\b/i.test(task));
   if (out.garageDoor === false && /\bcool ?room doors?\b/i.test(task)) out.timberWork = false;
   if (/\bcool ?room doors?\b/i.test(task)) out.timberWork = false;
   if (out.floorCoating) out.sealing = false;
@@ -3046,6 +3042,62 @@ function settleFlags(flags, task) {
   out.pitsByTrench = Boolean(out.trench && out.polesNamed);
   // Sports lighting and screens are separate items.
   out.sportsScreens = Boolean(out.screens || out.screensOnly);
+  // Re-roofing a tiled roof is split into stripping, sarking, battens and re-laying. Sarking and
+  // battens come when the task names them, and both when it names neither; a change to a
+  // metal roof re-lays no tiles, and its battens and sarking go with the new roof.
+  const metalReroof = /\b(metal|colorbond|corrugated|roof(?:ing)? sheet\w*|sheeting)\b/i.test(task);
+  const sarkingNamed = /\b(sarking|anticon|reflective foil|roof membrane)\b/i.test(task);
+  const battensNamed = /\b(re-?batten\w*|battens?)\b/i.test(task);
+  out.roofSarking = sarkingNamed || (!battensNamed && !metalReroof);
+  out.roofBattenFix = !out.roofBattens && (battensNamed || (!sarkingNamed && !metalReroof));
+  out.roofRelay = !metalReroof && !/\bstrip\w* (?:off )?(?:the )?(?:old )?(?:roof )?(?:tiles|slates) only\b/i.test(task);
+  // Floor and wall tiles are not broken out when the work is a tiled roof.
+  if ((out.tileRoofStrip || /\b(?:re-?)?roof\w*\b/i.test(task)) && !/\b(floors?|walls?|bathrooms?|showers?|kitchens?|splashbacks?|ensuites?|laundr\w*)\b/i.test(task)) out.tileRemove = false;
+  // Tiling products are one step each: adhesive, screed, grout and sealer come when the task
+  // names them. With none named, tiles are laid in adhesive and grouted, or a leaking shower
+  // fixed without lifting tiles is regrouted and sealed.
+  out.tileScreed = /\b(screed\w*|(?:sand and cement|mortar) bed\w*|bedding mortar)\b/i.test(task);
+  out.tileAdhesive = /\b(adhesives?|glue\w*|thin-?set)\b/i.test(task);
+  out.tileGrout = /\b(?:re-?)?grout\w*\b/i.test(task) || (/\bepox\w*\b/i.test(task) && !/\bepoxy (?:adhesive|floor\w*|coat\w*|paint)\b/i.test(task));
+  out.tileSealer = /\b(sealers?|(?:re-?)?seal\w* (?:the |all )?(?:\w+ )?(?:tiles?|grout|stone|pavers?|showers?|baths?)|re-?seal\w*|impregnat\w*)\b/i.test(task);
+  if (!out.tileScreed && !out.tileAdhesive && !out.tileGrout && !out.tileSealer) {
+    if (/\bwithout (?:removing|lifting) (?:the )?tiles\b/i.test(task)) { out.tileGrout = true; out.tileSealer = true; } else { out.tileAdhesive = true; out.tileGrout = true; }
+  }
+  // Facade fixing, joinery and doors: one step per activity. Resealing joints alone drills
+  // nothing; brackets, anchors or fixings named are drilled for.
+  out.facadeDrill = !out.jointSealOnly || /\b(drill\w*|brackets?|anchors?|fixings?)\b/i.test(task);
+  out.joineryDoors = Boolean(out.doorHangWork || !out.cabinetWork);
+  const framesNamed = /\b(door ?frames?|doorsets?|frames?|jambs?)\b/i.test(task);
+  const leavesNamed = /\bdoors?\b(?! ?frames?| ?sets?)/i.test(task.replace(/\b(?:install|stand|fix)\w* (?:the |all )?(?:\w+ )?door ?frames?\b/gi, ''));
+  out.doorFrames = framesNamed || !/\bhang\w*\b/i.test(task);
+  out.doorLeaves = leavesNamed || !framesNamed;
+  // A fence repair that sets no new posts digs no post holes.
+  out.fencePostHoles = /\b(posts?|post holes?|holes?|footings?|augers?)\b/i.test(task) || !/\b(?:repair\w*|replac\w*|fix\w*)\b[^.]{0,40}\b(?:panels?|palings?|sheets?|pickets?|rails?|gates?|wire|boards?)\b/i.test(task);
+  // Gutters and downpipes, fascia, and eaves linings are separate steps.
+  const fasciaNamed = /\bfascias?\b/i.test(task);
+  out.eavesLiningWork = /\b(eaves? linings?|(?<!slab )soffits?|eaves sheets?|(?:re-?)?lin\w* (?:the )?eaves)\b/i.test(task) || Boolean(out.eavesWork && /\b(linings?|sheets?|fibro|asbestos)\b/i.test(task));
+  out.gutterWork = /\b(gutters?(?! guards?)|downpipes?|rainheads?|spouting)\b/i.test(task) || (!fasciaNamed && !out.eavesLiningWork);
+  out.fasciaWork = fasciaNamed;
+  out.fasciaReplace = fasciaNamed && /\b(replac\w*|repair\w*|rotten|damaged|old|existing|remov\w*)\b/i.test(task) && !/\bnew fascias?\b/i.test(task);
+  // Metal decking and stud welding are separate crews.
+  const studsNamed = /\b(shear studs?|stud weld\w*|studs?)\b/i.test(task);
+  out.studWeld = studsNamed;
+  out.deckLay = /\b(?:lay\w*|install\w*|fix\w*|plac\w*)\b[^.]{0,30}\bdecking\b|\bdecking (?:sheets?|bundles?)\b/i.test(task) || !studsNamed;
+  if (out.deckingStuds && !/\b(braz\w*|solder\w*|pipes?|pipework|copper)\b/i.test(task)) out.hotWork = false;
+  // Playground softfall is its own step when it is named.
+  out.softfallStep = Boolean(out.softfallWork || out.softfallOnly);
+  // Replacing the sails on existing posts stands no posts.
+  out.sailsOnly = /\b(?:replac\w*|re-?hang\w*|re-?tension\w*|re-?fit\w*|remov\w*|take down|repair\w*)\b[^.]{0,30}\b(?:shade )?sails?\b/i.test(task) && !/\b(?:new|install\w*|stand\w*|erect\w*)\b[^.]{0,30}\b(?:posts?|columns?)\b|\breplac\w* (?:the )?(?:\w+ )?(?:posts?|columns?)\b|\bfootings?\b/i.test(task);
+  // The tank is lifted onto its stand when the task names a tank going on it.
+  out.tankLiftOn = /\btanks?\b/i.test(task.replace(/\btank stands?\b/gi, ''));
+  // Stage building and lighting rigging are separate crews.
+  const stageNamed = /\b(stages?|staging)\b/i.test(task);
+  const rigNamed = /\b(lighting|lights|trusses|truss|rig\w*|fixtures?|speakers?|line arrays?)\b/i.test(task);
+  out.stageBuild = stageNamed || !rigNamed;
+  out.lightRig = rigNamed || !stageNamed;
+  // Site fencing, hoardings and gantries are separate steps.
+  out.hoardingNamed = /\b(hoardings?|barricades?|covered ways?)\b/i.test(task);
+  out.siteFencing = /\b(fenc\w*|site establishment)\b/i.test(task) || (!out.hoardingNamed && !out.gantry && !/\bsite sheds?\b/i.test(task));
   return out;
 }
 
@@ -3251,7 +3303,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     underslabDrainage: /\b(sewer\w*|drainage|drains?|waste|stormwater|plumbing)\b[^.]{0,40}\bunder (?:a |the )?(?:new )?(?:house |building )?slabs?\b|\bunder[- ]?slab (?:drainage|plumbing|sewer\w*|pipes?)\b|\b(sewer\w*|drain\w*|waste|plumbing|pipes?)\b[^.]{0,30}\bunder (?:an? |the )?(?:existing )?(?:house |building )?floors?\b/i.test(task),
     trafficSignals: /\btraffic (?:lights|signals?|signal poles?)\b/i.test(task) && /\b(install\w*|replac\w*|erect\w*|new)\b/i.test(task),
     footingHoles: /\b(dig\w*|excavat\w*|auger\w*)\b[^.]{0,20}\b(?:the |new )?(?:footings?|footing holes?|post holes?|pier holes?|holes)\b/i.test(task) && !/\btrench\w*\b/i.test(task),
-    tileRoofStrip: /\b(strip\w*|remov\w*|replac\w*)\b[^.]{0,30}\b(?:the )?(?:old )?tiled? roofs?\b|\bre-?(?:tile|batten)\w* (?:the |a )?roof\b/i.test(task),
+    tileRoofStrip: /\b(strip\w*|remov\w*|replac\w*)\b[^.]{0,30}\b(?:the )?(?:old )?tiled? roofs?\b|\bre-?(?:tile|batten)\w* (?:the |a )?(?:tiled |slate )?roof\b|\bstrip\w*\b[^.]{0,20}\broof tiles\b/i.test(task),
     treeOnRoof: /\btrees?\b[^.]{0,40}\b(?:on|onto|through|across) (?:a |the )?(?:house |building |shed |garage )?roofs?\b/i.test(task),
     flyScreens: /\b(fly ?screens?|insect screens?|security (?:doors?|screens?)|screen doors?)\b/i.test(task),
     mobileScaffoldErect: /\b(erect\w*|dismantl\w*|assembl\w*|set\w* up)\b[^.]{0,30}\bmobile scaffold|\bmobile scaffold\w*\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task),

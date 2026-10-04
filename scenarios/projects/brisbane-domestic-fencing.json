@@ -13,7 +13,8 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Dig post holes and build the fence"
+          "Dig post holes",
+          "Build the fence"
         ],
         "missing": []
       }

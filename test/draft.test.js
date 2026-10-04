@@ -438,9 +438,10 @@ test('job steps follow the order the user chose, and a step not in it stays afte
   const reversed = [...names].reverse();
   assert.deepEqual(prepareDraft(draftBody({ ...body, stepOrder: reversed })).jobSteps.map((step) => step.step), reversed);
   // Steps left out of the order keep their place around the ones named.
-  const partial = prepareDraft(draftBody({ ...body, stepOrder: [names[2], names[1]] })).jobSteps.map((step) => step.step);
-  // The first step was before any named one; the fourth followed the third, so it moves with it.
-  assert.deepEqual(partial.slice(0, 4), [names[0], names[2], names[3], names[1]]);
+  const last = names.length - 1;
+  const partial = prepareDraft(draftBody({ ...body, stepOrder: [names[last - 1], names[1]] })).jobSteps.map((step) => step.step);
+  // The first step was before any named one; the last followed the one before it, so it moves with it.
+  assert.deepEqual(partial.slice(0, 4), [names[0], names[last - 1], names[last], names[1]]);
 });
 
 test('a harness or life jacket in the PPE brings its question, and taking it out removes it', () => {

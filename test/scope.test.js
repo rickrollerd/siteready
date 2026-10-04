@@ -102,10 +102,10 @@ test('a task from a scope keeps its trade, and its SWMS uses only that trade\'s 
   const task = 'Paint all doors, architraves and plasterboard ceilings with water-based paint.';
   const facts = { safetyDataSheet: 'Safety data sheets for the paints are kept at the work area.' };
   const steps = (trade) => prepareDraft({ state: 'qld', task, fallRisk: 'no', trade, facts }).jobSteps.map((step) => step.step);
-  assert.ok(!steps('painting').includes('Install doors, joinery and cabinets'));
+  assert.ok(!steps('painting').some((step) => /doors|joinery/i.test(step)));
   assert.ok(steps('painting').includes('Paint'));
   // Without a trade, the task is read as before.
-  assert.ok(steps(undefined).some((step) => /^Install doors/.test(step)));
+  assert.ok(steps(undefined).some((step) => /doors|door frames/i.test(step)));
 });
 
 test('new fibre cement is not asbestos, and handrails or crane ties are not precast lifts', () => {

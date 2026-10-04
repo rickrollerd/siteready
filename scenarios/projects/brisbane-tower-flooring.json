@@ -52,7 +52,8 @@
       "expect": {
         "highRisk": [],
         "steps": [
-          "Cut and install timber floors"
+          "Cut timber flooring to size",
+          "Lay timber floors"
         ],
         "missing": []
       }
