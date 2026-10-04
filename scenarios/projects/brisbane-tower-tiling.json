@@ -17,7 +17,8 @@
         "highRisk": [],
         "steps": [
           "Cut tiles and stone",
-          "Mix and apply adhesives, grouts, screeds and sealers",
+          "Mix and spread the tile adhesive",
+          "Grout the tiles",
           "Lay tiles"
         ],
         "missing": [
@@ -42,7 +43,8 @@
         ],
         "steps": [
           "Cut tiles and stone",
-          "Mix and apply adhesives, grouts, screeds and sealers",
+          "Lay the screed",
+          "Mix and spread the tile adhesive",
           "Lay tiles",
           "Tile balconies and terraces near edges"
         ],
@@ -66,7 +68,7 @@
         "highRisk": [],
         "steps": [
           "Cut tiles and stone",
-          "Mix and apply adhesives, grouts, screeds and sealers",
+          "Grout the tiles",
           "Lay tiles"
         ],
         "missing": [

@@ -239,7 +239,7 @@ test('hail damaged warehouse skylights are taken out and replaced, not cut in', 
 
 test('a playground is its equipment and footings as well as the softfall', () => {
   const done = draft('Install a playground with soft fall at a school.', { state: 'vic' });
-  assert.ok(steps(done).includes('Install playground equipment and softfall'));
+  assert.ok(steps(done).includes('Install playground equipment') && steps(done).includes('Lay the rubber softfall'));
   assert.ok(has(done, /Footing holes are dug/) && has(done, /services information before digging footings/));
   assert.ok(has(done, /paddle mixer/));
 });
