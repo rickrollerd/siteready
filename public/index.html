@@ -36,6 +36,9 @@
     label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
     .hint { display: block; font-weight: 400; color: #5c6773; margin-top: 2px; }
     .address-box { position: relative; }
+    .drop-zone { border: 2px dashed #c8ced6; border-radius: 8px; padding: 16px; text-align: center; }
+    .drop-zone.over { border-color: #1f4d3a; background: #eef6f1; }
+    .drop-zone .meta { margin: 8px 0 0; }
     .address-list { position: absolute; z-index: 20; left: 0; right: 0; margin: 2px 0 0; padding: 0; list-style: none; background: #fff; border: 1px solid #c8ced6; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); max-height: 260px; overflow-y: auto; }
     .address-list li { padding: 10px 12px; cursor: pointer; }
     .address-list li[aria-selected="true"], .address-list li:hover { background: #fff4d1; }
@@ -332,7 +335,10 @@
         <label for="scope-file">Scope of works or quote file
           <span class="hint">Word (.docx), PDF or text. Attach the scope or quote only, not the whole contract. Prices are ignored.</span>
         </label>
-        <input id="scope-file" type="file" accept=".docx,.pdf,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
+        <div id="scope-drop" class="drop-zone">
+          <input id="scope-file" type="file" accept=".docx,.pdf,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
+          <p class="meta" id="scope-drop-note">or drag the file here</p>
+        </div>
       </div>
       <div class="field">
         <label for="scope-text">Or paste the scope or quote</label>
