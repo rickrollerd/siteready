@@ -3098,6 +3098,30 @@ function settleFlags(flags, task) {
   // Site fencing, hoardings and gantries are separate steps.
   out.hoardingNamed = /\b(hoardings?|barricades?|covered ways?)\b/i.test(task);
   out.siteFencing = /\b(fenc\w*|site establishment)\b/i.test(task) || (!out.hoardingNamed && !out.gantry && !/\bsite sheds?\b/i.test(task));
+  // Services work is split into one step per activity (round 2).
+  // Temporary lighting alone installs no construction power.
+  out.tempLightOnly = /\b(lighting|lights?)\b/i.test(task) && !/\b(power|wiring|supply|switchboards?|distribution|boards?|rcds?|installations?)\b/i.test(task);
+  // Chemical dosing alone installs no pool plant.
+  out.poolDosingOnly = /\b(dosing|chlorinators?|chemicals?|salt cells?)\b/i.test(task) && !/\b(pumps?|filters?|plant|heaters?|heat pumps?|vessels?|pipework)\b/i.test(task);
+  // Work in a fire pump room is its own step when the pump room or pumps are named; alone, it touches no live fire system outside it.
+  const pumpless = task.replace(/\b(?:(?:sprinkler|hydrant|fire|diesel|electric|jockey|booster) )*pump(?: ?sets?| ?rooms?|s)?\b/gi, ' ');
+  out.pumpRoomNamed = /\b(pump ?rooms?|pump ?sets?|(?:fire|diesel|electric|jockey|booster|sprinkler|hydrant) pumps?)\b/i.test(task);
+  out.pumpRoomOnly = out.pumpRoomNamed && !/\b(live|impair\w*|sprinkler\w*|hydrants?|hose reels?|systems?|pipework|mains?|risers?|valves?)\b/i.test(pumpless);
+  // A door spring job connects no motor unless the task names one.
+  out.noDoorMotor = Boolean(out.doorSpring && !/\b(motors?|openers?|automat\w*)\b/i.test(task));
+  // A rainwater tank pump is its own step, only when a pump is named; a pump alone sets no tank.
+  out.tankPump = /\bpumps?\b/i.test(task);
+  out.tankPumpOnly = out.tankPump && !/\btanks?\b(?! pumps?)/i.test(task);
+  // Fuel lines and dispensers are each their own step, both when the task names neither.
+  const fuelLinesNamed = /\b(?:fuel )?(?:lines?|pipework|pipes?|piping)\b/i.test(task);
+  const dispensersNamed = /\b(dispensers?|bowsers?|fuel pumps?)\b/i.test(task);
+  out.fuelLines = fuelLinesNamed || !dispensersNamed;
+  out.fuelDispensers = dispensersNamed || !fuelLinesNamed;
+  // Clean room panels and flooring are each their own step, both when the task names neither.
+  const cleanFloorNamed = /\b(floors?|flooring|vinyl|epoxy)\b/i.test(task);
+  const cleanPanelsNamed = /\b(walls?|ceilings?|panels?|partitions?)\b/i.test(task);
+  out.cleanRoomPanels = cleanPanelsNamed || !cleanFloorNamed;
+  out.cleanRoomFloor = cleanFloorNamed || !cleanPanelsNamed;
   return out;
 }
 
