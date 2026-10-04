@@ -5,7 +5,7 @@ const { rateLimit } = require('express-rate-limit');
 const path = require('path');
 const cluster = require('cluster');
 const os = require('os');
-const { listStates } = require('./legislation');
+const { listStates, findState } = require('./legislation');
 const { questionsFor, prepareDraft } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote } = require('./docx-draft');
@@ -163,7 +163,9 @@ app.post(SCOPE_ROUTE, async (req, res, next) => {
   try {
     const text = await scopeText(req.body || {});
     record('scope', req.company && req.company.id);
-    res.json(tasksFromScope(text));
+    // The state picked on the form sets which work is high risk and how it is named.
+    const state = req.body && findState(req.body.state);
+    res.json(tasksFromScope(text, state ? state.id : 'qld'));
   } catch (error) {
     next(error);
   }

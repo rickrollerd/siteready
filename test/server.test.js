@@ -159,3 +159,15 @@ test('the welcome page figures match what the app offers (Australian Consumer La
   const { STATES } = require('../legislation');
   assert.equal(STATES.filter((state) => state.loaded).length, 8, 'every state and territory');
 });
+
+test('a scope is read with the state picked on the form', async () => {
+  const text = 'Excavate and lay stormwater pipe in a shored trench 3.2 m deep.\nBackfill and compact the trench in layers.';
+  const labels = async (state) => {
+    const response = await post('/api/scope', { text, state });
+    assert.equal(response.status, 200);
+    return (await response.json()).tasks.flatMap((task) => task.highRisk).join(' ');
+  };
+  assert.match(await labels('vic'), /Involving a trench or shaft if the excavated depth is more than 1\.5 metres/);
+  assert.match(await labels('qld'), /in or near a shaft or trench with an excavated depth greater than 1\.5m/);
+  assert.match(await labels(''), /in or near a shaft or trench with an excavated depth greater than 1\.5m/);
+});
