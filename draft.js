@@ -178,6 +178,15 @@ const DEMOLITION = /\b(demolition|demolish\w*|implod\w*|knock(?:ing)? down|pull(
 const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|motorways?|freeways?|next to (?:live )?traffic|rural roads?|road pavements?|road upgrades?|on-?ramps?|roundabouts?|live buses|bypass(?:es)?|overpass(?:es)?|bridges? over (?:a |the )?(?:busy |live )?(?:roads?|motorways?|highways?)|(?:resurfac\w*|reseal\w*) (?:a |the )?(?:roads?|streets?|lanes?)|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
 // "Any traffic control required" is a general clause: it names no road the work is on.
 const CONDITIONAL_TRAFFIC = /\b(?:any|such)\s+(?:required\s+|necessary\s+)?traffic\s+(?:control|management)(?:\s*\/\s*(?:control|management))?|\btraffic\s+(?:control|management)\s+(?:if|where|when|as)\s+(?:required|necessary|needed)\b/gi;
+// Work in a road reserve is beside the road. A footpath, verge or nature strip carries
+// only pedestrians, so work on one is beside a road in use only where the text also
+// names the road, its traffic or kerb, or the council's road reserve.
+function besideRoad(raw) {
+  const text = String(raw || '');
+  if (/\b(in|on|along|across|under) (?:the |a )?(?:council |public )?road reserves?\b/i.test(text)) return true;
+  return /\b(in|on|along|across|under) (?:the |a )?(?:council |public )?(?:footpaths?|verges?|nature strips?)\b/i.test(text)
+    && /\b(roads?|roadways?|streets?|traffic|kerbs?|carriageways?|highways?|crossovers?|vehicles?|council)\b/i.test(text.replace(/\broad reserves?\b/gi, ' '));
+}
 // Track work and work beside running lines are in or next to a railway in use.
 // Ballast is track ballast only beside track words: roofs and planters have gravel ballast too.
 const RAIL_RAW = /\b(rail (?:lines?|tracks?)|live track|track possessions?|during (?:a|the) possession|road rail vehicles?|rail overhead wiring|overhead wiring with|track laying|track maintenance machines?)\b/i;
@@ -522,7 +531,7 @@ function highRiskMatches(raw, answer, state) {
     // "Tilt up", "tilt panels" and "tilt slabs" are tilt-up work as much as "tilt-up".
     precast: mentioned(withoutWorkIntoPrecast(text), /\b(tilt[- ]?up|tilt (?:panels?|slabs?|walls?)|precast)\b/i),
     // Work in a footpath or verge is next to the road it runs beside.
-    road: mentioned(String(text || '').replace(CONDITIONAL_TRAFFIC, ' '), ROAD) || /\b(?:adjacent to|next to|alongside) (?:an? |the )?(?:existing |live |busy |public |operating )?(?:roads?|roadways?|streets?|highways?|motorways?|freeways?)\b/i.test(String(text || '')) || mentioned(text, RAIL_IN_USE) || /\blight rail\b/i.test(String(text || '')) || /\b(in|on|along|across|under) (?:the |a )?(?:council |public )?(?:footpaths?|verges?|road reserves?|nature strips?)\b/i.test(String(text || '')),
+    road: mentioned(String(text || '').replace(CONDITIONAL_TRAFFIC, ' '), ROAD) || /\b(?:adjacent to|next to|alongside) (?:an? |the )?(?:existing |live |busy |public |operating )?(?:roads?|roadways?|streets?|highways?|motorways?|freeways?)\b/i.test(String(text || '')) || mentioned(text, RAIL_IN_USE) || /\blight rail\b/i.test(String(text || '')) || besideRoad(text),
     // Trenches and site excavation are dug by machine unless the task says by hand.
     plant: (/\b(excavat\w*|dig\w*)\s+(?:the\s+|all\s+|new\s+|and\s+\w+\s+(?:a\s+|the\s+)?(?:new\s+)?)?(?:\w+\s+)?(?:trench\w*|site|footings?|pits?|basement|swales?|sewer|line|drains?|stormwater|services?|pipes?)\b|\bbulk excavat\w*/i.test(String(text || '')) && !/\b(?:by hand|hand[- ]dig\w*|hand excavat\w*)\b/i.test(String(text || ''))) || mentioned(text, /\b((?:piling|cfa|bored pil\w*|drill(?:ing)?|hdd) rigs?|directional(?:ly)? (?:drill|bor)\w*|(?:excavator[- ]mounted )?pile croppers?|rock break(?:ers?|ing)|hydraulic hammers?|elevating work platforms?|ewps?|scissor lifts?|boom lifts?|powered mobile plant|concrete pump(?: truck)?s?|pump trucks?|boom pumps?|telehandlers?|excavators?|forklifts?|trucks?|(?<!tower )cranes?(?!\s+(?:company|companies|crew|operators?)\b)|loaders?|liebherr|skid ?steers?|bobcats?|posi-?tracks?|(?:vibrating|smooth drum|padfoot|ride-on|road|compaction) rollers?)\b/i)
       // Concrete trucks come into the work area for every slab, path or driveway pour.
@@ -2990,7 +2999,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
   const roofTask = task.replace(/\b(?:before|prior to|ahead of|ready for)\s+(?:the\s+)?re-?roof\w*\b/gi, '');
   const pourTask = task.replace(/\battend\w*\b[^.]*\b(?:during|at)\b[^.]*\b(?:concrete (?:placement|plac\w*|pours?)|pours?)\b[^.]*/gi, '').replace(/\b(?:prior to|before|ahead of)\s+(?:the\s+|all\s+)?(?:concrete\s+)?(?:pours?|pouring|placement)\b/gi, '');
   return {
-    road: mentioned(task.replace(CONDITIONAL_TRAFFIC, ' '), ROAD) || /\blight rail\b/i.test(task) || /\b(?:footpath|road|lane) closures?\b/i.test(task) || /\b(in|on|along|across|under) (?:the |a )?(?:council |public )?(?:footpaths?|verges?|road reserves?|nature strips?)\b/i.test(task),
+    road: mentioned(task.replace(CONDITIONAL_TRAFFIC, ' '), ROAD) || /\blight rail\b/i.test(task) || /\b(?:footpath|road|lane) closures?\b/i.test(task) || besideRoad(task),
     power: mentioned(task, ENERGISED),
     scaffold,
     // Roofing work, not a roof beam or a job under a roof.

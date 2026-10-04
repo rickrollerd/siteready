@@ -214,3 +214,14 @@ test('preparing a floor for a skim coat is levelling, not grinding', () => {
   assert.ok(found.includes('floorLevel'));
   assert.ok(kinds('Grind and prepare the subfloor before the sheet vinyl.', 'flooring').includes('floorGrind'));
 });
+
+test('plant set on a footpath is not work beside a road in use; a footpath beside a live road is', () => {
+  const task = 'Supply and install two condensers on the footpath outside the amenities block, and fence them off during the works.';
+  assert.ok(!kinds(task, 'mechanical').includes('road'));
+  assert.ok(!highRiskMatches(task, '', findState('qld')).some((item) => item.check === 'road'));
+  assert.ok(!highRiskMatches(task, '', findState('vic')).some((item) => item.check === 'roadOrRail'));
+  const kerb = 'Replace the damaged slabs on the footpath next to the street, with traffic passing at the kerb.';
+  assert.ok(highRiskMatches(kerb, '', findState('qld')).some((item) => item.check === 'road'));
+  assert.ok(kinds(kerb, 'structure').includes('road'));
+  assert.ok(highRiskMatches('Excavate a sewer trench in the road reserve.', '', findState('qld')).some((item) => item.check === 'road'));
+});
