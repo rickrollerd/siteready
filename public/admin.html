@@ -11,15 +11,24 @@
     .wrap { max-width: 900px; margin: 0 auto; padding: 24px 16px 48px; }
     h1 { font-size: 24px; margin: 0 0 16px; }
     h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #3d4a59; margin: 0 0 10px; }
+    h3 { font-size: 15px; margin: 16px 0 6px; }
     .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
     .tile { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px; }
     .tile .n { font-size: 26px; font-weight: 700; }
     .tile .l { font-size: 13px; color: #5c6773; }
-    .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border-bottom: 1px solid #e1e6ec; text-align: left; padding: 6px 8px; font-size: 14px; vertical-align: top; }
-    td.n { text-align: right; font-variant-numeric: tabular-nums; }
+    td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
     .error { color: #8a2b2b; }
+    .note { font-size: 13px; color: #5c6773; }
+    form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    input[type="search"], input[type="text"] { flex: 1 1 220px; font: inherit; padding: 7px 10px; border: 1px solid #b9c2cd; border-radius: 6px; }
+    button { font: inherit; padding: 7px 14px; border: 1px solid #2d5b8a; background: #2d5b8a; color: #fff; border-radius: 6px; cursor: pointer; }
+    a { color: #2d5b8a; }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; font-size: 14px; }
+    dt { color: #5c6773; }
+    dd { margin: 0; }
   </style>
 </head>
 <body>
@@ -28,7 +37,22 @@
     <p class="error" id="error"></p>
     <div class="tiles" id="tiles"></div>
     <div class="panel"><h2>What people did</h2><table id="actions"></table></div>
+    <div class="panel">
+      <h2>Reference lookup</h2>
+      <p class="note">Enter the SiteReady reference from the footer of a SWMS to see which account downloaded it.</p>
+      <form id="ref-form"><input type="text" id="ref-input" placeholder="SR-XXXX-XXXX" autocomplete="off" aria-label="SiteReady reference"><button type="submit">Look up</button></form>
+      <div id="ref-result"></div>
+    </div>
+    <div class="panel">
+      <h2>Accounts</h2>
+      <p class="note">Search by business name, ABN or a user's email. Leave it blank for the newest accounts.</p>
+      <form id="account-form"><input type="search" id="account-q" placeholder="Name, ABN or email" autocomplete="off" aria-label="Search accounts"><button type="submit">Search</button></form>
+      <table id="accounts"></table>
+      <div id="account-detail"></div>
+    </div>
+    <div class="panel"><h2>Warning signs</h2><p class="note">Things worth a look. None of them proves a login is shared or a trial repeated.</p><table id="warnings"></table></div>
     <div class="panel"><h2>Unusual sign-ins</h2><p>People signing in from 4 or more devices in 30 days, or 4 or more networks in 7 days. This can mean a login is being shared.</p><table id="signins"></table></div>
+    <div class="panel"><h2>Access log</h2><p class="note">Each time a reference is looked up, an account opened or accounts searched. The last 100.</p><table id="access-log"></table></div>
     <div class="panel"><h2>Recent errors</h2><table id="errors"></table></div>
   </div>
   <script src="/admin.js"></script>
