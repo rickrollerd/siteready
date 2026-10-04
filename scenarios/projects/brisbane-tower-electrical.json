@@ -70,7 +70,8 @@
         ],
         "steps": [
           "Use an elevating work platform",
-          "Install cable tray, containment and cabling at height"
+          "Install cable tray and containment",
+          "Install cabling"
         ],
         "missing": [
           "Fall control",
@@ -118,7 +119,8 @@
           "electrical"
         ],
         "steps": [
-          "Rough-in and fit-off",
+          "Rough-in",
+          "Fit off",
           "Isolate and prove de-energised",
           "Work on or near energised parts"
         ],
@@ -146,7 +148,8 @@
           "Isolate and prove de-energised",
           "Work on or near energised parts",
           "Deliver and place switchboards",
-          "Test, connect and commission",
+          "Test the new work",
+          "Connect and commission",
           "Leave unfinished work safe"
         ],
         "missing": [

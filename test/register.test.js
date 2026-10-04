@@ -477,7 +477,7 @@ test('banks 1 to 4 verification: step order, main work and lines for the job', (
   // Relining a sewer is done from the surface; the drain is cleared first.
   const reline = steps('Clean out and reline a sewer pipe with a CCTV camera and relining equipment.', 'plumbing');
   assert.ok(!reline.includes('Enter and work'));
-  assert.ok(before(reline, 'Clear the drain with a drain machine or jetter', 'Clean, inspect and reline the pipe'));
+  assert.ok(before(reline, 'Clear the drain with a drain machine or jetter', 'Reline the pipe'));
   // The pump is set up and the slab poured before the forms are stripped.
   const slab = steps('Install formwork and pour a suspended slab on level 3 of an apartment building.', 'structure');
   assert.ok(before(slab, 'Pump and place concrete', 'Strip formwork and backprop'));
@@ -489,7 +489,8 @@ test('banks 1 to 4 verification: step order, main work and lines for the job', (
   // Fit-off alone has no chasing, and is tested before it is connected.
   const fitOff = draft('Fit off lights, power points and ceiling fans in a new house.', 'electrical');
   assert.doesNotMatch(JSON.stringify(fitOff.jobSteps), /Chase and drill/);
-  assert.ok(fitOff.jobSteps.some((step) => step.step === 'Test, connect and commission'));
+  assert.ok(fitOff.jobSteps.some((step) => step.step === 'Test the new work'));
+  assert.ok(!fitOff.jobSteps.some((step) => step.step === 'Rough-in'));
   // Pool heat pumps have no relief valve; solar hot water on a roof gets its collector step.
   assert.doesNotMatch(text('Install a heat pump pool heater and connect plumbing and power.', 'plumbing'), /pressure relief valve/);
   assert.ok(steps('Install a solar hot water system on a flat roof of a motel.', 'plumbing').includes('Fix the solar collectors and tank frame to the roof'));

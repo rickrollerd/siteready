@@ -96,7 +96,8 @@ test('painting over welds is not welding, brazing or soldering', () => {
 
 test('a fixture fit-off that also drains a safety shower keeps the fit-off step', () => {
   const done = draft('Fit off the toilets, basins and tapware, and connect the drainage to the safety shower.', 'plumbing');
-  assert.ok(steps(done).includes('Plumbing rough-in and fit-off'));
+  assert.ok(steps(done).includes('Plumbing fit-off'));
+  assert.ok(!steps(done).includes('Plumbing rough-in'));
   assert.ok(!steps(done).includes('Install, connect and test the eyewash station'));
   assert.ok(steps(draft('Install and test an emergency eyewash station in the laboratory.', 'plumbing')).includes('Install, connect and test the eyewash station'));
 });
@@ -354,4 +355,96 @@ test('bricking up an opening removes the old frames and cuts the lintel bearings
   const names = steps(draft('Remove the old window frames, prop the brickwork and brick up the window openings with a new lintel.', 'masonry'));
   assert.ok(names.indexOf('Remove the old frames') >= 0 && names.indexOf('Remove the old frames') < names.indexOf('Cut the lintel bearings'));
   assert.ok(names.indexOf('Cut the lintel bearings') < names.indexOf('Cut blocks and bricks'));
+});
+
+test('cable tray and the cabling laid on it are separate steps, and cabling comes only when named', () => {
+  const both = steps(draft('Install cable tray, containment and cabling in the risers and apartment ceilings.', 'electrical'));
+  assert.ok(both.includes('Install cable tray and containment') && both.includes('Install cabling'));
+  const tray = steps(draft('Install cable tray and containment in the basement car park.', 'electrical'));
+  assert.ok(tray.includes('Install cable tray and containment') && !tray.includes('Install cabling'));
+  // Heavy cables pulled off drums have their own cable pulling step.
+  const pulled = steps(draft('Install cable ladder and pull the submains cables in the riser.', 'electrical'));
+  assert.ok(pulled.includes('Pull cables and handle cable drums') && !pulled.includes('Install cabling'));
+});
+
+test('electrical rough-in and fit-off are separate steps, with the circuit isolated first', () => {
+  const both = steps(draft('Rough-in and fit-off the electrical installation in the apartments.', 'electrical'));
+  assert.ok(both.indexOf('Isolate and prove de-energised') < both.indexOf('Rough-in'));
+  assert.ok(both.indexOf('Rough-in') < both.indexOf('Fit off'));
+  const roughIn = steps(draft('Rough-in the electrical for the new house.', 'electrical'));
+  assert.ok(roughIn.includes('Rough-in') && !roughIn.includes('Fit off'));
+  const fitOff = steps(draft('Replace the light fittings in the office.', 'electrical'));
+  assert.ok(fitOff.includes('Fit off') && !fitOff.includes('Rough-in'));
+});
+
+test('new electrical work is tested, then connected and commissioned, as separate steps', () => {
+  const names = steps(draft('Install a new main switchboard and consumer mains, test and commission.', 'electrical'));
+  assert.ok(names.indexOf('Test the new work') >= 0 && names.indexOf('Test the new work') < names.indexOf('Connect and commission'));
+  assert.ok(!names.includes('Test, connect and commission'));
+});
+
+test('communications containment and the cable pull are separate steps', () => {
+  const both = steps(draft('Install cable tray and pull Cat6A cabling to the data outlets on level 3.', 'communications'));
+  assert.ok(both.includes('Install communications containment') && both.includes('Pull communications cabling'));
+  const pull = steps(draft('Pull Cat6 cabling through the existing containment to the workstations.', 'communications'));
+  assert.ok(pull.includes('Pull communications cabling') && !pull.includes('Install communications containment'));
+  const containment = steps(draft('Install catenary and conduits for the communications cabling.', 'communications'));
+  assert.ok(containment.includes('Install communications containment') && !containment.includes('Pull communications cabling'));
+});
+
+test('optical fibre is hauled in its own step only where no other step pulls it, then spliced and tested', () => {
+  const backbone = steps(draft('Install and splice the fibre backbone between the comms rooms.', 'communications'));
+  assert.ok(backbone.includes('Pull communications cabling') && backbone.includes('Splice and test optical fibre'));
+  assert.ok(!backbone.includes('Haul the optical fibre cable'));
+  const splice = steps(draft('Splice and test the optical fibre in the comms room.', 'communications'));
+  assert.ok(splice.includes('Splice and test optical fibre') && !splice.includes('Haul the optical fibre cable'));
+});
+
+test('signal pits and conduits, and the poles, are separate steps', () => {
+  const both = steps(draft('Install new traffic signals at the intersection, with pits and conduits.', 'electrical'));
+  assert.ok(both.indexOf('Install pits and conduits') >= 0 && both.indexOf('Install pits and conduits') < both.indexOf('Stand the poles'));
+  const pole = steps(draft('Replace the damaged traffic signal pole at the corner.', 'electrical'));
+  assert.ok(pole.includes('Stand the poles') && !pole.includes('Install pits and conduits'));
+  // Pits laid in the trench steps are not repeated.
+  const street = steps(draft('Install street lighting poles, pits and conduits along the new road.', 'electrical'));
+  assert.ok(street.includes('Install pits') && street.includes('Lay conduits') && street.includes('Stand the poles') && !street.includes('Install pits and conduits'));
+});
+
+test('a sub-board is mounted, and its sub-mains run, as separate steps', () => {
+  const board = steps(draft('Install a new distribution board on level 2.', 'electrical'));
+  assert.ok(board.indexOf('Mount the sub-board') >= 0 && board.indexOf('Mount the sub-board') < board.indexOf('Run the sub-mains'));
+  // Where the cable pulling step runs the sub-mains, it is not repeated, and the termination at the main switchboard stays.
+  const done = draft('Install a new sub-board in the workshop and run the sub-mains from the main switchboard.', 'electrical');
+  assert.ok(steps(done).includes('Mount the sub-board') && !steps(done).includes('Run the sub-mains'));
+  assert.ok(JSON.stringify(done.jobSteps).includes('Before termination at the main switchboard'));
+});
+
+test('sports lighting and screens are separate steps, each only when named', () => {
+  const both = steps(draft('Install sports field lighting and the scoreboard screen at the stadium.', 'electrical'));
+  assert.ok(both.includes('Install sports lighting') && both.includes('Install the screens'));
+  const lights = steps(draft('Install sports lighting on the oval light towers.', 'electrical'));
+  assert.ok(lights.includes('Install sports lighting') && !lights.includes('Install the screens'));
+  const screen = steps(draft('Install the LED video screen at the stadium.', 'electrical'));
+  assert.ok(screen.includes('Install the screens') && !screen.includes('Install sports lighting'));
+});
+
+test('plumbing rough-in and fit-off are separate steps', () => {
+  const both = steps(draft('Rough-in and fit-off the plumbing in the apartments.', 'plumbing'));
+  assert.ok(both.indexOf('Plumbing rough-in') >= 0 && both.indexOf('Plumbing rough-in') < both.indexOf('Plumbing fit-off'));
+  const roughIn = steps(draft('Rough-in the plumbing for the new bathroom.', 'plumbing'));
+  assert.ok(roughIn.includes('Plumbing rough-in') && !roughIn.includes('Plumbing fit-off'));
+});
+
+test('a pipe is cleaned and inspected, then relined, as separate steps', () => {
+  const reline = steps(draft('Inspect the sewer with a CCTV camera and reline it with a cured in place liner.', 'plumbing'));
+  assert.ok(reline.indexOf('Clean and inspect the pipe') >= 0 && reline.indexOf('Clean and inspect the pipe') < reline.indexOf('Reline the pipe'));
+  // The drain clearing step does the cleaning where it is there.
+  const cleared = steps(draft('Clean, inspect and reline the sewer pipe under the house.', 'plumbing'));
+  assert.ok(cleared.includes('Clear the drain with a drain machine or jetter') && cleared.includes('Reline the pipe') && !cleared.includes('Clean and inspect the pipe'));
+});
+
+test('an old septic tank is pumped out, then removed, as separate steps', () => {
+  const names = steps(draft('Pump out and remove the old septic tank and install a new treatment plant.', 'plumbing'));
+  assert.ok(names.indexOf('Pump out the septic tank') >= 0 && names.indexOf('Pump out the septic tank') < names.indexOf('Remove the old septic tank'));
+  assert.ok(names.indexOf('Remove the old septic tank') < names.indexOf('Lift and place tanks, pits or precast units'));
 });

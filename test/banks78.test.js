@@ -279,7 +279,7 @@ test('a new main switchboard has its cables pulled in and terminated', () => {
   const done = draft('Install a new main switchboard in a hospital plant room.');
   const names = steps(done);
   assert.ok(names.includes('Pull in and terminate the cables'));
-  assert.ok(names.indexOf('Pull in and terminate the cables') < names.indexOf('Test, connect and commission'));
+  assert.ok(names.indexOf('Pull in and terminate the cables') < names.indexOf('Test the new work'));
   assert.ok(has(done, /terminated at the new board only once each is proved de-energised/));
 });
 
@@ -343,7 +343,7 @@ test('trucks are guided into the work area, not a loading zone', () => {
 
 test('new lighting is tested before it is energised, with no unused respirator line', () => {
   const done = draft('Install new lighting in a car park at night.', { fallRisk: 'yes', state: 'wa' });
-  assert.ok(steps(done).includes('Test, connect and commission'));
+  assert.ok(steps(done).includes('Test the new work'));
   assert.ok(!has(done, /Tight-fitting respirators are fit tested/));
 });
 
@@ -416,7 +416,8 @@ test('a timber pergola is cut and fixed on site, with no kit or roof sheet wordi
 test('an outdoor shower has its trench and none of the indoor rough-in lines', () => {
   const done = draft('Install an outdoor shower at a beach surf club.');
   const names = steps(done);
-  assert.ok(names.indexOf('Dig a shallow trench and lay the pipes') < names.indexOf('Plumbing rough-in and fit-off'));
+  assert.ok(names.indexOf('Dig a shallow trench and lay the pipes') < names.indexOf('Plumbing fit-off'));
+  assert.ok(!names.includes('Plumbing rough-in'));
   assert.ok(!has(done, /open penetration|drilling into a slab/));
 });
 
