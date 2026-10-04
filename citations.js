@@ -243,7 +243,7 @@ const MODEL_SILICA_TEXT = [
 // (Western Australia leaves them out, and the Northern Territory text read has no Part 4.7).
 const ENERGISED_TEXT = [
   [/^A safety observer, assessed in the last 12 months as competent in rescue and resuscitation, watches the work and does no other work\.$/, (id) => `A safety observer, competent to apply the emergency controls and to rescue and resuscitate the worker, and assessed in the previous 12 months as competent to rescue and resuscitate a person, watches the work and does no other work.${cite(id, '161')}`],
-  [/^Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, both readily available to the workers\.$/, (id) => `Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, or both for at least 2 years after a notifiable incident, readily available to the workers.${cite(id, '162')}`],
+  [/^Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, or both for at least 2 years after a serious electrical incident or dangerous electrical event, readily available to the workers\.$/, (id) => `Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, or both for at least 2 years after a notifiable incident, readily available to the workers.${cite(id, '162')}`],
 ];
 // Western Australia has no 6 m notice (r 142 is not used). Class 1 and Class 2 demolition work
 // is licensed (r 142B, r 142C), and notified 5 working days ahead when done to AS 2601 (r 142F),

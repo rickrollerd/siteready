@@ -84,9 +84,10 @@ const QUEENSLAND = {
   },
   // Plain wording for a user who is not sure what a fall from height is.
   fallExplanation: 'A fall from height means a person could fall from one level to a lower level. For example off a roof, a scaffold, a ladder, a slab or floor edge, or into a hole or trench. Under the Work Health and Safety Regulation 2011 (Qld), section 291, work where a person could fall more than 2 metres is high risk construction work. Section 299 says high risk construction work needs a safe work method statement before it starts.',
-  // Electrical Safety Regulation 2026 (Qld), which replaced the 2013 regulation on 1 September 2026
-  // with no policy change. 3.0 m is the exclusion zone for untrained persons and operating plant
-  // near lines up to 132 kV; higher voltages need more.
+  // Electrical Safety Regulation 2026 (Qld), which commenced on 1 September 2026 in place of the
+  // expired Electrical Safety Regulation 2013 (s 2, s 344). Schedule 2: 3.0 m is the largest
+  // exclusion zone for untrained persons and operating plant near uninsulated lines up to 132 kV;
+  // higher voltages need more.
   // Section 299(4): a statement whose only fall controls are administrative or PPE must
   // describe all control measures considered, including the section 79(3) requirements.
   fallControlsConsidered: 'Only needed if the fall control is a procedure or a harness. List the other controls considered, such as edge protection, a scaffold or an elevating work platform, and why they were not used (section 299(4)).',

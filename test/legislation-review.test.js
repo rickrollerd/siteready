@@ -385,3 +385,14 @@ test('WA: roof spaces of Class 1, 2 and 10a buildings are de-energised (r 153); 
   // Elsewhere an excavator is not a crane (r 5), so no licence.
   assert.equal(draft('sa', 'Lay 900 mm concrete stormwater pipes in a 2 m deep trench, lifting each pipe into place with a 30 tonne excavator.').plant.find((item) => item.item === 'Excavator').licence, 'No. Operator competent (verification of competency)');
 });
+
+test('Queensland electrical safety: s 204(3) 2 year records, s 199(1)(e) consultation, and the silica code section for water sprays', () => {
+  const qld = lines(draft('qld', ENERGISED));
+  assert.ok(qld.includes('Keep the risk assessment until at least 28 days after the work and this SWMS until the work is complete, or both for at least 2 years after a serious electrical incident or dangerous electrical event, readily available to the workers. (Electrical Safety Regulation 2026 (Qld) s 204)'));
+  assert.ok(qld.some((item) => /authorisation after consulting the person with management or control of the workplace, usually the principal contractor\. \(Electrical Safety Regulation 2026 \(Qld\) s 199, s 200\)$/.test(item)));
+  // Water sprays are the code's section 7.4.1 (water suppression), not 7.4.2 (local exhaust ventilation).
+  const found = [];
+  const walk = (value) => { if (value && typeof value === 'object') { if (typeof value.text === 'string' && /^Breaking masonry and slabs is processing/.test(value.text)) found.push(value.source); Object.values(value).forEach(walk); } };
+  walk(require('../activities').ACTIVITIES);
+  assert.ok(found.length && found.every((source) => /Code of Practice 2022 \(Qld\) s 7\.4\.1, s 7\.6, s 7\.6\.2$/.test(source)), found.join('\n'));
+});
