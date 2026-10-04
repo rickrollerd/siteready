@@ -316,13 +316,16 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
   if (/\bWhere the grandstand is built from scaffolding\b/.test(allText)) needed.push('Scaffolding licence (SB, or SI or SA as the scaffold needs), where the grandstand is built from scaffolding and a person or object could fall more than 4 m');
   if (/\bGantries and covered ways in tube and coupler are erected by licensed intermediate scaffolders\b/.test(allText)) needed.push('Scaffolding licence (SI or SA), for gantries and covered ways in tube and coupler');
   if (/\bby workers holding the fire protection licence or accreditation the state requires\b/.test(allText)) needed.push('Fire protection licence or accreditation, as the state requires');
-  if (/\bTraffic controllers who hold\b/.test(allText) && !needed.some((name) => /^Traffic controller/.test(name))) needed.push('Traffic controller accreditation, for anyone on our crew who directs traffic');
+  if (/\bTraffic controllers who hold\b|\bholding a traffic control work training card\b/.test(allText) && !needed.some((name) => /^Traffic controller/.test(name))) needed.push('Traffic controller accreditation, for anyone on our crew who directs traffic');
   // Dogging or rigging by this crew; where the crane company's crew slings, it holds the licences.
   if (/\b(our (?:licensed )?(?:riggers?|doggers?|dogman)|we sling|our crew slings|rigging work|dogging|slung by licensed (?:doggers|riggers))\b/i.test(allText) || /\b(rigg\w*|dogg\w*|sling\w*)\b/i.test(taskText) || /\nErect and connect steel at height\n/.test(`\n${allText}\n`)) needed.push(/\n(?:Erect and connect steel at height|Lift and land steel with the crane company)\n/.test(`\n${allText}\n`) ? 'High risk work licence: basic rigging (RB) or higher, for structural steel erection' : /\bhoist\w* is rigging work\b/i.test(allText) ? 'High risk work licence: basic rigging (RB) or higher, for setting up the hoist (intermediate rigging (RI) for hoists with jibs and self-climbing hoists)' : 'High risk work licence: dogging or rigging (DG, RB, RI or RA)');
   // Precast members need basic rigging, and tilt slabs intermediate rigging (WHS Reg schedule 3 items 5 and 6).
   const ownRigging = !/\bcrane company\b/i.test(allText) || /\b(our (?:licensed )?riggers?|slung by licensed (?:doggers or )?riggers)\b/i.test(allText);
   if (/\nLand and fix the precast floor units\n/.test(`\n${allText}\n`) && ownRigging) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: dogging or rigging/.test(needed[i])) needed.splice(i, 1); if (!needed.some((name) => /rigging \(R[BIA]\)/.test(name))) needed.push('High risk work licence: basic rigging (RB) or higher, for precast concrete members'); }
   if (/\btilt-?up\b/i.test(taskText) && /\nStand and brace the precast elements\n/.test(`\n${allText}\n`)) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: (?:dogging or rigging|basic rigging)/.test(needed[i])) needed.splice(i, 1); needed.push('High risk work licence: intermediate rigging (RI) or higher, for rigging tilt slabs'); }
+  // Erecting, climbing or dismantling a crane is rigging work on a crane: intermediate rigging
+  // (WHS Reg schedule 3 item 6(c)), which basic rigging leaves out (item 5).
+  if (/\nErect or dismantle the tower crane\n/.test(`\n${allText}\n`)) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: (?:basic rigging|dogging or rigging)/.test(needed[i])) needed.splice(i, 1); needed.push('High risk work licence: intermediate rigging (RI) or advanced rigging (RA), for erecting, climbing or dismantling the crane, and dogging (DG) or higher for slinging'); }
   // Dual lifts need at least intermediate rigging (WHS Reg schedule 3).
   if (/\nPlan and do the dual lift\n/.test(`\n${allText}\n`)) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: (?:basic rigging|dogging or rigging)/.test(needed[i])) needed.splice(i, 1); needed.push('High risk work licence: intermediate rigging (RI) or higher, for the dual lift'); }
   return [...new Set(needed)];
@@ -454,6 +457,11 @@ function localLicences(stateName, trade, list, stepText) {
   if (/Australian Capital Territory/.test(stateName || '')) {
     local['Crystalline silica training (VET accredited or regulator approved), where the processing is high risk'] = 'Crystalline silica awareness training (the course the Minister declares under section 418D), for workers who carry out high risk crystalline silica work';
     local[ASBESTOS_REMOVALIST] = 'Licensed asbestos removalist (Class A for friable asbestos, Class B or A for non-friable asbestos, whatever the amount) with workers holding the VET asbestos removal certification. Other workers who work with asbestos have done the asbestos awareness course the Minister declares (Work Health and Safety Regulation 2011 (ACT) s 445, s 458, s 460, s 487)';
+  }
+  // New South Wales: a traffic control work training card for the type of traffic control work (s 184C).
+  if (/New South Wales/.test(stateName || '')) {
+    local['Traffic controller accreditation'] = 'Traffic control work training card, or temporary card, for the type of traffic control work (Work Health and Safety Regulation 2025 (NSW) s 184C)';
+    local['Traffic controller accreditation, for anyone on our crew who directs traffic'] = 'Traffic control work training card, or temporary card, for the type of traffic control work, for anyone on our crew who does traffic control work (Work Health and Safety Regulation 2025 (NSW) s 184C)';
   }
   // Victoria: Class A for friable asbestos (r 264), Class B or A for non-friable asbestos (r 265), and
   // limited removal without a licence (r 250); licence holders train their workers (r 269).

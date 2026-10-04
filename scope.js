@@ -24,6 +24,12 @@ const SITE_WORK = /\b(install\w*|supply and install|erect\w*|dismantl\w*|fix\w*|
 // Not this trade's site work: drawing and document titles, and other subcontractors' work.
 const NOT_WORK = /(\b(?:layout|sheet \d+|part \d+|drawing ____|document ____|specification\s*[-–:]|schedule\s*[-–:]|appendix\b|annexure\b|attachment\b)|\b(?!(?:the|this|our|each|a|any|all|such)\b)(?:\w+\/)?\w+ subcontractors? (?:to|will|shall|is|are)\b|\bother (?:sub)?contractors?\b|\bpreliminar\w*|^comment by\b|\bnational code of practice\b|\bunderstood\b|\bfit for construction\b|\breserves? the right\b|\bunless noted otherwise\b|\b(?:is|are) to be (?:of )?(?:an? )?(?:class|grade|type) \w+ finish\b|^\W*\d*\.?\s*(?:screws|nails|bolts|fixings|fasteners)\b[^.]*\b(?:similar items|accessories|sundries)\b|\bcontain(?:s|ing)? no asbestos\b|\bban on the import\w* of\b|\basbestos[- ]free\b)/i;
 
+// Quotes put the price at the end of each item, after leader dots, a dash or the
+// quantity, unit and rate columns ("Precast pits (12 No.) set by crane .... $46,200").
+const PRICE_TAIL = /(?:\s*(?:\.{3,}|…+|[-–=:]))?(?:\s+(?:\$\s?\d[\d,]*(?:\.\d+)?|\d[\d,]*(?:\.\d+)?|t|kg|m|m2|m²|m3|m³|lm|l\/m|no\.?|nr|ea|each|items?|days?|hrs?|hours?|weeks?|ls|l\/s|lump sum|sum|\+|plus|gst|ex|excl?\.?|inc|incl?\.?))*\s*\$\s?\d[\d,]*(?:\.\d+)?\s*(?:\+?\s*(?:gst|ex\.? gst|excl?\.? gst|inc\.? gst|incl\.? gst))?\s*$/i;
+// Quote lines that are terms, totals and rates rather than an item of work.
+const QUOTE_TERMS = /^(?:excludes?|excluding|exclusions?|not included|rates?\b|schedule of rates|extra over|sub-?total|total|gst|price|quote\b|quotation|this (?:quote|quotation|price)|valid|validity|payment|progress claims?|terms|deposit)\b/i;
+
 const MIN_WORDS = 4;
 
 function words(line) {
@@ -67,7 +73,7 @@ function keep(line) {
   if (words(line) < MIN_WORDS) return false;
   // Scopes often list the work without a verb ("Duct work including access panels"),
   // so a line that names a kind of work counts too.
-  if (NOT_OURS.test(line) || NOT_WORK.test(line) || !isWork(line)) return false;
+  if (QUOTE_TERMS.test(line) || NOT_OURS.test(line) || NOT_WORK.test(line) || !isWork(line)) return false;
   // Mostly capitals is a title, not a description of work.
   const letters = line.replace(/[^A-Za-z]/g, '');
   if (letters.length > 12 && letters.replace(/[^A-Z]/g, '').length / letters.length > 0.6) return false;
@@ -95,7 +101,10 @@ function siteWorkLines(text) {
     lead = null;
   };
   for (const raw of splitLines(text)) {
-    const line = cleanLine(raw);
+    const full = cleanLine(raw);
+    // A priced line is an item of work, never a heading. Its price is not part of the work.
+    const priced = PRICE_TAIL.test(full);
+    const line = priced ? full.replace(PRICE_TAIL, '').trim() : full;
     if (!line) continue;
     if (lead && isBullet(raw) && words(line) <= 15) {
       lead.items.push(line.replace(/[.;,]+$/, ''));
@@ -106,7 +115,7 @@ function siteWorkLines(text) {
       lead = { text: line, items: [] };
       continue;
     }
-    if (isHeading(raw, line)) {
+    if (!priced && isHeading(raw, line)) {
       if (OUT_HEADING.test(line)) out = true;
       else if (WORK_HEADING.test(line) || isWork(line)) out = false;
       continue;
@@ -258,7 +267,7 @@ function taskText(found) {
 
 // High risk categories that a single line is enough to raise. Falls and mobile plant
 // are mentioned in passing in most scopes, so they need more than one line.
-const STRONG = new Set(['demolition', 'asbestos', 'temporary', 'confined', 'explosives', 'gas', 'chemicalLine', 'electrical', 'atmosphere', 'precast', 'road', 'water', 'diving', 'tunnel']);
+const STRONG = new Set(['demolition', 'asbestos', 'temporary', 'confined', 'explosives', 'gas', 'chemicalLine', 'electrical', 'atmosphere', 'precast', 'road', 'water', 'diving', 'tunnel', 'trench']);
 
 function strongHighRisk(lines, state, when) {
   // Overhead lines are named in standard cabling clauses ("fixed to isolators in overhead lines").
@@ -270,7 +279,7 @@ function tasksFromScope(text, stateId = 'qld') {
   const state = findState(stateId);
   const lines = siteWorkLines(text);
   if (!lines.length) {
-    return { tasks: [], lines: 0, note: 'No site work was found in this text. If it is a contract or a cover letter, attach the scope of works on its own.' };
+    return { tasks: [], lines: 0, note: 'No site work was found in this text. If it is a contract or a cover letter, attach the scope of works or quote on its own.' };
   }
   const groups = new Map();
   const tradeCount = new Map();

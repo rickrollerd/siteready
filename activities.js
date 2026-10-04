@@ -36,6 +36,13 @@ const SILICA_FOLLOW_UP = [
   src('Dust and slurry are cleaned up at least at the end of each day or task, with an H class vacuum (M class only where H class is not reasonably practicable) or wet methods. No dry sweeping, compressed air or blowers, including for clothing.', QCODE('Silica', 's 7.4.2, s 8.1, s 8.2, s 8.3')),
 ];
 
+// The same lines for installed engineered stone, which says the assessment covers removal and repair
+// too (Victoria words this line as an engineered stone process, always high risk, r 319C, r 319E).
+const ENG_STONE_SILICA = [
+  { ...SILICA_FOLLOW_UP[0], text: SILICA_FOLLOW_UP[0].text.replace('whether the processing is high risk.', 'whether the processing is high risk, including where the stone is only removed, repaired or modified.') },
+  ...SILICA_FOLLOW_UP.slice(1),
+];
+
 // Processing installed engineered stone: allowed only to remove, repair, make minor modifications
 // to or dispose of it, and only if it is controlled (s 529B, s 529D, s 529F), with notice to the
 // regulator before the work, of any change and after 12 months, each kept for 5 years (s 529G to s 529J).
@@ -1839,7 +1846,7 @@ const ACTIVITIES = [
         src('Choose low vibration tools, or plant such as hydraulic pile croppers, to reduce hand-held breaking.', MODEL('Hazardous manual tasks', 's 4.8')),
         'Where hand-held breakers are used: rotate operators to limit time on the tool, use the lightest breaker that does the job, keep both hands on it, and keep others outside the fragment zone.',
         'Exposed starter bars are capped or bent over, and broken pile heads are lifted with lifting gear, not by hand.',
-        src('An excavator lifts broken pile heads only where it is designed to lift that load, or the lift creates no greater risk than with plant designed for it.', WHS('s 219')),
+        src('Broken pile heads are lifted with plant designed to lift them. An excavator is used to lift them only where plant designed to lift is not reasonably practicable, and the lift creates no greater risk than with plant designed for it.', WHS('s 219')),
         src('Keep people clear of the excavator and croppers while they work.', WHS('s 215')),
         src('Isolate the work area for flying fragments, and wear a face shield.', MODEL('Managing the risks of plant in the workplace', 's 2.3')),
       ],
@@ -2266,7 +2273,7 @@ const ACTIVITIES = [
         { only: 'masonryFence', unless: 'fenceRemove', text: 'The old fence is taken down in sections with the boundary kept secure, and footings are dug only after services are located.' },
         { only: 'masonryFooting', unless: 'footingHoles', text: 'Footings are dug and poured to the drawings after services are located.' },
         { unless: 'smallMasonry', ...src('Crane, hoist or barrow blocks to the work face, and stage them between waist and shoulder height. Training in lifting technique is not the main control.', QCODE('Hazardous manual tasks', 's 4.1, s 4.3, s 4.4, s 4.5')) },
-        { unless: 'smallMasonry', ...src('Work from scaffold with brick guards where a fall of more than 2 m is possible, and do not overload bays: bricklaying and blocklaying need a heavy duty scaffold, rated up to 675 kg a bay. A scaffold over 4 m is used only after written handover, and inspected at least every 30 days.', `${WHS('s 225')}; ${QCODE('Managing the risk of falls', 's 5.1')}`) },
+        { unless: 'smallMasonry', ...src('Work from scaffold with brick guards where a fall of more than 2 m is possible, and do not overload bays: bricklaying and blocklaying need a heavy duty scaffold, rated up to 675 kg a bay. A scaffold over 4 m is used only after written handover, and inspected at least every 30 days.', `${WHS('s 225')}; ${QCODE('Managing the risk of falls', 's 5.1')}; Scaffolding Code of Practice 2021 (Qld) s 2.3.2.3, Table 2`) },
         src('Trestle platforms where a person could fall 2 m or more (3 m in housing construction) have their trestles secured, edge protection, and a platform at least 450 mm wide and no higher than 5 m. Where a person could fall less than that (2 m, or 3 m in housing construction), the platform is at least 450 mm wide (225 mm for light work). Use only purpose-made pins.', `${WHS('s 306N, s 306O')}; ${QCODE('Managing the risk of falls', 's 5.1')}`),
         { unless: 'repointing', text: 'Brace new walls until they are complete and cured.' },
         { only: 'retainingBlock', text: 'Drainage and backfill are placed behind the wall as the courses go up, and compacted in layers as the design shows.' },
@@ -6322,7 +6329,7 @@ const ACTIVITIES = [
       hazards: ['Silica dust from cutting, drilling or breaking engineered stone.', 'Back injury and crush from heavy pieces of stone.', 'Noise.'],
       controls: [
         ...ENG_STONE,
-        ...SILICA_FOLLOW_UP,
+        ...ENG_STONE_SILICA,
         'Benchtops are cut into pieces two people can carry, or moved on a trolley or with a lifting aid.',
         src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Hearing protection worn for the whole time of the noise, with hearing tests within 3 months of starting and at least every 2 years.', `${WHS('s 56, s 57, s 58')}; ${QCODE('Managing noise and preventing hearing loss', 's 2.2, s 5.3, s 5.4')}`),
       ],

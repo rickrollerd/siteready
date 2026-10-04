@@ -59,6 +59,8 @@ const DROP_SOURCES = {
     [/^This SWMS takes into account that the work is next to an operating hospital\b/, ['s 299']],
     // Regulation 49 covers rescue, not anchor ratings, approval, clearances or lone work.
     [/\b\d+ kN\b|\banchors (?:are|is)\b/, ['s 80']],
+    // Regulation 109 has no counterpart to the model r 214(1)(e) on pressurised elements of plant.
+    [/\bpressurised\b/, ['s 214']],
   ],
 };
 
@@ -153,6 +155,9 @@ const KEEP = true;
 // register of hazardous substances. Prescribed electrical work there is inspected by a
 // licensed electrical inspector.
 const VIC_TEXT = [
+  // Regulations 319C(a), 319E and 319B(2): an engineered stone process is always high risk crystalline
+  // silica work, and is not a crystalline silica process to be assessed under r 319J.
+  [/^Assess in writing before starting whether the processing is high risk, including where the stone is only removed, repaired or modified\./, `Cutting, drilling or breaking engineered stone is an engineered stone process, which is always high risk crystalline silica work.${cite('vic', '319C', '319E')}`],
   [/^Assess in writing before \w+ whether the processing is high risk[.,]/, 'Before work starts, determine whether the work is high risk crystalline silica work.'],
   [/Assess in writing before \w+ whether it is high risk, without counting PPE or administrative controls, and without relying only on the dust controls used for the processing\. If it cannot be determined, treat it as (?:a risk to health|high risk)\./, 'Before work starts, determine whether the work is high risk crystalline silica work.'],
   [/^.*silica risk control plan/, 'Before high risk crystalline silica work starts, a hazard control statement is prepared, and workers are given the information, instruction and training the crystalline silica rules in the Occupational Health and Safety Regulations 2017 (Vic) require.'],
@@ -208,15 +213,20 @@ const VIC_TEXT = [
   [/a product containing crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, `power sanding or cutting a product that contains crystalline silica is a crystalline silica process. Before it starts, it is assessed, with a written record, to find whether it is high risk crystalline silica work, or it is treated as high risk crystalline silica work.${cite('vic', '165', '166', '319B', '319J', '319K')}`],
   // Victoria's Class A removal duties are set out differently (Part 4.4 Subdivision 4) and are not stated here.
   [/^Friable asbestos is removed inside an enclosure that is tested for leaks.*$/, null],
-  // Victoria has no demolition notice (Part 5.1 has none); r 355 requires notice of excavation work.
+  // Victoria has no demolition notice (Part 5.1 has none); r 355 requires notice of a construction
+  // excavation (r 5: a trench more than 1.5 m deep, a shaft more than 2 m deep, or a tunnel), and the
+  // building permit exception covers only a shaft or trench (r 354(2)).
   [/^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high,.*$/, null],
-  [/^Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it\.$/, `Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it. Where a shaft, trench or tunnel will be big enough for a person to enter, or poses a risk, the Authority is notified in writing at least 3 days before the excavation work starts, unless it is part of building work under a building permit.${cite('vic', '354', '355')}`],
+  [/^Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it\.$/, `Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia, locate services on site before digging, and work to it. Where a trench more than 1.5 m deep, a shaft more than 2 m deep or a tunnel is to be dug, and a person could enter it or it poses a risk to anyone, the Authority is notified in writing at least 3 days before the excavation work starts. A trench or shaft dug as part of building work under a building permit that is in force needs no notice.${cite('vic', '5', '354', '355')}`],
   // Regulations 118, 128 and Schedule 3: the licence, not a written handover or a 30 day inspection.
   [/^Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder, handed over in writing by a competent person, and inspected at least every 30 days\.$/, `Where a person or thing could fall more than 4 m from it, it is erected by a licensed scaffolder.${cite('vic', '128', 'Schedule 3')}`],
   // Schedule 2 item 1.6; no regulation requires the registration number to be kept at the hoist.
   [/^A personnel hoist with platform travel over 2\.4 m has a registered design, and the registration number is kept at the hoist\.$/, `A personnel hoist with platform travel over 2.4 m has a registered design.${cite('vic', '125', 'Schedule 2')}`],
   // Regulation 298(1): 24 hours for 10 m2 or less of non-friable asbestos, unless a licence condition varies it.
   [/^For licensed removal, the licensed removalist gives the regulator written notice at least 5 days before the work starts\.$/, `For licensed removal, the licence holder gives the Authority written notice at least 5 days before the work starts (24 hours for 10 m2 or less of non-friable asbestos), unless a licence condition sets other notice.${cite('vic', '298')}`],
+  // Building maintenance units have a registered design (r 125, Schedule 2 item 1.5), not item registration,
+  // and their inspection and maintenance records are kept (r 106).
+  [/^The BMU has a current inspection and registration, and workers wear a harness attached to the anchor in the cradle\.$/, `The BMU's design is registered and its inspection and maintenance records are kept${cite('vic', '106', '125', 'Schedule 2')}. Workers wear a harness attached to the anchor in the cradle.`],
   // Regulation 341 names the construction induction card.
   [/\bgeneral construction induction card\b/, 'construction induction card', KEEP],
 ];
@@ -258,7 +268,7 @@ const WA_TEXT = [
   // Schedule 3 items 14A and 15A: earthmoving machinery used as a crane, with a safe working load
   // over 3 t, needs a high risk work licence (r 5 "crane", r 81).
   [/^Where (pipes, pits or conduit bundles|pipes or pits) are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it\.$/, (id, all) => `Where ${all} are lifted with the excavator, this is done only where it has a rated lifting point and the load is within its lifting chart. An excavator with a safe working load over 3 t used as a crane is operated by the holder of the high risk work licence for earthmoving machinery used as a crane (Schedule 3 item 14A, non-slewing, or item 15A, slewing); otherwise the operator is competent to lift with it.${cite('wa', '81', 'Schedule 3')}`],
-  [/^(An excavator lifts broken pile heads only where it is designed to lift that load, or the lift creates no greater risk than with plant designed for it\.|Props and walers are lifted with plant designed to lift them, never over people, and slung by a licensed dogman\. An excavator is used to lift only where plant designed to lift is not reasonably practicable, and it creates no greater risk\.)$/, (id, line) => `${line} An excavator with a safe working load over 3 t used as a crane is operated by the holder of the high risk work licence for earthmoving machinery used as a crane (Schedule 3 item 14A or 15A).${cite('wa', '81', '219', 'Schedule 3')}`],
+  [/^(Broken pile heads are lifted with plant designed to lift them\. An excavator is used to lift them only where plant designed to lift is not reasonably practicable, and the lift creates no greater risk than with plant designed for it\.|Props and walers are lifted with plant designed to lift them, never over people, and slung by a licensed dogman\. An excavator is used to lift only where plant designed to lift is not reasonably practicable, and it creates no greater risk\.)$/, (id, line) => `${line} An excavator with a safe working load over 3 t used as a crane is operated by the holder of the high risk work licence for earthmoving machinery used as a crane (Schedule 3 item 14A or 15A).${cite('wa', '81', '219', 'Schedule 3')}`],
   [/^Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high,/, `Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs. Done to AS 2601, it is notified to the regulator at least 5 working days before it begins; done any other way, the regulator's approval is applied for at least 10 working days before, and the work waits for it.${cite('wa', '142B', '142C', '142F', '142G', '142I')}`],
 ];
 // The ACT has no 10 m2 exception: any asbestos is removed by a licensed asbestos
@@ -279,6 +289,12 @@ const ACT_TEXT = [
   [/^Natural stone and porcelain with 1% or more crystalline silica: .*$/, `Porcelain and sintered stone containing crystalline silica are stone-substitute material: they are processed with power tools only with a continuous water feed and at least one other crystalline silica control, and exposed workers wear respiratory protective equipment. Natural stone is processed with the controls section 418CAA requires. Cut in the factory where possible.${cite('act', '418B', '418C', '418CAA')}`],
   [/a product with 1% or more crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts\./, 'a product containing crystalline silica, such as plasterboard, grout, render or a concrete product, is crystalline silica material, and power sanding or cutting it is processing that must use the crystalline silica controls sections 418BAA and 418CAA require.', KEEP],
   [/Where rock is drilled or broken with plant, control the silica dust \(wet methods or extraction\) and assess it in writing before starting\./, () => `Where rock is drilled or broken with plant, ${ACT_MATERIAL}.`, KEEP],
+  // Natural stone, slate, concrete and pavers are crystalline silica material (s 418A): water and one other
+  // control, stepping down only as section 418CAA allows; wet or extraction alone is its last step.
+  [/Natural stone cut on site is cut wet or with on-tool extraction, by workers wearing fit tested P2 respirators, as cutting it is processing crystalline silica\./, () => `Natural stone cut on site is crystalline silica material, and cutting it is processing it: ${ACT_MATERIAL}.${cite('act', '418A', '418CAA')}`],
+  [/Power cutting is done wet or on extraction with a fit tested P2 respirator, as slate contains crystalline silica\./, () => `Slate contains crystalline silica, so power cutting it is processing crystalline silica material: ${ACT_MATERIAL}.${cite('act', '418A', '418CAA')}`],
+  [/core or cut the hole with water suppression or on-tool extraction, as cutting concrete and pavers releases silica dust\. Anyone still at risk of exposure wears a fit tested P2 respirator\./, () => `coring or cutting the hole is processing crystalline silica material: ${ACT_MATERIAL}.${cite('act', '418A', '418CAA')}`],
+  [/it is scanned and saw cut with water or on-tool extraction, and the cutter wears a fit tested P2 respirator, as cutting concrete is processing crystalline silica\./, () => `it is scanned before it is saw cut, and cutting it is processing crystalline silica material: ${ACT_MATERIAL}.${cite('act', '418A', '418CAA')}`],
   // Installed engineered stone (s 418H): stone installed before 1 July 2024 or as s 418G allows, a
   // continuous water feed with one other control and respiratory protective equipment; notice
   // before the work, kept for 5 years (s 418I, s 418J). The ACT has no change or 12 month notice.
@@ -292,9 +308,15 @@ const TAS_TEXT = [
   [/\(this SWMS can be the plan only where the work is also high risk construction work and the SWMS names the high risk processing, includes the written assessment, and says how the controls are implemented, monitored and reviewed\)/, '(this SWMS can be the plan only where the work is also high risk construction work and the SWMS identifies all the high risk processing and, for each, documents the processing, the form and proportion (w/w) of crystalline silica, the hazards and the likely frequency and duration of exposure, whether airborne respirable crystalline silica is likely to exceed half the exposure standard, why the processing is high risk, the controls and how they are implemented, monitored and reviewed, past air and health monitoring results at the workplace, and previous silica incidents, illnesses and diseases there)', KEEP],
 ];
 
+// New South Wales: traffic control work is done only by holders of a traffic control work
+// training card for that type of work, issued by the regulator (s 184A, s 184C, s 184D).
+const NSW_TEXT = [
+  [/^Traffic controllers who hold Queensland traffic controller accreditation/, `Traffic control work (directing traffic on a public road, and implementing, designing, amending or inspecting the work zone traffic management plan) is done only by workers holding a traffic control work training card, or a temporary card, for that type of work, who have done that type of work in the last 2 years if they trained more than 2 years ago, or by a trainee under supervision as section 184C(2) allows. Traffic controllers direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.${cite('nsw', '184A', '184C')}`],
+];
+
 const STATE_TEXT = {
   vic: VIC_TEXT,
-  nsw: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  nsw: [...NSW_TEXT, ...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   sa: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   wa: [...WA_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   tas: [...TAS_TEXT, ...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
@@ -392,13 +414,38 @@ function localText(text, stateId) {
   return rewrite(text, stateId).text;
 }
 
+// Figures that Queensland's own sections set (s 306E edge protection, s 306I anchor capacities) or
+// that come from a standard (heavy duty scaffold bays), on lines whose other sources are general:
+// s 78 (managing the risk of a fall), s 80 (rescue procedures) and s 225 (scaffold handover and
+// inspection). Outside Queensland the state's section is cited only on the part it supports, and the
+// figure follows uncited, given as the relevant Australian Standard or the manufacturer's rating.
+const RATED = 'to the manufacturer\'s rating and the relevant Australian Standard';
+const FIGURES = [
+  [/^Where fall arrest is used, anchors are tested and approved by a competent person before first use and meet the anchor strength in AS\/NZS 1891\.4, there is enough clearance below that the user cannot hit the ground or another surface, no one uses it alone, at least one other person on site can rescue them, and the rescue procedure is tested\.$/, 'Where fall arrest is used, rescue procedures are set up and tested', 'Anchors are tested and approved by a competent person before first use and meet the anchor strength in AS/NZS 1891.4, there is enough clearance below that the user cannot hit the ground or another surface, no one uses fall arrest alone, and at least one other person on site can rescue them.'],
+  [/^A harness user never works alone\. Anchors are rated for 12 kN with limited free fall or 15 kN with free fall, with enough clear distance to arrest a fall, and rescue procedures are set and practised\.$/, 'Rescue procedures for harness work are set and practised', `A harness user never works alone. Anchors are rated for 12 kN with limited free fall or 15 kN with free fall, ${RATED}, with enough clear distance to arrest a fall.`],
+  [/^Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested\.$/, 'The rescue plan for harness work is set up and tested', `Harness anchors are rated at least 15 kN for one person with a free fall, ${RATED}, there is enough clearance below, and no one works alone on a harness.`],
+  [/^Where harnesses are used in the shaft, anchors are rated at least 15 kN for one person, the lanyard is attached before moving to the edge, and a rescue procedure is set up\.$/, 'Where harnesses are used in the shaft, a rescue procedure is set up', `Anchors are rated at least 15 kN for one person, ${RATED}, and the lanyard is attached before moving to the edge.`],
+  [/^Where fall arrest is used, anchors carry at least 15 kN for one person, there is enough clearance below, no one works alone, and the rescue procedure is set up and tested\.$/, 'Where fall arrest is used, the rescue procedure is set up and tested', `Anchors carry at least 15 kN for one person, ${RATED}, there is enough clearance below, and no one works alone.`],
+  [/^Where fall arrest is used, anchors carry at least 15 kN for one person or 21 kN for two, no one uses it alone, and the rescue procedure is in place\.$/, 'Where fall arrest is used, the rescue procedure is in place', `Anchors carry at least 15 kN for one person or 21 kN for two, ${RATED}, and no one uses fall arrest alone.`],
+  [/^Shaft openings have barriers or fixed covers as soon as they are formed: covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole\. Edge protection top rail at least 900 mm\.$/, 'Shaft openings have barriers or fixed covers as soon as they are formed', 'Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole. Edge protection has a top rail at least 900 mm high, to the relevant Australian Standard.'],
+  [/^Work from a solid surface with edge protection wherever a fall of 2 m or more is possible: top rail at least 900 mm, rails no more than 450 mm apart, toe board at least 150 mm\.$/, 'Work from a solid surface with edge protection wherever a fall of 2 m or more is possible', 'Edge protection has a top rail at least 900 mm high, rails no more than 450 mm apart and a toe board at least 150 mm high, to the relevant Australian Standard.'],
+  [/^Work from scaffold with brick guards where a fall of more than 2 m is possible, and do not overload bays: bricklaying and blocklaying need a heavy duty scaffold, rated up to 675 kg a bay\. A scaffold over 4 m is used only after written handover, and inspected at least every 30 days\.$/, 'A scaffold over 4 m is used only after written handover, and inspected at least every 30 days', 'Work from scaffold with brick guards where a fall of more than 2 m is possible, and do not overload bays: bricklaying and blocklaying need a heavy duty scaffold, rated to the relevant Australian Standard for up to 675 kg a bay.'],
+];
+
 // A control line with its sources, as printed for the state. A line reworded for the state
 // keeps its own sources only where the rewording still holds for them (KEEP); otherwise it
 // carries the citation written into it, or none.
 function localControl(text, source, stateId) {
   const { text: out, kept } = rewrite(text, stateId);
   if (out == null) return null;
-  const cited = stateId && source && out === kept ? localSource(source, stateId, text) : '';
+  const own = stateId && source && out === kept;
+  const figure = own && stateId !== 'qld' ? FIGURES.find(([pattern]) => pattern.test(out)) : null;
+  if (figure) {
+    const [, head, rest] = figure;
+    const cited = localSource(source, stateId, head);
+    return `${head}${cited ? ` (${cited})` : ''}. ${rest}`;
+  }
+  const cited = own ? localSource(source, stateId, text) : '';
   return cited ? `${out} (${cited})` : out;
 }
 

@@ -194,13 +194,14 @@ test('Victoria: citations that went further than the regulation are left off', (
   const reg = 'Occupational Health and Safety Regulations 2017 (Vic)';
   assert.equal(localControl('This SWMS takes into account that the work is next to an operating hospital, and the hospital\'s requirements agreed with the principal contractor.', `${QLD}s 299`, 'vic'), 'This SWMS takes into account that the work is next to an operating hospital, and the hospital\'s requirements agreed with the principal contractor.');
   assert.equal(localControl('Forklifts are kept apart from people, with a warning device. A forklift left unattended is parked level, with the brake on and the key removed.', `${QLD}s 215, s 218`, 'vic'), `Forklifts are kept apart from people, with a warning device. A forklift left unattended is parked level, with the brake on and the key removed. (${reg} r 109)`);
-  assert.equal(localControl('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', `${QLD}s 80`, 'vic'), 'Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.');
+  // Regulation 49 is cited for the rescue plan only; the anchor rating follows uncited.
+  assert.equal(localControl('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', `${QLD}s 80`, 'vic'), `The rescue plan for harness work is set up and tested (${reg} r 49). Harness anchors are rated at least 15 kN for one person with a free fall, to the manufacturer's rating and the relevant Australian Standard, there is enough clearance below, and no one works alone on a harness.`);
   assert.equal(localControl('Rescue procedures are set up and tested, and workers are trained in them.', `${QLD}s 80`, 'vic'), `Rescue procedures are set up and tested, and workers are trained in them. (${reg} r 49)`);
   assert.equal(localControl('Work from a solid surface with edge protection wherever a fall of 2 m or more is possible: top rail at least 900 mm, rails no more than 450 mm apart, toe board at least 150 mm.', `${QLD}s 78, s 306D, s 306E`, 'vic'), 'Work from a solid surface with edge protection wherever a fall of more than 2 m is possible: top rail at least 900 mm, rails no more than 450 mm apart, toe board at least 150 mm.');
   assert.match(localControl('Tiles and stone with 1% or more crystalline silica are a crystalline silica substance.', `${QLD}s 529A`, 'vic'), /^Tiles and stone contain crystalline silica\./);
   assert.match(localControl('No electrical work is done on or near energised parts (within 3 m of an exposed energised part).', '', 'vic'), /the state's occupational health and safety or electrical safety law requires\.$/);
   // The anchor and hospital sources stay in other states.
-  assert.match(localControl('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', `${QLD}s 80`, 'nsw'), /\(Work Health and Safety Regulation 2025 \(NSW\) s 80\)$/);
+  assert.match(localControl('Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested.', `${QLD}s 80`, 'nsw'), /^The rescue plan for harness work is set up and tested \(Work Health and Safety Regulation 2025 \(NSW\) s 80\)\. Harness anchors are rated/);
 });
 
 test('ACT: Minister declared silica course, s 418CAA controls, porcelain and asbestos', () => {
@@ -322,7 +323,7 @@ test('Victoria: no demolition notice, r 355 excavation notice, r 298 asbestos no
   const demolition = lines(draft('vic', 'Demolish a three storey concrete commercial building, 12 m high, with excavators and a high reach demolition machine.'));
   assert.ok(!demolition.some((item) => /6 m high/.test(item)));
   const trench = lines(draft('vic', 'Dig a 2.5 m deep trench with an excavator and lay a sewer main, with trench shields.'));
-  assert.ok(trench.some((item) => /the Authority is notified in writing at least 3 days before the excavation work starts, unless it is part of building work under a building permit\. \(Occupational Health and Safety Regulations 2017 \(Vic\) r 354, r 355\)$/.test(item)));
+  assert.ok(trench.some((item) => /Where a trench more than 1\.5 m deep, a shaft more than 2 m deep or a tunnel is to be dug, and a person could enter it or it poses a risk to anyone, the Authority is notified in writing at least 3 days before the excavation work starts\. A trench or shaft dug as part of building work under a building permit that is in force needs no notice\. \(Occupational Health and Safety Regulations 2017 \(Vic\) r 5, r 354, r 355\)$/.test(item)));
   const asbestos = lines(draft('vic', 'Remove 60 square metres of bonded asbestos cement roof sheeting from a 1970s factory.'));
   assert.ok(asbestos.includes(`For licensed removal, the licence holder gives the Authority written notice at least 5 days before the work starts (24 hours for 10 m2 or less of non-friable asbestos), unless a licence condition sets other notice. (${reg} r 298)`));
   const sds = localControl('Keep dust below the exposure standard, and monitor the air if unsure. Check each product\'s safety data sheet: a product with 1% or more crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts.', `${QLD}s 49, s 50, s 529A, s 529C, s 529CA`, 'vic');
@@ -411,4 +412,103 @@ test('friable asbestos: enclosure, negative pressure, wet method and air monitor
   assert.ok(lines(draft('nsw', 'Remove 60 square metres of bonded asbestos cement roof sheeting from a 1970s factory.')).includes('Keep the material wet and remove it whole, by hand.'));
   const scaffold = draft('nsw', 'Erect a tube and coupler scaffold 20 m high on the facade of a commercial office building next to a public footpath.').plant.find((item) => item.item === 'Scaffold');
   assert.match(scaffold.inspection, /\(Work Health and Safety Regulation 2025 \(NSW\) s 225, for suspended, cantilevered, spur and hung scaffolds, and others over 4 m\)\.$/);
+});
+
+// Fourth round (review3 files).
+test('high risk work: non-friable is not friable, stripping props is not s 291(e), and running freezer rooms are s 291(p)', () => {
+  const tiles = 'Remove 15 square metres of non-friable asbestos vinyl floor tiles from a 1978 office as a licensed Class B removal.';
+  for (const state of ['qld', 'nsw', 'wa', 'act']) assert.ok(!lines(draft(state, tiles)).some((item) => /^Friable asbestos is removed inside an enclosure/.test(item)), state);
+  const ids = (task, state = 'qld') => highRiskMatches(task, 'yes', state).map((item) => item.id);
+  assert.ok(!ids('Strip formwork and remove back props from a suspended concrete slab in a commercial building.').includes('temporary'));
+  assert.ok(ids('Install temporary props and remove a section of existing slab.').includes('temporary'));
+  for (const state of ['qld', 'nsw', 'wa', 'vic', 'act']) {
+    assert.ok(ids('Install refrigeration pipework inside an operating freezer room at minus 25 degrees.', state).includes('temperature'), state);
+    assert.ok(ids('Install shelving in a cold store at minus 20 C.', state).includes('temperature'), state);
+  }
+  assert.ok(!ids('Build a new cold store designed for minus 25 degrees.').includes('temperature'));
+});
+
+test('tower crane erection, climbing and dismantling need intermediate or advanced rigging (schedule 3 item 6(c))', () => {
+  for (const state of ['qld', 'nsw', 'vic', 'wa']) {
+    const { qualifications } = draft(state, 'Erect a tower crane on a commercial building site with a 200 tonne mobile crane.');
+    assert.ok(qualifications.includes('High risk work licence: intermediate rigging (RI) or advanced rigging (RA), for erecting, climbing or dismantling the crane, and dogging (DG) or higher for slinging'), state);
+    assert.ok(!qualifications.some((item) => /dogging or rigging \(DG, RB, RI or RA\)/.test(item)), state);
+  }
+});
+
+test('whole structures, however described, get the demolition notice or licence lines', () => {
+  const tasks = ['Demolish a 20 m high post-tensioned concrete office building using a high reach excavator and explosives for the core.', 'Demolish a single storey brick warehouse with load-bearing walls.', 'Demolish an 8 m high tilt-up concrete warehouse.', 'Implode a disused chimney stack with explosives.'];
+  for (const task of tasks) {
+    assert.ok(lines(draft('act', task)).some((item) => /^Written notice is given to the regulator at least 5 days before the work starts where .* loose-fill asbestos insulation\. \(Work Health and Safety Regulation 2011 \(ACT\) s 142\)$/.test(item)), task);
+    assert.ok(lines(draft('wa', task)).some((item) => /^Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs\..*r 142B, r 142C, r 142F, r 142G, r 142I\)$/.test(item)), task);
+    assert.ok(lines(draft('nsw', task)).some((item) => /^Written notice is given to the regulator at least 5 days before .* \(Work Health and Safety Regulation 2025 \(NSW\) s 142\)$/.test(item)), task);
+  }
+  const chimney = draft('nsw', 'Implode a disused chimney stack with explosives.');
+  assert.ok(chimney.highRisk.some((item) => /^Involves demolition of an element/.test(item)));
+  // A structure brought down with explosives is not taken down from the roof, and a tilt-up building being demolished is not braced.
+  assert.ok(!lines(chimney).some((item) => /from the roof down/.test(item)));
+  assert.ok(!draft('wa', 'Demolish an 8 m high tilt-up concrete warehouse.').jobSteps.some((step) => step.step === 'Stand and brace the precast elements'));
+  // Strip-out is not whole demolition.
+  assert.ok(!draft('nsw', 'Demolish internal partition walls in an office building.').jobSteps.some((step) => step.step === 'Demolish the structure'));
+});
+
+test('an excavator lifts pile heads only where designed plant is not reasonably practicable (s 219(2), (3))', () => {
+  for (const [state, cite] of [['qld', 'Work Health and Safety Regulation 2011 (Qld) s 219'], ['nt', 'Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT) r 219']]) {
+    assert.equal(localControl('Broken pile heads are lifted with plant designed to lift them. An excavator is used to lift them only where plant designed to lift is not reasonably practicable, and the lift creates no greater risk than with plant designed for it.', `${QLD}s 219`, state), `Broken pile heads are lifted with plant designed to lift them. An excavator is used to lift them only where plant designed to lift is not reasonably practicable, and the lift creates no greater risk than with plant designed for it. (${cite})`);
+  }
+  assert.match(localControl('Broken pile heads are lifted with plant designed to lift them. An excavator is used to lift them only where plant designed to lift is not reasonably practicable, and the lift creates no greater risk than with plant designed for it.', `${QLD}s 219`, 'wa'), /not reasonably practicable, .*Schedule 3 item 14A or 15A\)\. \(Work Health and Safety \(General\) Regulations 2022 \(WA\) r 81, r 219, Schedule 3\)$/);
+});
+
+test('NSW: traffic control work needs a traffic control work training card (s 184A, s 184C)', () => {
+  const nsw = draft('nsw', 'Replace kerb and channel and a stormwater pit on a busy arterial road with traffic controllers and an excavator.');
+  assert.ok(lines(nsw).some((item) => /^Traffic control work \(directing traffic on a public road, and implementing, designing, amending or inspecting the work zone traffic management plan\) is done only by workers holding a traffic control work training card, or a temporary card, for that type of work.*\(Work Health and Safety Regulation 2025 \(NSW\) s 184A, s 184C\)$/.test(item)));
+  assert.ok(!lines(nsw).some((item) => /road authority requires/.test(item)));
+  assert.ok(nsw.qualifications.includes('Traffic control work training card, or temporary card, for the type of traffic control work (Work Health and Safety Regulation 2025 (NSW) s 184C)'));
+  // Other states keep the general wording.
+  assert.ok(lines(draft('sa', 'Replace kerb and channel and a stormwater pit on a busy arterial road with traffic controllers and an excavator.')).some((item) => /traffic controller accreditation the state's road authority requires/.test(item)));
+});
+
+test('Victoria: engineered stone is always high risk, BMU design registration, and r 44 and r 109 kept to what they say', () => {
+  const reg = 'Occupational Health and Safety Regulations 2017 (Vic)';
+  const stone = lines(draft('vic', 'Remove and dispose of installed engineered stone benchtops from a commercial kitchen during a refurbishment.'));
+  assert.ok(stone.includes(`Cutting, drilling or breaking engineered stone is an engineered stone process, which is always high risk crystalline silica work. (${reg} r 319C, r 319E)`));
+  assert.ok(!stone.some((item) => /determine whether the work is high risk crystalline silica work/.test(item)));
+  // Other crystalline silica processes are still assessed.
+  assert.ok(lines(draft('vic', SILICA)).some((item) => /determine whether the work is high risk crystalline silica work/.test(item)));
+  assert.equal(localControl('The BMU has a current inspection and registration, and workers wear a harness attached to the anchor in the cradle.', '', 'vic'), `The BMU's design is registered and its inspection and maintenance records are kept (${reg} r 106, r 125, Schedule 2). Workers wear a harness attached to the anchor in the cradle.`);
+  assert.equal(localControl('Manage failure of pressurised concrete lines and hydraulics.', `${QLD}s 214`, 'vic'), 'Manage failure of pressurised concrete lines and hydraulics.');
+  assert.match(localControl('Manage failure of pressurised concrete lines and hydraulics.', `${QLD}s 214`, 'nsw'), /\(Work Health and Safety Regulation 2025 \(NSW\) s 214\)$/);
+  assert.match(localControl('Shaft openings have barriers or fixed covers as soon as they are formed: covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole. Edge protection top rail at least 900 mm.', `${QLD}s 78, s 306E, s 306F`, 'vic'), new RegExp(`^Shaft openings have barriers or fixed covers as soon as they are formed \\(${reg.replace(/[()]/g, '\\$&')} r 44\\)\\. Covers are strong enough .* Edge protection has a top rail at least 900 mm high, to the relevant Australian Standard\\.$`));
+});
+
+test('ACT: lines that call the work crystalline silica processing give the s 418CAA controls', () => {
+  const act = (text) => localControl(text, `${QLD}s 529B, s 529C`, 'act');
+  for (const text of ['Cut-outs and edge work are done by the supplier off site where possible. Natural stone cut on site is cut wet or with on-tool extraction, by workers wearing fit tested P2 respirators, as cutting it is processing crystalline silica.', 'Slates are cut with a slate cutter or hand tools where possible. Power cutting is done wet or on extraction with a fit tested P2 respirator, as slate contains crystalline silica.', 'Where posts are set in paving or concrete, core or cut the hole with water suppression or on-tool extraction, as cutting concrete and pavers releases silica dust. Anyone still at risk of exposure wears a fit tested P2 respirator.']) {
+    const out = act(text);
+    assert.match(out, /a continuous water feed is used with at least one other crystalline silica control, or the next control section 418CAA allows where that is not reasonably practicable, and anyone still at risk wears a fit tested respirator\. \(Work Health and Safety Regulation 2011 \(ACT\) s 418A, s 418CAA\)$/, text);
+    assert.doesNotMatch(out, /wet or (?:with|on) (?:on-tool )?extraction|water suppression or on-tool extraction/);
+  }
+});
+
+test('figures the regulation does not set are not cited to it outside Queensland', () => {
+  const lines78 = 'Work from a solid surface with edge protection wherever a fall of 2 m or more is possible: top rail at least 900 mm, rails no more than 450 mm apart, toe board at least 150 mm.';
+  const bricks = 'Work from scaffold with brick guards where a fall of more than 2 m is possible, and do not overload bays: bricklaying and blocklaying need a heavy duty scaffold, rated up to 675 kg a bay. A scaffold over 4 m is used only after written handover, and inspected at least every 30 days.';
+  const anchors = 'Where fall arrest is used, anchors carry at least 15 kN for one person or 21 kN for two, no one uses it alone, and the rescue procedure is in place.';
+  for (const state of ['nsw', 'sa', 'wa', 'tas', 'nt', 'act']) {
+    for (const [text, source] of [[lines78, `${QLD}s 78, s 306D, s 306E`], [bricks, `${QLD}s 225`], [anchors, `${QLD}s 80, s 306I`]]) {
+      const out = localControl(text, source, state);
+      // The citation comes before the figures, which follow uncited.
+      const [cited, rest] = out.split(/\)\. /);
+      assert.ok(rest, `${state}: ${out}`);
+      assert.doesNotMatch(cited, /\b(?:900 mm|450 mm|150 mm|675 kg|15 kN|21 kN)\b/, `${state}: ${out}`);
+      assert.match(rest, /relevant Australian Standard/, state);
+      assert.doesNotMatch(rest, /\((?:Work Health|Occupational)/, state);
+    }
+  }
+  // Queensland's own sections set the figures (s 306E, s 306I), and its scaffolding code the bay rating.
+  assert.match(localControl(lines78, `${QLD}s 78, s 306D, s 306E`, 'qld'), /toe board at least 150 mm\. \(Work Health and Safety Regulation 2011 \(Qld\) s 78, s 306D, s 306E\)$/);
+  const found = [];
+  const walk = (value) => { if (value && typeof value === 'object') { if (typeof value.text === 'string' && value.text === bricks) found.push(value.source); Object.values(value).forEach(walk); } };
+  walk(require('../activities').ACTIVITIES);
+  assert.ok(found.length && found.every((source) => /Scaffolding Code of Practice 2021 \(Qld\) s 2\.3\.2\.3, Table 2$/.test(source)), found.join('\n'));
 });
