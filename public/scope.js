@@ -15,19 +15,28 @@
     });
   }
 
+  // Tasks the user has added. With none added, the project takes every task.
+  let added = new Set();
+
+  function projectButton() {
+    const count = added.size || found.length;
+    return `Prepare a SWMS for ${added.size ? `the ${count} added ${count === 1 ? 'task' : 'tasks'}` : `every task (${count})`}`;
+  }
+
   function show(data) {
     found = data.tasks || [];
+    added = new Set();
     const note = data.note ? `<p class="note">${esc(data.note)}</p>` : '';
     $('scope-results').innerHTML = note + (found.length
-      ? `<p class="meta" style="margin-top:10px">${found.length} ${found.length === 1 ? 'task' : 'tasks'} found. Tasks marked high risk construction work need a SWMS by law; most builders ask for one for every task. Check each one against the scope before you rely on it.</p>` + found.map((item, index) => `
-        <div class="scope-task">
+      ? `<p class="meta" style="margin-top:10px">${found.length} ${found.length === 1 ? 'task' : 'tasks'} found. Tasks marked high risk construction work need a SWMS by law; most builders ask for one for every task. Check each one against the scope before you rely on it. Add the tasks you need, then press the button at the bottom.</p>` + found.map((item, index) => `
+        <div class="scope-task" data-card="${index}">
           <h3>${esc(item.title)}${item.needsSwms ? ' <span class="tag-risk">High risk</span>' : ''}</h3>
           <p>${esc(item.task)}</p>
           ${(item.highRisk || []).length ? `<p class="meta">High risk construction work: ${esc(item.highRisk.join('; '))}</p>` : ''}
           <details><summary>From the scope (${item.lines.length} ${item.lines.length === 1 ? 'line' : 'lines'})</summary><ul>${item.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>
-          <button type="button" class="small" data-scope-task="${index}">Use this task</button>
-        </div>`).join('') + (found.length > 1 ? `<div class="actions" style="margin-top:12px"><button type="button" id="project-start">Prepare a SWMS for every task (${found.length})</button></div><p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>` : '')
-      : '<p class="note">No site work that needs a SWMS was found. If the scope does include site work, paste the part that describes it.</p>');
+          <button type="button" class="small" data-scope-task="${index}" aria-pressed="false">Add this task</button>
+        </div>`).join('') + `<div class="actions scope-go"><button type="button" id="project-start">${projectButton()}</button></div><p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>`
+      : (note ? '' : '<p class="note">No site work that needs a SWMS was found. If the scope does include site work, paste the part that describes it.</p>'));
   }
 
   // A file can also be dragged onto the panel. Dropping it anywhere on the panel is caught,
@@ -56,7 +65,7 @@
     }
     dropped = file;
     $('scope-file').value = '';
-    $('scope-drop-note').textContent = `${file.name} is ready. Press the button below to read it.`;
+    $('scope-drop-note').textContent = `${file.name} is attached. Press "Find the tasks that need a SWMS" to read it.`;
     $('scope-file-clear').classList.remove('hidden');
   });
   $('scope-file').addEventListener('change', () => {
@@ -105,23 +114,42 @@
 
   $('scope-results').addEventListener('click', (event) => {
     if (event.target.closest('#project-start')) { startProject(); return; }
+    // Adding a task marks it and stays on the list, so the next one can be added.
     const button = event.target.closest('[data-scope-task]');
-    const item = button && found[Number(button.dataset.scopeTask)];
-    if (!item) return;
+    if (!button) return;
+    const index = Number(button.dataset.scopeTask);
+    if (!found[index]) return;
+    if (added.has(index)) added.delete(index); else added.add(index);
+    const on = added.has(index);
+    button.textContent = on ? 'Added ✓' : 'Add this task';
+    button.classList.toggle('added', on);
+    button.setAttribute('aria-pressed', String(on));
+    button.closest('.scope-task').classList.toggle('added', on);
+    $('project-start').textContent = projectButton();
+  });
+
+  // The scope task's name goes once the task is replaced with the user's own.
+  $('task').addEventListener('input', () => {
     const taskEl = $('task');
-    if (taskEl.value.trim() && taskEl.value.trim() !== taskEl.dataset.preset && !confirm('Replace the task you have written?')) return;
-    useTask(item);
+    if (taskEl.dataset.preset && !taskEl.value.trim()) $('task-from').classList.add('hidden');
   });
 
   function useTask(item) {
     const taskEl = $('task');
-    taskEl.value = item.task;
+    // One sentence to a line, so the task can be read and checked.
+    const text = item.task.replace(/([.;])\s+(?=[A-Z(])/g, '$1\n');
+    taskEl.value = text;
+    const from = $('task-from');
+    if (from) {
+      from.textContent = `From the scope: ${item.title}`;
+      from.classList.remove('hidden');
+    }
     // A new task starts from SiteReady's step order and PPE again.
     taskEl.dispatchEvent(new Event('input', { bubbles: true }));
-    taskEl.dataset.preset = item.task;
+    taskEl.dataset.preset = text;
     $('task-trade').value = item.trade || '';
     // The scope reader's steps for this task are ticked when the task is used as it stands.
-    window.siteReadyScopeTask = { task: item.task, kinds: item.kinds || null };
+    window.siteReadyScopeTask = { task: text, kinds: item.kinds || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });
     document.querySelector('input[name="fallRisk"]').dispatchEvent(new Event('change', { bubbles: true }));
     $('start').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -136,7 +164,8 @@
 
   function startProject() {
     if (project && project.items.some((item) => item.body) && !confirm('Start a new project? The SWMS prepared in the current project will be cleared.')) return;
-    project = { current: 0, items: found.map((item) => ({ title: item.title, task: item.task, trade: item.trade || '', kinds: item.kinds || null, fallRisk: item.fallRisk || '', body: null, status: 'todo' })) };
+    const chosen = added.size ? found.filter((_item, index) => added.has(index)) : found;
+    project = { current: 0, items: chosen.map((item) => ({ title: item.title, task: item.task, trade: item.trade || '', kinds: item.kinds || null, fallRisk: item.fallRisk || '', body: null, status: 'todo' })) };
     saveProject();
     openItem(0);
   }

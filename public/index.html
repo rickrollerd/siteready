@@ -208,6 +208,9 @@
     .scope-task p { font-size: 14px; margin: 0 0 8px; }
     .scope-task details { font-size: 13px; color: #5c6773; margin-bottom: 8px; }
     .scope-task ul { margin: 6px 0 0; padding-left: 1.2em; }
+    .scope-task.added { border-color: #2e7d4f; background: #f1f8f3; }
+    button.added { background: #e3f3e8; color: #1f6b3f; border: 2px solid #2e7d4f; }
+    .scope-go { position: sticky; bottom: 0; background: #fff; padding: 10px 0; margin-top: 12px; }
     .tag-risk { font-size: 12px; font-weight: 600; color: #8a2b2b; background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
     @media (max-width: 640px) {
       .wrap { padding: 18px 12px 48px; }
@@ -478,6 +481,7 @@
         <label for="task">Task
           <span class="hint">One task. Write what the work is.</span>
         </label>
+        <p id="task-from" class="meta hidden" style="font-weight:600;margin:0 0 6px"></p>
         <textarea id="task" required spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
         <p id="spelling-note" class="meta hidden" aria-live="polite"></p>
         <input type="hidden" id="task-trade">
