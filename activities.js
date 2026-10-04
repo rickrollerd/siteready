@@ -2477,7 +2477,7 @@ const ACTIVITIES = [
   {
     when: 'tileEdge',
     steps: [{
-      step: 'Tile balconies and terraces near edges',
+      step: 'Lay tiles near open edges',
       hazards: ['A fall from the balcony edge.', 'Tiles, offcuts or tools fall onto people below.'],
       controls: [
         { fact: 'fallControl' },
@@ -2677,7 +2677,23 @@ const ACTIVITIES = [
   {
     when: 'plasterSanding',
     steps: [{
-      step: 'Cut, set and sand',
+      only: 'plasterCutStep',
+      step: 'Cut and fix plasterboard',
+      hazards: ['Dust from sanding and cutting.', 'Silica dust where products contain crystalline silica.'],
+      controls: [
+        src('Keep dust below the exposure standard, and monitor the air if unsure. Check each product\'s safety data sheet: a product with 1% or more crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts.', `${WHS('s 49, s 50, s 529A, s 529C, s 529CA')}; ${QCODE('Silica', 's 1.3, s 5.1, s 9.1')}`),
+        'Sheets are cut by scoring and snapping with a knife where possible. Power saws and routers have on-tool dust extraction.',
+      ],
+    }, {
+      only: 'plasterSetStep',
+      step: 'Set the joints',
+      hazards: ['Dust from mixing setting compound powders.'],
+      controls: [
+        'Use pre-mixed compounds where possible. Powders are mixed slowly in a ventilated area, with a P2 respirator worn while mixing.',
+      ],
+    }, {
+      only: 'plasterSandStep',
+      step: 'Sand the joints',
       hazards: ['Dust from sanding and cutting.', 'Silica dust where products contain crystalline silica.'],
       controls: [
         src('Keep dust below the exposure standard, and monitor the air if unsure. Check each product\'s safety data sheet: a product with 1% or more crystalline silica is a crystalline silica substance, and power sanding or cutting it is processing that must be controlled, with a written assessment before it starts.', `${WHS('s 49, s 50, s 529A, s 529C, s 529CA')}; ${QCODE('Silica', 's 1.3, s 5.1, s 9.1')}`),
@@ -2848,8 +2864,9 @@ const ACTIVITIES = [
   {
     when: 'windowInstall',
     steps: [{
-      step: 'Install window frames, doors and louvres',
-      hazards: [{ unless: 'groundFloorFront', text: 'A fall through the window opening, or from the ladder or platform used to reach it.' }, { only: 'groundFloorFront', text: 'A fall from the ladder or platform used to reach the head of the frame.' }, { unless: 'windowsOnly', text: 'A frame or door falls before it is fixed.' }, { only: 'windowsOnly', text: 'A frame falls before it is fixed.' }, { unless: 'timberHouse', text: 'Silica dust from drilling fixings into concrete or masonry.' }, 'Strain lifting frames into openings.', { only: 'louvres', text: 'Cuts from louvre blades and glass edges.' }, { unless: 'louvres', text: 'Cuts from glass edges.' }],
+      only: 'windowFrameStep',
+      step: 'Install windows',
+      hazards: [{ unless: 'groundFloorFront', text: 'A fall through the window opening, or from the ladder or platform used to reach it.' }, { only: 'groundFloorFront', text: 'A fall from the ladder or platform used to reach the head of the frame.' }, 'A frame falls before it is fixed.', { unless: 'timberHouse', text: 'Silica dust from drilling fixings into concrete or masonry.' }, 'Strain lifting frames into openings.', 'Cuts from glass edges.'],
       controls: [
         { only: 'windowReplace', unless: ['windowsOnly', 'singleWindow'], text: 'Old windows and doors are removed one at a time: glass is taped or taken out first, fixings are cut, and the frame is lowered inside by two people. The opening is protected until the new frame is fixed. In a building built before 2004 (asbestos products were used until the national ban at the end of 2003), sealants, packers and wall linings around the frame are checked for asbestos first.' },
         { only: 'windowsOnly', unless: 'singleWindow', text: 'Old windows are removed one at a time: glass is taped or taken out first, fixings are cut, and the frame is lowered inside by two people. The opening is protected until the new frame is fixed. In a building built before 2004 (asbestos products were used until the national ban at the end of 2003), sealants, packers and wall linings around the frame are checked for asbestos first.' },
@@ -2858,13 +2875,40 @@ const ACTIVITIES = [
         { fact: 'fallControl' },
         'Openings stay protected by edge protection or a barrier until the frame is fixed in them.',
         { unless: 'groundFloorFront', text: 'Frames above the ground floor are installed from inside the building where practicable.' },
-        // A shopfront has its glass doors hung in the new frames.
-        { only: 'shopfront', text: 'Glass doors are hung with a door lifter or by two people on their pivots or hinges, and held until they are adjusted and their closers are set.' },
         'Each frame is packed, plumbed and fixed to the manufacturer\'s instructions before it is let go. Large frames are lifted with a panel lifter or two people, with one person in charge.',
         { unless: 'timberHouse', ...src('Drill fixings with on-tool extraction, and wear a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`) },
         ...SILICA_FOLLOW_UP.map((item) => ({ ...item, unless: 'timberHouse' })),
         { only: 'timberHouse', text: 'Old paint on the existing frames and linings is treated as containing lead unless tested, and is not dry sanded or burnt off.' },
-        { only: 'louvres', text: 'Louvre blades and glass are handled with cut resistant gloves that still give a good grip, and kept in their racks until fitted.' },
+      ],
+    }, {
+      only: 'windowDoorStep',
+      step: 'Install doors',
+      hazards: [{ unless: 'groundFloorFront', text: 'A fall through the window opening, or from the ladder or platform used to reach it.' }, { only: 'groundFloorFront', text: 'A fall from the ladder or platform used to reach the head of the frame.' }, 'A frame or door falls before it is fixed.', { unless: 'timberHouse', text: 'Silica dust from drilling fixings into concrete or masonry.' }, 'Strain lifting frames into openings.', 'Cuts from glass edges.'],
+      controls: [
+        { only: 'windowReplace', unless: ['windowsOnly', 'singleWindow'], text: 'Old windows and doors are removed one at a time: glass is taped or taken out first, fixings are cut, and the frame is lowered inside by two people. The opening is protected until the new frame is fixed. In a building built before 2004 (asbestos products were used until the national ban at the end of 2003), sealants, packers and wall linings around the frame are checked for asbestos first.' },
+        { fact: 'fallControl' },
+        'Openings stay protected by edge protection or a barrier until the frame is fixed in them.',
+        // A shopfront has its glass doors hung in the new frames.
+        { only: 'shopfront', text: 'Glass doors are hung with a door lifter or by two people on their pivots or hinges, and held until they are adjusted and their closers are set.' },
+        { unless: 'shopfront', text: 'Door panels are lifted into their frames or tracks with a door lifter or by two people, and held until they are fixed and adjusted.' },
+        'Each frame is packed, plumbed and fixed to the manufacturer\'s instructions before it is let go. Large frames are lifted with a panel lifter or two people, with one person in charge.',
+        { unless: 'timberHouse', ...src('Drill fixings with on-tool extraction, and wear a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`) },
+        ...SILICA_FOLLOW_UP.map((item) => ({ ...item, unless: 'timberHouse' })),
+        { only: 'timberHouse', text: 'Old paint on the existing frames and linings is treated as containing lead unless tested, and is not dry sanded or burnt off.' },
+      ],
+    }, {
+      only: 'louvres',
+      step: 'Install louvres',
+      hazards: [{ unless: 'groundFloorFront', text: 'A fall through the window opening, or from the ladder or platform used to reach it.' }, { only: 'groundFloorFront', text: 'A fall from the ladder or platform used to reach the head of the frame.' }, 'A frame falls before it is fixed.', { unless: 'timberHouse', text: 'Silica dust from drilling fixings into concrete or masonry.' }, 'Strain lifting frames into openings.', 'Cuts from louvre blades and glass edges.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Openings stay protected by edge protection or a barrier until the frame is fixed in them.',
+        { unless: 'groundFloorFront', text: 'Frames above the ground floor are installed from inside the building where practicable.' },
+        'Each frame is packed, plumbed and fixed to the manufacturer\'s instructions before it is let go. Large frames are lifted with a panel lifter or two people, with one person in charge.',
+        { unless: 'timberHouse', ...src('Drill fixings with on-tool extraction, and wear a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2, s 7.6.1, s 7.6.2')}`) },
+        ...SILICA_FOLLOW_UP.map((item) => ({ ...item, unless: 'timberHouse' })),
+        { only: 'timberHouse', text: 'Old paint on the existing frames and linings is treated as containing lead unless tested, and is not dry sanded or burnt off.' },
+        'Louvre blades and glass are handled with cut resistant gloves that still give a good grip, and kept in their racks until fitted.',
       ],
     }],
     ppe: ['gloveCut', 'p2', 'glassesClear'],
@@ -3022,7 +3066,16 @@ const ACTIVITIES = [
   {
     when: 'claddingInstall',
     steps: [{
-      step: 'Install battens and external cladding',
+      unless: 'cladReplace',
+      step: 'Fix the battens',
+      hazards: ['A fall from the scaffold, EWP or ladder.', 'Nail gun injuries.'],
+      controls: [
+        { fact: 'fallControl' },
+        'Battens at height are fixed from a scaffold or EWP, not from ladders, and are fixed to the frame to the cladding maker\'s spacing as each one is placed.',
+        'Nail guns are used with the single shot (sequential) trigger, never carried with a finger on the trigger, and disconnected before clearing a jam.',
+      ],
+    }, {
+      step: 'Install the external cladding',
       hazards: ['A fall from the scaffold, EWP or ladder.', { unless: 'hebel', text: 'Silica dust from cutting fibre cement sheets.' }, { only: 'hebel', text: 'Silica dust from cutting AAC (Hebel) panels.' }, { unless: 'panelCladding', text: 'Nail gun injuries.' }, { unless: 'panelCladding', text: 'Strain handling long boards and sheets.' }, { only: 'panelCladding', text: 'Strain or crush handling heavy panels.' }, 'Boards blow off in the wind.'],
       controls: [
         { fact: 'fallControl' },
@@ -3042,13 +3095,18 @@ const ACTIVITIES = [
   {
     when: 'repointing',
     steps: [{
-      step: 'Rake out and repoint masonry',
-      hazards: ['Silica dust from raking out mortar and cutting stone or brick.', 'A fall from the scaffold or platform.', 'Loose masonry falls onto people below.', 'Skin burns from lime and cement mortar.'],
+      step: 'Rake out the joints',
+      hazards: ['Silica dust from raking out mortar and cutting stone or brick.', 'A fall from the scaffold or platform.', 'Loose masonry falls onto people below.'],
       controls: [
         { fact: 'silicaControls' },
         src('Raking out mortar with a power tool is processing a crystalline silica substance: use a tool with on-tool extraction, or hand tools, and wear a fit tested P2 respirator.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.2')}`),
         ...SILICA_FOLLOW_UP,
         'Loose stones and bricks are found and made safe before work below. The area below is barricaded.',
+      ],
+    }, {
+      step: 'Repoint the masonry',
+      hazards: ['A fall from the scaffold or platform.', 'Skin burns from lime and cement mortar.'],
+      controls: [
         'Mortar is mixed and used with gloves, long sleeves and eye protection. Skin that touches it is washed straight away.',
       ],
     }],
@@ -3254,16 +3312,22 @@ const ACTIVITIES = [
   {
     when: 'floorSanding',
     steps: [{
-      step: 'Sand and finish timber floors',
-      hazards: ['Fine wood dust from sanding.', 'Fire from dust and from solvent coatings.', 'Fumes and sensitisation from polyurethane finishes.', 'Noise.'],
+      unless: 'floorCoatOnly',
+      step: 'Sand timber floors',
+      hazards: ['Fine wood dust from sanding.', 'Fire from dust and from solvent coatings.', 'Noise.'],
       controls: [
         { only: 'deckRefinish', text: 'Deck strippers and cleaners are used as their safety data sheets set out, with chemical gloves and eye protection, and run-off is kept out of drains and gardens.' },
         'Sanders have dust bags or extraction, and a P2 respirator is worn while sanding.',
         { unless: 'deckRefinish', text: 'Dust bags are emptied into a metal bin outside the building at the end of each day, not left inside, as fine dust can catch fire.' },
+        'Hearing protection while sanding.',
+      ],
+    }, {
+      step: 'Coat timber floors',
+      hazards: ['Fire from dust and from solvent coatings.', 'Fumes and sensitisation from polyurethane finishes.'],
+      controls: [
         { fact: 'safetyDataSheet' },
         { unless: 'deckRefinish', text: 'Finishes are applied as their safety data sheets set out, with the room ventilated, no ignition sources, and the respirator the data sheet lists.' },
         { only: 'deckRefinish', text: 'Oils and stains are applied as their safety data sheets set out, and oily rags are spread out to dry or kept in a sealed metal bin, as they can self-heat and catch fire.' },
-        'Hearing protection while sanding.',
       ],
     }],
     ppe: ['p2', 'earMuffs', 'gloveChemical'],
@@ -3670,12 +3734,21 @@ const ACTIVITIES = [
   {
     when: 'flyScreens',
     steps: [{
-      step: 'Fit fly screens and security doors',
-      hazards: [{ only: 'doorWork', text: 'Strain lifting heavy security doors.' }, { unless: 'doorWork', text: 'Strain lifting screens into place.' }, 'Cuts from mesh and aluminium edges.', 'A fall from a ladder at upper windows.', 'Drilling into hidden wiring.'],
+      only: 'screenStep',
+      step: 'Fit fly screens',
+      hazards: ['Strain lifting screens into place.', 'Cuts from mesh and aluminium edges.', 'A fall from a ladder at upper windows.', 'Drilling into hidden wiring.'],
       controls: [
-        { only: 'doorWork', text: 'Heavy security doors are lifted by two people or with a door lifter.' },
         'Gloves are worn when cutting and handling mesh and frames.',
         { unless: 'groundFloor', text: 'Upper storey screens are fitted from inside where possible. A screen fitted from outside more than 2 m up is fitted from the access set out in the fall control, and a platform ladder on firm level ground is used only below 2 m.' },
+        'Check for wiring before drilling near switches and power points.',
+      ],
+    }, {
+      only: 'doorWork',
+      step: 'Fit security doors',
+      hazards: ['Strain lifting heavy security doors.', 'Cuts from mesh and aluminium edges.', 'Drilling into hidden wiring.'],
+      controls: [
+        'Heavy security doors are lifted by two people or with a door lifter.',
+        'Gloves are worn when cutting and handling mesh and frames.',
         'Check for wiring before drilling near switches and power points.',
       ],
     }],
@@ -5244,11 +5317,17 @@ const ACTIVITIES = [
   {
     when: 'valleyRepair',
     steps: [{
-      step: 'Replace the valley iron and rebed the tiles',
-      hazards: ['A fall from the roof or into the valley.', 'Tiles slide off the roof onto people below.', 'Silica dust from cutting tiles and breaking out old mortar.', 'Cuts from the valley iron.'],
+      step: 'Replace the valley iron',
+      hazards: ['A fall from the roof or into the valley.', 'Tiles slide off the roof onto people below.', 'Cuts from the valley iron.'],
       controls: [
         'The tiles beside the valley are lifted and stacked on the battens across the roof where they cannot slide, and the area below is fenced off.',
         'The old valley iron is lifted out with cut resistant gloves, and the new one is fixed on its valley boards to the roofing standard.',
+      ],
+    }, {
+      step: 'Rebed the tiles',
+      hazards: ['A fall from the roof or into the valley.', 'Tiles slide off the roof onto people below.', 'Silica dust from cutting tiles and breaking out old mortar.'],
+      controls: [
+        'The tiles beside the valley are lifted and stacked on the battens across the roof where they cannot slide, and the area below is fenced off.',
         'Old mortar is broken out by hand, wet, and tiles are cut with a wet saw or a saw with on-tool extraction, with a P2 respirator worn.',
         'The tiles are relaid and the cut tiles are bedded and pointed, with the mortar mixed in a bucket at the eaves or on a level roof board.',
       ],
@@ -8125,7 +8204,7 @@ const ACTIVITIES = [
   {
     when: 'paintSolvent',
     steps: [{
-      step: 'Control solvent-based paint',
+      step: 'Apply solvent-based paint',
       hazards: ['Breathing solvent fumes.', 'Fire from flammable vapour and solvent-soaked rags.'],
       controls: [
         src('No smoking, flames or sparks where flammable vapour may be present.', WHS('s 355')),
@@ -8773,13 +8852,23 @@ ACTIVITIES.push(
   {
     when: 'safetyMesh',
     steps: [{
-      step: 'Install safety mesh and sarking',
+      only: 'meshStep',
+      step: 'Install safety mesh',
       hazards: ['A fall between purlins before the mesh is fixed.', 'A fall from the roof edge.', 'Mesh that is badly fixed or lapped fails under a falling person.'],
       controls: [
         { fact: 'fallControl' },
         'Safety mesh to AS/NZS 4389 is run out from a protected edge, and fixed, lapped and tensioned over the purlins to the manufacturer\'s details.',
         'A competent person checks the mesh before any sheet goes on, and damaged mesh is replaced.',
+        'Mesh does not protect against a fall from the edge: edge protection stays in place.',
+      ],
+    }, {
+      only: 'meshSarkingStep',
+      step: 'Install sarking',
+      hazards: ['A fall from the roof edge.', 'A fall through the sarking between purlins.'],
+      controls: [
+        { fact: 'fallControl' },
         'Sarking is laid only over mesh that is already fixed. No one stands on sarking between purlins.',
+        'Sarking is run out and fixed as it is laid, and is not rolled out in strong wind.',
         'Mesh does not protect against a fall from the edge: edge protection stays in place.',
       ],
     }],
@@ -9066,6 +9155,14 @@ function jobStepsFor(flags, factText, fallback) {
     const extra = handling.controls.filter((item) => !/^(Use vacuum lifters and glass panel lifters|Team lifts are an interim|Wear cut resistant gloves)/.test(typeof item === 'string' ? item : item.text || ''));
     middle = middle.filter((step) => step !== handling).map((step) => (step === install ? { ...install, hazards: [...install.hazards, 'A vacuum lifter loses grip.'], controls: [...install.controls, ...extra] } : step));
   }
+  // Doors hung in new window and door frames, or security doors, are one step: the door lines join it.
+  const hangDoors = middle.find((step) => step.step === 'Hang the doors');
+  const frameDoors = middle.find((step) => step.step === 'Install doors' || step.step === 'Fit security doors');
+  if (hangDoors && frameDoors) {
+    const said = new Set([...frameDoors.hazards, ...frameDoors.controls].map((item) => (typeof item === 'string' ? item : item.text || JSON.stringify(item))));
+    const fresh = (items) => items.filter((item) => !said.has(typeof item === 'string' ? item : item.text || JSON.stringify(item)));
+    middle = middle.filter((step) => step !== hangDoors).map((step) => (step === frameDoors ? { ...frameDoors, hazards: [...frameDoors.hazards, ...fresh(hangDoors.hazards)], controls: [...frameDoors.controls, ...fresh(hangDoors.controls)] } : step));
+  }
   // The whole-structure step covers the general demolition step.
   if (middle.some((step) => step.step === 'Demolish the structure')) middle = middle.filter((step) => step.step !== 'Demolish');
   // Services are isolated and made safe before anything is demolished.
@@ -9186,8 +9283,8 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Move membrane rolls and materials', 'Lay torch-on membranes');
   moveBefore('Reach high walls and ceilings', 'Strip wallpaper');
   moveBefore('Reach high walls and ceilings', 'Prepare to paint');
-  moveBefore('Tile balconies and terraces near edges', 'Break out the cracked tiles');
-  moveBefore('Tile balconies and terraces near edges', 'Cut tiles and stone');
+  moveBefore('Lay tiles near open edges', 'Break out the cracked tiles');
+  moveBefore('Lay tiles near open edges', 'Cut tiles and stone');
   moveBefore('Break out the cracked tiles', 'Cut tiles and stone');
   moveBefore('Build the raised garden beds', 'Move soil and mulch, and plant');
   moveBefore('Strip the water-damaged linings', 'Move and fix plasterboard sheets');
@@ -9259,7 +9356,9 @@ function jobStepsFor(flags, factText, fallback) {
   for (const lay of ['Lay pipes', 'Install pits', 'Lay conduits']) moveBefore('Lift and place tanks, pits or precast units', lay);
   moveBefore('Fix plant on its supports', 'Install plant and equipment on the roof');
   moveBefore('Build the retaining wall', 'Lay blocks and bricks');
-  moveAfter('Handle and install glass panels', 'Install window frames, doors and louvres');
+  moveAfter('Handle and install glass panels', 'Install windows');
+  moveAfter('Handle and install glass panels', 'Install doors');
+  moveAfter('Handle and install glass panels', 'Install louvres');
   moveBefore('Remove lead paint', 'Prepare to paint');
   moveBefore('Fix the fascia', 'Prepare to paint');
   moveBefore('Install gutters and downpipes', 'Prepare to paint');
@@ -9316,10 +9415,12 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Fit the new eave lining', 'Finish and clean up');
   moveBefore('Receive plant and move it into position', 'Lift equipment and materials to the roof');
   moveBefore('Paint the outside of the structure at height', 'Prepare to paint');
+  moveBefore('Apply solvent-based paint', 'Clean brushes and rollers');
   moveAfter('Install boom gates and automatic gates', 'Dig a shallow trench and lay pipe or cable');
   moveBefore('Open the pits and haul the cable through the conduits', 'Haul the optical fibre cable');
   moveBefore('Open the pits and haul the cable through the conduits', 'Splice and test optical fibre');
-  moveAfter('Replace the valley iron and rebed the tiles', 'Work on a tiled roof');
+  moveAfter('Replace the valley iron', 'Work on a tiled roof');
+  moveAfter('Rebed the tiles', 'Replace the valley iron');
   moveBefore('Connect the solar array and inverter', 'Leave unfinished work safe');
   moveBefore('Remove cut sections', 'Excavate');
   moveBefore('Apply primers and liquid membranes', 'Cut tiles and stone');
@@ -9402,19 +9503,25 @@ function jobStepsFor(flags, factText, fallback) {
   // Posts, beams and rafters go up before the roof is sheeted.
   moveBefore('Erect the frame and roof of the structure', 'Set up roof access and fall protection');
   moveBefore('Erect the frame and roof of the structure', 'Lift materials to and from the roof');
-  moveAfter('Install battens and external cladding', 'Fix roof trusses');
-  moveAfter('Install battens and external cladding', 'Fix new roofing');
-  moveAfter('Move and fix plasterboard sheets', 'Install battens and external cladding');
+  for (const before of ['Fix roof trusses', 'Fix new roofing']) {
+    moveAfter('Fix the battens', before);
+    moveAfter('Install the external cladding', 'Fix the battens');
+  }
+  moveAfter('Move and fix plasterboard sheets', 'Install the external cladding');
+  moveBefore('Cut and fix plasterboard', 'Move and fix plasterboard sheets');
+  moveBefore('Cut and fix plasterboard', 'Fix ceiling sheets');
   moveAfter('Lift and fix the new beam or lintel', 'Cut an opening in a load-bearing wall');
   moveAfter('Lift and fix the new beam or lintel', 'Cut blocks and bricks');
   moveBefore('Lift and fix the new beam or lintel', 'Lay blocks and bricks');
   moveBefore('Install temporary support', 'Cut an opening in a load-bearing wall');
-  // Safety mesh goes in before the sheets are laid over it.
-  const mesh = middle.find((step) => step.step === 'Install safety mesh and sarking');
-  const sheets = middle.findIndex((step) => step.step === 'Fix new roofing');
-  if (mesh && sheets >= 0 && middle.indexOf(mesh) > sheets) {
-    middle = middle.filter((step) => step !== mesh);
-    middle.splice(sheets, 0, mesh);
+  // Safety mesh and sarking go in before the sheets are laid over them.
+  for (const name of ['Install safety mesh', 'Install sarking']) {
+    const mesh = middle.find((step) => step.step === name);
+    const sheets = middle.findIndex((step) => step.step === 'Fix new roofing');
+    if (mesh && sheets >= 0 && middle.indexOf(mesh) > sheets) {
+      middle = middle.filter((step) => step !== mesh);
+      middle.splice(middle.findIndex((step) => step.step === 'Fix new roofing'), 0, mesh);
+    }
   }
   // Old roofing comes off once the roof access and fall protection are set up.
   const strip = middle.find((step) => step.step === 'Remove old roofing');
@@ -9447,7 +9554,7 @@ function jobStepsFor(flags, factText, fallback) {
   // A step left with no controls (energised work answered "none") is not work this SWMS covers.
   return steps.map((step) => ({
     ...(step.fallback ? { fallback: true } : {}),
-    step: step.step === 'Hang the doors' && flags.autoDoorsOnly ? 'Install and commission the automatic doors' : step.step === 'Erect and dismantle the temporary grandstand' && flags.standDismantle ? 'Dismantle the temporary grandstand' : step.step === 'Lift and set the modules' && flags.podOnly ? 'Lift and set the bathroom pods' : step.step === 'Replace the sleepers and ballast' && flags.tamping ? 'Tamp and regulate the ballast' : step.step === 'Replace the sleepers and ballast' && flags.trackLaying ? 'Lay the new track' : step.step === 'Operate forklifts' && flags.telehandlerOnly ? 'Operate the telehandler' : step.step === 'Run the processing plant' && flags.batchOnly ? 'Run the batching plant' : step.step === 'Run the processing plant' ? 'Run the crushing and screening plant' : step.step === 'Maintain the processing plant' && flags.batchOnly ? 'Maintain the batching plant' : step.step === 'Maintain the processing plant' ? 'Maintain the crushing and screening plant' : step.step === 'Move the load with transporters or a launching system' && flags.skidMove ? 'Jack and skid the load into place' : step.step === 'Move the load with transporters or a launching system' && flags.launchOnly ? 'Launch the girders' : step.step === 'Move the load with transporters or a launching system' && flags.spmtMove ? 'Move the load with the transporters' : step.step === 'Bore under the road or ground with a directional drill' && flags.waterCrossing ? 'Bore under the waterway with the directional drill' : step.step === 'Demolish the structure' && flags.bridgeDemo ? 'Demolish the bridge' : step.step === 'Build the retaining wall' && flags.concreteWall ? 'Excavate and set out the retaining wall' : step.step === 'Disconnect and connect the water heater' && !flags.replaceAppliance ? 'Set and connect the water heater' : step.step === 'Prop and repair the verandah' && flags.pergolaWork ? 'Prop and repair the pergola' : step.step === 'Work on a tiled roof' && flags.slateRoof ? 'Work on a slate roof' : step.step === 'Strip the roof tiles' && flags.slateRoof ? 'Strip the slates' : step.step === 'Lay the roof tiles' && flags.slateRoof ? 'Lay the slates' : step.step === 'Fit fly screens and security doors' && !flags.doorWork && !flags.securityScreens ? 'Fit the fly screens' : step.step === 'Fit fly screens and security doors' && !flags.doorWork ? 'Fit fly and security screens' : step.step === 'Install rooftop antennas and equipment' && flags.towerWork ? 'Install antennas and equipment on the tower' : step.step === 'Install the hydrant booster assembly' && flags.sprinkler ? 'Install the sprinkler booster valve set' : step.step === 'Clean windows and balconies' && flags.ewpNamed ? 'Clean windows from the EWP' : step.step === 'Dig footing holes' && flags.masonryLay ? 'Dig and pour footings' : step.step === 'Clear the collapsed wall and protect the footpath' && !flags.footpathWork ? 'Clear the collapsed wall' : step.step === 'Remove and fit the vanity' && !flags.vanityReplace ? 'Install vanities and fixtures' : step.step === 'Sand and finish timber floors' && flags.deckRefinish ? 'Strip, sand and refinish the deck' : step.step === 'Install signs and screens' && flags.signPostsOnly ? 'Install signs on posts' : step.step === 'Install signs and screens' && flags.signNoScreen ? 'Install the signs' : step.step === 'Drill or cut concrete, masonry or stone' && flags.grindOnly ? 'Grind concrete' : step.step === 'Remove and replace the bath and shower' && flags.bathOnly ? 'Remove and replace the bath' : step.step === 'Remove and replace the bath and shower' && flags.showerOnly ? 'Remove and replace the shower' : step.step === 'Fix rails, fittings and equipment to walls and floors' && flags.boardwalk ? 'Fix the handrails to the boardwalk' : step.step === 'Apply sealers to concrete, pavers or timber' && flags.stoneSurface ? 'Apply sealer to the stone' : step.step === 'Install window frames, doors and louvres' && flags.singleWindow ? 'Replace the window frame' : step.step === 'Install window frames, doors and louvres' && flags.windowsOnly ? 'Install the windows' : step.step === 'Build the deck frame and lay the decking' && flags.deckBoardsOnly ? 'Remove and replace the decking' : step.step === 'Dig a shallow trench and lay pipe or cable' && flags.cableOnlyTrench ? 'Dig a shallow trench and lay the cable' : step.step === 'Dig a shallow trench and lay pipe or cable' && flags.outdoorFixture ? 'Dig a shallow trench and lay the pipes' : step.step === 'Build the vehicle crossover' ? 'Set up the crossover work area' : step.step === 'Install bird netting at height' && flags.birdSpikes ? 'Install bird spikes at height' : step.step === 'Prepare the ground and set out' && flags.crossover ? 'Box out the crossover' : step.step === 'Remove and replace damaged timbers' && flags.boardsOnly ? 'Remove and replace the deck boards' : step.step === 'Erect the frame and roof of the structure' && flags.shadeFabric ? 'Erect the frame and fix the shade fabric' : step.step === 'Sand and fill surfaces' && flags.steelPaint ? 'Prepare the steel surfaces' : step.step === 'Install security devices' && flags.doorStrikes ? 'Install the security devices and door strikes' : step.step === 'Pull cables and handle cable drums' && flags.newMainBoard ? 'Pull in and terminate the cables' : step.step === 'Cut in and install the skylight' && flags.skylightRepair ? (flags.skylightsPlural ? 'Remove and replace the damaged skylights' : 'Remove and replace the damaged skylight') : step.step === 'Paint the outside of the structure at height' ? 'Work at height on the outside of the structure' : step.step === 'Install the pump and pipework' && flags.sewerPumpSwap ? 'Lower in and connect the new pump' : step.step === 'Dig footing holes' && flags.solarLights ? 'Dig and pour the footings' : step.step === 'Lay tiles' && flags.wallTiling ? 'Fix the wall tiles' : step.step === 'Erect the frame and roof of the structure' && flags.roofOverDeck ? 'Erect the posts, beams and rafters' : step.step === 'Paint' && flags.roofOnlyPaint ? 'Paint the roof' : step.step === 'Erect the frame and roof of the structure' && flags.cubbyHouse ? 'Build the cubby house' : step.step === 'Install the door' && flags.rollerDoorOnly ? 'Install the roller door' : step.step === 'Install gutters and downpipes' && flags.downpipesOnly ? 'Install downpipes' : step.step === 'Install boom gates and automatic gates' && flags.solarGate ? 'Install the gate opener' : step.step === 'Install boom gates and automatic gates' && flags.barrierArm ? 'Install the barrier arm' : step.step === 'Fix the fascia' && flags.fasciaReplace ? 'Replace the fascia boards' : step.step === 'Install window frames, doors and louvres' && flags.shopfront ? 'Install the shopfront frames and doors' : step.step === 'Install window frames, doors and louvres' && flags.louvresOnly ? 'Fit the louvre frames and glass' : step.step === 'Get soil and plants to the podium' && flags.greenRoof ? 'Get soil and plants to the roof' : step.step === 'Install water meters and backflow devices' && flags.backflowOnly ? 'Install the backflow device' : step.step === 'Jack the house and replace stumps' && flags.houseRaise ? 'Jack and raise the house' : step.step === 'Install battens and external cladding' && flags.cladReplace ? 'Replace the cladding boards' : step.step === 'Break out the cracked tiles' && flags.oldTiles ? 'Remove the old tiles' : step.step === 'Plumbing fit-off' && flags.eyewashOnly ? 'Install, connect and test the eyewash station' : step.step === 'Connect the solar array and inverter' && !flags.solarArray ? (flags.batteryStorage ? 'Connect the inverter and battery' : 'Connect the inverter') : step.step,
+    step: step.step === 'Cut and fix plasterboard' && (flags.plasterSheets || flags.plasterCeiling) ? 'Cut plasterboard' : step.step === 'Hang the doors' && flags.autoDoorsOnly ? 'Install and commission the automatic doors' : step.step === 'Erect and dismantle the temporary grandstand' && flags.standDismantle ? 'Dismantle the temporary grandstand' : step.step === 'Lift and set the modules' && flags.podOnly ? 'Lift and set the bathroom pods' : step.step === 'Replace the sleepers and ballast' && flags.tamping ? 'Tamp and regulate the ballast' : step.step === 'Replace the sleepers and ballast' && flags.trackLaying ? 'Lay the new track' : step.step === 'Operate forklifts' && flags.telehandlerOnly ? 'Operate the telehandler' : step.step === 'Move the load with transporters or a launching system' && flags.skidMove ? 'Jack and skid the load into place' : step.step === 'Move the load with transporters or a launching system' && flags.launchOnly ? 'Launch the girders' : step.step === 'Move the load with transporters or a launching system' && flags.spmtMove ? 'Move the load with the transporters' : step.step === 'Bore under the road or ground with a directional drill' && flags.waterCrossing ? 'Bore under the waterway with the directional drill' : step.step === 'Demolish the structure' && flags.bridgeDemo ? 'Demolish the bridge' : step.step === 'Build the retaining wall' && flags.concreteWall ? 'Excavate and set out the retaining wall' : step.step === 'Disconnect and connect the water heater' && !flags.replaceAppliance ? 'Set and connect the water heater' : step.step === 'Prop and repair the verandah' && flags.pergolaWork ? 'Prop and repair the pergola' : step.step === 'Work on a tiled roof' && flags.slateRoof ? 'Work on a slate roof' : step.step === 'Strip the roof tiles' && flags.slateRoof ? 'Strip the slates' : step.step === 'Lay the roof tiles' && flags.slateRoof ? 'Lay the slates' : step.step === 'Fit fly screens' && flags.securityScreens ? (flags.flyScreenNamed ? 'Fit fly and security screens' : 'Fit security screens') : step.step === 'Install rooftop antennas and equipment' && flags.towerWork ? 'Install antennas and equipment on the tower' : step.step === 'Install the hydrant booster assembly' && flags.sprinkler ? 'Install the sprinkler booster valve set' : step.step === 'Clean windows and balconies' && flags.ewpNamed ? 'Clean windows from the EWP' : step.step === 'Dig footing holes' && flags.masonryLay ? 'Dig and pour footings' : step.step === 'Clear the collapsed wall and protect the footpath' && !flags.footpathWork ? 'Clear the collapsed wall' : step.step === 'Remove and fit the vanity' && !flags.vanityReplace ? 'Install vanities and fixtures' : step.step === 'Sand timber floors' && flags.deckRefinish ? 'Strip and sand the deck' : step.step === 'Coat timber floors' && flags.deckRefinish ? 'Oil or stain the deck' : step.step === 'Install signs and screens' && flags.signPostsOnly ? 'Install signs on posts' : step.step === 'Install signs and screens' && flags.signNoScreen ? 'Install the signs' : step.step === 'Drill or cut concrete, masonry or stone' && flags.grindOnly ? 'Grind concrete' : step.step === 'Remove and replace the bath and shower' && flags.bathOnly ? 'Remove and replace the bath' : step.step === 'Remove and replace the bath and shower' && flags.showerOnly ? 'Remove and replace the shower' : step.step === 'Fix rails, fittings and equipment to walls and floors' && flags.boardwalk ? 'Fix the handrails to the boardwalk' : step.step === 'Apply sealers to concrete, pavers or timber' && flags.stoneSurface ? 'Apply sealer to the stone' : step.step === 'Install windows' && flags.singleWindow ? 'Replace the window frame' : step.step === 'Build the deck frame and lay the decking' && flags.deckBoardsOnly ? 'Remove and replace the decking' : step.step === 'Dig a shallow trench and lay pipe or cable' && flags.cableOnlyTrench ? 'Dig a shallow trench and lay the cable' : step.step === 'Dig a shallow trench and lay pipe or cable' && flags.outdoorFixture ? 'Dig a shallow trench and lay the pipes' : step.step === 'Build the vehicle crossover' ? 'Set up the crossover work area' : step.step === 'Install bird netting at height' && flags.birdSpikes ? 'Install bird spikes at height' : step.step === 'Prepare the ground and set out' && flags.crossover ? 'Box out the crossover' : step.step === 'Remove and replace damaged timbers' && flags.boardsOnly ? 'Remove and replace the deck boards' : step.step === 'Erect the frame and roof of the structure' && flags.shadeFabric ? 'Erect the frame and fix the shade fabric' : step.step === 'Sand and fill surfaces' && flags.steelPaint ? 'Prepare the steel surfaces' : step.step === 'Install security devices' && flags.doorStrikes ? 'Install the security devices and door strikes' : step.step === 'Pull cables and handle cable drums' && flags.newMainBoard ? 'Pull in and terminate the cables' : step.step === 'Cut in and install the skylight' && flags.skylightRepair ? (flags.skylightsPlural ? 'Remove and replace the damaged skylights' : 'Remove and replace the damaged skylight') : step.step === 'Paint the outside of the structure at height' ? 'Set up access to the outside of the structure' : step.step === 'Install the pump and pipework' && flags.sewerPumpSwap ? 'Lower in and connect the new pump' : step.step === 'Dig footing holes' && flags.solarLights ? 'Dig and pour the footings' : step.step === 'Lay tiles' && flags.wallTiling ? 'Fix the wall tiles' : step.step === 'Erect the frame and roof of the structure' && flags.roofOverDeck ? 'Erect the posts, beams and rafters' : step.step === 'Paint' && flags.roofOnlyPaint ? 'Paint the roof' : step.step === 'Erect the frame and roof of the structure' && flags.cubbyHouse ? 'Build the cubby house' : step.step === 'Install gutters and downpipes' && flags.downpipesOnly ? 'Install downpipes' : step.step === 'Install boom gates and automatic gates' && flags.solarGate ? 'Install the gate opener' : step.step === 'Install boom gates and automatic gates' && flags.barrierArm ? 'Install the barrier arm' : step.step === 'Fix the fascia' && flags.fasciaReplace ? 'Replace the fascia boards' : step.step === 'Install windows' && flags.shopfront ? 'Install the shopfront frames' : step.step === 'Install doors' && flags.shopfront ? 'Hang the shopfront doors' : step.step === 'Get soil and plants to the podium' && flags.greenRoof ? 'Get soil and plants to the roof' : step.step === 'Install water meters and backflow devices' && flags.backflowOnly ? 'Install the backflow device' : step.step === 'Jack the house and replace stumps' && flags.houseRaise ? 'Jack and raise the house' : step.step === 'Install the external cladding' && flags.cladReplace ? 'Replace the cladding boards' : step.step === 'Break out the cracked tiles' && flags.oldTiles ? 'Remove the old tiles' : step.step === 'Plumbing fit-off' && flags.eyewashOnly ? 'Install, connect and test the eyewash station' : step.step === 'Run the processing plant' && flags.batchOnly ? 'Run the batching plant' : step.step === 'Run the processing plant' ? 'Run the crushing and screening plant' : step.step === 'Maintain the processing plant' && flags.batchOnly ? 'Maintain the batching plant' : step.step === 'Maintain the processing plant' ? 'Maintain the crushing and screening plant' : step.step === 'Install the door' && flags.rollerDoorOnly ? 'Install the roller door' : step.step === 'Connect the solar array and inverter' && !flags.solarArray ? (flags.batteryStorage ? 'Connect the inverter and battery' : 'Connect the inverter') : step.step,
     hazards: step.hazards.filter((item) => typeof item === 'string' || ((!item.only || flags[item.only]) && !anyFlag(flags, item.unless))).map((item) => (typeof item === 'string' ? item : item.text)).map((line) => localText(line, flags.cite || 'qld')).map(pt).filter(Boolean),
     controls: [...new Set(step.controls.filter((item) => (!item.only || flags[item.only]) && !anyFlag(flags, item.unless)).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean))],
   })).map((step) => {

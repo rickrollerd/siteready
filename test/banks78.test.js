@@ -83,9 +83,9 @@ test('painting a metal shed roof is roof work, in order, with no wall painting o
   assert.ok(has(guard, /hauled up in a bag or bucket on a hand line/));
   assert.ok(has(guard, /Cuts from the mesh/) && !has(guard, /sheet metal and flashing edges/));
   // A roof painted from a scissor lift keeps its access step, and a house exterior sets up access before preparing.
-  assert.ok(steps(draft('Repaint a school roof from a scissor lift.', { fallRisk: 'yes' })).includes('Work at height on the outside of the structure'));
+  assert.ok(steps(draft('Repaint a school roof from a scissor lift.', { fallRisk: 'yes' })).includes('Set up access to the outside of the structure'));
   const house = steps(draft('Repaint the exterior of a two storey weatherboard house.', { fallRisk: 'yes', residential: 'yes' }));
-  assert.ok(house.indexOf('Work at height on the outside of the structure') < house.indexOf('Prepare to paint'));
+  assert.ok(house.indexOf('Set up access to the outside of the structure') < house.indexOf('Prepare to paint'));
   assert.ok(!house.includes('Paint the outside of the structure at height'));
 });
 
@@ -126,10 +126,10 @@ test('Wi-Fi access points have their own mounting step', () => {
 
 test('fly screens upstairs follow the fall control, and no security screens are added', () => {
   const done = draft('Install fly screens on windows of a two storey house.', { fallRisk: 'yes', residential: 'yes' });
-  assert.ok(steps(done).includes('Fit the fly screens'));
+  assert.ok(steps(done).includes('Fit fly screens'));
   assert.ok(!has(done, /Where a ladder is used, it is a platform ladder/));
   assert.ok(has(done, /fitted from the access set out in the fall control/));
-  assert.ok(steps(draft('Install security screens on the windows of a house.', { residential: 'yes' })).includes('Fit fly and security screens'));
+  assert.ok(steps(draft('Install security screens on the windows of a house.', { residential: 'yes' })).includes('Fit security screens'));
 });
 
 test('a tiled roof valley stacks and cuts its tiles once, and drills nothing', () => {

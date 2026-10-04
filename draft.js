@@ -1626,14 +1626,14 @@ const MAIN_WORK = [
   // A grid with plasterboard sheets has its steps; a grid with ceiling tiles does not yet.
   [/^(?![^]*\b(?:plasterboard|gyprock|drywall|sheets?)\b)[^]*\b(?:suspended grid ceilings?|grid ceilings?|ceiling grids?|ceiling tiles?)\b/i, 'suspended grid ceiling installation', /\b(grid|Replace the ceiling tiles)\b/i],
   [/\bremov\w*\b[^.]{0,30}\b(?:concrete |old |underground )*(?:water |fuel |septic )?tanks?\b/i, 'tank removal', /\b(Remove the (?:old )?(?:fuel |septic )?tanks?|Cut steel with oxy)/],
-  [/\b(sand\w* and (?:polish|coat|seal)\w*|floor sand\w*)\b/i, 'floor sanding and coating', /\b(floor sanding|Sand and coat|Sand and finish timber floors|grind floors)\b/i],
+  [/\b(sand\w* and (?:polish|coat|seal)\w*|floor sand\w*)\b/i, 'floor sanding and coating', /\b(floor sanding|Sand and coat|Sand timber floors|Coat timber floors|grind floors)\b/i],
   [/\b(?:install|erect|assembl|build)\w*\s+(?:an? |the )?(?:new )?(?:(?:garden|kit|colorbond|steel|metal)\s+)+sheds?\b/i, 'shed kit assembly', /\b(shed kit|shed frame)\b/i],
   [/\bbollards?\b/i, 'bollard installation', /\bbollards\b/i],
   [/\bexhaust fans?\b[^.]{0,40}\b(?:ceilings?|roof spaces?)\b|\b(?:ceilings?|roof spaces?)\b[^.]{0,40}\bexhaust fans?\b/i, 'exhaust fan work in a ceiling', /\bWork in the roof space\b/],
   [/\bremov\w*\b[^.]{0,30}\b(?:split systems?|air ?condition\w*)/i, 'removing the units', /\b(Receive plant|Fix the units in place|Install ductwork)\b/],
   // A circuit breaker is electrical work, not concrete breaking.
   [/\b(jackhammer\w*|break\w* (?:out|up)|(?<!circuit[- ])breakers?)\b/i, 'breaking out concrete', /\b(break|Trim pile heads|Demolish|Saw cut)/i],
-  [/^(?![^]*\b(?:repoint\w*|sandstone|brick\w*|masonry|stone walls?|render\w*|concrete|retaining walls?|fire ?walls?|fibro|asbestos)\b)[^]*\b(?:patch\w*|repair\w*)\b[^.]{0,30}\b(?:plasterboard|linings?|walls?(?! frames?| framing)|ceilings?)\b/i, 'patching linings', /\bCut, set and sand\b/],
+  [/^(?![^]*\b(?:repoint\w*|sandstone|brick\w*|masonry|stone walls?|render\w*|concrete|retaining walls?|fire ?walls?|fibro|asbestos)\b)[^]*\b(?:patch\w*|repair\w*)\b[^.]{0,30}\b(?:plasterboard|linings?|walls?(?! frames?| framing)|ceilings?)\b/i, 'patching linings', /\b(?:Cut (?:and fix )?plasterboard|Set the joints|Sand the joints)\b/],
   [/\b(underfloor heating|heating cables?|heating mats?)\b/i, 'underfloor heating installation', /\b(heating|Rough-in|Fit off)\b/i],
   [/^\s*(?:install|fix|replac)\w*\s+(?:[\w-]+\s+){0,3}(?:cladding|weatherboards?)\b/i, 'cladding installation', /\bcladding\b/i],
   [/^\s*install\w*\s+(?:an? |the |new )*(?:passenger |goods )?(?:lifts?|elevators?)\b(?! (?:pits?|shafts?|cores?|the|materials|equipment|it|them|panels?|sheets?|landing doors?|doors?))/i, 'lift installation', /\b(Work on the car top|Lift machines, rails|Install the lift rails|Replace the lift motor|Erect and connect steel)\b/],
@@ -2488,6 +2488,8 @@ function settleFlags(flags, task) {
   if (out.membraneStrip) out.roofStrip = false;
   out.valleyRepair = /\bvalleys?\b/i.test(task) && /\b(roofs?|tiles?|tiled|iron|gutters?)\b/i.test(task);
   if (out.valleyRepair && out.tiledRoof) { out.tileCut = false; out.tileLay = false; }
+  // A valley repair lifts and relays only the tiles beside the valley, not the whole roof.
+  if (out.valleyRepair && !/\b(re-?roof\w*|re-?tile\w*|re-?batten\w*|strip\w*)\b/i.test(task)) out.tileRoofStrip = false;
   out.tileStackElsewhere = Boolean(out.tiledRoof && (out.valleyRepair || out.skylight));
   out.tileDrill = Boolean(!out.tileRoofStrip && /\b(drill\w*|brackets?|solar|antennas?|aerials?|anchors?|mounts?|conduits?|vents?|flues?|cowls?|fix\w* (?:to|into) (?:the )?(?:roof|rafters?|battens?))\b/i.test(task));
   out.rollerDoorRemove = Boolean(out.garageDoor && !out.doorSpring && /\b(remov\w*|replac\w*|take down|taking down)\b/i.test(task) && /\b(roller|garage|panel lift|sectional|shutter) doors?\b/i.test(task));
@@ -3122,6 +3124,29 @@ function settleFlags(flags, task) {
   const cleanPanelsNamed = /\b(walls?|ceilings?|panels?|partitions?)\b/i.test(task);
   out.cleanRoomPanels = cleanPanelsNamed || !cleanFloorNamed;
   out.cleanRoomFloor = cleanFloorNamed || !cleanPanelsNamed;
+  // Plasterboard is cut and fixed, set, and sanded as separate steps; a task naming
+  // none of them (a ceiling repair) does all three, and setting includes sanding.
+  const plasterCutNamed = /\b(cut\w*|patch\w*|fix\w*|hang\w*|install\w*|sheets?|replac\w*)\b/i.test(task);
+  const plasterSetNamed = /\b(set|sets|setting|stopping|stop|finish\w*|tap\w*)\b/i.test(task);
+  const plasterSandNamed = /\bsand\w*\b/i.test(task);
+  const plasterNoneNamed = !plasterCutNamed && !plasterSetNamed && !plasterSandNamed;
+  out.plasterCutStep = plasterCutNamed || plasterNoneNamed;
+  out.plasterSetStep = plasterSetNamed || plasterNoneNamed;
+  out.plasterSandStep = plasterSandNamed || plasterSetNamed || plasterNoneNamed;
+  // Windows, doors and louvres are separate steps, each when named; windows when none is.
+  const windowText = task.replace(/\blouv(?:re|er)(?:ed)? (?:windows?|frames?)\b/gi, 'louvres').replace(/\bdoor ?frames?\b/gi, 'doors');
+  out.windowDoorStep = Boolean(out.windowInstall && (/\bdoors?\b(?! hardware| handles?| locks?)/i.test(windowText) || out.shopfront));
+  out.windowFrameStep = Boolean(out.windowInstall && (/\b(windows?|frames?|glazing|shop ?fronts?|fly ?screens?|security screens?|shutters?)\b/i.test(windowText) || (!out.windowDoorStep && !out.louvres)));
+  // Timber floors are sanded and coated as separate steps; a recoat, oil or stain alone sands nothing.
+  out.floorCoatOnly = /\b(re-?coat\w*|coat\w*|oil\w*|stain\w*|seal\w*)\b/i.test(task) && !/\b(sand\w*|strip\w*|refinish\w*|polish\w*|restor\w*)\b/i.test(task);
+  // Fly and security screens, and security doors, are separate steps, each when named.
+  out.flyScreenNamed = /\b(fly ?screens?|insect screens?|fly ?mesh)\b/i.test(task);
+  out.screenStep = out.flyScreenNamed || /\bscreens?\b(?! doors?)/i.test(task) || !out.doorWork;
+  // Safety mesh and sarking are separate steps, each when named; both when neither is.
+  const meshNamed = /\b(safety mesh|roof mesh|mesh)\b/i.test(task);
+  const meshSarkingNamed = /\b(sarking|anticon|insulation blankets?|reflective foil)\b/i.test(task);
+  out.meshStep = meshNamed || !meshSarkingNamed;
+  out.meshSarkingStep = meshSarkingNamed || !meshNamed;
   return out;
 }
 
