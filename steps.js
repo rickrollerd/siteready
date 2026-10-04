@@ -37,6 +37,8 @@ const SYNONYMS = {
   earthwork: ['earthmov', 'earthwork', 'excavat', 'trench', 'cut and fill', 'compaction', 'grader', 'dozer', 'spoil', 'batters'],
   earthworks: ['earthmov', 'earthwork', 'excavat', 'trench', 'cut and fill', 'compaction', 'grader', 'dozer', 'spoil', 'batters'],
   bulk: ['bulk excavat', 'bulk earthwork', 'earthmov', 'excavat'], civil: ['civil', 'road', 'pavement', 'kerb', 'drain', 'earthmov', 'excavat'], roadworks: ['road', 'pavement', 'traffic', 'asphalt', 'kerb'],
+  mech: ['mechanical', 'duct', 'hvac', 'air condition', 'fan coil', 'chiller', 'refrigera', 'air handling'], hvac: ['mechanical', 'duct', 'hvac', 'air condition'],
+  aircon: ['air condition', 'split system', 'refrigera'], plumber: ['plumb', 'drain'], plumbing: ['plumb', 'drain'],
   asbestos: ['asbestos', 'fibro'], silica: ['silica', 'dust'], dust: ['dust', 'silica'], noise: ['noise', 'hearing'], confined: ['confined'],
 };
 
@@ -60,20 +62,26 @@ function searchSteps(query) {
   const words = String(query || '').toLowerCase().match(/[a-z0-9]+/g) || [];
   const terms = words.filter((word) => word.length > 1 && !['the', 'and', 'for', 'with', 'of', 'to', 'a', 'an', 'on', 'in'].includes(word)).map((word) => SYNONYMS[word] || SYNONYMS[stem(word)] || [stem(word)]);
   if (!terms.length) return [];
-  const results = [];
+  const has = (text, term) => text.includes(` ${term}`) || text.startsWith(term);
+  // A search that names a trade ("mech", "plumbing") lists that trade's kinds of work first.
+  const tradeGroups = LIBRARY.groups.filter((group) => group.trade !== 'Any trade' && terms.every((options) => options.some((term) => has(group.trade.toLowerCase(), term))));
+  const results = tradeGroups.flatMap((group) => group.kinds.map((kind) => ({ id: kind.id, score: 100, name: true })))
+    .filter((item, index, list) => list.findIndex((other) => other.id === item.id) === index);
   for (const group of LIBRARY.groups) {
     for (const kind of group.kinds) {
       if (results.some((item) => item.id === kind.id)) continue;
       const name = `${kind.label} ${kind.steps.join(' ')}`.toLowerCase();
       const body = (SEARCH_TEXT.get(kind.id) || name).replace(/[^a-z0-9]+/g, ' ');
       // A term matches from the start of a word, so "dozer" does not find "bulldozer" text by accident and "lift" not "forklift".
-      const has = (text, term) => text.includes(` ${term}`) || text.startsWith(term);
       if (!terms.every((options) => options.some((term) => has(body, term) || has(name, term)))) continue;
       const score = terms.filter((options) => options.some((term) => has(name, term))).length;
-      results.push({ id: kind.id, score });
+      results.push({ id: kind.id, score, name: score === terms.length });
     }
   }
-  return results.sort((a, b) => b.score - a.score).map((item) => item.id);
+  // Kinds whose name holds the words come first. Kinds that only mention them in a hazard
+  // or control ("mechanical aids" in a lifting control) are shown only when little else is found.
+  const named = results.filter((item) => item.name);
+  return (named.length >= 5 ? named : results).sort((a, b) => b.score - a.score).map((item) => item.id);
 }
 
 module.exports = { stepLibrary: () => LIBRARY, searchSteps };

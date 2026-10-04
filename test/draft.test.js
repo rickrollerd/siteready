@@ -285,7 +285,7 @@ test('a draft has job steps with hazards and controls, and a PPE list', () => {
   const access = done.jobSteps.find((step) => step.step === 'Set up roof access and fall protection');
   assert.ok(access.controls.some((line) => /Perimeter guardrail scaffold/.test(line)), 'the fall control goes in its step');
   const ticked = done.ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
-  assert.ok(['hardHat', 'boots', 'hivis', 'longs', 'gloveCut', 'sunscreen'].every((id) => ticked.includes(id)));
+  assert.ok(['hardHat', 'boots', 'hivis', 'siteClothing', 'gloveCut', 'sunscreen'].every((id) => ticked.includes(id)));
 });
 
 test('roof beams are not roofing, and indoor work gets no sunscreen', () => {
