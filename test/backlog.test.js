@@ -103,3 +103,23 @@ test('F-013 core drilling and chasing put respirable crystalline silica in the h
     assert.ok(names(d).includes('Respirable crystalline silica'), task);
   }
 });
+
+test('F-014 a scope\'s exclusions do not name its trade or add tasks for excluded trades', () => {
+  const { tasksFromScope } = require('../scope');
+  const steel = tasksFromScope(`PROJECT: Northgate Logistics Hub - Warehouse B
+ADDRESS: 120 Export Pkwy, Pinkenba QLD 4008
+PACKAGE: Structural steel & metalwork subcontract (Tier 1 PC: Meridian Build)
+INCLUSIONS: supply and erect structural steel frame incl columns, rafters, bracing; mobile crane lifts; bolt-up and plumb at height on EWP; install mezzanine steel; roof and wall purlins; safety mesh.
+EXCLUSIONS: concrete, cladding, electrical, fire services.
+REFS: dwgs S-200 to S-260 rev D; spec ST-02; ITP per QA plan. Staging: columns wk1, rafters wk2-3, purlins wk4.
+SITE RULES: SWMS before start, crane exclusion zones, spotter, high-vis, no lone work at height.`);
+  assert.deepEqual(steel.tasks.map((task) => task.id).sort(), ['steelErect', 'steelLift']);
+  assert.ok(!steel.trades.includes('electrical') && !steel.trades.includes('fire'));
+  const civil = tasksFromScope(`PROJECT: Test Civil
+ADDRESS: 1 Test Rd, Penrith NSW 2750
+PACKAGE: Civil and stormwater
+INCLUSIONS: bulk earthworks; lay 450mm RCP stormwater in shored trenches; precast pits set by crane; road pavement.
+EXCLUSIONS: electrical, demolition, landscaping.`);
+  assert.ok(!civil.tasks.some((task) => task.id === 'electrical'));
+  assert.ok(civil.tasks.some((task) => task.id === 'trench'));
+});
