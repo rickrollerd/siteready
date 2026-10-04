@@ -76,7 +76,7 @@ test('a day spa is a business, not a spa to place and connect', () => {
 test('edge strips and edge trims are not tiling at a balcony edge', () => {
   const task = 'Fix aluminium edge strips where the floor tiles meet the carpet at doorways.';
   assert.ok(!kinds(task, 'tiling').includes('tileEdge'));
-  assert.ok(!steps(draft(task, 'tiling')).includes('Tile balconies and terraces near edges'));
+  assert.ok(!steps(draft(task, 'tiling')).includes('Lay tiles near open edges'));
   assert.ok(kinds('Tile the balcony up to the open edge.', 'tiling').includes('tileEdge'));
 });
 
@@ -651,4 +651,68 @@ test('clean room walls and ceilings and the clean room flooring are separate ste
   assert.ok(both.includes('Install clean room walls and ceilings') && both.includes('Install clean room flooring'));
   const panels = steps(draft('Install clean room wall and ceiling panels.'));
   assert.ok(panels.includes('Install clean room walls and ceilings') && !panels.includes('Install clean room flooring'));
+});
+test('plasterboard is cut and fixed, set, and sanded as separate steps, each when named', () => {
+  const all = steps(draft('Cut in and set the new plasterboard patches in the corridor walls.', 'plasterboard'));
+  assert.ok(all.includes('Cut and fix plasterboard') && all.includes('Set the joints') && all.includes('Sand the joints'));
+  const sand = steps(draft('Sand the joints on the level 2 plasterboard walls.', 'plasterboard'));
+  assert.ok(sand.includes('Sand the joints') && !sand.includes('Set the joints') && !sand.some((name) => /^Cut/.test(name)));
+  // Sheets fixed in their own step: the cutting step is only the cutting, and comes first.
+  const hang = steps(draft('Install, set and sand plasterboard walls in the new office.', 'plasterboard'));
+  assert.ok(hang.indexOf('Cut plasterboard') >= 0 && hang.indexOf('Cut plasterboard') < hang.indexOf('Move and fix plasterboard sheets'));
+});
+
+test('windows, doors and louvres are separate steps, each when named', () => {
+  const all = steps(draft('Install aluminium windows, fixed glass louvres and doors.', 'glazing'));
+  assert.ok(all.includes('Install windows') && all.includes('Install doors') && all.includes('Install louvres'));
+  const windows = steps(draft('Install new aluminium windows on levels 2 to 6.', 'glazing'));
+  assert.ok(windows.includes('Install windows') && !windows.includes('Install doors') && !windows.includes('Install louvres'));
+  const doors = steps(draft('Replace the sliding doors to the balconies.', 'glazing'));
+  assert.ok(doors.includes('Install doors') && !doors.includes('Install windows'));
+});
+
+test('cladding battens are fixed as their own step before the cladding', () => {
+  const clad = steps(draft('Install fibre cement cladding to the new house.', 'carpentry'));
+  assert.ok(clad.indexOf('Fix the battens') >= 0 && clad.indexOf('Fix the battens') < clad.indexOf('Install the external cladding'));
+  const boards = steps(draft('Replace the rotten weatherboards on the west wall.', 'carpentry'));
+  assert.ok(boards.includes('Replace the cladding boards') && !boards.includes('Fix the battens'));
+});
+
+test('masonry joints are raked out and repointed as separate steps', () => {
+  const done = steps(draft('Rake out and repoint the sandstone walls of the church.', 'masonry'));
+  assert.ok(done.indexOf('Rake out the joints') >= 0 && done.indexOf('Rake out the joints') < done.indexOf('Repoint the masonry'));
+});
+
+test('timber floors are sanded and coated as separate steps; a coat alone sands nothing', () => {
+  const both = steps(draft('Sand and polish the timber floors in the house.', 'flooring'));
+  assert.ok(both.includes('Sand timber floors') && both.includes('Coat timber floors'));
+  const coat = steps(draft('Coat the timber floors with polyurethane.', 'flooring'));
+  assert.ok(coat.includes('Coat timber floors') && !coat.includes('Sand timber floors'));
+  const deck = steps(draft('Strip, sand and oil the timber deck.', 'carpentry'));
+  assert.ok(deck.includes('Strip and sand the deck') && deck.includes('Oil or stain the deck'));
+});
+
+test('fly screens and security doors are separate steps, each when named', () => {
+  const both = steps(draft('Supply and install security doors and fly screens to the unit.'));
+  assert.ok(both.includes('Fit fly screens') && both.includes('Fit security doors') && !both.includes('Hang the doors'));
+  const doors = steps(draft('Fit a new security screen door at the back door.'));
+  assert.ok(doors.includes('Fit security doors') && !doors.some((name) => /screens$/.test(name)));
+});
+
+test('the valley iron is replaced and the tiles rebedded as separate steps, without re-roofing', () => {
+  const done = steps(draft('Replace the valley iron on a tiled roof.', 'roofing'));
+  assert.ok(done.indexOf('Replace the valley iron') >= 0 && done.indexOf('Replace the valley iron') < done.indexOf('Rebed the tiles'));
+  assert.ok(!done.includes('Strip the roof tiles') && !done.includes('Lay the roof tiles'));
+});
+
+test('safety mesh and sarking are separate steps, each when named', () => {
+  const both = steps(draft('Install safety mesh and sarking and new roof sheets on the warehouse.', 'roofing'));
+  assert.ok(both.indexOf('Install safety mesh') >= 0 && both.indexOf('Install safety mesh') < both.indexOf('Install sarking') && both.indexOf('Install sarking') < both.indexOf('Fix new roofing'));
+  const mesh = steps(draft('Install safety mesh over the purlins on the new warehouse.', 'roofing'));
+  assert.ok(mesh.includes('Install safety mesh') && !mesh.includes('Install sarking'));
+});
+
+test('solvent-based paint is applied as its own step, after the painting and before the clean-up', () => {
+  const done = steps(draft('Paint the interior walls with solvent-based enamel.', 'painting'));
+  assert.ok(done.indexOf('Apply solvent-based paint') > done.indexOf('Paint') && done.indexOf('Apply solvent-based paint') < done.indexOf('Clean brushes and rollers'));
 });
