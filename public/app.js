@@ -349,7 +349,9 @@ function checkStateMatchesAddress() {
 
 // Address suggestions under an address box, from the server's address lookup.
 // onPick runs after the box changes, by typing or by picking a suggestion.
-function addressLookup(input, list, onPick = () => {}) {
+// recent() gives addresses used before on this device: they are offered when the box
+// is empty or matches them, ahead of the lookup's suggestions.
+function addressLookup(input, list, onPick = () => {}, recent = () => []) {
   let picks = [];
   let active = -1;
   let timer = null;
@@ -363,7 +365,7 @@ function addressLookup(input, list, onPick = () => {}) {
   };
   const show = () => {
     if (!picks.length) return close();
-    list.innerHTML = picks.map((item, i) => `<li role="option" id="${list.id}-${i}" aria-selected="${i === active}" data-i="${i}">${esc(item.text)}</li>`).join('');
+    list.innerHTML = picks.map((item, i) => `<li role="option" id="${list.id}-${i}" aria-selected="${i === active}" data-i="${i}">${esc(item.text)}${item.used ? ' <span class="meta">(used before)</span>' : ''}</li>`).join('');
     list.classList.remove('hidden');
     input.setAttribute('aria-expanded', 'true');
   };
@@ -374,6 +376,15 @@ function addressLookup(input, list, onPick = () => {}) {
     close();
     onPick();
   };
+  const usedBefore = (text) => {
+    const words = text.toLowerCase().split(/[\s,]+/).filter(Boolean);
+    return recent().filter((address) => words.every((word) => address.toLowerCase().includes(word))).slice(0, 5).map((address) => ({ text: address, used: true }));
+  };
+  const showUsed = () => {
+    picks = usedBefore(input.value.trim());
+    active = -1;
+    show();
+  };
   const lookUp = async (text) => {
     const mine = ++seq;
     try {
@@ -382,7 +393,9 @@ function addressLookup(input, list, onPick = () => {}) {
       const data = await response.json();
       // Only the latest lookup is shown.
       if (mine !== seq || input.value !== text) return;
-      picks = data.suggestions || [];
+      const used = usedBefore(text.trim());
+      const seen = new Set(used.map((item) => item.text.toLowerCase()));
+      picks = [...used, ...(data.suggestions || []).filter((item) => !seen.has(item.text.toLowerCase()))];
       active = -1;
       show();
     } catch {
@@ -393,9 +406,11 @@ function addressLookup(input, list, onPick = () => {}) {
     clearTimeout(timer);
     onPick();
     const text = input.value.trim();
-    if (text.length < 3) return close();
+    if (text.length < 3) return showUsed();
+    showUsed();
     timer = setTimeout(() => lookUp(input.value), 300);
   });
+  input.addEventListener('focus', () => { if (input.value.trim().length < 3) showUsed(); });
   input.addEventListener('keydown', (event) => {
     if (list.classList.contains('hidden')) return;
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -421,7 +436,7 @@ function addressLookup(input, list, onPick = () => {}) {
   input.addEventListener('blur', () => setTimeout(close, 150));
 }
 
-addressLookup(workplaceEl, workplaceList, applyAddressState);
+addressLookup(workplaceEl, workplaceList, applyAddressState, () => readMemory().workplace || []);
 const profileAddressEl = document.getElementById('profile-address');
 if (profileAddressEl) addressLookup(profileAddressEl, document.getElementById('profile-address-list'));
 statesEl.addEventListener('change', checkStateMatchesAddress);
@@ -930,7 +945,8 @@ function lastUsed(id) {
 }
 function rememberFields() {
   const memory = readMemory();
-  const ids = [...REMEMBERED, ...[...document.querySelectorAll('[data-site]')].map((el) => el.id)];
+  // The job address is kept too, and offered in its own suggestion list.
+  const ids = [...REMEMBERED, 'workplace', ...[...document.querySelectorAll('[data-site]')].map((el) => el.id)];
   for (const id of ids) {
     const el = document.getElementById(id);
     const value = el && el.value.trim();
