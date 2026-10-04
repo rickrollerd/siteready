@@ -490,7 +490,8 @@ function highRiskMatches(raw, answer, state) {
     asbestos: mentioned(text, /\basbestos\b/i),
     // Structural alterations or repairs to an existing structure that need temporary support.
     // Propping and backpropping new formwork and slabs is not an alteration or repair.
-    temporary: mentioned(text, /\bstructural alterations?\b/i) || mentioned(text, LOAD_BEARING_REMOVAL) || mentioned(text, MASONRY_OPENING) || mentioned(text, SUBFLOOR_REPAIR) || mentioned(text, HOUSE_JACKING) || (mentioned(text, /\b(temporary (?:support|props?)|props?|propping|propped)\b/i) && mentioned(text, /\b(alter\w*|repair\w*|existing|remov\w*|demoli\w*|load[- ]bearing|openings?|underpin\w*)\b/i)),
+    // Stripping formwork or removing back props takes away temporary works; it alters or repairs nothing.
+    temporary: mentioned(text, /\bstructural alterations?\b/i) || mentioned(text, LOAD_BEARING_REMOVAL) || mentioned(text, MASONRY_OPENING) || mentioned(text, SUBFLOOR_REPAIR) || mentioned(text, HOUSE_JACKING) || (mentioned(text, /\b(temporary (?:support|props?)|props?|propping|propped)\b/i) && mentioned(String(text || '').replace(/\b(?:strip\w*|remov\w*|dismantl\w*)\b[^.]{0,30}?\b(?:back[- ]?)?(?:props?|propping|shores?|formwork|falsework)\b/gi, ' '), /\b(alter\w*|repair\w*|existing|remov\w*|demoli\w*|load[- ]bearing|openings?|underpin\w*)\b/i)),
     confined: mentioned(text, /\bconfined space\b/i),
     trench: deepExcavation(text),
     // Explosive-powered tools are not the use of explosives (Safe Work Australia SWMS guidance).
@@ -514,7 +515,8 @@ function highRiskMatches(raw, answer, state) {
       // Pavers, rollers and trucks lay asphalt.
       || /\b(?:lay\w*|plac\w*|pav\w*)\b[^.]{0,30}\b(?:asphalt|hotmix|hot mix)\b|\basphalt (?:laying|paving|resurfac\w*|overlay)\b/i.test(String(text || '')),
     // An enclosed roof cavity in hot weather is Safe Work Australia's example.
-    temperature: mentioned(text, /\bartificial extremes of temperature\b/i) || /\broof (?:cavit(?:y|ies)|spaces?)\b[^.]{0,40}\bhot (?:weather|days?|conditions)\b|\bhot (?:weather|days?|conditions)\b[^.]{0,40}\broof (?:cavit(?:y|ies)|spaces?)\b/i.test(String(text || '')),
+    // So is work inside a freezer room or cold store that is running, or a kiln, furnace or oven that is hot.
+    temperature: mentioned(text, /\bartificial extremes of temperature\b/i) || /\b(?:operating|in[- ]service|running|live|working)\s+(?:\w+\s+)?(?:freezer rooms?|freezers?|cold (?:stores?|rooms?)|cool ?rooms?|kilns?|furnaces?|ovens?)\b|\b(?:in|inside|within)\s+(?:an?\s+|the\s+)?(?:\w+\s+)?(?:freezer rooms?|freezers?|cold (?:stores?|rooms?)|cool ?rooms?)\b[^.]{0,40}(?:\bminus\s?\d+|-\d+\s?(?:°\s?C|degrees|C\b))|\b(?:hot|fired|lit)\s+(?:kilns?|furnaces?|ovens?)\b/i.test(String(text || '')) || /\broof (?:cavit(?:y|ies)|spaces?)\b[^.]{0,40}\bhot (?:weather|days?|conditions)\b|\bhot (?:weather|days?|conditions)\b[^.]{0,40}\broof (?:cavit(?:y|ies)|spaces?)\b/i.test(String(text || '')),
     water: mentioned(text, WATER) && !/\b(before the pool is filled|empty pools?|unfilled pools?|pools? (?:is )?not (?:yet )?filled|drained pools?)\b/i.test(String(text || '')),
     diving: mentioned(String(text || '').replace(/\bdiving (?:towers?|platforms?|boards?|blocks?|pools?|wells?)\b/gi, ' '), /\b(diving|divers?)\b/i),
     // Victoria, regulation 322: any demolition, trenches and shafts apart from tunnels,
@@ -3339,7 +3341,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     siteSheds: /\b(site sheds?|site offices?|temporary (?:site )?offices?|site amenities|amenities (?:sheds?|blocks?)|site toilets?|portable toilets?|crib (?:rooms?|sheds?)|dongas?|demountables?|(?:site|temporary) (?:office|toilets?|crib))\b/i.test(task) && !/\bslabs? for (?:an? |the )?(?:\w+ )?sheds?\b/i.test(task) && /\b(set up|install\w*|erect\w*|lift\w*|place\w*)\b/i.test(task),
     stoneSilica: STONE_WORK.test(task) && /\b(cut\w*|drill\w*|polish\w*|grind\w*)\b/i.test(task),
     // Friable asbestos is removed under a Class A licence, in an enclosure (s 475, s 477).
-    friableAsbestos: /\basbestos\b/i.test(task) && /\b(friable|class a\b|lagging|loose[- ]fill|limpet|sprayed asbestos|asbestos[- ]contaminated dust)/i.test(task),
+    // "Non-friable" is not friable: the hyphen is a word boundary, so it is ruled out first.
+    friableAsbestos: /\basbestos\b/i.test(task) && /(?<!\bnon[- ]?)\bfriable\b|\b(class a\b|lagging|loose[- ]fill|limpet|sprayed asbestos|asbestos[- ]contaminated dust)/i.test(task),
     // Removing, repairing, modifying or disposing of installed engineered stone (s 529F).
     engStoneWork: ENG_STONE_INSTALLED.test(task) && /\bengineered stone\b/i.test(task),
     stoneHandle: STONE_WORK.test(task) && /\b(install\w*|set\w*|carr\w*|mov\w*|lift\w*|fit\w*|replac\w*)\b/i.test(task) && !/\blaminate\b/i.test(task),
