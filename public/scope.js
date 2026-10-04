@@ -30,10 +30,43 @@
       : '<p class="note">No site work that needs a SWMS was found. If the scope does include site work, paste the part that describes it.</p>');
   }
 
+  // A file can also be dragged onto the panel. Dropping it anywhere on the panel is caught,
+  // so the browser does not open the file in place of SiteReady.
+  let dropped = null;
+  const drop = $('scope-drop');
+  const panel = $('scope-panel');
+  const ACCEPTED = /\.(docx|pdf|txt)$/i;
+  ['dragenter', 'dragover'].forEach((type) => panel.addEventListener(type, (event) => {
+    if (!event.dataTransfer || ![...event.dataTransfer.types].includes('Files')) return;
+    event.preventDefault();
+    drop.classList.add('over');
+  }));
+  ['dragleave', 'dragend'].forEach((type) => panel.addEventListener(type, (event) => {
+    if (!panel.contains(event.relatedTarget)) drop.classList.remove('over');
+  }));
+  panel.addEventListener('drop', (event) => {
+    if (!event.dataTransfer || !event.dataTransfer.files.length) return;
+    event.preventDefault();
+    drop.classList.remove('over');
+    const file = event.dataTransfer.files[0];
+    $('scope-error').textContent = '';
+    if (!ACCEPTED.test(file.name)) {
+      $('scope-error').textContent = 'Drop a Word (.docx), PDF or text file.';
+      return;
+    }
+    dropped = file;
+    $('scope-file').value = '';
+    $('scope-drop-note').textContent = `${file.name} is ready. Press the button below to read it.`;
+  });
+  $('scope-file').addEventListener('change', () => {
+    dropped = null;
+    $('scope-drop-note').textContent = 'or drag the file here';
+  });
+
   $('scope-read').addEventListener('click', async () => {
     const button = $('scope-read');
     $('scope-error').textContent = '';
-    const file = $('scope-file').files[0];
+    const file = dropped || $('scope-file').files[0];
     const text = $('scope-text').value.trim();
     if (!file && !text) {
       $('scope-error').textContent = 'Attach the scope or paste it first.';
