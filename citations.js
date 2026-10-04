@@ -414,13 +414,38 @@ function localText(text, stateId) {
   return rewrite(text, stateId).text;
 }
 
+// Figures that Queensland's own sections set (s 306E edge protection, s 306I anchor capacities) or
+// that come from a standard (heavy duty scaffold bays), on lines whose other sources are general:
+// s 78 (managing the risk of a fall), s 80 (rescue procedures) and s 225 (scaffold handover and
+// inspection). Outside Queensland the state's section is cited only on the part it supports, and the
+// figure follows uncited, given as the relevant Australian Standard or the manufacturer's rating.
+const RATED = 'to the manufacturer\'s rating and the relevant Australian Standard';
+const FIGURES = [
+  [/^Where fall arrest is used, anchors are tested and approved by a competent person before first use and meet the anchor strength in AS\/NZS 1891\.4, there is enough clearance below that the user cannot hit the ground or another surface, no one uses it alone, at least one other person on site can rescue them, and the rescue procedure is tested\.$/, 'Where fall arrest is used, rescue procedures are set up and tested', 'Anchors are tested and approved by a competent person before first use and meet the anchor strength in AS/NZS 1891.4, there is enough clearance below that the user cannot hit the ground or another surface, no one uses fall arrest alone, and at least one other person on site can rescue them.'],
+  [/^A harness user never works alone\. Anchors are rated for 12 kN with limited free fall or 15 kN with free fall, with enough clear distance to arrest a fall, and rescue procedures are set and practised\.$/, 'Rescue procedures for harness work are set and practised', `A harness user never works alone. Anchors are rated for 12 kN with limited free fall or 15 kN with free fall, ${RATED}, with enough clear distance to arrest a fall.`],
+  [/^Harness anchors are rated at least 15 kN for one person with a free fall, there is enough clearance below, no one works alone on a harness, and the rescue plan is tested\.$/, 'The rescue plan for harness work is set up and tested', `Harness anchors are rated at least 15 kN for one person with a free fall, ${RATED}, there is enough clearance below, and no one works alone on a harness.`],
+  [/^Where harnesses are used in the shaft, anchors are rated at least 15 kN for one person, the lanyard is attached before moving to the edge, and a rescue procedure is set up\.$/, 'Where harnesses are used in the shaft, a rescue procedure is set up', `Anchors are rated at least 15 kN for one person, ${RATED}, and the lanyard is attached before moving to the edge.`],
+  [/^Where fall arrest is used, anchors carry at least 15 kN for one person, there is enough clearance below, no one works alone, and the rescue procedure is set up and tested\.$/, 'Where fall arrest is used, the rescue procedure is set up and tested', `Anchors carry at least 15 kN for one person, ${RATED}, there is enough clearance below, and no one works alone.`],
+  [/^Where fall arrest is used, anchors carry at least 15 kN for one person or 21 kN for two, no one uses it alone, and the rescue procedure is in place\.$/, 'Where fall arrest is used, the rescue procedure is in place', `Anchors carry at least 15 kN for one person or 21 kN for two, ${RATED}, and no one uses fall arrest alone.`],
+  [/^Shaft openings have barriers or fixed covers as soon as they are formed: covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole\. Edge protection top rail at least 900 mm\.$/, 'Shaft openings have barriers or fixed covers as soon as they are formed', 'Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole. Edge protection has a top rail at least 900 mm high, to the relevant Australian Standard.'],
+  [/^Work from a solid surface with edge protection wherever a fall of 2 m or more is possible: top rail at least 900 mm, rails no more than 450 mm apart, toe board at least 150 mm\.$/, 'Work from a solid surface with edge protection wherever a fall of 2 m or more is possible', 'Edge protection has a top rail at least 900 mm high, rails no more than 450 mm apart and a toe board at least 150 mm high, to the relevant Australian Standard.'],
+  [/^Work from scaffold with brick guards where a fall of more than 2 m is possible, and do not overload bays: bricklaying and blocklaying need a heavy duty scaffold, rated up to 675 kg a bay\. A scaffold over 4 m is used only after written handover, and inspected at least every 30 days\.$/, 'A scaffold over 4 m is used only after written handover, and inspected at least every 30 days', 'Work from scaffold with brick guards where a fall of more than 2 m is possible, and do not overload bays: bricklaying and blocklaying need a heavy duty scaffold, rated to the relevant Australian Standard for up to 675 kg a bay.'],
+];
+
 // A control line with its sources, as printed for the state. A line reworded for the state
 // keeps its own sources only where the rewording still holds for them (KEEP); otherwise it
 // carries the citation written into it, or none.
 function localControl(text, source, stateId) {
   const { text: out, kept } = rewrite(text, stateId);
   if (out == null) return null;
-  const cited = stateId && source && out === kept ? localSource(source, stateId, text) : '';
+  const own = stateId && source && out === kept;
+  const figure = own && stateId !== 'qld' ? FIGURES.find(([pattern]) => pattern.test(out)) : null;
+  if (figure) {
+    const [, head, rest] = figure;
+    const cited = localSource(source, stateId, head);
+    return `${head}${cited ? ` (${cited})` : ''}. ${rest}`;
+  }
+  const cited = own ? localSource(source, stateId, text) : '';
   return cited ? `${out} (${cited})` : out;
 }
 
