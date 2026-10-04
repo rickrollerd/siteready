@@ -487,11 +487,20 @@ function draftedNote(confirmation) {
   return `Drafted with SiteReady${by}. The business named in this SWMS reviews, approves and is responsible for it.`;
 }
 
+// Printed on every page: who the SWMS was prepared for, and its SiteReady reference.
+function preparedFor(company, ref) {
+  if (!ref) return '';
+  const abn = company && company.abn ? ` (ABN ${company.abn})` : '';
+  return `Prepared with SiteReady for ${(company && company.name) || 'the business named above'}${abn}. SiteReady reference ${ref}.`;
+}
+
 function buildDocument(draft, options = {}) {
   return new Document({
     creator: 'SiteReady',
     title: 'Safe work method statement',
     description: `${draft.instrument}, ${draft.versionLabel}, ${draft.sectionRef}`,
+    // The reference also sits in the file's properties, where an edit to the page text does not reach.
+    ...(options.ref ? { keywords: `SiteReady ${options.ref}`, subject: preparedFor(options.company, options.ref) } : {}),
     styles: {
       default: {
         document: {
@@ -520,6 +529,11 @@ function buildDocument(draft, options = {}) {
               spacing: { before: 20 },
               children: [run(draftedNote(options.confirmation), { size: 16, color: MUTED })],
             }),
+            ...(options.ref ? [new Paragraph({
+              alignment: AlignmentType.LEFT,
+              spacing: { before: 20 },
+              children: [run(preparedFor(options.company, options.ref), { size: 16, color: MUTED })],
+            })] : []),
           ],
         }),
       },
@@ -532,4 +546,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { draftToDocx, draftedNote };
+module.exports = { preparedFor, draftToDocx, draftedNote };

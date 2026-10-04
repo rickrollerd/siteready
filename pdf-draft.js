@@ -324,8 +324,11 @@ function draftToPdf(draft, options = {}) {
     doc.switchToPage(i);
     const y = doc.page.height - MARGIN - 20;
     doc.font('Helvetica').fontSize(7.5).fillColor(MUTED);
-    doc.text(printable(`${draft.instrument}  ·  ${draft.sectionRef}`), MARGIN, y, { width: contentWidth(doc), lineBreak: false });
-    doc.text(printable(options.note || ''), MARGIN, y + 10, { width: contentWidth(doc) - 60, lineBreak: false });
+    // With a SiteReady reference, the footer takes a third line: who the SWMS was prepared for.
+    const top = options.prepared ? y - 10 : y;
+    doc.text(printable(`${draft.instrument}  ·  ${draft.sectionRef}`), MARGIN, top, { width: contentWidth(doc), lineBreak: false });
+    doc.text(printable(options.note || ''), MARGIN, top + 10, { width: contentWidth(doc) - 60, lineBreak: false });
+    if (options.prepared) doc.text(printable(options.prepared), MARGIN, top + 20, { width: contentWidth(doc) - 60, lineBreak: false });
     doc.text(`Page ${i + 1} of ${pages.count}`, doc.page.width - MARGIN - 60, y + 10, { width: 60, align: 'right', lineBreak: false });
   }
   doc.end();
