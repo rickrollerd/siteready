@@ -403,6 +403,9 @@ router.get('/swms/:id/qr.svg', requireUser, route(async (req, res) => {
 
 // ---- Worker sign-on (no account needed: the QR code carries the key) ----
 
+// Sign-ons one SWMS can take. A large crew over a long job stays well under it.
+const SIGNON_LIMIT = 500;
+
 async function swmsForToken(token) {
   const row = await db.one('SELECT * FROM swms WHERE signon_token = $1 AND archived = FALSE', [String(token || '')]);
   if (!row) throw fail(404, 'This sign-on link is not valid any more. Ask your supervisor for the current QR code.');
@@ -427,6 +430,10 @@ router.post('/sign/:token', route(async (req, res) => {
   if (!name) throw fail(400, 'Enter your name.');
   if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signature) || signature.length > MAX_SIGNATURE) throw fail(400, 'Sign in the box before submitting.');
   if (body.confirmed !== true) throw fail(400, 'Tick the box to confirm the SWMS has been explained to you.');
+  // A cap on sign-ons per SWMS stops a leaked QR code being used to flood it.
+  const limit = Number(process.env.SIGNON_LIMIT) > 0 ? Number(process.env.SIGNON_LIMIT) : SIGNON_LIMIT;
+  const signed = await db.one('SELECT COUNT(*) AS n FROM signons WHERE swms_id = $1', [row.id]);
+  if (Number(signed.n) >= limit) throw fail(409, `This SWMS has reached its limit of ${limit} sign-ons. Ask your supervisor to save a new copy of the SWMS and share its QR code.`);
   await db.query('INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at) VALUES ($1, $2, $3, $4, $5, $6)',
     [auth.newId(), row.id, name, textField(body.company, 200), signature, new Date()]);
   record('worker_signon', row.company_id);

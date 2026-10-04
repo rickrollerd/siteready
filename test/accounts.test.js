@@ -287,3 +287,30 @@ test('a sign-in request whose email is not a plain string is refused with 400, n
     assert.equal(res.status, 400, JSON.stringify(email));
   }
 });
+
+test('a new sign-in link replaces an earlier unused one', async () => {
+  const email = 'twice@link.example';
+  await call('POST', '/api/auth/email', { body: { email } });
+  const first = lastLinkToken(email);
+  await call('POST', '/api/auth/email', { body: { email } });
+  const second = lastLinkToken(email);
+  assert.notEqual(first, second);
+  assert.equal((await call('POST', '/api/auth/verify', { body: { token: first } })).status, 400, 'the earlier link no longer works');
+  assert.equal((await call('POST', '/api/auth/verify', { body: { token: second } })).status, 200);
+});
+
+test('a SWMS stops taking sign-ons at its limit', async () => {
+  process.env.SIGNON_LIMIT = '2';
+  try {
+    const token = await signIn('limit@signon.example');
+    const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+    const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
+    const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+    for (const name of ['One', 'Two']) assert.equal((await call('POST', `/api/sign/${key}`, { body: { name, signature, confirmed: true } })).status, 201);
+    const third = await call('POST', `/api/sign/${key}`, { body: { name: 'Three', signature, confirmed: true } });
+    assert.equal(third.status, 409);
+    assert.match((await third.json()).message, /limit of 2 sign-ons/);
+  } finally {
+    delete process.env.SIGNON_LIMIT;
+  }
+});
