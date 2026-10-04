@@ -129,6 +129,15 @@ const SCHEMA = [
     business TEXT NOT NULL,
     dedupe TEXT NOT NULL UNIQUE
   )`,
+  // Every downloaded SWMS gets a reference printed in its footer, so a SWMS can be traced to the account that made it.
+  `CREATE TABLE IF NOT EXISTS swms_refs (
+    ref TEXT PRIMARY KEY,
+    company_id TEXT,
+    company_name TEXT NOT NULL DEFAULT '',
+    abn TEXT NOT NULL DEFAULT '',
+    title TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
   // Each ABN gets one free trial. Kept apart from companies so deleting an account does not reset it.
   `CREATE TABLE IF NOT EXISTS trial_abns (
     abn TEXT PRIMARY KEY,
