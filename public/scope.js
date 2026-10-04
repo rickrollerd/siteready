@@ -57,10 +57,22 @@
     dropped = file;
     $('scope-file').value = '';
     $('scope-drop-note').textContent = `${file.name} is ready. Press the button below to read it.`;
+    $('scope-file-clear').classList.remove('hidden');
   });
   $('scope-file').addEventListener('change', () => {
     dropped = null;
     $('scope-drop-note').textContent = 'or drag the file here';
+    $('scope-file-clear').classList.toggle('hidden', !$('scope-file').files.length);
+  });
+  // A wrong file is taken off, with the tasks read from it.
+  $('scope-file-clear').addEventListener('click', () => {
+    dropped = null;
+    $('scope-file').value = '';
+    $('scope-drop-note').textContent = 'or drag the file here';
+    $('scope-file-clear').classList.add('hidden');
+    $('scope-error').textContent = '';
+    $('scope-results').innerHTML = '';
+    found = [];
   });
 
   $('scope-read').addEventListener('click', async () => {
