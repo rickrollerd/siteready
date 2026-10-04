@@ -279,6 +279,10 @@ function strongHighRisk(lines, state, when) {
 function tasksFromScope(text, stateId = 'qld') {
   const state = findState(stateId);
   const lines = siteWorkLines(text);
+  // A drawing or a scanned page gives almost no text to read.
+  if (!lines.length && words(String(text || '')) < 40) {
+    return { tasks: [], lines: 0, note: 'This file has almost no text SiteReady can read. It looks like a drawing or a scanned page. Attach the written scope of works or quote, or paste its text.' };
+  }
   if (!lines.length) {
     return { tasks: [], lines: 0, note: 'No site work was found in this text. If it is a contract or a cover letter, attach the scope of works or quote on its own.' };
   }

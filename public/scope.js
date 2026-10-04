@@ -27,7 +27,7 @@
           <details><summary>From the scope (${item.lines.length} ${item.lines.length === 1 ? 'line' : 'lines'})</summary><ul>${item.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>
           <button type="button" class="small" data-scope-task="${index}">Use this task</button>
         </div>`).join('') + (found.length > 1 ? `<div class="actions" style="margin-top:12px"><button type="button" id="project-start">Prepare a SWMS for every task (${found.length})</button></div><p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>` : '')
-      : '<p class="note">No site work that needs a SWMS was found. If the scope does include site work, paste the part that describes it.</p>');
+      : (note ? '' : '<p class="note">No site work that needs a SWMS was found. If the scope does include site work, paste the part that describes it.</p>'));
   }
 
   // A file can also be dragged onto the panel. Dropping it anywhere on the panel is caught,
@@ -56,7 +56,7 @@
     }
     dropped = file;
     $('scope-file').value = '';
-    $('scope-drop-note').textContent = `${file.name} is ready. Press the button below to read it.`;
+    $('scope-drop-note').textContent = `${file.name} is attached. Press "Find the tasks that need a SWMS" to read it.`;
     $('scope-file-clear').classList.remove('hidden');
   });
   $('scope-file').addEventListener('change', () => {

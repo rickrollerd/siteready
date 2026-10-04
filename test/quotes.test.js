@@ -94,3 +94,9 @@ test('one line of deep trench or road work makes a task in Victoria as in the ot
   const ids = (state) => tasksFromScope(CIVIL, state).tasks.map((task) => task.id).sort().join(',');
   for (const state of ['nsw', 'vic', 'sa', 'wa', 'tas', 'act', 'nt']) assert.equal(ids(state), ids('qld'), state);
 });
+
+test('a drawing with almost no text is named as such', () => {
+  const result = tasksFromScope('su\nb\nm\nit yo\n34275\nRectangle\n34275\nCall Out\nInstall\n');
+  assert.equal(result.tasks.length, 0);
+  assert.match(result.note, /almost no text/);
+});
