@@ -177,6 +177,8 @@ const SITE_PERMITS = /\b(site permit (?:system|process)|permit (?:to work )?syst
 const PERMITS = [
   { label: 'hot work', name: 'a hot work permit',
     work: /\b(hot works?|weld(?:ing|ed|s)?|braz\w*|solder\w*|oxy[- ]?(?:acetylene|propane|cutting)|gas (?:cutting|torch\w*)|thermal cutting|cutting torch\w*|torch[- ]on)\b/i,
+    // Not hot work: heat or solvent welded vinyl and plastic seams, and painting or coating welds.
+    ignore: /\b(?:(?:heat|hot air|solvent|plastic|poly|vinyl|seam)[- ]?weld\w*|weld\w* (?:the )?(?:vinyl|seams?|joins)|(?:heat|hot air|solvent)[- ]welded \w+(?: \w+)?|(?:paint\w*|touch\w* up|coat\w*|seal\w*|prime\w*|blend\w*) (?:the |all |any )?(?:\w+ )?welds?)\b/gi,
     permit: /\bhot works? permits?\b/i },
   { label: 'confined space entry', name: 'a confined space entry permit',
     work: /\bconfined spaces?\b/i,
@@ -441,7 +443,7 @@ function weighted(swms, state, context) {
     const permitText = [...allControls, ...swms.site.conditions, ...swms.licences, ...swms.plant, ...swms.emergency, swms.review].join('\n');
     const sitePermits = SITE_PERMITS.test([allText, ...swms.emergency].join('\n'));
     const hazards = steps.flatMap((step) => step.hazards).join('\n');
-    const needed = PERMITS.filter((item) => item.work.test(item.notFromCategory ? ownWork : work) && (!item.near || item.near.test(`${allText}\n${hazards}`)) && (!item.onlyWithSitePermits || sitePermits));
+    const needed = PERMITS.filter((item) => item.work.test((item.notFromCategory ? ownWork : work).replace(item.ignore || /$^/g, ' ')) && (!item.near || item.near.test(`${allText}\n${hazards}`)) && (!item.onlyWithSitePermits || sitePermits));
     const unnamed = needed.filter((item) => !item.permit.test(permitText));
     const points = needed.length ? 5 * ((needed.length - unnamed.length) / needed.length) : 5;
     if (unnamed.length) fixes.push(`Name the permit the work needs: ${unnamed.map((item) => `${item.name} (${item.label})`).join('; ')}.`);

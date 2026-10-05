@@ -346,6 +346,10 @@ test('W12: work that needs a permit names it', () => {
   assert.equal(unnamed.points, 0);
   assert.match(unnamed.message, /a hot work permit \(hot work\)/);
   assert.equal(item(checkSwms(variant({ steps: steps({ ...weld, controls: [...weld.controls, 'Welding starts only under a hot work permit from the principal contractor.'] }) })), 'W12').points, 5);
+  // Heat welded vinyl, solvent welded pipe and painting welds are not hot work.
+  for (const step of ['Lay the vinyl with heat-welded joins', 'Paint the site welds', 'Solvent weld the PVC pipe']) {
+    assert.equal(item(checkSwms(variant({ steps: steps({ step, hazards: ['Fumes.'], controls: ['The area is ventilated.'] }) })), 'W12').points, 5, step);
+  }
   // Confined space entry.
   const tank = { step: 'Enter the confined space', hazards: ['Low oxygen.'], controls: ['The air is tested before entry.'] };
   assert.equal(item(checkSwms(variant({ steps: steps(tank) })), 'W12').points, 0);
