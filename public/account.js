@@ -34,6 +34,10 @@
     return type.includes('application/json') ? response.json() : response;
   }
 
+  // The page's own calls that need the session, such as the translation of a draft.
+  S.call = call;
+  S.isSignedIn = () => Boolean(me);
+
   async function download(route, fallbackName, body) {
     const response = await call(body ? 'POST' : 'GET', route, body);
     const blob = await response.blob();

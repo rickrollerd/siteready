@@ -283,6 +283,7 @@ function payload() {
     kinds: stepPicks || undefined,
     stepOrder: stepOrder || undefined,
     leaveOut: leaveOut || undefined,
+    controlEdits: controlEdits || undefined,
     facts,
     site,
   };
@@ -476,6 +477,8 @@ let stepPicks = null;
 let leaveOut = null;
 // The job steps in the order the user put them in the preview, by name.
 let stepOrder = null;
+// The user's own changes to the controls, by job step name: { removed, changed, added }.
+let controlEdits = null;
 let stepLibrary = { groups: [] };
 const stepById = new Map();
 
@@ -713,6 +716,7 @@ async function fillForm(input) {
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   stepOrder = Array.isArray(input.stepOrder) ? [...input.stepOrder] : null;
+  controlEdits = input.controlEdits && typeof input.controlEdits === 'object' ? JSON.parse(JSON.stringify(input.controlEdits)) : null;
   showFallExplanation();
   if (!(await loadQuestions())) return;
   document.querySelectorAll('[data-fact]').forEach((el) => {
@@ -866,8 +870,17 @@ function render(draft, { movable = false } = {}) {
   const controls = `<table><thead><tr><th>Hierarchy</th><th>Control</th></tr></thead><tbody>${draft.controls.map((item) => `<tr><td>${esc(item.level)}</td><td>${esc(item.text)}</td></tr>`).join('')}</tbody></table>`;
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
+  // In the preview each control can be changed or removed, and the user can add their own.
+  // Lines that are a legal requirement say why they stay.
+  const controlCell = (step, index) => {
+    if (!movable) return list(step.controls);
+    const legal = (draft.controlLegal || [])[index] || [];
+    const removed = ((controlEdits || {})[step.step] || {}).removed || [];
+    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}>${esc(line)}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+      <button type="button" class="link" data-ctl="add" data-ctl-step="${index}">Add your own control</button><p class="meta ctl-msg" data-ctl-msg="${index}" role="status"></p>`;
+  };
   const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}` : '');
-  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${list(step.hazards)}</td><td data-label="Controls">${list(step.controls)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td></tr>`).join('')}</tbody></table>
+  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${list(step.hazards)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td></tr>`).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const registers = `${(draft.plant || []).length ? `<h4>Plant and equipment</h4>${grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence]))}` : ''}
@@ -887,7 +900,7 @@ function render(draft, { movable = false } = {}) {
     <h4>Responsibilities</h4>${people}
     <h4>High risk construction work</h4>${risks}
     <h4>Controls</h4>${controls}
-    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done.</p>' : ''}${steps}
+    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control is kept unless you change or remove it. Lines you write or change are marked as your own.</p>' : ''}${steps}
     <h4>Personal protective equipment</h4>${ppe}
     ${registers}
     <h4>${esc(draft.reviewHeading)}</h4>
@@ -986,6 +999,7 @@ document.addEventListener('click', (event) => {
 
 // Prepares the draft and shows it. Moving a job step prepares it again in the new order.
 let shownSteps = [];
+let shownDraft = null;
 async function prepareDraft({ scroll = true } = {}) {
   const button = document.getElementById('prepare');
   button.disabled = true;
@@ -1003,11 +1017,14 @@ async function prepareDraft({ scroll = true } = {}) {
     shownSteps = (data.jobSteps || []).map((step) => step.step);
     rememberFields();
     // Answers that contradict the task's words are shown above the SWMS, not printed on it.
-    const warnings = (data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`).join('');
-    resultEl.innerHTML = `${warnings}<div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
+    const refused = ((data.controlEdits || {}).refused || []).map((item) => `${item.step}: ${item.reason}`);
+    const warnings = [...(data.warnings || []), ...refused].map((text) => `<p class="warning">${esc(text)}</p>`).join('');
+    shownDraft = data;
+    resultEl.innerHTML = `${warnings}<div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
     // Downloading and saving need an account; the account script adds those buttons.
     window.SiteReady.showActions(data, JSON.parse(body));
+    if (data.kind === 'draft') showTranslate(JSON.parse(body));
     // A SWMS in a project is recorded against its task.
     if (window.SiteReady.onDraft) window.SiteReady.onDraft(data, JSON.parse(body));
     if (scroll) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1066,7 +1083,160 @@ resultEl.addEventListener('dragend', () => {
   resultEl.querySelectorAll('.dragging').forEach((row) => row.classList.remove('dragging'));
 });
 // A new task starts with SiteReady's order again.
-document.getElementById('task').addEventListener('input', () => { stepOrder = null; leaveOut = null; ppeTouched.clear(); });
+document.getElementById('task').addEventListener('input', () => { stepOrder = null; leaveOut = null; controlEdits = null; ppeTouched.clear(); });
+
+// ---- Changing, removing and adding controls (task #102) ----
+
+const OWN_MARK = ' (Our own control)';
+const isOwn = (line) => line.endsWith(OWN_MARK);
+// The line's words without its source in brackets or the own-control mark, to start an edit from.
+function plainLine(line) {
+  const text = isOwn(line) ? line.slice(0, -OWN_MARK.length) : line;
+  if (!text.endsWith(')')) return text;
+  let depth = 0;
+  for (let i = text.length - 1; i >= 0; i -= 1) {
+    if (text[i] === ')') depth += 1;
+    else if (text[i] === '(' && (depth -= 1) === 0) return /\b(?:Code|Regulations?|Act|Standard|Guide)\b|\d{4}/.test(text.slice(i)) ? text.slice(0, i).trim() : text;
+  }
+  return text;
+}
+function editsFor(name) {
+  controlEdits = controlEdits || {};
+  controlEdits[name] = controlEdits[name] || { removed: [], changed: [], added: [] };
+  return controlEdits[name];
+}
+// Drops steps with no changes left, so an unchanged SWMS sends nothing.
+function tidyEdits() {
+  if (!controlEdits) return;
+  for (const [name, edit] of Object.entries(controlEdits)) if (!edit.removed.length && !edit.changed.length && !edit.added.length) delete controlEdits[name];
+  if (!Object.keys(controlEdits).length) controlEdits = null;
+}
+function controlMessage(index, text) {
+  const el = resultEl.querySelector(`[data-ctl-msg="${index}"]`);
+  if (el) el.textContent = text;
+}
+function applyLineEdit(step, line, next) {
+  const edit = editsFor(step.step);
+  if (isOwn(line)) {
+    // The user's own line: an added one, or a library line they reworded.
+    const own = line.slice(0, -OWN_MARK.length);
+    const added = edit.added.indexOf(own);
+    const change = edit.changed.find((item) => item.to === own);
+    if (added >= 0) {
+      if (next) edit.added[added] = next; else edit.added.splice(added, 1);
+    } else if (change) {
+      if (next) change.to = next;
+      else { edit.changed.splice(edit.changed.indexOf(change), 1); edit.removed.push(change.from); }
+    }
+  } else if (next) {
+    edit.changed = [...edit.changed.filter((item) => item.from !== line), { from: line, to: next }];
+  } else if (!edit.removed.includes(line)) {
+    edit.removed.push(line);
+  }
+  tidyEdits();
+  prepareDraft({ scroll: false });
+}
+// A box to write a line in, in place of the line or under the step's controls.
+function lineEditor(holder, value, onSave) {
+  const box = document.createElement('div');
+  box.className = 'ctl-edit';
+  box.innerHTML = `<textarea maxlength="600" aria-label="Control">${esc(value)}</textarea><span class="ctl-tools"><button type="button" class="link" data-save>Save</button><button type="button" class="link" data-cancel>Cancel</button></span>`;
+  holder.after(box);
+  holder.classList.add('hidden');
+  const area = box.querySelector('textarea');
+  area.focus();
+  box.querySelector('[data-cancel]').addEventListener('click', () => { box.remove(); holder.classList.remove('hidden'); });
+  box.querySelector('[data-save]').addEventListener('click', () => {
+    const text = area.value.replace(/\s+/g, ' ').trim();
+    if (!text) { area.focus(); return; }
+    onSave(text);
+  });
+}
+resultEl.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-ctl]');
+  if (!button || !shownDraft) return;
+  const holder = button.closest('[data-ctl-step]');
+  const index = Number(holder.dataset.ctlStep);
+  const step = (shownDraft.jobSteps || [])[index];
+  if (!step) return;
+  const action = button.dataset.ctl;
+  if (action === 'add') {
+    lineEditor(button, '', (text) => { editsFor(step.step).added.push(text); tidyEdits(); prepareDraft({ scroll: false }); });
+    return;
+  }
+  if (action === 'restore') {
+    editsFor(step.step).removed.splice(Number(button.dataset.removed), 1);
+    tidyEdits();
+    prepareDraft({ scroll: false });
+    return;
+  }
+  const line = step.controls[Number(holder.dataset.ctlLine)];
+  if (holder.dataset.legal) {
+    controlMessage(index, `This line is a legal requirement (${holder.dataset.legal}), so it cannot be removed or changed. Add your own control if the site needs more.`);
+    return;
+  }
+  if (action === 'remove') applyLineEdit(step, line, '');
+  if (action === 'change') lineEditor(holder, plainLine(line), (text) => applyLineEdit(step, line, text));
+});
+
+// ---- Reading the draft in another language (task #94) ----
+
+// Signed-in users can read the draft translated, with the English under each line. The SWMS,
+// its Word and PDF files, and what the builder sees stay in English.
+const LANGUAGE_KEY = 'siteready.readLanguage';
+let translateConfig = null;
+async function showTranslate(input) {
+  const S = window.SiteReady;
+  const box = document.getElementById('result-translate');
+  if (!box || !S.call || !S.isSignedIn || !S.isSignedIn()) return;
+  if (!translateConfig) translateConfig = await fetch(api('/api/draft/translation')).then((response) => response.json()).catch(() => null);
+  if (!translateConfig || !translateConfig.enabled || !translateConfig.languages.length) { translateConfig = null; return; }
+  let chosen = '';
+  try { chosen = localStorage.getItem(LANGUAGE_KEY) || ''; } catch { /* not kept */ }
+  box.innerHTML = `<div class="panel translate"><div class="field"><label for="translate-lang">Read this SWMS in my language</label>
+    <select id="translate-lang" class="plain">${translateConfig.languages.map((item) => `<option value="${esc(item.code)}"${item.code === chosen ? ' selected' : ''}>${esc(item.label)}</option>`).join('')}</select></div>
+    <div class="actions"><button type="button" class="secondary" id="translate-go">Read this SWMS in my language</button></div>
+    <p class="note hidden" id="translate-status"></p><div id="translate-out"></div></div>`;
+  const status = document.getElementById('translate-status');
+  document.getElementById('translate-go').addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    const language = document.getElementById('translate-lang').value;
+    try { localStorage.setItem(LANGUAGE_KEY, language); } catch { /* not kept */ }
+    button.disabled = true;
+    status.textContent = 'Translating. This can take a minute the first time.';
+    status.classList.remove('hidden', 'error-note');
+    try {
+      const translated = await S.call('POST', '/api/draft/translation', { input, language });
+      status.classList.add('hidden');
+      document.getElementById('translate-out').innerHTML = renderTranslation(translated);
+    } catch (error) {
+      status.textContent = error.message;
+      status.classList.add('error-note');
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+resultEl.addEventListener('click', (event) => {
+  if (!event.target.closest('[data-translate-close]')) return;
+  document.getElementById('translate-out').innerHTML = '';
+});
+// Each translated item with its English beneath. Arabic reads right to left.
+function renderTranslation(tr) {
+  const { language, english } = tr;
+  const dir = language.rtl ? 'rtl' : 'ltr';
+  const both = (en, other) => `<span class="tr" lang="${esc(language.code)}" dir="${dir}">${esc(other)}</span><span class="en" lang="en" dir="ltr">${esc(en)}</span>`;
+  const list = (items, others) => `<ul>${items.map((item, i) => `<li>${both(item, others[i])}</li>`).join('')}</ul>`;
+  return `<div class="banner"><p><strong>This is a translation to help you read the SWMS. The English version applies.</strong></p>
+    ${language.lessReliable ? `<p>Machine translation of ${esc(language.name)} is less reliable. Check anything unclear with the English.</p>` : ''}</div>
+    <h4>${both(english.title, tr.title)}</h4>
+    <h4>High risk construction work</h4>${english.highRisk.length ? list(english.highRisk, tr.highRisk) : '<p>This task is not identified as high risk construction work.</p>'}
+    <h4>Job steps</h4>${english.steps.map((step, i) => `<h5>${i + 1}. ${both(step.step, tr.steps[i].step)}</h5>
+      <p class="meta">Hazards</p>${list(step.hazards, tr.steps[i].hazards)}
+      <p class="meta">Controls</p>${list(step.controls, tr.steps[i].controls)}`).join('')}
+    <h4>Personal protective equipment</h4>${english.ppe.length ? list(english.ppe, tr.ppe) : '<p>None listed.</p>'}
+    <div class="actions"><button type="button" class="secondary" data-translate-close>Close the translation</button></div>`;
+}
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
   api, esc, payload, render, fillForm, fillFields, setProfile, getProfile: () => profile, resultEl, addPrincipals,

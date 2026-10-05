@@ -5,6 +5,7 @@ const QRCode = require('qrcode');
 const db = require('./db');
 const JSZip = require('jszip');
 const { recordIndustry } = require('./industry');
+const { recordControlEdits } = require('./control-learning');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
@@ -307,6 +308,7 @@ router.post('/swms', requireAccess, route(async (req, res) => {
   );
   record('swms_saved', req.company.id);
   await recordIndustry(draft, input, req.company).catch(() => {});
+  await recordControlEdits(draft, input).catch(() => {});
   res.status(201).json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [id])) });
 }));
 
@@ -329,6 +331,7 @@ router.put('/swms/:id', requireAccess, route(async (req, res) => {
   const now = new Date();
   await db.query('UPDATE swms SET title = $1, input = $2, site_id = $3, reviewed_by = $4, updated_at = $5, last_reviewed_at = $5, review_due_at = $6, reminder_sent_at = NULL WHERE id = $7',
     [titleFor({ title: body.title || row.title }, input), JSON.stringify(input), site ? site.id : null, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
+  if (body.input) await recordControlEdits(draft, input).catch(() => {});
   res.json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [row.id])) });
 }));
 
