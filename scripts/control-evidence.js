@@ -3,6 +3,7 @@
 //   code      cited to a code of practice section that was read and supports it
 //   reg       cited to a regulation section that was read and supports it
 //   practice  required by practice documents; "orgs" is how many independent organisations require it
+//   guidance  supported only by regulator guidance (not a code of practice or the law); not counted
 //   none      not yet evidenced ("unverifiable" where its only source is one not held, such as a model code number)
 // A line counts as evidenced when it is code, reg, or practice with 2 or more organisations.
 // A library line the record does not list counts as none until it is classified.
@@ -27,7 +28,7 @@ function libraryLines(activities = ACTIVITIES) {
 const evidenced = (entry) => Boolean(entry) && (entry.kind === 'code' || entry.kind === 'reg' || (entry.kind === 'practice' && entry.orgs >= 2));
 
 function measure(record = RECORD, lines = libraryLines()) {
-  const counts = { code: 0, reg: 0, practice2: 0, practice1: 0, none: 0, unverifiable: 0 };
+  const counts = { code: 0, reg: 0, practice2: 0, practice1: 0, guidance: 0, none: 0, unverifiable: 0 };
   const unlisted = [];
   for (const text of lines) {
     const entry = record[text];
@@ -51,6 +52,7 @@ if (require.main === module) {
   console.log(`  practice, 2 or more organisations: ${counts.practice2} (${pct(counts.practice2)})`);
   console.log(`Not yet evidenced: ${total - backed} (${pct(total - backed)})`);
   console.log(`  practice, 1 organisation: ${counts.practice1} (${pct(counts.practice1)})`);
+  console.log(`  regulator guidance only: ${counts.guidance} (${pct(counts.guidance)})`);
   console.log(`  source not held (unverifiable): ${counts.unverifiable} (${pct(counts.unverifiable)})`);
   console.log(`  no evidence found: ${counts.none} (${pct(counts.none)})`);
   if (unlisted.length) console.log(`Lines not yet in scenarios/control-evidence.json (counted as none): ${unlisted.length}`);

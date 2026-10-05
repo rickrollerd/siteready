@@ -16,7 +16,11 @@ const QLD_CODES = require('./scenarios/qld-codes.json');
 const QLD_REG = 'Work Health and Safety Regulation 2011 (Qld) ';
 const NSW_CODE = /^SafeWork NSW Code of practice: /;
 // National sources apply in every state.
-const NATIONAL = [/^Ozone Protection/, /^Telecommunications \(Cabling Provider\)/, /^Australian Refrigeration Council/, /^Piling industry standard/];
+const NATIONAL = [/^Ozone Protection/, /^Telecommunications \(Cabling Provider\)/, /^Australian Refrigeration Council/];
+// Sources that are one state's own are cited only in that state's drafts: the SafeWork NSW codes
+// of practice, Victoria's piling industry standard, and Western Australia's plumbing licensing regulations.
+const STATE_ONLY = { nsw: NSW_CODE, vic: /^Piling industry standard/, wa: /^Plumbers Licensing and Plumbing Standards Regulations 2000 \(WA\)/ };
+const ownState = (part) => Object.keys(STATE_ONLY).find((id) => STATE_ONLY[id].test(part));
 
 function mapReference(reference, state) {
   const match = /^(s|schedule) (\d+[A-Z]{0,3})(\(.+\))?(?: to s (\d+[A-Z]{0,3}))?$/.exec(reference.trim());
@@ -67,14 +71,14 @@ const DROP_SOURCES = {
 
 function localSource(source, stateId, text = '') {
   if (!source) return '';
-  // SafeWork NSW codes of practice are cited only in NSW drafts.
-  if (stateId === 'qld') return source.split('; ').filter((part) => !NSW_CODE.test(part)).flatMap(qldCode).join('; ');
+  // A state's own sources are cited only in that state's drafts.
+  if (stateId === 'qld') return source.split('; ').filter((part) => !ownState(part)).flatMap(qldCode).join('; ');
   const state = STATE_CITATIONS[stateId];
   // National sources apply everywhere, even where the state's sections are not yet mapped.
-  if (!state) return source.split('; ').filter((part) => NATIONAL.some((pattern) => pattern.test(part))).join('; ');
+  if (!state) return source.split('; ').filter((part) => NATIONAL.some((pattern) => pattern.test(part)) || ownState(part) === stateId).join('; ');
   const parts = [];
   for (const part of source.split('; ')) {
-    if (NATIONAL.some((pattern) => pattern.test(part)) || (stateId === 'nsw' && NSW_CODE.test(part))) {
+    if (NATIONAL.some((pattern) => pattern.test(part)) || ownState(part) === stateId) {
       parts.push(part);
       continue;
     }
@@ -100,7 +104,13 @@ const OUTSIDE_QLD = [
   [/^Apprentices are supervised at all times by a licensed electrical worker\. In their first 6 months/, 'Apprentices are supervised by a licensed electrician as the state\'s electrical licensing rules require.'],
   [/^Everyone who performs or helps in performing electrical work is competent in rescue and resuscitation\.$/, 'Everyone working on or near energised electrical equipment is trained in low voltage rescue and CPR.'],
   [/^A serious electrical incident or dangerous electrical event is reported to the regulator/, 'A notifiable incident is reported to the regulator immediately, and the site is left undisturbed.'],
-  [/^Plumbing and drainage work is done by licensed workers/, 'Plumbing and drainage work is done by plumbers licensed or registered under the state\'s plumbing law, and trainees are supervised as that law requires.'],
+  // Queensland's backflow testing endorsement (Plumbing and Drainage Regulation 2019 sch 4 pt 4) and
+  // drainer's licence (sch 4 pt 2), and its permit inspections and certificates, are its own.
+  [/^Installing meters and backflow devices is plumbing work for a licensed plumber, and testable backflow devices are tested and commissioned by a plumber licensed to test them\.$/, 'Installing meters and backflow devices is plumbing work for a licensed plumber, and testable backflow devices are tested and commissioned by a plumber accredited to test them.'],
+  [/^Power, water and sewer connections are made by licensed electricians, plumbers and drainers\.$/, 'Power, water and sewer connections are made by licensed electricians and plumbers.'],
+  [/^Toilets are connected to water and sewer by licensed plumbers and drainers, and power is connected by a licensed electrician\.$/, 'Toilets are connected to water and sewer by a licensed plumber, and power is connected by a licensed electrician.'],
+  [/^Plumbing or drainage done under a permit is not (?:covered|used) until/, null],
+  [/^Plumbing and drainage work is done by licensed workers/,'Plumbing and drainage work is done by plumbers licensed or registered under the state\'s plumbing law, and trainees are supervised as that law requires.'],
   [/^Hired electrical equipment is inspected, tested and tagged by a competent person at least once every 6 months/, 'Hired electrical equipment is inspected and tested by the hire company and carries a current test tag. Reject it if the tag is missing or out of date.'],
   [/^Workers without an electrical licence build conduits only if/, 'Workers without an electrical licence do only the conduit work the state\'s electrical licensing law allows, under a licensed electrician\'s supervision. Any earthing or bonding is done by licensed workers.'],
   [/^Work in a roof space \(between the roof and the top floor ceiling\) only when the electrical installation is de-energised\./, 'Before work in a roof space, the electrical installation is de-energised where reasonably practicable. If it cannot be, cables are treated as energised and the controls are set out in this SWMS.'],
