@@ -193,7 +193,8 @@
           unmatched: chosen ? chosen.unmatched : [],
           byOthers: chosen ? (chosen.byOthers || []) : [],
           title: pack.name,
-          task: use.map((row) => `${row.activity.replace(/\.$/, '')}${row.where ? ` (${row.where})` : ''}.`).join(' '),
+          // Conditions and plant stay in the task, so "near roads" or "energised switchboards" reach the high risk check.
+          task: window.SiteReadyScopeTask.packageTask(use),
           lines: [],
           clauses: use.map((row) => ({ activity: row.activity, clause: row.clause, quotes: row.quotes, matrixColumn: row.matrixColumn })),
           needsSwms: false,

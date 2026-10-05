@@ -167,14 +167,8 @@ app.post('/api/draft/questions', (req, res) => {
   // Standard answers the user can pick, then change.
   // Outside Queensland the answers use the state's wording.
   const local = (list) => list.map((answer) => ({ ...answer, text: localText(answer.text, result.state.id) })).filter((answer) => answer.text);
-  // Gas pipework is tested with air or nitrogen; water and refrigeration tests come first otherwise.
-  const gasOnly = /\bgas\b/i.test(result.task || '') && !/\b(water|hydraulic|plumbing|refrigera\w*|air ?con\w*|split systems?)\b/i.test(result.task || '');
-  const ordered = (id) => {
-    const list = answersFor(id, result.task);
-    if (id !== 'pressureTesting') return list;
-    return gasOnly ? list : [...list.filter((answer) => answer.label !== 'Gas line test'), ...list.filter((answer) => answer.label === 'Gas line test')];
-  };
-  result.required = (result.required || []).map((item) => (item.choices ? item : { ...item, suggestions: local(ordered(item.id)) }));
+  // The pressure test answers follow the task: the gas line test only where gas is named.
+  result.required = (result.required || []).map((item) => (item.choices ? item : { ...item, suggestions: local(answersFor(item.id, result.task)) }));
   res.json(result);
 });
 

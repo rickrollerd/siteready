@@ -1002,7 +1002,9 @@ async function prepareDraft({ scroll = true } = {}) {
     addPrincipals([JSON.parse(body).principalContractor], true);
     shownSteps = (data.jobSteps || []).map((step) => step.step);
     rememberFields();
-    resultEl.innerHTML = `<div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
+    // Answers that contradict the task's words are shown above the SWMS, not printed on it.
+    const warnings = (data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`).join('');
+    resultEl.innerHTML = `${warnings}<div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
     // Downloading and saving need an account; the account script adds those buttons.
     window.SiteReady.showActions(data, JSON.parse(body));

@@ -3683,6 +3683,7 @@ const ACTIVITIES = [
     when: 'underslabDrainage',
     steps: [{
       step: 'Lay drainage under the slab or floor',
+      unless: 'floorWasteSet',
       hazards: ['Trench sides fall in.', 'Strain from digging, bending and lifting pipe.', 'Primer and solvent cement vapour.', 'Trips and falls into open trenches.'],
       controls: [
         'Trenches stay shallower than 1.5 m, with sides battered or supported where the ground is loose or wet. If a trench needs to go deeper, work stops and the SWMS is reviewed.',
@@ -3691,6 +3692,19 @@ const ACTIVITIES = [
         'The drainage is tested and inspected before it is covered, as the plumbing regulator requires.',
         'Open trenches are fenced or covered when no one is working at them.',
         { only: 'subfloor', text: 'Work under an existing floor is done from the subfloor where there is room: the access is checked, sewage is treated as infectious, and the space is assessed as a confined space only if it meets the definition. Where a slab must be cut, it is scanned and saw cut with water or on-tool extraction, and the cutter wears a fit tested P2 respirator, as cutting concrete is processing crystalline silica.' },
+      ],
+    }, {
+      // Floor wastes and gutters set into a set-down: no trench is dug.
+      step: 'Set floor wastes, slot drains and floor gutters',
+      only: 'floorWasteSet',
+      hazards: ['Cuts from sheet stainless steel edges.', 'Strain carrying long gutters and kneeling to set them.', 'Primer and solvent cement vapour.', 'Trips and falls into open set-downs and recesses.'],
+      controls: [
+        'Long gutters and slot drains are carried by two people or on a trolley, with cut resistant gloves for the stainless edges.',
+        'Gutters, drains and wastes are set to the levels and falls on the drawings, on their supports, and connected to the waste outlets.',
+        'Primer and solvent cement are used with ventilation, gloves and eye protection, and kept away from ignition sources.',
+        'Knee pads are worn for work at floor level, with breaks to stand and stretch.',
+        'Open set-downs and recesses are covered or barricaded when no one is working at them.',
+        'The drainage is tested and inspected before it is covered, as the plumbing regulator requires.',
       ],
     }],
     ppe: ['gloveChemical', 'glassesClear'],
@@ -9874,5 +9888,44 @@ function ppeFor(flags, chosen, mentionsHarness, indoors) {
     items: group.items.map(([id, label]) => ({ id, label, ticked: ticked.has(id) })),
   }));
 }
+
+// Controls from the Queensland codes of practice (task #101, owner decision 5 October 2026):
+// lines added to the steps they apply to, worded closely to the code, and existing lines the
+// code supports given its citation. Each entry names the code and the code's own section.
+const CODE_TITLES = {
+  Scaffolding: 'Scaffolding Code of Practice 2021 (Qld)',
+  'Traffic management': 'Traffic management for construction or maintenance work Code of Practice 2008 (Qld)',
+  'Electrical works': 'Electrical Safety Code of Practice 2020: Works (Qld)',
+  'Overhead and underground electric lines': 'Electrical Safety Code of Practice 2020: Working near overhead and underground electric lines (Qld)',
+  'Tower crane': 'Tower crane Code of Practice 2017 (Qld)',
+  'Tilt-up and precast': 'Tilt-up and pre-cast construction Code of Practice 2003 (Qld)',
+};
+const codeSource = (code, section) => `${QLD_CODE_TITLES[code] || CODE_TITLES[code]} ${section}`;
+(function applyCodeControls() {
+  const entries = require('./scenarios/code-controls.json');
+  const textOf = (control) => (typeof control === 'string' ? control : control && control.text);
+  for (const entry of entries) {
+    if (!QLD_CODE_TITLES[entry.code] && !CODE_TITLES[entry.code]) throw new Error(`Unknown code: ${entry.code}`);
+    const source = codeSource(entry.code, entry.section);
+    if (entry.op === 'add') {
+      for (const activity of ACTIVITIES.filter((item) => item.when === entry.group)) {
+        for (const step of activity.steps.filter((item) => item.step === entry.step)) {
+          if (!step.controls.some((control) => textOf(control) === entry.text)) step.controls.push(src(entry.text, source));
+        }
+      }
+    } else if (entry.op === 'cite') {
+      for (const activity of ACTIVITIES) {
+        for (const step of activity.steps) {
+          step.controls = step.controls.map((control) => {
+            const text = textOf(control);
+            if (typeof text !== 'string' || !text.includes(entry.find)) return control;
+            if (typeof control === 'string') return src(control, source);
+            return control.source ? control : { ...control, source };
+          });
+        }
+      }
+    }
+  }
+}());
 
 module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM, ACTIVITIES };
