@@ -68,6 +68,11 @@ test('H1: high risk work not listed, or a category the task implies is missing',
   const trench = checkSwms(variant({ task: 'Replace the metal roof sheets, then excavate a trench 2 m deep for the stormwater line.' }));
   assert.ok(failed(trench).includes('H1'));
   assert.match(trench.findings.find((item) => item.rule === 'H1').message, /shaft or trench/);
+  // A SWMS that keeps the trench under 1.5 m is not trench high risk work, unless the task says deeper.
+  const shallowSteps = [...GOOD.steps, { step: 'Work in the trench', hazards: ['Collapse.'], controls: ['Before anyone enters, check the depth. The trench is kept shallower than 1.5 m. If it must go deeper, work stops and this SWMS is reviewed.'] }];
+  assert.ok(!failed(checkSwms(variant({ steps: shallowSteps }))).includes('H1'));
+  assert.ok(failed(checkSwms(variant({ steps: shallowSteps, task: 'Excavate a trench 2 m deep for the stormwater line.' }))).includes('H1'));
+  assert.ok(failed(checkSwms(variant({ steps: [...GOOD.steps, { step: 'Work in the trench', hazards: ['Collapse.'], controls: ['Barricade the trench.'] }] }))).includes('H1'));
   // Nothing listed and nothing in the task is not a fail.
   const painting = checkSwms({ ...variant({ highRisk: [], fallRisk: 'no' }), task: 'Paint the walls of a ground floor shop.', steps: [{ step: 'Paint', hazards: ['Paint fumes.'], controls: ['Open the doors and run a fan.'] }] });
   assert.ok(!failed(painting).includes('H1'));
