@@ -73,6 +73,8 @@ const BEFORE = {
   ],
   controls: [
     'Workers have done the site induction, and this SWMS is explained to them before they sign it.',
+    // Every SWMS (owner decision, task #116).
+    'At the pre-start, each worker declares they are fit for work, not affected by alcohol, drugs, medication or fatigue, and tells the supervisor if that changes during the shift.',
     { text: 'Workers hold a general construction induction card (white card).', source: 'Work Health and Safety Regulation 2011 (Qld) s 317' },
     'Check that licences, tickets and permits needed for the task are current.',
     'Inspect tools, plant and equipment before use. Tag out and remove anything faulty.',
@@ -490,6 +492,7 @@ const ACTIVITIES = [
           'Sun protection includes sunglasses, and the sunscreen is SPF 30 or higher.',
           'On the roof in hot weather, workers are paired, work and rest periods are set at the pre-start, and anyone who feels dizzy, sick or confused comes off the roof straight away, as heat illness raises the risk of a fall.',
           'Sheets are laid working forward from the leading edge, so installers always stand on sheets already fixed, and packs are landed along the roof no further apart than one pack covers, so no one walks purlins to reach the next pack.',
+          'Where the site\'s agreement includes the 35 degree policy, work stops in an orderly way when the nearest Bureau of Meteorology station reaches 35°C (or 29°C with 75% humidity where the agreement sets it).',
         ],
       },
     ],
@@ -572,8 +575,10 @@ const ACTIVITIES = [
           { only: 'deepTrench', text: 'The support is checked before anyone enters the trench.' },
           { only: 'deepTrench', ...src('Work only inside the trench support, with the access ladder secured to it.', QCODE('Excavation work', 's 4.4, s 6.3')) },
           { unless: ['deepTrench', 'tankPit'], ...src('Before anyone enters, check the depth. The trench is kept shallower than 1.5 m. If it must go deeper, work stops and this SWMS is reviewed: a trench deeper than 1.5 m is high risk construction work, and a trench 1.5 m deep or more is shored, benched or battered before anyone enters.', WHS('s 291, s 306')) },
+          { unless: ['deepTrench', 'tankPit'], text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
           // The tank pit has its own line in the tank step: here it is the pipe trenches.
           { only: 'tankPit', unless: 'deepTrench', ...src('Before anyone enters, check the depth. The pipe trenches are kept shallower than 1.5 m. If one must go deeper, work stops and this SWMS is reviewed: a trench deeper than 1.5 m is high risk construction work, and a trench 1.5 m deep or more is shored, benched or battered before anyone enters.', WHS('s 291, s 306')) },
+          { only: 'tankPit', unless: 'deepTrench', text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
           { fact: 'fallControl' },
           src('A competent person frequently checks the soil, trench walls and support for fretting, slipping, slumping or swelling, and any repair or strengthening is done from above before work below continues.', `${QCODE('Excavation work', 's 6.7')}; ${NSWC('NSW Excavation', 's 6.7')}`),
           'The check is made at the start of each shift and after rain.',
@@ -750,6 +755,7 @@ const ACTIVITIES = [
           src('Land loads on dunnage on a stable surface, with the load spread evenly.', TOWER('s 7.2.3')),
           'Land loads within the rated load of where they land, and secure them before releasing the rigging.',
           'Bricks and blocks lifted in a brick cage are strapped or wrapped on their pallet, and the cage\'s tine safety pins are fitted before every lift. Pallets of loose material are caged or wrapped before they are lifted over the site.',
+          'All lifting gear, including slings, chains, shackles and lifting boxes, is checked before each use and inspected by a competent person at least every 3 months, and is marked with that period\'s colour tag. Gear without the current colour tag is not used.',
         ],
       },
     ],
@@ -800,6 +806,7 @@ const ACTIVITIES = [
           'The crane operator and dogger do not use a mobile phone while a load is being rigged, lifted, slewed or landed.',
           'Tag lines are never looped around a hand, arm or body. When a load is moved by pick and carry, the tag line is tied to the machine during travel so no one walks beside the load.',
           'Before each use the dogger checks wire ropes for broken wires, kinks, crushing, corrosion or damaged ferrules, chains for stretched, bent, nicked or gouged links, and synthetic slings for cuts, abrasion, burns, knots or broken stitching. Any such gear is tagged out.',
+          'All lifting gear, including slings, chains, shackles and lifting boxes, is checked before each use and inspected by a competent person at least every 3 months, and is marked with that period\'s colour tag. Gear without the current colour tag is not used.',
         ],
       },
       {
@@ -1109,6 +1116,7 @@ const ACTIVITIES = [
           src('Work in or near a footing, thickening or pit deeper than 1.5 m is high risk construction work: secure it from unauthorised access, and do not enter until its sides are shored, benched or battered.', WHS('s 291, s 306')),
           'Footings, thickenings and pits are entered by a secured ladder, with water pumped out and a barrier at the edge.',
           'Before entering a footing, thickening or pit, check the depth: one deeper than 1.5 m is not covered by this SWMS, so stop, have the SWMS reviewed, and do not enter until its sides are shored, benched or battered and checked.',
+          'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.',
           'Where walls, lift shafts or stairwells are reinforced, fix the reo from working platforms or scaffolds, never by climbing the cage, and brace tall wall cages so they cannot topple.',
           src('Edge protection is in place at the deck perimeter, openings and voids.', NSWC('NSW Formwork', 's 6.1')),
           'Work inside the edge protection at all times.',
@@ -1359,7 +1367,8 @@ const ACTIVITIES = [
         hazards: ['Unsafe equipment stays in use.'],
         controls: [
           src('Unsafe equipment is disconnected, labelled unsafe, and not reconnected until it is repaired or tested and found safe.', `${ESR('s 17')}; ${NSWC('NSW Electrical risks', 's 3.1')}`),
-          src('Hired electrical equipment is inspected, tested and tagged by a competent person at least once every 6 months, with a tag stating the retest date.', ESR('s 142')),
+          src('Hired electrical equipment is inspected, tested and tagged by a competent person, with a tag stating the retest date.', ESR('s 142')),
+          src('Hired electrical equipment is retested at least every 3 months.', NSWC('NSW Electrical risks', 's 3.2')),
           'Reject it if the tag is missing or out of date.',
           src('Find faults with de-energised testing methods first. Any energised testing is done only under the controls for work on or near energised parts.', NSWC('NSW Electrical risks', 's 6.4')),
           'As the work moves, relocate switchboards and leads de-energised, and tell the principal contractor of changes to the construction wiring.',
@@ -4197,6 +4206,7 @@ const ACTIVITIES = [
       hazards: ['Trench sides fall in.', 'Strain from digging, bending and lifting pipe.', 'Primer and solvent cement vapour.', 'Trips and falls into open trenches.'],
       controls: [
         src('Trenches stay shallower than 1.5 m. If a trench needs to go deeper, work stops, the SWMS is reviewed, and the sides are shored, benched or battered.', WHS('s 291, s 306')),
+        'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.',
         'Sides are battered or supported where the ground is loose or wet.',
         src('Pipes are laid and graded to the drainage plan, and bedded and backfilled as the plumbing standard requires.', `${PDA('s 64(1)')}; ${PDR('s 61')}`),
         src('Primer and solvent cement are used with ventilation, gloves and eye protection, and kept away from ignition sources.', QCODE('Managing risks of hazardous chemicals', 's 4.1, s 4.2')),
@@ -4539,6 +4549,7 @@ const ACTIVITIES = [
       controls: [
         // A tank pit is usually deeper than the pipe trenches: it is dug and worked from outside.
         { only: 'tankPit', ...src('The tank pit is fenced while it is open. Where anyone must enter a pit 1.5 m or deeper, its sides are shored, battered or benched first and this SWMS is reviewed for the deeper excavation.', WHS('s 306')) },
+        { only: 'tankPit', text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
         { only: 'tankPit', text: 'The tank pit is dug to the tank maker\'s dimensions, with its sides battered or benched to suit the ground. The tank is lowered and levelled from outside the pit, and no one enters it.' },
         { only: 'pumpStationNew', text: 'No one enters the wet well once it is placed. It is a confined space, and any entry is made only under a confined space entry permit, with the atmosphere tested and a standby person at the top.' },
         src('Tanks, pits and precast units are lifted on their lifting points with rigging rated for the load.', TILT('s 12.7')),
@@ -7875,6 +7886,7 @@ const ACTIVITIES = [
         'The crane operator stands clear of the load\'s path and of crush points between the load, the truck and any structure.',
         'Load restraints are released from the ground with a reach pole or lead rope. Anyone who must get onto the tray uses steps with handrails, and works from a platform or behind guardrails, never at an open tray edge.',
         'A truck loading crane places loads precisely, such as onto supports for fixing, only where it has proportional controls approved by its maker and a current test record. Otherwise it is used only to load and unload.',
+        'All lifting gear, including slings, chains, shackles and lifting boxes, is checked before each use and inspected by a competent person at least every 3 months, and is marked with that period\'s colour tag. Gear without the current colour tag is not used.',
       ],
     }],
     ppe: ['hivis', 'gloveGeneral'],
@@ -9657,6 +9669,7 @@ addAfter(ACTIVITIES[ACTIVITIES.findIndex((item) => item.when === 'formwork') - 1
         // Where this SWMS has the trench steps, deeper trenches are covered by them.
         { unless: ['trench', 'slabRepair'], ...src('A trench or shaft deeper than 1.5 m is high risk construction work.', WHS('s 291')) },
         { unless: ['trench', 'slabRepair'], text: 'A trench or shaft deeper than 1.5 m is not covered by this SWMS: stop and have the SWMS reviewed before anyone enters it.' },
+        { unless: ['trench', 'slabRepair'], text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
         src('Open excavations are barricaded, with clearly defined pedestrian detours.', `${QCODE('Excavation work', 's 4.4')}; ${NSWC('NSW Excavation', 's 4.4')}`),
         'People cross only at set crossing points.',
         'Plate compactors and rollers are used with guards in place, and hearing protection is worn.',
@@ -10363,6 +10376,7 @@ ACTIVITIES.push(
       controls: [
         src('Get the current underground services information, for example through Before You Dig Australia, locate services on site before digging, and work to it.', WHS('s 304')),
         src('The trench stays shallower than 1.5 m. If it needs to go deeper, work stops and the SWMS is reviewed.', WHS('s 291, s 302')),
+        'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.',
         src('The trencher\'s guards stay in place, and the engine is stopped and the plant isolated before anything is cleared from it.', NSWC('NSW Plant', 's 3.6')),
         'The trencher is used only by a trained operator.',
         'No one is near the trencher chain.',
@@ -11173,6 +11187,7 @@ ACTIVITIES.push({
       'A worker with signs of heat illness stops work at once, is moved to the rest area, cooled and given water, and is not left alone. Confusion, collapse or hot dry skin is treated as heat stroke: call 000.',
       'Workers tell the supervisor before starting if they are unwell, short of sleep or fluids, or on medication that affects heat tolerance, and the supervisor gives them lighter or cooler work.',
       'A shade gazebo is pegged only after underground services are located, with pegs no longer than 250 mm, and is held down with guy ropes or weights in wind.',
+      'Where the site\'s agreement includes the 35 degree policy, work stops in an orderly way when the nearest Bureau of Meteorology station reaches 35°C (or 29°C with 75% humidity where the agreement sets it).',
     ],
   }],
 });

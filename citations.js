@@ -99,6 +99,7 @@ function localSource(source, stateId, text = '') {
 // that holds in any state, so another state's draft does not present Queensland law
 // as its own. Each state's own electrical, plumbing and gas licensing law is named
 // generally until it has been checked line by line. A null drops the line.
+const HEAT_POLICY = /^Where the site's agreement includes the 35 degree policy, work stops in an orderly way/;
 const OUTSIDE_QLD = [
   [/^Electrical work is done or supervised only by licensed electrical workers, for a licensed electrical contractor\.$/, 'Electrical work is done or supervised only by licensed electricians, for a licensed electrical contractor, as the state\'s electrical licensing law requires.'],
   [/^Apprentices are supervised at all times by a licensed electrical worker\. In their first 6 months/, 'Apprentices are supervised by a licensed electrician as the state\'s electrical licensing rules require.'],
@@ -110,8 +111,10 @@ const OUTSIDE_QLD = [
   [/^Power, water and sewer connections are made by licensed electricians, plumbers and drainers\.$/, 'Power, water and sewer connections are made by licensed electricians and plumbers.'],
   [/^Toilets are connected to water and sewer by licensed plumbers and drainers, and power is connected by a licensed electrician\.$/, 'Toilets are connected to water and sewer by a licensed plumber, and power is connected by a licensed electrician.'],
   [/^Plumbing or drainage done under a permit is not (?:covered|used) until/, null],
+  // The 35 degree policy is in site agreements in Queensland and the Northern Territory (owner decision, task #116).
+  [HEAT_POLICY, null],
   [/^Plumbing and drainage work is done by licensed workers/,'Plumbing and drainage work is done by plumbers licensed or registered under the state\'s plumbing law, and trainees are supervised as that law requires.'],
-  [/^Hired electrical equipment is inspected, tested and tagged by a competent person at least once every 6 months/, 'Hired electrical equipment is inspected and tested by the hire company and carries a current test tag. Reject it if the tag is missing or out of date.'],
+  [/^Hired electrical equipment is inspected, tested and tagged by a competent person, with a tag stating the retest date\.$/, 'Hired electrical equipment is inspected and tested by the hire company and carries a current test tag. Reject it if the tag is missing or out of date.'],
   [/^Workers without an electrical licence build conduits only if/, 'Workers without an electrical licence do only the conduit work the state\'s electrical licensing law allows, under a licensed electrician\'s supervision. Any earthing or bonding is done by licensed workers.'],
   [/^Work in a roof space \(between the roof and the top floor ceiling\) only when the electrical installation is de-energised\./, 'Before work in a roof space, the electrical installation is de-energised where reasonably practicable. If it cannot be, cables are treated as energised and the controls are set out in this SWMS.'],
   [/^A safety observer, assessed in the last 12 months as competent in rescue and resuscitation/, 'A safety observer competent in low voltage rescue and CPR watches the work and does no other work.'],
@@ -330,13 +333,17 @@ const NSW_TEXT = [
   [/^Traffic controllers who hold Queensland traffic controller accreditation/, `Traffic control work (directing traffic on a public road, and implementing, designing, amending or inspecting the work zone traffic management plan) is done only by workers holding a traffic control work training card, or a temporary card, for that type of work, who have done that type of work in the last 2 years if they trained more than 2 years ago, or by a trainee under supervision as section 184C(2) allows. Traffic controllers direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.${cite('nsw', '184A', '184C')}`],
 ];
 
+// The Northern Territory keeps the 35 degree policy line, as Queensland does.
+const NT_TEXT = [
+  [/^(Where the site's agreement includes the 35 degree policy, work stops in an orderly way.*)$/, (stateId, line) => line],
+];
 const STATE_TEXT = {
   vic: VIC_TEXT,
   nsw: [...NSW_TEXT, ...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   sa: [...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   wa: [...WA_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   tas: [...TAS_TEXT, ...ENERGISED_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
-  nt: [...MODEL_SILICA_TEXT, ...MODEL_TEXT],
+  nt: [...NT_TEXT, ...MODEL_SILICA_TEXT, ...MODEL_TEXT],
   act: [...ACT_TEXT, ...ENERGISED_TEXT, ...MODEL_TEXT],
 };
 const MODEL_SILICA = new Set(['nsw', 'sa', 'wa', 'tas', 'nt']);

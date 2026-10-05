@@ -2789,9 +2789,15 @@
   "op": "add",
   "group": "trench",
   "step": "Excavate",
-  "text": "Where a person could fall into the trench, fit guardrails, including to the top edges of trench shields, or a barrier about 1.5 m back from the excavation.",
+  "text": "Where a person could fall into the trench, fit guardrails, including to the top edges of trench shields, or a barrier set back from the excavation so people cannot approach the trench.",
   "code": "Managing the risk of falls",
   "section": "s 5.2"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Excavate",
+  "text": "A barrier used in place of guardrails stands 2 m back from the trench edge."
  },
  {
   "op": "cite",
@@ -3425,7 +3431,7 @@
   "op": "add",
   "group": "towerCrane",
   "step": "Rig, lift and land loads with the tower crane",
-  "text": "Lifting gear is inspected by a competent person at least every 12 months, and synthetic slings every 3 months, and is tagged with the date of its last inspection.",
+  "text": "Lifting gear is inspected by a competent person and tagged with the date of its last inspection.",
   "code": "Tower crane",
   "section": "s 7.2.1"
  },
@@ -4481,7 +4487,7 @@
  },
  {
   "op": "cite",
-  "find": "Where a person could fall into the trench, fit guardrails, including to the top edges of trench shields, or a barrier about 1.5 m back from the excavation.",
+  "find": "Where a person could fall into the trench, fit guardrails, including to the top edges of trench shields, or a barrier set back from the excavation so people cannot approach the trench.",
   "code": "NSW Falls",
   "section": "s 5.2"
  },
@@ -10735,7 +10741,7 @@
  },
  {
   "op": "cite",
-  "find": "Lifting gear is inspected by a competent person at least every 12 months, and synthetic slings every 3 months",
+  "find": "Lifting gear is inspected by a competent person and tagged with the date of its last inspection.",
   "code": "NSW Tower cranes",
   "section": "s 4.5"
  },
