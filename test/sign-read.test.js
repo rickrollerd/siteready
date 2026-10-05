@@ -104,9 +104,10 @@ test('the page gets every section with its reading time, and questions without t
   const questions = await questionsFor(swms.id);
   assert.deepEqual(signRead.publicQuestions(questions), view.questions);
   const ppe = questions.find((q) => q.id === 'ppe');
-  assert.equal(ppe.question, 'Which of these PPE is required for this job?');
+  assert.equal(ppe.question, 'Which of these PPE does this SWMS list?');
   assert.ok(view.ppe.includes(ppe.options[ppe.answer]));
   assert.equal(ppe.options.filter((option) => view.ppe.includes(option)).length, 1, 'the decoys are PPE not ticked');
+  assert.ok(ppe.options.filter((option) => !view.ppe.includes(option)).every((option) => !/sleeves|pants|clothing|hi-?vis|glasses|gloves|boots|hard hat|sunscreen|brim|chin strap/i.test(option)), 'no everyday PPE as a wrong answer');
   const steps = questions.find((q) => q.id === 'steps');
   const names = view.jobSteps.map((step) => step.step);
   assert.ok(names.includes(steps.options[steps.answer]));
