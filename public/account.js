@@ -399,7 +399,7 @@
           </div>
         </div>
         <table><thead><tr><th>Name</th><th>Company</th><th>Signed</th></tr></thead><tbody>
-          ${signons.length ? signons.map((item) => `<tr><td>${esc(item.worker_name)}${item.reading ? `<br><span class="meta">${esc(item.reading)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${new Date(item.signed_at).toLocaleString('en-AU')}</td></tr>`).join('') : '<tr><td colspan="3">No one has signed on yet.</td></tr>'}
+          ${signons.length ? signons.map((item) => `<tr><td>${esc(item.worker_name)}${item.note ? `<br><span class="meta">${esc(item.note)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${new Date(item.signed_at).toLocaleString('en-AU')}</td></tr>`).join('') : '<tr><td colspan="3">No one has signed on yet.</td></tr>'}
         </tbody></table>
       </div>
       <div class="sheet">${S.render(draft)}</div>`;

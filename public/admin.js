@@ -39,6 +39,7 @@
   const LABELS = {
     preview: 'Previews (not signed in)', preview_signed_in: 'Previews (signed in)', trial_started: 'Trials started',
     download_word: 'Word downloads', download_pdf: 'PDF downloads', swms_saved: 'SWMS saved', worker_signon: 'Worker sign-ons',
+    check_signon_removed: 'Builder checks with sign-on pages removed', check_signon_refused: 'Builder checks refused (sign-on mixed in)',
   };
   const types = [...new Set([...Object.keys(data.actions.days30), ...Object.keys(data.actions.days7)])].sort();
   $('actions').innerHTML = `<tr><th>Action</th><th class="n">7 days</th><th class="n">30 days</th></tr>` +

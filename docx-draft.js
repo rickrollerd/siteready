@@ -241,9 +241,9 @@ function workerSignOn(draft, signons = []) {
   ];
 }
 
-// The worker's name, with how they read the SWMS beneath it.
+// The worker's name, with the supervisor who explained the SWMS beneath it, where one did.
 function nameCell(item, width) {
-  if (!item.readingNote) return cell(item.worker_name, width, { size: 20 });
+  if (!item.note) return cell(item.worker_name, width, { size: 20 });
   return new TableCell({
     width: { size: width, type: WidthType.DXA },
     borders,
@@ -251,7 +251,7 @@ function nameCell(item, width) {
     verticalAlign: VerticalAlign.TOP,
     children: [
       new Paragraph({ spacing: { before: 0, after: 20, line: 240 }, children: [run(item.worker_name, { size: 20, color: INK })] }),
-      new Paragraph({ spacing: { before: 0, after: 0, line: 220 }, children: [run(item.readingNote, { size: 15, color: MUTED })] }),
+      new Paragraph({ spacing: { before: 0, after: 0, line: 220 }, children: [run(item.note, { size: 15, color: MUTED })] }),
     ],
   });
 }

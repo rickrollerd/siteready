@@ -315,8 +315,9 @@ router.post('/swms', requireAccess, route(async (req, res) => {
 
 router.get('/swms/:id', requireUser, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
-  const signons = (await db.query('SELECT worker_name, worker_company, signed_at, language, read_seconds, sections_viewed, sections_total, check_attempts, explained_by FROM signons WHERE swms_id = $1 ORDER BY signed_at', [row.id]))
-    .map(({ worker_name, worker_company, signed_at, ...item }) => ({ worker_name, worker_company, signed_at, reading: signRead.readingNote(item) }));
+  // Only that each worker read, agreed and signed: how they read it is not the business's to see.
+  const signons = (await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 ORDER BY signed_at`, [row.id]))
+    .map((item) => ({ worker_name: item.worker_name, worker_company: item.worker_company, signed_at: item.signed_at, note: signRead.signOnNote(item) }));
   res.json({ swms: swmsView(row), input: row.input, draft: withRevision(prepareDraft(withCompany(row.input, req.company)), row), signons });
 }));
 
@@ -366,6 +367,10 @@ router.delete('/swms/:id', requireUser, route(async (req, res) => {
   res.json({ ok: true });
 }));
 
+// The sign-on columns the business sees, in the app, the Word and PDF files and the export.
+// The reading record (language, read time, sections viewed, check attempts) is never read here.
+const SIGNON_SHEET = 'worker_name, worker_company, signature, signed_at, explained_by';
+
 // The saved revision and its date, printed on the SWMS and read by the builder check.
 function withRevision(draft, row) {
   if (draft.kind !== 'draft') return draft;
@@ -374,8 +379,11 @@ function withRevision(draft, row) {
 
 async function documentParts(req, row) {
   const draft = withRevision(prepareDraft(withCompany(row.input, req.company)), row);
-  const signons = (await db.query('SELECT * FROM signons WHERE swms_id = $1 ORDER BY signed_at', [row.id]))
-    .map((item) => ({ ...item, signedDate: longDate(item.signed_at), readingNote: signRead.readingNote(item) }));
+  const signons = (await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 ORDER BY signed_at`, [row.id]))
+    .map((item) => ({
+      worker_name: item.worker_name, worker_company: item.worker_company, signature: item.signature,
+      signedDate: longDate(item.signed_at), note: signRead.signOnNote(item),
+    }));
   const confirmation = { name: row.reviewed_by, date: longDate(row.last_reviewed_at) };
   return { draft, signons, confirmation, logo: readLogo(req.company.logo) };
 }

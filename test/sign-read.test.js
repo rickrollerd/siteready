@@ -1,9 +1,11 @@
 // Proof of reading at worker sign-on (task #92): the read time, the check questions, the
-// supervisor option, the reading record and translations (with a stand-in for the model).
+// supervisor option, the reading record (kept, never shown to the business) and translations
+// (with a stand-in for the model).
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const JSZip = require('jszip');
+const { PDFParse } = require('pdf-parse');
 const { app } = require('../server');
 const db = require('../db');
 const aiScope = require('../ai-scope');
@@ -252,7 +254,21 @@ test('every question in the pool is fair, for each scenario SWMS', () => {
   }
 });
 
-test('a sign-on keeps the reading record, and it is printed on the sign-on sheet', async () => {
+// How a worker read is kept for SiteReady's own learning only (owner decision, 6 October 2026):
+// none of it reaches the business, in the app, the Word or PDF files or the export.
+const READING_WORDS = /Read in |sections? viewed|check questions|attempts?\b|\d+ min \d+ s|"language"|read_seconds|sections_viewed|sections_total|section_seconds|check_attempts/i;
+const READING_PRINTED = /Read in |sections? viewed|check questions|attempt|Vietnamese|\d+ min \d+ s/;
+
+async function pdfText(buffer) {
+  const parser = new PDFParse({ data: buffer });
+  try {
+    return (await parser.getText()).text;
+  } finally {
+    await parser.destroy().catch(() => {});
+  }
+}
+
+test('a sign-on keeps the reading record, and none of it reaches the business', async () => {
   const { token, swms, key } = await savedSwms('record@read.example');
   const view = await (await call('GET', `/api/sign/${key}`)).json();
   await openFor(view.readId, 600);
@@ -260,33 +276,46 @@ test('a sign-on keeps the reading record, and it is printed on the sign-on sheet
   // The page's own times: every section but the last read long enough, plus one it never showed.
   const reported = Object.fromEntries(view.sections.map((item, i) => [item.id, i === view.sections.length - 1 ? 0.5 : item.minSeconds + 1.25]));
   const response = await call('POST', `/api/sign/${key}`, {
-    body: { name: 'Record Worker', company: 'Crew Co', signature: SIGNATURE, confirmed: true, readId: view.readId, answers, language: 'en', reading: { sections: { ...reported, madeUp: 99 } } },
+    body: { name: 'Record Worker', company: 'Crew Co', signature: SIGNATURE, confirmed: true, readId: view.readId, answers, language: 'vi', reading: { sections: { ...reported, madeUp: 99 } } },
   });
   assert.equal(response.status, 201);
+  assert.doesNotMatch(JSON.stringify(await response.json()), READING_WORDS, 'the sign-on page is told only that the worker signed on');
   const row = await db.one('SELECT * FROM signons WHERE swms_id = $1', [swms.id]);
-  assert.equal(row.language, 'en');
+  assert.equal(row.language, 'vi');
   assert.ok(row.read_seconds >= 599 && row.read_seconds <= 610, `the server's time, not the page's (${row.read_seconds})`);
   assert.equal(row.sections_total, view.sections.length);
   assert.equal(row.sections_viewed, view.sections.length - 1);
   assert.deepEqual(Object.keys(JSON.parse(row.section_seconds)), view.sections.map((item) => item.id), 'only known sections are kept');
   assert.equal(row.check_attempts, 1);
   assert.equal(row.explained_by, '');
+  assert.equal(signRead.signOnNote(row), '', 'nothing is printed under a worker who read it themselves');
 
-  const note = signRead.readingNote(row);
-  assert.match(note, new RegExp(`^Read in English, 10 min \\d+ s, ${view.sections.length - 1} of ${view.sections.length} sections viewed, check questions passed \\(1 attempt\\)$`));
+  // The app's views: name, employer and time only.
   const detail = await (await call('GET', `/api/swms/${swms.id}`, { token })).json();
-  assert.equal(detail.signons[0].reading, note);
+  assert.deepEqual(detail.signons, [{ worker_name: 'Record Worker', worker_company: 'Crew Co', signed_at: detail.signons[0].signed_at, note: '' }]);
+  assert.doesNotMatch(JSON.stringify(detail.signons), READING_WORDS);
+  const list = await (await call('GET', '/api/swms', { token })).json();
+  assert.equal(list.swms.find((item) => item.id === swms.id).signons, 1);
+  assert.doesNotMatch(JSON.stringify(list), READING_WORDS);
 
+  // The Word file, the PDF and the export: the worker is on the sheet, how they read is not.
   const docx = await call('GET', `/api/swms/${swms.id}/docx`, { token });
   const xml = await (await JSZip.loadAsync(Buffer.from(await docx.arrayBuffer()))).file('word/document.xml').async('string');
-  assert.ok(xml.includes(note), 'the Word sign-on sheet shows how the worker read it');
+  assert.ok(xml.includes('Record Worker') && xml.includes('Crew Co'));
+  assert.doesNotMatch(xml, READING_PRINTED);
   const pdf = await call('GET', `/api/swms/${swms.id}/pdf`, { token });
   assert.equal(pdf.status, 200);
-
-  // The line for a translation, and for older sign-ons without a record.
-  assert.equal(signRead.readingNote({ language: 'vi', read_seconds: 400, sections_viewed: 12, sections_total: 12, check_attempts: 2 }),
-    'Read in Vietnamese (translation), 6 min 40 s, all 12 sections viewed, check questions passed (2 attempts)');
-  assert.equal(signRead.readingNote({ language: '' }), '');
+  const text = await pdfText(Buffer.from(await pdf.arrayBuffer()));
+  assert.ok(text.includes('Record Worker') && text.includes('Crew Co'));
+  assert.doesNotMatch(text, READING_PRINTED);
+  const exported = await call('GET', '/api/swms/export.zip', { token });
+  const zip = await JSZip.loadAsync(Buffer.from(await exported.arrayBuffer()));
+  for (const name of Object.keys(zip.files)) {
+    const inner = await JSZip.loadAsync(await zip.file(name).async('nodebuffer'));
+    const exportedXml = await inner.file('word/document.xml').async('string');
+    assert.ok(exportedXml.includes('Record Worker'));
+    assert.doesNotMatch(exportedXml, READING_PRINTED);
+  }
 });
 
 test('a worker whose supervisor explained the SWMS signs on without the read time or questions', async () => {
@@ -300,9 +329,12 @@ test('a worker whose supervisor explained the SWMS signs on without the read tim
   assert.equal(row.explained_by, 'J Smith');
   assert.equal(row.check_attempts, null);
   assert.equal(row.read_seconds, null);
-  assert.equal(signRead.readingNote(row), 'Explained by J Smith (supervisor)');
+  assert.equal(signRead.signOnNote(row), 'Explained by J Smith (supervisor)');
   const detail = await (await call('GET', `/api/swms/${swms.id}`, { token })).json();
-  assert.equal(detail.signons[0].reading, 'Explained by J Smith (supervisor)');
+  assert.equal(detail.signons[0].note, 'Explained by J Smith (supervisor)', '"explained by" stays on the sheet');
+  const docx = await call('GET', `/api/swms/${swms.id}/docx`, { token });
+  const xml = await (await JSZip.loadAsync(Buffer.from(await docx.arrayBuffer()))).file('word/document.xml').async('string');
+  assert.ok(xml.includes('Explained by J Smith (supervisor)'));
 });
 
 // A stand-in for the model: it "translates" by marking each string, and counts its calls.
@@ -396,7 +428,8 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
     const answers = rightAnswers(await questionsFor(swms.id, view.readId));
     assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'Viet Worker', signature: SIGNATURE, confirmed: true, readId: view.readId, answers, language: 'vi' } })).status, 201);
     const row = await db.one('SELECT * FROM signons WHERE swms_id = $1', [swms.id]);
-    assert.match(signRead.readingNote(row), /^Read in Vietnamese \(translation\), 60 min 0 s, 0 of \d+ sections viewed, check questions passed \(1 attempt\)$/);
+    assert.equal(row.language, 'vi');
+    assert.equal(signRead.signOnNote(row), '', 'the language read in is kept, not printed');
   } finally {
     delete process.env.ANTHROPIC_API_KEY;
     aiScope.useClient(null);

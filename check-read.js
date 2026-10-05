@@ -5,11 +5,15 @@
 //
 // Nothing is kept: the document and the reading are used for the one check and dropped.
 // Switched off with the AI scope reading (aiScope.enabled()).
+//
+// Worker sign-on pages are taken out before anything is sent (owner decision, 6 October 2026):
+// see signon-strip.js. The workers are counted here first, so H7 still knows they signed.
 const aiScope = require('./ai-scope');
 const { checkSwms, fromDraft, emailDraft } = require('./builder-check');
 const { prepareDraft } = require('./draft');
 const { draftBody } = require('./input');
-const { scopeText } = require('./scope-text');
+const { swmsWithoutSignOns } = require('./signon-strip');
+const { record } = require('./events');
 
 const CHECK_BRIEF_VERSION = 'check-v2';
 
@@ -108,6 +112,31 @@ async function readSwms(documentText) {
   };
 }
 
+// Each strip is logged by its counts only: never a name, a line or the document.
+const defaultStripLog = (entry) => console.info(`Builder check sign-on strip: ${entry.pagesRemoved} pages and ${entry.sectionsRemoved} sections removed, ${entry.signOns} sign-on rows counted, refused ${entry.refused ? 'yes' : 'no'}`);
+let stripLog = defaultStripLog;
+function useStripLog(log) {
+  stripLog = log || defaultStripLog;
+}
+
+// The document's text with every worker sign-on taken out, logged by its counts.
+async function strippedText(body, company) {
+  const companyId = company ? company.id : null;
+  let stripped;
+  try {
+    stripped = await swmsWithoutSignOns(body);
+  } catch (error) {
+    if (error.status === 422) {
+      stripLog({ pagesRemoved: 0, sectionsRemoved: 0, signOns: 0, refused: true });
+      record('check_signon_refused', companyId);
+    }
+    throw error;
+  }
+  stripLog({ pagesRemoved: stripped.pagesRemoved, sectionsRemoved: stripped.sectionsRemoved, signOns: stripped.signOns, refused: false });
+  if (stripped.pagesRemoved + stripped.sectionsRemoved) record('check_signon_removed', companyId);
+  return stripped;
+}
+
 // POST /api/check: a SiteReady draft (no AI), a SWMS already in the structured form, or an
 // uploaded or pasted document read by the AI. Returns the score, the findings and the email.
 async function runCheck(body, company) {
@@ -131,12 +160,16 @@ async function runCheck(body, company) {
     source = 'form';
   } else {
     if (!(typeof body.text === 'string' && body.text.trim()) && !(body.file && body.file.data)) throw fail(400, 'Attach the SWMS or paste it first.');
-    const read = await readSwms(await scopeText(body));
-    result = checkSwms(read.swms, { state: line(body.state) || read.swms.state, stage });
+    const stripped = await strippedText(body, company);
+    const read = await readSwms(stripped.text);
+    // The AI never sees the sign-on, so H7 takes the workers counted before it was removed.
+    // Each stands in as "Worker 1", "Worker 2" and so on: no name is used or sent.
+    const swms = stripped.found ? { ...read.swms, signatures: Array.from({ length: stripped.signOns }, (_, i) => ({ name: `Worker ${i + 1}`, date: '' })) } : read.swms;
+    result = checkSwms(swms, { state: line(body.state) || swms.state, stage });
     notFound = read.notFound;
     source = 'document';
   }
   return { ...result, source, notFound, email: emailDraft(result, email) };
 }
 
-module.exports = { readSwms, runCheck, validSwms, quotesNotFound, CHECK_BRIEF, CHECK_SCHEMA, CHECK_BRIEF_VERSION };
+module.exports = { readSwms, runCheck, validSwms, quotesNotFound, useStripLog, CHECK_BRIEF, CHECK_SCHEMA, CHECK_BRIEF_VERSION };
