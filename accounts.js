@@ -13,6 +13,8 @@ const { draftToDocx, draftedNote } = require('./docx-draft');
 const { draftToPdf } = require('./pdf-draft');
 const { readLogo } = require('./logo');
 const { record } = require('./events');
+const signRead = require('./sign-read');
+const aiScope = require('./ai-scope');
 
 const REVIEW_MONTHS = 3;
 const REMIND_DAYS_BEFORE = 7;
@@ -310,7 +312,8 @@ router.post('/swms', requireAccess, route(async (req, res) => {
 
 router.get('/swms/:id', requireUser, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
-  const signons = await db.query('SELECT worker_name, worker_company, signed_at FROM signons WHERE swms_id = $1 ORDER BY signed_at', [row.id]);
+  const signons = (await db.query('SELECT worker_name, worker_company, signed_at, language, read_seconds, sections_viewed, sections_total, check_attempts, explained_by FROM signons WHERE swms_id = $1 ORDER BY signed_at', [row.id]))
+    .map(({ worker_name, worker_company, signed_at, ...item }) => ({ worker_name, worker_company, signed_at, reading: signRead.readingNote(item) }));
   res.json({ swms: swmsView(row), input: row.input, draft: prepareDraft(withCompany(row.input, req.company)), signons });
 }));
 
@@ -362,7 +365,7 @@ router.delete('/swms/:id', requireUser, route(async (req, res) => {
 async function documentParts(req, row) {
   const draft = prepareDraft(withCompany(row.input, req.company));
   const signons = (await db.query('SELECT * FROM signons WHERE swms_id = $1 ORDER BY signed_at', [row.id]))
-    .map((item) => ({ ...item, signedDate: longDate(item.signed_at) }));
+    .map((item) => ({ ...item, signedDate: longDate(item.signed_at), readingNote: signRead.readingNote(item) }));
   const confirmation = { name: row.reviewed_by, date: longDate(row.last_reviewed_at) };
   return { draft, signons, confirmation, logo: readLogo(req.company.logo) };
 }
@@ -413,29 +416,71 @@ async function swmsForToken(token) {
   return { row, company };
 }
 
+// The worker reads every section open, in order. The page gets a read id whose start time is
+// kept here, the sections with their minimum reading times, and the check questions without
+// their answers. Only ticked PPE is sent, so the decoys are not marked as unticked.
 router.get('/sign/:token', route(async (req, res) => {
   const { row, company } = await swmsForToken(req.params.token);
   const draft = prepareDraft(withCompany(row.input, company));
+  const readId = await signRead.startRead(row, draft);
   res.json({
     title: row.title, company: company.name, task: draft.task, workplace: draft.workplace,
-    highRisk: draft.highRisk || [], jobSteps: draft.jobSteps || [], ppe: draft.ppe || [],
+    highRisk: draft.highRisk || [], jobSteps: draft.jobSteps || [], ppe: signRead.tickedPpe(draft),
+    readId, sections: signRead.readSections(draft), questions: signRead.publicQuestions(signRead.checkQuestions(row.id, draft)),
+    languages: aiScope.enabled() ? signRead.LANGUAGES.map(({ code, label, rtl }) => ({ code, label, rtl: Boolean(rtl) })) : [],
   });
 }));
 
+router.get('/sign/:token/translation', route(async (req, res) => {
+  const { row, company } = await swmsForToken(req.params.token);
+  const draft = prepareDraft(withCompany(row.input, company));
+  res.json(await signRead.translation(row, draft, req.query.lang));
+}));
+
 router.post('/sign/:token', route(async (req, res) => {
-  const { row } = await swmsForToken(req.params.token);
+  const { row, company } = await swmsForToken(req.params.token);
   const body = req.body || {};
   const name = textField(body.name, 120).replace(/\s+/g, ' ');
   const signature = String(body.signature || '');
   if (!name) throw fail(400, 'Enter your name.');
   if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signature) || signature.length > MAX_SIGNATURE) throw fail(400, 'Sign in the box before submitting.');
   if (body.confirmed !== true) throw fail(400, 'Tick the box to confirm the SWMS has been explained to you.');
+  const draft = prepareDraft(withCompany(row.input, company));
+  // A worker who cannot read the SWMS has it explained by their supervisor: no reading time or questions.
+  const explainedBy = body.explained === true ? textField(body.supervisor, 120).replace(/\s+/g, ' ') : '';
+  if (body.explained === true && !explainedBy) throw fail(400, 'Enter the name of the supervisor who explained the SWMS to you.');
+  let reading = null;
+  if (!explainedBy) {
+    const { read, elapsed, sections } = await signRead.checkRead(row, draft, body.readId);
+    const questions = signRead.checkQuestions(row.id, draft);
+    let attempts = null;
+    if (questions.length) {
+      const marked = await signRead.markAnswers(read, questions, body.answers);
+      if (marked.wrong.length) {
+        res.status(400).json({ kind: 'error', message: signRead.wrongMessage(questions, marked.wrong), wrong: marked.wrong.map((item) => item.id), sections: [...new Set(marked.wrong.map((item) => item.section))] });
+        return;
+      }
+      ({ attempts } = marked);
+    }
+    const seconds = signRead.sectionSeconds(sections, body.reading && body.reading.sections);
+    const language = signRead.languageFor(body.language) ? body.language : 'en';
+    reading = {
+      read, language, readSeconds: Math.round(elapsed), sectionSeconds: seconds, attempts,
+      viewed: sections.filter((item) => seconds[item.id] >= item.minSeconds).length, total: sections.length,
+    };
+  }
   // A cap on sign-ons per SWMS stops a leaked QR code being used to flood it.
   const limit = Number(process.env.SIGNON_LIMIT) > 0 ? Number(process.env.SIGNON_LIMIT) : SIGNON_LIMIT;
   const signed = await db.one('SELECT COUNT(*) AS n FROM signons WHERE swms_id = $1', [row.id]);
   if (Number(signed.n) >= limit) throw fail(409, `This SWMS has reached its limit of ${limit} sign-ons. Ask your supervisor to save a new copy of the SWMS and share its QR code.`);
-  await db.query('INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at) VALUES ($1, $2, $3, $4, $5, $6)',
-    [auth.newId(), row.id, name, textField(body.company, 200), signature, new Date()]);
+  if (reading) await signRead.useRead(reading.read);
+  await db.query(
+    `INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, language, read_seconds, sections_viewed, sections_total, section_seconds, check_attempts, explained_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+    [auth.newId(), row.id, name, textField(body.company, 200), signature, new Date(),
+      reading ? reading.language : '', reading ? reading.readSeconds : null, reading ? reading.viewed : null, reading ? reading.total : null,
+      reading ? JSON.stringify(reading.sectionSeconds) : null, reading ? reading.attempts : null, explainedBy],
+  );
   record('worker_signon', row.company_id);
   res.status(201).json({ ok: true, message: `Thanks ${name}. You are signed on to ${row.title}.` });
 }));
@@ -474,7 +519,10 @@ async function removeExpired(now = new Date()) {
   // A deleted SWMS is hidden at once and removed, with its sign-ons, after 30 days.
   const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   await db.query('DELETE FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
+  await db.query('DELETE FROM sign_translations WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms WHERE archived = TRUE AND updated_at < $1', [cutoff]);
+  // A read session is only needed while the worker is signing on.
+  await db.query('DELETE FROM sign_reads WHERE started_at < $1', [new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)]);
   await db.query('DELETE FROM signins WHERE created_at < $1', [new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)]);
 }
 

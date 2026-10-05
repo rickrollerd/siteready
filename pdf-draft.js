@@ -313,7 +313,7 @@ function draftToPdf(draft, options = {}) {
     text(doc, [draft.task, draft.workplace].filter(Boolean).join('  ·  '), { size: 9, color: MUTED, after: 0.3 });
     text(doc, 'By signing, I confirm this SWMS has been explained to me, I understand it, and I will follow it. If the work changes or a control is not working, I will stop and tell my supervisor.', { size: 9.5, after: 0.4 });
     const signed = (options.signons || []).map((item) => ({
-      cells: [[{ text: item.worker_name }], [{ text: item.worker_company }], signatureCell(item.signature), [{ text: item.signedDate }]],
+      cells: [[{ text: item.worker_name }, ...(item.readingNote ? [{ text: item.readingNote, color: MUTED }] : [])], [{ text: item.worker_company }], signatureCell(item.signature), [{ text: item.signedDate }]],
     }));
     const blank = Array.from({ length: Math.max(10, 20 - signed.length) }, () => ({ cells: [[{ text: '\n ' }], [{ text: ' ' }], [{ text: ' ' }], [{ text: ' ' }]] }));
     table(doc, { widths: [220, 190, w - 220 - 190 - 130, 130], header: ['Name', 'Company', 'Signature', 'Date'], rows: [...signed, ...blank], size: 9 });

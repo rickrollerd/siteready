@@ -14,8 +14,22 @@
     h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #3d4a59; margin: 18px 0 8px; }
     .meta { color: #5c6773; font-size: 14px; margin: 0 0 4px; }
     .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; }
-    details { border-top: 1px solid #e1e6ec; padding: 8px 0; }
-    summary { cursor: pointer; font-weight: 600; }
+    .read { border-top: 1px solid #e1e6ec; padding: 8px 0 10px; }
+    .read h3 { font-size: 16px; margin: 4px 0; }
+    .read.is-read h3::after { content: " \2713"; color: #1f6e4a; }
+    .en { display: block; color: #5c6773; font-size: 13px; }
+    .tr { display: block; }
+    select { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; padding: 10px 11px; font: inherit; background: #fff; }
+    fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+    fieldset:disabled { opacity: 0.5; }
+    .q { border: 1px solid #d5dbe3; border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; }
+    .q legend { font-weight: 600; padding: 0 4px; }
+    .q.wrong { border-color: #8a2b2b; }
+    .q label { font-weight: 400; display: flex; gap: 8px; align-items: flex-start; margin: 8px 0 0; }
+    .q input { margin-top: 4px; flex: none; }
+    .banner { background: #fff7e0; border: 1px solid #e3c977; border-radius: 8px; padding: 10px 14px; margin-top: 14px; font-size: 14px; }
+    .banner p { margin: 4px 0; }
+    .progress { position: sticky; bottom: 0; background: #1f4e3d; color: #fff; border-radius: 8px; padding: 10px 14px; margin-top: 14px; font-size: 14px; font-weight: 600; }
     ul { margin: 6px 0 0; padding-left: 1.2em; }
     li { margin-bottom: 4px; font-size: 15px; }
     label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
@@ -35,20 +49,35 @@
   <div class="wrap">
     <p class="meta">SiteReady · Worker sign-on</p>
     <h1 id="title">Loading…</h1>
+    <p class="meta" id="title-translated"></p>
     <p class="meta" id="where"></p>
     <p class="error hidden" id="load-error"></p>
 
+    <div class="panel hidden" id="language-panel">
+      <label for="language">Read this SWMS in another language</label>
+      <select id="language"><option value="en">English</option></select>
+      <p class="meta hidden" id="language-status"></p>
+    </div>
+    <div class="banner hidden" id="banner">
+      <p>This is a translation to help you read the SWMS. The English version applies.</p>
+      <p class="hidden" id="less-reliable">Translation into this language is less reliable. If anything is unclear, ask your supervisor.</p>
+    </div>
+
     <div class="panel hidden" id="swms">
-      <p>Read the SWMS below, or have your supervisor explain it, before you sign.</p>
-      <h2>High risk work</h2>
-      <ul id="risks"></ul>
-      <h2>Job steps</h2>
-      <div id="steps"></div>
-      <h2>PPE to wear</h2>
-      <ul id="ppe"></ul>
+      <p>Read every section below, in order, before you sign. The sign-on form opens once you have read to the end. If you cannot read it, ask your supervisor to explain it to you.</p>
+      <div id="sections"></div>
+      <p class="meta" id="end">End of the SWMS.</p>
     </div>
 
     <form class="panel hidden" id="sign-form">
+      <div class="field">
+        <label class="check"><input type="checkbox" id="explained"><span>I cannot read this SWMS. My supervisor has explained it to me.</span></label>
+      </div>
+      <div class="field hidden" id="supervisor-field">
+        <label for="supervisor">Supervisor who explained it</label>
+        <input id="supervisor" type="text" autocomplete="off">
+      </div>
+      <fieldset id="locked" disabled>
       <div class="field">
         <label for="name">Your name</label>
         <input id="name" type="text" autocomplete="name" required>
@@ -57,6 +86,7 @@
         <label for="company">Your company</label>
         <input id="company" type="text" autocomplete="organization">
       </div>
+      <div id="questions"></div>
       <div class="field">
         <label>Sign with your finger</label>
         <canvas class="pad" id="pad"></canvas>
@@ -65,10 +95,12 @@
       <div class="field">
         <label class="check"><input type="checkbox" id="confirmed"><span>This SWMS has been explained to me, I understand it, and I will follow it. If the work changes or a control is not working, I will stop and tell my supervisor.</span></label>
       </div>
-      <p class="meta" id="privacy-notice">The business that owns this SWMS collects your name, employer, signature and the time you sign, as its record that you were consulted on and understood the SWMS, as safety law requires. SiteReady stores that record for the business and does not use it for anything else. <a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>
+      <p class="meta" id="privacy-notice">The business that owns this SWMS collects your name, employer, signature, the time you sign and how you read the SWMS (time on each section, language and check answers), as its record that you were consulted on and understood the SWMS, as safety law requires. SiteReady stores that record for the business and does not use it for anything else. <a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>
       <button type="submit" id="submit">Sign on</button>
+      </fieldset>
       <p class="error hidden" id="sign-error"></p>
     </form>
+    <div class="progress hidden" id="progress"></div>
     <div class="done hidden" id="done"></div>
   </div>
   <script src="/sign.js"></script>

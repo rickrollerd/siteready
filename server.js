@@ -84,6 +84,9 @@ app.use(WORD_ROUTE, limiter(positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS,
 // Sign-in emails and worker sign-ons have tighter limits.
 app.use(['/api/auth/email', '/api/company/users'], limiter(positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10)));
 app.use('/api/sign', limiter(positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS, 200)));
+// Each SWMS is translated once per language and then kept, so few requests reach the AI;
+// this lower limit stops one phone asking for every language over and over.
+app.use(/^\/api\/sign\/[^/]+\/translation/, limiter(positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
 app.use('/api', limiter(
   positiveNumber(process.env.RATE_LIMIT_MAX_REQUESTS, 600),
   (req) => req.originalUrl.startsWith(WORD_ROUTE),
@@ -343,7 +346,8 @@ app.use('/api', (_req, res) => {
 // Details go to the log. The client gets a plain message.
 app.use((error, req, res, _next) => {
   const status = error.status || error.statusCode || 500;
-  if (status >= 500) recordError(`${req.method} ${req.path}`, error);
+  // A worker sign-on key is never written to the error log.
+  if (status >= 500) recordError(`${req.method} ${req.path.replace(/^\/api\/sign\/[^/]+/, '/api/sign/:token')}`, error);
   const message = error.publicMessage && error.message ? error.message : status < 500 ? 'The request could not be read.' : 'The statement could not be prepared.';
   res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message });
 });

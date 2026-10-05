@@ -263,4 +263,4 @@ async function getReading(company, id) {
   return rowOut(row);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, checkReading, validReading, costOf, fingerprint, normalise, mapSteps, stepCatalogue, MODEL };
+module.exports = { enabled, useClient, startReading, getReading, checkReading, validReading, costOf, fingerprint, normalise, mapSteps, stepCatalogue, callModel, MODEL };
