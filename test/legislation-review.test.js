@@ -172,7 +172,8 @@ test('Victoria: scaffolds, plant registration and the telehandler licence', () =
   // Queensland keeps its registered items and major inspections.
   assert.match(draft('qld', 'Install a tower crane and pour slabs with a concrete placing boom for a commercial tower.').plant.find((item) => item.item === 'Tower crane').inspection, /^Registered item of plant\..*major inspection \(WHS Reg s 235\)\.$/);
   assert.equal(localControl('Boilers and pressure vessels at hazard level A, B or C have a registered design and are registered items before they are used.', `${QLD}s 243, s 246, schedule 5`, 'vic'), 'Boilers, pressure vessels and other pressure equipment have a registered design before they are used, unless Schedule 2 item 1.1 leaves them out. (Occupational Health and Safety Regulations 2017 (Vic) r 125, Schedule 2)');
-  assert.equal(localControl('An escalator is plant whose design and item are registered. The registration numbers are sighted before it is installed and before it is used.', `${QLD}s 243, s 246, schedule 5`, 'vic'), 'An escalator is a lift, and its design is registered. The design registration number is sighted before it is installed. (Occupational Health and Safety Regulations 2017 (Vic) r 125, Schedule 2)');
+  assert.equal(localControl('An escalator is plant whose design and item must both be registered.', `${QLD}s 243, s 246, schedule 5`, 'vic'), 'An escalator is a lift, and its design is registered. (Occupational Health and Safety Regulations 2017 (Vic) r 125, Schedule 2)');
+  assert.equal(localControl('The design registration number is sighted before it is installed, and the item registration number before it is used.', '', 'vic'), 'The design registration number is sighted before it is installed. (Occupational Health and Safety Regulations 2017 (Vic) r 125, Schedule 2)');
 });
 
 test('Victoria: asbestos clearance by an independent person, and no building date', () => {
@@ -415,12 +416,12 @@ test('friable asbestos: enclosure, negative pressure, wet method and air monitor
     const text = lines(draft(state, task));
     const friable = text.find((item) => /^Friable asbestos is removed inside an enclosure that is tested for leaks, under negative pressure, using the wet method/.test(item));
     assert.match(friable, /below 0\.01 fibres\/ml\. \(.*\b475, [rs] 477\)$/, state);
-    assert.ok(!text.includes('Keep the material wet and remove it whole, by hand.'), state);
+    assert.ok(!text.includes('Keep the material wet and remove it with non-powered hand tools.'), state);
     // The ACT's s 477 has no glove bag exception.
     assert.equal(/glove bags/.test(friable), state !== 'act', state);
   }
   assert.ok(!lines(draft('vic', task)).some((item) => /enclosure that is tested for leaks|negative pressure/.test(item)));
-  assert.ok(lines(draft('nsw', 'Remove 60 square metres of bonded asbestos cement roof sheeting from a 1970s factory.')).some((item) => item.startsWith('Keep the material wet and remove it whole, by hand.')));
+  assert.ok(lines(draft('nsw', 'Remove 60 square metres of bonded asbestos cement roof sheeting from a 1970s factory.')).some((item) => item.startsWith('Keep the material wet and remove it with non-powered hand tools.')));
   const scaffold = draft('nsw', 'Erect a tube and coupler scaffold 20 m high on the facade of a commercial office building next to a public footpath.').plant.find((item) => item.item === 'Scaffold');
   assert.match(scaffold.inspection, /\(Work Health and Safety Regulation 2025 \(NSW\) s 225, for suspended, cantilevered, spur and hung scaffolds, and others over 4 m\)\.$/);
 });
@@ -486,7 +487,7 @@ test('Victoria: engineered stone is always high risk, BMU design registration, a
   assert.ok(!stone.some((item) => /determine whether the work is high risk crystalline silica work/.test(item)));
   // Other crystalline silica processes are still assessed.
   assert.ok(lines(draft('vic', SILICA)).some((item) => /determine whether the work is high risk crystalline silica work/.test(item)));
-  assert.equal(localControl('The BMU has a current inspection and registration, and workers wear a harness attached to the anchor in the cradle.', '', 'vic'), `The BMU's design is registered and its inspection and maintenance records are kept (${reg} r 106, r 125, Schedule 2). Workers wear a harness attached to the anchor in the cradle.`);
+  assert.equal(localControl('The BMU has a current inspection and registration.', '', 'vic'), `The BMU's design is registered and its inspection and maintenance records are kept (${reg} r 106, r 125, Schedule 2).`);
   assert.equal(localControl('Manage failure of pressurised concrete lines and hydraulics.', `${QLD}s 214`, 'vic'), 'Manage failure of pressurised concrete lines and hydraulics.');
   assert.match(localControl('Manage failure of pressurised concrete lines and hydraulics.', `${QLD}s 214`, 'nsw'), /\(Work Health and Safety Regulation 2025 \(NSW\) s 214\)$/);
   assert.match(localControl('Shaft openings have barriers or fixed covers as soon as they are formed: covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole. Edge protection top rail at least 900 mm.', `${QLD}s 78, s 306E, s 306F`, 'vic'), new RegExp(`^Shaft openings have barriers or fixed covers as soon as they are formed \\(${reg.replace(/[()]/g, '\\$&')} r 44\\)\\. Covers are strong enough .* Edge protection has a top rail at least 900 mm high, to the relevant Australian Standard\\.$`));
@@ -503,7 +504,7 @@ test('ACT: lines that call the work crystalline silica processing give the s 418
 
 test('figures the regulation does not set are not cited to it outside Queensland', () => {
   const lines78 = 'Work from a solid surface with edge protection wherever a fall of 2 m or more is possible: top rail at least 900 mm, rails no more than 450 mm apart, toe board at least 150 mm.';
-  const bricks = 'Work from scaffold with brick guards where a fall of more than 2 m is possible, and do not overload bays: bricklaying and blocklaying need a heavy duty scaffold, rated up to 675 kg a bay. A scaffold over 4 m is used only after written handover, and inspected at least every 30 days.';
+  const bricks = 'A scaffold over 4 m is used only after written handover, and inspected at least every 30 days. Bricklaying and blocklaying need a heavy duty scaffold, rated up to 675 kg a bay, and bays are not overloaded.';
   const anchors = 'Where fall arrest is used, anchors carry at least 15 kN for one person or 21 kN for two, no one uses it alone, and the rescue procedure is in place.';
   for (const state of ['nsw', 'sa', 'wa', 'tas', 'nt', 'act']) {
     for (const [text, source] of [[lines78, `${QLD}s 78, s 306D, s 306E`], [bricks, `${QLD}s 225`], [anchors, `${QLD}s 80, s 306I`]]) {

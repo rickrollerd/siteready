@@ -4595,7 +4595,7 @@ const SAID_BY_FACT = [
   // Where a licensed removalist takes the asbestos out first, the crew does not remove the fibro sheets.
   [/\bOld fibro sheets on a shed built before 2004 are treated as asbestos unless tested, and are removed under the asbestos rules\./, /\blicensed asbestos removalist\b[^.]*\bremoves any asbestos before this work starts\b/i, 'Old fibro sheets on a shed built before 2004 are treated as asbestos unless tested, and are removed by the licensed asbestos removalist before the rest of the shed is taken down.'],
   // An answer that already keeps the paint ventilated and away from ignition sources leaves nothing to add.
-  [/^Line marking paint is used outdoors or with ventilation, away from ignition sources, as its safety data sheet says\.$/, /\bventilat\w*\b[^.]*\bignition\b|\bignition\b[^.]*\bventilat\w*\b/i, ''],
+  [/^Line marking paint is used outdoors or with ventilation, away from ignition sources, as its safety data sheet says\.(?: \(.*\))?$/, /\bventilat\w*\b[^.]*\bignition\b|\bignition\b[^.]*\bventilat\w*\b/i, ''],
 ];
 
 function tidySteps(steps, source, answers = '') {

@@ -962,7 +962,7 @@ test('the trench steps follow the trench category: support when it is ticked, un
   // A trench picked for in-ground services: the support answer names trenches, so the category is ticked.
   const deep = draft('Install in-ground and under-slab fire services (Under building slabs).', 'fire', { kinds: ['trench'] });
   assert.match(risks(deep), /trench/i);
-  assert.match(lines(work(deep, 'Work in the trench')), /No one enters the trench until the support is in place/);
+  assert.match(lines(work(deep, 'Work in the trench')), /Workers do not enter any part of the trench that is not protected by the support/);
   assert.doesNotMatch(lines(work(deep, 'Work in the trench')), /kept shallower than 1\.5 m/);
   assert.match(lines(work(deep, 'Excavate')), /all sides supported by shoring, benching or battering/);
   // A stated shallow trench is not high risk, and the trench step keeps it under 1.5 m.
@@ -1231,7 +1231,7 @@ test('air and water pressure tests get their own lines, and the gas line test on
   assert.match(lines(water), /Tested with water to ____ kPa/);
   assert.match(lines(water), /rated above the test pressure/);
   assert.match(lines(water), /raised gradually, in stages/);
-  assert.match(lines(water), /Stored pressure is released through a vent or drain valve/);
+  assert.match(lines(water), /Pressure is released through a vent or drain valve/);
   assert.match(lines(water), /Water leaks onto live electrical equipment/);
   // An air test of pipework: the stored energy of compressed air, no flooding.
   const air = draft('Air test the sanitary drainage.', 'plumbing');
@@ -1274,7 +1274,7 @@ test('joinery and timber doors made in the workshop get the woodworking steps, n
 test('switchboards built in the workshop get the workshop build and test steps, with no site isolation or high risk work', () => {
   const done = draft('Fabricate switchboards and distribution boards including interwiring.', 'electrical');
   assert.deepEqual(middle(done), ['Build the switchboard enclosure', 'Fit out and interwire the switchboard', 'Test the switchboard in the workshop', 'Move and load finished switchboards']);
-  assert.ok(said(done, /tested de-energised first/));
+  assert.ok(said(done, /tested with de-energised testing methods first/));
   assert.deepEqual(done.highRisk, []);
   for (const near of ['Supply and install the main switchboard.', 'Install the new distribution boards on each level.', 'Interwire the new distribution board on site.']) assert.deepEqual(shopKinds(near), [], near);
 });
@@ -1305,7 +1305,7 @@ test('cast-in items fixed at the precast yard are yard steps, not precast erecti
 test('pebble pool finishes are applied and acid washed with the hydrochloric acid controls', () => {
   const done = draft('Apply pebble aggregate finish to the pool.', 'landscaping');
   assert.deepEqual(middle(done), ['Mix and apply the pebble finish', 'Acid wash the pebble finish']);
-  for (const pattern of [/added to water, never water to acid/, /neutralised with soda ash or lime/, /confined space definition/, /eye wash/, /drawn from the lowest point/]) assert.ok(said(done, pattern), String(pattern));
+  for (const pattern of [/added to water, never water to acid/, /soda ash or lime are kept at hand/, /Wash water is neutralised before it is pumped out/, /confined space definition/, /eye wash/, /from the lowest point/]) assert.ok(said(done, pattern), String(pattern));
   assert.deepEqual(kinds('Apply pebble aggregate finish to water features.', 'landscaping'), ['pebbleFinish']);
   for (const near of ['Lay exposed aggregate concrete to the driveway.', 'Lay pebbles in the garden beds.', 'Install the pool fence and pool equipment.', 'Acid wash the brick walls.']) assert.deepEqual(shopKinds(near), [], near);
 });
@@ -1365,7 +1365,8 @@ test('removing high voltage poles asks about the transformer and its oil, and th
 
     // Oil, labelled or tested PCB-free: the bunded tray and spill kit line, and no PCB lines.
     const free = draft(task, 'electrical', { state, facts: { poleTransformer: 'yes', transformerOil: 'pcbFree' } });
-    assert.ok(lift(free).controls.some((line) => /^The transformer is kept upright, set down on a pallet or bunded tray and strapped down, and a spill kit is at hand for leaking oil\./.test(line)), state);
+    assert.ok(lift(free).controls.some((line) => /^The transformer is kept upright, set down on a pallet or bunded tray and strapped down\./.test(line)), state);
+    assert.ok(lift(free).controls.some((line) => /^A spill kit is at hand for leaking transformer oil\./.test(line)), state);
     assert.ok(lift(free).hazards.includes('Transformer oil leaks or spills.'), state);
     assert.ok(!all(free).some((line) => /\bPCB/.test(line)), state);
     assert.ok(said(free, /could back-feed it, is isolated and locked off/), state);

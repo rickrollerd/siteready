@@ -312,14 +312,6 @@
     },
     {
       "swms": [
-        "car-park-fans"
-      ],
-      "phrase": "Close the work area to vehicles",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 215",
-      "quote": "the plant does not collide with pedestrians or other powered mobile plant"
-    },
-    {
-      "swms": [
         "insulation"
       ],
       "phrase": "Label anything decanted",

@@ -252,7 +252,7 @@
         "cast-in"
       ],
       "phrase": "under the supervision of a person licensed for electrical installation work",
-      "source": "Electrical Safety Act 2002 (Qld) s 18(2)(e)",
+      "source": "Electrical Safety Code of Practice 2021: Managing electrical risks in the workplace (Qld) s 1.2",
       "quote": "the channels are not intended to be earthed; wiring installed in the channels is not energised; the work is done under the supervision of a person licensed to perform electrical installation work"
     },
     {
@@ -378,7 +378,7 @@
         "cable-pull"
       ],
       "phrase": "Helpers without an electrical licence",
-      "source": "Electrical Safety Act 2002 (Qld) s 18(2)(g)",
+      "source": "Electrical Safety Code of Practice 2021: Managing electrical risks in the workplace (Qld) s 1.2",
       "quote": "under the direct supervision of the electrical worker, if the assistance does not involve physical contact with any energised electrical equipment"
     }
   ]

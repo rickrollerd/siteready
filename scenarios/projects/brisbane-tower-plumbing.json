@@ -241,7 +241,7 @@
       "swms": [
         "sleeves"
       ],
-      "phrase": "edge protection installed by others to the regulation",
+      "phrase": "Edge protection is erected and used in accordance with",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 306E",
       "quote": "must be erected in accordance with the instructions of the manufacturer or supplier"
     },
@@ -379,7 +379,7 @@
         "core-drill",
         "fit-off"
       ],
-      "phrase": "wears a fit tested respirator",
+      "phrase": "respiratory protective equipment that has been fit tested to them",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 529B",
       "quote": "is provided with respiratory protective equipment; and wears the respiratory protective equipment"
     },
@@ -395,7 +395,7 @@
       "swms": [
         "pits"
       ],
-      "phrase": "flammable gas alarm set at 5% of the lower explosive limit",
+      "phrase": "keeping flammable gas below 5% of its lower explosive limit",
       "source": "Work Health and Safety Regulation 2011 (Qld) s 72",
       "quote": "less than 5% of its LEL"
     },

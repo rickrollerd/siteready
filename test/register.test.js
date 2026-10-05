@@ -538,7 +538,7 @@ test('banks 4 and 5 verification: the work named, in order, with its own plant a
   assert.ok(before(steps('Replace a rusted steel lintel above a shopfront window.', 'masonry'), 'Cut out the old lintel', 'Lift and fix the new beam or lintel'));
   assert.doesNotMatch(text('Install a CCTV camera on a pole in a car park.', 'security'), /Poles are stood in footings/);
   assert.doesNotMatch(text('Install new automatic sliding doors at a supermarket entrance.', 'carpentry', 'vic'), /MDF/);
-  assert.match(text('Replace a roof turbine vent on a factory roof.', 'roofing'), /The old vent is unfixed/);
+  assert.match(text('Replace a roof turbine vent on a factory roof.', 'roofing'), /The old vent is lifted off only when the new one is ready/);
   assert.ok(draft('Erect a temporary grandstand for a weekend event.', 'scaffolding').qualifications.some((item) => /^Scaffolding licence/.test(item)));
 });
 

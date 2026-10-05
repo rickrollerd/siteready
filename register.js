@@ -297,6 +297,9 @@ function substancesFor(text, safetyDataSheet, controlText = '') {
 // trades' work. Training for a hazard comes from the hazards in the steps.
 const TASK_LICENCES = /^(Gas work licence|Electrical work licence|Plumbing and drainage licence|Refrigerant handling|Licensed asbestos|Pest management|Traffic controller|Chainsaw|Commercial operator)/;
 
+// A control line without the source printed after it: a citation to the silica code is not silica work.
+const withoutSource = (line) => String(line).replace(/\s*\((?:[^()]|\([^()]*\))*\)$/, '');
+
 function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], silicaText = hazardText) {
   const needed = QUALIFICATIONS.filter(([name, pattern]) => {
     // Entry training is for work that enters the space, not work kept at its opening.
@@ -569,7 +572,7 @@ function registersFor(draft, input = {}) {
   const substances = substancesFor(`${task}\n${hazardText}\n${steps.map((step) => step.step).join('\n')}`, (input.facts || {}).safetyDataSheet, steps.flatMap((step) => step.controls).join('\n'));
   let sources = legislationFor([...steps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
   if (!/Queensland/.test(draft.state || '')) sources = addStateLaw(sources, draft.state);
-  const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant.map((item) => localPlant(item, (findState(draft.state) || { id: 'qld' }).id)), draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(line)))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
+  const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant.map((item) => localPlant(item, (findState(draft.state) || { id: 'qld' }).id)), draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(withoutSource(line))))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
   if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` });
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Plumbing and drainage licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Plumbing and Drainage Act 2018 (Qld)'])].sort() };
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Gas work licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'])].sort() };
