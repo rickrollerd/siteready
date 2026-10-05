@@ -189,10 +189,10 @@ test('SiteReady drafts score sensibly', () => {
     // H5 fires on library lines with "where needed" or "as needed" (reported to the owner, rule kept).
     assert.deepEqual(failed(result).filter((rule) => rule !== 'H5'), [], `#${index}`);
   }
-  // The printed SWMS has a risk matrix and no revision number, and loses those points.
+  // The printed SWMS has a risk matrix and loses those points. It prints a revision number (5 Oct).
   const roof = draftCheck(0);
   assert.equal(roof.findings.find((item) => item.rule === 'W8').points, 3);
-  assert.match(roof.findings.find((item) => item.rule === 'W9').message, /revision number/);
+  assert.doesNotMatch(roof.findings.find((item) => item.rule === 'W9').message, /revision number/);
   // A draft is checked before the crew signs, so H7 fails until they do.
   assert.ok(failed(draftCheck(8, false)).includes('H7'));
 });

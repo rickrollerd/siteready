@@ -242,6 +242,7 @@ function swmsView(row, extra = {}) {
     id: row.id, title: row.title, siteId: row.site_id, reviewedBy: row.reviewed_by,
     createdAt: row.created_at, updatedAt: row.updated_at, lastReviewedAt: row.last_reviewed_at, reviewDueAt: row.review_due_at,
     reviewDue: new Date(row.review_due_at) <= now,
+    revision: row.revision || 1, revisedAt: row.revised_at || row.created_at,
     signonPath: `/sign.html?t=${row.signon_token}`,
     ...extra,
   };
@@ -302,8 +303,8 @@ router.post('/swms', requireAccess, route(async (req, res) => {
   const id = auth.newId();
   const now = new Date();
   await db.query(
-    `INSERT INTO swms (id, company_id, site_id, title, input, reviewed_by, created_by, signon_token, created_at, updated_at, last_reviewed_at, review_due_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $9, $10)`,
+    `INSERT INTO swms (id, company_id, site_id, title, input, reviewed_by, created_by, signon_token, created_at, updated_at, last_reviewed_at, review_due_at, revision, revised_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $9, $10, 1, $9)`,
     [id, req.company.id, site ? site.id : null, titleFor(body, input), JSON.stringify(input), name, req.user.id, auth.newToken(), now, addMonths(now, REVIEW_MONTHS)],
   );
   record('swms_saved', req.company.id);
@@ -316,10 +317,10 @@ router.get('/swms/:id', requireUser, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   const signons = (await db.query('SELECT worker_name, worker_company, signed_at, language, read_seconds, sections_viewed, sections_total, check_attempts, explained_by FROM signons WHERE swms_id = $1 ORDER BY signed_at', [row.id]))
     .map(({ worker_name, worker_company, signed_at, ...item }) => ({ worker_name, worker_company, signed_at, reading: signRead.readingNote(item) }));
-  res.json({ swms: swmsView(row), input: row.input, draft: prepareDraft(withCompany(row.input, req.company)), signons });
+  res.json({ swms: swmsView(row), input: row.input, draft: withRevision(prepareDraft(withCompany(row.input, req.company)), row), signons });
 }));
 
-// Saving changes is a review: it restarts the review period.
+// Saving changes is a review: it restarts the review period and makes a new revision.
 router.put('/swms/:id', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   const body = req.body || {};
@@ -329,7 +330,7 @@ router.put('/swms/:id', requireAccess, route(async (req, res) => {
   if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so the changes cannot be saved yet.');
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
   const now = new Date();
-  await db.query('UPDATE swms SET title = $1, input = $2, site_id = $3, reviewed_by = $4, updated_at = $5, last_reviewed_at = $5, review_due_at = $6, reminder_sent_at = NULL WHERE id = $7',
+  await db.query('UPDATE swms SET title = $1, input = $2, site_id = $3, reviewed_by = $4, updated_at = $5, last_reviewed_at = $5, review_due_at = $6, reminder_sent_at = NULL, revision = revision + 1, revised_at = $5 WHERE id = $7',
     [titleFor({ title: body.title || row.title }, input), JSON.stringify(input), site ? site.id : null, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   if (body.input) await recordControlEdits(draft, input).catch(() => {});
   res.json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [row.id])) });
@@ -343,7 +344,7 @@ router.post('/swms/:id/reviewed', requireAccess, route(async (req, res) => {
   res.json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [row.id])) });
 }));
 
-// A copy is a new SWMS for the next job, with its own sign-on sheet.
+// A copy is a new SWMS for the next job, with its own sign-on sheet. It starts at revision 1.
 router.post('/swms/:id/copy', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   const body = req.body || {};
@@ -352,8 +353,8 @@ router.post('/swms/:id/copy', requireAccess, route(async (req, res) => {
   const id = auth.newId();
   const now = new Date();
   await db.query(
-    `INSERT INTO swms (id, company_id, site_id, title, input, reviewed_by, created_by, signon_token, created_at, updated_at, last_reviewed_at, review_due_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $9, $10)`,
+    `INSERT INTO swms (id, company_id, site_id, title, input, reviewed_by, created_by, signon_token, created_at, updated_at, last_reviewed_at, review_due_at, revision, revised_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $9, $10, 1, $9)`,
     [id, req.company.id, site ? site.id : null, textField(body.title, 200) || `Copy of ${row.title}`.slice(0, 200), JSON.stringify(row.input), name, req.user.id, auth.newToken(), now, addMonths(now, REVIEW_MONTHS)],
   );
   res.status(201).json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [id])) });
@@ -365,8 +366,14 @@ router.delete('/swms/:id', requireUser, route(async (req, res) => {
   res.json({ ok: true });
 }));
 
+// The saved revision and its date, printed on the SWMS and read by the builder check.
+function withRevision(draft, row) {
+  if (draft.kind !== 'draft') return draft;
+  return { ...draft, revision: String(row.revision || 1), revisionDate: longDate(row.revised_at || row.created_at) };
+}
+
 async function documentParts(req, row) {
-  const draft = prepareDraft(withCompany(row.input, req.company));
+  const draft = withRevision(prepareDraft(withCompany(row.input, req.company)), row);
   const signons = (await db.query('SELECT * FROM signons WHERE swms_id = $1 ORDER BY signed_at', [row.id]))
     .map((item) => ({ ...item, signedDate: longDate(item.signed_at), readingNote: signRead.readingNote(item) }));
   const confirmation = { name: row.reviewed_by, date: longDate(row.last_reviewed_at) };
