@@ -186,8 +186,8 @@ test('SiteReady drafts score sensibly', () => {
   for (const index of [0, 1, 3]) {
     const result = draftCheck(index);
     assert.ok(result.score >= 80, `#${index} scores ${result.score}`);
-    // H5 fires on library lines with "where needed" or "as needed" (reported to the owner, rule kept).
-    assert.deepEqual(failed(result).filter((rule) => rule !== 'H5'), [], `#${index}`);
+    // The library no longer says "where needed" or "as needed", so H5 passes too (see own-drafts-check.test.js).
+    assert.deepEqual(failed(result), [], `#${index}`);
   }
   // The printed SWMS has a risk matrix, which is not marked down, and a revision number (5 Oct).
   const roof = draftCheck(0);
