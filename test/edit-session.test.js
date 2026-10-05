@@ -149,6 +149,41 @@ test('a change SiteReady has reworded follows the new wording, and one that no l
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(controlEdits)')).Excavate.added, []);
 });
 
+// A click in the preview on a control's button, as the browser would deliver it.
+function clickControl(p, action, holder) {
+  const button = { dataset: { ctl: action }, closest: (selector) => (selector === '[data-ctl-step]' ? holder : null) };
+  const event = new FakeEvent('click', { bubbles: true });
+  event.target = { closest: (selector) => (selector === '[data-ctl]' ? button : null) };
+  p.document.getElementById('result').dispatchEvent(event);
+}
+
+test('removing a line SiteReady recommends keeping warns first, then goes ahead, and the reason is saved with it', async () => {
+  const p = page(server());
+  await settle();
+  p.document.getElementById('task').value = 'Dig a trench.';
+  await prepare(p);
+  const drafts = () => p.calls.filter((call) => call.route === '/api/draft').length;
+  const before = drafts();
+  const holder = { dataset: { ctlStep: '0', ctlLine: '1', warn: 'Removing or weakening this line is not recommended.' } };
+  clickControl(p, 'remove', holder);
+  await settle();
+  assert.equal(drafts(), before, 'nothing removed yet: the warning comes first');
+  clickControl(p, 'go', { dataset: { ctlStep: '0' } });
+  await settle();
+  assert.equal(drafts(), before + 1, 'removed once the user goes ahead');
+  assert.deepEqual(JSON.parse(p.run('JSON.stringify(controlEdits)')).Excavate.removed, ['Plant is inspected daily.']);
+  // A reason, picked after the SWMS is shown, goes with the save.
+  p.run("setReason('Excavate', 'Plant is inspected daily.', { reason: 'othersCover' })");
+  p.run("setReason('Excavate', 'Plant is inspected daily.', { note: 'The hire company inspects it.' })");
+  p.window.SiteReady.actionInput = { ...p.window.SiteReady.actionInput, controlEdits: JSON.parse(p.run('JSON.stringify(controlEdits)')) };
+  await save(p);
+  const saved = p.calls.find((call) => call.route === '/api/swms' && call.method === 'POST');
+  assert.deepEqual(saved.body.input.controlEdits.Excavate.reasons, [{ line: 'Plant is inspected daily.', reason: 'othersCover', note: 'The hire company inspects it.' }]);
+  // Putting the line back takes its reason with it.
+  p.run("editsFor('Excavate').removed = []; tidyEdits()");
+  assert.equal(p.run('controlEdits'), null);
+});
+
 test('downloading saves the SWMS, and later changes save as its next revision', async () => {
   const p = page(server((method, route) => (route === '/api/draft.docx'
     ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 'dl-1', 'x-siteready-revision': '1', 'x-siteready-title': 'Dig%20a%20trench' } } : null)));

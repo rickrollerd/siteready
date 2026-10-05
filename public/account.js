@@ -297,6 +297,9 @@
       const logo = (S.getProfile() || {}).logo;
       if (logo) input = { ...input, logo };
     }
+    // What the buttons save. The reasons the user gives for a change after the SWMS is shown are
+    // added to it (app.js) without drawing the buttons again.
+    S.actionInput = input;
     const siteOptions = ['<option value="">No site</option>', ...sites.map((site) => `<option value="${esc(site.id)}">${esc(site.name)}</option>`)].join('');
     // A saved SWMS being changed: its changes save as its next revision until a new SWMS is started.
     const editing = !local && S.editing;
@@ -327,7 +330,7 @@
     // Signed in, a download saves the SWMS first (or its next revision, when it has changed), so
     // every print has a record. Later changes save as its next revision.
     const saveAndDownload = async (route, fallbackName) => {
-      const body = { ...input, ...confirmed('new'), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
+      const body = { ...S.actionInput, ...confirmed('new'), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
       const { saved } = await download(route, fallbackName, body);
       if (!saved) return;
       S.editing = { id: saved.id, title: saved.title };
@@ -338,7 +341,7 @@
     $('new-pdf').addEventListener('click', () => run(() => saveAndDownload('/api/draft.pdf', 'SiteReady.pdf')));
     if ($('new-save')) {
       $('new-save').addEventListener('click', () => run(async () => {
-        const body = { input, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new') };
+        const body = { input: S.actionInput, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new') };
         const data = S.editing ? await call('PUT', `/api/swms/${S.editing.id}`, body) : await call('POST', '/api/swms', body);
         // Later changes to this SWMS save as its revisions.
         S.editing = { id: data.swms.id, title: data.swms.title };
@@ -350,7 +353,7 @@
     if ($('new-separate')) {
       $('new-separate').addEventListener('click', () => {
         S.editing = null;
-        S.showActions(draft, original);
+        S.showActions(draft, S.actionInput);
       });
     }
   };

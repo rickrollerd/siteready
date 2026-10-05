@@ -260,10 +260,13 @@ test('permit lines carry their code sources for the state; a permit or gas line 
   const gasLine = gasStep.controls.find((line) => /^Gas pipework is installed/.test(line));
   const noGas = drafted('qld', { ...gasTask, controlEdits: { [gasStep.step]: { removed: [gasLine] } } });
   assert.ok(!lines(noGas).some((line) => /^Gas pipework is installed/.test(line)));
-  // A confined space entry permit is a legal requirement (s 67): it stays in.
+  // A confined space entry permit is a legal requirement (s 67): it can be removed (owner decision,
+  // 6 October 2026), stays out, and the removal is warned about with the regulation cited.
   const entryLine = entry('qld');
-  const kept = drafted('qld', { ...pumps, controlEdits: Object.fromEntries(drafted('qld', pumps).jobSteps.map((step) => [step.step, { removed: [entryLine] }])) });
-  assert.ok(lines(kept).includes(entryLine));
+  const gone = drafted('qld', { ...pumps, controlEdits: Object.fromEntries(drafted('qld', pumps).jobSteps.map((step) => [step.step, { removed: [entryLine] }])) });
+  assert.ok(!lines(gone).includes(entryLine));
+  const warned = gone.controlEdits.warned.find((item) => item.text === entryLine);
+  assert.match(warned.warnings[0], /^This line is a legal requirement \(Work Health and Safety Regulation 2011 \(Qld\) s 67, s 69; Confined spaces Code of Practice 2021 \(Qld\) s 4\.3, s 4\.5, s 4\.6\)\..*confined space/);
 });
 
 test('the excavation gas monitor line applies where gas or contaminated soil is known or suspected, keeps its sources, and is not vague', () => {

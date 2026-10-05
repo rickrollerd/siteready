@@ -13,6 +13,10 @@ function longDate(date = new Date()) {
   return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
+// The reasons a user can pick for removing or weakening a control, or marking a hazard as not
+// applying (owner decision, 6 October 2026). Picking one is optional.
+const EDIT_REASONS = ['notNeeded', 'anotherWay', 'othersCover', 'wording', 'other'];
+
 // The user's own changes to the controls, by job step name: lines removed, lines reworded
 // and lines added. Kept small: a few dozen lines per step, for at most 60 steps.
 function controlEdits(value) {
@@ -23,6 +27,12 @@ function controlEdits(value) {
     const changed = Array.isArray(edit.changed) ? edit.changed.filter((item) => item && typeof item.from === 'string' && typeof item.to === 'string').slice(0, 40)
       .map((item) => ({ from: textField(item.from, 1500), to: textField(item.to, 600) })).filter((item) => item.from) : [];
     const out = { removed: texts(edit.removed, 40, 1500), changed, added: texts(edit.added, 20, 600) };
+    // Why a line was removed or weakened: one of a short list, and an optional note. The user can
+    // leave it blank.
+    const reasons = Array.isArray(edit.reasons) ? edit.reasons.filter((item) => item && typeof item.line === 'string').slice(0, 40)
+      .map((item) => ({ line: textField(item.line, 1500), reason: EDIT_REASONS.includes(item.reason) ? item.reason : '', note: textField(item.note, 300) }))
+      .filter((item) => item.line && (item.reason || item.note)) : [];
+    if (reasons.length) out.reasons = reasons;
     return out.removed.length || out.changed.length || out.added.length ? [textField(step, 300), out] : null;
   }).filter(Boolean);
   return entries.length ? Object.fromEntries(entries) : undefined;
@@ -122,4 +132,4 @@ function draftBody(body) {
   };
 }
 
-module.exports = { draftBody, textField, longDate };
+module.exports = { draftBody, textField, longDate, EDIT_REASONS };

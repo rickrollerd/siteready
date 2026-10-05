@@ -2150,7 +2150,9 @@ function prepareDraft(input) {
     // The permits the high risk work listed needs, such as confined space entry, now the list is final.
     // A permit line added here goes in at its place in the hierarchy; the user's own lines keep theirs.
     const stepNames = draft.jobSteps.map((step) => step.step);
-    const permitted = withPermits(draft.jobSteps, [riskTask, ...stepNames, ...draft.highRisk].join('\n'), [combinedFacts(task, facts), ...stepNames].join('\n'), permitOptions(task, state, input));
+    // Permit and category lines the user removed are left out here, and reported as their removals.
+    const suppressed = [];
+    const permitted = withPermits(draft.jobSteps, [riskTask, ...stepNames, ...draft.highRisk].join('\n'), [combinedFacts(task, facts), ...stepNames].join('\n'), { ...permitOptions(task, state, input), suppressed });
     draft.jobSteps = permitted.map((step, index) => {
       const had = draft.jobSteps[index].controls;
       if (step.controls.length === had.length) return step;
@@ -2162,7 +2164,8 @@ function prepareDraft(input) {
       }
       return { ...step, controls };
     });
-    draft.jobSteps = withCategoryLines(draft.jobSteps, draft.highRisk, state, removedLines(input.controlEdits));
+    draft.jobSteps = withCategoryLines(draft.jobSteps, draft.highRisk, state, removedLines(input.controlEdits), suppressed);
+    if (suppressed.length && draft.controlEdits) reportSuppressed(draft.controlEdits, suppressed, input.controlEdits);
   }
   // Plant, substances, licences, emergency arrangements, sources and a suggested
   // risk rating for each step, worked out from the finished steps.
@@ -2291,7 +2294,7 @@ const PERMITS = [
     line: 'No digging starts until an excavation permit is issued by the principal contractor, or signed by the supervisor where the principal contractor does not issue them. The permit is issued only once the Before You Dig Australia plans are on site and the underground services in and near the dig are located and marked on the ground.',
     // Getting the underground services information before digging, and locating the services.
     // The permit itself is not a legal requirement, so the regulation (s 304, getting the services
-    // information) is not cited: a line cited to a regulation cannot be removed by the user.
+    // information) is not cited: a line cited to a regulation is warned about as a legal requirement.
     source: `${CITE.MODEL('Excavation work', 's 3.5')}; ${CITE.NSWC('NSW Excavation', 's 3.6')}`,
   },
   {
@@ -2352,14 +2355,14 @@ function domesticWork(task, residential) {
 const permitOptions = (task, state, input = {}) => ({ stateId: state.id, domestic: domesticWork(task, state.residentialFallMetres ? state.residential : undefined), removed: removedLines(input.controlEdits) });
 
 // Every line the user removed in their control edits, in any step. A permit or category line the
-// user removed stays out: the user has the final say (owner decision, 5 October 2026).
+// user removed stays out: the user has the final say (owner decisions, 5 and 6 October 2026),
+// with a warning where the line is a legal requirement or one SiteReady recommends keeping.
 function removedLines(edits) {
   if (!edits || typeof edits !== 'object') return new Set();
   return new Set(Object.values(edits).flatMap((mine) => (mine && Array.isArray(mine.removed) ? mine.removed : [])).map((line) => String(line || '').trim()));
 }
 // A line the user removed, with or without its sources.
-// A line cited to a regulation is a legal requirement and goes back in, as applyControlEdits keeps it.
-const userRemoved = (removed, line, printed = line) => Boolean(removed && removed.size) && (removed.has(printed) || removed.has(line)) && !legalSource(printed);
+const userRemoved = (removed, line, printed = line) => Boolean(removed && removed.size) && (removed.has(printed) || removed.has(line));
 
 // A permit line with its sources, as printed for the state.
 const permitLine = (permit, stateId) => localControl(permit.line, permit.source, stateId) || permit.line;
@@ -2369,7 +2372,7 @@ const permitLine = (permit, stateId) => localControl(permit.line, permit.source,
 function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
   let steps = jobSteps;
   for (const permit of PERMITS) {
-    if ((permit.notDomestic && options.domestic) || userRemoved(options.removed, permit.line, permitLine(permit, options.stateId || 'qld'))) continue;
+    if (permit.notDomestic && options.domestic) continue;
     if (!steps.length || !permit.work.test(work) || (alreadyRead && permit.work.test(alreadyRead))) continue;
     const named = steps.findIndex((step) => step.controls.some((line) => permit.named.test(line)));
     if (named >= 0) {
@@ -2383,6 +2386,10 @@ function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
     let at = steps.findIndex((step) => permit.at.test(step.step));
     if (at < 0) at = steps.findIndex((step) => permit.work.test(step.step));
     if (at < 0) at = 0;
+    if (userRemoved(options.removed, permit.line, permitLine(permit, options.stateId || 'qld'))) {
+      if (options.suppressed) options.suppressed.push({ step: steps[at].step, line: permitLine(permit, options.stateId || 'qld') });
+      continue;
+    }
     steps = steps.map((step, index) => (index === at ? { ...step, controls: [...step.controls, permitLine(permit, options.stateId || 'qld')] } : step));
   }
   return steps;
@@ -2400,13 +2407,17 @@ const CATEGORY_LINES = {
     line: 'Gas pipework is installed, connected and tested only by a licensed gas fitter. The gas supply is isolated at the meter or isolating valve before any connection to a live gas line, the new pipework is leak tested before the gas is turned on, and the line is purged of air before any appliance is lit.',
   },
 };
-function withCategoryLines(jobSteps, highRisk, state, removed = new Set()) {
+function withCategoryLines(jobSteps, highRisk, state, removed = new Set(), suppressed = null) {
   let steps = jobSteps;
   for (const [check, item] of Object.entries(CATEGORY_LINES)) {
     const category = highRiskList(state).find((entry) => entry.check === check);
-    if (userRemoved(removed, item.line) || !steps.length || !category || !highRisk.includes(category.label) || steps.some((step) => step.controls.some((line) => item.answers.test(line)))) continue;
+    if (!steps.length || !category || !highRisk.includes(category.label) || steps.some((step) => step.controls.some((line) => item.answers.test(line)))) continue;
     let at = steps.findIndex((step) => !['Before starting', 'Finish and clean up'].includes(step.step) && item.at.test(step.step));
     if (at < 0) at = 0;
+    if (userRemoved(removed, item.line)) {
+      if (suppressed) suppressed.push({ step: steps[at].step, line: item.line });
+      continue;
+    }
     steps = steps.map((step, index) => {
       if (index !== at) return step;
       const controls = [...step.controls];
@@ -2470,15 +2481,73 @@ function lineSource(line) {
   return '';
 }
 
-// A line cited to a regulation or an Act is a legal requirement, so it cannot be removed or reworded.
-// Lines cited only to a code of practice can be: a code allows another way that is as safe or safer.
+// A line cited to a regulation or an Act is a legal requirement. Lines cited only to a code of
+// practice are not: a code allows another way that is as safe or safer.
 function legalSource(line) {
   const source = lineSource(line);
   return source.split('; ').filter((part) => /\b(?:Regulations?|Act)\b/.test(part)).join('; ');
 }
 
-function legalReason(source) {
-  return `This line is a legal requirement (${source}), so it cannot be removed or changed. Add your own line to the step if the site needs more.`;
+// ---- Warnings on removing or weakening a control (owner decision, 6 October 2026) ----
+
+// Any line can be removed or weakened, including a legal requirement, but a warning says why it is
+// not recommended, citing the line's own sources, and the change is recorded with it. These lines
+// carry a warning whatever their source.
+const KEEP_LINES = [
+  { test: /\bconfined space entry permit\b/i, why: 'No one should enter a confined space without an entry permit, issued after the air is tested, with a standby person outside. A confined space can kill in minutes, often the rescuer too.' },
+  { test: /\b(?:electric|power) lines?\b/i, also: /\b(?:permits?|approach distances?|exclusion zones?|\d+(?:\.\d+)? ?m)\b/i, why: 'Work near electric lines needs the permit and the exclusion zone for the line, such as the 3 m zone, set by the electrical safety law and the line\'s owner. Touching a line, or a flash-over to plant inside the zone, is usually fatal.' },
+  { test: /\bexcavation permit\b/i, why: 'The excavation permit confirms the underground services are located before digging. Striking a live cable or a gas main can kill.' },
+  { test: /\bhot work permit\b/i, why: 'The hot work permit confirms the area is cleared of anything that burns and a fire watch is kept. Hot work is a leading cause of fires on building sites.' },
+  { test: /\bisolation permit\b|\bisolat\w*\b[^.]*\b(?:lock\w*|danger tag\w*|personal (?:lock|padlock)\w*)/i, why: 'Isolation and lock-out stop plant starting, or a circuit being live, while someone is working on it.' },
+  { test: /\b1\.5 ?m\b[^.]*\b(?:trench\w*|deep|excavat\w*)\b|\btrench\w*\b[^.]*\b1\.5 ?m\b|\bgeotechnical\b[^.]*\b(?:trench\w*|excavat\w*|batter\w*|shor\w*|bench\w*)\b/i, why: 'A trench 1.5 m deep or more is shored, benched or battered unless a geotechnical engineer has advised in writing that the ground is stable. A trench collapse can bury and kill a worker.' },
+  { test: /\b23(?:\.5)? ?%/, why: 'Air with more than about 23% oxygen is oxygen-enriched: clothing and hair catch fire easily. Below 19.5% a person can collapse without warning.' },
+];
+
+// Why removing or weakening a line is not recommended, with its sources; empty when it is not one
+// of those lines.
+function keepWarning(line) {
+  const text = withoutMark(line);
+  if (String(line || '').endsWith(OWN_MARK)) return '';
+  const legal = legalSource(text);
+  const keep = KEEP_LINES.find((item) => item.test.test(text) && (!item.also || item.also.test(text)));
+  if (!legal && !keep) return '';
+  const source = lineSource(text);
+  const cited = source && SOURCE_WORDS.test(source) ? ` (${source})` : '';
+  if (legal) return `This line is a legal requirement${cited}. Removing or weakening it is not recommended: the law requires it whatever the SWMS says.${keep ? ` ${keep.why}` : ''}`;
+  return `Removing or weakening this line is not recommended${cited}. ${keep.why}`;
+}
+
+// Words that make a control optional, and words a control should not lose.
+const SOFTENERS = [/\bshould\b/i, /\b(?:where|when|if) (?:possible|practical|practicable|required|needed|necessary)\b/i, /\bunless\b/i, /\btry to\b/i, /\bmay\b/i, /\bas (?:required|needed|necessary)\b/i, /\bideally\b/i, /\bif time (?:allows|permits)\b/i];
+const KEY_WORDS = [/\bpermits?\b/i, /\bstand-?by (?:person|attendant)s?\b/i, /\bspotters?\b/i, /\bsafety observers?\b/i, /\block(?:ed|s)? ?(?:out)?\b/i, /\bdanger tag\w*\b/i, /\btest(?:ed|ing)?\b/i, /\blicen[cs]\w*\b/i, /\bcompetent person\b/i, /\bexclusion zones?\b/i, /\bharness\w*\b/i, /\bguard ?rails?\b/i, /\bshor(?:ed|ing)\b/i, /\bgas detectors?|gas monitors?\b/i, /\bfire watch\b/i];
+const NUMBER = /(\d+(?:\.\d+)?)\s?(mm|m|metres?|%|kv|minutes?|hours?|kg|t|tonnes?)\b/gi;
+const numbersOf = (text) => [...String(text).matchAll(NUMBER)].map((match) => ({ value: Number(match[1]), unit: match[2].toLowerCase().replace(/^metres?$/, 'm'), text: match[0] }));
+
+// What a reworded line has lost or softened, compared with the line it replaces.
+function weakerWording(from, to) {
+  const before = lineWords(from);
+  const out = [];
+  const old = numbersOf(before);
+  // Which way is safer, where the line says: a distance "at least" so far is safer larger; a
+  // limit "or more" or "no more than" is safer smaller.
+  const larger = /\b(?:at least|minimum|no less than|back from|away from|clear of|or longer)\b/i.test(before);
+  const smaller = /\b(?:no more than|maximum|up to|not exceed\w*|or more|or deeper|more than|over|above)\b/i.test(before);
+  for (const number of numbersOf(to)) {
+    const was = old.find((item) => item.unit === number.unit && item.value !== number.value);
+    if (!was || old.some((item) => item.unit === number.unit && item.value === number.value)) continue;
+    const weaker = larger && !smaller ? number.value < was.value : smaller && !larger ? number.value > was.value : true;
+    if (weaker) out.push(`A number has changed (${was.text} to ${number.text}). Check the new figure is as safe as SiteReady's, or safer.`);
+  }
+  for (const pattern of SOFTENERS) {
+    const said = (String(to).match(pattern) || [])[0];
+    if (said && !pattern.test(before)) out.push(`"${said}" makes the control optional. Say what is done.`);
+  }
+  for (const pattern of KEY_WORDS) {
+    const had = (before.match(pattern) || [])[0];
+    if (had && !pattern.test(to)) out.push(`The line no longer mentions "${had.toLowerCase()}".`);
+  }
+  if (require('./builder-check').isVague(to)) out.push('The wording is vague. Say what is done, by whom, or to what standard.');
+  return out;
 }
 
 // ---- Choices made on a line SiteReady has since reworded ----
@@ -2548,14 +2617,32 @@ function stepsForEdits(jobSteps, edits) {
 // lines). One the user removed is left out where it is added, so it is not reported as unmatched.
 const ADDED_LATER = () => new Set([...PERMITS.flatMap((permit) => [permit.line, permit.fire && permit.fire.line]), ...Object.values(CATEGORY_LINES).map((item) => item.line)].filter(Boolean).map((line) => lineWords(line).toLowerCase()));
 
+// A permit or category line the user removed is left out where it is added, after the other
+// changes are applied. It is reported as their removal here, warned about like any other, with
+// the reason they gave.
+function reportSuppressed(report, suppressed, edits) {
+  for (const { step, line } of suppressed) {
+    if (report.applied.some((item) => item.kind === 'removed' && item.from === line)) continue;
+    const key = Object.keys(edits || {}).find((name) => ((edits[name] || {}).removed || []).includes(line)) || step;
+    const given = (((edits || {})[key] || {}).reasons || []).find((item) => item.line === line);
+    const why = given ? { reason: given.reason || '', note: given.note || '' } : {};
+    report.applied.push({ step, kind: 'removed', from: line, to: '', ...why });
+    const keep = keepWarning(line);
+    if (keep) report.warned.push({ step, kind: 'removed', text: line, to: '', warnings: [keep], legal: legalSource(line), ...why });
+  }
+}
+
 // Applies the user's choices to each step's controls: lines removed, lines reworded and lines
 // added. A choice made on a line SiteReady has since reworded is applied to the line as it now
 // reads, and reported (remapped); a choice that matches no line in the SWMS is reported
-// (unmatched) and left out. Returns what was done, and what was refused and why.
+// (unmatched) and left out. Removing or weakening a legal requirement or a line SiteReady
+// recommends keeping, or writing a vague line, is done and warned about (warned), with the
+// user's reason where they gave one. Returns what was done, warned and refused, and why.
 function applyControlEdits(jobSteps, edits) {
   if (!edits || typeof edits !== 'object') return { jobSteps };
   const applied = [];
   const refused = [];
+  const warned = [];
   const remapped = [];
   const unmatched = [];
   const addedLater = ADDED_LATER();
@@ -2575,6 +2662,13 @@ function applyControlEdits(jobSteps, edits) {
     const taken = new Set();
     const removed = new Set();
     const changed = new Map();
+    // The user's reason for removing or changing a line, by the line as they saw it.
+    const reasons = new Map((mine.reasons || []).map((item) => [item.line, item]));
+    const madeOn = new Map();
+    const why = (line) => {
+      const given = reasons.get(madeOn.get(line)) || reasons.get(line);
+      return given ? { reason: given.reason || '', note: given.note || '' } : {};
+    };
     for (const text of mine.removed || []) {
       const found = findLine(step.controls, text, taken);
       if (!found) {
@@ -2583,6 +2677,7 @@ function applyControlEdits(jobSteps, edits) {
       }
       taken.add(found.line);
       removed.add(found.line);
+      madeOn.set(found.line, text);
       if (!found.exact) remapped.push({ step: key, kind: 'removed', from: text, line: found.line });
     }
     for (const item of mine.changed || []) {
@@ -2590,29 +2685,31 @@ function applyControlEdits(jobSteps, edits) {
       if (!found) { unmatched.push({ step: key, kind: 'changed', text: item.from, to: withoutMark(item.to), reason: 'line' }); continue; }
       taken.add(found.line);
       changed.set(found.line, withoutMark(item.to));
+      madeOn.set(found.line, item.from);
       if (!found.exact) remapped.push({ step: key, kind: 'changed', from: item.from, line: found.line });
     }
     const done = [];
+    const cautions = [];
     const controls = [];
     for (const line of step.controls) {
       const wanted = removed.has(line) ? '' : changed.has(line) ? changed.get(line) : null;
       if (wanted === null || wanted === line) { controls.push(line); continue; }
-      const source = legalSource(line);
-      if (source) {
-        refused.push({ step: step.step, text: line, reason: legalReason(source) });
-        controls.push(line);
-      } else if (wanted) {
+      const keep = keepWarning(line);
+      const warnings = [...(keep ? [keep] : []), ...(wanted ? weakerWording(line, wanted) : [])];
+      if (wanted) {
         controls.push(`${wanted} ${OWN_MARK}`);
-        done.push({ step: step.step, kind: 'changed', from: line, to: wanted });
+        done.push({ step: step.step, kind: 'changed', from: line, to: wanted, ...why(line) });
       } else {
-        done.push({ step: step.step, kind: 'removed', from: line, to: '' });
+        done.push({ step: step.step, kind: 'removed', from: line, to: '', ...why(line) });
       }
+      if (warnings.length) cautions.push({ step: step.step, kind: wanted ? 'changed' : 'removed', text: line, to: wanted, warnings, legal: legalSource(line), ...why(line) });
     }
     for (const text of (mine.added || []).map(withoutMark)) {
       const line = `${text} ${OWN_MARK}`;
       if (!text || controls.includes(line)) continue;
       controls.push(line);
       done.push({ step: step.step, kind: 'added', from: '', to: text });
+      if (require('./builder-check').isVague(text)) cautions.push({ step: step.step, kind: 'added', text: '', to: text, warnings: ['The wording is vague. Say what is done, by whom, or to what standard.'], legal: '' });
     }
     // Every step keeps at least one control.
     if (!controls.length) {
@@ -2620,9 +2717,10 @@ function applyControlEdits(jobSteps, edits) {
       return step;
     }
     applied.push(...done);
+    warned.push(...cautions);
     return { ...step, controls };
   });
-  return { jobSteps: out, report: { applied, refused, remapped, unmatched } };
+  return { jobSteps: out, report: { applied, refused, warned, remapped, unmatched } };
 }
 
 // The job steps in the order the user chose. A step not in that order, such as one added
@@ -4730,6 +4828,7 @@ function stripLiftBleedText(text) {
 module.exports = {
   domesticWork,
   applyControlEdits,
+  keepWarning,
   legalSource,
   OWN_MARK,
   suggestedKinds,

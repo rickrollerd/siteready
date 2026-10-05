@@ -915,12 +915,19 @@ function render(draft, { movable = false } = {}) {
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
   // In the preview each control can be changed or removed, and the user can add their own.
-  // Lines that are a legal requirement say why they stay.
+  // Lines that are a legal requirement, or that SiteReady recommends keeping, say why before the
+  // user goes ahead. A removed or weakened line asks why, which the user can leave blank.
+  const report = draft.controlEdits || {};
   const controlCell = (step, index) => {
     if (!movable) return list(step.controls);
     const legal = (draft.controlLegal || [])[index] || [];
+    const warn = (draft.controlWarn || [])[index] || [];
     const removed = ((controlEdits || {})[step.step] || {}).removed || [];
-    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}>${esc(line)}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+    const warned = (report.warned || []).filter((item) => item.step === step.step);
+    const asks = (report.applied || []).filter((item) => item.step === step.step && (item.kind === 'removed' || warned.some((other) => other.text === item.from)));
+    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${esc(line)}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+      ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
+      ${asks.map((item) => whyBox(index, item)).join('')}
       <button type="button" class="link" data-ctl="add" data-ctl-step="${index}">Add your own control</button><p class="meta ctl-msg" data-ctl-msg="${index}" role="status"></p>`;
   };
   const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}` : '');
@@ -1131,6 +1138,24 @@ resultEl.addEventListener('dragend', () => {
 
 // ---- Changing, removing and adding controls (task #102) ----
 
+// Why a line was removed or weakened (owner decision, 6 October 2026): a short pick list and a
+// note, both optional. Kept with the change, so the saved record and SiteReady's learning have it.
+const WHY = [['notNeeded', 'Not needed for this job'], ['anotherWay', 'Done another way on this job'], ['othersCover', 'Another contractor or the site covers it'], ['wording', 'The wording does not fit the job'], ['other', 'Other']];
+function whyBox(index, item) {
+  const given = (((controlEdits || {})[item.step] || {}).reasons || []).find((entry) => entry.line === item.from) || {};
+  return `<div class="ctl-why">${item.kind === 'removed' ? 'Removed' : 'Changed'}: ${esc(plainLine(item.from).slice(0, 80))}${plainLine(item.from).length > 80 ? '…' : ''}<br>
+    <select data-ctl-reason data-ctl-step="${index}" data-ctl-from="${esc(item.from)}" aria-label="Why (optional)"><option value="">Why? (optional)</option>${WHY.map(([id, label]) => `<option value="${id}"${given.reason === id ? ' selected' : ''}>${esc(label)}</option>`).join('')}</select>
+    <input type="text" maxlength="300" data-ctl-note data-ctl-step="${index}" data-ctl-from="${esc(item.from)}" placeholder="Note (optional)" aria-label="Note (optional)" value="${esc(given.note || '')}"></div>`;
+}
+function setReason(stepName, line, values) {
+  const edit = editsFor(stepName);
+  const reasons = (edit.reasons || []).filter((entry) => entry.line !== line);
+  const next = { line, reason: '', note: '', ...(edit.reasons || []).find((entry) => entry.line === line), ...values };
+  edit.reasons = next.reason || next.note ? [...reasons, next] : reasons;
+  if (!edit.reasons.length) delete edit.reasons;
+  tidyEdits();
+}
+
 // What the server did with the user's changes: those refused, those made on a line SiteReady has
 // since reworded (now applied to the new wording), and those that no longer match a line in the
 // SWMS (kept, not applied, until the user makes them again or discards them).
@@ -1197,12 +1222,24 @@ function editsFor(name) {
 // Drops steps with no changes left, so an unchanged SWMS sends nothing.
 function tidyEdits() {
   if (!controlEdits) return;
-  for (const [name, edit] of Object.entries(controlEdits)) if (!edit.removed.length && !edit.changed.length && !edit.added.length) delete controlEdits[name];
+  for (const [name, edit] of Object.entries(controlEdits)) {
+    // A reason goes with its change.
+    if (edit.reasons) edit.reasons = edit.reasons.filter((entry) => edit.removed.includes(entry.line) || edit.changed.some((item) => item.from === entry.line));
+    if (edit.reasons && !edit.reasons.length) delete edit.reasons;
+    if (!edit.removed.length && !edit.changed.length && !edit.added.length) delete controlEdits[name];
+  }
   if (!Object.keys(controlEdits).length) controlEdits = null;
 }
 function controlMessage(index, text) {
   const el = resultEl.querySelector(`[data-ctl-msg="${index}"]`);
   if (el) el.textContent = text;
+}
+// A warning before removing or changing a line SiteReady recommends keeping, with a way to go ahead.
+let pendingLine = null;
+function warnFirst(index, warning, label) {
+  const el = resultEl.querySelector(`[data-ctl-msg="${index}"]`);
+  if (!el) return;
+  el.innerHTML = `${esc(warning)} <span class="ctl-tools" data-ctl-step="${index}"><button type="button" class="link" data-ctl="go">${esc(label)}</button><button type="button" class="link" data-ctl="keep">Keep the line</button></span>`;
 }
 function applyLineEdit(step, line, next) {
   const edit = editsFor(step.step);
@@ -1266,12 +1303,36 @@ resultEl.addEventListener('click', (event) => {
     return;
   }
   const line = step.controls[Number(holder.dataset.ctlLine)];
-  if (holder.dataset.legal) {
-    controlMessage(index, `This line is a legal requirement (${holder.dataset.legal}), so it cannot be removed or changed. Add your own control if the site needs more.`);
+  if (action === 'go') {
+    // The user has read the warning and goes ahead.
+    const next = pendingLine;
+    pendingLine = null;
+    if (next && next.index === index) {
+      if (next.action === 'remove') applyLineEdit(next.step, next.line, '');
+      else lineEditor(next.holder, plainLine(next.line), (text) => applyLineEdit(next.step, next.line, text));
+    }
+    return;
+  }
+  if (action === 'keep') { pendingLine = null; controlMessage(index, ''); return; }
+  // A line that is a legal requirement, or that SiteReady recommends keeping, says why first.
+  // The user can still go ahead (owner decision, 6 October 2026).
+  if (holder.dataset.warn && !isOwn(line)) {
+    pendingLine = { index, action, step, line, holder };
+    warnFirst(index, holder.dataset.warn, action === 'remove' ? 'Remove anyway' : 'Change anyway');
     return;
   }
   if (action === 'remove') applyLineEdit(step, line, '');
   if (action === 'change') lineEditor(holder, plainLine(line), (text) => applyLineEdit(step, line, text));
+});
+// The reason for a removed or weakened line is kept as it is picked or typed.
+resultEl.addEventListener('change', (event) => {
+  const field = event.target.closest && event.target.closest('[data-ctl-reason], [data-ctl-note]');
+  if (!field || !shownDraft) return;
+  const step = (shownDraft.jobSteps || [])[Number(field.dataset.ctlStep)];
+  if (!step) return;
+  setReason(step.step, field.dataset.ctlFrom, field.matches('[data-ctl-reason]') ? { reason: field.value } : { note: field.value.trim() });
+  // The buttons below the SWMS save what is now chosen.
+  if (window.SiteReady.actionInput) window.SiteReady.actionInput = { ...window.SiteReady.actionInput, controlEdits: controlEdits || undefined };
 });
 
 // ---- Reading the draft in another language (task #94) ----

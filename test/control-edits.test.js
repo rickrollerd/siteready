@@ -101,15 +101,60 @@ test('removed, changed and added lines are applied to the step, with the user\'s
   assert.equal(plain.controlEdits, undefined);
 });
 
-test('a line that is a legal requirement is not removed or changed, and the reason is given', () => {
-  const draft = prepareDraft(draftBody({ ...INPUT, controlEdits: { 'Before starting': { removed: [LEGAL_LINE] }, Excavate: { changed: [{ from: LEGAL_LINE, to: 'x' }] } } }));
-  assert.deepEqual(draft.jobSteps.find((step) => step.step === 'Before starting').controls, before.controls);
-  assert.equal(draft.controlEdits.refused.length, 1, 'a line not in the step is left alone');
-  assert.equal(draft.controlEdits.refused[0].text, LEGAL_LINE);
-  assert.match(draft.controlEdits.refused[0].reason, /legal requirement \(Work Health and Safety Regulation 2011 \(Qld\) s 317\), so it cannot be removed or changed/);
+test('a line that is a legal requirement can be removed or changed, with a warning citing the law, and the change is recorded', () => {
+  // Owner decision, 6 October 2026: any line can be removed or weakened, with a warning.
+  const draft = prepareDraft(draftBody({ ...INPUT, controlEdits: { 'Before starting': { removed: [LEGAL_LINE], reasons: [{ line: LEGAL_LINE, reason: 'othersCover', note: 'The builder checks white cards at the gate.' }] }, Excavate: { changed: [{ from: LEGAL_LINE, to: 'x' }] } } }));
+  assert.ok(!draft.jobSteps.find((step) => step.step === 'Before starting').controls.includes(LEGAL_LINE), 'removed');
+  assert.deepEqual(draft.controlEdits.refused, []);
+  assert.equal(draft.controlEdits.unmatched.length, 1, 'a line not in the step is left alone, and reported');
+  const [warned] = draft.controlEdits.warned;
+  assert.equal(warned.text, LEGAL_LINE);
+  assert.equal(warned.kind, 'removed');
+  assert.equal(warned.legal, 'Work Health and Safety Regulation 2011 (Qld) s 317');
+  assert.match(warned.warnings[0], /^This line is a legal requirement \(Work Health and Safety Regulation 2011 \(Qld\) s 317\)\. Removing or weakening it is not recommended/);
+  assert.deepEqual([warned.reason, warned.note], ['othersCover', 'The builder checks white cards at the gate.']);
+  const applied = draft.controlEdits.applied.find((item) => item.from === LEGAL_LINE);
+  assert.deepEqual([applied.kind, applied.reason], ['removed', 'othersCover']);
   const changed = prepareDraft(draftBody({ ...INPUT, controlEdits: { 'Before starting': { changed: [{ from: LEGAL_LINE, to: 'No white card needed.' }] } } }));
-  assert.ok(changed.jobSteps[0].controls.includes(LEGAL_LINE));
-  assert.ok(!changed.jobSteps[0].controls.some((line) => /No white card/.test(line)));
+  assert.ok(!changed.jobSteps[0].controls.includes(LEGAL_LINE));
+  assert.ok(changed.jobSteps[0].controls.includes(`No white card needed. ${OWN_MARK}`));
+  assert.equal(changed.controlEdits.warned[0].kind, 'changed');
+});
+
+test('weakening a control is warned about: a smaller number, softer words, a lost permit, vague wording', () => {
+  const line = SPOIL;
+  const check = (to) => prepareDraft(draftBody({ ...INPUT, controlEdits: { Excavate: { changed: [{ from: line, to }] } } })).controlEdits.warned.flatMap((item) => item.warnings);
+  assert.match(check('Spoil is heaped at least 0.5 m back from the trench edge.').join(' '), /A number has changed \(1 m to 0\.5 m\)/);
+  assert.match(check('Spoil should be heaped 1 m back from the trench edge where possible.').join(' '), /"should" makes the control optional.*"where possible" makes the control optional/);
+  assert.match(check('Take care with spoil near the trench.').join(' '), /The wording is vague/);
+  assert.deepEqual(check('Spoil is heaped at least 2 m back from the trench edge, on the low side.'), [], 'a stronger line is not warned about');
+  const permit = prepareDraft(draftBody({ ...INPUT, controlEdits: { 'Locate underground services': { changed: [{ from: plain.jobSteps.find((step) => step.step === 'Locate underground services').controls.find((item) => /excavation permit/.test(item)), to: 'Services are located before digging.' }] } } }));
+  const warnings = permit.controlEdits.warned[0].warnings.join(' ');
+  assert.match(warnings, /^Removing or weakening this line is not recommended \(Excavation work Code of Practice 2021 \(Qld\) s 3\.\d+\)\. The excavation permit confirms/);
+  assert.match(warnings, /The line no longer mentions "permit"/);
+  // A vague line of the user's own is warned about too.
+  const added = prepareDraft(draftBody({ ...INPUT, controlEdits: { Excavate: { added: ['Be careful near the trench.'] } } }));
+  assert.equal(added.controlEdits.warned[0].kind, 'added');
+});
+
+test('the lines SiteReady recommends keeping carry a warning, whatever they are cited to', () => {
+  const { keepWarning } = require('../draft');
+  const cases = [
+    ['No person enters a confined space until a confined space entry permit is issued. (Confined spaces Code of Practice 2021 (Qld) s 4.3)', /confined space/],
+    ['Plant stays 3 m from overhead power lines. (Electrical Safety Code of Practice 2020: Working near overhead and underground electric lines (Qld) s 4.2)', /3 m zone/],
+    ['No hot work starts until a hot work permit is issued.', /hot work permit/],
+    ['Before work on isolated plant, an isolation permit is issued.', /lock-out/],
+    ['A trench 1.5 m deep or more has all sides supported.', /geotechnical engineer/],
+    ['Stop work and leave if the oxygen level is below 19.5% or above 23%.', /oxygen-enriched/],
+  ];
+  for (const [line, why] of cases) assert.match(keepWarning(line), why, line);
+  assert.equal(keepWarning('Keep the work area tidy.'), '');
+  assert.equal(keepWarning(`No hot work starts until a hot work permit is issued. ${OWN_MARK}`), '', 'the user\'s own line');
+});
+
+test('reasons are cleaned and limited to the pick list', () => {
+  const body = draftBody({ ...INPUT, controlEdits: { Excavate: { removed: ['a'], reasons: [{ line: 'a', reason: 'notNeeded', note: 'x'.repeat(500) }, { line: 'b', reason: 'made up' }, { line: 'c', reason: 'other' }, 'bad'] } } });
+  assert.deepEqual(body.controlEdits.Excavate.reasons.map((item) => [item.line, item.reason, item.note.length]), [['a', 'notNeeded', 300], ['c', 'other', 0]]);
 });
 
 test('a step keeps at least one control', () => {
@@ -147,6 +192,8 @@ test('the preview marks the legal lines, and a saved SWMS keeps the changes', as
   assert.equal(preview.controlLegal.length, preview.jobSteps.length);
   const start = preview.jobSteps.findIndex((step) => step.step === 'Before starting');
   assert.equal(preview.controlLegal[start][preview.jobSteps[start].controls.indexOf(LEGAL_LINE)], 'Work Health and Safety Regulation 2011 (Qld) s 317');
+  // And why removing it is not recommended, so the page warns before the user goes ahead.
+  assert.match(preview.controlWarn[start][preview.jobSteps[start].controls.indexOf(LEGAL_LINE)], /^This line is a legal requirement \(Work Health and Safety Regulation 2011 \(Qld\) s 317\)/);
 
   const token = await signIn('saver@edits.example', 'Saver Pty Ltd');
   const saved = await call('POST', '/api/swms', { token, body: { input: { ...INPUT, controlEdits: EDITS }, reviewConfirmed: true, reviewedBy: 'Sam Lee' } });

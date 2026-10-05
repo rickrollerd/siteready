@@ -6,7 +6,7 @@ const path = require('path');
 const cluster = require('cluster');
 const os = require('os');
 const { listStates, findState } = require('./legislation');
-const { questionsFor, prepareDraft, legalSource } = require('./draft');
+const { questionsFor, prepareDraft, legalSource, keepWarning } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
 const { issueRef, placeOf } = require('./refs');
@@ -259,9 +259,13 @@ app.post('/api/draft', (req, res) => {
   const result = prepareDraft(draftBody(req.body || {}));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   record(req.user ? 'preview_signed_in' : 'preview', req.company && req.company.id);
-  // For the preview only: the source of each control line that is a legal requirement, so the
-  // page can say why it cannot be removed. Empty for lines the user may change.
-  const legal = result.kind === 'draft' ? { controlLegal: (result.jobSteps || []).map((step) => step.controls.map(legalSource)) } : {};
+  // For the preview only: the source of each control line that is a legal requirement, and why
+  // removing or weakening a line is not recommended, so the page can warn before the user goes
+  // ahead. Empty for other lines.
+  const legal = result.kind === 'draft' ? {
+    controlLegal: (result.jobSteps || []).map((step) => step.controls.map(legalSource)),
+    controlWarn: (result.jobSteps || []).map((step) => step.controls.map(keepWarning)),
+  } : {};
   res.json({ ...result, ...legal });
 });
 
