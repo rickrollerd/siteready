@@ -113,6 +113,8 @@ async function readSwms(documentText) {
 async function runCheck(body, company) {
   const line = (value) => (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, 120) : '');
   const email = { to: line(body.to), from: line(body.from) || line(company && company.name) };
+  // Review stage unless the builder says the SWMS is in use on site (owner decision on H7).
+  const stage = body.stage === 'on-site' ? 'on-site' : 'review';
   let result;
   let source;
   let notFound = [];
@@ -122,15 +124,15 @@ async function runCheck(body, company) {
     if (draft.kind !== 'draft') {
       throw fail(400, draft.kind === 'stand-down' ? `This SiteReady draft is stood down. It still needs: ${(draft.missing || []).join('; ')}` : (draft.message || 'This draft could not be prepared.'));
     }
-    result = checkSwms(fromDraft(draft, { state: input.state }), { state: input.state });
+    result = checkSwms(fromDraft(draft, { state: input.state }), { state: input.state, stage });
     source = 'draft';
   } else if (body.swms && typeof body.swms === 'object') {
-    result = checkSwms(body.swms, { state: line(body.state) });
+    result = checkSwms(body.swms, { state: line(body.state), stage });
     source = 'form';
   } else {
     if (!(typeof body.text === 'string' && body.text.trim()) && !(body.file && body.file.data)) throw fail(400, 'Attach the SWMS or paste it first.');
     const read = await readSwms(await scopeText(body));
-    result = checkSwms(read.swms, { state: line(body.state) || read.swms.state });
+    result = checkSwms(read.swms, { state: line(body.state) || read.swms.state, stage });
     notFound = read.notFound;
     source = 'document';
   }

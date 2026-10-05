@@ -55,10 +55,17 @@ test('a SiteReady draft is checked without the AI, and the email is drafted', as
   const data = await response.json();
   assert.equal(data.source, 'draft');
   assert.equal(typeof data.score, 'number');
-  assert.ok(data.hardFails.includes('H7'), 'no worker has signed a fresh draft');
-  assert.equal(data.band, 'Not accepted');
+  // Sent for review, a fresh draft is not signed yet: the sign-on is a condition before work starts.
+  assert.ok(!data.hardFails.includes('H7'));
+  assert.deepEqual(data.preStart, ['Workers must sign on before work starts.']);
+  // In use on site, no sign-on fails H7.
+  const onSite = await (await post('/api/check', { draft: DRAFT, stage: 'on-site' }, token)).json();
+  assert.ok(onSite.hardFails.includes('H7'), 'no worker has signed a fresh draft');
+  assert.equal(data.band, 'Accepted');
   assert.match(data.email.body, /^Hi Jo,/);
-  assert.match(data.email.body, /Must fix before work starts:/);
+  assert.match(data.email.body, /Before work starts: Workers must sign on before work starts\./);
+  assert.equal(onSite.band, 'Not accepted');
+  assert.match(onSite.email.body, /Must fix before work starts:/);
 });
 
 test('a stood-down draft says what it still needs', async () => {
