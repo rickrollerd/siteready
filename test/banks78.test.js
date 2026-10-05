@@ -299,7 +299,7 @@ test('a sewage treatment plant has its tank pit dug from outside and its pumps w
   assert.ok(has(done, /The tank pit is dug to the tank maker's dimensions/));
   assert.ok(has(done, /pumps, blower and alarm are wired and connected by a licensed electrician/));
   assert.ok(has(done, /The pipe trenches are kept shallower than 1\.5 m/));
-  assert.ok(steps(done).includes('Lay pipes') && !has(done, /conduit/));
+  assert.ok(steps(done).includes('Lay pipes') && !steps(done).some((name) => /conduit/i.test(name)), 'no conduit laying step');
   assert.ok(has(draft('Replace an old septic tank with a new one.', { residential: 'yes', state: 'tas' }), /The tank pit is dug/));
 });
 

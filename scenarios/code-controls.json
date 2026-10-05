@@ -1,1 +1,4488 @@
-[]
+[
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "Initial atmospheric testing is done from outside the space with a correctly calibrated gas detector, by a competent person. A person's senses are never used to decide if the air is safe.",
+  "code": "Confined spaces",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "Each part of the space is tested, side to side and top to bottom, because some gases (such as hydrogen sulphide) settle low and others (such as methane) collect at the top.",
+  "code": "Confined spaces",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "Combustion engines, generators and LPG forklifts are kept away from the openings, so exhaust gases such as carbon monoxide cannot build up in the space.",
+  "code": "Confined spaces",
+  "section": "s 3.3, s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "No hot work is done in areas next to the confined space while it may contain a flammable atmosphere.",
+  "code": "Confined spaces",
+  "section": "s 3.3, s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "Ventilation fresh air is drawn from a point where it is not contaminated by exhaust air or other pollutants, and exhaust air is vented where it causes no other risk.",
+  "code": "Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "Purging and ventilation equipment designed for use in hazardous areas is used when flammable contaminants are purged.",
+  "code": "Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "The entry permit is re-validated if the person in control of the work changes, there is a break in work continuity, or the work changes and introduces hazards the permit does not address.",
+  "code": "Confined spaces",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "Where an opening is vertical, it is protected so people cannot fall in.",
+  "code": "Confined spaces",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "Where an entrance is on a footpath or road, workers entering or leaving are protected from vehicle traffic.",
+  "code": "Confined spaces",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "Signs are not relied on alone to stop unauthorised entry: locks or fixed barriers are also used.",
+  "code": "Confined spaces",
+  "section": "s 4.8"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Enter and work",
+  "text": "Mechanical ventilation is monitored so it runs continuously while the space is occupied, and its controls, including any remote power supply, are clearly identified, tagged and protected against interference.",
+  "code": "Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Enter and work",
+  "text": "Where a safe oxygen level or safe contaminant levels cannot be ensured, or a contaminant has no exposure standard or an unknown concentration, air-supplied respiratory equipment is worn.",
+  "code": "Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Enter and work",
+  "text": "The standby person does no other work that could interfere with monitoring the workers inside.",
+  "code": "Confined spaces",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Enter and work",
+  "text": "The standby person has the authority to order workers out of the space if any hazardous situation arises.",
+  "code": "Confined spaces",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Enter and work",
+  "text": "Workers sign in and out on the entry permit, or use tags, so it is always known who is in the space.",
+  "code": "Confined spaces",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Enter and work",
+  "text": "Air is re-tested or continuously monitored when the work, or disturbing sludge or other material, could change the conditions in the space.",
+  "code": "Confined spaces",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Leave and close up",
+  "text": "Isolations (locks, tags, blanks and caps) are not removed until all work is complete and all workers have left the space.",
+  "code": "Confined spaces",
+  "section": "s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Leave and close up",
+  "text": "Signs stay at each entrance until packing up on completion of the work is finished.",
+  "code": "Confined spaces",
+  "section": "s 4.8"
+ },
+ {
+  "op": "add",
+  "group": "fuelTankRemoval",
+  "step": "Remove the fuel tanks",
+  "text": "When flammable vapour is purged from a tank, purging and ventilation equipment designed for hazardous areas is used, and vapour is expelled to a location where it presents no further risk.",
+  "code": "Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "wetWellClean",
+  "step": "Clean out the wet well",
+  "text": "Vacuum truck engines and other combustion engines are kept away from the opening so exhaust gases do not contaminate the air in the well.",
+  "code": "Confined spaces",
+  "section": "s 3.3, s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "The gas detector stays on in the well while sludge is disturbed",
+  "code": "Confined spaces",
+  "section": "s 3.2, s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Pumps and inlet valves stay locked out under the confined space permit",
+  "code": "Confined spaces",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Sludge and debris are removed with a vacuum truck from the surface wherever possible",
+  "code": "Confined spaces",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "No one enters the wet well once it is placed. It is a confined space",
+  "code": "Confined spaces",
+  "section": "s 4.3, s 4.5, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Use a gas detector to test the air at the top of the well before anyone leans",
+  "code": "Confined spaces",
+  "section": "s 3.4, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "No one enters the pit until it has been assessed. A pit that is a confined space",
+  "code": "Confined spaces",
+  "section": "s 1.1, s 4.3, s 4.5, s 4.6, s 5"
+ },
+ {
+  "op": "cite",
+  "find": "No hot work or petrol engines are used in the pit.",
+  "code": "Confined spaces",
+  "section": "s 3.3, s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Pipes are cleaned and inspected with jetters and cameras from the surface.",
+  "code": "Confined spaces",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "No one enters the tank to strip forms or finish the inside until the space has been assessed",
+  "code": "Confined spaces",
+  "section": "s 1.1, s 3.4, s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "hotWork",
+  "step": "Braze and solder pipe joints (hot work)",
+  "text": "No hot work on drums, tanks or pipes that have held flammable or combustible chemicals until they have been properly decontaminated.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "oxyCutting",
+  "step": "Cut steel with oxy-acetylene (hot work)",
+  "text": "No hot work on drums, tanks or pipes that have held flammable or combustible chemicals until they have been properly decontaminated.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "fuelTankRemoval",
+  "step": "Remove the fuel tanks",
+  "text": "Flushing with water and vapour testing may not detect tar-like deposits and sludge, which can release vapour when heated. No grinding or oxy-acetylene cutting on the tank on site.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "add",
+  "group": "fuelTankRemoval",
+  "step": "Remove the fuel tanks",
+  "text": "The tank is removed from the ground and transported to a disposal area to be decommissioned, or, if left in place, filled with an inert solid such as concrete or sand.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "add",
+  "group": "fuelTankRemoval",
+  "step": "Remove the fuel tanks",
+  "text": "The regulator is notified before an underground tank of flammable liquid is abandoned, and placards and signs are removed once it no longer holds hazardous chemicals.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 1.2, appendix J"
+ },
+ {
+  "op": "add",
+  "group": "gasCylinders",
+  "step": "Handle gas cylinders and manifolds",
+  "text": "If a small leak occurs, close the cylinder valve if safe, put on PPE before finding the leak, ventilate the area and turn off air-conditioning to avoid spreading the gas.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "gasCylinders",
+  "step": "Handle gas cylinders and manifolds",
+  "text": "If a large amount of gas escapes, evacuate the area, first ventilating and removing ignition sources if it is safe, and contact the gas supplier or emergency services.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "gasCylinders",
+  "step": "Handle gas cylinders and manifolds",
+  "text": "If a valve does not close properly, move the cylinder to a safe area outdoors straight away and get expert help.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "add",
+  "group": "gasCylinders",
+  "step": "Handle gas cylinders and manifolds",
+  "text": "Valve protection caps stay on whenever a cylinder is not connected for use.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "add",
+  "group": "gasCylinders",
+  "step": "Handle gas cylinders and manifolds",
+  "text": "Keep all heat and ignition sources away from gas cylinders, even cylinders of non-flammable gas.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "refrigerantTest",
+  "step": "Pressure test with nitrogen",
+  "text": "Keep the work area well ventilated, particularly low-lying areas and roof spaces where gas can accumulate, and monitor the air where oxygen could fall below 19%.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "graffitiRemoval",
+  "step": "Remove graffiti with chemicals",
+  "text": "Where caustic or acidic removers could splash, eye protection is worn and an emergency eyewash is at the work area.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "add",
+  "group": "cleaning",
+  "step": "Clean with chemicals",
+  "text": "Where caustic or acidic chemicals could splash onto skin or eyes, eye protection is worn and an emergency eyewash is provided.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "add",
+  "group": "refuelPlant",
+  "step": "Refuel plant on site",
+  "text": "Avoid splash filling and overflow when transferring fuel, and use an emergency shut-off to limit any release.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "paintSolvent",
+  "step": "Apply solvent-based paint",
+  "text": "Containers of solvent-based paint and thinners are kept away from heaters and other heat sources, and lids are kept closed when not in use.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Pool chemicals are stored and handled as their safety data sheets set out, kept apart",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 2.2, s 4.2, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "The fuel truck or trailer is earthed or bonded as its supplier requires",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Engines are off and plant is parked before refuelling, with no smoking",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "A spill kit and fire extinguisher are at hand, and spills are cleaned up and reported straight away.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Valves are closed when cylinders are empty, valves are never lubricated",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Petrol trowels, saws and generators run only outdoors or where exhaust cannot collect.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Generators, petrol trowels and petrol saws run only outdoors or where exhaust cannot collect",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Collect solvent and solvent-based paint waste in closed, labelled containers",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 2.3, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Mix and decant only in a ventilated area with spill containment",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The hazardous areas are identified, and no ignition sources are used in them unless a hot work permit is in place.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Existing tanks and lines are isolated, drained and tested free of vapour before they are opened.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Tanks are emptied, and the vapour is removed or made inert and tested with a gas detector",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "No ignition sources are allowed in the hazardous area around the tank and excavation.",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Resins and curing agents are used as their safety data sheets set out",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 2.2, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Resins are mixed and injected as their safety data sheets set out",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 2.2, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "No hot work or other ignition source is near the foam or the chemicals",
+  "code": "Managing risks of hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Only tools designed for use with water attachments are used with water suppression. Hand-held spray bottles, sponges or garden hoses are not used to apply water to power tools.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Water suppression is supplied at a consistent flow for the full duration of the task, enough to prevent any visible airborne dust. Wetting the material beforehand is not enough on its own.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "Only tools designed for use with water attachments are used with water suppression. Hand-held spray bottles, sponges or garden hoses are not used to apply water to power tools.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "Water suppression is supplied at a consistent flow for the full duration of the task, enough to prevent any visible airborne dust. Wetting the material beforehand is not enough on its own.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "Only tools designed for use with water attachments are used with water suppression. Hand-held spray bottles, sponges or garden hoses are not used to apply water to power tools.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "Water suppression is supplied at a consistent flow for the full duration of the task, enough to prevent any visible airborne dust. Wetting the material beforehand is not enough on its own.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "masonryCut",
+  "step": "Cut blocks and bricks",
+  "text": "Only tools designed for use with water attachments are used with water suppression. Hand-held spray bottles, sponges or garden hoses are not used to apply water to power tools.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "masonryCut",
+  "step": "Cut blocks and bricks",
+  "text": "Water suppression is supplied at a consistent flow for the full duration of the task, enough to prevent any visible airborne dust. Wetting the material beforehand is not enough on its own.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "tileCut",
+  "step": "Cut tiles and stone",
+  "text": "Only tools designed for use with water attachments are used with water suppression. Hand-held spray bottles, sponges or garden hoses are not used to apply water to power tools.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "tileCut",
+  "step": "Cut tiles and stone",
+  "text": "Water suppression is supplied at a consistent flow for the full duration of the task, enough to prevent any visible airborne dust. Wetting the material beforehand is not enough on its own.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "paving",
+  "step": "Lay and cut pavers",
+  "text": "Only tools designed for use with water attachments are used with water suppression. Hand-held spray bottles, sponges or garden hoses are not used to apply water to power tools.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "paving",
+  "step": "Lay and cut pavers",
+  "text": "Water suppression is supplied at a consistent flow for the full duration of the task, enough to prevent any visible airborne dust. Wetting the material beforehand is not enough on its own.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "stoneSilica",
+  "step": "Cut and finish stone and porcelain benchtops",
+  "text": "Only tools designed for use with water attachments are used with water suppression. Hand-held spray bottles, sponges or garden hoses are not used to apply water to power tools.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "stoneSilica",
+  "step": "Cut and finish stone and porcelain benchtops",
+  "text": "Water suppression is supplied at a consistent flow for the full duration of the task, enough to prevent any visible airborne dust. Wetting the material beforehand is not enough on its own.",
+  "code": "Silica",
+  "section": "s 7.4.1"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "masonryCut",
+  "step": "Cut blocks and bricks",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "tileCut",
+  "step": "Cut tiles and stone",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "paving",
+  "step": "Lay and cut pavers",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "stoneSilica",
+  "step": "Cut and finish stone and porcelain benchtops",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "wpPrep",
+  "step": "Prepare surfaces by grinding",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "asphalt",
+  "step": "Saw cut asphalt",
+  "text": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks, and of guards or flaps for damage. Faults are fixed before work starts.",
+  "code": "Silica",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Indoors, grinding is done in an exclusion zone set by a competent person, with warning signs at each entry showing a dust hazard, authorised access only, and RPE required.",
+  "code": "Silica",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "wpPrep",
+  "step": "Prepare surfaces by grinding",
+  "text": "Indoors, grinding is done in an exclusion zone set by a competent person, with warning signs at each entry showing a dust hazard, authorised access only, and RPE required.",
+  "code": "Silica",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Wet slurry is cleaned up at the end of each shift or task before it dries, and thick slurry is disposed of covered, kept wet or bagged.",
+  "code": "Silica",
+  "section": "s 8.2"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Fans are not set up where they would dry wet slurry before it is cleaned up.",
+  "code": "Silica",
+  "section": "s 7.4.3"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Wet slurry is cleaned up at the end of each shift or task before it dries, and thick slurry is disposed of covered, kept wet or bagged.",
+  "code": "Silica",
+  "section": "s 8.2"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Fans are not set up where they would dry wet slurry before it is cleaned up.",
+  "code": "Silica",
+  "section": "s 7.4.3"
+ },
+ {
+  "op": "cite",
+  "find": "The damaged pit is broken out with a hydraulic breaker on water suppression",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.6"
+ },
+ {
+  "op": "cite",
+  "find": "Core holes are drilled with water or on-tool extraction, with a P2 respirator worn.",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6"
+ },
+ {
+  "op": "cite",
+  "find": "Slab drilling for anchors is done with on-tool extraction, and a P2 respirator is worn.",
+  "code": "Silica",
+  "section": "s 7.4.2, s 7.6"
+ },
+ {
+  "op": "cite",
+  "find": "Blocks and fibre cement are cut with a wet saw or on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6"
+ },
+ {
+  "op": "cite",
+  "find": "Brickwork is broken out with water to keep dust down, and a fit tested P2 respirator is worn.",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Tiles, the bath hob and screed are broken out with water or on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6, s 8.1"
+ },
+ {
+  "op": "cite",
+  "find": "tiles are cut with a wet saw or a saw with on-tool extraction, with a P2 respirator worn",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6"
+ },
+ {
+  "op": "cite",
+  "find": "Grout around the cracked tiles is cut with an oscillating tool or grinder with on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "The old wall tiles are chipped off with a bolster or an oscillating tool, using on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "The old tiles and bedding are lifted with a floor scraper or chisel, using water or on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Mortar joints are cut with a chaser or grinder with on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Raking out mortar joints for the flashing is done with on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.2, s 7.6"
+ },
+ {
+  "op": "cite",
+  "find": "The slab is scanned for services before drilling, and concrete is drilled with on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.2, s 7.6"
+ },
+ {
+  "op": "cite",
+  "find": "Cracks are routed or ground with on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Stone is split or cut wet or with on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Natural stone is not engineered stone. Any cutting is done wet or with on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "The slab is scanned for services and reinforcement, and drilled with on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.2, s 7.6"
+ },
+ {
+  "op": "cite",
+  "find": "New fibre cement sheet is scored and snapped or cut with a shear",
+  "code": "Silica",
+  "section": "s 7.2, s 7.4.2"
+ },
+ {
+  "op": "cite",
+  "find": "with saw cutting and breaking done wet or with on-tool extraction",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Drilling uses water or dust collection, with fit tested P2 respirators",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Cut fibre cement by scoring and snapping, or with a saw fitted with on-tool extraction.",
+  "code": "Silica",
+  "section": "s 7.2, s 7.4.2"
+ },
+ {
+  "op": "cite",
+  "find": "New fibre cement eaves linings are cut by scoring and snapping or with shears",
+  "code": "Silica",
+  "section": "s 7.2, s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Blocks are cut with a wet saw or a saw with on-tool extraction, never dry cut",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Tiles are cut with a wet saw or a saw with on-tool extraction, never dry cut without extraction.",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2"
+ },
+ {
+  "op": "cite",
+  "find": "natural stone benchtops are cut wet or with extraction and a P2 respirator",
+  "code": "Silica",
+  "section": "s 7.4.1, s 7.4.2, s 7.6"
+ },
+ {
+  "op": "cite",
+  "find": "Dust is controlled with water sprays and enclosures, and air monitoring is done for crystalline silica",
+  "code": "Silica",
+  "section": "s 7.3, s 7.4.1, s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Compressed air is used only for loose debris the vacuum cannot reach, never on concrete dust or slurry",
+  "code": "Silica",
+  "section": "s 8.1"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Purge all traces of flammable or combustible material from drums, vessels and tanks before welding, and preferably fill them with an inert substance such as nitrogen or water.",
+  "code": "Welding processes",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Never cut containers that may still hold flammable material, or pressurised cylinders, pipes or vessels.",
+  "code": "Welding processes",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Do not weld in damp, humid or wet conditions, or where the welder may be exposed to rain.",
+  "code": "Welding processes",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Do not connect or change welding cables before switching off the power at the mains.",
+  "code": "Welding processes",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Use only welding cables fully insulated for their entire length, and keep machine terminals and cable connections clean and tight.",
+  "code": "Welding processes",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Where practicable, stand, lie or sit on non-conducting material while welding, and avoid leaning against the work piece or structure.",
+  "code": "Welding processes",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "A worker with a pacemaker or other implanted medical device gets medical advice before being exposed to arc welding electromagnetic fields. Welders do not drape welding cable around their body.",
+  "code": "Welding processes",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Welding on steel painted with paint containing more than 1% lead is a lead process: check old paint for lead before welding, and apply the lead process controls where it is.",
+  "code": "Welding processes",
+  "section": "s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Remove surface contaminants before welding to reduce fumes, and identify rust-proofed steel, which gives off phosphine when welded.",
+  "code": "Welding processes",
+  "section": "s 3.1"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Natural ventilation is not relied on to control welding fume. Use local exhaust capturing fume close to the source, discharged outside away from other work areas.",
+  "code": "Welding processes",
+  "section": "s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Mark or label hot work pieces as 'hot', or keep them where they cannot be touched by accident.",
+  "code": "Welding processes",
+  "section": "s 3.5"
+ },
+ {
+  "op": "add",
+  "group": "hotWork",
+  "step": "Braze and solder pipe joints (hot work)",
+  "text": "Gas hoses are secured with crimped or other suitable permanently fitting clips.",
+  "code": "Welding processes",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "oxyCutting",
+  "step": "Cut steel with oxy-acetylene (hot work)",
+  "text": "Gas hoses are secured with crimped or other suitable permanently fitting clips.",
+  "code": "Welding processes",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "deckingStuds",
+  "step": "Weld shear studs",
+  "text": "Do not stud weld in damp or wet conditions, or where the welder may be exposed to rain.",
+  "code": "Welding processes",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Stud welding is done with screens, eye and face protection rated for welding",
+  "code": "Welding processes",
+  "section": "s 3.2, s 3.3, s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Hot work is done under the site's hot work permit, with an extinguisher at hand and a fire watch below.",
+  "code": "Welding processes",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Welding on site is hot work, under the site's hot work permit, with screens",
+  "code": "Welding processes",
+  "section": "s 3.2, s 3.4, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Cutting and welding are hot work under a hot work permit, with combustibles cleared",
+  "code": "Welding processes",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Galvanised or painted steel is cut with ventilation or a respirator suited to the fumes.",
+  "code": "Welding processes",
+  "section": "s 3.1, s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Rails welded on site are hot work: a fire extinguisher is at hand",
+  "code": "Welding processes",
+  "section": "s 3.4, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Welding or grinding stainless steel on site is hot work, done under a hot work permit with fume extraction.",
+  "code": "Welding processes",
+  "section": "s 3.4, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Flashback arrestors are fitted, and hoses have crimped or permanent clips.",
+  "code": "Welding processes",
+  "section": "s 3.4, s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Remove or cover combustible materials where sparks and slag can reach them",
+  "code": "Welding processes",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Wear filter eye protection rated for gas cutting, fire-resistant gloves and natural fibre clothing.",
+  "code": "Welding processes",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Painted steel is checked for lead before it is flame cut.",
+  "code": "Welding processes",
+  "section": "s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "De-energising or re-routing the electric line is discussed with the electricity entity before anything else, and arranged as soon as possible, as it can take some time to arrange.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 2.3, s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Determine the voltage of each line, as low voltage and high voltage lines may be on the same pole. If the voltage cannot be determined, the line is treated as a high voltage line.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3.3, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Before work near an insulated line, a competent person inspects the insulation. Where the insulation has not been determined as safe, or cannot be determined, the line is treated as uninsulated (bare).",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3.3, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "No part of a worker, operating plant or vehicle enters an exclusion zone while the line is energised. Exclusion zones extend in all directions, not just sideways.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3.2, s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Exclusion zone for an untrained person: 3 m from lines up to 132 kV (1 m low voltage or 2 m up to 33 kV only after consulting the person in control of the line), and 4.5 m to 6 m above 132 kV.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3.4, appendix B"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Exclusion zones for operating plant operated by an untrained person: 3 m up to 132 kV, 6 m above 132 kV up to 330 kV and 8 m above 330 kV up to 500 kV.",
+  "code": "Overhead and underground electric lines",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Closer exclusion zones apply only to authorised persons approved by the person in control of the line, or instructed persons under their supervision. Their plant needs a safety observer or another safe system of work, otherwise they are taken to be untrained.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3.4, s 4.4.1"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "The written risk assessment considers sway and sag of the lines, wind, the size and shape of the load, unexpected movement of the ground under the plant, and how the load is secured. All materials are assumed conductive unless a competent person confirms otherwise.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Where practicable, plant is prevented from entering the exclusion zone by a physical barrier of non-conductive material such as wood or plastic, mechanical stops or programmable zone limiting devices. The barrier is erected safely, isolating the supply while it is installed if needed.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 2.3, s 4.3.1"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "A safety observer is used whenever a crane or operating plant works in the safety observer zone or authorisation zone. The operator does not operate the plant without the safety observer.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.3.2, s 4.4.2"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "The safety observer is trained for the role, observes only one crane or item of plant at a time, does no other work, is not in the EWP work basket, and has the authority to stop the operation.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.3.2, s 4.4.2"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "The safety observer communicates effectively with the operator at all times, using specialist communication equipment where needed, and warns the operator as plant or load approaches the exclusion zone.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.3.2"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "The safety observer marks the border of the exclusion zone with suitable markers, such as red warning tapes, easily viewed by the operator.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.3.2, s 4.4.2"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "While plant works in the safety observer or authorisation zone, other workers do not touch the plant or load. Where contact is necessary, suitable insulating gloves are worn, or contact is through a non-conductive object such as a tail rope.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Where the operator stands on the ground to operate the plant, the controls are effectively insulated, or the operator wears insulating gloves (lines up to 1000 V only), or stands on an equipotential mat bonded to the controls.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Tiger tails are visual indicators only and do not insulate the lines. A competent person inspects them each day before plant starts, and the electricity entity is contacted if they have moved or are damaged.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 2.3, appendix A"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Near a low voltage service line to a building, the exclusion zone for an untrained person is 3 m without consultation with the electricity entity, applying to bare, covered and unexamined insulated lines.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 5.2.1"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Near the point of attachment of a service line, manual sanding is considered instead of a heavy electric disc sander, and cutting or grinding tools are used so that loss of control cannot bring them into the exclusion zone.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "An emergency plan covering contact with energised electric lines is in place, with first aid kits and fire-fighting equipment suitable for electrical fires readily accessible on site.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 2.3"
+ },
+ {
+  "op": "add",
+  "group": "crane",
+  "step": "Set up the crane",
+  "text": "Before setting up the crane, the site is inspected for overhead electric lines, and the crane is located so that no part of it, the load or the lifting chains could enter the exclusion zone.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.2, s 4.3.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Overhead electric lines within reach of the jib, hook or loads are identified, and limiting devices, de-energising or re-routing the lines prevent any part of the crane or load entering the exclusion zone.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 2.3, s 4.2, s 4.3.1"
+ },
+ {
+  "op": "add",
+  "group": "treeRemoval",
+  "step": "Remove trees",
+  "text": "Trees are not cut or trimmed where any part of the tree is within the exclusion zone, or could fall or be carried into it. That work is left to authorised persons.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "treePruning",
+  "step": "Prune the trees",
+  "text": "Trees are not cut or trimmed where any part of the tree is within the exclusion zone, or could fall or be carried into it. That work is left to authorised persons.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "vegClearing",
+  "step": "Clear vegetation with the mulcher and excavator",
+  "text": "Overhead lines, poles and stay wires that are hard to see are identified first. Vegetation is not cleared where it, the worker or the plant could enter or fall into the exclusion zone.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 6.2, s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "heavyHaulage",
+  "step": "Haul and deliver the loads on public roads",
+  "text": "A load over 4.6 m high (load and vehicle combined) is moved only after the electricity entity is notified of the dimensions, route and times, the route is scoped or assessed by a qualified person, and any escort required is in place.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 8.3.1, s 8.4.3"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Locate underground services",
+  "text": "If it is not known whether electric cables or conduits are present, assume they are, or have a qualified person investigate and report. On private property, ask the owner or occupier about buried cables first.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 9.2"
+ },
+ {
+  "op": "add",
+  "group": "tempPower",
+  "step": "Install construction power",
+  "text": "If a circuit keeps overloading, the fuse rating is not increased, and the circuit is not re-energised until a competent person determines the reason for the overload.",
+  "code": "Managing electrical risks",
+  "section": "s 3"
+ },
+ {
+  "op": "add",
+  "group": "tempPower",
+  "step": "Install construction power",
+  "text": "Leads and tools are not used in damp or wet conditions unless they are specially designed for those conditions.",
+  "code": "Managing electrical risks",
+  "section": "s 3"
+ },
+ {
+  "op": "add",
+  "group": "tempPower",
+  "step": "Inspect, test and maintain construction power",
+  "text": "Workers check the physical condition of electrical equipment, including the lead and plug connections, before use, and take it out of service if in doubt, telling the supervisor.",
+  "code": "Managing electrical risks",
+  "section": "s 3.1"
+ },
+ {
+  "op": "add",
+  "group": "testTag",
+  "step": "Inspect, test and tag electrical equipment",
+  "text": "Equipment is also tested after a repair or service that could affect its electrical safety, and before first use if bought second hand.",
+  "code": "Managing electrical risks",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "testTag",
+  "step": "Inspect, test and tag electrical equipment",
+  "text": "New equipment is visually inspected for damage from transport and delivery, and tagged with the date its first electrical safety test is due.",
+  "code": "Managing electrical risks",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "testTag",
+  "step": "Inspect, test and tag electrical equipment",
+  "text": "Testing that requires dismantling the electrical equipment is carried out only by a licensed electrical worker.",
+  "code": "Managing electrical risks",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "testTag",
+  "step": "Inspect, test and tag electrical equipment",
+  "text": "A safety switch found faulty when tested has a durable tag attached immediately warning people not to use it, and is withdrawn from use.",
+  "code": "Managing electrical risks",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Isolate and prove de-energised",
+  "text": "A removable or rack-out circuit breaker or combined fuse switch is racked out or removed where practicable, then locked open and danger tagged.",
+  "code": "Managing electrical risks",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Isolate and prove de-energised",
+  "text": "Test for dead each time before work, including when the worker returns after leaving the area or the area has been left unattended, in case of reconnection by another person.",
+  "code": "Managing electrical risks",
+  "section": "s 4.1, s 5"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Isolate and prove de-energised",
+  "text": "Exposed conductors in the immediate work area are segregated and protected with insulated barricades, shrouding or material. Insulating covers and mats are visually inspected for defects before each use.",
+  "code": "Managing electrical risks",
+  "section": "s 4.1, s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Isolate and prove de-energised",
+  "text": "Danger tags are durable, dated and signed by the workers, fixed prominently at each isolation point, and removed only by the signatories. If a signatory cannot return, the risks are investigated before the lock or tag is removed.",
+  "code": "Managing electrical risks",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Work on or near energised parts",
+  "text": "Workers position themselves so that an involuntary action like sneezing would not cause them to touch exposed energised parts, and no electric shock path can be created by an awkward position.",
+  "code": "Managing electrical risks",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Work on or near energised parts",
+  "text": "Non-conductive or insulated tools and equipment are used near exposed energised parts, including torches, telescopic devices, rulers and tape measures.",
+  "code": "Managing electrical risks",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Work on or near energised parts",
+  "text": "Anyone involved in an electric shock incident receives medical attention, even if there is no apparent injury. For exposed high voltage, the rescue plan isolates the supply and proves it de-energised first.",
+  "code": "Managing electrical risks",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "commissioning",
+  "step": "Connect and commission",
+  "text": "When power is restored, test that polarity is correct, actives are switched and, where applicable, phase sequence is correct before the electrical equipment is used.",
+  "code": "Managing electrical risks",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "commissioning",
+  "step": "Connect and commission",
+  "text": "Before restoring power, visually check that all tools, surplus material and waste have been removed.",
+  "code": "Managing electrical risks",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "commissioning",
+  "step": "Leave unfinished work safe",
+  "text": "If work is incomplete at a change of shift, the last person replaces their danger tag or lock with an out-of-service or caution tag, and affected persons are told the work is not complete.",
+  "code": "Managing electrical risks",
+  "section": "s 5.1, s 5.4"
+ },
+ {
+  "op": "cite",
+  "find": "Stop work if any part of the plant or load comes inside the safe distance.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3.2, s 4.3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Treat every line as live unless the network operator confirms in writing it is isolated.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Check for overhead power lines before plant starts. Plant stays outside the approach distances for the line, with a spotter where it could come close.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.2, s 4.3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Check for overhead power lines before a truck, pump or boom sets up. Keep plant outside the approach distances, with a spotter where it could come close.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.2, s 4.3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Check for overhead power lines before setting up. Keep the boom outside the approach distances, with a spotter where it could come close.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.2, s 4.3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Overhead power lines are checked before the crane is set up, and the boom and load stay outside the network operator's approach distances, with a spotter where they could come close.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.2, s 4.3.2"
+ },
+ {
+  "op": "cite",
+  "find": "The crane truck and EWP keep their approach distances from overhead lines.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "The pole and anyone handling it keep the approach distances to overhead lines.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3.1, s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Overhead lines are identified before work starts, and the crane and pole stay outside the network operator's approach distances.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Check for overhead power lines and buried services before felling or grinding. Work near power lines only under the network operator's requirements.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3, s 6.3, s 9.2"
+ },
+ {
+  "op": "cite",
+  "find": "Power lines near the trees are checked first, and work near them is done only under the network operator's requirements.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 3, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Underground services are located before pits and conduits are dug, and plant keeps its approach distances from overhead lines.",
+  "code": "Overhead and underground electric lines",
+  "section": "s 4.2, s 9.2"
+ },
+ {
+  "op": "cite",
+  "find": "Near power lines or live electrical parts, ladders are non-conductive and kept outside the approach distances.",
+  "code": "Managing electrical risks",
+  "section": "s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "If an RCD trips, the circuit stays off until a competent person finds the cause.",
+  "code": "Managing electrical risks",
+  "section": "s 3"
+ },
+ {
+  "op": "cite",
+  "find": "A competent person tests that the parts are de-energised before anyone touches them (test before you touch).",
+  "code": "Managing electrical risks",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Fit your own personal danger lock and tag where the isolation point allows it.",
+  "code": "Managing electrical risks",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "If the isolation cannot be confirmed, stop, treat the parts as live and keep out of the approach distance.",
+  "code": "Managing electrical risks",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Before termination at the main switchboard, the circuit is isolated, locked and proved de-energised, and live parts nearby are shrouded.",
+  "code": "Managing electrical risks",
+  "section": "s 4.1, s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Leads, boards and connections are inspected each day of the event, and damaged items are taken out of service straight away.",
+  "code": "Managing electrical risks",
+  "section": "s 3.1"
+ },
+ {
+  "op": "cite",
+  "find": "Equipment is visually inspected before it is tested, and damaged items are tagged out of service straight away.",
+  "code": "Managing electrical risks",
+  "section": "s 3.1, s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "The consumer mains are tested de-energised before work starts, and the board is treated as live until they are.",
+  "code": "Managing electrical risks",
+  "section": "s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Locate underground services",
+  "text": "Services plans and locating results go to the plant operators and subcontractors, stay on site for inspection, and are kept until the excavation is finished, or for 2 years after a notifiable incident.",
+  "code": "Excavation work",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Locate underground services",
+  "text": "Cable locators and ground penetrating radar are used only by workers trained and competent with them. Hand potholing near electric cables uses insulated digging tools rated for the cable voltage.",
+  "code": "Excavation work",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Excavate",
+  "text": "Before digging below the footing level of a nearby building, wall or retaining wall, a competent person assesses its stability, and ground support and any bracing designed by a competent person are in place.",
+  "code": "Excavation work",
+  "section": "s 3.5"
+ },
+ {
+  "op": "add",
+  "group": "bulkDig",
+  "step": "Bulk excavate and load trucks",
+  "text": "Where the dig goes below the footings of a neighbouring building or retaining wall, a competent person assesses it first, and ground support and any bracing of the structure, designed by a competent person, go in before digging below footing level.",
+  "code": "Excavation work",
+  "section": "s 3.5"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Excavate",
+  "text": "Spoil is heaped at least 1 m back from the trench edge, on the low side of sloping ground where practicable and on the side away from any old service line, and shaped so rainwater runs away from the trench.",
+  "code": "Excavation work",
+  "section": "s 4.1, s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Excavate",
+  "text": "If ground conditions are not as expected or change, such as different soils or heavy rain or flooding, act immediately to protect workers: suspend work until the ground is stable or provide positive ground support.",
+  "code": "Excavation work",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Work in the trench",
+  "text": "Trench shields and boxes are installed, used, moved and maintained to the manufacturer's instructions, never loaded beyond their design, checked for damage before use, and modified only with a competent person's approval.",
+  "code": "Excavation work",
+  "section": "s 6.5"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Work in the trench",
+  "text": "Hydraulic shoring pressure hoses and rams are inspected frequently for abrasion, fatigue or damage, such as bent or notched rams, and inspected and repaired if needed before re-use.",
+  "code": "Excavation work",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Work in the trench",
+  "text": "Shields or trench sheets stand above ground level, or guard rails or mesh covers are fitted to them, and a second ladder or other way out is provided for emergencies.",
+  "code": "Excavation work",
+  "section": "s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Work in the trench",
+  "text": "Workers using picks, shovels or bars in the trench keep far enough apart that they cannot strike each other.",
+  "code": "Excavation work",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "shallowTrench",
+  "step": "Dig the trench",
+  "text": "When digging by hand, workers using picks, shovels or bars keep far enough apart that they cannot strike each other.",
+  "code": "Excavation work",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Backfill the trench",
+  "text": "Support comes out in the reverse order it went in, only once that section is ready for final backfill and compaction, and no one stands in the trench outside the support still in place.",
+  "code": "Excavation work",
+  "section": "s 6.4"
+ },
+ {
+  "op": "add",
+  "group": "shoringWall",
+  "step": "Install the shoring wall",
+  "text": "Soil above installed ground anchors is dug out only after a competent person approves it.",
+  "code": "Excavation work",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "blasting",
+  "step": "Charge and fire the blast",
+  "text": "The regulator is notified before any blasting, as the state's explosives and blasting notification rules require.",
+  "code": "Excavation work",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "slabGround",
+  "step": "Set out",
+  "text": "Any laser level or setting out laser is below class 3B (class 3B and class 4 lasers are banned in construction work), is used by a worker trained on it, and is set up so no one is exposed to the beam.",
+  "code": "Excavation work",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "No one enters the trench until the support is in place and checked.",
+  "code": "Excavation work",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Cover or barricade any open trench overnight.",
+  "code": "Excavation work",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Check for overhead power lines before plant starts. Plant stays outside the approach distances",
+  "code": "Excavation work",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "The excavation is battered, benched or shored where people work in or near it.",
+  "code": "Excavation work",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "No one works between the wall forms and an unsupported excavation face. The face is battered, benched or shored",
+  "code": "Excavation work",
+  "section": "s 6.2, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "The excavation is battered, benched or shored as the geotechnical advice or excavation plan sets out, and its edges are barricaded.",
+  "code": "Excavation work",
+  "section": "s 4.4, s 6.2, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "No one goes under unsupported ground. The face and crown are supported as the design requires",
+  "code": "Excavation work",
+  "section": "s 5.2"
+ },
+ {
+  "op": "cite",
+  "find": "The shoring is designed by an engineer and installed in the sequence on the drawings.",
+  "code": "Excavation work",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Open excavations are barricaded, and people cross only at set crossing points.",
+  "code": "Excavation work",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Plant stands back from the excavation edge as the excavation design or a competent person sets out.",
+  "code": "Excavation work",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "No one works in the excavation beside the wall unless its sides are battered, benched or shored",
+  "code": "Excavation work",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Open holes are covered or fenced when no one is working at them.",
+  "code": "Excavation work",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Open holes are covered or barricaded when no one is at them.",
+  "code": "Excavation work",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Open trenches are fenced or covered when no one is working at them.",
+  "code": "Excavation work",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "The open trench is fenced or covered when no one is working at it.",
+  "code": "Excavation work",
+  "section": "s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Plant goes onto a suspended floor only after a competent person, such as a structural engineer, documents the plant allowed and confirms the floor, with any propping below, can carry it, its attachments and debris. Plant moves between floors by hoist or ramp.",
+  "code": "Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "On suspended floors, rubble is not left to build up beyond what the floor can carry (wet rubble weighs more), and buffers stop plant going over edges or into openings where it pushes debris.",
+  "code": "Demolition",
+  "section": "s 4.11, s 4.12"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "When walls are knocked down with plant, at least 900 mm of each wall is left standing above the floor as an edge barrier at the perimeter and around shafts and stairwells, and taken down later from the floor below.",
+  "code": "Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Where debris drops through floor openings or shafts, the opening on the working floor has a buffer that stops loaded plant while plant tips, and barriers at other times, and every floor below is sealed off or barricaded.",
+  "code": "Demolition",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Debris chutes are fully enclosed with a cover or barrier at the top, fixed to the structure for their loaded weight, and signed at the outlet. Overhead demolition stops while bins under the chute are changed.",
+  "code": "Demolition",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Where a crane holds a section while it is cut free, the section's weight is worked out first (by cutting and weighing samples if needed), and the crane's rated capacity is at least 1.5 times that weight.",
+  "code": "Demolition",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "The demolition machine's cab door is shut while it works, its windows are guarded with mesh, bars or polycarbonate, and its emergency exit is kept clear. Attachments are pinned as the manufacturer requires and never overloaded.",
+  "code": "Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Columns and walls brought down by plant are never left so tall that debris could fall onto the machine.",
+  "code": "Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Where a wall or structure is pulled down by rope or chain, the anchored winch or towing plant stands back at least twice the height being pulled, the operator is shielded from a snapping rope, and no one stands where a broken rope could reach.",
+  "code": "Demolition",
+  "section": "s 4.13"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "No one works from the top of a wall being demolished. Walls are taken down course by course from a working platform, and any wall left standing is braced against wind.",
+  "code": "Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "demolition",
+  "step": "Demolish",
+  "text": "No one works from the top of a wall being demolished. Walls are taken down course by course from a working platform, and any wall left standing is braced against wind.",
+  "code": "Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Glass is taken out of windows, doors and other openings before the walls around them are demolished.",
+  "code": "Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Steel or timber frame members are supported before they are cut so they cannot spring, twist or drop, and are lowered under control with tag lines.",
+  "code": "Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Where the structure gives lateral support to a neighbouring building, temporary supports at least as strong go in before that support is disturbed, and are checked as demolition goes on. The work must not flood the neighbour.",
+  "code": "Demolition",
+  "section": "s 3.7"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Next to a road or footpath, hoarding, containment screens and overhead protection over the walkway go up before demolition starts, stay up throughout, and are inspected and maintained.",
+  "code": "Demolition",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Portable fire extinguishers are kept in working areas, access to the fire services and booster stays open, and any sprinkler system is kept working floor by floor where reasonably practicable.",
+  "code": "Demolition",
+  "section": "s 4.10"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "A fire-damaged, ruinous or unsound structure gets a written report from a competent person on its current condition, hazards and controls before work starts, and is brought down by machine where possible.",
+  "code": "Demolition",
+  "section": "s 3.3, s 5.2"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Where lead paint or lead fittings are suspected (common in buildings from 1920 to 1978), they are tested first, and lead dust is kept down, cleaned up during and after work, and handled with PPE and hand washing.",
+  "code": "Demolition",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "servicesStrip",
+  "step": "Remove the old services",
+  "text": "Old capacitors and transformers that may contain PCBs are handled with nitrile, neoprene or polyethylene gloves, bagged in polyethylene, put in a marked sealed metal container, and stored where leaks cannot escape until disposal.",
+  "code": "Demolition",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "officeStrip",
+  "step": "Strip out ceilings, partitions and floor coverings",
+  "text": "Synthetic mineral fibre insulation is identified and controlled to the manufacturer's instructions. Dust is suppressed by damping down, and PPE is worn while the insulation is removed.",
+  "code": "Demolition",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "chimneyRemoval",
+  "step": "Take down the chimney",
+  "text": "Before demolition, the chimney is inspected and surveyed for faults such as fractured or badly weathered stone or rotten timbers, checked for deviation from the perpendicular, and its stability in high winds is considered at every stage.",
+  "code": "Demolition",
+  "section": "s 5.6"
+ },
+ {
+  "op": "add",
+  "group": "fuelTankRemoval",
+  "step": "Remove the fuel tanks",
+  "text": "Delivery lines and vent pipes are purged as well as the tank, and a competent person certifies the tank free of gas and flammable vapour before cutting starts.",
+  "code": "Demolition",
+  "section": "s 5.10"
+ },
+ {
+  "op": "add",
+  "group": "demolition",
+  "step": "Demolish",
+  "text": "Before work starts, a competent person checks the condition of the roof, walls and floors being demolished for any risk of unplanned collapse.",
+  "code": "Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "demolition",
+  "step": "Demolish",
+  "text": "When a concrete floor is broken out by hand, enough reo is left in place to stop the floor collapsing or anyone falling through.",
+  "code": "Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "Signs and devices are checked through the job and kept in good order, and are removed as soon as the work they cover ends, but stay until loose stone is swept and lines are marked.",
+  "code": "Traffic management",
+  "section": "s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "The supervisor keeps a daily record of the sign layout, including when regulatory and speed signs go up, change or come down. After any crash, the signs in place are recorded and photographed.",
+  "code": "Traffic management",
+  "section": "s 4.4, s 7.1"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "Before work each day, signs, devices and barriers are inspected and damage fixed, then the supervisor drives through the site to check it as road users see it, and drives through again during the shift.",
+  "code": "Traffic management",
+  "section": "s 7.4, s 7.5"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "During breaks, workers move clear of the work area and plant parks clear of traffic lanes. When no workers are on site, Prepare to Stop and Workers signs are taken down or covered.",
+  "code": "Traffic management",
+  "section": "s 5.2, s 7.5, s 7.6"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "At the end of the day, warning lamps are lit where needed and the site is driven through to check every sign and device before leaving. Lamps are checked after dark, with an after hours contact for damaged signs.",
+  "code": "Traffic management",
+  "section": "s 7.6, s 7.7"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "Traffic controllers do not direct traffic through the site where the approach speed is over 60 km/h, never use a mobile phone while directing traffic, and use only MUTCD Part 3 equipment.",
+  "code": "Traffic management",
+  "section": "s 5.2"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "Traffic controllers carry their accreditation card, work with zero blood alcohol and unaffected by drugs, and are relieved for breaks rather than leaving their post where traffic is a hazard.",
+  "code": "Traffic management",
+  "section": "s 5.2, s 7.5"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "The traffic guidance scheme is designed by a person trained in traffic management design and set up by workers trained to implement it, and everyone working next to the road has done Working in Proximity to Traffic training.",
+  "code": "Traffic management",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "At night or in low light, at least two workers are on site, the work area has extra lighting, and workers wear fluorescent and retroreflective clothing.",
+  "code": "Traffic management",
+  "section": "s 8.2"
+ },
+ {
+  "op": "add",
+  "group": "road",
+  "step": "Set up traffic management",
+  "text": "Weather forecasts are watched so work can be replanned, and workers, especially traffic controllers holding metal stop/slow bats, are not left in the open when lightning is near.",
+  "code": "Traffic management",
+  "section": "s 8.8"
+ },
+ {
+  "op": "add",
+  "group": "roadPlant",
+  "step": "Run the road plant inside the work zone",
+  "text": "At night, no one works alone, and workers wear fluorescent and retroreflective clothing.",
+  "code": "Traffic management",
+  "section": "s 8.2"
+ },
+ {
+  "op": "add",
+  "group": "footpathClosure",
+  "step": "Set up traffic barriers and temporary fencing",
+  "text": "Water-filled barriers are checked each morning for position, damage and water level, and fixed before work starts.",
+  "code": "Traffic management",
+  "section": "s 7.4"
+ },
+ {
+  "op": "cite",
+  "find": "Set up traffic control to the approved traffic management plan before work starts",
+  "code": "Traffic management",
+  "section": "s 4.1, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Traffic controllers who hold Queensland traffic controller accreditation direct vehicles",
+  "code": "Traffic management",
+  "section": "s 5.1, s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Traffic management is in place before work starts, as the approved plan sets out.",
+  "code": "Traffic management",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "The traffic switch follows the traffic management plan and staging approved by the road authority, and is set up only by workers holding",
+  "code": "Traffic management",
+  "section": "s 4.5, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "The switch is checked by driving through it before workers move into the new work area",
+  "code": "Traffic management",
+  "section": "s 7.4"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "Before erection begins, the principal contractor or PCBU commissioning the scaffold prepares the ground and gives the scaffolder written information on its bearing capacity.",
+  "code": "Scaffolding",
+  "section": "s 2.3.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "Any watercourse, such as a recently filled trench, that could wash out under the scaffold base is diverted away from it, and service trenches are not dug under, through or next to the scaffold.",
+  "code": "Scaffolding",
+  "section": "s 2.1.3, s 2.3.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "Obtain an engineer's advice or certification before erecting a scaffold on verandas, awnings, parapets, roofs, suspended floors or compacted soil.",
+  "code": "Scaffolding",
+  "section": "s 2.3, s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "Where soleboards are needed on softer ground, they are at least 500 mm long, 225 mm wide and 30 mm thick hardwood, or a substitute certified by the scaffold designer or a competent person, set level, with no baseplate overhanging the soleboard.",
+  "code": "Scaffolding",
+  "section": "s 2.3.3"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "Re-route vehicles and mobile plant away from the scaffold, or use barricades, buffer rails, guards or kerbs to stop them coming into contact with it.",
+  "code": "Scaffolding",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "The scaffold has no unnecessary protrusions, such as over-length transoms, putlogs, tie tubes or over-height standards.",
+  "code": "Scaffolding",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "Where overhead electric lines cannot be de-energised or re-routed by the electricity entity, people, scaffold parts, equipment and materials are kept out of the exclusion zone, allowing for sway and sag of the lines.",
+  "code": "Scaffolding",
+  "section": "s 3.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "A safety observer (spotter) watches the scaffolding work where a person or part of the scaffold could enter the exclusion zone of an overhead electric line.",
+  "code": "Scaffolding",
+  "section": "s 3.1"
+ },
+ {
+  "op": "cite",
+  "find": "Check the ground and set out base plates and sole boards to the scaffold design.",
+  "code": "Scaffolding",
+  "section": "s 2.3, s 2.3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Protect people below with a hoarding or gantry, or divert pedestrians, as approved.",
+  "code": "Scaffolding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "For scaffolding work above 4 m, a scaffold plan with a site layout plan is prepared by the scaffolding PCBU and kept available at the worksite, and what is built on site matches the plan.",
+  "code": "Scaffolding",
+  "section": "s 2.1.3"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "An engineer design verifies hung scaffolds, cantilevered or spurred scaffolds over 6 m high, and loading bays that exceed the scaffold's duty rating, as Table 1 of the code sets out.",
+  "code": "Scaffolding",
+  "section": "s 2.2"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "A competent person inspects all scaffolding components before erection for overall condition, corrosion, and welding and fabrication defects.",
+  "code": "Scaffolding",
+  "section": "s 3.9, s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "A tie is installed when an unclad scaffold reaches three times the minimum base width, unless the design documents say otherwise. Clad scaffolds may need ties installed lower.",
+  "code": "Scaffolding",
+  "section": "s 2.4.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Consult the scaffold designer or supplier before attaching extra loads such as signs, perimeter containment screens, lifting appliances or rubbish chutes, as more ties may be needed.",
+  "code": "Scaffolding",
+  "section": "s 2.4.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Cast-in anchors or through bolts are preferred for ties. Post-installed anchors are chemical, screw bolt, coil or torque-controlled expansion anchors only, never drop-in anchors.",
+  "code": "Scaffolding",
+  "section": "s 2.4.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Post-installed tie anchors are set with a torque wrench, chemical anchors are proof tested to 100 per cent of design load, and installation details are documented and kept on site.",
+  "code": "Scaffolding",
+  "section": "s 2.4.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Scaffold planks are captive and fixed against uplift or displacement, with no single gap between planks over 25 mm and a total gap not over 50 mm.",
+  "code": "Scaffolding",
+  "section": "s 2.6"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Hop-up brackets, other than single board brackets, have tie bars fitted. Plastic zip ties are used only in non-load bearing situations.",
+  "code": "Scaffolding",
+  "section": "s 2.6"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Where the internal gap between the platform and the building is greater than 225 mm, install edge protection on the inside edge of the platform or additional planks.",
+  "code": "Scaffolding",
+  "section": "s 3.6.2, s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Gaps between the scaffold and the building are eliminated over common access and egress points.",
+  "code": "Scaffolding",
+  "section": "s 3.6.2"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Containment screens sit inside the standards. Mesh openings are no more than 50 x 50 mm with a prescribed lining, or 25 x 25 mm or 25 x 50 mm without, and gaps between screens or to the framework are not over 25 mm.",
+  "code": "Scaffolding",
+  "section": "s 2.5"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Containment sheeting is installed no higher than the uppermost tie, unless an engineer certifies otherwise.",
+  "code": "Scaffolding",
+  "section": "s 2.5"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Temporary stairs or ladder access are installed at the start of erection and progressed with the scaffold, so workers have safe access and egress at all times.",
+  "code": "Scaffolding",
+  "section": "s 2.7.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "An external perimeter scaffold with a top working platform more than 8 m high and more than 60 m long has at least two means of access and egress, one suitable for emergency stretcher access.",
+  "code": "Scaffolding",
+  "section": "s 2.7.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Scaffolders do not climb standards, except when harnessed on hung, cantilevered or spurred scaffolds where other access is not practical. Do not climb on guardrails to gain extra height.",
+  "code": "Scaffolding",
+  "section": "s 2.7.1, s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Where the ladder access bay is part of the working platform, a trap door is fitted and kept closed while working from the platform, with a swing arm or gate at the access.",
+  "code": "Scaffolding",
+  "section": "s 2.7.1.2"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Stair modules are secured to the scaffold bay. Where the supplier gives no maximum, the gap between the stair module and the transom is not more than 15 mm.",
+  "code": "Scaffolding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Erect the scaffold",
+  "text": "Fall arrest systems are not used as the control when erecting or dismantling perimeter or birdcage scaffolds. They are used only for hung or drop scaffolds, cantilevered needles, cantilevered scaffolds and spurs.",
+  "code": "Scaffolding",
+  "section": "s 3.5.6, s 5.1.1"
+ },
+ {
+  "op": "cite",
+  "find": "A licensed scaffolder erects the scaffold to the manufacturer's or designer's instructions. Do not mix components from different systems.",
+  "code": "Scaffolding",
+  "section": "s 3.4, s 5"
+ },
+ {
+  "op": "cite",
+  "find": "Pass components hand to hand or use a gin wheel. Do not throw them.",
+  "code": "Scaffolding",
+  "section": "s 3.6, s 3.11.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Inspect and hand over",
+  "text": "The person who erected or altered the scaffold gives the principal contractor a handover certificate, which is kept on site until the scaffold is dismantled.",
+  "code": "Scaffolding",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Inspect and hand over",
+  "text": "Alterations to a scaffold over 4 m are recorded on the handover certificate, including what was altered, by whom and when.",
+  "code": "Scaffolding",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Inspect and hand over",
+  "text": "The scaffold is inspected more often than every 30 days where weather, site conditions or heavy-duty workloads such as demolition call for it.",
+  "code": "Scaffolding",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Inspect and hand over",
+  "text": "Inspection records are kept on site with the location, comments, date and time, the design or specification reference, and the person who inspected.",
+  "code": "Scaffolding",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Inspect and hand over",
+  "text": "A competent person regularly inspects scaffold ties to make sure they have not been loosened, relocated or removed by unauthorised persons, such as finishing trades.",
+  "code": "Scaffolding",
+  "section": "s 2.4.1, s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Inspect and hand over",
+  "text": "The number of working levels is communicated at handover and to users. Using more working levels at once than designed may overload the scaffold.",
+  "code": "Scaffolding",
+  "section": "s 2.1.3"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Inspect and hand over",
+  "text": "No materials are placed on platforms 450 mm wide or less.",
+  "code": "Scaffolding",
+  "section": "s 2.3.2.3"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Inspect and hand over",
+  "text": "The scaffold does not support formwork, hoist towers or concrete pumping equipment unless it is designed for that purpose.",
+  "code": "Scaffolding",
+  "section": "s 2.3.2.3"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Inspect and hand over",
+  "text": "In cyclone prone areas, north of Bundaberg, all planks are secured against uplift during cyclone season, and a procedure for seasonal high wind events is prepared.",
+  "code": "Scaffolding",
+  "section": "s 2.3.2.1, s 2.6"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Dismantle the scaffold",
+  "text": "Before dismantling, each PCBU removes the objects and debris it left on the scaffold, and the person with management or control of the scaffold enforces this.",
+  "code": "Scaffolding",
+  "section": "s 2.7.3, s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Dismantle the scaffold",
+  "text": "Components are passed from one level to another inside the scaffold, unless suitable exclusion zones are kept.",
+  "code": "Scaffolding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Lower components with a gin wheel or crane. Do not drop them.",
+  "code": "Scaffolding",
+  "section": "s 3.6, s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "mobileScaffold",
+  "step": "Use mobile scaffolds",
+  "text": "Before moving it, check there are no power lines or overhead obstructions, the ground is firm, level and free of obstructions, no one is on it, and nothing can be dislodged from the platform.",
+  "code": "Scaffolding",
+  "section": "s 5.1.3"
+ },
+ {
+  "op": "add",
+  "group": "mobileScaffold",
+  "step": "Use mobile scaffolds",
+  "text": "Never move the scaffold in windy conditions. Push or pull it from the base, never with powered vehicles.",
+  "code": "Scaffolding",
+  "section": "s 5.1.3"
+ },
+ {
+  "op": "add",
+  "group": "mobileScaffold",
+  "step": "Use mobile scaffolds",
+  "text": "The working height is no greater than the manufacturer or designer specifies, allowing for wind and the base dimension.",
+  "code": "Scaffolding",
+  "section": "s 5.1.3"
+ },
+ {
+  "op": "add",
+  "group": "mobileScaffold",
+  "step": "Use mobile scaffolds",
+  "text": "Castors suit the total dead and live load, have their working load limit clearly marked, and their brakes stay locked at all times unless the scaffold is being moved.",
+  "code": "Scaffolding",
+  "section": "s 5.1.3"
+ },
+ {
+  "op": "add",
+  "group": "mobileScaffold",
+  "step": "Use mobile scaffolds",
+  "text": "Where adjustable castors are used, the surface slope does not exceed 3 degrees unless the manufacturer specifies otherwise.",
+  "code": "Scaffolding",
+  "section": "s 5.1.3"
+ },
+ {
+  "op": "add",
+  "group": "mobileScaffold",
+  "step": "Use mobile scaffolds",
+  "text": "Do not use bricks or building blocks to take the weight of any part of the tower, and do not use ladders on the scaffold to gain extra height.",
+  "code": "Scaffolding",
+  "section": "s 2.7.1.2, s 5.1.2"
+ },
+ {
+  "op": "cite",
+  "find": "Components are passed up and down by hand line or from person to person within the tower",
+  "code": "Scaffolding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "claddingInstall",
+  "step": "Install the external cladding",
+  "text": "Do not loosen, relocate or remove scaffold ties, planks or guardrails to get access to walls and openings. Only a competent person alters the scaffold, in line with the scaffold plan.",
+  "code": "Scaffolding",
+  "section": "s 2.4.1, s 3.8, s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "rendering",
+  "step": "Apply render to walls",
+  "text": "Do not loosen, relocate or remove scaffold ties, planks or guardrails to get access to walls and openings. Only a competent person alters the scaffold, in line with the scaffold plan.",
+  "code": "Scaffolding",
+  "section": "s 2.4.1, s 3.8, s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "masonryLay",
+  "step": "Lay blocks and bricks",
+  "text": "Do not loosen, relocate or remove scaffold ties, planks or guardrails to get access to walls and openings. Only a competent person alters the scaffold, in line with the scaffold plan.",
+  "code": "Scaffolding",
+  "section": "s 2.4.1, s 3.8, s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "paintExternal",
+  "step": "Paint the outside of the structure at height",
+  "text": "Do not loosen, relocate or remove scaffold ties, planks or guardrails to get access to walls and openings. Only a competent person alters the scaffold, in line with the scaffold plan.",
+  "code": "Scaffolding",
+  "section": "s 2.4.1, s 3.8, s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Needles are fixed to an engineer-certified detail and positively restrained, not with chemical or friction anchors. Counterweights are secured by keyed lock, never with scaffold couplers.",
+  "code": "Scaffolding",
+  "section": "s 5.3.3"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Obtain engineer certification that the parapet, roof structure or other support can take the parapet clamps or outriggers.",
+  "code": "Scaffolding",
+  "section": "s 5.3.4"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Access to the suspension system is restricted to persons involved in the work, by signs and barricading, a permit-to-work system, or locking roof doors and hatches.",
+  "code": "Scaffolding",
+  "section": "s 5.3.4"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Each day before work, the operator carries out a safety inspection of the scaffold and completes the daily log-in sheet as the supplier requires.",
+  "code": "Scaffolding",
+  "section": "appendix 5"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Main and secondary hoist ropes are independently connected to the needle, at separate connection points.",
+  "code": "Scaffolding",
+  "section": "s 5.3.5"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "The hoist load limiting device is tested to the manufacturer's instructions before use, and the test is documented.",
+  "code": "Scaffolding",
+  "section": "s 5.3.5"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Materials are evenly distributed in the cradle, and the total load does not exceed the cradle's marked working load limit.",
+  "code": "Scaffolding",
+  "section": "s 5.3.6, appendix 5"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Lateral movement of the cradle is restricted with suction caps and by tying off the cradle with rope.",
+  "code": "Scaffolding",
+  "section": "s 5.3.6"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Where the cradle is entered or left away from the ground or a protected landing, harnesses are attached to anchorage points on the main structure and the cradle is secured against movement.",
+  "code": "Scaffolding",
+  "section": "appendix 5"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Procedures are in place for rapid retrieval of people from the cradle, such as an onsite crane work box. Do not rely on the fire and rescue service.",
+  "code": "Scaffolding",
+  "section": "appendix 5"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "Effective communication is kept between the cradle and other workers on site to raise the alarm in an emergency.",
+  "code": "Scaffolding",
+  "section": "appendix 5"
+ },
+ {
+  "op": "add",
+  "group": "swingStage",
+  "step": "Work from a swing stage",
+  "text": "When left unattended, the platform is secured to the structure and hoist power disconnected. Overnight it is parked in its storage position with ropes and cables stowed.",
+  "code": "Scaffolding",
+  "section": "appendix 5"
+ },
+ {
+  "op": "add",
+  "group": "paintSwing",
+  "step": "Paint from a swing stage",
+  "text": "The stage is not used until a competent person gives a written statement that it is complete and safe, and the operator has done the daily safety inspection.",
+  "code": "Scaffolding",
+  "section": "appendix 5"
+ },
+ {
+  "op": "add",
+  "group": "paintSwing",
+  "step": "Paint from a swing stage",
+  "text": "Work stops and the cradle is lowered to the ground in windy conditions, at the documented maximum operating wind speed.",
+  "code": "Scaffolding",
+  "section": "s 5.3.6"
+ },
+ {
+  "op": "add",
+  "group": "paintSwing",
+  "step": "Paint from a swing stage",
+  "text": "Procedures are in place for rapid retrieval of people from the cradle, without relying on the fire and rescue service, and at least one other person is on site who can rescue them.",
+  "code": "Scaffolding",
+  "section": "s 3.5.6.1, appendix 5"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Where scaffolding is used for demolition work, it is at least heavy or special duty.",
+  "code": "Scaffolding",
+  "section": "s 5.5"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Containment sheeting on the internal face of the demolition scaffold deflects material into the building, and scaffold planks are secured against dislodgement by falling debris.",
+  "code": "Scaffolding",
+  "section": "s 5.5"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "The scaffold is dismantled progressively in line with the demolition, with tie spacing reduced where the demolition cycle needs it.",
+  "code": "Scaffolding",
+  "section": "s 5.5"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Work from ladders",
+  "text": "Inspect the ladder before setting it up for broken rungs, stiles and footings. Faulty or damaged ladders are removed from service.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1, s 9.3"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Work from ladders",
+  "text": "Do not stand on a rung closer than 900 mm to the top of a single or extension ladder.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Work from ladders",
+  "text": "Do not stand higher than the second tread below the top plate of a stepladder, except on three-rung stepladders.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Work from ladders",
+  "text": "Do not over-reach: keep the centre of the torso within the ladder stiles, and face the ladder when going up, coming down or working from it.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Work from ladders",
+  "text": "Do not use a stepladder near the edge of an open floor, a penetration or beside a railing unless additional fall protection is used.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Work from ladders",
+  "text": "Only one person is on the ladder at a time, and no one works underneath it.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Work from ladders",
+  "text": "No hot work such as arc welding or oxy cutting from a ladder, and no tools needing high leverage force, such as stillsons or pinch bars.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Work from ladders",
+  "text": "Ladders in access areas, doorways or next to traffic areas have extra precautions, such as a barrier, the door locked shut or the work area barricaded.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Inspect the ladder before setting it up for broken rungs, stiles and footings. Faulty or damaged ladders are removed from service.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1, s 9.3"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Do not stand on a rung closer than 900 mm to the top of a single or extension ladder.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Do not stand higher than the second tread below the top plate of a stepladder, except on three-rung stepladders.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Do not over-reach: keep the centre of the torso within the ladder stiles, and face the ladder when going up, coming down or working from it.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Do not use a stepladder near the edge of an open floor, a penetration or beside a railing unless additional fall protection is used.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Only one person is on the ladder at a time, and no one works underneath it.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "No hot work such as arc welding or oxy cutting from a ladder, and no tools needing high leverage force, such as stillsons or pinch bars.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Ladders in access areas, doorways or next to traffic areas have extra precautions, such as a barrier, the door locked shut or the work area barricaded.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "A platform ladder, EWP or scaffold is used where the work is more than short and light, or needs both hands.",
+  "code": "Managing the risk of falls",
+  "section": "s 9, s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Near power lines or live electrical parts, ladders are non-conductive and kept outside the approach distances.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Fall arrest equipment that has arrested a fall is not used again until a competent person has inspected it and certified it safe to use.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "The harness system is set up so free fall is no more than 2 m before it takes effect, with the anchorage as high as the equipment permits and no work above the anchor point.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Snap hooks are double action and are not connected to each other, and lanyards are not used with inertia reels.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Fall arrest equipment that has arrested a fall is not used again until a competent person has inspected it and certified it safe to use.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "The harness system is set up so free fall is no more than 2 m before it takes effect, with the anchorage as high as the equipment permits and no work above the anchor point.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Snap hooks are double action and are not connected to each other, and lanyards are not used with inertia reels.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "panelInstall",
+  "step": "Install panels at the open slab edge",
+  "text": "Fall arrest equipment that has arrested a fall is not used again until a competent person has inspected it and certified it safe to use.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "panelInstall",
+  "step": "Install panels at the open slab edge",
+  "text": "The harness system is set up so free fall is no more than 2 m before it takes effect, with the anchorage as high as the equipment permits and no work above the anchor point.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "panelInstall",
+  "step": "Install panels at the open slab edge",
+  "text": "Snap hooks are double action and are not connected to each other, and lanyards are not used with inertia reels.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "roofPlant",
+  "step": "Install plant and equipment on the roof",
+  "text": "Fall arrest equipment that has arrested a fall is not used again until a competent person has inspected it and certified it safe to use.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "roofPlant",
+  "step": "Install plant and equipment on the roof",
+  "text": "The harness system is set up so free fall is no more than 2 m before it takes effect, with the anchorage as high as the equipment permits and no work above the anchor point.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "roofPlant",
+  "step": "Install plant and equipment on the roof",
+  "text": "Snap hooks are double action and are not connected to each other, and lanyards are not used with inertia reels.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "liftShaft",
+  "step": "Work at open lift shafts and landing doors",
+  "text": "Fall arrest equipment that has arrested a fall is not used again until a competent person has inspected it and certified it safe to use.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "liftShaft",
+  "step": "Work at open lift shafts and landing doors",
+  "text": "The harness system is set up so free fall is no more than 2 m before it takes effect, with the anchorage as high as the equipment permits and no work above the anchor point.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "liftShaft",
+  "step": "Work at open lift shafts and landing doors",
+  "text": "Snap hooks are double action and are not connected to each other, and lanyards are not used with inertia reels.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Rescue equipment is kept close to the work area so it can be used immediately to rescue a worker suspended in a harness.",
+  "code": "Managing the risk of falls",
+  "section": "s 10"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Where rescue may take more than five minutes, the harness lets the suspended worker raise their legs to near horizontal, or the worker carries straps to provide footholds.",
+  "code": "Managing the risk of falls",
+  "section": "s 10.1"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Rescue equipment is kept close to the work area so it can be used immediately to rescue a worker suspended in a harness.",
+  "code": "Managing the risk of falls",
+  "section": "s 10"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Where rescue may take more than five minutes, the harness lets the suspended worker raise their legs to near horizontal, or the worker carries straps to provide footholds.",
+  "code": "Managing the risk of falls",
+  "section": "s 10.1"
+ },
+ {
+  "op": "add",
+  "group": "panelInstall",
+  "step": "Install panels at the open slab edge",
+  "text": "Rescue equipment is kept close to the work area so it can be used immediately to rescue a worker suspended in a harness.",
+  "code": "Managing the risk of falls",
+  "section": "s 10"
+ },
+ {
+  "op": "add",
+  "group": "panelInstall",
+  "step": "Install panels at the open slab edge",
+  "text": "Where rescue may take more than five minutes, the harness lets the suspended worker raise their legs to near horizontal, or the worker carries straps to provide footholds.",
+  "code": "Managing the risk of falls",
+  "section": "s 10.1"
+ },
+ {
+  "op": "add",
+  "group": "roofPlant",
+  "step": "Install plant and equipment on the roof",
+  "text": "Rescue equipment is kept close to the work area so it can be used immediately to rescue a worker suspended in a harness.",
+  "code": "Managing the risk of falls",
+  "section": "s 10"
+ },
+ {
+  "op": "add",
+  "group": "roofPlant",
+  "step": "Install plant and equipment on the roof",
+  "text": "Where rescue may take more than five minutes, the harness lets the suspended worker raise their legs to near horizontal, or the worker carries straps to provide footholds.",
+  "code": "Managing the risk of falls",
+  "section": "s 10.1"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "The EWP is used only as a working platform, not to enter or exit a work area at height, unless the conditions in AS 2550.10 are met.",
+  "code": "Managing the risk of falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Workers are trained in the safe use of fall arrest equipment and the emergency rescue procedures for the EWP before using it.",
+  "code": "Managing the risk of falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Where a boom-type platform is used, the harness is attached to the platform's anchor point.",
+  "code": "Managing the risk of falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Sequence trades so they are not working above or below each other.",
+  "code": "Managing the risk of falls",
+  "section": "s 8.3"
+ },
+ {
+  "op": "add",
+  "group": "accessSteel",
+  "step": "Install access ladders, platforms and walkways",
+  "text": "Fixed ladders are set at 70 to 75 degrees to the horizontal, and never overhang the person climbing.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.2"
+ },
+ {
+  "op": "add",
+  "group": "accessSteel",
+  "step": "Install access ladders, platforms and walkways",
+  "text": "Fixed ladders steeper than 75 degrees have a permanent or temporary fall arrest system using anchorage lines or rails, as a ladder cage does not stop a fall.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.4, s 9.2"
+ },
+ {
+  "op": "add",
+  "group": "accessSteel",
+  "step": "Install access ladders, platforms and walkways",
+  "text": "Grid mesh or checker plate panels are each fixed securely before the next is placed, held by tack welds or panel grips until permanently fixed, and gaps left by removed panels have edge protection.",
+  "code": "Managing the risk of falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Temporary handrails or edge protection are fixed to the open sides of flights and landings until the permanent handrails are in",
+  "code": "Managing the risk of falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Excavate",
+  "text": "Where a person could fall into the trench, fit guardrails, including to the top edges of trench shields, or a barrier about 1.5 m back from the excavation.",
+  "code": "Managing the risk of falls",
+  "section": "s 5.2"
+ },
+ {
+  "op": "cite",
+  "find": "Access by a scaffold stair, or a ladder secured top and bottom that extends above the landing.",
+  "code": "Managing the risk of falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Safety mesh is run out from the protected edge, and installers work only over bays already meshed",
+  "code": "Managing the risk of falls",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Travel restraint is not used on fragile roofing or slopes over 15 degrees.",
+  "code": "Managing the risk of falls",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Cover or barricade openings as soon as sheets are removed.",
+  "code": "Managing the risk of falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Safety mesh to AS/NZS 4389 is run out from a protected edge, and fixed, lapped and tensioned",
+  "code": "Managing the risk of falls",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Mesh does not protect against a fall from the edge: edge protection stays in place.",
+  "code": "Managing the risk of falls",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Cover penetrations straight away with fixed covers that can take the load and are marked, or fence them off.",
+  "code": "Managing the risk of falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The stair opening is covered or has a guardrail at all times until the stair and its balustrade are fixed.",
+  "code": "Managing the risk of falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The system is inspected and certified by a competent person, and tagged, before anyone uses it.",
+  "code": "Managing the risk of falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "blasting",
+  "step": "Charge and fire the blast",
+  "text": "Anyone exposed to impulse noise from the blast wears well fitted earplugs of at least class 3 in combination with ear-muffs.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "blasting",
+  "step": "Charge and fire the blast",
+  "text": "Blast warning signals are at least 65 dB(A) and more than 15 dB(A) above the ambient noise at every position in the signal reception area.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 2.4"
+ },
+ {
+  "op": "add",
+  "group": "vegClearing",
+  "step": "Clear vegetation with the mulcher and excavator",
+  "text": "Chainsaw and mulcher noise is hazardous: anyone near them wears personal hearing protectors throughout the period of exposure, not just part of it.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "drillRig",
+  "step": "Drill with the drill rig",
+  "text": "Rock drilling noise is hazardous: the area around the rig is sign-posted as a hearing protector area, and no one enters it without personal hearing protectors, however short the stay.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "vacExcavation",
+  "step": "Hydro excavate with the vacuum truck",
+  "text": "Where a raised voice is needed to talk to someone about one metre away, personal hearing protectors are worn throughout the period of exposure to the truck and lance noise.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "treeRemoval",
+  "step": "Remove stumps and roots",
+  "text": "Stump grinder operators and anyone near the grinder wear personal hearing protectors throughout the period of exposure to its noise.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "eventPower",
+  "step": "Install temporary event power and generators",
+  "text": "Generators are located away from workers and the public, using distance, barriers or enclosures to isolate the noise, with acoustic covers kept closed.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Reinstate the surface",
+  "text": "Plate compactor operators wear personal hearing protectors throughout the period of exposure to the compactor noise.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "smallPlant",
+  "step": "Operate small earthmoving plant",
+  "text": "Plate compactor operators wear personal hearing protectors throughout the period of exposure to the compactor noise.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "demolition",
+  "step": "Demolish",
+  "text": "Areas where people may be exposed to hazardous noise from breakers, saws and plant are sign-posted as hearing protector areas, and no one enters without personal hearing protectors.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Fix hangers and supports",
+  "text": "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "mechPipework",
+  "step": "Fix hangers and supports",
+  "text": "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "containment",
+  "step": "Install cable tray and containment",
+  "text": "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "ictCabling",
+  "step": "Install communications containment",
+  "text": "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "fireAtHeight",
+  "step": "Install sprinkler pipework",
+  "text": "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "fireAtHeight",
+  "step": "Install hydrant pipework",
+  "text": "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "ceilingGrid",
+  "step": "Install suspended grid ceilings",
+  "text": "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "fireCollar",
+  "step": "Fix fire collars to the slab",
+  "text": "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "facadeSeal",
+  "step": "Drill fixing holes in the slab edge",
+  "text": "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 3.2, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "leadShielding",
+  "step": "Install lead shielding",
+  "text": "Lead is an ototoxic substance: noise exposure of workers cutting or grinding lead is reduced to 80 dB(A) or below, and they undergo audiometric testing.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "appendix B, s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Where the paint contains lead, an ototoxic substance, blasters undergo audiometric testing and are given information on ototoxic substances.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "appendix B, s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "concreteRepair",
+  "step": "Break out damaged concrete",
+  "text": "Workers using breakers or grinders (hand-arm vibration) with noise above 80 dB(A) LAeq,8h or 135 dB(C) peak have regular audiometric testing.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.4, appendix B"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "For shifts of 10 hours or longer, the extended shift adjustment in AS/NZS 1269.1 (+1 to +3 dB) is added to the measured LAeq,8h before comparing it with 85 dB(A).",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Areas underground where people may be exposed to hazardous noise are sign-posted as hearing protector areas, and no one enters without personal hearing protectors.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Haul roads, vehicle suspensions and tyres are regularly inspected and maintained to reduce exposure to whole-body vibration.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "To reduce whole-body vibration, operators adjust their suspension seats appropriately and operate plant within the speed suggested by the manufacturer or at a speed that reduces vibration levels.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "bulkDig",
+  "step": "Bulk excavate and load trucks",
+  "text": "To reduce whole-body vibration, operators adjust their suspension seats appropriately and operate plant within the speed suggested by the manufacturer or at a speed that reduces vibration levels.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "impactRoller",
+  "step": "Compact with the rolling impact compactor",
+  "text": "To reduce whole-body vibration, operators adjust their suspension seats appropriately and operate plant within the speed suggested by the manufacturer or at a speed that reduces vibration levels.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "smallPlant",
+  "step": "Operate small earthmoving plant",
+  "text": "To reduce whole-body vibration, operators adjust their suspension seats appropriately and operate plant within the speed suggested by the manufacturer or at a speed that reduces vibration levels.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "fenceRemove",
+  "step": "Take down the old fence",
+  "text": "Old posts are pulled with a post puller, jack or machine, not by hand, as a post that suddenly comes free applies a sudden force to the back.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "reo",
+  "step": "Place and tie reo",
+  "text": "Use a tying tool or long-handled tier so fixers do not bend the back forward for long periods while tying.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "ductwork",
+  "step": "Fix hangers and supports",
+  "text": "Where anchors are drilled repetitively into the soffit, the drill is supported on a drill stand or overhead drilling rig so it is not held with the hands above shoulder height.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "mechPipework",
+  "step": "Fix hangers and supports",
+  "text": "Where anchors are drilled repetitively into the soffit, the drill is supported on a drill stand or overhead drilling rig so it is not held with the hands above shoulder height.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "containment",
+  "step": "Install cable tray and containment",
+  "text": "Where anchors are drilled repetitively into the soffit, the drill is supported on a drill stand or overhead drilling rig so it is not held with the hands above shoulder height.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "ictCabling",
+  "step": "Install communications containment",
+  "text": "Where anchors are drilled repetitively into the soffit, the drill is supported on a drill stand or overhead drilling rig so it is not held with the hands above shoulder height.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "fireAtHeight",
+  "step": "Install sprinkler pipework",
+  "text": "Where anchors are drilled repetitively into the soffit, the drill is supported on a drill stand or overhead drilling rig so it is not held with the hands above shoulder height.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "fireAtHeight",
+  "step": "Install hydrant pipework",
+  "text": "Where anchors are drilled repetitively into the soffit, the drill is supported on a drill stand or overhead drilling rig so it is not held with the hands above shoulder height.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "ceilingGrid",
+  "step": "Install suspended grid ceilings",
+  "text": "Where anchors are drilled repetitively into the soffit, the drill is supported on a drill stand or overhead drilling rig so it is not held with the hands above shoulder height.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Finish concrete",
+  "text": "Kneeling while trowelling concrete is an awkward posture: use long-handled floats and edgers where possible to limit time kneeling.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "concreteRepair",
+  "step": "Break out damaged concrete",
+  "text": "Where practicable, eliminate hand-held breaking by using plant-mounted breakers or other methods; otherwise use tools that produce less vibration.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "demolition",
+  "step": "Demolish",
+  "text": "Where practicable, eliminate hand-held breaking by using plant-mounted breakers or other methods; otherwise use tools that produce less vibration.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "stairLiftInstall",
+  "step": "Install the stair lift",
+  "text": "Team carrying on stairs puts most of the weight on the handler at the lower end: move rail sections, chair and motor with a hoist or powered stair-climbing hand truck where possible.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Rotate tying tasks, and use a tying tool or long-handled tier to limit bending.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Mesh sheets are handled by two people or with a mechanical aid",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Barrow loads are kept to what a person can handle, on boarded runs, and barrowing and screeding are rotated.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4, s 4.6, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use knee pads and kneeling boards for edge finishing, and rotate tasks.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Manual handling: move props, frames, beams and ply to the work area in crane-lifted bundles, on trolleys or by hoist",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Manual handling: team lift long or heavy items, keep loads close to the body, and limit lifting above shoulder height.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.3, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Manual handling: rotate tasks and take breaks during repetitive erection.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use low-vibration tools and rotate operators to limit hand-arm vibration.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.6, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use pipe lifters or jacks to hold pipe overhead, rather than holding it up by hand.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Tiling walls means long periods of reaching: work at a height between the knees and shoulders",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.3, s 4.3, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Blocks and bricks are stacked close to the work at waist height, and lifted one at a time.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.3, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Use a power stretcher instead of a knee kicker where possible.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.1, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Knee pads, and tasks rotated to limit time kneeling.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Work under the floor is broken up with breaks, with knee pads and enough lighting.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.6, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Render is mixed with a mixer or paddle, and bags are moved with a trolley.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Heavy lids and grates are lifted with a lid lifter or plant, never by hand alone",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Sleepers and rail are handled with on-track plant or sleeper tongs, never lifted by hand alone",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Bags are lifted one at a time within what a person can handle, or smaller bags are used, and stacked at waist height",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.3, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Bags and drums are moved by forklift, trolley or two people, and opened at waist height.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.3, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "New sheets are held up with props or a sheet lifter while they are fixed, not by hand.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "The unit is lowered and lifted with a material lifter rated for its weight, never held overhead by hand.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Pendants are lifted with a material lifter or lifting frame rated for the load, never held overhead by hand.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use long-handled tools, rotate tasks and take breaks.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Work in hot weather follows the heat plan: shade, cool water, rest breaks and earlier start times.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Work is planned for the cooler part of the day in hot weather, with water and breaks.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Cool water, shade and rest breaks in hot weather.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Agree before work starts the wind speed at which sheet handling stops",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.4, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Ply sheets are carried by two people or with sheet lifters, and sheet handling stops when wind lifts the sheets.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.4, s 4.4, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Panels are not handled on the roof in strong or gusty wind, and each panel is clamped as soon as it is placed.",
+  "code": "Hazardous manual tasks",
+  "section": "s 3.4, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Benchtops are cut into pieces two people can carry, or moved on a trolley or with a lifting aid.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Hydrant pipe lengths are lifted into place with a pipe lifter, hoist or chain block rated for their weight",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Rotate compactor operators to limit hand-arm and whole-body vibration, and wear hearing protection.",
+  "code": "Hazardous manual tasks",
+  "section": "s 2.2, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Rotate compactor operators to limit hand-arm and whole-body vibration, and wear hearing protection.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Hearing protection when breaking or grinding, and use of vibrating tools is rotated.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Hearing protection when breaking or grinding, and use of vibrating tools is rotated.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Hearing protection is worn within the signposted area, and operators' exposure to vibration is managed by rotating tasks.",
+  "code": "Hazardous manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Hearing protection is worn within the signposted area, and operators' exposure to vibration is managed by rotating tasks.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Hearing protection is worn near running generators, with signposted hearing protector areas.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Hearing protection in the signposted area.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Hearing protection is worn in the signed area.",
+  "code": "Managing noise and preventing hearing loss",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "A dedicated radio frequency is used for the duration of the crane operations, and the crane operator normally takes radio instructions from one person only.",
+  "code": "Tower crane",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Only one dogger gives signals at any time. Where more than one dogger is involved in a lift, each knows when responsibility for their part of the lift is handed over.",
+  "code": "Tower crane",
+  "section": "s 3.4, s 7.1.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Work stops immediately if radio communication is lost. Mobile phones are not used to direct tower crane operations.",
+  "code": "Tower crane",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "An anemometer is fixed on the tower crane where it is not shielded from the wind, to give an accurate wind speed reading.",
+  "code": "Tower crane",
+  "section": "s 2.2.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "The crane is not operated in wind speeds above 54 km/h unless it is designed for those conditions and a documented risk assessment sets the types of loads that can be lifted and the controls.",
+  "code": "Tower crane",
+  "section": "s 2.2.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Workers, the tower crane and its load stay at least 3 m from overhead powerlines up to 132 kV, with greater distances for higher voltages. Allow for load overshoot and for sway and sag of the lines.",
+  "code": "Tower crane",
+  "section": "s 4.1.3"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Where the crane or load could enter the powerline exclusion zone, a trained safety observer (spotter) watches and advises the operator. The safety observer does not carry out dogging or other tasks at the same time.",
+  "code": "Tower crane",
+  "section": "s 4.1.3, s 7.1.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "There is at least 2 m between the highest point of the building work and the bottom of a slung load, unless not reasonably practicable.",
+  "code": "Tower crane",
+  "section": "s 3"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Where a concrete placement boom works within the tower crane's operating radius, a documented procedure sets the siting, communication between operators and scheduling, and the crane boom stays an appropriate distance above the placement boom.",
+  "code": "Tower crane",
+  "section": "s 3, s 4.2.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "The crane operator does not do their own dogging (for example on a remote control tower crane) or supervise a trainee dogger, even if the operator holds a dogging licence.",
+  "code": "Tower crane",
+  "section": "s 3.2, s 8.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "On a self-erecting or remotely operated crane, the operator works from a designated area close to the crane, keeps the load in view, and stays stationary while the load is in motion.",
+  "code": "Tower crane",
+  "section": "s 8.1, s 8.1.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "If the remote control operator needs to do other tasks, the remote control is turned off and secured so it cannot be activated unintentionally or used by others.",
+  "code": "Tower crane",
+  "section": "s 8.1.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "A barricade about 1800 mm high (for example a mesh fence) is erected around the base of a self-erecting tower crane, with room to avoid entrapment between the barricade and the counterweights.",
+  "code": "Tower crane",
+  "section": "s 8.1.2"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Before each work shift the crane operator visually inspects and function tests the crane, including controls, brakes, limiting devices and wire ropes, and enters the results in the logbook kept with the crane. Faults are fixed before use.",
+  "code": "Tower crane",
+  "section": "s 7.1.3, s 10.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Before directing a lift, the dogger checks each sling, shackle and lifting attachment has a working load limit at least equal to the load, the load is balanced, no part is loose, and it is not snagged.",
+  "code": "Tower crane",
+  "section": "s 7.1.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Lifting hooks have operable safety latches, shackles are prevented from unscrewing (for example by mousing), and slings are protected from sharp edges with sleeves or corner pieces.",
+  "code": "Tower crane",
+  "section": "s 7.2.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Round (sausage) slings are used only for round loads, as sharp edged loads can damage or tear them.",
+  "code": "Tower crane",
+  "section": "s 7.2.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Lifting gear is inspected by a competent person at least every 12 months, and synthetic slings every 3 months, and is tagged with the date of its last inspection.",
+  "code": "Tower crane",
+  "section": "s 7.2.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "When handling maximum or near maximum loads, after lifting the load a few centimetres the operator tests the hoist brakes, checks the load indicator and rechecks the load chart.",
+  "code": "Tower crane",
+  "section": "s 7.2.2"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Except in an emergency, the crane operator does not leave the cabin or control room while a load is suspended from the crane.",
+  "code": "Tower crane",
+  "section": "s 7.2.2"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Material boxes are engineer designed and certified, marked with their tare mass and SWL, lifted on four chains, with loads secured and not stacked above the sides.",
+  "code": "Tower crane",
+  "section": "s 7.2.3"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Basket hitches are not used where people may be near a lifted load, unless the sling is positively restrained from sliding along the load.",
+  "code": "Tower crane",
+  "section": "s 7.2.3"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Avoid lifting multiple loads at the same time (high/low loads), as it is difficult to ensure the dogger is not underneath them.",
+  "code": "Tower crane",
+  "section": "s 7.2.3"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "The crane is not left unattended until all loads are removed from the hook, the hook is raised clear, all powered motions are disabled, the keys are removed, and access to the crane base is prevented.",
+  "code": "Tower crane",
+  "section": "s 7.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Before erecting or dismantling starts, an exclusion zone based on a risk assessment is set up, including where practicable a radius of at least 20 m from the crane base. Only persons involved in the work enter it.",
+  "code": "Tower crane",
+  "section": "s 5.4.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Before climbing the crane, an exclusion zone with a radius of at least 12 m from the crane base is set up where practicable, and no one enters the area behind the crane under the counterweights.",
+  "code": "Tower crane",
+  "section": "s 5.2.2, s 5.4.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Climbing is not attempted at wind speeds above 36 km/h, or if the recommended maximum or actual wind speed is unknown.",
+  "code": "Tower crane",
+  "section": "s 5.2.2"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "No slewing during climbing. The counterweight trolleys, including side plates, bolting, pins, safety gear, ropes and turnbuckles, are inspected before climbing starts.",
+  "code": "Tower crane",
+  "section": "s 5.2.2"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Tower sections are of the correct model, or a model of greater strength, and the same as those on the engineer's crane base drawing.",
+  "code": "Tower crane",
+  "section": "s 5.2.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Only the correct type and grade of tower bolts are used, bolts and pins are not defective, and tower bolts are correctly torqued, neither under nor over tightened.",
+  "code": "Tower crane",
+  "section": "s 5.2.1"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Crane components such as packers and shims are restrained from falling, for example with a short chain to the crane structure, and tool lanyards at the wrist are no longer than 300 mm.",
+  "code": "Tower crane",
+  "section": "s 5.4.2, s 5.4.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Rated capacity limiters, overload cut-outs or motion switches bypassed or disconnected during erection are reconnected and tested to a written procedure before the crane is put into operation.",
+  "code": "Tower crane",
+  "section": "s 6"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Edge protection or travel restraint is used where it can be installed. A fall-arrest harness is used only where these are not practicable, with a written procedure for retrieving a person after a fall.",
+  "code": "Tower crane",
+  "section": "s 5.3, s 5.3.3"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Set up the concrete pump and placing boom",
+  "text": "Outrigger timbers have a minimum width of 200 mm and thickness of 75 mm, laid together with no gaps so the timber pad is wider than the outrigger foot, unless the manufacturer specifies otherwise.",
+  "code": "Concrete pumping",
+  "section": "s 4.2.2.3"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Set up the concrete pump and placing boom",
+  "text": "On sloping ground, cut into the ground so outrigger timbers are set level. Timbers are not laid on the slope or placed over timbers underneath.",
+  "code": "Concrete pumping",
+  "section": "s 4.2.2.1"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Set up the concrete pump and placing boom",
+  "text": "When unfolding the boom, test stability by slowly slewing the extended boom over each outrigger. If an outrigger sinks, slew back, fold the boom and adjust the dunnage before repeating.",
+  "code": "Concrete pumping",
+  "section": "s 4.2.2.1"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Set up the concrete pump and placing boom",
+  "text": "Vertical pipelines are positively secured to the building, and the 90 degree bend at the base is securely supported. Cranes, hoist towers, scaffolding or formwork are not used to secure the line.",
+  "code": "Concrete pumping",
+  "section": "s 4.1.3"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Set up the concrete pump and placing boom",
+  "text": "Anchor brackets and tie-downs secure the pipeline at intervals of no more than 3 m, unless a competent person specifies otherwise.",
+  "code": "Concrete pumping",
+  "section": "s 4.1.3"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Set up the concrete pump and placing boom",
+  "text": "Pipe clamps can sustain the maximum concrete pressure, locking pins on quick release clamps are engaged, the correct gasket is fitted, and clamps are not locked by hammering the lever. Damaged clamps are replaced immediately.",
+  "code": "Concrete pumping",
+  "section": "s 4.1.3"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Set up the concrete pump and placing boom",
+  "text": "The safety observer (spotter) for powerlines does not carry out other work at the same time, observes only one item of plant, and has the authority to stop the concrete placing equipment.",
+  "code": "Concrete pumping",
+  "section": "s 4.2.3.3"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Set up the concrete pump and placing boom",
+  "text": "Short legging is used only where the manufacturer's operating manual permits it, under a documented safe work procedure with a diagram of the permissible operating zone of the boom, given to the principal contractor.",
+  "code": "Concrete pumping",
+  "section": "s 4.2.2.5"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "Provide one line hand for every 10 m of workable hose where the pipe diameter is 76.2 mm or more, and every 20 m where it is less.",
+  "code": "Concrete pumping",
+  "section": "s 4.2.1"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "The delivery hose on a boom pump hangs close to vertical and is guided only by the line hand. If the boom does not reach, use a longer boom or move the pump closer.",
+  "code": "Concrete pumping",
+  "section": "s 4.1.4"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "The line hand has a working surface at least 450 mm wide to stand on, and does not stand on block walls or next to unprotected edges.",
+  "code": "Concrete pumping",
+  "section": "s 4.1.4"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "No person stands between a reversing concrete delivery truck and the hopper, and the truck stops immediately if the driver loses sight of the spotter.",
+  "code": "Concrete pumping",
+  "section": "s 4.3.1"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "The truck's concrete chute is moved only when the truck is stationary, preferably by the driver or with the driver's permission.",
+  "code": "Concrete pumping",
+  "section": "s 4.3.1"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "Concrete is pumped only when the hopper grate is closed.",
+  "code": "Concrete pumping",
+  "section": "s 4.3.2"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "Where a worker must enter the hopper for cleaning, the equipment is shut down and accumulated hydraulic or air pressure exhausted, with another person nearby to assist.",
+  "code": "Concrete pumping",
+  "section": "s 4.3.7"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "Compressed air is not used to clear a suspected blockage. When blowing out a line with air, remove the rubber delivery hose and reducers, secure the line end, and fit a catchment device.",
+  "code": "Concrete pumping",
+  "section": "s 4.1.4, s 4.3.6"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "For air cleanout, the blowout cap has a pressure gauge and an air dump valve, and only experienced, authorised workers operate its valves.",
+  "code": "Concrete pumping",
+  "section": "s 4.3.6"
+ },
+ {
+  "op": "add",
+  "group": "concrete",
+  "step": "Pump and place concrete",
+  "text": "Confirm the mix delivered matches the mix ordered. The person at the hopper monitors the mix and has the pump operator do an emergency stop if lumps or foreign objects appear.",
+  "code": "Concrete pumping",
+  "section": "s 4.1.4"
+ },
+ {
+  "op": "add",
+  "group": "slabPour",
+  "step": "Place concrete",
+  "text": "Where concrete is pumped by hose, provide one line hand for every 10 m of workable hose where the pipe diameter is 76.2 mm or more, and every 20 m where it is less.",
+  "code": "Concrete pumping",
+  "section": "s 4.2.1"
+ },
+ {
+  "op": "add",
+  "group": "slabPour",
+  "step": "Place concrete",
+  "text": "Where concrete is pumped, no person stands between a reversing delivery truck and the hopper, and the truck stops immediately if the driver loses sight of the spotter.",
+  "code": "Concrete pumping",
+  "section": "s 4.3.1"
+ },
+ {
+  "op": "add",
+  "group": "jumpform",
+  "step": "Pour the core walls",
+  "text": "The line hand has a working surface at least 450 mm wide to stand on, and does not stand on wall tops or next to unprotected edges.",
+  "code": "Concrete pumping",
+  "section": "s 4.1.4"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Columns are secured by bolting the base plate to the footing, with tightly fitted steel packers or wedges under the base plate, and are stabilised against overturning before the lifting gear is released.",
+  "code": "Steel construction",
+  "section": "s 4.3.5, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Where possible, lifting slings are released from floor level using long slings or remote release shackles, or from an EWP.",
+  "code": "Steel construction",
+  "section": "s 3.4, s 4.3.5"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "All beams are secured before the slings are released.",
+  "code": "Steel construction",
+  "section": "s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Bolts are not bent and holes are not enlarged to line up. Where holes do not line up, the design engineer is consulted and gives written verification of any changes.",
+  "code": "Steel construction",
+  "section": "s 5.5"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Where the design requires, erection starts in a nominated braced bay so the structure can be plumbed and made self-supporting.",
+  "code": "Steel construction",
+  "section": "s 5.2"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Temporary guys and bracing are securely anchored, identified with coloured bunting, and inspected at the beginning of each shift. Any anchor movement is reported to the erector and acted on immediately.",
+  "code": "Steel construction",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "The verifier checks structure stability at the end of the workday, during temporary stoppages, during or before forecast high winds, and when connections are incomplete or construction loads are applied.",
+  "code": "Steel construction",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "An EWP is never used to force steelwork into place. Steel lifted in an EWP sits in a purpose built cradle, not on the guardrails, within the platform's rated capacity.",
+  "code": "Steel construction",
+  "section": "s 3.5.2"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Before a rigger's post system is used, the building designer confirms the structure can support it, and the static line system is verified by a competent person, including vertical clearance under the line and maximum number of users.",
+  "code": "Steel construction",
+  "section": "s 3.7.1"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Girts are not carried by hand. They are lifted into position by mechanical equipment and erected from an EWP or a combined access and lifting cradle.",
+  "code": "Steel construction",
+  "section": "s 4.3.8"
+ },
+ {
+  "op": "add",
+  "group": "steelErect",
+  "step": "Erect and connect steel at height",
+  "text": "Post-installed anchors are installed to the manufacturer's recommendations, only in concrete that has reached its specified strength.",
+  "code": "Steel construction",
+  "section": "s 5.6"
+ },
+ {
+  "op": "add",
+  "group": "steelLift",
+  "step": "Lift and land steel with the crane company",
+  "text": "Take care when releasing strapping on steel bundles, as the strapping may whip back or the bundle may fall apart.",
+  "code": "Steel construction",
+  "section": "s 4.3.2"
+ },
+ {
+  "op": "add",
+  "group": "steelLift",
+  "step": "Lift and land steel with the crane company",
+  "text": "More than one member or a bundle is lifted at once only with slings designed to stop members becoming entangled or dislodged, or in cradles for bundles of steel or decking.",
+  "code": "Steel construction",
+  "section": "s 4.3.4"
+ },
+ {
+  "op": "add",
+  "group": "steelLift",
+  "step": "Lift and land steel with the crane company",
+  "text": "Steelwork is stored in stable stacks so it cannot fall on workers, allowing for wind and mobile plant, with safe access for workers to sling a load.",
+  "code": "Steel construction",
+  "section": "s 4.3.2"
+ },
+ {
+  "op": "add",
+  "group": "steelLift",
+  "step": "Lift and land steel with the crane company",
+  "text": "When transferring a lift from horizontal to vertical, avoid unrestrained movement of the lower end, using lifting beams where needed for member stability.",
+  "code": "Steel construction",
+  "section": "s 4.3.3"
+ },
+ {
+  "op": "add",
+  "group": "steelLift",
+  "step": "Lift and land steel with the crane company",
+  "text": "Only one person gives signals at any one time, and work stops immediately if 2-way radio contact is lost.",
+  "code": "Steel construction",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "steelLift",
+  "step": "Lift and land steel with the crane company",
+  "text": "The crane operator gives an audible warning before lifting loads near persons.",
+  "code": "Steel construction",
+  "section": "s 6.4"
+ },
+ {
+  "op": "add",
+  "group": "dualLift",
+  "step": "Plan the dual lift",
+  "text": "Where the lift is not designed by an engineer, each crane's capacity is at least 20% greater than its calculated share of the load for two cranes, 33% for three, and 50% for four.",
+  "code": "Steel construction",
+  "section": "s 6.7.1"
+ },
+ {
+  "op": "add",
+  "group": "dualLift",
+  "step": "Plan the dual lift",
+  "text": "One person is in overall control of the multiple crane lift, cranes of equal capacity and similar characteristics are used, and the lift is rehearsed wherever possible.",
+  "code": "Steel construction",
+  "section": "s 6.7"
+ },
+ {
+  "op": "add",
+  "group": "crane",
+  "step": "Set up the crane",
+  "text": "Outrigger extensions are locked or pinned as the manufacturer recommends, and pads sit on hardwood packing at least 200 x 75 mm laid in a pigsty configuration, not parallel. The crane is levelled.",
+  "code": "Steel construction",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "crane",
+  "step": "Set up the crane",
+  "text": "The outrigger footings are checked frequently during the crane's operation to make sure they stay in place.",
+  "code": "Steel construction",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "crane",
+  "step": "Rig and lift the load",
+  "text": "When handling maximum or near maximum loads, after lifting the load a few centimetres test the hoist brakes, check the load weight indicator and recheck the load chart.",
+  "code": "Steel construction",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "crane",
+  "step": "Rig and lift the load",
+  "text": "When travelling with a load, keep it close to the ground, with a dogger who stays in sight of the operator and out of the crane's path, and the slewing brake or lock applied.",
+  "code": "Steel construction",
+  "section": "s 6.6"
+ },
+ {
+  "op": "cite",
+  "find": "No one stands under, inside or beside the boom while pins are driven or removed",
+  "code": "Steel construction",
+  "section": "s 6.8"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "An exclusion zone, with para-webbing, signs or fencing as needed, keeps out everyone not involved in erection and covers the area where a falling crane, panel or struck element could hit a person.",
+  "code": "Tilt-up and precast",
+  "section": "s 13.1"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "The exclusion zone stays in place until the braces are secured and the lifting slings removed, and traffic is stopped from passing through it during lifting.",
+  "code": "Tilt-up and precast",
+  "section": "s 13.1"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "The semi-trailer is unloaded on firm, level ground with a side slope of no more than 2 degrees, wheels chocked and park brake on, and is never moved after the restraints are released.",
+  "code": "Tilt-up and precast",
+  "section": "s 11.2"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Panels are unloaded progressively from alternate sides of the A-frame so trailer tilt is kept to a minimum, and no one stands beside the vehicle where a panel could strike them.",
+  "code": "Tilt-up and precast",
+  "section": "s 11.2"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "The dogger slings panels on the trailer from a work platform, such as a guarded A-frame walkway, boom EWP, mobile scaffold or loading bay, or uses pre-attached slings reached from the ground, not from a ladder.",
+  "code": "Tilt-up and precast",
+  "section": "s 11.3"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Before lifting, the panel mass is clearly marked on the panel, and the crane capacity covers the panel, lifting gear and dynamic factors at the actual working radius.",
+  "code": "Tilt-up and precast",
+  "section": "s 12.2, s 14.1"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Crane support is maintained until all braces are installed and secured to the panel and footings, without the hoist rope or slings going slack.",
+  "code": "Tilt-up and precast",
+  "section": "s 14.1"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Lifting clutch release lines are fitted so clutches can be released without workers climbing on top of the panel.",
+  "code": "Tilt-up and precast",
+  "section": "s 14.1"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Dowel pins are fitted before lowering, and levelling shims do not exceed 40 mm in height.",
+  "code": "Tilt-up and precast",
+  "section": "s 14.1"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Tilt-up panels are lifted only when documentation verifies the concrete has reached the minimum strength required for the lifting inserts.",
+  "code": "Tilt-up and precast",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "If a tilt-up panel does not come free when the crane indicator shows the combined weight of panel and rigging, lifting stops. Wedging or jacking needs the engineer's approval. Panels lean away from the crane, never towards it.",
+  "code": "Tilt-up and precast",
+  "section": "s 14.2"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Braces are inspected before use, marked with the manufacturer's name, model and working load limit, and do not have parts interchanged with other makes or models.",
+  "code": "Tilt-up and precast",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Brace locking pins have retaining devices, and knee or lateral bracing is installed as soon as possible after the panel is placed and the primary braces are secured.",
+  "code": "Tilt-up and precast",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Deformation-controlled expansion anchors, drop-in anchors, low-load slip (wedge) anchors and self-drilling anchors are not used for braces. Chemical anchors are used only if each is proof tested to its working load limit.",
+  "code": "Tilt-up and precast",
+  "section": "s 8.1"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Post-installed brace anchors are torqued with a torque wrench or calibrated rattle gun, and written records of setting torque are kept on site.",
+  "code": "Tilt-up and precast",
+  "section": "s 8.2"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Mobile plant does not operate or travel close to erected panels and braces unless there is good reason, and must never contact a brace. Brace positions are marked with hazard tape, para-webbing or signs.",
+  "code": "Tilt-up and precast",
+  "section": "s 15"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "A lift plan shows crane set-up positions, lift locations and radius, obstacles in the slew path, and areas such as trenches and covered penetrations where the crane cannot set up.",
+  "code": "Tilt-up and precast",
+  "section": "s 12.1"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "A crane on outriggers is level to within 1 degree, on correctly pig-stied timbers of the manufacturer's minimum size, and not next to excavations or over covered cavities.",
+  "code": "Tilt-up and precast",
+  "section": "s 12.6"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Where the ground slope is greater than 1 degree, written evidence is provided that the crane can safely walk a load on that gradient.",
+  "code": "Tilt-up and precast",
+  "section": "s 12.5"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Lifting of concrete elements does not continue when the wind speed exceeds 45 km/h (12.5 m/s), and lower speeds may be unsafe for elements with a large surface area.",
+  "code": "Tilt-up and precast",
+  "section": "s 13.2"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Stand and brace the precast elements",
+  "text": "Stored panels are stable in wind, on at least two bearers aligned through the stack, stacked no higher than twice the element width, away from roads, and on a suspended slab only with the slab engineer's written approval.",
+  "code": "Tilt-up and precast",
+  "section": "s 11.4"
+ },
+ {
+  "op": "add",
+  "group": "precast",
+  "step": "Remove the braces",
+  "text": "Braces are removed from platforms with edge protection, such as EWPs or mobile scaffolds. A ladder is used only to undo the bolt on a light brace that workers on the ground lower in a controlled way.",
+  "code": "Tilt-up and precast",
+  "section": "s 16"
+ },
+ {
+  "op": "cite",
+  "find": "Braces stay in place until the grout reaches strength and the connections are complete",
+  "code": "Tilt-up and precast",
+  "section": "s 9.1, s 9.2"
+ },
+ {
+  "op": "add",
+  "group": "precastFloor",
+  "step": "Land and fix the precast floor units",
+  "text": "Lifting of concrete elements does not continue when the wind speed exceeds 45 km/h (12.5 m/s), and lower speeds may be unsafe for elements with a large surface area.",
+  "code": "Tilt-up and precast",
+  "section": "s 13.2"
+ },
+ {
+  "op": "cite",
+  "find": "Plant is parked on level ground, the engine stopped, the key removed, and the plant isolated and tagged before work starts.",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 3.6, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Raised buckets, blades and bodies are lowered, or blocked with their mechanical locks, before anyone works under them.",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Hydraulic pressure is released before any line is undone",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Plant is isolated and locked out with personal locks before anyone clears a blockage",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 3.6, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Conveyors, crushers and screens have guards fitted, and pull-wire and emergency stops are tested before each shift.",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 3.5, s 4.1, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Guards, pull-wires and emergency stops are fitted and tested before the plant is run",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 3.2, s 3.5, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Plant has a warning device that warns people at risk from its movement.",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "plantService",
+  "step": "Service and repair mobile plant on site",
+  "text": "Following maintenance, all guarding is replaced before the plant is used.",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 3.6, s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "plantService",
+  "step": "Service and repair mobile plant on site",
+  "text": "Plant with damage that poses a risk to health and safety is withdrawn from service until the risks have been controlled.",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "forklift",
+  "step": "Operate forklifts",
+  "text": "A forklift left unattended is parked on a firm, level surface with the handbrake applied, the motor switched off, and the key removed.",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Plant left unattended is parked on a firm, level surface with parts that lower under gravity lowered, the handbrake applied, the motor off and the key removed.",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 3.7, s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "smallPlant",
+  "step": "Operate small earthmoving plant",
+  "text": "Plant left unattended is parked on a firm, level surface with parts that lower under gravity lowered, the handbrake applied, the motor off and the key removed.",
+  "code": "Managing the risks of plant in the workplace",
+  "section": "s 3.7, s 3.8"
+ }
+]
