@@ -141,3 +141,17 @@ test('the AI reading is off without an API key, and a long document is refused, 
   process.env.ANTHROPIC_API_KEY = key;
   await assert.rejects(aiScope.startReading(company, 'x'.repeat(2500001)), /too long/);
 });
+
+test('a reading cut off by a restart is marked failed after 30 minutes, and the document can be read again', async () => {
+  const text = `${SCOPE}\nCut off by a restart.`;
+  await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+    ['stuck-reading', company.id, aiScope.fingerprint(text), 'v3', 'claude-opus-5-5', 'reading', text.length, new Date(Date.now() - 31 * 60 * 1000)]);
+  const stuck = await aiScope.getReading(company, 'stuck-reading');
+  assert.equal(stuck.status, 'failed');
+  assert.match(stuck.error, /interrupted/);
+  aiScope.useClient(standIn(READING));
+  const again = await aiScope.startReading(company, text);
+  assert.equal(again.kept, false);
+  await again.done;
+  assert.equal((await aiScope.getReading(company, again.id)).status, 'done');
+});

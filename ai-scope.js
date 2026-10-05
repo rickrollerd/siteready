@@ -19,6 +19,9 @@ const MODEL = 'claude-opus-5-5';
 const PRICE = { input: 4, output: 20, cacheWrite: 5, cacheRead: 0.2 };
 // About 1M tokens of context; a document longer than this is refused, never cut short.
 const MAX_CHARACTERS = 2500000;
+// A reading still unfinished after this long was cut off (the server restarted mid-reading),
+// so it is marked failed and the document can be read again.
+const STALE_MINUTES = 30;
 
 let client = null;
 
@@ -161,6 +164,7 @@ async function startReading(company, text) {
   if (!content.trim()) throw fail(400, 'There is no text in this file to read.');
   if (content.length > MAX_CHARACTERS) throw fail(413, 'This document is too long for one reading. Split it into parts and read each one.');
   const hash = fingerprint(content);
+  await markStale();
   const kept = await db.one("SELECT * FROM ai_readings WHERE company_id = $1 AND doc_hash = $2 AND brief_version = $3 AND status <> 'failed' ORDER BY created_at DESC LIMIT 1",
     [company.id, hash, BRIEF_VERSION]);
   if (kept) return { ...rowOut(kept), kept: true };
@@ -179,8 +183,14 @@ async function startReading(company, text) {
   return { id, status: 'reading', kept: false, done: work };
 }
 
+async function markStale() {
+  await db.query("UPDATE ai_readings SET status = 'failed', error = $1, finished_at = $2 WHERE status = 'reading' AND created_at < $3",
+    ['The reading was interrupted. Try again.', new Date(), new Date(Date.now() - STALE_MINUTES * 60 * 1000)]);
+}
+
 async function getReading(company, id) {
   if (!company) throw fail(401, 'Sign in to see this reading.');
+  await markStale();
   const row = await db.one('SELECT * FROM ai_readings WHERE id = $1 AND company_id = $2', [String(id || ''), company.id]);
   if (!row) throw fail(404, 'That reading was not found.');
   return rowOut(row);
