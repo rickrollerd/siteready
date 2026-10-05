@@ -7,8 +7,8 @@
 // outreach drafts"). Bands: Accepted 90 to 100; Accepted with changes 60 to 89; Not accepted
 // below 60 or any hard fail.
 //
-// Owner decisions of 5 October 2026 (v1.1). Three criteria were added, seen in the Multiplex SWMS
-// for HRCW review checklist rev 9 (used as evidence of what tier 1 builders check; nothing is
+// Owner decisions of 5 October 2026 (v1.1). Three criteria were added, seen in a tier 1 builder's
+// published SWMS review checklist (used as evidence of what tier 1 builders check; nothing is
 // copied from it). They fit in the same 100 points, taken from the items they overlap:
 //   W10 Controls in hierarchy order within each step (5): from W2, hierarchy (20 to 15).
 //   W11 A responsible position per step (5): 3 from W4, which gave 3 for one responsible person
@@ -46,9 +46,9 @@ const SOURCES = {
   W7: 'SafeWork SA high risk construction work audit 2020; WHSQ construction blitz 2023',
   W8: 'Safe Work Australia SWMS information sheet and SWMS tool; OFSC SWMS fact sheet. A printed risk matrix is not marked down (owner decision, 5 October 2026)',
   W9: 'Tier 1 SWMS review checklists (revision, dates, principal contractor)',
-  W10: 'Hierarchy of control (WHS Regulations s 36); Model Code of Practice: Construction Work; Multiplex SWMS for HRCW review checklist rev 9 (evidence that tier 1 builders check the order)',
-  W11: 'Model Code of Practice: Construction Work (who implements, monitors and reviews each control); WHS Regulations s 299(3); Multiplex SWMS for HRCW review checklist rev 9 (evidence: a position per step, not one person for the SWMS)',
-  W12: 'WHS Regulations s 67 (confined space entry permit), s 166 (overhead and underground electric lines) and s 304 (underground essential services); Model Code of Practice: Construction Work; Multiplex SWMS for HRCW review checklist rev 9 (evidence that tier 1 builders check named permits)',
+  W10: 'Hierarchy of control (WHS Regulations s 36); Model Code of Practice: Construction Work; a tier 1 builder\'s published SWMS review checklist (evidence that tier 1 builders check the order)',
+  W11: 'Model Code of Practice: Construction Work (who implements, monitors and reviews each control); WHS Regulations s 299(3); a tier 1 builder\'s published SWMS review checklist (evidence: a position per step, not one person for the SWMS)',
+  W12: 'WHS Regulations s 67 (confined space entry permit), s 166 (overhead and underground electric lines) and s 304 (underground essential services); Model Code of Practice: Construction Work; a tier 1 builder\'s published SWMS review checklist (evidence that tier 1 builders check named permits)',
 };
 
 // ---- Reading the structured form ----
@@ -147,7 +147,7 @@ const ANSWERS = {
 const { controlLevel, HIGHER } = require('./control-level');
 
 // Wording that leaves the decision to the worker (H5).
-const VAGUE = /\b(?:appropriate|suitable|adequate|relevant|proper|necessary|correct|required) (?:ppe|controls?|precautions?|equipment|measures|care|protection|safety (?:gear|equipment))\b|\btake (?:due |extra |all |reasonable )?care\b|\bas (?:required|needed|necessary|appropriate)\b|\b(?:where|when|if) (?:required|necessary|needed|possible|practical|appropriate)\b|\bbe (?:careful|aware|vigilant|mindful|alert)\b|\bcommon sense\b|\bwatch (?:out|your step)\b|\bremain (?:alert|vigilant)\b|\bwhere practicable\b|\b(?:workers?|operators?|crew|staff|everyone|all persons|persons|people) (?:to|should|must|will|are to) (?:be aware|take care|be careful|use caution|watch out|stay alert)\b|\b(?:supervisors?|leading hands?|foreman|foremen|site managers?) (?:to|will|should|must) ensure\b|\buse (?:caution|care)\b|\bbe aware of\b/i;
+const VAGUE = /\b(?:appropriate|suitable|adequate|relevant|proper|necessary|correct|required) (?:ppe|controls?|precautions?|equipment|measures|care|protection|safety (?:gear|equipment))\b|\btake (?:due |extra |all |reasonable )?care\b|\bas (?:required|needed|necessary|appropriate)\b|\b(?:where|when|if) (?:required|necessary|needed|possible|practical|appropriate)\b|\bbe (?:careful|aware|vigilant|mindful|alert)\b|\bcommon sense\b|\bwatch (?:out|your step)\b|\bremain (?:alert|vigilant)\b|\bwhere practicable\b|\b(?:workers?|operators?|crew|staff|everyone|all persons|persons|people) (?:to|should|must|will|are to) (?:be aware|take care|be careful|use caution|watch out|stay alert)\b|\b(?:supervisors?|leading hands?|foreman|foremen|site managers?) (?:to|will|should|must) ensure\b|\buse (?:caution|care)\b|\bbe aware of\b|\bcorrect (?:lifting )?techniques?\b|\blift(?:ing)? correctly\b|\bproper lifting(?: techniques?)?\b/i;
 
 // Measurable or checkable detail: a distance or rating, a standard, an inspection, a permit or a licence.
 const CHECKABLE = /\b\d+(?:\.\d+)?\s?(?:mm|m|metres?|kg|t|tonnes?|kv|v|volts?|kpa|%|°c?|degrees|minutes?|hours?|days?|months?|lux|db\(?a?\)?)\b|\bAS(?:\/NZS)?\s?\d{3,}|\b(inspect\w*|tested|tags?|tagged|permits?|licen[cs]\w*|certificates?|certified|engineer'?s? design|drawings?|pre-?start|log ?books?|checklists?|signed off|verified|rated)\b/i;
@@ -165,6 +165,8 @@ const LICENSED_PLANT = [
   { plant: /\b(mobile |crawler |tower |franna |slewing )?cranes?\b/i, licence: /\b(c[0-9]|cn|cv|ct|c2|c6|c1|crane|dogg\w*|rigg\w*|d[gs]|r[bia]|hrw|high risk work)\b/i },
   { plant: /\bforklifts?\b/i, licence: /\b(lf|forklift|hrw|high risk work)\b/i },
   { plant: /\b(boom lifts?|boom-type)\b/i, licence: /\b(wp|boom|ewp|hrw|high risk work|yellow card)\b/i },
+  // No licence for a scissor lift: the operator is trained and competent for it (an EWP operator card or a verification of competency).
+  { plant: /\bscissor lifts?\b/i, licence: /\b(competen\w*|trained|ewp operator|operator (?:card|ticket)|yellow card|verification of competency|voc)\b/i },
   { plant: /\bscaffold\w*\b/i, licence: /\b(s[bia]|scaffold\w*|hrw|high risk work)\b/i },
   { plant: /\basbestos\b/i, licence: /\b(asbestos|class [ab]|removalist)\b/i },
   { plant: /\b(electrical (?:work|installations?)|rewir\w*|wiring work|switchboards?)\b/i, licence: /\b(electrical (?:contractor|worker|licen\w*)|electrician|a[- ]grade|licensed electrical)\b/i },
@@ -199,6 +201,12 @@ const PERMITS = [
   { label: 'roof access', name: 'a roof access permit', onlyWithSitePermits: true,
     work: /\b(roofs?|roofing)\b/i,
     permit: /\broof (?:access )?permits?\b|\bpermits? (?:for|to) (?:access )?(?:the )?roof\b/i },
+];
+
+// What a builder looks for beside the hot work permit (W12).
+const HOT_WORK_FIRE = [
+  { name: 'a fire watch during and after the work', pattern: /\bfire ?watch\w*\b/i },
+  { name: 'a fire extinguisher at the work', pattern: /\b(?:fire )?extinguishers?\b|\bfire[- ]fighting equipment\b/i },
 ];
 
 // A position named as responsible for a step's controls (W11). "Workers" alone is not a position.
@@ -455,8 +463,14 @@ function weighted(swms, state, context) {
     const domestic = domesticWork(swms.task, /^yes$/i.test(swms.residential) ? true : /^no$/i.test(swms.residential) ? false : undefined);
     const needed = PERMITS.filter((item) => !(item.notDomestic && domestic) && item.work.test((item.notFromCategory ? ownWork : work).replace(item.ignore || /$^/g, ' ')) && (!item.near || item.near.test(`${allText}\n${hazards}`)) && (!item.onlyWithSitePermits || sitePermits));
     const unnamed = needed.filter((item) => !item.permit.test(permitText));
-    const points = needed.length ? 5 * ((needed.length - unnamed.length) / needed.length) : 5;
+    // Hot work also needs a fire watch and an extinguisher at the work. With the permit named, each
+    // missing one costs a quarter of the hot work share; without it, the share is already lost.
+    const hotWork = needed.find((item) => item.label === 'hot work');
+    const fireGaps = hotWork ? HOT_WORK_FIRE.filter((item) => !item.pattern.test(permitText)) : [];
+    const fireLost = hotWork && !unnamed.includes(hotWork) ? fireGaps.length / 4 : 0;
+    const points = needed.length ? 5 * ((needed.length - unnamed.length - fireLost) / needed.length) : 5;
     if (unnamed.length) fixes.push(`Name the permit the work needs: ${unnamed.map((item) => `${item.name} (${item.label})`).join('; ')}.`);
+    if (fireGaps.length) fixes.push(`For the hot work, add ${fireGaps.map((item) => item.name).join(' and ')}.`);
     add('W12', 'Named permits where the work needs one', 5, points, fixes, needed.length ? `The permits are named: ${needed.map((item) => item.label).join('; ')}.` : 'No work needing a permit was found.');
   }
   return out;

@@ -2247,9 +2247,9 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     if ((/\b(at night|overnight|night ?shifts?|night works?)\b/i.test(task) && !/\b(day|daytime|days)\b/i.test(task)) || (INDOOR_WORK.test(task) && !/\b(external\w*|outside|outdoors?|roofs?(?! spaces?| cavit| truss)|balcon\w*|eaves|facade|yards?|car ?parks?|footpaths?|gardens?)\b/i.test(task))) for (const group of ppe) for (const item of group.items) if (['sunscreen', 'sunHat', 'glassesTinted'].includes(item.id)) item.ticked = false;
     // Outdoor work: sun and heat are controlled where the steps do not already say how.
     if (ticked(['sunscreen']) && !/\bsun protection\b|\bsunscreen\b/i.test(said)) {
-      jobSteps[0] = { ...jobSteps[0], hazards: [...jobSteps[0].hazards, 'Heat illness and sunburn working outdoors.'], controls: [...jobSteps[0].controls, 'Sun and heat: hat or brim, long sleeves, sunglasses and SPF 30 or higher sunscreen. Cool drinking water, shade and rest breaks in hot weather.'] };
+      jobSteps[0] = { ...jobSteps[0], hazards: [...jobSteps[0].hazards, 'Heat illness and sunburn working outdoors.'], controls: [...jobSteps[0].controls, 'Sun and heat: hat or brim, long sleeves, sunglasses and SPF 30 or higher sunscreen. Cool drinking water is kept at the work area, a shaded rest area is set up before work starts, and in hot weather rest breaks are taken there at the times set at the pre-start.'] };
       // The water, shade and rest line is now said once, here.
-      jobSteps = jobSteps.map((step, index) => (index === 0 ? step : { ...step, controls: step.controls.filter((line) => !/^Cool drinking water, shade and rest breaks in hot weather\.(?: \(.*\))?$/.test(line)) })).filter((step) => step.controls.length);
+      jobSteps = jobSteps.map((step, index) => (index === 0 ? step : { ...step, controls: step.controls.filter((line) => !/^Cool drinking water is kept at the work area, a shaded rest area is set up before work starts, and in hot weather rest breaks are taken there at the times set at the pre-start\.(?: \(.*\))?$/.test(line)) })).filter((step) => step.controls.length);
       tick('sunHat');
       tick('glassesTinted');
     }
@@ -2310,6 +2310,12 @@ const PERMITS = [
     // The hot work permit, clearing combustibles and fire-fighting equipment near the work. The
     // 30 minute fire watch is from AS 1674.1, which the code refers to.
     source: `${CITE.MODEL('Welding processes', 's 3.4')}; ${CITE.NSWC('NSW Welding', 's 3.4')}`,
+    // Where a step already names the hot work permit, the fire watch and extinguisher the
+    // permit line records are said here instead, if no line says them (builder check W12).
+    fire: {
+      has: [/\bfire ?watch\w*\b/i, /\b(?:fire )?extinguishers?\b|\bfire[- ]fighting equipment\b/i],
+      line: 'During hot work, a fire extinguisher is kept at the work, and a fire watch checks the area, including below it, during the work and for at least 30 minutes after it stops.',
+    },
   },
   {
     work: ISOLATION_WORK,
@@ -2363,7 +2369,16 @@ function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
   let steps = jobSteps;
   for (const permit of PERMITS) {
     if ((permit.notDomestic && options.domestic) || userRemoved(options.removed, permit.line, permitLine(permit, options.stateId || 'qld'))) continue;
-    if (!steps.length || !permit.work.test(work) || (alreadyRead && permit.work.test(alreadyRead)) || steps.some((step) => step.controls.some((line) => permit.named.test(line)))) continue;
+    if (!steps.length || !permit.work.test(work) || (alreadyRead && permit.work.test(alreadyRead))) continue;
+    const named = steps.findIndex((step) => step.controls.some((line) => permit.named.test(line)));
+    if (named >= 0) {
+      const fire = permit.fire && { ...permit, line: permit.fire.line };
+      const said = steps.flatMap((step) => step.controls).join('\n');
+      if (fire && permit.fire.has.some((pattern) => !pattern.test(said)) && !userRemoved(options.removed, fire.line, permitLine(fire, options.stateId || 'qld'))) {
+        steps = steps.map((step, index) => (index === named ? { ...step, controls: [...step.controls, permitLine(fire, options.stateId || 'qld')] } : step));
+      }
+      continue;
+    }
     let at = steps.findIndex((step) => permit.at.test(step.step));
     if (at < 0) at = steps.findIndex((step) => permit.work.test(step.step));
     if (at < 0) at = 0;
@@ -3626,6 +3641,13 @@ function settleFlags(flags, task) {
   // (A dry stone wall has its own step, which says how its stones are handled.)
   out.stoneRetaining = Boolean(/\b(stone|rock|sandstone|bluestone|boulders?|granite|basalt)\b[^.]{0,20}\b(?:retaining )?walls?\b|\bboulder walls?\b/i.test(task) && !out.stoneWall && !out.timberOnlyWall);
   out.blockWall = Boolean(!out.timberOnlyWall && !out.stoneRetaining);
+  // A gabion wall has its own step. Built from gabions alone, it is not a block, stone or dry
+  // stone wall, and nothing is cut, so the silica lines do not apply.
+  if (out.gabion) {
+    out.retainingWall = true;
+    out.stoneWall = false;
+    if (!/\b(blocks?|blockwork|sleepers?|timber|bricks?|brickwork|besser)\b/i.test(task)) Object.assign(out, { stoneRetaining: false, blockWall: false, timberOnlyWall: true });
+  }
   out.sheetFenceOld = !/\bchain ?wire\b|\bchainmesh\b|\bcyclone (?:wire|fenc\w*)\b/i.test(task) && !/\b(?:replac\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |old )?(?:timber|paling) fenc/i.test(task);
   out.timberFenceOld = /\b(?:replac\w*|remov\w*)\b[^.]{0,20}\b(?:an? |the |old )?(?:timber|paling) fenc/i.test(task);
   if (out.rampBuild && /\bhandrails?\b/i.test(task) && !/\b(build\w*|construct\w*|new ramps?|concrete)\b/i.test(task) && !/\b(?:install\w*|build\w*)\b[^.]{0,20}\bramps?\b/i.test(task)) { out.rampBuild = false; out.fixtures = true; }
@@ -3864,6 +3886,17 @@ function settleFlags(flags, task) {
   // Earthing is electrical work.
   if (out.earthStakes) out.electricalWork = true;
   return out;
+}
+
+// Hot conditions: hot weather named in the task, or hot plant such as furnaces, kilns and
+// operating boilers (artificial extremes of temperature). A cold store is not hot work, and
+// ordinary outdoor work gets the water, shade and sun lines without the heat step.
+const HOT_CONDITIONS = /\b(hot (?:weather|days?|conditions|environments?|summers?)|heat ?waves?|heat (?:stress|illness|exhaustion|stroke)|extreme heat|high (?:air )?temperatures|summer (?:months|work|heat|season)|(?:during|in) (?:the )?summer)\b|\b(?:3[5-9]|4\d) ?°\s?C\b/i;
+const HOT_PLANT = /\b(?:operating|in[- ]service|running|live|working|hot|fired|lit)\s+(?:\w+\s+)?(?:kilns?|furnaces?|ovens?|boilers?|smelters?)\b|\b(?:alongside|next to|near) (?:an? |the )?operating boilers?\b/i;
+function heatWork(task) {
+  const text = String(task || '');
+  return HOT_CONDITIONS.test(text) || HOT_PLANT.test(text) || (BOILER.test(text) && /\bcommission\w*\b/i.test(text))
+    || (/\bartificial extremes of temperature\b/i.test(text) && !/\b(cold|freez\w*|cool ?rooms?|refrigerat\w*)\b/i.test(text));
 }
 
 function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
@@ -4389,6 +4422,10 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     skylight: /\b(?:install\w*|replac\w*|repair\w*|fit\w*|cut\w* in)\b[^.]{0,30}\b(skylights?|roof windows?|solar tubes?|sky ?tubes?)\b/i.test(task),
     rainwaterTank: /\b(?:install\w*|replac\w*|connect\w*)\b[^.]{0,40}\b(rainwater tanks?|water tanks?|tank pumps?)\b/i.test(task) && !/\b(remov\w*|septic)\b/i.test(task),
     retainingWall: /\bretaining walls?\b/i.test(task) && /\b(build\w*|construct\w*|install\w*|replac\w*|erect\w*|repair\w*|rebuild\w*)\b/i.test(task),
+    // Gabion walls and baskets: wire mesh baskets filled with rock.
+    gabion: /\bgabions?\b/i.test(task) && /\b(build\w*|construct\w*|install\w*|replac\w*|erect\w*|repair\w*|rebuild\w*|plac\w*|fill\w*|stack\w*|lay\w*)\b/i.test(task),
+    // Hot weather named in the task, or hot plant nearby (artificial extremes of temperature).
+    heatWork: heatWork(task),
     kitStructure: /\b(?:build\w*|erect\w*|install\w*|construct\w*|assembl\w*)\b[^.]{0,40}\b(pergolas?|carports?|(?:garden|kit|colorbond|steel|metal) sheds?|patio (?:roofs?|covers?)|verandahs?|awnings?|shade structures?|shade sails?|skillion (?:roofs?|extensions?)|roof extensions?|lean-to\w*)\b/i.test(task) && !/\bsite sheds?\b/i.test(task),
     tiledRoof: /\b(roof tiles?|tiled roofs?|terracotta tiles?|ridge capp\w* on (?:a )?tiled|re-?point\w* (?:the )?ridge|re-?bed\w* (?:the )?ridge)\b/i.test(task) && !/\b(remove the (?:\w+ )?roof tiles and replace)\b/i.test(task),
     pressureClean: /\b(pressure clean\w*|pressure wash\w*|high[- ]pressure (?:clean|wash)\w*|water blast\w*|re-?seal\w* (?:a |the )?(?:concrete|driveway|pavers|deck|floor)|seal\w* (?:a |the )?(?:concrete|driveway|pavers|deck)|wash\w* and seal\w*)\b/i.test(task) && !/\b(epoxy|polyurethane)\b/i.test(task),

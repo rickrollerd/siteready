@@ -498,7 +498,7 @@ test('a vehicle crossover is boxed out to the council detail, with no ladders or
 test('laying turf cites no excavation code, and the water line is said once', () => {
   const done = draft('Lay turf at a new housing estate park.');
   assert.ok(!has(done, /Excavation work Code of Practice/));
-  assert.equal(lines(done).filter((line) => /Cool drinking water, shade and rest breaks/.test(line)).length, 1);
+  assert.equal(lines(done).filter((line) => /Cool drinking water is kept at the work area/.test(line)).length, 1);
 });
 
 test('a shower re-tile has no hoist, crane or panel lifters', () => {
