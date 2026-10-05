@@ -4,6 +4,7 @@ const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
 const { registersFor } = require('./register');
+const { inHierarchyOrder } = require('./control-level');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
 
@@ -2049,6 +2050,7 @@ function prepareDraft(input) {
       method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
     };
   }
+  draft.jobSteps = (draft.jobSteps || []).map((step) => ({ ...step, responsible: step.responsible || positionFor(step) }));
   // Plant, substances, licences, emergency arrangements, sources and a suggested
   // risk rating for each step, worked out from the finished steps.
   const registers = registersFor(draft, input);
@@ -2144,8 +2146,76 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   // Steps for work the scope gives to others, which the user chose to leave out.
   const leaveOut = new Set(Array.isArray(input.leaveOut) ? input.leaveOut : []);
   if (leaveOut.size) jobSteps = jobSteps.filter((step) => !leaveOut.has(step.step) || ['Before starting', 'Finish and clean up'].includes(step.step));
+  // Permits and hierarchy order come before the user's own changes, so a line the user changes keeps its place.
+  jobSteps = finishSteps(jobSteps, combinedFacts(task, facts));
   const edited = applyControlEdits(inOrder(jobSteps, input.stepOrder), input.controlEdits);
   return { jobSteps: edited.jobSteps, ...(edited.report ? { controlEdits: edited.report } : {}), ppe };
+}
+
+// ---- Each step's permits, control order and responsible position (builder check W10 to W12) ----
+
+// Digging, and work near overhead or underground electric lines, need a named permit. The work is
+// read from the task, the step names and the high risk work, as the builder check reads it.
+const DIG_WORK = /\b(excavat\w*|trench\w*|dig(?:s|ging)?|pot[- ]?hol\w*|post holes?|auger\w*|directional drill\w*|bor(?:e|ing) under)\b/i;
+const LINES_WORK = /\b(overhead (?:power|electric\w*|service)? ?(?:lines?|cables?|wires?|mains)|power ?lines?|electric lines?|underground (?:power|electric\w*) (?:cables?|lines?|mains))\b/i;
+const PERMITS = [
+  {
+    work: DIG_WORK,
+    at: /\b(locate|underground services)\b/i,
+    named: /\b(?:excavation|dig(?:ging)?|ground (?:disturbance|penetration)|penetration) permits?\b|\bpermits? to (?:dig|excavate)\b/i,
+    line: 'No digging starts until an excavation permit is issued by the principal contractor, or signed by the supervisor where the principal contractor does not issue them. The permit is issued only once the Before You Dig Australia plans are on site and the underground services in and near the dig are located and marked on the ground.',
+  },
+  {
+    work: LINES_WORK,
+    at: /\b(power lines?|electric lines?|overhead)\b/i,
+    named: /\bpermits? to work\b/i,
+    line: 'Before work starts near an overhead or underground electric line, a permit to work near the lines is issued by the principal contractor, or by the supervisor where the principal contractor does not issue them, recording the exclusion zone distances and the safety observer. No person, plant or load enters the exclusion zone unless the network operator\'s written permission or approval for that work is held, or the network operator has isolated the line.',
+  },
+];
+
+function withPermits(jobSteps, work) {
+  let steps = jobSteps;
+  for (const permit of PERMITS) {
+    if (!steps.length || !permit.work.test(work) || steps.some((step) => step.controls.some((line) => permit.named.test(line)))) continue;
+    let at = steps.findIndex((step) => permit.at.test(step.step));
+    if (at < 0) at = steps.findIndex((step) => permit.work.test(step.step));
+    if (at < 0) at = 0;
+    steps = steps.map((step, index) => (index === at ? { ...step, controls: [...step.controls, permit.line] } : step));
+  }
+  return steps;
+}
+
+// The position responsible for each step's controls, from the step's name. The first match wins.
+// The user changes it to suit the crew; the supervisor named for the SWMS still checks the controls.
+const STEP_POSITIONS = [
+  [/^Before starting$/, 'Supervisor'],
+  [/^Finish and clean up$/, 'Leading hand'],
+  [/\basbestos\b/i, 'Asbestos removal supervisor'],
+  [/\b(confined space|wet well|septic tank)\b|^(Enter and work|Leave and close up)$/i, 'Confined space supervisor and stand-by person'],
+  [/\b(overhead power lines|overhead wiring)\b/i, 'Supervisor and safety observer'],
+  [/\b(communications|comms|optical fibre|wi-fi|security devices|antennas)\b/i, 'Registered cabler'],
+  [/\b(refrigerant|evacuate and charge|pressure test with nitrogen|split system)\b/i, 'Licensed refrigeration technician'],
+  [/\b(isolate the gas|gas (?:appliance|line|regulator)|heater and flue)\b/i, 'Licensed gas fitter'],
+  [/\b(sewer|water supply|plumbing|backflow|water meters?|hot water|water heater|rainwater tank|sprinkler|hydrant|floor wastes|grey water|pump-out|risers|solder|pvc pipe|butt fuse|the pipe\b|pipe section|pipework in the ceiling|clear the drain|drainage under the slab|medical gas|gas cylinders|pneumatic tube)\b/i, 'Licensed plumber'],
+  [/\b(isolate and prove|energised|switchboards?|construction power|temporary (?:lighting|power)|cabl\w*|rough-in|fit off|electrical|sub-board|sub-mains|meter box|consumer mains|supply disconnected|solar (?:array|panels)|inverter|battery system|earthing|earth stakes|high voltage|light fittings|lightning|smoke alarms|control panel|test the new work|connect and commission|unfinished work safe|test and tag|generators?|substation|fire detection|heating cables|sports lighting|pool light|event power)\b/i, 'Licensed electrician'],
+  [/\b(charge and fire|blast holes)\b/i, 'Licensed shotfirer'],
+  [/\b(scaffolds? |erect the scaffold|dismantle the scaffold|safety screens|temporary stair|gantry|hoardings)\b|^Inspect and hand over/i, 'Licensed scaffolder'],
+  [/\b(crane|cranes|hiab|rig and lift|rig, lift|land and release|heavy lift|dual lift|tower sections|land steel)\b/i, 'Crane operator and dogger'],
+  [/\b(precast|tilt-up|hoist mast|install and dismantle the hoist)\b/i, 'Licensed rigger'],
+  [/\b(forklifts?|elevating work platform|excavate|excavator|earthmoving|road plant|compactor|drill rig|piling rig|the rig\b|piles\b|mulcher|dredge|ground improvement|transporters|vacuum truck|hydraulic hammer|concrete pump|placing boom|bore under|conveyors?|processing plant|refuel plant|mobile plant|barge|haul|cart away|floor crane|monorail|operate the hoist)\b/i, 'Plant operator'],
+  [/\b(demoli\w*|chimney|remove the wall|collapsed wall)\b/i, 'Demolition supervisor'],
+  [/^(Plan|Prepare|Set up|Set out|Check|Inspect|Confirm|Monitor|Protect|Separate|Arrange|Locate|Isolate)\b|\b(trench|traffic|edge protection|safety mesh|safety nets|roof access|fall protection|anchor points|static lines|temporary support|props|falsework|formwork|backprops|stress\w*)\b/i, 'Supervisor'],
+];
+function positionFor(step) {
+  const found = STEP_POSITIONS.find(([pattern]) => pattern.test(step.step || ''));
+  return found ? found[1] : 'Leading hand';
+}
+
+// The permits the work needs, then each step's controls in hierarchy order (elimination,
+// substitution, isolation and engineering, administrative, PPE).
+function finishSteps(jobSteps, work) {
+  return withPermits(jobSteps, [work, ...jobSteps.map((step) => step.step)].join('\n'))
+    .map((step) => ({ ...step, controls: inHierarchyOrder(step.controls) }));
 }
 
 // ---- The user's own changes to the controls (task #102) ----

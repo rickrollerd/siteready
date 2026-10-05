@@ -424,7 +424,8 @@ test('an outdoor shower has its trench and none of the indoor rough-in lines', (
 test('a basement wall is dug out before it is waterproofed, with the excavator and code listed', () => {
   const done = draft('Waterproof a basement wall in an Adelaide house.', { residential: 'yes' });
   const wall = step(done, 'Waterproof walls below ground').controls;
-  assert.ok(wall.findIndex((line) => /services information/.test(line)) < wall.findIndex((line) => /No one works in the excavation/.test(line)));
+  // Controls print in hierarchy order, so the services line says it comes before digging.
+  assert.ok(wall.some((line) => /services information before digging/.test(line)) && wall.some((line) => /No one works in the excavation/.test(line)));
   assert.ok(plant(done).includes('Excavator'));
   assert.ok(done.sources.codes.includes('Excavation work Code of Practice 2021 (Qld)'));
 });

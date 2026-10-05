@@ -141,16 +141,8 @@ const ANSWERS = {
   silica: /\b(extraction|wet\w*|water suppression|on-tool|respirators?|vacuum\w*|silica)\b/i,
 };
 
-// Where a control sits in the hierarchy (SiteReady's own ranking, as in draft.js).
-function controlLevel(line) {
-  if (/\b(eliminat\w*|do not place a person|from the ground|stay(?:s|ing)? on the ground|prefabricat\w*|off[- ]?site|not (?:done|carried out) at height)\b/i.test(line)) return 'Eliminate';
-  if (/\b(substitut\w*|instead of|replaced? with|low[- ]voc|water[- ]based|lighter)\b/i.test(line)) return 'Substitute';
-  if (/\b(edge protection|guard\s?rails?|handrails?|scaffold\w*|elevating work platforms?|\bewps?\b|scissor lifts?|boom lifts?|safety mesh|catch platforms?|perimeter screens?|edge screens?|screens|gates?|fenc\w*|barriers?|barricad\w*|hoardings?|covers?|covered|isolat\w*|lock ?out|lockout|de-?energi[sz]\w*|shor\w*|trench (?:shields?|box\w*)|batter\w*|bench\w*|extraction|on-tool|water suppression|wet (?:cut\w*|method)|interlock\w*|guards?|guarded|ventilat\w*|propp?\w*|props?|exclusion zones?|travel restraint)\b/i.test(line)
-    && !(/\b(harness|fall arrest|lanyard)\b/i.test(line) && !/\b(edge protection|guard\s?rails?|scaffold\w*|ewps?|elevating work platforms?|safety mesh)\b/i.test(line))) return 'Isolate or engineer';
-  if (/\b(harness\w*|lanyards?|fall arrest|ppe|respirators?|p2|gloves|glasses|goggles|hearing protection|ear ?(?:plugs|muffs)|hard hats?|helmets?|boots|hi-?vis|life jackets?|face shields?|coveralls)\b/i.test(line)) return 'PPE';
-  return 'Administrative';
-}
-const HIGHER = new Set(['Eliminate', 'Substitute', 'Isolate or engineer']);
+// Where a control sits in the hierarchy: the same ranking draft.js orders each step's controls by.
+const { controlLevel, HIGHER } = require('./control-level');
 
 // Wording that leaves the decision to the worker (H5).
 const VAGUE = /\b(?:appropriate|suitable|adequate|relevant|proper|necessary|correct|required) (?:ppe|controls?|precautions?|equipment|measures|care|protection|safety (?:gear|equipment))\b|\btake (?:due |extra |all |reasonable )?care\b|\bas (?:required|needed|necessary|appropriate)\b|\b(?:where|when|if) (?:required|necessary|needed|possible|practical|appropriate)\b|\bbe (?:careful|aware|vigilant|mindful|alert)\b|\bcommon sense\b|\bwatch (?:out|your step)\b|\bremain (?:alert|vigilant)\b|\bwhere practicable\b|\b(?:workers?|operators?|crew|staff|everyone|all persons|persons|people) (?:to|should|must|will|are to) (?:be aware|take care|be careful|use caution|watch out|stay alert)\b|\b(?:supervisors?|leading hands?|foreman|foremen|site managers?) (?:to|will|should|must) ensure\b|\buse (?:caution|care)\b|\bbe aware of\b/i;
@@ -486,14 +478,14 @@ function checkSwms(input, options = {}) {
 
 // The checker reads a SiteReady draft as a builder would read the printed SWMS. Nothing
 // is added that the draft does not print. The Word file prints a risk matrix whenever the
-// steps carry ratings.
+// steps carry ratings, and each step's responsible position in its Who column.
 function fromDraft(draft, extra = {}) {
   const conditions = (draft.site || []).filter((row) => filled(row.text)).map((row) => `${row.label}: ${row.text}`);
   const emergency = (draft.emergency || []).map((row) => [row.type, row.equipment, row.detail].filter(Boolean).join(': '));
   if (filled(draft.hospital)) emergency.push(`Hospital: ${draft.hospital}`);
   if (filled(draft.firstAider)) emergency.push(`First aider: ${draft.firstAider}`);
   if (filled(draft.musterPoint)) emergency.push(`Muster point: ${draft.musterPoint}`);
-  const steps = (draft.jobSteps || []).map((step) => ({ step: step.step, hazards: step.hazards || [], controls: step.controls || [] }));
+  const steps = (draft.jobSteps || []).map((step) => ({ step: step.step, hazards: step.hazards || [], controls: step.controls || [], responsible: step.responsible || '' }));
   return {
     state: extra.state || '',
     task: draft.task,

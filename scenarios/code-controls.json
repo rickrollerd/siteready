@@ -875,7 +875,7 @@
   "op": "add",
   "group": "steelWeld",
   "step": "Weld steel",
-  "text": "Where practicable, stand, lie or sit on non-conducting material while welding, and avoid leaning against the work piece or structure.",
+  "text": "Welders stand, lie or sit on non-conducting material while welding, and do not lean against the work piece or structure.",
   "code": "Welding processes",
   "section": "s 3.3"
  },
@@ -1077,7 +1077,7 @@
   "op": "add",
   "group": "power",
   "step": "Plan the work near overhead power lines",
-  "text": "Where practicable, plant is prevented from entering the exclusion zone by a physical barrier of non-conductive material such as wood or plastic, mechanical stops or programmable zone limiting devices. The barrier is erected safely, isolating the supply while it is installed if needed.",
+  "text": "Plant is prevented from entering the exclusion zone by a physical barrier of non-conductive material such as wood or plastic, mechanical stops or programmable zone limiting devices, unless this is not reasonably practicable. The barrier is erected without any person, plant or material entering the exclusion zone; where that cannot be done, the network operator isolates the supply while it is installed.",
   "code": "Overhead and underground electric lines",
   "section": "s 2.3, s 4.3.1"
  },
@@ -1101,7 +1101,7 @@
   "op": "add",
   "group": "power",
   "step": "Plan the work near overhead power lines",
-  "text": "The safety observer communicates effectively with the operator at all times, using specialist communication equipment where needed, and warns the operator as plant or load approaches the exclusion zone.",
+  "text": "The safety observer communicates effectively with the operator at all times, by voice and line of sight, or by two-way radio where the operator cannot clearly see or hear the observer, and warns the operator as plant or load approaches the exclusion zone.",
   "code": "Overhead and underground electric lines",
   "section": "s 4.3.2"
  },
@@ -1277,7 +1277,7 @@
   "op": "add",
   "group": "isolation",
   "step": "Isolate and prove de-energised",
-  "text": "A removable or rack-out circuit breaker or combined fuse switch is racked out or removed where practicable, then locked open and danger tagged.",
+  "text": "A removable or rack-out circuit breaker or combined fuse switch is racked out or removed where reasonably practicable, then locked open and danger tagged.",
   "code": "Managing electrical risks",
   "section": "s 5"
  },
@@ -1515,7 +1515,7 @@
   "op": "add",
   "group": "trench",
   "step": "Excavate",
-  "text": "Spoil is heaped at least 1 m back from the trench edge, on the low side of sloping ground where practicable and on the side away from any old service line, and shaped so rainwater runs away from the trench.",
+  "text": "Spoil is heaped at least 1 m back from the trench edge, on the low side of sloping ground where reasonably practicable and on the side away from any old service line, and shaped so rainwater runs away from the trench.",
   "code": "Excavation work",
   "section": "s 4.1, s 6.3"
  },
@@ -1539,7 +1539,7 @@
   "op": "add",
   "group": "trench",
   "step": "Work in the trench",
-  "text": "Hydraulic shoring pressure hoses and rams are inspected frequently for abrasion, fatigue or damage, such as bent or notched rams, and inspected and repaired if needed before re-use.",
+  "text": "Hydraulic shoring pressure hoses and rams are inspected before each shift and before re-use for abrasion, fatigue or damage, such as bent or notched rams, and any damaged hose or ram is tagged out and repaired before it is used again.",
   "code": "Excavation work",
   "section": "s 6.3"
  },
@@ -1733,7 +1733,7 @@
   "op": "add",
   "group": "structureDemolition",
   "step": "Demolish the structure",
-  "text": "Where a crane holds a section while it is cut free, the section's weight is worked out first (by cutting and weighing samples if needed), and the crane's rated capacity is at least 1.5 times that weight.",
+  "text": "Where a crane holds a section while it is cut free, the section's weight is worked out first (by cutting and weighing samples where the drawings do not give it), and the crane's rated capacity is at least 1.5 times that weight.",
   "code": "Demolition",
   "section": "s 4.6"
  },
@@ -1821,7 +1821,7 @@
   "op": "add",
   "group": "structureDemolition",
   "step": "Demolish the structure",
-  "text": "A fire-damaged, ruinous or unsound structure gets a written report from a competent person on its current condition, hazards and controls before work starts, and is brought down by machine where possible.",
+  "text": "A fire-damaged, ruinous or unsound structure gets a written report from a competent person on its current condition, hazards and controls before work starts, and is brought down by machine unless the report says this is not reasonably practicable.",
   "code": "Demolition",
   "section": "s 3.3, s 5.2"
  },
@@ -1917,7 +1917,7 @@
   "op": "add",
   "group": "road",
   "step": "Set up traffic management",
-  "text": "At the end of the day, warning lamps are lit where needed and the site is driven through to check every sign and device before leaving. Lamps are checked after dark, with an after hours contact for damaged signs.",
+  "text": "At the end of the day, warning lamps are lit on every hazard left on or beside the road overnight, as the traffic management plan shows, and the site is driven through to check every sign and device before leaving. Lamps are checked after dark, with an after hours contact for damaged signs.",
   "code": "Traffic management",
   "section": "s 7.6, s 7.7"
  },
@@ -3323,7 +3323,7 @@
   "op": "add",
   "group": "concrete",
   "step": "Finish concrete",
-  "text": "Kneeling while trowelling concrete is an awkward posture: use long-handled floats and edgers where possible to limit time kneeling.",
+  "text": "Kneeling while trowelling concrete is an awkward posture: use long-handled floats and edgers, and kneel only for edges and corners they cannot reach, to limit time kneeling.",
   "code": "Hazardous manual tasks",
   "section": "s 2.2, s 4.4"
  },
@@ -3331,7 +3331,7 @@
   "op": "add",
   "group": "concreteRepair",
   "step": "Break out damaged concrete",
-  "text": "Where practicable, eliminate hand-held breaking by using plant-mounted breakers or other methods; otherwise use tools that produce less vibration.",
+  "text": "Hand-held breaking is eliminated by using plant-mounted breakers or other methods unless this is not reasonably practicable; otherwise use tools that produce less vibration.",
   "code": "Hazardous manual tasks",
   "section": "s 4.6"
  },
@@ -3339,7 +3339,7 @@
   "op": "add",
   "group": "demolition",
   "step": "Demolish",
-  "text": "Where practicable, eliminate hand-held breaking by using plant-mounted breakers or other methods; otherwise use tools that produce less vibration.",
+  "text": "Hand-held breaking is eliminated by using plant-mounted breakers or other methods unless this is not reasonably practicable; otherwise use tools that produce less vibration.",
   "code": "Hazardous manual tasks",
   "section": "s 4.6"
  },
@@ -3347,7 +3347,7 @@
   "op": "add",
   "group": "stairLiftInstall",
   "step": "Install the stair lift",
-  "text": "Team carrying on stairs puts most of the weight on the handler at the lower end: move rail sections, chair and motor with a hoist or powered stair-climbing hand truck where possible.",
+  "text": "Team carrying on stairs puts most of the weight on the handler at the lower end: move rail sections, chair and motor with a hoist or powered stair-climbing hand truck, and carry by hand only parts these cannot take.",
   "code": "Hazardous manual tasks",
   "section": "s 4.4, s 4.7"
  },
@@ -3419,7 +3419,7 @@
  },
  {
   "op": "cite",
-  "find": "Use a power stretcher instead of a knee kicker where possible.",
+  "find": "Use a power stretcher instead of a knee kicker, with the knee kicker kept to small areas and edges a power stretcher cannot reach.",
   "code": "Hazardous manual tasks",
   "section": "s 4.1, s 4.4"
  },
@@ -3787,7 +3787,7 @@
   "op": "add",
   "group": "towerCraneErect",
   "step": "Erect or dismantle the tower crane",
-  "text": "Before erecting or dismantling starts, an exclusion zone based on a risk assessment is set up, including where practicable a radius of at least 20 m from the crane base. Only persons involved in the work enter it.",
+  "text": "Before erecting or dismantling starts, an exclusion zone based on a risk assessment is set up, including where reasonably practicable a radius of at least 20 m from the crane base. Only persons involved in the work enter it.",
   "code": "Tower crane",
   "section": "s 5.4.1"
  },
@@ -3795,7 +3795,7 @@
   "op": "add",
   "group": "towerCraneErect",
   "step": "Erect or dismantle the tower crane",
-  "text": "Before climbing the crane, an exclusion zone with a radius of at least 12 m from the crane base is set up where practicable, and no one enters the area behind the crane under the counterweights.",
+  "text": "Before climbing the crane, an exclusion zone with a radius of at least 12 m from the crane base is set up where reasonably practicable, and no one enters the area behind the crane under the counterweights.",
   "code": "Tower crane",
   "section": "s 5.2.2, s 5.4.1"
  },
@@ -4035,7 +4035,7 @@
   "op": "add",
   "group": "steelErect",
   "step": "Erect and connect steel at height",
-  "text": "Where possible, lifting slings are released from floor level using long slings or remote release shackles, or from an EWP.",
+  "text": "Lifting slings are released from floor level using long slings or remote release shackles, or from an EWP, unless this is not reasonably practicable.",
   "code": "Steel construction",
   "section": "s 3.4, s 4.3.5"
  },
@@ -4115,7 +4115,7 @@
   "op": "add",
   "group": "steelLift",
   "step": "Lift and land steel with the crane company",
-  "text": "Take care when releasing strapping on steel bundles, as the strapping may whip back or the bundle may fall apart.",
+  "text": "Strapping on steel bundles is released only once the bundle is landed and stable, by a worker standing to the side, clear of the strap's path, as the strapping may whip back or the bundle may fall apart.",
   "code": "Steel construction",
   "section": "s 4.3.2"
  },
@@ -4139,7 +4139,7 @@
   "op": "add",
   "group": "steelLift",
   "step": "Lift and land steel with the crane company",
-  "text": "When transferring a lift from horizontal to vertical, avoid unrestrained movement of the lower end, using lifting beams where needed for member stability.",
+  "text": "When transferring a lift from horizontal to vertical, avoid unrestrained movement of the lower end, using lifting beams for any member that could buckle or twist under the sling forces.",
   "code": "Steel construction",
   "section": "s 4.3.3"
  },
@@ -4217,7 +4217,7 @@
   "op": "add",
   "group": "precast",
   "step": "Stand and brace the precast elements",
-  "text": "An exclusion zone, with para-webbing, signs or fencing as needed, keeps out everyone not involved in erection and covers the area where a falling crane, panel or struck element could hit a person.",
+  "text": "An exclusion zone, marked by para-webbing or fencing with signs at each entry, keeps out everyone not involved in erection and covers the area where a falling crane, panel or struck element could hit a person.",
   "code": "Tilt-up and precast",
   "section": "s 13.1"
  },
@@ -4497,7 +4497,7 @@
   "op": "add",
   "group": "confined",
   "step": "Prepare to enter the confined space",
-  "text": "Entry and exit openings are large enough for emergency access and rescue, and are kept free of obstructions during the work. Where cables, leads, hoses or ventilation ducts must pass through the access hole, a second access point is provided where needed.",
+  "text": "Entry and exit openings are large enough for emergency access and rescue, and are kept free of obstructions during the work. Where cables, leads, hoses or ventilation ducts must pass through the access hole and would narrow it or block a rescue, a second access point is provided.",
   "code": "NSW Confined spaces",
   "section": "s 2.2, s 5"
  },
@@ -4793,7 +4793,7 @@
  },
  {
   "op": "cite",
-  "find": "Spoil is heaped at least 1 m back from the trench edge, on the low side of sloping ground where practicable and on the side away from any old service",
+  "find": "Spoil is heaped at least 1 m back from the trench edge, on the low side of sloping ground where reasonably practicable and on the side away from any old service line, and shaped so rainwater runs away from the trench.",
   "code": "NSW Excavation",
   "section": "s 4.1, s 6.3"
  },
@@ -4847,7 +4847,7 @@
  },
  {
   "op": "cite",
-  "find": "Hydraulic shoring pressure hoses and rams are inspected frequently for abrasion, fatigue or damage, such as bent or notched rams, and inspected and",
+  "find": "Hydraulic shoring pressure hoses and rams are inspected before each shift and before re-use for abrasion, fatigue or damage, such as bent or notched rams, and any damaged hose or ram is tagged out and repaired before it is used again.",
   "code": "NSW Excavation",
   "section": "s 6.3"
  },
@@ -5321,7 +5321,7 @@
  },
  {
   "op": "cite",
-  "find": "Remove supports in reverse order of installation, installing temporary members first where needed, with workers kept clear.",
+  "find": "Remove supports in reverse order of installation, installing temporary members first wherever the engineer's removal sequence shows them, with workers kept clear.",
   "code": "NSW Excavation",
   "section": "s 6.4"
  },
@@ -5411,7 +5411,7 @@
  },
  {
   "op": "cite",
-  "find": "Manage exposure to airborne contaminants in the excavation, with gas monitors and mechanical ventilation where needed.",
+  "find": "Manage exposure to airborne contaminants in the excavation: a gas monitor is worn by anyone in it, and mechanical ventilation is used whenever the monitor alarms or the material is known to give off vapour or gas.",
   "code": "NSW Excavation",
   "section": "s 4, s 4.6"
  },
@@ -5579,7 +5579,7 @@
  },
  {
   "op": "cite",
-  "find": "Where a crane holds a section while it is cut free, the section's weight is worked out first (by cutting and weighing samples if needed), and the",
+  "find": "Where a crane holds a section while it is cut free, the section's weight is worked out first (by cutting and weighing samples where the drawings do not give it), and the crane's rated capacity is at least 1.5 times that weight.",
   "code": "NSW Demolition",
   "section": "s 4.6"
  },
@@ -6005,7 +6005,7 @@
  },
  {
   "op": "cite",
-  "find": "Take extra care with vibration near hospital equipment that is sensitive to shock and vibration.",
+  "find": "Before drilling, breaking or other vibrating work near hospital equipment that is sensitive to shock and vibration, the hospital's facilities manager is told and agrees the time and method.",
   "code": "NSW Excavation",
   "section": "s 3.5"
  },
@@ -6047,7 +6047,7 @@
  },
  {
   "op": "cite",
-  "find": "Work from the floor with extendable tools where possible. Where cleaning is near a balcony or open edge, the balustrade or barrier is in place first.",
+  "find": "Work from the floor with extendable tools, using access equipment only for glass these cannot reach. Where cleaning is near a balcony or open edge, the balustrade or barrier is in place first.",
   "code": "NSW Falls",
   "section": "s 4.1, s 4.2"
  },
@@ -6623,7 +6623,7 @@
  },
  {
   "op": "cite",
-  "find": "Use battery tools in place of mains tools where practical.",
+  "find": "Use battery tools in place of mains tools. A mains tool is used only where no battery tool can do the work, and is plugged into an RCD protected outlet.",
   "code": "NSW Electrical risks",
   "section": "s 2.3"
  },
@@ -6893,7 +6893,7 @@
  },
  {
   "op": "cite",
-  "find": "Where practicable, plant is prevented from entering the exclusion zone by a physical",
+  "find": "Plant is prevented from entering the exclusion zone by a physical barrier of non-conductive material such as wood or plastic, mechanical stops or programmable zone limiting devices, unless this is not reasonably practicable. The barrier is erected without any person, plant or material entering the exclusion zone; where that cannot be done, the network operator isolates the supply while it is installed.",
   "code": "NSW Electric lines",
   "section": "s 6.3"
  },
@@ -6911,7 +6911,7 @@
  },
  {
   "op": "cite",
-  "find": "The safety observer communicates effectively with the operator at all times, using",
+  "find": "The safety observer communicates effectively with the operator at all times, by voice and line of sight, or by two-way radio where the operator cannot clearly see or hear the observer, and warns the operator as plant or load approaches the exclusion zone.",
   "code": "NSW Electric lines",
   "section": "s 5.2, s 6.5"
  },
@@ -7553,7 +7553,7 @@
  },
  {
   "op": "cite",
-  "find": "Use mechanical fixing, or less volatile and less flammable adhesives, where possible.",
+  "find": "Use mechanical fixing, or less volatile and less flammable adhesives, wherever the flooring manufacturer's instructions allow.",
   "code": "NSW Hazardous chemicals",
   "section": "s 4.1"
  },
@@ -7577,7 +7577,7 @@
  },
  {
   "op": "cite",
-  "find": "Use pre-mixed products where possible, and mix powders with dust control.",
+  "find": "Use pre-mixed products, and where a powder product is specified, mix it with dust control.",
   "code": "NSW Hazardous chemicals",
   "section": "s 4.1"
  },
@@ -7691,7 +7691,7 @@
  },
  {
   "op": "cite",
-  "find": "The current safety data sheet is at the work area. Use mechanical fixing or less",
+  "find": "The current safety data sheet is at the work area. Use mechanical fixing or the least hazardous sealant the glazing specification allows, and gloves resistant to the product.",
   "code": "NSW Hazardous chemicals",
   "section": "s 2.2, s 4.1"
  },
@@ -7799,7 +7799,7 @@
  },
  {
   "op": "cite",
-  "find": "Use a less hazardous product where possible, such as a water-based membrane instead of a",
+  "find": "Use a less hazardous product, such as a water-based membrane instead of a solvent or two-part epoxy system, wherever the membrane specification allows.",
   "code": "NSW Hazardous chemicals",
   "section": "s 4.1"
  },
@@ -8099,7 +8099,7 @@
  },
  {
   "op": "cite",
-  "find": "stand, lie or sit on non-conducting material while welding, and avoid leaning against the work piece",
+  "find": "Welders stand, lie or sit on non-conducting material while welding, and do not lean against the work piece or structure.",
   "code": "NSW Welding",
   "section": "s 3.3"
  },
@@ -8325,7 +8325,7 @@
  },
  {
   "op": "cite",
-  "find": "Where practicable, eliminate hand-held breaking by using plant-mounted breakers",
+  "find": "Hand-held breaking is eliminated by using plant-mounted breakers or other methods unless this is not reasonably practicable; otherwise use tools that produce less vibration.",
   "code": "NSW Manual tasks",
   "section": "s 4.6"
  },
@@ -8421,13 +8421,13 @@
  },
  {
   "op": "cite",
-  "find": "Use barrows and trolleys for posts, sheets and concrete bags, order smaller bags where possible",
+  "find": "Use barrows and trolleys for posts, sheets and concrete bags, order the smaller bag sizes the supplier offers, and rotate tasks.",
   "code": "NSW Manual tasks",
   "section": "s 4.4, s 4.7"
  },
  {
   "op": "cite",
-  "find": "Use barrows and trolleys for posts, wire rolls and concrete bags, order smaller bags where possible",
+  "find": "Use barrows and trolleys for posts, wire rolls and concrete bags, order the smaller bag sizes the supplier offers, and rotate tasks.",
   "code": "NSW Manual tasks",
   "section": "s 4.4, s 4.7"
  },
@@ -8757,7 +8757,7 @@
  },
  {
   "op": "cite",
-  "find": "Use a power stretcher instead of a knee kicker where possible.",
+  "find": "Use a power stretcher instead of a knee kicker, with the knee kicker kept to small areas and edges a power stretcher cannot reach.",
   "code": "NSW Manual tasks",
   "section": "s 4.1, s 4.4"
  },
@@ -8949,6 +8949,18 @@
  },
  {
   "op": "cite",
+  "find": "Order the smaller or lighter bag and box sizes the supplier offers, have materials delivered as close to the room as possible, and use a trolley.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Order the smaller or lighter bag and box sizes the supplier offers, have materials delivered as close to the work area as possible, move them between levels by hoist or crane, and use trolleys.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
   "find": "Kneeling to lay floor coverings is a hazardous posture: rotate tasks and take short frequent breaks.",
   "code": "NSW Manual tasks",
   "section": "s 2.2, s 3.3, s 4.1, s 4.7"
@@ -8969,7 +8981,7 @@
   "op": "add",
   "group": "carpLoad",
   "step": "Move materials into place",
-  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability, there is room to move as a group, and the lift is rehearsed.",
   "code": "NSW Manual tasks",
   "section": "s 4.7"
  },
@@ -8977,7 +8989,7 @@
   "op": "add",
   "group": "plantLift",
   "step": "Receive plant and move it into position",
-  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability, there is room to move as a group, and the lift is rehearsed.",
   "code": "NSW Manual tasks",
   "section": "s 4.7"
  },
@@ -8985,7 +8997,7 @@
   "op": "add",
   "group": "glassHandling",
   "step": "Handle glass and panels",
-  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability, there is room to move as a group, and the lift is rehearsed.",
   "code": "NSW Manual tasks",
   "section": "s 4.7"
  },
@@ -8993,7 +9005,7 @@
   "op": "add",
   "group": "plasterSheets",
   "step": "Move and fix plasterboard sheets",
-  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability, there is room to move as a group, and the lift is rehearsed.",
   "code": "NSW Manual tasks",
   "section": "s 4.7"
  },
@@ -9001,7 +9013,7 @@
   "op": "add",
   "group": "wpRolls",
   "step": "Move membrane rolls and materials",
-  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability, there is room to move as a group, and the lift is rehearsed.",
   "code": "NSW Manual tasks",
   "section": "s 4.7"
  },
@@ -9475,7 +9487,7 @@
  },
  {
   "op": "cite",
-  "find": "Fibre cement is cut by scoring and snapping or with shears where possible.",
+  "find": "Fibre cement is cut by scoring and snapping or with shears. It is sawn only for cuts these cannot make, and then the saw has on-tool extraction, and a fit tested P2 respirator is worn.",
   "code": "NSW Silica",
   "section": "s 2.1, s 2.4.2, appendix A"
  },
@@ -9499,7 +9511,7 @@
  },
  {
   "op": "cite",
-  "find": "Fibre cement and wet area sheets are cut by scoring and snapping or with shears where possible",
+  "find": "Fibre cement and wet area sheets are cut by scoring and snapping or with shears. A saw on extraction is used only for cuts these cannot make, and a fit tested P2 respirator is worn when sawing.",
   "code": "NSW Silica",
   "section": "s 2.1, s 2.4.2, appendix A"
  },
@@ -9511,7 +9523,7 @@
  },
  {
   "op": "cite",
-  "find": "Slates are cut with a slate cutter or hand tools where possible.",
+  "find": "Slates are cut with a slate cutter or hand tools. Power cutting, only for cuts these cannot make, is done wet or on extraction with a fit tested P2 respirator, as slate contains crystalline silica.",
   "code": "NSW Silica",
   "section": "s 2.1, s 2.4.2, appendix A"
  },
@@ -9739,7 +9751,7 @@
   "op": "add",
   "group": "tileCut",
   "step": "Cut tiles and stone",
-  "text": "Where practicable, tiles are scored and snapped instead of cut with a power tool, and cutting is planned so the fewest cuts are made.",
+  "text": "Tiles are scored and snapped instead of cut with a power tool, unless the tile or the cut cannot be scored and snapped, and cutting is planned so the fewest cuts are made.",
   "code": "NSW Silica",
   "section": "s 2.4.2, s 2.4.5"
  },
@@ -9747,7 +9759,7 @@
   "op": "add",
   "group": "masonryCut",
   "step": "Cut blocks and bricks",
-  "text": "AAC blocks are cut with a hand saw instead of a circular saw where practicable, and cutting is planned so the fewest cuts are made.",
+  "text": "AAC blocks are cut with a hand saw instead of a circular saw, with a circular saw used only for cuts a hand saw cannot make, and cutting is planned so the fewest cuts are made.",
   "code": "NSW Silica",
   "section": "s 2.4.2, s 2.4.5"
  },
@@ -9903,7 +9915,7 @@
   "op": "add",
   "group": "coreDrill",
   "step": "Core drill through the slab or wall",
-  "text": "The core drill stand is secured with anchor bolts as the manufacturer's manual sets out, and the drill is securely fixed with no movement of the mast. Bolt-down stands are used rather than vacuum stands where practical.",
+  "text": "The core drill stand is secured with anchor bolts as the manufacturer's manual sets out, and the drill is securely fixed with no movement of the mast. Bolt-down stands are used rather than vacuum stands where reasonably practicable.",
   "code": "NSW Cutting drilling and grinding concrete",
   "section": "s 6.2"
  },
@@ -10157,7 +10169,7 @@
   "op": "add",
   "group": "abrasiveBlast",
   "step": "Abrasive blast the surfaces",
-  "text": "A dedicated pot attendant keeps the blaster in sight to give help if needed.",
+  "text": "A dedicated pot attendant keeps the blaster in sight at all times, and shuts down the blast and gives help if the blaster signals or is in difficulty.",
   "code": "NSW Abrasive blasting",
   "section": "s 3.3"
  },
@@ -10557,7 +10569,7 @@
   "op": "add",
   "group": "roof",
   "step": "Install roof edge protection",
-  "text": "Before temporary edge protection is installed, the building structure is assessed, with the roof design engineer where needed, to confirm it can support the loads the guardrail system imposes.",
+  "text": "Before temporary edge protection is installed, a competent person assesses the building structure to confirm it can support the loads the guardrail system imposes, and the roof design engineer confirms it wherever the drawings or the supplier's information do not show the capacity.",
   "code": "NSW Work on roofs",
   "section": "s 4.3"
  },
@@ -10597,7 +10609,7 @@
   "op": "add",
   "group": "roof",
   "step": "Install roof edge protection",
-  "text": "Roof safety mesh is installed by a competent person to AS/NZS 4389, full length gutter to gutter where practicable, and is not walked on unless it is designed for that purpose.",
+  "text": "Roof safety mesh is installed by a competent person to AS/NZS 4389, full length gutter to gutter where reasonably practicable, and is not walked on unless it is designed for that purpose.",
   "code": "NSW Work on roofs",
   "section": "s 4.5, s 5.3"
  },
@@ -10849,7 +10861,7 @@
  },
  {
   "op": "cite",
-  "find": "Before work in a roof space, the electrical installation is de-energised where practicable.",
+  "find": "Before work in a roof space, the electrical installation is de-energised where reasonably practicable. If it cannot be, cables are treated as energised and the controls are set out in this SWMS.",
   "code": "NSW Work on roofs",
   "section": "s 6.4"
  },
@@ -11051,7 +11063,7 @@
   "op": "add",
   "group": "ewp",
   "step": "Use an elevating work platform",
-  "text": "Before travelling, the boom is retracted and the platform lowered where possible, the travel path is clear, a spotter is used on slopes and in congested areas, and no one rides the platform unless the manufacturer allows it.",
+  "text": "Before travelling, the boom is retracted and the platform lowered unless the manufacturer's manual allows travel with it raised, the travel path is clear, a spotter is used on slopes and in congested areas, and no one rides the platform unless the manufacturer allows it.",
   "code": "NSW Elevating work platforms",
   "section": "s 5.4"
  },
@@ -11059,7 +11071,7 @@
   "op": "add",
   "group": "ewp",
   "step": "Use an elevating work platform",
-  "text": "If the EWP starts to tilt, work stops and the platform is lowered or retracted. Work does not restart until the cause is found and fixed, with a competent person's advice where needed.",
+  "text": "If the EWP starts to tilt, work stops and the platform is lowered or retracted. Work does not restart until the cause is found and fixed, and a competent person has checked the EWP.",
   "code": "NSW Elevating work platforms",
   "section": "s 5.4"
  },
@@ -11131,7 +11143,7 @@
   "op": "add",
   "group": "ewp",
   "step": "Use an elevating work platform",
-  "text": "Indoors, an electric EWP is used where practicable, as emissions from engine-driven EWPs can be hazardous.",
+  "text": "Indoors, an electric EWP is used, as emissions from engine-driven EWPs can be hazardous. An engine-driven EWP is used indoors only where no electric EWP can do the work, with the area ventilated and the exhaust fumes monitored.",
   "code": "NSW Elevating work platforms",
   "section": "s 3.6, s 4.2"
  },
@@ -11561,7 +11573,7 @@
   "op": "add",
   "group": "sitePlant",
   "step": "Separate plant and people on site",
-  "text": "Where possible, a plant only zone is set up, with barriers to stop workers on foot entering it and a system to stop plant operations when a worker on foot enters it.",
+  "text": "A plant only zone is set up where reasonably practicable, with barriers to stop workers on foot entering it and a system to stop plant operations when a worker on foot enters it.",
   "code": "NSW Moving plant on construction sites",
   "section": "s 5.1"
  },
@@ -11829,7 +11841,7 @@
   "op": "add",
   "group": "plantService",
   "step": "Service and repair mobile plant on site",
-  "text": "Where practicable, servicing and repair are done off site. On site, the maintenance area is isolated from other moving plant and hazardous operations, and if this cannot be done the plant goes to a maintenance facility.",
+  "text": "Servicing and repair are done off site where reasonably practicable. On site, the maintenance area is isolated from other moving plant and hazardous operations, and if this cannot be done the plant goes to a maintenance facility.",
   "code": "NSW Moving plant on construction sites",
   "section": "s 6.18"
  },
@@ -11881,7 +11893,7 @@
   "op": "add",
   "group": "refuelPlant",
   "step": "Refuel plant on site",
-  "text": "Nozzle and flow settings are compatible with each item of plant to avoid over pressurisation, and refuelling is scheduled before or after plant operating hours where possible.",
+  "text": "Nozzle and flow settings are compatible with each item of plant to avoid over pressurisation, and refuelling is scheduled before or after plant operating hours where reasonably practicable.",
   "code": "NSW Moving plant on construction sites",
   "section": "s 6.17"
  },
@@ -11943,7 +11955,7 @@
   "op": "add",
   "group": "towerCrane",
   "step": "Plan the tower crane lifts",
-  "text": "The emergency plan covers rescue from the crane, agreed with the fire and emergency services, and where practicable a second crane driver can make the crane safe if the operator becomes incapacitated.",
+  "text": "The emergency plan covers rescue from the crane, agreed with the fire and emergency services, and where reasonably practicable a second crane driver can make the crane safe if the operator becomes incapacitated.",
   "code": "NSW Tower cranes",
   "section": "s 3.11"
  },
@@ -12245,7 +12257,7 @@
   "op": "add",
   "group": "tunnelWork",
   "step": "Work underground in the tunnel",
-  "text": "Everyone is within range of the atmospheric alarms for their work area. On a Level 2 (evacuation) alarm, self-rescuers are donned where required and the tunnel is evacuated under the emergency plan.",
+  "text": "Everyone is within range of the atmospheric alarms for their work area. On a Level 2 (evacuation) alarm, self-rescuers are donned and the tunnel is evacuated under the emergency plan.",
   "code": "NSW Tunnels and shafts",
   "section": "s 16.5"
  },
@@ -12269,7 +12281,7 @@
   "op": "add",
   "group": "tunnelWork",
   "step": "Work underground in the tunnel",
-  "text": "Welding and cutting are done at the surface, or replaced with cold processes, where practicable. A firewatcher attends during hot work and stays for at least 30 minutes after it finishes.",
+  "text": "Welding and cutting are done at the surface, or replaced with cold processes, where reasonably practicable. A firewatcher attends during hot work and stays for at least 30 minutes after it finishes.",
   "code": "NSW Tunnels and shafts",
   "section": "s 22.2"
  },

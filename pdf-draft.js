@@ -269,7 +269,7 @@ function draftToPdf(draft, options = {}) {
           step.hazards.map((line) => ({ text: `•  ${line}` })),
           step.controls.map((line) => ({ text: `•  ${line}` })),
           lines(riskLines(step.risk)),
-          [{ text: ' ' }],
+          [{ text: step.responsible || ' ' }],
         ],
       })),
     });

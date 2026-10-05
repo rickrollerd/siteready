@@ -300,7 +300,7 @@ function jobStepsTable(steps) {
           linesCell(step.hazards, widths[1], { bullet: true }),
           linesCell(step.controls, widths[2], { bullet: true }),
           linesCell(step.risk ? riskText(step.risk).split('\n') : [], widths[3]),
-          linesCell([], widths[4]),
+          linesCell(step.responsible ? [step.responsible] : [], widths[4]),
         ],
       })),
     ],

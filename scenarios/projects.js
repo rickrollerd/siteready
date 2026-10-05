@@ -94,12 +94,14 @@ for (const rule of project.rules || []) {
     runs += 1;
     const done = prepareDraft({ state: project.state, task: swms.task, fallRisk: swms.fallRisk, residential: 'no', crane: swms.crane, facts: swms.facts });
     const text = JSON.stringify(done.jobSteps || []);
-    const line = (done.jobSteps || []).flatMap((step) => step.controls).find((item) => item.includes(rule.phrase));
+    // Controls print in hierarchy order, so any line with the phrase may carry the citation.
+    const lines = (done.jobSteps || []).flatMap((step) => step.controls).filter((item) => item.includes(rule.phrase));
     if (!text.includes(rule.phrase)) fail(`${project.state} ${id}`, `rule missing: ${rule.phrase} (${rule.source})`);
     else {
       // The rule's source as the state prints it, such as a Queensland code in place of the model code.
       const source = localSource(rule.source, project.state);
-      if (!line || !source.split(/,|;/)[0].trim().split(' s ')[0].split(' ').every((word) => line.includes(word))) fail(`${project.state} ${id}`, `rule not cited: ${rule.phrase} (${source})`);
+      const words = source.split(/,|;/)[0].trim().split(' s ')[0].split(' ');
+      if (!lines.some((line) => words.every((word) => line.includes(word)))) fail(`${project.state} ${id}`, `rule not cited: ${rule.phrase} (${source})`);
     }
   }
 }
