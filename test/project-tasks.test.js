@@ -72,7 +72,7 @@ test('the project document tasks draft with their high risk work and pass the bu
     for (const type of types) assert.ok(listed.includes(type), `${state}: ${task} lists ${listed.join(', ')}, not ${type}`);
     const names = draft.jobSteps.map((step) => step.step);
     for (const name of steps) assert.ok(names.includes(name), `${state}: ${task} has no "${name}" step: ${names.join(' | ')}`);
-    const result = checkSwms(fromDraft(draft, { state, swms: { signatures: [{ name: 'Jo Smith' }] } }), { state });
+    const result = checkSwms(fromDraft(draft, { state, swms: { signatures: [{ name: 'Jo Smith' }] } }), { state, today: '2026-10-05' });
     assert.deepEqual(result.hardFails, [], `${state}: ${task}`);
     assert.ok(result.score >= 80, `${state}: ${task} scores ${result.score}`);
   }

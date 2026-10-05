@@ -1,11 +1,13 @@
 // The evidence record covers every library control line, and the evidenced share does not drop
-// (evidence pass and its review, 6 October 2026: 3,222 of 4,321 lines, 74.6%).
+// (evidence pass and its review, 6 October 2026: 3,222 of 4,321 lines, 74.6%; newly held law, refrigerant
+// code and piling standard: 3,289 of 4,346, 75.7%; practice upgrades and 152 practice lines, most from one
+// organisation so not yet evidenced: 3,341 of 4,498, 74.3%; owner decisions: 3,342 of 4,503, 74.2%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
 const RECORD = require('../scenarios/control-evidence.json');
 
-const MEASURED = 0.745;
+const MEASURED = 0.742;
 
 test('every library control line is in the evidence record, and every record entry is a library line', () => {
   const lines = libraryLines();
@@ -16,9 +18,9 @@ test('every library control line is in the evidence record, and every record ent
   assert.deepEqual(Object.keys(RECORD).filter((text) => !library.has(text)), [], 'record entries that are no longer library lines');
 });
 
-test('each record entry is code, reg, practice (with its number of organisations) or none', () => {
+test('each record entry is code, reg, practice (with its number of organisations), guidance or none', () => {
   for (const [text, entry] of Object.entries(RECORD)) {
-    assert.ok(['code', 'reg', 'practice', 'none'].includes(entry.kind), text);
+    assert.ok(['code', 'reg', 'practice', 'guidance', 'none'].includes(entry.kind), text);
     if (entry.kind === 'practice') assert.ok(Number.isInteger(entry.orgs) && entry.orgs >= 1, text);
     else assert.equal(entry.orgs, undefined, text);
     if (entry.unverifiable) assert.equal(entry.kind, 'none', text);
@@ -39,4 +41,5 @@ test('a new, unclassified line counts as not evidenced', () => {
   assert.equal(evidenced({ kind: 'practice', orgs: 1 }), false);
   assert.equal(evidenced({ kind: 'practice', orgs: 2 }), true);
   assert.equal(evidenced({ kind: 'none', unverifiable: true }), false);
+  assert.equal(evidenced({ kind: 'guidance' }), false);
 });

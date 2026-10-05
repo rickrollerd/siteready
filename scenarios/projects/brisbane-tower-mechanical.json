@@ -338,9 +338,9 @@
       "swms": [
         "commissioning"
       ],
-      "phrase": "higher global warming potential is prohibited",
-      "source": "Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth) reg 2AAA, reg 111A",
-      "quote": "charges the equipment with a GWP refrigerant ... other than the design refrigerant"
+      "phrase": "higher global warming potential than the design refrigerant is prohibited",
+      "source": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 s 1.2.2, s 11.1",
+      "quote": "systems must not be charged with a higher global warming potential (GWP) refrigerant than the equipment was designed to use"
     },
     {
       "swms": [

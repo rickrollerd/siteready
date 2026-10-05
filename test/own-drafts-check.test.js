@@ -38,7 +38,8 @@ function drafted(state, item) {
   assert.equal(draft.kind, 'draft', `${state}: ${item.task}`);
   return draft;
 }
-const checked = (state, draft) => checkSwms(fromDraft(draft, { state, swms: { signatures: [{ name: 'Jo Smith' }] } }), { state });
+// Review dates are judged against a fixed day, so the result does not change as time passes.
+const checked = (state, draft) => checkSwms(fromDraft(draft, { state, swms: { signatures: [{ name: 'Jo Smith' }] } }), { state, today: '2026-10-05' });
 const points = (result, rule) => result.findings.find((item) => item.rule === rule).points;
 function scenario(index) {
   const { task, fallRisk, facts, residential, crane } = scenarios[index];
