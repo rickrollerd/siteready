@@ -30,6 +30,7 @@ const QCODE = (code, section) => `${QLD_CODE_TITLES[code]} ${section}`;
 const SCAFF = (section) => `Scaffolding Code of Practice 2021 (Qld) ${section}`;
 const LINES = (section) => `Electrical Safety Code of Practice 2020: Working near overhead and underground electric lines (Qld) ${section}`;
 const TILT = (section) => `Tilt-up and pre-cast construction Code of Practice 2003 (Qld) ${section}`;
+const TOWER = (section) => `Tower crane Code of Practice 2017 (Qld) ${section}`;
 // A SafeWork NSW code, cited only in NSW drafts (citations.js).
 const NSW_TITLES = require('./scenarios/nsw-code-titles.json');
 const NSWC = (code, section) => `SafeWork NSW Code of practice: ${NSW_TITLES[code]} ${section}`;
@@ -244,6 +245,7 @@ const ACTIVITIES = [
         { fact: 'electricalSafety' },
         'Stop work if any part of the plant or load comes inside the safe distance.',
         'Treat every line as live unless the network operator confirms in writing it is isolated.',
+        'Where trucks or plant pass under overhead lines, non-conductive height gauges (goal posts) with warning signs are set up on each side of the crossing, below the safe clearance, and tipper bodies and booms are lowered before crossing.',
       ],
     }],
   },
@@ -294,6 +296,8 @@ const ACTIVITIES = [
           src('Users are told the safe working load, never to use an incomplete or defective scaffold, to report defects straight away, and not to alter it. Only licensed scaffolders alter it.', MODEL('Managing the risk of falls', 's 5.1')),
           src('Edge protection, with a top rail, mid rail and toe board, at every open edge of a work platform: top rail at least 900 mm.', `${WHS('s 306E')}; ${QCODE('Managing the risk of falls', 's 5.1, s 5.2')}`),
           src('No more than 450 mm between rails, toe board at least 150 mm.', WHS('s 306E')),
+          src('After a storm, high wind or heavy rain, a competent person inspects the scaffold, including its base, ties and any sheeting, before anyone uses it again.', SCAFF('s 6.1')),
+          'The scaffold tag at each access point shows the date of the last inspection, who inspected it, the duty rating and whether it is safe to use, and is updated at each inspection.',
         ],
       },
       {
@@ -381,6 +385,7 @@ const ACTIVITIES = [
         controls: [
           'Access by a scaffold stair, or a ladder secured top and bottom that extends above the landing.',
           'Fall protection is installed and checked before anyone goes onto the roof.',
+          'Where the roof is reached by a scaffold erected by others, each user checks its tag shows a current inspection before getting on, and keeps off it if the tag is missing, expired or marked unsafe.',
         ],
       },
       {
@@ -396,6 +401,7 @@ const ACTIVITIES = [
           'Travel restraint is not used on fragile roofing or slopes over 15 degrees.',
           src('Where fall arrest is used, anchors are tested and approved by a competent person before first use and meet the anchor strength in AS/NZS 1891.4, there is enough clearance below that the user cannot hit the ground or another surface, no one uses it alone, at least one other person on site can rescue them, and the rescue procedure is tested.', `${WHS('s 80, s 306I')}; ${QCODE('Managing the risk of falls', 's 7.3, s 10.1')}`),
           src('Anchors are rated for at least 15 kN for one person who could free fall (12 kN where only a limited free fall is possible, 21 kN for two people).', WHS('s 306I')),
+          src('Where harnesses are used for travel restraint or fall arrest, the area is entered only under a permit or written authorisation from the supervisor naming the workers, the anchors and the rescue arrangements.', QCODE('Managing the risk of falls', 's 8.2')),
         ],
       },
       {
@@ -423,8 +429,9 @@ const ACTIVITIES = [
           { unless: 'roofOverDeck', text: 'Before flashing around flues, exhausts or plant on the roof, the trade that owns the plant isolates it, so hot exhaust or moving parts cannot reach the roofer.' },
           'Touch-up paint is used as its safety data sheet says.',
           src('Hearing protection near grinders and cutting. Eye protection with power tools. Tool lanyards and toe boards so nothing falls.', `${WHS('s 56, s 57, s 44, s 55')}; ${QCODE('Managing noise and preventing hearing loss', 's 5.3')}`),
-          src('Minimise work at height in extreme heat.', QCODE('Managing the risk of falls', 's 8.3')),
+          src('On days forecast at 35°C or more, work at height is planned for the cooler part of the day, and the supervisor sets the time it stops at the pre-start.', QCODE('Managing the risk of falls', 's 8.3')),
           src('Cool drinking water, shade, rest breaks and work at cooler times. Sun protection: hat or brim, long sleeves and pants, sunglasses and SPF 30 or higher sunscreen.', QCODE('Hazardous manual tasks', 's 4.6')),
+          'On the roof in hot weather, workers are paired, work and rest periods are set at the pre-start, and anyone who feels dizzy, sick or confused comes off the roof straight away, as heat illness raises the risk of a fall.',
         ],
       },
     ],
@@ -474,6 +481,7 @@ const ACTIVITIES = [
           src('Keep spoil, materials, plant and traffic out of the trench\'s zone of influence unless the support is designed for those loads.', MODEL('Excavation work', 's 4.1')),
           src('Dewater with pumps where groundwater or water inrush is possible.', MODEL('Excavation work', 'chapter 4 table')),
           src('Plant with a combustion engine, such as a compressor or generator, is never used in the trench while workers are in it. Where engine exhaust could collect, ventilate and monitor for carbon monoxide.', MODEL('Excavation work', 's 4.6')),
+          'Before a ground worker comes within reach of the excavator, the operator stops slewing, rests the bucket on the ground and engages the hydraulic lockout, and only then signals the worker in.',
         ],
       },
       {
@@ -499,6 +507,9 @@ const ACTIVITIES = [
           src('A competent person checks the trench walls and support at the start of each shift and frequently, including after rain. Any damage is repaired from above before work below continues.', QCODE('Excavation work', 's 6.7')),
           src('Check the air with a gas monitor before entry, with a safety observer at the surface.', MODEL('Excavation work', 's 4.6')),
           src('The emergency plan covers ground slip, flooding, gas leaks and rescue from the trench.', MODEL('Excavation work', 's 3.7')),
+          'No one is in the trench within reach of the bucket while the excavator is digging, trimming or backfilling that section. Workers climb out first, and the spotter stops the machine if anyone is still in.',
+          { unless: 'deepTrench', ...src('Where the walls could slump onto a worker, such as in sandy, wet, fissured or previously dug ground, the trench is shored, benched or battered before entry, even when it is shallower than 1.5 m.', `${QCODE('Excavation work', 's 5.1')}; ${NSWC('NSW Excavation', 's 5.1')}`) },
+          src('Any trench a worker enters has a ladder or safe ramp near the work, and a second way out at the other end of the open run so no one can be trapped by a slump.', `${QCODE('Excavation work', 's 4.4')}; ${NSWC('NSW Excavation', 's 4.4')}`),
         ],
       },
       // Pipes, pits and conduits are each laid only where the task names them; pipes where it names none.
@@ -552,6 +563,7 @@ const ACTIVITIES = [
           'Where spoil is carted by truck or loader, haul routes are kept apart from people, reversing and tipping are guided by a spotter, and plant stops back from the tip edge.',
           'Plate compactors and rollers are used with guards in place. Ride-on rollers have rollover protection, the seatbelt is worn, and they stay back from trench edges and steep slopes.',
           'Rotate compactor operators to limit hand-arm and whole-body vibration, and wear hearing protection.',
+          'Everyone is out of the trench before plant tips or pushes backfill into it, and plant compacting near the edge stays outside the zone of influence of any open section still being worked in.',
         ],
       },
       {
@@ -578,6 +590,10 @@ const ACTIVITIES = [
       controls: [
         { fact: 'temporarySupport' },
         'No load-bearing part is removed until the propping is installed and checked.',
+        'Before any load goes onto the props, the supervisor checks each one against the temporary works design: position, spacing, extension within its rated load, base plate on the bearing the design shows, and locking pins fitted.',
+        'Props next to vehicle or plant routes are protected by barriers or buffer rails and marked with hazard tape or signs, so mobile plant cannot strike them.',
+        'The supervisor checks the props at the start of each shift and after any impact, heavy rain or digging nearby. A loose, moved or damaged prop is reported and fixed before anyone works under or near it.',
+        'Only the propping crew moves, adjusts or removes props, and only with the temporary works designer\'s written approval.',
       ],
     }],
   },
@@ -660,6 +676,9 @@ const ACTIVITIES = [
           { fact: 'groundBearing' },
           'Check the ground or working platform can carry the crane\'s outrigger or track loads under the heaviest lift before setting up.',
           'The crane operator, and the dogman or rigger, hold current high risk work licences.',
+          'Before the first slew, the operator checks the slew and boom path is clear of structures and services, and the area the counterweight sweeps is barricaded so no one can be caught between it and a fixed object.',
+          src('The lift exclusion zone is barricaded with signs at each entry before lifting starts, and nearby crews are told where it is and how long the lifts will run.', QCODE('Steel construction', 's 4.6')),
+          'Where outriggers or tracks would bear within the zone of influence of an excavation, basement wall or retaining wall, or on a suspended slab, an engineer confirms the set-up position and loads in writing before the crane is set up.',
         ],
       },
       {
@@ -669,12 +688,24 @@ const ACTIVITIES = [
           'Inspect lifting gear before use. Check tags and ratings.',
           'Use tag lines to control the load.',
           'Exclusion zone. No one goes under a suspended load.',
+          'Each load is raised just clear of its support and held while the dogger checks it hangs level and the slings are seated. If it tilts or a sling shifts, it is lowered and re-rigged before the lift continues.',
+          src('Synthetic slings are protected from the load\'s edges and corners with sleeves, corner protectors or packers before the load is lifted.', TOWER('s 7.2.1')),
+          src('Before lifting, the dogger checks the load and removes or ties down any loose parts, tools, packing or debris on it.', TOWER('s 7.1.4')),
+          src('The operator sounds an audible warning before lifting or slewing a load where people are nearby.', QCODE('Steel construction', 's 6.4')),
+          src('Only one person signals the operator at any time. Radios between the operator and dogger are tested before the first lift, and lifting stops at once if radio contact is lost.', QCODE('Steel construction', 's 6.2')),
+          src('Lifting stops when the wind exceeds the crane manufacturer\'s limit, or the lower limit set for loads with a large surface such as modules, panels and stairs. When the limit is reached, the boom is retracted or lowered to a safe position.', QCODE('Steel construction', 's 6.10')),
+          'On non-routine or heavy lifts, the lift supervisor or a second licensed dogger or rigger checks the slinging against the lift plan before the load leaves the ground.',
         ],
       },
       {
         step: 'Land and release the load',
         hazards: ['Crushing between the load and the structure.'],
-        controls: ['Land the load on a stable surface, within the rated load of where it lands, and secure it before releasing the rigging.'],
+        controls: [
+          'Land the load on a stable surface, within the rated load of where it lands, and secure it before releasing the rigging.',
+          'Loads are landed onto timber bearers or dunnage so slings can be pulled clear without hands or feet going under the load.',
+          'When loading a truck, the load is landed where the driver agrees and is chained or strapped to the deck before the crane takes off its weight and the rigging is removed. The driver stays off the deck while the load is landed.',
+          src('After the lifts, slings, chains and shackles are inspected. Gear that is damaged, deformed, worn past the maker\'s limit or missing its tag is tagged out of service and taken off site.', QCODE('Steel construction', 's 4.3.1')),
+        ],
       },
     ],
   },
@@ -846,6 +877,8 @@ const ACTIVITIES = [
         hazards: ['The slab or falsework collapses.'],
         controls: [
           'Install backprops progressively as each bay is stripped, to the design, and leave them until the design allows removal.',
+          'Backprops are tagged or signed as not to be removed or adjusted by other trades. A backprop found loose or missing is reported to the formwork supervisor and replaced before work or loading continues on the floor above.',
+          'Backprops next to vehicle or plant routes are protected by barriers and marked with hazard tape or signs, so mobile plant cannot strike them.',
         ],
       },
     ],
@@ -950,6 +983,7 @@ const ACTIVITIES = [
           'Where walls, lift shafts or stairwells are reinforced, fix the reo from working platforms or scaffolds, never by climbing the cage, and brace tall wall cages so they cannot topple.',
           'Work inside the edge protection at all times.',
           'Where our crew stays on the deck during the pour, they keep clear of the pump hose end and placing boom, follow the formwork watcher\'s stop signal, and do not go under the deck. Avoid skin contact with wet concrete: wear gumboots and chemical resistant gloves, and wash concrete off skin straight away.',
+          'Tie wire is cut with nips held close to the bar so the offcut cannot flick into anyone\'s eyes, and tails are bent inward, away from where people walk, kneel or reach.',
         ],
       },
     ],
@@ -1093,6 +1127,7 @@ const ACTIVITIES = [
         src('The operator is trained for the platform. A high risk work licence is needed only for a boom-type platform with a boom of 11 m or more.', WHS('s 81, schedule 3')),
         'Where a boom-type platform is used, the harness is attached to the platform\'s anchor point.',
         src('Check for crushing points such as soffits, beams, steelwork and services before raising or moving the platform. Operators are trained in safe work procedures to avoid crushing.', MODEL('Managing the risk of falls', 's 5.1')),
+        'Where a boom-type platform is used near soffits, beams, steelwork or services, it is fitted with a working secondary guarding device that stops the platform if the operator is pushed onto the controls, and the device is tested at the pre-start.',
       ],
     }],
     ppe: ['harness'],
@@ -1236,6 +1271,7 @@ const ACTIVITIES = [
         { only: 'subBoardInstall', text: 'Before termination at the main switchboard, the circuit is isolated, locked and proved de-energised, and live parts nearby are shrouded.' },
         // A new main switchboard is connected to its consumer mains and submains once they are pulled in.
         { only: 'newMainBoard', text: 'Consumer mains and submains are terminated at the new board only once each is proved de-energised at its source, with the terminations made and tightened to the board maker\'s settings and checked before the board is closed up.' },
+        'Drum stands are set level on firm ground, the spindle is checked as rated for the drum, and the drum is jacked up evenly on both sides with no one\'s hands or feet under it.',
       ],
     }],
     ppe: ['gloveGeneral'],
@@ -1341,6 +1377,7 @@ const ACTIVITIES = [
         controls: [
           src('Test new work so it is electrically safe before it is connected, and keep people not needed for testing safe while it is energised.', ESR('s 207')),
           src('Issue the certificate of testing and safety, and give the distribution entity the notice of test where it must examine or test the installation.', ESR('s 208, s 228')),
+          'During insulation resistance testing, the far ends of each circuit are barricaded, signed or attended so no one touches them, and the cable is discharged through the tester before anyone handles the conductors.',
         ],
       },
       {
@@ -1376,6 +1413,7 @@ const ACTIVITIES = [
         'Work to the sewer authority\'s approval and connection requirements.',
         src('If a manhole or sewer must be entered, the entry is planned and done as confined space entry, with its own permit and controls.', `${WHS('s 65 to s 77')}; ${MODEL('Confined spaces', 'appendix B')}`),
         'Wash hands before eating or smoking, cover cuts, and keep a clean water supply and first aid at the work area.',
+        'Workers who handle sewage or work in sewer pits are offered hepatitis A and tetanus vaccination before starting, and cuts or grazes are reported and treated the same day.',
       ],
     }],
     ppe: ['gloveChemical', 'goggles', 'gumboots'],
@@ -1459,6 +1497,9 @@ const ACTIVITIES = [
         src('No hot work from a ladder.', MODEL('Managing the risk of falls', 's 9.1')),
         src('Mark hot pipe as hot. Wear fire-resistant gloves, natural fibre clothing and filter eye protection for the flame.', MODEL('Welding processes', 's 3.5, s 4.2')),
         'Hot work at height or in risers also follows the controls in the SWMS for work at height.',
+        'Combustible materials within 10 m of the hot work are removed or covered with fire resistant blankets, and gaps in floors and walls that sparks could pass through are covered.',
+        'A fire watch checks the work area, including below it and behind walls and floors, during the hot work and for at least 30 minutes after it stops, or longer where the hot work permit sets it.',
+        'No hot work is done outdoors on a total fire ban day unless it meets the fire authority\'s conditions or exemption for that day, and the supervisor confirms this before work starts.',
       ],
     }],
     ppe: ['gloveWelding', 'filterEye'],
@@ -2308,6 +2349,7 @@ const ACTIVITIES = [
         src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak. Where rock is drilled or broken with plant, control the silica dust (wet methods or extraction) and assess it in writing before starting.', `${WHS('s 56, s 57, s 529B, s 529C, s 529CA')}; ${QCODE('Silica', 's 5.1, s 7.4.1, appendix 4')}`),
         src('Get the current underground services information before digging, and work to it.', WHS('s 304')),
         src('The emergency plan covers ground slip, flooding and rescue from the excavation.', MODEL('Excavation work', 's 3.7')),
+        'When loading trucks, the excavator never swings the bucket over the truck cab. The driver either stays in the cab with the door shut or waits outside the loading zone in the operator\'s sight, and reverses in only on a signal.',
       ],
     }],
     ppe: ['hivisNight'],
@@ -2633,6 +2675,8 @@ const ACTIVITIES = [
         src('No hot work above safety nets.', MODEL('Managing the risk of falls', 's 7.2')),
         src('Fully insulated electrode holders, dry welding gloves, and an RCD on the supply.', MODEL('Welding processes', 's 3.3')),
         src('Ventilation or local exhaust for welding fume, and hearing protection for grinding.', MODEL('Welding processes', 's 3.7, s 4.1')),
+        'A fire watch checks the work area, including below it and behind walls and floors, during the hot work and for at least 30 minutes after it stops, or longer where the hot work permit sets it.',
+        'No hot work is done outdoors on a total fire ban day unless it meets the fire authority\'s conditions or exemption for that day, and the supervisor confirms this before work starts.',
       ],
     }],
     ppe: ['gloveWelding', 'filterEye', 'longs'],
@@ -3147,6 +3191,8 @@ const ACTIVITIES = [
         src('Debris is removed as the work goes, and is not dropped freely except into a fenced drop zone.', QCODE('Demolition', 's 4.7')),
         { only: 'masonryDemo', ...src('Breaking masonry and slabs is processing a crystalline silica substance: water sprays keep dust down, and anyone still at risk wears a fit tested respirator. Hearing protection near breakers and hammers.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.6, s 7.6.2')}`) },
         { unless: 'bridgeDemo', text: 'Neighbours are told before work starts, and the boundary is protected from debris and dust.' },
+        'Demolition debris loaded into trucks or bins is cut down to fit inside the body, is not loaded above the sides or overhanging, and is covered before the truck leaves the site.',
+        'Before the crew leaves a demolished area, a supervisor walks it and fills or barricades every void, pit and old footing hole, and removes or caps protruding bars and fixings.',
       ],
     }],
     ppe: ['p2', 'earMuffs', 'hivis'],
@@ -3401,6 +3447,7 @@ const ACTIVITIES = [
         'Workers stand upwind of the fumes, and paver and screed crew whose task puts them in the fumes are rotated through those positions during the shift.',
         'Traffic management is in place before work starts, as the approved plan sets out.',
         'Cool water, shade and rest breaks in hot weather.',
+        'In hot weather, the screed and roller crew rotate to a shaded rest area at set intervals agreed at the pre-start, and anyone who feels dizzy, sick or confused stops work and is cooled straight away.',
       ],
     }],
     ppe: ['hivisNight', 'gloveGeneral', 'sunHat'],
@@ -3521,6 +3568,8 @@ const ACTIVITIES = [
         'Posts and clamps are fixed to the manufacturer\'s instructions, and each section is complete before workers move along it.',
         'An exclusion zone is set up below, and components are not stacked at the edge.',
         'Edge protection is removed only when the edge is no longer needed, or a permanent barrier is in place.',
+        'A competent person inspects the edge protection after it is installed, at least weekly while it stays in place, and after any impact or alteration, checking posts, clamps, rails, toe boards and mesh, and records the result.',
+        'Edge protection is opened for a delivery or lift only with the supervisor\'s approval, with anyone at the gap in travel restraint, and is closed again before the area is left.',
       ],
     }],
     ppe: ['harness'],
@@ -6665,6 +6714,7 @@ const ACTIVITIES = [
         'Large trees are felled away from plant and people by competent operators.',
         'In dry conditions a fire extinguisher is carried, exhausts and spark arrestors are checked, and the fire danger rating is checked each day.',
         'The area is checked for wildlife and nests as the environmental approvals require.',
+        'Where a tree or stump is pushed over or pulled out with plant, or with a chain or sling, everyone stays outside the fall zone of the tree and out of the line of the chain, which could snap back.',
       ],
     }],
   },
@@ -7364,6 +7414,7 @@ const ACTIVITIES = [
         src('Get the current underground services information before digging or driving footings for fences, hoardings and gantries, and work to it.', WHS('s 304')),
         { only: 'road', ...src('Footpath or road closures have written approval from the authority that controls the area.', WHS('s 315M')) },
         src('Temporary cables are kept off access routes, materials are stacked away from fences and hoardings, and emergency exits stay clear and lit.', `${WHS('s 40')}; ${QCODE('Managing electrical risks', 's 3')}`),
+        'Hoardings over 2.4 m high, or carrying signboards or shade cloth, are built to an engineer\'s design for wind load, and the design is kept on site.',
       ],
     }, {
       step: 'Erect the gantry',
@@ -7475,7 +7526,7 @@ const ACTIVITIES = [
         src('Keep dust down with wet methods.', MODEL('Managing risks of hazardous chemicals', 's 4.1')),
         'Protect finished paving, hard surfaces and membranes with boards or mats where plant or barrows cross them.',
         'Potting mix, compost and soil can carry Legionella bacteria. Open bags away from the face, keep the material damp, wear gloves and a P2 mask, and wash hands before eating, drinking or smoking.',
-        src('Cool drinking water, shade and rest breaks in hot weather.', `${WHS('s 40, s 41')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
+        src('Cool drinking water is kept at the work area, a shaded rest area is set up before work starts, and in hot weather rest breaks are taken there at the times set at the pre-start.', `${WHS('s 40, s 41')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
       ],
     }, {
       step: 'Plant',
@@ -7487,7 +7538,7 @@ const ACTIVITIES = [
         { only: 'irrigationWork', text: 'The irrigation connection to the water supply and its backflow device is made by a licensed plumber.' },
         src('Order smaller bags, or have bulk loads moved by machine. Deliver as close as possible to where the materials are used. Use mechanical aids, and rotate tasks.', MODEL('Hazardous manual tasks', 's 4.4, s 4.5, s 4.7, s 4.9')),
         'Potting mix, compost and soil can carry Legionella bacteria. Open bags away from the face, keep the material damp, wear gloves and a P2 mask, and wash hands before eating, drinking or smoking.',
-        src('Cool drinking water, shade and rest breaks in hot weather.', `${WHS('s 40, s 41')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
+        src('Cool drinking water is kept at the work area, a shaded rest area is set up before work starts, and in hot weather rest breaks are taken there at the times set at the pre-start.', `${WHS('s 40, s 41')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
       ],
     }],
     ppe: ['sunHat', 'sunscreen', 'gloveGeneral', 'p2'],
@@ -7557,7 +7608,7 @@ const ACTIVITIES = [
         { unless: 'artificialTurf', ...src('Use a turf laying machine for large turf rolls. Use mechanical aids for smaller rolls, and rotate tasks.', MODEL('Hazardous manual tasks', 's 4.5, s 4.9')) },
         // Laying turf is not excavation work, so the excavation code is not cited here.
         src('Plant has a warning device, and operators and ground workers use two way acknowledgement before anyone approaches plant.', WHS('s 215')),
-        src('Cool drinking water, shade and rest breaks in hot weather.', `${WHS('s 40, s 41')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
+        src('Cool drinking water is kept at the work area, a shaded rest area is set up before work starts, and in hot weather rest breaks are taken there at the times set at the pre-start.', `${WHS('s 40, s 41')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
       ],
     }],
     ppe: ['sunHat', 'sunscreen'],
@@ -8036,7 +8087,7 @@ const ACTIVITIES = [
         src('Assess in writing before drilling or cutting whether the processing is high risk. The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing, such as wet methods, extraction or isolation. If it cannot be determined, treat it as a risk to health until that is determined.', WHS('s 529CA')),
         SILICA_FOLLOW_UP[1],
         { only: 'substation', text: 'No one enters the substation or works inside its fence without the network operator\'s access permit and escort, and plant and materials keep the network operator\'s exclusion distances from live equipment.' },
-        'Sun protection: hat, long sleeves, sunglasses and SPF 30 or higher sunscreen. Cool drinking water, shade and rest breaks in hot weather.',
+        'Sun protection: hat, long sleeves, sunglasses and SPF 30 or higher sunscreen. Cool drinking water is kept at the work area, a shaded rest area is set up before work starts, and in hot weather rest breaks are taken there at the times set at the pre-start.',
       ],
     }, {
       step: 'Build the fence',
@@ -8056,7 +8107,7 @@ const ACTIVITIES = [
         { only: 'gateMotor', text: 'Automatic gates are commissioned with the area closed off, and their safety sensors and force limits are tested before the gates are used.' },
         { only: 'substation', text: 'No one enters the substation or works inside its fence without the network operator\'s access permit and escort, and plant and materials keep the network operator\'s exclusion distances from live equipment.' },
         { only: 'substation', text: 'The fence is earthed and bonded to the network operator\'s design, and fence panels are not joined to an existing substation fence until the earthing is in place, because of step and touch voltages.' },
-        'Sun protection: hat, long sleeves, sunglasses and SPF 30 or higher sunscreen. Cool drinking water, shade and rest breaks in hot weather.',
+        'Sun protection: hat, long sleeves, sunglasses and SPF 30 or higher sunscreen. Cool drinking water is kept at the work area, a shaded rest area is set up before work starts, and in hot weather rest breaks are taken there at the times set at the pre-start.',
       ],
     }],
     ppe: ['gloveCut', 'gloveChemical', 'glassesClear', 'earMuffs', 'sunHat', 'sunscreen', 'p2'],
@@ -8068,7 +8119,7 @@ const ACTIVITIES = [
       hazards: ['Heat stress in the roof space.', 'A fall through the ceiling.', 'Insulation fibres and dust.', 'Contact with live cables.'],
       controls: [
         { only: 'exhaustFan', text: 'The fan is fixed to the ceiling framing to the manufacturer\'s instructions, its duct is run to the outlet without crushing, and it is connected by a licensed electrician.' },
-        src('Roof cavities get very hot: work early in the day, limit time in the roof, take breaks, and drink water.', `${WHS('s 40')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
+        src('Roof cavities get very hot: in hot weather, roof space work is done in the morning, in spells of no more than 30 minutes with a break outside the roof space between them, and workers take drinking water in with them.', `${WHS('s 40')}; ${QCODE('Hazardous manual tasks', 's 4.6')}`),
         { only: 'insulationReplace', text: 'Old insulation is bagged in the roof space and passed down, with a P2 respirator, gloves and long sleeves worn, and droppings and dust handled as waste. Anything that looks like loose-fill asbestos stops the work until it is tested.' },
       { only: 'looseFill', text: 'Before anyone enters the roof space, check the loose-fill asbestos insulation register for the house. If loose, fluffy insulation of unknown type is found, stop work, keep out of the roof space and have it tested.' },
         'Walk only on the ceiling joists or on crawl boards laid across them, never on the ceiling sheets.',
@@ -8077,6 +8128,7 @@ const ACTIVITIES = [
         { ...src('Work in a roof space (between the roof and the top floor ceiling) only when the electrical installation is de-energised. If that is not reasonably practicable, a risk assessment is done, the risks are as low as reasonably practicable, and the work follows a written statement of the controls.', ESR('s 31, s 33, s 34')), only: 'roofSpaceRule' },
         { unless: 'roofSpaceRule', text: 'Turn off the power at the main switchboard before going into the roof space, where the work allows it.' },
         { unless: 'tieDowns', text: 'No metal staples, fixings or foil insulation near cables.' },
+        'In hot weather, a second person stays at the roof space access, checks on the worker at least every 15 minutes, and can raise the alarm and help them out.',
       ],
     }],
     ppe: ['p2', 'longs'],
@@ -8144,6 +8196,7 @@ const ACTIVITIES = [
           { unless: 'friableAsbestos', text: 'Keep the material wet and remove it whole, by hand.' },
           { only: 'friableAsbestos', ...src('Friable asbestos is removed inside an enclosure that is tested for leaks, under negative pressure, using the wet method, with air monitoring by an independent licensed asbestos assessor immediately before the work starts and while it is carried out (negative pressure and the monitoring before the start are not needed where glove bags are used). The enclosure is not dismantled until monitoring shows the fibre level inside it is below 0.01 fibres/ml.', WHS('s 475, s 477')) },
           'Wear disposable coveralls and a respirator rated P2 or higher.',
+          'In hot weather, time in coveralls and respirator is limited to set periods agreed before work starts, with rest, water and shade outside the work area, after decontamination, between periods.',
         ],
       },
       {
@@ -8183,6 +8236,7 @@ const ACTIVITIES = [
           src('A standby person stays outside, in continuous contact, and never enters to rescue. Rescue is started from outside.', `${WHS('s 69, s 74')}; ${QCODE('Confined spaces', 's 4.6, s 5')}`),
           src('Rescue and first aid procedures are set and practised, rescue equipment is ready at the entry, and air supplied breathing equipment is available for any rescue entry.', WHS('s 74, s 75')),
           src('No ignition source is taken in if there is any possibility of fire or explosion.', WHS('s 73')),
+          src('Where the space is hot, time inside is limited to set periods written on the entry permit, forced ventilation brings in cooler air, and entrants rest and drink water outside the space between periods.', `${QCODE('Confined spaces', 's 4.2, s 4.5')}; ${NSWC('NSW Confined spaces', 's 4.2, s 4.5')}`),
         ],
       },
       {
@@ -8577,7 +8631,7 @@ addAfter('hotWork', {
     hazards: ['Fire from sparks, slag or hot metal.', 'Gas cylinder leaks or flashback.', 'Fumes.', 'Burns and eye injury.'],
     controls: [
       'Painted steel is checked for lead before it is flame cut. Where the paint may contain lead, it is stripped back from the cut line first, or the cutting is done as lead risk work with the controls the state\'s lead rules require.',
-      ...without(brazing.controls, /Mark hot pipe|Hot work at height or in risers/),
+      ...without(brazing.controls, /Mark hot pipe|Hot work at height or in risers|^Combustible materials within 10 m|^A fire watch checks the work area/),
       'Remove or cover combustible materials where sparks and slag can reach them, including on the floor below.',
       'A fire watch is kept during the cutting and for the time the hot work permit sets after it stops.',
       'Wear filter eye protection rated for gas cutting, fire-resistant gloves and natural fibre clothing.',
@@ -9213,6 +9267,28 @@ ACTIVITIES.push(
         { only: 'stoneRetaining', ...src('Stone is cut with a wet saw or a saw with on-tool extraction, or split by hand, never dry cut without extraction, and the cutter wears a fit tested P2 respirator. Cutting stone with a power tool is processing a crystalline silica substance.', `${WHS('s 529A, s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.4.2, s 7.6.1, s 7.6.2')}`) },
         { unless: 'timberOnlyWall', ...SILICA_FOLLOW_UP[0] },
         { unless: 'timberOnlyWall', ...SILICA_FOLLOW_UP[1] },
+      ],
+    }, {
+      // Gabion walls: wire mesh baskets filled with rock, by hand or by machine, or filled
+      // off site and lifted in by crane.
+      step: 'Build and fill gabion baskets',
+      only: 'gabion',
+      hazards: [
+        'Cuts and eye injuries from cutting and tying mesh and lacing wire.',
+        'Hands and feet crushed placing rock.',
+        'Struck by the excavator or bucket while baskets are filled.',
+        'A filled basket bulges or the stack fails from uneven filling or poor backfill.',
+        'Struck or crushed by a pre-filled basket lifted by crane.',
+        'A fall from the top of the stack or into the footing excavation.',
+      ],
+      controls: [
+        'Baskets are built, stacked and backfilled to the engineer\'s or supplier\'s design, on a foundation levelled and compacted as the design sets, with geotextile laid where it is shown.',
+        'Mesh and lacing wire are cut and tied wearing cut resistant gloves and eye protection, and cut ends are turned into the basket so no sharp ends stick out.',
+        'Rock is placed by the excavator with workers out of reach of the bucket, and two-way acknowledgement before anyone steps in to place face stones or tie.',
+        'Cells are filled in layers no more than 300 mm deep, never more than one layer above the next cell, with internal bracing wires fitted at the heights the supplier specifies.',
+        'Pre-filled baskets are lifted only with a lifting frame or rated lifting points, slung by a licensed dogger, with no one under the load, and stay on the hook until checked in position.',
+        'Workers do not climb the basket faces. Work on courses 2 m or more above the ground is done from a scaffold, EWP or behind edge protection on the top course.',
+        'Backfill behind the wall goes in compacted layers to the design, and heavy compaction plant stays back from the basket face as the designer sets, using a hand plate compactor close to the wall.',
       ],
     }],
     ppe: ['p2', 'gloveGeneral'],
@@ -10101,6 +10177,32 @@ ACTIVITIES.push(
   },
 );
 
+// Work in hot conditions: hot weather named in the task, or hot plant such as furnaces, kilns
+// and operating boilers (artificial extremes of temperature). Not in every SWMS: the water,
+// shade and sun lines cover ordinary outdoor work.
+ACTIVITIES.push({
+  when: 'heatWork',
+  steps: [{
+    step: 'Work in hot conditions',
+    hazards: [
+      'Heat stroke, heat exhaustion, fainting and cramps.',
+      'Tiredness and poor concentration in the heat lead to falls, mistakes and other incidents.',
+      'Sunburn and skin damage from UV when working outdoors.',
+    ],
+    controls: [
+      'Before each shift in hot weather, the supervisor checks the forecast temperature and humidity, sets the start time and the work and rest periods for the day, and briefs them at the pre-start.',
+      src('Heavy work and work in full protective clothing are scheduled for the early morning or the coolest part of the shift.', QCODE('Hazardous manual tasks', 's 4.6')),
+      src('A shaded or air-conditioned rest area with seating and cool drinking water is set up close to the work before work starts, and workers take their breaks there.', QCODE('Hazardous manual tasks', 's 4.6')),
+      src('Fixed work points in the sun, such as cutting and mixing stations, are shaded with a canopy, and fans or forced ventilation move air in enclosed hot areas.', QCODE('Hazardous manual tasks', 's 4.6')),
+      src('Workers drink a cup of cool water every 15 to 20 minutes while working in the heat, not only when thirsty, and cool water is kept at the work area.', QCODE('Hazardous manual tasks', 's 4.6')),
+      'Workers new to hot conditions, or back after a week or more away, start on lighter tasks and shorter periods in the heat, building up to a full workload over about a week.',
+      'No one works alone in hot conditions. Workers are paired and check each other for signs of heat illness: dizziness, headache, nausea, cramps, confusion or stopping sweating.',
+      'A worker with signs of heat illness stops work at once, is moved to the rest area, cooled and given water, and is not left alone. Confusion, collapse or hot dry skin is treated as heat stroke: call 000.',
+      'Workers tell the supervisor before starting if they are unwell, short of sleep or fluids, or on medication that affects heat tolerance, and the supervisor gives them lighter or cooler work.',
+    ],
+  }],
+});
+
 // Return visits to an occupied building in the defects liability period, to rectify defects
 // and maintain the work. Fixing defects in that period is construction work.
 addAfter('power', {
@@ -10651,7 +10753,7 @@ const COVERED = [
 const SAID_ONCE = [
   ['kneePads', /^(?:Use|Wear) knee pads\.?$/i],
   ['kneeling', /^Long periods kneeling are a hazardous manual task\b|^Kneeling (?:while laying tiles |to lay floor coverings )?is a hazardous (?:manual task|posture)\b/i],
-  ['coolWater', /^Cool drinking water, shade and rest breaks in hot weather\b/i],
+  ['coolWater', /^Cool drinking water is kept at the work area\b/i],
   ['scanDrill', /\bscan\w*\b[^.]*\bbefore drilling\b|\bbefore drilling\b[^.]*\bscann?\w*\b/i],
   ['electricalLicensed', /^Electrical work is done (?:or supervised )?only by (?:a )?licensed electric(?:al workers?|ians?)\b/i],
   ['assess', /\b(?:assess\w*\b[^.]*\bin writing\b[^.]*\bhigh risk|The assessment does not count|If it cannot be determined, treat it as a risk)|^If (?:it is|so),/i],

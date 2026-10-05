@@ -315,7 +315,7 @@ const KINDS = ACTIVITIES.filter((activity) => activity.when && (activity.steps |
 // do not make a task of their own.
 // Neither do incidental kinds that any trade does (power tools, moving materials,
 // cleaning up, mixing): they are steps inside the trade's own tasks.
-const DETAIL = new Set(['ptSlab', 'craneInterface', 'cite', 'ewp', 'mobileScaffold', 'forklift', 'carpentryWork', 'carpLoad', 'sitePlant', 'tileMix', 'masonryMortar', 'masonryGrout', 'wpRolls', 'glassHandling', 'glassWind', 'gasCylinders', 'neighbours', 'siteSheds', 'roofAccess', 'oxyCutting', 'silicaDrill', 'smallPlant', 'groundChemicals']);
+const DETAIL = new Set(['ptSlab', 'craneInterface', 'cite', 'ewp', 'mobileScaffold', 'forklift', 'carpentryWork', 'carpLoad', 'sitePlant', 'tileMix', 'masonryMortar', 'masonryGrout', 'wpRolls', 'glassHandling', 'glassWind', 'gasCylinders', 'neighbours', 'siteSheds', 'roofAccess', 'oxyCutting', 'silicaDrill', 'smallPlant', 'groundChemicals', 'heatWork']);
 // A kind found in fewer lines than this is a passing mention, unless it is high risk work.
 const MIN_SUPPORT = 2;
 // Kinds of work whose steps have a person falling from an edge, roof or platform,
@@ -548,11 +548,14 @@ function tasksFromScope(text, stateId = 'qld') {
     || count(trade) >= Math.max(2, titled.size ? titleTop * TITLE_SHARE : top * TRADE_SHARE));
   const allowed = new Set(ours.flatMap((trade) => trade.kinds));
   const order = (when) => KINDS.findIndex((kind) => kind.when === when);
+  // Hot weather or heat stress named anywhere in the scope, even in a line that is not itself
+  // site work, is a condition of all its work: each task gets the step for hot conditions.
+  const hot = String(text || '').split(/\n+/).some((line) => /\b(hot|heat|summer|temperatures?|°\s?C|furnaces?|kilns?|ovens?|boilers?)\b/i.test(line) && workFlags(ownWork(line)).heatWork);
   const makeTask = (id, step, found, trades, groupKinds = []) => {
     const title = TITLES[id] || step;
     const task = taskText(found);
     const highRisk = highRiskMatches(task, '', state).map((item) => item.label);
-    const kinds = [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')) })])];
+    const kinds = [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')) }), ...(hot ? ['heatWork'] : [])])];
     return {
       id,
       title,

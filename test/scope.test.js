@@ -202,3 +202,19 @@ test('a concreter pouring ground and suspended slabs gets one set of pour steps,
   for (const step of ['Set out', 'Prepare the ground', 'Place concrete', 'Saw cut concrete', 'Remove cut sections']) assert.ok(!steps.includes(step), step);
   assert.ok(draft.jobSteps.flatMap((step) => step.controls).some((line) => /^Where control joints are saw cut/.test(line)));
 });
+
+test('a scope naming gabion walls and hot weather picks the gabion and hot conditions steps', () => {
+  const { prepareDraft } = require('../draft');
+  const text = 'SCOPE OF WORKS - LANDSCAPING\n1. Supply and install gabion walls along the northern boundary, 1.5 m high.\n2. Lay turf to all lawn areas.\n3. Works are carried out over summer: manage heat stress for all outdoor crews in hot weather.';
+  const { tasks } = tasksFromScope(text);
+  const wall = tasks.find((task) => task.id === 'retainingWall');
+  assert.ok(wall, 'the gabion wall is a task');
+  assert.match(wall.task, /gabion/);
+  for (const task of tasks) assert.ok(task.kinds.includes('heatWork'), task.id);
+  const result = prepareDraft({ state: 'qld', task: wall.task, fallRisk: 'no', kinds: wall.kinds, trades: wall.trade });
+  const names = result.jobSteps.map((step) => step.step);
+  assert.ok(names.includes('Build and fill gabion baskets'));
+  assert.ok(names.includes('Work in hot conditions'));
+  // Without the heat line, no task gets the step.
+  for (const task of tasksFromScope(text.split('\n3.')[0]).tasks) assert.ok(!task.kinds.includes('heatWork'), task.id);
+});

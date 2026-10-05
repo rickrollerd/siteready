@@ -4721,7 +4721,7 @@
  },
  {
   "op": "cite",
-  "find": "Minimise work at height in extreme heat.",
+  "find": "On days forecast at 35°C or more, work at height is planned for the cooler part of the day, and the supervisor sets the time it stops at the pre-start.",
   "code": "NSW Falls",
   "section": "s 8.3"
  },
@@ -8355,7 +8355,7 @@
  },
  {
   "op": "cite",
-  "find": "Roof cavities get very hot: work early in the day, limit time in the roof, take breaks, and drink water.",
+  "find": "Roof cavities get very hot: in hot weather, roof space work is done in the morning, in spells of no more than 30 minutes with a break outside the roof space between them, and workers take drinking water in with them.",
   "code": "NSW Manual tasks",
   "section": "s 4.6"
  },

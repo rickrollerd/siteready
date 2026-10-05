@@ -2,7 +2,7 @@
 // with a stand-in for the model so no request is made or billed.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { checkSwms, fromDraft, emailDraft, bandFor, controlLevel, isVague } = require('../builder-check');
+const { checkSwms, fromDraft, emailDraft, bandFor, controlLevel, isVague, SOURCES } = require('../builder-check');
 const { readSwms, validSwms, CHECK_BRIEF, CHECK_SCHEMA } = require('../check-read');
 const aiScope = require('../ai-scope');
 const { prepareDraft } = require('../draft');
@@ -269,7 +269,7 @@ const item = (result, rule) => result.findings.find((finding) => finding.rule ==
 test('the 100 points are split as decided: three new items taken from the items they overlap', () => {
   const maxima = Object.fromEntries(checkSwms(GOOD).findings.filter((finding) => !finding.hard).map((finding) => [finding.rule, finding.max]));
   assert.deepEqual(maxima, { W1: 15, W2: 15, W3: 10, W4: 7, W5: 8, W6: 10, W7: 10, W8: 5, W9: 5, W10: 5, W11: 5, W12: 5 });
-  for (const rule of ['W10', 'W11', 'W12']) assert.match(item(checkSwms(GOOD), rule).source, /Multiplex SWMS for HRCW review checklist rev 9 \(evidence/);
+  for (const rule of ['W10', 'W11', 'W12']) assert.match(item(checkSwms(GOOD), rule).source, /a tier 1 builder's published SWMS review checklist \(evidence/);
   assert.match(item(checkSwms(GOOD), 'W10').source, /s 36/);
   assert.match(item(checkSwms(GOOD), 'W12').source, /Code of Practice: Construction Work/);
 });
@@ -350,7 +350,7 @@ test('W12: work that needs a permit names it', () => {
   const unnamed = item(checkSwms(variant({ steps: steps(weld) })), 'W12');
   assert.equal(unnamed.points, 0);
   assert.match(unnamed.message, /a hot work permit \(hot work\)/);
-  assert.equal(item(checkSwms(variant({ steps: steps({ ...weld, controls: [...weld.controls, 'Welding starts only under a hot work permit from the principal contractor.'] }) })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...weld, controls: [...weld.controls, 'Welding starts only under a hot work permit from the principal contractor.', 'A fire watch stays for 30 minutes after welding stops.'] }) })), 'W12').points, 5);
   // Heat welded vinyl, solvent welded pipe and painting welds are not hot work.
   for (const step of ['Lay the vinyl with heat-welded joins', 'Paint the site welds', 'Solvent weld the PVC pipe']) {
     assert.equal(item(checkSwms(variant({ steps: steps({ step, hazards: ['Fumes.'], controls: ['The area is ventilated.'] }) })), 'W12').points, 5, step);
@@ -393,4 +393,45 @@ test('the AI reading gives a responsible position per step; answers without it a
   const read = { ...withPosition, site: { address: READ.siteAddress, conditions: [] } };
   assert.equal(item(checkSwms(read), 'W11').points, 5);
   assert.equal(item(checkSwms({ ...read, steps: READ.steps }), 'W11').points, 0);
+});
+
+// ---- Practice documents (owner decision, 6 October 2026) ----
+
+test('no company is named in the check\'s sources', () => {
+  for (const source of Object.values(SOURCES)) assert.doesNotMatch(source, /Multiplex/);
+  assert.match(SOURCES.W10, /a tier 1 builder's published SWMS review checklist/);
+});
+
+test('H5 and W3: "correct lifting technique", "lift correctly" and "proper lifting" leave the decision to the worker', () => {
+  for (const line of ['Use correct lifting technique.', 'Use the correct technique when lifting sheets.', 'Lift correctly and get help with heavy items.', 'Proper lifting technique is used.', 'Use proper lifting.']) {
+    assert.equal(isVague(line), true, line);
+  }
+  for (const line of ['Sheets over 20 kg are team lifted or moved on a trolley.', 'The lifting technique is shown at the pre-start.']) assert.equal(isVague(line), false, line);
+  const lifting = { step: 'Remove and replace roof sheets', hazards: ['Falling through the open roof frame.'], controls: ['Use correct lifting technique.'] };
+  const result = checkSwms(variant({ steps: [...GOOD.steps, lifting] }));
+  assert.match(item(result, 'H5').message, /correct lifting technique/);
+});
+
+test('W5: a scissor lift needs operator competency, an EWP operator card or a verification of competency', () => {
+  const scissor = { step: 'Fix the ceiling brackets from a scissor lift', hazards: ['Crushing against the ceiling.'], controls: ['The scissor lift is checked at the pre-start.'], responsible: 'Leading hand' };
+  const without = item(checkSwms(variant({ steps: [...GOOD.steps, scissor] })), 'W5');
+  assert.match(without.message, /Match a licence or ticket to the plant and work: scissor lift/);
+  for (const proof of ['Scissor lift operators hold an EWP operator card.', 'Operators are trained and competent on the scissor lift.', 'A verification of competency is held for the scissor lift.']) {
+    const result = item(checkSwms(variant({ steps: [...GOOD.steps, { ...scissor, controls: [...scissor.controls, proof] }] })), 'W5');
+    assert.doesNotMatch(result.message, /scissor lift/, proof);
+  }
+});
+
+test('W12: hot work under a permit also needs a fire watch and an extinguisher', () => {
+  const weld = (controls) => ({ step: 'Weld the box gutter brackets', hazards: ['Sparks and fire.'], controls: ['Welding starts only under a hot work permit from the principal contractor.', ...controls] });
+  const run = (controls) => item(checkSwms(variant({ steps: [...GOOD.steps, weld(controls)] })), 'W12');
+  const neither = run([]);
+  assert.ok(neither.points < 5);
+  assert.match(neither.message, /a fire watch during and after the work and a fire extinguisher at the work/);
+  assert.match(run(['A fire extinguisher is kept at the work.']).message, /add a fire watch/);
+  assert.match(run(['A fire watch stays for 30 minutes after the work.']).message, /add a fire extinguisher/);
+  assert.equal(run(['A fire extinguisher is kept at the work.', 'A fire watch stays for 30 minutes after the work.']).points, 5);
+  assert.equal(run(['Fire-fighting equipment is at hand, and a fire watch checks the area afterwards.']).points, 5);
+  // No hot work, nothing asked.
+  assert.equal(item(checkSwms(GOOD), 'W12').points, 5);
 });

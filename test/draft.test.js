@@ -458,3 +458,66 @@ test('a harness or life jacket in the PPE brings its question, and taking it out
   assert.equal(done.kind, 'draft');
   assert.ok(done.controls.some((item) => /AS 4758/.test(item.text)), 'the answer is in the SWMS');
 });
+
+// ---- Practice documents (owner decision, 6 October 2026) ----
+
+const stepNames = (result) => result.jobSteps.map((step) => step.step);
+const stepLines = (result, name) => result.jobSteps.find((step) => step.step === name).controls;
+
+test('a gabion wall gets its own step, without the block, stone or silica lines', () => {
+  for (const task of ['Build a gabion wall with rock-filled baskets along the car park batter.', 'Install gabion baskets filled with rock along the drainage channel.']) {
+    const result = draft(task);
+    assert.equal(result.kind, 'draft', task);
+    assert.ok(stepNames(result).includes('Build the retaining wall'), task);
+    const gabion = stepLines(result, 'Build and fill gabion baskets');
+    assert.ok(gabion.some((line) => /^Cells are filled in layers no more than 300 mm deep/.test(line)), task);
+    assert.ok(gabion.some((line) => /^Pre-filled baskets are lifted only with a lifting frame/.test(line)), task);
+    const all = result.jobSteps.flatMap((step) => step.controls).join('\n');
+    assert.doesNotMatch(all, /Blocks are (?:team lifted|cut)|Large stones are placed|silica risk control plan/, task);
+    assert.ok(!stepNames(result).includes('Build a dry stone wall'), task);
+  }
+  // A block wall and a gabion wall: both kinds of wall keep their lines.
+  const both = draft('Build a gabion wall and a 1 m block retaining wall beside the driveway.');
+  assert.ok(stepNames(both).includes('Build and fill gabion baskets'));
+  assert.ok(stepLines(both, 'Build the retaining wall').some((line) => /^Blocks are team lifted/.test(line)));
+  // Other retaining walls get no gabion step.
+  assert.ok(!stepNames(draft('Build a 1.2 m block retaining wall.')).includes('Build and fill gabion baskets'));
+});
+
+test('work in hot conditions gets its own step only where the heat is named or hot plant is near', () => {
+  for (const task of ['Replace roof sheeting on a warehouse in hot weather.', 'Lay asphalt to the car park during the summer months.', 'Reline the furnace next to two operating furnaces.', 'Install conduit in the plant room, where it is often 38°C.']) {
+    const result = draft(task);
+    assert.equal(result.kind, 'draft', task);
+    const heat = stepLines(result, 'Work in hot conditions');
+    assert.ok(heat.some((line) => /^No one works alone in hot conditions\./.test(line)), task);
+    assert.ok(heat.some((line) => /call 000/.test(line)), task);
+    assert.ok(heat.some((line) => /\(Hazardous manual tasks Code of Practice 2021 \(Qld\) s 4\.6\)$/.test(line)), `${task}: cited to the code`);
+  }
+  // Not in every SWMS: ordinary roof work, a cold room, hot water and hot work do not bring it.
+  for (const task of ['Replace roof sheeting on a warehouse.', 'Install shelving in a freezer room at minus 20 degrees, an area with artificial extremes of temperature.', 'Install a hot water system in a house.', 'Weld steel brackets to the existing columns on a commercial building.', 'Batter the cut at 45 degrees.']) {
+    const result = draft(task);
+    assert.ok(!(result.jobSteps || []).some((step) => step.step === 'Work in hot conditions'), task);
+  }
+});
+
+test('the heat lines say exactly what is done, and the roof heat line is not repeated', () => {
+  const roof = draft('Replace roof sheeting on a warehouse in hot weather.');
+  const fix = stepLines(roof, 'Fix new roofing');
+  assert.ok(fix.some((line) => /^On days forecast at 35°C or more, work at height is planned for the cooler part of the day/.test(line)));
+  assert.ok(!roof.jobSteps.flatMap((step) => step.controls).some((line) => /^Minimise work at height in extreme heat/.test(line)));
+  const space = draft('Install downlights in the roof space of a house in hot weather.');
+  const lines = space.jobSteps.flatMap((step) => step.controls);
+  assert.ok(lines.some((line) => /^Roof cavities get very hot: in hot weather, roof space work is done in the morning, in spells of no more than 30 minutes/.test(line)));
+});
+
+test('hot work under a permit a step already names still gets a fire watch and an extinguisher', () => {
+  const result = draft('Install and braze the medical gas pipework in the new hospital ward.', { facts: { hotWorkPermit: 'A hot work permit is issued each day by the principal contractor.' } });
+  assert.equal(result.kind, 'draft');
+  const lines = result.jobSteps.flatMap((step) => step.controls);
+  assert.equal(lines.filter((line) => /^During hot work, a fire extinguisher is kept at the work, and a fire watch checks the area/.test(line)).length, 1);
+  // A step that already says both gets no extra line.
+  const torch = draft('Cut out the old steel beam with an oxy-acetylene torch.', { facts: { hotWorkPermit: 'A hot work permit is issued each day by the principal contractor.' } });
+  const said = torch.jobSteps.flatMap((step) => step.controls);
+  assert.ok(!said.some((line) => /^During hot work, a fire extinguisher is kept at the work/.test(line)));
+  assert.equal(said.filter((line) => /\bfire watch\b/i.test(line)).length, 1, 'the cutting step keeps its own fire watch line');
+});
