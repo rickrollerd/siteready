@@ -114,3 +114,68 @@ test('each step names a responsible position, printed in the Who column', async 
   assert.match(xml, />Plant operator</);
   assert.match(xml, />Licensed plumber</);
 });
+
+// Wide sample of SiteReady's own drafts (415 SWMS from the saved scope readings, Qld): the high
+// risk work a step brings, three false matches, and hot work, isolation and confined space permits.
+const { highRiskMatches } = require('../draft');
+const ENERGISED = /energised electrical installations/i;
+const FIT_OFF = { task: 'Electrical fit-off in a new office: fit off light fittings, power points and switches, then test the new work.', facts: { energisedWork: 'none', isolationProcedure: 'The circuit is isolated at the board, locked and tagged, and proved dead with a tested voltage tester.' } };
+
+test('a "Work on or near energised parts" step brings the energised electrical category; work with no such step does not get it', () => {
+  const fitOff = drafted('qld', FIT_OFF);
+  assert.ok(fitOff.jobSteps.some((step) => step.step === 'Work on or near energised parts'));
+  assert.ok(fitOff.highRisk.some((item) => ENERGISED.test(item)));
+  assert.deepEqual(checked('qld', fitOff).hardFails, []);
+  // The register follows the list: low voltage rescue and an electric shock emergency row.
+  assert.ok(fitOff.qualifications.some((item) => /low voltage rescue/i.test(item.name || item)));
+  for (const item of [TYPED[1], TYPED[6], TYPED[4]]) {
+    const draft = drafted('qld', item);
+    assert.ok(!draft.jobSteps.some((step) => /energised/i.test(step.step)), item.task);
+    assert.ok(!draft.highRisk.some((line) => ENERGISED.test(line)), item.task);
+  }
+});
+
+test('air shaft voids and sewer pump station inspections are not trench work; precast pits are not precast panel work', () => {
+  const checks = (text) => highRiskMatches(text, 'no', 'qld').map((item) => item.check);
+  assert.ok(!checks('Supply, erect and strip support to large air shaft voids.').includes('trench'));
+  for (const text of ['Install precast pits.', 'Lift and place tanks, pits or precast units', 'Lay precast concrete pipes and culverts in the trench.']) assert.ok(!checks(text).includes('precast'), text);
+  // Genuine trench, shaft and precast panel work still are.
+  assert.ok(checks('Excavate a 2.4 m trench for a sewer main with an excavator.').includes('trench'));
+  assert.ok(checks('Excavate a trench for a sewer main with an excavator.').includes('trench'));
+  for (const text of ['Erect precast concrete wall panels with a mobile crane.', 'Erect tilt-up panels.', 'Set out and install precast units for the facade.']) assert.ok(checks(text).includes('precast'), text);
+  // Inspecting a sewer pump station (in a list that names buildings) is not digging a wet well; installing one is.
+  const sds = { safetyDataSheet: 'The products are used with good ventilation, with the gloves and eye protection their safety data sheets list.' };
+  const inspect = drafted('qld', { task: 'Maintain site accommodation plumbing including monthly sewer pump station inspections (Site accommodation). Interim maintenance of commissioned systems (Commissioned buildings).', kinds: ['cleaning'], facts: sds });
+  assert.ok(!inspect.highRisk.some((item) => /shaft or trench/i.test(item)));
+  const install = drafted('qld', { task: 'Install new sewer pump stations with control panels and covers.' });
+  assert.ok(install.highRisk.some((item) => /shaft or trench/i.test(item)));
+});
+
+test('hot work, isolating plant or services, and confined space work each name their permit', () => {
+  const lines = (draft) => draft.jobSteps.flatMap((step) => step.controls).join('\n');
+  // Brazing refrigerant pipework is hot work.
+  const braze = drafted('qld', { task: 'Install remote refrigeration.', kinds: ['refrigerantPipework', 'refrigerantTest', 'refrigerantCharge'], facts: { refrigerantClass: 'a1', pressureTesting: 'Oxygen-free nitrogen through a regulator with a relief valve, tested to 2,000 kPa, with the area barricaded and signed.' } });
+  assert.ok(braze.jobSteps.find((step) => step.step === 'Braze refrigerant pipework').controls.some((line) => /^No hot work \(welding, brazing.*\) starts until a hot work permit is issued/.test(line)));
+  // Plant isolated for commissioning.
+  const commission = drafted('qld', { task: 'Test and commission mechanical installations.', kinds: ['mechCommissioning', 'isolation'], facts: { isolationProcedure: 'Circuits are isolated, locked with personal locks and danger tagged, and tested de-energised by a licensed electrician before work.', energisedWork: 'none', plantIsolation: 'Each unit is isolated at its local isolator and locked out with personal padlocks, and tested by trying to start it.' } });
+  assert.ok(commission.jobSteps.some((step) => /^Isolate/.test(step.step) && step.controls.some((line) => /an isolation permit is issued/.test(line))));
+  // Water and power isolated to replace a hot water system.
+  assert.match(lines(drafted('qld', { task: 'Replace a hot water system in a house: isolate the water supply and power, remove the old unit and install the new one.' })), /an isolation permit is issued/);
+  // Near a sewer pump well, a confined space.
+  const sds = { safetyDataSheet: 'The products are used with good ventilation, with the gloves and eye protection their safety data sheets list.' };
+  const pumps = drafted('qld', { task: 'Maintain site accommodation plumbing including monthly sewer pump station inspections (Site accommodation). Interim maintenance of commissioned systems (Commissioned buildings).', kinds: ['cleaning'], facts: sds });
+  assert.match(lines(pumps), /No person enters a confined space until a confined space entry permit is issued/);
+  for (const draft of [braze, commission, pumps]) {
+    const result = checked('qld', draft);
+    assert.deepEqual(result.hardFails, [], draft.task);
+    assert.equal(points(result, 'W12'), 5, draft.task);
+    // "Permit system" would make the check ask for a roof access permit too.
+    assert.doesNotMatch(lines(draft), /permit (?:to work )?system/i);
+  }
+  // Painting welds already made and heat welding vinyl are not hot work; tiling needs none of these permits.
+  const roof = drafted('qld', { task: 'Paint the welds on the steel handrails with a brush.', facts: sds });
+  assert.doesNotMatch(lines(roof), /No hot work \(welding/);
+  const vinyl = drafted('qld', { task: 'Install sheet vinyl with heat-welded joins and coving in the wards.', kinds: ['floorLay', 'floorAdhesive', 'floorLevel'], facts: sds });
+  assert.doesNotMatch(lines(vinyl), /No hot work \(welding/);
+  assert.doesNotMatch(lines(drafted('qld', TYPED[1])), /hot work permit is issued|isolation permit is issued|confined space entry permit is issued/);
+});
