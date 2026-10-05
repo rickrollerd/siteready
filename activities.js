@@ -9900,12 +9900,15 @@ const CODE_TITLES = {
   'Tower crane': 'Tower crane Code of Practice 2017 (Qld)',
   'Tilt-up and precast': 'Tilt-up and pre-cast construction Code of Practice 2003 (Qld)',
 };
-const codeSource = (code, section) => `${QLD_CODE_TITLES[code] || CODE_TITLES[code]} ${section}`;
+// SafeWork NSW codes, cited only in NSW drafts (citations.js), beside any Queensland source.
+const NSW_CODE_TITLES = require('./scenarios/nsw-code-titles.json');
+const codeTitle = (code) => QLD_CODE_TITLES[code] || CODE_TITLES[code] || (NSW_CODE_TITLES[code] && `SafeWork NSW Code of practice: ${NSW_CODE_TITLES[code]}`);
+const codeSource = (code, section) => `${codeTitle(code)} ${section}`;
 (function applyCodeControls() {
   const entries = require('./scenarios/code-controls.json');
   const textOf = (control) => (typeof control === 'string' ? control : control && control.text);
   for (const entry of entries) {
-    if (!QLD_CODE_TITLES[entry.code] && !CODE_TITLES[entry.code]) throw new Error(`Unknown code: ${entry.code}`);
+    if (!codeTitle(entry.code)) throw new Error(`Unknown code: ${entry.code}`);
     const source = codeSource(entry.code, entry.section);
     if (entry.op === 'add') {
       for (const activity of ACTIVITIES.filter((item) => item.when === entry.group)) {
@@ -9920,7 +9923,9 @@ const codeSource = (code, section) => `${QLD_CODE_TITLES[code] || CODE_TITLES[co
             const text = textOf(control);
             if (typeof text !== 'string' || !text.includes(entry.find)) return control;
             if (typeof control === 'string') return src(control, source);
-            return control.source ? control : { ...control, source };
+            if (!control.source) return { ...control, source };
+            // An NSW code sits beside the line's other sources; a second Queensland source is not added.
+            return entry.code.startsWith('NSW ') && !control.source.includes(source) ? { ...control, source: `${control.source}; ${source}` } : control;
           });
         }
       }

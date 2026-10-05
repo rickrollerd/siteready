@@ -4484,5 +4484,2585 @@
   "text": "Plant left unattended is parked on a firm, level surface with parts that lower under gravity lowered, the handbrake applied, the motor off and the key removed.",
   "code": "Managing the risks of plant in the workplace",
   "section": "s 3.7, s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "When starting the saw, the operator and others stand away from the path of the blade, and the blade is not touching any object.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "No cutting above shoulder height with hand-held saws. Anything higher is cut from a work platform or scaffold.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.1, s 7.6"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Hand-held saws are not slewed to change the direction of a cut without removing them from the cut, and the operator stands away from the direction of the cut, to avoid kick-back, push-back and pull-in.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Inverted cutting of the underside of a slab or overhang is never done with a hand-held saw or an electric saw. Where it cannot be cut from above, a competent person uses a track-mounted wall saw on guide tracks bolted to the slab.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5.1, s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "When cutting through a wall, the area at the back of the wall where the blade comes out is cordoned off.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Wet cutting is done with waterproof (IP67 or higher) hydraulic or pneumatic tools, or petrol-driven tools, with waterproof connectors where water is present. Electric saws used wet are compliant wet saws protected by an RCD.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5.1, s 7.1"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Petrol-driven saws are not used indoors or in poorly ventilated areas such as basement car parks unless local exhaust ventilation removes the exhaust, because carbon monoxide can cause rapid loss of coordination, unconsciousness and death.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.4, s 6.1, s 7.2"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "The motor is shut off before a saw is passed from one operator to another, in case the throttle is accidentally activated.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Saws are refuelled in a designated area on firm ground in a well-ventilated location, with the engine off and cooled, using approved fuel containers and funnels, and with a fire extinguisher at hand.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5.6"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "An exclusion zone is barricaded and signed around the cutting, with solid barriers or screens where flying debris could reach others. Work stops immediately if unauthorised people enter it or a saw or blade fault is found.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.3, s 5, s 7.4"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Dry dust is cleaned from tools, floors and walls with an M or H class vacuum cleaner, and wet slurry with low pressure water or wet sweeping.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Damaged saws and blades are taken out of service and tagged until repaired, and guards and safety features are never removed or made inoperative.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5, s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Contain slurry and dispose of it as the principal contractor directs.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.3, s 5"
+ },
+ {
+  "op": "cite",
+  "find": "Services may be hidden in slabs and walls: scan, and isolate and confirm before cutting.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "Every opening has the structural engineer's written approval before cutting.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "Saws, leads and RCDs used for the cutting comply with AS/NZS 3012, and leads are kept out of water.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.3, s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Before the last cut, the section is supported by props or slung from lifting points set out by the engineer's method",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.3, s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Use trolleys and mechanical aids to move sections. Cut sections small enough to handle",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5.2"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "The core drill stand is secured with anchor bolts as the manufacturer's manual sets out, and the drill is securely fixed with no movement of the mast. Bolt-down stands are used rather than vacuum stands where practical.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "Where a vacuum stand is used, the surface is level, dry and solid, the vacuum pump has a receiver tank, and the operator monitors the tool so vacuum pressure and seal are maintained.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "Wet drilling with an electric core drill uses a waterproof (IP67 or higher) drill protected by an RCD, with waterproof connectors and leads suspended clear of water and slurry.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.3, s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "Concrete cores are removed as they are cut so they are not a slip or trip hazard, and heavy drills and cores are moved with trolleys or other mechanical aids.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5.2, s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "A bund is placed around the drilling to contain water and slurry, and slurry is removed with a wet and dry vacuum or into a slurry bin.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.3, s 5"
+ },
+ {
+  "op": "cite",
+  "find": "Cover or barricade the hole as soon as it is cut. Covers are strong enough",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.3, s 6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Each core hole has the structural engineer's written approval before drilling.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.2, s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "Keep leads off wet floors and protect them with RCDs. Contain water and slurry.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.3, s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "Dry cutting uses tool-mounted dust extraction rated M or H class. Dry dust is cleaned from tools and surfaces with an M or H class vacuum cleaner.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "No cutting or chasing above shoulder height with hand-held tools. A fit for purpose work platform is used so tools are worked within a safe range.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5.2, s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "Workers keep loose clothing, long hair and beards clear of rotating parts, and guards are never removed or circumvented.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5, s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "Hand-held saws are not slewed in the cut to change direction, and the operator stands away from the direction of the cut, to avoid kick-back.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Grinders, handheld or ride-on, are electric with built-in dust extraction.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Fuel-driven grinders are not used in enclosed or poorly ventilated areas, such as basement car parks, unless local exhaust ventilation removes the exhaust, because of the risk of carbon monoxide poisoning.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 4.4, s 7.2"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Operators take regular breaks to reduce fatigue and exposure to vibration.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Dry dust is cleaned from tools, floors and walls with an M or H class vacuum cleaner.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5"
+ },
+ {
+  "op": "cite",
+  "find": "Indoors, grinding is done in an exclusion zone set by a competent person, with warning signs at each entry",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Vacuum or wet clean dust, never dry sweep.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "masonryCut",
+  "step": "Cut blocks and bricks",
+  "text": "Dry cutting uses tool-mounted dust extraction rated M or H class, and dry dust is cleaned up with an M or H class vacuum cleaner.",
+  "code": "NSW Cutting drilling and grinding concrete",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "The surface is checked for asbestos before blasting. Compressed air and high pressure water are never used on asbestos or asbestos-containing material.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.1"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Low-dust abrasives, such as chilled iron grit or cast steel grit, are used where reasonably practicable. The label and SDS are checked for impurities, and abrasives above 1 Bq/g radiation are not used.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.1, s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Small items are blasted in a blasting cabinet and transportable items in a blasting chamber. Fixed structures are blasted inside a temporary enclosure with dust extraction fitted.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2, s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Temporary enclosure screens are puncture- and tear-resistant. Shadecloth or other porous material is not used where the work generates silica, lead or other toxic dust. Where full enclosure is not possible, screening extends 2 m above the structure and blasting is directed downwards.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "An exclusion zone, sized by risk assessment and extended downwind, keeps out anyone not wearing RPE. Signs visible before entry say blasting is in progress, there is a dust hazard, access is for authorised persons only and RPE must be worn.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Blasting stops in windy conditions, and other work is stopped and people are cleared from the area while blasting takes place.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2, s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Breathing air to blast helmets is of adequate quality, the compressor air intake is well away from engine exhausts, air-fed respirators have a carbon monoxide alarm, and air lines are protected from vehicles and the blasting.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "The pot attendant and anyone else in the work area wear an air purifying respirator during blasting, maintenance, repair and dust clean-up.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Blasters also wear a protective suit closed at the wrists and ankles, canvas or leather gloves and protective footwear. The helmet cape is replaced immediately if damaged and never repaired with tape.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2, s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "The nozzle is pointed only at the work, never at a person, and blasting is never done with a coiled hose.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.3, s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "The dead man control is inspected and tested several times each working day, and the operator checks the blasting plant daily for wear and damage before use.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Blast hoses are anti-static or earthed, within their rated working pressure and kept as straight as possible. Pin holes are never taped, hoses with a damaged cover are replaced, and elevated hoses are supported by safety cables.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "In dry blasting, the nozzle and the object being blasted are earthed to discharge static electricity.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "The compressor or air supply has a safety relief valve, blast pots have a muffler, and the rated working pressure is never exceeded.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "A dedicated pot attendant keeps the blaster in sight to give help if needed.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Spent abrasive and dust are collected by vacuum recovery or wet methods, never by sweeping or compressed air blowdown, and waste is covered so it cannot become airborne.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2, s 3.5, s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Abrasive used on concrete, sandstone or other silica-bearing surfaces is not recycled unless its crystalline silica content is shown to remain below the allowed amount.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.5"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Blasters shower and change after blasting, wash hands and face before eating or drinking, and eat in a clean area separate from the blast site.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Blast helmets have air cooling devices where heat is a risk, cool drinking water is readily available, and rest breaks are taken in a cool, well-ventilated area.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "abrasiveBlast",
+  "step": "Abrasive blast the surfaces",
+  "text": "Time on the nozzle is limited by job rotation or more frequent breaks to reduce hand-arm vibration.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "The blasting media contains no more than 1% free crystalline silica.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.1"
+ },
+ {
+  "op": "cite",
+  "find": "Old paint is tested for lead before blasting. Removing paint with more than 1% lead",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "The blast area is enclosed to contain dust and spent media, and only the blaster is inside it.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2, s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Blasters wear an air-supplied blasting helmet, and hoses have whip checks. The deadman control is never tied down.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 3.2, s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Hearing protection in the signposted area.",
+  "code": "NSW Abrasive blasting",
+  "section": "s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "hydroBlast",
+  "step": "Water blast the surfaces",
+  "text": "Surfaces are checked for asbestos before water blasting. High pressure water is never used on asbestos or asbestos-containing material.",
+  "code": "NSW Asbestos",
+  "section": "s 6.4"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "Outside a spray booth, a spray painting exclusion zone is set by risk assessment, generally at least 3 m in all directions horizontally and 2 m above and below the spraying, and larger in stairwells.",
+  "code": "NSW Spray painting",
+  "section": "s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "The exclusion zone has physical barriers and a sign saying 'SPRAY PAINTING AREA - AUTHORISED PERSONNEL ONLY'. No one else enters during spraying unless wearing the same PPE as the sprayer.",
+  "code": "NSW Spray painting",
+  "section": "s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "Only the spray gun and its cables are in the exclusion zone. Other electrical equipment is outside it, enclosed in a fire-resistant structure, or certified for explosive atmospheres.",
+  "code": "NSW Spray painting",
+  "section": "s 3.6, s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "The spray area is shrouded to stop drift reaching walkways, public areas and air conditioning intakes, and spraying stops when wind is likely to spread drift.",
+  "code": "NSW Spray painting",
+  "section": "s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "Indoors, spraying is done in open construction or with mechanical exhaust or local exhaust ventilation to stop flammable or toxic fumes building up. High hazard paints are not sprayed indoors without exhaust ventilation.",
+  "code": "NSW Spray painting",
+  "section": "s 4.1, appendix C"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "Drums of paint and cleaning solvent not needed are removed from the exclusion zone before spraying, and solvent-soaked rags and waste paint are removed promptly. A suitable fire extinguisher is readily available.",
+  "code": "NSW Spray painting",
+  "section": "s 3.4, s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "A spanner is used to tighten the tip guard or clear a blocked reversible tip. The gun is never cleaned by covering the nozzle with a cloth held in the hand.",
+  "code": "NSW Spray painting",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "The sprayer wears full length overalls with hood, chemically resistant gloves and eye protection.",
+  "code": "NSW Spray painting",
+  "section": "s 3.10"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "Respirators are fit tested for each person, and connections, face piece, headbands and valves are checked before each use. Filters are changed as the manufacturer says.",
+  "code": "NSW Spray painting",
+  "section": "s 3.10"
+ },
+ {
+  "op": "add",
+  "group": "paintSpray",
+  "step": "Spray paint with airless sprayers",
+  "text": "Changing, washing and eating areas are kept separate from the spray zone.",
+  "code": "NSW Spray painting",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Never point the gun at anyone. Tip guard and trigger lock on, and release pressure before cleaning",
+  "code": "NSW Spray painting",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "No ignition sources where flammable vapour may be present. Earthed and intrinsically safe equipment",
+  "code": "NSW Spray painting",
+  "section": "s 3.4, s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "paintSolvent",
+  "step": "Apply solvent-based paint",
+  "text": "Before pouring flammable liquid from one container to another, both are set down on an earthed surface and kept in contact while pouring.",
+  "code": "NSW Spray painting",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Put solvent-soaked rags in a closed metal container or take them off site.",
+  "code": "NSW Spray painting",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Containers of solvent-based paint and thinners are kept away from heaters and other heat sources",
+  "code": "NSW Spray painting",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Where it is uncertain whether vapour is below the exposure standard, for example in enclosed rooms",
+  "code": "NSW Spray painting",
+  "section": "s 3.1"
+ },
+ {
+  "op": "add",
+  "group": "asbestosCheck",
+  "step": "Check for asbestos before starting",
+  "text": "Material that may be asbestos is either assumed to be asbestos or sampled by a competent person and analysed by a NATA-accredited laboratory, or one approved or operated by the regulator. Samples are sealed and double bagged.",
+  "code": "NSW Asbestos",
+  "section": "s 2.3, s 2.4"
+ },
+ {
+  "op": "add",
+  "group": "asbestosCheck",
+  "step": "Check for asbestos before starting",
+  "text": "Where asbestos is present, the work is planned so it is not disturbed, for example by routing wiring over an asbestos wall or running a flue through a non-asbestos wall.",
+  "code": "NSW Asbestos",
+  "section": "s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "asbestosCheck",
+  "step": "Check for asbestos before starting",
+  "text": "Asbestos components are replaced only with non-asbestos products. Asbestos is never reinstalled or reused.",
+  "code": "NSW Asbestos",
+  "section": "s 5.4, appendix G"
+ },
+ {
+  "op": "cite",
+  "find": "Before demolition or refurbishment, a competent person identifies any asbestos in the structure",
+  "code": "NSW Asbestos",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "No high-pressure water spray or compressed air on asbestos, and no power tools or brooms on it unless their use is controlled.",
+  "code": "NSW Asbestos",
+  "section": "s 6.4"
+ },
+ {
+  "op": "cite",
+  "find": "High-pressure water and compressed air are never used on it, and power tools only where their use is controlled",
+  "code": "NSW Asbestos",
+  "section": "s 6.4"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Prepare the asbestos work area",
+  "text": "Floors and other surfaces that could become contaminated are covered with heavy duty 200 µm plastic sheeting secured with cloth or duct tape.",
+  "code": "NSW Asbestos",
+  "section": "s 5.4, appendix G"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Prepare the asbestos work area",
+  "text": "Decontamination facilities for workers, equipment and items worked on are set up before work starts, and anything leaving the work area is decontaminated first.",
+  "code": "NSW Asbestos",
+  "section": "s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Prepare the asbestos work area",
+  "text": "Only a HEPA filtered H class industrial vacuum cleaner is used. Household vacuum cleaners are never used where asbestos is or may be present, even with a HEPA filter.",
+  "code": "NSW Asbestos",
+  "section": "s 7.5"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Prepare the asbestos work area",
+  "text": "Work is not done in windy conditions that could spread asbestos fibres, and as few people as possible are present.",
+  "code": "NSW Asbestos",
+  "section": "appendix G"
+ },
+ {
+  "op": "cite",
+  "find": "Isolate the area with barriers and asbestos warning signs.",
+  "code": "NSW Asbestos",
+  "section": "s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Remove the asbestos",
+  "text": "Asbestos is wetted with a surfactant or wetting agent, such as detergent water. Before water is used, the work is checked for electrical hazards, and where one exists the hazard is dealt with rather than working dry.",
+  "code": "NSW Asbestos",
+  "section": "s 7.6"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Remove the asbestos",
+  "text": "Disposable coveralls are type 5, category 3, with fitted hoods worn over respirator straps and cuffs taped. No open pockets or velcro. Laceless boots, such as gumboots, are worn.",
+  "code": "NSW Asbestos",
+  "section": "s 7.7"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Remove the asbestos",
+  "text": "Respirators stay on until coveralls are vacuumed or removed inside out and bagged, and personal washing, including hands and fingernails, is done.",
+  "code": "NSW Asbestos",
+  "section": "s 7.7, appendix G"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Remove the asbestos",
+  "text": "Clothing worn under coveralls is disposed of or bagged for laundering as asbestos-contaminated clothing, and is never laundered at home.",
+  "code": "NSW Asbestos",
+  "section": "s 7.7, s 7.8"
+ },
+ {
+  "op": "cite",
+  "find": "Keep the material wet and remove it whole, by hand.",
+  "code": "NSW Asbestos",
+  "section": "s 7.5, s 7.6"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Bag, label and dispose of asbestos waste",
+  "text": "Waste goes in 200 µm polyethylene bags labelled 'Danger Asbestos - Do not open or damage bag. Do not inhale dust', each sealed with tape and placed in a second bag. Bag surfaces are wet wiped before leaving the work area.",
+  "code": "NSW Asbestos",
+  "section": "s 5.5, appendix G"
+ },
+ {
+  "op": "add",
+  "group": "asbestos",
+  "step": "Bag, label and dispose of asbestos waste",
+  "text": "Waste awaiting disposal is kept in closed containers, such as lined steel drums with lids or a sealed skip, and never put in the general waste.",
+  "code": "NSW Asbestos",
+  "section": "s 5.5"
+ },
+ {
+  "op": "cite",
+  "find": "Wrap the waste in heavy duty plastic, label it as asbestos waste and take it to a facility licensed to accept it.",
+  "code": "NSW Asbestos",
+  "section": "s 5.5"
+ },
+ {
+  "op": "add",
+  "group": "gutterClean",
+  "step": "Clean the gutters and downpipes",
+  "text": "On an asbestos cement roof, no pressure cleaner or blower is used. Debris is wetted with detergent water from a watering can or garden sprayer, without making a slurry, and removed with a scoop or trowel.",
+  "code": "NSW Asbestos",
+  "section": "s 6.4, appendix G"
+ },
+ {
+  "op": "add",
+  "group": "gutterClean",
+  "step": "Clean the gutters and downpipes",
+  "text": "On an asbestos cement roof, downpipes are disconnected or re-routed so contaminated water cannot enter the waste water system, and runoff is collected and disposed of as asbestos waste.",
+  "code": "NSW Asbestos",
+  "section": "appendix G"
+ },
+ {
+  "op": "add",
+  "group": "gutterClean",
+  "step": "Clean the gutters and downpipes",
+  "text": "Debris from an asbestos cement roof goes straight into labelled heavy duty asbestos waste bags. Workers wear disposable coveralls and at least a P1 or P2 half face respirator.",
+  "code": "NSW Asbestos",
+  "section": "appendix G"
+ },
+ {
+  "op": "add",
+  "group": "switchboardReplace",
+  "step": "Remove the old board and fit the new one",
+  "text": "Before work on an asbestos board, surfaces below are covered with heavy duty plastic sheeting, the area is segregated with signs or barrier tape, and as few people as possible are present.",
+  "code": "NSW Asbestos",
+  "section": "appendix G"
+ },
+ {
+  "op": "add",
+  "group": "switchboardReplace",
+  "step": "Remove the old board and fit the new one",
+  "text": "Dust on an asbestos board is removed with a HEPA filtered H class vacuum where there is an electrical hazard, and with a damp rag only where there is none.",
+  "code": "NSW Asbestos",
+  "section": "appendix G"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Set up roof access",
+  "text": "Stepladders and trestle ladders are not used to get onto the roof. A single or extension ladder is used only where a scaffold stair, fixed ladder or other safer access is not reasonably practicable.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.10"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Set up roof access",
+  "text": "Where an EWP is used to reach the roof, workers leave the basket only by the procedure in AS 2550.10, at a gated opening in the edge protection, with the EWP in a barricaded bay clear of other moving plant.",
+  "code": "NSW Work on roofs",
+  "section": "s 5.1, s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Before temporary edge protection is installed, the building structure is assessed, with the roof design engineer where needed, to confirm it can support the loads the guardrail system imposes.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Edge protection is installed from the ground, from an EWP, or pre-fixed to structural members where reasonably practicable, to minimise work at height.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.3, s 7.2"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "As fascias, gutters and cladding are added or removed, the gaps between rails and between the bottom rail and the roof edge are checked and the edge protection is adjusted.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Where a catch platform is part of scaffold edge protection, it is as close as practicable to the underside of the roof and no lower than 1 m below the roof edge.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Covers over openings and non-trafficable surfaces are securely fixed against dislodgement, designed for a concentrated load of at least 2 kN, and clearly distinguishable from roofing material so they are not removed as waste.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Roof safety mesh is installed by a competent person to AS/NZS 4389, full length gutter to gutter where practicable, and is not walked on unless it is designed for that purpose.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.5, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Roof safety mesh is run out using pull lines or similar techniques so installers minimise work at height.",
+  "code": "NSW Work on roofs",
+  "section": "s 7.2"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Roof trusses, steel beams or other structure are used as anchorage points only once a competent person verifies they can take fall-arrest loads. Temporarily braced or incomplete structural members are never used as anchorages.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Where the anchor is on the roof surface, it is as far behind the worker as practicable, the worker stays close to directly in front of it, and the lanyard is the shortest length needed, to limit swing falls and free fall.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.6.2"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Standard inertia reels (SRLs) are used only anchored above the user with the line close to vertical, unless the manufacturer permits horizontal use. Leading edge SRLs are used for foot-level anchorages.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.6.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "A total restraint system uses a prescribed lanyard length so workers cannot reach an edge, hole or fragile surface, and workers do not swap in their own longer lanyards.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.6.1"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Install roof edge protection",
+  "text": "Each worker inspects their harness, lanyard and connectors for wear and damage before and after use, and after storage or transport.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Lift materials to and from the roof",
+  "text": "Where edge protection is removed to install a hoist, tile elevator or other lifting equipment, alternative fall protection is provided, and the removed parts are replaced as soon as the equipment is installed or no longer needed.",
+  "code": "NSW Work on roofs",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Lift materials to and from the roof",
+  "text": "Tile elevator and builders' hoist drives and belt nip points are guarded, and barricades keep people away from moving parts and from the area where objects could fall.",
+  "code": "NSW Work on roofs",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Lift materials to and from the roof",
+  "text": "Storage and landing areas on the roof are designated after the roof structure is assessed for load capacity, so the roof is not overloaded.",
+  "code": "NSW Work on roofs",
+  "section": "s 7.2"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Lift materials to and from the roof",
+  "text": "Where sheets are slid onto the roof under the toe board or infill panel, the gap is controlled so tools and materials cannot fall through it.",
+  "code": "NSW Work on roofs",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Fix new roofing",
+  "text": "Work across the roof is sequenced to minimise the number of leading edges, with a roof cladding installer only work zone marked 6 m back from each leading edge and roof access limited to workers directly involved.",
+  "code": "NSW Work on roofs",
+  "section": "s 7.2"
+ },
+ {
+  "op": "add",
+  "group": "roof",
+  "step": "Fix new roofing",
+  "text": "Wear footwear with good grip on sloped or uneven roof surfaces, and knee pads when kneeling or crouching.",
+  "code": "NSW Work on roofs",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "roofAccess",
+  "step": "Get onto the roof",
+  "text": "Stepladders and trestle ladders are not used to get onto the roof. A single or extension ladder is used only where a scaffold stair, fixed ladder or other safer access is not reasonably practicable.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.10"
+ },
+ {
+  "op": "add",
+  "group": "roofAccess",
+  "step": "Get onto the roof",
+  "text": "Before work starts on an existing roof, a competent person inspects it for the presence and condition of safety mesh, the roof's structural integrity, fragile sheets and skylights, and asbestos, electrical and radio frequency hazards.",
+  "code": "NSW Work on roofs",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "roofAccess",
+  "step": "Get onto the roof",
+  "text": "Before going onto a roof with radio transmitting antennas, the building manager is consulted and the site's EME guide obtained. Workers stay out of its exclusion zones unless transmitter power reduction or shutdown has been arranged and verified.",
+  "code": "NSW Work on roofs",
+  "section": "s 6.5"
+ },
+ {
+  "op": "add",
+  "group": "roofAccess",
+  "step": "Get onto the roof",
+  "text": "No one works alone on the roof without a check-in system: contact at set times, an emergency response if they fail to report in, and a phone or radio to call for help at any time.",
+  "code": "NSW Work on roofs",
+  "section": "s 6.6"
+ },
+ {
+  "op": "add",
+  "group": "roofAccess",
+  "step": "Set up roof fall protection",
+  "text": "Covers over openings and non-trafficable surfaces are securely fixed against dislodgement, designed for a concentrated load of at least 2 kN, and clearly distinguishable from roofing material so they are not removed as waste.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "roofAccess",
+  "step": "Set up roof fall protection",
+  "text": "Existing roof safety mesh is relied on only after a competent person has inspected it and confirmed the integrity of the mesh and its supporting members.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.5, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "roofAccess",
+  "step": "Set up roof fall protection",
+  "text": "Sacrificial edge protection brackets left from earlier work are assessed by a competent person, with their fixings, before they are reused.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "roofAccess",
+  "step": "Set up roof fall protection",
+  "text": "Where a no-go area is used, it is marked by a barricade that gives a visual and physical warning, set at least 3 m from any fall hazard on a flat trafficable roof, with signs.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.8, s 5.2"
+ },
+ {
+  "op": "add",
+  "group": "roofAccess",
+  "step": "Set up roof fall protection",
+  "text": "Where only a defined zone of a low-pitch roof (under 7 degrees) is accessed, temporary edge protection extends at least 3 m beyond each side of the work zone, and the rest of the roof is a marked no-go area.",
+  "code": "NSW Work on roofs",
+  "section": "s 7.3"
+ },
+ {
+  "op": "add",
+  "group": "roofStrip",
+  "step": "Remove old roofing",
+  "text": "Asbestos cement roofing is never water blasted or cleaned with compressed air.",
+  "code": "NSW Work on roofs",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "roofPlant",
+  "step": "Install plant and equipment on the roof",
+  "text": "Temporary edge protection is provided wherever a fall hazard is within 3 m of the work zone around the plant.",
+  "code": "NSW Work on roofs",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "fitOff",
+  "step": "Rough-in",
+  "text": "Consumer mains and solar panel cables running through the roof space are treated as energised even when the main switch is off.",
+  "code": "NSW Work on roofs",
+  "section": "s 6.4"
+ },
+ {
+  "op": "cite",
+  "find": "Fall protection is installed and checked before anyone goes onto the roof.",
+  "code": "NSW Work on roofs",
+  "section": "s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "Skylights, roof openings and any fragile surface are covered with fixed covers that take a fall, or fenced off, before work starts near them.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.4, s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Where rescue may take more than five minutes, the harness lets the suspended worker raise their legs to near horizontal",
+  "code": "NSW Work on roofs",
+  "section": "s 4.11"
+ },
+ {
+  "op": "cite",
+  "find": "The harness system is set up so free fall is no more than 2 m before it takes effect",
+  "code": "NSW Work on roofs",
+  "section": "s 4.6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Exclusion zone below the lift and below the roof edge, with barriers and signs.",
+  "code": "NSW Work on roofs",
+  "section": "s 4.8, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Heavy equipment and materials are placed only where the roof structure is designed to take them",
+  "code": "NSW Work on roofs",
+  "section": "s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "Secure sheets and offcuts stacked on the roof against wind, and do not stack them near unprotected edges",
+  "code": "NSW Work on roofs",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Old roof sheets on a building built before 2004 (asbestos products were used until the national ban",
+  "code": "NSW Work on roofs",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Cover or barricade openings as soon as sheets are removed.",
+  "code": "NSW Work on roofs",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Before work in a roof space, the electrical installation is de-energised where practicable.",
+  "code": "NSW Work on roofs",
+  "section": "s 6.4"
+ },
+ {
+  "op": "cite",
+  "find": "Work follows the carrier's radio frequency safety plan: transmitters near the work are switched off",
+  "code": "NSW Work on roofs",
+  "section": "s 6.5"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "No part of the gantry is within 4 m of a power line unless the electricity network operator approves a lesser distance. Long components are handled so they cannot enter the approach distance.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "Barriers such as concrete or metal barriers, buffer rails or rated water-filled barriers protect the gantry from vehicle impact, as the design engineer advises, particularly near intersections and on bends.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "At least 2.2 m of clear headroom is kept above the footway to bracing, beams and every other part of the gantry.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "The gantry is not connected to the facade or cladding of the building unless it is designed as a dual-purpose structure.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "Any change to the gantry is recorded by the installer and referred to the designer to update and re-certify the design.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "Materials stored on the deck stay within the load the engineer sets, for a 10 kPa gantry typically no more than 40 per cent of the design live load.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "Where people have access to the deck, it has edge protection at least 900 mm high to AS 4994, a slip-resistant surface, and a perimeter enclosed so objects cannot fall.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 5.5, s 5.6, s 5.7"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "The site boundary under the gantry is fenced to stop unauthorised access, and the deck is waterproofed and drained as the design sets out.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 4.3, s 5.5"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "Lighting wiring is not tied in with permanent wiring or fixed to freestanding fences, and is protected in conduit or armoured cable, with light fittings protected by diffusers.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 5.2"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "The site supervisor checks the gantry daily for damage, overloading, movement or over-stacking. A competent person inspects it after installation and any damaging event, and at least every 6 months, or every 30 days for a scaffold gantry.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 5.8"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "Vehicle access points under the gantry have the height clearance signed, with clear driver sightlines.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "siteEstablish",
+  "step": "Erect the gantry",
+  "text": "Pedestrians are protected when concrete boom trucks, cranes or concrete pump static lines are used along the gantry frontage.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 5.5"
+ },
+ {
+  "op": "add",
+  "group": "siteSheds",
+  "step": "Set up site sheds",
+  "text": "Sheds, containers and toilets on a gantry are fixed as the engineer advises so they cannot move. Where crane loads pass over them, their roofs or a secondary structure are rated the same as the gantry.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 5.4, s 5.9"
+ },
+ {
+  "op": "add",
+  "group": "siteSheds",
+  "step": "Set up site sheds",
+  "text": "Sheds and materials on a gantry deck leave clear emergency egress routes, including for a stretcher from any first aid room on the deck.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Sheds on a gantry go only where the engineer's design allows for their load.",
+  "code": "NSW Overhead protective structures",
+  "section": "s 4.3, s 5.9"
+ },
+ {
+  "op": "cite",
+  "find": "Get the current underground services information before digging or driving footings for fences, hoardings and gantries",
+  "code": "NSW Overhead protective structures",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Before each use, the operator does a pre-operational inspection and function test to the manufacturer's instructions, including emergency lowering, controls, gate, guardrails, tyres, outriggers and logbook. A faulty EWP is not used, and is locked out and tagged.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 4.4, s 6.2, appendix B"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Workers on the ground and on the platform, including spotters and safety observers, are trained to use the emergency lowering controls. The EWP is positioned so they stay accessible from the ground, and the lowering path is kept clear.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 2.6, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Where remote or portable controls are used, their orientation is checked before the EWP is moved so the operator knows which way it will move.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.1, s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Workers enter and leave the platform only through the gate with the platform lowered, and keep the gate latched. No one climbs on the guardrails or uses ladders on the platform to gain height.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.1, s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "The lanyard is as short as possible, has a personal energy absorber, and is attached only to the designated anchor point.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Outriggers are set to the manufacturer's instructions before the platform is raised, with spreader plates, pads or mats under them, footplates are never set on a slope, and the EWP is not moved with the outriggers extended.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.1, s 3.2, s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "The EWP works within the maximum slope on its manufacturer's plate. Where it is set up on a slope, the braked wheels face up the incline.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.1"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "The operator checks the ground for a firm crust over soft ground, water, backfilled trenches and covered cavities, and checks that pads have not sunk where the EWP works in one spot for a long time.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Before travelling, the boom is retracted and the platform lowered where possible, the travel path is clear, a spotter is used on slopes and in congested areas, and no one rides the platform unless the manufacturer allows it.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "If the EWP starts to tilt, work stops and the platform is lowered or retracted. Work does not restart until the cause is found and fixed, with a competent person's advice where needed.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Wind is monitored on site with an anemometer or manufacturer-approved method, and the wind limit is derated for signs, mesh or other attachments that add sail area.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 5.4"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Barricades keep other workers, plant and the public clear of the EWP's operating area and where objects could fall, and only the operator and people directly involved are near it.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.5, s 5.5"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Near traffic, the boom's pivot point and reach are set so it cannot extend into live lanes, under a traffic management plan with barricaded exclusion zones.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.1"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Tools are secured to an anchor point with tool lanyards so they cannot fall from the platform.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.5"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Where the EWP could enter Zone B of a power line, the work is authorised by the electricity supply authority, and a trained safety observer marks Zone B, watches only that EWP and can stop the work.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "If the EWP contacts a power line, stay on the platform until a competent person says it is safe. If you must leave, lower it, jump clear without touching the EWP and ground together, and shuffle away. Keep everyone clear.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "After contact with a power line, the EWP is out of service until a competent person inspects it. An EWP with inflatable tyres is kept in an exclusion zone for at least 24 hours.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "When left unattended, the EWP's power and controls, including remote controls, are isolated and locked off, the keys are removed, and it is parked where other plant will not hit it.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 5.6"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Indoors, an electric EWP is used where practicable, as emissions from engine-driven EWPs can be hazardous.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.6, s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "Where chemicals are used from the platform, incompatible classes are not carried together, mixing is done on the ground, and only the amount needed is taken up in a sealed container.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.7"
+ },
+ {
+  "op": "add",
+  "group": "ewp",
+  "step": "Use an elevating work platform",
+  "text": "A telehandler is used as an EWP only with a work platform approved for that model, with platform and ground controls. Fork-mounted work platforms are not used, and no one is on the platform while it travels.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 5.7"
+ },
+ {
+  "op": "cite",
+  "find": "Sequence trades so they are not working above or below each other.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Check the ground, deck or working platform can take the platform, and keep it back from edges, batters and open excavations.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Outdoors, stop in winds above the manufacturer's limit, and check for overhead power lines",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.4, s 5.4"
+ },
+ {
+  "op": "cite",
+  "find": "The operator is trained for the platform. A high risk work licence is needed only for a boom-type platform",
+  "code": "NSW Elevating work platforms",
+  "section": "s 2.6"
+ },
+ {
+  "op": "cite",
+  "find": "Where a boom-type platform is used, the harness is attached to the platform's anchor point.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Check for crushing points such as soffits, beams, steelwork and services before raising or moving the platform.",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.1"
+ },
+ {
+  "op": "cite",
+  "find": "The EWP is used only as a working platform, not to enter or exit a work area at height",
+  "code": "NSW Elevating work platforms",
+  "section": "s 3.1"
+ },
+ {
+  "op": "cite",
+  "find": "Workers are trained in the safe use of fall arrest equipment and the emergency rescue procedures for the EWP",
+  "code": "NSW Elevating work platforms",
+  "section": "s 2.6"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Erect falsework and shores",
+  "text": "Frames are erected progressively and braced as soon as practicable. Frame towers 2 m or more high have an internal full deck no more than 2 m below the working level, or fall protection on all four sides.",
+  "code": "NSW Formwork",
+  "section": "s 7.4"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Erect falsework and shores",
+  "text": "Where bearers and joists are installed 2 m or more above the level below, a full false deck is provided, with no gap over 225 mm except at frame verticals, and lapped planks are secured against uplift and slipping.",
+  "code": "NSW Formwork",
+  "section": "s 7.5"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Erect falsework and shores",
+  "text": "Bearers are placed from a platform no more than 2 m below them, sit in U-heads (centrally where single), and are nailed or secured where a flat plate is specified. Joists are spread from a platform within 2 m.",
+  "code": "NSW Formwork",
+  "section": "s 7.7, s 7.8"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Erect falsework and shores",
+  "text": "Platforms for erecting formwork are at least 450 mm wide, such as two scaffold planks. No one works from a single plank or bearer, or climbs the framework.",
+  "code": "NSW Formwork",
+  "section": "s 7.5, s 7.6, s 7.8"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Erect falsework and shores",
+  "text": "Props and frames are connected with proprietary pins, never improvised bolts or reinforcing bar, are kept within their working load limit, and are not placed close to excavation edges.",
+  "code": "NSW Formwork",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Erect falsework and shores",
+  "text": "Water that could wash out under the falsework is diverted away, and after adverse weather a competent person inspects the foundations before loading continues.",
+  "code": "NSW Formwork",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Erect falsework and shores",
+  "text": "An existing scaffold is used to support falsework only where the scaffold designer or manufacturer permits it.",
+  "code": "NSW Formwork",
+  "section": "s 2.9, s 7.2"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Install edge protection",
+  "text": "Perimeter protection screens extend at least 1 m above the finished slab, stay in place from the start of erection until soffit stripping is complete, and gaps between the screen and deck are minimised, for example with a flexible flap.",
+  "code": "NSW Formwork",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Install edge protection",
+  "text": "Perimeter screens are assembled and installed by workers trained by the screen supplier, and rigging work on the screens is done by a licensed rigger.",
+  "code": "NSW Formwork",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Install edge protection",
+  "text": "Before screens or containment netting are fixed, the formwork designer confirms the formwork can take the extra dead and wind loads, allowing for netting being heavier and less permeable when wet.",
+  "code": "NSW Formwork",
+  "section": "s 2.9, s 5.7"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Install edge protection",
+  "text": "Where perimeter scaffold is the edge protection, its guardrail is at least 900 mm above the finished slab, with hop-ups where the gap to the slab exceeds 225 mm horizontally or 300 mm vertically.",
+  "code": "NSW Formwork",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Install edge protection",
+  "text": "Harness-based fall arrest or work positioning systems are not used as the fall control at the formwork perimeter.",
+  "code": "NSW Formwork",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Install edge protection",
+  "text": "Guardrails are engineered edge protection systems to AS 4994.1 rather than framing timber, with post fixings able to take the force of a worker falling into the rail.",
+  "code": "NSW Formwork",
+  "section": "s 6.4"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Install edge protection",
+  "text": "Wherever a leading edge is left unattended, edge protection is installed, or the deck is barricaded with keep out signs.",
+  "code": "NSW Formwork",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Lay the formwork deck",
+  "text": "Where there is no false deck within 2 m below, formply is laid only over at least four joists at 450 mm centres beside the worker, extending at least 1.8 m ahead, with sheets laid in front of the worker.",
+  "code": "NSW Formwork",
+  "section": "s 7.9"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Lay the formwork deck",
+  "text": "Deck laying starts from the perimeter scaffold or edge protection, and gaps between tableforms or deck panels left for infill strips are limited to nominally 400 mm.",
+  "code": "NSW Formwork",
+  "section": "s 7.9"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Lay the formwork deck",
+  "text": "A formwork-only exclusion zone behind the leading edge is marked with signs and a barrier, and other trades use the deck only once the formwork contractor has handed it over as complete.",
+  "code": "NSW Formwork",
+  "section": "s 5.6"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Lay the formwork deck",
+  "text": "Cantilevered bearers, joists and ply are secured against pivoting as the design sets out, and no materials are stacked on a cantilever unless it is designed for the load.",
+  "code": "NSW Formwork",
+  "section": "s 7.10"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Lay the formwork deck",
+  "text": "Lower parts of the deck, such as drop panels and deep beams, are built before work starts on the higher areas.",
+  "code": "NSW Formwork",
+  "section": "s 7.11"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Load ply onto the deck while it is being laid",
+  "text": "Formply packs are strapped and lifted flat with a full sheet under the load, joists and bearers are strapped together, and crane loads are slung by a licensed dogger.",
+  "code": "NSW Formwork",
+  "section": "s 5.8"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Load ply onto the deck while it is being laid",
+  "text": "Crane crews land loads on the deck only at a landing zone that has been agreed, documented and communicated beforehand.",
+  "code": "NSW Formwork",
+  "section": "s 5.8"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Form penetrations and voids",
+  "text": "Plywood penetration covers are structurally graded, painted a bright colour, firmly fixed to the deck and designed for the loads. Joists at the edge of a penetration are secured so they cannot spread if someone falls on them.",
+  "code": "NSW Formwork",
+  "section": "s 6.5"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Form penetrations and voids",
+  "text": "Where cast-in mesh is used as back-up protection in slab penetrations, it has an aperture of 50 mm x 50 mm or smaller and can take the imposed loads.",
+  "code": "NSW Formwork",
+  "section": "s 6.5"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Inspect before the pour",
+  "text": "A competent person inspects the formwork and gives clearance to load at key stages, such as before it is loaded with components, equipment or tendons, as well as before the concrete pour.",
+  "code": "NSW Formwork",
+  "section": "s 7.12"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Monitor the formwork during the pour",
+  "text": "Concrete is placed no faster than the calculated pour rate, inboard areas before cantilevers, and pumps, hoists and other equipment are not attached to the formwork unless the design allows it.",
+  "code": "NSW Formwork",
+  "section": "s 7.15"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Monitor the formwork during the pour",
+  "text": "Competent persons stay on site during the pour to make emergency adjustments or repairs, and placement stops while they are made.",
+  "code": "NSW Formwork",
+  "section": "s 7.14"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Strip the formwork",
+  "text": "Before stripping, any penetration that will be exposed is covered, and voids, shafts and stair openings are protected with rails, scaffold or secured and marked covers.",
+  "code": "NSW Formwork",
+  "section": "s 6.5, s 7.17"
+ },
+ {
+  "op": "add",
+  "group": "formwork",
+  "step": "Strip the formwork",
+  "text": "Stripped components are de-nailed before stacking, stacks do not block access ways or work areas, nothing is dropped or thrown from the structure, and task lighting is provided.",
+  "code": "NSW Formwork",
+  "section": "s 7.17"
+ },
+ {
+  "op": "add",
+  "group": "jumpform",
+  "step": "Prepare to climb the jumpform",
+  "text": "Before each climb, Z-bars, ferrule bolts and anything else that could snag on the structure are removed and signed off, and cables and water pipes are arranged so they cannot snag or rupture.",
+  "code": "NSW Formwork",
+  "section": "s 8.3"
+ },
+ {
+  "op": "add",
+  "group": "jumpform",
+  "step": "Climb the jumpform",
+  "text": "A system keeps the form level during the climb, either automated or with operators ready to stop it, and nip and shear points are identified and controlled.",
+  "code": "NSW Formwork",
+  "section": "s 8.3"
+ },
+ {
+  "op": "add",
+  "group": "jumpform",
+  "step": "Climb the jumpform",
+  "text": "A form being removed from a wall is supported so it never relies on suction or on through bolts that are about to be removed.",
+  "code": "NSW Formwork",
+  "section": "s 8.3"
+ },
+ {
+  "op": "add",
+  "group": "jumpform",
+  "step": "Work on the jumpform platforms",
+  "text": "Each platform has a sign stating its maximum load in kilograms. Anyone on a platform while it is lifted or suspended by a crane holds a dogging or rigging licence or is supervised by someone who does.",
+  "code": "NSW Formwork",
+  "section": "s 8.2"
+ },
+ {
+  "op": "add",
+  "group": "jumpform",
+  "step": "Work on the jumpform platforms",
+  "text": "Ladder openings in working decks have guardrails and trapdoors that stay closed except when in use. Where the access stair is designed for less than 2.5 kPa, its maximum load is signed.",
+  "code": "NSW Formwork",
+  "section": "s 8.1"
+ },
+ {
+  "op": "add",
+  "group": "jumpform",
+  "step": "Work on the jumpform platforms",
+  "text": "Fire extinguishers are provided on the form as a competent person advises, and the tested emergency procedure covers getting workers out of every level and cell, including lift voids.",
+  "code": "NSW Formwork",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "jumpform",
+  "step": "Work on the jumpform platforms",
+  "text": "Trailing screens use heavy-duty containment netting to stop falling objects.",
+  "code": "NSW Formwork",
+  "section": "s 8.2"
+ },
+ {
+  "op": "cite",
+  "find": "Erect, use and dismantle the system only to the supplier's instructions. Do not mix components",
+  "code": "NSW Formwork",
+  "section": "s 2.10, s 5.10, s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "Erect falsework to the formwork design, on a base that can take the load.",
+  "code": "NSW Formwork",
+  "section": "s 5.1, s 5.3, s 7.1"
+ },
+ {
+  "op": "cite",
+  "find": "Cover penetrations straight away with fixed covers that can take the load and are marked, or fence them off.",
+  "code": "NSW Formwork",
+  "section": "s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "A competent person checks the formwork and falsework are built to the design, and signs it off, before the pour.",
+  "code": "NSW Formwork",
+  "section": "s 7.12, s 7.15"
+ },
+ {
+  "op": "cite",
+  "find": "No one is under the deck or inside the falsework while it carries wet concrete",
+  "code": "NSW Formwork",
+  "section": "s 7.14"
+ },
+ {
+  "op": "cite",
+  "find": "A competent formwork watcher stays in a safe position outside that zone for the whole pour",
+  "code": "NSW Formwork",
+  "section": "s 7.14"
+ },
+ {
+  "op": "cite",
+  "find": "Strip only when the engineer confirms the concrete strength, in the order in the formwork design.",
+  "code": "NSW Formwork",
+  "section": "s 7.16"
+ },
+ {
+  "op": "cite",
+  "find": "Lower components in a controlled way with stripping tools. Do not drop them or catch them from overhead.",
+  "code": "NSW Formwork",
+  "section": "s 7.17"
+ },
+ {
+  "op": "cite",
+  "find": "Install backprops progressively as each bay is stripped, to the design",
+  "code": "NSW Formwork",
+  "section": "s 7.16"
+ },
+ {
+  "op": "cite",
+  "find": "Land ply packs only on laid and fixed deck over the bearers, within the load the formwork design allows.",
+  "code": "NSW Formwork",
+  "section": "s 5.8"
+ },
+ {
+  "op": "cite",
+  "find": "Only the trained climbing crew is on the jumpform during the climb, under a supervisor.",
+  "code": "NSW Formwork",
+  "section": "s 8.3"
+ },
+ {
+  "op": "cite",
+  "find": "Pour the walls at the rate in the formwork design.",
+  "code": "NSW Formwork",
+  "section": "s 7.15"
+ },
+ {
+  "op": "cite",
+  "find": "Close the gaps between platforms and the wall, and keep the screens and mesh in place.",
+  "code": "NSW Formwork",
+  "section": "s 8.2"
+ },
+ {
+  "op": "add",
+  "group": "sitePlant",
+  "step": "Separate plant and people on site",
+  "text": "Where possible, a plant only zone is set up, with barriers to stop workers on foot entering it and a system to stop plant operations when a worker on foot enters it.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "sitePlant",
+  "step": "Separate plant and people on site",
+  "text": "So far as is reasonably practicable, no worker is in the hazardous zone of moving plant. Where a worker must be, the operator stops operating while the worker is in it, until positive communication confirms the worker is clear.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 5.3"
+ },
+ {
+  "op": "add",
+  "group": "sitePlant",
+  "step": "Separate plant and people on site",
+  "text": "Operators slow to no more than walking speed when negotiating blind spots, and identify the plant first, for example by sounding the horn or making a radio call.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.21"
+ },
+ {
+  "op": "add",
+  "group": "sitePlant",
+  "step": "Separate plant and people on site",
+  "text": "Spotters are trained and competent, do no other task, stand in the operator's view (or use two-way radio), keep clear of the plant's travel path and tip or roll over distance, are easily identifiable, and are authorised to stop work.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 7"
+ },
+ {
+  "op": "add",
+  "group": "sitePlant",
+  "step": "Separate plant and people on site",
+  "text": "Everyone on site with moving plant wears high visibility clothing and protective footwear as a minimum.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "sitePlant",
+  "step": "Separate plant and people on site",
+  "text": "Loading and unloading areas are on solid, level ground, big enough for the work, away from overhead electric lines, and kept clear of workers on foot.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.6"
+ },
+ {
+  "op": "add",
+  "group": "sitePlant",
+  "step": "Separate plant and people on site",
+  "text": "Where several items of plant have the same alarms or lights, combination audio-visual systems or white noise (broadband) alarms are used so the warnings stay effective.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.20"
+ },
+ {
+  "op": "add",
+  "group": "sitePlant",
+  "step": "Separate plant and people on site",
+  "text": "A separate, signposted, self-closing gate is provided for workers on foot, away from the plant entry, unless a risk assessment shows a site with few plant movements does not need one.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.23"
+ },
+ {
+  "op": "add",
+  "group": "sitePlant",
+  "step": "Separate plant and people on site",
+  "text": "Vehicles and plant are parked in dedicated parking areas on level ground, using earth berms, wheel chocks or wheels turned into kerbs to stop roll away.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.19"
+ },
+ {
+  "op": "cite",
+  "find": "Physical barriers separate pedestrians from plant.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Separate entries, or marked walkways with kerbs or barriers, and clear vehicle paths.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 3.3, s 6.23"
+ },
+ {
+  "op": "cite",
+  "find": "Separate entries, or marked walkways with kerbs or barriers, and clear vehicle paths.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "cite",
+  "find": "Plan for blind spots. Plant operators and ground workers use two way acknowledgement before anyone approaches plant.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.21"
+ },
+ {
+  "op": "cite",
+  "find": "An exclusion zone, with signs and barricades, around trucks and plant while they load and unload.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.6"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Before each shift the operator checks the plant, including access steps, visibility, operating and emergency controls, brakes, interlocks, mirrors, cameras and warning devices, and records the results. Safety faults are fixed before use.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Plant is not used, and is removed from service with the key removed, when its mirrors, cameras, beepers or warning lights are damaged, incorrectly adjusted or not working.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.3, appendix B"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "The operator stays at the controls whenever the plant is live and does no other task at the same time. Before the operator leaves the controls, the plant is isolated to prevent inadvertent movement or unauthorised use.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Semi-automatic and 'automatic - detach only' quick hitches are not used. Before work, the operator verifies the primary retention system and the safety locking device are engaged, and on mechanical hitches the safety pin and lynch pin are fitted.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.14"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Attachments such as buckets and rock hammers are changed only by competent persons, to the manufacturer's instructions, in an isolated area, using cradles or supports to stop them falling, with positive communication with the operator before any movement.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.13"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Near trenches, embankments, soft edges and retaining structures, the zone of influence is identified and marked, and operators are guided by barriers, wheel stops, alignment technology or a spotter.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.8"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "On slopes and difficult terrain, the plant is rated by the manufacturer for the gradient, the operator has experience in that terrain, and ground workers are kept away from the plant.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.7"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Loads are suspended only from plant designed to suspend loads, with tagged lifting gear slung by trained workers, and workers are removed from the lift and travel path before the load leaves the ground.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.4"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Plant is unloaded from floats on level, compacted ground away from workers on foot, using ramps of sufficient rated capacity that are pinned or bolted in place, not held by hydraulic pressure. Any spotter stays clear of the travel path and roll envelope.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.12"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Wet or sticky loads, such as wet clay, are allowed for, as they can stick or shift in trays and buckets and cause roll over when tipping or on turns and slopes.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.22"
+ },
+ {
+  "op": "add",
+  "group": "earthworks",
+  "step": "Run earthmoving plant",
+  "text": "Where plant works near water, barriers, wheel stops or guidance systems keep it out, drop offs are marked, and flotation devices, a tool to break the windscreen and trained rescuers are on hand.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.10"
+ },
+ {
+  "op": "cite",
+  "find": "Operator protective devices (such as rollover protection and seatbelts) are fitted and used, and no one rides on plant except the operator.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Operators can show they are competent on the type of plant they use",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 8.2"
+ },
+ {
+  "op": "add",
+  "group": "smallPlant",
+  "step": "Operate small earthmoving plant",
+  "text": "Semi-automatic and 'automatic - detach only' quick hitches are not used. Before work, the operator verifies the primary retention system and the safety locking device are engaged, and on mechanical hitches the safety pin and lynch pin are fitted.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.14"
+ },
+ {
+  "op": "add",
+  "group": "smallPlant",
+  "step": "Operate small earthmoving plant",
+  "text": "Attachments such as buckets and rock hammers are changed only by competent persons, to the manufacturer's instructions, in an isolated area, using cradles or supports to stop them falling, with positive communication with the operator before any movement.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.13"
+ },
+ {
+  "op": "add",
+  "group": "smallPlant",
+  "step": "Operate small earthmoving plant",
+  "text": "Plant is not used, and is removed from service with the key removed, when its mirrors, cameras, beepers or warning lights are damaged, incorrectly adjusted or not working.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.3, appendix B"
+ },
+ {
+  "op": "add",
+  "group": "bulkDig",
+  "step": "Bulk excavate and load trucks",
+  "text": "Semi-automatic and 'automatic - detach only' quick hitches are not used. Before work, the operator verifies the primary retention system and the safety locking device are engaged, and on mechanical hitches the safety pin and lynch pin are fitted.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.14"
+ },
+ {
+  "op": "cite",
+  "find": "Daily pre-start checks, and defective plant is taken out of service.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "rockBreak",
+  "step": "Break rock with a hydraulic hammer",
+  "text": "The hammer is fitted or removed only by competent persons, to the manufacturer's instructions, in an isolated area, using supports to stop it falling, with positive communication with the operator before any movement.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.13"
+ },
+ {
+  "op": "cite",
+  "find": "Ground workers stay out of the plant's path and blind spots, wear high visibility clothing, and use two-way acknowledgement with operators before approaching.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 3.3, s 6.21"
+ },
+ {
+  "op": "add",
+  "group": "forklift",
+  "step": "Operate forklifts",
+  "text": "Before a pick and carry, the travel path is assessed and confirmed, the forklift or telehandler is rated for the front, back and side slopes on it, and it is kept away from other workers.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "Check the slab and the backpropping can take the forklift and its load before it is used on a suspended floor",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.15"
+ },
+ {
+  "op": "add",
+  "group": "plantService",
+  "step": "Service and repair mobile plant on site",
+  "text": "Where practicable, servicing and repair are done off site. On site, the maintenance area is isolated from other moving plant and hazardous operations, and if this cannot be done the plant goes to a maintenance facility.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.18"
+ },
+ {
+  "op": "add",
+  "group": "plantService",
+  "step": "Service and repair mobile plant on site",
+  "text": "Plant operators only do maintenance they are specifically trained and competent to do.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.18"
+ },
+ {
+  "op": "add",
+  "group": "plantService",
+  "step": "Service and repair mobile plant on site",
+  "text": "Repairs use original equipment manufacturer parts, or compatible parts of at least the same specification. Welding of load bearing components is done by a qualified welder to AS/NZS 1554 and recorded in the service book.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "plantService",
+  "step": "Service and repair mobile plant on site",
+  "text": "Workers reach cabs and maintenance points by the plant's steps, ladders and platforms with guard rails and anti-slip surfaces, not by climbing on parts of the plant not designed for people.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.11"
+ },
+ {
+  "op": "cite",
+  "find": "Plant is parked on level ground, the engine stopped, the key removed, and the plant isolated and tagged before work starts.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.18"
+ },
+ {
+  "op": "cite",
+  "find": "Plant with damage that poses a risk to health and safety is withdrawn from service",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.18"
+ },
+ {
+  "op": "add",
+  "group": "refuelPlant",
+  "step": "Refuel plant on site",
+  "text": "Plant that needs a cool down period is identified and not hot fuelled, and is left to cool for the time its type, running temperature and the ambient temperature need.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.17"
+ },
+ {
+  "op": "add",
+  "group": "refuelPlant",
+  "step": "Refuel plant on site",
+  "text": "Nozzle and flow settings are compatible with each item of plant to avoid over pressurisation, and refuelling is scheduled before or after plant operating hours where possible.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.17"
+ },
+ {
+  "op": "cite",
+  "find": "A spill kit and fire extinguisher are at hand, and spills are cleaned up and reported straight away.",
+  "code": "NSW Moving plant on construction sites",
+  "section": "s 6.17"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "The safety observer marks the border of the no go zone near electric lines with markers such as red warning tape, stops unauthorised people entering, observes only one operating crane at a time, and has authority to stop the work.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.5"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Before use, the crane operator and dogger check the radios are dry and working, with a fully charged battery and a spare, and use a constant talk method so everyone knows the progress of the lift.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Hand signals, whistles, or bell and buzzer signals are agreed for use alongside radios or when radios are not available.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.4"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Remote controls are generally not used if the crane has a cabin. Wireless remotes are uniquely coded to avoid signal corruption and interference from other devices.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "People are lifted only in a design registered work box, with harnesses attached to its anchorage points, and only where scaffolding or an elevating work platform is not reasonably practicable. The crane's free fall facility is locked out.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "Fire extinguishers or a fire suppression system are readily accessible to the operator, and only necessary quantities of combustibles are stored on the machine deck.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.11"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Plan the tower crane lifts",
+  "text": "The emergency plan covers rescue from the crane, agreed with the fire and emergency services, and where practicable a second crane driver can make the crane safe if the operator becomes incapacitated.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.11"
+ },
+ {
+  "op": "cite",
+  "find": "A dedicated radio frequency is used for the duration of the crane operations",
+  "code": "NSW Tower cranes",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Only one dogger gives signals at any time. Where more than one dogger is involved in a lift",
+  "code": "NSW Tower cranes",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Work stops immediately if radio communication is lost. Mobile phones are not used to direct tower crane operations.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "An anemometer is fixed on the tower crane where it is not shielded from the wind",
+  "code": "NSW Tower cranes",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "a trained safety observer (spotter) watches and advises the operator. The safety observer does not carry out dogging or other tasks at the same time.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "The crane operator does not do their own dogging (for example on a remote control tower crane)",
+  "code": "NSW Tower cranes",
+  "section": "s 4.2, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "On a self-erecting or remotely operated crane, the operator works from a designated area close to the crane",
+  "code": "NSW Tower cranes",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "If the remote control operator needs to do other tasks, the remote control is turned off and secured",
+  "code": "NSW Tower cranes",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "A barricade about 1800 mm high (for example a mesh fence) is erected around the base of a self-erecting tower crane",
+  "code": "NSW Tower cranes",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Before each work shift the crane operator visually inspects and function tests the crane",
+  "code": "NSW Tower cranes",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Where more than one crane works, the cranes use the anti-collision or zoning system",
+  "code": "NSW Tower cranes",
+  "section": "s 3.5"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Before lifting, the crane operator or dogger checks the hoist rope hangs vertically above the load and the marked load mass is correct and within the crane's rated capacity.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Slings are not crossed or twisted, the lift point is directly above the load's centre of gravity, and pipes, joists, timber or sheeting are strapped together and lifted flat.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Where plasterboard is lifted without a material box, the lifting system is certified by an engineer or an intermediate or advanced rigger, and sets the minimum and maximum number of sheets and the number, position and capacity of slings.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "Lifting gear is checked before and after each use, stored properly, and not left on the crane hook overnight.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "towerCrane",
+  "step": "Rig, lift and land loads with the tower crane",
+  "text": "When left unattended, the crane is left to weathervane to the manufacturer's instructions, with the hook raised clear of people, plant and structures as it moves, and the power and remote controls isolated and locked off.",
+  "code": "NSW Tower cranes",
+  "section": "s 4.8"
+ },
+ {
+  "op": "cite",
+  "find": "Before directing a lift, the dogger checks each sling, shackle and lifting attachment",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Lifting hooks have operable safety latches, shackles are prevented from unscrewing",
+  "code": "NSW Tower cranes",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Round (sausage) slings are used only for round loads",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Lifting gear is inspected by a competent person at least every 12 months, and synthetic slings every 3 months",
+  "code": "NSW Tower cranes",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "after lifting the load a few centimetres the operator tests the hoist brakes",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Except in an emergency, the crane operator does not leave the cabin or control room while a load is suspended",
+  "code": "NSW Tower cranes",
+  "section": "s 4.8"
+ },
+ {
+  "op": "cite",
+  "find": "Material boxes are engineer designed and certified, marked with their tare mass and SWL",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Basket hitches are not used where people may be near a lifted load",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Avoid lifting multiple loads at the same time (high/low loads)",
+  "code": "NSW Tower cranes",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "The crane is not left unattended until all loads are removed from the hook",
+  "code": "NSW Tower cranes",
+  "section": "s 4.8"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "No signs are attached to the crane boom. Signs on the machine deck are certified by an engineer, and solid signs are bolted on, never fixed by drilling, welding, strapping or cable ties.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Delivered crane components are inspected for damage and wear from transport, and tower sections are permanently marked with their model and serial number, matching the registered crane design.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Counterweights are secured as the crane manufacturer specifies. Where a moving counterweight is latched at the top of its rail for climbing, the latch has a secondary securing means, such as a rope or chain to the machine deck.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "During climbing, the crane's centre of gravity is balanced over the climbing equipment to the designer's, manufacturer's or engineer's balancing procedure.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Crane ties are installed to the crane designer's and manufacturer's instructions, and a competent person verifies the structure they are tied to can take the crane's forces.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.8"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "Riggers on the jib use the rigger's run and static lines along the full jib, with double lanyards to stay attached when moving between jib sections.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.9"
+ },
+ {
+  "op": "add",
+  "group": "towerCraneErect",
+  "step": "Erect or dismantle the tower crane",
+  "text": "On continuous vertical tower ladders, a fall-arrest system with a vertical rail or rope and locking cam device is used, so climbers do not hook on and off, with no more than 300 mm of lanyard to the rail or rope.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.9"
+ },
+ {
+  "op": "cite",
+  "find": "The crane is a registered item of plant and is commissioned and inspected by a competent person before it is used.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.3, s 3.7"
+ },
+ {
+  "op": "cite",
+  "find": "No slewing during climbing. The counterweight trolleys, including side plates",
+  "code": "NSW Tower cranes",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "tool lanyards at the wrist are no longer than 300 mm",
+  "code": "NSW Tower cranes",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Edge protection or travel restraint is used where it can be installed.",
+  "code": "NSW Tower cranes",
+  "section": "s 3.9"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "A reliable communication system links the surface and underground work areas whenever workers are underground, and is maintained and tested at regular intervals. An emergency warning system can quickly alert workers underground to evacuate.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 6.1"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Workers and materials are transported separately unless the system is designed for both. Walkways are clearly marked, slip-resistant, lit, free from obstructions, and have handrails or barriers where there is a risk of falling.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 7.2"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Excavation goes ahead under a permit to tunnel, with geological and monitoring data and support installation reviewed daily by competent personnel. Where conditions fall outside the design, pre-planned actions make the excavation safe and stop further excavation.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 10.4"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Scaling works systematically towards the face within a defined exclusion zone, using suitable or remotely operated plant with overhead protection, and a competent person checks scaled areas are safe before other work proceeds.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 10.10"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Underground plant has rollover and falling object protective structures, with FOPS Level 2 unless it is shown the plant will not be exposed to high-energy falling objects.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 12.3"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Operators slow to no more than walking speed and sound the horn or radio before negotiating blind spots, and workers on foot confirm by radio with the operator that it is safe before approaching plant.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 12.6"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Everyone is within range of the atmospheric alarms for their work area. On a Level 2 (evacuation) alarm, self-rescuers are donned where required and the tunnel is evacuated under the emergency plan.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 16.5"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "No petrol or other volatile fuel engines go underground. Diesel engines are Tier 4 Final or EU Stage V (or equivalent), and operators minimise idling and shut engines off during idle periods.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 17.2, s 18.6"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "A diesel engine whose tail pipe emissions exceed 1100 ppm carbon monoxide or 750 ppm oxides of nitrogen is taken out of service for maintenance or repair.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 18.7"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Welding and cutting are done at the surface, or replaced with cold processes, where practicable. A firewatcher attends during hot work and stays for at least 30 minutes after it finishes.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 22.2"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Everyone underground is trained to use self-contained self-rescuers and knows where they are if not carried. Where safe egress cannot be assured before the air becomes irrespirable, everyone has immediate access to an oxygen self-rescuer.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 23.9"
+ },
+ {
+  "op": "add",
+  "group": "tunnelWork",
+  "step": "Work underground in the tunnel",
+  "text": "Shaft collars and openings have edge protection and barriers to stop people or materials falling in, with a signposted, barricaded exclusion zone around shaft tops, and a suitable means of hoisting injured persons from the shaft.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 9.2, s 21.3"
+ },
+ {
+  "op": "cite",
+  "find": "Everyone underground is tagged in and out",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "hot work underground is done only under a permit.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 22.2"
+ },
+ {
+  "op": "add",
+  "group": "tunnelFans",
+  "step": "Lift and fix the tunnel ventilation fans",
+  "text": "Where the platform operator could be trapped or crushed against the tunnel lining, services or ground support, an EWP with secondary crush protection or an anti-entrapment system is used.",
+  "code": "NSW Tunnels and shafts",
+  "section": "s 12.4"
+ },
+ {
+  "op": "add",
+  "group": "tempPower",
+  "step": "Install temporary lighting",
+  "text": "Lighting gives at least 40 lux in general access ways and stairways and 160 lux for typical building work. An area that cannot be lit adequately is locked out and not used.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "add",
+  "group": "tempPower",
+  "step": "Install temporary lighting",
+  "text": "High intensity lights, such as halogen and metal halide fittings, are mounted high enough and angled to prevent glare and contact burns, and kept clear of combustible materials.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "add",
+  "group": "siteSheds",
+  "step": "Set up site sheds",
+  "text": "Toilets are provided at no less than 1 pan per 15 males (and 1 urinal per 20 males) and 1 pan per 10 females, with a means to dispose of sanitary items, and are kept clean and not used for storage.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "add",
+  "group": "siteSheds",
+  "step": "Set up site sheds",
+  "text": "Washbasins have hot and cold running water, soap and towels or dryers, and cool, clean drinking water is provided free of charge.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "cite",
+  "find": "Temporary cables are kept off access routes, materials are stacked away from fences and hoardings, and emergency exits stay clear and lit.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
  }
 ]

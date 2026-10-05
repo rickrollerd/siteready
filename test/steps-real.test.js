@@ -1050,3 +1050,11 @@ test('a scope package keeps its conditions and plant in the task, so they reach 
   assert.equal(packageTask([{ activity: 'Supply and use working platforms', conditions: 'Scissor lifts excluded', plant: 'Working platforms (type not stated)' }]), 'Supply and use working platforms (plant: Working platforms, type not stated).');
   assert.ok(!highRiskMatches(packageTask([{ activity: 'Install data outlets in the offices', conditions: 'Live or operating facility; live existing facility' }]), 'no', 'qld').some((item) => item.check === 'electrical'));
 });
+
+test('a SafeWork NSW code citation prints only in NSW drafts, beside the line\'s other sources', () => {
+  const { localSource } = require('../citations');
+  const source = 'Work Health and Safety Regulation 2011 (Qld) s 78; SafeWork NSW Code of practice: Work on roofs (May 2026) s 3.2';
+  assert.doesNotMatch(localSource(source, 'qld'), /NSW/);
+  assert.match(localSource(source, 'nsw'), /SafeWork NSW Code of practice: Work on roofs \(May 2026\) s 3\.2/);
+  assert.doesNotMatch(localSource(source, 'vic'), /SafeWork NSW/);
+});
