@@ -23,6 +23,7 @@ const { localText } = require('./citations');
 const { scopeText } = require('./scope-text');
 const { tasksFromScope } = require('./scope');
 const aiScope = require('./ai-scope');
+const { reportToDocx } = require('./scope-report');
 const places = require('./places');
 const { recordIndustry } = require('./industry');
 
@@ -209,6 +210,20 @@ app.post('/api/scope/ai', auth.requireAccess, async (req, res, next) => {
 app.get('/api/scope/ai/:id', auth.requireUser, async (req, res, next) => {
   try {
     res.json(await aiScope.getReading(req.company, req.params.id));
+  } catch (error) {
+    next(error);
+  }
+});
+// The scope review report (Word) of a finished reading: the company's own readings only.
+app.get('/api/scope/ai/:id/report.docx', auth.requireUser, async (req, res, next) => {
+  try {
+    const reading = await aiScope.getReading(req.company, req.params.id);
+    if (reading.status !== 'done' || !reading.reading) return res.status(409).json({ kind: 'error', message: 'The AI reading is not finished yet. Try again when it is.' });
+    const buffer = await reportToDocx(reading.reading, { company: req.company, checks: reading.checks });
+    record('scope_report', req.company && req.company.id);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', 'attachment; filename="Scope-review-report.docx"');
+    res.send(buffer);
   } catch (error) {
     next(error);
   }

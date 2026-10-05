@@ -217,6 +217,11 @@
     .scope-package { display: block; border: 1px solid #e1e6ec; border-radius: 6px; padding: 8px 10px; margin-top: 8px; }
     .scope-package-list { display: block; margin-top: 4px; }
     .scope-conflicts { margin-top: 12px; font-size: 14px; }
+    .conflict-dialog { position: fixed; inset: auto 16px 16px auto; margin: 0; width: min(560px, calc(100% - 32px)); max-height: 70vh; overflow: auto; border: 1px solid #c9d1d9; border-radius: 8px; padding: 14px 16px; background: #fff; color: #1c2430; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); z-index: 50; font-size: 14px; }
+    .conflict-dialog h2 { font-size: 17px; margin: 0 0 6px; }
+    .conflict-dialog ol { padding-left: 1.2em; margin: 8px 0; }
+    .conflict-dialog li { margin-bottom: 10px; }
+    .conflict-dialog li p { margin: 2px 0; }
     .scope-others { border: 1px solid #e1e6ec; border-radius: 6px; padding: 6px 10px; margin: 8px 0; font-size: 14px; }
     .scope-others legend { font-weight: 600; padding: 0 4px; }
     button.added { background: #e3f3e8; color: #1f6b3f; border: 2px solid #2e7d4f; }
@@ -553,6 +558,7 @@
   <script src="/app.js"></script>
   <script src="/account.js"></script>
   <script src="/scope-task.js"></script>
+  <script src="/scope-conflicts.js"></script>
   <script src="/scope.js"></script>
 </body>
 </html>
