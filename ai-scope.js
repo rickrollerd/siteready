@@ -14,6 +14,8 @@ const Anthropic = require('@anthropic-ai/sdk');
 const db = require('./db');
 const { BRIEF, BRIEF_VERSION, SCHEMA, PACKAGES, STEPS_BRIEF, STEPS_SCHEMA } = require('./ai-brief');
 const { ACTIVITIES } = require('./activities');
+const { packageKinds } = require('./draft');
+const { packageTask } = require('./public/scope-task');
 
 const MODEL = 'claude-opus-5-5';
 // US dollars per million tokens for Claude Opus 5.5, to show what each reading cost.
@@ -203,11 +205,26 @@ function errorMessage(error) {
   return 'The AI reading failed. Try again, or use the quick read.';
 }
 
+// The same package wording gets the same steps whichever groups the AI chose (task #97):
+// rubbish removal and clean-ups get the waste removal steps, not chemical cleaning, and
+// defects liability visits get the defects visit steps. Applied as each reading is read
+// back, so readings kept from before the change get it too.
+function settlePackages(reading) {
+  if (!reading || !Array.isArray(reading.packages)) return reading;
+  return {
+    ...reading,
+    packages: reading.packages.map((item) => {
+      const rows = (reading.activities || []).filter((row) => row.package === item.package && row.type !== 'Duty');
+      return rows.length ? { ...item, groups: packageKinds(packageTask(rows), item.groups || []) } : item;
+    }),
+  };
+}
+
 function rowOut(row) {
   return {
     id: row.id,
     status: row.status,
-    reading: row.reading ? JSON.parse(row.reading) : null,
+    reading: row.reading ? settlePackages(JSON.parse(row.reading)) : null,
     checks: row.checks ? JSON.parse(row.checks) : null,
     error: row.error || '',
     briefVersion: row.brief_version,
@@ -263,4 +280,4 @@ async function getReading(company, id) {
   return rowOut(row);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, checkReading, validReading, costOf, fingerprint, normalise, mapSteps, stepCatalogue, callModel, MODEL };
+module.exports = { enabled, useClient, startReading, getReading, checkReading, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, stepCatalogue, callModel, MODEL };

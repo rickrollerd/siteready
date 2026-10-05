@@ -32,3 +32,17 @@ test('news feed items are read with their title, link and date', () => {
   const xml = '<rss><channel><item><title><![CDATA[New silica code of practice - Safety News &amp; Co]]></title><link>https://example.com/1</link><pubDate>Fri, 02 Oct 2026 01:00:00 GMT</pubDate></item><item><title>No link</title></item></channel></rss>';
   assert.deepEqual(newsItems(xml), [{ title: 'New silica code of practice - Safety News & Co', link: 'https://example.com/1', date: 'Fri, 02 Oct 2026 01:00:00 GMT' }]);
 });
+
+test('safety alert links: only links matching the source pattern with a real title, made absolute, each once', () => {
+  const { alertLinks } = require('../legislation-watch/check');
+  const source = { url: 'https://www.safework.nsw.gov.au/compliance-and-prosecutions/incident-information-releases/industries/construction', linkPattern: '/compliance-and-prosecutions/incident-information-releases/[^"#?]+/[^"#?]+' };
+  const html = [
+    '<a href="/compliance-and-prosecutions/incident-information-releases/2026/worker-falls-through-skylight">Worker falls through skylight at Penrith</a>',
+    '<a href="/compliance-and-prosecutions/incident-information-releases/2026/worker-falls-through-skylight">Worker falls through skylight at Penrith</a>',
+    '<a href="/compliance-and-prosecutions/incident-information-releases/industries/construction">Construction</a>',
+    '<a href="/about-us/who-we-are">About SafeWork NSW and its people</a>',
+  ].join('');
+  assert.deepEqual(alertLinks(html, source), [{ title: 'Worker falls through skylight at Penrith', link: 'https://www.safework.nsw.gov.au/compliance-and-prosecutions/incident-information-releases/2026/worker-falls-through-skylight' }]);
+  // Every alert source names its licence, so the reviewer knows how the wording may be used.
+  for (const item of require('../legislation-watch/alerts.json')) assert.ok(item.licence && item.linkPattern && item.url, item.id);
+});

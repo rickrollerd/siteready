@@ -17,6 +17,7 @@ const DIR = __dirname;
 const SOURCES = path.join(DIR, 'sources.json');
 const CODES = path.join(DIR, 'codes.json');
 const NEWS = path.join(DIR, 'news.json');
+const ALERTS = path.join(DIR, 'alerts.json');
 const STATE = path.join(DIR, 'state.json');
 const REPORT = path.join(DIR, 'report.md');
 
@@ -78,6 +79,22 @@ function codeLinks(html) {
   }
   for (const [href, { text }] of byHref) items.add(`${text} | ${href}`);
   return [...items].sort();
+}
+
+// Alert links on a regulator's list page, as { title, link }: links matching the source's
+// pattern with a real title, made absolute, each once.
+function alertLinks(html, source) {
+  const pattern = new RegExp(source.linkPattern, 'i');
+  const out = [];
+  for (const match of String(html || '').matchAll(/<a\b[^>]*href="([^"#]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const href = match[1];
+    const title = pageText(match[2]).replace(/\s+/g, ' ').trim();
+    if (!pattern.test(href) || title.length < 12 || href.replace(/\/$/, '') === new URL(source.url).pathname.replace(/\/$/, '')) continue;
+    const link = new URL(href, source.url).toString();
+    if (link.replace(/\/$/, '') === source.url.replace(/\/$/, '') || out.some((item) => item.link === link)) continue;
+    out.push({ title, link });
+  }
+  return out;
 }
 
 // Google News items as { title, link, date }.
@@ -225,6 +242,41 @@ async function main() {
     state[key] = { items, status: 'ok' };
   });
 
+  // Safety alerts and incident releases: each new one is read by a person and, where it names a
+  // control SiteReady lacks, turned into a library line cited to the alert (task #107).
+  const alerts = readJson(ALERTS, []);
+  const alertLines = [];
+  const alertPages = await Promise.all(alerts.map((source) => fetchPage(source.url, { browser: true, timeout: 45000 })));
+  alerts.forEach((source, index) => {
+    const page = alertPages[index];
+    const key = `alerts:${source.id}`;
+    const before = state[key] || {};
+    const label = `${source.jurisdiction}: ${source.title}`;
+    const items = page.ok ? alertLinks(page.html, source) : [];
+    if (!page.ok || !items.length) {
+      const detail = page.ok ? 'The page was read but no alerts were found on it. The page layout may have changed.' : `The page could not be read (${page.error}).`;
+      console.log(`FAIL ${label} | ${detail} | ${source.url}`);
+      if (page.ok && process.argv.includes('--show')) {
+        const anchors = [...page.html.matchAll(/<a\b[^>]*href="([^"#]+)"[^>]*>([\s\S]*?)<\/a>/gi)].map((m) => `${pageText(m[2]).slice(0, 80)} | ${m[1]}`);
+        console.log(`    ${page.html.length} characters, ${anchors.length} links: ${anchors.slice(0, 80).join(' || ')}`);
+      }
+      if (before.status !== 'unreadable') problems.push(`- **${label}**: ${source.knownBlocked || detail}\n  ${source.url}`);
+      state[key] = { ...before, status: 'unreadable' };
+      return;
+    }
+    console.log(`OK   ${label} | ${items.length} alerts | ${source.url}`);
+    if (process.argv.includes('--show')) for (const item of items.slice(0, 15)) console.log(`    ${item.title} | ${item.link}`);
+    if (before.seen) {
+      const seenLinks = new Set(before.seen);
+      const added = items.filter((item) => !seenLinks.has(item.link));
+      if (added.length) alertLines.push(`- **${label}** (${source.licence})\n${added.slice(0, 15).map((item) => `  - ${item.title}\n    ${item.link}`).join('\n')}`);
+    } else {
+      recorded.push(`- ${label}: ${items.length} alerts recorded as already seen.`);
+    }
+    // Only the most recent links are kept so the file stays small.
+    state[key] = { seen: [...new Set([...(before.seen || []), ...items.map((item) => item.link)])].slice(-400), status: 'ok' };
+  });
+
   // News: articles about changes, from Google News. Reported once each, for reading.
   const news = readJson(NEWS, { searches: [] });
   const keep = new RegExp(news.keep || '.', 'i');
@@ -266,6 +318,9 @@ async function main() {
   if (codeChanges.length) {
     sections.push(`## Codes of practice changed\n\nA code was added, re-issued or removed. Check whether SiteReady cites it (\`register.js\`, \`activities.js\`, \`scenarios/qld-codes.json\`), update the titles, years and section numbers, and have the update signed off before it goes live.\n\n${codeChanges.join('\n')}`);
   }
+  if (alertLines.length) {
+    sections.push(`## Safety alerts to review\n\nNew safety alerts and incident releases. For each one: does SiteReady's step for that work already have the control the alert calls for? If not, add it to \`scenarios/code-controls.json\` or \`activities.js\`, cited to the alert, following the licence noted, and have it signed off before it goes live.\n\n${alertLines.join('\n')}`);
+  }
   if (newsLines.length) {
     sections.push(`## News to read\n\nArticles about possible changes. These are not confirmed changes: check the official source before changing anything.\n\n${newsLines.join('\n')}`);
   }
@@ -287,4 +342,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { pageText, versionDate, codeLinks, newsItems };
+module.exports = { pageText, versionDate, codeLinks, newsItems, alertLinks };
