@@ -46,6 +46,7 @@ function draftBody(body) {
     // The job steps picked in the form, by kind of work. Unknown ones are dropped when drafted.
     kinds: Array.isArray(body.kinds) ? body.kinds.filter((id) => typeof id === 'string').slice(0, 80).map((id) => id.slice(0, 40)) : undefined,
     // The job steps in the order the user put them, by name.
+    leaveOut: Array.isArray(body.leaveOut) ? body.leaveOut.filter((name) => typeof name === 'string').slice(0, 50).map((name) => textField(name, 300)) : undefined,
     stepOrder: Array.isArray(body.stepOrder) ? body.stepOrder.filter((name) => typeof name === 'string').slice(0, 150).map((name) => textField(name, 300)) : undefined,
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
@@ -65,6 +66,7 @@ function draftBody(body) {
       loadLimits: field(facts.loadLimits, 2000),
       isolationProcedure: field(facts.isolationProcedure, 2000),
       energisedWork: field(facts.energisedWork, 100),
+      liveElectrical: field(facts.liveElectrical, 100),
       constructionTesting: field(facts.constructionTesting, 2000),
       spaceAssessment: field(facts.spaceAssessment, 100),
       silicaControls: field(facts.silicaControls, 2000),

@@ -103,13 +103,19 @@ For each work package, choose the groups whose job steps cover the activities li
 - An activity that needs no physical work (configuring software, providing a licence) needs no group.
 - If no group fits an activity, leave it out rather than choose a near miss, and list it under unmatched.
 - Use only ids from the library.
+- Under byOthers, list each job step (as written in the library) that sits with this package's work but which the scope gives to another party: for example the rough-in when the data wiring is by the site electrician, core holes cut by others, or cranage by the crane company. Give the group id, the step, the party and clause, and one plain sentence saying what the scope says. Do not also put that group under groups unless the package's own work needs other steps from it.
 
 Return the result in the JSON format given. No other commentary.`;
 
 const STEPS_SCHEMA = object({
   packages: {
     type: 'array',
-    items: object({ package: text, groups: { type: 'array', items: text }, unmatched: { type: 'array', items: text } }),
+    items: object({
+      package: text,
+      groups: { type: 'array', items: text },
+      unmatched: { type: 'array', items: text },
+      byOthers: { type: 'array', items: object({ group: text, step: text, party: text, clause: text, says: text }) },
+    }),
   },
 });
 

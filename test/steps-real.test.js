@@ -16,7 +16,7 @@ const kinds = (task, trade = '') => suggestedKinds(task, {}, { trades: tradeIds(
 // kinds are sent, and every question is answered with the first standard answer.
 function draft(task, trade = '', extra = {}) {
   const input = { state: 'qld', fallRisk: 'no', residential: 'no', task, trade, kinds: kinds(task, trade), ...extra };
-  const facts = {};
+  const facts = { ...(extra.facts || {}) };
   for (let round = 0; round < 8; round += 1) {
     const asked = questionsFor({ ...input, facts });
     let added = false;
@@ -921,4 +921,26 @@ test('chilled water pipework with insulation to ductwork and filter cleaning ins
   // Ductwork and air handling units that are installed keep their steps.
   const both = steps(draft('Chilled water pipework including valves. Install the ductwork and the air handling units.', 'mechanical'));
   assert.ok(both.includes('Install ductwork') && both.includes('Fix the units in place') && both.includes('Install mechanical pipework'));
+});
+
+test('live electrical work near comms equipment is the user\'s answer, and Yes adds the isolation by others step', () => {
+  const task = 'Install admin handsets, intercoms and door stations in the ceilings and comms rooms.';
+  const asked = questionsFor({ state: 'nsw', fallRisk: 'no', residential: 'no', task, trade: '', kinds: kinds(task) });
+  assert.ok((asked.required || []).some((item) => item.id === 'liveElectrical'));
+  const no = draft(task, '', { facts: { liveElectrical: 'no' } });
+  assert.ok(!no.highRisk.some((line) => /energised electrical/i.test(line)));
+  assert.ok(!steps(no).includes('Confirm the isolation by others before work'));
+  for (const answer of ['yes', 'unsure']) {
+    const live = draft(task, '', { facts: { liveElectrical: answer } });
+    assert.ok(live.highRisk.some((line) => /energised electrical/i.test(line)), answer);
+    assert.ok(steps(live).includes('Confirm the isolation by others before work'), answer);
+  }
+});
+
+test('a step for work the scope gives to others can be left out', () => {
+  const task = 'Install and fit off the light fittings and power points in the new offices.';
+  const all = steps(draft(task, 'electrical'));
+  assert.ok(all.includes('Rough-in') || all.includes('Fit off'));
+  const left = steps(draft(task, 'electrical', { leaveOut: ['Rough-in'] }));
+  assert.ok(!left.includes('Rough-in') && left.includes('Before starting'));
 });

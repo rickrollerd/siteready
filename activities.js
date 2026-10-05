@@ -7042,6 +7042,20 @@ const ACTIVITIES = [
     ppe: ['hivis', 'gloveGeneral'],
   },
   {
+    // Work near live parts isolated by another party (owner approved wording, 5 October 2026).
+    when: 'isolationByOthers',
+    steps: [{
+      step: 'Confirm the isolation by others before work',
+      hazards: ['Electric shock or arc flash from parts thought to be isolated.', 'The supply is switched back on while work is under way.'],
+      controls: [
+        'Before work near the circuit, get confirmation from the person in control of the supply (the site electrician or facility manager), such as an isolation permit or record, that it is isolated, locked and tagged.',
+        'Fit your own personal danger lock and tag where the isolation point allows it.',
+        'A competent person tests that the parts are de-energised before anyone touches them (test before you touch).',
+        'If the isolation cannot be confirmed, stop, treat the parts as live and keep out of the approach distance.',
+      ],
+    }],
+  },
+  {
     when: 'ladderUse',
     steps: [LADDER_STEP],
   },

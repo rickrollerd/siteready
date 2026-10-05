@@ -173,3 +173,19 @@ test('a reading cut off by a restart is marked failed after 30 minutes, and the 
   await again.done;
   assert.equal((await aiScope.getReading(company, again.id)).status, 'done');
 });
+
+test('work the scope gives to others is kept only when the step is really in that group', async () => {
+  const steps = { packages: [
+    { package: 'Trade installation: ceilings', groups: ['ductwork'], unmatched: [], byOthers: [
+      { group: 'ductwork', step: 'Fix hangers and supports', party: 'Builder', clause: '4.2 (c)', says: 'The builder fixes the hangers.' },
+      { group: 'ductwork', step: 'Build the access ramp', party: 'Builder', clause: '4.2 (d)', says: 'Not a ductwork step.' },
+      { group: 'madeUpGroup', step: 'Fix hangers and supports', party: 'Builder', clause: '4.2 (e)', says: 'Not a real group.' },
+    ] },
+  ] };
+  aiScope.useClient(withParent(standIn(READING, {}, steps)));
+  const started = await aiScope.startReading(company, `${SCOPE}\nBy others.`);
+  await started.done;
+  const reading = await aiScope.getReading(company, started.id);
+  assert.deepEqual(reading.reading.packages[0].byOthers, [{ group: 'ductwork', step: 'Fix hangers and supports', party: 'Builder', clause: '4.2 (c)', says: 'The builder fixes the hangers.' }]);
+  assert.deepEqual(reading.reading.packages[1].byOthers, []);
+});

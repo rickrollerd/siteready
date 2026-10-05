@@ -11,7 +11,8 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Risers are screened at each level with only the section being worked on opened, scissor lifts with guardrails are used for all work above 2 m, and platform ladders only for work below 2 m.",
-        "silicaControls": "Anchor holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS."
+        "silicaControls": "Anchor holes are drilled with on-tool dust extraction. Fit tested P2 respirators are worn while drilling. The written silica assessment is done before work starts and attached to this SWMS.",
+        "liveElectrical": "yes"
       },
       "expect": {
         "highRisk": [
@@ -26,7 +27,8 @@
         ],
         "missing": [
           "Fall control",
-          "Silica dust controls"
+          "Silica dust controls",
+          "Live electrical work"
         ]
       }
     },
@@ -36,7 +38,8 @@
       "task": "Install the optical fibre backbone cabling in the risers from the main comms room in the basement to each floor, then splice and test the fibre.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Riser openings have fixed edge protection screens at each level, with only the section being worked on opened, and gates closed when not in use."
+        "fallControl": "Riser openings have fixed edge protection screens at each level, with only the section being worked on opened, and gates closed when not in use.",
+        "liveElectrical": "yes"
       },
       "expect": {
         "highRisk": [
@@ -48,7 +51,8 @@
           "Splice and test optical fibre"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Live electrical work"
         ]
       }
     },
@@ -57,7 +61,9 @@
       "title": "Comms rooms, racks and UPS batteries",
       "task": "Install communications racks, cabinets and UPS batteries in the basement comms room and the floor comms rooms, and terminate the data cabling.",
       "fallRisk": "no",
-      "facts": {},
+      "facts": {
+        "liveElectrical": "yes"
+      },
       "expect": {
         "highRisk": [
           "electrical"
@@ -66,7 +72,9 @@
           "Install comms racks and cabinets",
           "Install comms equipment"
         ],
-        "missing": []
+        "missing": [
+          "Live electrical work"
+        ]
       }
     },
     {
@@ -75,7 +83,8 @@
       "task": "Install CCTV cameras, access control card readers and intercoms in the foyer, lift lobbies and the 3 basement car park levels, working from scissor lifts more than 2 m above the floor, and from platform ladders for lower work, while other trades' vehicles use the car park.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m, and platform ladders only for work below 2 m."
+        "fallControl": "Scissor lifts with guardrails are used for all work above 2 m, and platform ladders only for work below 2 m.",
+        "liveElectrical": "yes"
       },
       "expect": {
         "highRisk": [
@@ -89,7 +98,8 @@
           "Work in the car park"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Live electrical work"
         ]
       }
     },
