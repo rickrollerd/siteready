@@ -132,6 +132,13 @@ test('a quote not in the document, or shortened with "...", fails the check agai
   // Curly quote marks and spacing differences still count as the same words.
   const tidy = aiScope.checkReading({ ...READING, activities: [{ ...READING.activities[0], quotes: ['Supply  and install all ductwork, including straight and curved sections.'] }] }, SCOPE);
   assert.equal(tidy.quotesNotFound.length, 0);
+  // Only the closing punctuation differs: still found. One word changed: not found.
+  const ends = aiScope.checkReading({ ...READING, activities: [{ ...READING.activities[0], quotes: ['Supply and install all ductwork, including straight and curved sections;', 'Supply and install all ductwork, including straight and curve sections.'] }] }, SCOPE);
+  assert.equal(ends.quotesNotFound.length, 1);
+  // An ellipsis the document itself has is not a shortened quote.
+  const etc = aiScope.checkReading({ ...READING, activities: [{ ...READING.activities[0], quotes: ['all tie downs, restraints etc…required for delivery'] }] }, `${SCOPE}\nProvide all tie downs, restraints etc…required for delivery;`);
+  assert.equal(etc.quotesShortened.length, 0);
+  assert.equal(etc.quotesNotFound.length, 0);
 });
 
 test('a refusal, a cut-off answer or a malformed answer fails the reading with a plain message', async () => {

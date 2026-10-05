@@ -69,8 +69,14 @@ function checkReading(reading, text) {
     ...reading.byOthers.flatMap((row) => row.quotes.map((quote) => ({ quote, where: `By others: ${row.work}` }))),
     ...reading.conflicts.flatMap((row) => [{ quote: row.quoteA, where: `Conflict: ${row.clauseA}` }, { quote: row.quoteB, where: `Conflict: ${row.clauseB}` }]),
   ].filter((item) => normalise(item.quote));
-  const shortened = allQuotes.filter((item) => /\.\.\.|…/.test(item.quote));
-  const notFound = allQuotes.filter((item) => !/\.\.\.|…/.test(item.quote) && !documentText.includes(normalise(item.quote).toLowerCase()));
+  // A quote counts as found when only its closing punctuation differs (a list item ending ";" not ".").
+  // An ellipsis is a shortened quote unless the document itself has it ("etc…").
+  const found = (quote) => {
+    const words = normalise(quote).toLowerCase();
+    return documentText.includes(words) || documentText.includes(words.replace(/[.;:,]+$/, ''));
+  };
+  const shortened = allQuotes.filter((item) => /\.\.\.|…/.test(item.quote) && !found(item.quote));
+  const notFound = allQuotes.filter((item) => !/\.\.\.|…/.test(item.quote) && !found(item.quote));
   const packages = [...new Set(reading.activities.map((row) => row.package))];
   const otherPackages = packages.filter((name) => !PACKAGES.includes(name) && !/^Trade installation:/i.test(name));
   const noQuote = reading.activities.filter((row) => !row.quotes.some((quote) => normalise(quote)));
