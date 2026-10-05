@@ -255,7 +255,7 @@ test('every question in the pool is fair, for each scenario SWMS', () => {
 test('a sign-on keeps the reading record, and it is printed on the sign-on sheet', async () => {
   const { token, swms, key } = await savedSwms('record@read.example');
   const view = await (await call('GET', `/api/sign/${key}`)).json();
-  await openFor(view.readId, 400);
+  await openFor(view.readId, 600);
   const answers = rightAnswers(await questionsFor(swms.id, view.readId));
   // The page's own times: every section but the last read long enough, plus one it never showed.
   const reported = Object.fromEntries(view.sections.map((item, i) => [item.id, i === view.sections.length - 1 ? 0.5 : item.minSeconds + 1.25]));
@@ -265,7 +265,7 @@ test('a sign-on keeps the reading record, and it is printed on the sign-on sheet
   assert.equal(response.status, 201);
   const row = await db.one('SELECT * FROM signons WHERE swms_id = $1', [swms.id]);
   assert.equal(row.language, 'en');
-  assert.ok(row.read_seconds >= 399 && row.read_seconds <= 410, `the server's time, not the page's (${row.read_seconds})`);
+  assert.ok(row.read_seconds >= 599 && row.read_seconds <= 610, `the server's time, not the page's (${row.read_seconds})`);
   assert.equal(row.sections_total, view.sections.length);
   assert.equal(row.sections_viewed, view.sections.length - 1);
   assert.deepEqual(Object.keys(JSON.parse(row.section_seconds)), view.sections.map((item) => item.id), 'only known sections are kept');
@@ -273,7 +273,7 @@ test('a sign-on keeps the reading record, and it is printed on the sign-on sheet
   assert.equal(row.explained_by, '');
 
   const note = signRead.readingNote(row);
-  assert.match(note, new RegExp(`^Read in English, 6 min \\d+ s, ${view.sections.length - 1} of ${view.sections.length} sections viewed, check questions passed \\(1 attempt\\)$`));
+  assert.match(note, new RegExp(`^Read in English, 10 min \\d+ s, ${view.sections.length - 1} of ${view.sections.length} sections viewed, check questions passed \\(1 attempt\\)$`));
   const detail = await (await call('GET', `/api/swms/${swms.id}`, { token })).json();
   assert.equal(detail.signons[0].reading, note);
 
