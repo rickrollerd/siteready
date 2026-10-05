@@ -2282,7 +2282,7 @@ const PERMITS = [
     work: LINES_WORK,
     at: /\b(power lines?|electric lines?|overhead)\b/i,
     named: /\bpermits? to work\b/i,
-    line: 'Before work starts near an overhead or underground electric line, a permit to work near the lines is issued by the principal contractor, or by the supervisor where the principal contractor does not issue them, recording the exclusion zone distances and the safety observer. No person, plant or load enters the exclusion zone unless the network operator\'s written permission or approval for that work is held, or the network operator has isolated the line.',
+    line: 'Before work starts near an overhead or underground electric line, a permit to work near the lines is issued by the principal contractor, or by the supervisor where the principal contractor does not issue them, recording the exclusion zone distances (at least 3 m from lines up to 132 kV, and more above 132 kV) and the safety observer. No person, plant or load enters the exclusion zone unless the network operator\'s written permission or approval for that work is held, or the network operator has isolated the line.',
     // Exclusion zones, the safety observer, and the line owner's approval to come closer. The
     // model regulation s 166 is not in the Queensland regulation and is not matched for the other states.
     source: `${CITE.LINES('s 2.3, s 3, s 3.4')}; ${CITE.NSWC('NSW Electric lines', 's 3, s 4.4, s 5.2')}`,
