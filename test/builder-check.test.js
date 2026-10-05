@@ -368,8 +368,13 @@ test('W12: work that needs a permit names it', () => {
   assert.match(item(checkSwms(variant({ steps: steps(lines) })), 'W12').message, /network operator's written permission/);
   assert.equal(item(checkSwms(variant({ steps: steps({ ...lines, controls: ['Work starts only under the network operator\'s written permission.'] }) })), 'W12').points, 5);
   const isolate = { step: 'Isolate the switchboard', hazards: ['Electric shock.'], controls: ['The electrician tests for dead.'] };
-  assert.match(item(checkSwms(variant({ steps: steps(isolate) })), 'W12').message, /isolation permit/);
-  assert.equal(item(checkSwms(variant({ steps: steps({ ...isolate, controls: ['An isolation permit is issued and each worker fits a personal lock.'] }) })), 'W12').points, 5);
+  const shop = 'Replace the metal roof sheets on a two storey commercial building, 7 m to the eaves.';
+  assert.match(item(checkSwms(variant({ task: shop, steps: steps(isolate) })), 'W12').message, /isolation permit/);
+  assert.equal(item(checkSwms(variant({ task: shop, steps: steps({ ...isolate, controls: ['An isolation permit is issued and each worker fits a personal lock.'] }) })), 'W12').points, 5);
+  // Domestic work (a house, or a Northern Territory "Yes" to residential work) needs no isolation permit.
+  assert.equal(item(checkSwms(variant({ steps: steps(isolate) })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ task: 'Replace the roof sheets on a carport.', residential: 'Yes', steps: steps(isolate) })), 'W12').points, 5);
+  assert.match(item(checkSwms(variant({ task: 'Replace the roof sheets on a carport.', residential: 'No', steps: steps(isolate) })), 'W12').message, /isolation permit/);
   // Roof access: only where the SWMS says the site runs a permit system.
   const permitSite = { ...GOOD.site, conditions: [...GOOD.site.conditions, 'The site runs a permit system: permits are issued by the principal contractor.'] };
   assert.match(item(checkSwms(variant({ site: permitSite })), 'W12').message, /a roof access permit/);

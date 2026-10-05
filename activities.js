@@ -160,7 +160,9 @@ const BEFORE_EXTRA = [
   { when: 'defectsVisit', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'pebbleFinish', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'hvPoleRemove', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
-  { when: 'hvPoleRemove', text: 'High voltage work (switching, isolating, earthing and disconnecting the line and transformer) is done only by the network operator\'s authorised persons. This SWMS covers our crew\'s part: cranage, rigging, and removing the de-energised poles and transformers.' },
+  { when: 'hvPoleRemove', unless: 'transformerNone', text: 'High voltage work (switching, isolating, earthing and disconnecting the line and transformer) is done only by the network operator\'s authorised persons. This SWMS covers our crew\'s part: cranage, rigging, and removing the de-energised poles and transformers.' },
+  // A pole with no transformer (the user's answer): no transformer lines.
+  { when: 'transformerNone', text: 'High voltage work (switching, isolating, earthing and disconnecting the line) is done only by the network operator\'s authorised persons. This SWMS covers our crew\'s part: cranage, rigging, and removing the de-energised poles.' },
   { when: 'workshopFab', text: 'This work is done in our workshop, away from the construction site. The workshop\'s own induction, emergency plan and first aid apply, and only workers trained on each machine use it.' },
   { when: 'joineryShop', text: 'This work is done in our workshop, away from the construction site. The workshop\'s own induction, emergency plan and first aid apply, and only workers trained on each machine use it.' },
   { when: 'switchboardShop', text: 'This work is done in our workshop, away from the construction site. The workshop\'s own induction, emergency plan and first aid apply, and only workers trained on each machine use it.' },
@@ -2430,7 +2432,7 @@ const ACTIVITIES = [
         'Contaminated soil is kept in its own covered stockpile, sampled and classified before it leaves site, and carted only to a facility licensed to take it, with the waste tracked as the state environment protection authority requires.',
         'Dust is kept down with water sprays. Workers wear the gloves, coveralls and respiratory protection the assessment sets, wash hands and face before eating, drinking or smoking, and leave dirty clothing and boots on site.',
         'Plant and trucks are cleaned before leaving the contaminated area so soil is not tracked onto roads.',
-        src('Manage exposure to airborne contaminants in the excavation: a gas monitor is worn by anyone in it, and mechanical ventilation is used whenever the monitor alarms or the material is known to give off vapour or gas.', `${WHS('s 305')}; ${MODEL('Excavation work', 's 4, s 4.6')}`),
+        src('Where gas or contaminated soil is known or suspected in the excavation, airborne contaminants are managed: a gas monitor is worn by anyone in it, and mechanical ventilation is used whenever the monitor alarms or the material is known to give off vapour or gas.', `${WHS('s 305')}; ${MODEL('Excavation work', 's 4, s 4.6')}`),
         src('If asbestos is found or suspected, stop and keep clear. A competent person identifies it, or it is assumed to be asbestos, and it is removed by a licensed asbestos removalist unless the regulation allows otherwise.', WHS('s 422, s 458')),
         src('Plan haul routes and disposal for spoil.', MODEL('Excavation work', 's 2.2')),
       ],
@@ -7369,7 +7371,17 @@ const ACTIVITIES = [
       hazards: ['The public is struck by falling objects.', 'Hoardings or gantries collapse.'],
       controls: [
         { unless: 'hoardingNamed', ...src('The barricade or hoarding is set by the angle from the highest point of the work to the hoarding line: 15 degrees or less, at least 900 mm high; over 15 to 30 degrees, a hoarding at least 1,800 mm high; over 30 and under 75 degrees, a fully sheeted hoarding at least 1,800 mm high; 75 degrees or more, a fully sheeted hoarding at least 1,800 mm high and a gantry, closure or catch platform with screening.', WHS('s 315F, s 315G')) },
-        src('Gantries are engineer designed (5 kPa, or 10 kPa where work other than light work is done above 10 m) and stop falling objects, water and dust. The overhead platform is secured against lifting or coming apart, with solid sheeting on its outer edge to at least the higher of 900 mm and anything stored on it. The area below is lit to at least 50 lux, the gantry cannot tip over or rotate (for example if a truck backs into it), and it is engineer designed for any shed or materials on it.', WHS('s 315K')),
+        // The imposed load the gantry is designed for follows the work above it (owner decision, 5 October 2026):
+        // 10 kPa for construction or demolition, 5 kPa for minor work. NSW Overhead protective structures
+        // code s 4.3; Queensland s 315K (5 kPa, or 10 kPa where work other than light work is done above).
+        {
+          choice: 'gantryLoad',
+          options: {
+            construction: [src('Gantries are engineer designed for an imposed load of at least 10 kPa, as construction or demolition work is done above them.', `${WHS('s 315K')}; ${NSWC('NSW Overhead protective structures', 's 4.3')}`)],
+            minor: [src('Gantries are engineer designed for an imposed load of at least 5 kPa, as only minor work is done above them, such as cleaning or painting from a light swing stage or building maintenance unit.', `${WHS('s 315K')}; ${NSWC('NSW Overhead protective structures', 's 4.3')}`)],
+          },
+        },
+        src('The gantry stops falling objects, water and dust. Its overhead platform is secured against lifting or coming apart, with solid sheeting on its outer edge to at least the higher of 900 mm and anything stored on it. The area below is lit to at least 50 lux, the gantry cannot tip over or rotate (for example if a truck backs into it), and it is engineer designed for any shed or materials on it.', WHS('s 315K')),
         src('Gantries and covered ways in tube and coupler are erected by licensed intermediate scaffolders.', WHS('schedule 3')),
         src('Loads are lifted over the footpath or road only where the area is closed or a gantry protects people from the load.', WHS('s 315L, s 315M')),
         src('Get the current underground services information before digging or driving footings for fences, hoardings and gantries, and work to it.', WHS('s 304')),
@@ -7739,7 +7751,7 @@ const ACTIVITIES = [
         { fact: 'pressureTesting' },
         src('Live medical gas pipework is pressurised gas piping: work on or near it is high risk construction work.', WHS('s 291')),
         src('Isolate by lock-out: each worker fits their own lock, and a tag alone is not an isolation.', MODEL('Managing the risks of plant in the workplace', 's 4.5')),
-        src('Oxygen leaks are hard to detect. Monitor the atmosphere so the oxygen level stays between 19.5% and 23.5% (the safe oxygen level), ventilate the area, and do not work if it is outside that range.', `${WHS('s 51, s 52, schedule 19')}; ${QCODE('Welding processes', 's 3.6')}`),
+        src('Oxygen leaks are hard to detect. Monitor the atmosphere so the oxygen level stays between 19.5% and 23% (over 23% is oxygen-enriched), ventilate the area, and do not work if it is outside that range.', `${WHS('s 51, s 52')}; ${QCODE('Welding processes', 's 3.6')}; ${NSWC('NSW Welding', 's 3.6')}`),
         'Stop work and leave if the oxygen level is outside that range. No ignition sources while there is any risk of oxygen enrichment.',
         'Pressure tests use oxygen-free nitrogen, never standard grade nitrogen or oxygen, pressurised in stages, with joints accessible and the area cleared during the test.',
         'Exclusion zone around pipework under test. No one works on it while it is under pressure, and pressure is released before any fitting is touched.',
@@ -7761,7 +7773,7 @@ const ACTIVITIES = [
         'Valves are closed when cylinders are empty, valves are never lubricated, and leaks are never repaired by the user. Treat empty cylinders as if they were full.',
         src('Move cylinders with a cylinder trolley, not by rolling or carrying.', MODEL('Hazardous manual tasks', 's 4.5')),
         src('Each cylinder carries a current inspection mark.', WHS('s 224')),
-        src('Monitor the manifold room atmosphere for oxygen enrichment (above 23.5%, the top of the safe oxygen level) while cylinders are connected or changed, and ventilate the room.', `${WHS('s 51, schedule 19')}; ${QCODE('Welding processes', 's 3.6')}`),
+        src('Monitor the manifold room atmosphere for oxygen enrichment (above 23%) while cylinders are connected or changed, and ventilate the room.', `${WHS('s 51')}; ${QCODE('Welding processes', 's 3.6')}; ${NSWC('NSW Welding', 's 3.6')}`),
       ],
     }],
   },
@@ -8158,7 +8170,7 @@ const ACTIVITIES = [
           src('No one enters without a written entry permit from a competent person, naming the space, the people entering, the time and the controls.', WHS('s 65, s 67')),
           src('Signs at each entry say it is a confined space and not to enter without a permit.', WHS('s 68')),
           src('Isolate connected pipes and plant: blank or cap lines, or close, lock and tag two valves with the drain between them locked open, and release stored energy. Pump power is locked out and tagged, and each person keeps the key to their own lock.', `${WHS('s 70')}; ${MODEL('Confined spaces', 's 4.4')}`),
-          src('Ventilate or purge, never with oxygen or any gas mixture with more than 21% oxygen. Test from outside for oxygen (19.5% to 23.5%), flammable gas (below 5% of the lower explosive limit) and toxic gases such as hydrogen sulphide and carbon monoxide.', `${WHS('s 71, s 72, schedule 19')}; ${QCODE('Confined spaces', 's 3.2, s 3.4, s 4.5')}`),
+          src('Ventilate or purge, never with oxygen or any gas mixture with more than 21% oxygen. Test from outside for oxygen (19.5% to 23%), flammable gas (below 5% of the lower explosive limit) and toxic gases such as hydrogen sulphide and carbon monoxide.', `${WHS('s 71, s 72')}; ${QCODE('Confined spaces', 's 3.2, s 3.4, s 4.5')}`),
         ],
       },
       {
@@ -9916,7 +9928,8 @@ ACTIVITIES.push(
     ppe: ['gloveCut', 'earMuffs', 'glassesClear'],
   },
   {
-    // Powder coating aluminium or steel items in a booth, then curing them in an oven.
+    // Powder coating aluminium or steel items in a booth. Curing ovens are never used on a project
+    // (owner decision, 5 October 2026), so there is no oven step.
     when: 'powderCoat',
     steps: [
       {
@@ -9943,16 +9956,6 @@ ACTIVITIES.push(
           src('Workers in the spray area wear anti-static footwear and cotton clothing, not silk or synthetic fibres, and no metal articles such as watches.', NSWC('NSW Spray painting', 's 4.2')),
           'A P2 respirator is worn when spraying by hand, filling hoppers, reclaiming powder and cleaning the booth.',
           src('Guns are cleaned only with the high voltage switched off.', NSWC('NSW Spray painting', 's 3.4, s 4.2')),
-        ],
-      },
-      {
-        step: 'Cure the coated items in the oven',
-        hazards: ['Burns from the oven, racks and hot items.', 'Fumes from curing powder.', 'A person shut inside a walk-in oven.'],
-        controls: [
-          src('Hot oven surfaces near where people work are guarded or insulated.', WHS('s 209')),
-          'Hot racks and items are moved with heat resistant gloves or tools, and are left to cool in a marked area before they are handled.',
-          'The oven runs only with its exhaust working, at the temperature the powder maker sets.',
-          'A walk-in oven is checked clear of people before the door is shut and it is started, and can be opened from inside.',
         ],
       },
       {
@@ -10038,23 +10041,49 @@ ACTIVITIES.push(
     steps: [
       {
         step: 'Confirm the network operator has isolated and earthed the line',
-        hazards: ['Electrocution or flashover from high voltage conductors that are still live.', 'The line is re-energised, or back-fed through the transformer, during the work.', 'Contact with other overhead lines that stay live.'],
+        hazards: [
+          'Electrocution or flashover from high voltage conductors that are still live.',
+          { unless: 'transformerNone', text: 'The line is re-energised, or back-fed through the transformer, during the work.' },
+          { only: 'transformerNone', text: 'The line is re-energised during the work.' },
+          'Contact with other overhead lines that stay live.',
+        ],
         controls: [
-          'High voltage switching, isolation, earthing and disconnecting the conductors and transformer are done only by the network operator\'s authorised persons. Our workers do none of this work.',
-          src('The line and transformer are treated as live until they are proven de-energised, isolated so they cannot be re-energised, and effectively earthed.', LINES('s 2.1')),
+          { unless: 'transformerNone', text: 'High voltage switching, isolation, earthing and disconnecting the conductors and transformer are done only by the network operator\'s authorised persons. Our workers do none of this work.' },
+          { only: 'transformerNone', text: 'High voltage switching, isolation, earthing and disconnecting the conductors are done only by the network operator\'s authorised persons. Our workers do none of this work.' },
+          { unless: 'transformerNone', ...src('The line and transformer are treated as live until they are proven de-energised, isolated so they cannot be re-energised, and effectively earthed.', LINES('s 2.1')) },
+          { only: 'transformerNone', ...src('The line is treated as live until it is proven de-energised, isolated so it cannot be re-energised, and effectively earthed.', LINES('s 2.1')) },
           src('Isolating, earthing or re-routing the line is arranged with the network operator well before the work.', LINES('s 2.3')),
           src('Written confirmation from the network operator that the line is de-energised, and its access permit, are held before work starts, and every worker signs on to the permit.', LINES('s 2.1')),
-          'The low voltage side of the transformer, including any construction supply or generator that could back-feed it, is isolated and locked off by a licensed electrician before work starts.',
+          { unless: 'transformerNone', text: 'The low voltage side of the transformer, including any construction supply or generator that could back-feed it, is isolated and locked off by a licensed electrician before work starts.' },
           src('Other overhead lines that stay live are identified, and people, plant and loads keep outside the exclusion zones for untrained persons unless they are authorised for closer work.', LINES('s 3.2, s 3.4')),
         ],
       },
       {
+        // Asked of the user: whether the pole has a transformer, and whether its oil may hold PCBs.
+        // Oil whose PCB status is not known is treated as containing PCBs until it is tested.
         step: 'Lift down the transformer',
-        hazards: ['The transformer falls or swings while it is lifted.', 'The crane or EWP comes close to lines that stay live.', 'Transformer oil leaks or spills.'],
+        unless: 'transformerNone',
+        hazards: [
+          'The transformer falls or swings while it is lifted.',
+          'The crane or EWP comes close to lines that stay live.',
+          { only: 'transformerPcbFree', text: 'Transformer oil leaks or spills.' },
+          { only: 'transformerPcb', text: 'Skin contact with transformer oil containing PCBs, or a spill of it.' },
+        ],
         controls: [
           'The transformer is lifted only after the network operator has disconnected it and issued the permit, under a lift plan, slung by a licensed dogger from its lifting lugs, with no one under the load.',
           src('A safety observer watches the crane or EWP where any part of it or the load could come within the exclusion zone of a line that stays live.', LINES('s 4.3.1, s 4.3.2')),
-          'The transformer is kept upright, set down on a pallet or bunded tray and strapped down, and a spill kit is at hand for leaking oil.',
+          { only: 'transformerPcbFree', text: 'The transformer is kept upright, set down on a pallet or bunded tray and strapped down, and a spill kit is at hand for leaking oil.' },
+          { only: 'transformerDry', text: 'The transformer is kept upright, set down on a pallet and strapped down.' },
+          { only: 'transformerPcbUnknown', text: 'The transformer oil is treated as containing PCBs until it is tested.' },
+          { only: 'transformerPcbConfirmed', text: 'The transformer oil contains PCBs, and the transformer is handled as PCB material until it is disposed of.' },
+          { only: 'transformerPcb', text: 'The transformer is kept upright, set down in a bunded tray and strapped down, and a spill kit suitable for PCB oil is at hand.' },
+          // Demolition work code s 4.2 (Qld and NSW): gloves resistant to PCBs, spills kept off workers and
+          // cleaned up, and PCB items bagged in polyethylene inside a marked, sealable metal container.
+          { only: 'transformerPcb', ...src('No skin contact with the oil: anyone handling the transformer wears chemical resistant gloves rated for PCBs, such as nitrile or neoprene.', `${QCODE('Demolition', 's 4.2')}; ${NSWC('NSW Demolition', 's 4.2')}`) },
+          { only: 'transformerPcb', text: 'Anyone handling the transformer wears eye protection.' },
+          { only: 'transformerPcb', ...src('Any leak is contained and cleaned up so it does not reach workers. Oily rags, absorbent and other contaminated items are placed in a polyethylene bag inside a marked, sealable metal container.', `${QCODE('Demolition', 's 4.2')}; ${NSWC('NSW Demolition', 's 4.2')}`) },
+          { only: 'transformerPcb', text: 'The PCB waste is removed by a licensed waste contractor as scheduled waste.' },
+          { only: 'transformerPcb', text: 'The network operator is told before the lift that the transformer may contain PCBs, and is told at once of any leak.' },
         ],
       },
       {
@@ -10705,4 +10734,7 @@ const codeSource = (code, section) => `${codeTitle(code)} ${section}`;
   }
 }());
 
-module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM, ACTIVITIES };
+// The citation helpers, for lines other modules add with their sources (draft.js permits).
+const CITE = { WHS, MODEL, QCODE, NSWC, LINES };
+
+module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM, ACTIVITIES, CITE };

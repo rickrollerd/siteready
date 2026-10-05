@@ -5411,7 +5411,7 @@
  },
  {
   "op": "cite",
-  "find": "Manage exposure to airborne contaminants in the excavation: a gas monitor is worn by anyone in it, and mechanical ventilation is used whenever the monitor alarms or the material is known to give off vapour or gas.",
+  "find": "Where gas or contaminated soil is known or suspected in the excavation, airborne contaminants are managed: a gas monitor is worn by anyone in it, and mechanical ventilation is used whenever the monitor alarms or the material is known to give off vapour or gas.",
   "code": "NSW Excavation",
   "section": "s 4, s 4.6"
  },
@@ -6089,7 +6089,7 @@
  },
  {
   "op": "cite",
-  "find": "Ventilate or purge, never with oxygen or any gas mixture with more than 21% oxygen. Test from outside for oxygen (19.5% to 23.5%), flammable gas",
+  "find": "Ventilate or purge, never with oxygen or any gas mixture with more than 21% oxygen. Test from outside for oxygen (19.5% to 23%), flammable gas",
   "code": "NSW Confined spaces",
   "section": "s 3.2, s 3.4, s 4.5"
  },

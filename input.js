@@ -107,6 +107,9 @@ function draftBody(body) {
       spoilPlan: field(facts.spoilPlan, 2000),
       lifeJacketDetails: field(facts.lifeJacketDetails, 2000),
       scaffoldType: field(facts.scaffoldType, 40),
+      gantryLoad: field(facts.gantryLoad, 100),
+      poleTransformer: field(facts.poleTransformer, 20),
+      transformerOil: field(facts.transformerOil, 100),
       groundBearing: field(facts.groundBearing, 2000),
     },
     site: {

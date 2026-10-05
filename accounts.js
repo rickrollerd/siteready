@@ -10,7 +10,7 @@ const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
 const { prepareDraft } = require('./draft');
-const { draftToDocx, draftedNote } = require('./docx-draft');
+const { draftToDocx, draftedNote, revisionText } = require('./docx-draft');
 const { draftToPdf } = require('./pdf-draft');
 const { readLogo } = require('./logo');
 const { record } = require('./events');
@@ -435,6 +435,8 @@ router.get('/sign/:token', route(async (req, res) => {
   const readId = await signRead.startRead(row, draft);
   res.json({
     title: row.title, company: company.name, task: draft.task, workplace: draft.workplace,
+    // The revision the worker reads and signs, as the Word and PDF files print it.
+    revision: revisionText({ revision: String(row.revision || 1), revisionDate: longDate(row.revised_at || row.created_at) }),
     highRisk: draft.highRisk || [], jobSteps: draft.jobSteps || [], ppe: signRead.tickedPpe(draft),
     readId, sections: signRead.readSections(draft), questions: signRead.publicQuestions(signRead.checkQuestions(row.id, readId, draft)),
     languages: aiScope.enabled() ? signRead.LANGUAGES.map(({ code, label, rtl }) => ({ code, label, rtl: Boolean(rtl) })) : [],

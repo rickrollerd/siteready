@@ -159,8 +159,10 @@ test('hot work, isolating plant or services, and confined space work each name t
   // Plant isolated for commissioning.
   const commission = drafted('qld', { task: 'Test and commission mechanical installations.', kinds: ['mechCommissioning', 'isolation'], facts: { isolationProcedure: 'Circuits are isolated, locked with personal locks and danger tagged, and tested de-energised by a licensed electrician before work.', energisedWork: 'none', plantIsolation: 'Each unit is isolated at its local isolator and locked out with personal padlocks, and tested by trying to start it.' } });
   assert.ok(commission.jobSteps.some((step) => /^Isolate/.test(step.step) && step.controls.some((line) => /an isolation permit is issued/.test(line))));
-  // Water and power isolated to replace a hot water system.
-  assert.match(lines(drafted('qld', { task: 'Replace a hot water system in a house: isolate the water supply and power, remove the old unit and install the new one.' })), /an isolation permit is issued/);
+  // Water and power isolated to replace a hot water system: commercial work needs the isolation permit,
+  // domestic work does not (owner decision, 5 October 2026).
+  assert.match(lines(drafted('qld', { task: 'Replace a hot water system in a commercial kitchen: isolate the water supply and power, remove the old unit and install the new one.' })), /an isolation permit is issued/);
+  assert.doesNotMatch(lines(drafted('qld', { task: 'Replace a hot water system in a house: isolate the water supply and power, remove the old unit and install the new one.' })), /isolation permit/);
   // Near a sewer pump well, a confined space.
   const sds = { safetyDataSheet: 'The products are used with good ventilation, with the gloves and eye protection their safety data sheets list.' };
   const pumps = drafted('qld', { task: 'Maintain site accommodation plumbing including monthly sewer pump station inspections (Site accommodation). Interim maintenance of commissioned systems (Commissioned buildings).', kinds: ['cleaning'], facts: sds });
@@ -219,4 +221,54 @@ test('ACT: silica processing needs the material and the power tool in the same s
   const draft = drafted('act', { task: 'Install business centre joinery including substrate for stone and 40mm dowel (Building 2B, business centre).', kinds: ['carpJoinery', 'carpentryWork'] });
   assert.ok(!draft.highRisk.some((item) => /silica/i.test(item)));
   assert.deepEqual(checked('act', draft).hardFails, []);
+});
+
+test('permit lines carry their code sources for the state; a permit or gas line the user removed stays out', () => {
+  const lines = (draft) => draft.jobSteps.flatMap((step) => step.controls);
+  const dig = (state) => lines(drafted(state, scenario(1))).find((line) => /^No digging starts until an excavation permit/.test(line));
+  assert.match(dig('qld'), /\(Excavation work Code of Practice 2021 \(Qld\) s 3\.6\)$/);
+  assert.match(dig('nsw'), /\(SafeWork NSW Code of practice: Excavation work \(January 2020\) s 3\.6\)$/);
+  // A model code is not cited in a state whose code has not been checked.
+  assert.match(dig('wa'), /marked on the ground\.$/);
+  const near = (state) => lines(drafted(state, scenario(6))).find((line) => /a permit to work near the lines is issued/.test(line));
+  assert.match(near('qld'), /Working near overhead and underground electric lines \(Qld\) s 2\.3, s 3, s 3\.4\)$/);
+  assert.match(near('nsw'), /Work near overhead and underground electric lines \(May 2026\) s 3, s 4\.4, s 5\.2\)$/);
+  const braze = { task: 'Install remote refrigeration.', kinds: ['refrigerantPipework', 'refrigerantTest', 'refrigerantCharge'], facts: { refrigerantClass: 'a1', pressureTesting: 'Oxygen-free nitrogen through a regulator with a relief valve, tested to 2,000 kPa, with the area barricaded and signed.' } };
+  const hot = (state) => lines(drafted(state, braze)).find((line) => /^No hot work \(welding/.test(line));
+  assert.match(hot('qld'), /\(Welding processes Code of Practice 2021 \(Qld\) s 3\.4\)$/);
+  assert.match(hot('nsw'), /\(SafeWork NSW Code of practice: Welding processes \(December 2022\) s 3\.4\)$/);
+  const commission = { task: 'Test and commission mechanical installations.', kinds: ['mechCommissioning', 'isolation'], facts: { isolationProcedure: 'Circuits are isolated, locked with personal locks and danger tagged, and tested de-energised by a licensed electrician before work.', energisedWork: 'none', plantIsolation: 'Each unit is isolated at its local isolator and locked out with personal padlocks, and tested by trying to start it.' } };
+  const iso = (state) => lines(drafted(state, commission)).find((line) => /an isolation permit is issued/.test(line));
+  assert.match(iso('qld'), /Managing risks of plant in the workplace Code of Practice 2021 \(Qld\) s 4\.5; Electrical Safety Code of Practice 2021: Managing electrical risks in the workplace \(Qld\) s 4\.1, s 5\.1\)$/);
+  assert.match(iso('nsw'), /Managing the risks of plant in the workplace \(December 2022\) s 4\.5; SafeWork NSW Code of practice: Managing electrical risks in the workplace \(August 2019\) s 4\.1, s 5\.1\)$/);
+  const sds = { safetyDataSheet: 'The products are used with good ventilation, with the gloves and eye protection their safety data sheets list.' };
+  const pumps = { task: 'Maintain site accommodation plumbing including monthly sewer pump station inspections (Site accommodation). Interim maintenance of commissioned systems (Commissioned buildings).', kinds: ['cleaning'], facts: sds };
+  const entry = (state) => lines(drafted(state, pumps)).find((line) => /confined space entry permit is issued/.test(line));
+  assert.match(entry('qld'), /\(Work Health and Safety Regulation 2011 \(Qld\) s 67, s 69; Confined spaces Code of Practice 2021 \(Qld\) s 4\.3, s 4\.5, s 4\.6\)$/);
+  assert.match(entry('nsw'), /\(Work Health and Safety Regulation 2025 \(NSW\) s 67, s 69; SafeWork NSW Code of practice: Confined spaces \(December 2022\) s 4\.3, s 4\.5, s 4\.6\)$/);
+
+  // The user removes the excavation permit: it stays out, and the change is reported.
+  const locate = drafted('qld', scenario(1)).jobSteps.find((step) => step.step === 'Locate underground services');
+  const permit = locate.controls.find((line) => /excavation permit/.test(line));
+  const removed = drafted('qld', { ...scenario(1), controlEdits: { 'Locate underground services': { removed: [permit] } } });
+  assert.ok(!lines(removed).some((line) => /excavation permit/.test(line)));
+  assert.ok(removed.controlEdits.applied.some((item) => item.kind === 'removed' && item.from === permit));
+  // The gas piping line, added after the user's changes, stays out once removed.
+  const gasTask = { task: 'Install hot water plant. Install hot water circulation pumps. Provide water and gas supplies to mechanical plant terminated with valved branch (Mechanical plant).', kinds: ['waterHeater', 'pumpInstall', 'hydraulicRisers'], facts: sds };
+  const gasStep = drafted('qld', gasTask).jobSteps.find((step) => step.controls.some((line) => /^Gas pipework is installed/.test(line)));
+  const gasLine = gasStep.controls.find((line) => /^Gas pipework is installed/.test(line));
+  const noGas = drafted('qld', { ...gasTask, controlEdits: { [gasStep.step]: { removed: [gasLine] } } });
+  assert.ok(!lines(noGas).some((line) => /^Gas pipework is installed/.test(line)));
+  // A confined space entry permit is a legal requirement (s 67): it stays in.
+  const entryLine = entry('qld');
+  const kept = drafted('qld', { ...pumps, controlEdits: Object.fromEntries(drafted('qld', pumps).jobSteps.map((step) => [step.step, { removed: [entryLine] }])) });
+  assert.ok(lines(kept).includes(entryLine));
+});
+
+test('the excavation gas monitor line applies where gas or contaminated soil is known or suspected, keeps its sources, and is not vague', () => {
+  const found = ACTIVITIES.flatMap((group) => group.steps).flatMap((step) => step.controls).find((item) => item && /a gas monitor is worn by anyone in it/.test(item.text || ''));
+  assert.match(found.text, /^Where gas or contaminated soil is known or suspected in the excavation, airborne contaminants are managed: a gas monitor is worn by anyone in it/);
+  assert.equal(isVague(found.text), false);
+  assert.match(localControl(found.text, found.source, 'qld'), /\(Work Health and Safety Regulation 2011 \(Qld\) s 305; Excavation work Code of Practice 2021 \(Qld\) s 4, s 4\.6\)$/);
+  assert.match(localControl(found.text, found.source, 'nsw'), /SafeWork NSW Code of practice: Excavation work \(January 2020\) s 4, s 4\.6\)$/);
 });

@@ -113,10 +113,19 @@ test('Queensland pest, termite and herbicide licences stay in Queensland', () =>
   }
 });
 
-test('oxygen enrichment is above 23.5%, the top of the safe oxygen level', () => {
-  const text = localControl('Monitor the manifold room atmosphere for oxygen enrichment (above 23.5%, the top of the safe oxygen level) while cylinders are connected or changed, and ventilate the room.', `${QLD}s 51, schedule 19`, 'qld');
-  assert.match(text, /above 23\.5%/);
-  assert.ok(lines(draft('qld', 'Install medical gas manifolds and connect oxygen cylinders in the plant room of an operating hospital.')).some((item) => /above 23\.5%, the top of the safe oxygen level/.test(item)));
+// Owner decision (5 October 2026): the Welding processes code (s 3.6) treats over 23% as oxygen-enriched.
+test('oxygen enrichment is above 23%, in every state', () => {
+  const task = 'Install medical gas manifolds and connect oxygen cylinders in the plant room of an operating hospital.';
+  for (const state of ['qld', 'nsw', 'vic', 'wa', 'sa', 'tas', 'act', 'nt']) {
+    const text = lines(draft(state, task)).join('\n');
+    assert.match(text, /oxygen enrichment \(above 23%\)/, state);
+    assert.doesNotMatch(text, /23\.5/, state);
+  }
+  const qld = lines(draft('qld', task)).find((item) => /oxygen enrichment \(above 23%\)/.test(item));
+  assert.match(qld, /Welding processes Code of Practice 2021 \(Qld\) s 3\.6\)$/);
+  // lines() leaves out NSW codes, so the NSW draft is read as printed.
+  const nsw = draft('nsw', task).jobSteps.flatMap((step) => step.controls).find((item) => /oxygen enrichment \(above 23%\)/.test(item));
+  assert.match(nsw, /SafeWork NSW Code of practice: Welding processes \(December 2022\) s 3\.6\)$/);
 });
 
 test('demolishing a whole concrete building, warehouse or car park is load-bearing demolition', () => {
@@ -513,4 +522,37 @@ test('figures the regulation does not set are not cited to it outside Queensland
   const walk = (value) => { if (value && typeof value === 'object') { if (typeof value.text === 'string' && value.text === bricks) found.push(value.source); Object.values(value).forEach(walk); } };
   walk(require('../activities').ACTIVITIES);
   assert.ok(found.length && found.every((source) => /Scaffolding Code of Practice 2021 \(Qld\) s 2\.3\.2\.3, Table 2$/.test(source)), found.join('\n'));
+});
+
+// Owner decision (5 October 2026): the 3 m threshold for housing construction is Queensland's
+// (s 306 series). NSW and every other state print 2 m, with no housing exception.
+test('the 3 m housing construction threshold prints only in Queensland', () => {
+  const { ACTIVITIES } = require('../activities');
+  const HOUSING = /3 m in housing construction|^Housing construction: where a person could fall 3 m/;
+  const all = [];
+  const walk = (item) => {
+    if (!item) return;
+    if (typeof item === 'string') { all.push({ text: item }); return; }
+    if (item.text) all.push(item);
+    if (item.options) for (const list of Object.values(item.options)) list.forEach(walk);
+  };
+  for (const group of ACTIVITIES) for (const step of group.steps) step.controls.forEach(walk);
+  const housing = all.filter((item) => HOUSING.test(item.text));
+  // The ladder, edge protection, trench barrier, trestle, fall hazard and housing construction lines.
+  assert.ok(housing.length >= 6, String(housing.length));
+  for (const item of housing) {
+    assert.match(localControl(item.text, item.source, 'qld'), /3 m/, item.text);
+    for (const state of ['nsw', 'vic', 'wa', 'sa', 'tas', 'act', 'nt']) {
+      const out = localControl(item.text, item.source, state);
+      if (out != null) assert.doesNotMatch(out, /housing construction|\b3 m\b/i, `${state}: ${item.text}`);
+    }
+  }
+  // Each flagged line, as NSW prints it.
+  const nsw = (pattern) => localControl(housing.find((item) => pattern.test(item.text)).text, housing.find((item) => pattern.test(item.text)).source, 'nsw');
+  assert.match(nsw(/^Edge protection or travel restraint/), /^Edge protection or travel restraint where a fall of 2 m or more is possible, before work starts\./);
+  assert.match(nsw(/^Fall hazards under 2 m/), /^Fall hazards are identified, assessed and controlled before work starts\. Platforms 2 m or higher have guardrails/);
+  assert.match(nsw(/^Trestle platforms/), /^Trestle platforms where a person could fall 2 m or more have their trestles secured/);
+  assert.match(nsw(/^Barriers go up around a pit/), /trench 1\.5 m deep or more is secured from unauthorised access/);
+  assert.match(nsw(/^Single or extension ladders/), /^Single or extension ladders are used for access, with 3 points of contact, or for short light work done with one hand/);
+  assert.equal(nsw(/^Housing construction:/), null);
 });

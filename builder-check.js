@@ -25,7 +25,7 @@
 //   ppe[], responsiblePerson, consultation, signatures[{ name, date }], revision, date, reviewDate,
 //   principalContractor, licences[], plant[], emergency[], review, legislation[], riskMatrix }
 const { findState, highRiskList } = require('./legislation');
-const { highRiskMatches } = require('./draft');
+const { highRiskMatches, domesticWork } = require('./draft');
 
 const BANDS = { accepted: 'Accepted', changes: 'Accepted with changes', rejected: 'Not accepted' };
 
@@ -81,6 +81,8 @@ function normaliseSwms(input = {}) {
     revision: typeof input.revision === 'number' && Number.isFinite(input.revision) ? String(input.revision) : text(input.revision),
     date: text(input.date),
     reviewDate: text(input.reviewDate),
+    // "Yes" or "No" where the state asks whether the work is residential construction work.
+    residential: text(input.residential),
     principalContractor: text(input.principalContractor),
     licences: list(input.licences),
     plant: list(input.plant),
@@ -190,7 +192,8 @@ const PERMITS = [
   { label: 'work near overhead or underground electric lines', name: 'a permit to work near the lines, or the network operator\'s written permission',
     work: /\b(overhead (?:power|electric\w*|service)? ?(?:lines?|cables?|wires?|mains)|power ?lines?|electric lines?|underground (?:power|electric\w*) (?:cables?|lines?|mains))\b/i,
     permit: /\b(permits? to work|(?:electrical|vicinity|access) permits?|access authori[sz]ations?|(?:network|electricity) (?:operator|entity|distributor)'?s? (?:written )?(?:approval|permission|consent))\b/i },
-  { label: 'isolation or lock out of live plant or services', name: 'an isolation permit or permit to work', notFromCategory: true,
+  // Domestic work, such as replacing a house's hot water system, needs no isolation permit (owner decision, 5 October 2026).
+  { label: 'isolation or lock out of live plant or services', name: 'an isolation permit or permit to work', notFromCategory: true, notDomestic: true,
     work: /\b(isolat\w* (?:the |of )?(?:\w+ ){0,3}(?:plant|machinery|equipment|power|supply|services?|circuits?|switchboards?)|lock ?out|lockout|live (?:plant|equipment|machinery|electrical|switchboards?)|energi[sz]ed (?:plant|equipment|electrical))\b/i,
     permit: /\b(isolation (?:permits?|certificates?)|permits? to work)\b/i },
   { label: 'roof access', name: 'a roof access permit', onlyWithSitePermits: true,
@@ -449,7 +452,8 @@ function weighted(swms, state, context) {
     const permitText = [...allControls, ...swms.site.conditions, ...swms.licences, ...swms.plant, ...swms.emergency, swms.review].join('\n');
     const sitePermits = SITE_PERMITS.test([allText, ...swms.emergency].join('\n'));
     const hazards = steps.flatMap((step) => step.hazards).join('\n');
-    const needed = PERMITS.filter((item) => item.work.test((item.notFromCategory ? ownWork : work).replace(item.ignore || /$^/g, ' ')) && (!item.near || item.near.test(`${allText}\n${hazards}`)) && (!item.onlyWithSitePermits || sitePermits));
+    const domestic = domesticWork(swms.task, /^yes$/i.test(swms.residential) ? true : /^no$/i.test(swms.residential) ? false : undefined);
+    const needed = PERMITS.filter((item) => !(item.notDomestic && domestic) && item.work.test((item.notFromCategory ? ownWork : work).replace(item.ignore || /$^/g, ' ')) && (!item.near || item.near.test(`${allText}\n${hazards}`)) && (!item.onlyWithSitePermits || sitePermits));
     const unnamed = needed.filter((item) => !item.permit.test(permitText));
     const points = needed.length ? 5 * ((needed.length - unnamed.length) / needed.length) : 5;
     if (unnamed.length) fixes.push(`Name the permit the work needs: ${unnamed.map((item) => `${item.name} (${item.label})`).join('; ')}.`);
@@ -508,6 +512,7 @@ function fromDraft(draft, extra = {}) {
     revision: draft.revision ?? '',
     date: draft.date,
     reviewDate: draft.reviewDate,
+    residential: draft.residential || '',
     principalContractor: draft.principalContractor,
     licences: draft.qualifications || [],
     plant: (draft.plant || []).map((row) => [row.item, row.inspection, row.licence].filter(Boolean).join(': ')),
