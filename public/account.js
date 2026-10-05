@@ -445,6 +445,7 @@
           ${signons.length ? signons.map((item) => `<tr><td>${esc(item.worker_name)}${item.note ? `<br><span class="meta">${esc(item.note)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${new Date(item.signed_at).toLocaleString('en-AU')}</td></tr>`).join('') : '<tr><td colspan="3">No one has signed on yet.</td></tr>'}
         </tbody></table>
       </div>
+      ${draft.controlEdits && S.editNotes ? S.editNotes(draft.controlEdits) : ''}
       <div class="sheet">${S.render(draft)}</div>`;
     resultEl.classList.remove('hidden');
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });

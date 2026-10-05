@@ -2481,18 +2481,117 @@ function legalReason(source) {
   return `This line is a legal requirement (${source}), so it cannot be removed or changed. Add your own line to the step if the site needs more.`;
 }
 
+// ---- Choices made on a line SiteReady has since reworded ----
+
+// The user's choices are kept by the line's words. When SiteReady rewords a line in a later
+// release, or an answer fills a blank in it, the choice is matched to the line as it now reads:
+// the same words with other sources, or failing that the closest line in the step by its words.
+// A choice that matches no line is reported, not dropped, so the user can see it and discard it.
+const SOURCE_WORDS = /\b(?:Code|Regulations?|Act|Standard|Guide|AS(?:\/NZS)?)\b|\d{4}/;
+function lineWords(line) {
+  const text = withoutMark(line);
+  const source = lineSource(text);
+  return source && SOURCE_WORDS.test(source) ? text.slice(0, text.length - source.length - 2).trim() : text;
+}
+const wordSet = (line) => new Set(lineWords(line).toLowerCase().match(/[a-z0-9]+(?:\.\d+)?%?/g) || []);
+// How alike two lines are by their words: 1 is the same words, 0 none in common.
+function likeness(a, b) {
+  const x = wordSet(a);
+  const y = wordSet(b);
+  if (!x.size || !y.size) return 0;
+  let shared = 0;
+  for (const word of x) if (y.has(word)) shared += 1;
+  return (2 * shared) / (x.size + y.size);
+}
+const ALIKE = 0.75;
+
+// The line in a step a choice was made on. exact is false when it was found by its words.
+function findLine(controls, wanted, taken) {
+  if (controls.includes(wanted) && !taken.has(wanted)) return { line: wanted, exact: true };
+  const plain = lineWords(wanted).toLowerCase();
+  const same = controls.find((line) => !taken.has(line) && !line.endsWith(OWN_MARK) && lineWords(line).toLowerCase() === plain);
+  if (same) return { line: same, exact: false };
+  let best = null;
+  let score = 0;
+  let tied = false;
+  for (const line of controls) {
+    if (taken.has(line) || line.endsWith(OWN_MARK)) continue;
+    const alike = likeness(line, wanted);
+    if (alike > score) { best = line; score = alike; tied = false; } else if (alike === score) tied = true;
+  }
+  return best && score >= ALIKE && !tied ? { line: best, exact: false } : null;
+}
+
+// The step each step's choices belong to: the same name, or a step SiteReady has renamed whose
+// name is close. Returns step index to the name the choices are kept under.
+function stepsForEdits(jobSteps, edits) {
+  const names = Object.keys(edits);
+  const out = new Map();
+  jobSteps.forEach((step, index) => { if (Object.hasOwn(edits, step.step)) out.set(index, step.step); });
+  const used = new Set(out.values());
+  for (const name of names.filter((item) => !used.has(item))) {
+    const lower = name.toLowerCase();
+    let at = jobSteps.findIndex((step, index) => !out.has(index) && step.step.toLowerCase() === lower);
+    if (at < 0) {
+      // A close name, or one whose words are all in the other ("Excavate", "Excavate the trench").
+      const within = (a, b) => [...wordSet(a)].every((word) => wordSet(b).has(word));
+      const close = jobSteps.map((step, index) => ({ index, alike: likeness(step.step, name), within: within(step.step, name) || within(name, step.step) }))
+        .filter((item) => !out.has(item.index) && (item.alike >= 0.8 || item.within));
+      if (close.length === 1 || (close.length && close.every((item) => item.alike >= 0.8))) at = close.sort((a, b) => b.alike - a.alike)[0].index;
+    }
+    if (at >= 0) out.set(at, name);
+  }
+  return out;
+}
+
+// Lines added to the steps after the user's changes are applied (permits and high risk category
+// lines). One the user removed is left out where it is added, so it is not reported as unmatched.
+const ADDED_LATER = () => new Set([...PERMITS.flatMap((permit) => [permit.line, permit.fire && permit.fire.line]), ...Object.values(CATEGORY_LINES).map((item) => item.line)].filter(Boolean).map((line) => lineWords(line).toLowerCase()));
+
 // Applies the user's choices to each step's controls: lines removed, lines reworded and lines
-// added. Choices for a step or line no longer in the SWMS are left out. Returns what was done,
-// and what was refused and why.
+// added. A choice made on a line SiteReady has since reworded is applied to the line as it now
+// reads, and reported (remapped); a choice that matches no line in the SWMS is reported
+// (unmatched) and left out. Returns what was done, and what was refused and why.
 function applyControlEdits(jobSteps, edits) {
   if (!edits || typeof edits !== 'object') return { jobSteps };
   const applied = [];
   const refused = [];
-  const out = jobSteps.map((step) => {
-    const mine = Object.hasOwn(edits, step.step) ? edits[step.step] : null;
+  const remapped = [];
+  const unmatched = [];
+  const addedLater = ADDED_LATER();
+  const keys = stepsForEdits(jobSteps, edits);
+  for (const name of Object.keys(edits).filter((item) => ![...keys.values()].includes(item))) {
+    const mine = edits[name] || {};
+    for (const text of mine.removed || []) if (!addedLater.has(lineWords(text).toLowerCase())) unmatched.push({ step: name, kind: 'removed', text, to: '', reason: 'step' });
+    for (const item of mine.changed || []) unmatched.push({ step: name, kind: 'changed', text: item.from, to: withoutMark(item.to), reason: 'step' });
+    for (const text of mine.added || []) unmatched.push({ step: name, kind: 'added', text: '', to: withoutMark(text), reason: 'step' });
+  }
+  const out = jobSteps.map((step, index) => {
+    const key = keys.get(index);
+    const mine = key === undefined ? null : edits[key];
     if (!mine) return step;
-    const removed = new Set(mine.removed || []);
-    const changed = new Map((mine.changed || []).map((item) => [item.from, withoutMark(item.to)]));
+    if (key !== step.step) remapped.push({ step: key, kind: 'step', from: key, line: step.step });
+    // Each choice found on the line it was made on, or the line as SiteReady now words it.
+    const taken = new Set();
+    const removed = new Set();
+    const changed = new Map();
+    for (const text of mine.removed || []) {
+      const found = findLine(step.controls, text, taken);
+      if (!found) {
+        if (!addedLater.has(lineWords(text).toLowerCase())) unmatched.push({ step: key, kind: 'removed', text, to: '', reason: 'line' });
+        continue;
+      }
+      taken.add(found.line);
+      removed.add(found.line);
+      if (!found.exact) remapped.push({ step: key, kind: 'removed', from: text, line: found.line });
+    }
+    for (const item of mine.changed || []) {
+      const found = findLine(step.controls, item.from, taken);
+      if (!found) { unmatched.push({ step: key, kind: 'changed', text: item.from, to: withoutMark(item.to), reason: 'line' }); continue; }
+      taken.add(found.line);
+      changed.set(found.line, withoutMark(item.to));
+      if (!found.exact) remapped.push({ step: key, kind: 'changed', from: item.from, line: found.line });
+    }
     const done = [];
     const controls = [];
     for (const line of step.controls) {
@@ -2523,7 +2622,7 @@ function applyControlEdits(jobSteps, edits) {
     applied.push(...done);
     return { ...step, controls };
   });
-  return { jobSteps: out, report: { applied, refused } };
+  return { jobSteps: out, report: { applied, refused, remapped, unmatched } };
 }
 
 // The job steps in the order the user chose. A step not in that order, such as one added

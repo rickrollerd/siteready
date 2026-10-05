@@ -128,6 +128,27 @@ test('starting a new SWMS clears the changes and saves it as a new SWMS', async 
   assert.ok(p.calls.some((call) => call.method === 'POST' && call.route === '/api/swms'));
 });
 
+test('a change SiteReady has reworded follows the new wording, and one that no longer matches can be discarded', async () => {
+  const report = {
+    applied: [], refused: [],
+    remapped: [{ step: 'Excavate', kind: 'removed', from: 'Plant is inspected daily.', line: 'Plant is inspected each day.' }],
+    unmatched: [{ step: 'Excavate', kind: 'added', text: '', to: 'Old line.', reason: 'line' }],
+  };
+  const p = page(server((method, route) => (route === '/api/draft' ? { body: { ...DRAFT, controlEdits: report, controlLegal: [[]] } } : null)));
+  await settle();
+  await p.window.SiteReady.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no', controlEdits: { Excavate: { removed: ['Plant is inspected daily.'], changed: [], added: ['Old line.'] } } });
+  await prepare(p);
+  assert.deepEqual(JSON.parse(p.run('JSON.stringify(controlEdits)')).Excavate.removed, ['Plant is inspected each day.']);
+  const html = p.document.getElementById('result').innerHTML;
+  assert.match(html, /"Plant is inspected daily\." now reads "Plant is inspected each day\."/);
+  assert.match(html, /You added &quot;Old line\.&quot;\. That line is no longer in this step/);
+  const event = new FakeEvent('click', { bubbles: true });
+  event.target = { closest: (selector) => (selector === '[data-ctl-discard]' ? { dataset: { ctlDiscard: '0' } } : null) };
+  p.document.getElementById('result').dispatchEvent(event);
+  await settle();
+  assert.deepEqual(JSON.parse(p.run('JSON.stringify(controlEdits)')).Excavate.added, []);
+});
+
 test('downloading saves the SWMS, and later changes save as its next revision', async () => {
   const p = page(server((method, route) => (route === '/api/draft.docx'
     ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 'dl-1', 'x-siteready-revision': '1', 'x-siteready-title': 'Dig%20a%20trench' } } : null)));

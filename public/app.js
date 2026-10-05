@@ -1061,8 +1061,10 @@ async function prepareDraft({ scroll = true } = {}) {
     shownSteps = (data.jobSteps || []).map((step) => step.step);
     rememberFields();
     // Answers that contradict the task's words are shown above the SWMS, not printed on it.
-    const refused = ((data.controlEdits || {}).refused || []).map((item) => `${item.step}: ${item.reason}`);
-    const warnings = [...(data.warnings || []), ...refused].map((text) => `<p class="warning">${esc(text)}</p>`).join('');
+    const report = data.controlEdits || {};
+    followRewords(report.remapped);
+    shownReport = report;
+    const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), editNotes(report, { discard: true })].join('');
     shownDraft = data;
     resultEl.innerHTML = `${warnings}<div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
@@ -1128,6 +1130,51 @@ resultEl.addEventListener('dragend', () => {
 });
 
 // ---- Changing, removing and adding controls (task #102) ----
+
+// What the server did with the user's changes: those refused, those made on a line SiteReady has
+// since reworded (now applied to the new wording), and those that no longer match a line in the
+// SWMS (kept, not applied, until the user makes them again or discards them).
+let shownReport = {};
+function describeEdit(item) {
+  if (item.kind === 'removed') return `You removed "${item.text}"`;
+  if (item.kind === 'changed') return `You changed "${item.text}" to "${item.to}"`;
+  return `You added "${item.to}"`;
+}
+function editNotes(report, { discard = false } = {}) {
+  const out = (report.refused || []).map((item) => `<p class="warning">${esc(`${item.step}: ${item.reason}`)}</p>`);
+  if ((report.remapped || []).some((item) => item.kind !== 'step')) {
+    out.push(`<div class="note"><p>SiteReady has reworded lines you changed since you made the changes. Your changes now apply to the new wording. Check them in the job steps below.</p><ul>${report.remapped.filter((item) => item.kind !== 'step').map((item) => `<li>${esc(item.step)}: "${esc(item.from)}" now reads "${esc(item.line)}"</li>`).join('')}</ul></div>`);
+  }
+  (report.unmatched || []).forEach((item, index) => {
+    const why = item.reason === 'step' ? 'That job step is no longer in this SWMS' : 'That line is no longer in this step';
+    out.push(`<p class="warning">${esc(`${item.step}: ${describeEdit(item)}. ${why}, as SiteReady's wording, the steps or your answers have changed, so the change is not applied. Make the change again on the line as it now reads, or discard it.`)}${discard ? ` <button type="button" class="link" data-ctl-discard="${index}">Discard this change</button>` : ''}</p>`);
+  });
+  return out.join('');
+}
+// A change made on a line SiteReady has since reworded is kept against the new wording.
+function followRewords(remapped) {
+  if (!controlEdits || !(remapped || []).length) return;
+  for (const item of remapped) {
+    if (item.kind === 'step' && controlEdits[item.from] && !controlEdits[item.line]) {
+      controlEdits[item.line] = controlEdits[item.from];
+      delete controlEdits[item.from];
+      continue;
+    }
+    const edit = controlEdits[item.step];
+    if (!edit) continue;
+    if (item.kind === 'removed') edit.removed = edit.removed.map((line) => (line === item.from ? item.line : line));
+    if (item.kind === 'changed') edit.changed.forEach((change) => { if (change.from === item.from) change.from = item.line; });
+  }
+}
+// Discarding a change that no longer matches takes it out of the user's changes.
+function discardEdit(item) {
+  const edit = controlEdits && controlEdits[item.step];
+  if (!edit) return;
+  if (item.kind === 'removed') edit.removed = edit.removed.filter((line) => line !== item.text);
+  if (item.kind === 'changed') edit.changed = edit.changed.filter((change) => change.from !== item.text);
+  if (item.kind === 'added') edit.added = edit.added.filter((line) => line !== item.to);
+  tidyEdits();
+}
 
 const OWN_MARK = ' (Our own control)';
 const isOwn = (line) => line.endsWith(OWN_MARK);
@@ -1195,6 +1242,12 @@ function lineEditor(holder, value, onSave) {
   });
 }
 resultEl.addEventListener('click', (event) => {
+  const discard = event.target.closest('[data-ctl-discard]');
+  if (discard) {
+    const item = (shownReport.unmatched || [])[Number(discard.dataset.ctlDiscard)];
+    if (item) { discardEdit(item); prepareDraft({ scroll: false }); }
+    return;
+  }
   const button = event.target.closest('[data-ctl]');
   if (!button || !shownDraft) return;
   const holder = button.closest('[data-ctl-step]');
@@ -1281,7 +1334,7 @@ function renderTranslation(tr) {
 }
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
-  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, getProfile: () => profile, resultEl, addPrincipals,
+  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, getProfile: () => profile, resultEl, addPrincipals,
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });

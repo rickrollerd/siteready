@@ -197,3 +197,49 @@ test('with CONTROL_LEARNING on, de-identified rows are kept and counted for the 
     delete process.env.CONTROL_LEARNING;
   }
 });
+
+// ---- Changes made on a line SiteReady has since reworded (audit step 4, bugs B4 and B5) ----
+
+const SPOIL = excavate.controls.find((line) => /^Spoil is heaped at least 1 m back/.test(line));
+const BARRICADE = excavate.controls.find((line) => /^Open trenches are barricaded/.test(line));
+
+test('a change made on a line SiteReady has since reworded or re-cited follows the line, and says so', () => {
+  // The line as an older release worded it: another source, and one word different.
+  const oldSpoil = SPOIL.replace(/\(Excavation work Code[^]*\)$/, '(Excavation work Code of Practice 2011 (Qld) s 4)');
+  const oldBarricade = BARRICADE.replace('secure them', 'protect them').replace(/\s*\([^]*\)$/, '');
+  const draft = prepareDraft(draftBody({ ...INPUT, controlEdits: { Excavate: { removed: [oldSpoil], changed: [{ from: oldBarricade, to: 'Trenches are fenced with mesh panels.' }], added: [] } } }));
+  const controls = draft.jobSteps.find((step) => step.step === 'Excavate').controls;
+  assert.ok(!controls.includes(SPOIL), 'the removed line is out, though its source changed');
+  assert.ok(!controls.includes(BARRICADE), 'the changed line is replaced, though it was reworded');
+  assert.ok(controls.includes(`Trenches are fenced with mesh panels. ${OWN_MARK}`));
+  assert.deepEqual(draft.controlEdits.remapped.map((item) => [item.kind, item.line]), [['removed', SPOIL], ['changed', BARRICADE]]);
+  assert.deepEqual(draft.controlEdits.unmatched, []);
+});
+
+test('a change that no longer matches any line is reported with the old line, not silently dropped', () => {
+  const gone = 'Trench walls are inspected by a geotechnical engineer every hour. (Excavation work Code of Practice 2011 (Qld) s 9)';
+  const draft = prepareDraft(draftBody({ ...INPUT, controlEdits: {
+    Excavate: { removed: [gone], changed: [], added: [] },
+    'Pump out the sump': { removed: [], changed: [], added: ['The sump pump is checked daily.'] },
+  } }));
+  assert.deepEqual(draft.jobSteps.find((step) => step.step === 'Excavate').controls, excavate.controls, 'nothing changed');
+  assert.deepEqual(draft.controlEdits.unmatched.map((item) => [item.step, item.kind, item.text || item.to, item.reason]).sort(), [
+    ['Excavate', 'removed', gone, 'line'],
+    ['Pump out the sump', 'added', 'The sump pump is checked daily.', 'step'],
+  ]);
+});
+
+test('a step SiteReady has renamed keeps its changes', () => {
+  const draft = prepareDraft(draftBody({ ...INPUT, controlEdits: { 'Excavate the trench': { removed: [PLAIN_LINE], changed: [], added: [] } } }));
+  assert.ok(!draft.jobSteps.find((step) => step.step === 'Excavate').controls.includes(PLAIN_LINE));
+  assert.deepEqual(draft.controlEdits.remapped, [{ step: 'Excavate the trench', kind: 'step', from: 'Excavate the trench', line: 'Excavate' }]);
+});
+
+test('typing in the task keeps the changes that still apply, and reports the rest', () => {
+  // The same changes on a task with no trench: the Excavate step is gone, the first step stays.
+  const edits = { ...EDITS, 'Before starting': { removed: [], changed: [], added: ['Neighbours are told.'] } };
+  const draft = prepareDraft(draftBody({ state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', facts: { safetyDataSheet: 'Water-based paint SDS at the work area.' }, controlEdits: edits }));
+  assert.ok(draft.jobSteps[0].controls.includes(`Neighbours are told. ${OWN_MARK}`));
+  assert.deepEqual([...new Set(draft.controlEdits.unmatched.map((item) => item.step))], ['Excavate']);
+  assert.equal(draft.controlEdits.unmatched.length, 3);
+});
