@@ -56,14 +56,6 @@
   "rules": [
     {
       "swms": [
-        "balustrades"
-      ],
-      "phrase": "opened only at the panel being installed",
-      "source": "Work Health and Safety Regulation 2011 (Qld) s 79, s 306D",
-      "quote": "permits for access to areas where travel restraint systems"
-    },
-    {
-      "swms": [
         "balustrades",
         "screens"
       ],

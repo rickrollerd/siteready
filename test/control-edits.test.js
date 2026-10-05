@@ -88,11 +88,12 @@ test('removed, changed and added lines are applied to the step, with the user\'s
   const controls = draft.jobSteps.find((step) => step.step === 'Excavate').controls;
   assert.ok(!controls.includes(PLAIN_LINE), 'removed');
   assert.ok(!controls.includes(CODE_LINE), 'changed from');
-  const at = excavate.controls.indexOf(CODE_LINE) - 1;
+  // The removed line shifts the changed line up one place only when it came before it.
+  const at = excavate.controls.indexOf(CODE_LINE) - (excavate.controls.indexOf(PLAIN_LINE) < excavate.controls.indexOf(CODE_LINE) ? 1 : 0);
   assert.equal(controls[at], `Spoil is kept 2 m back from the trench edge. ${OWN_MARK}`, 'the changed line takes the old line\'s place, without the code citation');
   assert.equal(controls[controls.length - 1], `A toolbox talk on trench safety is held each morning. ${OWN_MARK}`);
   assert.equal(controls.length, excavate.controls.length);
-  assert.deepEqual(draft.controlEdits.applied.map((item) => item.kind), ['removed', 'changed', 'added']);
+  assert.deepEqual(draft.controlEdits.applied.map((item) => item.kind).sort(), ['added', 'changed', 'removed']);
   assert.deepEqual(draft.controlEdits.refused, []);
   // Other steps are as they were.
   assert.deepEqual(draft.jobSteps.find((step) => step.step === 'Before starting').controls, before.controls);

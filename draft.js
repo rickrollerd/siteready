@@ -4570,7 +4570,7 @@ const TASK_ONLY = [
   [/^Slump tests and test cylinders/, /\b(test\w* (?:all |the )?concrete|slump|cylinders?|concrete test\w*)\b/i],
   [/^Where a concrete placing boom is used/, /\b(boom|pump\w*)\b/i],
   [/^Where a line pump or boom pump is used/, /\b(pump\w*|boom)\b/i],
-  [/^Footings, thickenings and pits are entered/, /\b(footings?|thickenings?|pits?)\b/i],
+  [/^Footings, thickenings and pits are entered|^Before entering a footing, thickening or pit\b/, /\b(footings?|thickenings?|pits?)\b/i],
   [/^Where walls, lift shafts or stairwells are reinforced/, /\b(walls?|lift shafts?|cores?|stairwells?)\b/i],
   [/^In risers, use cable grips/, /\b(risers?|shafts?)\b/i],
   [/^Where our crew stays on the deck during the pour/, /\b(pour\w*|concrete is placed|placement)\b/i],
@@ -4595,7 +4595,7 @@ const SAID_BY_FACT = [
   // Where a licensed removalist takes the asbestos out first, the crew does not remove the fibro sheets.
   [/\bOld fibro sheets on a shed built before 2004 are treated as asbestos unless tested, and are removed under the asbestos rules\./, /\blicensed asbestos removalist\b[^.]*\bremoves any asbestos before this work starts\b/i, 'Old fibro sheets on a shed built before 2004 are treated as asbestos unless tested, and are removed by the licensed asbestos removalist before the rest of the shed is taken down.'],
   // An answer that already keeps the paint ventilated and away from ignition sources leaves nothing to add.
-  [/^Line marking paint is used outdoors or with ventilation, away from ignition sources, as its safety data sheet says\.$/, /\bventilat\w*\b[^.]*\bignition\b|\bignition\b[^.]*\bventilat\w*\b/i, ''],
+  [/^Line marking paint is used outdoors or with ventilation, away from ignition sources, as its safety data sheet says\.(?: \(.*\))?$/, /\bventilat\w*\b[^.]*\bignition\b|\bignition\b[^.]*\bventilat\w*\b/i, ''],
 ];
 
 function tidySteps(steps, source, answers = '') {
