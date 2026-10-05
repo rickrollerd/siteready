@@ -465,9 +465,15 @@ document.getElementById('start').addEventListener('submit', (event) => {
   // The state always follows the job address.
   applyAddressState();
   // A new task starts from the steps found in it, or the steps the scope reader found for it.
+  // The steps picked or left out for this same task are kept, so Continue on a reopened SWMS
+  // does not undo them.
   const scope = window.siteReadyScopeTask;
-  stepPicks = scope && scope.task === document.getElementById('task').value.trim() && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
-  leaveOut = scope && scope.task === document.getElementById('task').value.trim() && Array.isArray(scope.leaveOut) ? [...scope.leaveOut] : null;
+  const task = document.getElementById('task').value.trim();
+  if (task !== choicesTask) {
+    stepPicks = scope && scope.task === task && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
+    leaveOut = scope && scope.task === task && Array.isArray(scope.leaveOut) ? [...scope.leaveOut] : null;
+    choicesTask = task;
+  }
   loadQuestions();
 });
 
@@ -479,6 +485,20 @@ let leaveOut = null;
 let stepOrder = null;
 // The user's own changes to the controls, by job step name: { removed, changed, added }.
 let controlEdits = null;
+// The task the step picks and steps left out were made for.
+let choicesTask = null;
+
+// A new SWMS starts from SiteReady's steps, order, controls and PPE, and is saved as a new SWMS.
+// Typing in the task box keeps the user's changes: those that no longer match are reported.
+function newSwms() {
+  stepPicks = null;
+  leaveOut = null;
+  stepOrder = null;
+  controlEdits = null;
+  choicesTask = null;
+  ppeTouched.clear();
+  if (window.SiteReady) window.SiteReady.editing = null;
+}
 let stepLibrary = { groups: [] };
 const stepById = new Map();
 
@@ -718,6 +738,7 @@ async function fillForm(input) {
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
+  choicesTask = String(input.task || '').trim();
   stepOrder = Array.isArray(input.stepOrder) ? [...input.stepOrder] : null;
   controlEdits = input.controlEdits && typeof input.controlEdits === 'object' ? JSON.parse(JSON.stringify(input.controlEdits)) : null;
   showFallExplanation();
@@ -822,6 +843,7 @@ presetEl.addEventListener('change', () => {
   if (!item) return;
   const taskEl = document.getElementById('task');
   if (taskEl.value.trim() && taskEl.value.trim() !== taskEl.dataset.preset && !confirm('Replace the task you have written?')) return;
+  newSwms();
   taskEl.value = item.task;
   taskEl.dataset.preset = item.task;
   document.getElementById('task-trade').value = '';
@@ -1104,8 +1126,6 @@ resultEl.addEventListener('dragend', () => {
   dragFrom = null;
   resultEl.querySelectorAll('.dragging').forEach((row) => row.classList.remove('dragging'));
 });
-// A new task starts with SiteReady's order again.
-document.getElementById('task').addEventListener('input', () => { stepOrder = null; leaveOut = null; controlEdits = null; ppeTouched.clear(); });
 
 // ---- Changing, removing and adding controls (task #102) ----
 
@@ -1261,7 +1281,7 @@ function renderTranslation(tr) {
 }
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
-  api, esc, payload, render, fillForm, fillFields, setProfile, getProfile: () => profile, resultEl, addPrincipals,
+  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, getProfile: () => profile, resultEl, addPrincipals,
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });

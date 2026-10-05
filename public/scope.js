@@ -295,7 +295,8 @@
       from.textContent = label || `From the scope: ${item.title}`;
       from.classList.remove('hidden');
     }
-    // A new task starts from SiteReady's step order and PPE again.
+    // A new task starts from SiteReady's steps, order, controls and PPE again, as a new SWMS.
+    if (S.newSwms) S.newSwms();
     taskEl.dispatchEvent(new Event('input', { bubbles: true }));
     taskEl.dataset.preset = text;
     $('task-trade').value = item.trade || '';
@@ -334,10 +335,17 @@
     result.innerHTML = '';
     // The last task's questions go too; this task's come once its start details are in.
     document.getElementById('facts').classList.add('hidden');
-    useTask(project.items[index], `SWMS ${index + 1} of ${project.items.length}: ${project.items[index].title}`);
+    const item = project.items[index];
+    useTask(item, `SWMS ${index + 1} of ${project.items.length}: ${item.title}`);
     renderProject();
     // The page goes to the project box, which says which SWMS is open, after the layout has settled.
     requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
+    // A SWMS prepared before comes back as it was left: its answers, steps and the user's changes.
+    // Once saved, its changes save as its next revision.
+    if (item.body) {
+      S.fillForm(item.body).then(() => { if (item.swmsId) S.editing = { id: item.swmsId, title: item.title }; });
+      return;
+    }
     // With the site details already filled in, go straight to this SWMS's questions.
     const start = $('start');
     if (index > 0 && start.checkValidity() && document.querySelector('input[name="fallRisk"]:checked')) start.requestSubmit($('continue'));

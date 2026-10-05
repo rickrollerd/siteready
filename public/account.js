@@ -291,11 +291,14 @@
       if (logo) input = { ...input, logo };
     }
     const siteOptions = ['<option value="">No site</option>', ...sites.map((site) => `<option value="${esc(site.id)}">${esc(site.name)}</option>`)].join('');
+    // A saved SWMS being changed: its changes save as its next revision until a new SWMS is started.
+    const editing = !local && S.editing;
     box.innerHTML = `<div class="panel confirm">
+      ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
       ${confirmBlock('new')}
       ${kind === 'draft' && !local ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
       <div class="actions">
-        ${kind === 'draft' && !local ? '<button type="button" id="new-save">Save SWMS</button>' : ''}
+        ${kind === 'draft' && !local ? `<button type="button" id="new-save">${editing ? 'Save changes' : 'Save SWMS'}</button>` : ''}
         <button type="button" class="secondary" id="new-docx">Download Word</button>
         <button type="button" class="secondary" id="new-pdf">Download PDF</button>
       </div>
@@ -316,19 +319,20 @@
     $('new-pdf').addEventListener('click', () => run(() => download('/api/draft.pdf', 'SiteReady.pdf', { ...input, ...confirmed('new') })));
     if ($('new-save')) {
       $('new-save').addEventListener('click', () => run(async () => {
-        const editing = box.dataset.editing;
         const body = { input, siteId: $('new-site').value || null, ...confirmed('new') };
-        const data = editing ? await call('PUT', `/api/swms/${editing}`, body) : await call('POST', '/api/swms', body);
-        status('new-status', `Saved "${data.swms.title}". Find it under My SWMS, where workers can sign on by QR code.`);
-        delete box.dataset.editing;
+        const data = S.editing ? await call('PUT', `/api/swms/${S.editing.id}`, body) : await call('POST', '/api/swms', body);
+        // Later changes to this SWMS save as its revisions.
+        S.editing = { id: data.swms.id, title: data.swms.title };
+        status('new-status', `Saved "${data.swms.title}", revision ${data.swms.revision || 1}. Find it under My SWMS, where workers can sign on by QR code.`);
         $('new-save').textContent = 'Saved';
         $('new-save').disabled = true;
       }));
     }
-    if (S.editingId && $('new-save')) {
-      box.dataset.editing = S.editingId;
-      $('new-save').textContent = 'Save changes';
-      S.editingId = null;
+    if ($('new-separate')) {
+      $('new-separate').addEventListener('click', () => {
+        S.editing = null;
+        S.showActions(draft, original);
+      });
     }
   };
 
@@ -427,8 +431,8 @@
       loadSwms();
     }));
     $('saved-edit').addEventListener('click', () => run(async () => {
-      S.editingId = id;
       await S.fillForm(data.input);
+      S.editing = { id, title: swms.title };
       if ($('site-picker')) $('site-picker').value = swms.siteId || '';
       status('saved-status', 'The SWMS is in the form below. Change it, prepare it again, then save the changes.');
     }));
