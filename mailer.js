@@ -19,6 +19,11 @@ function mailTransport() {
       port,
       secure: port === 465,
       auth: { user: process.env.SMTP_USERNAME, pass: process.env.SMTP_PASSWORD },
+      // Fail in seconds, not minutes, when the host blocks mail ports (Railway does below the Pro plan),
+      // so the page says the email could not be sent instead of the request timing out.
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
     });
   }
   return transport;
