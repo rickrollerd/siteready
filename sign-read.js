@@ -89,23 +89,30 @@ function question(id, text, correct, decoys, section, random) {
   return { id, question: text, options, answer: options.indexOf(correct), section };
 }
 
+const EVERYDAY_PPE = /\b(sleeves?|pants|trousers|clothing|shirts?|hi-?vis|glasses|goggles|gloves?|boots?|hard hats?|hats?|helmets?|sunscreen|sun|brim|neck flaps?|chin straps?|ear|hearing|dust masks?|knee)\b/i;
+
 // A ticked PPE item, with 3 unticked items as decoys: from its own group first, then the others.
 function ppeQuestion(draft, random) {
   const groups = draft.ppe || [];
   const ticked = new Set(tickedPpe(draft));
-  const unticked = (group) => [...new Set(group.items.filter((item) => !item.ticked && !ticked.has(item.label)).map((item) => item.label))];
+  // A wrong answer must be clearly wrong: never everyday PPE a worker could fairly think is needed
+  // (sleeves, hi-vis, glasses, gloves and the like), nor a near twin of a ticked item.
+  const tickedWords = new Set([...ticked].flatMap(keyWords));
+  const fair = (label) => !EVERYDAY_PPE.test(label) && !keyWords(label).some((word) => tickedWords.has(word));
+  const unticked = (group) => [...new Set(group.items.filter((item) => !item.ticked && !ticked.has(item.label) && fair(item.label)).map((item) => item.label))];
   const all = [...new Set(groups.flatMap(unticked))];
   if (!ticked.size || all.length < 3) return null;
   const candidates = shuffled(groups.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => ({ label: item.label, group }))), random);
   const pick = candidates.find((item) => unticked(item.group).length >= 3) || candidates[0];
   const near = shuffled(unticked(pick.group), random);
   const far = shuffled(all.filter((label) => !near.includes(label)), random);
-  return question('ppe', 'Which of these PPE is required for this job?', pick.label, [...near, ...far], 'ppe', random);
+  return question('ppe', 'Which of these PPE does this SWMS list?', pick.label, [...near, ...far], 'ppe', random);
 }
 
 // Library step names that share no telling word with this SWMS's steps make clear decoys.
 const COMMON = new Set(['before', 'starting', 'finish', 'clean', 'install', 'remove', 'check', 'work', 'from', 'with', 'into', 'over', 'under', 'make', 'lift', 'carry', 'fix', 'set', 'use', 'the', 'and', 'for', 'out', 'up']);
 const keyWords = (name) => String(name).toLowerCase().split(/[^a-z0-9]+/).map((word) => word.replace(/s$/, '')).filter((word) => word.length > 2 && !COMMON.has(word));
+const GENERIC_STEP_WORDS = new Set(['leave', 'close', 'connect', 'commission', 'test', 'prepare', 'plan', 'tidy', 'pack', 'start', 'stop', 'site', 'area', 'job', 'task', 'materials', 'equipment', 'tools', 'load', 'unload', 'deliver', 'store', 'handle', 'move', 'access', 'mark', 'measure', 'inspect', 'secure', 'complete', 'hand', 'over']);
 let libraryNames = null;
 
 function stepQuestion(id, draft, correct, random) {
@@ -114,7 +121,9 @@ function stepQuestion(id, draft, correct, random) {
   const lower = new Set(own.map((name) => name.toLowerCase()));
   const used = new Set(own.flatMap(keyWords));
   const outside = libraryNames.filter((name) => !lower.has(name.toLowerCase()));
-  let pool = outside.filter((name) => !keyWords(name).some((word) => used.has(word)));
+  // A decoy names real work ("Place and tie reo"), not a step any job could have ("Leave and close up").
+  const telling = (name) => keyWords(name).some((word) => !GENERIC_STEP_WORDS.has(word));
+  let pool = outside.filter((name) => telling(name) && !keyWords(name).some((word) => used.has(word)));
   if (pool.length < 3) pool = outside;
   if (pool.length < 3) return null;
   return question(id, 'Which of these is a job step in this SWMS?', correct, shuffled(pool, random), 'steps', random);
