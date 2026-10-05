@@ -4,7 +4,7 @@
 // work is matched to the kinds of work the drafting library knows, and lines of
 // the same kind become one proposed task. A task is marked as needing a SWMS when
 // it is high risk construction work.
-const { workFlags, highRiskMatches, groundSlabOnly, suggestedKinds } = require('./draft');
+const { workFlags, highRiskMatches, groundSlabOnly, suggestedKinds, workshopWork } = require('./draft');
 const { ACTIVITIES } = require('./activities');
 const { findState, highRiskList } = require('./legislation');
 const { TRADES, tradeIds } = require('./trades');
@@ -96,8 +96,10 @@ const READY_FOR = /\bready (?:to be|for) (?:the )?\w+/i;
 const WHEN_CLAUSE = /\b(?:prior to|before|after|until|once|following|during)\b[^,.;]*/gi;
 const PAPER_SITE_VERB = /\b(install\w*|erect\w*|lay\w*|fix(?:e[sd])?\b|fixing (?:of|to|the|all)\b|construct\w*|demoli\w*|excavat\w*|pour\w*|weld\w*|cut\w*|core[- ]drill\w*|lift\w*|rigg\w*)/i;
 
+// Work made in a workshop or precast yard is still work the business manages: it gets
+// its own steps, the same as when the AI reads the scope (task #97).
 function paperworkOnly(line) {
-  return PAPERWORK.test(line) && !PAPER_SITE_VERB.test(line.replace(WHEN_CLAUSE, ''));
+  return PAPERWORK.test(line) && !PAPER_SITE_VERB.test(line.replace(WHEN_CLAUSE, '')) && !workshopWork(line);
 }
 
 // The part of a line that is the subcontractor's own work. A note in brackets or a
@@ -320,6 +322,9 @@ const MIN_SUPPORT = 2;
 // or through an opening. A task with one of them has a fall suggested.
 const PERSON_FALL = /(?:\bperson |\bworkers? |^an? |^)(?:fall|falls|falling) (?:from (?!a ladder\b)|through\b|into (?:an? |the )?(?:open )?(?:riser|shaft|void|opening))/i;
 const FALL_KINDS = new Set(KINDS.filter((kind) => kind.steps.some((step) => (step.hazards || []).some((line) => PERSON_FALL.test(typeof line === 'string' ? line : line.text)))).map((kind) => kind.when));
+// Workshop and precast yard work, pebble pool finishes and removing high voltage poles are
+// each their own task wherever they are found, whatever the scope's trade (task #97).
+const OWN_TASK = new Set(['workshopFab', 'joineryShop', 'switchboardShop', 'powderCoat', 'precastCastIn', 'pebbleFinish', 'hvPoleRemove']);
 const CROSS = new Set(['demolition', 'servicesStrip', 'generatorTest', 'trench', 'coreDrill', 'sawCut', 'structuralOpening', 'asbestos', 'asbestosCheck', 'confined', 'roofSpace', 'power', 'road', 'water', 'liveHospital', 'stripOut', 'crane', 'towerCrane', 'scaffold']);
 // A trade is the scope's trade when it is found in this share of the lines of the most found trade.
 const TRADE_SHARE = 0.3;
@@ -418,6 +423,8 @@ const TITLES = Object.freeze({
   safetyScreens: 'Perimeter safety screens', tempStairs: 'Temporary stairs and stair towers', workshopFab: 'Workshop metal fabrication', floodTest: 'Flood and holiday testing of membranes',
   drainageCell: 'Drainage cell and protection board', acousticMat: 'Acoustic matting under floors', earthStakes: 'Earth stakes and earthing', caulking: 'Sealants and caulking',
   trestleUse: 'Trestle platforms', pdtFixing: 'Powder-actuated fixing', peFusion: 'PE pipe butt fusion', wasteRemoval: 'Rubbish removal and site clean-ups', defectsVisit: 'Defects liability visits',
+  joineryShop: 'Joinery and timber door workshop', switchboardShop: 'Switchboard workshop', powderCoat: 'Powder coating', precastCastIn: 'Cast-in items at the precast yard',
+  pebbleFinish: 'Pebble pool finishes and acid washing', hvPoleRemove: 'Removing temporary high voltage poles and transformers',
 });
 const MAX_LINES = 8;
 const MAX_TASK = 900;
@@ -430,7 +437,9 @@ function kindsOf(line, flags = workFlags(line)) {
 const OFF_SITE = /^(?:(?:document|shop draw|design|fabricate|manufacture|supply|deliver|transport|unload|handle|apply protective coating|complete their design & construct proposal),?\s*(?:&\s*|and\s+)?)+(?=\w)/i;
 
 function taskLine(line) {
-  const text = line.replace(SUBJECT, '').replace(OFF_SITE, '');
+  const own = line.replace(SUBJECT, '');
+  // Workshop work keeps its "fabricate" or "manufacture": it is the work, not a step before it.
+  const text = workshopWork(own) && !/\b(install\w*|erect\w*|fix\w*|fit\w*|hang\w*|lay\w*|plac\w*)\b/i.test(own) ? own : own.replace(OFF_SITE, '');
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
@@ -559,10 +568,14 @@ function tasksFromScope(text, stateId = 'qld') {
       kinds,
     };
   };
+  // A line that also installs the item ("Fabricate off site, supply and install ...") is read
+  // as its site work, so it is not workshop work.
+  for (const group of groups.values()) if (OWN_TASK.has(group.kind.when)) group.lines = group.lines.filter((line) => workFlags(ownWork(taskLine(line)))[group.kind.when]);
   const tasks = [...groups.values()]
+    .filter((group) => group.lines.length)
     // A short pasted scope may not show a trade; then every kind found in lines that say
     // what is done is kept (a description of the building names plant and rooms, not work).
-    .filter((group) => allowed.has(group.kind.when)
+    .filter((group) => allowed.has(group.kind.when) || OWN_TASK.has(group.kind.when)
       || (!ours.length && group.lines.filter((line) => SITE_WORK.test(line)).length >= MIN_SUPPORT)
       || (CROSS.has(group.kind.when) && (group.lines.length >= MIN_SUPPORT || strongHighRisk(group.lines, state, group.kind.when))))
     .sort((a, b) => order(a.kind.when) - order(b.kind.when))
