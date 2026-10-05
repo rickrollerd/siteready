@@ -99,6 +99,8 @@
       $('scope-error').textContent = 'The file is too large. Attach the scope only, or paste it.';
       return;
     }
+    // A new scope starts a new project: the one in progress is closed first, with the user's OK.
+    if (project && !closeProject(`You have a project in progress (${project.items.filter((item) => item.status === 'ready').length} of ${project.items.length} SWMS ready). Reading a new scope closes it, and SWMS you have not downloaded or saved will need preparing again. Read the new scope?`)) return;
     button.disabled = true;
     try {
       const state = (document.querySelector('input[name="state"]:checked') || {}).value || '';
@@ -305,13 +307,27 @@
     if (index > 0 && start.checkValidity() && document.querySelector('input[name="fallRisk"]:checked')) start.requestSubmit($('continue'));
   }
 
+  // Closing a project also clears its task from the form, so nothing of it is left in the way.
+  function closeProject(question) {
+    if (!confirm(question)) return false;
+    project = null;
+    try { localStorage.removeItem(PROJECT_KEY); } catch { /* nothing kept */ }
+    window.siteReadyScopeTask = null;
+    const taskEl = $('task');
+    taskEl.value = '';
+    delete taskEl.dataset.preset;
+    taskEl.dispatchEvent(new Event('input', { bubbles: true }));
+    renderProject();
+    return true;
+  }
+
   function renderProject() {
     const panel = $('project-panel');
     if (!project) { panel.classList.add('hidden'); return; }
     const ready = project.items.filter((item) => item.status === 'ready').length;
     const label = { ready: 'Ready', needs: 'Needs answers', todo: 'To do' };
     const current = project.items[project.current];
-    panel.innerHTML = `<h2>Project SWMS</h2>
+    panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
       ${current ? `<p class="project-now">Now preparing SWMS ${project.current + 1} of ${project.items.length}: <strong>${esc(current.title)}</strong>. It is open in the form below: fill in the details and press Continue. When it is ready, a button under it opens the next one.</p>` : ''}
       <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next. You can also open any SWMS in the list.</p>
       <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : item.status === 'needs' ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
@@ -338,11 +354,8 @@
   document.addEventListener('click', async (event) => {
     const open = event.target.closest('[data-project-open]');
     if (open) { openItem(Number(open.dataset.projectOpen)); return; }
-    if (event.target.closest('#project-close')) {
-      if (!confirm('Close this project? SWMS you have not downloaded or saved will need preparing again.')) return;
-      project = null;
-      try { localStorage.removeItem(PROJECT_KEY); } catch { /* nothing kept */ }
-      renderProject();
+    if (event.target.closest('#project-close, #project-fresh')) {
+      closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.');
       return;
     }
     if (event.target.closest('#project-zip')) {
