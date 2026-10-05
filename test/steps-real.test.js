@@ -944,3 +944,12 @@ test('a step for work the scope gives to others can be left out', () => {
   const left = steps(draft(task, 'electrical', { leaveOut: ['Rough-in'] }));
   assert.ok(!left.includes('Rough-in') && left.includes('Before starting'));
 });
+
+test('explosive-powered fixing tools are not blasting: the SWMS is not stood down for shotfirer work', () => {
+  const { prepareDraft } = require('../draft');
+  const d = prepareDraft({ state: 'nsw', task: 'Install pipe and duct supports. Fix using explosive and low velocity (powder-actuated) tool fasteners. Install ductwork.', fallRisk: 'no', residential: 'no' });
+  assert.equal(d.kind, 'draft');
+  assert.ok(!d.jobSteps.some((step) => /blast/i.test(step.step)));
+  const blast = prepareDraft({ state: 'nsw', task: 'Drill and blast the rock in the cutting using explosives, licensed shotfirer.', fallRisk: 'no', residential: 'no' });
+  assert.ok(blast.jobSteps.some((step) => step.step === 'Charge and fire the blast'));
+});

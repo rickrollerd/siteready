@@ -18,8 +18,6 @@ const LANGUAGES = [
   { code: 'hi', name: 'Hindi', label: 'Hindi (हिन्दी)' },
   { code: 'ko', name: 'Korean', label: 'Korean (한국어)' },
   { code: 'es', name: 'Spanish', label: 'Spanish (Español)' },
-  { code: 'pt', name: 'Portuguese', label: 'Portuguese (Português)' },
-  { code: 'el', name: 'Greek', label: 'Greek (Ελληνικά)' },
   { code: 'tl', name: 'Filipino (Tagalog)', label: 'Filipino (Tagalog)' },
   { code: 'id', name: 'Indonesian', label: 'Indonesian (Bahasa Indonesia)' },
 ];

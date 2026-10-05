@@ -1613,6 +1613,10 @@ const NO_STEPS = 'Job steps for this work: SiteReady does not have job steps for
 // Main work the library has no steps for yet. Where the task names it and no step
 // covers it, the draft is stood down rather than issued with only the access and
 // lifting steps around it.
+// Explosive-powered fixing tools (powder-actuated or cartridge nail guns) are not blasting:
+// the word "explosive" in such a phrase is dropped before blasting is looked for.
+const TOOL_EXPLOSIVE = /\bexplosive\b(?=[^.;]{0,60}\b(?:powder[- ]actuated|cartridge|low[- ]velocity|tools?|tool fasteners?|fasteners?|fixings?|nail guns?|ramset|hilti)\b)/gi;
+const withoutToolExplosives = (text) => String(text || '').replace(TOOL_EXPLOSIVE, ' ');
 const MAIN_WORK = [
   [/^(?![^]*\bconnect\w*[^.]{0,30}\bto (?:the |an |its )?(?:existing )?solar inverter)[^]*\b(solar (?:panels?|pv|arrays?|systems?)|pv (?:panels?|arrays?|systems?)|inverters?)\b/i, 'solar panel and inverter installation', /\b(solar|inverters?)\b/i],
   [/^(?![^]*\bwith (?:a |an )?(?:heat pump|electric|solar))[^]*\b(gas (?:hot water|appliances?|heaters?|cooktops?|connections?|fitting|lines?)|gasfitt\w*|connect\w*[^.]{0,30}\bgas (?:lines?|supply|mains?))\b/i, 'gas fitting', /\bgas\b/i],
@@ -1679,7 +1683,7 @@ function missingMainWork(task, steps, added = null) {
   const names = steps.map((step) => step.step);
   const text = names.join('\n');
   for (const [pattern, label, covered] of MAIN_WORK) {
-    if ((!added || HARD_MAIN_WORK.has(label)) && pattern.test(task) && !covered.test(text)) return label;
+    if ((!added || HARD_MAIN_WORK.has(label)) && pattern.test(label === 'blasting with explosives (licensed shotfirer work)' ? withoutToolExplosives(task) : task) && !covered.test(text)) return label;
   }
   const own = new Set();
   // Where drilling into concrete is the job itself (anchors, wheel stops, fixings), the drilling step is the main work.
@@ -2880,7 +2884,7 @@ function settleFlags(flags, task) {
   if (T(/\bmanholes?\b/i) && !T(/\b(pipes?|sewer (?:mains?|lines?)|connect\w*)\b/i)) out.trenchNoPipes = true;
   out.bridgeBearings = T(/\bbearings?\b/i) && T(/\b(bridges?|decks?|girders?)\b/i);
   if (T(/\b(conveyors?|silos?|pipe racks?|crane beams?|automated storage|asrs|stacker cranes?)\b/i) && T(/\b(steel|install\w*|erect\w*)\b/i) && !T(/\bbaggage\b/i)) { out.steelErect = true; out.steelLift = true; }
-  out.blasting = T(/\b(drill\w* and blast\w*|(?<!(?:abrasive|sand|grit|garnet|water|soda|bead|shot|dry ice|hydro|ice|media|pressure)[- ]?)blasting(?! (?:and (?:paint|coat)\w*|clean\w*|media|pots?|hoses?))|blast(?:ing)? (?:holes?|faces?|patterns?)|shot ?fir\w*|charg\w* (?:the )?(?:blast )?holes?|explosives?)\b/i);
+  out.blasting = /\b(drill\w* and blast\w*|(?<!(?:abrasive|sand|grit|garnet|water|soda|bead|shot|dry ice|hydro|ice|media|pressure)[- ]?)blasting(?! (?:and (?:paint|coat)\w*|clean\w*|media|pots?|hoses?))|blast(?:ing)? (?:holes?|faces?|patterns?)|shot ?fir\w*|charg\w* (?:the )?(?:blast )?holes?|explosives?)\b/i.test(withoutToolExplosives(task));
   out.conveyorMaintain = T(/\bconveyors?\b/i) && T(/\b(idlers?|rollers?|pulleys?|belts?|splic\w*|scrapers?|skirt\w*|maintain\w*|maintenance|repair\w*|replac\w*|chang\w*)\b/i) && !T(/\b(install\w*|new)\b/i) && !out.concreteConveyor;
   out.conveyorInstall = T(/\b(baggage handling|conveyors?)\b/i) && T(/\b(install\w*|new)\b/i) && !T(/\bsteel\b/i);
   if (T(/\b(?:install\w*|deliver\w*|lift\w*|set\w*)\b[^.]{0,30}\b(?:electrical )?(?:switch ?rooms?|e-?houses?|substation (?:modules?|buildings?))\b/i) && !T(/\bto (?:the )?switch ?rooms?\b/i)) { out.plantLift = true; out.craneInterface = true; }
@@ -3655,7 +3659,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     accessFloor: /\b(raised (?:access )?floor\w*|access floor\w*|computer floor\w*)\b/i.test(task),
     pumpInstall: /\b(?:install\w*|replac\w*|lower\w*)\b[^.]{0,30}\b(?:bore pumps?|submersible pumps?|pumps?)\b/i.test(task) && !/\b(?:concrete pump\w*|line pump\w*|boom pump\w*|heat pumps?|pool pumps?)\b/i.test(task),
     lightningProtection: /\blightning (?:protection|conductors?|rods?)\b/i.test(task),
-    blasting: /\b(blast\w*|explosives?|shotfir\w*)\b/i.test(task) && !/\b(sand ?blast\w*|abrasive blast\w*|grit blast\w*|water blast\w*|shot ?blast\w*|blast (?:clean|furnace))\b/i.test(task),
+    blasting: /\b(blast\w*|explosives?|shotfir\w*)\b/i.test(withoutToolExplosives(task)) && !/\b(sand ?blast\w*|abrasive blast\w*|grit blast\w*|water blast\w*|shot ?blast\w*|blast (?:clean|furnace))\b/i.test(task),
     abrasiveBlast: /\b(sand ?blast\w*|abrasive blast\w*|grit blast\w*)\b/i.test(task),
     autoDoors: /\b(auto(?:matic)? (?:sliding )?doors?|door operators?|sliding door operators?)\b/i.test(task),
     windowInstall: /\b(?:install\w*|fit\w*|replac\w*|supply and fix)\b[^.]{0,40}\b(?:(?:aluminium |timber )?windows?(?! hardware| openings?)|window frames?|louv(?:re|er)s?|sliding doors?|fly ?screens?|security (?:doors?|screens?)|screen doors?|(?:cyclone|storm|roller) shutters?)\b/i.test(task) && !/\b(?:clean\w*|wash\w*)\b[^.]{0,20}\bwindows?\b/i.test(task),
