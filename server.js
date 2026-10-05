@@ -67,7 +67,7 @@ const smallJson = express.json({ limit: '100kb' });
 const wordJson = express.json({ limit: '1mb' });
 const scopeJson = express.json({ limit: '15mb' });
 const projectJson = express.json({ limit: '5mb' });
-app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
+app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Limits are per client address. Phones on mobile data and a site office on one
@@ -227,6 +227,19 @@ app.get('/api/scope/ai/:id/report.docx', auth.requireUser, async (req, res, next
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', 'attachment; filename="Scope-review-report.docx"');
     res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// The builder SWMS check (task #106): score a subcontractor's SWMS and draft the email back.
+// Signed-in accounts only, with its own limit, as an uploaded SWMS is read by the AI.
+app.use('/api/check', limiter(positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30)));
+app.post('/api/check', auth.requireUser, async (req, res, next) => {
+  try {
+    const result = await require('./check-read').runCheck(req.body || {}, req.company);
+    record('builder_check', req.company && req.company.id);
+    res.json(result);
   } catch (error) {
     next(error);
   }

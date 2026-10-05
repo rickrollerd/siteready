@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Check a SWMS</title>
+  <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.45; color: #1c2430; background: #eef1f4; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 18px 14px 48px; }
+    h1 { font-size: 24px; margin: 0 0 4px; }
+    h2 { font-size: 18px; margin: 0 0 8px; }
+    .meta { color: #5c6773; font-size: 14px; margin: 0 0 4px; }
+    .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    label { display: block; font-size: 14px; font-weight: 600; margin: 10px 0 6px; }
+    input[type="text"], select, textarea { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; padding: 10px 11px; font: inherit; background: #fff; }
+    textarea { min-height: 140px; resize: vertical; }
+    button { border: 1px solid #1f4e3d; background: #1f4e3d; color: #fff; border-radius: 6px; padding: 12px 14px; font: inherit; font-weight: 600; width: 100%; cursor: pointer; margin-top: 12px; }
+    button.light { background: #fff; color: #1f4e3d; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .tabs { display: flex; gap: 8px; margin-top: 14px; }
+    .tabs button { margin: 0; width: auto; flex: 1; }
+    .tabs button[aria-selected="false"] { background: #fff; color: #1f4e3d; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+    @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+    .bad { background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 8px; padding: 14px; margin-top: 14px; }
+    .score { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .score strong { font-size: 32px; }
+    .band { font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+    .band.accepted { background: #e8f3ee; color: #1f4e3d; }
+    .band.changes { background: #fff4dc; color: #7a5300; }
+    .band.rejected { background: #fbeaea; color: #8a1f1f; }
+    ul.findings { list-style: none; margin: 0; padding: 0; }
+    ul.findings li { border-top: 1px solid #e3e7ec; padding: 10px 0; }
+    ul.findings li:first-child { border-top: 0; }
+    .rule { font-weight: 700; }
+    .fail .rule { color: #8a1f1f; }
+    .pass .rule { color: #1f4e3d; }
+    .source { color: #5c6773; font-size: 13px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Check a SWMS</h1>
+    <p class="meta">Check a subcontractor's SWMS against the builder check rules: seven must-fix items, then a score out of 100. Accepted is 90 to 100, accepted with changes is 60 to 89, and below 60 or any must-fix item is not accepted. You get an email to copy and send. SiteReady does not send it.</p>
+    <div id="signedOut" class="bad hidden">Sign in on the <a href="/">SiteReady page</a> first, then come back to this page.</div>
+
+    <div class="tabs" role="tablist">
+      <button type="button" id="tabUpload" role="tab" aria-selected="true">Upload or paste</button>
+      <button type="button" id="tabDraft" role="tab" aria-selected="false">SiteReady draft</button>
+    </div>
+
+    <form class="panel" id="checkForm">
+      <label for="state">State or territory of the work</label>
+      <select id="state"></select>
+
+      <div id="uploadPart">
+        <label for="file">SWMS file (Word .docx, PDF or text)</label>
+        <input id="file" type="file" accept=".docx,.pdf,.txt">
+        <label for="text">Or paste the SWMS</label>
+        <textarea id="text" placeholder="Paste the whole SWMS here"></textarea>
+        <p class="meta">The AI copies the SWMS into the check form and quotes it; the rules do the scoring. The file is not kept.</p>
+      </div>
+
+      <div id="draftPart" class="hidden">
+        <label for="task">Task</label>
+        <textarea id="task" placeholder="The task, as entered on the SiteReady page"></textarea>
+        <label for="fallRisk">Could anyone fall 2 metres or more?</label>
+        <select id="fallRisk"><option value="">Not answered</option><option value="yes">Yes</option><option value="no">No</option></select>
+        <div class="row">
+          <div><label for="workplace">Site address</label><input id="workplace" type="text"></div>
+          <div><label for="principalContractor">Principal contractor</label><input id="principalContractor" type="text"></div>
+        </div>
+        <label for="responsible">Person who checks the controls</label>
+        <input id="responsible" type="text">
+      </div>
+
+      <div class="row">
+        <div><label for="to">Subcontractor contact (for the email)</label><input id="to" type="text" autocomplete="off"></div>
+        <div><label for="from">Your name (for the email)</label><input id="from" type="text"></div>
+      </div>
+      <button type="submit" id="go">Check the SWMS</button>
+    </form>
+
+    <div id="error" aria-live="polite"></div>
+    <div id="result" class="hidden" aria-live="polite">
+      <div class="panel">
+        <div class="score"><strong id="score"></strong><span>out of 100</span><span id="band" class="band"></span></div>
+        <p class="meta" id="taskLine"></p>
+        <div id="notFound" class="bad hidden"></div>
+      </div>
+      <div class="panel">
+        <h2>Email to the subcontractor</h2>
+        <label for="subject">Subject</label>
+        <input id="subject" type="text" readonly>
+        <label for="email">Message</label>
+        <textarea id="email" readonly rows="14"></textarea>
+        <button type="button" id="copy" class="light">Copy the email</button>
+      </div>
+      <div class="panel">
+        <h2>Findings</h2>
+        <ul class="findings" id="findings"></ul>
+      </div>
+    </div>
+  </div>
+  <script src="/check.js"></script>
+</body>
+</html>
