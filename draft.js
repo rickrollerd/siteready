@@ -663,9 +663,10 @@ function mentioned(text, pattern) {
 const SILICA_MATERIAL = /\b(engineered stone|natural stone|stone|concrete|cement|bricks?|pavers?|blocks?|blockwork|masonry|tiles?|tiling|grout|mortar|render|plasterboard|porcelain|sintered stone|silica)\b/i;
 const SILICA_POWER = /\b(grind\w*|grinder|drill\w*|polish\w*|sand(?:s|ing|er)\b|saw\w*|chas(?:e|es|ing)|cor(?:e|ing)|core drill|scabbl\w*|jackhammer\w*|demolition hammer|router|power tool|angle grinder|crush\w*|tile cutter|wet saw)/i;
 
+// The material and the power tool are read from the same sentence or line: "substrate for stone"
+// in the task and a "Use power tools" step for the timber is not processing stone.
 function silicaProcessing(text) {
-  const source = String(text || '');
-  return SILICA_MATERIAL.test(source) && SILICA_POWER.test(source);
+  return String(text || '').split(/\n+/).flatMap(sentences).some((line) => SILICA_MATERIAL.test(line) && SILICA_POWER.test(line));
 }
 
 // Demolishing a whole building or structure, as opposed to strip-out of linings, partitions or
@@ -682,6 +683,13 @@ const WHOLE_DEMOLITION = new RegExp(`\\bdemolish\\w*\\b[^.(]{0,30}\\b(?:garages?
 function servicesOnlyDemolition(text) {
   return /\b(?:plant|pipework|pipes?|cabling|cables|cable (?:trays?|ladders?)|ductwork|ducts?|light fittings|services)\b[^.]{0,60}\bto be (?:\w+ or )?(?:demolished|removed)\b|\b(?:demoli\w*|remov\w*|strip\w*)\b[^.]{0,60}\b(?:plant|pipework|pipes?|cabling|cables|cable (?:trays?|ladders?)|ductwork|ducts?|light fittings|services)\b/i.test(String(text || ''))
     && !/\b(walls?|slabs?|masonry|brick\w*|concrete|structur\w*|roofs?|floors?|ceilings?|partitions?|blockwork|stairs?)\b/i.test(String(text || ''));
+}
+
+// Identifying, labelling or protecting what is "to be retained or demolished" marks it for the
+// demolition, which is other work: the sentence is not demolition work itself.
+function withoutMarkedForDemolition(text) {
+  return String(text || '').replace(/[^.\n]+\.?/g, (sentence) => (/^\s*(?:identify\w*|label\w*|mark\w*|tag\w*|protect\w*|survey\w*|record\w*|photograph\w*|locate\w*)\b/i.test(sentence)
+    && !DEMOLITION.test(sentence.replace(/\bto be (?:\w+ (?:or|and) )?demolished\b/gi, ' ')) ? ' ' : sentence));
 }
 
 function valveWiringOnly(text) {
@@ -734,7 +742,7 @@ function highRiskMatches(raw, answer, state) {
     diving: mentioned(String(text || '').replace(/\bdiving (?:towers?|platforms?|boards?|blocks?|pools?|wells?)\b/gi, ' '), /\b(diving|divers?)\b/i),
     // Victoria, regulation 322: any demolition, trenches and shafts apart from tunnels,
     // and roads or railways without shipping lanes.
-    demolitionAny: mentioned(text, DEMOLITION) || /\b(?:remov\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
+    demolitionAny: mentioned(withoutMarkedForDemolition(text), DEMOLITION) || /\b(?:remov\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
     trenchOrShaft: /\b(trench\w*|shaft)\b/i.test(text) && deepExcavation(text.replace(/\btunnel\w*\b/gi, '')),
     tunnel: mentioned(text, /\btunnel\w*\b/i),
     roadOrRail: mentioned(String(text || '').replace(/\bshipping lanes?\b/gi, '').replace(CONDITIONAL_TRAFFIC, ' '), ROAD) || mentioned(text, RAIL_IN_USE),
@@ -2077,6 +2085,7 @@ function prepareDraft(input) {
       }
       return { ...step, controls };
     });
+    draft.jobSteps = withCategoryLines(draft.jobSteps, draft.highRisk, state);
   }
   // Plant, substances, licences, emergency arrangements, sources and a suggested
   // risk rating for each step, worked out from the finished steps.
@@ -2238,6 +2247,37 @@ function withPermits(jobSteps, work, alreadyRead = '') {
     if (at < 0) at = steps.findIndex((step) => permit.work.test(step.step));
     if (at < 0) at = 0;
     steps = steps.map((step, index) => (index === at ? { ...step, controls: [...step.controls, permit.line] } : step));
+  }
+  return steps;
+}
+
+// A high risk category the SWMS lists needs controls for it in the steps (builder check H2). Where
+// the steps picked have none, as when the task names gas supply pipework but no gas fitting step
+// was picked, the category's line goes in the step it belongs to, at its place in the hierarchy.
+// "answers" is a line that already controls the category: for gas, one about the gas that isolates,
+// purges or leak tests it, or names the gas fitter.
+const CATEGORY_LINES = {
+  gas: {
+    answers: { test: (line) => /\bgas\b/i.test(line) && /\b(isolat\w*|purg\w*|leak test\w*|gas ?fitters?|shut ?off|turned off)\b/i.test(line) },
+    at: /\b(gas|pipe\w*|risers?|appliances?|heaters?|hot water|plumbing|services)\b/i,
+    line: 'Gas pipework is installed, connected and tested only by a licensed gas fitter. The gas supply is isolated at the meter or isolating valve before any connection to a live gas line, the new pipework is leak tested before the gas is turned on, and the line is purged of air before any appliance is lit.',
+  },
+};
+function withCategoryLines(jobSteps, highRisk, state) {
+  let steps = jobSteps;
+  for (const [check, item] of Object.entries(CATEGORY_LINES)) {
+    const category = highRiskList(state).find((entry) => entry.check === check);
+    if (!steps.length || !category || !highRisk.includes(category.label) || steps.some((step) => step.controls.some((line) => item.answers.test(line)))) continue;
+    let at = steps.findIndex((step) => !['Before starting', 'Finish and clean up'].includes(step.step) && item.at.test(step.step));
+    if (at < 0) at = 0;
+    steps = steps.map((step, index) => {
+      if (index !== at) return step;
+      const controls = [...step.controls];
+      const rank = HIERARCHY_RANK[controlLevel(item.line)];
+      const place = controls.findIndex((other) => HIERARCHY_RANK[controlLevel(other)] > rank);
+      controls.splice(place < 0 ? controls.length : place, 0, item.line);
+      return { ...step, controls };
+    });
   }
   return steps;
 }
