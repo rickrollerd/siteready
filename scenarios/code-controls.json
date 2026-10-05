@@ -3809,9 +3809,15 @@
   "op": "add",
   "group": "steelLift",
   "step": "Lift and land steel with the crane company",
-  "text": "Strapping on steel bundles is released with caution, as the strapping may whip back or the bundle may fall apart.",
+  "text": "Strapping on steel bundles can whip back when it is released, and the bundle can fall apart.",
   "code": "Steel construction",
   "section": "s 4.3.2"
+ },
+ {
+  "op": "add",
+  "group": "steelLift",
+  "step": "Lift and land steel with the crane company",
+  "text": "The person releasing the strapping stands to the side, clear of the strap's path, and no one else is within reach of the bundle."
  },
  {
   "op": "add",
