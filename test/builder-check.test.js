@@ -2,8 +2,8 @@
 // with a stand-in for the model so no request is made or billed.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { checkSwms, fromDraft, emailDraft, bandFor, controlLevel } = require('../builder-check');
-const { readSwms, CHECK_BRIEF, CHECK_SCHEMA } = require('../check-read');
+const { checkSwms, fromDraft, emailDraft, bandFor, controlLevel, isVague } = require('../builder-check');
+const { readSwms, validSwms, CHECK_BRIEF, CHECK_SCHEMA } = require('../check-read');
 const aiScope = require('../ai-scope');
 const { prepareDraft } = require('../draft');
 const { draftBody } = require('../input');
@@ -28,11 +28,11 @@ const GOOD = Object.freeze({
       'The supervisor checks the scaffold tag before each shift.'] },
     { step: 'Install roof edge protection', hazards: ['Falling from the roof edge.', 'Falling through skylights.'], controls: [
       'A perimeter guardrail scaffold is installed around the roof edge before work starts, with the working deck no more than 300 mm below the eaves.',
-      'Skylights are covered with fixed covers rated to take a fall before anyone goes onto the roof.'] },
+      'Skylights are covered with fixed covers rated to take a fall before anyone goes onto the roof.'], responsible: 'Scaffolder' },
     { step: 'Remove and replace roof sheets', hazards: ['Falling through the open roof frame.', 'Cuts from sheet edges.'], controls: [
       'Safety mesh to AS/NZS 4389 is fixed under the new sheets before they are laid.',
       'Sheets are lifted to the roof by a materials hoist, not carried up the stair.',
-      'Cut resistant gloves are worn when handling sheets.'] },
+      'Cut resistant gloves are worn when handling sheets.'], responsible: 'Leading hand' },
   ],
   ppe: ['Hard hat', 'Safety boots', 'Cut resistant gloves'],
   responsiblePerson: 'Sam Lee, roofing supervisor',
@@ -120,10 +120,10 @@ test('H6 and H7: no responsible person; no worker signatures', () => {
 
 test('W4: the SWMS says it is revised when the work changes, and after an incident', () => {
   const full = checkSwms(GOOD).findings.find((item) => item.rule === 'W4');
-  assert.equal(full.points, 10);
+  assert.equal(full.points, 7);
   assert.match(full.source, /Bernie Leen/);
   const none = checkSwms(variant({ review: 'The supervisor checks the controls before each shift.' })).findings.find((item) => item.rule === 'W4');
-  assert.equal(none.points, 7);
+  assert.equal(none.points, 4);
   assert.match(none.message, /revised when the work stage, method or site changes/);
   assert.match(none.message, /after an incident/);
 });
@@ -189,9 +189,9 @@ test('SiteReady drafts score sensibly', () => {
     // H5 fires on library lines with "where needed" or "as needed" (reported to the owner, rule kept).
     assert.deepEqual(failed(result).filter((rule) => rule !== 'H5'), [], `#${index}`);
   }
-  // The printed SWMS has a risk matrix and loses those points. It prints a revision number (5 Oct).
+  // The printed SWMS has a risk matrix, which is not marked down, and a revision number (5 Oct).
   const roof = draftCheck(0);
-  assert.equal(roof.findings.find((item) => item.rule === 'W8').points, 3);
+  assert.equal(roof.findings.find((item) => item.rule === 'W8').points, 5);
   assert.doesNotMatch(roof.findings.find((item) => item.rule === 'W9').message, /revision number/);
   // A draft is checked before the crew signs, so H7 fails until they do.
   assert.ok(failed(draftCheck(8, false)).includes('H7'));
@@ -255,4 +255,128 @@ test('the AI reading is refused when switched off, and a malformed answer is not
   t.after(() => { delete process.env.ANTHROPIC_API_KEY; aiScope.useClient(null); });
   aiScope.useClient(standIn({ task: 'x' }));
   await assert.rejects(readSwms(DOCUMENT), (error) => error.status === 502);
+});
+
+// ---- v1.1: owner decisions of 5 October 2026 ----
+
+const item = (result, rule) => result.findings.find((finding) => finding.rule === rule);
+
+test('the 100 points are split as decided: three new items taken from the items they overlap', () => {
+  const maxima = Object.fromEntries(checkSwms(GOOD).findings.filter((finding) => !finding.hard).map((finding) => [finding.rule, finding.max]));
+  assert.deepEqual(maxima, { W1: 15, W2: 15, W3: 10, W4: 7, W5: 8, W6: 10, W7: 10, W8: 5, W9: 5, W10: 5, W11: 5, W12: 5 });
+  for (const rule of ['W10', 'W11', 'W12']) assert.match(item(checkSwms(GOOD), rule).source, /Multiplex SWMS for HRCW review checklist rev 9 \(evidence/);
+  assert.match(item(checkSwms(GOOD), 'W10').source, /s 36/);
+  assert.match(item(checkSwms(GOOD), 'W12').source, /Code of Practice: Construction Work/);
+});
+
+test('H5: "where reasonably practicable" is the legal test, not vague; "as needed" and the like still are', () => {
+  for (const line of ['Install edge protection where reasonably practicable.', 'So far as is reasonably practicable, work is done from the ground.',
+    'If it is not reasonably practicable to use a scaffold, an EWP is used.']) {
+    assert.equal(isVague(line), false, line);
+    const steps = structuredClone(GOOD.steps);
+    steps[1].controls.push(line);
+    assert.deepEqual(failed(checkSwms(variant({ steps }))), [], line);
+  }
+  for (const line of ['Install edge protection as needed.', 'Cover skylights where needed.', 'Barricade the edge where necessary.',
+    'Use a harness if required.', 'Fit mesh as required.', 'Where reasonably practicable, fit edge protection, and add covers as needed.']) {
+    assert.equal(isVague(line), true, line);
+    const steps = structuredClone(GOOD.steps);
+    steps[1].controls.push(line);
+    assert.deepEqual(failed(checkSwms(variant({ steps }))), ['H5'], line);
+  }
+});
+
+test('W8: a printed risk matrix is not marked down; a long legislation list and a long SWMS still are', () => {
+  const matrix = item(checkSwms(variant({ riskMatrix: true })), 'W8');
+  assert.equal(matrix.points, 5);
+  assert.doesNotMatch(matrix.message, /risk matrix/);
+  assert.match(matrix.source, /risk matrix is not marked down/);
+  assert.equal(item(checkSwms(variant({ legislation: ['a', 'b', 'c', 'd', 'e', 'f'] })), 'W8').points, 2);
+  const long = structuredClone(GOOD.steps);
+  long[2].controls.push(...Array.from({ length: 120 }, (_, n) => `Sheet ${n + 1} is fixed with screws at 300 mm centres.`));
+  assert.equal(item(checkSwms(variant({ steps: long })), 'W8').points, 3);
+});
+
+test('W9: a revision number is credited, as text or as a number', () => {
+  for (const revision of ['Rev 2', '1', 1, 0]) assert.equal(item(checkSwms(variant({ revision })), 'W9').points, 5, String(revision));
+  for (const revision of ['', 'TBC', null]) assert.match(item(checkSwms(variant({ revision })), 'W9').message, /Add a revision number/, String(revision));
+  // A SiteReady draft that carries draft.revision gets the point for it.
+  const s = scenarios[0];
+  const draft = prepareDraft(draftBody({ state: 'qld', task: s.task, fallRisk: s.fallRisk, facts: s.facts, ...SITE }));
+  for (const revision of ['2', 0]) {
+    const w9 = item(checkSwms(fromDraft({ ...draft, revision }, { state: 'qld' }), { state: 'qld' }), 'W9');
+    assert.equal(w9.points, 5, String(revision));
+    assert.doesNotMatch(w9.message, /revision number/);
+  }
+});
+
+test('W10: higher order controls are listed before administrative controls and PPE within each step', () => {
+  assert.equal(item(checkSwms(GOOD), 'W10').points, 5);
+  const steps = structuredClone(GOOD.steps);
+  // Gloves first, then the mesh: out of order in the one step that has both kinds.
+  steps[2].controls = [steps[2].controls[2], steps[2].controls[0], steps[2].controls[1]];
+  const result = item(checkSwms(variant({ steps })), 'W10');
+  assert.equal(result.points, 0);
+  assert.match(result.message, /in: Remove and replace roof sheets\./);
+  // With a second step in order, half the judged steps are in order.
+  const ordered = { step: 'Fix the flashings', hazards: ['Falling from the roof edge.'], controls: ['Flashings are fixed from inside the guardrail.', 'Gloves are worn.'] };
+  assert.equal(item(checkSwms(variant({ steps: [...steps, ordered] })), 'W10').points, 3);
+  // A step with no higher order control is not judged here (W2 marks it).
+  const admin = [{ step: 'Plan the work', hazards: ['Working at height.'], controls: ['The supervisor briefs the crew.', 'Gloves are worn.'] }];
+  assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, ...admin] })), 'W10').points, 5);
+});
+
+test('W11: each step names a responsible position, not only one person for the SWMS', () => {
+  assert.equal(item(checkSwms(GOOD), 'W11').points, 5);
+  // Named in a control ("The supervisor checks ..."), or against the step.
+  const none = GOOD.steps.map((step, n) => ({ ...step, responsible: '', controls: n ? step.controls : ['Access is by the scaffold stair only, inspected and tagged before use.'] }));
+  const result = checkSwms(variant({ steps: none }));
+  assert.equal(item(result, 'W11').points, 0);
+  assert.match(item(result, 'W11').message, /3 of 3 steps name none/);
+  assert.deepEqual(failed(result), [], 'one responsible person for the SWMS still passes H6');
+  assert.equal(item(checkSwms(variant({ steps: none.map((step, n) => (n ? step : { ...step, responsible: 'Leading hand' })) })), 'W11').points, 2);
+});
+
+test('W12: work that needs a permit names it', () => {
+  const steps = (extra) => [...GOOD.steps, extra];
+  assert.equal(item(checkSwms(GOOD), 'W12').points, 5);
+  // Hot work.
+  const weld = { step: 'Weld the box gutter brackets', hazards: ['Sparks and fire.'], controls: ['A fire extinguisher is at the work area.'] };
+  const unnamed = item(checkSwms(variant({ steps: steps(weld) })), 'W12');
+  assert.equal(unnamed.points, 0);
+  assert.match(unnamed.message, /a hot work permit \(hot work\)/);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...weld, controls: [...weld.controls, 'Welding starts only under a hot work permit from the principal contractor.'] }) })), 'W12').points, 5);
+  // Confined space entry.
+  const tank = { step: 'Enter the confined space', hazards: ['Low oxygen.'], controls: ['The air is tested before entry.'] };
+  assert.equal(item(checkSwms(variant({ steps: steps(tank) })), 'W12').points, 0);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...tank, controls: [...tank.controls, 'A confined space entry permit is issued for each entry.'] }) })), 'W12').points, 5);
+  // Digging near services.
+  const dig = { step: 'Dig the footings', hazards: ['Striking underground services.'], controls: ['Services are located before digging.'] };
+  assert.equal(item(checkSwms(variant({ steps: steps(dig) })), 'W12').points, 0);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...dig, controls: [...dig.controls, 'Digging starts only under the principal contractor\'s excavation permit.'] }) })), 'W12').points, 5);
+  // Overhead lines, and isolation.
+  const lines = { step: 'Work near the overhead power lines', hazards: ['Contact with the lines.'], controls: ['A safety observer watches the crane.'] };
+  assert.match(item(checkSwms(variant({ steps: steps(lines) })), 'W12').message, /network operator's written permission/);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...lines, controls: ['Work starts only under the network operator\'s written permission.'] }) })), 'W12').points, 5);
+  const isolate = { step: 'Isolate the switchboard', hazards: ['Electric shock.'], controls: ['The electrician tests for dead.'] };
+  assert.match(item(checkSwms(variant({ steps: steps(isolate) })), 'W12').message, /isolation permit/);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...isolate, controls: ['An isolation permit is issued and each worker fits a personal lock.'] }) })), 'W12').points, 5);
+  // Roof access: only where the SWMS says the site runs a permit system.
+  const permitSite = { ...GOOD.site, conditions: [...GOOD.site.conditions, 'The site runs a permit system: permits are issued by the principal contractor.'] };
+  assert.match(item(checkSwms(variant({ site: permitSite })), 'W12').message, /a roof access permit/);
+  assert.equal(item(checkSwms(variant({ site: { ...permitSite, conditions: [...permitSite.conditions, 'Roof access permit obtained each day.'] } })), 'W12').points, 5);
+  // Two kinds needed, one named: half the points, rounded.
+  assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, weld, { ...tank, controls: ['A confined space entry permit is issued for each entry.'] }] })), 'W12').points, 3);
+});
+
+test('the AI reading gives a responsible position per step; answers without it are still read', () => {
+  assert.ok(CHECK_SCHEMA.properties.steps.items.required.includes('responsible'));
+  assert.match(CHECK_BRIEF, /responsible: the person or position/);
+  assert.ok(validSwms(READ));
+  const withPosition = { ...READ, steps: READ.steps.map((step) => ({ ...step, responsible: 'Leading hand' })) };
+  assert.ok(validSwms(withPosition));
+  assert.ok(!validSwms({ ...READ, steps: READ.steps.map((step) => ({ ...step, responsible: 3 })) }));
+  const read = { ...withPosition, site: { address: READ.siteAddress, conditions: [] } };
+  assert.equal(item(checkSwms(read), 'W11').points, 5);
+  assert.equal(item(checkSwms({ ...read, steps: READ.steps }), 'W11').points, 0);
 });

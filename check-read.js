@@ -11,7 +11,7 @@ const { prepareDraft } = require('./draft');
 const { draftBody } = require('./input');
 const { scopeText } = require('./scope-text');
 
-const CHECK_BRIEF_VERSION = 'check-v1';
+const CHECK_BRIEF_VERSION = 'check-v2';
 
 const CHECK_BRIEF = `You copy the contents of a safe work method statement (SWMS) from an Australian construction site into a fixed form. A separate program scores it. You do not judge, score, fix or improve the SWMS.
 
@@ -20,7 +20,7 @@ Rules:
 2. Quote the document. Every hazard, control, site condition, licence, plant item and emergency line is copied word for word from the document, one line or sentence per item. Do not shorten with "..." and do not reword.
 3. Leave it blank when the document does not say. Use "" for a missing text field and [] for a missing list. A blank line, "TBC" or a line of underscores is not an answer: leave it blank.
 4. highRisk: the high risk construction work the document itself lists or ticks, in its own words. Do not add work you think it involves.
-5. steps: each job step in order, with the hazards and controls the document gives for that step. Where the document lists hazards and controls without steps, use one step named "Whole task".
+5. steps: each job step in order, with the hazards and controls the document gives for that step, in the order the document lists them. Where the document lists hazards and controls without steps, use one step named "Whole task". responsible: the person or position the document names as responsible for that step or its controls (for example in a "Responsible" column), as written, or "".
 6. signatures: only workers whose name is written against a signature or sign-on. An empty sign-on table gives [].
 7. consultation: the document's own words recording that workers were consulted or briefed, or "".
 8. responsiblePerson: the person or role the document names as checking or supervising the controls, as written.
@@ -39,7 +39,7 @@ const CHECK_SCHEMA = object({
   siteAddress: text,
   siteConditions: texts,
   highRisk: texts,
-  steps: { type: 'array', items: object({ step: text, hazards: texts, controls: texts }) },
+  steps: { type: 'array', items: object({ step: text, hazards: texts, controls: texts, responsible: text }) },
   ppe: texts,
   responsiblePerson: text,
   consultation: text,
@@ -67,7 +67,7 @@ function validSwms(value) {
   return Boolean(value) && typeof value === 'object'
     && ['task', 'siteAddress', 'responsiblePerson', 'consultation', 'revision', 'date', 'reviewDate', 'principalContractor', 'review'].every((key) => typeof value[key] === 'string')
     && ['siteConditions', 'highRisk', 'ppe', 'licences', 'plant', 'emergency', 'legislation'].every((key) => strings(value[key]))
-    && Array.isArray(value.steps) && value.steps.every((step) => step && typeof step.step === 'string' && strings(step.hazards) && strings(step.controls))
+    && Array.isArray(value.steps) && value.steps.every((step) => step && typeof step.step === 'string' && strings(step.hazards) && strings(step.controls) && ['string', 'undefined'].includes(typeof step.responsible))
     && Array.isArray(value.signatures) && value.signatures.every((item) => item && typeof item.name === 'string');
 }
 
