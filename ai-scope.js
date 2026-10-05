@@ -12,7 +12,8 @@
 const crypto = require('crypto');
 const Anthropic = require('@anthropic-ai/sdk');
 const db = require('./db');
-const { BRIEF, BRIEF_VERSION, SCHEMA, PACKAGES } = require('./ai-brief');
+const { BRIEF, BRIEF_VERSION, SCHEMA, PACKAGES, STEPS_BRIEF, STEPS_SCHEMA } = require('./ai-brief');
+const { ACTIVITIES } = require('./activities');
 
 const MODEL = 'claude-opus-5-5';
 // US dollars per million tokens for Claude Opus 5.5, to show what each reading cost.
@@ -109,30 +110,80 @@ function costOf(usage = {}) {
 
 // One call to the model: the brief as the system prompt (the same for every document, so it
 // is cached), the whole document as the message, and the answer in the brief's JSON shape.
-async function askModel(text) {
+// One streamed call with structured output. The system prompt is the same for every document,
+// so it is cached; a safety decline is re-run on a fallback model rather than lost.
+async function callModel({ system, content, schema, effort }) {
   const stream = getClient().beta.messages.stream({
     model: MODEL,
     max_tokens: 128000,
     thinking: { type: 'adaptive' },
-    output_config: { effort: 'high', format: { type: 'json_schema', schema: SCHEMA } },
-    // If a safety check declines the request, it is re-run on a fallback model rather than lost.
+    output_config: { effort, format: { type: 'json_schema', schema } },
     betas: ['server-side-fallback-2026-07-01'],
     fallbacks: 'default',
-    system: [{ type: 'text', text: BRIEF, cache_control: { type: 'ephemeral' } }],
-    messages: [{ role: 'user', content: `<document>\n${text}\n</document>` }],
+    system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+    messages: [{ role: 'user', content }],
   });
   const message = await stream.finalMessage();
   if (message.stop_reason === 'refusal') throw fail(422, 'The AI could not read this document. Use the quick read, and check every task.');
   if (message.stop_reason === 'max_tokens') throw fail(422, 'This document has more work in it than the AI can list in one reading. Split it into parts and read each one.');
   const answer = message.content.filter((block) => block.type === 'text').map((block) => block.text).join('');
-  let reading;
   try {
-    reading = JSON.parse(answer);
+    return { value: JSON.parse(answer), usage: message.usage || {}, model: message.model || MODEL };
   } catch {
     throw fail(502, 'The AI\'s answer could not be read. Try again.');
   }
+}
+
+// One call to read the document with the brief: the whole document, nothing trimmed.
+async function askModel(text) {
+  const { value: reading, usage, model } = await callModel({ system: BRIEF, content: `<document>\n${text}\n</document>`, schema: SCHEMA, effort: 'high' });
   if (!validReading(reading)) throw fail(502, 'The AI\'s answer was not in the expected form. Try again.');
-  return { reading, usage: message.usage || {}, model: message.model || MODEL };
+  return { reading, usage, model };
+}
+
+// The step library as the AI sees it: each group's id and the job steps in it.
+let catalogue = null;
+function stepCatalogue() {
+  if (!catalogue) {
+    const groups = new Map();
+    for (const activity of ACTIVITIES) {
+      if (!activity.when) continue;
+      groups.set(activity.when, [...(groups.get(activity.when) || []), ...activity.steps.map((step) => step.step)]);
+    }
+    catalogue = { ids: new Set(groups.keys()), text: [...groups].map(([id, names]) => `${id}: ${[...new Set(names)].join('; ')}`).join('\n') };
+  }
+  return catalogue;
+}
+
+// The second, smaller call: the job step groups that cover each work package with site work.
+// Ids not in the library are dropped, so a made-up id can never reach a SWMS.
+async function mapSteps(reading) {
+  const packages = new Map();
+  for (const row of reading.activities) {
+    if (row.type === 'Duty') continue;
+    if (!packages.has(row.package)) packages.set(row.package, []);
+    packages.get(row.package).push(row);
+  }
+  if (!packages.size) return { packages: [], usage: {} };
+  const { ids, text } = stepCatalogue();
+  const listed = [...packages].map(([name, rows]) => `Work package: ${name}\n${rows.map((row) => `- ${row.activity}${row.plant ? ` | plant: ${row.plant}` : ''}${row.conditions ? ` | conditions: ${row.conditions}` : ''}${row.where ? ` | where: ${row.where}` : ''}`).join('\n')}`).join('\n\n');
+  const { value, usage } = await callModel({ system: `${STEPS_BRIEF}\n\n<library>\n${text}\n</library>`, content: listed, schema: STEPS_SCHEMA, effort: 'medium' });
+  const chosen = new Map((Array.isArray(value && value.packages) ? value.packages : []).map((item) => [item.package, item]));
+  return {
+    packages: [...packages.keys()].map((name) => {
+      const item = chosen.get(name) || { groups: [], unmatched: [] };
+      const groups = [...new Set((item.groups || []).filter((id) => ids.has(id)))];
+      return { package: name, groups, unknown: (item.groups || []).filter((id) => !ids.has(id)), unmatched: (item.unmatched || []).map(String) };
+    }),
+    usage,
+  };
+}
+
+// The usage of both calls, added together.
+function addUsage(a = {}, b = {}) {
+  const out = { ...a };
+  for (const key of ['input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens']) out[key] = (a[key] || 0) + (b[key] || 0);
+  return out;
 }
 
 function errorMessage(error) {
@@ -172,8 +223,15 @@ async function startReading(company, text) {
   await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
     [id, company.id, hash, BRIEF_VERSION, MODEL, 'reading', content.length, new Date()]);
   const work = askModel(content)
-    .then(async ({ reading, usage, model }) => {
-      const checks = checkReading(reading, content);
+    .then(async ({ reading: read, usage: readUsage, model }) => {
+      const steps = await mapSteps(read);
+      const reading = { ...read, packages: steps.packages };
+      const usage = addUsage(readUsage, steps.usage);
+      const checks = {
+        ...checkReading(reading, content),
+        packagesWithoutSteps: steps.packages.filter((item) => !item.groups.length).map((item) => item.package),
+        unknownStepIds: steps.packages.flatMap((item) => item.unknown),
+      };
       await db.query('UPDATE ai_readings SET status = $2, reading = $3, checks = $4, usage = $5, cost_usd = $6, model = $7, finished_at = $8 WHERE id = $1',
         [id, 'done', JSON.stringify(reading), JSON.stringify(checks), JSON.stringify(usage), costOf(usage), model, new Date()]);
     })
@@ -196,4 +254,4 @@ async function getReading(company, id) {
   return rowOut(row);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, checkReading, validReading, costOf, fingerprint, normalise, MODEL };
+module.exports = { enabled, useClient, startReading, getReading, checkReading, validReading, costOf, fingerprint, normalise, mapSteps, stepCatalogue, MODEL };
