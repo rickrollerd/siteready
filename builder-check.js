@@ -7,9 +7,21 @@
 // outreach drafts"). Bands: Accepted 90 to 100; Accepted with changes 60 to 89; Not accepted
 // below 60 or any hard fail.
 //
+// Owner decisions of 5 October 2026 (v1.1). Three criteria were added, seen in the Multiplex SWMS
+// for HRCW review checklist rev 9 (used as evidence of what tier 1 builders check; nothing is
+// copied from it). They fit in the same 100 points, taken from the items they overlap:
+//   W10 Controls in hierarchy order within each step (5): from W2, hierarchy (20 to 15).
+//   W11 A responsible position per step (5): 3 from W4, which gave 3 for one responsible person
+//       for the whole SWMS (H6 still requires that person), 10 to 7; 2 from W3, checkable (15 to 13).
+//   W12 Named permits where the work needs one (5): 3 from W3, which counted any permit as a
+//       checkable detail (13 to 10); 2 from W5, licences and authority to do the work (10 to 8).
+// Now: W1 15, W2 15, W3 10, W4 7, W5 8, W6 10, W7 10, W8 5, W9 5, W10 5, W11 5, W12 5 = 100.
+// A printed risk matrix no longer loses points in W8. "Where reasonably practicable" (the legal
+// test in the WHS Act) is not vague wording in H5 or W3.
+//
 // The SWMS comes in one structured form, whatever its source (an AI reading of an uploaded
 // document, or a SiteReady draft):
-// { state, task, fallRisk, site: { address, conditions[] }, highRisk[], steps[{ step, hazards[], controls[] }],
+// { state, task, fallRisk, site: { address, conditions[] }, highRisk[], steps[{ step, hazards[], controls[], responsible }],
 //   ppe[], responsiblePerson, consultation, signatures[{ name, date }], revision, date, reviewDate,
 //   principalContractor, licences[], plant[], emergency[], review, legislation[], riskMatrix }
 const { findState, highRiskList } = require('./legislation');
@@ -32,8 +44,11 @@ const SOURCES = {
   W5: 'WHS Regulations (high risk work licences and plant); SafeWork NSW earthmoving plant findings 2022-23',
   W6: 'Model Code of Practice: Construction Work (emergency arrangements); WHS Regulations s 80 (rescue after a fall)',
   W7: 'SafeWork SA high risk construction work audit 2020; WHSQ construction blitz 2023',
-  W8: 'Safe Work Australia SWMS information sheet and SWMS tool; OFSC SWMS fact sheet',
+  W8: 'Safe Work Australia SWMS information sheet and SWMS tool; OFSC SWMS fact sheet. A printed risk matrix is not marked down (owner decision, 5 October 2026)',
   W9: 'Tier 1 SWMS review checklists (revision, dates, principal contractor)',
+  W10: 'Hierarchy of control (WHS Regulations s 36); Model Code of Practice: Construction Work; Multiplex SWMS for HRCW review checklist rev 9 (evidence that tier 1 builders check the order)',
+  W11: 'Model Code of Practice: Construction Work (who implements, monitors and reviews each control); WHS Regulations s 299(3); Multiplex SWMS for HRCW review checklist rev 9 (evidence: a position per step, not one person for the SWMS)',
+  W12: 'WHS Regulations s 67 (confined space entry permit), s 166 (overhead and underground electric lines) and s 304 (underground essential services); Model Code of Practice: Construction Work; Multiplex SWMS for HRCW review checklist rev 9 (evidence that tier 1 builders check named permits)',
 };
 
 // ---- Reading the structured form ----
@@ -57,12 +72,13 @@ function normaliseSwms(input = {}) {
     site: { address: text(site.address || input.siteAddress), conditions: list(site.conditions || input.siteConditions).filter(filled) },
     highRisk: list(input.highRisk),
     steps: (Array.isArray(input.steps) ? input.steps : []).filter((item) => item && typeof item === 'object')
-      .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls) })),
+      .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls), responsible: text(item.responsible) })),
     ppe: list(input.ppe),
     responsiblePerson: text(input.responsiblePerson),
     consultation: text(input.consultation),
     signatures,
-    revision: text(input.revision),
+    // A revision may be given as a number (0, 1, 2).
+    revision: typeof input.revision === 'number' && Number.isFinite(input.revision) ? String(input.revision) : text(input.revision),
     date: text(input.date),
     reviewDate: text(input.reviewDate),
     principalContractor: text(input.principalContractor),
@@ -143,6 +159,11 @@ const VAGUE = /\b(?:appropriate|suitable|adequate|relevant|proper|necessary|corr
 const CHECKABLE = /\b\d+(?:\.\d+)?\s?(?:mm|m|metres?|kg|t|tonnes?|kv|v|volts?|kpa|%|°c?|degrees|minutes?|hours?|days?|months?|lux|db\(?a?\)?)\b|\bAS(?:\/NZS)?\s?\d{3,}|\b(inspect\w*|tested|tags?|tagged|permits?|licen[cs]\w*|certificates?|certified|engineer'?s? design|drawings?|pre-?start|log ?books?|checklists?|signed off|verified|rated)\b/i;
 // Named equipment counts as checkable too: it is there on site or it is not.
 const NAMED_EQUIPMENT = /\b(guard ?rails?|edge protection|scaffold\w*|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|safety mesh|catch platforms?|trench (?:shields?|box\w*)|shoring|props?|hoardings?|para-?webbing|harness\w*|life ?jackets?|gas detectors?|(?:dust )?extraction|h-class vacuum\w*|rcds?|lock ?out|isolation locks?|spotters?|traffic controllers?|safety observers?|tag lines?)\b/i;
+// "Where reasonably practicable" and "so far as is reasonably practicable" are the legal test in
+// the WHS Act (s 17 and s 18), not vague wording. "As needed", "where necessary" and the like still are.
+const REASONABLY_PRACTICABLE = /\b(?:so far as is |as far as is |where |when |if |unless |not )?reasonably practicable\b/gi;
+const isVague = (line) => VAGUE.test(String(line).replace(REASONABLY_PRACTICABLE, ' '));
+
 const checkable = (line) => CHECKABLE.test(line) || NAMED_EQUIPMENT.test(line);
 
 // Plant that needs a licence, and the licence wording that answers it (W5).
@@ -155,6 +176,37 @@ const LICENSED_PLANT = [
   { plant: /\b(electrical (?:work|installations?)|rewir\w*|wiring work|switchboards?)\b/i, licence: /\b(electrical (?:contractor|worker|licen\w*)|electrician|a[- ]grade|licensed electrical)\b/i },
   { plant: /\b(excavators?|skid ?steers?|bobcats?|loaders?|rollers?|dozers?|graders?|telehandlers?)\b/i, licence: /\b(voc|verification of competency|ticket|licen\w*|competen\w*|operator)\b/i },
 ];
+// Work that needs a named permit (W12): what the work looks like, and the permit that answers it.
+// Read from the task, the step names and the high risk work listed, not from the hazards, which
+// often name what may be there. Isolation is read from the task and step names only: the high risk
+// category "energised electrical installations or services" also covers work near lines. Roof
+// access needs a permit only where the SWMS says the site runs a permit system.
+const SITE_PERMITS = /\b(site permit (?:system|process)|permit (?:to work )?system|permits? (?:issued )?by the principal contractor|principal contractor'?s? permits?)\b/i;
+const PERMITS = [
+  { label: 'hot work', name: 'a hot work permit',
+    work: /\b(hot works?|weld(?:ing|ed|s)?|braz\w*|solder\w*|oxy[- ]?(?:acetylene|propane|cutting)|gas (?:cutting|torch\w*)|thermal cutting|cutting torch\w*|torch[- ]on)\b/i,
+    permit: /\bhot works? permits?\b/i },
+  { label: 'confined space entry', name: 'a confined space entry permit',
+    work: /\bconfined spaces?\b/i,
+    permit: /\b(?:confined space (?:entry )?|entry )permits?\b/i },
+  { label: 'excavation or digging near services', name: 'an excavation or dig permit',
+    work: /\b(excavat\w*|trench\w*|dig(?:s|ging)?|pot[- ]?hol\w*|post holes?|auger\w*|directional drill\w*|bor(?:e|ing) under)\b/i,
+    near: /\b(services?|cables?|pipes?|gas|mains|power|electric\w*|before you dig|dbyd|byda)\b/i,
+    permit: /\b(?:excavation|dig(?:ging)?|ground (?:disturbance|penetration)|penetration) permits?\b|\bpermits? to (?:dig|excavate)\b/i },
+  { label: 'work near overhead or underground electric lines', name: 'a permit to work near the lines, or the network operator\'s written permission',
+    work: /\b(overhead (?:power|electric\w*|service)? ?(?:lines?|cables?|wires?|mains)|power ?lines?|electric lines?|underground (?:power|electric\w*) (?:cables?|lines?|mains))\b/i,
+    permit: /\b(permits? to work|(?:electrical|vicinity|access) permits?|access authori[sz]ations?|(?:network|electricity) (?:operator|entity|distributor)'?s? (?:written )?(?:approval|permission|consent))\b/i },
+  { label: 'isolation or lock out of live plant or services', name: 'an isolation permit or permit to work', notFromCategory: true,
+    work: /\b(isolat\w* (?:the |of )?(?:\w+ ){0,3}(?:plant|machinery|equipment|power|supply|services?|circuits?|switchboards?)|lock ?out|lockout|live (?:plant|equipment|machinery|electrical|switchboards?)|energi[sz]ed (?:plant|equipment|electrical))\b/i,
+    permit: /\b(isolation (?:permits?|certificates?)|permits? to work)\b/i },
+  { label: 'roof access', name: 'a roof access permit', onlyWithSitePermits: true,
+    work: /\b(roofs?|roofing)\b/i,
+    permit: /\broof (?:access )?permits?\b|\bpermits? (?:for|to) (?:access )?(?:the )?roof\b/i },
+];
+
+// A position named as responsible for a step's controls (W11). "Workers" alone is not a position.
+const POSITION = /\b(supervisors?|leading hands?|foreman|foremen|site managers?|project managers?|works managers?|engineers?|operators?|scaffolders?|riggers?|doggers?|dogm[ae]n|electricians?|removalists?|asbestos assessors?|hygienists?|first aiders?|spotters?|safety observers?|traffic controllers?|competent persons?|stand-?by persons?|permit (?:issuers?|holders?)|gas fitters?|plumbers?|surveyors?|principal contractor|health and safety representatives?|hsrs?|safety (?:officers?|advisers?|managers?)|whs (?:officers?|advisers?|managers?))\b/i;
+
 const PLANT_WORDS = /\b(cranes?|forklifts?|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|excavators?|skid ?steers?|bobcats?|loaders?|rollers?|dozers?|graders?|telehandlers?|trucks?|concrete pumps?|scaffold\w*|power tools?|saws?|grinders?|generators?|compressors?)\b/i;
 
 // ---- The check ----
@@ -219,7 +271,7 @@ function hardFails(swms, state) {
 
   // Vague wording in a step with a high risk hazard.
   const riskySteps = swms.steps.filter((step) => highRiskMatches(stepText(step), swms.fallRisk, state).length);
-  const vague = riskySteps.flatMap((step) => step.controls.filter((line) => VAGUE.test(line)).map((line) => ({ step: step.step, line })));
+  const vague = riskySteps.flatMap((step) => step.controls.filter(isVague).map((line) => ({ step: step.step, line })));
   add('H5', 'Controls are definite, not left to the worker', !vague.length,
     vague.length ? `Controls for high risk hazards leave the decision to the worker: ${vague.slice(0, 5).map((item) => `"${item.line}" (${item.step || 'step'})`).join('; ')}. Say exactly what is done.` : 'No vague controls for high risk hazards.');
 
@@ -256,7 +308,7 @@ function weighted(swms, state, context) {
     add('W1', 'Hazards match the job steps', 15, points, fixes, 'Each step has its own hazards.');
   }
 
-  // W2 Controls follow the hierarchy (20).
+  // W2 Controls follow the hierarchy (15; was 20, 5 went to W10).
   {
     const fixes = [];
     let points = 0;
@@ -268,49 +320,50 @@ function weighted(swms, state, context) {
     if (judged.length) points += 10 * (strong.length / judged.length);
     if (judged.length && strong.length < judged.length) fixes.push(`Add an elimination, substitution, isolation or engineering control to: ${judged.filter((step) => !strong.includes(step)).slice(0, 4).map((step) => step.step).join('; ')}.`);
     const ppeShare = levels.length ? levels.filter((level) => level === 'PPE').length / levels.length : 1;
-    if (ppeShare <= 0.2) points += 10;
-    else if (ppeShare <= 0.35) { points += 5; fixes.push('Too many controls are PPE. Put higher order controls first.'); } else fixes.push('Most controls are PPE. Put elimination, isolation and engineering controls before PPE.');
-    add('W2', 'Controls follow the hierarchy', 20, points, fixes, 'Higher order controls come before administrative controls and PPE.');
+    if (ppeShare <= 0.2) points += 5;
+    else if (ppeShare <= 0.35) { points += 3; fixes.push('Too many controls are PPE. Put higher order controls first.'); } else fixes.push('Most controls are PPE. Put elimination, isolation and engineering controls before PPE.');
+    add('W2', 'Controls follow the hierarchy', 15, points, fixes, 'Each high risk step has a higher order control, and few controls are PPE.');
   }
 
-  // W3 Controls are specific and checkable (15).
+  // W3 Controls are specific and checkable (10; was 15, 2 went to W11 and 3 to W12).
   {
     const fixes = [];
     const share = allControls.length ? allControls.filter(checkable).length / allControls.length : 0;
-    let points = 15 * Math.min(1, share / 0.4);
-    const vague = allControls.filter((line) => VAGUE.test(line));
-    points -= Math.min(6, vague.length * 2);
+    let points = 10 * Math.min(1, share / 0.4);
+    const vague = allControls.filter(isVague);
+    points -= Math.min(4, vague.length * 2);
     if (share < 0.4) fixes.push('Make controls measurable: distances, ratings, standards, inspections, permits and named equipment.');
     if (vague.length) fixes.push(`Replace vague wording such as "${vague[0]}".`);
-    add('W3', 'Controls are specific and checkable', 15, points, fixes, 'Controls are measurable and can be checked on site.');
+    add('W3', 'Controls are specific and checkable', 10, points, fixes, 'Controls are measurable and can be checked on site.');
   }
 
-  // W4 Implementation, monitoring and review (10).
+  // W4 Implementation, monitoring and review (7; was 10). The 3 points for one person responsible
+  // for the whole SWMS went to W11; H6 still fails a SWMS that names no one.
   {
     const fixes = [];
     let points = 0;
-    if (filled(swms.responsiblePerson)) points += 3; else fixes.push('Name who checks the controls.');
     const review = [swms.review, ...allControls].join(' ');
     if (/\b(before (?:the task|work|each|starting)|each (?:shift|day|morning)|daily|weekly|pre-?start|while (?:the task|work)|during|toolbox)\b/i.test(review)) points += 4; else fixes.push('Say when the controls are checked (for example, before each shift).');
     // Revised when the work changes: a new stage, method or site condition (2 points); and after
     // an incident or a control that is not working (1 point).
     if (/\b(review\w*|revis\w*|updat\w*)\b[^.]{0,100}\b(?:task|work|stage|method|site|conditions?|scope|sequence)\b[^.]{0,30}\bchang\w*|\b(?:task|work|stage|method|site|conditions?|scope|sequence)\b[^.]{0,30}\bchang\w*[^.]{0,100}\b(review\w*|revis\w*|updat\w*)\b|\bnew (?:work )?stages?\b/i.test(review)) points += 2; else fixes.push('Say the SWMS is revised when the work stage, method or site changes.');
     if (/\b(incidents?|near miss\w*|not working|(?:controls?|it) (?:fails?|is not effective)|ineffective)\b/i.test(review)) points += 1; else fixes.push('Say the SWMS is reviewed after an incident or when a control is not working.');
-    add('W4', 'Implementation, monitoring and review', 10, points, fixes, 'Who checks, when, and what triggers a review are stated.');
+    add('W4', 'Implementation, monitoring and review', 7, points, fixes, 'When the controls are checked, and what triggers a review, are stated.');
   }
 
-  // W5 Licences, competency and plant (10).
+  // W5 Licences, competency and plant (8; was 10, 2 went to W12): crew credentials 3, licences
+  // matched to the plant 3, plant inspected 2.
   {
     const fixes = [];
     let points = 0;
     const credentials = [...swms.licences, ...swms.plant, ...allControls].join(' ');
-    if (swms.licences.length || /\b(white card|general construction induction|competen\w*|tickets?|licen[cs]\w*|trained|verification of competency|voc)\b/i.test(credentials)) points += 4; else fixes.push('List the licences, tickets and training the crew holds.');
+    if (swms.licences.length || /\b(white card|general construction induction|competen\w*|tickets?|licen[cs]\w*|trained|verification of competency|voc)\b/i.test(credentials)) points += 3; else fixes.push('List the licences, tickets and training the crew holds.');
     const needed = LICENSED_PLANT.filter((item) => item.plant.test(allText));
     const unmatched = needed.filter((item) => !item.licence.test(credentials));
     points += needed.length ? 3 * ((needed.length - unmatched.length) / needed.length) : 3;
     if (unmatched.length) fixes.push(`Match a licence or ticket to the plant and work: ${unmatched.map((item) => item.plant.exec(allText)[0]).join(', ')}.`);
-    if (!PLANT_WORDS.test(allText) || /\b(inspect\w*|pre-?start|log ?books?|serviced|tested and tagged|test and tag|handover certificate)\b/i.test([...swms.plant, ...allControls].join(' '))) points += 3; else fixes.push('Say how plant and equipment are inspected before use.');
-    add('W5', 'Licences, competency and plant', 10, points, fixes, 'Licences, tickets and plant inspections are matched to the task.');
+    if (!PLANT_WORDS.test(allText) || /\b(inspect\w*|pre-?start|log ?books?|serviced|tested and tagged|test and tag|handover certificate)\b/i.test([...swms.plant, ...allControls].join(' '))) points += 2; else fixes.push('Say how plant and equipment are inspected before use.');
+    add('W5', 'Licences, competency and plant', 8, points, fixes, 'Licences, tickets and plant inspections are matched to the task.');
   }
 
   // W6 Emergency and rescue (10).
@@ -342,13 +395,12 @@ function weighted(swms, state, context) {
     add('W7', 'Site specific details', 10, points, fixes, 'Access, exclusion zones, other trades, the public and services are covered.');
   }
 
-  // W8 Readable and short (5).
+  // W8 Readable and short (5). A printed risk matrix is not marked down (owner decision, 5 October 2026).
   {
     const fixes = [];
     let points = 5;
-    if (swms.legislation.length > 5) { points -= 2; fixes.push(`Drop the list of ${swms.legislation.length} pieces of legislation; it is not needed.`); }
-    if (swms.riskMatrix) { points -= 2; fixes.push('A risk matrix is not needed in a SWMS.'); }
-    if (allControls.length > 120 || steps.length > 25) { points -= 1; fixes.push('Shorten the SWMS to the high risk hazards and their controls.'); }
+    if (swms.legislation.length > 5) { points -= 3; fixes.push(`Drop the list of ${swms.legislation.length} pieces of legislation; it is not needed.`); }
+    if (allControls.length > 120 || steps.length > 25) { points -= 2; fixes.push('Shorten the SWMS to the high risk hazards and their controls.'); }
     add('W8', 'Readable and short', 5, points, fixes, 'Short and to the point.');
   }
 
@@ -361,6 +413,47 @@ function weighted(swms, state, context) {
     if (filled(swms.reviewDate)) points += 1; else fixes.push('Add a review date.');
     if (filled(swms.principalContractor)) points += 2; else fixes.push('Name the principal contractor.');
     add('W9', 'Document control', 5, points, fixes, 'Revision, dates and principal contractor are given.');
+  }
+
+  // W10 Controls in hierarchy order within each step (5): elimination, substitution, isolation and
+  // engineering controls come before administrative controls and PPE. Judged on steps that have both.
+  {
+    const fixes = [];
+    const judged = steps.filter((step) => step.controls.some((line) => HIGHER.has(controlLevel(line))) && step.controls.some((line) => !HIGHER.has(controlLevel(line))));
+    const outOfOrder = judged.filter((step) => {
+      const higher = step.controls.map((line) => HIGHER.has(controlLevel(line)));
+      return higher.lastIndexOf(true) > higher.indexOf(false);
+    });
+    const points = judged.length ? 5 * ((judged.length - outOfOrder.length) / judged.length) : 5;
+    if (outOfOrder.length) fixes.push(`List the controls in hierarchy order, with elimination, isolation and engineering controls before administrative controls and PPE, in: ${outOfOrder.slice(0, 4).map((step) => step.step || 'step').join('; ')}.`);
+    add('W10', 'Controls in hierarchy order within each step', 5, points, fixes, 'Within each step, higher order controls come before administrative controls and PPE.');
+  }
+
+  // W11 A responsible position per step (5): named against the step, or in its controls
+  // ("the supervisor checks ..."). One person for the whole SWMS is H6, and is not enough here.
+  {
+    const fixes = [];
+    const withControls = steps.filter((step) => step.controls.length);
+    const missing = withControls.filter((step) => !filled(step.responsible) && !step.controls.some((line) => POSITION.test(line)));
+    const points = withControls.length ? 5 * ((withControls.length - missing.length) / withControls.length) : 0;
+    if (!withControls.length) fixes.push('Name the position responsible for the controls in each step.');
+    else if (missing.length) fixes.push(`Name the position responsible for the controls in each step (for example, supervisor or leading hand), not only one person for the SWMS. ${missing.length} of ${withControls.length} steps name none: ${missing.slice(0, 4).map((step) => step.step || 'step').join('; ')}.`);
+    add('W11', 'A responsible position for each step', 5, points, fixes, 'Each step names the position responsible for its controls.');
+  }
+
+  // W12 Named permits where the work needs one (5).
+  {
+    const fixes = [];
+    const ownWork = [swms.task, ...steps.map((step) => step.step)].join('\n');
+    const work = [ownWork, ...swms.highRisk].join('\n');
+    const permitText = [...allControls, ...swms.site.conditions, ...swms.licences, ...swms.plant, ...swms.emergency, swms.review].join('\n');
+    const sitePermits = SITE_PERMITS.test([allText, ...swms.emergency].join('\n'));
+    const hazards = steps.flatMap((step) => step.hazards).join('\n');
+    const needed = PERMITS.filter((item) => item.work.test(item.notFromCategory ? ownWork : work) && (!item.near || item.near.test(`${allText}\n${hazards}`)) && (!item.onlyWithSitePermits || sitePermits));
+    const unnamed = needed.filter((item) => !item.permit.test(permitText));
+    const points = needed.length ? 5 * ((needed.length - unnamed.length) / needed.length) : 5;
+    if (unnamed.length) fixes.push(`Name the permit the work needs: ${unnamed.map((item) => `${item.name} (${item.label})`).join('; ')}.`);
+    add('W12', 'Named permits where the work needs one', 5, points, fixes, needed.length ? `The permits are named: ${needed.map((item) => item.label).join('; ')}.` : 'No work needing a permit was found.');
   }
   return out;
 }
@@ -412,7 +505,7 @@ function fromDraft(draft, extra = {}) {
     responsiblePerson: draft.complianceResponsible || draft.siteManager || draft.worksManager || '',
     consultation: '',
     signatures: (draft.workers || []).filter((row) => filled(row.name)),
-    revision: draft.revision || '',
+    revision: draft.revision ?? '',
     date: draft.date,
     reviewDate: draft.reviewDate,
     principalContractor: draft.principalContractor,
@@ -462,4 +555,4 @@ function emailDraft(result, options = {}) {
   };
 }
 
-module.exports = { checkSwms, bandFor, normaliseSwms, fromDraft, emailDraft, controlLevel, BANDS, SOURCES, VAGUE };
+module.exports = { checkSwms, bandFor, normaliseSwms, fromDraft, emailDraft, controlLevel, isVague, BANDS, SOURCES, VAGUE };
