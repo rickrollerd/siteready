@@ -953,3 +953,100 @@ test('explosive-powered fixing tools are not blasting: the SWMS is not stood dow
   const blast = prepareDraft({ state: 'nsw', task: 'Drill and blast the rock in the cutting using explosives, licensed shotfirer.', fallRisk: 'no', residential: 'no' });
   assert.ok(blast.jobSteps.some((step) => step.step === 'Charge and fire the blast'));
 });
+
+// Content review of drafts built from AI scope readings (samples S7 to S105).
+const work = (done, name) => done.jobSteps.find((step) => step.step === name);
+const lines = (step) => [...step.hazards, ...step.controls].map((line) => line.text || line).join('\n');
+
+test('the trench steps follow the trench category: support when it is ticked, under 1.5 m when it is not', () => {
+  // A trench picked for in-ground services: the support answer names trenches, so the category is ticked.
+  const deep = draft('Install in-ground and under-slab fire services (Under building slabs).', 'fire', { kinds: ['trench'] });
+  assert.match(risks(deep), /trench/i);
+  assert.match(lines(work(deep, 'Work in the trench')), /No one enters the trench until the support is in place/);
+  assert.doesNotMatch(lines(work(deep, 'Work in the trench')), /kept shallower than 1\.5 m/);
+  assert.match(lines(work(deep, 'Excavate')), /all sides supported by shoring, benching or battering/);
+  // A stated shallow trench is not high risk, and the trench step keeps it under 1.5 m.
+  const shallow = draft('Dig a 1.2 m deep trench and lay the stormwater pipe.', 'plumbing', { kinds: ['trench'], facts: { trenchSupport: 'The trench is 1.2 m deep at most, with the sides battered where the ground is loose.' } });
+  assert.doesNotMatch(risks(shallow), /trench/i);
+  assert.match(lines(work(shallow, 'Work in the trench')), /kept shallower than 1\.5 m/);
+  assert.doesNotMatch(lines(work(shallow, 'Work in the trench')), /support is in place/);
+});
+
+test('"deeper than 1.5 m" is past 1.5 m, so deep sewer work keeps the trench category', () => {
+  assert.ok(highRiskMatches('Dig the sewer trench deeper than 1.5 m.', 'no', 'qld').some((item) => item.check === 'trench'));
+  assert.ok(!highRiskMatches('Dig the sewer trench no deeper than 1.5 m.', 'no', 'qld').some((item) => item.check === 'trench'));
+  // A new pump station adds "shaft excavation deeper than 1.5 m", which must not read as a 1.5 m trench.
+  const done = draft('Trench, excavate, bed, backfill and compact for the sewer. Install sewer manholes. Install sewer pump stations with control panels and covers. Install deep sewer branches 1 and 2.', 'plumbing');
+  assert.match(risks(done), /trench/i);
+});
+
+test('cutting out pipe or duct in an existing building is not demolition of a load-bearing element, and does not assume asbestos', () => {
+  const pipe = draft('Identify, label and protect existing fire services to be retained or demolished (Existing Visitor Processing building). Cut out section of existing pipe and blank off retained pipework (Existing Visitor Processing building).', 'fire', { kinds: ['serviceLabels', 'servicesStrip'] });
+  assert.doesNotMatch(risks(pipe), /load-bearing|asbestos/i);
+  const duct = draft('Identify, label and protect existing plant to be retained or demolished (Visitor Processing building). Remove sections of existing duct and blank off retained duct (Visitor Processing building). Recover refrigerant from plant to be demolished (Visitor Processing building).', 'mechanical', { kinds: ['servicesStrip', 'serviceLabels', 'refrigerantCharge'] });
+  assert.doesNotMatch(risks(duct), /load-bearing|asbestos/i);
+  // A building that is itself demolished still is.
+  assert.ok(highRiskMatches('Demolish the existing two storey office building (Visitor Processing building).', 'no', 'qld').some((item) => item.check === 'demolition'));
+  assert.ok(highRiskMatches('Strip out the old ductwork and the asbestos cement ceiling linings.', 'no', 'qld').some((item) => item.check === 'asbestos'));
+});
+
+test('the gas line pressure test answer is offered only where the task names gas', () => {
+  const pool = answersFor('pressureTesting', 'Commission pool and water feature systems (Pool, water features and plant room).');
+  assert.ok(!pool.some((answer) => answer.label === 'Gas line test'));
+  assert.equal(pool[0].label, 'Water test');
+  assert.equal(answersFor('pressureTesting', 'Pressure test the refrigeration pipework.')[0].label, 'Nitrogen test');
+  assert.equal(answersFor('pressureTesting', 'Pressure test and commission a new gas line to the bakery oven.')[0].label, 'Gas line test');
+  const done = draft('Pressure test and commission the pool and water feature systems.', 'plumbing', { kinds: ['pressureTest'] });
+  assert.doesNotMatch(lines(work(done, 'Pressure test and commission')), /gas pipework/i);
+});
+
+test('treating the ground and trenches with chemicals is not digging a trench', () => {
+  assert.ok(!highRiskMatches('Poison tree suckers and roots and treat ground areas and trenches.', 'no', 'qld').some((item) => item.check === 'trench'));
+  assert.ok(highRiskMatches('Excavate trenches for the new sewer main.', 'no', 'qld').some((item) => item.check === 'trench'));
+});
+
+test('kitchen floor wastes and gutters are set into the floor, not laid in an underslab trench, and a cool room location is not a refrigerant line', () => {
+  const done = draft('Install slot drains, floor wastes and floor gutters (Kitchens and cool rooms; locations not stated).', 'plumbing', { kinds: ['underslabDrainage'] });
+  assert.ok(steps(done).includes('Set floor wastes, slot drains and floor gutters'));
+  assert.ok(!steps(done).includes('Lay drainage under the slab or floor'));
+  assert.doesNotMatch(risks(done), /refrigerant/i);
+  // Drainage under the slab keeps its trench step, and installing a cool room is still a refrigerant line.
+  assert.ok(steps(draft('Lay the sewer drainage under the slab to the kitchen floor wastes.', 'plumbing', { kinds: ['underslabDrainage'] })).includes('Lay drainage under the slab or floor'));
+  assert.match(risks(draft('Install and connect the cool room refrigeration units.', 'mechanical')), /refrigerant/i);
+});
+
+test('energised work named in the task: an answer of none stands with a warning, and testing gives the category', () => {
+  for (const task of ['Thermographic scanning of energised switchboards.', 'Modify the existing HV main switchboard (conditions: Live HV in operating facility).', 'Alter the existing MSB and UPS DB (conditions: Existing energised switchboards).']) {
+    const none = draft(task, 'electrical', { facts: { energisedWork: 'none' } });
+    assert.equal(none.warnings.length, 1, task);
+    assert.match(none.warnings[0], /no work is done on or near energised parts, but the task mentions/);
+    const testing = draft(task, 'electrical', { facts: { energisedWork: 'testing' } });
+    assert.match(risks(testing), /energised electrical/i, task);
+    assert.deepEqual(testing.warnings, []);
+  }
+  // Work near overhead HV lines is near energised installations whatever the trade.
+  assert.match(risks(draft('Trim trees along the HV aerial route (conditions: Near overhead HV lines).', 'landscaping')), /energised electrical/i);
+  // Isolated and de-energised work gives no warning.
+  assert.deepEqual(draft('Replace the circuit breakers in the switchboard, isolated and proved de-energised first.', 'electrical', { facts: { energisedWork: 'none' } }).warnings, []);
+});
+
+test('live electrical answered No for comms work beside live mains is warned, and Yes gives the category', () => {
+  const task = 'Install data cabling in the comms room risers beside the live mains.';
+  const no = draft(task, '', { facts: { liveElectrical: 'no' } });
+  assert.match(no.warnings.join(' '), /You answered No to live electrical work/);
+  assert.match(risks(draft(task, '', { facts: { liveElectrical: 'yes' } })), /energised electrical/i);
+});
+
+test('a scope package keeps its conditions and plant in the task, so they reach the high risk check', () => {
+  const { packageTask } = require('../public/scope-task');
+  const pool = packageTask([{ activity: 'Clean external areas including the external pool area', where: 'External areas', conditions: 'Near pool and spa' }, { activity: 'Clean road surfaces by machine', plant: 'Road cleaning machine', conditions: 'Near roads' }]);
+  assert.equal(pool, 'Clean external areas including the external pool area (External areas; conditions: Near pool and spa). Clean road surfaces by machine (conditions: Near roads; plant: Road cleaning machine).');
+  const cleaning = risks(draft(pool, 'cleaning', { kinds: ['cleaning'] }));
+  for (const pattern of [/drowning/i, /road/i, /powered mobile plant/i]) assert.match(cleaning, pattern);
+  assert.match(risks(draft(packageTask([{ activity: 'Tile the external swimming pool area including steps', conditions: 'Adjacent to 1000m2 swimming pool' }]), 'tiling', { kinds: ['tileLay'] })), /drowning/i);
+  assert.match(risks(draft(packageTask([{ activity: 'Load, unload, store and move materials around site', plant: 'Trolleys; crates', conditions: 'Moving plant and traffic on site; Traffic Management Plan applies' }]), 'carpentry', { kinds: ['carpLoad'] })), /powered mobile plant/i);
+  assert.match(risks(draft(packageTask([{ activity: 'Fill existing trenches in switchroom with concrete', where: 'Switchroom', conditions: 'Existing trenches in switchroom' }]), 'concrete', { kinds: ['slabPour'] })), /energised electrical/i);
+  // What the scope leaves out is not a condition, and a live facility alone is not live electrical work.
+  assert.equal(packageTask([{ activity: 'Supply and use working platforms', conditions: 'Scissor lifts excluded', plant: 'Working platforms (type not stated)' }]), 'Supply and use working platforms (plant: Working platforms, type not stated).');
+  assert.ok(!highRiskMatches(packageTask([{ activity: 'Install data outlets in the offices', conditions: 'Live or operating facility; live existing facility' }]), 'no', 'qld').some((item) => item.check === 'electrical'));
+});

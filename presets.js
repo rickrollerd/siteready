@@ -181,11 +181,25 @@ const FALL_FIRST = [
 // control answers are put in the order that suits it.
 function answersFor(id, task) {
   const list = (ANSWERS[id] || []).map(([label, text]) => ({ label, text }));
+  if (id === 'pressureTesting' && task) return pressureAnswers(list, task);
   if (id !== 'fallControl' || !task) return list;
   const first = FALL_FIRST.find(([, pattern]) => pattern.test(task));
   if (!first) return list;
   const pick = list.find((answer) => answer.label === first[0]);
   return [pick, ...list.filter((answer) => answer !== pick)];
+}
+
+// The gas line test is offered only where the task names gas: a pool, water or air test is
+// not gas pipework. Refrigeration is tested with nitrogen, other pipework with water first.
+function pressureAnswers(list, task) {
+  const gas = /\bgas\b/i.test(task);
+  const other = /\b(water|hydraulic|plumbing|pools?|spas?|refrigera\w*|air ?con\w*|split systems?|chilled|heating hot water|ducts?|plenums?)\b/i.test(task);
+  const first = /\b(refrigera\w*|air ?con\w*|split systems?|nitrogen)\b/i.test(task) ? 'Nitrogen test' : 'Water test';
+  const rest = list.filter((answer) => answer.label !== 'Gas line test');
+  const ordered = [...rest.filter((answer) => answer.label === first), ...rest.filter((answer) => answer.label !== first)];
+  if (!gas) return ordered;
+  const gasTest = list.filter((answer) => answer.label === 'Gas line test');
+  return other ? [...ordered, ...gasTest] : [...gasTest, ...ordered];
 }
 
 module.exports = { TRADES, answersFor };
