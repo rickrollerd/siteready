@@ -9875,4 +9875,43 @@ function ppeFor(flags, chosen, mentionsHarness, indoors) {
   }));
 }
 
+// Controls from the Queensland codes of practice (task #101, owner decision 5 October 2026):
+// lines added to the steps they apply to, worded closely to the code, and existing lines the
+// code supports given its citation. Each entry names the code and the code's own section.
+const CODE_TITLES = {
+  Scaffolding: 'Scaffolding Code of Practice 2021 (Qld)',
+  'Traffic management': 'Traffic management for construction or maintenance work Code of Practice 2008 (Qld)',
+  'Electrical works': 'Electrical Safety Code of Practice 2020: Works (Qld)',
+  'Overhead and underground electric lines': 'Electrical Safety Code of Practice 2020: Working near overhead and underground electric lines (Qld)',
+  'Tower crane': 'Tower crane Code of Practice 2017 (Qld)',
+  'Tilt-up and precast': 'Tilt-up and pre-cast construction Code of Practice 2003 (Qld)',
+};
+const codeSource = (code, section) => `${QLD_CODE_TITLES[code] || CODE_TITLES[code]} ${section}`;
+(function applyCodeControls() {
+  const entries = require('./scenarios/code-controls.json');
+  const textOf = (control) => (typeof control === 'string' ? control : control && control.text);
+  for (const entry of entries) {
+    if (!QLD_CODE_TITLES[entry.code] && !CODE_TITLES[entry.code]) throw new Error(`Unknown code: ${entry.code}`);
+    const source = codeSource(entry.code, entry.section);
+    if (entry.op === 'add') {
+      for (const activity of ACTIVITIES.filter((item) => item.when === entry.group)) {
+        for (const step of activity.steps.filter((item) => item.step === entry.step)) {
+          if (!step.controls.some((control) => textOf(control) === entry.text)) step.controls.push(src(entry.text, source));
+        }
+      }
+    } else if (entry.op === 'cite') {
+      for (const activity of ACTIVITIES) {
+        for (const step of activity.steps) {
+          step.controls = step.controls.map((control) => {
+            const text = textOf(control);
+            if (typeof text !== 'string' || !text.includes(entry.find)) return control;
+            if (typeof control === 'string') return src(control, source);
+            return control.source ? control : { ...control, source };
+          });
+        }
+      }
+    }
+  }
+}());
+
 module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM, ACTIVITIES };
