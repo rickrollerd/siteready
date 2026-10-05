@@ -3001,8 +3001,13 @@ function settleFlags(flags, task) {
   // each come only when the task names them, and ductwork when it names none of them.
   out.mechPipework = /\b(?:(?:chilled|condenser|heating|heated|hot) water|hydronic|mechanical|condensate) (?:pipework|piping|pipes)\b|(?<!refrigerant |refrigeration |copper )\b(?:pipework|piping)\b/i.test(task) && MECHANICAL_WORK.test(task);
   if (out.mechPipework && !/\b(replac\w*|repair\w*|re-?pip\w*)\b/i.test(task)) out.ceilingPipework = false;
-  out.mechUnits = /\b(air handling units?|ahus?|(?:exhaust|supply|in-?line|toilet exhaust|kitchen exhaust) fans?|heat recovery (?:ventilat\w*|units?)|hrvs?|ervs?|package units?|evaporative coolers?)\b/i.test(task);
-  out.ductNamed = /\b(ductwork|duct(?:ing|s)?|ducted)\b/i.test(task) || (!out.mechPipework && !out.mechUnits);
+  // Ductwork named only as what is insulated ("insulation to ductwork"), and units named only as
+  // where filters are cleaned ("filters within any air handling unit"), are not installed.
+  const installNamed = task
+    .replace(/\b(?:insulat\w*|lagg\w*) (?:to|of|on) (?:the |all |any )*(?:ductwork|duct(?:ing|s)?)\b/gi, 'insulation')
+    .replace(/\bfilters? (?:within|in|to|of)\b[^.]*/gi, 'filters');
+  out.mechUnits = /\b(air handling units?|ahus?|(?:exhaust|supply|in-?line|toilet exhaust|kitchen exhaust) fans?|heat recovery (?:ventilat\w*|units?)|hrvs?|ervs?|package units?|evaporative coolers?)\b/i.test(installNamed);
+  out.ductNamed = /\b(ductwork|duct(?:ing|s)?|ducted)\b/i.test(installNamed) || (!out.mechPipework && !out.mechUnits);
   // Refrigerant is recovered only when a system is emptied, repaired or taken out.
   out.refrigerantRecover = REFRIGERANT.test(task) && /\b(recover\w*|decant\w*|decommission\w*|de-?gas\w*|remov\w*|replac\w*|repair\w*|leaks?)\b/i.test(task);
   out.refrigerantRecoverOnly = out.refrigerantRecover && !/\b(charg\w*|evacuat\w*|install\w*|commission\w*|re-?gas\w*|top(?:ping)? up)\b/i.test(task);
