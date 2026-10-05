@@ -139,7 +139,7 @@
     const started = Date.now();
     while (reading.status === 'reading') {
       if (Date.now() - started > 20 * 60 * 1000) throw new Error('The AI reading is taking too long. Try again later, or use the quick read.');
-      await wait(5000);
+      await wait(10000);
       reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}`);
     }
     if (reading.status !== 'done') {

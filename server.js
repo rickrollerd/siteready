@@ -177,7 +177,9 @@ app.post('/api/draft/questions', (req, res) => {
 
 // Reading a scope takes more work than a draft, so it has a lower limit.
 app.use('/api/project.zip', limiter(positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300) / 10));
-app.use(SCOPE_ROUTE, limiter(positiveNumber(process.env.RATE_LIMIT_SCOPE_REQUESTS, 60)));
+const scopeLimit = limiter(positiveNumber(process.env.RATE_LIMIT_SCOPE_REQUESTS, 60));
+// The quick read has its own limit; the AI reading's routes (under /api/scope/ai) have theirs.
+app.use(SCOPE_ROUTE, (req, res, next) => (req.path.startsWith('/ai') ? next() : scopeLimit(req, res, next)));
 app.post(SCOPE_ROUTE, async (req, res, next) => {
   try {
     const text = await scopeText(req.body || {});
@@ -192,7 +194,9 @@ app.post(SCOPE_ROUTE, async (req, res, next) => {
 
 // The AI reading of a scope. It takes a few minutes, so it is started here and the page
 // asks for it by its id. Signed-in accounts only; the quick read above stays for everyone.
-app.use('/api/scope/ai', limiter(positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20)));
+// Only starting a reading counts against this limit; the page asking whether it is ready does not.
+const aiScopeLimit = limiter(positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20));
+app.use('/api/scope/ai', (req, res, next) => (req.method === 'POST' ? aiScopeLimit(req, res, next) : next()));
 app.get('/api/scope/ai', (req, res) => res.json({ enabled: aiScope.enabled() }));
 app.post('/api/scope/ai', auth.requireAccess, async (req, res, next) => {
   try {
