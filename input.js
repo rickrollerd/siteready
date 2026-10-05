@@ -38,6 +38,32 @@ function controlEdits(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
+// The user's own hazards by job step name: hazards reworded, added, and SiteReady's hazards marked
+// as not applying (they cannot be deleted), with an optional reason; and who is responsible for
+// each step's controls (the Who column).
+function hazardEdits(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const texts = (list, limit, max) => (Array.isArray(list) ? list.filter((item) => typeof item === 'string').slice(0, limit).map((item) => textField(item, max)).filter(Boolean) : []);
+  const entries = Object.entries(value).slice(0, 60).map(([step, edit]) => {
+    if (!edit || typeof edit !== 'object') return null;
+    const changed = Array.isArray(edit.changed) ? edit.changed.filter((item) => item && typeof item.from === 'string' && typeof item.to === 'string').slice(0, 40)
+      .map((item) => ({ from: textField(item.from, 1000), to: textField(item.to, 400) })).filter((item) => item.from && item.to) : [];
+    const out = { changed, added: texts(edit.added, 20, 400), notApplicable: texts(edit.notApplicable, 40, 1000) };
+    const reasons = Array.isArray(edit.reasons) ? edit.reasons.filter((item) => item && typeof item.line === 'string').slice(0, 40)
+      .map((item) => ({ line: textField(item.line, 1000), reason: EDIT_REASONS.includes(item.reason) ? item.reason : '', note: textField(item.note, 300) }))
+      .filter((item) => item.line && (item.reason || item.note)) : [];
+    if (reasons.length) out.reasons = reasons;
+    return out.changed.length || out.added.length || out.notApplicable.length ? [textField(step, 300), out] : null;
+  }).filter(Boolean);
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
+function whoEdits(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const entries = Object.entries(value).slice(0, 60).filter(([, who]) => typeof who === 'string' && who.trim()).map(([step, who]) => [textField(step, 300), textField(who, 120)]);
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 function draftBody(body) {
   const facts = body.facts && typeof body.facts === 'object' ? body.facts : {};
   const site = body.site && typeof body.site === 'object' ? body.site : {};
@@ -74,6 +100,8 @@ function draftBody(body) {
     leaveOut: Array.isArray(body.leaveOut) ? body.leaveOut.filter((name) => typeof name === 'string').slice(0, 50).map((name) => textField(name, 300)) : undefined,
     stepOrder: Array.isArray(body.stepOrder) ? body.stepOrder.filter((name) => typeof name === 'string').slice(0, 150).map((name) => textField(name, 300)) : undefined,
     controlEdits: controlEdits(body.controlEdits),
+    hazardEdits: hazardEdits(body.hazardEdits),
+    whoEdits: whoEdits(body.whoEdits),
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {

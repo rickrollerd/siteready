@@ -2186,7 +2186,9 @@ function prepareDraft(input) {
   if (workshopOnly(riskTask)) draft.highRisk = [];
   // Answers that contradict the task's own words, shown above the draft. The answer stands.
   const warnings = [energisedWarning(riskTask, facts)].filter(Boolean);
-  return { ...draft, ...registers, task: typed, warnings, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) };
+  // The user's own hazards and Who go in last, so the registers and risk ratings are worked out
+  // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
+  return applyStepEdits({ ...draft, ...registers, task: typed, warnings, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input);
 }
 
 // Gloves for the substances listed, and hearing protection where a step names noise,
@@ -2721,6 +2723,91 @@ function applyControlEdits(jobSteps, edits) {
     return { ...step, controls };
   });
   return { jobSteps: out, report: { applied, refused, warned, remapped, unmatched } };
+}
+
+// ---- The user's own hazards and Who (owner decision, 6 October 2026) ----
+
+// Users can add hazards and reword them, and change who is responsible for a step's controls.
+// SiteReady's own hazard lines cannot be deleted: a hazard that does not apply is marked so, with
+// an optional reason, and stays on the SWMS for the reviewer to see.
+const HAZARD_MARK = '(Our own hazard)';
+const NOT_APPLICABLE = '(Does not apply to this job)';
+const withoutHazardMark = (line) => String(line || '').replace(/\s*\((?:Our own hazard|Does not apply to this job)\)\s*$/, '').trim();
+
+function applyStepEdits(draft, input) {
+  const hazardEdits = input.hazardEdits && typeof input.hazardEdits === 'object' ? input.hazardEdits : null;
+  const whoEdits = input.whoEdits && typeof input.whoEdits === 'object' ? input.whoEdits : null;
+  if ((!hazardEdits && !whoEdits) || !Array.isArray(draft.jobSteps)) return draft;
+  const before = draft.controlEdits || {};
+  const report = {
+    applied: [...(before.applied || [])], refused: [...(before.refused || [])], warned: [...(before.warned || [])],
+    remapped: [...(before.remapped || [])], unmatched: [...(before.unmatched || [])],
+  };
+  const hazardKeys = hazardEdits ? stepsForEdits(draft.jobSteps, hazardEdits) : new Map();
+  const whoKeys = whoEdits ? stepsForEdits(draft.jobSteps, whoEdits) : new Map();
+  for (const name of Object.keys(hazardEdits || {}).filter((item) => ![...hazardKeys.values()].includes(item))) {
+    const mine = hazardEdits[name] || {};
+    for (const item of mine.changed || []) report.unmatched.push({ step: name, kind: 'hazardChanged', text: item.from, to: item.to, reason: 'step' });
+    for (const text of mine.notApplicable || []) report.unmatched.push({ step: name, kind: 'hazardNotApplicable', text, to: '', reason: 'step' });
+    for (const text of mine.added || []) report.unmatched.push({ step: name, kind: 'hazardAdded', text: '', to: text, reason: 'step' });
+  }
+  for (const name of Object.keys(whoEdits || {}).filter((item) => ![...whoKeys.values()].includes(item))) report.unmatched.push({ step: name, kind: 'whoChanged', text: '', to: whoEdits[name], reason: 'step' });
+  const jobSteps = draft.jobSteps.map((step, index) => {
+    let next = step;
+    const key = hazardKeys.get(index);
+    const mine = key === undefined ? null : hazardEdits[key];
+    if (mine) {
+      const reasons = new Map((mine.reasons || []).map((item) => [item.line, item]));
+      const why = (text, line) => {
+        const given = reasons.get(text) || reasons.get(line);
+        return given ? { reason: given.reason || '', note: given.note || '' } : {};
+      };
+      const taken = new Set();
+      const changed = new Map();
+      const notApplicable = new Map();
+      for (const item of mine.changed || []) {
+        const found = findLine(step.hazards, item.from, taken);
+        if (!found) { report.unmatched.push({ step: key, kind: 'hazardChanged', text: item.from, to: item.to, reason: 'line' }); continue; }
+        taken.add(found.line);
+        changed.set(found.line, { to: withoutHazardMark(item.to), from: item.from });
+        if (!found.exact) report.remapped.push({ step: key, kind: 'hazardChanged', from: item.from, line: found.line });
+      }
+      for (const text of mine.notApplicable || []) {
+        const found = findLine(step.hazards, text, taken);
+        if (!found) { report.unmatched.push({ step: key, kind: 'hazardNotApplicable', text, to: '', reason: 'line' }); continue; }
+        taken.add(found.line);
+        notApplicable.set(found.line, text);
+        if (!found.exact) report.remapped.push({ step: key, kind: 'hazardNotApplicable', from: text, line: found.line });
+      }
+      const hazards = step.hazards.map((line) => {
+        if (changed.has(line)) {
+          const { to, from } = changed.get(line);
+          report.applied.push({ step: step.step, kind: 'hazardChanged', from: line, to, ...why(from, line) });
+          return `${to} ${HAZARD_MARK}`;
+        }
+        if (notApplicable.has(line)) {
+          report.applied.push({ step: step.step, kind: 'hazardNotApplicable', from: line, to: '', ...why(notApplicable.get(line), line) });
+          return `${line} ${NOT_APPLICABLE}`;
+        }
+        return line;
+      });
+      for (const text of (mine.added || []).map(withoutHazardMark)) {
+        const line = `${text} ${HAZARD_MARK}`;
+        if (!text || hazards.includes(line)) continue;
+        hazards.push(line);
+        report.applied.push({ step: step.step, kind: 'hazardAdded', from: '', to: text });
+      }
+      next = { ...next, hazards };
+    }
+    const whoKey = whoKeys.get(index);
+    const who = whoKey === undefined ? '' : String(whoEdits[whoKey] || '').trim();
+    if (who && who !== step.responsible) {
+      report.applied.push({ step: step.step, kind: 'whoChanged', from: step.responsible || '', to: who });
+      next = { ...next, responsible: who };
+    }
+    return next;
+  });
+  return { ...draft, jobSteps, controlEdits: report };
 }
 
 // The job steps in the order the user chose. A step not in that order, such as one added
@@ -4828,6 +4915,9 @@ function stripLiftBleedText(text) {
 module.exports = {
   domesticWork,
   applyControlEdits,
+  applyStepEdits,
+  HAZARD_MARK,
+  NOT_APPLICABLE,
   keepWarning,
   legalSource,
   OWN_MARK,
