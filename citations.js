@@ -14,6 +14,7 @@ const STATE_CITATIONS = require('./scenarios/state-citations.json');
 const QLD_CODES = require('./scenarios/qld-codes.json');
 
 const QLD_REG = 'Work Health and Safety Regulation 2011 (Qld) ';
+const NSW_CODE = /^SafeWork NSW Code of practice: /;
 // National sources apply in every state.
 const NATIONAL = [/^Ozone Protection/, /^Telecommunications \(Cabling Provider\)/, /^Australian Refrigeration Council/, /^Piling industry standard/];
 
@@ -66,13 +67,14 @@ const DROP_SOURCES = {
 
 function localSource(source, stateId, text = '') {
   if (!source) return '';
-  if (stateId === 'qld') return source.split('; ').flatMap(qldCode).join('; ');
+  // SafeWork NSW codes of practice are cited only in NSW drafts.
+  if (stateId === 'qld') return source.split('; ').filter((part) => !NSW_CODE.test(part)).flatMap(qldCode).join('; ');
   const state = STATE_CITATIONS[stateId];
   // National sources apply everywhere, even where the state's sections are not yet mapped.
   if (!state) return source.split('; ').filter((part) => NATIONAL.some((pattern) => pattern.test(part))).join('; ');
   const parts = [];
   for (const part of source.split('; ')) {
-    if (NATIONAL.some((pattern) => pattern.test(part))) {
+    if (NATIONAL.some((pattern) => pattern.test(part)) || (stateId === 'nsw' && NSW_CODE.test(part))) {
       parts.push(part);
       continue;
     }
