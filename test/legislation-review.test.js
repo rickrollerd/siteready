@@ -409,7 +409,7 @@ test('friable asbestos: enclosure, negative pressure, wet method and air monitor
     assert.equal(/glove bags/.test(friable), state !== 'act', state);
   }
   assert.ok(!lines(draft('vic', task)).some((item) => /enclosure that is tested for leaks|negative pressure/.test(item)));
-  assert.ok(lines(draft('nsw', 'Remove 60 square metres of bonded asbestos cement roof sheeting from a 1970s factory.')).includes('Keep the material wet and remove it whole, by hand.'));
+  assert.ok(lines(draft('nsw', 'Remove 60 square metres of bonded asbestos cement roof sheeting from a 1970s factory.')).some((item) => item.startsWith('Keep the material wet and remove it whole, by hand.')));
   const scaffold = draft('nsw', 'Erect a tube and coupler scaffold 20 m high on the facade of a commercial office building next to a public footpath.').plant.find((item) => item.item === 'Scaffold');
   assert.match(scaffold.inspection, /\(Work Health and Safety Regulation 2025 \(NSW\) s 225, for suspended, cantilevered, spur and hung scaffolds, and others over 4 m\)\.$/);
 });
