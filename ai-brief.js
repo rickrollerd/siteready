@@ -2,9 +2,12 @@
 // 2026 after side by side tests). Only rule 9 differs from the tested wording: the three
 // tables come back in the JSON shape below rather than as markdown.
 // v3.1 (owner approved 5 October 2026): software set-up, licences, remote support and training are Duty.
+// v3.2 (owner approved for testing 5 October 2026): rule 1 sharpened (exclusions win, standards and
+// conditions are not work, copied text, blank template lines, prices) and the step mapping takes whole
+// groups only for main work.
 // Change the brief only with the owner's approval, and raise BRIEF_VERSION when it changes,
 // so stored readings made with an older brief are read again.
-const BRIEF_VERSION = 'v3.1';
+const BRIEF_VERSION = 'v3.2';
 
 const PACKAGES = [
   'In-ground civil',
@@ -31,6 +34,12 @@ Read every word of the document, including tables, appendices and schedules. Do 
 
 Rules:
 1. List only this subcontractor's own work. Leave out work by others, work done "by the Contractor" or "by the Builder", exclusions, items supplied by others, general conditions, commercial terms, warranties and paperwork.
+   In particular:
+   - Where an inclusion and an exclusion cover the same work, the exclusion wins: leave the work out of the activities and list the pair under conflicts.
+   - A clause that only sets a standard or a condition ("welding to AS/NZS 1554", "on-site welding is to be avoided", "provide traffic control if required") is not an activity unless another clause says this subcontractor does that work. If it might apply, add it to Unknowns of the related activity instead.
+   - Leave out lines that plainly belong to another trade's scope (text copied from another package), unless they name this subcontractor.
+   - Leave out blank or unfilled template lines (for example "____", "TBA", "[insert]").
+   - Leave out rates, prices, day labour, invoicing and payment lines. Never quote a price.
 2. One row is one activity. Give a separate row for each item of plant or each method named (for example: crane lift, EWP, scaffold, ladder, core drilling, hot works). Do not split one activity into its sub-steps (install and later remove the same item is one row). Do not merge different activities into one row because they share a location.
 3. Name each activity plainly ("Install ductwork", "Lift chillers into the plant room"). Do not assume details the document does not give.
 4. For each row give:
@@ -101,6 +110,8 @@ For each work package, choose the groups whose job steps cover the activities li
 - Choose by what the work is, not by matching words. For example, an "ISDN On Ramp interface" is a telephone interface, not a ramp; a "door station" is an intercom unit, not a door; "chilled water" is pipework, not concrete curing.
 - Choose only groups for work the package's activities, plant or conditions name. Do not add access equipment, demolition, excavation, cranes or other work unless they are named.
 - An activity that needs no physical work (configuring software, providing a licence) needs no group.
+- Choose a group only when its main steps are the work. Small or incidental work (touch-up painting, washing out, a few fixings, an interface connection) does not bring in a whole group: list it under unmatched instead.
+- Access equipment the package only uses (a ladder, a mobile scaffold) is not scaffold erection or hoarding work.
 - If no group fits an activity, leave it out rather than choose a near miss, and list it under unmatched.
 - Use only ids from the library.
 - Under byOthers, list each job step (as written in the library) that sits with this package's work but which the scope gives to another party: for example the rough-in when the data wiring is by the site electrician, core holes cut by others, or cranage by the crane company. Give the group id, the step, the party and clause, and one plain sentence saying what the scope says. Do not also put that group under groups unless the package's own work needs other steps from it.
