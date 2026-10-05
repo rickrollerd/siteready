@@ -63,7 +63,8 @@ test.after(() => {
 });
 
 test('the brief is v3 and the answer schema is strict', () => {
-  assert.equal(BRIEF_VERSION, 'v3.1');
+  assert.equal(BRIEF_VERSION, 'v3.2');
+  assert.match(BRIEF, /the exclusion wins/);
   assert.match(BRIEF, /software set-up and configuration, licences, remote or off-site support, and training/);
   assert.match(BRIEF, /Read every word of the document/);
   assert.match(BRIEF, /A carve-out \("except", "unless", "other than"\) or a sequence/);
