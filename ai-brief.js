@@ -1,9 +1,10 @@
 // The brief the AI reads a scope of works with (brief v3, chosen by the owner on 4 October
 // 2026 after side by side tests). Only rule 9 differs from the tested wording: the three
 // tables come back in the JSON shape below rather than as markdown.
+// v3.1 (owner approved 5 October 2026): software set-up, licences, remote support and training are Duty.
 // Change the brief only with the owner's approval, and raise BRIEF_VERSION when it changes,
 // so stored readings made with an older brief are read again.
-const BRIEF_VERSION = 'v3';
+const BRIEF_VERSION = 'v3.1';
 
 const PACKAGES = [
   'In-ground civil',
@@ -37,7 +38,7 @@ Rules:
    - Type, using these rules:
      - Site work: physical work at the project site.
      - Off-site work: physical work away from the site (precast yard, fabrication facility, factory, workshop).
-     - Duty: supervision, inspections, surveys, attendance, testing records, as-built drawings, meetings.
+     - Duty: supervision, inspections, surveys, attendance, testing records, as-built drawings, meetings, software set-up and configuration, licences, remote or off-site support, and training.
    - Work package, using only these names where they fit: ${PACKAGES.join('; ')}. For installation work use "Trade installation: [area]" (for example "Trade installation: plant room"). Use a new name only if none fits, and use it for every row that belongs to it.
    - Crew: the trade or crew that does it.
    - Source: the clause or heading number, and the exact words from the document, quoted in full with no "..." inside a quote.
@@ -92,4 +93,24 @@ const SCHEMA = object({
   },
 });
 
-module.exports = { BRIEF, BRIEF_VERSION, SCHEMA, PACKAGES, TYPES, CONFIDENCE };
+// The second, smaller call: the job step groups in SiteReady's library that cover each work package,
+// chosen by meaning. The rule engine still decides high risk work and every legal line.
+const STEPS_BRIEF = `You are matching construction work packages to the job step groups in a safe work method statement library. Each group has an id and the job steps it contains.
+
+For each work package, choose the groups whose job steps cover the activities listed in it.
+- Choose by what the work is, not by matching words. For example, an "ISDN On Ramp interface" is a telephone interface, not a ramp; a "door station" is an intercom unit, not a door; "chilled water" is pipework, not concrete curing.
+- Choose only groups for work the package's activities, plant or conditions name. Do not add access equipment, demolition, excavation, cranes or other work unless they are named.
+- An activity that needs no physical work (configuring software, providing a licence) needs no group.
+- If no group fits an activity, leave it out rather than choose a near miss, and list it under unmatched.
+- Use only ids from the library.
+
+Return the result in the JSON format given. No other commentary.`;
+
+const STEPS_SCHEMA = object({
+  packages: {
+    type: 'array',
+    items: object({ package: text, groups: { type: 'array', items: text }, unmatched: { type: 'array', items: text } }),
+  },
+});
+
+module.exports = { BRIEF, BRIEF_VERSION, SCHEMA, PACKAGES, TYPES, CONFIDENCE, STEPS_BRIEF, STEPS_SCHEMA };

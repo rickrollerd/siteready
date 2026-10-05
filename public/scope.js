@@ -33,6 +33,7 @@
           <h3>${esc(item.title)}${item.needsSwms ? ' <span class="tag-risk">High risk</span>' : ''}</h3>
           <p>${esc(item.task)}</p>
           ${(item.highRisk || []).length ? `<p class="meta">High risk construction work: ${esc(item.highRisk.join('; '))}</p>` : ''}
+          ${(item.unmatched || []).length ? `<p class="meta">No job steps in the library for: ${esc(item.unmatched.join('; '))}. Pick the steps for these under Job steps, or describe them in the task.</p>` : ''}
           ${item.clauses ? `<button type="button" class="small secondary" data-scope-clauses="${index}" aria-expanded="false">Show scope clauses</button><div class="scope-clauses hidden" id="scope-clauses-${index}">${item.clauses.map((row) => `<p><strong>${esc(row.activity)}</strong>${row.clause ? ` <span class="meta">${esc(row.clause)}${row.matrixColumn ? `, ${esc(row.matrixColumn)}` : ''}</span>` : ''}</p>${row.quotes.map((quote) => `<blockquote>${esc(quote)}</blockquote>`).join('')}`).join('')}</div>` : `<details><summary>From the scope (${item.lines.length} ${item.lines.length === 1 ? 'line' : 'lines'})</summary><ul>${item.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>`}
           <button type="button" class="small" data-scope-task="${index}" aria-pressed="false">Add this task</button>
         </div>`).join('') + `<div class="actions scope-go"><button type="button" id="project-start">${projectButton()}</button></div><p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>`
@@ -177,11 +178,16 @@
     const ticked = [...document.querySelectorAll('[data-package]')].filter((box) => box.checked).map((box) => packages[Number(box.dataset.package)]);
     if (!ticked.length) { $('scope-error').textContent = 'Tick at least one work package.'; return; }
     $('scope-error').textContent = '';
+    // The job steps the AI chose from the library for each package; the rule engine still adds high risk work.
+    const steps = new Map((aiReading.reading.packages || []).map((item) => [item.package, item]));
     show({
       tasks: ticked.map((pack) => {
         const rows = pack.rows.filter((row) => row.type !== 'Duty');
         const use = rows.length ? rows : pack.rows;
+        const chosen = steps.get(pack.name);
         return {
+          kinds: chosen ? chosen.groups : null,
+          unmatched: chosen ? chosen.unmatched : [],
           title: pack.name,
           task: use.map((row) => `${row.activity.replace(/\.$/, '')}${row.where ? ` (${row.where})` : ''}.`).join(' '),
           lines: [],

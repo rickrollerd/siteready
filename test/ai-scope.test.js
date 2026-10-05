@@ -26,20 +26,29 @@ const READING = {
 };
 
 // A stand-in for the SDK client: records what was asked and answers with the given reading.
-function standIn(answer, extra = {}) {
+// The step mapping call (its schema has "packages") gets its own answer.
+const STEPS = { packages: [
+  { package: 'Trade installation: ceilings', groups: ['ductwork', 'madeUpGroup'], unmatched: [] },
+  { package: 'Plant lifting and cranage', groups: ['plantLift'], unmatched: [] },
+] };
+function standIn(answer, extra = {}, steps = STEPS) {
   const calls = [];
   return {
     calls,
+    stepCalls: [],
     beta: {
       messages: {
         stream(params) {
-          calls.push(params);
-          return { finalMessage: async () => ({ stop_reason: 'end_turn', model: 'claude-opus-5-5', usage: { input_tokens: 1000, output_tokens: 500 }, content: [{ type: 'text', text: typeof answer === 'string' ? answer : JSON.stringify(answer) }], ...extra }) };
+          const mapping = Boolean(params.output_config.format.schema.properties.packages);
+          (mapping ? this.parent.stepCalls : calls).push(params);
+          const body = mapping ? steps : answer;
+          return { finalMessage: async () => ({ stop_reason: 'end_turn', model: 'claude-opus-5-5', usage: { input_tokens: 1000, output_tokens: 500 }, content: [{ type: 'text', text: typeof body === 'string' ? body : JSON.stringify(body) }], ...(mapping ? {} : extra) }) };
         },
       },
     },
   };
 }
+const withParent = (client) => { client.beta.messages.parent = client; return client; };
 
 const company = { id: 'company-ai-1', name: 'Test Mechanical', abn: '33102417000' };
 
@@ -54,7 +63,8 @@ test.after(() => {
 });
 
 test('the brief is v3 and the answer schema is strict', () => {
-  assert.equal(BRIEF_VERSION, 'v3');
+  assert.equal(BRIEF_VERSION, 'v3.1');
+  assert.match(BRIEF, /software set-up and configuration, licences, remote or off-site support, and training/);
   assert.match(BRIEF, /Read every word of the document/);
   assert.match(BRIEF, /A carve-out \("except", "unless", "other than"\) or a sequence/);
   const strict = (schema) => schema.type !== 'object' || (schema.additionalProperties === false
@@ -65,7 +75,7 @@ test('the brief is v3 and the answer schema is strict', () => {
 
 test('the whole document is sent with the brief, on Claude Opus 5.5, and the reading is kept', async () => {
   const model = standIn(READING);
-  aiScope.useClient(model);
+  aiScope.useClient(withParent(model));
   const started = await aiScope.startReading(company, SCOPE);
   assert.equal(started.status, 'reading');
   await started.done;
@@ -80,13 +90,21 @@ test('the whole document is sent with the brief, on Claude Opus 5.5, and the rea
   assert.equal(reading.reading.activities.length, 2);
   assert.equal(reading.checks.passed, true);
   assert.equal(reading.checks.quotesNotFound.length, 0);
+  // Both calls are counted: 2 x (1,000 in at $4 + 500 out at $20 per million).
   const row = await db.one('SELECT cost_usd FROM ai_readings WHERE id = $1', [started.id]);
-  assert.equal(Number(row.cost_usd), 0.014);
+  assert.equal(Number(row.cost_usd), 0.028);
+  // The step mapping sees each work package with site work, and the library; a made-up id never reaches the reading.
+  const asked = model.stepCalls[0];
+  assert.match(asked.system[0].text, /<library>[^]*ductwork: Fix hangers and supports/);
+  assert.match(asked.messages[0].content, /Work package: Plant lifting and cranage\n- Lift chillers into the plant room \| plant: Mobile crane/);
+  assert.equal(asked.output_config.effort, 'medium');
+  assert.deepEqual(reading.reading.packages.map((item) => item.groups), [['ductwork'], ['plantLift']]);
+  assert.deepEqual(reading.checks.unknownStepIds, ['madeUpGroup']);
 });
 
 test('the same document for the same company is not read again; another company cannot see it', async () => {
   const model = standIn(READING);
-  aiScope.useClient(model);
+  aiScope.useClient(withParent(model));
   const again = await aiScope.startReading(company, SCOPE);
   assert.equal(again.kept, true);
   assert.equal(again.status, 'done');
@@ -124,7 +142,7 @@ test('a refusal, a cut-off answer or a malformed answer fails the reading with a
     [standIn({ activities: 'none' }), /not in the expected form/],
   ];
   for (const [model, message] of cases) {
-    aiScope.useClient(model);
+    aiScope.useClient(withParent(model));
     const started = await aiScope.startReading(company, `${SCOPE}\n${message.source}`);
     await started.done;
     const reading = await aiScope.getReading(company, started.id);
@@ -149,7 +167,7 @@ test('a reading cut off by a restart is marked failed after 30 minutes, and the 
   const stuck = await aiScope.getReading(company, 'stuck-reading');
   assert.equal(stuck.status, 'failed');
   assert.match(stuck.error, /interrupted/);
-  aiScope.useClient(standIn(READING));
+  aiScope.useClient(withParent(standIn(READING)));
   const again = await aiScope.startReading(company, text);
   assert.equal(again.kept, false);
   await again.done;
