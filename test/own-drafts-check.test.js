@@ -11,7 +11,7 @@ const { draftBody } = require('../input');
 const { ACTIVITIES } = require('../activities');
 const { localControl } = require('../citations');
 const { draftToDocx } = require('../docx-draft');
-const { HIERARCHY } = require('../legislation');
+const { HIERARCHY, findState } = require('../legislation');
 const scenarios = require('../scenarios/scenarios.json');
 
 // Filled in as a user would before sending the SWMS to the builder.
@@ -178,4 +178,45 @@ test('hot work, isolating plant or services, and confined space work each name t
   const vinyl = drafted('qld', { task: 'Install sheet vinyl with heat-welded joins and coving in the wards.', kinds: ['floorLay', 'floorAdhesive', 'floorLevel'], facts: sds });
   assert.doesNotMatch(lines(vinyl), /No hot work \(welding/);
   assert.doesNotMatch(lines(drafted('qld', TYPED[1])), /hot work permit is issued|isolation permit is issued|confined space entry permit is issued/);
+});
+
+test('gas piping listed as high risk work brings gas controls, even where no gas fitting step was picked', () => {
+  // The task names gas supply pipework, but the steps picked are for the water heater, pumps and risers.
+  const task = 'Install hot water plant. Install hot water circulation pumps. Provide water and gas supplies to mechanical plant terminated with valved branch (Mechanical plant).';
+  const facts = { safetyDataSheet: 'The products are used with good ventilation, with the gloves and eye protection their safety data sheets list.' };
+  for (const state of ['vic', 'qld', 'act']) {
+    const draft = drafted(state, { task, kinds: ['waterHeater', 'pumpInstall', 'hydraulicRisers'], facts });
+    assert.ok(draft.highRisk.some((item) => /pressurised gas/i.test(item)), state);
+    const step = draft.jobSteps.find((item) => item.controls.some((line) => /^Gas pipework is installed, connected and tested only by a licensed gas fitter\./.test(line)));
+    assert.ok(step && step.step !== 'Before starting', state);
+    assert.deepEqual(checked(state, draft).hardFails, [], state);
+  }
+  // A gas fitting step already controls the gas, so the line is not added as well.
+  const fitted = drafted('qld', { task: 'Install a gas hot water system in a house and connect it to the gas line.' });
+  assert.ok(fitted.jobSteps.some((step) => step.step === 'Connect, leak test and commission the gas appliance'));
+  assert.ok(!fitted.jobSteps.some((step) => step.controls.some((line) => /^Gas pipework is installed/.test(line))));
+});
+
+test('Victoria: labelling plant to be retained or demolished is not demolition work', () => {
+  const label = 'Identify, label and protect existing plant, pipework, cabling and ductwork to be retained or demolished (Visitor Processing building).';
+  const vic = (text) => highRiskMatches(text, 'no', findState('vic')).map((item) => item.check);
+  assert.ok(!vic(label).includes('demolitionAny'));
+  assert.ok(!vic(`Install split system units in the plant room. ${label}`).includes('demolitionAny'));
+  // Demolishing it is.
+  assert.ok(vic('Demolish the existing plant, pipework and ductwork.').includes('demolitionAny'));
+  assert.ok(vic(`${label} Demolish the redundant ductwork.`).includes('demolitionAny'));
+  const draft = drafted('vic', { task: `Install two temporary DX fan coil units with drip trays and drains in the operating server room. ${label}`, kinds: ['splitInstall', 'serviceLabels'] });
+  assert.ok(!draft.highRisk.includes('Involving demolition'));
+  assert.ok(!checked('vic', draft).hardFails.includes('H2'));
+});
+
+test('ACT: silica processing needs the material and the power tool in the same sentence or step', () => {
+  const act = (text) => highRiskMatches(text, 'no', findState('act')).some((item) => item.check === 'silica');
+  // A substrate for a stone top, and a power tools step for the timber joinery, is not processing stone.
+  assert.ok(!act('Install business centre joinery including substrate for stone and 40mm dowel (Building 2B, business centre).\nBefore starting\nUse power tools\nInstall joinery and cabinets'));
+  assert.ok(act('Cut and grind concrete pavers with an angle grinder.'));
+  assert.ok(act('Install joinery.\nDrill or cut concrete, masonry or stone'));
+  const draft = drafted('act', { task: 'Install business centre joinery including substrate for stone and 40mm dowel (Building 2B, business centre).', kinds: ['carpJoinery', 'carpentryWork'] });
+  assert.ok(!draft.highRisk.some((item) => /silica/i.test(item)));
+  assert.deepEqual(checked('act', draft).hardFails, []);
 });

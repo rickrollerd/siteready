@@ -203,6 +203,8 @@ const POSITION = /\b(supervisors?|leading hands?|foreman|foremen|site managers?|
 
 const PLANT_WORDS = /\b(cranes?|forklifts?|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|excavators?|skid ?steers?|bobcats?|loaders?|rollers?|dozers?|graders?|telehandlers?|trucks?|concrete pumps?|scaffold\w*|power tools?|saws?|grinders?|generators?|compressors?)\b/i;
 
+const SHALLOW_TRENCH = /\b(?:trench\w*|excavations?)\b[^.]{0,40}\b(?:kept|stays?|remains?)\s+(?:shallower|less)\s+than\s+1\.5\s?m\b/i;
+
 // ---- The check ----
 
 function categoriesNamed(items, state) {
@@ -222,7 +224,11 @@ function hardFails(swms, state) {
   // may be there ("contact with overhead power lines"), so a category only they imply is
   // named for the builder to check, and is not a hard fail.
   const implied = highRiskMatches([swms.task, ...swms.steps.map((step) => step.step)].join('\n'), swms.fallRisk, state);
-  const missing = implied.filter((item) => !namedIds.has(item.id));
+  // A SWMS that commits to keeping the trench under 1.5 m, with a stop if it must go deeper,
+  // is not trench high risk work (s 291), so a trench step name alone does not imply it.
+  const statedDepths = [...`${swms.task}`.matchAll(/\b(\d+(?:\.\d+)?)\s?m(?:etres?)?\s+deep\b/gi)].map((match) => Number(match[1]));
+  const keptShallow = SHALLOW_TRENCH.test(allControls.join('\n')) && !statedDepths.some((depth) => depth > 1.5);
+  const missing = implied.filter((item) => !namedIds.has(item.id) && !(keptShallow && item.id === 'trench'));
   const hazardOnly = highRiskMatches(swms.steps.flatMap((step) => step.hazards).join('\n'), swms.fallRisk, state)
     .filter((item) => !namedIds.has(item.id) && !missing.includes(item));
   const alsoCheck = hazardOnly.length ? ` Also check, as the hazards name it: ${hazardOnly.map((item) => item.label).join('; ')}.` : '';
