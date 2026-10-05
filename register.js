@@ -326,6 +326,8 @@ function qualificationsFor(taskText, hazardText, allText, plant, highRisk = [], 
   // Erecting, climbing or dismantling a crane is rigging work on a crane: intermediate rigging
   // (WHS Reg schedule 3 item 6(c)), which basic rigging leaves out (item 5).
   if (/\nErect or dismantle the tower crane\n/.test(`\n${allText}\n`)) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: (?:basic rigging|dogging or rigging)/.test(needed[i])) needed.splice(i, 1); needed.push('High risk work licence: intermediate rigging (RI) or advanced rigging (RA), for erecting, climbing or dismantling the crane, and dogging (DG) or higher for slinging'); }
+  // Perimeter safety screens and shutters are basic rigging work (WHS Reg schedule 3).
+  if (/\n(?:Erect|Lift|Dismantle) the safety screens\b/.test(`\n${allText}\n`)) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: dogging or rigging/.test(needed[i])) needed.splice(i, 1); if (!needed.some((name) => /rigging \(R[BIA]\)/.test(name))) needed.push('High risk work licence: basic rigging (RB) or higher, for perimeter safety screens and shutters'); }
   // Dual lifts need at least intermediate rigging (WHS Reg schedule 3).
   if (/\nCarry out the dual lift\n/.test(`\n${allText}\n`)) { for (let i = needed.length - 1; i >= 0; i -= 1) if (/^High risk work licence: (?:basic rigging|dogging or rigging)/.test(needed[i])) needed.splice(i, 1); needed.push('High risk work licence: intermediate rigging (RI) or higher, for the dual lift'); }
   return [...new Set(needed)];

@@ -415,6 +415,9 @@ const TITLES = Object.freeze({
   sawCut: 'Saw cutting', asbestos: 'Asbestos removal', asbestosCheck: 'Asbestos check', confined: 'Confined space entry', roofSpace: 'Work in the roof space',
   floorGrind: 'Floor grinding', wpTorch: 'Torch-on membranes', stoneSilica: 'Cutting stone benchtops', steelErect: 'Steel erection at height',
   balustradeEdge: 'Balustrades at open edges', earthworks: 'Earthworks and compaction', water: 'Work in or near water', liftShaft: 'Work at open lift shafts', landscapeLift: 'Lifting soil and plants',
+  safetyScreens: 'Perimeter safety screens', tempStairs: 'Temporary stairs and stair towers', workshopFab: 'Workshop metal fabrication', floodTest: 'Flood and holiday testing of membranes',
+  drainageCell: 'Drainage cell and protection board', acousticMat: 'Acoustic matting under floors', earthStakes: 'Earth stakes and earthing', caulking: 'Sealants and caulking',
+  trestleUse: 'Trestle platforms', pdtFixing: 'Powder-actuated fixing', peFusion: 'PE pipe butt fusion', wasteRemoval: 'Rubbish removal and site clean-ups', defectsVisit: 'Defects liability visits',
 });
 const MAX_LINES = 8;
 const MAX_TASK = 900;

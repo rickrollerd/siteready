@@ -7064,5 +7064,59 @@
   "find": "Temporary cables are kept off access routes, materials are stacked away from fences and hoardings, and emergency exits stay clear and lit.",
   "code": "NSW Construction work",
   "section": "appendix K"
+ },
+ {
+  "op": "add",
+  "group": "safetyScreens",
+  "step": "Erect the safety screens",
+  "text": "Perimeter protection screens extend at least 1 m above the finished slab, stay in place from the start of erection until soffit stripping is complete, and gaps between the screen and deck are minimised, for example with a flexible flap.",
+  "code": "NSW Formwork",
+  "section": "s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "safetyScreens",
+  "step": "Erect the safety screens",
+  "text": "Screens are assembled, installed and operated by workers trained by the screen manufacturer or supplier and found competent.",
+  "code": "NSW Formwork",
+  "section": "s 6.2"
+ },
+ {
+  "op": "cite",
+  "find": "The framework supporting a screen can bear the load of the screen, and screens are mesh, timber, plywood, metal sheeting or another material suited to stopping objects falling.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "cite",
+  "find": "Entries, exits and access ways are kept clear of materials and waste.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "cite",
+  "find": "Waste is collected, stored and removed in a set system, with enough rubbish and recycling bins near the work.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "cite",
+  "find": "Protruding nails and sharp edges in waste are removed or covered, and cut resistant gloves are worn.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "cite",
+  "find": "Secure loose material such as boards, sheets and offcuts against the wind, and do not stack it near unprotected edges.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
+ },
+ {
+  "op": "add",
+  "group": "wasteRemoval",
+  "step": "Send waste down the rubbish chute",
+  "text": "Debris is placed into a skip below the work area only by a chute.",
+  "code": "NSW Construction work",
+  "section": "appendix K"
  }
 ]

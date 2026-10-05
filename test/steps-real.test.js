@@ -1058,3 +1058,154 @@ test('a SafeWork NSW code citation prints only in NSW drafts, beside the line\'s
   assert.match(localSource(source, 'nsw'), /SafeWork NSW Code of practice: Work on roofs \(May 2026\) s 3\.2/);
   assert.doesNotMatch(localSource(source, 'vic'), /SafeWork NSW/);
 });
+
+// Task #97: work the AI found no library group for in 37 real scopes. Each group finds its
+// steps for a realistic scope line, and near-miss wording does not bring it.
+const GAP_KINDS = ['safetyScreens', 'tempStairs', 'workshopFab', 'floodTest', 'drainageCell', 'acousticMat', 'earthStakes', 'caulking', 'trestleUse', 'pdtFixing', 'peFusion', 'wasteRemoval', 'defectsVisit'];
+const gapKinds = (task, trade = '') => kinds(task, trade).filter((id) => GAP_KINDS.includes(id));
+const middle = (done) => steps(done).slice(1, -1);
+const said = (done, pattern) => done.jobSteps.some((step) => step.controls.some((line) => pattern.test(line)));
+
+test('perimeter safety screens lifted by hydraulic lifters are erected, lifted and dismantled as basic rigging work', () => {
+  const task = 'Erect, lift and dismantle the commercial tower safety screens using hydraulic lifters.';
+  assert.deepEqual(gapKinds(task, 'structure'), ['safetyScreens']);
+  const done = draft(task, 'structure');
+  assert.deepEqual(middle(done), ['Erect the safety screens', 'Lift the safety screens with the hydraulic lifters', 'Dismantle the safety screens']);
+  assert.ok(done.qualifications.includes('High risk work licence: basic rigging (RB) or higher, for perimeter safety screens and shutters'));
+  assert.ok(said(done, /pinned or locked to its new brackets/));
+  // Installing screens alone is the erect step, not general edge protection.
+  assert.deepEqual(middle(draft('Install perimeter screens.', 'structure')), ['Erect the safety screens']);
+  for (const near of ['Remove and replace the shower screens in the bathrooms.', 'Fit fly screens and security screens to the windows.', 'Install the LED screens on the stadium facade.', 'Work inside the perimeter safety screens on level 4.']) {
+    assert.deepEqual(gapKinds(near), [], near);
+  }
+});
+
+test('a proprietary temporary stair system gets the temporary stair steps; a scaffold stair tower keeps the scaffold steps', () => {
+  const task = 'Install Stair Master (or similar) temporary stair system with handrail.';
+  assert.deepEqual(gapKinds(task, 'structure'), ['tempStairs']);
+  assert.deepEqual(middle(draft(task, 'structure')), ['Erect the temporary stair', 'Inspect and hand over the temporary stair']);
+  assert.deepEqual(middle(draft('Dismantle the temporary stair tower at the end of the job.', 'structure')), ['Dismantle the temporary stair']);
+  assert.ok(!kinds('Install a temporary scaffold stair tower on a construction site.').includes('tempStairs'));
+  for (const near of ['Install the steel staircase between levels 1 and 2.', 'Build and fix the timber staircase.', 'Land and fix the precast stair flights.', 'Workers reach the deck by the stair tower.']) assert.deepEqual(gapKinds(near), [], near);
+});
+
+test('workshop fabrication of metal frames and stainless kitchen items gets the workshop steps, not the site installation steps', () => {
+  const alu = 'Fabricate aluminium frames (cutting, bracing, bolting, riveting, drilling, countersinking, grinding, filling).';
+  assert.deepEqual(kinds(alu, 'glazing'), ['workshopFab']);
+  // Aluminium frames are riveted and screwed, not welded.
+  assert.deepEqual(middle(draft(alu, 'glazing')), ['Cut metal in the workshop', 'Drill, punch and rivet metal parts', 'Grind and finish metal', 'Move and store fabricated items']);
+  const kitchen = draft('Fabricate custom stainless steel kitchen items (benches, counters, canopies, wall linings) off site.', 'kitchens');
+  assert.ok(steps(kitchen).includes('Weld in the workshop'));
+  assert.ok(!steps(kitchen).includes('Deliver and install commercial kitchen equipment'));
+  assert.ok(kitchen.jobSteps.some((step) => step.hazards.some((line) => /chromium and nickel/.test(line))));
+  assert.deepEqual(kitchen.highRisk, []);
+  const steel = steps(draft('Fabricate and paint structural steel off-site at the fabrication facility.', 'steel'));
+  assert.ok(steel.includes('Weld in the workshop') && !steel.includes('Erect and connect steel at height') && !steel.includes('Paint'));
+  for (const near of ['Supply, fabricate and install the stainless steel balustrades.', 'Manufacture timber doors with hardboard facings.', 'Install the commercial kitchen equipment.']) assert.ok(!kinds(near).includes('workshopFab'), near);
+});
+
+test('flood tests and holiday tests of membranes are their own steps, without the tiling or membrane steps they name', () => {
+  const flood = draft('Flood test waterproofing for minimum 12 hours and keep records.', 'waterproofing');
+  assert.deepEqual(middle(flood), ['Set up the flood test', 'Check and drain the flood test']);
+  assert.ok(said(flood, /Electrical equipment, switchboards and services below are protected or isolated/));
+  assert.deepEqual(middle(draft('Water test wet areas after tiling.', 'tiling')), ['Set up the flood test', 'Check and drain the flood test']);
+  assert.deepEqual(middle(draft('Holiday test waterproof membranes where water testing is not possible.', 'waterproofing')), ['Holiday test the membrane']);
+  // Tiling the room and water testing it keeps the tiling steps.
+  assert.ok(steps(draft('Tile the shower and water test it.', 'tiling')).includes('Lay tiles'));
+  for (const near of ['Pressure test the water service and the fire mains.', 'Water test the windows to AS 4420 from the scaffold.', 'Clean out the flood-damaged linings and insulation.']) assert.ok(!kinds(near).includes('floodTest'), near);
+});
+
+test('drainage cell and protection board over a membrane are laid in their own steps', () => {
+  assert.deepEqual(middle(draft('Install drainage cell and protection board over membrane.', 'waterproofing')), ['Lay protection board over the membrane', 'Lay the drainage cell']);
+  assert.deepEqual(middle(draft('Install FC or coreflute protection linings to sides and bases of planter beds.', 'waterproofing')), ['Lay protection board over the membrane']);
+  // Drainage behind a retaining wall is the wall drainage step; floor protection is not a membrane board.
+  assert.ok(!kinds('Install drainage cell behind the retaining wall and backfill.').includes('drainageCell'));
+  assert.ok(!kinds('Fix coreflute protection to the floor tiles.').includes('drainageCell'));
+});
+
+test('acoustic matting under tiles is laid in its own step, without the tiling steps', () => {
+  assert.deepEqual(middle(draft('Supply and install acoustic matting under tiled and hard surfaces.', 'tiling')), ['Lay the acoustic matting']);
+  for (const near of ['Fix acoustic panels to the walls of the music room.', 'Install the acoustic insulation batts in the ceiling.', 'Install acoustic seals to the aluminium framed doors.']) assert.ok(!kinds(near).includes('acousticMat'), near);
+});
+
+test('earth stakes are driven after services are located, and earthing is connected by licensed electrical workers', () => {
+  const done = draft('Drive or drill earth stakes.', 'electrical');
+  assert.deepEqual(middle(done), ['Drive or drill the earth stakes', 'Connect and test the earthing']);
+  assert.ok(said(done, /underground services information/));
+  assert.ok(done.jobSteps[0].controls.some((line) => /licensed electrical workers/.test(line)));
+  assert.ok(said(draft('Install HV and LV earthing systems and earth grids.', 'electrical'), /high voltage operator's access permit/));
+  assert.ok(steps(draft('Install communications earthing and surge protection.', 'communications')).includes('Connect and test the earthing'));
+  for (const near of ['Bulk earthworks and cut and fill for the car park.', 'Isolate and earth the HV cable before the joint is cut.']) assert.ok(!kinds(near).includes('earthStakes'), near);
+});
+
+test('sealant and caulking, trestles, powder-actuated tools and PE butt fusion have their own steps', () => {
+  const secure = draft('Apply non-pick caulking and bedding to installed items in the cells.', 'mechanical');
+  assert.deepEqual(middle(secure), ['Apply sealant and caulking']);
+  assert.ok(said(secure, /counted in and out/));
+  assert.deepEqual(middle(draft('Apply silicone jointing to internal corners and junctions of wall tiling.', 'tiling')), ['Apply sealant and caulking']);
+  assert.ok(!kinds('Fire stop and seal penetrations through the fire walls.').includes('caulking'));
+  assert.deepEqual(middle(draft('Use trestles as working platforms.', 'steel')), ['Work from trestle platforms']);
+  assert.ok(!kinds('Lay blocks from trestles to the ground floor walls.', 'masonry').includes('trestleUse'));
+  const pdt = draft('Fix using explosive and low velocity (powder-actuated) tool fasteners.', 'mechanical');
+  assert.deepEqual(middle(pdt), ['Fix with a powder-actuated tool']);
+  assert.doesNotMatch(risks(pdt), /explosives/i);
+  assert.deepEqual(middle(draft('Butt weld PE pipe.', 'plumbing')), ['Butt fuse polyethylene pipe']);
+  assert.ok(steps(draft('Braze the copper pipe joints.', 'plumbing')).includes('Braze and solder pipe joints (hot work)'));
+  assert.deepEqual(middle(draft('Weld and grind aluminium members.', 'glazing')), ['Weld aluminium']);
+});
+
+test('trade rubbish removal and site clean-ups get the waste removal steps, never chemical cleaning', () => {
+  const daily = draft('Remove rubbish daily to the Principal\'s bins and carry out site clean ups.');
+  assert.deepEqual(middle(daily), ['Cart rubbish to the site bins', 'Clean up the work area']);
+  assert.ok(!kinds('Remove rubbish and carry out site clean-ups.').includes('cleaning'));
+  const formwork = draft('Clean work areas, remove rubbish daily and move full bins to the hoist. Remove and dispose of waste and hazardous materials off site.', 'structure');
+  assert.deepEqual(middle(formwork), ['Cart rubbish to the site bins', 'Clean up the work area', 'Move full bins to the hoist', 'Remove hazardous waste']);
+  assert.ok(steps(draft('Remove rubbish and debris to skip bins.')).includes('Load skips and bins'));
+  assert.ok(steps(draft('Send the rubbish down the rubbish chute to the skip.')).includes('Send waste down the rubbish chute'));
+  assert.ok(steps(draft('Wash tools in the designated wash out bay.', 'tiling')).includes('Wash out tools at the washout bay'));
+  // Tiling waste is rubbish, not tiling.
+  assert.deepEqual(middle(draft('Remove tiling waste to bins and collect rubbish daily.', 'tiling')), ['Cart rubbish to the site bins', 'Clean up the work area']);
+  // Sweeping up is not silica processing that needs the silica course.
+  assert.ok(!daily.qualifications.some((name) => /silica/i.test(name)));
+  for (const near of ['Install the soil and waste pipework to the bathrooms.', 'Remove leaves and debris from the gutters and downpipes.', 'Temporarily install waste plugs in floor wastes.', 'Install the trade waste pre-treatment pit.']) assert.ok(!kinds(near).includes('wasteRemoval'), near);
+  // A builders clean is still cleaning.
+  assert.ok(kinds('Builders clean of the internal areas, and remove rubbish to the skip.').includes('cleaning'));
+});
+
+test('defects liability visits get the occupied building steps, and preventative maintenance the plant isolation step', () => {
+  for (const task of ['Carry out defects liability maintenance for 12 months.', 'Rectify defects during 12 month defects liability period.', 'Maintain the security system during the twelve month maintenance period.']) {
+    assert.deepEqual(middle(draft(task)), ['Arrange access to the occupied building', 'Rectify defects in the occupied building'], task);
+  }
+  assert.ok(steps(draft('Preventative maintenance during the defects liability period.', 'plumbing')).includes('Carry out preventative maintenance on plant'));
+  for (const near of ['Maintain the temporary power and lighting during construction.', 'Maintain planting for 12 weeks after Practical Completion.', 'Service pool and water features for three months after Practical Completion.']) assert.ok(!kinds(near).includes('defectsVisit'), near);
+});
+
+test('the same package wording gets the same housekeeping and defects steps whatever groups the AI chose', () => {
+  const { packageKinds } = require('../draft');
+  const rubbish = 'Remove rubbish and carry out site clean-ups (Work area).';
+  // Chemical cleaning chosen, nothing chosen, or painting chosen for a washout: all become the waste removal steps.
+  assert.deepEqual(packageKinds(rubbish, ['cleaning']), ['wasteRemoval']);
+  assert.deepEqual(packageKinds(rubbish, []), ['wasteRemoval']);
+  assert.deepEqual(packageKinds('Wash out and clean materials and equipment in designated areas. Remove rubbish daily and carry out site clean ups.', ['painting']), ['wasteRemoval']);
+  // A real clean named in the package keeps the cleaning steps beside them.
+  assert.deepEqual(packageKinds('Final clean including removal of plastic coatings from equipment and benches. Remove rubbish daily and dispose of waste.', ['cleaning']), ['cleaning', 'wasteRemoval']);
+  // Other work in the package keeps its groups.
+  assert.deepEqual(packageKinds('Cut and bend reinforcement on site. Collect rubbish daily and dispose into common bin.', ['reo']), ['reo', 'wasteRemoval']);
+  // General defects wording gets only the defects visit steps; wording that names the work keeps its steps too.
+  const dlp = 'Rectify defects during 12 month defects liability period (Resort may be operating after practical completion).';
+  assert.deepEqual(packageKinds(dlp, ['tileRemove', 'tileLay', 'tileMix']), ['defectsVisit']);
+  assert.deepEqual(packageKinds(dlp, []), ['defectsVisit']);
+  assert.deepEqual(packageKinds('Rectify defective paintwork, including during the 12 month defects liability period.', ['painting']), ['painting', 'defectsVisit']);
+  assert.equal(packageKinds(rubbish, null), null);
+  // Readings are settled as they are read back, so readings kept from before get it too.
+  const { settlePackages } = require('../ai-scope');
+  const reading = { activities: [{ activity: 'Remove rubbish and carry out site clean-ups', package: 'Site cleaning', type: 'Site work' }], packages: [{ package: 'Site cleaning', groups: ['cleaning'], unmatched: [] }] };
+  assert.deepEqual(settlePackages(reading).packages[0].groups, ['wasteRemoval']);
+});
+
+test('the AI step catalogue lists each new group by id with its steps', () => {
+  const { stepCatalogue } = require('../ai-scope');
+  const { text } = stepCatalogue();
+  for (const id of GAP_KINDS) assert.match(text, new RegExp(`^${id}: `, 'm'), id);
+  assert.match(text, /^wasteRemoval: Cart rubbish to the site bins; Clean up the work area; Load skips and bins/m);
+});
