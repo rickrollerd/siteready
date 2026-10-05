@@ -38,8 +38,14 @@
   S.call = call;
   S.isSignedIn = () => Boolean(me);
 
+  // Returns the saved SWMS and revision the download was saved as, where it was saved.
   async function download(route, fallbackName, body) {
     const response = await call(body ? 'POST' : 'GET', route, body);
+    const header = (name) => response.headers.get(name) || '';
+    const saved = header('x-siteready-swms')
+      ? { id: header('x-siteready-swms'), revision: Number(header('x-siteready-revision')) || 1, title: decodeURIComponent(header('x-siteready-title')) }
+      : null;
+    const items = header('x-siteready-saved') ? JSON.parse(decodeURIComponent(header('x-siteready-saved'))) : [];
     const blob = await response.blob();
     const match = /filename="([^"]+)"/.exec(response.headers.get('content-disposition') || '');
     const url = URL.createObjectURL(blob);
@@ -50,6 +56,7 @@
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return { saved, items };
   }
 
   // ---- Face ID (passkeys) ----
@@ -297,6 +304,8 @@
       ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
       ${confirmBlock('new')}
       ${kind === 'draft' && !local ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
+      ${kind === 'draft' && editing ? '<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"></div>' : ''}
+      ${kind === 'draft' && !local ? '<p class="meta">Downloading saves the SWMS under My SWMS, so every copy printed has a record and a revision. The PDF and the QR sign-on are the copies workers sign; the Word file is a working copy.</p>' : ''}
       <div class="actions">
         ${kind === 'draft' && !local ? `<button type="button" id="new-save">${editing ? 'Save changes' : 'Save SWMS'}</button>` : ''}
         <button type="button" class="secondary" id="new-docx">Download Word</button>
@@ -315,11 +324,21 @@
     const run = async (fn) => {
       try { await fn(); } catch (error) { status('new-status', error.message, true); }
     };
-    $('new-docx').addEventListener('click', () => run(() => download('/api/draft.docx', 'SiteReady.docx', { ...input, ...confirmed('new') })));
-    $('new-pdf').addEventListener('click', () => run(() => download('/api/draft.pdf', 'SiteReady.pdf', { ...input, ...confirmed('new') })));
+    // Signed in, a download saves the SWMS first (or its next revision, when it has changed), so
+    // every print has a record. Later changes save as its next revision.
+    const saveAndDownload = async (route, fallbackName) => {
+      const body = { ...input, ...confirmed('new'), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
+      const { saved } = await download(route, fallbackName, body);
+      if (!saved) return;
+      S.editing = { id: saved.id, title: saved.title };
+      status('new-status', `Saved as "${saved.title}", revision ${saved.revision}, and downloaded. Find it under My SWMS. Changes you make now save as its next revision.`);
+      if ($('new-save')) { $('new-save').textContent = 'Saved'; $('new-save').disabled = true; }
+    };
+    $('new-docx').addEventListener('click', () => run(() => saveAndDownload('/api/draft.docx', 'SiteReady.docx')));
+    $('new-pdf').addEventListener('click', () => run(() => saveAndDownload('/api/draft.pdf', 'SiteReady.pdf')));
     if ($('new-save')) {
       $('new-save').addEventListener('click', () => run(async () => {
-        const body = { input, siteId: $('new-site').value || null, ...confirmed('new') };
+        const body = { input, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new') };
         const data = S.editing ? await call('PUT', `/api/swms/${S.editing.id}`, body) : await call('POST', '/api/swms', body);
         // Later changes to this SWMS save as its revisions.
         S.editing = { id: data.swms.id, title: data.swms.title };
@@ -370,16 +389,36 @@
     if (button) openSwms(button.dataset.swms);
   });
 
+  // A saved SWMS's revisions, newest first: when and by whom each was saved, why, what changed
+  // from the one before, and its Word and PDF as they printed.
+  function historyBlock(history) {
+    if (!history || history.length < 2) return '';
+    return `<details class="revisions"><summary>Revisions (${history.length})</summary><ul>${history.map((item) => `<li>
+      <strong>Revision ${esc(item.revision)}</strong>${item.current ? ' (current)' : ''} · ${shortDate(item.savedAt)}${item.savedBy ? ` by ${esc(item.savedBy)}` : ''}${item.ref ? ` · ${esc(item.ref)}` : ''}
+      ${item.reason ? `<br><span class="meta">${esc(item.reason)}</span>` : ''}
+      ${(item.changes || []).length ? `<details><summary>What changed (${item.changes.length})</summary><ul>${item.changes.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>` : ''}
+      <span class="ctl-tools"><button type="button" class="link" data-revision-docx="${esc(item.revision)}">Word</button><button type="button" class="link" data-revision-pdf="${esc(item.revision)}">PDF</button></span>
+    </li>`).join('')}</ul></details>`;
+  }
+
   async function openSwms(id) {
     const data = await call('GET', `/api/swms/${id}`);
     const { swms, draft, signons } = data;
+    const history = data.revisions && data.revisions.length > 1 ? (await call('GET', `/api/swms/${id}/revisions`)).revisions : data.revisions;
+    const update = data.update || { available: false, changes: [] };
     const resultEl = S.resultEl;
     const qr = await call('GET', `/api/swms/${id}/qr.svg`).then((response) => response.text()).catch(() => '');
     const signLink = new URL(swms.signonPath, window.location.origin).toString();
     resultEl.innerHTML = `
       <div class="panel">
         <h2>${esc(swms.title)}</h2>
+        <p class="meta">Revision ${esc(swms.revision)}, saved ${shortDate(swms.revisedAt)}${swms.ref ? ` · SiteReady reference ${esc(swms.ref)}` : ''}</p>
         <p class="meta">Last reviewed ${shortDate(swms.lastReviewedAt)} by ${esc(swms.reviewedBy)} · ${swms.reviewDue ? '<span class="due">Review due now</span>' : `next review by ${shortDate(swms.reviewDueAt)}`}</p>
+        ${update.available ? `<div class="note" id="saved-update"><p><strong>Updated wording is available.</strong> SiteReady's library or the law has changed since this revision was saved. This revision prints as it was saved. To use the updated wording, check the changes and make a new revision.</p>
+          <details><summary>What would change (${update.changes.length})</summary><ul>${update.changes.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>
+          <div class="actions"><button type="button" class="secondary" id="saved-update-go">Make a new revision with the updated wording</button></div>
+          <p class="meta">Uses the name and tick under Mark as reviewed below.</p></div>` : ''}
+        ${historyBlock(history)}
         <div class="actions wrap-actions">
           <button type="button" id="saved-docx">Download Word</button>
           <button type="button" class="secondary" id="saved-pdf">Download PDF</button>
@@ -414,6 +453,18 @@
     };
     $('saved-docx').addEventListener('click', () => run(() => download(`/api/swms/${id}/docx`, 'SWMS.docx')));
     $('saved-pdf').addEventListener('click', () => run(() => download(`/api/swms/${id}/pdf`, 'SWMS.pdf')));
+    resultEl.querySelectorAll('[data-revision-docx], [data-revision-pdf]').forEach((button) => button.addEventListener('click', () => run(() => {
+      const docx = button.dataset.revisionDocx;
+      return download(`/api/swms/${id}/${docx ? 'docx' : 'pdf'}?revision=${encodeURIComponent(docx || button.dataset.revisionPdf)}`, docx ? 'SWMS.docx' : 'SWMS.pdf');
+    })));
+    if ($('saved-update-go')) {
+      $('saved-update-go').addEventListener('click', () => run(async () => {
+        const next = await call('PUT', `/api/swms/${id}`, { reason: 'Updated to SiteReady\'s current wording', ...confirmed('saved') });
+        await openSwms(id);
+        status('saved-status', `Saved revision ${next.swms.revision} with the updated wording.`);
+        loadSwms();
+      }));
+    }
     $('saved-reviewed').addEventListener('click', () => run(async () => {
       await call('POST', `/api/swms/${id}/reviewed`, confirmed('saved'));
       status('saved-status', 'Marked as reviewed. The next review is due in 3 months.');

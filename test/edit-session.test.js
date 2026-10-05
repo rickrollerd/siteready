@@ -127,3 +127,30 @@ test('starting a new SWMS clears the changes and saves it as a new SWMS', async 
   await save(p);
   assert.ok(p.calls.some((call) => call.method === 'POST' && call.route === '/api/swms'));
 });
+
+test('downloading saves the SWMS, and later changes save as its next revision', async () => {
+  const p = page(server((method, route) => (route === '/api/draft.docx'
+    ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 'dl-1', 'x-siteready-revision': '1', 'x-siteready-title': 'Dig%20a%20trench' } } : null)));
+  await settle();
+  p.document.getElementById('task').value = 'Dig a trench.';
+  await prepare(p);
+  const tick = () => {
+    p.document.getElementById('new-confirm').checked = true;
+    p.document.getElementById('new-name').value = 'Sam Lee';
+  };
+  tick();
+  p.document.getElementById('new-docx').click();
+  await settle();
+  const download = p.calls.find((call) => call.route === '/api/draft.docx');
+  assert.equal(download.body.swmsId, undefined, 'a new SWMS');
+  assert.deepEqual(JSON.parse(JSON.stringify(p.window.SiteReady.editing)), { id: 'dl-1', title: 'Dig a trench' });
+  assert.match(p.document.getElementById('new-status').textContent, /Saved as "Dig a trench", revision 1, and downloaded/);
+  p.run("applyLineEdit(shownDraft.jobSteps[0], 'Plant is inspected daily.', '')");
+  await settle();
+  tick();
+  p.document.getElementById('new-docx').click();
+  await settle();
+  const again = p.calls.filter((call) => call.route === '/api/draft.docx');
+  assert.equal(again[1].body.swmsId, 'dl-1', 'the second download is the same SWMS, saved as its next revision when changed');
+  assert.deepEqual(again[1].body.controlEdits, EDITS);
+});

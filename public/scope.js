@@ -375,7 +375,7 @@
       ${current ? `<p class="project-now">Now preparing SWMS ${project.current + 1} of ${project.items.length}: <strong>${esc(current.title)}</strong>. It is open in the form below: fill in the details and press Continue. When it is ready, a button under it opens the next one.</p>` : ''}
       <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next. You can also open any SWMS in the list.</p>
       <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : item.status === 'needs' ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
-      <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
+      <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
       <div class="actions"><button type="button" class="small secondary" id="project-close">Close project</button></div>`;
     panel.classList.remove('hidden');
@@ -414,8 +414,14 @@
       const button = event.target.closest('#project-zip');
       button.disabled = true;
       try {
-        const swms = project.items.filter((item) => item.status === 'ready' && item.body).map((item) => ({ ...item.body, swmsTitle: item.title }));
-        await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, reviewConfirmed: true, reviewedBy: name });
+        const ready = project.items.filter((item) => item.status === 'ready' && item.body);
+        const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsId: item.swmsId || undefined }));
+        const site = $('site-picker') && $('site-picker').value;
+        const result = await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, siteId: site || undefined, reviewConfirmed: true, reviewedBy: name });
+        // Each SWMS is saved as a record when the project is downloaded; later changes save as its next revision.
+        for (const saved of (result && result.items) || []) if (ready[saved.index]) ready[saved.index].swmsId = saved.id;
+        saveProject();
+        if (result && result.items && result.items.length) $('project-error').textContent = `Saved ${result.items.length} SWMS under My SWMS and downloaded them.`;
       } catch (error) {
         $('project-error').textContent = error.message;
       } finally {
