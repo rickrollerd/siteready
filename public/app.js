@@ -1522,7 +1522,7 @@ function renderTranslation(tr) {
 }
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
-  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, getProfile: () => profile, resultEl, addPrincipals,
+  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals,
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });

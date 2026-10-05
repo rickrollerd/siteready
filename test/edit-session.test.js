@@ -184,6 +184,30 @@ test('removing a line SiteReady recommends keeping warns first, then goes ahead,
   assert.equal(p.run('controlEdits'), null);
 });
 
+test('Change on a saved SWMS opens it ready to edit, and its changes save as its next revision', async () => {
+  const saved = { swms: { id: 'saved-9', title: 'Trench', revision: 2, revisedAt: '2026-10-01', lastReviewedAt: '2026-10-01', reviewDueAt: '2027-01-01', reviewedBy: 'Sam', signonPath: '/sign.html?t=x' },
+    input: { state: 'qld', task: 'Dig a trench.', fallRisk: 'no', controlEdits: EDITS }, draft: DRAFT, signons: [], revisions: [], update: { available: false, changes: [] } };
+  const p = page(server((method, route) => {
+    if (route === '/api/swms/saved-9') return { body: saved };
+    if (route === '/api/swms/saved-9/qr.svg') return { body: '<svg></svg>', headers: { 'content-type': 'image/svg+xml' } };
+    if (route === '/api/swms' && method === 'GET') return { body: { swms: [] } };
+    return null;
+  }));
+  await settle();
+  const open = new FakeEvent('click', { bubbles: true });
+  open.target = { closest: (selector) => (selector === '[data-swms]' ? { dataset: { swms: 'saved-9' } } : null) };
+  p.document.getElementById('swms-list').dispatchEvent(open);
+  await settle();
+  p.document.getElementById('saved-edit').click();
+  await settle();
+  const drafts = p.calls.filter((call) => call.route === '/api/draft');
+  assert.equal(drafts.length, 1, 'prepared straight away, with the edit tools');
+  assert.deepEqual(drafts[0].body.controlEdits, EDITS);
+  assert.match(p.document.getElementById('result-actions').innerHTML, /Saving changes to "Trench" as its next revision/);
+  await save(p);
+  assert.ok(p.calls.some((call) => call.method === 'PUT' && call.route === '/api/swms/saved-9'));
+});
+
 test('downloading saves the SWMS, and later changes save as its next revision', async () => {
   const p = page(server((method, route) => (route === '/api/draft.docx'
     ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 'dl-1', 'x-siteready-revision': '1', 'x-siteready-title': 'Dig%20a%20trench' } } : null)));

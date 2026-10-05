@@ -304,7 +304,7 @@
     // A saved SWMS being changed: its changes save as its next revision until a new SWMS is started.
     const editing = !local && S.editing;
     box.innerHTML = `<div class="panel confirm">
-      ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
+      ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision, in SiteReady's current wording. Earlier revisions stay as they were saved. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
       ${confirmBlock('new')}
       ${kind === 'draft' && !local ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
       ${kind === 'draft' && editing ? '<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"></div>' : ''}
@@ -485,11 +485,13 @@
       resultEl.classList.add('hidden');
       loadSwms();
     }));
+    // Change opens the SWMS ready to edit: its controls, hazards and Who can be changed straight
+    // away, and the form above holds its answers. Saving makes the next revision.
     $('saved-edit').addEventListener('click', () => run(async () => {
       await S.fillForm(data.input);
       S.editing = { id, title: swms.title };
       if ($('site-picker')) $('site-picker').value = swms.siteId || '';
-      status('saved-status', 'The SWMS is in the form below. Change it, prepare it again, then save the changes.');
+      if (S.prepare) await S.prepare();
     }));
     $('print-qr').addEventListener('click', () => {
       const win = window.open('', '_blank');

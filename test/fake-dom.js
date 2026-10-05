@@ -168,7 +168,7 @@ function loadPage(scripts, respond, { stored = {} } = {}) {
     localStorage,
     fetch,
     Event: FakeEvent,
-    URL: { createObjectURL: () => 'blob:', revokeObjectURL: () => {} },
+    URL: class extends URL { static createObjectURL() { return 'blob:'; } static revokeObjectURL() {} },
     URLSearchParams,
     location: { search: '', pathname: '/', origin: 'http://localhost', href: 'http://localhost/' },
     history: { replaceState: () => {} },
