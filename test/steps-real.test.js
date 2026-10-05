@@ -913,3 +913,12 @@ test('a trench for irrigation or a garden tap gets one set of trench steps', () 
   const deep = steps(draft('Dig the subsoil drainage trenches across the pitch with an excavator, up to 1 m deep, lay the drainage pipe and irrigation, then lay the turf rolls.', 'landscaping'));
   assert.ok(deep.includes('Excavate') && !deep.includes('Dig the trench') && !deep.includes('Lay the pipe or cable'));
 });
+
+test('chilled water pipework with insulation to ductwork and filter cleaning installs the pipework only', () => {
+  const done = steps(draft('Chilled water pipework including valves, control valves, insulation. Insulation to ductwork, conditioner housings and plenums. Cleaning or replacing filters as required, including filters within any air handling unit.', 'mechanical', { state: 'vic', fallRisk: 'yes' }));
+  assert.ok(done.includes('Install mechanical pipework') && done.includes('Insulate ductwork and pipework'));
+  assert.ok(!done.includes('Install ductwork') && !done.includes('Fix the units in place'));
+  // Ductwork and air handling units that are installed keep their steps.
+  const both = steps(draft('Chilled water pipework including valves. Install the ductwork and the air handling units.', 'mechanical'));
+  assert.ok(both.includes('Install ductwork') && both.includes('Fix the units in place') && both.includes('Install mechanical pipework'));
+});
