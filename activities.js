@@ -180,7 +180,7 @@ const LADDER_STEP = {
     'A platform ladder, EWP or scaffold is used where the work is more than short and light, or needs both hands.',
     src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
     src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
-    'Single and extension ladders are used for access or short, light work only, set on firm level ground at about 1 in 4, secured top and bottom, and extending 900 mm above the landing.',
+    'Single and extension ladders are used for access or short, light work only, set on firm level ground at about 1 in 4, secured top and bottom, and extending at least 1 m above the stepping-off point.',
     'Near power lines or live electrical parts, ladders are non-conductive and kept outside the approach distances.',
   ],
 };
@@ -409,7 +409,7 @@ const ACTIVITIES = [
       controls: [
         // The stripping itself, said once here rather than in the set-up step.
         'Old sheets come off bay by bay, and safety mesh is run out over each stripped bay from the protected edge before new sheets go on.',
-        { unless: 'brittleRoof', text: 'On the old roof sheeting, walk only on the sheets over the purlin lines, or on safety mesh. No one stands on bare purlins.' },
+        { unless: 'brittleRoof', text: 'On the old roof sheeting, walk only on the sheets over the purlin lines. Safety mesh is not walked on unless it is designed for that. No one stands on bare purlins.' },
         { only: 'asbestosRoof', text: 'Asbestos cement sheets are wrapped on the roof and lowered by hoist, crane or by hand down a scaffold, never dropped or slid down.' },
         { only: 'brittleRoof', text: 'No one walks on the old fibre cement sheets. Work is done from roof ladders or crawl boards spanning the purlins, from an EWP, or from the edge protection.' },
         { unless: 'asbestosNamed', text: 'Old roof sheets on a building built before 2004 (asbestos products were used until the national ban at the end of 2003) are checked for asbestos cement before they are disturbed.' },
@@ -3114,7 +3114,7 @@ const ACTIVITIES = [
         src('An exclusion zone is fenced and signed around the structure, wide enough that falling or rebounding debris cannot reach anyone outside it. No one enters while demolition is under way.', QCODE('Demolition', 's 4.3')),
         { only: 'bridgeDemo', text: 'The bridge is taken down in the sequence the engineer\'s demolition plan sets, with spans propped or supported as it requires, and kept stable at every stage. No one works on or under a span while it is cut, broken or lifted out.' },
         { unless: 'noRoofDown', ...src('The structure is demolished in the reverse order to its construction, from the roof down, and kept stable at every stage. No one works inside or under it while it is being pulled down.', QCODE('Demolition', 's 4.12')) },
-        src('Excavators and other demolition plant have operator protective devices (falling object protection and a seat belt), and only the operator and a spotter in sight of the operator are near them.', QCODE('Demolition', 's 4.12')),
+        src('Excavators and other demolition plant have operator protective devices (falling object protection and a seat belt), and no one else is where falling or flying debris could reach them. Any spotter stands outside that zone, in sight of the operator.', QCODE('Demolition', 's 4.12')),
         src('Debris is removed as the work goes, and is not dropped freely except into a fenced drop zone.', QCODE('Demolition', 's 4.7')),
         { only: 'masonryDemo', ...src('Breaking masonry and slabs is processing a crystalline silica substance: water sprays keep dust down, and anyone still at risk wears a fit tested respirator. Hearing protection near breakers and hammers.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.6, s 7.6.2')}`) },
         { unless: 'bridgeDemo', text: 'Neighbours are told before work starts, and the boundary is protected from debris and dust.' },
@@ -8063,7 +8063,7 @@ const ACTIVITIES = [
         'Floor scrubbers and polishers have their leads checked and tagged and are protected by an RCD. Keep leads out of water.',
         'Enter plant rooms only with the builder\'s permission. Do not touch, open or clean live or moving plant.',
         'Report sharps and pick them up only with tongs into a sharps container, never by hand.',
-        'Construction dust is cleaned up with a vacuum fitted with a HEPA filter or by damp methods, not by dry sweeping or compressed air. Wear a P2 respirator where dust is raised.',
+        'Construction dust is cleaned up with an H class vacuum (M class only where H class is not reasonably practicable) or by damp methods, not by dry sweeping or compressed air. Wear a P2 respirator where dust is raised.',
         'Use long-handled tools, rotate tasks and take breaks.',
       ],
     }],
@@ -8129,7 +8129,7 @@ const ACTIVITIES = [
           src('No one enters without a written entry permit from a competent person, naming the space, the people entering, the time and the controls.', WHS('s 65, s 67')),
           src('Signs at each entry say it is a confined space and not to enter without a permit.', WHS('s 68')),
           src('Isolate connected pipes and plant: blank or cap lines, or close, lock and tag two valves with the drain between them locked open, and release stored energy. Pump power is locked out and tagged, and each person keeps the key to their own lock.', `${WHS('s 70')}; ${MODEL('Confined spaces', 's 4.4')}`),
-          src('Ventilate or purge, never with pure oxygen. Test from outside for oxygen (19.5% to 23.5%), flammable gas (below 5% of the lower explosive limit) and toxic gases such as hydrogen sulphide and carbon monoxide.', `${WHS('s 71, s 72, schedule 19')}; ${QCODE('Confined spaces', 's 3.2, s 3.4, s 4.5')}`),
+          src('Ventilate or purge, never with oxygen or any gas mixture with more than 21% oxygen. Test from outside for oxygen (19.5% to 23.5%), flammable gas (below 5% of the lower explosive limit) and toxic gases such as hydrogen sulphide and carbon monoxide.', `${WHS('s 71, s 72, schedule 19')}; ${QCODE('Confined spaces', 's 3.2, s 3.4, s 4.5')}`),
         ],
       },
       {
