@@ -196,7 +196,7 @@ function principalContractorReview(draft) {
 function workerSignOn(draft, signons = []) {
   const widths = [4400, 3800, CONTENT_WIDTH - 4400 - 3800 - 2400, 2400];
   const labels = ['Name', 'Company', 'Signature', 'Date'];
-  const where = [draft.task, draft.workplace].filter(Boolean).join('  ·  ');
+  const where = [draft.task, draft.workplace, revisionText(draft)].filter(Boolean).join('  ·  ');
   return [
     new Paragraph({
       pageBreakBefore: true,
@@ -375,9 +375,16 @@ function responsibilities(draft) {
   ];
 }
 
+// The revision printed on the SWMS: a draft not yet saved is revision 1, dated with the SWMS date.
+function revisionText(draft) {
+  const date = draft.revisionDate || draft.date;
+  return `Revision ${draft.revision || 1}${date ? `, ${date}` : ''}`;
+}
+
 function metaRows(draft) {
   const rows = [['State', draft.state]];
   rows.push(['SWMS reference number', draft.swmsRef || ' ']);
+  rows.push(['Revision', revisionText(draft)]);
   if (draft.principalContractor) rows.push(['Principal contractor', draft.principalContractor]);
   rows.push(['Subcontractor', draft.subcontractor || ' ']);
   rows.push(['Workplace', draft.workplace || ' ']);
@@ -561,4 +568,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { preparedFor, draftToDocx, draftedNote };
+module.exports = { preparedFor, draftToDocx, draftedNote, revisionText };

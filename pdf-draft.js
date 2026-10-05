@@ -3,6 +3,7 @@
 const PDFDocument = require('pdfkit');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
+const { revisionText } = require('./docx-draft');
 
 const INK = '#1C2430';
 const MUTED = '#5C6773';
@@ -150,7 +151,7 @@ function table(doc, { widths, header, rows, size = 8.5 }) {
 const pair = (label, value) => ({ cells: [[{ text: label, bold: true }], [{ text: value || ' ' }]] });
 
 function metaRows(draft) {
-  const rows = [['State', draft.state], ['SWMS reference number', draft.swmsRef || ' ']];
+  const rows = [['State', draft.state], ['SWMS reference number', draft.swmsRef || ' '], ['Revision', revisionText(draft)]];
   if (draft.principalContractor) rows.push(['Principal contractor', draft.principalContractor]);
   rows.push(['Subcontractor', draft.subcontractor]);
   rows.push(['Workplace', draft.workplace]);
@@ -310,7 +311,7 @@ function draftToPdf(draft, options = {}) {
 
     doc.addPage();
     text(doc, 'Worker sign-on', { bold: true, size: 16 });
-    text(doc, [draft.task, draft.workplace].filter(Boolean).join('  ·  '), { size: 9, color: MUTED, after: 0.3 });
+    text(doc, [draft.task, draft.workplace, revisionText(draft)].filter(Boolean).join('  ·  '), { size: 9, color: MUTED, after: 0.3 });
     text(doc, 'By signing, I confirm this SWMS has been explained to me, I understand it, and I will follow it. If the work changes or a control is not working, I will stop and tell my supervisor.', { size: 9.5, after: 0.4 });
     const signed = (options.signons || []).map((item) => ({
       cells: [[{ text: item.worker_name }, ...(item.readingNote ? [{ text: item.readingNote, color: MUTED }] : [])], [{ text: item.worker_company }], signatureCell(item.signature), [{ text: item.signedDate }]],

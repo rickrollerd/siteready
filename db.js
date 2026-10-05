@@ -113,6 +113,11 @@ const SCHEMA = [
     review_due_at TIMESTAMPTZ NOT NULL,
     reminder_sent_at TIMESTAMPTZ
   )`,
+  // Added later: each SWMS carries a revision number, as builder review checklists expect.
+  // A new SWMS or a copy is revision 1; each saved change adds one. Older SWMS start at 1.
+  'ALTER TABLE swms ADD COLUMN IF NOT EXISTS revision INTEGER NOT NULL DEFAULT 1',
+  'ALTER TABLE swms ADD COLUMN IF NOT EXISTS revised_at TIMESTAMPTZ',
+  'UPDATE swms SET revised_at = created_at WHERE revised_at IS NULL',
   // Industry data (terms section 8): de-identified, not linked to any account.
   `CREATE TABLE IF NOT EXISTS industry_records (
     id TEXT PRIMARY KEY,

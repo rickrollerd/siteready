@@ -1909,6 +1909,8 @@ function prepareDraft(input) {
     reviewDate: keptFact(input.reviewDate),
     preparedBy: keptFact(input.preparedBy),
     swmsRef: keptFact(input.swmsRef),
+    // A draft not yet saved is revision 1. A saved SWMS carries its own revision and date.
+    revision: '1',
     task,
     fallRisk: fallRecord(fallCheck(task, pack.fallAnswer, state)),
     fallMetres: fallMetres(state),
