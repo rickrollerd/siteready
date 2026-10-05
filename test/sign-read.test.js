@@ -74,10 +74,15 @@ async function openFor(readId, seconds) {
   await db.query('UPDATE sign_reads SET started_at = $1 WHERE id = $2', [new Date(Date.now() - seconds * 1000), readId]);
 }
 
-async function questionsFor(swmsId) {
+async function draftFor(swmsId) {
   const row = await db.one('SELECT * FROM swms WHERE id = $1', [swmsId]);
   const company = await db.one('SELECT * FROM companies WHERE id = $1', [row.company_id]);
-  return signRead.checkQuestions(row.id, prepareDraft(withCompany(row.input, company)));
+  return prepareDraft(withCompany(row.input, company));
+}
+
+// The questions for one read of a SWMS, with their answers.
+async function questionsFor(swmsId, readId) {
+  return signRead.checkQuestions(swmsId, readId, await draftFor(swmsId));
 }
 
 const rightAnswers = (questions) => Object.fromEntries(questions.map((q) => [q.id, q.answer]));
@@ -100,25 +105,27 @@ test('the page gets every section with its reading time, and questions without t
   assert.ok(view.ppe.every((item) => typeof item === 'string'), 'only the PPE to wear is sent');
   assert.deepEqual(view.languages, [], 'no languages without the AI');
 
-  // Made the same way every time, and the right answers are what the SWMS says.
-  const questions = await questionsFor(swms.id);
+  // Made the same way every time for this read, and the right answers are what the SWMS says.
+  const questions = await questionsFor(swms.id, view.readId);
   assert.deepEqual(signRead.publicQuestions(questions), view.questions);
   const ppe = questions.find((q) => q.id === 'ppe');
   assert.equal(ppe.question, 'Which of these PPE does this SWMS list?');
   assert.ok(view.ppe.includes(ppe.options[ppe.answer]));
   assert.equal(ppe.options.filter((option) => view.ppe.includes(option)).length, 1, 'the decoys are PPE not ticked');
   assert.ok(ppe.options.filter((option) => !view.ppe.includes(option)).every((option) => !/sleeves|pants|clothing|hi-?vis|glasses|gloves|boots|hard hat|sunscreen|brim|chin strap/i.test(option)), 'no everyday PPE as a wrong answer');
+  // The second asks for a job step, or for a control in one step.
   const steps = questions.find((q) => q.id === 'steps');
   const names = view.jobSteps.map((step) => step.step);
-  assert.ok(names.includes(steps.options[steps.answer]));
+  const lines = steps.question === 'Which of these is a job step in this SWMS?' ? names : view.jobSteps.flatMap((step) => step.controls);
+  assert.ok(lines.includes(steps.options[steps.answer]));
   assert.ok(!['Before starting', 'Finish and clean up'].includes(steps.options[steps.answer]));
-  assert.equal(steps.options.filter((option) => names.includes(option)).length, 1, 'the decoys are steps not in this SWMS');
+  assert.equal(steps.options.filter((option) => lines.includes(option)).length, 1, 'the decoys are not in this SWMS');
 });
 
 test('a sign-on is refused without a read id, and when the SWMS was not open long enough', async () => {
   const { swms, key } = await savedSwms('fast@read.example');
   const view = await (await call('GET', `/api/sign/${key}`)).json();
-  const answers = rightAnswers(await questionsFor(swms.id));
+  const answers = rightAnswers(await questionsFor(swms.id, view.readId));
   const body = { name: 'Quick Worker', signature: SIGNATURE, confirmed: true, answers };
 
   const noRead = await call('POST', `/api/sign/${key}`, { body });
@@ -152,7 +159,7 @@ test('a wrong answer names the question and the section to read again, and the w
   const { swms, key } = await savedSwms('wrong@read.example');
   const view = await (await call('GET', `/api/sign/${key}`)).json();
   await openFor(view.readId, 3600);
-  const questions = await questionsFor(swms.id);
+  const questions = await questionsFor(swms.id, view.readId);
   const answers = rightAnswers(questions);
   const body = { name: 'Retry Worker', signature: SIGNATURE, confirmed: true, readId: view.readId };
 
@@ -178,11 +185,78 @@ test('a wrong answer names the question and the section to read again, and the w
   assert.equal(row.check_attempts, 4, 'every attempt is counted');
 });
 
+test('each read gets its own questions, and is marked on its own questions only', async () => {
+  const { swms, key } = await savedSwms('ownquestions@read.example');
+  const views = [];
+  for (let i = 0; i < 6; i += 1) views.push(await (await call('GET', `/api/sign/${key}`)).json());
+  assert.ok(new Set(views.map((view) => JSON.stringify(view.questions))).size > 1, 'reads of the same SWMS get different questions');
+  for (const view of views) assert.deepEqual(signRead.publicQuestions(await questionsFor(swms.id, view.readId)), view.questions, 'the same read always gets the same questions');
+
+  // A worker given another read's answers, where they differ, is refused; their own answers pass.
+  const [first, ...rest] = views;
+  const answers = rightAnswers(await questionsFor(swms.id, first.readId));
+  let other = null;
+  for (const view of rest) {
+    const own = rightAnswers(await questionsFor(swms.id, view.readId));
+    if (Object.keys(own).some((id) => own[id] !== answers[id])) other = { view, own };
+  }
+  assert.ok(other, 'some read has different right answers');
+  await openFor(other.view.readId, 3600);
+  await openFor(first.readId, 3600);
+  const body = { name: 'Passed On', signature: SIGNATURE, confirmed: true };
+  const copied = await call('POST', `/api/sign/${key}`, { body: { ...body, readId: other.view.readId, answers } });
+  assert.equal(copied.status, 400);
+  assert.ok((await copied.json()).wrong.length >= 1);
+  assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, readId: other.view.readId, answers: other.own } })).status, 201);
+  assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, name: 'First Worker', readId: first.readId, answers } })).status, 201);
+});
+
+test('every question in the pool is fair, for each scenario SWMS', () => {
+  const generic = /^(before starting|finish and clean up|leave and close up)$/i;
+  const words = (text) => String(text).toLowerCase().split(/[^a-z0-9]+/).map((word) => word.replace(/s$/, '')).filter((word) => word.length > 2);
+  const scenarios = [{ id: 'sprinklers', ...INPUT }, ...require('../scenarios/scenarios.json')];
+  for (const input of scenarios) {
+    const draft = prepareDraft({ state: 'qld', ...input });
+    const pool = signRead.questionPool(input.id, draft);
+    const ticked = signRead.tickedPpe(draft);
+    const names = draft.jobSteps.map((step) => step.step);
+    const controls = draft.jobSteps.flatMap((step) => step.controls);
+    assert.ok(pool.ppe.length >= 3 && pool.steps.length >= 4, `${input.id}: a pool to draw from`);
+    assert.ok(pool.steps.some((item) => item.kind === 'control'), `${input.id}: control questions`);
+    for (const item of pool.ppe) {
+      assert.equal(item.question, 'Which of these PPE does this SWMS list?');
+      assert.ok(ticked.includes(item.correct));
+      assert.ok(item.decoys.length >= 3);
+      for (const decoy of item.decoys) {
+        assert.ok(!ticked.includes(decoy), `${input.id}: ${decoy} is not ticked`);
+        assert.doesNotMatch(decoy, /sleeves|pants|clothing|hi-?vis|glasses|gloves|boots|hard hat|sunscreen|brim|chin strap/i, `${input.id}: no everyday PPE as a wrong answer`);
+      }
+    }
+    for (const item of pool.steps) {
+      assert.ok(item.decoys.length >= 3);
+      if (item.kind === 'step') {
+        assert.equal(item.question, 'Which of these is a job step in this SWMS?');
+        assert.ok(names.includes(item.correct) && !['Before starting', 'Finish and clean up'].includes(item.correct));
+        for (const decoy of item.decoys) assert.ok(!names.includes(decoy) && !generic.test(decoy), `${input.id}: ${decoy} is a clear decoy`);
+      } else {
+        const [, number, name] = /^Which of these is a control in step (\d+) \((.+)\)\?$/.exec(item.question);
+        assert.equal(draft.jobSteps[number - 1].step, name);
+        assert.ok(draft.jobSteps[number - 1].controls.includes(item.correct), `${input.id}: the answer is a control in that step`);
+        const own = new Set(draft.jobSteps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]).flatMap(words));
+        for (const decoy of item.decoys) {
+          assert.ok(!controls.includes(decoy), `${input.id}: ${decoy} is not in this SWMS`);
+          assert.ok(!words(decoy).some((word) => own.has(word) && !['the', 'and', 'for', 'with', 'from', 'into', 'over', 'under', 'out', 'use', 'set', 'fix', 'make', 'lift', 'carry', 'check', 'install', 'remove', 'work', 'before', 'starting', 'finish', 'clean'].includes(word)), `${input.id}: ${decoy} shares no telling word with the SWMS`);
+        }
+      }
+    }
+  }
+});
+
 test('a sign-on keeps the reading record, and it is printed on the sign-on sheet', async () => {
   const { token, swms, key } = await savedSwms('record@read.example');
   const view = await (await call('GET', `/api/sign/${key}`)).json();
   await openFor(view.readId, 400);
-  const answers = rightAnswers(await questionsFor(swms.id));
+  const answers = rightAnswers(await questionsFor(swms.id, view.readId));
   // The page's own times: every section but the last read long enough, plus one it never showed.
   const reported = Object.fromEntries(view.sections.map((item, i) => [item.id, i === view.sections.length - 1 ? 0.5 : item.minSeconds + 1.25]));
   const response = await call('POST', `/api/sign/${key}`, {
@@ -273,7 +347,7 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
     assert.ok(view.languages.some((item) => item.code === 'ar' && item.rtl && item.label === 'Arabic (العربية)'));
     assert.ok(view.languages.some((item) => item.label === 'Filipino (Tagalog)'));
 
-    const first = await call('GET', `/api/sign/${key}/translation?lang=vi`);
+    const first = await call('GET', `/api/sign/${key}/translation?lang=vi&read=${view.readId}`);
     assert.equal(first.status, 200);
     const translated = await first.json();
     assert.equal(client.calls.length, 1);
@@ -282,7 +356,7 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
     assert.equal(params.output_config.format.schema, signRead.TRANSLATE_SCHEMA);
     assert.match(params.system[0].text, /Translate faithfully/);
     assert.match(params.messages[0].content, /into Vietnamese/);
-    assert.doesNotMatch(params.messages[0].content, /"answer"/, 'the answers are not sent to be translated');
+    assert.doesNotMatch(params.messages[0].content, /"answer"|"correct"/, 'the answers are not sent to be translated');
     assert.deepEqual(translated.language, { code: 'vi', name: 'Vietnamese', rtl: false, lessReliable: false });
     assert.equal(translated.title, `[vi] ${swms.title}`);
     assert.equal(translated.steps.length, view.jobSteps.length);
@@ -290,10 +364,19 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
     assert.deepEqual(translated.ppe, view.ppe.map((item) => `[vi] ${item}`));
     assert.equal(translated.questions[0].options.length, 4);
     assert.equal(translated.questions[0].question, `[vi] ${view.questions[0].question}`);
+    assert.deepEqual(translated.questions, view.questions.map((q) => ({ question: `[vi] ${q.question}`, options: q.options.map((option) => `[vi] ${option}`) })));
+    assert.equal(translated.phrases, undefined, 'only this read\'s questions are sent');
 
-    // Asked again, from any phone: kept, so no second call.
+    // Asked again, from any phone: kept, so no second call. Each read gets its own questions
+    // from the one translation of the whole pool.
     assert.equal((await call('GET', `/api/sign/${key}/translation?lang=vi`)).status, 200);
     assert.equal(client.calls.length, 1);
+    for (let i = 0; i < 4; i += 1) {
+      const next = await (await call('GET', `/api/sign/${key}`)).json();
+      const own = await (await call('GET', `/api/sign/${key}/translation?lang=vi&read=${next.readId}`)).json();
+      assert.deepEqual(own.questions, next.questions.map((q) => ({ question: `[vi] ${q.question}`, options: q.options.map((option) => `[vi] ${option}`) })));
+    }
+    assert.equal(client.calls.length, 1, 'still one translation for the language');
     const arabic = await (await call('GET', `/api/sign/${key}/translation?lang=ar`)).json();
     assert.equal(arabic.language.rtl, true);
     assert.equal(client.calls.length, 2, 'each language is its own translation');
@@ -310,7 +393,7 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
 
     // Answering in a translation is marked the same way, and the record names the language.
     await openFor(view.readId, 3600);
-    const answers = rightAnswers(await questionsFor(swms.id));
+    const answers = rightAnswers(await questionsFor(swms.id, view.readId));
     assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'Viet Worker', signature: SIGNATURE, confirmed: true, readId: view.readId, answers, language: 'vi' } })).status, 201);
     const row = await db.one('SELECT * FROM signons WHERE swms_id = $1', [swms.id]);
     assert.match(signRead.readingNote(row), /^Read in Vietnamese \(translation\), 60 min 0 s, 0 of \d+ sections viewed, check questions passed \(1 attempt\)$/);

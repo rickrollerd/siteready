@@ -146,7 +146,7 @@
         if (!translations[code]) {
           show('language-status', 'Translating. This can take a minute the first time.');
           $('language').disabled = true;
-          const response = await fetch(`${api}/translation?lang=${encodeURIComponent(code)}`);
+          const response = await fetch(`${api}/translation?lang=${encodeURIComponent(code)}&read=${encodeURIComponent(data.readId)}`);
           const body = await response.json();
           if (!response.ok) throw new Error(body.message || 'The translation could not be made.');
           translations[code] = body;
