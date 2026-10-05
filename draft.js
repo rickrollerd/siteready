@@ -2080,7 +2080,82 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   // Steps for work the scope gives to others, which the user chose to leave out.
   const leaveOut = new Set(Array.isArray(input.leaveOut) ? input.leaveOut : []);
   if (leaveOut.size) jobSteps = jobSteps.filter((step) => !leaveOut.has(step.step) || ['Before starting', 'Finish and clean up'].includes(step.step));
-  return { jobSteps: inOrder(jobSteps, input.stepOrder), ppe };
+  const edited = applyControlEdits(inOrder(jobSteps, input.stepOrder), input.controlEdits);
+  return { jobSteps: edited.jobSteps, ...(edited.report ? { controlEdits: edited.report } : {}), ppe };
+}
+
+// ---- The user's own changes to the controls (task #102) ----
+
+// Lines the user wrote or reworded are their own: they carry no code or law citation.
+const OWN_MARK = '(Our own control)';
+const withoutMark = (line) => String(line || '').replace(/\s*\(Our own control\)\s*$/, '').trim();
+
+// The source in brackets at the end of a line, such as "(Work Health and Safety Regulation 2011 (Qld) s 317)".
+function lineSource(line) {
+  const text = String(line || '').trim();
+  if (!text.endsWith(')')) return '';
+  let depth = 0;
+  for (let i = text.length - 1; i >= 0; i -= 1) {
+    if (text[i] === ')') depth += 1;
+    else if (text[i] === '(' && (depth -= 1) === 0) return text.slice(i + 1, -1);
+  }
+  return '';
+}
+
+// A line cited to a regulation or an Act is a legal requirement, so it cannot be removed or reworded.
+// Lines cited only to a code of practice can be: a code allows another way that is as safe or safer.
+function legalSource(line) {
+  const source = lineSource(line);
+  return source.split('; ').filter((part) => /\b(?:Regulations?|Act)\b/.test(part)).join('; ');
+}
+
+function legalReason(source) {
+  return `This line is a legal requirement (${source}), so it cannot be removed or changed. Add your own line to the step if the site needs more.`;
+}
+
+// Applies the user's choices to each step's controls: lines removed, lines reworded and lines
+// added. Choices for a step or line no longer in the SWMS are left out. Returns what was done,
+// and what was refused and why.
+function applyControlEdits(jobSteps, edits) {
+  if (!edits || typeof edits !== 'object') return { jobSteps };
+  const applied = [];
+  const refused = [];
+  const out = jobSteps.map((step) => {
+    const mine = Object.hasOwn(edits, step.step) ? edits[step.step] : null;
+    if (!mine) return step;
+    const removed = new Set(mine.removed || []);
+    const changed = new Map((mine.changed || []).map((item) => [item.from, withoutMark(item.to)]));
+    const done = [];
+    const controls = [];
+    for (const line of step.controls) {
+      const wanted = removed.has(line) ? '' : changed.has(line) ? changed.get(line) : null;
+      if (wanted === null || wanted === line) { controls.push(line); continue; }
+      const source = legalSource(line);
+      if (source) {
+        refused.push({ step: step.step, text: line, reason: legalReason(source) });
+        controls.push(line);
+      } else if (wanted) {
+        controls.push(`${wanted} ${OWN_MARK}`);
+        done.push({ step: step.step, kind: 'changed', from: line, to: wanted });
+      } else {
+        done.push({ step: step.step, kind: 'removed', from: line, to: '' });
+      }
+    }
+    for (const text of (mine.added || []).map(withoutMark)) {
+      const line = `${text} ${OWN_MARK}`;
+      if (!text || controls.includes(line)) continue;
+      controls.push(line);
+      done.push({ step: step.step, kind: 'added', from: '', to: text });
+    }
+    // Every step keeps at least one control.
+    if (!controls.length) {
+      for (const item of done) refused.push({ step: step.step, text: item.from, reason: 'Each job step needs at least one control. Add your own line before removing the last one.' });
+      return step;
+    }
+    applied.push(...done);
+    return { ...step, controls };
+  });
+  return { jobSteps: out, report: { applied, refused } };
 }
 
 // The job steps in the order the user chose. A step not in that order, such as one added
@@ -4120,6 +4195,9 @@ function stripLiftBleedText(text) {
 }
 
 module.exports = {
+  applyControlEdits,
+  legalSource,
+  OWN_MARK,
   suggestedKinds,
   packageKinds,
   LOCKED_KINDS,

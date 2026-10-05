@@ -213,6 +213,30 @@ const SCHEMA = [
     usage TEXT,
     created_at TIMESTAMPTZ NOT NULL
   )`,
+  // The main app's draft translated for the contractor to read (task #94), kept against a
+  // fingerprint of its English and the language. Nothing ties it to an account.
+  `CREATE TABLE IF NOT EXISTS draft_translations (
+    id TEXT PRIMARY KEY,
+    content_hash TEXT NOT NULL,
+    language TEXT NOT NULL,
+    translation TEXT NOT NULL,
+    model TEXT NOT NULL DEFAULT '',
+    usage TEXT,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  // Changes users make to the controls (task #102), de-identified: the step, the line and the
+  // new line, state, trade and month only. Written only when CONTROL_LEARNING is on.
+  `CREATE TABLE IF NOT EXISTS control_edits (
+    id TEXT PRIMARY KEY,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    step TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    original TEXT NOT NULL DEFAULT '',
+    new_line TEXT NOT NULL DEFAULT '',
+    uses INTEGER NOT NULL DEFAULT 1
+  )`,
   // The AI's reading of a scope, kept against the company and the document's fingerprint
   // (never the document itself), with its check against the brief and what it cost.
   `CREATE TABLE IF NOT EXISTS ai_readings (

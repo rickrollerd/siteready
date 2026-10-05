@@ -24,7 +24,9 @@ function draft(state, task, extra = {}) {
   assert.equal(done.kind, 'draft', `${state}: ${task}`);
   return done;
 }
-const lines = (done) => [...done.jobSteps.flatMap((step) => step.controls), ...(done.controls || []).map((item) => item.text)];
+// These checks are about the regulations; SafeWork NSW code citations printed beside them in NSW drafts are left out.
+const withoutNswCodes = (text) => String(text).replace(/;\s*SafeWork NSW Code of practice: (?:[^;()]|\([^)]*\))*/g, '');
+const lines = (done) => [...done.jobSteps.flatMap((step) => step.controls), ...(done.controls || []).map((item) => item.text)].map(withoutNswCodes);
 const line = (done, pattern) => lines(done).find((text) => pattern.test(text));
 
 const QLD = 'Work Health and Safety Regulation 2011 (Qld) ';
@@ -393,7 +395,7 @@ test('Queensland electrical safety: s 204(3) 2 year records, s 199(1)(e) consult
   assert.ok(qld.some((item) => /authorisation after consulting the person with management or control of the workplace, usually the principal contractor\. \(Electrical Safety Regulation 2026 \(Qld\) s 199, s 200\)$/.test(item)));
   // Water sprays are the code's section 7.4.1 (water suppression), not 7.4.2 (local exhaust ventilation).
   const found = [];
-  const walk = (value) => { if (value && typeof value === 'object') { if (typeof value.text === 'string' && /^Breaking masonry and slabs is processing/.test(value.text)) found.push(value.source); Object.values(value).forEach(walk); } };
+  const walk = (value) => { if (value && typeof value === 'object') { if (typeof value.text === 'string' && /^Breaking masonry and slabs is processing/.test(value.text)) found.push(withoutNswCodes(value.source)); Object.values(value).forEach(walk); } };
   walk(require('../activities').ACTIVITIES);
   assert.ok(found.length && found.every((source) => /Code of Practice 2022 \(Qld\) s 7\.4\.1, s 7\.6, s 7\.6\.2$/.test(source)), found.join('\n'));
 });

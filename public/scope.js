@@ -173,8 +173,43 @@
     const conflicts = reading.reading.conflicts || [];
     $('scope-results').innerHTML = `${warn}<p class="meta" style="margin-top:10px">The AI found ${reading.reading.activities.length} activities in ${packages.length} work packages. Each package you confirm becomes one SWMS. Untick any package that is not yours, then confirm.</p>
       <div class="scope-packages">${packages.map((pack, index) => `<label class="scope-package"><input type="checkbox" data-package="${index}" ${pack.work ? 'checked' : ''}> <strong>${esc(pack.name)}</strong> <span class="meta">(${pack.rows.length} ${pack.rows.length === 1 ? 'activity' : 'activities'}${pack.work ? '' : ', duties only: no SWMS needed'})</span><span class="meta scope-package-list">${pack.rows.map((row) => esc(row.activity)).join('; ')}</span></label>`).join('')}</div>
-      ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul></details>` : ''}
-      <div class="actions"><button type="button" id="scope-confirm">Confirm these work packages</button></div>`;
+      ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul><button type="button" class="small secondary" id="conflict-open">Show the conflicts in full</button></details>` : ''}
+      <div class="actions"><button type="button" id="scope-confirm">Confirm these work packages</button> <button type="button" class="secondary" data-scope-report>Scope review report (Word)</button></div>
+      <p class="error" id="scope-report-error"></p>`;
+    showConflicts(conflicts);
+  }
+
+  // Conflicts in the scope open a pop-up. It is not modal, so the tasks can still be used.
+  function showConflicts(conflicts) {
+    const old = $('conflict-dialog');
+    if (old) old.remove();
+    const html = window.SiteReadyConflicts ? window.SiteReadyConflicts.conflictDialog(conflicts) : '';
+    if (!html) return;
+    document.body.insertAdjacentHTML('beforeend', html);
+    const dialog = $('conflict-dialog');
+    if (typeof dialog.show === 'function') dialog.show(); else dialog.setAttribute('open', '');
+    $('conflict-dialog-title').focus();
+    dialog.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeConflicts(); });
+  }
+  function closeConflicts() {
+    const dialog = $('conflict-dialog');
+    if (!dialog) return;
+    if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open');
+    const back = $('conflict-open') || $('scope-confirm');
+    if (back) back.focus();
+  }
+  async function downloadReport(button) {
+    if (!aiReading) return;
+    const error = $('scope-report-error');
+    if (error) error.textContent = '';
+    button.disabled = true;
+    try {
+      await S.download(`/api/scope/ai/${encodeURIComponent(aiReading.id)}/report.docx`, 'Scope-review-report.docx');
+    } catch (problem) {
+      if (error) error.textContent = problem.message; else alert(problem.message);
+    } finally {
+      button.disabled = false;
+    }
   }
   function confirmPackages() {
     const packages = packagesOf(aiReading.reading);
@@ -353,6 +388,10 @@
   };
 
   document.addEventListener('click', async (event) => {
+    const report = event.target.closest('[data-scope-report]');
+    if (report) { downloadReport(report); return; }
+    if (event.target.closest('[data-conflict-close]')) { closeConflicts(); return; }
+    if (event.target.closest('#conflict-open')) { showConflicts(aiReading.reading.conflicts || []); return; }
     const open = event.target.closest('[data-project-open]');
     if (open) { openItem(Number(open.dataset.projectOpen)); return; }
     if (event.target.closest('#project-close, #project-fresh')) {

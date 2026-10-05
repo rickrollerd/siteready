@@ -6,7 +6,7 @@ const path = require('path');
 const cluster = require('cluster');
 const os = require('os');
 const { listStates, findState } = require('./legislation');
-const { questionsFor, prepareDraft } = require('./draft');
+const { questionsFor, prepareDraft, legalSource } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
 const { issueRef, placeOf } = require('./refs');
@@ -23,8 +23,11 @@ const { localText } = require('./citations');
 const { scopeText } = require('./scope-text');
 const { tasksFromScope } = require('./scope');
 const aiScope = require('./ai-scope');
+const { reportToDocx } = require('./scope-report');
 const places = require('./places');
 const { recordIndustry } = require('./industry');
+const { recordControlEdits } = require('./control-learning');
+const draftTranslate = require('./draft-translate');
 
 require('dotenv').config();
 
@@ -64,7 +67,7 @@ const smallJson = express.json({ limit: '100kb' });
 const wordJson = express.json({ limit: '1mb' });
 const scopeJson = express.json({ limit: '15mb' });
 const projectJson = express.json({ limit: '5mb' });
-app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
+app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Limits are per client address. Phones on mobile data and a site office on one
@@ -87,6 +90,7 @@ app.use('/api/sign', limiter(positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS
 // Each SWMS is translated once per language and then kept, so few requests reach the AI;
 // this lower limit stops one phone asking for every language over and over.
 app.use(/^\/api\/sign\/[^/]+\/translation/, limiter(positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
+app.use('/api/draft/translation', limiter(positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
 app.use('/api', limiter(
   positiveNumber(process.env.RATE_LIMIT_MAX_REQUESTS, 600),
   (req) => req.originalUrl.startsWith(WORD_ROUTE),
@@ -213,12 +217,58 @@ app.get('/api/scope/ai/:id', auth.requireUser, async (req, res, next) => {
     next(error);
   }
 });
+// The scope review report (Word) of a finished reading: the company's own readings only.
+app.get('/api/scope/ai/:id/report.docx', auth.requireUser, async (req, res, next) => {
+  try {
+    const reading = await aiScope.getReading(req.company, req.params.id);
+    if (reading.status !== 'done' || !reading.reading) return res.status(409).json({ kind: 'error', message: 'The AI reading is not finished yet. Try again when it is.' });
+    const buffer = await reportToDocx(reading.reading, { company: req.company, checks: reading.checks });
+    record('scope_report', req.company && req.company.id);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', 'attachment; filename="Scope-review-report.docx"');
+    res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// The builder SWMS check (task #106): score a subcontractor's SWMS and draft the email back.
+// Signed-in accounts only, with its own limit, as an uploaded SWMS is read by the AI.
+app.use('/api/check', limiter(positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30)));
+app.post('/api/check', auth.requireUser, async (req, res, next) => {
+  try {
+    const result = await require('./check-read').runCheck(req.body || {}, req.company);
+    record('builder_check', req.company && req.company.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.post('/api/draft', (req, res) => {
   const result = prepareDraft(draftBody(req.body || {}));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   record(req.user ? 'preview_signed_in' : 'preview', req.company && req.company.id);
-  res.json(result);
+  // For the preview only: the source of each control line that is a legal requirement, so the
+  // page can say why it cannot be removed. Empty for lines the user may change.
+  const legal = result.kind === 'draft' ? { controlLegal: (result.jobSteps || []).map((step) => step.controls.map(legalSource)) } : {};
+  res.json({ ...result, ...legal });
+});
+
+// The draft translated for the contractor to read (task #94). Signed-in users only. The
+// English applies; nothing translated goes into the SWMS or its files.
+app.get('/api/draft/translation', (_req, res) => {
+  res.json({ enabled: draftTranslate.enabled(), languages: draftTranslate.languages() });
+});
+app.post('/api/draft/translation', auth.requireUser, async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const result = prepareDraft(draftBody(body.input && typeof body.input === 'object' ? body.input : {}));
+    res.json(await draftTranslate.translateDraft(result, body.language));
+    record('draft_translation', req.company && req.company.id);
+  } catch (error) {
+    next(error);
+  }
 });
 
 // A Word file is only prepared once the user confirms the business will review
@@ -255,6 +305,7 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     const buffer = await draftToPdf(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), note: draftedNote(confirmation), prepared: preparedFor(req.company, ref) });
     record('download_pdf', req.company && req.company.id);
     await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
+    await recordControlEdits(result, signedInBody(req)).catch(() => {});
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${result.kind === 'stand-down' ? 'SiteReady-stood-down.pdf' : 'SiteReady.pdf'}"`);
     res.send(buffer);
@@ -275,6 +326,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   const buffer = await draftToDocx(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), confirmation, ref, company: req.company });
   record('download_word', req.company && req.company.id);
   await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
+  await recordControlEdits(result, signedInBody(req)).catch(() => {});
   const filename = result.kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -309,6 +361,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     zip.file(name, Buffer.from(buffer));
     record('download_word', req.company && req.company.id);
     await recordIndustry(result, signedInBody({ ...req, body: item || {} }), req.company).catch(() => {});
+    await recordControlEdits(result, signedInBody({ ...req, body: item || {} })).catch(() => {});
   }
   if (!used.size) return res.status(400).json({ kind: 'error', message: 'None of the SWMS is ready to download. Answer the questions for each one first.' });
   if (skipped.length) zip.file('Not included.txt', `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n`);

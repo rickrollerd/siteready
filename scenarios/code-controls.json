@@ -4487,6 +4487,5288 @@
  },
  {
   "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "The entry permit is displayed in a prominent place at the entry to the confined space, to make signing in and clearance easy.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Prepare to enter the confined space",
+  "text": "Entry and exit openings are large enough for emergency access and rescue, and are kept free of obstructions during the work. Where cables, leads, hoses or ventilation ducts must pass through the access hole, a second access point is provided where needed.",
+  "code": "NSW Confined spaces",
+  "section": "s 2.2, s 5"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Enter and work",
+  "text": "The standby person understands the hazards inside the confined space and can recognise the signs and symptoms that workers inside may experience.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.6"
+ },
+ {
+  "op": "add",
+  "group": "confined",
+  "step": "Enter and work",
+  "text": "Rescuers are trained, fit for the task and able to use the rescue equipment provided. If a person inside has been overcome, entry for rescue is assumed unsafe unless air-supplied respiratory protective equipment is used.",
+  "code": "NSW Confined spaces",
+  "section": "s 5"
+ },
+ {
+  "op": "add",
+  "group": "demolition",
+  "step": "Demolish",
+  "text": "Where concrete members are demolished by hand, the reinforcement is not cut while the concrete is being broken.",
+  "code": "NSW Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "demolition",
+  "step": "Demolish",
+  "text": "Openings in floors through which a person may fall are guarded or boarded over, with the boarding secured against accidental removal and strong enough for the expected loads, such as people, materials and EWPs.",
+  "code": "NSW Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Openings in floors through which a person may fall are guarded or boarded over, with the boarding secured against accidental removal and strong enough for the expected loads, such as people, materials and EWPs.",
+  "code": "NSW Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Areas where shears are operating are kept clear of workers, because small pieces of metal, such as bolts, can fly off when sheared.",
+  "code": "NSW Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "A member to be severed with grapples, shears or pulverising attachments is effectively supported first, or is allowed to fall only where it will not endanger people or plant or damage the remaining structure.",
+  "code": "NSW Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Walls are not laterally loaded by accumulated rubble or debris to the extent they are in danger of collapse.",
+  "code": "NSW Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "While plant works on a suspended floor, effective communication is kept between the operator and the demolition supervisor, and load shifting equipment is located on a beam where reasonably practicable.",
+  "code": "NSW Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "add",
+  "group": "structureDemolition",
+  "step": "Demolish the structure",
+  "text": "Framework that is not demolished is strong enough to remain safely in position, or is guyed or otherwise supported so it stays stable in adverse weather.",
+  "code": "NSW Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Stepladders are set up in the fully opened position with their locking devices secure, and a second person foots the ladder where it needs added stability.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Workers do not straddle the ladder, and wear slip-resistant footwear.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "add",
+  "group": "ladderUse",
+  "step": "Work from ladders",
+  "text": "Ladders are used in very wet or windy conditions only with additional safety precautions in place.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Exclusion zone below with keep out signs and a person controlling it while erecting and dismantling.",
+  "code": "NSW Falls",
+  "section": "s 8.1"
+ },
+ {
+  "op": "cite",
+  "find": "Within the powerline no go zone, work only under the electricity entity's permit to work. Keep electrical leads off the metal frame with plastic lead",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Scaffolding work where a person or object could fall more than 4 m is done by a person holding a scaffolding high risk work licence, or a trainee",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Where prefabricated (modular) scaffold is used, it has a registered design, and components are not mixed unless the manufacturer approves.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Incomplete sections are tagged as not to be used and access is blocked.",
+  "code": "NSW Falls",
+  "section": "s 5.1, s 8.2"
+ },
+ {
+  "op": "cite",
+  "find": "Users are told the safe working load, never to use an incomplete or defective scaffold, to report defects straight away, and not to alter it. Only",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Edge protection, with a top rail, mid rail and toe board, at every open edge of a work platform: top rail at least 900 mm.",
+  "code": "NSW Falls",
+  "section": "s 5.1, s 5.2"
+ },
+ {
+  "op": "cite",
+  "find": "Exclusion zone below, with keep out signs and a person controlling it.",
+  "code": "NSW Falls",
+  "section": "s 8.1"
+ },
+ {
+  "op": "cite",
+  "find": "Workers are trained in using the scaffold. The scaffold stays level and plumb, castors are locked before anyone gets on, it is never moved with",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Keep it well clear of open floor edges and penetrations, and of powerlines outdoors.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Prefabricated towers have a registered design and components are not mixed. Users are told the safe working load.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Access by a scaffold stair, or a ladder secured top and bottom that extends above the landing.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Skylights, fibreglass, brittle sheets, membrane panels and any other surface a person could fall through are covered with fixed covers that take a",
+  "code": "NSW Falls",
+  "section": "s 4.2, s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Travel restraint is not used on fragile roofing or slopes over 15 degrees.",
+  "code": "NSW Falls",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Fall arrest equipment that has arrested a fall is not used again until a competent person has inspected it and certified it safe to use.",
+  "code": "NSW Falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "The harness system is set up so free fall is no more than 2 m before it takes effect, with the anchorage as high as the equipment permits and no work",
+  "code": "NSW Falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "Snap hooks are double action and are not connected to each other, and lanyards are not used with inertia reels.",
+  "code": "NSW Falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "Rescue equipment is kept close to the work area so it can be used immediately to rescue a worker suspended in a harness.",
+  "code": "NSW Falls",
+  "section": "s 10"
+ },
+ {
+  "op": "cite",
+  "find": "Where rescue may take more than five minutes, the harness lets the suspended worker raise their legs to near horizontal, or the worker carries straps",
+  "code": "NSW Falls",
+  "section": "s 10.1"
+ },
+ {
+  "op": "cite",
+  "find": "Minimise work at height in extreme heat.",
+  "code": "NSW Falls",
+  "section": "s 8.3"
+ },
+ {
+  "op": "cite",
+  "find": "Cover or barricade openings as soon as sheets are removed.",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Get the current underground services information from the principal contractor and service plans, for example through Before You Dig Australia,",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Pothole with water pressure and a vacuum system to confirm where services are, as plans may not be accurate.",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Within the clearance zone the asset owner sets, dig by hand or vacuum only, and support and protect exposed services as the owner requires.",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Services plans and locating results go to the plant operators and subcontractors, stay on site for inspection, and are kept until the excavation is",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Cable locators and ground penetrating radar are used only by workers trained and competent with them. Hand potholing near electric cables uses",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "A trench 1.5 m deep or more is secured from unauthorised and inadvertent entry.",
+  "code": "NSW Excavation",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Two-way acknowledged communication between plant operators and ground workers.",
+  "code": "NSW Excavation",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Keep spoil, materials, plant and traffic out of the trench's zone of influence unless the support is designed for those loads.",
+  "code": "NSW Excavation",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Plant with a combustion engine, such as a compressor or generator, is never used in the trench while workers are in it. Where engine exhaust could",
+  "code": "NSW Excavation",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Before digging below the footing level of a nearby building, wall or retaining wall, a competent person assesses its stability, and ground support",
+  "code": "NSW Excavation",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Spoil is heaped at least 1 m back from the trench edge, on the low side of sloping ground where practicable and on the side away from any old service",
+  "code": "NSW Excavation",
+  "section": "s 4.1, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "If ground conditions are not as expected or change, such as different soils or heavy rain or flooding, act immediately to protect workers: suspend",
+  "code": "NSW Excavation",
+  "section": "s 6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Where a person could fall into the trench, fit guardrails, including to the top edges of trench shields, or a barrier about 1.5 m back from the excavation.",
+  "code": "NSW Falls",
+  "section": "s 5.2"
+ },
+ {
+  "op": "cite",
+  "find": "No one enters the trench until the support is in place and checked.",
+  "code": "NSW Excavation",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Work only inside the trench support, with the access ladder secured to it.",
+  "code": "NSW Excavation",
+  "section": "s 4.4, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "A competent person checks the trench walls and support at the start of each shift and frequently, including after rain. Any damage is repaired from",
+  "code": "NSW Excavation",
+  "section": "s 6.7"
+ },
+ {
+  "op": "cite",
+  "find": "Check the air with a gas monitor before entry, with a safety observer at the surface.",
+  "code": "NSW Excavation",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "The emergency plan covers ground slip, flooding, gas leaks and rescue from the trench.",
+  "code": "NSW Excavation",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "Trench shields and boxes are installed, used, moved and maintained to the manufacturer's instructions, never loaded beyond their design, checked for",
+  "code": "NSW Excavation",
+  "section": "s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "Hydraulic shoring pressure hoses and rams are inspected frequently for abrasion, fatigue or damage, such as bent or notched rams, and inspected and",
+  "code": "NSW Excavation",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Shields or trench sheets stand above ground level, or guard rails or mesh covers are fitted to them, and a second ladder or other way out is provided",
+  "code": "NSW Excavation",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Workers using picks, shovels or bars in the trench keep far enough apart that they cannot strike each other.",
+  "code": "NSW Excavation",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Remove the support as backfilling proceeds, as designed.",
+  "code": "NSW Excavation",
+  "section": "s 6.4"
+ },
+ {
+  "op": "cite",
+  "find": "Cover or barricade any open trench overnight.",
+  "code": "NSW Excavation",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Support comes out in the reverse order it went in, only once that section is ready for final backfill and compaction, and no one stands in the trench",
+  "code": "NSW Excavation",
+  "section": "s 6.4"
+ },
+ {
+  "op": "cite",
+  "find": "Services in or behind the part being demolished are found and isolated by the licensed trades before it is cut or pulled down.",
+  "code": "NSW Demolition",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "No one works from the top of a wall being demolished. Walls are taken down course by course from a working platform, and any wall left standing is",
+  "code": "NSW Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "cite",
+  "find": "Before work starts, a competent person checks the condition of the roof, walls and floors being demolished for any risk of unplanned collapse.",
+  "code": "NSW Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "cite",
+  "find": "When a concrete floor is broken out by hand, enough reo is left in place to stop the floor collapsing or anyone falling through.",
+  "code": "NSW Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "cite",
+  "find": "Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Any laser level or setting out laser is below class 3B (class 3B and class 4 lasers are banned in construction work), is used by a worker trained on",
+  "code": "NSW Excavation",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Open excavations are barricaded, and people cross only at set crossing points.",
+  "code": "NSW Excavation",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Cover penetrations straight away with fixed covers that can take the load and are marked, or fence them off.",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Use the platform only on a solid level surface, unless it is designed for rough terrain.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Sequence trades so they are not working above or below each other.",
+  "code": "NSW Falls",
+  "section": "s 8.3"
+ },
+ {
+  "op": "cite",
+  "find": "The operator is trained for the platform. A high risk work licence is needed only for a boom-type platform with a boom of 11 m or more.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Where a boom-type platform is used, the harness is attached to the platform's anchor point.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Check for crushing points such as soffits, beams, steelwork and services before raising or moving the platform. Operators are trained in safe work",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "The EWP is used only as a working platform, not to enter or exit a work area at height, unless the conditions in AS 2550.10 are met.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Workers are trained in the safe use of fall arrest equipment and the emergency rescue procedures for the EWP before using it.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "If a manhole or sewer must be entered, the entry is planned and done as confined space entry, with its own permit and controls.",
+  "code": "NSW Confined spaces",
+  "section": "appendix B, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Cover or barricade every penetration as soon as it is formed. Covers withstand a fall onto them, are fixed in place so they cannot be moved by",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Cover or barricade the hole as soon as it is cut. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "No stillsons or other high-force tools from a ladder, and no stepladder beside an open shaft or penetration without extra fall protection.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "No stepladder beside an open penetration or unprotected edge without extra fall protection.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Use platform ladders. Ladders are industrial and rated for at least 120 kg.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "A platform ladder, EWP or scaffold is used where the work is more than short and light, or needs both hands.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Single and extension ladders are used for access or short, light work only, set on firm level ground at about 1 in 4, secured top and bottom, and",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Inspect the ladder before setting it up for broken rungs, stiles and footings. Faulty or damaged ladders are removed from service.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Do not stand on a rung closer than 900 mm to the top of a single or extension ladder.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Do not stand higher than the second tread below the top plate of a stepladder, except on three-rung stepladders.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Do not over-reach: keep the centre of the torso within the ladder stiles, and face the ladder when going up, coming down or working from it.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Do not use a stepladder near the edge of an open floor, a penetration or beside a railing unless additional fall protection is used.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Only one person is on the ladder at a time, and no one works underneath it.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "No hot work such as arc welding or oxy cutting from a ladder, and no tools needing high leverage force, such as stillsons or pinch bars.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Ladders in access areas, doorways or next to traffic areas have extra precautions, such as a barrier, the door locked shut or the work area barricaded.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Risers and shafts are covered or screened at each level. Covers are strong enough to take anyone who could fall onto them, securely fixed so they",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Sequence the work so trades are not working above or below each other at the same time.",
+  "code": "NSW Falls",
+  "section": "s 8.3"
+ },
+ {
+  "op": "cite",
+  "find": "Check the wind, rain and heat before roof work, and stop in unsafe conditions.",
+  "code": "NSW Falls",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Exclusion zone below overhead work, with barriers that are highly visible and fixed in place.",
+  "code": "NSW Falls",
+  "section": "s 8.1"
+ },
+ {
+  "op": "cite",
+  "find": "Check the slab for ramps, slopes, drains and penetrations before driving the platform.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Ladders used for balancing at fans and grilles are industrial and rated for at least 120 kg. Keep two feet and one other point of contact.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "No entry into ducts or plenums under this SWMS unless a competent person has assessed the space as not a confined space. If it is a confined space,",
+  "code": "NSW Confined spaces",
+  "section": "s 1.1, s 3.4, s 4.3, s 4.4, s 4.6, s 4.8"
+ },
+ {
+  "op": "cite",
+  "find": "Stack panels only where the load limits allow. When in doubt, a structural engineer sets the safe load before use.",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Insert-type anchors are not used for fall arrest where the load would pull them straight out. Anchors are proof tested.",
+  "code": "NSW Falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "Swing stages are installed by holders of an advanced rigging or advanced scaffolding licence, and workers operating them are trained in their safe operation.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Everyone on a swing stage wears a harness attached to a suitable anchor on the stage, and the platform stays horizontal as it moves up or down.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Rescue procedures are set up and tested, and workers are trained in them.",
+  "code": "NSW Falls",
+  "section": "s 10.2"
+ },
+ {
+  "op": "cite",
+  "find": "No one approaches the rig until the operator has agreed.",
+  "code": "NSW Excavation",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Rigs keep out of the zone of influence of any excavation, batter, trench or retention wall unless the support is designed by a competent person for the rig.",
+  "code": "NSW Excavation",
+  "section": "s 4.1, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Spoil is kept outside the zone of influence of any excavation and any open bores.",
+  "code": "NSW Excavation",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Cover or guard each bore as soon as it is formed. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Pile hole guards with a footplate, or a lockable cover, at every open bore.",
+  "code": "NSW Excavation",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Barricade and sign the bore area, and keep the site secure from unauthorised access.",
+  "code": "NSW Falls",
+  "section": "s 8.1"
+ },
+ {
+  "op": "cite",
+  "find": "The emergency plan covers rescue of a person from a bore or excavation.",
+  "code": "NSW Excavation",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "Neighbouring buildings are protected before digging, and the work does not flood them.",
+  "code": "NSW Excavation",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Excavate in stages, with support keeping pace. No one works ahead of the support. Where ground anchors are used, soil above them is removed only",
+  "code": "NSW Excavation",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "No plant or loads near the edge unless the support is designed by a competent person to carry them.",
+  "code": "NSW Excavation",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "A competent person inspects the wall and excavation often, and any repair is made from above before work below continues.",
+  "code": "NSW Excavation",
+  "section": "s 6.7"
+ },
+ {
+  "op": "cite",
+  "find": "The emergency plan covers ground slip, flooding and rescue from the excavation.",
+  "code": "NSW Excavation",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "Use step platforms rather than plain stepladders. Never stand above the second tread below the top of a stepladder, never use two-handed saws on a",
+  "code": "NSW Falls",
+  "section": "s 8.3, s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Mobile scaffolds: lock the castors before anyone gets on, never move it with anyone on it, keep it clear of open edges and penetrations, and do not alter it.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Overhead cabinets and wardrobes are fitted from step platforms or platform ladders rated for at least 120 kg, not from the top of a stepladder.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Overhead cabinets are fitted from step platforms or platform ladders rated for at least 120 kg, not from the top of a stepladder.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Edge protection and penetration covers stay in place. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "No stepladders near an open edge, penetration or beside a railing without extra fall protection.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Where temporary edge protection must be opened, it is opened only under the principal contractor's permit. Workers at the opening use travel",
+  "code": "NSW Falls",
+  "section": "s 6.1, s 8.2, s 10.1"
+ },
+ {
+  "op": "cite",
+  "find": "A traffic management plan is in place before plant starts. Ramps and haul roads are built and maintained.",
+  "code": "NSW Excavation",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Physical barriers separate people from plant. Operators and ground workers use two way acknowledgement before anyone approaches plant.",
+  "code": "NSW Excavation",
+  "section": "s 2.3, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Plant, trucks and stockpiles stay out of the zone of influence unless the support is designed for them. Wheel stops at edges.",
+  "code": "NSW Excavation",
+  "section": "s 4.1, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Batters are no steeper than 45 degrees unless designed by a competent person and certified in writing. If ground conditions change, stop until the",
+  "code": "NSW Excavation",
+  "section": "s 6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Earthmoving plant over 1500 kg with a seated operator has a rollover or falling object protective structure. Daily pre-start checks, and defective",
+  "code": "NSW Excavation",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "A competent person inspects faces, batters and support often, including after rain and changes in the water table, and repairs are made from above",
+  "code": "NSW Excavation",
+  "section": "s 6.7"
+ },
+ {
+  "op": "cite",
+  "find": "Get the current underground services information before digging, and work to it.",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Where the dig goes below the footings of a neighbouring building or retaining wall, a competent person assesses it first, and ground support and any",
+  "code": "NSW Excavation",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Ground anchors are designed by a competent person, such as a geotechnical engineer. Anchor loads are checked while they are in service.",
+  "code": "NSW Excavation",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Do not remove soil above anchors without a competent person's approval. No one works ahead of the support.",
+  "code": "NSW Excavation",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Remove supports in reverse order of installation, installing temporary members first where needed, with workers kept clear.",
+  "code": "NSW Excavation",
+  "section": "s 6.4"
+ },
+ {
+  "op": "cite",
+  "find": "Excavation does not start until steps are taken to stop any neighbouring building collapsing. Excavation below the level of a neighbouring footing is",
+  "code": "NSW Excavation",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Anchor loads are checked with hydraulic jacks and pressure gauges.",
+  "code": "NSW Excavation",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Hydraulic props are designed for the expected ground pressures.",
+  "code": "NSW Excavation",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Every side of a trench or pit 1.5 m deep or more is supported by shoring, benching or battering, unless a geotechnical engineer advises in writing,",
+  "code": "NSW Excavation",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Trenches and pits are secured from unauthorised or accidental entry. Lift pits have a lockable cover or a guard rail with a gate.",
+  "code": "NSW Excavation",
+  "section": "s 5.1, s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Get the underground services information and pothole to confirm services before digging.",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "No combustion engine plant in a trench or pit while workers are in it. Check the atmosphere before starting.",
+  "code": "NSW Excavation",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Trench shields protect workers if a collapse happens, but do not support the ground: they are not loaded beyond their design, and are used to the",
+  "code": "NSW Excavation",
+  "section": "s 6.3, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "A competent person inspects the sides and support often, and after rain.",
+  "code": "NSW Excavation",
+  "section": "s 6.7"
+ },
+ {
+  "op": "cite",
+  "find": "Support is designed for groundwater pressure and saturated soil. Watch for boils in sandy ground.",
+  "code": "NSW Excavation",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Faces and support are inspected often as the water table changes. Spoil is placed to channel runoff away from the excavation.",
+  "code": "NSW Excavation",
+  "section": "s 4.1, s 6.7"
+ },
+ {
+  "op": "cite",
+  "find": "The emergency plan covers flooding and rescue from the excavation.",
+  "code": "NSW Excavation",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "The regulator is notified before any blasting, as the state's explosives and blasting notification rules require.",
+  "code": "NSW Excavation",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Workers are trained to recognise buried contaminants and what action to take.",
+  "code": "NSW Excavation",
+  "section": "s 4"
+ },
+ {
+  "op": "cite",
+  "find": "Manage exposure to airborne contaminants in the excavation, with gas monitors and mechanical ventilation where needed.",
+  "code": "NSW Excavation",
+  "section": "s 4, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Plan haul routes and disposal for spoil.",
+  "code": "NSW Excavation",
+  "section": "s 2.2"
+ },
+ {
+  "op": "cite",
+  "find": "Safe access and exit: scaffold stairs or landing platforms in deep excavations, and emergency exits.",
+  "code": "NSW Excavation",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Ladders are for access only, industrial and rated for at least 120 kg, set at 4 to 1 and secured.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "No digging until steps are taken to prevent collapse of neighbouring buildings. Digging below their footings is assessed by a competent person and",
+  "code": "NSW Excavation",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "The site is secured from unauthorised access, and the edge near the street is supported against traffic loads.",
+  "code": "NSW Excavation",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Edge protection stays in place: top rail at least 900 mm above the finished surface (the falls code suggests 900 mm to 1100 mm), with a mid rail and",
+  "code": "NSW Falls",
+  "section": "s 5.2"
+ },
+ {
+  "op": "cite",
+  "find": "Where boom EWPs are used: the harness is attached to the EWP's anchor point, not the handrail, and booms of 11 m or more need a licensed operator.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Catch platforms or nets. Safety nets are installed by licensed riggers or scaffolders.",
+  "code": "NSW Falls",
+  "section": "s 7.1, s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "Sequence work so trades are not working directly above or below each other.",
+  "code": "NSW Falls",
+  "section": "s 8.3"
+ },
+ {
+  "op": "cite",
+  "find": "Where edge protection must be opened to build at the edge, it is opened only under the principal contractor's permit, with travel restraint.",
+  "code": "NSW Falls",
+  "section": "s 6.1, s 8.2"
+ },
+ {
+  "op": "cite",
+  "find": "Ladders are industrial and rated for at least 120 kg. Use step platforms rather than plain stepladders, never stand above the second tread below the",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "In a boom EWP, the harness is attached to the EWP's anchor point, not the handrail. Boom EWPs of 11 m or more need a licensed operator. EWPs only on",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Workers at the opening use travel restraint, installed by a competent person and set so they cannot reach the edge, with users trained.",
+  "code": "NSW Falls",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Old capacitors and transformers that may contain PCBs are handled with nitrile, neoprene or polyethylene gloves, bagged in polyethylene, put in a",
+  "code": "NSW Demolition",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "All gas, electricity, water, sewer, telecommunications and other services are disconnected and capped at or outside the building line by the",
+  "code": "NSW Demolition",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "Asbestos likely to be disturbed is identified before demolition and, so far as is reasonably practicable, removed by a licensed asbestos removalist",
+  "code": "NSW Demolition",
+  "section": "s 3.6, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Demolition is done by a contractor holding any demolition licence the state requires.",
+  "code": "NSW Demolition",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m",
+  "code": "NSW Demolition",
+  "section": "s 3.1"
+ },
+ {
+  "op": "cite",
+  "find": "An exclusion zone is fenced and signed around the structure, wide enough that falling or rebounding debris cannot reach anyone outside it. No one",
+  "code": "NSW Demolition",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "The structure is demolished in the reverse order to its construction, from the roof down, and kept stable at every stage. No one works inside or",
+  "code": "NSW Demolition",
+  "section": "s 4.10, s 4.12"
+ },
+ {
+  "op": "cite",
+  "find": "Excavators and other demolition plant have operator protective devices (falling object protection and a seat belt), and no one else is where falling",
+  "code": "NSW Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "cite",
+  "find": "Debris is removed as the work goes, and is not dropped freely except into a fenced drop zone.",
+  "code": "NSW Demolition",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Plant goes onto a suspended floor only after a competent person, such as a structural engineer, documents the plant allowed and confirms the floor,",
+  "code": "NSW Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "cite",
+  "find": "On suspended floors, rubble is not left to build up beyond what the floor can carry (wet rubble weighs more), and buffers stop plant going over edges",
+  "code": "NSW Demolition",
+  "section": "s 4.7, s 4.12"
+ },
+ {
+  "op": "cite",
+  "find": "When walls are knocked down with plant, at least 900 mm of each wall is left standing above the floor as an edge barrier at the perimeter and around",
+  "code": "NSW Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "cite",
+  "find": "Where debris drops through floor openings or shafts, the opening on the working floor has a buffer that stops loaded plant while plant tips, and",
+  "code": "NSW Demolition",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Debris chutes are fully enclosed with a cover or barrier at the top, fixed to the structure for their loaded weight, and signed at the outlet.",
+  "code": "NSW Demolition",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Where a crane holds a section while it is cut free, the section's weight is worked out first (by cutting and weighing samples if needed), and the",
+  "code": "NSW Demolition",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "The demolition machine's cab door is shut while it works, its windows are guarded with mesh, bars or polycarbonate, and its emergency exit is kept",
+  "code": "NSW Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "cite",
+  "find": "Columns and walls brought down by plant are never left so tall that debris could fall onto the machine.",
+  "code": "NSW Demolition",
+  "section": "s 4.12"
+ },
+ {
+  "op": "cite",
+  "find": "Where a wall or structure is pulled down by rope or chain, the anchored winch or towing plant stands back at least twice the height being pulled, the",
+  "code": "NSW Demolition",
+  "section": "s 4.13"
+ },
+ {
+  "op": "cite",
+  "find": "Glass is taken out of windows, doors and other openings before the walls around them are demolished.",
+  "code": "NSW Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "cite",
+  "find": "Steel or timber frame members are supported before they are cut so they cannot spring, twist or drop, and are lowered under control with tag lines.",
+  "code": "NSW Demolition",
+  "section": "s 4.11"
+ },
+ {
+  "op": "cite",
+  "find": "Where the structure gives lateral support to a neighbouring building, temporary supports at least as strong go in before that support is disturbed,",
+  "code": "NSW Demolition",
+  "section": "s 3.7"
+ },
+ {
+  "op": "cite",
+  "find": "Next to a road or footpath, hoarding, containment screens and overhead protection over the walkway go up before demolition starts, stay up",
+  "code": "NSW Demolition",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Portable fire extinguishers are kept in working areas, access to the fire services and booster stays open, and any sprinkler system is kept working",
+  "code": "NSW Demolition",
+  "section": "s 4.10"
+ },
+ {
+  "op": "cite",
+  "find": "A fire-damaged, ruinous or unsound structure gets a written report from a competent person on its current condition, hazards and controls before work",
+  "code": "NSW Demolition",
+  "section": "s 3.3, s 5.2"
+ },
+ {
+  "op": "cite",
+  "find": "Where lead paint or lead fittings are suspected (common in buildings from 1920 to 1978), they are tested first, and lead dust is kept down, cleaned",
+  "code": "NSW Demolition",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Temporary handrails or edge protection are fixed to the open sides of flights and landings until the permanent handrails are in, and the stair is not",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Fixed ladders are set at 70 to 75 degrees to the horizontal, and never overhang the person climbing.",
+  "code": "NSW Falls",
+  "section": "s 9.2"
+ },
+ {
+  "op": "cite",
+  "find": "Fixed ladders steeper than 75 degrees have a permanent or temporary fall arrest system using anchorage lines or rails, as a ladder cage does not stop a fall.",
+  "code": "NSW Falls",
+  "section": "s 7.4, s 9.2"
+ },
+ {
+  "op": "cite",
+  "find": "Grid mesh or checker plate panels are each fixed securely before the next is placed, held by tack welds or panel grips until permanently fixed, and",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The system is inspected and certified by a competent person, and tagged, before anyone uses it.",
+  "code": "NSW Falls",
+  "section": "s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "Pipes are cleaned and inspected with jetters and cameras from the surface. No one enters an access chamber unless it has been assessed and a confined",
+  "code": "NSW Confined spaces",
+  "section": "s 4.1, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Keep spoil, materials, plant and traffic out of the excavation's zone of influence unless the support is designed for those loads.",
+  "code": "NSW Excavation",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "No one works in the excavation beside the wall unless its sides are battered, benched or shored as the excavation design requires, or the excavation",
+  "code": "NSW Excavation",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "The excavation is battered, benched or shored where people work in or near it.",
+  "code": "NSW Excavation",
+  "section": "s 6.2"
+ },
+ {
+  "op": "cite",
+  "find": "When flammable vapour is purged from a tank, purging and ventilation equipment designed for hazardous areas is used, and vapour is expelled to a",
+  "code": "NSW Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Delivery lines and vent pipes are purged as well as the tank, and a competent person certifies the tank free of gas and flammable vapour before cutting starts.",
+  "code": "NSW Demolition",
+  "section": "s 5.10"
+ },
+ {
+  "op": "cite",
+  "find": "Open trenches are fenced or covered when no one is working at them.",
+  "code": "NSW Excavation",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Get the current underground services information, for example through Before You Dig Australia, before digging, and work to it.",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Open holes are covered or fenced when no one is working at them.",
+  "code": "NSW Excavation",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "No one enters the wet well once it is placed. It is a confined space, and any entry is made only under a confined space entry permit, with the",
+  "code": "NSW Confined spaces",
+  "section": "s 3.4, s 4.3, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Plant stands back from the excavation edge as the excavation design or a competent person sets out.",
+  "code": "NSW Excavation",
+  "section": "s 4.1, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Synthetic mineral fibre insulation is identified and controlled to the manufacturer's instructions. Dust is suppressed by damping down, and PPE is",
+  "code": "NSW Demolition",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "No one works between the wall forms and an unsupported excavation face. The face is battered, benched or shored as the excavation plan sets out.",
+  "code": "NSW Excavation",
+  "section": "s 6.2, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "No one enters the tank to strip forms or finish the inside until the space has been assessed, and entry is under a confined space permit where it is one.",
+  "code": "NSW Confined spaces",
+  "section": "s 1.1, s 3.4, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Soil above installed ground anchors is dug out only after a competent person approves it.",
+  "code": "NSW Excavation",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "No one enters the pit until it has been assessed. A pit that is a confined space is entered only under the confined space steps: permit, atmosphere",
+  "code": "NSW Confined spaces",
+  "section": "s 1.1, s 4.3, s 4.6, s 5"
+ },
+ {
+  "op": "cite",
+  "find": "No hot work or petrol engines are used in the pit.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.3, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Sludge and debris are removed with a vacuum truck from the surface wherever possible, so the time anyone spends in the well is kept short.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "The gas detector stays on in the well while sludge is disturbed, and everyone leaves at once if it alarms.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Pumps and inlet valves stay locked out under the confined space permit until everyone is out.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Vacuum truck engines and other combustion engines are kept away from the opening so exhaust gases do not contaminate the air in the well.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.3, s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Before demolition, the chimney is inspected and surveyed for faults such as fractured or badly weathered stone or rotten timbers, checked for",
+  "code": "NSW Demolition",
+  "section": "s 5.6"
+ },
+ {
+  "op": "cite",
+  "find": "Use a gas detector to test the air at the top of the well before anyone leans over the opening. If anyone must enter, work stops: the well is a",
+  "code": "NSW Confined spaces",
+  "section": "s 3.4, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "The stair opening is covered or has a guardrail at all times until the stair and its balustrade are fixed.",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Open holes are covered or barricaded when no one is at them.",
+  "code": "NSW Excavation",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Scaffold from which a person or thing could fall more than 4 m is erected by licensed scaffolders.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "The excavation is battered, benched or shored as the geotechnical advice or excavation plan sets out, and its edges are barricaded.",
+  "code": "NSW Excavation",
+  "section": "s 4.4, s 6.2, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Ladders are industrial and rated for at least 120 kg. No tools that need two hands, or a high degree of leverage such as stillsons, on a ladder",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "In a boom EWP, the harness is attached to the EWP's anchor point. Booms of 11 m or more need a licensed operator. No one uses a fall arrest harness alone.",
+  "code": "NSW Falls",
+  "section": "s 5.1, s 10.1"
+ },
+ {
+  "op": "cite",
+  "find": "Risers are covered or screened. While a riser is open, the opening has edge protection, or the worker at it uses travel restraint set so they cannot",
+  "code": "NSW Falls",
+  "section": "s 4.2, s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Shaft openings have barriers or fixed covers as soon as they are formed: covers are strong enough to take anyone who could fall onto them, securely",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Toe boards on edge protection, and exclusion zones and no go areas below.",
+  "code": "NSW Falls",
+  "section": "s 5.2, s 8.1"
+ },
+ {
+  "op": "cite",
+  "find": "Sequence work so no one works in the shaft below another trade.",
+  "code": "NSW Falls",
+  "section": "s 8.3"
+ },
+ {
+  "op": "cite",
+  "find": "The pit is assessed. If it is a confined space: a written entry permit from a competent person, the atmosphere tested before entry, continuous",
+  "code": "NSW Confined spaces",
+  "section": "s 1.1, s 3.4, s 4.3, s 4.6, s 5"
+ },
+ {
+  "op": "cite",
+  "find": "Penetrations keep their covers until they are sealed. Mesh over a penetration also has a solid cover over it.",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "While a riser or large penetration is open, the opening has edge protection, or the worker at it uses travel restraint set so they cannot reach the opening.",
+  "code": "NSW Falls",
+  "section": "s 4.2, s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "No stepladders beside an open penetration without extra fall protection.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Physical barriers separate pedestrians from plant.",
+  "code": "NSW Excavation",
+  "section": "s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Plan for blind spots. Plant operators and ground workers use two way acknowledgement before anyone approaches plant.",
+  "code": "NSW Excavation",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Every new floor opening is covered as soon as it is cut, with a cover strong enough to take anyone who could fall onto them, securely fixed so they",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Balustrades and barriers at tier fronts and vomitories are in place before cleaning.",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Sloping and wet surfaces are a fall hazard: wear slip resistant footwear.",
+  "code": "NSW Falls",
+  "section": "s 3.3, s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Travel restraint is installed by a competent person and users are trained. It may not be practicable on slopes over 15 degrees, where fall arrest may",
+  "code": "NSW Falls",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "An exclusion zone is set up below and beside the units being placed.",
+  "code": "NSW Falls",
+  "section": "s 8.1"
+ },
+ {
+  "op": "cite",
+  "find": "Nets are securely anchored before work starts, hung no more than 2 m below the work area, and inspected after they are installed, moved or repaired.",
+  "code": "NSW Falls",
+  "section": "s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "No welding, oxy cutting or other work that could damage the net is done above it, and material is not left to build up in the net.",
+  "code": "NSW Falls",
+  "section": "s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "Nets are erected by people holding a basic rigging or basic scaffolding licence, or trainees supervised by them.",
+  "code": "NSW Falls",
+  "section": "s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "Trades are sequenced so they do not work above or below each other at the same time.",
+  "code": "NSW Falls",
+  "section": "s 8.3"
+ },
+ {
+  "op": "cite",
+  "find": "Boom EWPs with a boom of 11 m or more are operated by a licensed operator. The harness is attached to the EWP's designated anchor point, not the handrail.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Plan for the EWP contacting electric lines, overturning, falls from the platform and crushing. Some EWPs are not suitable for windy conditions",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Traffic management for the plant is in place, and operators and ground workers use two way acknowledgement before anyone approaches plant.",
+  "code": "NSW Excavation",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Operators can show they are competent on the type of plant they use.",
+  "code": "NSW Excavation",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Plant, trucks and spoil stay out of the zone of influence of excavations and batters, and plant approaches trenches and embankments across the line,",
+  "code": "NSW Excavation",
+  "section": "s 4.1, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Plan haul roads and plant routes for blind spots, and keep plant away from overhangs and the edges of deep excavations. Ground workers wear high",
+  "code": "NSW Excavation",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Where a person could fall from a cut face or batter crest, install barriers or bunds, and set up clear pedestrian detours.",
+  "code": "NSW Excavation",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Take extra care with vibration near hospital equipment that is sensitive to shock and vibration.",
+  "code": "NSW Excavation",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Prevent falls first. Edge protection at the roof and helipad edges: top rail at least 900 mm, a mid rail and a toe board.",
+  "code": "NSW Falls",
+  "section": "s 5.2"
+ },
+ {
+  "op": "cite",
+  "find": "Openings in the deck are made safe as soon as they are formed, with covers or barricading.",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Before demolition or refurbishment, a competent person identifies any asbestos in the structure, and it is removed so far as is reasonably",
+  "code": "NSW Demolition",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Get the underground services information before digging, and locate services on site.",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Ladders are industrial, rated for at least 120 kg, secured, and not used for work that needs two hands or a high degree of leverage.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Get the underground services information before digging, and locate services on site, for example through Before You Dig Australia.",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Work from the floor with extendable tools where possible. Where cleaning is near a balcony or open edge, the balustrade or barrier is in place first.",
+  "code": "NSW Falls",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "No stepladders at balustrades or open edges. Ladders only for short light work.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "A competent person does a written risk assessment first, including whether the work can be done without entering.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.4, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Workers are trained in the hazards, controls, permit and emergency procedures, with training records kept for 2 years.",
+  "code": "NSW Confined spaces",
+  "section": "s 1.4"
+ },
+ {
+  "op": "cite",
+  "find": "No one enters without a written entry permit from a competent person, naming the space, the people entering, the time and the controls.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Signs at each entry say it is a confined space and not to enter without a permit.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.8"
+ },
+ {
+  "op": "cite",
+  "find": "Isolate connected pipes and plant: blank or cap lines, or close, lock and tag two valves with the drain between them locked open, and release stored",
+  "code": "NSW Confined spaces",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Ventilate or purge, never with oxygen or any gas mixture with more than 21% oxygen. Test from outside for oxygen (19.5% to 23.5%), flammable gas",
+  "code": "NSW Confined spaces",
+  "section": "s 3.2, s 3.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Initial atmospheric testing is done from outside the space with a correctly calibrated gas detector, by a competent person. A person's senses are",
+  "code": "NSW Confined spaces",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Each part of the space is tested, side to side and top to bottom, because some gases (such as hydrogen sulphide) settle low and others (such as",
+  "code": "NSW Confined spaces",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Combustion engines, generators and LPG forklifts are kept away from the openings, so exhaust gases such as carbon monoxide cannot build up in the space.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.3, s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "No hot work is done in areas next to the confined space while it may contain a flammable atmosphere.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.3, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Ventilation fresh air is drawn from a point where it is not contaminated by exhaust air or other pollutants, and exhaust air is vented where it",
+  "code": "NSW Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Purging and ventilation equipment designed for use in hazardous areas is used when flammable contaminants are purged.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "The entry permit is re-validated if the person in control of the work changes, there is a break in work continuity, or the work changes and",
+  "code": "NSW Confined spaces",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Where an opening is vertical, it is protected so people cannot fall in.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Where an entrance is on a footpath or road, workers entering or leaving are protected from vehicle traffic.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Signs are not relied on alone to stop unauthorised entry: locks or fixed barriers are also used.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.8"
+ },
+ {
+  "op": "cite",
+  "find": "Monitor the air continuously, with the flammable gas alarm set at 5% of the lower explosive limit. Leave at once if any alarm sounds.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.4, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "A standby person stays outside, in continuous contact, and never enters to rescue. Rescue is started from outside.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.6, s 5"
+ },
+ {
+  "op": "cite",
+  "find": "Rescue and first aid procedures are set and practised, rescue equipment is ready at the entry, and air supplied breathing equipment is available for",
+  "code": "NSW Confined spaces",
+  "section": "s 5"
+ },
+ {
+  "op": "cite",
+  "find": "No ignition source is taken in if there is any possibility of fire or explosion.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.2, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Mechanical ventilation is monitored so it runs continuously while the space is occupied, and its controls, including any remote power supply, are",
+  "code": "NSW Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Where a safe oxygen level or safe contaminant levels cannot be ensured, or a contaminant has no exposure standard or an unknown concentration,",
+  "code": "NSW Confined spaces",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "The standby person does no other work that could interfere with monitoring the workers inside.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "The standby person has the authority to order workers out of the space if any hazardous situation arises.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Workers sign in and out on the entry permit, or use tags, so it is always known who is in the space.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Air is re-tested or continuously monitored when the work, or disturbing sludge or other material, could change the conditions in the space.",
+  "code": "NSW Confined spaces",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Account for everyone and all tools before closing the access.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Close and sign off the entry permit, confirming everyone has left. Keep the risk assessment until at least 28 days after the work and the permit",
+  "code": "NSW Confined spaces",
+  "section": "s 3.4, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Isolations (locks, tags, blanks and caps) are not removed until all work is complete and all workers have left the space.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Signs stay at each entrance until packing up on completion of the work is finished.",
+  "code": "NSW Confined spaces",
+  "section": "s 4.8"
+ },
+ {
+  "op": "cite",
+  "find": "Where travel restraint is used, it stops the wearer reaching the edge. Fall arrest is used only with someone on site who can rescue.",
+  "code": "NSW Falls",
+  "section": "s 6.1, s 10.1"
+ },
+ {
+  "op": "cite",
+  "find": "Ladders are industrial and rated for at least 120 kg. Use platform ladders, step platforms or trestles rather than stepladders.",
+  "code": "NSW Falls",
+  "section": "s 9.1"
+ },
+ {
+  "op": "cite",
+  "find": "Everyone on the swing stage wears a harness anchored to the stage, operators are trained, and installers hold an advanced rigging or scaffolding licence.",
+  "code": "NSW Falls",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "The opening is covered as soon as it is cut, with a cover strong enough to take anyone who could fall onto it, securely fixed so it cannot be moved",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "While the old skylight is out, the opening is covered with a cover strong enough to take anyone who could fall onto it, securely fixed so it cannot",
+  "code": "NSW Falls",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Mesh does not protect against a fall from the edge: edge protection stays in place.",
+  "code": "NSW Falls",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Get the current underground services information, for example through Before You Dig Australia, locate services on site before digging, and work to it.",
+  "code": "NSW Excavation",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "The open trench is fenced or covered when no one is working at it.",
+  "code": "NSW Excavation",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "When digging by hand, workers using picks, shovels or bars keep far enough apart that they cannot strike each other.",
+  "code": "NSW Excavation",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Waste is not dropped from height unless it is confined in a chute, shaft or exclusion zone.",
+  "code": "NSW Demolition",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "The top of a vertical chute is covered or has a barrier, so no one can fall into it.",
+  "code": "NSW Demolition",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "The chute is secured to the building or scaffold for its own weight and the load in it, so waste falls freely and does not jam.",
+  "code": "NSW Demolition",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Signs warning of falling material are at the discharge end, the area around the bin is barricaded, and no waste is sent down while the bin is changed.",
+  "code": "NSW Demolition",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Work on or near energised parts",
+  "text": "Energised electrical work is never done because it is more convenient. It goes ahead only where the regulation permits, after a competent person's recorded risk assessment, with the isolation point clearly marked, kept clear and able to be operated quickly.",
+  "code": "NSW Electrical risks",
+  "section": "s 6.1, s 6.2"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Work on or near energised parts",
+  "text": "Except for testing that the risk assessment shows has no serious risk, a competent safety observer is present, assessed in the previous 12 months as competent to rescue and resuscitate, watching only this work and not in the EWP basket.",
+  "code": "NSW Electrical risks",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Work on or near energised parts",
+  "text": "Watches, jewellery, body piercings, metal spectacle frames and other metallic personal items are not worn near exposed energised parts. Clothing is non-synthetic and flame resistant, with no conductive material or metal threads.",
+  "code": "NSW Electrical risks",
+  "section": "s 6.3, s 8.5"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Work on or near energised parts",
+  "text": "Barriers and signs keep unauthorised persons out of the work area, and fire fighting equipment suitable for electrical fires is accessible.",
+  "code": "NSW Electrical risks",
+  "section": "s 6.3"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Work on or near energised parts",
+  "text": "PPE is rated for the work and protects against the maximum expected energy at the point of work, including gloves insulated to the highest expected voltage and an arc rated face shield where arcing could occur.",
+  "code": "NSW Electrical risks",
+  "section": "s 7.2, s 8.5"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Work on or near energised parts",
+  "text": "Before energised testing or fault finding, barriers are fitted to stop contact with nearby exposed conductive parts. Afterwards, disconnected conductors are reconnected, covers replaced and the equipment left in a safe state.",
+  "code": "NSW Electrical risks",
+  "section": "s 6.4"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Isolate and prove de-energised",
+  "text": "No one operates an isolator, or knowingly uses equipment, that has a lock or other control mechanism attached.",
+  "code": "NSW Electrical risks",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "isolation",
+  "step": "Isolate and prove de-energised",
+  "text": "Panel voltmeters are not the only means of proving parts de-energised, and a positive proximity tester reading is confirmed with a tester that has a visual display before work starts.",
+  "code": "NSW Electrical risks",
+  "section": "s 4.1, s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "testTag",
+  "step": "Inspect, test and tag electrical equipment",
+  "text": "Equipment that is due for testing but has not been tested is not used, for example by locking it away or fitting lock out labels and tags.",
+  "code": "NSW Electrical risks",
+  "section": "s 3.2"
+ },
+ {
+  "op": "add",
+  "group": "testTag",
+  "step": "Inspect, test and tag electrical equipment",
+  "text": "Out-of-service tags are durable, state the defect, and are removed only by a competent person once the defect is fixed and the equipment is safe.",
+  "code": "NSW Electrical risks",
+  "section": "s 5.1"
+ },
+ {
+  "op": "add",
+  "group": "tempPower",
+  "step": "Install construction power",
+  "text": "A new portable RCD is tested by pressing its trip test button before it is first used.",
+  "code": "NSW Electrical risks",
+  "section": "s 3.4"
+ },
+ {
+  "op": "add",
+  "group": "tempPower",
+  "step": "Install construction power",
+  "text": "Power circuits are protected by a fuse or circuit breaker of the right rating to prevent overloading.",
+  "code": "NSW Electrical risks",
+  "section": "s 3"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "If plant contacts a live line, the operator tries to break contact by moving the jib or driving clear. If that is not possible, the operator stays in the cabin and calls 000, unless fire or immediate danger forces them out.",
+  "code": "NSW Electric lines",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Anyone who must leave the plant jumps clear without touching the plant and ground together, then hops or shuffles at least 8 m away. Everyone else stays at least 8 m away until the electricity supply authority declares the site safe.",
+  "code": "NSW Electric lines",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "After contact with a live line, a competent person inspects the plant before it returns to service. Rubber tyred plant that had a flashover is parked in a 300 m isolation zone, kept clear for 24 hours, and fire services are alerted.",
+  "code": "NSW Electric lines",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Cranes and mobile plant used near live overhead lines carry a legible warning notice at each control set showing the approach distances for ordinary persons.",
+  "code": "NSW Electric lines",
+  "section": "s 6.6"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "The height of overhead lines is never measured directly, and metal tape measures or other conductive objects are not used to estimate it. A laser or similar method is used, or the electricity supply authority is consulted.",
+  "code": "NSW Electric lines",
+  "section": "s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "power",
+  "step": "Plan the work near overhead power lines",
+  "text": "Tiger tails and other visual indicators are fitted only by an electrically qualified person authorised by the electricity supply authority, and extend at least 5 m beyond the operating zone of the crane or plant.",
+  "code": "NSW Electric lines",
+  "section": "s 6.3, s 12"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Locate underground services",
+  "text": "Powered plant and tools are not used within 300 mm of low voltage cables or 600 mm of high voltage distribution cables. Near sub-transmission or transmission cables, work is done only under the asset owner's supervision.",
+  "code": "NSW Electric lines",
+  "section": "s 11.2"
+ },
+ {
+  "op": "add",
+  "group": "trench",
+  "step": "Excavate",
+  "text": "Near exposed cables, powered hand tools such as reciprocating saws and jackhammers are not used, solid non-conductive barriers such as plywood or cable mats are considered, and existing conduits are not cut without the electricity supply authority's agreed plan.",
+  "code": "NSW Electric lines",
+  "section": "s 11.3"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "Metal scaffold and temporary edge protection are not erected, used or dismantled within 4 m of overhead lines in any direction, allowing for sag and swing, unless the lines are de-energised or the electricity supply authority sets the conditions.",
+  "code": "NSW Electric lines",
+  "section": "s 8, s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "Electric wires passing through a scaffold are de-energised, or fully enclosed in non-conductive material approved by the electricity supply authority, with the wires de-energised while the enclosure is installed.",
+  "code": "NSW Electric lines",
+  "section": "s 8.4"
+ },
+ {
+  "op": "add",
+  "group": "scaffold",
+  "step": "Set up and protect the area below",
+  "text": "Where the authority allows reduced clearances, non-conductive hoarding is fixed to the scaffold with gaps no more than 3 mm and no exposed holes, warning signs are on the safe side, and a competent person inspects it daily.",
+  "code": "NSW Electric lines",
+  "section": "s 8.5"
+ },
+ {
+  "op": "add",
+  "group": "treePruning",
+  "step": "Prune the trees",
+  "text": "If a branch or tree contacts a line, no one touches any part of it, everyone is kept clear, and the electricity supply authority is told straight away.",
+  "code": "NSW Electric lines",
+  "section": "s 7.6"
+ },
+ {
+  "op": "add",
+  "group": "treeRemoval",
+  "step": "Remove trees",
+  "text": "If a branch or tree contacts a line, no one touches any part of it, everyone is kept clear, and the electricity supply authority is told straight away.",
+  "code": "NSW Electric lines",
+  "section": "s 7.6"
+ },
+ {
+  "op": "add",
+  "group": "mechCommissioning",
+  "step": "Isolate plant before work on it",
+  "text": "Each worker has a lock, tag and key for each isolation point. There are no duplicate keys, except a master key kept secure and used only in an emergency.",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "defectsVisit",
+  "step": "Carry out preventative maintenance on plant",
+  "text": "Each worker has a lock, tag and key for each isolation point. There are no duplicate keys, except a master key kept secure and used only in an emergency.",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "add",
+  "group": "mechCommissioning",
+  "step": "Isolate plant before work on it",
+  "text": "Where plant cannot be isolated, it is prevented from operating accidentally, and the controls can be operated only by the person doing the work or a person authorised for that purpose.",
+  "code": "NSW Plant",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "mechCommissioning",
+  "step": "Isolate plant before work on it",
+  "text": "Before plant restarts after inspection, maintenance or cleaning, the affected workers and other businesses are told.",
+  "code": "NSW Plant",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "gasCylinders",
+  "step": "Handle gas cylinders and manifolds",
+  "text": "Cylinders are stored outdoors or in very well ventilated areas, and a water hose or fire extinguisher is at hand to put out any small fire near a cylinder.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2, appendix J"
+ },
+ {
+  "op": "add",
+  "group": "gasCylinders",
+  "step": "Handle gas cylinders and manifolds",
+  "text": "Cylinders, regulators, hoses and fittings are checked regularly for leaks, dents, corrosion and damage, for example with detergent solution or leak detection spray, looking for bubbles.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "poolPlant",
+  "step": "Install the chemical dosing",
+  "text": "Acids are never stored with alkaline chemicals, and solid pool chlorine is kept at least 10 m from ammonium salts, or separated from them by bunding.",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "add",
+  "group": "poolPlant",
+  "step": "Install the chemical dosing",
+  "text": "Pool chlorine and other oxidisers are kept away from fuel and combustible materials, on clean racks or pallets (not old or weathered timber), with no liquids stored above them. Spills are cleaned up at once and never mixed in the waste bin.",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Run leads where they will not be damaged, or protect them. Keep them off the ground on",
+  "code": "NSW Electrical risks",
+  "section": "s 3"
+ },
+ {
+  "op": "cite",
+  "find": "If an RCD trips, the circuit stays off until a competent person finds the cause.",
+  "code": "NSW Electrical risks",
+  "section": "s 3"
+ },
+ {
+  "op": "cite",
+  "find": "If a circuit keeps overloading, the fuse rating is not increased, and the circuit is not",
+  "code": "NSW Electrical risks",
+  "section": "s 3"
+ },
+ {
+  "op": "cite",
+  "find": "Leads and tools are not used in damp or wet conditions unless they are specially designed",
+  "code": "NSW Electrical risks",
+  "section": "s 3"
+ },
+ {
+  "op": "cite",
+  "find": "A faulty RCD is disconnected or isolated at once, and is not used again until it is",
+  "code": "NSW Electrical risks",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Unsafe equipment is disconnected, labelled unsafe, and not reconnected until it is",
+  "code": "NSW Electrical risks",
+  "section": "s 3.1"
+ },
+ {
+  "op": "cite",
+  "find": "Find faults with de-energised testing methods first. Any energised testing is done only",
+  "code": "NSW Electrical risks",
+  "section": "s 6.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use battery tools in place of mains tools where practical.",
+  "code": "NSW Electrical risks",
+  "section": "s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Workers check the physical condition of electrical equipment, including the lead and plug",
+  "code": "NSW Electrical risks",
+  "section": "s 3.1"
+ },
+ {
+  "op": "cite",
+  "find": "Use non-conductive ladders for electrical work.",
+  "code": "NSW Electrical risks",
+  "section": "s 8.2"
+ },
+ {
+  "op": "cite",
+  "find": "Restrain tools with lanyards or holders when working near switchboards or above others.",
+  "code": "NSW Electrical risks",
+  "section": "s 8.1"
+ },
+ {
+  "op": "cite",
+  "find": "Treat existing cables as energised until proved de-energised. Check both ends for",
+  "code": "NSW Electrical risks",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Before termination at the main switchboard, the circuit is isolated, locked and proved",
+  "code": "NSW Electrical risks",
+  "section": "s 4.1, s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Treat every exposed part as energised until it is isolated and tested by a competent",
+  "code": "NSW Electrical risks",
+  "section": "s 4.1, s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Test the tester on a known source, test for zero volts, then test the known source again.",
+  "code": "NSW Electrical risks",
+  "section": "s 4.1, s 8.4"
+ },
+ {
+  "op": "cite",
+  "find": "Lock the isolating device open, or stop it being closed, and attach a warning sign, so",
+  "code": "NSW Electrical risks",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Each worker fits a personal lock, and danger tags are removed only by the people who",
+  "code": "NSW Electrical risks",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Check for every source of supply: construction supply, permanent supply, generators,",
+  "code": "NSW Electrical risks",
+  "section": "s 5"
+ },
+ {
+  "op": "cite",
+  "find": "When cutting multi-core control cables, check for current transformer secondary circuits",
+  "code": "NSW Electrical risks",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "A removable or rack-out circuit breaker or combined fuse switch is racked out or removed",
+  "code": "NSW Electrical risks",
+  "section": "s 5"
+ },
+ {
+  "op": "cite",
+  "find": "Test for dead each time before work, including when the worker returns after leaving the",
+  "code": "NSW Electrical risks",
+  "section": "s 4.1, s 5"
+ },
+ {
+  "op": "cite",
+  "find": "Exposed conductors in the immediate work area are segregated and protected with insulated",
+  "code": "NSW Electrical risks",
+  "section": "s 4.1, s 8.3"
+ },
+ {
+  "op": "cite",
+  "find": "Danger tags are durable, dated and signed by the workers, fixed prominently at each",
+  "code": "NSW Electrical risks",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "Workers position themselves so that an involuntary action like sneezing would not cause",
+  "code": "NSW Electrical risks",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Non-conductive or insulated tools and equipment are used near exposed energised parts,",
+  "code": "NSW Electrical risks",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Anyone involved in an electric shock incident receives medical attention, even if there",
+  "code": "NSW Electrical risks",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Before restoring power: terminate conductors, test insulation resistance, earth",
+  "code": "NSW Electrical risks",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "When power is restored, test that polarity is correct, actives are switched and, where",
+  "code": "NSW Electrical risks",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Before restoring power, visually check that all tools, surplus material and waste have",
+  "code": "NSW Electrical risks",
+  "section": "s 5.3"
+ },
+ {
+  "op": "cite",
+  "find": "Terminate and secure conductors, tag and tape off, label the switchboard status, prevent",
+  "code": "NSW Electrical risks",
+  "section": "s 5.4"
+ },
+ {
+  "op": "cite",
+  "find": "If work is incomplete at a change of shift, the last person replaces their danger tag or",
+  "code": "NSW Electrical risks",
+  "section": "s 5.1, s 5.4"
+ },
+ {
+  "op": "cite",
+  "find": "Near power lines or live electrical parts, ladders are non-conductive and kept outside",
+  "code": "NSW Electrical risks",
+  "section": "s 8.2"
+ },
+ {
+  "op": "cite",
+  "find": "Where exposed energised parts are nearby, have them de-energised or covered by the",
+  "code": "NSW Electrical risks",
+  "section": "s 8.2"
+ },
+ {
+  "op": "cite",
+  "find": "Use RCD protected tools and leads, and keep leads off wet floors and out of access ways.",
+  "code": "NSW Electrical risks",
+  "section": "s 3, s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Testing is done by a competent person, to AS/NZS 3760 or AS/NZS 3012 for construction",
+  "code": "NSW Electrical risks",
+  "section": "s 3.2, s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Equipment is visually inspected before it is tested, and damaged items are tagged out of",
+  "code": "NSW Electrical risks",
+  "section": "s 3.1, s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Each item passed is tagged with the test date, the retest date and the tester's name, and",
+  "code": "NSW Electrical risks",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Equipment is also tested after a repair or service that could affect its electrical",
+  "code": "NSW Electrical risks",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "New equipment is visually inspected for damage from transport and delivery, and tagged",
+  "code": "NSW Electrical risks",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Testing that requires dismantling the electrical equipment is carried out only by a",
+  "code": "NSW Electrical risks",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "A safety switch found faulty when tested has a durable tag attached immediately warning",
+  "code": "NSW Electrical risks",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Fit your own personal danger lock and tag where the isolation point allows it.",
+  "code": "NSW Electrical risks",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "A competent person tests that the parts are de-energised before anyone touches them (test",
+  "code": "NSW Electrical risks",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "If the isolation cannot be confirmed, stop, treat the parts as live and keep out of the",
+  "code": "NSW Electrical risks",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Temporary cables are kept off access routes, materials are stacked away from fences and",
+  "code": "NSW Electrical risks",
+  "section": "s 3"
+ },
+ {
+  "op": "cite",
+  "find": "The consumer mains are tested de-energised before work starts, and the board is treated",
+  "code": "NSW Electrical risks",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Stop work if any part of the plant or load comes inside the safe distance.",
+  "code": "NSW Electric lines",
+  "section": "s 6.5, s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "Treat every line as live unless the network operator confirms in writing it is isolated.",
+  "code": "NSW Electric lines",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "De-energising or re-routing the electric line is discussed with the electricity entity",
+  "code": "NSW Electric lines",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "No part of a worker, operating plant or vehicle enters an exclusion zone while the line",
+  "code": "NSW Electric lines",
+  "section": "s 4.4, s 7.5"
+ },
+ {
+  "op": "cite",
+  "find": "Exclusion zones for operating plant operated by an untrained person: 3 m up to 132 kV, 6",
+  "code": "NSW Electric lines",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The written risk assessment considers sway and sag of the lines, wind, the size and shape",
+  "code": "NSW Electric lines",
+  "section": "s 4.1, s 6.2"
+ },
+ {
+  "op": "cite",
+  "find": "Where practicable, plant is prevented from entering the exclusion zone by a physical",
+  "code": "NSW Electric lines",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "A safety observer is used whenever a crane or operating plant works in the safety",
+  "code": "NSW Electric lines",
+  "section": "s 6.3, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "The safety observer is trained for the role, observes only one crane or item of plant at",
+  "code": "NSW Electric lines",
+  "section": "s 5.2, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "The safety observer communicates effectively with the operator at all times, using",
+  "code": "NSW Electric lines",
+  "section": "s 5.2, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "Tiger tails are visual indicators only and do not insulate the lines. A competent person",
+  "code": "NSW Electric lines",
+  "section": "s 6.3, s 12.1"
+ },
+ {
+  "op": "cite",
+  "find": "Near the point of attachment of a service line, manual sanding is considered instead of a",
+  "code": "NSW Electric lines",
+  "section": "s 10.4, s 10.5"
+ },
+ {
+  "op": "cite",
+  "find": "An emergency plan covering contact with energised electric lines is in place, with first",
+  "code": "NSW Electric lines",
+  "section": "s 3, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Where overhead electric lines cannot be de-energised or re-routed by the electricity",
+  "code": "NSW Electric lines",
+  "section": "s 8.3, s 8.4"
+ },
+ {
+  "op": "cite",
+  "find": "A safety observer (spotter) watches the scaffolding work where a person or part of the",
+  "code": "NSW Electric lines",
+  "section": "s 8.3"
+ },
+ {
+  "op": "cite",
+  "find": "Pothole with water pressure and a vacuum system to confirm where services are, as plans",
+  "code": "NSW Electric lines",
+  "section": "s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "Within the clearance zone the asset owner sets, dig by hand or vacuum only, and support",
+  "code": "NSW Electric lines",
+  "section": "s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "If it is not known whether electric cables or conduits are present, assume they are, or",
+  "code": "NSW Electric lines",
+  "section": "s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "Cable locators and ground penetrating radar are used only by workers trained and",
+  "code": "NSW Electric lines",
+  "section": "s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "Check for overhead power lines before plant starts. Plant stays outside the approach",
+  "code": "NSW Electric lines",
+  "section": "s 6.1, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "Overhead electric lines within reach of the jib, hook or loads are identified, and",
+  "code": "NSW Electric lines",
+  "section": "s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Workers, the tower crane and its load stay at least 3 m from overhead powerlines up to",
+  "code": "NSW Electric lines",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Where the crane or load could enter the powerline exclusion zone, a trained safety",
+  "code": "NSW Electric lines",
+  "section": "s 5.2, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "Before setting up the crane, the site is inspected for overhead electric lines, and the",
+  "code": "NSW Electric lines",
+  "section": "s 6.1, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Check for overhead power lines before a truck, pump or boom sets up. Keep plant outside",
+  "code": "NSW Electric lines",
+  "section": "s 6.1, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "Check for overhead power lines before setting up. Keep the boom outside the approach",
+  "code": "NSW Electric lines",
+  "section": "s 6.1, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "Every part of the boom and drop hose stays at least 3 m from overhead power lines up to",
+  "code": "NSW Electric lines",
+  "section": "s 4.2, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "The safety observer (spotter) for powerlines does not carry out other work at the same",
+  "code": "NSW Electric lines",
+  "section": "s 5.2, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "Outdoors, stop in winds above the manufacturer's limit, and check for overhead power",
+  "code": "NSW Electric lines",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Treat powerlines as live unless the asset owner confirms in writing that they are",
+  "code": "NSW Electric lines",
+  "section": "s 6.1"
+ },
+ {
+  "op": "cite",
+  "find": "Get the underground services information and pothole to confirm services before digging.",
+  "code": "NSW Electric lines",
+  "section": "s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "Services along and across the bore path are exposed by potholing (vacuum or hand digging)",
+  "code": "NSW Electric lines",
+  "section": "s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "Underground services are located before pits and conduits are dug, and plant keeps its",
+  "code": "NSW Electric lines",
+  "section": "s 4.2, s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "The crane truck and EWP keep their approach distances from overhead lines.",
+  "code": "NSW Electric lines",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The post driver is run only by a trained operator, with an exclusion zone around it and",
+  "code": "NSW Electric lines",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The pole and anyone handling it keep the approach distances to overhead lines.",
+  "code": "NSW Electric lines",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Power lines near the trees are checked first, and work near them is done only under the",
+  "code": "NSW Electric lines",
+  "section": "s 7.2"
+ },
+ {
+  "op": "cite",
+  "find": "Trees are not cut or trimmed where any part of the tree is within the exclusion zone, or",
+  "code": "NSW Electric lines",
+  "section": "s 7.3, s 7.5"
+ },
+ {
+  "op": "cite",
+  "find": "Overhead lines, poles and stay wires that are hard to see are identified first.",
+  "code": "NSW Electric lines",
+  "section": "s 7.2, s 7.3"
+ },
+ {
+  "op": "cite",
+  "find": "Overhead lines are identified before work starts, and the crane and pole stay outside the",
+  "code": "NSW Electric lines",
+  "section": "s 6.1, s 6.3"
+ },
+ {
+  "op": "cite",
+  "find": "Overhead power lines are checked before the crane is set up, and the boom and load stay",
+  "code": "NSW Electric lines",
+  "section": "s 6.1, s 6.5"
+ },
+ {
+  "op": "cite",
+  "find": "Before digging swales, irrigation trenches or planting holes, get the services plans (for",
+  "code": "NSW Electric lines",
+  "section": "s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "Check for overhead power lines and buried services before felling or grinding. Work near",
+  "code": "NSW Electric lines",
+  "section": "s 7.2, s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "Before work, find the overhead service line to the building. Keep ladders and long metal",
+  "code": "NSW Electric lines",
+  "section": "s 10.1, s 10.5"
+ },
+ {
+  "op": "cite",
+  "find": "Where it is not known whether cables are in the ground, assume they are, or have a",
+  "code": "NSW Electric lines",
+  "section": "s 11, s 11.2"
+ },
+ {
+  "op": "cite",
+  "find": "Isolate every energy source, control stored energy, then test by trying to start the",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Each worker fits their own padlock. A tag alone is not an isolation. Only the person who",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Fans and pumps under automatic or building management system control are isolated where",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Plant is maintained to the manufacturer's instructions, and guards are refitted before it",
+  "code": "NSW Plant",
+  "section": "s 3.6, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "The building manager is told before plant is shut down and before it is restarted.",
+  "code": "NSW Plant",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Installed, climbed and dismantled by competent people to the manufacturer's instructions,",
+  "code": "NSW Plant",
+  "section": "s 3.2, s 3.9"
+ },
+ {
+  "op": "cite",
+  "find": "An up-to-date register of inspections and maintenance is kept.",
+  "code": "NSW Plant",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Where a crane is used, lifts are coordinated with the crane company's SWMS. Loads stay",
+  "code": "NSW Plant",
+  "section": "s 1.3"
+ },
+ {
+  "op": "cite",
+  "find": "A forklift left unattended is parked on a firm, level surface with the handbrake applied,",
+  "code": "NSW Plant",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "Forklifts are kept apart from people, with a warning device. A forklift left unattended",
+  "code": "NSW Plant",
+  "section": "s 3.8, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Leave an access way around plant for maintenance (about 600 mm is suggested).",
+  "code": "NSW Plant",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Plant controls can be locked in the off position.",
+  "code": "NSW Plant",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Lock out before removing a guard, and replace guards before the plant returns to service.",
+  "code": "NSW Plant",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Erect the crane or monorail to the manufacturer's instructions, keeping it stable while",
+  "code": "NSW Plant",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "The crane or monorail rests on a suitable foundation that keeps it stable and secure.",
+  "code": "NSW Plant",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Isolate the rig before cleaning the auger or any maintenance.",
+  "code": "NSW Plant",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Release pressure and isolate before clearing a blockage. Refit guards before restarting.",
+  "code": "NSW Plant",
+  "section": "s 3.6, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Isolate the work area for flying fragments, and wear a face shield.",
+  "code": "NSW Plant",
+  "section": "s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "A saw built for timber is not used to cut steel studs unless a competent person has",
+  "code": "NSW Plant",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Guards are in place, strongly fixed and hard to bypass, and control ejected parts.",
+  "code": "NSW Plant",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Disconnect the power before removing a guard, and refit it before use. Inspect hand-held",
+  "code": "NSW Plant",
+  "section": "s 3.5, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Each worker isolates, locks and tags every energy source to the conveyor, stored energy",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Guards taken off for the work are refitted and checked before the isolation is removed.",
+  "code": "NSW Plant",
+  "section": "s 3.6, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Saw and grinder guards are in place and hard to bypass. Isolate the cutting area, wear a",
+  "code": "NSW Plant",
+  "section": "s 2.3, s 3.5, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Our SWMS and the crane company's are coordinated before lifts start.",
+  "code": "NSW Plant",
+  "section": "s 1.3"
+ },
+ {
+  "op": "cite",
+  "find": "Use a brick saw with its blade guarded, isolate the cutting area and wear a face shield.",
+  "code": "NSW Plant",
+  "section": "s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Mixer guards are in place, and the mixer is switched off and isolated before cleaning.",
+  "code": "NSW Plant",
+  "section": "s 3.6, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Inspect grinders and replace worn wheels.",
+  "code": "NSW Plant",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Saw guards in place and hard to bypass, and tools inspected regularly.",
+  "code": "NSW Plant",
+  "section": "s 3.5, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "The car and counterweight are secured against movement whenever anyone works under or",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "The old pump is isolated and locked out, and its lines are depressurised and drained,",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "The drive is isolated and locked out before anyone works on the steps, drive or pit.",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Each unit is isolated at its local isolator and locked out, and each worker fits their",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "The escalator is stopped, isolated and locked out by the lift contractor, and each worker",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "The car is secured against movement whenever anyone works in the shaft or under it, and",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Guards are fitted before the conveyor is run, and the drives are isolated and locked out",
+  "code": "NSW Plant",
+  "section": "s 4.1, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Conveyors, crushers and screens have guards fitted, and pull-wire and emergency stops are",
+  "code": "NSW Plant",
+  "section": "s 3.5, s 4.1, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Plant is isolated and locked out with personal locks before anyone clears a blockage,",
+  "code": "NSW Plant",
+  "section": "s 3.6, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Plant is parked on level ground, the engine stopped, the key removed, and the plant",
+  "code": "NSW Plant",
+  "section": "s 3.8, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Raised buckets, blades and bodies are lowered, or blocked with their mechanical locks,",
+  "code": "NSW Plant",
+  "section": "s 3.7, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Hydraulic pressure is released before any line is undone, and no one checks for leaks",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Following maintenance, all guarding is replaced before the plant is used.",
+  "code": "NSW Plant",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Plant with damage that poses a risk to health and safety is withdrawn from service until",
+  "code": "NSW Plant",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Guards, pull-wires and emergency stops are fitted and tested before the plant is run, and",
+  "code": "NSW Plant",
+  "section": "s 3.2, s 3.5, s 4.3, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Drives and hydraulics are isolated and locked out, and the floor is mechanically locked",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Guards are fixed in place, control ejected parts, and the machine cannot restart until a",
+  "code": "NSW Plant",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Lock out pumps and isolate valves. Each worker fits their own padlock, a tag alone is not",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Release stored pressure before breaking into pipework.",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Warn everyone before pumps are restarted.",
+  "code": "NSW Plant",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Install with the manufacturer's jigs and tools, by competent people with the available",
+  "code": "NSW Plant",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Work that does not need the car to move is done with power, stored energy and gravity",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Where the car must move for inspection or testing, its controls are operated only by the",
+  "code": "NSW Plant",
+  "section": "s 3.6, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Plant does not collide with people, and has a warning device where it could.",
+  "code": "NSW Plant",
+  "section": "s 3.8, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Plant has a warning device that warns people at risk from its movement.",
+  "code": "NSW Plant",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Plant left unattended is parked on a firm, level surface with parts that lower under",
+  "code": "NSW Plant",
+  "section": "s 3.7, s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "Isolate by lock-out: each worker fits their own lock, and a tag alone is not an isolation.",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Generators are isolated by lock-out before work on them, with automatic starting",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Isolate steam, water and fuel by lock-out before work, and release stored pressure.",
+  "code": "NSW Plant",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "A trencher is used only by a trained operator, with its guards in place and no one near",
+  "code": "NSW Plant",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Hydraulic hoses, couplings and lifters are inspected before each lift and maintained to",
+  "code": "NSW Plant",
+  "section": "s 3.5, s 3.6, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Saws, shears, guillotines and press brakes have their guards in place, strongly fixed and",
+  "code": "NSW Plant",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Machine controls are marked, guarded against starting by accident, and can be locked off.",
+  "code": "NSW Plant",
+  "section": "s 4.2, s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Petrol trowels, saws and generators run only outdoors or where exhaust cannot collect.",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Generators, petrol trowels and petrol saws run only outdoors or where exhaust cannot",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "No hot work on drums, tanks or pipes that have held flammable or combustible chemicals",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Keep the work area well ventilated, particularly low-lying areas and roof spaces where",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Keep dust below the exposure standard. Mix bagged products with dust control, keep",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 1.5, s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Avoid skin contact with cement and epoxy: wear chemical resistant gloves suited to the",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Ventilate when using solvent sealers, especially in small or enclosed rooms, and keep",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Sanders with dust extraction. Pre-mixed compounds instead of mixing powders.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Vacuum or wet clean, never dry sweep. Respirators where dust exposure remains.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Use mechanical fixing, or less volatile and less flammable adhesives, where possible.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Where solvent-based adhesives are used, the vapour is heavier than air and collects near",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Wear the gloves the safety data sheet lists, and contain spills.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Cement-based compounds have a very high pH and are corrosive to skin and eyes: gloves and",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 3.3, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Use pre-mixed products where possible, and mix powders with dust control.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Dust from machining timber is hazardous: dust extraction on saws, and cut in a ventilated",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 2.1, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Resins and curing agents are used as their safety data sheets set out, with gloves, eye",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 2.2, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Tanks are emptied, and the vapour is removed or made inert and tested with a gas",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "No ignition sources are allowed in the hazardous area around the tank and excavation.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Flushing with water and vapour testing may not detect tar-like deposits and sludge, which",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "The tank is removed from the ground and transported to a disposal area to be",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "The regulator is notified before an underground tank of flammable liquid is abandoned,",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "The hazardous areas are identified, and no ignition sources are used in them unless a hot",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Existing tanks and lines are isolated, drained and tested free of vapour before they are",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "No hot work or other ignition source is near the foam or the chemicals, and an",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Graffiti removers are used as their safety data sheets set out, with chemical gloves, eye",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 2.2, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Where caustic or acidic removers could splash, eye protection is worn and an emergency",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Resins are mixed and injected as their safety data sheets set out, with chemical gloves",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 2.2, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Pool chemicals are stored and handled as their safety data sheets set out, kept apart,",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, s 4.2, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Engines are off and plant is parked before refuelling, with no smoking or ignition",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The fuel truck or trailer is earthed or bonded as its supplier requires, and nozzles are",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "A spill kit and fire extinguisher are at hand, and spills are cleaned up and reported",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Avoid splash filling and overflow when transferring fuel, and use an emergency shut-off",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The current safety data sheet is at the work area. Use mechanical fixing or less",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 2.2, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Where a diesel pump is run indoors, the pump room is ventilated and the exhaust is taken",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 1.5, s 2.1, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Keep dust and fibres below the exposure standard, monitor where unsure, and wear",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 1.5, s 3.3, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Keep dust down with wet methods, such as water carts.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Cylinders are secured against falling, kept upright, and valves are closed when not in",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Valves are closed when cylinders are empty, valves are never lubricated, and leaks are",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Move cylinders with a cylinder trolley, not by rolling or carrying.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "If a small leak occurs, close the cylinder valve if safe, put on PPE before finding the",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "If a large amount of gas escapes, evacuate the area, first ventilating and removing",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "If a valve does not close properly, move the cylinder to a safe area outdoors straight",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Valve protection caps stay on whenever a cylinder is not connected for use.",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Keep all heat and ignition sources away from gas cylinders, even cylinders of",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "When generators are run for testing, the exhaust is taken outside and the room ventilated",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 1.5, s 2.1, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Safety data sheets are at the work area, and decanted containers are labelled.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Each product is on the hazardous chemicals register, with its current safety data sheet,",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 1.6, s 2.2"
+ },
+ {
+  "op": "cite",
+  "find": "Use diluted, ready-to-use products, keep lids closed, and contain spills.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Where caustic or acidic chemicals could splash onto skin or eyes, eye protection is worn",
+  "code": "NSW Hazardous chemicals",
+  "section": "appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Vacuum or wet clean dust, never dry sweep.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, appendix J"
+ },
+ {
+  "op": "cite",
+  "find": "Use a less hazardous product where possible, such as a water-based membrane instead of a",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Keep vapour below the exposure standard. Vapour heavier than air collects low down:",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 1.5, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Lids stay on except when pouring, and spills are contained and cleaned up straight away.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Wear gloves resistant to the product used, and no eating, drinking or smoking in the work",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Where solvent-based products are used, fans and electrical equipment are designed for",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Bitumen is a combustible fuel: clear rubbish and other fuel from the area, and keep",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "LPG cylinders are upright and secured, have a working relief valve, and valves are closed",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "The current safety data sheet is at the work area, the product is on the register, and",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 1.6, s 2.2, s 2.3, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Ventilate as the label says: natural ventilation suits only small amounts of low toxicity",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Wear the gloves and eye protection the safety data sheet lists.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Collect solvent and solvent-based paint waste in closed, labelled containers for disposal",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 2.3, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Spraying makes a hazardous airborne concentration likely. Ventilate, and wear the",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 3.3, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "No ignition sources where flammable vapour may be present. Earthed and intrinsically safe",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Heavier than air vapour collects in low and enclosed areas, such as stairwells, pits and",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Containers of solvent-based paint and thinners are kept away from heaters and other heat",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Ventilate when using solvent coatings, especially in small or enclosed rooms and garages,",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Low odour, solvent-free sealants are used where the specification allows.",
+  "code": "NSW Hazardous chemicals",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "A hot work permit is issued before hot work, and fire-fighting equipment is kept near the work",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Remove or cover combustible materials where sparks and slag can reach them",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Hot work permit, fire-resistant barriers, fire-fighting equipment at hand, cylinders secured, and flashback arrestors fitted",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Purge all traces of flammable or combustible material from drums, vessels and tanks before welding",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Never cut containers that may still hold flammable material, or pressurised cylinders",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "A brazed tie-in is done under a written hot work permit that takes the occupied hospital areas",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Keep oil, grease and other hydrocarbons away from oxygen pipework, fittings and tools",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Bitumen is a combustible fuel: clear rubbish and other fuel from the area",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "No hot work on drums, tanks or pipes that have held flammable or combustible chemicals",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "No flame where there could be a flammable atmosphere.",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Sparks are kept away from combustible materials, and a fire extinguisher is at hand.",
+  "code": "NSW Welding",
+  "section": "s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Fit flashback arrestors at the torch and regulator. Keep cylinders upright and secured",
+  "code": "NSW Welding",
+  "section": "s 3.4, s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Gas cylinders are secured at all times and stored upright, with flashback arrestors on the gas hoses",
+  "code": "NSW Welding",
+  "section": "s 3.4, s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Cylinders are secured against falling, kept upright, and valves are closed when not in use.",
+  "code": "NSW Welding",
+  "section": "s 3.4, s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Flashback arrestors are fitted, and hoses have crimped or permanent clips.",
+  "code": "NSW Welding",
+  "section": "s 3.4, s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Combustibles are cleared from the welding bay, fire-fighting equipment is at hand, cylinders are secured upright",
+  "code": "NSW Welding",
+  "section": "s 3.4, s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "A brazed tie-in is made only after the main is isolated and depressurised, and the oxygen level at the joint",
+  "code": "NSW Welding",
+  "section": "s 3.4, s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Extract or ventilate fumes so no one is exposed above the exposure standard.",
+  "code": "NSW Welding",
+  "section": "s 3.1, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Mark hot pipe as hot. Wear fire-resistant gloves, natural fibre clothing and filter eye protection",
+  "code": "NSW Welding",
+  "section": "s 3.2, s 3.5, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Gas hoses are secured with crimped or other suitable permanently fitting clips.",
+  "code": "NSW Welding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Gas cylinders are secured upright, with valves closed when not in use.",
+  "code": "NSW Welding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Nitrogen and other inert gases are an asphyxiation hazard in high concentrations",
+  "code": "NSW Welding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Gas heavier than air collects in pits and low areas, so keep low-lying work areas well ventilated.",
+  "code": "NSW Welding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Painted steel is checked for lead before it is flame cut.",
+  "code": "NSW Welding",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "Welding on steel painted with paint containing more than 1% lead is a lead process",
+  "code": "NSW Welding",
+  "section": "s 3.8"
+ },
+ {
+  "op": "cite",
+  "find": "Wear filter eye protection rated for gas cutting, fire-resistant gloves and natural fibre clothing.",
+  "code": "NSW Welding",
+  "section": "s 3.2, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Identify coatings before welding, and keep fume below the exposure standard. Galvanised steel gives off zinc oxide fume.",
+  "code": "NSW Welding",
+  "section": "s 3.1, appendix B"
+ },
+ {
+  "op": "cite",
+  "find": "Identify the metals and coatings before welding, and keep fume below the exposure standard. Stainless steel fume",
+  "code": "NSW Welding",
+  "section": "s 3.1, appendix B"
+ },
+ {
+  "op": "cite",
+  "find": "Screens and signs protect people nearby from arc flash.",
+  "code": "NSW Welding",
+  "section": "s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Fully insulated electrode holders, dry welding gloves, and an RCD on the supply.",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Do not weld in damp, humid or wet conditions, or where the welder may be exposed to rain.",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Do not connect or change welding cables before switching off the power at the mains.",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Use only welding cables fully insulated for their entire length",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "stand, lie or sit on non-conducting material while welding, and avoid leaning against the work piece",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "A worker with a pacemaker or other implanted medical device gets medical advice before being exposed",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Do not stud weld in damp or wet conditions, or where the welder may be exposed to rain.",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Ventilation or local exhaust for welding fume, and hearing protection for grinding.",
+  "code": "NSW Welding",
+  "section": "s 3.7, s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Remove surface contaminants before welding to reduce fumes, and identify rust-proofed steel",
+  "code": "NSW Welding",
+  "section": "s 3.1"
+ },
+ {
+  "op": "cite",
+  "find": "Natural ventilation is not relied on to control welding fume. Use local exhaust capturing fume close to the source",
+  "code": "NSW Welding",
+  "section": "s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Mark or label hot work pieces as 'hot', or keep them where they cannot be touched by accident.",
+  "code": "NSW Welding",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Avoid contact with hot surfaces, wear heat resistant gloves, drink cool water and take regular rest breaks.",
+  "code": "NSW Welding",
+  "section": "s 3.5"
+ },
+ {
+  "op": "cite",
+  "find": "Stud welding is done with screens, eye and face protection rated for welding, and ventilation.",
+  "code": "NSW Welding",
+  "section": "s 3.2, s 3.3, s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Galvanised or painted steel is cut with ventilation or a respirator suited to the fumes.",
+  "code": "NSW Welding",
+  "section": "s 3.1, s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Welding is done in a welding bay with local exhaust ventilation at the arc, and respiratory protection",
+  "code": "NSW Welding",
+  "section": "s 3.1, s 4.1, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Brazing is a welding process. Hot work is done under a written hot work permit",
+  "code": "NSW Welding",
+  "section": "s 1.1, s 3.4"
+ },
+ {
+  "op": "cite",
+  "find": "Rails welded on site are hot work: a fire extinguisher is at hand, dry grass is cleared or wetted",
+  "code": "NSW Welding",
+  "section": "s 3.4, s 4.2"
+ },
+ {
+  "op": "cite",
+  "find": "Welding or grinding stainless steel on site is hot work, done under a hot work permit with fume extraction.",
+  "code": "NSW Welding",
+  "section": "s 3.4, s 4.1"
+ },
+ {
+  "op": "cite",
+  "find": "Gas cylinders carry a current inspection mark.",
+  "code": "NSW Welding",
+  "section": "s 4.3"
+ },
+ {
+  "op": "cite",
+  "find": "Move cylinders with a cylinder trolley, not by rolling or carrying.",
+  "code": "NSW Welding",
+  "section": "s 3.9"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Electrode holders are never dipped in water to cool, placed on conductive surfaces or held under the armpit, and electrodes are not changed by hand while touching the bench or work piece.",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Where the welding equipment has an earth (ground) connection, it is connected at all times, and an appropriate hazard reducing device is used.",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "workshopFab",
+  "step": "Weld in the workshop",
+  "text": "Electrode holders are never dipped in water to cool, placed on conductive surfaces or held under the armpit, and electrodes are not changed by hand while touching the bench or work piece.",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "workshopFab",
+  "step": "Weld in the workshop",
+  "text": "Where the welding equipment has an earth (ground) connection, it is connected at all times, and an appropriate hazard reducing device is used.",
+  "code": "NSW Welding",
+  "section": "s 3.3"
+ },
+ {
+  "op": "add",
+  "group": "steelWeld",
+  "step": "Weld steel",
+  "text": "Welders wear eye, face and head protection with the right filter, fire resistant gloves covering hands and wrists, natural fibre clothing without pockets or folds that catch sparks, and footwear that will not trap sparks in laces or openings.",
+  "code": "NSW Welding",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "workshopFab",
+  "step": "Weld in the workshop",
+  "text": "Welders wear eye, face and head protection with the right filter, fire resistant gloves covering hands and wrists, natural fibre clothing without pockets or folds that catch sparks, and footwear that will not trap sparks in laces or openings.",
+  "code": "NSW Welding",
+  "section": "s 4.2"
+ },
+ {
+  "op": "add",
+  "group": "workshopFab",
+  "step": "Weld in the workshop",
+  "text": "Local exhaust gives a capture velocity of at least 0.5 m/s at the fume source, its inlets and outlets are kept clear, and extracted air is not re-circulated into the workshop.",
+  "code": "NSW Welding",
+  "section": "s 4.1"
+ },
+ {
+  "op": "add",
+  "group": "workshopFab",
+  "step": "Weld in the workshop",
+  "text": "Work pieces are positioned so the welder can work in a comfortable posture, heavy work pieces are lifted with rigging, and gas cylinders are moved on trolleys.",
+  "code": "NSW Welding",
+  "section": "s 3.9"
+ },
+ {
+  "op": "add",
+  "group": "hotWork",
+  "step": "Braze and solder pipe joints (hot work)",
+  "text": "If a small gas leak occurs, the cylinder valve is closed, the area is ventilated and air-conditioning is turned off. A large leak is handled under the emergency procedure.",
+  "code": "NSW Welding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "hotWork",
+  "step": "Braze and solder pipe joints (hot work)",
+  "text": "Before use, cylinders and regulators are checked for visible damage, corrosion and test date, and hoses, fittings and connections are checked for damage or poor condition.",
+  "code": "NSW Welding",
+  "section": "s 3.6, s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "hotWork",
+  "step": "Braze and solder pipe joints (hot work)",
+  "text": "All sources of heat and ignition, including the flame, sparks and hot work pieces, are kept away from gas cylinders.",
+  "code": "NSW Welding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "oxyCutting",
+  "step": "Cut steel with oxy-acetylene (hot work)",
+  "text": "If a small gas leak occurs, the cylinder valve is closed, the area is ventilated and air-conditioning is turned off. A large leak is handled under the emergency procedure.",
+  "code": "NSW Welding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "add",
+  "group": "oxyCutting",
+  "step": "Cut steel with oxy-acetylene (hot work)",
+  "text": "Before use, cylinders and regulators are checked for visible damage, corrosion and test date, and hoses, fittings and connections are checked for damage or poor condition.",
+  "code": "NSW Welding",
+  "section": "s 3.6, s 4.3"
+ },
+ {
+  "op": "add",
+  "group": "oxyCutting",
+  "step": "Cut steel with oxy-acetylene (hot work)",
+  "text": "All sources of heat and ignition, including the flame, sparks and hot work pieces, are kept away from gas cylinders.",
+  "code": "NSW Welding",
+  "section": "s 3.6"
+ },
+ {
+  "op": "cite",
+  "find": "Agree before work starts the wind speed at which sheet handling stops",
+  "code": "NSW Manual tasks",
+  "section": "s 3.4, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Large panels are handled outside only in low wind.",
+  "code": "NSW Manual tasks",
+  "section": "s 3.4, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Panels are not handled on the roof in strong or gusty wind",
+  "code": "NSW Manual tasks",
+  "section": "s 3.4, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Where practicable, eliminate hand-held breaking by using plant-mounted breakers",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Keep access ways clear, put waste in bins, and clean up slurry so floors are not slippery.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Cool water, shade and rest breaks in hot weather.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Work is planned for the cooler part of the day in hot weather, with water and breaks.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Work in hot weather follows the heat plan: shade, cool water, rest breaks and earlier start times.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Roof cavities get very hot: work early in the day, limit time in the roof, take breaks, and drink water.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Stop panel handling when the wind could take control of the panel.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Plan glass handling for low wind conditions.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Handle large sheets in low wind, especially on balconies and at hoist landings.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Choose low vibration tools, or plant such as hydraulic pile croppers, to reduce hand-held breaking.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Mesh sheets are handled by two people or with a mechanical aid",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Heavy beams and lintels are lifted with a material lift, block and tackle, a gantry or plant",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Team carrying on stairs puts most of the weight on the handler at the lower end",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Benchtops are cut into pieces two people can carry, or moved on a trolley or with a lifting aid.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Units are moved and placed by crane, not by hand. Bearing pads and fixings are handled in small loads",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Carry waste in small loads or use a chute or barrow to the skip, and rotate tasks.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use barrows and trolleys for posts, sheets and concrete bags, order smaller bags where possible",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use barrows and trolleys for posts, wire rolls and concrete bags, order smaller bags where possible",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use long-handled tools, rotate tasks and take breaks.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Pipe is lifted into the machine with roller stands or mechanical aids. Team lifts are an interim control only.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use cable dispensers and rollers, and plan team pulls with one person in charge.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Move racks and batteries with trolleys, pallet jacks or lifting aids. Team lifts are an interim control",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use pipe lifters and mechanical aids. Team lifts are an interim control only.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Two people carry long bearers and joists, or use mechanical aids. Rotate kneeling work.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Lift frames with enough people or a crane, not alone. Rotate lifting tasks.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use a turf laying machine for large turf rolls. Use mechanical aids for smaller rolls, and rotate tasks.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use lifting aids for tube lengths and stations, and rotate overhead work.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Rotate tying tasks, and use a tying tool or long-handled tier to limit bending.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Barrow loads are kept to what a person can handle, on boarded runs",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.6, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use knee pads and kneeling boards for edge finishing, and rotate tasks.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.1, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Knee pads, and tasks rotated to limit time kneeling.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.1, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Manual handling: move props, frames, beams and ply to the work area in crane-lifted bundles",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Where there is a materials hoist, move materials between levels with it, not by hand.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Boards are delivered close to the work, lifted to the level by crane or hoist, and moved on trolleys.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Rolls are delivered close to the work, moved between levels by hoist or lift, and moved on trolleys.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Use sheet lifters and suction pads or hooks, with training in each aid. Have sheets delivered",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Rolls and drums are delivered by crane or hoist to where they are used",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Manual handling: team lift long or heavy items, keep loads close to the body",
+  "code": "NSW Manual tasks",
+  "section": "s 3.3, s 4.3, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Tiling walls means long periods of reaching: work at a height between the knees and shoulders",
+  "code": "NSW Manual tasks",
+  "section": "s 3.3, s 4.3, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Manual handling: rotate tasks and take breaks during repetitive erection.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Impact wrenches and bolting are repetitive: rotate tasks.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Team lifts are an interim control only. One person plans and takes charge of each team lift.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Team lifts are an interim control only, with one person in charge and the lift rehearsed.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Any team lift is matched to the load, rehearsed, and led by one person.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Ply sheets are carried by two people or with sheet lifters, and sheet handling stops when wind lifts",
+  "code": "NSW Manual tasks",
+  "section": "s 3.4, s 4.4, s 4.6, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use a tying tool or long-handled tier so fixers do not bend the back forward",
+  "code": "NSW Manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "the drill is supported on a drill stand or overhead drilling rig so it is not held with the hands above shoulder height",
+  "code": "NSW Manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Old posts are pulled with a post puller, jack or machine, not by hand",
+  "code": "NSW Manual tasks",
+  "section": "s 3.3, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Kneeling while trowelling concrete is an awkward posture: use long-handled floats",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use pipe lifters or jacks to hold pipe overhead, rather than holding it up by hand.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use door lifters, wedges and props to hold doors while they are hung",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use lifting aids, straps, trolleys and props to hold units while fixing",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Holding sheets in place while fixing is a hazardous posture: prop or support sheets",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "New sheets are held up with props or a sheet lifter while they are fixed, not by hand.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Hydrant pipe lengths are lifted into place with a pipe lifter, hoist or chain block rated for their weight",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use sheet lifters to hold ceiling sheets in place while fixing.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use handling aids for pavers. Kneeling is a hazardous posture.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use low-vibration tools and rotate operators to limit hand-arm vibration.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Work under the floor is broken up with breaks, with knee pads and enough lighting.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Low vibration tools are used, and work with grinders is rotated with other tasks.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Low vibration tools are used, and driving is rotated with other tasks.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.6, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use trolleys and lifting aids for heavy items. Plan team lifts with one person in charge.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use lift trolleys or vacuum lifters. Where team lifts are regular, redesign the task to use mechanical aids.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "To reduce whole-body vibration, operators adjust their suspension seats appropriately",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.6"
+ },
+ {
+  "op": "cite",
+  "find": "Crane, hoist or barrow blocks to the work face, and stage them between waist and shoulder height.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.3, s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Blocks and bricks are stacked close to the work at waist height, and lifted one at a time.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.3, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Team lifts are an interim control only, with one person in charge.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Kneeling is a hazardous posture: rotate tasks and take short frequent breaks.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Long periods kneeling are a hazardous manual task: rotate tasks.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Painting is a repetitive task: rotate tasks.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Kneeling while laying tiles is a hazardous manual task. Rotate tasks and take short, frequent breaks.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Working with arms overhead is a hazardous posture: rotate tasks and take short breaks.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Use a power stretcher instead of a knee kicker where possible.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Render is mixed with a mixer or paddle, and bags are moved with a trolley.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Heavy lids and grates are lifted with a lid lifter or plant, never by hand alone",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "The unit is lowered and lifted with a material lifter rated for its weight, never held overhead by hand.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Pendants are lifted with a material lifter or lifting frame rated for the load, never held overhead by hand.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Generators and tanks are lifted into place by the crane company or moved on skates and rollers.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Frames, sheets and finished items are moved with lifting aids, trolleys or sheet lifters, not carried by hand.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Waste is moved in wheelie bins, barrows or trolleys rather than carried",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Move plant with mechanical aids such as skates, pallet jacks or powered tugs, not by carrying.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use lifting aids such as duct lifters for overhead duct sections, rather than holding them up by hand.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Move panels with well maintained trolleys, pushing rather than pulling.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use vacuum lifters and glass panel lifters, not hand carrying. Lifting aids suit the load",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use lifting aids for hoses and pipes rather than carrying them.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use trolleys, lift trolleys, panel lifters, and hooks or suction pads for sheets. Keep trolleys maintained.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use panel lifters or trolleys for any heavy stone and large format tiles.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Move rolls with trolleys or hand trucks, pushing rather than pulling, and order smaller loads",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use vacuum lifters, glass panel lifters, suction pads and trolleys, not hand carrying.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Use trolleys and mechanical aids to move sections. Cut sections small enough to handle",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Light fittings and parts are moved with trolleys and lifting aids, not carried by hand at height.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Move cylinders with a cylinder trolley, not by rolling or carrying.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Lead-lined sheets are moved with sheet trolleys and lifters, not carried by hand.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Move bags with trolleys or mechanical aids rather than carrying them.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Move bags with mechanical aids rather than carrying them.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Bags are lifted one at a time within what a person can handle, or smaller bags are used",
+  "code": "NSW Manual tasks",
+  "section": "s 4.3, s 4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Bags and drums are moved by forklift, trolley or two people, and opened at waist height.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.3, s 4.4, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Repeated drilling and fixing is a hazardous manual task (repetition, awkward posture and vibration from drills)",
+  "code": "NSW Manual tasks",
+  "section": "s 1.2, s 2.2, s 4.4, s 4.5, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Powered riveting and fastening tools are used to cut down repeated force",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.3, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Battery caulking guns are used for long runs, and tasks are rotated.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Have materials delivered as close as possible to where they are used.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Ask suppliers to deliver joinery ready to install and the right way up.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Soil, mulch and plants are delivered by crane or hoist to where they are used.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Buy smaller or lighter bags and boxes where possible, have materials delivered as close to the",
+  "code": "NSW Manual tasks",
+  "section": "s 4.1, s 4.4, s 4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Kneeling to lay floor coverings is a hazardous posture: rotate tasks and take short frequent breaks.",
+  "code": "NSW Manual tasks",
+  "section": "s 2.2, s 3.3, s 4.1, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Long boards and sheets are carried by two people or with a trolley, and stacked flat near where they are used.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.5, s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "Order smaller bags, or have bulk loads moved by machine. Deliver as close as possible to where the materials are used.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.4, s 4.5, s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "carpLoad",
+  "step": "Move materials into place",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "plantLift",
+  "step": "Receive plant and move it into position",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "glassHandling",
+  "step": "Handle glass and panels",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "plasterSheets",
+  "step": "Move and fix plasterboard sheets",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "add",
+  "group": "wpRolls",
+  "step": "Move membrane rolls and materials",
+  "text": "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability where possible, there is room to move as a group, and the lift is rehearsed.",
+  "code": "NSW Manual tasks",
+  "section": "s 4.7"
+ },
+ {
+  "op": "cite",
+  "find": "a silica risk control plan is given to workers before they start (this SWMS can be the plan only where",
+  "code": "NSW Silica",
+  "section": "s 3.1, s 3.1.2, s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "a silica risk control plan is given to workers before they start and the work follows it (this SWMS can be",
+  "code": "NSW Silica",
+  "section": "s 3.1, s 3.1.2, s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "The assessment does not count PPE or administrative controls, and does not rely only on the dust controls used for the processing",
+  "code": "NSW Silica",
+  "section": "s 2.5, s 2.5.1, s 2.5.8"
+ },
+ {
+  "op": "cite",
+  "find": "Assess in writing before processing whether it is high risk, without counting PPE or administrative controls",
+  "code": "NSW Silica",
+  "section": "s 2.5, s 2.5.1, s 3.1, s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Assess in writing before chasing whether the processing is high risk, without counting PPE",
+  "code": "NSW Silica",
+  "section": "s 2.5, s 2.5.1, s 3.1, s 3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Drilling tiles and masonry with 1% or more crystalline silica with a power tool is processing",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.3, s 2.5, s 2.5.1, s 2.5.8"
+ },
+ {
+  "op": "cite",
+  "find": "Drilling concrete for hanger anchors with a power tool is processing a crystalline silica substance",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.3, s 2.5, s 2.5.1, s 2.5.8"
+ },
+ {
+  "op": "cite",
+  "find": "Pavers are not engineered stone, but cutting pavers with 1% or more crystalline silica is processing",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.3, s 2.5, s 2.5.1, s 2.5.8"
+ },
+ {
+  "op": "cite",
+  "find": "Drilling concrete with a power tool is processing a crystalline silica substance and must be controlled",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.3, s 2.5, s 2.5.1, s 2.5.8"
+ },
+ {
+  "op": "cite",
+  "find": "Air monitoring is done where it is not certain the exposure standard is met, and results are kept for 30 years.",
+  "code": "NSW Silica",
+  "section": "s 3.3, s 3.3.1, s 3.3.1.1, s 3.3.1.7, s 3.3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Where it is uncertain whether dust is below the exposure standard, monitor the air and keep the results for 30 years.",
+  "code": "NSW Silica",
+  "section": "s 3.3, s 3.3.1, s 3.3.1.1, s 3.3.1.7"
+ },
+ {
+  "op": "cite",
+  "find": "Health monitoring is provided for workers at significant risk from crystalline silica.",
+  "code": "NSW Silica",
+  "section": "s 3.3, s 3.3.2"
+ },
+ {
+  "op": "cite",
+  "find": "Pre-start check of dust extraction and water suppression equipment for kinks, holes or leaks",
+  "code": "NSW Silica",
+  "section": "s 2.4.4"
+ },
+ {
+  "op": "cite",
+  "find": "Only tools designed for use with water attachments are used with water suppression.",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "Water suppression is supplied at a consistent flow for the full duration of the task",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "Fans are not set up where they would dry wet slurry before it is cleaned up.",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "Drilling uses water or dust collection, with fit tested P2 respirators for anyone still at risk.",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "Indoors, grinding is done in an exclusion zone set by a competent person, with warning signs at each entry",
+  "code": "NSW Silica",
+  "section": "s 2.4.3, s 2.4.5"
+ },
+ {
+  "op": "cite",
+  "find": "Wet slurry is cleaned up at the end of each shift or task before it dries, and thick slurry is disposed of covered",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "cite",
+  "find": "Dust and slurry are cleaned up at least at the end of each day or task, with an H class vacuum",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "cite",
+  "find": "Construction dust is cleaned up with an H class vacuum (M class only where H class is not reasonably practicable)",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "cite",
+  "find": "Where concrete or paving is cut to reinstate it, it is cut wet or with on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Anyone still at risk of exposure after these controls wears a fit tested respirator (P2 or better).",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Where control joints are saw cut, or concrete is cut or drilled, it is done wet or with on-tool extraction.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Where concrete is ground or patched, it is done with on-tool extraction or wet methods",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Drill anchors with on-tool dust extraction. Anyone still at risk of exposure wears a fit tested respirator",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Chase and drill with water suppression or on-tool dust extraction. Anyone still at risk",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Drill anchors with on-tool extraction, and wear a fit tested P2 respirator.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Drill with on-tool extraction. Anyone still at risk of exposure wears a fit tested respirator (P2 or better).",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Drill masonry and concrete for frame fixings with on-tool dust extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Drill fixings with on-tool extraction, and wear a fit tested P2 respirator.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Drill hanger anchors with on-tool extraction, and wear a fit tested P2 respirator.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Raking out mortar with a power tool is processing a crystalline silica substance",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Drilling masonry, concrete or tiles is done with on-tool dust extraction, and a fit tested P2 respirator",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Joints are cleaned out with a saw or grinder with on-tool extraction or water",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Breaking out and grinding concrete is processing a crystalline silica substance: use tools with on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Tiles are cut with a wet saw or a saw with on-tool extraction, and a fit tested P2 respirator is worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Slab drilling for anchors is done with on-tool extraction, and a P2 respirator is worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Benchtop cut-outs are cut with on-tool extraction, and natural stone benchtops are cut wet",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Blocks and fibre cement are cut with a wet saw or on-tool extraction, and a fit tested P2 respirator",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Brickwork is broken out with water to keep dust down, and a fit tested P2 respirator is worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Tiles, the bath hob and screed are broken out with water or on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Old mortar is broken out by hand, wet, and tiles are cut with a wet saw or a saw with on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Grout around the cracked tiles is cut with an oscillating tool or grinder with on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "The old wall tiles are chipped off with a bolster or an oscillating tool, using on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Raking out mortar joints for the flashing is done with on-tool extraction and a P2 respirator.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Stone is split or cut wet or with on-tool extraction, with a fit tested P2 respirator and eye protection.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Natural stone is not engineered stone. Any cutting is done wet or with on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Removing tiles and render with power tools is processing a crystalline silica substance",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Where posts are set in paving or concrete, core or cut the hole with water suppression or on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Reglets are cut into concrete with a saw fitted with water suppression or on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Blocks are cut with a wet saw or a saw with on-tool extraction, never dry cut without extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Stone is cut with a wet saw or a saw with on-tool extraction, or split by hand",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Tiles are cut with a wet saw or a saw with on-tool extraction, never dry cut without extraction.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Use water suppression or on-tool dust extraction when cutting or breaking masonry or concrete.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Grinding concrete is done with a shrouded grinder on H class extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Grinding concrete is processing a crystalline silica substance, controlled by on-tool extraction or wet methods.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Breaking is done with water sprays to keep dust down, and anyone in the area still at risk wears a fit tested P2",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Anchor holes are drilled with on-tool extraction, and a fit tested P2 respirator is worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Anchors drilled into concrete are drilled with on-tool extraction, and a fit tested P2 respirator is worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Crack surfaces are ground with on-tool extraction, and a P2 respirator is worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Stud holes are drilled with on-tool extraction, and a fit tested P2 respirator is worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Bearings are cut with a wet saw or with on-tool extraction, and the cutter wears a fit tested P2 respirator.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Fixings into masonry or concrete are drilled with on-tool extraction, and a fit tested P2 respirator is worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Stone, tiles and blocks are cut wet or with on-tool extraction, and the cutter wears a fit tested P2 respirator.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Tiles and stone tops are drilled with on-tool extraction or water, and a P2 respirator is worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Anchors are drilled with on-tool extraction, and a fit tested P2 respirator and eye protection are worn.",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Damper and collar fixings drilled into concrete or masonry are drilled with on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.2, s 2.3, appendix A, appendix C"
+ },
+ {
+  "op": "cite",
+  "find": "Saw cut existing asphalt and concrete wet or with dust extraction, with hearing and eye protection.",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Drilling concrete is processing a crystalline silica substance. It is controlled by wet drilling",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Breaking concrete with power tools or plant is processing crystalline silica.",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Tiles and stone with 1% or more crystalline silica are a crystalline silica substance.",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Bricks and blocks are not engineered stone, but cutting them with power tools is processing crystalline silica",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Grinding concrete is processing crystalline silica and must be controlled",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Cutting concrete is processing a crystalline silica substance and must be controlled",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Grinding concrete is processing a crystalline silica substance and must be controlled",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Breaking masonry and slabs is processing a crystalline silica substance: water sprays keep dust down",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.2, s 2.3"
+ },
+ {
+  "op": "cite",
+  "find": "Keep dust below the exposure standard, and monitor the air if unsure. Check each product's safety data sheet",
+  "code": "NSW Silica",
+  "section": "s 1.2, s 2.1, s 2.2, s 2.5"
+ },
+ {
+  "op": "cite",
+  "find": "Fibre cement is cut by scoring and snapping or with shears where possible.",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.4.2, appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "New fibre cement sheet is scored and snapped or cut with a shear, or a saw with on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.4.2, appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "Cut fibre cement by scoring and snapping, or with a saw fitted with on-tool extraction.",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.4.2, appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "New fibre cement eaves linings are cut by scoring and snapping or with shears",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.4.2, appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "Fibre cement and wet area sheets are cut by scoring and snapping or with shears where possible",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.4.2, appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "AAC panels are cut with a hand saw or a power saw with on-tool extraction",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.4.2, appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "Slates are cut with a slate cutter or hand tools where possible.",
+  "code": "NSW Silica",
+  "section": "s 2.1, s 2.4.2, appendix A"
+ },
+ {
+  "op": "cite",
+  "find": "Dust is controlled with water sprays and enclosures, and air monitoring is done for crystalline silica",
+  "code": "NSW Silica",
+  "section": "s 2.4.3, appendix A, s 3.3.1"
+ },
+ {
+  "op": "cite",
+  "find": "Installed engineered stone is cut, drilled or broken only to remove, repair, make minor modifications to or dispose of it",
+  "code": "NSW Silica",
+  "section": "s 2.3, s 5.2, s 5.2.1"
+ },
+ {
+  "op": "cite",
+  "find": "Before installed engineered stone is processed, written notice of the work, its type, and its frequency and duration",
+  "code": "NSW Silica",
+  "section": "s 5.3.1, s 5.3.2, s 5.3.3"
+ },
+ {
+  "op": "cite",
+  "find": "Engineered stone benchtops, panels and slabs are banned and are not installed or processed.",
+  "code": "NSW Silica",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "No engineered stone benchtops, panels or slabs are cut or installed.",
+  "code": "NSW Silica",
+  "section": "s 5.1"
+ },
+ {
+  "op": "cite",
+  "find": "The blasting media contains no more than 1% free crystalline silica.",
+  "code": "NSW Silica",
+  "section": "s 2.2"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "Tight-fitting respirators are fit tested to the wearer before first use and at least annually. Wearers are clean-shaven where the mask seals, and do a fit check each time before entering the dusty area.",
+  "code": "NSW Silica",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "Dusty clothing is vacuumed with an M or H class vacuum or changed before leaving the work area, and dusty work clothes and PPE are not taken home.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "tileCut",
+  "step": "Cut tiles and stone",
+  "text": "Tight-fitting respirators are fit tested to the wearer before first use and at least annually. Wearers are clean-shaven where the mask seals, and do a fit check each time before entering the dusty area.",
+  "code": "NSW Silica",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "tileCut",
+  "step": "Cut tiles and stone",
+  "text": "Dusty clothing is vacuumed with an M or H class vacuum or changed before leaving the work area, and dusty work clothes and PPE are not taken home.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Tight-fitting respirators are fit tested to the wearer before first use and at least annually. Wearers are clean-shaven where the mask seals, and do a fit check each time before entering the dusty area.",
+  "code": "NSW Silica",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Dusty clothing is vacuumed with an M or H class vacuum or changed before leaving the work area, and dusty work clothes and PPE are not taken home.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Tight-fitting respirators are fit tested to the wearer before first use and at least annually. Wearers are clean-shaven where the mask seals, and do a fit check each time before entering the dusty area.",
+  "code": "NSW Silica",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Dusty clothing is vacuumed with an M or H class vacuum or changed before leaving the work area, and dusty work clothes and PPE are not taken home.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "masonryCut",
+  "step": "Cut blocks and bricks",
+  "text": "Tight-fitting respirators are fit tested to the wearer before first use and at least annually. Wearers are clean-shaven where the mask seals, and do a fit check each time before entering the dusty area.",
+  "code": "NSW Silica",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "masonryCut",
+  "step": "Cut blocks and bricks",
+  "text": "Dusty clothing is vacuumed with an M or H class vacuum or changed before leaving the work area, and dusty work clothes and PPE are not taken home.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "Tight-fitting respirators are fit tested to the wearer before first use and at least annually. Wearers are clean-shaven where the mask seals, and do a fit check each time before entering the dusty area.",
+  "code": "NSW Silica",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "coreDrill",
+  "step": "Core drill through the slab or wall",
+  "text": "Dusty clothing is vacuumed with an M or H class vacuum or changed before leaving the work area, and dusty work clothes and PPE are not taken home.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "stoneSilica",
+  "step": "Cut and finish stone and porcelain benchtops",
+  "text": "Tight-fitting respirators are fit tested to the wearer before first use and at least annually. Wearers are clean-shaven where the mask seals, and do a fit check each time before entering the dusty area.",
+  "code": "NSW Silica",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "stoneSilica",
+  "step": "Cut and finish stone and porcelain benchtops",
+  "text": "Dusty clothing is vacuumed with an M or H class vacuum or changed before leaving the work area, and dusty work clothes and PPE are not taken home.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "engStoneWork",
+  "step": "Remove, repair or modify installed engineered stone",
+  "text": "Tight-fitting respirators are fit tested to the wearer before first use and at least annually. Wearers are clean-shaven where the mask seals, and do a fit check each time before entering the dusty area.",
+  "code": "NSW Silica",
+  "section": "appendix C"
+ },
+ {
+  "op": "add",
+  "group": "engStoneWork",
+  "step": "Remove, repair or modify installed engineered stone",
+  "text": "Dusty clothing is vacuumed with an M or H class vacuum or changed before leaving the work area, and dusty work clothes and PPE are not taken home.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "tileCut",
+  "step": "Cut tiles and stone",
+  "text": "Water-fed saws and tools are set up so the water cannot be turned down or off while cutting, with enough water feeds aimed at the blade and material, and guards or flaps to contain the spray.",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "add",
+  "group": "masonryCut",
+  "step": "Cut blocks and bricks",
+  "text": "Water-fed saws and tools are set up so the water cannot be turned down or off while cutting, with enough water feeds aimed at the blade and material, and guards or flaps to contain the spray.",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "add",
+  "group": "sawCut",
+  "step": "Saw cut concrete",
+  "text": "Water-fed saws and tools are set up so the water cannot be turned down or off while cutting, with enough water feeds aimed at the blade and material, and guards or flaps to contain the spray.",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "add",
+  "group": "stoneSilica",
+  "step": "Cut and finish stone and porcelain benchtops",
+  "text": "Water-fed saws and tools are set up so the water cannot be turned down or off while cutting, with enough water feeds aimed at the blade and material, and guards or flaps to contain the spray.",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "add",
+  "group": "tileCut",
+  "step": "Cut tiles and stone",
+  "text": "Recycled water for brick, tile or stone saws is filtered to remove silica. Water that looks cloudy or milky is replaced before cutting continues.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "masonryCut",
+  "step": "Cut blocks and bricks",
+  "text": "Recycled water for brick, tile or stone saws is filtered to remove silica. Water that looks cloudy or milky is replaced before cutting continues.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "stoneSilica",
+  "step": "Cut and finish stone and porcelain benchtops",
+  "text": "Recycled water for brick, tile or stone saws is filtered to remove silica. Water that looks cloudy or milky is replaced before cutting continues.",
+  "code": "NSW Silica",
+  "section": "appendix B"
+ },
+ {
+  "op": "add",
+  "group": "tileCut",
+  "step": "Cut tiles and stone",
+  "text": "Where practicable, tiles are scored and snapped instead of cut with a power tool, and cutting is planned so the fewest cuts are made.",
+  "code": "NSW Silica",
+  "section": "s 2.4.2, s 2.4.5"
+ },
+ {
+  "op": "add",
+  "group": "masonryCut",
+  "step": "Cut blocks and bricks",
+  "text": "AAC blocks are cut with a hand saw instead of a circular saw where practicable, and cutting is planned so the fewest cuts are made.",
+  "code": "NSW Silica",
+  "section": "s 2.4.2, s 2.4.5"
+ },
+ {
+  "op": "add",
+  "group": "floorGrind",
+  "step": "Prepare and grind floors",
+  "text": "Indoors, fans or mechanical ventilation move clean air towards the workers and dusty air away from them and other workers, to support the dust controls at the source.",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "add",
+  "group": "silicaDrill",
+  "step": "Drill or cut concrete, masonry or stone",
+  "text": "Indoors, fans or mechanical ventilation move clean air towards the workers and dusty air away from them and other workers, to support the dust controls at the source.",
+  "code": "NSW Silica",
+  "section": "appendix A"
+ },
+ {
+  "op": "add",
   "group": "sawCut",
   "step": "Saw cut concrete",
   "text": "When starting the saw, the operator and others stand away from the path of the blade, and the blade is not touching any object.",
@@ -7062,60 +12344,6 @@
  {
   "op": "cite",
   "find": "Temporary cables are kept off access routes, materials are stacked away from fences and hoardings, and emergency exits stay clear and lit.",
-  "code": "NSW Construction work",
-  "section": "appendix K"
- },
- {
-  "op": "add",
-  "group": "safetyScreens",
-  "step": "Erect the safety screens",
-  "text": "Perimeter protection screens extend at least 1 m above the finished slab, stay in place from the start of erection until soffit stripping is complete, and gaps between the screen and deck are minimised, for example with a flexible flap.",
-  "code": "NSW Formwork",
-  "section": "s 6.2"
- },
- {
-  "op": "add",
-  "group": "safetyScreens",
-  "step": "Erect the safety screens",
-  "text": "Screens are assembled, installed and operated by workers trained by the screen manufacturer or supplier and found competent.",
-  "code": "NSW Formwork",
-  "section": "s 6.2"
- },
- {
-  "op": "cite",
-  "find": "The framework supporting a screen can bear the load of the screen, and screens are mesh, timber, plywood, metal sheeting or another material suited to stopping objects falling.",
-  "code": "NSW Construction work",
-  "section": "appendix K"
- },
- {
-  "op": "cite",
-  "find": "Entries, exits and access ways are kept clear of materials and waste.",
-  "code": "NSW Construction work",
-  "section": "appendix K"
- },
- {
-  "op": "cite",
-  "find": "Waste is collected, stored and removed in a set system, with enough rubbish and recycling bins near the work.",
-  "code": "NSW Construction work",
-  "section": "appendix K"
- },
- {
-  "op": "cite",
-  "find": "Protruding nails and sharp edges in waste are removed or covered, and cut resistant gloves are worn.",
-  "code": "NSW Construction work",
-  "section": "appendix K"
- },
- {
-  "op": "cite",
-  "find": "Secure loose material such as boards, sheets and offcuts against the wind, and do not stack it near unprotected edges.",
-  "code": "NSW Construction work",
-  "section": "appendix K"
- },
- {
-  "op": "add",
-  "group": "wasteRemoval",
-  "step": "Send waste down the rubbish chute",
-  "text": "Debris is placed into a skip below the work area only by a chute.",
   "code": "NSW Construction work",
   "section": "appendix K"
  }

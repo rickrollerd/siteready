@@ -60,14 +60,14 @@ const INPUT = {
 };
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 
-// The right answers to a SWMS's check questions, worked out as the server does.
-async function rightAnswers(swmsId) {
+// The right answers to one read's check questions, worked out as the server does.
+async function rightAnswers(swmsId, readId) {
   const { prepareDraft } = require('../draft');
   const { withCompany } = require('../accounts');
   const { checkQuestions } = require('../sign-read');
   const row = await db.one('SELECT * FROM swms WHERE id = $1', [swmsId]);
   const company = await db.one('SELECT * FROM companies WHERE id = $1', [row.company_id]);
-  return Object.fromEntries(checkQuestions(row.id, prepareDraft(withCompany(row.input, company))).map((q) => [q.id, q.answer]));
+  return Object.fromEntries(checkQuestions(row.id, readId, prepareDraft(withCompany(row.input, company))).map((q) => [q.id, q.answer]));
 }
 
 test('an email link signs in once, and the first sign-in starts a 14 day trial', async () => {
@@ -141,7 +141,7 @@ test('workers sign on with the QR link, and their signatures go on the SWMS', as
 
   // The worker has had the SWMS open long enough, and answers the check questions.
   await db.query('UPDATE sign_reads SET started_at = $1 WHERE id = $2', [new Date(Date.now() - 60 * 60 * 1000), view.readId]);
-  const answers = await rightAnswers(swms.id);
+  const answers = await rightAnswers(swms.id, view.readId);
   const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
   assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'Jo Worker', signature, confirmed: true, readId: view.readId, answers } })).status, 201);
   assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'No Signature', confirmed: true } })).status, 400);

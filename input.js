@@ -13,6 +13,21 @@ function longDate(date = new Date()) {
   return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
+// The user's own changes to the controls, by job step name: lines removed, lines reworded
+// and lines added. Kept small: a few dozen lines per step, for at most 60 steps.
+function controlEdits(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const texts = (list, limit, max) => (Array.isArray(list) ? list.filter((item) => typeof item === 'string').slice(0, limit).map((item) => textField(item, max)).filter(Boolean) : []);
+  const entries = Object.entries(value).slice(0, 60).map(([step, edit]) => {
+    if (!edit || typeof edit !== 'object') return null;
+    const changed = Array.isArray(edit.changed) ? edit.changed.filter((item) => item && typeof item.from === 'string' && typeof item.to === 'string').slice(0, 40)
+      .map((item) => ({ from: textField(item.from, 1500), to: textField(item.to, 600) })).filter((item) => item.from) : [];
+    const out = { removed: texts(edit.removed, 40, 1500), changed, added: texts(edit.added, 20, 600) };
+    return out.removed.length || out.changed.length || out.added.length ? [textField(step, 300), out] : null;
+  }).filter(Boolean);
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 function draftBody(body) {
   const facts = body.facts && typeof body.facts === 'object' ? body.facts : {};
   const site = body.site && typeof body.site === 'object' ? body.site : {};
@@ -48,6 +63,7 @@ function draftBody(body) {
     // The job steps in the order the user put them, by name.
     leaveOut: Array.isArray(body.leaveOut) ? body.leaveOut.filter((name) => typeof name === 'string').slice(0, 50).map((name) => textField(name, 300)) : undefined,
     stepOrder: Array.isArray(body.stepOrder) ? body.stepOrder.filter((name) => typeof name === 'string').slice(0, 150).map((name) => textField(name, 300)) : undefined,
+    controlEdits: controlEdits(body.controlEdits),
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {

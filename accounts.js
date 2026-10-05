@@ -5,6 +5,7 @@ const QRCode = require('qrcode');
 const db = require('./db');
 const JSZip = require('jszip');
 const { recordIndustry } = require('./industry');
+const { recordControlEdits } = require('./control-learning');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
@@ -307,6 +308,7 @@ router.post('/swms', requireAccess, route(async (req, res) => {
   );
   record('swms_saved', req.company.id);
   await recordIndustry(draft, input, req.company).catch(() => {});
+  await recordControlEdits(draft, input).catch(() => {});
   res.status(201).json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [id])) });
 }));
 
@@ -329,6 +331,7 @@ router.put('/swms/:id', requireAccess, route(async (req, res) => {
   const now = new Date();
   await db.query('UPDATE swms SET title = $1, input = $2, site_id = $3, reviewed_by = $4, updated_at = $5, last_reviewed_at = $5, review_due_at = $6, reminder_sent_at = NULL WHERE id = $7',
     [titleFor({ title: body.title || row.title }, input), JSON.stringify(input), site ? site.id : null, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
+  if (body.input) await recordControlEdits(draft, input).catch(() => {});
   res.json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [row.id])) });
 }));
 
@@ -426,7 +429,7 @@ router.get('/sign/:token', route(async (req, res) => {
   res.json({
     title: row.title, company: company.name, task: draft.task, workplace: draft.workplace,
     highRisk: draft.highRisk || [], jobSteps: draft.jobSteps || [], ppe: signRead.tickedPpe(draft),
-    readId, sections: signRead.readSections(draft), questions: signRead.publicQuestions(signRead.checkQuestions(row.id, draft)),
+    readId, sections: signRead.readSections(draft), questions: signRead.publicQuestions(signRead.checkQuestions(row.id, readId, draft)),
     languages: aiScope.enabled() ? signRead.LANGUAGES.map(({ code, label, rtl }) => ({ code, label, rtl: Boolean(rtl) })) : [],
   });
 }));
@@ -434,7 +437,7 @@ router.get('/sign/:token', route(async (req, res) => {
 router.get('/sign/:token/translation', route(async (req, res) => {
   const { row, company } = await swmsForToken(req.params.token);
   const draft = prepareDraft(withCompany(row.input, company));
-  res.json(await signRead.translation(row, draft, req.query.lang));
+  res.json(await signRead.translation(row, draft, req.query.lang, req.query.read));
 }));
 
 router.post('/sign/:token', route(async (req, res) => {
@@ -452,7 +455,7 @@ router.post('/sign/:token', route(async (req, res) => {
   let reading = null;
   if (!explainedBy) {
     const { read, elapsed, sections } = await signRead.checkRead(row, draft, body.readId);
-    const questions = signRead.checkQuestions(row.id, draft);
+    const questions = signRead.checkQuestions(row.id, read.id, draft);
     let attempts = null;
     if (questions.length) {
       const marked = await signRead.markAnswers(read, questions, body.answers);
