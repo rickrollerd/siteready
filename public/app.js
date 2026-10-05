@@ -282,6 +282,7 @@ function payload() {
     // The job steps picked, or none to use the ones SiteReady finds in the task.
     kinds: stepPicks || undefined,
     stepOrder: stepOrder || undefined,
+    leaveOut: leaveOut || undefined,
     facts,
     site,
   };
@@ -465,11 +466,14 @@ document.getElementById('start').addEventListener('submit', (event) => {
   // A new task starts from the steps found in it, or the steps the scope reader found for it.
   const scope = window.siteReadyScopeTask;
   stepPicks = scope && scope.task === document.getElementById('task').value.trim() && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
+  leaveOut = scope && scope.task === document.getElementById('task').value.trim() && Array.isArray(scope.leaveOut) ? [...scope.leaveOut] : null;
   loadQuestions();
 });
 
 // Job steps: null follows the steps SiteReady finds in the task; a list is the user's own picks.
 let stepPicks = null;
+// Steps for work the scope gives to others, which the user chose to leave out.
+let leaveOut = null;
 // The job steps in the order the user put them in the preview, by name.
 let stepOrder = null;
 let stepLibrary = { groups: [] };
@@ -707,6 +711,7 @@ async function fillForm(input) {
   fillFields(input);
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
+  leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   stepOrder = Array.isArray(input.stepOrder) ? [...input.stepOrder] : null;
   showFallExplanation();
   if (!(await loadQuestions())) return;
@@ -1059,7 +1064,7 @@ resultEl.addEventListener('dragend', () => {
   resultEl.querySelectorAll('.dragging').forEach((row) => row.classList.remove('dragging'));
 });
 // A new task starts with SiteReady's order again.
-document.getElementById('task').addEventListener('input', () => { stepOrder = null; ppeTouched.clear(); });
+document.getElementById('task').addEventListener('input', () => { stepOrder = null; leaveOut = null; ppeTouched.clear(); });
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
   api, esc, payload, render, fillForm, fillFields, setProfile, getProfile: () => profile, resultEl, addPrincipals,

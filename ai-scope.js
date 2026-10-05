@@ -150,7 +150,7 @@ function stepCatalogue() {
       if (!activity.when) continue;
       groups.set(activity.when, [...(groups.get(activity.when) || []), ...activity.steps.map((step) => step.step)]);
     }
-    catalogue = { ids: new Set(groups.keys()), text: [...groups].map(([id, names]) => `${id}: ${[...new Set(names)].join('; ')}`).join('\n') };
+    catalogue = { ids: new Set(groups.keys()), steps: groups, text: [...groups].map(([id, names]) => `${id}: ${[...new Set(names)].join('; ')}`).join('\n') };
   }
   return catalogue;
 }
@@ -165,7 +165,7 @@ async function mapSteps(reading) {
     packages.get(row.package).push(row);
   }
   if (!packages.size) return { packages: [], usage: {} };
-  const { ids, text } = stepCatalogue();
+  const { ids, steps, text } = stepCatalogue();
   const listed = [...packages].map(([name, rows]) => `Work package: ${name}\n${rows.map((row) => `- ${row.activity}${row.plant ? ` | plant: ${row.plant}` : ''}${row.conditions ? ` | conditions: ${row.conditions}` : ''}${row.where ? ` | where: ${row.where}` : ''}`).join('\n')}`).join('\n\n');
   const { value, usage } = await callModel({ system: `${STEPS_BRIEF}\n\n<library>\n${text}\n</library>`, content: listed, schema: STEPS_SCHEMA, effort: 'medium' });
   const chosen = new Map((Array.isArray(value && value.packages) ? value.packages : []).map((item) => [item.package, item]));
@@ -173,7 +173,10 @@ async function mapSteps(reading) {
     packages: [...packages.keys()].map((name) => {
       const item = chosen.get(name) || { groups: [], unmatched: [] };
       const groups = [...new Set((item.groups || []).filter((id) => ids.has(id)))];
-      return { package: name, groups, unknown: (item.groups || []).filter((id) => !ids.has(id)), unmatched: (item.unmatched || []).map(String) };
+      // Steps the scope gives to others are kept only when the step really is in that group.
+      const byOthers = (Array.isArray(item.byOthers) ? item.byOthers : []).filter((entry) => entry && ids.has(entry.group) && (steps.get(entry.group) || []).includes(entry.step))
+        .map((entry) => ({ group: entry.group, step: entry.step, party: String(entry.party || ''), clause: String(entry.clause || ''), says: String(entry.says || '') }));
+      return { package: name, groups, byOthers, unknown: (item.groups || []).filter((id) => !ids.has(id)), unmatched: (item.unmatched || []).map(String) };
     }),
     usage,
   };

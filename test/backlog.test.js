@@ -81,7 +81,7 @@ test('F-011 cutting a concrete floor slab with a power saw gets the cutting step
 
 test('F-012 Wi-Fi access points are recognised without the word cabling', () => {
   for (const task of ['Install Wi-Fi access points in the school classrooms', 'Install the Wi-Fi access points and cabling in the office ceiling']) {
-    const d = draft('nsw', task);
+    const d = draft('nsw', task, { liveElectrical: 'no' });
     assert.equal(d.kind, 'draft', task);
     assert.ok(steps(d).includes('Mount the Wi-Fi access points'), task);
   }

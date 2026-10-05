@@ -11,7 +11,8 @@
       "fallRisk": "yes",
       "facts": {
         "fallControl": "Scissor lifts with guardrails are used for all work above 2 m, and platform ladders only for work below 2 m.",
-        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed."
+        "controlsConsidered": "Edge protection was considered for every task, and an elevating work platform where edge protection cannot be fixed.",
+        "liveElectrical": "yes"
       },
       "expect": {
         "highRisk": [
@@ -24,7 +25,8 @@
           "Pull communications cabling"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Live electrical work"
         ]
       }
     }

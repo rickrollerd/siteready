@@ -33,6 +33,7 @@
           <h3>${esc(item.title)}${item.needsSwms ? ' <span class="tag-risk">High risk</span>' : ''}</h3>
           <p>${esc(item.task)}</p>
           ${(item.highRisk || []).length ? `<p class="meta">High risk construction work: ${esc(item.highRisk.join('; '))}</p>` : ''}
+          ${(item.byOthers || []).map((entry, j) => `<fieldset class="scope-others"><legend>Scope review: ${esc(entry.step.toLowerCase())} by others</legend><p class="meta">${esc(entry.says)}${entry.clause ? ` (${esc(entry.clause)})` : ''} Do you need this in your SWMS?</p><label><input type="radio" name="others-${index}-${j}" value="no" checked> No, leave it out</label> <label><input type="radio" name="others-${index}-${j}" value="yes"> Yes, our crew does some of it</label></fieldset>`).join('')}
           ${(item.unmatched || []).length ? `<p class="meta">No job steps in the library for: ${esc(item.unmatched.join('; '))}. Pick the steps for these under Job steps, or describe them in the task.</p>` : ''}
           ${item.clauses ? `<button type="button" class="small secondary" data-scope-clauses="${index}" aria-expanded="false">Show scope clauses</button><div class="scope-clauses hidden" id="scope-clauses-${index}">${item.clauses.map((row) => `<p><strong>${esc(row.activity)}</strong>${row.clause ? ` <span class="meta">${esc(row.clause)}${row.matrixColumn ? `, ${esc(row.matrixColumn)}` : ''}</span>` : ''}</p>${row.quotes.map((quote) => `<blockquote>${esc(quote)}</blockquote>`).join('')}`).join('')}</div>` : `<details><summary>From the scope (${item.lines.length} ${item.lines.length === 1 ? 'line' : 'lines'})</summary><ul>${item.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>`}
           <button type="button" class="small" data-scope-task="${index}" aria-pressed="false">Add this task</button>
@@ -188,6 +189,7 @@
         return {
           kinds: chosen ? chosen.groups : null,
           unmatched: chosen ? chosen.unmatched : [],
+          byOthers: chosen ? (chosen.byOthers || []) : [],
           title: pack.name,
           task: use.map((row) => `${row.activity.replace(/\.$/, '')}${row.where ? ` (${row.where})` : ''}.`).join(' '),
           lines: [],
@@ -233,6 +235,18 @@
     if (taskEl.dataset.preset && !taskEl.value.trim()) $('task-from').classList.add('hidden');
   });
 
+  // The user's answers on work the scope gives to others: Yes adds that step's group, No leaves the step out.
+  function withAnswers(item, index) {
+    if (!(item.byOthers || []).length) return item;
+    const kinds = [...(item.kinds || [])];
+    const leaveOut = [];
+    item.byOthers.forEach((entry, j) => {
+      const picked = document.querySelector(`input[name="others-${index}-${j}"]:checked`);
+      if (picked && picked.value === 'yes') { if (!kinds.includes(entry.group)) kinds.push(entry.group); } else leaveOut.push(entry.step);
+    });
+    return { ...item, kinds, leaveOut };
+  }
+
   function useTask(item, label = '') {
     const taskEl = $('task');
     // One sentence to a line, so the task can be read and checked.
@@ -248,7 +262,7 @@
     taskEl.dataset.preset = text;
     $('task-trade').value = item.trade || '';
     // The scope reader's steps for this task are ticked when the task is used as it stands.
-    window.siteReadyScopeTask = { task: text, kinds: item.kinds || null };
+    window.siteReadyScopeTask = { task: text, kinds: item.kinds || null, leaveOut: item.leaveOut || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });
     document.querySelector('input[name="fallRisk"]').dispatchEvent(new Event('change', { bubbles: true }));
     // In a project, openItem moves the page once the project box is drawn.
@@ -264,8 +278,8 @@
 
   function startProject() {
     if (project && project.items.some((item) => item.body) && !confirm('Start a new project? The SWMS prepared in the current project will be cleared.')) return;
-    const chosen = added.size ? found.filter((_item, index) => added.has(index)) : found;
-    project = { current: 0, items: chosen.map((item) => ({ title: item.title, task: item.task, trade: item.trade || '', kinds: item.kinds || null, fallRisk: item.fallRisk || '', body: null, status: 'todo' })) };
+    const chosen = found.map((item, index) => withAnswers(item, index)).filter((_item, index) => !added.size || added.has(index));
+    project = { current: 0, items: chosen.map((item) => ({ title: item.title, task: item.task, trade: item.trade || '', kinds: item.kinds || null, leaveOut: item.leaveOut || null, fallRisk: item.fallRisk || '', body: null, status: 'todo' })) };
     saveProject();
     // The task list has done its job; closing it keeps the page short.
     $('scope-panel').open = false;
