@@ -134,6 +134,8 @@ const OUTSIDE_QLD = [
   [/^The boom is not set up or worked over access ways or site sheds unless a 10 kPa gantry protects them\./, 'The boom is not set up or worked over access ways or site sheds unless a gantry designed for the load protects them. The pumping area is signed, and only authorised people enter it.'],
   // Queensland's 2 m barrier rule is s 306D. Elsewhere a trench at least 1.5 m deep is secured from unauthorised access (r 306(1)).
   [/^Barriers go up around a pit or trench as it is dug, before it is 2 m deep \(3 m in housing construction\)\.$/, 'Barriers go up around a pit or trench as it is dug, and the work area around a trench 1.5 m deep or more is secured from unauthorised access, including inadvertent entry.'],
+  // The 4.6 m high load notice is Queensland's (electric lines code s 8.3.1). Elsewhere no figure is given.
+  [/^Loads over 4\.6 m high are notified to the electricity entity before they travel\.$/, 'Before a high load travels under overhead power lines, the network operator is consulted about the route.'],
   // Queensland's edge protection rules are s 306E; the model regulations set none.
   [/^Work only inside edge protection installed by others to the regulation\./, 'Work only inside edge protection installed by others to its design or the manufacturer\'s instructions. Do not remove or alter it, and report any damage.'],
   [/^Every part of the boom and drop hose stays at least 3 m from overhead power lines up to 132 kV/, 'Every part of the boom and drop hose stays outside the safe distance from overhead power lines that the state\'s rules and the line owner set, and the boom is not worked over energised lines. De-energising or re-routing the lines is considered first.'],
@@ -399,7 +401,7 @@ function rewrite(text, stateId) {
   // Where the state has no rule like s 529CE, the 14 day silica report is stated generally.
   if (!MODEL_SILICA.has(stateId)) out = out.replace(/ ?For high risk processing, (?:air monitoring )?results (?:over|above) the exposure standard (?:go to|are reported to) the regulator within 14 days\./g, ' Results above the exposure standard are reported to the regulator where the state\'s rules require it.').trim();
   out = out.replace(/31 December 1989/g, '31 December 2003').replace(/ Qld has no piling rig licence\./g, '')
-    .replace(/\bthe electricity entity's\b/g, 'the network operator\'s').replace(/\bthe distribution entity\b/g, 'the network operator').replace(/\bdistribution entity\b/g, 'network operator');
+    .replace(/\bthe electricity entity's\b/g, 'the network operator\'s').replace(/\bthe electricity entity\b/g, 'the network operator').replace(/\bthe distribution entity\b/g, 'the network operator').replace(/\bdistribution entity\b/g, 'network operator');
   // Queensland's 26 degree rule for mesh on sloping edge protection (s 306E) is stated generally elsewhere.
   out = out.replace(/(?:On slopes|Where the (?:roof|surface the work is done from|deck) slopes) (?:of |over |more than )?26 degrees[^.]*\./g, 'On steep slopes, mesh or sheeting is fitted to the edge protection as AS/NZS 4994 and the manufacturer require.');
   // Queensland Health and QBCC licences, and Queensland's regulated areas for herbicide spraying, are Queensland's.

@@ -4570,7 +4570,7 @@ const TASK_ONLY = [
   [/^Slump tests and test cylinders/, /\b(test\w* (?:all |the )?concrete|slump|cylinders?|concrete test\w*)\b/i],
   [/^Where a concrete placing boom is used/, /\b(boom|pump\w*)\b/i],
   [/^Where a line pump or boom pump is used/, /\b(pump\w*|boom)\b/i],
-  [/^Footings, thickenings and pits are entered/, /\b(footings?|thickenings?|pits?)\b/i],
+  [/^Footings, thickenings and pits are entered|^Before entering a footing, thickening or pit\b/, /\b(footings?|thickenings?|pits?)\b/i],
   [/^Where walls, lift shafts or stairwells are reinforced/, /\b(walls?|lift shafts?|cores?|stairwells?)\b/i],
   [/^In risers, use cable grips/, /\b(risers?|shafts?)\b/i],
   [/^Where our crew stays on the deck during the pour/, /\b(pour\w*|concrete is placed|placement)\b/i],
