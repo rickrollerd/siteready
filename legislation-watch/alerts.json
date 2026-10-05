@@ -1,0 +1,43 @@
+[
+  {
+    "id": "nsw-safety-alerts",
+    "jurisdiction": "New South Wales",
+    "title": "SafeWork NSW safety alerts",
+    "url": "https://www.safework.nsw.gov.au/resource-library/list-of-all-safety-alerts",
+    "linkPattern": "/resource-library/[^\"#?]*(alert|safety)[^\"#?]*",
+    "licence": "CC BY 4.0: the control may follow the alert's wording, cited to it."
+  },
+  {
+    "id": "nsw-incidents-construction",
+    "jurisdiction": "New South Wales",
+    "title": "SafeWork NSW incident information releases, construction",
+    "url": "https://www.safework.nsw.gov.au/compliance-and-prosecutions/incident-information-releases/industries/construction",
+    "linkPattern": "/compliance-and-prosecutions/incident-information-releases/[^\"#?]+/[^\"#?]+",
+    "licence": "CC BY 4.0: the control may follow the release's wording, cited to it."
+  },
+  {
+    "id": "wa-alerts",
+    "jurisdiction": "Western Australia",
+    "title": "WorkSafe WA work health and safety alerts",
+    "url": "https://www.worksafe.wa.gov.au/work-health-and-safety-alerts",
+    "linkPattern": "/(?:publications|work-health-and-safety-alert)[^\"#?]*",
+    "licence": "CC BY 4.0 (check the page for a non-commercial note): cite the alert."
+  },
+  {
+    "id": "sa-alerts",
+    "jurisdiction": "South Australia",
+    "title": "SafeWork SA safety alerts",
+    "url": "https://safework.sa.gov.au/news-and-alerts/safety-alerts",
+    "linkPattern": "/news-and-alerts/safety-alerts/[^\"#?]+",
+    "licence": "Not confirmed: link and write the control in SiteReady's own words."
+  },
+  {
+    "id": "vic-alerts",
+    "jurisdiction": "Victoria",
+    "title": "WorkSafe Victoria safety alerts",
+    "url": "https://www.worksafe.vic.gov.au/safety-alerts",
+    "linkPattern": "/safety-alerts?/[^\"#?]+|/[a-z0-9-]+-safety-alert[^\"#?]*",
+    "licence": "Copyright, non-profit only: link and write the control in SiteReady's own words.",
+    "knownBlocked": "WorkSafe Victoria's pages cannot be read automatically. Check its safety alerts by hand monthly."
+  }
+]

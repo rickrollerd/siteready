@@ -12,6 +12,7 @@ on:
       - 'legislation-watch/sources.json'
       - 'legislation-watch/codes.json'
       - 'legislation-watch/news.json'
+      - 'legislation-watch/alerts.json'
       - '.github/workflows/legislation-watch.yml'
 
 permissions:
