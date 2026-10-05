@@ -9961,7 +9961,7 @@ ACTIVITIES.push(
         controls: [
           src('Spills and the booth are cleaned with a vacuum with a HEPA filter, not with compressed air or dry sweeping, and vacuums are emptied inside the booth under extraction.', NSWC('NSW Spray painting', 's 4.2')),
           src('Powder and waste powder are stored in a designated area with restricted access.', NSWC('NSW Spray painting', 's 4.2')),
-          src('Hoppers are filled from the supplier\'s container or mechanically where possible, so powder is not transferred by hand.', NSWC('NSW Spray painting', 's 4.2')),
+          src('Hoppers are filled straight from the supplier\'s container or by a mechanical transfer system, so powder is not scooped or transferred by hand.', NSWC('NSW Spray painting', 's 4.2')),
         ],
       },
     ],
