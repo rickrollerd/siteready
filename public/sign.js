@@ -119,7 +119,7 @@
       if (!response.ok) throw new Error(body.message || 'This sign-on link is not valid.');
       data = body;
       $('title').textContent = data.title;
-      $('where').textContent = [data.company, data.workplace].filter(Boolean).join(' · ');
+      $('where').textContent = [data.company, data.workplace, data.revision].filter(Boolean).join(' · ');
       if (data.languages.length) {
         $('language').innerHTML += data.languages.map((item) => `<option value="${esc(item.code)}">${esc(item.label)}</option>`).join('');
         $('language-panel').classList.remove('hidden');

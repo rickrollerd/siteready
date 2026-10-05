@@ -1,5 +1,6 @@
 const { HIERARCHY, SITE_FIELDS, findState, highRiskList } = require('./legislation');
-const { jobStepsFor, ppeFor, ACTIVITIES } = require('./activities');
+const { jobStepsFor, ppeFor, ACTIVITIES, CITE } = require('./activities');
+const { localControl } = require('./citations');
 const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
@@ -819,6 +820,20 @@ function choiceAnswer(id, value) {
     if (/\b(a1|non-?flammable|r410a|r134a|r407c|co2|r744)\b/.test(text)) return 'a1';
   }
   if (id === 'scaffoldType') return scaffoldTypeAnswer(text);
+  if (id === 'gantryLoad') {
+    if (/\b(minor|swing stage|maintenance unit|bmu|5 ?kpa)\b/.test(text)) return 'minor';
+    if (/\b(construction|demolition|10 ?kpa)\b/.test(text)) return 'construction';
+  }
+  if (id === 'poleTransformer') {
+    if (/^\s*yes\b/.test(text)) return 'yes';
+    if (/^\s*no\b/.test(text)) return 'no';
+  }
+  if (id === 'transformerOil') {
+    if (/\bdry\b/.test(text)) return 'dry';
+    if (/\bpcbconfirmed\b|\bconfirmed\b/.test(text)) return 'pcbConfirmed';
+    if (/\bpcbunknown\b|\bnot known\b|\bunknown\b|\bolder\b/.test(text)) return 'pcbUnknown';
+    if (/\bpcbfree\b|\bpcb[- ]free\b/.test(text)) return 'pcbFree';
+  }
   if (id === 'liveElectrical') {
     if (/\b(not sure|unsure)\b/.test(text)) return 'unsure';
     if (/^\s*no\b/.test(text)) return 'no';
@@ -1034,6 +1049,47 @@ const CATEGORY_FACTS = [
     ],
     level: 'Administrative',
     applies: (text) => SCAFFOLD_ERECTED.test(String(text || '').replace(/\bmobile scaffold\w*/gi, 'scaffold')) && !scaffoldTypeAnswer(text),
+  },
+  {
+    // The imposed load a gantry is designed for follows the work above it (NSW Overhead protective
+    // structures code s 4.3; Queensland s 315K). Unanswered, it is construction or demolition work.
+    id: 'gantryLoad',
+    label: 'Work above the gantry',
+    prompt: 'Is the work above the gantry minor work, or construction or demolition work?',
+    choices: [
+      { value: 'construction', label: 'Construction or demolition work: at least 10 kPa imposed load' },
+      { value: 'minor', label: 'Minor work only, such as cleaning or painting from a light swing stage or building maintenance unit: at least 5 kPa' },
+    ],
+    default: 'construction',
+    level: 'Isolate or engineer',
+    applies: (text) => /\b(gantr(?:y|ies)|covered ways?)\b/i.test(String(text || '')),
+  },
+  {
+    // Removing high voltage poles: a pole with no transformer has no transformer lift or lines.
+    id: 'poleTransformer',
+    label: 'Transformer on the pole',
+    prompt: 'Does the pole have a transformer on it?',
+    choices: [
+      { value: 'yes', label: 'Yes' },
+      { value: 'no', label: 'No' },
+    ],
+    level: 'Administrative',
+    applies: (text) => gapFlags(String(text || '')).hvPoleRemove,
+  },
+  {
+    // Asked only where the pole has a transformer. Oil that may hold PCBs is treated as PCBs until tested.
+    id: 'transformerOil',
+    label: 'Transformer oil and PCBs',
+    prompt: 'Does the transformer hold oil, and could the oil contain PCBs?',
+    choices: [
+      { value: 'pcbFree', label: 'Oil, labelled or tested PCB-free' },
+      { value: 'pcbUnknown', label: 'Oil, PCB status not known or older unit' },
+      { value: 'pcbConfirmed', label: 'PCBs confirmed' },
+      { value: 'dry', label: 'Dry type, no oil' },
+    ],
+    showIf: { poleTransformer: 'yes' },
+    level: 'Administrative',
+    applies: (text) => gapFlags(String(text || '')).hvPoleRemove,
   },
   {
     id: 'silicaControls',
@@ -1255,7 +1311,7 @@ function pickedStepFacts(fullTask, answer, state) {
   if (!added.length) return extra;
   const uses = (id) => (FACT_KINDS.get(id) || []).some((when) => added.includes(when));
   for (const item of CATEGORY_FACTS) {
-    if (!asked.has(item.id) && uses(item.id)) extra.push({ id: item.id, label: item.label, prompt: factPrompt(item, state), ...(item.choices ? { choices: item.choices } : {}) });
+    if (!asked.has(item.id) && uses(item.id)) extra.push({ id: item.id, label: item.label, prompt: factPrompt(item, state), ...(item.choices ? { choices: item.choices } : {}), ...(item.default ? { default: item.default } : {}), ...(item.showIf ? { showIf: item.showIf } : {}) });
   }
   if (!asked.has('safetyDataSheet') && uses('safetyDataSheet')) extra.push({ id: 'safetyDataSheet', label: 'Safety data sheet', prompt: 'Safety data sheet.' });
   if (!asked.has('trenchSupport') && uses('trenchSupport')) extra.push({ id: 'trenchSupport', label: 'Trench support', prompt: 'How the sides are secured: shoring, benching or battering, and who designed it.' });
@@ -1326,7 +1382,7 @@ function allRequiredFacts(fullTask, answer, state) {
   }
   // Facts the high risk categories below cannot be done safely without.
   for (const item of CATEGORY_FACTS) {
-    if (item.applies(task)) facts.push({ id: item.id, label: item.label, prompt: factPrompt(item, state), ...(item.choices ? { choices: item.choices } : {}) });
+    if (item.applies(task)) facts.push({ id: item.id, label: item.label, prompt: factPrompt(item, state), ...(item.choices ? { choices: item.choices } : {}), ...(item.default ? { default: item.default } : {}), ...(item.showIf ? { showIf: item.showIf } : {}) });
   }
   if ((/\basbestos\b/i.test(task) || asbestosLikely(task)) && !asbestosArrangement(task)) {
     facts.push({
@@ -1413,7 +1469,12 @@ const TOPIC_PATTERNS = {
 };
 
 function factState(item, task, facts) {
-  if (item.choices) return choiceAnswer(item.id, facts[item.id]) ? 'supplied' : 'missing';
+  if (item.choices) {
+    // A choice with a default needs no answer; one shown only after another answer is needed only then.
+    if (item.default) return 'supplied';
+    if (item.showIf && Object.entries(item.showIf).some(([id, value]) => choiceAnswer(id, (facts || {})[id]) !== value)) return 'supplied';
+    return choiceAnswer(item.id, facts[item.id]) ? 'supplied' : 'missing';
+  }
   if (item.id === 'confinedSpace' && !/\bconfined space\b/i.test(task) && choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'notConfined') return 'supplied';
   // Only needed when the fall control is administrative or PPE.
   if (item.id === 'controlsConsidered') {
@@ -2073,7 +2134,7 @@ function prepareDraft(input) {
     // The permits the high risk work listed needs, such as confined space entry, now the list is final.
     // A permit line added here goes in at its place in the hierarchy; the user's own lines keep theirs.
     const stepNames = draft.jobSteps.map((step) => step.step);
-    const permitted = withPermits(draft.jobSteps, [riskTask, ...stepNames, ...draft.highRisk].join('\n'), [combinedFacts(task, facts), ...stepNames].join('\n'));
+    const permitted = withPermits(draft.jobSteps, [riskTask, ...stepNames, ...draft.highRisk].join('\n'), [combinedFacts(task, facts), ...stepNames].join('\n'), permitOptions(task, state, input));
     draft.jobSteps = permitted.map((step, index) => {
       const had = draft.jobSteps[index].controls;
       if (step.controls.length === had.length) return step;
@@ -2085,7 +2146,7 @@ function prepareDraft(input) {
       }
       return { ...step, controls };
     });
-    draft.jobSteps = withCategoryLines(draft.jobSteps, draft.highRisk, state);
+    draft.jobSteps = withCategoryLines(draft.jobSteps, draft.highRisk, state, removedLines(input.controlEdits));
   }
   // Plant, substances, licences, emergency arrangements, sources and a suggested
   // risk rating for each step, worked out from the finished steps.
@@ -2183,7 +2244,8 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   const leaveOut = new Set(Array.isArray(input.leaveOut) ? input.leaveOut : []);
   if (leaveOut.size) jobSteps = jobSteps.filter((step) => !leaveOut.has(step.step) || ['Before starting', 'Finish and clean up'].includes(step.step));
   // Permits and hierarchy order come before the user's own changes, so a line the user changes keeps its place.
-  jobSteps = finishSteps(jobSteps, combinedFacts(task, facts));
+  // A permit line the user removed goes in here, so their change removes it and is reported.
+  jobSteps = finishSteps(jobSteps, combinedFacts(task, facts), permitOptions(task, state));
   const edited = applyControlEdits(inOrder(jobSteps, input.stepOrder), input.controlEdits);
   return { jobSteps: edited.jobSteps, ...(edited.report ? { controlEdits: edited.report } : {}), ppe };
 }
@@ -2211,42 +2273,86 @@ const PERMITS = [
     at: /\b(locate|underground services)\b/i,
     named: /\b(?:excavation|dig(?:ging)?|ground (?:disturbance|penetration)|penetration) permits?\b|\bpermits? to (?:dig|excavate)\b/i,
     line: 'No digging starts until an excavation permit is issued by the principal contractor, or signed by the supervisor where the principal contractor does not issue them. The permit is issued only once the Before You Dig Australia plans are on site and the underground services in and near the dig are located and marked on the ground.',
+    // Getting the underground services information before digging, and locating the services.
+    // The permit itself is not a legal requirement, so the regulation (s 304, getting the services
+    // information) is not cited: a line cited to a regulation cannot be removed by the user.
+    source: `${CITE.MODEL('Excavation work', 's 3.5')}; ${CITE.NSWC('NSW Excavation', 's 3.6')}`,
   },
   {
     work: LINES_WORK,
     at: /\b(power lines?|electric lines?|overhead)\b/i,
     named: /\bpermits? to work\b/i,
-    line: 'Before work starts near an overhead or underground electric line, a permit to work near the lines is issued by the principal contractor, or by the supervisor where the principal contractor does not issue them, recording the exclusion zone distances and the safety observer. No person, plant or load enters the exclusion zone unless the network operator\'s written permission or approval for that work is held, or the network operator has isolated the line.',
+    line: 'Before work starts near an overhead or underground electric line, a permit to work near the lines is issued by the principal contractor, or by the supervisor where the principal contractor does not issue them, recording the exclusion zone distances (at least 3 m from lines up to 132 kV, and more above 132 kV) and the safety observer. No person, plant or load enters the exclusion zone unless the network operator\'s written permission or approval for that work is held, or the network operator has isolated the line.',
+    // Exclusion zones, the safety observer, and the line owner's approval to come closer. The
+    // model regulation s 166 is not in the Queensland regulation and is not matched for the other states.
+    source: `${CITE.LINES('s 2.3, s 3, s 3.4')}; ${CITE.NSWC('NSW Electric lines', 's 3, s 4.4, s 5.2')}`,
   },
   {
     work: { test: (text) => { const source = String(text).replace(SOLVENT_WELD, ' '); return HOT_WORK.test(source) || PERMIT_HOT_WORK.test(source); } },
     at: /\b(weld\w*|braz\w*|solder\w*|hot work|torch\w*|cut\w*)\b/i,
     named: /\bhot works? permits?\b/i,
     line: 'No hot work (welding, brazing, soldering or thermal cutting) starts until a hot work permit is issued by the principal contractor, or signed by the supervisor where the principal contractor does not issue them. The permit records the area cleared of combustible material, the fire extinguisher at the work and the fire watch, who checks the area for at least 30 minutes after the hot work stops.',
+    // The hot work permit, clearing combustibles and fire-fighting equipment near the work. The
+    // 30 minute fire watch is from AS 1674.1, which the code refers to.
+    source: `${CITE.MODEL('Welding processes', 's 3.4')}; ${CITE.NSWC('NSW Welding', 's 3.4')}`,
   },
   {
     work: ISOLATION_WORK,
     at: /\bisolat\w*\b/i,
     named: /\b(?:isolation (?:permits?|certificates?)|permits? to work)\b/i,
     line: 'Before work on isolated plant or services, an isolation permit is issued by the principal contractor, or signed by the supervisor where the principal contractor does not issue them, listing each isolation point. Each point is locked and tagged by every worker on the job, and the plant or service is tested to prove it is dead, stopped or depressurised before work starts.',
+    // Isolation points locked out, a lock for each worker, and testing that the isolation works.
+    source: `${CITE.QCODE('Managing the risks of plant in the workplace', 's 4.5')}; ${CITE.QCODE('Managing electrical risks', 's 4.1, s 5.1')}; ${CITE.NSWC('NSW Plant', 's 4.5')}; ${CITE.NSWC('NSW Electrical risks', 's 4.1, s 5.1')}`,
+    // Domestic work, such as replacing a house's hot water system, needs no isolation permit.
+    notDomestic: true,
   },
   {
     work: /\bconfined spaces?\b/i,
     at: /\b(confined space|enter)\b/i,
     named: /\b(?:confined space (?:entry )?|entry )permits?\b/i,
     line: 'No person enters a confined space until a confined space entry permit is issued by the competent person named for the entry, after the air in the space is tested, with a standby person outside the space for the whole entry.',
+    // The entry permit, testing the atmosphere before entry, and the standby person.
+    source: `${CITE.WHS('s 67, s 69')}; ${CITE.QCODE('Confined spaces', 's 4.3, s 4.5, s 4.6')}; ${CITE.NSWC('NSW Confined spaces', 's 4.3, s 4.5, s 4.6')}`,
   },
 ];
 
+// Domestic or residential work: a house and its outbuildings, not commercial or civil work. Where
+// the state asks whether the work is residential construction work (the Northern Territory), the
+// answer decides it.
+const DOMESTIC_WORK = /\b(houses?|homes?|dwellings?|townhouses?|duplex\w*|granny flats?|queenslanders?|domestic|residential|residences?)\b/i;
+const NOT_DOMESTIC = /\b(commercial|industrial|civil|strata|apartment (?:buildings?|blocks?|towers?)|residential (?:towers?|buildings?|blocks?|developments?|estates?|subdivisions?)|offices?|shopping|retail|hospitals?|schools?|factor(?:y|ies)|warehouses?|plant ?rooms?|substations?|switch ?rooms?|treatment plants?|pump stations?|mines?|quarr(?:y|ies)|road ?works?|highways?|motorways?|bridges?|railways?|council)\b/i;
+function domesticWork(task, residential) {
+  if (residential === true || residential === false) return residential;
+  return DOMESTIC_WORK.test(String(task || '')) && !NOT_DOMESTIC.test(String(task || ''));
+}
+
+// The state's sources, and whether the work is domestic (the state's residential answer where it asks).
+const permitOptions = (task, state, input = {}) => ({ stateId: state.id, domestic: domesticWork(task, state.residentialFallMetres ? state.residential : undefined), removed: removedLines(input.controlEdits) });
+
+// Every line the user removed in their control edits, in any step. A permit or category line the
+// user removed stays out: the user has the final say (owner decision, 5 October 2026).
+function removedLines(edits) {
+  if (!edits || typeof edits !== 'object') return new Set();
+  return new Set(Object.values(edits).flatMap((mine) => (mine && Array.isArray(mine.removed) ? mine.removed : [])).map((line) => String(line || '').trim()));
+}
+// A line the user removed, with or without its sources.
+// A line cited to a regulation is a legal requirement and goes back in, as applyControlEdits keeps it.
+const userRemoved = (removed, line, printed = line) => Boolean(removed && removed.size) && (removed.has(printed) || removed.has(line)) && !legalSource(printed);
+
+// A permit line with its sources, as printed for the state.
+const permitLine = (permit, stateId) => localControl(permit.line, permit.source, stateId) || permit.line;
+
 // A permit the work given as already read brings is left as it is (a line the user removed stays out).
-function withPermits(jobSteps, work, alreadyRead = '') {
+// options: the state (for the sources) and whether the work is domestic.
+function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
   let steps = jobSteps;
   for (const permit of PERMITS) {
+    if ((permit.notDomestic && options.domestic) || userRemoved(options.removed, permit.line, permitLine(permit, options.stateId || 'qld'))) continue;
     if (!steps.length || !permit.work.test(work) || (alreadyRead && permit.work.test(alreadyRead)) || steps.some((step) => step.controls.some((line) => permit.named.test(line)))) continue;
     let at = steps.findIndex((step) => permit.at.test(step.step));
     if (at < 0) at = steps.findIndex((step) => permit.work.test(step.step));
     if (at < 0) at = 0;
-    steps = steps.map((step, index) => (index === at ? { ...step, controls: [...step.controls, permit.line] } : step));
+    steps = steps.map((step, index) => (index === at ? { ...step, controls: [...step.controls, permitLine(permit, options.stateId || 'qld')] } : step));
   }
   return steps;
 }
@@ -2263,11 +2369,11 @@ const CATEGORY_LINES = {
     line: 'Gas pipework is installed, connected and tested only by a licensed gas fitter. The gas supply is isolated at the meter or isolating valve before any connection to a live gas line, the new pipework is leak tested before the gas is turned on, and the line is purged of air before any appliance is lit.',
   },
 };
-function withCategoryLines(jobSteps, highRisk, state) {
+function withCategoryLines(jobSteps, highRisk, state, removed = new Set()) {
   let steps = jobSteps;
   for (const [check, item] of Object.entries(CATEGORY_LINES)) {
     const category = highRiskList(state).find((entry) => entry.check === check);
-    if (!steps.length || !category || !highRisk.includes(category.label) || steps.some((step) => step.controls.some((line) => item.answers.test(line)))) continue;
+    if (userRemoved(removed, item.line) || !steps.length || !category || !highRisk.includes(category.label) || steps.some((step) => step.controls.some((line) => item.answers.test(line)))) continue;
     let at = steps.findIndex((step) => !['Before starting', 'Finish and clean up'].includes(step.step) && item.at.test(step.step));
     if (at < 0) at = 0;
     steps = steps.map((step, index) => {
@@ -2310,8 +2416,8 @@ function positionFor(step) {
 
 // The permits the work needs, then each step's controls in hierarchy order (elimination,
 // substitution, isolation and engineering, administrative, PPE).
-function finishSteps(jobSteps, work) {
-  return withPermits(jobSteps, [work, ...jobSteps.map((step) => step.step)].join('\n'))
+function finishSteps(jobSteps, work, options = {}) {
+  return withPermits(jobSteps, [work, ...jobSteps.map((step) => step.step)].join('\n'), '', options)
     .map((step) => ({ ...step, controls: inHierarchyOrder(step.controls) }));
 }
 
@@ -4278,12 +4384,30 @@ function asSentence(text) {
   return line && !/[.!?]$/.test(line) ? `${line}.` : line;
 }
 
+// A high voltage pole's transformer, from the user's answers: none, dry type, oil labelled or
+// tested PCB-free, or oil with PCBs (confirmed, or not known and so treated as PCBs until tested).
+function transformerFlags(facts = {}) {
+  const pole = choiceAnswer('poleTransformer', facts.poleTransformer);
+  const oil = choiceAnswer('transformerOil', facts.transformerOil);
+  if (pole === 'no') return { transformerNone: true };
+  const unknown = !['pcbFree', 'pcbConfirmed', 'dry'].includes(oil);
+  return {
+    transformerDry: oil === 'dry',
+    transformerPcbFree: oil === 'pcbFree',
+    transformerPcbConfirmed: oil === 'pcbConfirmed',
+    transformerPcbUnknown: unknown,
+    transformerPcb: unknown || oil === 'pcbConfirmed',
+  };
+}
+
 // Job steps, each with its hazards and controls. Work the library does not know
 // gets one middle step built from the task, its hazards and its controls.
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
     if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass', 'scaffoldType'].includes(id)) return choiceAnswer(id, facts[id]);
+    // Unanswered, the gantry is designed for construction or demolition work above it (10 kPa).
+    if (id === 'gantryLoad') return choiceAnswer(id, facts[id]) || 'construction';
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));
@@ -4296,7 +4420,8 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   const looseFill = ['act', 'nsw'].includes(state.id) && /\b(19[0-7]\d|19[0-7]0s|pre-?19[0-7]\d|pre-?1980)\b/i.test(task) && /\b(houses?|homes?|dwellings?)\b/i.test(task);
   // Work near live parts that someone else isolates gets the step to confirm their isolation.
   const isolationByOthers = ['yes', 'unsure'].includes(choiceAnswer('liveElectrical', facts.liveElectrical));
-  const steps = jobStepsFor({ ...tradeFlags(task, facts, state), ...extra, ...(isolationByOthers ? { isolationByOthers: true } : {}), looseFill, cite: state.id }, factText, {
+  const trade = { ...tradeFlags(task, facts, state), ...extra };
+  const steps = jobStepsFor({ ...trade, ...(isolationByOthers ? { isolationByOthers: true } : {}), ...(trade.hvPoleRemove ? transformerFlags(facts) : {}), looseFill, cite: state.id }, factText, {
     step: asSentence(first || task),
     hazards: hazards.map((row) => `${row.hazard}: ${row.risk}`),
     controls: controls.map((item) => item.text),
@@ -4435,6 +4560,7 @@ function stripLiftBleedText(text) {
 }
 
 module.exports = {
+  domesticWork,
   applyControlEdits,
   legalSource,
   OWN_MARK,

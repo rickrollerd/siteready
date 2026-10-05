@@ -582,6 +582,7 @@ async function refreshSteps() {
     if (el.type === 'radio') el.checked = el.value === value;
     else el.value = value;
   });
+  applyShowIf();
   document.querySelectorAll('[data-site]').forEach((el) => { if (site[el.dataset.site] !== undefined) el.value = site[el.dataset.site]; });
   (questions && questions.required || []).forEach((item) => markPicks(item.id));
   // PPE the user ticked or unticked stays as they set it; the rest follows the new suggestion.
@@ -648,10 +649,12 @@ async function loadQuestions(options = {}) {
       const extra = item.prompt && item.prompt.replace(/\.$/, '') !== item.label
         ? `<span class="hint">${esc(item.prompt)}</span>` : '';
       if (item.choices) {
+        // A choice with a default starts on it. One shown only after another answer (showIf) starts hidden.
+        const showIf = item.showIf ? Object.entries(item.showIf)[0] : null;
         return `
-      <fieldset class="field choice">
-        <legend>${esc(item.label)}</legend>
-        ${item.choices.map((choice) => `<label style="display:flex;margin:0 0 8px"><input type="radio" name="fact-${esc(item.id)}" data-fact="${esc(item.id)}" value="${esc(choice.value)}"> ${esc(choice.label)}</label>`).join('')}
+      <fieldset class="field choice${showIf ? ' hidden' : ''}"${showIf ? ` data-show-if="${esc(showIf[0])}" data-show-value="${esc(showIf[1])}"` : ''}>
+        <legend>${esc(item.label)}</legend>${extra}
+        ${item.choices.map((choice) => `<label style="display:flex;margin:0 0 8px"><input type="radio" name="fact-${esc(item.id)}" data-fact="${esc(item.id)}" value="${esc(choice.value)}"${choice.value === item.default ? ' checked' : ''}> ${esc(choice.label)}</label>`).join('')}
       </fieldset>`;
       }
       const picks = (item.suggestions || []).length
@@ -721,9 +724,10 @@ async function fillForm(input) {
   if (!(await loadQuestions())) return;
   document.querySelectorAll('[data-fact]').forEach((el) => {
     const value = (input.facts || {})[el.dataset.fact] || '';
-    if (el.type === 'radio') el.checked = el.value === value;
+    if (el.type === 'radio') el.checked = el.value === value || (!value && el.defaultChecked);
     else el.value = value;
   });
+  applyShowIf();
   document.querySelectorAll('[data-site]').forEach((el) => { el.value = (input.site || {})[el.dataset.site] || ''; });
   (questions && questions.required || []).forEach((item) => markPicks(item.id));
   if (Array.isArray(input.ppe)) document.querySelectorAll('[data-ppe]').forEach((el) => { el.checked = input.ppe.includes(el.value); });
@@ -780,6 +784,16 @@ document.getElementById('required-block').addEventListener('input', (event) => {
   if (id) markPicks(id);
 });
 
+// A question asked only after another answer (such as the transformer's oil, once the pole has a
+// transformer) shows when that answer is chosen.
+function applyShowIf() {
+  document.querySelectorAll('#required-block [data-show-if]').forEach((el) => {
+    const chosen = document.querySelector(`input[data-fact="${el.dataset.showIf}"]:checked`);
+    el.classList.toggle('hidden', !chosen || chosen.value !== el.dataset.showValue);
+  });
+}
+document.getElementById('required-block').addEventListener('change', applyShowIf);
+
 // Trade and task pick lists fill in the task, the fall question and who runs the crane.
 let trades = [];
 const tradeEl = document.getElementById('trade');
@@ -828,6 +842,13 @@ document.getElementById('back').addEventListener('click', () => {
   resultEl.classList.add('hidden');
 });
 
+// The revision, as the Word and PDF files print it (docx-draft.js revisionText): a draft not yet
+// saved is revision 1, dated with the SWMS date.
+function revisionText(draft) {
+  const date = draft.revisionDate || draft.date;
+  return `Revision ${draft.revision || 1}${date ? `, ${date}` : ''}`;
+}
+
 function render(draft, { movable = false } = {}) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
   const logo = profile.logo ? `<img class="sheet-logo" src="${esc(profile.logo)}" alt="">` : '';
@@ -841,6 +862,7 @@ function render(draft, { movable = false } = {}) {
       <tbody>
         <tr><th>State</th><td>${esc(draft.state)}</td></tr>
         ${row('SWMS reference number', draft.swmsRef)}
+        <tr><th>Revision</th><td>${esc(revisionText(draft))}</td></tr>
         ${row('Principal contractor', draft.principalContractor)}
         <tr><th>Subcontractor</th><td>${esc(draft.subcontractor)}</td></tr>
         <tr><th>Workplace</th><td>${esc(draft.workplace)}</td></tr>

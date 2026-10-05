@@ -127,3 +127,33 @@ test('a SWMS saved before revisions reads as revision 1, dated when it was made'
   const docx = await wordText(Buffer.from(await (await call('GET', '/api/swms/older-swms/docx', { token })).arrayBuffer()));
   assert.match(docx, /Revision 1, 2 January 2026/);
 });
+
+test('the worker sign-on page and the on-screen preview show the revision', async () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const vm = require('node:vm');
+  const token = await signIn('revisions@example.com');
+  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
+  const first = await (await call('GET', `/api/sign/${key}`)).json();
+  assert.match(first.revision, /^Revision 1, \d{1,2} [A-Z][a-z]+ \d{4}$/);
+  await call('PUT', `/api/swms/${swms.id}`, { token, body: { title: 'Sprinklers', ...CONFIRM } });
+  const second = await (await call('GET', `/api/sign/${key}`)).json();
+  assert.match(second.revision, /^Revision 2, \d{1,2} [A-Z][a-z]+ \d{4}$/);
+  // The sign-on page prints it under the title, with the company and workplace.
+  const sign = fs.readFileSync(path.join(__dirname, '../public/sign.js'), 'utf8');
+  assert.match(sign, /\[data\.company, data\.workplace, data\.revision\]/);
+
+  // The preview prints a Revision row, worded as the Word and PDF files word it.
+  const app = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+  assert.match(app, /<tr><th>Revision<\/th><td>\$\{esc\(revisionText\(draft\)\)\}<\/td><\/tr>/);
+  const source = /function revisionText\(draft\) \{[\s\S]*?\n\}/.exec(app)[0];
+  const preview = vm.runInNewContext(`${source}; revisionText`);
+  const { revisionText } = require('../docx-draft');
+  const unsaved = prepareDraft(draftBody({ ...INPUT, date: '5 October 2026' }));
+  assert.equal(preview(unsaved), 'Revision 1, 5 October 2026');
+  assert.equal(preview(unsaved), revisionText(unsaved));
+  const saved = (await (await call('GET', `/api/swms/${swms.id}`, { token })).json()).draft;
+  assert.match(preview(saved), /^Revision 2, \d{1,2} [A-Z][a-z]+ \d{4}$/);
+  assert.equal(preview(saved), revisionText(saved));
+});

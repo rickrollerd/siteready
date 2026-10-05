@@ -1279,9 +1279,10 @@ test('switchboards built in the workshop get the workshop build and test steps, 
   for (const near of ['Supply and install the main switchboard.', 'Install the new distribution boards on each level.', 'Interwire the new distribution board on site.']) assert.deepEqual(shopKinds(near), [], near);
 });
 
-test('powder coating gets the booth, oven and powder handling steps from the spray painting and powder coating code', () => {
+test('powder coating gets the booth and powder handling steps from the spray painting and powder coating code, and no curing oven', () => {
   const done = draft('Powdercoat aluminium frames.', 'glazing');
-  assert.deepEqual(middle(done), ['Pre-treat items for powder coating', 'Powder coat in the booth', 'Cure the coated items in the oven', 'Clean the booth and handle powder']);
+  assert.deepEqual(middle(done), ['Pre-treat items for powder coating', 'Powder coat in the booth', 'Clean the booth and handle powder']);
+  assert.ok(!said(done, /\boven\b/i));
   assert.ok(said(done, /interlocked with the extraction/));
   assert.ok(!done.jobSteps.some((step) => step.controls.some((line) => /SafeWork NSW/.test(line))));
   const nsw = draft('Powdercoat aluminium frames.', 'glazing', { state: 'nsw' });
@@ -1335,4 +1336,89 @@ test('workshop packages draft the same way whether the AI or the quick reader re
   assert.ok(found.some((task) => task.kinds.includes('windowInstall')));
   const { stepCatalogue } = require('../ai-scope');
   for (const id of SHOP_KINDS) assert.match(stepCatalogue().text, new RegExp(`^${id}: `, 'm'), id);
+});
+
+// Owner decision (5 October 2026): the user says whether the pole has a transformer, and whether its oil
+// may hold PCBs. No transformer: no transformer step or lines. Oil of unknown PCB status is treated as PCBs.
+test('removing high voltage poles asks about the transformer and its oil, and the steps follow the answers', () => {
+  const { questionsFor } = require('../draft');
+  const task = 'Remove temporary 11kV poles and transformers.';
+  const all = (done) => done.jobSteps.flatMap((step) => [...step.hazards, ...step.controls]);
+  const lift = (done) => done.jobSteps.find((step) => step.step === 'Lift down the transformer');
+  for (const state of ['qld', 'nsw']) {
+    const asked = questionsFor({ state, fallRisk: 'no', task, trade: 'electrical' });
+    const ids = asked.required.map((item) => item.id);
+    assert.ok(ids.includes('poleTransformer') && ids.includes('transformerOil'), state);
+    assert.deepEqual(asked.required.find((item) => item.id === 'transformerOil').showIf, { poleTransformer: 'yes' });
+    // Required: unanswered, the task stands down; with a transformer, the oil question is required too.
+    const { prepareDraft } = require('../draft');
+    const { draftBody } = require('../input');
+    assert.equal(prepareDraft(draftBody({ state, fallRisk: 'no', task, facts: {} })).kind, 'stand-down', state);
+    assert.deepEqual(prepareDraft(draftBody({ state, fallRisk: 'no', task, facts: { poleTransformer: 'yes' } })).missing, ['Transformer oil and PCBs'], state);
+
+    // No transformer: no transformer step, and no line names the transformer.
+    const none = draft(task, 'electrical', { state, facts: { poleTransformer: 'no' } });
+    assert.deepEqual(middle(none), ['Plan the work near overhead power lines', 'Confirm the network operator has isolated and earthed the line', 'Remove the temporary poles'], state);
+    assert.ok(!all(none).some((line) => /transformer/i.test(line)), state);
+    assert.ok(said(none, /^The line is treated as live until it is proven de-energised/), state);
+    assert.ok(none.jobSteps[0].controls.some((line) => /disconnecting the line\) is done only by the network operator's authorised persons/.test(line)), state);
+
+    // Oil, labelled or tested PCB-free: the bunded tray and spill kit line, and no PCB lines.
+    const free = draft(task, 'electrical', { state, facts: { poleTransformer: 'yes', transformerOil: 'pcbFree' } });
+    assert.ok(lift(free).controls.some((line) => /^The transformer is kept upright, set down on a pallet or bunded tray and strapped down, and a spill kit is at hand for leaking oil\./.test(line)), state);
+    assert.ok(lift(free).hazards.includes('Transformer oil leaks or spills.'), state);
+    assert.ok(!all(free).some((line) => /\bPCB/.test(line)), state);
+    assert.ok(said(free, /could back-feed it, is isolated and locked off/), state);
+
+    // PCB status not known, or PCBs confirmed: treated as PCBs, with the PCB lines.
+    for (const oil of ['pcbUnknown', 'pcbConfirmed']) {
+      const pcb = draft(task, 'electrical', { state, facts: { poleTransformer: 'yes', transformerOil: oil } });
+      const lines = lift(pcb).controls.join('\n');
+      assert.match(lines, oil === 'pcbUnknown' ? /treated as containing PCBs until it is tested/ : /The transformer oil contains PCBs/, `${state} ${oil}`);
+      assert.match(lines, /chemical resistant gloves rated for PCBs/);
+      assert.match(lines, /wears eye protection/);
+      assert.match(lines, /spill kit suitable for PCB oil/);
+      assert.match(lines, /removed by a licensed waste contractor as scheduled waste/);
+      assert.match(lines, /network operator is told before the lift that the transformer may contain PCBs/);
+      assert.doesNotMatch(lines, /a spill kit is at hand for leaking oil/);
+      assert.ok(lift(pcb).hazards.some((line) => /PCBs/.test(line)));
+      // The gloves and containment lines carry the demolition code's PCB section in each state.
+      const gloves = lift(pcb).controls.find((line) => /chemical resistant gloves rated for PCBs/.test(line));
+      assert.match(gloves, state === 'qld' ? /\(Demolition work Code of Practice 2021 \(Qld\) s 4\.2\)$/ : /\(SafeWork NSW Code of practice: Demolition work \(August 2019\) s 4\.2\)$/);
+      assert.ok(pcb.ppe.some((group) => group.items.some((item) => item.id === 'gloveChemical' && item.ticked)), `${state} ${oil}`);
+    }
+
+    // Dry type: no oil lines; the lift lines stay.
+    const dry = draft(task, 'electrical', { state, facts: { poleTransformer: 'yes', transformerOil: 'dry' } });
+    assert.ok(lift(dry).controls.some((line) => /^The transformer is lifted only after the network operator has disconnected it/.test(line)), state);
+    assert.ok(lift(dry).controls.includes('The transformer is kept upright, set down on a pallet and strapped down.'), state);
+    assert.ok(!lift(dry).controls.concat(lift(dry).hazards).some((line) => /\boil\b|PCB|spill/i.test(line)), state);
+  }
+});
+
+// Owner decision (5 October 2026): the gantry's imposed load follows the work above it, as the user says.
+test('a gantry is designed for 10 kPa under construction or demolition work, the default, or 5 kPa under minor work', () => {
+  const { questionsFor } = require('../draft');
+  const task = 'Erect hoardings and a gantry along the street frontage.';
+  const asked = questionsFor({ state: 'qld', fallRisk: 'no', task, trade: 'site' }).required.find((item) => item.id === 'gantryLoad');
+  assert.equal(asked.default, 'construction');
+  assert.deepEqual(asked.choices.map((item) => item.value), ['construction', 'minor']);
+  const gantry = (done) => done.jobSteps.find((step) => step.step === 'Erect the gantry').controls;
+  for (const [answer, load] of [['', '10 kPa'], ['construction', '10 kPa'], ['minor', '5 kPa']]) {
+    const facts = answer ? { gantryLoad: answer } : {};
+    const qld = gantry(draft(task, 'site', { facts })).find((line) => /^Gantries are engineer designed/.test(line));
+    assert.match(qld, new RegExp(`imposed load of at least ${load}`), answer);
+    assert.match(qld, /\(Work Health and Safety Regulation 2011 \(Qld\) s 315K\)$/, answer);
+    const nsw = gantry(draft(task, 'site', { state: 'nsw', facts })).find((line) => /^Gantries are engineer designed/.test(line));
+    assert.match(nsw, new RegExp(`imposed load of at least ${load}`), answer);
+    assert.match(nsw, /\(SafeWork NSW Code of practice: Overhead protective structures \(December 2025\) s 4\.3\)$/, answer);
+  }
+  assert.match(gantry(draft(task, 'site', { facts: { gantryLoad: 'minor' } })).join('\n'), /light swing stage or building maintenance unit/);
+  // An unanswered gantry question does not stand the task down.
+  const { prepareDraft } = require('../draft');
+  const { draftBody } = require('../input');
+  assert.equal(prepareDraft(draftBody({ state: 'qld', fallRisk: 'no', task, kinds: kinds(task, 'site') })).kind, 'draft');
+  // The rest of the gantry lines stay: Queensland's s 315K detail, stated generally elsewhere.
+  assert.ok(gantry(draft(task, 'site')).some((line) => /lit to at least 50 lux/.test(line)));
+  assert.ok(gantry(draft(task, 'site', { state: 'nsw' })).includes('The gantry stops falling objects, water and dust, its overhead platform is secured against lifting, and it is engineer designed for any shed or materials on it.'));
 });
