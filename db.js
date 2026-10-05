@@ -185,6 +185,34 @@ const SCHEMA = [
     signature TEXT NOT NULL,
     signed_at TIMESTAMPTZ NOT NULL
   )`,
+  // Proof of reading (task #92): how each worker read the SWMS before signing on.
+  "ALTER TABLE signons ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT ''",
+  'ALTER TABLE signons ADD COLUMN IF NOT EXISTS read_seconds INTEGER',
+  'ALTER TABLE signons ADD COLUMN IF NOT EXISTS sections_viewed INTEGER',
+  'ALTER TABLE signons ADD COLUMN IF NOT EXISTS sections_total INTEGER',
+  'ALTER TABLE signons ADD COLUMN IF NOT EXISTS section_seconds TEXT',
+  'ALTER TABLE signons ADD COLUMN IF NOT EXISTS check_attempts INTEGER',
+  "ALTER TABLE signons ADD COLUMN IF NOT EXISTS explained_by TEXT NOT NULL DEFAULT ''",
+  // Each time a worker opens the sign-on page: the server's own start time for the read.
+  `CREATE TABLE IF NOT EXISTS sign_reads (
+    id TEXT PRIMARY KEY,
+    swms_id TEXT NOT NULL,
+    content_hash TEXT NOT NULL,
+    started_at TIMESTAMPTZ NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    used_at TIMESTAMPTZ
+  )`,
+  // A SWMS translated once per language, kept against a fingerprint of its English.
+  `CREATE TABLE IF NOT EXISTS sign_translations (
+    id TEXT PRIMARY KEY,
+    swms_id TEXT NOT NULL,
+    content_hash TEXT NOT NULL,
+    language TEXT NOT NULL,
+    translation TEXT NOT NULL,
+    model TEXT NOT NULL DEFAULT '',
+    usage TEXT,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
   // The AI's reading of a scope, kept against the company and the document's fingerprint
   // (never the document itself), with its check against the brief and what it cost.
   `CREATE TABLE IF NOT EXISTS ai_readings (

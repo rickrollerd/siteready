@@ -222,7 +222,7 @@ function workerSignOn(draft, signons = []) {
           cantSplit: true,
           height: { value: 560 },
           children: [
-            cell(item.worker_name, widths[0], { size: 20 }),
+            nameCell(item, widths[0]),
             cell(item.worker_company || ' ', widths[1], { size: 20 }),
             signatureCell(item.signature, widths[2]),
             cell(item.signedDate || ' ', widths[3], { size: 20 }),
@@ -239,6 +239,21 @@ function workerSignOn(draft, signons = []) {
       ],
     }),
   ];
+}
+
+// The worker's name, with how they read the SWMS beneath it.
+function nameCell(item, width) {
+  if (!item.readingNote) return cell(item.worker_name, width, { size: 20 });
+  return new TableCell({
+    width: { size: width, type: WidthType.DXA },
+    borders,
+    margins: { top: 60, bottom: 60, left: 80, right: 80 },
+    verticalAlign: VerticalAlign.TOP,
+    children: [
+      new Paragraph({ spacing: { before: 0, after: 20, line: 240 }, children: [run(item.worker_name, { size: 20, color: INK })] }),
+      new Paragraph({ spacing: { before: 0, after: 0, line: 220 }, children: [run(item.readingNote, { size: 15, color: MUTED })] }),
+    ],
+  });
 }
 
 // A finger signature from the sign-on page, as a small picture.

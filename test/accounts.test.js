@@ -60,6 +60,16 @@ const INPUT = {
 };
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 
+// The right answers to a SWMS's check questions, worked out as the server does.
+async function rightAnswers(swmsId) {
+  const { prepareDraft } = require('../draft');
+  const { withCompany } = require('../accounts');
+  const { checkQuestions } = require('../sign-read');
+  const row = await db.one('SELECT * FROM swms WHERE id = $1', [swmsId]);
+  const company = await db.one('SELECT * FROM companies WHERE id = $1', [row.company_id]);
+  return Object.fromEntries(checkQuestions(row.id, prepareDraft(withCompany(row.input, company))).map((q) => [q.id, q.answer]));
+}
+
 test('an email link signs in once, and the first sign-in starts a 14 day trial', async () => {
   await call('POST', '/api/auth/email', { body: { email: 'Alex@Example.com ' } });
   const token = lastLinkToken('alex@example.com');
@@ -129,8 +139,11 @@ test('workers sign on with the QR link, and their signatures go on the SWMS', as
   const view = await (await call('GET', `/api/sign/${key}`)).json();
   assert.ok(view.jobSteps.length > 2, 'the worker can read the job steps');
 
+  // The worker has had the SWMS open long enough, and answers the check questions.
+  await db.query('UPDATE sign_reads SET started_at = $1 WHERE id = $2', [new Date(Date.now() - 60 * 60 * 1000), view.readId]);
+  const answers = await rightAnswers(swms.id);
   const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
-  assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'Jo Worker', signature, confirmed: true } })).status, 201);
+  assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'Jo Worker', signature, confirmed: true, readId: view.readId, answers } })).status, 201);
   assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'No Signature', confirmed: true } })).status, 400);
   assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'No Tick', signature } })).status, 400);
   assert.equal((await call('GET', '/api/sign/not-a-real-key')).status, 404);
@@ -306,8 +319,9 @@ test('a SWMS stops taking sign-ons at its limit', async () => {
     const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
     const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
     const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
-    for (const name of ['One', 'Two']) assert.equal((await call('POST', `/api/sign/${key}`, { body: { name, signature, confirmed: true } })).status, 201);
-    const third = await call('POST', `/api/sign/${key}`, { body: { name: 'Three', signature, confirmed: true } });
+    const explained = { explained: true, supervisor: 'Sam Lead' };
+    for (const name of ['One', 'Two']) assert.equal((await call('POST', `/api/sign/${key}`, { body: { name, signature, confirmed: true, ...explained } })).status, 201);
+    const third = await call('POST', `/api/sign/${key}`, { body: { name: 'Three', signature, confirmed: true, ...explained } });
     assert.equal(third.status, 409);
     assert.match((await third.json()).message, /limit of 2 sign-ons/);
   } finally {
