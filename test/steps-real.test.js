@@ -1209,3 +1209,130 @@ test('the AI step catalogue lists each new group by id with its steps', () => {
   for (const id of GAP_KINDS) assert.match(text, new RegExp(`^${id}: `, 'm'), id);
   assert.match(text, /^wasteRemoval: Cart rubbish to the site bins; Clean up the work area; Load skips and bins/m);
 });
+
+// Task #97 leftovers: earthing that only names the switchboard, air and water pressure tests,
+// and the six kinds of work left for the owner.
+test('earthing that names the main switchboard as its connection point is not switchboard work', () => {
+  const task = 'Drive earth stakes for the main switchboard earthing.';
+  assert.deepEqual(kinds(task, 'electrical'), ['earthStakes']);
+  assert.deepEqual(middle(draft(task, 'electrical')), ['Drive or drill the earth stakes', 'Connect and test the earthing']);
+  assert.deepEqual(kinds('Install earthing systems, earthing conductors and earth electrodes to the main switchboard.', 'electrical'), ['earthStakes']);
+  // Installing or replacing the switchboard is named: its steps stay, beside the earthing.
+  for (const named of ['Install the new main switchboard and drive the earth stakes for its earthing.', 'Replace the main switchboard. Drive earth stakes for the main switchboard earthing.']) {
+    const found = steps(draft(named, 'electrical'));
+    for (const name of ['Isolate and prove de-energised', 'Connect and commission', 'Drive or drill the earth stakes']) assert.ok(found.includes(name), `${named}: ${name}`);
+  }
+});
+
+test('air and water pressure tests get their own lines, and the gas line test only where gas is named', () => {
+  const lines = (done) => done.jobSteps.flatMap((step) => [...step.hazards, ...step.controls]).join('\n');
+  // A water (hydrostatic) test: water lines, rated fittings, gradual pressure, stored pressure released.
+  const water = draft('Hydrostatic pressure test the fire mains.', 'fire');
+  assert.match(lines(water), /Tested with water to ____ kPa/);
+  assert.match(lines(water), /rated above the test pressure/);
+  assert.match(lines(water), /raised gradually, in stages/);
+  assert.match(lines(water), /Stored pressure is released through a vent or drain valve/);
+  assert.match(lines(water), /Water leaks onto live electrical equipment/);
+  // An air test of pipework: the stored energy of compressed air, no flooding.
+  const air = draft('Air test the sanitary drainage.', 'plumbing');
+  assert.match(lines(air), /Tested with air to ____ kPa/);
+  assert.match(lines(air), /Compressed air stores much more energy/);
+  assert.doesNotMatch(lines(air), /^Flooding\.$/m);
+  // A duct, plenum or room leakage test uses a test fan, not pipework lines.
+  const duct = draft('Pressure test plenums.', 'mechanical');
+  assert.match(lines(duct), /calibrated test fan/);
+  assert.doesNotMatch(lines(duct), /pipework under test|Flooding/);
+  for (const task of ['Pressure test plenums.', 'Pressure test the Gatehouse SER for leakage.', 'Air test the sanitary drainage.', 'Hydrostatic pressure test the fire mains.', 'Commission pool and water feature systems.']) {
+    assert.ok(answersFor('pressureTesting', task)[0].label !== 'Gas line test', task);
+  }
+  for (const task of ['Pressure test plenums.', 'Pressure test the Gatehouse SER for leakage.', 'Air test the sanitary drainage.', 'Hydrostatic pressure test the fire mains.']) {
+    assert.doesNotMatch(lines(draft(task)), /Gas pipework/, task);
+  }
+  assert.equal(answersFor('pressureTesting', 'Pressure test plenums.')[0].label, 'Duct or room leakage test');
+  assert.equal(answersFor('pressureTesting', 'Air test the sanitary drainage.')[0].label, 'Air test');
+  assert.equal(answersFor('pressureTesting', 'Pressure test the gas line.')[0].label, 'Gas line test');
+  // The gas line keeps its own test line when a water test is in the same SWMS.
+  const both = draft('Pressure test the gas line and the water service.', 'plumbing');
+  const gasStep = both.jobSteps.find((step) => step.step === 'Pressure test the gas line');
+  assert.match(gasStep.controls.join('\n'), /Gas pipework is tested with air or nitrogen/);
+  assert.doesNotMatch(gasStep.controls.join('\n'), /Tested with water/);
+});
+
+const SHOP_KINDS = ['workshopFab', 'joineryShop', 'switchboardShop', 'powderCoat', 'precastCastIn', 'pebbleFinish', 'hvPoleRemove'];
+const shopKinds = (task, trade = '') => kinds(task, trade).filter((id) => SHOP_KINDS.includes(id));
+
+test('joinery and timber doors made in the workshop get the woodworking steps, not the site carpentry steps', () => {
+  const doors = draft('Manufacture timber doors (fire rated and non-fire rated) with tempered hardboard facings, prepared to receive hardware.', 'doors');
+  assert.deepEqual(middle(doors), ['Cut and machine timber and board in the workshop', 'Assemble, sand and finish joinery', 'Move and store finished joinery']);
+  assert.ok(doors.jobSteps.some((step) => step.hazards.some((line) => /hardwood dust can cause nasal cancer/.test(line))));
+  assert.ok(said(doors, /riving knife/) && said(doors, /dust extraction that captures the dust at the cutter/));
+  assert.deepEqual(doors.highRisk, []);
+  assert.deepEqual(kinds('Fabricate front of house joinery items.', 'carpentry'), ['joineryShop']);
+  for (const near of ['Supply and install the joinery and vanities.', 'Hang the timber doors and fit the hardware.', 'Fabricate and install the timber screens.', 'Fabricate door protection types 1 to 4.', 'Paint the doors to the door manufacturers specifications.']) assert.deepEqual(shopKinds(near), [], near);
+});
+
+test('switchboards built in the workshop get the workshop build and test steps, with no site isolation or high risk work', () => {
+  const done = draft('Fabricate switchboards and distribution boards including interwiring.', 'electrical');
+  assert.deepEqual(middle(done), ['Build the switchboard enclosure', 'Fit out and interwire the switchboard', 'Test the switchboard in the workshop', 'Move and load finished switchboards']);
+  assert.ok(said(done, /tested de-energised first/));
+  assert.deepEqual(done.highRisk, []);
+  for (const near of ['Supply and install the main switchboard.', 'Install the new distribution boards on each level.', 'Interwire the new distribution board on site.']) assert.deepEqual(shopKinds(near), [], near);
+});
+
+test('powder coating gets the booth, oven and powder handling steps from the spray painting and powder coating code', () => {
+  const done = draft('Powdercoat aluminium frames.', 'glazing');
+  assert.deepEqual(middle(done), ['Pre-treat items for powder coating', 'Powder coat in the booth', 'Cure the coated items in the oven', 'Clean the booth and handle powder']);
+  assert.ok(said(done, /interlocked with the extraction/));
+  assert.ok(!done.jobSteps.some((step) => step.controls.some((line) => /SafeWork NSW/.test(line))));
+  const nsw = draft('Powdercoat aluminium frames.', 'glazing', { state: 'nsw' });
+  assert.ok(nsw.jobSteps.some((step) => step.controls.some((line) => /SafeWork NSW Code of practice: Spray painting and powder coating s 4\.2/.test(line))));
+  assert.deepEqual(kinds('Fabricate fences and gates including galvanising and powdercoating.', 'fencing'), ['workshopFab', 'powderCoat']);
+  for (const near of ['Supply and install powdercoated aluminium louvres.', 'Touch up powdercoat damage on site.', 'Powdercoat finish colour to match the windows.']) assert.deepEqual(shopKinds(near), [], near);
+});
+
+test('cast-in items fixed at the precast yard are yard steps, not precast erection or high risk work', () => {
+  const done = draft('Install mechanical cast-in items in precast elements at the precast yard.', 'mechanical');
+  assert.deepEqual(middle(done), ['Work in the precast yard', 'Fix cast-in items and ferrules before the pour']);
+  assert.ok(said(done, /clear of the lifting and bracing inserts/));
+  assert.deepEqual(done.highRisk, []);
+  const factory = kinds('Install fire pipes and pipe conduits into precast elements at the precast factory.', 'fire');
+  assert.ok(factory.includes('precastCastIn') && !factory.includes('precast'));
+  for (const near of ['Install the cast-in conduits in the slab before the pour.', 'Erect the precast panels delivered from the precast yard.', 'Supply precast pits.']) assert.deepEqual(shopKinds(near), [], near);
+  assert.match(risks(draft('Erect the precast panels delivered from the precast yard.', 'structure')), /precast/i);
+});
+
+test('pebble pool finishes are applied and acid washed with the hydrochloric acid controls', () => {
+  const done = draft('Apply pebble aggregate finish to the pool.', 'landscaping');
+  assert.deepEqual(middle(done), ['Mix and apply the pebble finish', 'Acid wash the pebble finish']);
+  for (const pattern of [/added to water, never water to acid/, /neutralised with soda ash or lime/, /confined space definition/, /eye wash/, /drawn from the lowest point/]) assert.ok(said(done, pattern), String(pattern));
+  assert.deepEqual(kinds('Apply pebble aggregate finish to water features.', 'landscaping'), ['pebbleFinish']);
+  for (const near of ['Lay exposed aggregate concrete to the driveway.', 'Lay pebbles in the garden beds.', 'Install the pool fence and pool equipment.', 'Acid wash the brick walls.']) assert.deepEqual(shopKinds(near), [], near);
+});
+
+test('removing temporary 11 kV poles and transformers leaves high voltage work to the network operator\'s authorised persons', () => {
+  const done = draft('Remove temporary 11kV poles and transformers.', 'electrical');
+  assert.deepEqual(middle(done), ['Plan the work near overhead power lines', 'Confirm the network operator has isolated and earthed the line', 'Lift down the transformer', 'Remove the temporary poles']);
+  assert.ok(done.jobSteps[0].controls.some((line) => /only by the network operator's authorised persons/.test(line)));
+  assert.ok(said(done, /treated as live until they are proven de-energised/));
+  assert.match(risks(done), /energised electrical/);
+  for (const near of ['Install the new 11kV transformer and poles.', 'Remove the temporary power pole.', 'Remove the existing 11kV cable from the pit.', 'Work near the 11kV overhead lines with the crane.']) assert.deepEqual(shopKinds(near), [], near);
+});
+
+test('workshop packages draft the same way whether the AI or the quick reader reads the scope', () => {
+  const { packageKinds } = require('../draft');
+  // The AI's site guesses for a workshop-only package give way to the workshop steps.
+  assert.deepEqual(packageKinds('Manufacture timber doors (fire rated and non-fire rated) with tempered hardboard facings, prepared to receive hardware.', ['carpJoinery', 'doorHang']), ['joineryShop']);
+  assert.deepEqual(packageKinds('Fabricate switchboards and distribution boards including interwiring.', ['isolation', 'commissioning']), ['switchboardShop']);
+  assert.deepEqual(packageKinds('Install fire pipes and pipe conduits into precast elements at the precast factory.', ['precast']), ['precastCastIn']);
+  // A package with site work keeps it, and gets the workshop steps too.
+  assert.deepEqual(packageKinds('Install the windows on site. Fabricate aluminium frames off site.', ['windowInstall']), ['windowInstall', 'workshopFab']);
+  assert.deepEqual(packageKinds('Remove temporary 11kV poles and transformers.', ['craneInterface']), ['craneInterface', 'hvPoleRemove']);
+  // The quick reader keeps workshop lines as their own task.
+  const { tasksFromScope } = require('../scope');
+  const found = tasksFromScope('Windows and glazing scope of works\n- Fabricate aluminium frames off site (cutting, drilling, riveting).\n- Powdercoat aluminium frames off site.\n- Install the aluminium windows and doors on site.').tasks;
+  assert.deepEqual(found.find((task) => task.id === 'workshopFab').kinds, ['workshopFab']);
+  assert.deepEqual(found.find((task) => task.id === 'powderCoat').kinds, ['powderCoat']);
+  assert.ok(found.some((task) => task.kinds.includes('windowInstall')));
+  const { stepCatalogue } = require('../ai-scope');
+  for (const id of SHOP_KINDS) assert.match(stepCatalogue().text, new RegExp(`^${id}: `, 'm'), id);
+});

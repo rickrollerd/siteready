@@ -26,9 +26,13 @@ const QLD_CODE_TITLES = {
   'Silica': 'Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 (Qld)',
 };
 const QCODE = (code, section) => `${QLD_CODE_TITLES[code]} ${section}`;
-// Two Queensland codes that are not model codes, cited by their own section numbers.
+// Queensland codes that are not model codes, cited by their own section numbers.
 const SCAFF = (section) => `Scaffolding Code of Practice 2021 (Qld) ${section}`;
 const LINES = (section) => `Electrical Safety Code of Practice 2020: Working near overhead and underground electric lines (Qld) ${section}`;
+const TILT = (section) => `Tilt-up and pre-cast construction Code of Practice 2003 (Qld) ${section}`;
+// A SafeWork NSW code, cited only in NSW drafts (citations.js).
+const NSW_TITLES = require('./scenarios/nsw-code-titles.json');
+const NSWC = (code, section) => `SafeWork NSW Code of practice: ${NSW_TITLES[code]} ${section}`;
 const { localControl, localText } = require('./citations');
 
 // Drilling, chasing or cutting concrete, masonry or stone is processing a crystalline
@@ -154,6 +158,14 @@ const BEFORE_EXTRA = [
   { when: 'peFusion', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'wasteRemoval', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
   { when: 'defectsVisit', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'pebbleFinish', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'hvPoleRemove', text: src('Workers hold a general construction induction card (white card).', WHS('s 317')) },
+  { when: 'hvPoleRemove', text: 'High voltage work (switching, isolating, earthing and disconnecting the line and transformer) is done only by the network operator\'s authorised persons. This SWMS covers our crew\'s part: cranage, rigging, and removing the de-energised poles and transformers.' },
+  { when: 'workshopFab', text: 'This work is done in our workshop, away from the construction site. The workshop\'s own induction, emergency plan and first aid apply, and only workers trained on each machine use it.' },
+  { when: 'joineryShop', text: 'This work is done in our workshop, away from the construction site. The workshop\'s own induction, emergency plan and first aid apply, and only workers trained on each machine use it.' },
+  { when: 'switchboardShop', text: 'This work is done in our workshop, away from the construction site. The workshop\'s own induction, emergency plan and first aid apply, and only workers trained on each machine use it.' },
+  { when: 'powderCoat', text: 'This work is done in our workshop, away from the construction site. The workshop\'s own induction, emergency plan and first aid apply, and only workers trained on each machine use it.' },
+  { when: 'precastCastIn', text: 'This work is done in the precaster\'s yard. The precaster\'s induction, yard rules, emergency plan and permits apply, and the work times and areas are agreed with the precaster.' },
   { when: 'securityWork', text: src('Security equipment such as CCTV, access control, intercoms and alarms is installed only by licensed security equipment installers.', SPA('s 6B, s 8A, s 9')) },
   { when: 'refrigerantWork', text: src('Work on refrigeration and air conditioning equipment, including installing and commissioning it whether or not refrigerant is present, is done only by holders of a refrigerant handling licence that covers the work. Trainee licence holders work under the supervision of a full licence holder.', `${OZONE('reg 111, reg 134')}; ${ARC('s 1.1.1')}`) },
   { when: 'ewp', text: 'A rescue plan is in place for anyone working from an elevating work platform or held by a harness.' },
@@ -4882,7 +4894,9 @@ const ACTIVITIES = [
       step: 'Pressure test the gas line',
       hazards: ['A joint or fitting fails under test pressure.', 'Gas released when the line is purged or commissioned.'],
       controls: [
-        { fact: 'pressureTesting' },
+        // With a water or air test in the same SWMS, the answer given is that test's method, not the gas line's.
+        { unless: 'pressureTest', fact: 'pressureTesting' },
+        { only: 'pressureTest', text: 'Gas pipework is tested with air or nitrogen to the pressure and time the gas installation standard sets, never with water or oxygen, with no ignition sources nearby.' },
         'The area around the line under test is kept clear, and pressure is released before any fitting is touched.',
         'Purging is to a safe place outdoors, with no ignition sources nearby.',
       ],
@@ -8269,11 +8283,17 @@ const ACTIVITIES = [
     when: 'pressureTest',
     steps: [{
       step: 'Pressure test and commission',
-      hazards: ['A fitting or cap blows off under pressure.', 'Flooding.'],
+      hazards: [{ unless: 'pressureDuct', text: 'A fitting or cap blows off under pressure.' }, { unless: 'pressureAirOnly', text: 'Flooding.' }, { only: 'pressureWater', text: 'Water leaks onto live electrical equipment or services nearby.' }, { only: 'pressureAir', unless: 'pressureDuct', text: 'Compressed air stores much more energy than water at the same pressure, so a failing joint or cap can burst violently and throw parts.' }, { only: 'pressureDuct', text: 'A blank, access panel or seal blows out, or the duct or plenum is damaged, when the test fan over-pressurises it.' }],
       controls: [
         { fact: 'pressureTesting' },
-        'Exclusion zone around the pipework under test. No one works on it while it is under pressure.',
-        'Release pressure fully before tightening or changing fittings.',
+        { unless: 'pressureDuct', text: 'Exclusion zone around the pipework under test. No one works on it while it is under pressure.' },
+        { only: 'pressureDuct', text: 'The duct, plenum or room is tested with a calibrated test fan to the test pressure the design or its pressure class sets, the fan is raised gradually, and people stay clear of the blanks and access panels while it runs.' },
+        { unless: 'pressureDuct', text: 'The test pump or compressor, gauges, hoses, caps and test plugs are rated above the test pressure, and the system is not tested above the pressure the design and its weakest component allow.' },
+        { unless: 'pressureDuct', text: 'Pressure is raised gradually, in stages, and held at each stage while joints are checked from outside the exclusion zone.' },
+        { only: 'pressureAir', unless: 'pressureDuct', text: 'Air tests are kept to the lowest pressure the standard or design allows, and use a regulator with a relief valve set just above the test pressure.' },
+        { only: 'pressureWater', text: 'Electrical equipment and services where test water could reach are protected or isolated before filling, and the system is vented of air as it fills.' },
+        { unless: 'pressureDuct', text: 'Release pressure fully before tightening or changing fittings.' },
+        { unless: 'pressureDuct', ...src('Stored pressure is released through a vent or drain valve to a safe place, and the gauge is checked at zero, before any cap, plug or fitting is touched.', MODEL('Managing the risks of plant in the workplace', 's 4.5')) },
       ],
     }],
   },
@@ -9794,6 +9814,261 @@ ACTIVITIES.push(
       },
     ],
     ppe: ['gloveCut'],
+  },
+);
+
+// The six kinds of work left for the owner from the scope run (task #97): joinery, switchboard
+// and powder coating work in a workshop, cast-in items at the precast yard, pebble pool
+// finishes, and removing temporary high voltage poles. Workshop work is not construction work
+// unless the workshop is set up for the project, but it is still work the business must
+// manage, so it gets its own steps. One control per line, cited where a code supports it.
+ACTIVITIES.push(
+  {
+    // Timber doors and joinery made in the subcontractor's own joinery workshop.
+    when: 'joineryShop',
+    steps: [
+      {
+        step: 'Cut and machine timber and board in the workshop',
+        hazards: ['Cuts and amputation from saw blades, router and planer cutters.', 'Kickback throws the work piece or board back at the operator.', 'Wood dust: hardwood dust can cause nasal cancer, and wood and MDF dust can cause asthma and dermatitis.', 'Fine wood dust burns or explodes where it builds up.', 'Noise from saws, routers and planers.'],
+        controls: [
+          src('Panel saws, table saws, docking saws, routers, spindle moulders, planers and CNC machines have their guards in place, strongly fixed and hard to bypass, with interlocks or presence-sensing devices where access is needed while they run.', `${WHS('s 208')}; ${QCODE('Managing the risks of plant in the workplace', 's 4.1')}`),
+          src('Machine controls are marked, guarded against starting by accident, and can be locked off. Emergency stops are red and within reach of each operator.', `${WHS('s 210, s 211')}; ${QCODE('Managing the risks of plant in the workplace', 's 4.2, s 4.3')}`),
+          src('Disconnect the power before removing a guard, changing a blade or cutter, or clearing a jam, and refit the guard before use.', QCODE('Managing the risks of plant in the workplace', 's 4.1')),
+          'Only workers trained on each machine use it. Saws have a riving knife fitted, push sticks and jigs keep hands clear of blades and cutters, and long boards are supported on roller stands or by an off-bearer.',
+          'Blades and cutters are sharp, suit the material and are rated for the machine\'s speed.',
+          src('Each saw, router, planer, sander and CNC machine is connected to dust extraction that captures the dust at the cutter and runs whenever the machine runs.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
+          src('Wood dust is kept below its exposure standard, with air monitoring where it is not certain the dust is below it.', WHS('s 49, s 50')),
+          src('Wood dust is not let build up on floors, beams, ledges or machines, and extraction ducts and dust collectors are emptied and cleaned regularly, because fine wood dust is combustible.', QCODE('Managing risks of hazardous chemicals', 'appendix H')),
+          src('Dust is cleaned up with an industrial vacuum or by damp methods, not by dry sweeping or compressed air.', QCODE('Managing risks of hazardous chemicals', 'appendix J')),
+          'Fit tested P2 respirators are worn where dust is not fully captured, and always when sanding or machining hardwood and MDF.',
+          src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak, reducing it at the source first. Workers who must wear hearing protection have hearing tests within 3 months and at least every 2 years.', `${WHS('s 56, s 57, s 58')}; ${QCODE('Managing noise and preventing hearing loss', 's 2.2, s 5.1, s 5.4')}`),
+        ],
+      },
+      {
+        step: 'Assemble, sand and finish joinery',
+        hazards: ['Wood dust from sanding.', 'Fasteners from nail and staple guns.', 'Adhesive, edge banding glue and finish vapour.', 'Hands caught in clamps, presses and edge banders.'],
+        controls: [
+          'Sanders are connected to dust extraction, or sanding is done on a downdraft bench.',
+          'Nail and staple guns have contact trip safety, are pointed away from people, and are disconnected from air before they are cleared or adjusted.',
+          src('The current safety data sheet for each adhesive, edge banding glue and finish is at the work area, and every container, including anything decanted, is labelled.', WHS('s 341, s 342, s 344')),
+          'Adhesives and finishes are used with ventilation, solvent-based products away from ignition sources, and gloves and eye protection their safety data sheets list.',
+          'Presses, clamps and edge banders have their guards in place, and hands are kept clear while they close.',
+        ],
+      },
+      {
+        step: 'Move and store finished joinery',
+        hazards: ['Strain lifting doors, sheets and joinery units.', 'Items fall from racks or during loading.'],
+        controls: [
+          src('Sheets, doors and units are moved with trolleys, panel lifters or a forklift, not carried by hand.', QCODE('Hazardous manual tasks', 's 4.1')),
+          src('Team lifts are an interim control only, with one person in charge.', MODEL('Hazardous manual tasks', 's 4.9')),
+          'Finished items are stored flat or on racks rated for them, secured so they cannot slide or tip, and restrained on the truck for transport.',
+        ],
+      },
+    ],
+    ppe: ['p2', 'earMuffs', 'glassesClear'],
+  },
+  {
+    // Switchboards and distribution boards built and interwired in the workshop.
+    when: 'switchboardShop',
+    steps: [
+      {
+        step: 'Build the switchboard enclosure',
+        hazards: ['Cuts and amputation from guillotines, punches, press brakes and saws.', 'Hot swarf, sharp burrs and sheet edges.', 'Noise from cutting and punching.'],
+        controls: [
+          src('Guillotines, punches, press brakes and saws have their guards in place, strongly fixed and hard to bypass, with interlocks or presence-sensing devices where access is needed while they run.', `${WHS('s 208')}; ${QCODE('Managing the risks of plant in the workplace', 's 4.1')}`),
+          src('Machine controls are marked, guarded against starting by accident, and can be locked off. Emergency stops are red and within reach of each operator.', `${WHS('s 210, s 211')}; ${QCODE('Managing the risks of plant in the workplace', 's 4.2, s 4.3')}`),
+          'Only workers trained on each machine use it, and the work is clamped, not held by hand.',
+          'Cut resistant gloves and eye protection when handling sheet, and cut edges are deburred.',
+          src('Keep noise below 85 dB(A) over 8 hours and 140 dB(C) peak, reducing it at the source first. Workers who must wear hearing protection have hearing tests within 3 months and at least every 2 years.', `${WHS('s 56, s 57, s 58')}; ${QCODE('Managing noise and preventing hearing loss', 's 2.2, s 5.1, s 5.4')}`),
+        ],
+      },
+      {
+        step: 'Fit out and interwire the switchboard',
+        hazards: ['Cuts from cable stripping and cutting tools.', 'Strain from repeated crimping and long periods bent over the board.', 'Swarf left in the board causes a fault when it is energised.'],
+        controls: [
+          'Interwiring and terminations are done by licensed electricians, or by electrical fitters trained in switchboard assembly under their supervision, to the board\'s design and wiring diagrams.',
+          'Ratchet crimpers and cable strippers suit the cable size, and blades are kept sharp and cut away from the body.',
+          src('Boards are worked on at a comfortable height on stands or a tilting frame, and tasks are rotated.', QCODE('Hazardous manual tasks', 's 4.1')),
+          'Swarf and offcuts are vacuumed out of the board before it is tested.',
+        ],
+      },
+      {
+        step: 'Test the switchboard in the workshop',
+        hazards: ['Electric shock from the test supply or test instruments.', 'Arc flash if a fault is energised.'],
+        controls: [
+          src('The board is tested de-energised first (continuity, insulation resistance and polarity), and is energised for function tests only after it passes.', QCODE('Managing electrical risks', 's 6.4')),
+          src('Energised tests are done in a test area with barriers and signs, and only the people doing the test enter it.', QCODE('Managing electrical risks', 's 6.4')),
+          src('Test instruments, leads and probes are rated for the test, checked before use, and used with insulated tools and rated PPE.', QCODE('Managing electrical risks', 's 6.4, s 7.4')),
+          'The test supply is from an RCD protected outlet or a dedicated test panel with its own isolator, and is isolated, locked and tagged before covers are removed or wiring is changed.',
+          'Covers and escutcheons are refitted, and the board is labelled with its test results, before it leaves the test area.',
+        ],
+      },
+      {
+        step: 'Move and load finished switchboards',
+        hazards: ['A tall board tips over or falls during moving or loading.', 'Crushing and back strain moving heavy boards.'],
+        controls: [
+          'Boards are moved with a forklift, pallet jack or gantry crane using the lifting points or plinth the manufacturer provides, never walked or rocked by hand.',
+          'Tall boards are strapped upright to the pallet or frame, and loads are slung by a person holding a dogging licence where a crane is used.',
+          'Boards are restrained on the truck so they cannot tip or slide in transport.',
+        ],
+      },
+    ],
+    ppe: ['gloveCut', 'earMuffs', 'glassesClear'],
+  },
+  {
+    // Powder coating aluminium or steel items in a booth, then curing them in an oven.
+    when: 'powderCoat',
+    steps: [
+      {
+        step: 'Pre-treat items for powder coating',
+        hazards: ['Severe burns from acid and alkaline pre-treatment chemicals.', 'Splashes into the eyes.', 'Fumes from pre-treatment tanks.'],
+        controls: [
+          src('The current safety data sheet for each pre-treatment chemical is at the work area, and every container, including anything decanted, is labelled.', `${WHS('s 341, s 342, s 344')}; ${NSWC('NSW Spray painting', 's 4.2')}`),
+          src('Pre-treatment chemicals are handled with chemical resistant gloves, a face shield and an apron, and there is an emergency eye wash and shower at the tanks.', `${QCODE('Managing risks of hazardous chemicals', 'appendix J')}; ${NSWC('NSW Spray painting', 's 4.2')}`),
+          src('Acids are not stored with alkaline chemicals, and spills are cleaned up with the spill kit and neutralising agent at the tanks.', QCODE('Managing risks of hazardous chemicals', 's 4.2, s 6.2')),
+          'Pre-treatment tanks have local exhaust ventilation, and items are lowered in and lifted out with a hoist or rack, not by hand.',
+        ],
+      },
+      {
+        step: 'Powder coat in the booth',
+        hazards: ['Breathing in powder, which may contain triglycidyl isocyanurate (TGIC), a skin sensitiser.', 'A powder dust fire or explosion in the booth or extraction.', 'Static discharge or a shock from the electrostatic gun.'],
+        controls: [
+          src('Powder coating is done in a booth with local exhaust ventilation, and the extraction also runs while hoppers are filled, powder is reclaimed and the booth is cleaned.', NSWC('NSW Spray painting', 's 4.2')),
+          src('The gun\'s power and powder feed are interlocked with the extraction, so they cut off if the extraction fails.', NSWC('NSW Spray painting', 's 4.2')),
+          src('TGIC-free powder is used where it is readily available. Check the label and safety data sheet.', NSWC('NSW Spray painting', 's 4.2')),
+          src('The gun, booth, hooks and all metal within 3 m of the gun are earthed, and hooks are cleaned before reuse so the items stay earthed.', NSWC('NSW Spray painting', 's 4.2')),
+          src('Only the spray guns and their cables are in the booth. Other electrical equipment is outside it or rated for the hazardous area.', NSWC('NSW Spray painting', 's 4.2')),
+          src('Ignition sources are kept away from the booth, and powder is not let build up in the booth, ducts or out-of-sight surfaces.', `${WHS('s 52, s 53')}; ${NSWC('NSW Spray painting', 's 3.4')}`),
+          src('No one stands between the item and the extraction airflow, and items hang far enough inside the booth to avoid rebound.', NSWC('NSW Spray painting', 's 4.2')),
+          src('Workers in the spray area wear anti-static footwear and cotton clothing, not silk or synthetic fibres, and no metal articles such as watches.', NSWC('NSW Spray painting', 's 4.2')),
+          'A P2 respirator is worn when spraying by hand, filling hoppers, reclaiming powder and cleaning the booth.',
+          src('Guns are cleaned only with the high voltage switched off.', NSWC('NSW Spray painting', 's 3.4, s 4.2')),
+        ],
+      },
+      {
+        step: 'Cure the coated items in the oven',
+        hazards: ['Burns from the oven, racks and hot items.', 'Fumes from curing powder.', 'A person shut inside a walk-in oven.'],
+        controls: [
+          src('Hot oven surfaces near where people work are guarded or insulated.', WHS('s 209')),
+          'Hot racks and items are moved with heat resistant gloves or tools, and are left to cool in a marked area before they are handled.',
+          'The oven runs only with its exhaust working, at the temperature the powder maker sets.',
+          'A walk-in oven is checked clear of people before the door is shut and it is started, and can be opened from inside.',
+        ],
+      },
+      {
+        step: 'Clean the booth and handle powder',
+        hazards: ['Breathing in powder during cleaning and hopper filling.', 'A dust cloud ignites.'],
+        controls: [
+          src('Spills and the booth are cleaned with a vacuum with a HEPA filter, not with compressed air or dry sweeping, and vacuums are emptied inside the booth under extraction.', NSWC('NSW Spray painting', 's 4.2')),
+          src('Powder and waste powder are stored in a designated area with restricted access.', NSWC('NSW Spray painting', 's 4.2')),
+          src('Hoppers are filled from the supplier\'s container or mechanically where possible, so powder is not transferred by hand.', NSWC('NSW Spray painting', 's 4.2')),
+        ],
+      },
+    ],
+    ppe: ['p2', 'gloveChemical', 'faceShield', 'gloveWelding', 'longs'],
+  },
+  {
+    // Cast-in items and ferrules fixed into precast elements in the precaster's yard,
+    // before the precaster pours them.
+    when: 'precastCastIn',
+    steps: [
+      {
+        step: 'Work in the precast yard',
+        hazards: ['Struck by a crane load, forklift or truck in the yard.', 'Trips over moulds, reinforcement and lifting gear.'],
+        controls: [
+          'Workers do the precaster\'s induction and follow its yard rules, walkways and exclusion zones.',
+          'No one goes under a crane load or into a lifting area while elements or moulds are moved.',
+          'Hi-vis is worn, and workers keep to the marked walkways, clear of forklifts and trucks.',
+        ],
+      },
+      {
+        step: 'Fix cast-in items and ferrules before the pour',
+        hazards: ['Cuts and impalement on reinforcement and tie wire.', 'A fall from mould sides or a casting bed.', 'Strain from bending over beds.', 'A misplaced item weakens a lifting or bracing insert.'],
+        controls: [
+          src('Cast-in items and ferrules are fixed only where the precaster\'s panel drawing shows them, clear of the lifting and bracing inserts and their edge distances.', TILT('s 3.1, s 4.1')),
+          src('Reinforcement is not cut or moved to fit an item. Any change from the drawing is checked by the engineer before the pour.', TILT('s 9.3')),
+          'Items are tied or fixed so the pour cannot move them, and pipe and conduit ends are capped.',
+          'Reinforcement ends near the work are capped, and cut resistant gloves and eye protection are worn.',
+          'Workers reach the mould from the ground or a platform the precaster provides, not by standing on mould sides.',
+          src('Kneeling and bending is reduced with kneeling pads and short spells, and tasks are rotated.', QCODE('Hazardous manual tasks', 's 4.1')),
+          'The precaster checks the cast-in items against the drawing before it pours.',
+        ],
+      },
+    ],
+    ppe: ['gloveCut', 'hivis', 'kneePads'],
+  },
+  {
+    // Pebble (exposed aggregate) interior finishes to pools and water features, which are
+    // washed with dilute hydrochloric acid to expose the pebble.
+    when: 'pebbleFinish',
+    steps: [
+      {
+        step: 'Mix and apply the pebble finish',
+        hazards: ['Cement burns and dermatitis.', 'Dust when bags of pebble and cement mix are emptied.', 'A fall into the empty pool or from the pool edge.', 'Strain from lifting bags and trowelling.', 'A pump hose whips or bursts.'],
+        controls: [
+          src('Cement-based compounds have a very high pH and are corrosive to skin and eyes: gloves and eye protection, and wash skin straight away.', QCODE('Managing risks of hazardous chemicals', 's 3.3, s 4.1, appendix J')),
+          'Bags are opened and mixed outside the pool, downwind of people, with water added gently, and a P2 respirator is worn while dry mix is handled.',
+          'Workers get into and out of the pool shell by a secured ladder or ramp, and the pool edge is barricaded where others work beside it.',
+          src('Bags are moved on trolleys or by the mixer delivery, not carried down into the shell, and trowelling is rotated with other tasks.', QCODE('Hazardous manual tasks', 's 4.1')),
+          'Pump hoses and couplings are checked before use and secured, and the pump is stopped and pressure released before a blockage is cleared.',
+        ],
+      },
+      {
+        step: 'Acid wash the pebble finish',
+        hazards: ['Hydrochloric acid burns to skin and eyes.', 'Acid fumes, which are heavier than air, collect in the pool shell.', 'A reaction or splashing when acid is mixed.', 'Acid run-off into drains or the ground.'],
+        controls: [
+          src('The current safety data sheet for the acid is at the work area, and every container, including anything decanted, is labelled.', WHS('s 341, s 342, s 344')),
+          src('Hydrochloric acid is used diluted, at the strength the pebble supplier sets, rather than as a concentrate.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
+          'The acid is always added to water, never water to acid, in a labelled plastic watering can or sprayer.',
+          src('Acid is handled with chemical resistant gloves and boots, goggles and a face shield, and there is an eye wash and a supply of clean water at the pool.', QCODE('Managing risks of hazardous chemicals', 'appendix J')),
+          src('The shell is ventilated while acid is used, with a fan blowing fresh air in from above and fumes drawn from the lowest point, and workers wear a respirator with an acid gas filter where fumes build up.', QCODE('Managing risks of hazardous chemicals', 's 4.1')),
+          src('Before the work, a deep or enclosed pool shell is assessed against the confined space definition, because acid fumes collect at the bottom. If it is a confined space, the confined space steps and entry permit apply.', QCODE('Confined spaces', 's 1.1, s 3.4')),
+          'No one works alone in the shell while acid is used, and a person outside the shell watches the work.',
+          src('Wash water is neutralised with soda ash or lime before it is pumped out, and disposed of as the builder and local rules set, never into stormwater.', QCODE('Managing risks of hazardous chemicals', 's 6.2')),
+        ],
+      },
+    ],
+    ppe: ['gloveChemical', 'goggles', 'faceShield', 'gumboots', 'p2', 'halfFace'],
+  },
+  {
+    // Removing temporary high voltage poles and pole-mounted transformers. The network
+    // operator isolates and earths the line; the subcontractor's crew does the cranage,
+    // rigging and pole removal. High voltage work is only for authorised persons.
+    when: 'hvPoleRemove',
+    steps: [
+      {
+        step: 'Confirm the network operator has isolated and earthed the line',
+        hazards: ['Electrocution or flashover from high voltage conductors that are still live.', 'The line is re-energised, or back-fed through the transformer, during the work.', 'Contact with other overhead lines that stay live.'],
+        controls: [
+          'High voltage switching, isolation, earthing and disconnecting the conductors and transformer are done only by the network operator\'s authorised persons. Our workers do none of this work.',
+          src('The line and transformer are treated as live until they are proven de-energised, isolated so they cannot be re-energised, and effectively earthed.', LINES('s 2.1')),
+          src('Isolating, earthing or re-routing the line is arranged with the network operator well before the work.', LINES('s 2.3')),
+          src('Written confirmation from the network operator that the line is de-energised, and its access permit, are held before work starts, and every worker signs on to the permit.', LINES('s 2.1')),
+          'The low voltage side of the transformer, including any construction supply or generator that could back-feed it, is isolated and locked off by a licensed electrician before work starts.',
+          src('Other overhead lines that stay live are identified, and people, plant and loads keep outside the exclusion zones for untrained persons unless they are authorised for closer work.', LINES('s 3.2, s 3.4')),
+        ],
+      },
+      {
+        step: 'Lift down the transformer',
+        hazards: ['The transformer falls or swings while it is lifted.', 'The crane or EWP comes close to lines that stay live.', 'Transformer oil leaks or spills.'],
+        controls: [
+          'The transformer is lifted only after the network operator has disconnected it and issued the permit, under a lift plan, slung by a licensed dogger from its lifting lugs, with no one under the load.',
+          src('A safety observer watches the crane or EWP where any part of it or the load could come within the exclusion zone of a line that stays live.', LINES('s 4.3.1, s 4.3.2')),
+          'The transformer is kept upright, set down on a pallet or bunded tray and strapped down, and a spill kit is at hand for leaking oil.',
+        ],
+      },
+      {
+        step: 'Remove the temporary poles',
+        hazards: ['The pole falls when it is freed from the ground.', 'Underground cables at the base of the pole are struck.', 'A fall into the open pole hole.'],
+        controls: [
+          'Each pole is held by the crane or pole truck before it is freed, and no one stands within the pole\'s length while it is pulled and laid down.',
+          src('Where it is not known whether cables are in the ground, assume they are, or have a qualified person locate them first.', LINES('s 9.2')),
+          'Cable risers on the pole are cut and made safe only by the network operator or a licensed electrician, as the cable owner sets.',
+          'The pole hole is backfilled and compacted the same day, or covered and barricaded until it is.',
+        ],
+      },
+    ],
+    ppe: ['hivis', 'chinStrap'],
   },
 );
 

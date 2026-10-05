@@ -95,6 +95,8 @@ const ANSWERS = {
   pressureTesting: [
     ['Gas line test', 'Gas pipework is tested with air or nitrogen to ____ kPa for the time the gas installation standard sets, never with water or oxygen, with no ignition sources nearby, and pressure released to a safe place outside before any fitting is touched.'],
     ['Water test', 'Tested with water to ____ kPa, with the area barricaded and signed during the test, and pressure released through the drain valve before any fitting is touched.'],
+    ['Air test', 'Tested with air to ____ kPa, the lowest pressure the standard or design allows, through a regulator with a relief valve, raised in stages with the area barricaded and signed, and pressure released through the vent valve before any fitting is touched.'],
+    ['Duct or room leakage test', 'Tested with a calibrated test fan to ____ Pa, the pressure the design or its pressure class sets, raised gradually with people kept clear of blanks and access panels, and the fan stopped and pressure let down before any blank or seal is removed.'],
     ['Nitrogen test', 'Oxygen-free nitrogen through a regulator with a relief valve, tested to ____ kPa (below the PS on the equipment plate), with the area barricaded and signed, and pressure released before any fitting is touched.'],
   ],
   safetyDataSheet: [
@@ -190,11 +192,19 @@ function answersFor(id, task) {
 }
 
 // The gas line test is offered only where the task names gas: a pool, water or air test is
-// not gas pipework. Refrigeration is tested with nitrogen, other pipework with water first.
+// not gas pipework. Refrigeration is tested with nitrogen, ducts, plenums and rooms with a
+// test fan, a named air test with air, and other pipework with water first.
 function pressureAnswers(list, task) {
-  const gas = /\bgas\b/i.test(task);
-  const other = /\b(water|hydraulic|plumbing|pools?|spas?|refrigera\w*|air ?con\w*|split systems?|chilled|heating hot water|ducts?|plenums?)\b/i.test(task);
-  const first = /\b(refrigera\w*|air ?con\w*|split systems?|nitrogen)\b/i.test(task) ? 'Nitrogen test' : 'Water test';
+  // A gas suppression room is tested with a fan, not as gas pipework.
+  const gas = /\bgas\b(?! suppression)/i.test(task);
+  const other = /\b(water|hydraulic|plumbing|pools?|spas?|refrigera\w*|air ?con\w*|split systems?|chilled|heating hot water|ducts?|plenums?|air test\w*|pneumatic)\b/i.test(task);
+  const airTest = /\b(air test\w*|pneumatic\w*|compressed air|air pressure|with air)\b/i.test(task);
+  const duct = /\b(plenums?|ducts?|ductwork|(?:ser|server|comms|switch|data|gas suppression) rooms?|(?:room|enclosure) integrity|for leakage)\b/i.test(task) && !/\b(pipe\w*|lines?)\b/i.test(task);
+  const waterTest = /\b(hydrostatic\w*|water test\w*|with water|hydraulic test\w*)\b/i.test(task);
+  let first = 'Water test';
+  if (/\b(refrigera\w*|air ?con\w*|split systems?|nitrogen)\b/i.test(task)) first = 'Nitrogen test';
+  else if (duct) first = 'Duct or room leakage test';
+  else if (airTest && !waterTest) first = 'Air test';
   const rest = list.filter((answer) => answer.label !== 'Gas line test');
   const ordered = [...rest.filter((answer) => answer.label === first), ...rest.filter((answer) => answer.label !== first)];
   if (!gas) return ordered;
