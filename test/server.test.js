@@ -215,3 +215,10 @@ test('the AI scope reading says whether it is on, and needs a signed-in account'
   const anonymous = await post('/api/scope/ai', { text: 'Install ductwork in the ceilings.' });
   assert.equal(anonymous.status, 401);
 });
+
+test('asking whether an AI reading is ready never uses up the AI reading limit', async () => {
+  for (let i = 0; i < 25; i += 1) {
+    const response = await fetch(`${base}/api/scope/ai/some-reading`);
+    assert.notEqual(response.status, 429, `poll ${i + 1}`);
+  }
+});
