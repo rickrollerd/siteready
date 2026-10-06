@@ -5,13 +5,15 @@
 // a mandatory requirement in a tier 1 builder's own standard counts as evidenced: 3,401 of 4,504, 75.5%;
 // second practice pass over newer real SWMS, 58 practice lines added, most from one organisation so not yet
 // evidenced: 3,436 of 4,571, 75.1%; regulator investigation findings for blasting, processing plant and
-// conveyors, cited to the reports but recorded as regulator guidance so not counted: 3,436 of 4,606, 74.6%).
+// conveyors, cited to the reports but recorded as regulator guidance so not counted: 3,436 of 4,606, 74.6%;
+// practice upgrades from a third batch of real SWMS, 20 existing lines reaching two organisations:
+// 3,458 of 4,608, 75.0%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
 const RECORD = require('../scenarios/control-evidence.json');
 
-const MEASURED = 0.745;
+const MEASURED = 0.750;
 
 test('every library control line is in the evidence record, and every record entry is a library line', () => {
   const lines = libraryLines();
