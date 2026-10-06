@@ -299,6 +299,10 @@ test('a SWMS with no sign-on is sent as it is: a condition at review, and H7 fai
   const stripped = await swmsWithoutSignOns({ text: `${text}\f\nWorker sign-on\nName\tCompany\tSignature\tDate\n${CREW.map((item) => `${item.name}\t${item.employer}\t\t${item.date} ${item.time}`).join('\n')}` });
   assertNothingPrivate(stripped.text);
   assert.deepEqual([stripped.pagesRemoved, stripped.signOns, stripped.found], [1, 3, true]);
+  // Whether the rows were dated is kept for the builder check (W9, owner decision of 6 October 2026); the dates are not.
+  assert.equal(stripped.signOnsUndated, 0);
+  const undated = await swmsWithoutSignOns({ text: `${text}\f\nWorker sign-on\nName\tSignature\tDate\n${CREW.map((item) => `${item.name}\t\t`).join('\n')}` });
+  assert.deepEqual([undated.signOns, undated.signOnsUndated], [3, 3]);
 });
 
 test('the preparer and reviewer signature lines are part of the SWMS, not a sign-on', async () => {

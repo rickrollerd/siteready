@@ -15,9 +15,26 @@
 //       for the whole SWMS (H6 still requires that person), 10 to 7; 2 from W3, checkable (15 to 13).
 //   W12 Named permits where the work needs one (5): 3 from W3, which counted any permit as a
 //       checkable detail (13 to 10); 2 from W5, licences and authority to do the work (10 to 8).
-// Now: W1 15, W2 15, W3 10, W4 7, W5 8, W6 10, W7 10, W8 5, W9 5, W10 5, W11 5, W12 5 = 100.
+// Then: W1 15, W2 15, W3 10, W4 7, W5 8, W6 10, W7 10, W8 5, W9 5, W10 5, W11 5, W12 5 = 100.
 // A printed risk matrix no longer loses points in W8. "Where reasonably practicable" (the legal
 // test in the WHS Act) is not vague wording in H5 or W3.
+//
+// Owner decisions of 6 October 2026 (v1.2):
+//   Q8 (H5) A vague line fails outright only where it is the only control for a high risk hazard
+//       in its step. Otherwise it costs points in W3, at least 1 point a line.
+//   Q9 (H4) No change: a delivery-only supplier's SWMS gets no exception from being site specific.
+//   Q10 (W8) A long legislation list is no longer marked down. W8 judges length by steps and controls.
+//   Q11 (W14) Where the SWMS shows chemicals are used, it names the products or product types and
+//       carries safety data sheet controls.
+//   Q12 (W13) A minimum control set for each high risk category, from the WHS Regulations and the
+//       codes of practice SiteReady cites: points lost for each must-have missing. A crane named for
+//       a lift needs a lift plan. Extras: dated worker signatures (W9) and operator competency for
+//       the plant named (W5). A reason for using a ladder is not asked for.
+//   Kept: vague lines in steps that name no high risk work cost points in W3 but do not fail H5.
+// The 100 points were rebalanced to fit W13 and W14. W8 gave up the 3 points of its legislation
+// list (5 to 2). W1 (15 to 12), W2 (15 to 12), W6 (10 to 8), W7 (10 to 8), W4 (7 to 6), W10 and
+// W11 (5 to 4) each gave a share, and W9 took 1 for dated signatures (5 to 6).
+// Now: W1 12, W2 12, W3 10, W4 6, W5 8, W6 8, W7 8, W8 2, W9 6, W10 4, W11 4, W12 5, W13 12, W14 3 = 100.
 //
 // The SWMS comes in one structured form, whatever its source (an AI reading of an uploaded
 // document, or a SiteReady draft):
@@ -33,22 +50,24 @@ const SOURCES = {
   H1: 'WHS Regulations s 299 and s 300; tier 1 review checklists check each high risk category',
   H2: 'WHS Regulations s 299(3)',
   H3: 'Hierarchy of control (WHS Regulations s 36 and s 78); SafeWork NSW work at heights findings 2023-24',
-  H4: 'SafeWork SA high risk construction work audit 2020; WHSQ construction blitz 2023',
-  H5: 'Tier 1 SWMS review checklists; regulator guidance',
+  H4: 'SafeWork SA high risk construction work audit 2020; WHSQ construction blitz 2023. No exception for a delivery-only supplier (owner decision, 6 October 2026)',
+  H5: 'Tier 1 SWMS review checklists; regulator guidance. Fails only where a vague line is the only control for a high risk hazard in its step (owner decision, 6 October 2026)',
   H6: 'Model Code of Practice: Construction Work (how controls are implemented, monitored and reviewed)',
   H7: 'WHS Regulations s 299; WHSQ construction blitz 2023 ("involve workers")',
   W1: 'Model Code of Practice: Construction Work (SWMS content); WHSQ construction blitz 2023 (task specific)',
   W2: 'Hierarchy of control (WHS Regulations s 36); Model Code of Practice: Construction Work',
-  W3: 'Tier 1 SWMS review checklists; SafeWork NSW campaign findings',
+  W3: 'Tier 1 SWMS review checklists; SafeWork NSW campaign findings. Each vague line costs at least 1 point (owner decision, 6 October 2026)',
   W4: 'Model Code of Practice: Construction Work; WHSQ work at heights campaign 2026; Bernie Leen & Sons (Vic, 2016): the SWMS must be revised when the work changes',
-  W5: 'WHS Regulations (high risk work licences and plant); SafeWork NSW earthmoving plant findings 2022-23',
+  W5: 'WHS Regulations (high risk work licences and plant); SafeWork NSW earthmoving plant findings 2022-23; operator competency (a VOC, licence or ticket) for each plant item named (owner decision, 6 October 2026)',
   W6: 'Model Code of Practice: Construction Work (emergency arrangements); WHS Regulations s 80 (rescue after a fall)',
   W7: 'SafeWork SA high risk construction work audit 2020; WHSQ construction blitz 2023',
-  W8: 'Safe Work Australia SWMS information sheet and SWMS tool; OFSC SWMS fact sheet. A printed risk matrix is not marked down (owner decision, 5 October 2026)',
-  W9: 'Tier 1 SWMS review checklists (revision, dates, principal contractor)',
+  W8: 'Safe Work Australia SWMS information sheet and SWMS tool; OFSC SWMS fact sheet. A printed risk matrix is not marked down (owner decision, 5 October 2026), nor is a list of legislation (owner decision, 6 October 2026)',
+  W9: 'Tier 1 SWMS review checklists (revision, dates, principal contractor); WHS Regulations s 299 (workers sign on); a date beside each worker signature (owner decision, 6 October 2026)',
   W10: 'Hierarchy of control (WHS Regulations s 36); Model Code of Practice: Construction Work; a tier 1 builder\'s published SWMS review checklist (evidence that tier 1 builders check the order)',
   W11: 'Model Code of Practice: Construction Work (who implements, monitors and reviews each control); WHS Regulations s 299(3); a tier 1 builder\'s published SWMS review checklist (evidence: a position per step, not one person for the SWMS)',
   W12: 'WHS Regulations s 67 (confined space entry permit), s 166 (overhead and underground electric lines) and s 304 (underground essential services); Model Code of Practice: Construction Work; a tier 1 builder\'s published SWMS review checklist (evidence that tier 1 builders check named permits)',
+  W13: 'WHS Regulations part 6.4 (s 304 underground essential services, s 305 managing excavation risks, s 306 trenches 1.5 m or deeper), s 78 to s 80 (falls), s 166 (electric lines), s 69 and s 74 (confined spaces) and chapter 8 (asbestos); the codes of practice SiteReady cites for falls, excavation, electric lines, electrical risks, confined spaces, asbestos, demolition, moving plant, tilt-up and precast, traffic management, silica, cranes and telecommunication towers. A lift plan for each crane lift (owner decision, 6 October 2026)',
+  W14: 'WHS Regulations s 344 and s 346 (safety data sheets at hand, the hazardous chemicals register); Managing risks of hazardous chemicals code of practice (labelling, following the safety data sheet) (owner decision, 6 October 2026)',
 };
 
 // ---- Reading the structured form ----
@@ -206,20 +225,29 @@ const isVague = (line) => !ASSESSMENT.test(String(line)) && VAGUE.test(withoutAw
 const checkable = (line) => CHECKABLE.test(line) || NAMED_EQUIPMENT.test(line);
 
 // Plant that needs a licence, and the licence wording that answers it (W5).
+const OPERATOR_COMPETENT = /\b(voc'?s?|voc'?d|voc’d|verification of competen\w*|licen[cs]\w*|tickets?|ticketed|competen\w*|assessed as competent|trained and assessed|operator (?:cards?|tickets?)|yellow card|hrw|high risk work|accredit\w*|qualified)\b/i;
+// A plant item named in a line, singular or plural ("Excavator" in "Excavator VOC", "excavators"),
+// or by its first words ("skid steer loaders" in "Skid steer or posi-track: VOC").
+const namesPlant = (name, line) => [name, name.split(' ').slice(0, -1).join(' ')].filter(Boolean)
+  .some((words) => new RegExp(`\\b${words.replace(/s$/i, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(line));
+const ALL_OPERATORS = /\b(?:all |each |every )?(?:plant|machinery|machine|equipment|mobile plant) (?:operators?|is operated|are operated)\b|\boperators? of (?:all |any )?(?:plant|machinery|equipment)\b/i;
 const LICENSED_PLANT = [
   { plant: /\b(mobile |crawler |tower |franna |slewing )?cranes?\b/i, licence: /\b(c[0-9]|cn|cv|ct|c2|c6|c1|crane|dogg\w*|rigg\w*|d[gs]|r[bia]|hrw|high risk work)\b/i },
   { plant: /\bforklifts?\b/i, licence: /\b(lf|forklift|hrw|high risk work)\b/i },
   { plant: /\b(boom lifts?|boom-type)\b/i, licence: /\b(wp|boom|ewp|hrw|high risk work|yellow card)\b/i },
-  // No licence for a scissor lift: the operator is trained and competent for it (an EWP operator card or a verification of competency).
-  { plant: /\bscissor lifts?\b/i, licence: /\b(competen\w*|trained|ewp operator|operator (?:card|ticket)|yellow card|verification of competency|voc)\b/i },
+  // No licence for a scissor lift: the operator is trained and competent for it (an EWP operator card or a verification of competency),
+  // shown beside the scissor lift (owner decision, 6 October 2026).
+  { beside: true, plant: /\bscissor lifts?\b/i, licence: /\b(competen\w*|trained|ewp operator|operator (?:card|ticket)|yellow card|verification of competency|voc)\b/i },
   { plant: /\bscaffold\w*\b/i, licence: /\b(s[bia]|scaffold\w*|hrw|high risk work)\b/i },
   // Removal needs a removal licence; sampling and surveys are an assessor's or competent person's work.
   { plant: /\b(?:remov\w*|strip\w*|demoli\w*|disturb\w*)\b[^.\n]{0,40}\basbestos\b|\basbestos\b[^.\n]{0,40}\b(?:remov\w*|strip\w*)/i, licence: /\b(asbestos remov\w*|class [ab]|removalist|(?:aswa|ar[ab])\d*|removal licen\w*)\b/i },
   { plant: /\basbestos\b[^.\n]{0,40}\b(?:sampl\w*|survey\w*|assess\w*|inspect\w*|clearance\w*|air monitoring)\b|\b(?:sampl\w*|survey\w*|assess\w*)\b[^.\n]{0,40}\basbestos\b/i, licence: /\b(asbestos assessors?|licensed assessors?|laa\s?\d*|occupational hygienists?|competent persons?|asbestos (?:sampling|awareness|identification) (?:training|course|competenc\w*))\b/i },
   // Electrical work, not work near an installation; extra-low voltage cabling is not it either.
   { plant: /\b((?<!non[- ])electrical (?:work|installation work)|rewir\w*|wiring work|switchboard (?:work|upgrades?|replacements?)|(?:install|connect|terminat|replac|upgrad|modif|wir)\w*\b[^.\n]{0,30}\b(?:switchboards?|distribution boards?|circuits?|power points?|gpos?))\b/i, licence: /\b(electrical (?:contractor|worker|licen\w*)|electrician|a[- ]grade|licensed electrical|(?:ec|el)\s?\d{4,}|electrical licen[cs]e (?:no|number)|cec[- ]accredit\w*|clean energy council|saa accredit\w*|solar accredit\w*)\b/i },
-  // A roller here is a compaction roller: not a roller door, a paint roller or a cable roller.
-  { plant: /\b(excavators?|skid ?steers?|bobcats?|loaders?|(?:vibrating|smooth drum|padfoot|ride-on|road|compaction|drum|steel drum|multi-tyred|pneumatic) rollers?|dozers?|graders?|telehandlers?)\b/i, licence: /\b(voc|verification of competency|ticket|licen\w*|competen\w*|operator)\b/i },
+  // Owner decision (6 October 2026, Q12): the operator of each plant item named holds a VOC, licence
+  // or ticket for it, shown beside the plant (W5). A bare "operator" is not one. A roller here is a
+  // compaction roller: not a roller door, a paint roller or a cable roller.
+  { beside: true, plant: /\b(excavators?|skid ?steer(?:s| loaders?)?|bobcats?|(?:front[- ]end |wheel |track )?loaders?|backhoes?|posi-?tracks?|(?:vibrating|smooth drum|padfoot|ride-on|road|compaction|drum|steel drum|multi-tyred|pneumatic) rollers?|dozers?|graders?|telehandlers?|trenchers?|tractors?|dump ?trucks?|dumpers?|water (?:carts?|trucks?)|tip(?:per)? trucks?|tippers?|agitators?|concrete (?:boom |line )?pumps?|boom pumps?|line pumps?|(?:piling|drill(?:ing)?|bored pil\w*|cfa) rigs?|(?:materials?|personnel|builders?) hoists?|vacuum (?:excavators?|trucks?)|hydro-?vac\w*|(?:road |street )?sweepers?|crane trucks?|hiabs?|vehicle loading cranes?|ewps?|elevat\w* work platforms?)\b/i, licence: OPERATOR_COMPETENT },
 ];
 // Work that needs a named permit (W12): what the work looks like, and the permit that answers it.
 // Read from the task, the step names and the high risk work listed, not from the hazards, which
@@ -349,6 +377,225 @@ function dateOf(value, endOfMonth = false) {
   return null;
 }
 
+// ---- The minimum control set for each high risk category (W13) ----
+
+// Owner decision (6 October 2026, Q12, built first): each high risk category has a short set of
+// must-have controls, drawn from the WHS Regulations and the codes of practice SiteReady cites, and
+// each one missing costs points. Each must-have is a pattern of the wordings that say it: generous
+// with synonyms, so an honest SWMS is not marked down for its wording, and strict about meaning, so
+// a barricade under the work is not shoring and a dust mask is not a respirator. A line that says the
+// control is not there ("no shoring is used") does not count, and nor does a vague line.
+//   context: the line, or the step it is in, must be about this work ("barricade" counts for a
+//            trench only in a line or step about the trench). lineOnly: the line itself must be.
+//   when:    the must-have applies only where the SWMS's work matches; whenControls, where its
+//            controls do (a harness anchor only where a harness is used). unless: not where this matches.
+//   firm:    named as an option ("unless superseded by a lift plan"), it does not count.
+const SERVICES = /\b(services?|cables?|pipes?|pipelines?|utilit\w*|mains|conduits?|underground|dbyd|byda|before you dig)\b/i;
+const POWER_LINE = /\b(?<!underground )(?:overhead (?:(?:hv|lv|high voltage|low voltage|\d+(?:\.\d+)? ?kv) )?(?:power |electric\w* |service |supply )?(?:lines?|cables?|wires?|mains|conductors?)|power ?lines?|aerial (?:lines?|cables?|conductors?)|(?:hv|high voltage|transmission|distribution) lines?|electric lines? overhead)\b/i;
+const ELECTRICAL_WORK = /\b((?<!non[- ])electrical (?:work|installation work|fit[- ]?off|rough[- ]?in)|electricians?|rewir\w*|wiring|switchboards?|distribution boards?|circuits?|power points?|gpos?|light fittings?|solar|photovoltaic|pv (?:panels?|arrays?|systems?)|inverters?|connect\w*[^.\n]{0,40}\b(?:to|into) (?:the )?(?:electricity )?supply|(?:energi[sz]ed|live) (?:low voltage |lv |electrical )?(?:work|testing|equipment|apparatus|conductors?|parts?|switchboards?|boards?|circuits?))\b/i;
+const LIVE_WORK = /\b((?:energi[sz]ed|live) (?:low voltage |lv |electrical )?(?:work|testing|equipment|apparatus|conductors?|parts?|switchboards?|boards?|circuits?)|work\w* (?:on|near) (?:exposed )?(?:energi[sz]ed|live)|fault[- ]?find\w*|live test\w*)\b/i;
+const NOT_LIVE = /\bno (?:electrical )?work is (?:done|carried out) on or near (?:exposed )?(?:energi[sz]ed|live) parts\b|\bno (?:energi[sz]ed|live) (?:electrical )?work\b/i;
+const ROAD_WORDS = /\b(roads?|roadways?|streets?|highways?|motorways?|freeways?|traffic|footpaths?|verges?|carriageways?|kerbs?|intersections?)\b/i;
+const RAIL = /\b(railways?|railroads?|rail (?:corridors?|lines?|tracks?|network|traffic|infrastructure|bridges?|crossings?|reserves?|safety|access)|light rail|trams?|tramways?|trains?|track (?:work|side|possessions?|protection)|trackside|live track|danger zone)\b/i;
+// A crane named for a lift: in the task, a step name or the plant list, and not a lifting accessory
+// used under someone else's crane.
+const CRANE = /\b(?:(?:mobile|crawler|tower|franna|slewing|pick and carry|all terrain|truck[- ]mounted|vehicle loading) )?cranes?\b(?!\s+(?:company|companies|crew|operators?|pads?|mats?|hire|platforms?)\b)|\bcrane trucks?\b|\bhiabs?\b/i;
+const SILICA_CONTEXT = /\b(dust|silica|slurry|concrete|masonry|bricks?|blocks?|stone|pavers?|tiles?|cut\w*|drill\w*|grind\w*|saw\w*|cor(?:e|ing)|chas\w*|clean\w*)\b/i;
+const LIFT_WORDS = /\b(lift\w*|hoist\w*|loads?|slung|sling\w*|rigg\w*|dogg\w*|pick\w*|lower\w*|install\w*|erect\w*|plac\w*)\b/i;
+
+const MINIMUM = [
+  { id: 'fall', label: 'falls over 2 m', musts: [
+    // As for H3, a stated reason that edge protection, a scaffold or an EWP is not reasonably practicable answers it.
+    { name: 'edge protection, a scaffold, an EWP, safety mesh or covers, or working from the ground', not: NO_FALL_CONTROL,
+      pattern: new RegExp(`${PHYSICAL_FALL.source}|^(?=.*\\bnot (?:reasonably )?practicable\\b)(?=.*\\b(?:edge protection|guard ?rails?|scaffold\\w*|ewps?|elevating work platforms?)\\b)`, 'i') },
+    { name: 'the fall protection inspected before use (the scaffold tag, the EWP pre-start, the harness and anchors)',
+      pattern: /\b(scaffold\w*|guard ?rails?|edge protection|ewps?|elevat\w* work platforms?|scissor ?lifts?|boom lifts?|harness\w*|lanyards?|anchor\w*|static lines?|lifelines?|safety mesh|(?:work(?:ing)? )?platforms?|fall (?:arrest|protection|restraint)\w*|ladders?|roof rails?|covers?)\b[^.]{0,80}\b(inspect\w*|tag(?:s|ged)?|check\w*|handover|hand-?over|certif\w*|pre-?start|pre-?use|tested|log ?books?)\b|\b(inspect\w*|tag(?:s|ged)?|check\w*|handover|hand-?over|certif\w*|pre-?start|pre-?use|tested)\b[^.]{0,80}\b(scaffold\w*|guard ?rails?|edge protection|ewps?|elevat\w* work platforms?|scissor ?lifts?|boom lifts?|harness\w*|lanyards?|anchor\w*|static lines?|lifelines?|safety mesh|(?:work(?:ing)? )?platforms?|fall (?:arrest|protection|restraint)\w*|ladders?|roof rails?|covers?)\b|\bscaff ?tags?\b/i },
+    { name: 'a rated or certified anchor point for each harness', whenControls: /\b(harness\w*|fall arrest|lanyards?|static lines?)\b/i,
+      pattern: /\b(anchor\w*|static lines?|lifelines?|tie[- ]off points?)\b[^.]{0,80}\b(rated|certif\w*|tested|inspected|engineer\w*|\d+(?:\.\d+)?\s?kn|as\/?nzs\s?(?:1891|5532)|load[- ]rated|manufacturer\w*|basket|platform|ewp|boom lift)\b|\b(rated|certif\w*|engineer\w*|\d+(?:\.\d+)?\s?kn|as\/?nzs\s?(?:1891|5532)|basket|platform|ewp)\b[^.]{0,80}\b(anchor\w*|static lines?|lifelines?|tie[- ]off points?)\b/i } ] },
+  { id: 'trench', label: 'trenches', musts: [
+    { name: 'shoring, benching or battering for a trench 1.5 m or deeper (s 306)',
+      pattern: /\b(shor(?:e|es|ed|ing)|(?:trench|ground|shoring|drag) (?:shields?|box\w*|support\w*|sheets?|jacks?)|shield(?:ed|ing)|batter(?:s|ed|ing)?|bench(?:es|ed|ing)|sheet pil\w*|soldier piles?|step(?:ped|ping)? (?:back|the (?:sides|walls))|laid back|slop\w* (?:the |back )?(?:sides|walls)|ground support|engineered support|(?:shallower|less) than 1\.5\s?m|under 1\.5\s?m deep|no (?:deeper|more) than 1\.5\s?m|(?:not|never) (?:exceed\w*|deeper than) 1\.5\s?m)\b/i },
+    { name: 'the open trench barricaded, fenced or covered', context: /\b(trench\w*|excavat\w*|holes?|pits?|shafts?|dig\w*)\b/i,
+      pattern: /\b(barricad\w*|fenc\w*|barriers?|edge protection|guard ?rails?|hand ?rails?|covers?|covered|plated|road plates?|steel plates?|bunting|para-?webbing|mesh)\b/i },
+    { name: 'spoil, materials and plant kept back from the edge',
+      pattern: /\b(spoil|stockpil\w*|surcharg\w*|excavated (?:material|soil)|soil|materials?|plant|machines?|machinery|vehicles?|trucks?|excavators?|loads?)\b[^.]{0,80}\b(?:back|away|clear) (?:from|of) (?:the )?(?:\w+ )?(?:edges?|trench\w*|excavat\w*|batters?|sides?)\b|\b(spoil|stockpil\w*|surcharg\w*|materials?|plant|machines?|vehicles?|trucks?|loads?)\b[^.]{0,60}\b\d+(?:\.\d+)?\s?m(?:etres?)?\b[^.]{0,30}\b(?:from|back from|of|clear of) (?:the )?(?:\w+ )?(?:edges?|trench\w*|excavat\w*)|\b(?:no|never)\b[^.]{0,30}\b(?:spoil|plant|vehicles?|trucks?|loads?|materials?)\b[^.]{0,40}\b(?:near|at|within|on) (?:the )?(?:\w+ )?(?:edges?|trench\w*)|\bzone of influence\b|\b(?:wheel|stop) (?:stops?|blocks?)\b|\bspoil\b[^.]{0,40}\b(?:placed|kept|stockpiled|stored)\b/i },
+    { name: 'a safe way into and out of the trench (a ladder, ramp or stairs)', context: /\b(trench\w*|excavat\w*|pits?|shafts?)\b/i,
+      pattern: /\b(ladders?|ramps?|stairs?|stairways?|step ?ladders?|egress|means of (?:access|exit|escape)|safe (?:access|entry|exit)|exit points?|escape|get(?:ting)? (?:in|out)|enter\w* and (?:exit|leav)\w*)\b/i } ] },
+  { id: 'services', label: 'digging near underground services', musts: [
+    { name: 'underground services located before digging (Before You Dig plans, a locator or potholing; s 304)', lineOnly: true, context: SERVICES,
+      pattern: /\b(dbyd|byda|before you dig|dial before|locat\w*|scann?\w*|plans?|drawings?|as[- ]?built|gpr|ground penetrating radar|pot-?hol\w*|identif\w*|marked|mark(?:ed|ing)? out|traced|tracing|prov(?:en|ed|ing)|search\w*|survey\w*)\b/i },
+    { name: 'digging by hand or vacuum excavation near located services', context: /\b(services?|cables?|pipes?|utilit\w*|mains|dig\w*|excavat\w*|trench\w*|pot-?hol\w*)\b/i,
+      pattern: /\b(hand[- ]?dig\w*|dig\w* by hand|by hand|hand excavat\w*|hand tools?|hand[- ]held (?:tools?|shovels?)|shovels?|spades?|vacuum excavat\w*|non[- ]destructive|hydro-?vac\w*|vac(?:uum)? trucks?|sucker trucks?|pot-?hol\w*|expos\w*\b[^.]{0,30}\b(?:services?|cables?|pipes?|mains)|(?:services?|cables?|pipes?|mains)\b[^.]{0,30}\bexpos\w*)\b/i } ] },
+  { id: 'lines', label: 'work near overhead power lines', musts: [
+    { name: 'an exclusion zone kept from the lines (the approach distance)', context: /\b(lines?|wires?|conductors?|overhead|power|electric\w*|approach|no[- ]go|tiger)\b/i,
+      pattern: /\b(approach distances?|no[- ]go zones?|safe (?:working |approach )?distances?|exclusion zones?|clearances?|clear of (?:the )?(?:\w+ )?(?:lines?|wires?|conductors?)|(?:away|clear) from (?:the )?(?:\w+ )?(?:lines?|wires?|conductors?)|\d+(?:\.\d+)?\s?m(?:etres?)?\b[^.]{0,40}\b(?:from|of|clear|away|clearance|distance)|tiger tails?|(?:lines?|conductors?)\b[^.]{0,30}\b(?:de-?energi[sz]\w*|isolated|shrouded|covered|insulated|switched off)|(?:de-?energi[sz]\w*|isolat\w*|shroud\w*|insulat\w*)\b[^.]{0,30}\b(?:\w+ )?lines?|spotter zones?|observer zones?)\b/i },
+    { name: 'a safety observer while people or plant work near the lines', context: /\b(lines?|wires?|conductors?|overhead|power|electric\w*|approach|no[- ]go|booms?|cranes?|plant)\b/i,
+      pattern: /\b(safety observers?|observers?|spotters?|safety watch\w*|watchers?|sentr(?:y|ies)|lookouts?|dedicated (?:person|watcher))\b/i } ] },
+  { id: 'energised', label: 'energised electrical installations', musts: [
+    { name: 'the supply isolated, locked out and tagged before work',
+      pattern: /\b(isolat\w*|de-?energi[sz]\w*|lock(?:ed)? ?out|lockout|loto|tag(?:ged)? ?out|personal (?:danger )?(?:locks?|tags?|padlocks?)|danger tags?|out of service tags?|switch\w* off|turn\w* off|power (?:is |was )?(?:off|disconnected)|disconnect\w*|circuit breakers? (?:off|open))\b/i },
+    { name: 'tested dead before touching (test before you touch)', when: ELECTRICAL_WORK,
+      pattern: /\b(test before (?:you )?touch|test\w* (?:for|it is|is|as) (?:dead|de-?energi[sz]\w*)|tested dead|prov(?:e|ed|ing|en) (?:\w+ ){0,3}(?:dead|de-?energi[sz]\w*|isolat\w*)|voltage test\w*|(?:test|check)\w* (?:\w+ ){0,4}(?:de-?energi[sz]\w*|isolat\w*|dead)|multimeters?|(?:non[- ]contact |proximity )?(?:voltage )?testers?|volt sticks?|absence of voltage)\b/i },
+    { name: 'a safety observer for the energised work', when: LIVE_WORK, unless: NOT_LIVE,
+      pattern: /\b(safety observers?|observers?|standby persons?|second (?:competent )?persons?|rescue[- ]trained)\b/i } ] },
+  { id: 'confined', label: 'confined spaces', musts: [
+    { name: 'the atmosphere tested before and during entry',
+      pattern: /\b(gas test\w*|gas (?:detectors?|monitors?|meters?)|atmospher\w*\b[^.]{0,30}\b(?:test\w*|monitor\w*|check\w*)|(?:test|monitor|check)\w*\b[^.]{0,30}\b(?:atmospher\w*|air (?:quality)?|oxygen|o2|gases)|(?:4|four|multi)[- ]gas|oxygen (?:levels?|content))\b/i },
+    { name: 'a standby person outside the space (s 69)',
+      pattern: /\b(stand-?by (?:persons?|attendants?|m[ae]n)|standby|attendants?|safety (?:watch\w*|observers?)|top ?m[ae]n|sentr(?:y|ies)|persons? (?:\w+ ){0,2}outside (?:the )?(?:space|entry|tank|pit))\b/i },
+    { name: 'rescue arrangements and equipment for the space (s 74)',
+      pattern: /\b(rescue\w*|tripods?|winch\w*|retrieval (?:lines?|systems?|equipment)|davits?)\b/i } ] },
+  { id: 'asbestos', label: 'asbestos', musts: [
+    { name: 'wet methods and no power tools, dry sweeping or high pressure water', context: /\b(asbestos|acm|fibro|fibres?|sheets?|materials?|dust|remov\w*|sampl\w*|surfaces?)\b/i,
+      pattern: /\b(wet\w*|water (?:spray|mist)\w*|mist\w*|pva|suppress\w*|no (?:power tools|dry sweep\w*|high[- ]pressure (?:water|cleaners?)|compressed air|abrasive)|(?:hand|non[- ]powered) tools only|without (?:power tools|breaking)|shadow vacuum\w*|h-?class vacuum\w*|hepa)\b/i },
+    { name: 'a respirator (P1, P2 or better)', pattern: /\b(p[123]\b|class p[123]|respirators?|rpe|half[- ]face|full[- ]face|papr|powered air)\b/i },
+    { name: 'the asbestos waste sealed in heavy duty plastic, labelled and taken to a licensed facility',
+      pattern: /\b(bagg\w*|bags?|double[- ]bag\w*|wrap\w*|200 ?(?:µm|um|micron)|heavy[- ]duty (?:plastic|polyethylene)|polythene|polyethylene|sealed (?:bins?|containers?|skips?|drums?)|lined (?:bins?|skips?)|licensed (?:landfill|facility|tip|disposal|waste)|landfill|approved (?:waste )?(?:facility|tip|disposal))\b|\basbestos waste\b|\b(?:dispos\w*|waste)\b[^.]{0,40}\b(?:asbestos|acm|contaminated|labelled|epa)\b|\b(?:asbestos|acm)\b[^.]{0,40}\b(?:dispos\w*|waste)\b/i },
+    { name: 'a clearance inspection after the removal', when: /\b(?:remov\w*|strip\w*)\b[^.\n]{0,40}\basbestos\b|\basbestos\b[^.\n]{0,40}\b(?:remov\w*|strip\w*)/i,
+      pattern: /\b(clearance (?:inspections?|certificates?|certification)|clearances?|air monitoring|visual (?:clearance|inspection)s?)\b/i } ] },
+  { id: 'demolition', label: 'demolition', musts: [
+    { name: 'a demolition plan or engineer\'s sequence', pattern: /\b(demolition (?:plans?|sequence|work plans?|methodolog\w*|procedures?)|engineer\w*|sequenc\w*|top[- ]down|structural (?:assessment|engineer\w*|report|survey)|method statement)\b/i },
+    { name: 'an exclusion zone around and below the demolition',
+      pattern: /\b(exclusion zones?|no[- ]go zones?|drop zones?|barricad\w*|fenc\w*|hoardings?|barriers?|catch (?:fans?|platforms?)|perimeter (?:screens?|protection))\b|\bno (?:one|person|persons|workers?|people)\b[^.]{0,40}\b(?:below|under|beneath|within|near)\b/i },
+    { name: 'services disconnected or made safe first',
+      pattern: /\b(services?|power|gas|water|electric\w*|supply|supplies|sewer)\b[^.]{0,50}\b(disconnect\w*|isolat\w*|terminat\w*|cut off|capped|made safe|switched off|abolish\w*|de-?energi[sz]\w*)\b|\b(disconnect\w*|isolat\w*|terminat\w*|cap\w*|made safe|abolish\w*|de-?energi[sz]\w*)\b[^.]{0,50}\b(services?|power|gas|water|electric\w*|suppl(?:y|ies)|sewer)\b/i } ] },
+  { id: 'plant', label: 'powered mobile plant', musts: [
+    { name: 'people kept apart from the plant (an exclusion zone, barriers or a traffic management plan)',
+      pattern: /\b(exclusion zones?|no[- ]go zones?|separat\w*|barricad\w*|barriers?|bollards?|pedestrian (?:walkways?|routes?|paths?|exclusion|access)|traffic management|tmps?|tgs|keep\w* (?:\w+ ){0,3}clear|clear of (?:the )?(?:plant|machine\w*|swing|operating|work)|swing radius|delineat\w*|para-?webbing|cones|fenc\w*|stand clear|exclusion)\b/i },
+    { name: 'a spotter, warning devices (beacons or alarms) or agreed signals between the operator and people on foot',
+      pattern: /\b(spotters?|traffic controllers?|plant controllers?|traffic marshal\w*|banksm[ae]n|signall?ers?|two[- ]way radios?|radios?|eye contact|no see,? no move|hand signals?|dogm[ae]n|doggers?|guided by|ground (?:person|persons|crew|controls?)|(?:reversing|motion|travel|tilt|warning) (?:alarms?|cameras?|beepers?|devices?)|proximity (?:warning|detection|alarms?|sensors?)|beacons?|flashing lights?|horns?|signals?)\b/i } ] },
+  { id: 'precast', label: 'tilt-up and precast', musts: [
+    { name: 'an erection design and sequence from the engineer', pattern: /\b(erection (?:design|sequence|plans?|documentation|drawings?|methodolog\w*)|engineer\w*|shop drawings?|panel (?:layout|schedule)|lift (?:plans?|study|studies)|sequenc\w*|installation (?:plans?|drawings?))\b/i },
+    { name: 'temporary bracing fixed to the design before the crane lets go', pattern: /\b(brac\w*|props?|propp\w*)\b/i },
+    { name: 'no one under the load or inside the exclusion zone during the lift',
+      pattern: /\b(exclusion zones?|drop zones?|no[- ]go zones?|barricad\w*|clear of (?:the )?(?:load|panel|lift|fall zone)|fall zones?)\b|\b(?:no(?: one| person| persons| people| personnel| workers?)|nobody|never)\b[^.]{0,40}\bunder\b/i } ] },
+  { id: 'temporary', label: 'temporary support', musts: [
+    { name: 'temporary support designed or checked by an engineer', pattern: /\b(engineer\w*|temporary works (?:design\w*|engineer\w*)|designed|certif\w*|propping (?:plans?|designs?|layouts?)|structural (?:assessment|advice))\b/i },
+    { name: 'props, shoring or bracing in place before the load is taken off', pattern: /\b(props?|propp\w*|shor(?:e|es|ed|ing)|needles?|strongbacks?|temporary (?:supports?|beams?|works)|acrows?|brac\w*)\b/i } ] },
+  { id: 'road', label: 'work beside a road', musts: [
+    { name: 'a traffic management plan or traffic guidance scheme',
+      pattern: /\b(traffic (?:management|guidance|control) (?:plans?|schemes?|designs?|diagrams?)|tmps?|tgs|tcps?|traffic management|as\s?1742(?:\.3)?|traffic control (?:devices|plans?)|road occupancy|traffic guidance)\b/i },
+    { name: 'the work zone separated from traffic (barriers, cones, signs or traffic controllers)',
+      pattern: /\b(barriers?|barricad\w*|cones|bollards?|delineat\w*|water[- ]filled|exclusion zones?|signs?|signage|traffic controllers?|stop[- ]slow|lane closures?|tmas?|truck[- ]mounted attenuators?|arrow boards?|speed (?:reductions?|limits?|zones?)|work ?zones?|buffer zones?|safety zones?)\b/i } ] },
+  { id: 'rail', label: 'work in a rail corridor', musts: [
+    { name: 'rail protection (a protection officer, lookout or track possession)',
+      pattern: /\b(protection officers?|track (?:protection|safety|possession|occupancy)|lookouts?|look-?outs?|worksite protection|possessions?|rail safety workers?|controllers? of site safety|coss|network control\w*|train controll?\w*|absolute signal block\w*)\b/i },
+    { name: 'the rail operator\'s authority to work in the corridor (an access permit or authority)',
+      pattern: /\b(access (?:authorit\w*|permits?|authori[sz]ations?)|rail (?:access|corridor) (?:permits?|authorit\w*|inductions?)|work on track authorit\w*|track work authorit\w*|twa|local possession authorit\w*|lpa|rail (?:industry )?(?:safety )?inductions?|rissi|possessions?|(?:network|rail|track) (?:operator|owner|manager)'?s? (?:approval|permission|authori[sz]ation|permit))\b/i } ] },
+  { id: 'water', label: 'water', musts: [
+    { name: 'a life jacket or personal flotation device', pattern: /\b(life ?(?:jackets?|vests?)|pfds?|personal flotation|buoyancy (?:vests?|aids?)|inflatable vests?)\b/i },
+    { name: 'rescue equipment at hand (a life ring, throw line or rescue boat)', pattern: /\b(life ?(?:rings?|buoys?|lines?)|throw (?:lines?|bags?|ropes?)|rescue\w*|boats?|reaching poles?)\b/i } ] },
+  { id: 'explosives', label: 'explosives', musts: [
+    { name: 'a licensed shotfirer', pattern: /\b(shot ?firers?|blasters?|blast(?:ing)? (?:supervisors?|engineers?)|licen\w*)\b/i },
+    { name: 'a blast plan', pattern: /\b(blast(?:ing)? (?:plans?|designs?|management plans?|patterns?|procedures?)|shot (?:plans?|designs?))\b/i },
+    { name: 'a misfire procedure', pattern: /\b(mis-?fires?|hang-?fires?|unfired|undetonated)\b/i } ] },
+  { id: 'gas', label: 'pressurised gas mains or piping', musts: [
+    { name: 'the gas isolated before work on it, or the main located before work near it',
+      pattern: /\b(isolat\w*|shut ?off|turn\w* off|purg\w*|depressuri[sz]\w*|valves? (?:closed|off)|meters? (?:off|turned off)|gas (?:is )?off|locat\w*|dbyd|byda|before you dig|pot-?hol\w*|marked|expos\w*)\b/i },
+    { name: 'leak testing or gas detection, and no ignition sources',
+      pattern: /\b(leak (?:test\w*|detect\w*|check\w*)|gas (?:detect\w*|monitor\w*|test\w*|sniff\w*)|soapy water|pressure test\w*|test\w* for (?:gas )?leaks?|ignition sources?|naked flames?|no smoking)\b/i } ] },
+  { id: 'chemicalLine', label: 'chemical, fuel or refrigerant lines', musts: [
+    { name: 'the line isolated and drained, depressurised or the refrigerant recovered before it is opened',
+      pattern: /\b(isolat\w*|drain\w*|depressuri[sz]\w*|recover\w*|purg\w*|pump(?:ed)? down|evacuat\w* (?:the )?(?:lines?|system)|valves? (?:closed|off|locked))\b/i },
+    { name: 'leak or pressure testing after the work', pattern: /\b(leak (?:test\w*|detect\w*|check\w*)|pressure test\w*|nitrogen|vacuum test\w*|soapy water|gas detect\w*)\b/i } ] },
+  { id: 'silica', label: 'silica dust', musts: [
+    { name: 'water suppression or on-tool extraction at the cut', context: SILICA_CONTEXT,
+      pattern: /\b(extract\w*|on-?tool|wet (?:cut\w*|methods?|saw\w*|drill\w*|grind\w*|core\w*)|water (?:suppress\w*|feed|fed|attachments?|sprays?|cooled)|dust (?:extract\w*|collect\w*|shrouds?|suppress\w*)|shrouds?|lev\b|local exhaust|vacuum (?:attachments?|shrouds?)|h-?class|m-?class)\b/i },
+    { name: 'a respirator (P2 or better)', pattern: /\b(p[23]\b|class p[23]|respirators?|rpe|half[- ]face|full[- ]face|papr|powered air)\b/i },
+    { name: 'clean-up by vacuum or wet methods, not dry sweeping or compressed air', context: SILICA_CONTEXT,
+      pattern: /\b(vacuum\w*|h-?class|m-?class|wet (?:clean\w*|wip\w*|sweep\w*|mop\w*)|damp (?:wip\w*|mop\w*|clean\w*)|no (?:dry )?sweep\w*|not (?:dry )?swept|(?:no|never|without) (?:\w+ ){0,2}compressed air|hos\w* down)\b/i } ] },
+  { id: 'tower', label: 'telecommunication towers', musts: [
+    { name: 'radio frequency (EME) exposure controlled (transmitters off, an RF monitor or survey)',
+      pattern: /\b(rf\b|radio ?frequency|eme\b|emr\b|electromagnetic|transmitters?|rf (?:monitors?|meters?|surveys?)|personal monitors?)\b/i },
+    { name: 'fall protection while climbing (a fall arrest climbing system or twin lanyards)',
+      pattern: /\b(fall arrest|climb\w* (?:systems?|lines?|rails?)|fixed (?:lines?|ladder systems?)|harness\w*|lanyards?|twin[- ]tail|tie[- ]off|rope access|rail systems?)\b/i },
+    { name: 'a plan and kit to rescue a person from the tower', pattern: /\b(tower rescue|rescue\w*)\b/i } ] },
+  { id: 'crane', label: 'crane lifts', musts: [
+    // A lift plan named only as an option ("unless superseded by a lift plan") is not one.
+    { name: 'a lift plan', firm: true, pattern: /\b(lift(?:ing)? (?:plans?|study|studies|procedures?|methodolog\w*|designs?|charts?)|crane (?:lift )?plans?|rigging plans?|crane set-?up plans?|lifts? (?:is|are) planned|planned lifts?|critical lift)\b/i } ] },
+];
+// "No shoring is used" or "a scaffold is not required" says the control is not there.
+const NOT_THERE_BEFORE = /\b(?:no|without|absence of|lack of)\s+(?:\w+\s+){0,2}$/i;
+const NOT_THERE_AFTER = /^[^.;]{0,25}\b(?:is|are|was|were) not (?:required|needed|used|provided|installed|available|in place)\b/i;
+function saysControl(must, line) {
+  const pattern = new RegExp(must.pattern.source, must.pattern.flags.replace('g', '') + 'g');
+  for (const match of line.matchAll(pattern)) {
+    if (/^no\b/i.test(match[0])) return true;
+    if (NOT_THERE_BEFORE.test(line.slice(Math.max(0, match.index - 30), match.index))) continue;
+    if (NOT_THERE_AFTER.test(line.slice(match.index + match[0].length))) continue;
+    if (must.not && must.not.test(line)) continue;
+    if (must.firm && /\b(?:unless|if|where|when|or|either)\b[^.,;:]*$/i.test(line.slice(0, match.index))) continue;
+    return true;
+  }
+  return false;
+}
+
+// Railway detonators are track signals, not the use of explosives (H2, W13).
+const railSignalsOnly = (swms) => /\bdetonators?\b/i.test([...swms.plant, ...swms.steps.flatMap((step) => step.controls), swms.task].join(' '))
+  && /\b(rail\w*|track|signall?\w*|protection officers?)\b/i.test([swms.task, ...swms.plant].join(' '));
+
+// The categories the minimum control set applies to, each with the steps it is in.
+function minimumSets(swms, state, context) {
+  const ids = new Set([...context.implied, ...context.named].map((item) => item.id));
+  const steps = swms.steps;
+  const workNames = steps.map((step) => step.step).filter((name) => !checkOnly(name));
+  const ownWork = [swms.task, ...workNames].join('\n');
+  const said = [swms.task, ...swms.highRisk, ...steps.flatMap((step) => [step.step, ...step.hazards])].join('\n');
+  const allText = [said, ...steps.flatMap((step) => step.controls), ...swms.site.conditions, ...swms.plant].join('\n');
+  const stepsWhere = (test) => steps.filter((step) => test(stepText(step, swms.task))).map((step) => step.step || 'step');
+  const byCategory = (id) => (words) => highRiskMatches(words, swms.fallRisk === 'yes' ? '' : swms.fallRisk, state).some((item) => item.id === id) || (id === 'fall' && swms.fallRisk === 'yes' && FALL_STEP.test(words.replace(SAME_LEVEL, ' ')));
+  const out = [];
+  const use = (id, test) => out.push({ set: MINIMUM.find((item) => item.id === id), steps: stepsWhere(test) });
+  for (const id of ['fall', 'trench', 'confined', 'asbestos', 'demolition', 'plant', 'precast', 'temporary', 'water', 'gas', 'chemicalLine', 'tower']) {
+    if (ids.has(id)) use(id, byCategory(id));
+  }
+  if (ids.has('explosives') && !railSignalsOnly(swms)) use('explosives', byCategory('explosives'));
+  // Digging near services: the work digs, and the SWMS names services anywhere (s 304).
+  const DIG = PERMITS.find((item) => item.label.startsWith('excavation'));
+  if (DIG.work.test(ownWork) && DIG.near.test(allText)) use('services', (words) => DIG.work.test(words));
+  // Electrical: work near overhead lines, and work on or near energised installations. A SWMS that
+  // lists the category with neither wording is taken as near an installation.
+  const lines = POWER_LINE.test(said);
+  if (lines) use('lines', (words) => POWER_LINE.test(words));
+  if (ids.has('electrical') && (!lines || ELECTRICAL_WORK.test([ownWork, ...swms.highRisk].join('\n')))) use('energised', (words) => ELECTRICAL_WORK.test(words) || byCategory('electrical')(words));
+  // Road and rail, by the SWMS's own wording: the category's label names both.
+  if (ids.has('road')) {
+    const own = [swms.task, ...swms.highRisk.filter((line) => !(ROAD_WORDS.test(line) && RAIL.test(line))), ...steps.flatMap((step) => [step.step, ...step.hazards]), ...swms.plant].join('\n');
+    const rail = RAIL.test(own);
+    if (rail) use('rail', (words) => RAIL.test(words));
+    if (!rail || ROAD_WORDS.test(own)) use('road', byCategory('road'));
+  }
+  // Silica: listed, or concrete or masonry cut, drilled or ground.
+  if (swms.highRisk.some((line) => NAMED.silica.test(line)) || SILICA_WORK.test([swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards])].join('\n'))) use('silica', (words) => SILICA_WORK.test(words) || NAMED.silica.test(words));
+  // A crane named for a lift, in the task, a step name or the plant list (before its first colon).
+  const craneText = [swms.task, ...workNames, ...swms.plant.map((line) => line.split(':')[0])].join('\n');
+  if (CRANE.test(craneText) && LIFT_WORDS.test([swms.task, ...workNames].join('\n'))) use('crane', (words) => CRANE.test(words));
+  return out;
+}
+
+// ---- Hazardous chemicals (W14) ----
+
+// Owner decision (6 October 2026, Q11): where the SWMS shows chemicals are used, it names the
+// products or product types and carries safety data sheet controls. Read from the task, the steps,
+// hazards and controls, and the plant list. Not chemicals in use: a pressure or water cleaner,
+// chemical or fuel lines (a high risk category), acid sulfate soils, chemical resistant gloves,
+// chemical anchors, marking paint, or the title of the hazardous chemicals code in a citation.
+const CHEMICAL_USE = /\b(sealants?|silicones?|caulk\w*|mastics?|solvents?|thinners?|turps|turpentine|acetone|adhesives?|glues?|epox(?:y|ies)|resins?|primers?|membranes?|fuels?|refuel\w*|petrol|diesel|unleaded|lpg|propane|butane|acetylene|oxy[- ]?(?:acetylene|propane|fuel)|(?:gas|oxygen|lpg) (?:bottles?|cylinders?)|compressed gas(?:es)?|acids?|acid[- ]wash\w*|hydrochloric|muriatic|caustic|cleaning (?:chemicals?|agents?|products?)|chemical cleaners?|degreasers?|detergents?|paints?|painting|spray painting|coatings?|varnish\w*|lacquers?|enamels?|stains?|aerosols?|form oil|release agents?|curing compounds?|bitumen|bituminous|tar|isocyanates?|polyurethanes?|expanding foam|herbicides?|pesticides?|insecticides?|termiticides?|fungicides?|chlorine|pool chemicals|(?:hazardous|dangerous) (?:chemicals?|substances|goods)|chemicals?)\b/i;
+const NOT_CHEMICAL = /\([^()]*\b(?:Code of Practice|Regulations?|Act)\b[^()]*\)|\bManaging (?:the )?risks of hazardous chemicals\b[^.;]*|\b(?:(?:pressure|water|steam|vacuum|high pressure) cleaners?|(?:chemical|fuel|refrigerant)(?:,? (?:or|and) (?:chemical|fuel|refrigerant))* lines?|acid sulf\w* soils?|chemical[- ]resistant|chemical (?:anchors?|anchoring)|anchors? (?:are |is )?chemical|fuel[- ](?:powered|driven)|stains? (?:on|from)|line ?marking paint|paint(?:ed)? (?:marks?|lines?)|(?:marking|marker) paint)\b/gi;
+// A product type is more than the class: "silicone sealant", "two-pack epoxy", "diesel", "LPG", not
+// "sealant" or "fuel" alone. A product's trade name, or a chemical register, names it too.
+const PRODUCT_TYPE = /\b(silicone|intumescent|fire[- ]rated (?:sealants?|mastics?|foams?|pillows?|wraps?)|polyurethane|pu|acrylic|epoxy|epoxies|two[- ]pack|2[- ]pack|bituminous|bitumen|solvent[- ]based|water[- ]based|oil[- ]based|cementitious|mek|methyl ethyl ketone|acetone|xylene|toluene|turps|mineral turpentine|white spirits?|methylated spirits?|isopropyl\w*|diesel|petrol|unleaded|lpg|propane|butane|acetylene|oxygen|argon|hydrochloric|muriatic|sulph?uric|phosphoric|caustic soda|sodium hydroxide|sodium hypochlorite|chlorine|ammonia|isocyanates?|polyester|pva|contact adhesive|construction adhesive|liquid nails|enamel|lacquer|shellac|form oil|torch[- ]on|r\d{2,3}a?|glyphosate|bifenthrin|hydrogen peroxide)\b|\b(?:chemicals?|products?|substances) (?:register|list|schedule)\b|\b(?:hazardous )?chemicals? (?:are |is )?(?:listed|named|recorded)\b|\bproducts? used\s*:/i;
+const BRAND = /(?<=[a-z,;:(]\s+|\s[a-z]+\s+)(?!(?:The|All|Any|Approved|Suitable|Appropriate|Hazardous|Chemical|Chemicals|Safety|Data|Sheets?|SDS|PPE|Use|Using|Apply|Applying|Of|And|Or|To|With|For|In|On|At|By|From|Other|Similar|New|Existing|Wet|Dry|Two|Water|Oil)\b)[A-Z][A-Za-z]+(?:[- ](?:[A-Z0-9][\w-]*))*\s+(?:sealants?|primers?|adhesives?|membranes?|epoxy|resins?|paints?|solvents?|cleaners?|coatings?|glues?|compounds?)\b|\b[A-Za-z]{3,}[- ]?\d+[A-Za-z]*\b(?=[^.]{0,20}\b(?:sealants?|primers?|adhesives?|membranes?|epoxy|resins?|paints?|coatings?)\b)/;
+const SDS = /\b(sds|msds|safety data sheets?|material safety data sheets?|hazardous (?:chemicals?|substances) register|chemicals? register)\b|\b(?:containers?|chemicals?|products?|decanted|bottles?|cylinders?)\b[^.]{0,40}\blabell?ed\b|\blabell?(?:ed|ing)\b[^.]{0,40}\b(?:containers?|chemicals?|products?|decanted|bottles?)\b/i;
+// "Where chemicals are used from the platform" or "before dangerous goods are lifted" is a rule for
+// if they are, not a statement that they are; nor is "no chemicals are used".
+function chemicalsUsed(line) {
+  if (/\bno (?:hazardous )?(?:chemicals?|substances)\b/i.test(line)) return false;
+  const pattern = new RegExp(CHEMICAL_USE.source, 'gi');
+  return [...line.matchAll(pattern)].some((match) => !/\b(?:where|if|when|whenever|before|should|in case|any)\b[^.,;:]*$/i.test(line.slice(0, match.index)));
+}
+const MAKER_DIRECTIONS = /\b(manufacturer'?s?|maker'?s?|label) (?:instructions|directions|recommendations|requirements)\b|\bproduct labels?\b/i;
+
 // ---- The check ----
 
 function categoriesNamed(items, state) {
@@ -412,7 +659,7 @@ function hardFails(swms, state, stage = 'review') {
 
   // Railway detonators are track signals, so a rail SWMS that ticks explosives for them is not
   // using explosives.
-  const railSignals = /\bdetonators?\b/i.test([...swms.plant, ...allControls, swms.task].join(' ')) && /\b(rail\w*|track|signall?\w*|protection officers?)\b/i.test([swms.task, ...swms.plant].join(' '));
+  const railSignals = railSignalsOnly(swms);
   const uncontrolled = named.filter((item) => !(item.id === 'explosives' && railSignals) && !allControls.some((line) => (ANSWERS[item.id] || ANSWERS[item.check]).test(line)));
   const plantSteps = swms.steps.filter((step) => MOVING_PLANT.test(step.step) && PLANT_WORK.test(step.step) && !step.controls.some((line) => LOCKED_OUT.test(line) && !/^\s*if\b/i.test(line)));
   // Explosives: the word "blast" is not a control. The exclusion zone has a distance (in metres) or is
@@ -451,6 +698,8 @@ function hardFails(swms, state, stage = 'review') {
     add('H3', 'Falls controlled by edge protection, scaffold or EWP, not harness alone', true, 'No fall risk over the height is listed or implied.');
   }
 
+  // Owner decision (6 October 2026, Q9): no change. A supplier's SWMS for delivery only (a concrete
+  // or materials delivery) gets no exception: it still names the site and its conditions.
   const noAddress = !filled(swms.site.address);
   const noConditions = !swms.site.conditions.length;
   add('H4', 'Site specific', !noAddress && !noConditions,
@@ -464,9 +713,22 @@ function hardFails(swms, state, stage = 'review') {
     const words = stepText(step, swms.task);
     return highRiskMatches(words, swms.fallRisk === 'yes' ? '' : swms.fallRisk, state).length || (swms.fallRisk === 'yes' && FALL_STEP.test(words.replace(SAME_LEVEL, ' ')));
   });
-  const vague = riskySteps.flatMap((step) => step.controls.filter(isVague).map((line) => ({ step: step.step, line })));
+  // Owner decision (6 October 2026, Q8): a vague line fails outright only where it is the only
+  // control for a high risk hazard in its step, that is, where no definite line in the step answers
+  // that category. Otherwise the vague line costs points in W3.
+  const vague = riskySteps.flatMap((step) => {
+    const lines = step.controls.filter(isVague);
+    if (!lines.length) return [];
+    const words = stepText(step, swms.task);
+    const ids = new Set(highRiskMatches(words, swms.fallRisk === 'yes' ? '' : swms.fallRisk, state).map((item) => item.id));
+    if (swms.fallRisk === 'yes' && FALL_STEP.test(words.replace(SAME_LEVEL, ' '))) ids.add('fall');
+    const definite = step.controls.filter((line) => !isVague(line));
+    const bare = [...ids].filter((id) => !definite.some((line) => (ANSWERS[id] || /$^/).test(line)));
+    return bare.length ? lines.map((line) => ({ step: step.step, line })) : [];
+  });
   add('H5', 'Controls are definite, not left to the worker', !vague.length,
-    vague.length ? `Controls for high risk hazards leave the decision to the worker: ${vague.slice(0, 5).map((item) => `"${item.line}" (${item.step || 'step'})`).join('; ')}. Say exactly what is done.` : 'No vague controls for high risk hazards.');
+    vague.length ? `Controls for high risk hazards leave the decision to the worker, with no definite control for the hazard in that step: ${vague.slice(0, 5).map((item) => `"${item.line}" (${item.step || 'step'})`).join('; ')}. Say exactly what is done.`
+      : 'No high risk hazard is left with only vague controls.');
 
   add('H6', 'Person responsible for checking the controls', responsibleNamed(swms.responsiblePerson),
     responsibleNamed(swms.responsiblePerson) ? `${swms.responsiblePerson} checks the controls.`
@@ -499,14 +761,15 @@ function weighted(swms, state, context) {
   const allControls = steps.flatMap((step) => step.controls);
   const allText = [swms.task, ...steps.map((step) => [step.step, ...step.hazards, ...step.controls].join('. ')), ...swms.site.conditions, ...swms.plant, ...swms.licences, swms.review].join('\n');
 
-  // W1 Hazards match the job steps (15).
+  // W1 Hazards match the job steps (12; was 15): 8 for every step having hazards, 4 for hazards
+  // that are the step's own.
   {
     const fixes = [];
     let points = 0;
     if (!steps.length) fixes.push('Break the work into job steps, each with its own hazards.');
     else {
       const withHazards = steps.filter((step) => step.hazards.length);
-      points += 10 * (withHazards.length / steps.length);
+      points += 8 * (withHazards.length / steps.length);
       if (withHazards.length < steps.length) fixes.push(`Give every job step its own hazards (${steps.length - withHazards.length} of ${steps.length} have none).`);
       // Copied lists are found by similarity, not only an exact match: the same generic list with
       // one or two items swapped is still copied. One "Whole task" step, or steps that are only
@@ -518,13 +781,14 @@ function weighted(swms, state, context) {
       if (sets.length > 1 && repeated / sets.length > 0.5) fixes.push('The same hazards are copied into most steps. List the hazards each step really has.');
       else if (steps.length === 1) fixes.push('The SWMS has one step for the whole task. Break the work into job steps, each with its own hazards.');
       else if (headings.length > steps.length / 2) fixes.push('The steps are hazard headings, not job steps. List the steps of the work in order, each with its own hazards.');
-      else points += 5;
-      if (steps.length === 1) points = Math.min(points, 5);
+      else points += 4;
+      if (steps.length === 1) points = Math.min(points, 4);
     }
-    add('W1', 'Hazards match the job steps', 15, points, fixes, 'Each step has its own hazards.');
+    add('W1', 'Hazards match the job steps', 12, points, fixes, 'Each step has its own hazards.');
   }
 
-  // W2 Controls follow the hierarchy (15; was 20, 5 went to W10).
+  // W2 Controls follow the hierarchy (12; was 20, then 15): 8 for a higher order control in each
+  // high risk step, 4 for few PPE controls.
   {
     const fixes = [];
     let points = 0;
@@ -534,12 +798,12 @@ function weighted(swms, state, context) {
     const risky = steps.filter((step) => highRiskMatches(stepText(step, swms.task), swms.fallRisk, state).length);
     const judged = risky.length ? risky : steps;
     const strong = judged.filter((step) => step.controls.some((line) => HIGHER.has(controlLevel(line))));
-    if (judged.length) points += 10 * (strong.length / judged.length);
+    if (judged.length) points += 8 * (strong.length / judged.length);
     if (judged.length && strong.length < judged.length) fixes.push(`Add an elimination, substitution, isolation or engineering control to: ${judged.filter((step) => !strong.includes(step)).slice(0, 4).map((step) => step.step).join('; ')}.`);
     const ppeShare = levels.length ? levels.filter((level) => level === 'PPE').length / levels.length : 1;
-    if (ppeShare <= 0.2) points += 5;
-    else if (ppeShare <= 0.35) { points += 3; fixes.push('Too many controls are PPE. Put higher order controls first.'); } else fixes.push('Most controls are PPE. Put elimination, isolation and engineering controls before PPE.');
-    add('W2', 'Controls follow the hierarchy', 15, points, fixes, 'Each high risk step has a higher order control, and few controls are PPE.');
+    if (ppeShare <= 0.2) points += 4;
+    else if (ppeShare <= 0.35) { points += 2; fixes.push('Too many controls are PPE. Put higher order controls first.'); } else fixes.push('Most controls are PPE. Put elimination, isolation and engineering controls before PPE.');
+    add('W2', 'Controls follow the hierarchy', 12, points, fixes, 'Each high risk step has a higher order control, and few controls are PPE.');
   }
 
   // W3 Controls are specific and checkable (10; was 15, 2 went to W11 and 3 to W12).
@@ -547,26 +811,27 @@ function weighted(swms, state, context) {
     const fixes = [];
     const share = allControls.length ? allControls.filter(checkable).length / allControls.length : 0;
     let points = 10 * Math.min(1, share / 0.4);
-    // Vague wording costs in proportion to how much of the SWMS it is, so one phrase does not zero it.
+    // Vague wording costs in proportion to how much of the SWMS it is, so one phrase does not zero it,
+    // but each vague line costs at least 1 point (owner decision, 6 October 2026: a vague line that
+    // is not the only control for a high risk hazard costs points here instead of failing H5).
     const vague = allControls.filter(isVague);
-    points -= Math.min(4, allControls.length ? 10 * (vague.length / allControls.length) : 0);
+    points -= Math.min(4, Math.max(vague.length, allControls.length ? 10 * (vague.length / allControls.length) : 0));
     if (share < 0.4) fixes.push('Make controls measurable: distances, ratings, standards, inspections, permits and named equipment.');
-    if (vague.length) fixes.push(`Replace vague wording such as "${vague[0]}".`);
-    // Known unsafe controls, and concrete cutting with nothing for the silica dust.
+    if (vague.length) fixes.push(`Replace vague wording such as "${vague[0]}"${vague.length > 1 ? ` (${vague.length} lines)` : ''}. Say what is done, by whom, or to what standard.`);
+    // Known unsafe controls. Concrete cutting with nothing for the silica dust is now judged in W13,
+    // with the rest of silica's minimum control set (owner decision, 6 October 2026).
     const unsafe = allControls.filter((line) => UNSAFE.test(line));
     if (unsafe.length) { points -= 3; fixes.push(`Remove an unsafe control: "${unsafe[0]}". A trigger locked on defeats the dead-man control (AS/NZS 4233.1).`); }
-    // The hazards are read too: "dust from drilling concrete" says the step drills it.
-    if (SILICA_WORK.test([swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards])].join('\n')) && !allControls.some((line) => ANSWERS.silica.test(line.replace(WET_DOWN, ' ')))) { points -= 3; fixes.push('The work cuts or drills concrete or masonry: add the silica dust controls (water suppression or on-tool extraction, and the respirator).'); }
     add('W3', 'Controls are specific and checkable', 10, points, fixes, 'Controls are measurable and can be checked on site.');
   }
 
-  // W4 Implementation, monitoring and review (7; was 10). The 3 points for one person responsible
-  // for the whole SWMS went to W11; H6 still fails a SWMS that names no one.
+  // W4 Implementation, monitoring and review (6; was 10, then 7). The 3 points for one person
+  // responsible for the whole SWMS went to W11; H6 still fails a SWMS that names no one.
   {
     const fixes = [];
     let points = 0;
     const review = [swms.review, ...allControls].join(' ');
-    if (/\b(before (?:the task|work|each|starting)|each (?:shift|day|morning)|daily|weekly|pre-?start|while (?:the task|work)|during|toolbox)\b/i.test(review)) points += 4; else fixes.push('Say when the controls are checked (for example, before each shift).');
+    if (/\b(before (?:the task|work|each|starting)|each (?:shift|day|morning)|daily|weekly|pre-?start|while (?:the task|work)|during|toolbox)\b/i.test(review)) points += 3; else fixes.push('Say when the controls are checked (for example, before each shift).');
     // Revised when the work changes: a new stage, method or site condition (2 points); and after
     // an incident or a control that is not working (1 point). Each trigger is read in a sentence
     // that says the SWMS is reviewed (or the next one), so "activate the site incident response
@@ -575,7 +840,7 @@ function weighted(swms, state, context) {
     const reviewed = (pattern) => sentences.some((line, n) => pattern.test(line) && REVIEW_WORD.test(`${line} ${sentences[n + 1] || ''}`));
     if (/\bnew (?:work )?stages?\b/i.test(review) || reviewed(CHANGE_TRIGGER)) points += 2; else fixes.push('Say the SWMS is revised when the work stage, method or site changes.');
     if (reviewed(FAILURE_TRIGGER)) points += 1; else fixes.push('Say the SWMS is reviewed after an incident or when a control is not working.');
-    add('W4', 'Implementation, monitoring and review', 7, points, fixes, 'When the controls are checked, and what triggers a review, are stated.');
+    add('W4', 'Implementation, monitoring and review', 6, points, fixes, 'When the controls are checked, and what triggers a review, are stated.');
   }
 
   // W5 Licences, competency and plant (8; was 10, 2 went to W12): crew credentials 3, licences
@@ -590,33 +855,41 @@ function weighted(swms, state, context) {
     // The plant and work are read from the task, the step names and the plant list. Hazards and
     // controls mention a switchboard or a crane in passing ("RCD on the switchboard").
     const work = [swms.task, ...steps.map((step) => step.step), ...swms.plant].join('\n');
-    const needed = LICENSED_PLANT.filter((item) => item.plant.test(work));
-    const unmatched = needed.filter((item) => !item.licence.test(credentials));
+    // Each plant item read beside its competency is its own need: an excavator and a tipper are two.
+    const needed = LICENSED_PLANT.filter((item) => item.plant.test(work)).flatMap((item) => (item.beside
+      ? [...new Map([...work.matchAll(new RegExp(item.plant.source, 'gi'))].map((match) => [match[0].toLowerCase().replace(/s$/, ''), { ...item, name: match[0] }])).values()]
+      : [{ ...item, name: item.plant.exec(work)[0] }]));
+    // Operator competency for other plant is read beside the plant: a licence line, a plant list row
+    // or a control that names both, or one that covers all plant operators.
+    const credentialLines = [...swms.licences, ...allControls, ...swms.plant];
+    const unmatched = needed.filter((item) => (item.beside
+      ? !credentialLines.some((line) => (namesPlant(item.name, line) || ALL_OPERATORS.test(line)) && item.licence.test(line))
+      : !item.licence.test(credentials)));
     points += needed.length ? 3 * ((needed.length - unmatched.length) / needed.length) : 3;
-    if (unmatched.length) fixes.push(`Match a licence or ticket to the plant and work: ${unmatched.map((item) => item.plant.exec(work)[0]).join(', ')}.`);
+    if (unmatched.length) fixes.push(`Match a licence or ticket to the plant and work: ${unmatched.map((item) => item.name).join(', ')}.`);
     if (!PLANT_WORDS.test(allText) || /\b(inspect\w*|pre-?start|log ?books?|serviced|tested and tagged|test and tag|handover certificate)\b/i.test([...swms.plant, ...allControls].join(' '))) points += 2; else fixes.push('Say how plant and equipment are inspected before use.');
     add('W5', 'Licences, competency and plant', 8, points, fixes, 'Licences, tickets and plant inspections are matched to the task.');
   }
 
-  // W6 Emergency and rescue (10).
+  // W6 Emergency and rescue (8; was 10): first aid 2, emergency contacts and procedure 3, rescue 3.
   {
     const fixes = [];
     let points = 0;
     // A promise to write a plan ("develop an emergency plan") is not the plan, and nor is a
     // template's question left unanswered ("List the equipment that will be used in the rescue").
     const emergency = [...swms.emergency, ...allControls].filter((line) => !PLAN_PROMISE.test(line) && !TEMPLATE_QUESTION.test(line)).join(' ');
-    if (/\bfirst aid\w*\b/i.test(emergency)) points += 3; else fixes.push('Say where first aid is and who the first aider is.');
+    if (/\bfirst aid\w*\b/i.test(emergency)) points += 2; else fixes.push('Say where first aid is and who the first aider is.');
     const contacts = /\b(000|emergency (?:contacts?|numbers?|services|procedures?|plan)|muster|hospital|evacuat\w*|raise the alarm)\b/i.test(emergency);
     if (contacts) points += 3; else fixes.push('Give the emergency contacts and procedure.');
     const ids = new Set([...context.implied, ...context.named].map((item) => item.id));
     const rescueNeeded = ['fall', 'confined', 'trench', 'water', 'tower'].filter((id) => ids.has(id));
     // With no rescue needed, the rescue share goes with having an emergency procedure at all.
-    if (rescueNeeded.length ? /\brescue\b/i.test(emergency) : contacts) points += 4; else if (!rescueNeeded.length) fixes.push('Add an emergency section: contacts, the procedure and the nearest hospital.'); else fixes.push(`Add a rescue plan for ${rescueNeeded.map((id) => ({ fall: 'a fall or a person suspended in a harness', confined: 'the confined space', trench: 'the trench', water: 'a person in the water', tower: 'the tower' })[id]).join(', ')}.`);
-    add('W6', 'Emergency and rescue', 10, points, fixes, 'First aid, emergency contacts and rescue are covered.');
+    if (rescueNeeded.length ? /\brescue\b/i.test(emergency) : contacts) points += 3; else if (!rescueNeeded.length) fixes.push('Add an emergency section: contacts, the procedure and the nearest hospital.'); else fixes.push(`Add a rescue plan for ${rescueNeeded.map((id) => ({ fall: 'a fall or a person suspended in a harness', confined: 'the confined space', trench: 'the trench', water: 'a person in the water', tower: 'the tower' })[id]).join(', ')}.`);
+    add('W6', 'Emergency and rescue', 8, points, fixes, 'First aid, emergency contacts and rescue are covered.');
   }
 
-  // W7 Site specific details (10): 2 points each, from the site conditions. Generic control
-  // wording ("barricade the area", "dial before you dig") gives 1, and only where the SWMS names
+  // W7 Site specific details (8; was 10): a fifth each, from the site conditions. Generic control
+  // wording ("barricade the area", "dial before you dig") gives half that, and only where the SWMS names
   // the site: a template with no site has no site details. Exclusion zones are controls, so
   // they count in full from either.
   {
@@ -633,22 +906,25 @@ function weighted(swms, state, context) {
       ['services', /\b(services?|power ?lines?|overhead|underground|gas|water mains?|before you dig|dbyd|cables?)\b/i, 'live services'],
     ];
     for (const [id, pattern, label] of checks) {
-      if (pattern.test(conditions) || (id === 'exclusion' && pattern.test(controls))) points += 2;
-      else if (sited && pattern.test(controls)) { points += 1; fixes.push(`Say in the site conditions how this site handles ${label}.`); } else fixes.push(`Say how the site handles ${label}.`);
+      if (pattern.test(conditions) || (id === 'exclusion' && pattern.test(controls))) points += 8 / checks.length;
+      else if (sited && pattern.test(controls)) { points += 4 / checks.length; fixes.push(`Say in the site conditions how this site handles ${label}.`); } else fixes.push(`Say how the site handles ${label}.`);
     }
-    add('W7', 'Site specific details', 10, points, fixes, 'Access, exclusion zones, other trades, the public and services are covered.');
+    add('W7', 'Site specific details', 8, points, fixes, 'Access, exclusion zones, other trades, the public and services are covered.');
   }
 
-  // W8 Readable and short (5). A printed risk matrix is not marked down (owner decision, 5 October 2026).
+  // W8 Readable and short (2; was 5). A printed risk matrix is not marked down (owner decision,
+  // 5 October 2026), nor is a long list of legislation (owner decision, 6 October 2026, Q10): its 3
+  // points went to W13 and W14. Length is judged by the steps and controls.
   {
     const fixes = [];
-    let points = 5;
-    if (swms.legislation.length > 5) { points -= 3; fixes.push(`Drop the list of ${swms.legislation.length} pieces of legislation; it is not needed.`); }
+    let points = 2;
     if (allControls.length > 120 || steps.length > 25) { points -= 2; fixes.push('Shorten the SWMS to the high risk hazards and their controls.'); }
-    add('W8', 'Readable and short', 5, points, fixes, 'Short and to the point.');
+    add('W8', 'Readable and short', 2, points, fixes, 'Short and to the point.');
   }
 
-  // W9 Document control (5).
+  // W9 Document control (6; was 5): revision 1, date 1, review date 1, principal contractor 2, and a
+  // date beside each worker signature 1 (owner decision, 6 October 2026, Q12). A SWMS not yet signed
+  // has no signature to date, so it keeps that point; H7 deals with the sign-on.
   {
     const fixes = [];
     let points = 0;
@@ -666,12 +942,14 @@ function weighted(swms, state, context) {
     else if (expired) fixes.push(`The review date (${swms.reviewDate}) has passed. Review the SWMS and set a new review date.`);
     else points += 1;
     if (filled(swms.principalContractor)) points += 2; else fixes.push('Name the principal contractor.');
+    const undated = swms.signatures.filter((item) => !filled(item.date));
+    if (!undated.length) points += 1; else fixes.push(`Put the date beside each worker's signature (${undated.length} of ${swms.signatures.length} ${swms.signatures.length === 1 ? 'has' : 'have'} none).`);
     const prompts = [swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]), ...swms.plant].filter((line) => TEMPLATE_PROMPT.test(line));
     if (prompts.length) { points -= 1; fixes.push(`Fill in or remove the template prompts left in the SWMS, such as "${prompts[0].slice(0, 80)}".`); }
-    add('W9', 'Document control', 5, points, fixes, 'Revision, dates and principal contractor are given.');
+    add('W9', 'Document control', 6, points, fixes, 'Revision, dates, principal contractor and dated signatures are given.');
   }
 
-  // W10 Controls in hierarchy order within each step (5): elimination, substitution, isolation and
+  // W10 Controls in hierarchy order within each step (4; was 5): elimination, substitution, isolation and
   // engineering controls come before administrative controls and PPE. Judged on steps that have both.
   {
     const fixes = [];
@@ -680,12 +958,12 @@ function weighted(swms, state, context) {
       const higher = step.controls.map((line) => HIGHER.has(controlLevel(line)));
       return higher.lastIndexOf(true) > higher.indexOf(false);
     });
-    const points = judged.length ? 5 * ((judged.length - outOfOrder.length) / judged.length) : 5;
+    const points = judged.length ? 4 * ((judged.length - outOfOrder.length) / judged.length) : 4;
     if (outOfOrder.length) fixes.push(`List the controls in hierarchy order, with elimination, isolation and engineering controls before administrative controls and PPE, in: ${outOfOrder.slice(0, 4).map((step) => step.step || 'step').join('; ')}.`);
-    add('W10', 'Controls in hierarchy order within each step', 5, points, fixes, 'Within each step, higher order controls come before administrative controls and PPE.');
+    add('W10', 'Controls in hierarchy order within each step', 4, points, fixes, 'Within each step, higher order controls come before administrative controls and PPE.');
   }
 
-  // W11 A responsible position per step (5): named against the step, or in its controls
+  // W11 A responsible position per step (4; was 5): named against the step, or in its controls
   // ("the supervisor checks ..."). One person for the whole SWMS is H6, and is not enough here.
   {
     const fixes = [];
@@ -693,10 +971,10 @@ function weighted(swms, state, context) {
     // A control counts only where it gives the position the checking ("the supervisor checks the
     // tag", "inspected by the scaffolder"), not a position named in passing.
     const missing = withControls.filter((step) => !responsibleNamed(step.responsible) && !step.controls.some((line) => CHECKED_BY.test(line)));
-    const points = withControls.length ? 5 * ((withControls.length - missing.length) / withControls.length) : 0;
+    const points = withControls.length ? 4 * ((withControls.length - missing.length) / withControls.length) : 0;
     if (!withControls.length) fixes.push('Name the position responsible for the controls in each step.');
     else if (missing.length) fixes.push(`Name the position responsible for the controls in each step (for example, supervisor or leading hand), not only one person for the SWMS. ${missing.length} of ${withControls.length} steps name none: ${missing.slice(0, 4).map((step) => step.step || 'step').join('; ')}.`);
-    add('W11', 'A responsible position for each step', 5, points, fixes, 'Each step names the position responsible for its controls.');
+    add('W11', 'A responsible position for each step', 4, points, fixes, 'Each step names the position responsible for its controls.');
   }
 
   // W12 Named permits where the work needs one (5).
@@ -730,6 +1008,48 @@ function weighted(swms, state, context) {
     if (unnamed.length) fixes.push(`Name the permit the work needs: ${unnamed.map((item) => `${item.name} (${item.label})`).join('; ')}.`);
     if (fireGaps.length) fixes.push(`For the hot work, add ${fireGaps.map((item) => item.name).join(' and ')}.`);
     add('W12', 'Named permits where the work needs one', 5, points, fixes, needed.length ? `The permits are named: ${needed.map((item) => item.label).join('; ')}.` : 'No work needing a permit was found.');
+  }
+
+  // W13 The minimum control set for each high risk category (12): 2 points for each must-have
+  // missing (owner decision, 6 October 2026, Q12). A vague line does not count as the control.
+  {
+    const fixes = [];
+    const evidence = [
+      ...steps.flatMap((step) => [step.step, ...step.controls].filter((line) => line && !isVague(line)).map((line) => ({ line, where: stepText(step, swms.task) }))),
+      ...[...swms.plant, ...swms.licences, ...swms.site.conditions, ...swms.emergency, swms.review].filter(Boolean).map((line) => ({ line, where: '' })),
+    ];
+    const said = [swms.task, ...swms.highRisk, ...steps.flatMap((step) => [step.step, ...step.hazards]), ...swms.plant].join('\n');
+    const controlText = allControls.join('\n');
+    const sets = minimumSets(swms, state, context);
+    const gaps = [];
+    for (const { set, steps: where } of sets) {
+      const musts = set.musts.filter((must) => (!must.when || must.when.test(said)) && (!must.whenControls || must.whenControls.test(controlText))
+        && (!must.unless || !must.unless.test(`${said}\n${controlText}`)));
+      const missing = musts.filter((must) => !evidence.some(({ line, where: words }) => (!must.context || must.context.test(line) || (!must.lineOnly && must.context.test(words))) && saysControl(must, line)));
+      if (missing.length) gaps.push({ set, where, missing });
+    }
+    const lost = gaps.reduce((sum, gap) => sum + gap.missing.length, 0);
+    for (const gap of gaps) fixes.push(`For ${gap.set.label}${gap.where.length ? ` (${gap.where.slice(0, 3).join('; ')})` : ''}, add ${gap.missing.map((must) => must.name).join('; ')}.`);
+    add('W13', 'Minimum controls for each high risk category', 12, 12 - 2 * lost, fixes,
+      sets.length ? `Each category has its minimum controls: ${sets.map(({ set }) => set.label).join('; ')}.` : 'No high risk category needing a minimum control set was found.');
+  }
+
+  // W14 Hazardous chemicals (3): where the SWMS shows chemicals are used, the products or product
+  // types are named (1) and the safety data sheet controls are given (2) (owner decision, 6 October 2026, Q11).
+  {
+    const fixes = [];
+    let points = 3;
+    const used = [swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]), ...swms.plant]
+      .map((line) => line.replace(NOT_CHEMICAL, ' ')).filter(chemicalsUsed);
+    if (used.length) {
+      const where = [...allControls, ...steps.map((step) => step.step), ...swms.plant, ...swms.licences, ...swms.site.conditions, ...swms.emergency, swms.review].filter(Boolean);
+      const named = [swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]), ...swms.plant, ...swms.licences].some((line) => PRODUCT_TYPE.test(line) || BRAND.test(line));
+      const sds = where.some((line) => SDS.test(line) || (MAKER_DIRECTIONS.test(line) && CHEMICAL_USE.test(line)));
+      const word = CHEMICAL_USE.exec(used[0])[0].toLowerCase();
+      if (!named) { points -= 1; fixes.push(`The SWMS uses chemicals (such as "${word}"): name the products or product types used.`); }
+      if (!sds) { points -= 2; fixes.push('Add the safety data sheet controls for the chemicals: the SDS at the work area and followed, and containers labelled.'); }
+    }
+    add('W14', 'Hazardous chemicals named, with safety data sheets', 3, points, fixes, used.length ? 'The chemicals used are named and their safety data sheets are at hand.' : 'No hazardous chemicals are used.');
   }
   return out;
 }

@@ -39,8 +39,10 @@ function drafted(state, item) {
   return draft;
 }
 // Review dates are judged against a fixed day, so the result does not change as time passes.
-const checked = (state, draft) => checkSwms(fromDraft(draft, { state, swms: { signatures: [{ name: 'Jo Smith' }] } }), { state, today: '2026-10-05' });
+// A worker signs on with the date beside the signature (W9, owner decision of 6 October 2026).
+const checked = (state, draft) => checkSwms(fromDraft(draft, { state, swms: { signatures: [{ name: 'Jo Smith', date: '5 October 2026' }] } }), { state, today: '2026-10-05' });
 const points = (result, rule) => result.findings.find((item) => item.rule === rule).points;
+const max = (result, rule) => result.findings.find((item) => item.rule === rule).max;
 function scenario(index) {
   const { task, fallRisk, facts, residential, crane } = scenarios[index];
   return { task, fallRisk, facts, residential, crane };
@@ -56,7 +58,7 @@ test('SiteReady drafts across trades and states score 90 or more with no hard fa
     const label = `${state}: ${item.task.slice(0, 70)}`;
     assert.deepEqual(result.hardFails, [], label);
     assert.ok(result.score >= 90, `${label} scores ${result.score}`);
-    for (const rule of ['W10', 'W11', 'W12']) assert.equal(points(result, rule), 5, `${label} ${rule}`);
+    for (const rule of ['W10', 'W11', 'W12']) assert.equal(points(result, rule), max(result, rule), `${label} ${rule}`);
   }
 });
 

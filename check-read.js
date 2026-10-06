@@ -163,8 +163,10 @@ async function runCheck(body, company) {
     const stripped = await strippedText(body, company);
     const read = await readSwms(stripped.text);
     // The AI never sees the sign-on, so H7 takes the workers counted before it was removed.
-    // Each stands in as "Worker 1", "Worker 2" and so on: no name is used or sent.
-    const swms = stripped.found ? { ...read.swms, signatures: Array.from({ length: stripped.signOns }, (_, i) => ({ name: `Worker ${i + 1}`, date: '' })) } : read.swms;
+    // Each stands in as "Worker 1", "Worker 2" and so on: no name is used or sent. Whether each row
+    // was dated is kept, for the date beside each signature (W9); the date itself is not.
+    const undated = stripped.signOnsUndated || 0;
+    const swms = stripped.found ? { ...read.swms, signatures: Array.from({ length: stripped.signOns }, (_, i) => ({ name: `Worker ${i + 1}`, date: i < stripped.signOns - undated ? 'Dated on the sign-on sheet' : '' })) } : read.swms;
     result = checkSwms(swms, { state: line(body.state) || swms.state, stage });
     notFound = read.notFound;
     source = 'document';
