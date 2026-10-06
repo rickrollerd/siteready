@@ -420,7 +420,7 @@
         if (open && !open.swmsId && S.editing && S.editing.id) open.swmsId = S.editing.id;
         const ready = project.items.filter((item) => item.status === 'ready' && item.body);
         const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsId: item.swmsId || undefined }));
-        const site = $('site-picker') && $('site-picker').value;
+        const site = S.siteId ? S.siteId() : '';
         const result = await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, siteId: site || undefined, reviewConfirmed: true, reviewedBy: name });
         // Each SWMS is saved as a record when the project is downloaded; later changes save as its next revision.
         for (const saved of (result && result.items) || []) if (ready[saved.index]) ready[saved.index].swmsId = saved.id;
