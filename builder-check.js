@@ -449,10 +449,10 @@ const MINIMUM = [
     { name: 'rescue arrangements and equipment for the space (s 74)',
       pattern: /\b(rescue\w*|tripods?|winch\w*|retrieval (?:lines?|systems?|equipment)|davits?)\b/i } ] },
   { id: 'asbestos', label: 'asbestos', musts: [
-    { name: 'wet methods and no power tools, dry sweeping or high pressure water', context: /\b(asbestos|acm|fibro|fibres?|sheets?|materials?|dust|remov\w*|sampl\w*|surfaces?)\b/i,
+    { name: 'wet methods and no power tools, dry sweeping or high pressure water', byRemovalist: true, context: /\b(asbestos|acm|fibro|fibres?|sheets?|materials?|dust|remov\w*|sampl\w*|surfaces?)\b/i,
       pattern: /\b(wet\w*|water (?:spray|mist)\w*|mist\w*|pva|suppress\w*|no (?:power tools|dry sweep\w*|high[- ]pressure (?:water|cleaners?)|compressed air|abrasive)|(?:hand|non[- ]powered) tools only|without (?:power tools|breaking)|shadow vacuum\w*|h-?class vacuum\w*|hepa)\b/i },
-    { name: 'a respirator (P1, P2 or better)', pattern: /\b(p[123]\b|class p[123]|respirators?|rpe|half[- ]face|full[- ]face|papr|powered air)\b/i },
-    { name: 'the asbestos waste sealed in heavy duty plastic, labelled and taken to a licensed facility',
+    { name: 'a respirator (P1, P2 or better)', byRemovalist: true, pattern: /\b(p[123]\b|class p[123]|respirators?|rpe|half[- ]face|full[- ]face|papr|powered air)\b/i },
+    { name: 'the asbestos waste sealed in heavy duty plastic, labelled and taken to a licensed facility', byRemovalist: true,
       pattern: /\b(bagg\w*|bags?|double[- ]bag\w*|wrap\w*|200 ?(?:µm|um|micron)|heavy[- ]duty (?:plastic|polyethylene)|polythene|polyethylene|sealed (?:bins?|containers?|skips?|drums?)|lined (?:bins?|skips?)|licensed (?:landfill|facility|tip|disposal|waste)|landfill|approved (?:waste )?(?:facility|tip|disposal))\b|\basbestos waste\b|\b(?:dispos\w*|waste)\b[^.]{0,40}\b(?:asbestos|acm|contaminated|labelled|epa)\b|\b(?:asbestos|acm)\b[^.]{0,40}\b(?:dispos\w*|waste)\b/i },
     { name: 'a clearance inspection after the removal', when: /\b(?:remov\w*|strip\w*)\b[^.\n]{0,40}\basbestos\b|\basbestos\b[^.\n]{0,40}\b(?:remov\w*|strip\w*)/i,
       pattern: /\b(clearance (?:inspections?|certificates?|certification)|clearances?|air monitoring|visual (?:clearance|inspection)s?)\b/i } ] },
@@ -1030,10 +1030,14 @@ function weighted(swms, state, context) {
     const said = [swms.task, ...swms.highRisk, ...steps.flatMap((step) => [step.step, ...step.hazards]), ...swms.plant].join('\n');
     const controlText = allControls.join('\n');
     const sets = minimumSets(swms, state, context);
+    // A crew that does not remove asbestos itself, and says a licensed asbestos removalist does, is not
+    // asked for the removal controls; the removalist's own SWMS carries them (owner decision, 6 October 2026).
+    const byRemovalist = /\blicensed asbestos removalists?\b/i.test(controlText)
+      && !/\b(?:remov\w*|strip\w*|encapsulat\w*)\b[^.\n]{0,40}\basbestos\b|\basbestos\b[^.\n]{0,40}\b(?:remov\w*|strip\w*)/i.test(swms.task);
     const gaps = [];
     for (const { set, steps: where } of sets) {
       const musts = set.musts.filter((must) => (!must.when || must.when.test(said)) && (!must.whenControls || must.whenControls.test(controlText))
-        && (!must.unless || !must.unless.test(`${said}\n${controlText}`)));
+        && (!must.unless || !must.unless.test(`${said}\n${controlText}`)) && !(must.byRemovalist && byRemovalist));
       const missing = musts.filter((must) => !evidence.some(({ line, where: words }) => (!must.context || must.context.test(line) || (!must.lineOnly && must.context.test(words))) && saysControl(must, line)));
       if (missing.length) gaps.push({ set, where, missing });
     }

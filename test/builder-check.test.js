@@ -1101,3 +1101,13 @@ test('H1: general step names and a footpath with traffic barriers do not imply r
   assert.equal(roadMissing(swms('Line marking.', ['Set up traffic control on the live road'])), true);
   assert.equal(roadMissing(swms('Repair the kerb beside the busy road.', ['Break out the kerb'])), true);
 });
+
+// A crew that hands asbestos to a licensed removalist is not asked for the removal controls; a SWMS for
+// removing asbestos still is (owner decision, 6 October 2026).
+test('W13 asbestos: a licensed removalist answers the removal controls only where the crew does not remove asbestos', () => {
+  const swms = (task) => ({ state: 'qld', task, fallRisk: 'no', site: { address: '1 Smith St, Paddington QLD 4064', conditions: ['Inside the plant room.'] }, highRisk: ['Is likely to involve the disturbance of asbestos'], responsiblePerson: 'Sam Lee, supervisor',
+    steps: [{ step: 'Remove the old services', hazards: ['Old lagging may contain asbestos.'], controls: ['Lagging is checked against the asbestos register before it is disturbed.', 'If asbestos is found or suspected, it is removed by a licensed asbestos removalist.'], responsible: 'Supervisor' }] });
+  const w13 = (s) => item(checkSwms(s), 'W13');
+  assert.doesNotMatch(w13(swms('Remove the old pipework and ducts.')).message, /wet methods|respirator|sealed in heavy duty plastic/);
+  assert.match(w13(swms('Remove the asbestos lagging from the old pipework.')).message, /wet methods|respirator/);
+});
