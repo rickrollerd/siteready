@@ -21,13 +21,15 @@ function placeOf(input = {}) {
   return { state: state ? state.id : '', postcode };
 }
 
-async function issueRef(company, title = '', place = {}) {
+// link: the saved SWMS and revision the reference is printed on, and a fingerprint of its content.
+async function issueRef(company, title = '', place = {}, link = {}) {
   const ref = newRef();
   if (db.enabled()) {
     try {
-      await db.query('INSERT INTO swms_refs (ref, company_id, company_name, abn, title, state, postcode, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+      await db.query('INSERT INTO swms_refs (ref, company_id, company_name, abn, title, state, postcode, created_at, swms_id, revision, content_hash) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
         [ref, company ? company.id : null, (company && company.name) || '', (company && company.abn) || '', String(title || '').slice(0, 200),
-          String(place.state || '').slice(0, 3), String(place.postcode || '').slice(0, 4), new Date()]);
+          String(place.state || '').slice(0, 3), String(place.postcode || '').slice(0, 4), new Date(),
+          link.swmsId || null, link.revision || null, link.contentHash || null]);
     } catch {
       // The reference still goes on the SWMS.
     }
@@ -37,7 +39,7 @@ async function issueRef(company, title = '', place = {}) {
 
 async function findRef(ref) {
   if (!db.enabled()) return null;
-  return db.one('SELECT ref, company_id, company_name, abn, title, state, postcode, created_at FROM swms_refs WHERE ref = $1', [String(ref || '').trim().toUpperCase()]);
+  return db.one('SELECT ref, company_id, company_name, abn, title, state, postcode, created_at, swms_id, revision, content_hash FROM swms_refs WHERE ref = $1', [String(ref || '').trim().toUpperCase()]);
 }
 
 module.exports = { issueRef, findRef, newRef, placeOf };

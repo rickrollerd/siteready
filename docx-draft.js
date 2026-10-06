@@ -509,11 +509,19 @@ function draftedNote(confirmation) {
   return `Drafted with SiteReady${by}. The business named in this SWMS reviews, approves and is responsible for it.`;
 }
 
-// Printed on every page: who the SWMS was prepared for, and its SiteReady reference.
-function preparedFor(company, ref) {
+// Printed on every page: who the SWMS was prepared for, and its SiteReady reference and
+// revision. A saved SWMS's reference names the revision it was printed for.
+function preparedFor(company, ref, revision) {
   if (!ref) return '';
   const abn = company && company.abn ? ` (ABN ${company.abn})` : '';
-  return `Prepared with SiteReady for ${(company && company.name) || 'the business named above'}${abn}. SiteReady reference ${ref}.`;
+  return `Prepared with SiteReady for ${(company && company.name) || 'the business named above'}${abn}. SiteReady reference ${ref}${revision ? `, revision ${revision}` : ''}.`;
+}
+
+// The Word file is a working copy (owner decision, 6 October 2026): the PDF and the QR sign-on
+// page are the signed copies, made from the saved record.
+function workingCopy(ref, revision) {
+  if (!ref || !revision) return '';
+  return `Working copy. The signed record is SiteReady reference ${ref} revision ${revision}. Changes made outside SiteReady are not part of the record.`;
 }
 
 function buildDocument(draft, options = {}) {
@@ -522,7 +530,7 @@ function buildDocument(draft, options = {}) {
     title: 'Safe work method statement',
     description: `${draft.instrument}, ${draft.versionLabel}, ${draft.sectionRef}`,
     // The reference also sits in the file's properties, where an edit to the page text does not reach.
-    ...(options.ref ? { keywords: `SiteReady ${options.ref}`, subject: preparedFor(options.company, options.ref) } : {}),
+    ...(options.ref ? { keywords: `SiteReady ${options.ref}`, subject: preparedFor(options.company, options.ref, options.revision) } : {}),
     styles: {
       default: {
         document: {
@@ -554,7 +562,12 @@ function buildDocument(draft, options = {}) {
             ...(options.ref ? [new Paragraph({
               alignment: AlignmentType.LEFT,
               spacing: { before: 20 },
-              children: [run(preparedFor(options.company, options.ref), { size: 16, color: MUTED })],
+              children: [run(preparedFor(options.company, options.ref, options.revision), { size: 16, color: MUTED })],
+            })] : []),
+            ...(workingCopy(options.ref, options.revision) ? [new Paragraph({
+              alignment: AlignmentType.LEFT,
+              spacing: { before: 20 },
+              children: [run(workingCopy(options.ref, options.revision), { size: 16, color: MUTED })],
             })] : []),
           ],
         }),
@@ -568,4 +581,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { preparedFor, draftToDocx, draftedNote, revisionText };
+module.exports = { preparedFor, workingCopy, draftToDocx, draftedNote, revisionText };

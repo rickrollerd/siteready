@@ -5,17 +5,18 @@ const QRCode = require('qrcode');
 const db = require('./db');
 const JSZip = require('jszip');
 const { recordIndustry } = require('./industry');
-const { recordControlEdits } = require('./control-learning');
+const { recordControlEdits, removeOld: removeOldEdits } = require('./control-learning');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
 const { prepareDraft } = require('./draft');
-const { draftToDocx, draftedNote, revisionText } = require('./docx-draft');
+const { draftToDocx, draftedNote, revisionText, preparedFor } = require('./docx-draft');
 const { draftToPdf } = require('./pdf-draft');
 const { readLogo } = require('./logo');
 const { record } = require('./events');
 const signRead = require('./sign-read');
 const aiScope = require('./ai-scope');
+const revisions = require('./revisions');
 
 const REVIEW_MONTHS = 3;
 const REMIND_DAYS_BEFORE = 7;
@@ -271,7 +272,8 @@ router.get('/swms/export.zip', requireUser, route(async (req, res) => {
   const zip = new JSZip();
   const used = new Set();
   for (const row of rows) {
-    const parts = await documentParts(req, row);
+    const parts = await documentParts(req.company, row);
+    if (!parts) continue;
     const buffer = await draftToDocx(parts.draft, parts);
     let name = fileName(row, 'docx');
     for (let n = 2; used.has(name); n += 1) name = fileName(row, 'docx').replace(/\.docx$/, ` ${n}.docx`);
@@ -291,37 +293,128 @@ router.get('/swms', requireUser, route(async (req, res) => {
   res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, signons: signed[row.id] || 0 })) });
 }));
 
-router.post('/swms', requireAccess, route(async (req, res) => {
-  // Saving, like downloading, needs the business name and ABN, which are printed on every SWMS.
+// A new saved SWMS at revision 1, kept as it prints.
+async function createSwms(req, { input, draft, name, siteId = null, title, reason = '' }) {
+  const id = auth.newId();
+  const now = new Date();
+  await db.query(
+    `INSERT INTO swms (id, company_id, site_id, title, input, reviewed_by, created_by, signon_token, created_at, updated_at, last_reviewed_at, review_due_at, revision, revised_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $9, $10, 1, $9)`,
+    [id, req.company.id, siteId, title, JSON.stringify(input), name, req.user.id, auth.newToken(), now, addMonths(now, REVIEW_MONTHS)],
+  );
+  const row = await db.one('SELECT * FROM swms WHERE id = $1', [id]);
+  const kept = await revisions.keepRevision({ row, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
+  record('swms_saved', req.company.id);
+  await recordIndustry(draft, input, req.company).catch(() => {});
+  // The changes in this revision, recorded once for it.
+  await recordControlEdits(draft, input, { company: req.company, swmsId: row.id, revision: 1, now }).catch(() => {});
+  return { row, kept };
+}
+
+// Saving changes is a review: it restarts the review period and makes a new revision, kept as it prints.
+async function reviseSwms(req, row, { input, draft, name, siteId = row.site_id, title = row.title, reason = '' }) {
+  const now = new Date();
+  await db.query('UPDATE swms SET title = $1, input = $2, site_id = $3, reviewed_by = $4, updated_at = $5, last_reviewed_at = $5, review_due_at = $6, reminder_sent_at = NULL, revision = revision + 1, revised_at = $5 WHERE id = $7',
+    [titleFor({ title }, input), JSON.stringify(input), siteId, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
+  const next = await db.one('SELECT * FROM swms WHERE id = $1', [row.id]);
+  const kept = await revisions.keepRevision({ row: next, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
+  await recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now }).catch(() => {});
+  return { row: next, kept };
+}
+
+// Saving, like downloading, needs the business name and ABN, which are printed on every SWMS.
+function needsCompany(req) {
   if (!String(req.company.name || '').trim() || !String(req.company.abn || '').trim()) throw fail(400, 'Add your business name and ABN under Company details before saving. They are printed on every SWMS.');
+}
+
+router.post('/swms', requireAccess, route(async (req, res) => {
+  needsCompany(req);
   const body = req.body || {};
   const name = reviewer(body);
   const input = cleanInput(body.input);
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, draft.kind === 'stand-down' ? 'This SWMS is stood down until the missing facts are added, so it cannot be saved yet.' : (draft.message || 'This SWMS could not be prepared.'));
   const site = await ownSite(req, body.siteId);
-  const id = auth.newId();
-  const now = new Date();
-  await db.query(
-    `INSERT INTO swms (id, company_id, site_id, title, input, reviewed_by, created_by, signon_token, created_at, updated_at, last_reviewed_at, review_due_at, revision, revised_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $9, $10, 1, $9)`,
-    [id, req.company.id, site ? site.id : null, titleFor(body, input), JSON.stringify(input), name, req.user.id, auth.newToken(), now, addMonths(now, REVIEW_MONTHS)],
-  );
-  record('swms_saved', req.company.id);
-  await recordIndustry(draft, input, req.company).catch(() => {});
-  await recordControlEdits(draft, input).catch(() => {});
-  res.status(201).json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [id])) });
+  const { row } = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: titleFor(body, input), reason: textField(body.reason, 300) });
+  res.status(201).json({ swms: swmsView(row) });
 }));
+
+// An account user cannot download a SWMS without saving it (owner decision, 6 October 2026):
+// downloading saves it, so every print has a record and a revision. body is the draft's input
+// with the review confirmation, and swmsId when it is a SWMS already saved. Unchanged since its
+// last revision, that revision is printed again; changed, it is saved as the next revision.
+// Returns null for a SWMS that is stood down, which cannot be saved.
+async function saveForDownload(req, body, options = {}) {
+  needsCompany(req);
+  const name = reviewer(body);
+  const input = cleanInput(body);
+  const draft = prepareDraft(withCompany(input, req.company));
+  if (draft.kind !== 'draft') return null;
+  const reason = textField(body.reason, 300);
+  const existing = typeof body.swmsId === 'string' && body.swmsId
+    ? await db.one('SELECT * FROM swms WHERE id = $1 AND company_id = $2 AND archived = FALSE', [body.swmsId, req.company.id]) : null;
+  if (existing) {
+    const current = await revisions.revisionOf(existing, req.company, existing.revision || 1, withCompany);
+    if (current && revisions.stable(current.input) === revisions.stable(input)) return { row: existing, kept: current, saved: false };
+    return { ...(await reviseSwms(req, existing, { input, draft, name, reason })), saved: true };
+  }
+  const site = typeof body.siteId === 'string' && body.siteId ? await ownSite(req, body.siteId).catch(() => null) : null;
+  const made = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: titleFor({ title: options.title }, input), reason });
+  return { ...made, saved: true };
+}
+
+// A revision number from the address, or the current revision.
+function revisionWanted(req, row) {
+  const n = Number(req.query && req.query.revision);
+  return Number.isInteger(n) && n >= 1 && n <= (row.revision || 1) ? n : (row.revision || 1);
+}
+
+// Where today's library or law words the SWMS differently from its current revision, the saved
+// SWMS says so, and what would change, so the user can make a new revision with it.
+function updatedWording(row, company, kept) {
+  const fresh = prepareDraft(withCompany(typeof row.input === 'string' ? JSON.parse(row.input) : row.input, company));
+  if (fresh.kind !== 'draft' || !kept || revisions.contentHash(fresh) === revisions.contentHash(kept.draft)) return { available: false, changes: [] };
+  return { available: true, changes: revisions.changesBetween(kept.draft, fresh).map(revisions.changeText) };
+}
+
+function revisionView(item, row) {
+  return { revision: item.revision, savedAt: item.createdAt, savedBy: item.editedName, reason: item.reason, ref: item.ref, current: item.revision === (row.revision || 1) };
+}
 
 router.get('/swms/:id', requireUser, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   // Only that each worker read, agreed and signed: how they read it is not the business's to see.
   const signons = (await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 ORDER BY signed_at`, [row.id]))
     .map((item) => ({ worker_name: item.worker_name, worker_company: item.worker_company, signed_at: item.signed_at, note: signRead.signOnNote(item) }));
-  res.json({ swms: swmsView(row), input: row.input, draft: withRevision(prepareDraft(withCompany(row.input, req.company)), row), signons });
+  const kept = await revisions.revisionOf(row, req.company, row.revision || 1, withCompany);
+  const draft = kept ? kept.draft : withRevision(prepareDraft(withCompany(row.input, req.company)), row);
+  const history = (await revisions.listRevisions(row.id)).map((item) => revisionView(item, row)).reverse();
+  res.json({ swms: swmsView(row, { ref: kept ? kept.ref : '' }), input: row.input, draft, signons, revisions: history, update: updatedWording(row, req.company, kept) });
 }));
 
-// Saving changes is a review: it restarts the review period and makes a new revision.
+// Every revision kept, newest first, each with what changed from the one before.
+router.get('/swms/:id/revisions', requireUser, route(async (req, res) => {
+  const row = await ownSwms(req, req.params.id);
+  const list = await revisions.listRevisions(row.id);
+  res.json({
+    revisions: list.map((item, index) => ({
+      ...revisionView(item, row),
+      changes: index ? revisions.changesBetween(list[index - 1].draft, item.draft).map(revisions.changeText) : [],
+    })).reverse(),
+  });
+}));
+
+// One revision as it printed, and what changed between it and another (the one before, unless asked).
+router.get('/swms/:id/revisions/:revision', requireUser, route(async (req, res) => {
+  const row = await ownSwms(req, req.params.id);
+  const kept = await revisions.getRevision(row.id, Number(req.params.revision));
+  if (!kept) throw fail(404, 'That revision was not found.');
+  const against = Number(req.query.against) || kept.revision - 1;
+  const other = against >= 1 && against !== kept.revision ? await revisions.getRevision(row.id, against) : null;
+  const changes = other ? (against < kept.revision ? revisions.changesBetween(other.draft, kept.draft) : revisions.changesBetween(kept.draft, other.draft)).map(revisions.changeText) : [];
+  res.json({ revision: revisionView(kept, row), draft: kept.draft, against: other ? other.revision : null, changes });
+}));
+
 router.put('/swms/:id', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   const body = req.body || {};
@@ -330,11 +423,8 @@ router.put('/swms/:id', requireAccess, route(async (req, res) => {
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so the changes cannot be saved yet.');
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
-  const now = new Date();
-  await db.query('UPDATE swms SET title = $1, input = $2, site_id = $3, reviewed_by = $4, updated_at = $5, last_reviewed_at = $5, review_due_at = $6, reminder_sent_at = NULL, revision = revision + 1, revised_at = $5 WHERE id = $7',
-    [titleFor({ title: body.title || row.title }, input), JSON.stringify(input), site ? site.id : null, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
-  if (body.input) await recordControlEdits(draft, input).catch(() => {});
-  res.json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [row.id])) });
+  const { row: next } = await reviseSwms(req, row, { input, draft, name, siteId: site ? site.id : null, title: body.title || row.title, reason: textField(body.reason, 300) });
+  res.json({ swms: swmsView(next) });
 }));
 
 router.post('/swms/:id/reviewed', requireAccess, route(async (req, res) => {
@@ -351,14 +441,11 @@ router.post('/swms/:id/copy', requireAccess, route(async (req, res) => {
   const body = req.body || {};
   const name = reviewer(body);
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
-  const id = auth.newId();
-  const now = new Date();
-  await db.query(
-    `INSERT INTO swms (id, company_id, site_id, title, input, reviewed_by, created_by, signon_token, created_at, updated_at, last_reviewed_at, review_due_at, revision, revised_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $9, $10, 1, $9)`,
-    [id, req.company.id, site ? site.id : null, textField(body.title, 200) || `Copy of ${row.title}`.slice(0, 200), JSON.stringify(row.input), name, req.user.id, auth.newToken(), now, addMonths(now, REVIEW_MONTHS)],
-  );
-  res.status(201).json({ swms: swmsView(await db.one('SELECT * FROM swms WHERE id = $1', [id])) });
+  const input = typeof row.input === 'string' ? JSON.parse(row.input) : row.input;
+  const draft = prepareDraft(withCompany(input, req.company));
+  if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so it cannot be copied yet.');
+  const { row: copy } = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: textField(body.title, 200) || `Copy of ${row.title}`.slice(0, 200), reason: `Copied from ${row.title}`.slice(0, 300) });
+  res.status(201).json({ swms: swmsView(copy) });
 }));
 
 router.delete('/swms/:id', requireUser, route(async (req, res) => {
@@ -377,15 +464,46 @@ function withRevision(draft, row) {
   return { ...draft, revision: String(row.revision || 1), revisionDate: longDate(row.revised_at || row.created_at) };
 }
 
-async function documentParts(req, row) {
-  const draft = withRevision(prepareDraft(withCompany(row.input, req.company)), row);
-  const signons = (await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 ORDER BY signed_at`, [row.id]))
+// What a revision prints: the draft kept for it, the workers who signed that revision (and those
+// who signed before revisions were recorded), the review, and its reference. The current
+// revision carries the latest review; an older one the review it was saved with.
+async function documentParts(company, row, revision = row.revision || 1) {
+  const kept = await revisions.revisionOf(row, company, revision, withCompany);
+  if (!kept) return null;
+  const current = kept.revision === (row.revision || 1);
+  // Only that each worker read, agreed and signed: how they read it is not the business's to see,
+  // on any revision, however long ago it was saved.
+  const signons = (await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 AND (revision = $2 OR revision IS NULL) ORDER BY signed_at`, [row.id, kept.revision]))
     .map((item) => ({
       worker_name: item.worker_name, worker_company: item.worker_company, signature: item.signature,
       signedDate: longDate(item.signed_at), note: signRead.signOnNote(item),
     }));
-  const confirmation = { name: row.reviewed_by, date: longDate(row.last_reviewed_at) };
-  return { draft, signons, confirmation, logo: readLogo(req.company.logo) };
+  const confirmation = current || !kept.confirmation ? { name: row.reviewed_by, date: longDate(row.last_reviewed_at) } : kept.confirmation;
+  return { draft: kept.draft, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company };
+}
+
+// Sends a saved SWMS's revision as Word or PDF. The headers say which saved SWMS and revision
+// it is, so the page can save later changes as the next revision.
+async function sendDocument(req, res, row, format, revision) {
+  const parts = await documentParts(req.company, row, revision);
+  if (!parts) throw fail(404, 'That revision was not found.');
+  res.setHeader('X-SiteReady-Swms', row.id);
+  res.setHeader('X-SiteReady-Revision', String(parts.revision));
+  res.setHeader('X-SiteReady-Title', encodeURIComponent(row.title));
+  const suffix = parts.revision === (row.revision || 1) ? '' : ` revision ${parts.revision}`;
+  if (format === 'pdf') {
+    const buffer = await draftToPdf(parts.draft, { ...parts, note: draftedNote(parts.confirmation), prepared: preparedFor(req.company, parts.ref, parts.revision) });
+    record('download_pdf', req.company.id);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName(row, 'pdf').replace(/\.pdf$/, `${suffix}.pdf`)}"`);
+    res.send(buffer);
+    return;
+  }
+  const buffer = await draftToDocx(parts.draft, parts);
+  record('download_word', req.company.id);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  res.setHeader('Content-Disposition', `attachment; filename="${fileName(row, 'docx').replace(/\.docx$/, `${suffix}.docx`)}"`);
+  res.send(Buffer.from(buffer));
 }
 
 function fileName(row, extension) {
@@ -395,24 +513,12 @@ function fileName(row, extension) {
 
 router.get('/swms/:id/docx', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
-  const parts = await documentParts(req, row);
-  const buffer = await draftToDocx(parts.draft, parts);
-  record('download_word', req.company.id);
-  await recordIndustry(parts.draft, typeof row.input === 'string' ? JSON.parse(row.input) : row.input, req.company).catch(() => {});
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-  res.setHeader('Content-Disposition', `attachment; filename="${fileName(row, 'docx')}"`);
-  res.send(Buffer.from(buffer));
+  await sendDocument(req, res, row, 'docx', revisionWanted(req, row));
 }));
 
 router.get('/swms/:id/pdf', requireAccess, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
-  const parts = await documentParts(req, row);
-  const buffer = await draftToPdf(parts.draft, { ...parts, note: draftedNote(parts.confirmation) });
-  record('download_pdf', req.company.id);
-  await recordIndustry(parts.draft, typeof row.input === 'string' ? JSON.parse(row.input) : row.input, req.company).catch(() => {});
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="${fileName(row, 'pdf')}"`);
-  res.send(buffer);
+  await sendDocument(req, res, row, 'pdf', revisionWanted(req, row));
 }));
 
 router.get('/swms/:id/qr.svg', requireUser, route(async (req, res) => {
@@ -427,6 +533,12 @@ router.get('/swms/:id/qr.svg', requireUser, route(async (req, res) => {
 // Sign-ons one SWMS can take. A large crew over a long job stays well under it.
 const SIGNON_LIMIT = 500;
 
+// Workers read and sign the current revision as it was saved, the same as its PDF.
+async function signedDraft(row, company) {
+  const kept = await revisions.revisionOf(row, company, row.revision || 1, withCompany);
+  return kept ? kept.draft : prepareDraft(withCompany(row.input, company));
+}
+
 async function swmsForToken(token) {
   const row = await db.one('SELECT * FROM swms WHERE signon_token = $1 AND archived = FALSE', [String(token || '')]);
   if (!row) throw fail(404, 'This sign-on link is not valid any more. Ask your supervisor for the current QR code.');
@@ -439,7 +551,7 @@ async function swmsForToken(token) {
 // their answers. Only ticked PPE is sent, so the decoys are not marked as unticked.
 router.get('/sign/:token', route(async (req, res) => {
   const { row, company } = await swmsForToken(req.params.token);
-  const draft = prepareDraft(withCompany(row.input, company));
+  const draft = await signedDraft(row, company);
   const readId = await signRead.startRead(row, draft);
   res.json({
     title: row.title, company: company.name, task: draft.task, workplace: draft.workplace,
@@ -453,7 +565,7 @@ router.get('/sign/:token', route(async (req, res) => {
 
 router.get('/sign/:token/translation', route(async (req, res) => {
   const { row, company } = await swmsForToken(req.params.token);
-  const draft = prepareDraft(withCompany(row.input, company));
+  const draft = await signedDraft(row, company);
   res.json(await signRead.translation(row, draft, req.query.lang, req.query.read));
 }));
 
@@ -465,7 +577,7 @@ router.post('/sign/:token', route(async (req, res) => {
   if (!name) throw fail(400, 'Enter your name.');
   if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signature) || signature.length > MAX_SIGNATURE) throw fail(400, 'Sign in the box before submitting.');
   if (body.confirmed !== true) throw fail(400, 'Tick the box to confirm the SWMS has been explained to you.');
-  const draft = prepareDraft(withCompany(row.input, company));
+  const draft = await signedDraft(row, company);
   // A worker who cannot read the SWMS has it explained by their supervisor: no reading time or questions.
   const explainedBy = body.explained === true ? textField(body.supervisor, 120).replace(/\s+/g, ' ') : '';
   if (body.explained === true && !explainedBy) throw fail(400, 'Enter the name of the supervisor who explained the SWMS to you.');
@@ -495,11 +607,11 @@ router.post('/sign/:token', route(async (req, res) => {
   if (Number(signed.n) >= limit) throw fail(409, `This SWMS has reached its limit of ${limit} sign-ons. Ask your supervisor to save a new copy of the SWMS and share its QR code.`);
   if (reading) await signRead.useRead(reading.read);
   await db.query(
-    `INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, language, read_seconds, sections_viewed, sections_total, section_seconds, check_attempts, explained_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+    `INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, language, read_seconds, sections_viewed, sections_total, section_seconds, check_attempts, explained_by, revision)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
     [auth.newId(), row.id, name, textField(body.company, 200), signature, new Date(),
       reading ? reading.language : '', reading ? reading.readSeconds : null, reading ? reading.viewed : null, reading ? reading.total : null,
-      reading ? JSON.stringify(reading.sectionSeconds) : null, reading ? reading.attempts : null, explainedBy],
+      reading ? JSON.stringify(reading.sectionSeconds) : null, reading ? reading.attempts : null, explainedBy, row.revision || 1],
   );
   record('worker_signon', row.company_id);
   res.status(201).json({ ok: true, message: `Thanks ${name}. You are signed on to ${row.title}.` });
@@ -540,10 +652,13 @@ async function removeExpired(now = new Date()) {
   const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   await db.query('DELETE FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM sign_translations WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
+  await db.query('DELETE FROM swms_revisions WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms WHERE archived = TRUE AND updated_at < $1', [cutoff]);
   // A read session is only needed while the worker is signing on.
   await db.query('DELETE FROM sign_reads WHERE started_at < $1', [new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)]);
   await db.query('DELETE FROM signins WHERE created_at < $1', [new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)]);
+  // Changes kept to improve the controls are deleted after 3 years.
+  await removeOldEdits(now);
 }
 
-module.exports = { validAbn, router, sendReviewReminders, removeExpired, withCompany, REVIEW_MONTHS };
+module.exports = { validAbn, router, sendReviewReminders, removeExpired, withCompany, saveForDownload, documentParts, sendDocument, REVIEW_MONTHS };

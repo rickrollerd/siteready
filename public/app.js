@@ -284,6 +284,8 @@ function payload() {
     stepOrder: stepOrder || undefined,
     leaveOut: leaveOut || undefined,
     controlEdits: controlEdits || undefined,
+    hazardEdits: hazardEdits || undefined,
+    whoEdits: whoEdits || undefined,
     facts,
     site,
   };
@@ -465,9 +467,15 @@ document.getElementById('start').addEventListener('submit', (event) => {
   // The state always follows the job address.
   applyAddressState();
   // A new task starts from the steps found in it, or the steps the scope reader found for it.
+  // The steps picked or left out for this same task are kept, so Continue on a reopened SWMS
+  // does not undo them.
   const scope = window.siteReadyScopeTask;
-  stepPicks = scope && scope.task === document.getElementById('task').value.trim() && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
-  leaveOut = scope && scope.task === document.getElementById('task').value.trim() && Array.isArray(scope.leaveOut) ? [...scope.leaveOut] : null;
+  const task = document.getElementById('task').value.trim();
+  if (task !== choicesTask) {
+    stepPicks = scope && scope.task === task && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
+    leaveOut = scope && scope.task === task && Array.isArray(scope.leaveOut) ? [...scope.leaveOut] : null;
+    choicesTask = task;
+  }
   loadQuestions();
 });
 
@@ -479,6 +487,26 @@ let leaveOut = null;
 let stepOrder = null;
 // The user's own changes to the controls, by job step name: { removed, changed, added }.
 let controlEdits = null;
+// The user's own hazards, by job step name: { changed, added, notApplicable }, and who is
+// responsible for each step's controls (the Who column), by job step name.
+let hazardEdits = null;
+let whoEdits = null;
+// The task the step picks and steps left out were made for.
+let choicesTask = null;
+
+// A new SWMS starts from SiteReady's steps, order, controls and PPE, and is saved as a new SWMS.
+// Typing in the task box keeps the user's changes: those that no longer match are reported.
+function newSwms() {
+  stepPicks = null;
+  leaveOut = null;
+  stepOrder = null;
+  controlEdits = null;
+  hazardEdits = null;
+  whoEdits = null;
+  choicesTask = null;
+  ppeTouched.clear();
+  if (window.SiteReady) window.SiteReady.editing = null;
+}
 let stepLibrary = { groups: [] };
 const stepById = new Map();
 
@@ -718,8 +746,11 @@ async function fillForm(input) {
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
+  choicesTask = String(input.task || '').trim();
   stepOrder = Array.isArray(input.stepOrder) ? [...input.stepOrder] : null;
   controlEdits = input.controlEdits && typeof input.controlEdits === 'object' ? JSON.parse(JSON.stringify(input.controlEdits)) : null;
+  hazardEdits = input.hazardEdits && typeof input.hazardEdits === 'object' ? JSON.parse(JSON.stringify(input.hazardEdits)) : null;
+  whoEdits = input.whoEdits && typeof input.whoEdits === 'object' ? { ...input.whoEdits } : null;
   showFallExplanation();
   if (!(await loadQuestions())) return;
   document.querySelectorAll('[data-fact]').forEach((el) => {
@@ -822,6 +853,7 @@ presetEl.addEventListener('change', () => {
   if (!item) return;
   const taskEl = document.getElementById('task');
   if (taskEl.value.trim() && taskEl.value.trim() !== taskEl.dataset.preset && !confirm('Replace the task you have written?')) return;
+  newSwms();
   taskEl.value = item.task;
   taskEl.dataset.preset = item.task;
   document.getElementById('task-trade').value = '';
@@ -893,16 +925,41 @@ function render(draft, { movable = false } = {}) {
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
   // In the preview each control can be changed or removed, and the user can add their own.
-  // Lines that are a legal requirement say why they stay.
+  // Lines that are a legal requirement, or that SiteReady recommends keeping, say why before the
+  // user goes ahead. A removed or weakened line asks why, which the user can leave blank.
+  const report = draft.controlEdits || {};
   const controlCell = (step, index) => {
     if (!movable) return list(step.controls);
     const legal = (draft.controlLegal || [])[index] || [];
+    const warn = (draft.controlWarn || [])[index] || [];
     const removed = ((controlEdits || {})[step.step] || {}).removed || [];
-    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}>${esc(line)}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+    const warned = (report.warned || []).filter((item) => item.step === step.step);
+    const asks = (report.applied || []).filter((item) => item.step === step.step && (item.kind === 'removed' || warned.some((other) => other.text === item.from)));
+    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${esc(line)}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+      ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
+      ${asks.map((item) => whyBox(index, item)).join('')}
       <button type="button" class="link" data-ctl="add" data-ctl-step="${index}">Add your own control</button><p class="meta ctl-msg" data-ctl-msg="${index}" role="status"></p>`;
   };
+  // Hazards can be reworded and added; SiteReady's own are marked "does not apply", never deleted.
+  const hazardCell = (step, index) => {
+    if (!movable) return list(step.hazards);
+    const asks = (report.applied || []).filter((item) => item.step === step.step && item.kind === 'hazardNotApplicable');
+    return `<ul>${step.hazards.map((line, i) => {
+      const own = line.endsWith(HAZARD_MARK);
+      const off = line.endsWith(NOT_APPLICABLE);
+      const tools = off
+        ? '<button type="button" class="link" data-hz="applies">It applies</button>'
+        : `<button type="button" class="link" data-hz="change">Change</button>${own ? '<button type="button" class="link" data-hz="remove">Remove</button>' : '<button type="button" class="link" data-hz="na">Does not apply</button>'}`;
+      return `<li data-hz-step="${index}" data-hz-line="${i}"${off ? ' class="ctl-removed"' : ''}>${esc(line)}<span class="ctl-tools">${tools}</span></li>`;
+    }).join('')}</ul>
+      ${asks.map((item) => whyBox(index, item, 'hazard')).join('')}
+      <button type="button" class="link" data-hz="add" data-hz-step="${index}">Add a hazard</button>`;
+  };
+  const whoCell = (step, index) => (movable
+    ? `<span data-who-step="${index}">${esc(step.responsible || '')}<span class="ctl-tools"><button type="button" class="link" data-who="change">Change</button></span></span>`
+    : esc(step.responsible || ''));
   const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}` : '');
-  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${list(step.hazards)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${esc(step.responsible || '')}</td></tr>`).join('')}</tbody></table>
+  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${hazardCell(step, index)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${whoCell(step, index)}</td></tr>`).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const registers = `${(draft.plant || []).length ? `<h4>Plant and equipment</h4>${grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence]))}` : ''}
@@ -922,7 +979,7 @@ function render(draft, { movable = false } = {}) {
     <h4>Responsibilities</h4>${people}
     <h4>High risk construction work</h4>${risks}
     <h4>Controls</h4>${controls}
-    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control is kept unless you change or remove it. Lines you write or change are marked as your own.</p>' : ''}${steps}
+    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change it. Lines you write or change are marked as your own. A hazard that does not apply is marked so, not deleted. SiteReady warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why.</p>' : ''}${steps}
     <h4>Personal protective equipment</h4>${ppe}
     ${registers}
     <h4>${esc(draft.reviewHeading)}</h4>
@@ -1039,16 +1096,20 @@ async function prepareDraft({ scroll = true } = {}) {
     shownSteps = (data.jobSteps || []).map((step) => step.step);
     rememberFields();
     // Answers that contradict the task's words are shown above the SWMS, not printed on it.
-    const refused = ((data.controlEdits || {}).refused || []).map((item) => `${item.step}: ${item.reason}`);
-    const warnings = [...(data.warnings || []), ...refused].map((text) => `<p class="warning">${esc(text)}</p>`).join('');
+    const report = data.controlEdits || {};
+    followRewords(report.remapped);
+    shownReport = report;
+    const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), editNotes(report, { discard: true })].join('');
     shownDraft = data;
     resultEl.innerHTML = `${warnings}<div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
+    // What is saved: the input sent, with changes moved onto any line SiteReady has reworded.
+    const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
     // Downloading and saving need an account; the account script adds those buttons.
-    window.SiteReady.showActions(data, JSON.parse(body));
-    if (data.kind === 'draft') showTranslate(JSON.parse(body));
+    window.SiteReady.showActions(data, sent);
+    if (data.kind === 'draft') showTranslate(sent);
     // A SWMS in a project is recorded against its task.
-    if (window.SiteReady.onDraft) window.SiteReady.onDraft(data, JSON.parse(body));
+    if (window.SiteReady.onDraft) window.SiteReady.onDraft(data, sent);
     if (scroll) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;
@@ -1104,10 +1165,170 @@ resultEl.addEventListener('dragend', () => {
   dragFrom = null;
   resultEl.querySelectorAll('.dragging').forEach((row) => row.classList.remove('dragging'));
 });
-// A new task starts with SiteReady's order again.
-document.getElementById('task').addEventListener('input', () => { stepOrder = null; leaveOut = null; controlEdits = null; ppeTouched.clear(); });
 
 // ---- Changing, removing and adding controls (task #102) ----
+
+// Why a line was removed or weakened (owner decision, 6 October 2026): a short pick list and a
+// note, both optional. Kept with the change, so the saved record and SiteReady's learning have it.
+const WHY = [['notNeeded', 'Not needed for this job'], ['anotherWay', 'Done another way on this job'], ['othersCover', 'Another contractor or the site covers it'], ['wording', 'The wording does not fit the job'], ['other', 'Other']];
+function whyBox(index, item, about = 'control') {
+  const store = about === 'hazard' ? hazardEdits : controlEdits;
+  const given = (((store || {})[item.step] || {}).reasons || []).find((entry) => entry.line === item.from) || {};
+  const label = about === 'hazard' ? 'Does not apply' : item.kind === 'removed' ? 'Removed' : 'Changed';
+  return `<div class="ctl-why">${label}: ${esc(plainLine(item.from).slice(0, 80))}${plainLine(item.from).length > 80 ? '…' : ''}<br>
+    <select data-ctl-reason data-ctl-about="${about}" data-ctl-step="${index}" data-ctl-from="${esc(item.from)}" aria-label="Why (optional)"><option value="">Why? (optional)</option>${WHY.map(([id, text]) => `<option value="${id}"${given.reason === id ? ' selected' : ''}>${esc(text)}</option>`).join('')}</select>
+    <input type="text" maxlength="300" data-ctl-note data-ctl-about="${about}" data-ctl-step="${index}" data-ctl-from="${esc(item.from)}" placeholder="Note (optional)" aria-label="Note (optional)" value="${esc(given.note || '')}"></div>`;
+}
+function setReason(stepName, line, values, about = 'control') {
+  const edit = about === 'hazard' ? hazardEditFor(stepName) : editsFor(stepName);
+  const reasons = (edit.reasons || []).filter((entry) => entry.line !== line);
+  const next = { line, reason: '', note: '', ...(edit.reasons || []).find((entry) => entry.line === line), ...values };
+  edit.reasons = next.reason || next.note ? [...reasons, next] : reasons;
+  if (!edit.reasons.length) delete edit.reasons;
+  if (about === 'hazard') tidyHazards(); else tidyEdits();
+}
+
+// ---- The user's own hazards and Who (owner decision, 6 October 2026) ----
+
+const HAZARD_MARK = '(Our own hazard)';
+const NOT_APPLICABLE = '(Does not apply to this job)';
+const hazardText = (line) => line.replace(/\s*\((?:Our own hazard|Does not apply to this job)\)$/, '');
+function hazardEditFor(name) {
+  hazardEdits = hazardEdits || {};
+  hazardEdits[name] = hazardEdits[name] || { changed: [], added: [], notApplicable: [] };
+  return hazardEdits[name];
+}
+function tidyHazards() {
+  if (!hazardEdits) return;
+  for (const [name, edit] of Object.entries(hazardEdits)) {
+    if (edit.reasons) edit.reasons = edit.reasons.filter((entry) => edit.notApplicable.includes(entry.line));
+    if (edit.reasons && !edit.reasons.length) delete edit.reasons;
+    if (!edit.changed.length && !edit.added.length && !edit.notApplicable.length) delete hazardEdits[name];
+  }
+  if (!Object.keys(hazardEdits).length) hazardEdits = null;
+}
+// A hazard line as shown: SiteReady's, one the user reworded or added, or one marked as not applying.
+function applyHazardEdit(step, line, action, next = '') {
+  const edit = hazardEditFor(step.step);
+  const text = hazardText(line);
+  if (action === 'na') edit.notApplicable.push(line);
+  if (action === 'applies') edit.notApplicable = edit.notApplicable.filter((item) => item !== text);
+  if (line.endsWith(HAZARD_MARK)) {
+    // The user's own: an added one, or one of SiteReady's they reworded.
+    const added = edit.added.indexOf(text);
+    const change = edit.changed.find((item) => item.to === text);
+    if (added >= 0) {
+      if (action === 'remove') edit.added.splice(added, 1); else if (next) edit.added[added] = next;
+    } else if (change) {
+      if (action === 'remove') edit.changed.splice(edit.changed.indexOf(change), 1); else if (next) change.to = next;
+    }
+  } else if (action === 'change' && next) {
+    edit.changed = [...edit.changed.filter((item) => item.from !== line), { from: line, to: next }];
+  }
+  tidyHazards();
+  prepareDraft({ scroll: false });
+}
+function setWho(step, text) {
+  whoEdits = whoEdits || {};
+  if (text) whoEdits[step.step] = text; else delete whoEdits[step.step];
+  if (!Object.keys(whoEdits).length) whoEdits = null;
+  prepareDraft({ scroll: false });
+}
+resultEl.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-hz], [data-who]');
+  if (!button || !shownDraft) return;
+  if (button.dataset.who) {
+    const holder = button.closest('[data-who-step]');
+    const step = (shownDraft.jobSteps || [])[Number(holder.dataset.whoStep)];
+    if (step) lineEditor(holder, step.responsible || '', (text) => setWho(step, text.slice(0, 120)));
+    return;
+  }
+  const holder = button.closest('[data-hz-step]');
+  const step = (shownDraft.jobSteps || [])[Number(holder.dataset.hzStep)];
+  if (!step) return;
+  const action = button.dataset.hz;
+  if (action === 'add') {
+    lineEditor(button, '', (text) => { hazardEditFor(step.step).added.push(text); tidyHazards(); prepareDraft({ scroll: false }); });
+    return;
+  }
+  const line = step.hazards[Number(holder.dataset.hzLine)];
+  if (action === 'change') lineEditor(holder, hazardText(line), (text) => applyHazardEdit(step, line, 'change', text));
+  else applyHazardEdit(step, line, action);
+});
+
+// What the server did with the user's changes: those refused, those made on a line SiteReady has
+// since reworded (now applied to the new wording), and those that no longer match a line in the
+// SWMS (kept, not applied, until the user makes them again or discards them).
+let shownReport = {};
+function describeEdit(item) {
+  if (item.kind === 'removed') return `You removed "${item.text}"`;
+  if (item.kind === 'changed') return `You changed "${item.text}" to "${item.to}"`;
+  if (item.kind === 'hazardChanged') return `You changed the hazard "${item.text}" to "${item.to}"`;
+  if (item.kind === 'hazardNotApplicable') return `You marked the hazard "${item.text}" as not applying`;
+  if (item.kind === 'hazardAdded') return `You added the hazard "${item.to}"`;
+  if (item.kind === 'whoChanged') return `You set Who to "${item.to}"`;
+  return `You added "${item.to}"`;
+}
+function editNotes(report, { discard = false } = {}) {
+  const out = (report.refused || []).map((item) => `<p class="warning">${esc(`${item.step}: ${item.reason}`)}</p>`);
+  if ((report.remapped || []).some((item) => item.kind !== 'step')) {
+    out.push(`<div class="note"><p>SiteReady has reworded lines you changed since you made the changes. Your changes now apply to the new wording. Check them in the job steps below.</p><ul>${report.remapped.filter((item) => item.kind !== 'step').map((item) => `<li>${esc(item.step)}: "${esc(item.from)}" now reads "${esc(item.line)}"</li>`).join('')}</ul></div>`);
+  }
+  // In the saved view, the warnings given when the SWMS was saved, with the reasons.
+  if (!discard) {
+    for (const item of report.warned || []) out.push(`<p class="warning">${esc(`${item.step}: ${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'} "${item.kind === 'added' ? item.to : item.text}". ${item.warnings.join(' ')}${item.reason ? ` Reason given: ${(WHY.find(([id]) => id === item.reason) || [])[1] || item.reason}${item.note ? `, ${item.note}` : ''}.` : ''}`)}</p>`);
+  }
+  (report.unmatched || []).forEach((item, index) => {
+    const why = item.reason === 'step' ? 'That job step is no longer in this SWMS' : 'That line is no longer in this step';
+    out.push(`<p class="warning">${esc(`${item.step}: ${describeEdit(item)}. ${why}, as SiteReady's wording, the steps or your answers have changed, so the change is not applied. Make the change again on the line as it now reads, or discard it.`)}${discard ? ` <button type="button" class="link" data-ctl-discard="${index}">Discard this change</button>` : ''}</p>`);
+  });
+  return out.join('');
+}
+// A change made on a line SiteReady has since reworded is kept against the new wording.
+function followRewords(remapped) {
+  for (const item of remapped || []) {
+    if (!/^hazard/.test(item.kind)) continue;
+    const hz = hazardEdits && hazardEdits[item.step];
+    if (!hz) continue;
+    if (item.kind === 'hazardChanged') hz.changed.forEach((change) => { if (change.from === item.from) change.from = item.line; });
+    if (item.kind === 'hazardNotApplicable') hz.notApplicable = hz.notApplicable.map((line) => (line === item.from ? item.line : line));
+  }
+  if (!controlEdits || !(remapped || []).length) return;
+  for (const item of remapped) {
+    if (item.kind === 'step' && controlEdits[item.from] && !controlEdits[item.line]) {
+      controlEdits[item.line] = controlEdits[item.from];
+      delete controlEdits[item.from];
+      continue;
+    }
+    const edit = controlEdits[item.step];
+    if (!edit) continue;
+    if (item.kind === 'removed') edit.removed = edit.removed.map((line) => (line === item.from ? item.line : line));
+    if (item.kind === 'changed') edit.changed.forEach((change) => { if (change.from === item.from) change.from = item.line; });
+  }
+}
+// Discarding a change that no longer matches takes it out of the user's changes.
+function discardEdit(item) {
+  if (/^hazard/.test(item.kind)) {
+    const hz = hazardEdits && hazardEdits[item.step];
+    if (!hz) return;
+    if (item.kind === 'hazardChanged') hz.changed = hz.changed.filter((change) => change.from !== item.text);
+    if (item.kind === 'hazardNotApplicable') hz.notApplicable = hz.notApplicable.filter((line) => line !== item.text);
+    if (item.kind === 'hazardAdded') hz.added = hz.added.filter((line) => line !== item.to);
+    tidyHazards();
+    return;
+  }
+  if (item.kind === 'whoChanged') {
+    if (whoEdits) delete whoEdits[item.step];
+    if (whoEdits && !Object.keys(whoEdits).length) whoEdits = null;
+    return;
+  }
+  const edit = controlEdits && controlEdits[item.step];
+  if (!edit) return;
+  if (item.kind === 'removed') edit.removed = edit.removed.filter((line) => line !== item.text);
+  if (item.kind === 'changed') edit.changed = edit.changed.filter((change) => change.from !== item.text);
+  if (item.kind === 'added') edit.added = edit.added.filter((line) => line !== item.to);
+  tidyEdits();
+}
 
 const OWN_MARK = ' (Our own control)';
 const isOwn = (line) => line.endsWith(OWN_MARK);
@@ -1130,12 +1351,24 @@ function editsFor(name) {
 // Drops steps with no changes left, so an unchanged SWMS sends nothing.
 function tidyEdits() {
   if (!controlEdits) return;
-  for (const [name, edit] of Object.entries(controlEdits)) if (!edit.removed.length && !edit.changed.length && !edit.added.length) delete controlEdits[name];
+  for (const [name, edit] of Object.entries(controlEdits)) {
+    // A reason goes with its change.
+    if (edit.reasons) edit.reasons = edit.reasons.filter((entry) => edit.removed.includes(entry.line) || edit.changed.some((item) => item.from === entry.line));
+    if (edit.reasons && !edit.reasons.length) delete edit.reasons;
+    if (!edit.removed.length && !edit.changed.length && !edit.added.length) delete controlEdits[name];
+  }
   if (!Object.keys(controlEdits).length) controlEdits = null;
 }
 function controlMessage(index, text) {
   const el = resultEl.querySelector(`[data-ctl-msg="${index}"]`);
   if (el) el.textContent = text;
+}
+// A warning before removing or changing a line SiteReady recommends keeping, with a way to go ahead.
+let pendingLine = null;
+function warnFirst(index, warning, label) {
+  const el = resultEl.querySelector(`[data-ctl-msg="${index}"]`);
+  if (!el) return;
+  el.innerHTML = `${esc(warning)} <span class="ctl-tools" data-ctl-step="${index}"><button type="button" class="link" data-ctl="go">${esc(label)}</button><button type="button" class="link" data-ctl="keep">Keep the line</button></span>`;
 }
 function applyLineEdit(step, line, next) {
   const edit = editsFor(step.step);
@@ -1175,6 +1408,12 @@ function lineEditor(holder, value, onSave) {
   });
 }
 resultEl.addEventListener('click', (event) => {
+  const discard = event.target.closest('[data-ctl-discard]');
+  if (discard) {
+    const item = (shownReport.unmatched || [])[Number(discard.dataset.ctlDiscard)];
+    if (item) { discardEdit(item); prepareDraft({ scroll: false }); }
+    return;
+  }
   const button = event.target.closest('[data-ctl]');
   if (!button || !shownDraft) return;
   const holder = button.closest('[data-ctl-step]');
@@ -1193,12 +1432,36 @@ resultEl.addEventListener('click', (event) => {
     return;
   }
   const line = step.controls[Number(holder.dataset.ctlLine)];
-  if (holder.dataset.legal) {
-    controlMessage(index, `This line is a legal requirement (${holder.dataset.legal}), so it cannot be removed or changed. Add your own control if the site needs more.`);
+  if (action === 'go') {
+    // The user has read the warning and goes ahead.
+    const next = pendingLine;
+    pendingLine = null;
+    if (next && next.index === index) {
+      if (next.action === 'remove') applyLineEdit(next.step, next.line, '');
+      else lineEditor(next.holder, plainLine(next.line), (text) => applyLineEdit(next.step, next.line, text));
+    }
+    return;
+  }
+  if (action === 'keep') { pendingLine = null; controlMessage(index, ''); return; }
+  // A line that is a legal requirement, or that SiteReady recommends keeping, says why first.
+  // The user can still go ahead (owner decision, 6 October 2026).
+  if (holder.dataset.warn && !isOwn(line)) {
+    pendingLine = { index, action, step, line, holder };
+    warnFirst(index, holder.dataset.warn, action === 'remove' ? 'Remove anyway' : 'Change anyway');
     return;
   }
   if (action === 'remove') applyLineEdit(step, line, '');
   if (action === 'change') lineEditor(holder, plainLine(line), (text) => applyLineEdit(step, line, text));
+});
+// The reason for a removed or weakened line is kept as it is picked or typed.
+resultEl.addEventListener('change', (event) => {
+  const field = event.target.closest && event.target.closest('[data-ctl-reason], [data-ctl-note]');
+  if (!field || !shownDraft) return;
+  const step = (shownDraft.jobSteps || [])[Number(field.dataset.ctlStep)];
+  if (!step) return;
+  setReason(step.step, field.dataset.ctlFrom, field.matches('[data-ctl-reason]') ? { reason: field.value } : { note: field.value.trim() }, field.dataset.ctlAbout);
+  // The buttons below the SWMS save what is now chosen.
+  if (window.SiteReady.actionInput) window.SiteReady.actionInput = { ...window.SiteReady.actionInput, controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
 });
 
 // ---- Reading the draft in another language (task #94) ----
@@ -1261,7 +1524,7 @@ function renderTranslation(tr) {
 }
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
-  api, esc, payload, render, fillForm, fillFields, setProfile, getProfile: () => profile, resultEl, addPrincipals,
+  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals,
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });

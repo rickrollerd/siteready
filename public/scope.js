@@ -295,7 +295,8 @@
       from.textContent = label || `From the scope: ${item.title}`;
       from.classList.remove('hidden');
     }
-    // A new task starts from SiteReady's step order and PPE again.
+    // A new task starts from SiteReady's steps, order, controls and PPE again, as a new SWMS.
+    if (S.newSwms) S.newSwms();
     taskEl.dispatchEvent(new Event('input', { bubbles: true }));
     taskEl.dataset.preset = text;
     $('task-trade').value = item.trade || '';
@@ -334,10 +335,17 @@
     result.innerHTML = '';
     // The last task's questions go too; this task's come once its start details are in.
     document.getElementById('facts').classList.add('hidden');
-    useTask(project.items[index], `SWMS ${index + 1} of ${project.items.length}: ${project.items[index].title}`);
+    const item = project.items[index];
+    useTask(item, `SWMS ${index + 1} of ${project.items.length}: ${item.title}`);
     renderProject();
     // The page goes to the project box, which says which SWMS is open, after the layout has settled.
     requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
+    // A SWMS prepared before comes back as it was left: its answers, steps and the user's changes.
+    // Once saved, its changes save as its next revision.
+    if (item.body) {
+      S.fillForm(item.body).then(() => { if (item.swmsId) S.editing = { id: item.swmsId, title: item.title }; });
+      return;
+    }
     // With the site details already filled in, go straight to this SWMS's questions.
     const start = $('start');
     if (index > 0 && start.checkValidity() && document.querySelector('input[name="fallRisk"]:checked')) start.requestSubmit($('continue'));
@@ -367,8 +375,9 @@
       ${current ? `<p class="project-now">Now preparing SWMS ${project.current + 1} of ${project.items.length}: <strong>${esc(current.title)}</strong>. It is open in the form below: fill in the details and press Continue. When it is ready, a button under it opens the next one.</p>` : ''}
       <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next. You can also open any SWMS in the list.</p>
       <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : item.status === 'needs' ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
-      <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
+      <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
+      <p class="meta" id="project-status" role="status"></p>
       <div class="actions"><button type="button" class="small secondary" id="project-close">Close project</button></div>`;
     panel.classList.remove('hidden');
   }
@@ -406,8 +415,17 @@
       const button = event.target.closest('#project-zip');
       button.disabled = true;
       try {
-        const swms = project.items.filter((item) => item.status === 'ready' && item.body).map((item) => ({ ...item.body, swmsTitle: item.title }));
-        await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, reviewConfirmed: true, reviewedBy: name });
+        // The SWMS open now, if it was saved or downloaded on its own, is that saved SWMS.
+        const open = project.items[project.current];
+        if (open && !open.swmsId && S.editing && S.editing.id) open.swmsId = S.editing.id;
+        const ready = project.items.filter((item) => item.status === 'ready' && item.body);
+        const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsId: item.swmsId || undefined }));
+        const site = $('site-picker') && $('site-picker').value;
+        const result = await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, siteId: site || undefined, reviewConfirmed: true, reviewedBy: name });
+        // Each SWMS is saved as a record when the project is downloaded; later changes save as its next revision.
+        for (const saved of (result && result.items) || []) if (ready[saved.index]) ready[saved.index].swmsId = saved.id;
+        saveProject();
+        if (result && result.items && result.items.length) $('project-status').textContent = `Saved ${result.items.length} SWMS under My SWMS and downloaded them. Changes you make to one now save as its next revision.`;
       } catch (error) {
         $('project-error').textContent = error.message;
       } finally {

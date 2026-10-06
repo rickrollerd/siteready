@@ -6,7 +6,7 @@ const path = require('path');
 const cluster = require('cluster');
 const os = require('os');
 const { listStates, findState } = require('./legislation');
-const { questionsFor, prepareDraft, legalSource } = require('./draft');
+const { questionsFor, prepareDraft, legalSource, keepWarning } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
 const { issueRef, placeOf } = require('./refs');
@@ -26,7 +26,6 @@ const aiScope = require('./ai-scope');
 const { reportToDocx } = require('./scope-report');
 const places = require('./places');
 const { recordIndustry } = require('./industry');
-const { recordControlEdits } = require('./control-learning');
 const draftTranslate = require('./draft-translate');
 
 require('dotenv').config();
@@ -54,7 +53,8 @@ const app = express();
 const trustProxy = Number(process.env.TRUST_PROXY ?? 1);
 app.set('trust proxy', Number.isInteger(trustProxy) && trustProxy >= 0 ? trustProxy : 1);
 app.use(helmet());
-app.use(cors({ origin: allowedOrigins() }));
+// The native app reads the file name, and the saved SWMS and revision a download was saved as.
+app.use(cors({ origin: allowedOrigins(), exposedHeaders: ['Content-Disposition', 'X-SiteReady-Swms', 'X-SiteReady-Revision', 'X-SiteReady-Title', 'X-SiteReady-Saved'] }));
 // Stripe's webhook is checked against the raw body, so it comes before the JSON reader.
 app.post('/api/billing/webhook', ...billing.webhook);
 
@@ -119,8 +119,9 @@ app.get('/api/address', async (req, res, next) => {
   }
 });
 
-// Anyone holding a SWMS can check its SiteReady reference: whether it is genuine, and the
-// business it was prepared for. Only what is printed on the SWMS itself is shown.
+// Anyone holding a SWMS can check its SiteReady reference: whether it is genuine, the business
+// it was prepared for, its title and revision, and whether that revision is still the current one
+// (owner decision, 6 October 2026). Nothing else is shown: no controls, no ABN, no dates.
 app.use('/api/verify', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
 app.get('/api/verify/:ref', async (req, res, next) => {
   try {
@@ -130,7 +131,16 @@ app.get('/api/verify/:ref', async (req, res, next) => {
     const found = await require('./refs').findRef(ref).catch(() => null);
     record('verify_ref', null);
     if (!found) return res.json({ found: false, message: 'This reference is not in SiteReady\'s records. The SWMS was not prepared with SiteReady under this reference, or the reference was changed.' });
-    res.json({ found: true, ref: found.ref, business: found.company_name, abn: found.abn, title: found.title, preparedAt: found.created_at });
+    // A reference printed on a saved SWMS names its revision; one from before revisions were
+    // recorded, or on a stood-down draft, has none.
+    let revision = null;
+    let current = null;
+    if (found.swms_id) {
+      const swms = await db.one('SELECT revision, archived FROM swms WHERE id = $1', [found.swms_id]).catch(() => null);
+      revision = Number(found.revision) || null;
+      current = Boolean(swms && !swms.archived && Number(swms.revision || 1) === revision);
+    }
+    res.json({ found: true, ref: found.ref, business: found.company_name, title: found.title, revision, current });
   } catch (error) {
     next(error);
   }
@@ -249,9 +259,13 @@ app.post('/api/draft', (req, res) => {
   const result = prepareDraft(draftBody(req.body || {}));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
   record(req.user ? 'preview_signed_in' : 'preview', req.company && req.company.id);
-  // For the preview only: the source of each control line that is a legal requirement, so the
-  // page can say why it cannot be removed. Empty for lines the user may change.
-  const legal = result.kind === 'draft' ? { controlLegal: (result.jobSteps || []).map((step) => step.controls.map(legalSource)) } : {};
+  // For the preview only: the source of each control line that is a legal requirement, and why
+  // removing or weakening a line is not recommended, so the page can warn before the user goes
+  // ahead. Empty for other lines.
+  const legal = result.kind === 'draft' ? {
+    controlLegal: (result.jobSteps || []).map((step) => step.controls.map(legalSource)),
+    controlWarn: (result.jobSteps || []).map((step) => step.controls.map(keepWarning)),
+  } : {};
   res.json({ ...result, ...legal });
 });
 
@@ -282,7 +296,8 @@ function reviewConfirmation(body) {
 
 // Without an account a SWMS can be previewed on screen. Downloads need an
 // account with an active trial or subscription, and use the company's saved
-// details and logo.
+// details and logo. With accounts on, a download saves the SWMS first (owner decision,
+// 6 October 2026), so every print has a record, a revision and a reference tied to them.
 function signedInBody(req) {
   const body = req.body || {};
   return req.company ? accounts.withCompany(draftBody(body), req.company) : draftBody(body);
@@ -301,11 +316,15 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     if (!confirmation) return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve this SWMS, and enter your name, before downloading.' });
     const result = prepareDraft(signedInBody(req));
     if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
+    const saved = req.company ? await accounts.saveForDownload(req, req.body || {}) : null;
+    if (saved) {
+      await recordIndustry(saved.kept.draft, saved.kept.input, req.company).catch(() => {});
+      return await accounts.sendDocument(req, res, saved.row, 'pdf');
+    }
     const ref = await issueRef(req.company, result.task, placeOf(signedInBody(req)));
     const buffer = await draftToPdf(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), note: draftedNote(confirmation), prepared: preparedFor(req.company, ref) });
     record('download_pdf', req.company && req.company.id);
     await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
-    await recordControlEdits(result, signedInBody(req)).catch(() => {});
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${result.kind === 'stand-down' ? 'SiteReady-stood-down.pdf' : 'SiteReady.pdf'}"`);
     res.send(buffer);
@@ -322,11 +341,16 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   }
   const result = prepareDraft(signedInBody(req));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
+  const saved = req.company ? await accounts.saveForDownload(req, req.body || {}) : null;
+  if (saved) {
+    await recordIndustry(saved.kept.draft, saved.kept.input, req.company).catch(() => {});
+    return accounts.sendDocument(req, res, saved.row, 'docx');
+  }
+  // A stood-down draft cannot be saved; without accounts nothing is saved.
   const ref = await issueRef(req.company, result.task, placeOf(signedInBody(req)));
   const buffer = await draftToDocx(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), confirmation, ref, company: req.company });
   record('download_word', req.company && req.company.id);
   await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
-  await recordControlEdits(result, signedInBody(req)).catch(() => {});
   const filename = result.kind === 'stand-down' ? 'SiteReady-stood-down.docx' : 'SiteReady.docx';
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -334,6 +358,9 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
 });
 
 // Every SWMS for a project in one zip of Word files. One review confirmation covers the set.
+// With accounts on, each SWMS is saved as a record when the project is downloaded (owner
+// decision, 6 October 2026): an item already saved (its swmsId) is saved as its next revision
+// when it has changed. The X-SiteReady-Saved header lists each item's saved SWMS and revision.
 const JSZip = require('jszip');
 const PROJECT_LIMIT = 40;
 app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
@@ -347,11 +374,20 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
   const used = new Set();
   const skipped = [];
   const logo = readLogo(req.company ? req.company.logo : body.logo);
+  const savedItems = [];
   for (const [index, item] of items.entries()) {
     const result = prepareDraft(signedInBody({ ...req, body: item || {} }));
     if (result.kind !== 'draft') { skipped.push(`${index + 1}. ${String((item && item.task) || '').slice(0, 80)}`); continue; }
-    const ref = await issueRef(req.company, (item && item.swmsTitle) || result.task, placeOf(signedInBody({ ...req, body: item || {} })));
-    const buffer = await draftToDocx(result, { logo, confirmation, ref, company: req.company });
+    let buffer;
+    const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId, reviewConfirmed: true, reviewedBy: confirmation.name }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '' }) : null;
+    if (saved) {
+      savedItems.push({ index, id: saved.row.id, revision: saved.row.revision || 1 });
+      const parts = await accounts.documentParts(req.company, saved.row);
+      buffer = await draftToDocx(parts.draft, parts);
+    } else {
+      const ref = await issueRef(req.company, (item && item.swmsTitle) || result.task, placeOf(signedInBody({ ...req, body: item || {} })));
+      buffer = await draftToDocx(result, { logo, confirmation, ref, company: req.company });
+    }
     // Named by the task's title from the scope where there is one.
     const title = typeof item.swmsTitle === 'string' && item.swmsTitle.trim() ? item.swmsTitle : result.task;
     const base = `${String(index + 1).padStart(2, '0')} ${String(title || 'SWMS').replace(/[^A-Za-z0-9 ,()-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)}`;
@@ -361,11 +397,11 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     zip.file(name, Buffer.from(buffer));
     record('download_word', req.company && req.company.id);
     await recordIndustry(result, signedInBody({ ...req, body: item || {} }), req.company).catch(() => {});
-    await recordControlEdits(result, signedInBody({ ...req, body: item || {} })).catch(() => {});
   }
   if (!used.size) return res.status(400).json({ kind: 'error', message: 'None of the SWMS is ready to download. Answer the questions for each one first.' });
   if (skipped.length) zip.file('Not included.txt', `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n`);
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+  if (savedItems.length) res.setHeader('X-SiteReady-Saved', encodeURIComponent(JSON.stringify(savedItems)));
   res.setHeader('Content-Type', 'application/zip');
   res.setHeader('Content-Disposition', 'attachment; filename="SiteReady-project-SWMS.zip"');
   res.send(out);

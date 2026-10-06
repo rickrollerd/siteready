@@ -199,6 +199,8 @@ const SCHEMA = [
   'ALTER TABLE signons ADD COLUMN IF NOT EXISTS section_seconds TEXT',
   'ALTER TABLE signons ADD COLUMN IF NOT EXISTS check_attempts INTEGER',
   "ALTER TABLE signons ADD COLUMN IF NOT EXISTS explained_by TEXT NOT NULL DEFAULT ''",
+  // The revision the worker signed. Sign-ons from before revisions were kept have none.
+  'ALTER TABLE signons ADD COLUMN IF NOT EXISTS revision INTEGER',
   // Each time a worker opens the sign-on page: the server's own start time for the read.
   `CREATE TABLE IF NOT EXISTS sign_reads (
     id TEXT PRIMARY KEY,
@@ -262,6 +264,59 @@ const SCHEMA = [
     finished_at TIMESTAMPTZ
   )`,
   'CREATE INDEX IF NOT EXISTS ai_readings_doc ON ai_readings (company_id, doc_hash, brief_version)',
+  // Each saved revision of a SWMS as it printed (owner decision, 6 October 2026): its input, the
+  // finished draft, a fingerprint of its content, the library version, its reference, and who
+  // saved it and why. Downloads and sign-on of a revision read this, never today's library.
+  `CREATE TABLE IF NOT EXISTS swms_revisions (
+    id TEXT PRIMARY KEY,
+    swms_id TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    title TEXT NOT NULL DEFAULT '',
+    input JSONB NOT NULL,
+    draft JSONB NOT NULL,
+    content_hash TEXT NOT NULL,
+    library_version TEXT NOT NULL DEFAULT '',
+    ref TEXT NOT NULL DEFAULT '',
+    edited_by TEXT NOT NULL DEFAULT '',
+    edited_name TEXT NOT NULL DEFAULT '',
+    reason TEXT NOT NULL DEFAULT '',
+    confirmation JSONB,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS swms_revisions_swms ON swms_revisions (swms_id, revision)',
+  // Added later: a reference is tied to the saved SWMS and revision it was printed for, with a
+  // fingerprint of what it printed. References from before, and stood-down drafts, have none.
+  'ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS swms_id TEXT',
+  'ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS revision INTEGER',
+  'ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS content_hash TEXT',
+  // What users change in their SWMS, once for each saved revision (owner decisions, 6 October
+  // 2026): the step, the kind of change and how it came out, SiteReady's line, the user's words
+  // with personal details taken out, any warning and reason, and whether the change was kept in
+  // the next revision. The SWMS is known only by a keyed fingerprint. Written only when
+  // CONTROL_LEARNING is on; kept 3 years. Replaces the counted control_edits rows.
+  `CREATE TABLE IF NOT EXISTS control_edit_events (
+    id TEXT PRIMARY KEY,
+    swms_key TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    kinds TEXT NOT NULL DEFAULT '[]',
+    high_risk TEXT NOT NULL DEFAULT '[]',
+    step TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    original TEXT NOT NULL DEFAULT '',
+    new_line TEXT NOT NULL DEFAULT '',
+    warning TEXT NOT NULL DEFAULT '',
+    legal TEXT NOT NULL DEFAULT '',
+    reason TEXT NOT NULL DEFAULT '',
+    note TEXT NOT NULL DEFAULT '',
+    edit_key TEXT NOT NULL,
+    kept BOOLEAN,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS control_edit_events_swms ON control_edit_events (swms_key, revision)',
 ];
 
 async function migrate() {
