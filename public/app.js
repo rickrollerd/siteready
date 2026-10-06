@@ -1103,11 +1103,13 @@ async function prepareDraft({ scroll = true } = {}) {
     shownDraft = data;
     resultEl.innerHTML = `${warnings}<div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
+    // What is saved: the input sent, with changes moved onto any line SiteReady has reworded.
+    const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
     // Downloading and saving need an account; the account script adds those buttons.
-    window.SiteReady.showActions(data, JSON.parse(body));
-    if (data.kind === 'draft') showTranslate(JSON.parse(body));
+    window.SiteReady.showActions(data, sent);
+    if (data.kind === 'draft') showTranslate(sent);
     // A SWMS in a project is recorded against its task.
-    if (window.SiteReady.onDraft) window.SiteReady.onDraft(data, JSON.parse(body));
+    if (window.SiteReady.onDraft) window.SiteReady.onDraft(data, sent);
     if (scroll) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;

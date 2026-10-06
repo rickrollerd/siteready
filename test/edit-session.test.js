@@ -163,6 +163,7 @@ test('a change SiteReady has reworded follows the new wording, and one that no l
   await p.window.SiteReady.fillForm({ state: 'qld', task: 'Dig a trench.', fallRisk: 'no', controlEdits: { Excavate: { removed: ['Plant is inspected daily.'], changed: [], added: ['Old line.'] } } });
   await prepare(p);
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(controlEdits)')).Excavate.removed, ['Plant is inspected each day.']);
+  assert.deepEqual(p.window.SiteReady.actionInput.controlEdits.Excavate.removed, ['Plant is inspected each day.'], 'and is saved against the new wording');
   const html = p.document.getElementById('result').innerHTML;
   assert.match(html, /"Plant is inspected daily\." now reads "Plant is inspected each day\."/);
   assert.match(html, /You added &quot;Old line\.&quot;\. That line is no longer in this step/);
