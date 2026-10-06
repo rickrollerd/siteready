@@ -9,7 +9,9 @@
 // practice upgrades from a third batch of real SWMS, 16 existing lines reaching two organisations:
 // 3,454 of 4,608, 74.96% (four borderline matches that covered only part of a line, or hedged it, were not
 // counted); then 112 lines from the same batch, 25 cited to code or regulation sections read and 14 required
-// by two organisations, the other 73 from one organisation so not yet evidenced: 3,493 of 4,720, 74.0%).
+// by two organisations, the other 73 from one organisation so not yet evidenced: 3,493 of 4,720, 74.0%;
+// then a second tier 1 builder's formwork standard, where four one-organisation lines are stated as mandatory
+// requirements and so count as tier 1: 3,497 of 4,720, 74.09%, which still rounds down to 0.740).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
