@@ -422,7 +422,8 @@ router.get('/admin/ai-readings', auth.requireUser, route(async (req, res) => {
 
 // ---- What users change in the controls ----
 
-// Counts only (task #102). Rows are kept only while CONTROL_LEARNING is on.
+// Counts only (task #102): by kind and outcome, the steps changed most, and how many changes were
+// kept in the next revision. Rows are kept only while CONTROL_LEARNING is on.
 router.get('/admin/control-learning', auth.requireUser, route(async (req, res) => {
   requireOwner(req);
   res.json(await require('./control-learning').summary());

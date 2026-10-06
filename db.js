@@ -289,6 +289,34 @@ const SCHEMA = [
   'ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS swms_id TEXT',
   'ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS revision INTEGER',
   'ALTER TABLE swms_refs ADD COLUMN IF NOT EXISTS content_hash TEXT',
+  // What users change in their SWMS, once for each saved revision (owner decisions, 6 October
+  // 2026): the step, the kind of change and how it came out, SiteReady's line, the user's words
+  // with personal details taken out, any warning and reason, and whether the change was kept in
+  // the next revision. The SWMS is known only by a keyed fingerprint. Written only when
+  // CONTROL_LEARNING is on; kept 3 years. Replaces the counted control_edits rows.
+  `CREATE TABLE IF NOT EXISTS control_edit_events (
+    id TEXT PRIMARY KEY,
+    swms_key TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    kinds TEXT NOT NULL DEFAULT '[]',
+    high_risk TEXT NOT NULL DEFAULT '[]',
+    step TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    original TEXT NOT NULL DEFAULT '',
+    new_line TEXT NOT NULL DEFAULT '',
+    warning TEXT NOT NULL DEFAULT '',
+    legal TEXT NOT NULL DEFAULT '',
+    reason TEXT NOT NULL DEFAULT '',
+    note TEXT NOT NULL DEFAULT '',
+    edit_key TEXT NOT NULL,
+    kept BOOLEAN,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS control_edit_events_swms ON control_edit_events (swms_key, revision)',
 ];
 
 async function migrate() {

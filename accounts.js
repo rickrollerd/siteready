@@ -5,7 +5,7 @@ const QRCode = require('qrcode');
 const db = require('./db');
 const JSZip = require('jszip');
 const { recordIndustry } = require('./industry');
-const { recordControlEdits } = require('./control-learning');
+const { recordControlEdits, removeOld: removeOldEdits } = require('./control-learning');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
@@ -306,7 +306,8 @@ async function createSwms(req, { input, draft, name, siteId = null, title, reaso
   const kept = await revisions.keepRevision({ row, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
   record('swms_saved', req.company.id);
   await recordIndustry(draft, input, req.company).catch(() => {});
-  await recordControlEdits(draft, input).catch(() => {});
+  // The changes in this revision, recorded once for it.
+  await recordControlEdits(draft, input, { company: req.company, swmsId: row.id, revision: 1, now }).catch(() => {});
   return { row, kept };
 }
 
@@ -317,7 +318,7 @@ async function reviseSwms(req, row, { input, draft, name, siteId = row.site_id, 
     [titleFor({ title }, input), JSON.stringify(input), siteId, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   const next = await db.one('SELECT * FROM swms WHERE id = $1', [row.id]);
   const kept = await revisions.keepRevision({ row: next, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
-  await recordControlEdits(draft, input).catch(() => {});
+  await recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now }).catch(() => {});
   return { row: next, kept };
 }
 
@@ -656,6 +657,8 @@ async function removeExpired(now = new Date()) {
   // A read session is only needed while the worker is signing on.
   await db.query('DELETE FROM sign_reads WHERE started_at < $1', [new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)]);
   await db.query('DELETE FROM signins WHERE created_at < $1', [new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)]);
+  // Changes kept to improve the controls are deleted after 3 years.
+  await removeOldEdits(now);
 }
 
 module.exports = { validAbn, router, sendReviewReminders, removeExpired, withCompany, saveForDownload, documentParts, sendDocument, REVIEW_MONTHS };

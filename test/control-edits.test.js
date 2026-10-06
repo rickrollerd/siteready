@@ -208,38 +208,107 @@ test('with CONTROL_LEARNING off, nothing is kept', async () => {
   delete process.env.CONTROL_LEARNING;
   const token = await signIn('off@edits.example', 'Off Learning Pty Ltd');
   assert.equal((await call('POST', '/api/swms', { token, body: { input: { ...INPUT, controlEdits: EDITS }, reviewConfirmed: true, reviewedBy: 'Sam Lee' } })).status, 201);
-  assert.equal(await recordControlEdits(prepareDraft(draftBody({ ...INPUT, controlEdits: EDITS })), INPUT), 0);
+  assert.equal(await recordControlEdits(prepareDraft(draftBody({ ...INPUT, controlEdits: EDITS })), INPUT, { company: { id: 'c' }, swmsId: 's', revision: 1 }), 0);
+  assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM control_edit_events')).n), 0);
   assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM control_edits')).n), 0);
 });
 
-test('with CONTROL_LEARNING on, de-identified rows are kept and counted for the owner', async () => {
+const eventCount = async () => Number((await db.one('SELECT COUNT(*) AS n FROM control_edit_events')).n);
+
+test('with CONTROL_LEARNING on, each change is kept once for each saved revision, de-identified, with whether it was kept', async () => {
   process.env.CONTROL_LEARNING = 'on';
   try {
     const token = await signIn('on@edits.example', 'Learning Builders Pty Ltd');
-    const input = { ...INPUT, controlEdits: EDITS, workplace: '12 Smith Street, Brisbane QLD 4000', siteManager: 'Jo Bloggs' };
-    assert.equal((await call('POST', '/api/swms', { token, body: { input, reviewConfirmed: true, reviewedBy: 'Sam Lee' } })).status, 201);
-    const rows = await db.query('SELECT * FROM control_edits ORDER BY kind');
+    const start = await eventCount();
+    const input = { ...INPUT, controlEdits: EDITS, workplace: '12 Smith Street, Brisbane QLD 4000', siteManager: 'Jo Bloggs', kinds: ['trench'] };
+    const { swms } = await (await call('POST', '/api/swms', { token, body: { input, reviewConfirmed: true, reviewedBy: 'Sam Lee' } })).json();
+    const rows = await db.query('SELECT * FROM control_edit_events WHERE revision = 1 ORDER BY kind');
     assert.equal(rows.length, 3);
-    assert.deepEqual(Object.keys(rows[0]).sort(), ['id', 'kind', 'month', 'new_line', 'original', 'state', 'step', 'trade', 'uses']);
+    assert.deepEqual(Object.keys(rows[0]).sort(), ['created_at', 'edit_key', 'high_risk', 'id', 'kept', 'kind', 'kinds', 'legal', 'month', 'new_line', 'note', 'original', 'outcome', 'reason', 'revision', 'state', 'step', 'swms_key', 'trade', 'warning']);
     const changed = rows.find((row) => row.kind === 'changed');
     assert.equal(changed.step, 'Excavate');
+    assert.equal(changed.outcome, 'applied');
     assert.equal(changed.original, CODE_LINE);
     assert.equal(changed.new_line, 'Spoil is kept 2 m back from the trench edge.');
     assert.equal(changed.state, 'qld');
     assert.equal(changed.trade, 'civil');
+    assert.deepEqual(JSON.parse(changed.kinds), ['trench']);
     assert.match(changed.month, /^\d{4}-\d{2}$/);
-    const text = JSON.stringify(rows);
-    assert.doesNotMatch(text, /Learning Builders|Sam Lee|Jo Bloggs|Smith Street|on@edits|Dig a trench/, 'no business, name, address, email or task');
+    assert.notEqual(changed.swms_key, swms.id);
+    assert.doesNotMatch(JSON.stringify(rows), new RegExp(`Learning Builders|Sam Lee|Jo Bloggs|Smith Street|on@edits|Dig a trench|${swms.id}`), 'no business, name, address, email, task or SWMS id');
 
-    // The same change again adds to its count.
-    assert.equal((await call('POST', '/api/swms', { token, body: { input, reviewConfirmed: true, reviewedBy: 'Sam Lee' } })).status, 201);
-    assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM control_edits')).n), 3);
-    assert.equal(Number((await db.one("SELECT uses FROM control_edits WHERE kind = 'added'")).uses), 2);
+    // Downloading it, again and again, records nothing more.
+    await call('GET', `/api/swms/${swms.id}/docx`, { token });
+    await call('POST', '/api/draft.docx', { token, body: { ...input, swmsId: swms.id, reviewConfirmed: true, reviewedBy: 'Sam Lee' } });
+    assert.equal(await eventCount(), start + 3);
+    // A new revision records its changes once, and marks those of the revision before as kept or not.
+    const fewer = { ...input, controlEdits: { Excavate: { ...EDITS.Excavate, added: [] } } };
+    await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: fewer, reviewConfirmed: true, reviewedBy: 'Sam Lee' } });
+    assert.equal(await eventCount(), start + 5);
+    const first = await db.query('SELECT kind, kept FROM control_edit_events WHERE swms_key = $1 AND revision = 1 ORDER BY kind', [changed.swms_key]);
+    assert.deepEqual(first.map((row) => [row.kind, row.kept]), [['added', false], ['changed', true], ['removed', true]]);
 
     const owner = await signIn('owner@edits.example');
     const summary = await (await call('GET', '/api/admin/control-learning', { token: owner })).json();
-    assert.deepEqual(summary, { enabled: true, total: 6, byKind: { removed: 2, changed: 2, added: 2 }, steps: [{ step: 'Excavate', changes: 6 }] });
+    assert.equal(summary.enabled, true);
+    assert.equal(summary.total, 5);
+    assert.deepEqual([summary.byKind.removed, summary.byKind.changed, summary.byKind.added], [2, 2, 1]);
+    assert.equal(summary.byOutcome.applied, 5);
+    assert.deepEqual(summary.kept, { kept: 2, notKept: 1 });
+    assert.deepEqual(summary.steps, [{ step: 'Excavate', changes: 5 }]);
     assert.equal((await call('GET', '/api/admin/control-learning', { token })).status, 403);
+  } finally {
+    delete process.env.CONTROL_LEARNING;
+  }
+});
+
+test('warned changes, reasons, hazard and Who changes and unmatched changes are kept; personal details are taken out', async () => {
+  process.env.CONTROL_LEARNING = 'on';
+  try {
+    const token = await signIn('warned@edits.example', 'Warned Learning Pty Ltd');
+    const edits = {
+      'Before starting': { removed: [LEGAL_LINE], reasons: [{ line: LEGAL_LINE, reason: 'othersCover', note: 'Ask Dave Smith on 0412 345 678.' }] },
+      Excavate: { added: ['Call Dave Smith on 0412 345 678 or dave@example.com before digging at 12 Smith Street.'], removed: ['A line from an older release.'] },
+    };
+    const hazard = excavate.hazards[1];
+    const input = { ...INPUT, controlEdits: edits, hazardEdits: { Excavate: { notApplicable: [hazard], reasons: [{ line: hazard, reason: 'anotherWay' }] } }, whoEdits: { Excavate: 'Kim Lee, leading hand' } };
+    const { swms } = await (await call('POST', '/api/swms', { token, body: { input, reviewConfirmed: true, reviewedBy: 'Sam Lee' } })).json();
+    const key = (await db.query('SELECT swms_key FROM control_edit_events WHERE original = $1', [LEGAL_LINE]))[0].swms_key;
+    const rows = await db.query('SELECT * FROM control_edit_events WHERE swms_key = $1', [key]);
+    const by = (kind) => rows.find((row) => row.kind === kind);
+    assert.equal(by('removed').outcome, 'warned');
+    assert.match(by('removed').warning, /legal requirement/);
+    assert.equal(by('removed').legal, 'Work Health and Safety Regulation 2011 (Qld) s 317');
+    assert.equal(by('removed').reason, 'othersCover');
+    assert.equal(by('removed').note, 'Ask [name] on [phone].');
+    assert.equal(by('added').new_line, 'Call [name] on [phone] or [email] before digging at [address].');
+    assert.equal(by('hazardNotApplicable').original, hazard);
+    assert.equal(by('hazardNotApplicable').reason, 'anotherWay');
+    assert.equal(by('whoChanged').new_line, '[name], leading hand');
+    assert.equal(rows.find((row) => row.outcome === 'unmatched').original, 'A line from an older release.');
+    assert.doesNotMatch(JSON.stringify(rows), /Dave|Smith|0412|example\.com|Kim Lee/);
+    assert.ok(swms.id);
+  } finally {
+    delete process.env.CONTROL_LEARNING;
+  }
+});
+
+test('a business that opted out of industry data is left out, and rows are deleted after 3 years', async () => {
+  process.env.CONTROL_LEARNING = 'on';
+  try {
+    const token = await signIn('optout@edits.example', 'Opt Out Pty Ltd');
+    const user = await db.one('SELECT company_id FROM users WHERE email = $1', ['optout@edits.example']);
+    await db.query('UPDATE companies SET industry_opt_out = TRUE WHERE id = $1', [user.company_id]);
+    const before = await eventCount();
+    assert.equal((await call('POST', '/api/swms', { token, body: { input: { ...INPUT, controlEdits: EDITS }, reviewConfirmed: true, reviewedBy: 'Sam Lee' } })).status, 201);
+    assert.equal(await eventCount(), before);
+
+    const { removeOld, RETENTION_YEARS } = require('../control-learning');
+    assert.equal(RETENTION_YEARS, 3);
+    await db.query(`INSERT INTO control_edit_events (id, swms_key, revision, month, step, kind, outcome, edit_key, created_at) VALUES ('old-row', 'k', 1, '2023-01', 'Excavate', 'added', 'applied', 'e', $1)`, [new Date('2023-01-15T00:00:00Z')]);
+    await removeOld(new Date('2026-10-06T00:00:00Z'));
+    assert.equal(await db.one("SELECT id FROM control_edit_events WHERE id = 'old-row'"), null);
+    assert.equal(await eventCount(), before);
   } finally {
     delete process.env.CONTROL_LEARNING;
   }
