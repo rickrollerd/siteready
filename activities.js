@@ -3630,6 +3630,8 @@ const ACTIVITIES = [
         src('Pipework, ducts, cable trays and fittings are lowered under control, with an exclusion zone below.', WHS('s 54, s 55')),
         'Pipework, ducts, cable trays and fittings are supported before their hangers are cut, working from platforms set out in the fall controls.',
         src('Lagging and insulation are checked against the asbestos register before they are disturbed.', WHS('s 450, s 451')),
+        // The crew does not remove asbestos lagging; a licensed removalist does (owner decision, 6 October 2026).
+        src('If asbestos is found or suspected, a competent person identifies it, or it is assumed to be asbestos, and it is removed by a licensed asbestos removalist unless the regulation allows otherwise.', WHS('s 422, s 458')),
         src('Removed items are lowered under control, not dropped.', WHS('s 55')),
         'Removed items are stored or taken away as the principal contractor directs.',
       ],
