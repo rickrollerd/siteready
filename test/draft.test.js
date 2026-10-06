@@ -503,7 +503,8 @@ test('work in hot conditions gets its own step only where the heat is named or h
 test('the heat lines say exactly what is done, and the roof heat line is not repeated', () => {
   const roof = draft('Replace roof sheeting on a warehouse in hot weather.');
   const fix = stepLines(roof, 'Fix new roofing');
-  assert.ok(fix.some((line) => /^On days forecast at 35°C or more, work at height is planned for the cooler part of the day/.test(line)));
+  // The owner dropped the line planning work at height for the cooler part of the day (6 October 2026).
+  assert.ok(!fix.some((line) => /^On days forecast at 35°C or more/.test(line)));
   assert.ok(!roof.jobSteps.flatMap((step) => step.controls).some((line) => /^Minimise work at height in extreme heat/.test(line)));
   const space = draft('Install downlights in the roof space of a house in hot weather.');
   const lines = space.jobSteps.flatMap((step) => step.controls);
@@ -551,4 +552,83 @@ test('steps from the third batch of real SWMS come in only where the task names 
   assert.ok(formLift.some((line) => /^Formwork frames are slung with two chain legs/.test(line)));
   assert.ok(!formLift.some((line) => /^Scaffold components are lifted only in stillages/.test(line)));
   assert.ok(!lines('Crane lifts of mechanical plant onto the roof for the builder.', true).some((line) => /^(Formwork frames are slung|Scaffold components are lifted only|Where a concrete item's weight is not marked)/.test(line)));
+});
+
+test('owner decisions of 6 October 2026: the held and new work-named steps come in only where the task names the work', () => {
+  const { workFlags } = require('../draft');
+  const { jobStepsFor } = require('../activities');
+  const names = (task) => jobStepsFor(workFlags(task, {}), () => '', { step: 'Fallback', hazards: [], controls: ['x'] }).map((step) => step.step);
+  const named = [
+    ['Connect a temporary generator to the main switchboard during the power shutdown.', 'Connect a temporary generator to the installation'],
+    ['Place mulch to the garden beds with a blower truck.', 'Place material with a blower truck'],
+    ['Place topsoil to the batters with a slinger truck.', 'Place material with a slinger truck'],
+    ['Replace old asbestos cement communications pits in the footpath.', 'Break out and remove asbestos cement pits or ducts'],
+    ['Enter private property to read and replace water meters.', 'Enter a private property'],
+    ['Cut grass and scrub along the road reserve with a brushcutter.', 'Cut grass and scrub with a brushcutter'],
+    ['Clean spillage around the running conveyor at the crushing plant.', 'Clean around a conveyor that is running'],
+    ['Wrap the bridge columns in FRP (fibre reinforced polymer) carbon fibre.', 'Wrap columns with fibre reinforced polymer'],
+    ['Line the detention basin with an HDPE liner.', 'Line the basin with a geomembrane liner'],
+    ['Working near fuel or refrigerant lines.', 'Work near live fuel, chemical or refrigerant lines'],
+    ['Maintain antennas on the telecommunications tower.', 'Climb the tower'],
+  ];
+  const unrelated = ['Install the standby generator and connect it to the main switchboard.', 'Load test the generators.', 'Plant trees and lay mulch to the garden beds.', 'Remove asbestos lagging from the air conditioning ducts.',
+    'Replace conveyor idlers on the coal loader and clean up the work area.', 'Install FRP wall sheeting in the kitchen.', 'Lay the stormwater line to the detention basin.', 'Install new refrigerant pipework to the condensers.',
+    'Maintain rooftop antennas on the office building.', 'Install water meters in the new apartment building.'];
+  const all = named.map(([, step]) => step);
+  for (const [task, step] of named) assert.ok(names(task).includes(step), `${task} -> ${step}`);
+  for (const task of unrelated) assert.deepEqual(names(task).filter((step) => all.includes(step)), [], task);
+  // The asbestos pit step sits between the asbestos area set-up and the waste.
+  const pits = names('Replace old asbestos cement communications pits in the footpath.');
+  assert.ok(pits.indexOf('Prepare the asbestos work area') < pits.indexOf('Break out and remove asbestos cement pits or ducts') && pits.indexOf('Break out and remove asbestos cement pits or ducts') < pits.indexOf('Bag, label and dispose of asbestos waste'));
+  // No bridge crane step (owner: "you do not get bridge cranes on projects, only in factories").
+  assert.ok(!require('../activities').ACTIVITIES.some((activity) => activity.steps.some((step) => /bridge crane|overhead crane/i.test(step.step))));
+});
+
+test('owner decisions of 6 October 2026: a scope reading gets the work-named kinds from its words only', () => {
+  const { packageKinds } = require('../draft');
+  assert.ok(packageKinds('Place mulch to the garden beds with a blower truck.', ['landscape']).includes('blowerTruck'));
+  assert.ok(!packageKinds('Plant trees and lay mulch to the garden beds.', ['landscape', 'blowerTruck']).includes('blowerTruck'));
+});
+
+test('owner decisions of 6 October 2026: tower rigger, portable buildings, fatigue, the 40 mm soffit limit and no 35°C height line', () => {
+  const tower = draft('Maintain antennas on the telecommunications tower.', { fallRisk: 'yes', facts: { fallControl: 'Attached to the tower climb system at all times.', harnessSystem: 'Harness on the tower fall arrest system.', controlsConsidered: 'An EWP cannot reach.' } });
+  assert.equal(tower.kind, 'draft', (tower.missing || []).join(' '));
+  for (const name of ['Climb the tower', 'Maintain antennas and equipment on the tower']) assert.equal(tower.jobSteps.find((step) => step.step === name).responsible, 'Tower rigger', name);
+  const lines = (result) => result.jobSteps.flatMap((step) => [...step.hazards, ...step.controls]);
+  const school = lines(draft('Deliver and place portable classrooms on the school site.'));
+  const site = lines(draft('Deliver and place portable buildings for the site offices on the new warehouse project.'));
+  assert.ok(school.some((line) => /students are kept away/.test(line)) && school.some((line) => /on the school site/.test(line)));
+  assert.ok(!site.some((line) => /\b(school|students)\b/i.test(line)), site.filter((line) => /school|student/i.test(line)).join(' | '));
+  assert.ok(site.some((line) => /^The delivery route and lift zone are fenced off/.test(line)));
+  const before = (result) => (result.jobSteps || []).find((step) => step.step === 'Before starting').controls;
+  for (const task of ['Paint the office walls.', 'Install ductwork in the plant room.']) {
+    assert.ok(before(draft(task, { facts: { safetyDataSheet: 'SDS at the work area.' } })).some((line) => /^Shifts are no longer than 12 hours, no one works more than 60 hours in a week, and there is a break of at least 10 hours between shifts\./.test(line)), task);
+  }
+  const pt = before(draft('Fix insulation boards to the post-tensioned slab soffit with powder-actuated fixings.', { facts: { safetyDataSheet: 'SDS at the work area.' } }));
+  assert.ok(pt.some((line) => /^Fixings into the underside \(soffit\) of a post-tensioned slab go no deeper than 40 mm, unless the post-tensioning designer or engineer confirms a different limit/.test(line)));
+  assert.ok(!require('../activities').ACTIVITIES.some((activity) => activity.steps.some((step) => step.controls.some((line) => /^On days forecast at 35°C or more/.test(typeof line === 'string' ? line : line.text || '')))));
+});
+
+test('mobile scaffold use is treated as EWP use is: found from the task, facts and site, and an access step only', () => {
+  const facts = { harnessSystem: 'Harness clipped to the boom anchor.', controlsConsidered: 'Scaffold considered.', safetyDataSheet: 'SDS at the work area.' };
+  const steps = (task, extra = {}) => draft(task, { fallRisk: 'yes', ...extra, facts: { fallControl: 'Guardrails on the platform.', ...facts, ...(extra.facts || {}) } });
+  for (const [ewp, tower] of [['Paint the atrium ceiling. Access by scissor lift.', 'Paint the atrium ceiling. Access by mobile scaffold.'], ['Install ceiling grid in the office from a boom lift.', 'Install ceiling grid in the office from an aluminium mobile tower.']]) {
+    assert.ok(steps(ewp).jobSteps.some((step) => step.step === 'Use an elevating work platform'), ewp);
+    assert.ok(steps(tower).jobSteps.some((step) => step.step === 'Use mobile scaffolds'), tower);
+  }
+  // A fall control answer or a site answer that names the access equipment brings its step.
+  assert.ok(steps('Paint the stairwell walls.', { facts: { fallControl: 'Work from a mobile scaffold with guardrails.' } }).jobSteps.some((step) => step.step === 'Use mobile scaffolds'));
+  assert.ok(steps('Paint the stairwell walls.', { site: { access: 'Mobile scaffold towers are on site for high level work.' } }).jobSteps.some((step) => step.step === 'Use mobile scaffolds'));
+  // Using the access equipment is not the main work: with no step for the work itself, both stand down.
+  for (const task of ['Install widgets on the wall from an EWP.', 'Install widgets on the wall from a mobile scaffold.']) {
+    const result = steps(task);
+    assert.equal(result.kind, 'stand-down', task);
+    assert.match(result.missing.join(' '), /only for the access, lifting or other work around it/, task);
+  }
+  // An access equipment package names the building only as its place, so it is still drafted.
+  const access = steps('Provide and use mobile scaffolds and scissor lifts (Residential Building; plant: access platforms).');
+  assert.equal(access.kind, 'draft', (access.missing || []).join(' '));
+  assert.ok(['Use mobile scaffolds', 'Use an elevating work platform'].every((name) => access.jobSteps.some((step) => step.step === name)));
+  // Erecting a mobile scaffold is work of its own.
+  assert.equal(steps('Erect and dismantle the mobile scaffold for the facade crew.').kind, 'draft');
 });

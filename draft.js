@@ -293,9 +293,17 @@ function packageKinds(rawTask, kinds) {
   // their own steps whatever the AI chose, and a package that is only workshop work keeps
   // only the workshop steps, not the site installation steps of the items it makes.
   for (const id of [...WORKSHOP_KINDS, 'pebbleFinish', 'hvPoleRemove']) if (flags[id] && !out.includes(id)) out.push(id);
+  // Work that comes in only where its words are named (owner decisions, 6 October 2026): added when
+  // the package names it, and taken out when the AI chose it for a package that does not.
+  const named = workFlags(task);
+  out = out.filter((id) => !NAMED_KINDS.includes(id) || named[id]);
+  for (const id of NAMED_KINDS) if (named[id] && !out.includes(id)) out.push(id);
   if (workshopOnly(task)) out = out.filter((id) => WORKSHOP_KINDS.includes(id));
   return out;
 }
+
+// Kinds of work brought in only where the task's words name them (namedWorkFlags).
+const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -1973,12 +1981,16 @@ const MAIN_WORK = [
 const HARD_MAIN_WORK = new Set(['hydro-demolition', 'blasting with explosives (licensed shotfirer work)', 'pool shell and sprayed concrete work', 'membrane work inside an excavation']);
 
 // Steps that get people and materials to the work, rather than doing it.
-const SUPPORT_STEPS = new Set(['Before starting', 'Finish and clean up', 'Set up traffic management', 'Plan the work near overhead power lines', 'Get onto the roof', 'Set up roof fall protection', 'Lift equipment and materials to the roof', 'Work with the crane crew during lifts', 'Set up the crane', 'Rig and lift the load', 'Land and release the load', 'Use an elevating work platform', 'Drill or cut concrete, masonry or stone', 'Use power tools', 'Move materials into place', 'Separate plant and people on site', 'Operate small earthmoving plant', 'Reach high walls and ceilings', 'Operate forklifts', 'Work in the roof space', 'Check for asbestos before starting', 'Operate the hoist', 'Load out the floors']);
+// Mobile scaffolds (mobile towers), named the ways sites name them.
+const MOBILE_SCAFFOLD = /\b(?:mobile scaffold\w*|mobile (?:aluminium |alloy )?(?:scaffold )?towers?|(?:aluminium|alloy) (?:mobile )?(?:scaffold )?towers?|scaffold towers?|tower scaffold\w*|rolling scaffold\w*)\b/i;
+
+const SUPPORT_STEPS = new Set(['Before starting', 'Finish and clean up', 'Set up traffic management', 'Plan the work near overhead power lines', 'Get onto the roof', 'Set up roof fall protection', 'Lift equipment and materials to the roof', 'Work with the crane crew during lifts', 'Set up the crane', 'Rig and lift the load', 'Land and release the load', 'Use an elevating work platform', 'Use mobile scaffolds', 'Drill or cut concrete, masonry or stone', 'Use power tools', 'Move materials into place', 'Separate plant and people on site', 'Operate small earthmoving plant', 'Reach high walls and ceilings', 'Operate forklifts', 'Work in the roof space', 'Check for asbestos before starting', 'Operate the hoist', 'Load out the floors']);
 const MAIN_VERB = /\b(install\w*|erect\w*|connect\w*|build\w*|construct\w*|replac\w*|fit\w*|lay\w*|grind\w*|coat\w*|repair\w*|fix\w*|assembl\w*|weld\w*|clean\w*|paint\w*|patch\w*|sand\w*|polish\w*|remov\w*|dig\w*|demolish\w*|cut\w*)\b/i;
 
 // The conditions and plant a scope reading adds to an activity ("conditions: life line not
-// installed") describe the site, not the work to be done.
-const SCOPE_NOTES = /\b(?:conditions|plant): [^;)]*/gi;
+// installed") describe the site, not the work to be done. So does the place given with them
+// ("(Residential Building; plant: access platforms)"): the whole note in brackets is left out.
+const SCOPE_NOTES = /\([^()]*\b(?:conditions|plant): [^()]*\)|\b(?:conditions|plant): [^;)]*/gi;
 
 // With job steps picked by the user, the picks say what the main work is, so only a
 // task left with nothing but access and lifting steps is stood down. A work step the
@@ -2000,8 +2012,12 @@ function missingMainWork(fullTask, steps, added = null) {
   if (/\b(bobcats?|skid ?steers?|posi-?tracks?)\b/i.test(task) && /\b(gravel|soil|fill|driveways?|tracks?|level\w*|spread\w*)\b/i.test(task)) own.add('Operate small earthmoving plant');
   // Working where plant moves and is not kept apart from people is the separation step's own work.
   if (AMONG_PLANT.test(task)) own.add('Separate plant and people on site');
+  // Erecting or dismantling a mobile scaffold is work of its own; using one only gets to the work.
+  if (/\b(erect\w*|dismantl\w*|assembl\w*)\b[^.]{0,30}\b(?:mobile scaffold|(?:scaffold |mobile |aluminium )towers?)|\b(?:mobile scaffold\w*|(?:scaffold |mobile |aluminium )towers?)\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task)) own.add('Use mobile scaffolds');
   const support = new Set([...SUPPORT_STEPS].filter((name) => !own.has(name)));
-  if (MAIN_VERB.test(task) && names.length && names.every((name) => support.has(name))) return 'the main work in this task';
+  // A building named as the place ("Residential Building", "Building 3") is not building work.
+  const work = task.replace(/\bbuildings?\b(?!\s+(?:a|an|the|new|up)\b)/gi, ' ');
+  if (MAIN_VERB.test(work) && names.length && names.every((name) => support.has(name))) return 'the main work in this task';
   return null;
 }
 
@@ -2440,6 +2456,11 @@ const STEP_POSITIONS = [
   [/\basbestos\b/i, 'Asbestos removal supervisor'],
   [/\b(confined space|wet well|septic tank)\b|^(Enter and work|Leave and close up)$/i, 'Confined space supervisor and stand-by person'],
   [/\b(overhead power lines|overhead wiring)\b/i, 'Supervisor and safety observer'],
+  // Work on a telecommunications tower is led by a tower rigger (owner decision, 6 October 2026).
+  [/^Climb the tower$|\bon the tower\b/i, 'Tower rigger'],
+  // Work near live lines is run by the supervisor under the owner's permit; blower and slinger trucks by their operator.
+  [/^Work near live fuel, chemical or refrigerant lines$/, 'Supervisor'],
+  [/\b(blower|slinger) truck\b/i, 'Plant operator'],
   [/\b(communications|comms|optical fibre|wi-fi|security devices|antennas)\b/i, 'Registered cabler'],
   [/\b(refrigerant|evacuate and charge|pressure test with nitrogen|split system)\b/i, 'Licensed refrigeration technician'],
   [/\b(isolate the gas|gas (?:appliance|line|regulator)|heater and flue)\b/i, 'Licensed gas fitter'],
@@ -2907,6 +2928,7 @@ function suggestedFlags(task, facts, state) {
   if (site) {
     if (mentioned(site, ENERGISED) || /\b(hv|high voltage|\d+ ?kv)\b[^.\n]{0,20}\blines?\b/i.test(site)) flags.power = true;
     if (/\b(elevating work platforms?|ewps?|boom lifts?|scissor lifts?)\b/i.test(site)) flags.ewp = true;
+    if (MOBILE_SCAFFOLD.test(site)) flags.mobileScaffold = true;
     if (/\bladders?\b/i.test(site)) flags.ladderUse = true;
   }
   // No crane on this job: crane steps come only from a crane the task itself names.
@@ -4197,6 +4219,44 @@ function settleFlags(flags, task) {
   out.craneConcreteLoads = Boolean(out.crane) && /\b(precast|tilt[- ]?up|concrete (?:panels?|elements?|beams?|blocks?|pipes?|culverts?|pits?|barriers?|units?|stairs?|planks?))\b/i.test(task);
   out.craneFormworkLoads = Boolean(out.crane) && /\b(formwork|falsework|form ?ply|props)\b/i.test(task);
   out.craneScaffoldLoads = Boolean(out.crane) && /\bscaffold\w*\b/i.test(task);
+  // Owner decisions of 6 October 2026: these steps come in only where the task's words name the work.
+  Object.assign(out, namedWorkFlags(task, out));
+  if (out.asbestosPits) out.asbestos = true;
+  // "Fibre reinforced polymer" is not reinforcement work.
+  off(out.frpWrap && !/\b(reo|rebar|reinforc\w* (?:bars?|steel|mesh|cages?))\b/i.test(task.replace(FRP, ' ')), 'reo');
+  return out;
+}
+
+// Fibre reinforced polymer named as a column wrap or strengthening (not FRP wall sheets or grating).
+const FRP = /\b(?:(?:carbon |glass )?fib(?:re|er)[- ]reinforced (?:polymer|plastic)s?|c?frp|gfrp|carbon fib(?:re|er) (?:wraps?|fabrics?|sheets?|laminates?|strips?))\b/gi;
+// Generators, and conveyors, named in a sentence of the task.
+const GENERATOR_LINK = /\b(?:connect\w*|hook\w* up|tie\w* in|plug\w* in|chang\w* ?over|terminat\w*|back-?feed\w*)\b/i;
+const GENERATOR_TEMPORARY = /\b(?:temporary|hired?|portable|mobile|trailer(?:-mounted)?|towable)\s+(?:diesel\s+)?generators?\b|\bgenerators?\b[^.]{0,60}\b(?:outages?|shut ?downs?|power (?:cuts?|failures?|interruptions?)|while the (?:power|supply) is off)\b|\b(?:outages?|shut ?downs?|power (?:cuts?|failures?|interruptions?))\b[^.]{0,60}\bgenerators?\b/i;
+const LIVE_LINES = /\b(?:near|beside|next to|around|adjacent to|close to|over|under(?:neath)?|alongside|above|below)\b[^.]{0,40}\b(?:fuel|chemical|refrigerant|refrigeration|petrol|diesel|ammonia|process|oil)\b[^.]{0,30}\b(?:lines?|pipes?|pipelines?|pipework|piping|mains?)\b/i;
+
+// The kinds of work that come in only where the task's words name them (owner decisions,
+// 6 October 2026), and the detail flags their steps use.
+function namedWorkFlags(task, flags = {}) {
+  const out = {};
+  out.generatorConnect = sentencesWith(task, /\bgenerators?\b/i).some((sentence) => GENERATOR_LINK.test(sentence) && GENERATOR_TEMPORARY.test(sentence)) && !flags.eventPower;
+  out.blowerTruck = /\bblower (?:trucks?|units?)\b|\bblow(?:n|ing)? (?:in |out )?(?:the )?(?:mulch|soil|bark|compost|aggregate|gravel|sand|scoria|topsoil|wood ?chips?)\b/i.test(task);
+  out.slingerTruck = /\b(?:slinger(?: trucks?| conveyors?)?|stone slingers?|conveyor trucks?)\b/i.test(task);
+  out.brushcutter = /\b(?:brush ?cutt\w*|brushcut\w*|whipper ?snipp\w*|line trimm\w*|clearing saws?)\b/i.test(task);
+  out.asbestosPits = sentencesWith(task, /\b(?:asbestos|fibre[- ]cement|fibro)\b/i).some((sentence) => /\b(?:asbestos(?:[- ]cement)?|fibre[- ]cement|fibro)\b[^.]{0,30}\b(?:pits?|ducts?|conduits?)\b|\b(?:pits?|ducts?|conduits?)\b[^.]{0,30}\b(?:asbestos|fibre[- ]cement|fibro)\b/i.test(sentence)
+    && /\b(?:pits?|underground|in-?ground|buried|footpaths?|verges?|nature strips?|roads?|trench\w*|telecom\w*|communications?|conduits?)\b/i.test(sentence)
+    && /\b(?:remov\w*|replac\w*|break\w* (?:out|up)|broken out|demolish\w*|dig\w* (?:up|out)|excavat\w*|decommission\w*|recover\w*)\b/i.test(sentence));
+  out.privateProperty = /\bprivate (?:property|properties|premises|residences?|land|yards?|driveways?)\b|\b(?:customers?|residents?|occupiers?|owners?|householders?)'?s?'? (?:property|properties|premises|homes?|houses?|yards?|backyards?)\b/i.test(task);
+  out.conveyorClean = !flags.concreteConveyor && !flags.brickElevator && sentencesWith(withoutHousekeeping(task), /\bconveyors?\b/i).some((sentence) => /\b(?:clean\w*|spillage|spilt|spilled|wash\w* down|hos\w* down|shovel\w*)\b/i.test(sentence)
+    && (/\b(?:running|operating|in operation|runs|moving)\b/i.test(sentence) || !/\b(?:isolat\w*|lock\w* out|locked|shut ?down|stopped|de-?energis\w*)\b/i.test(sentence)));
+  out.frpWrap = new RegExp(FRP.source, 'i').test(task) && /\b(?:wrap\w*|strengthen\w*|jacket\w*|confine\w*|retrofit\w*|columns?|piers?)\b/i.test(task);
+  out.basinLining = /\b(?:retention|detention|sediment(?:ation)?|stormwater|bio-?retention|infiltration|evaporation|leachate|water quality) (?:basins?|ponds?)\b/i.test(task)
+    && /\b(?:(?:line|lined|lining)\s+(?:of\s+)?(?:the|a|all|both|each|new)\s+(?:[a-z-]+\s+){0,2}(?:basins?|ponds?)|(?:basin|pond) lining|liners?|geomembranes?|geosynthetic clay liners?|gcls?)\b/i.test(task);
+  out.liveLines = LIVE_LINES.test(task);
+  out.liveLinesDig = out.liveLines && /\b(?:dig\w*|excavat\w*|trench\w*|pothol\w*|bor(?:e|ing)|drill\w*|pil(?:e|es|ing)|post holes?)\b/i.test(task);
+  out.liveLinesFuel = out.liveLines && /\b(?:fuel|petrol|diesel|oil)\b/i.test(task);
+  out.liveLinesRefrigerant = out.liveLines && /\b(?:refrigerant|refrigeration|ammonia)\b/i.test(task);
+  // A school site keeps the school's own lines (portable buildings).
+  out.schoolSite = /\b(?:schools?|classrooms?|students?)\b/i.test(task);
   return out;
 }
 
@@ -4312,7 +4372,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     tileLay: isTiling(task) && /\b(lay\w*|til(?:e|ing|ed)\b|re-?til\w*|fix\w*|install\w*|replac\w*)\b/i.test(task) && !/\b(carpet|vinyl|rubber|lino\w*) tiles?\b/i.test(task),
     // Edge strips, trims and angles finish a tile edge; they are not an open edge.
     tileEdge: isTiling(task) && /\b(balcon\w*|terraces?|edges?(?![- ](?:strips?|trims?|profiles?|angles?|beads?|tiles?|bands?|grips?|finish\w*))|podium)\b/i.test(task),
-    mobileScaffold: /\bmobile scaffold\w*\b/i.test(task) && /\b(erect\w*|assembl\w*|set up|us(?:e|ing)|from)\b/i.test(task),
+    // Mobile scaffold use is found the way EWP use is: from the task, the facts and the site answers (owner decision, 6 October 2026).
+    mobileScaffold: MOBILE_SCAFFOLD.test(combinedFacts(task, facts)),
     hoistInstall: /\b(install\w*|erect\w*|climb\w*|dismantl\w*|jump\w*|extend\w*)\b[^.]{0,40}\b(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
     hoistOperate: /\b(operat\w*|run\w*|driv\w*)\b (?:the )?(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
     carpentryWork: CARPENTRY_WORK.test(task) && !FORMWORK.test(task),

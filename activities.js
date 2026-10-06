@@ -83,6 +83,8 @@ const BEFORE = {
     'Workers have done the site induction, and this SWMS is explained to them before they sign it.',
     // Every SWMS (owner decision, task #116).
     'At the pre-start, each worker declares they are fit for work, not affected by alcohol, drugs, medication or fatigue, and tells the supervisor if that changes during the shift.',
+    // Fatigue limits on every SWMS (owner decision, 6 October 2026).
+    'Shifts are no longer than 12 hours, no one works more than 60 hours in a week, and there is a break of at least 10 hours between shifts.',
     { text: 'Workers hold a general construction induction card (white card).', source: 'Work Health and Safety Regulation 2011 (Qld) s 317' },
     'Check that licences, tickets and permits needed for the task are current.',
     'Inspect tools, plant and equipment before use. Tag out and remove anything faulty.',
@@ -103,6 +105,8 @@ const BEFORE_EXTRA = [
   { when: 'publicSite', text: 'The work area is fenced or screened off from children, students, patients, residents and the public, with the areas and times agreed with the site or facility manager.' },
   { when: 'nightWork', text: 'At night, work areas, stairs and access routes are lit for the work, shifts and breaks are planned to manage fatigue, and no one works alone.' },
   { when: 'ptSlab', unless: 'coreDrill', text: 'Check the post-tensioning drawings and scan the slab before drilling or fixing into a post-tensioned slab.' },
+  // Owner decision, 6 October 2026: the limit is confirmed with the engineer for each slab.
+  { when: 'ptSlab', unless: 'coreDrill', text: 'Fixings into the underside (soffit) of a post-tensioned slab go no deeper than 40 mm, unless the post-tensioning designer or engineer confirms a different limit for that slab. The limit is confirmed with the engineer before fixing starts.' },
   { when: 'respirator', text: 'Tight-fitting respirators are fit tested to each wearer before use and at least once a year, for the make and model they wear. Wearers are clean shaven where the mask seals, and fit check the respirator each time they put it on.' },
   { when: 'electricalWork', text: src('Electrical work is done or supervised only by licensed electrical workers, for a licensed electrical contractor.', `${ESA('s 55, s 56')}`) },
   { when: 'electricalWork', text: src('Apprentices are supervised at all times by a licensed electrical worker. In their first 6 months they do not work where they could contact a live low voltage exposed part.', ESR('s 307')) },
@@ -458,7 +462,8 @@ const ACTIVITIES = [
           'Access is by a scaffold stair, or by a ladder secured at both top and bottom.',
           src('Temporary edge protection and roof safety mesh are installed before work starts on the roof, with the fall controls in this SWMS in place before anyone accesses the roof.', NSWC('NSW Work on roofs', 's 7.2')),
           'Fall protection is checked before anyone goes onto the roof.',
-          'Where the roof is reached by a scaffold erected by others, each user checks its tag shows a current inspection before getting on, and keeps off it if the tag is missing, expired or marked unsafe.',
+          'Where the roof is reached by a scaffold erected by others, each user checks its tag shows a current inspection before getting on.',
+          'Each user keeps off a scaffold erected by others if its tag is missing, expired or marked unsafe.',
         ],
       },
       {
@@ -513,7 +518,6 @@ const ACTIVITIES = [
           { unless: 'roofOverDeck', text: 'Before flashing around flues, exhausts or plant on the roof, the trade that owns the plant isolates it, so hot exhaust or moving parts cannot reach the roofer.' },
           src('Touch-up paint is used as its safety data sheet says.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.2')),
           'Hearing protection near grinders and cutting. Eye protection with power tools. Tool lanyards and toe boards so nothing falls.',
-          src('On days forecast at 35°C or more, work at height is planned for the cooler part of the day, and the supervisor sets the time it stops at the pre-start.', QCODE('Managing the risk of falls', 's 8.3')),
           src('Cool drinking water, shade and clothing to shield workers from the sun, regular short breaks out of the heat, and work scheduled for cooler times.', QCODE('Hazardous manual tasks', 's 4.6')),
           'Sun protection: hat or brim, long sleeves and pants, and sunscreen.',
           'Sun protection includes sunglasses, and the sunscreen is SPF 30 or higher.',
@@ -1345,7 +1349,9 @@ const ACTIVITIES = [
         src('Check for crushing points such as soffits, beams, steelwork and services before raising or moving the platform. Operators are trained in safe work procedures to avoid crushing.', `${NSWC('NSW Falls', 's 5.1')}; ${NSWC('NSW Elevating work platforms', 's 3.1')}`),
         'Where a boom-type platform is used near soffits, beams, steelwork or services, it is fitted with a working secondary guarding device that stops the platform if the operator is pushed onto the controls, and the device is tested at the pre-start.',
         'When lightning is within 10 km (30 seconds or less from flash to thunder), the platform is lowered and left, and work does not restart until 30 minutes after the last thunder.',
-        'Tools and materials are carried inside the platform within its rated load, never hung outside it or rested on the guardrails. Sheets, panels and signs that catch the wind are carried only within the wind limit the manufacturer sets for them.',
+        'Tools and materials are carried inside the platform, never hung outside it.',
+        'Tools and materials in the platform are kept within its rated load.',
+        'Nothing is rested on the platform\'s guardrails. Sheets, panels and signs that catch the wind are carried only within the wind limit the manufacturer sets for them.',
         'While the platform is raised, workers keep both feet on its floor, do not lean over the guardrails, and do not pass materials onto a structure.',
         'Before tools are plugged into the platform\'s power outlet, its RCD is trip tested and the outlet earth is checked to the machine frame at the pre-start. A failed outlet is tagged out.',
         'EWP charging areas are kept away from ignition sources, and the charging lead is protected from damage.',
@@ -2833,15 +2839,6 @@ const ACTIVITIES = [
         src('Work is done from walkways and platforms with handrails. Where there are none, the fall controls in this SWMS apply.', WHS('s 78, s 79')),
         src('Guards taken off for the work are refitted and checked before the isolation is removed.', WHS('s 208')),
         'Emergency stops and pull-wire switches along the conveyor are tested before it runs again.',
-      ],
-    }, {
-      step: 'Clean around a conveyor that is running',
-      hazards: ['Entanglement in the running conveyor, its flights or pulleys while cleaning beside it.', 'A foot or body goes through a conveyor guard, cover or mesh.', 'Moving parts and openings are hidden in poor light.'],
-      controls: [
-        src('A conveyor is run for cleaning, bedding in or commissioning only when every guard, guard rail and pull-wire stop is fitted and the stop has been tested that shift. If any is missing, the conveyor stays isolated and the cleaning is done by hand.', RR('scraper', 's 6.4.1, s 6.4.7, s 7.1, s 8')),
-        src('No one walks, stands or kneels on conveyor guards, covers or mesh. The walkway beside the conveyor is cleared to the floor before work starts. If it cannot be cleared, the conveyor is isolated.', RR('scraper', 's 4.2, s 7.2')),
-        src('A pull-wire stop runs along every side of the conveyor where people work and is within reach from each work position.', RR('scraper', 's 4.2, s 7.1')),
-        src('Work starts only with the area\'s fixed lighting working. Work does not start on cap lamps or torches alone.', RR('scraper', 's 4.2, s 6, s 7.4')),
       ],
     }],
   },
@@ -6730,9 +6727,10 @@ const ACTIVITIES = [
     when: 'portableBuilding',
     steps: [{
       step: 'Lift the portable building onto its footings',
-      hazards: ['The building falls or swings while it is lifted.', 'A truck or crane strikes a person on the school site.', 'A fall from the building roof or deck.', 'Striking buried services when setting footings.'],
+      hazards: ['The building falls or swings while it is lifted.', { only: 'schoolSite', text: 'A truck or crane strikes a person on the school site.' }, { unless: 'schoolSite', text: 'A truck or crane strikes a person on site.' }, 'A fall from the building roof or deck.', 'Striking buried services when setting footings.'],
       controls: [
-        src('The delivery and lift happen when students are kept away, along a route and in a zone fenced off with the school.', WHS('s 298')),
+        { only: 'schoolSite', ...src('The delivery and lift happen when students are kept away, along a route and in a zone fenced off with the school.', WHS('s 298')) },
+        { unless: 'schoolSite', ...src('The delivery route and lift zone are fenced off so other workers and the public cannot walk into them while the building is delivered and lifted.', WHS('s 298')) },
         src('The building is lifted with a crane by licensed operators and doggers, with no one under the load.', WHS('s 81, s 219, schedule 3')),
         'The lift follows a lift plan.',
         'The building is landed onto footings set out and levelled first.',
@@ -9954,7 +9952,8 @@ addAfter(ACTIVITIES[ACTIVITIES.findIndex((item) => item.when === 'formwork') - 1
       step: 'Set edge forms and prepare the base',
       hazards: ['Impalement on stakes, pegs and starter bars.', 'Cuts and kickback from saws.', 'Nail gun injuries.', 'Back strain from form boards and stakes.', 'Trips over forms and stakes.', 'Back strain and trips handling pods and vapour barrier rolls.'],
       controls: [
-        'Cap stakes, star pickets and starter bars as soon as they are in place. Bars are bent over only where the engineer allows it.',
+        'Cap stakes and star pickets as soon as they are in place.',
+        'Cap starter bars as soon as they are in place. Bars are bent over only where the engineer allows it.',
         'Cut form boards with a saw that has its guards in place, and wear eye and hearing protection.',
         'Support the work while cutting form boards.',
         'Nail guns are used with the single shot (sequential) trigger, never pointed at anyone, and disconnected before clearing a jam.',
@@ -11579,6 +11578,198 @@ addAfter('power', {
   ],
 });
 
+// Work-named steps the owner decided on 6 October 2026: seven steps first held because they need
+// rules for when they apply, and four library gaps. Each kind is brought in only where the task's
+// words name that work (draft.js settleFlags), so it never pulls into an unrelated SWMS.
+addAfter('generatorPlant', {
+  when: 'generatorConnect',
+  steps: [{
+    step: 'Connect a temporary generator to the installation',
+    hazards: ['The generator back-feeds the network or a supply thought to be dead, and shocks people working on it.', 'Electric shock or arc flash at the board during connection and changeover.', 'Motors run backwards or equipment fails if the phase rotation is wrong.', 'People trip over, or vehicles damage, the generator cables.', 'Fuel spills, fire and exhaust fumes at the generator.'],
+    controls: [
+      src('The generator is connected only through a changeover switch or connection point that keeps it isolated from the network supply while it runs, so it cannot back-feed the network.', ESR('s 226')),
+      src('The generator\'s connection, changeover switch and switchboard work are electrical work for a licensed electrician, with the supply isolated and proved de-energised first.', `${ESR('s 196')}; ${QCODE('Managing electrical risks', 's 4, s 4.1')}`),
+      'The network supply is locked off at its isolation point before the generator cable is terminated.',
+      'The installation\'s MEN link is checked, and earth fault loop impedance is tested with the generator connected, so RCDs and circuit breakers operate on a fault.',
+      'Phase rotation is checked at the board and at the generator before changeover, and the load is transferred only when they match.',
+      'The generator breaker stays off until the cable, sized for the load, is terminated at both ends and every cover is refitted, so live parts can be reached only with a key or tool.',
+      'The changeover follows a written switching sheet. Its time is agreed beforehand with the occupier and the network or project contact, who are told when it starts and when it ends.',
+      'Generators are set up outdoors on level ground, earthed as the supplier requires, fenced off from the public, and refuelled only when stopped and cool, with a spill kit and fire extinguisher at hand.',
+      'The generator stands in a bund or has a built-in bund, and its cables run in a barricaded or ramped route clear of vehicles and walkways.',
+      'Generators run only with exhaust discharged outside and away from air intakes. No one works in an enclosed generator room while engines run unless it is ventilated.',
+    ],
+  }],
+  ppe: ['earMuffs', 'gloveGeneral'],
+});
+
+addAfter('landscape', {
+  when: 'blowerTruck',
+  steps: [{
+    step: 'Place material with a blower truck',
+    hazards: ['The hose surges or kicks when a blockage clears, throwing the hose operator off balance.', 'A hose joint parts and sprays material at people.', 'Dust from the blown material.', 'Noise from the blower unit.', 'Trips over the delivery hose, including by the public.'],
+    controls: [
+      'Before start-up, the operator calls a warning by voice or radio and confirms everyone is clear of the discharge area and the hose run.',
+      'Hose joints and clamps are checked before start-up and again during the run, and are taped or locked closed when blowing gravel or sand, or near busy areas.',
+      'The delivery hose is secured where it could move or fall, run clear of walkways, and covered with ramps where people must cross it.',
+      'The hose operator braces the hose on the hip or shoulder with a firm stance, ready for a surge when a blockage clears, and swaps with the spotter every 20 to 30 minutes.',
+      'A spotter stays with the hose operator, moving the hose clear behind them and warning of steps, edges and other trip hazards.',
+      'The blower unit and discharge area are barricaded with a buffer of at least 10 m and signed as a hearing protection area, and everyone inside wears hearing protection.',
+      'Material is pre-wetted in the truck or water is added at the hose, and everyone in the work area wears a P2 respirator.',
+    ],
+  }],
+  ppe: ['earMuffs', 'p2', 'glassesClear'],
+});
+
+addAfter('blowerTruck', {
+  when: 'slingerTruck',
+  steps: [{
+    step: 'Place material with a slinger truck',
+    hazards: ['Thrown material strikes people, sometimes 40 m or more away.', 'Entanglement in the conveyor, or crushing at the bin chute.', 'The truck collapses the edge of an embankment or excavation.', 'The raised conveyor contacts overhead power lines.', 'Collision with the excavator or loader reloading the truck.'],
+    controls: [
+      'The placement area and throw path are cleared of people and closed off before the slinger runs. The operator keeps direct sight of where material lands and stops the belt whenever it is out of view.',
+      src('No one enters the bin or reaches into the conveyor until its drive is isolated and locked so it cannot start from the truck or the remote.', QCODE('Managing the risks of plant in the workplace', 's 4.5')),
+      'Debris on the belt is cleared only with the conveyor stopped, and no one stands under the delivery belt while it runs.',
+      src('The truck is set up back from excavation edges, outside their zone of influence.', QCODE('Excavation work', 's 4.1')),
+      'The truck is set up back from the top of embankments, with its wheels chocked.',
+      'Overhead clearances are confirmed with the principal contractor before set-up, and the conveyor is not raised or run under overhead power lines.',
+      'The reloading area for the excavator or loader is marked off and agreed with its operator before reloading starts.',
+    ],
+  }],
+  ppe: ['glassesClear'],
+});
+
+addAfter('slingerTruck', {
+  when: 'brushcutter',
+  steps: [{
+    step: 'Cut grass and scrub with a brushcutter',
+    hazards: ['Struck by stones, wire or debris thrown by the cutting head.', 'Cuts from blade contact or blade kickback.', 'Hand-arm vibration.', 'Noise.'],
+    controls: [
+      'The brushcutter has its guard fitted, and the blade or cutting head is checked tight and undamaged before use and at set times through the day.',
+      'Other people stay at least 15 m from the operator while the brushcutter runs, and the operator stops the engine if anyone comes closer.',
+      'The brushcutter hangs from its harness and is held with both hands, and the throttle is never locked on.',
+      'Before a blockage is cleared, the engine is stopped and the head has stopped turning.',
+      'Blades are kept off rock, wire and steel pins, and woody stems are cut only with the part of the blade the manufacturer sets for them, to avoid kickback.',
+      'Operators wear a face shield or eye protection and hearing protection, and are rotated off the machine at least every hour.',
+      'Hand-held petrol tools are refuelled with the engine off and cool, from a labelled fuel container with a spout or funnel, and are carried at least 3 m from the fuelling spot before they are started.',
+    ],
+  }],
+  ppe: ['faceShield', 'earMuffs', 'chaps'],
+});
+
+addAfter('asbestos', {
+  when: 'asbestosPits',
+  steps: [{
+    step: 'Break out and remove asbestos cement pits or ducts',
+    hazards: ['Asbestos fibres are released when the pit or duct is broken.', 'The excavator bucket strikes the pit or duct.', 'Asbestos fragments are left in the soil.', 'Cuts and strain handling broken pieces.'],
+    controls: [
+      'Plant digging beside an asbestos cement pit or duct uses a bucket without teeth and stops at least 50 mm short of it. The last soil is removed with a hand shovel once the plant has stopped.',
+      'Where the pit or duct cannot come out whole, it is wetted, the strike points are coated with thick gel or taped, and it is broken with hand tools into the largest pieces possible. Oversized pieces are double wrapped, not broken further.',
+      'Once the visible pieces are collected, the soil under the removed item is scraped to about 20 mm deep and bagged as asbestos waste, and a person with asbestos removal supervisor competency confirms none remains before backfill.',
+    ],
+  }],
+  ppe: ['coveralls', 'p2'],
+});
+
+// Arriving at a home or other private property, as service, repair and utility crews do.
+ACTIVITIES.push({
+  when: 'privateProperty',
+  steps: [{
+    step: 'Enter a private property',
+    hazards: ['Dog bites.', 'Aggressive or threatening occupants.', 'Slips and trips on unfamiliar ground.'],
+    controls: [
+      'Before entering, the property is looked over from the gate or boundary for dogs, debris and trip hazards.',
+      'If a dog is loose, no one enters until the owner has restrained it or shut it away.',
+      'If an occupant becomes aggressive, workers do not argue: they stop work, leave the property and call the supervisor before going back.',
+    ],
+  }],
+});
+
+// Cleaning beside a conveyor that runs, from a regulator's investigation findings. Only where the task
+// names cleaning at a conveyor: a conveyor isolated for maintenance has its own step.
+addAfter('conveyorMaintain', {
+  when: 'conveyorClean',
+  steps: [{
+    step: 'Clean around a conveyor that is running',
+    hazards: ['Entanglement in the running conveyor, its flights or pulleys while cleaning beside it.', 'A foot or body goes through a conveyor guard, cover or mesh.', 'Moving parts and openings are hidden in poor light.'],
+    controls: [
+      src('A conveyor is run for cleaning, bedding in or commissioning only when every guard, guard rail and pull-wire stop is fitted and the stop has been tested that shift. If any is missing, the conveyor stays isolated and the cleaning is done by hand.', RR('scraper', 's 6.4.1, s 6.4.7, s 7.1, s 8')),
+      src('No one walks, stands or kneels on conveyor guards, covers or mesh. The walkway beside the conveyor is cleared to the floor before work starts. If it cannot be cleared, the conveyor is isolated.', RR('scraper', 's 4.2, s 7.2')),
+      src('A pull-wire stop runs along every side of the conveyor where people work and is within reach from each work position.', RR('scraper', 's 4.2, s 7.1')),
+      src('Work starts only with the area\'s fixed lighting working. Work does not start on cap lamps or torches alone.', RR('scraper', 's 4.2, s 6, s 7.4')),
+    ],
+  }],
+});
+
+// Strengthening columns with a fibre reinforced polymer (FRP) wrap bonded with epoxy resin.
+addAfter('concreteRepair', {
+  when: 'frpWrap',
+  steps: [{
+    step: 'Wrap columns with fibre reinforced polymer',
+    hazards: ['Skin and breathing sensitisation from epoxy resins and primers.', 'Silica dust from grinding the concrete surface.', 'Fibre dust and splinters when cutting carbon or glass fibre fabric.', 'A fall from the scaffold, EWP or platform.'],
+    controls: [
+      src('Grinding concrete is processing a crystalline silica substance and must be controlled: wet suppression, on-tool extraction or local exhaust, and respirators worn by anyone still at risk.', `${WHS('s 529B, s 529C')}; ${QCODE('Silica', 's 7.4.1, s 7.4.2, s 7.6')}`),
+      src('Keep the current safety data sheet for each resin, primer and solvent at the work area. Label anything decanted.', WHS('s 342, s 344')),
+      src('Follow the safety data sheet for ventilation, PPE and clean up.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.2')),
+      'Resins and primers are mixed and applied wearing nitrile gloves, long sleeves and eye protection. Skin that touches resin is washed straight away with soap and water, never with solvent.',
+      'Only as much resin as can be used within its pot life is mixed, and mixed resin is not left in a closed or deep container, where it can overheat.',
+      'Fibre fabric is cut with shears or a knife on a bench, not with a power saw, and offcuts are bagged as the work goes.',
+      src('Work from the floor or a platform. Where these cannot reach the work, fall prevention comes before work positioning or fall arrest.', WHS('s 78, s 79')),
+    ],
+  }],
+  ppe: ['gloveChemical', 'glassesClear', 'p2'],
+});
+
+// Lining a retention, detention or sediment basin with a geomembrane.
+addAfter('earthworks', {
+  when: 'basinLining',
+  steps: [{
+    step: 'Line the basin with a geomembrane liner',
+    hazards: ['A slip or fall down the basin batter.', 'A liner roll or plant slides or rolls down the batter.', 'Burns or fire from hot wedge and extrusion welders.', 'Wind lifts the liner and drags or knocks down a worker.', 'Glare and heat reflected from the liner.'],
+    controls: [
+      src('Plant at the top of the basin batters stays back from the edge, outside the zone of influence, unless a competent person has designed the batter or its support to carry the load.', QCODE('Excavation work', 's 4.1')),
+      'Liner rolls are lifted and unrolled with plant and a spreader bar or roll bar made for them, and no one stands downhill of a roll on the batter.',
+      'Workers on batters too steep to walk safely use a fixed rope or ladder down the slope, or a harness on an anchor at the top.',
+      'Liner panels are held down with sandbags as they are laid, and laying stops in wind strong enough to lift the liner.',
+      'Seams are welded only by workers trained on the hot wedge or extrusion welder, the welder is set on a stand off the liner, and a fire extinguisher is at the work.',
+      'Workers wear tinted safety glasses and sun protection, and take breaks in the shade, as the liner reflects heat and glare.',
+    ],
+  }],
+  ppe: ['glassesTinted', 'sunscreen'],
+});
+
+// Work near fuel, chemical or refrigerant lines that stay live (high risk construction work).
+ACTIVITIES.push({
+  when: 'liveLines',
+  steps: [{
+    step: 'Work near live fuel, chemical or refrigerant lines',
+    hazards: ['A line is struck, cut or heated, releasing fuel, chemicals or refrigerant.', 'Fire or explosion from fuel or its vapour.', 'Burns, poisoning or breathing harm from a release.'],
+    controls: [
+      'Before work starts, the lines near the work are found and marked with the facility or plant owner, from their drawings and a site walk, and each is identified by what it carries.',
+      'Work near the lines goes ahead only under the facility or plant owner\'s permit. The lines are isolated and drained or purged where the owner allows. Where they must stay live, they are protected from impact, cutting and heat.',
+      { only: 'liveLinesDig', ...src('Get the underground services information and pothole to confirm services before digging.', `${WHS('s 304')}; ${MODEL('Excavation work', 's 3.5')}`) },
+      { only: 'liveLinesFuel', ...src('No ignition sources are taken into a hazardous area around fuel systems. Work on or near gas or fuel lines is high risk construction work, listed above where it applies.', WHS('s 291, s 355')) },
+      { only: 'liveLinesRefrigerant', text: 'Other trades do not cut, bend, load or disconnect refrigerant lines. Work on them is done only by a licensed refrigeration technician.' },
+      'The safety data sheet for what each line carries is at the work area, and workers know the signs of a leak and what to do if one happens.',
+      'A spill kit and a fire extinguisher suited to what the lines carry are at the work, and the emergency plan covers a release from the lines.',
+    ],
+  }],
+  ppe: ['gloveChemical', 'glassesClear'],
+});
+
+// Climbing a telecommunications tower: led by a tower rigger (owner decision, 6 October 2026).
+ACTIVITIES.find((item) => item.when === 'antennaInstall').steps.unshift({
+  step: 'Climb the tower',
+  only: 'towerWork',
+  hazards: ['A fall while climbing the tower or moving between work positions.', 'Tools, parts or hoisted loads fall onto people below.', 'A climber is left suspended in a harness after a fall.'],
+  controls: [
+    'Tower climbing is led by a tower rigger, who confirms each climber holds current tower climbing and rescue training before anyone climbs.',
+    src('No one climbs the tower alone, and the rescue equipment is kept at the tower so a rescue can start at once.', QCODE('Managing the risk of falls', 's 10, s 10.1')),
+    'Before each climb, the tower rigger checks the climbing system, ladders and anchor points, and no one climbs on any that are damaged, missing or past their inspection date.',
+    'Climbing stops in high wind, rain or ice, and when lightning is within 10 km.',
+    'Tools and parts are carried in closed bags or on lanyards, loads go up on a hoist line with a tag line, and an exclusion zone around the tower base keeps people out from under the work.',
+  ],
+});
+
 // Steps for the kinds of work found, between the opening and closing steps.
 // `flags` names the kinds of work found; `factText` returns the user's text for a fact.
 // Work the library does not know uses `fallback`, a step built from the task.
@@ -11599,7 +11790,7 @@ function jobStepsFor(flags, factText, fallback) {
   const close = middle.filter((step) => step.step === 'Leave and close up');
   middle = [...middle.filter((step) => step.step !== 'Leave and close up'), ...close];
   // Asbestos is checked, and the room stripped out, before anything new goes in.
-  const FIRST = ['Check for asbestos before starting', 'Prepare the asbestos work area', 'Remove the asbestos', 'Bag, label and dispose of asbestos waste', 'Strip out the room'];
+  const FIRST = ['Check for asbestos before starting', 'Prepare the asbestos work area', 'Remove the asbestos', 'Break out and remove asbestos cement pits or ducts', 'Bag, label and dispose of asbestos waste', 'Strip out the room'];
   middle = [...FIRST.flatMap((name) => middle.filter((step) => step.step === name)), ...middle.filter((step) => !FIRST.includes(step.step))];
   // An asbestos meter panel comes out only once the supply is disconnected.
   if (middle.some((step) => step.step === 'Replace the meter box and consumer mains connection')) {
@@ -11678,6 +11869,7 @@ function jobStepsFor(flags, factText, fallback) {
   moveBefore('Build the outdoor kitchen', 'Connect, leak test and commission the gas appliance');
   moveBefore('Take down the shed frame', 'Bag, label and dispose of asbestos waste');
   moveBefore('Use an elevating work platform', 'Install temporary support');
+  moveBefore('Use mobile scaffolds', 'Install temporary support');
   moveBefore('Cut out the old lintel', 'Mix mortar');
   moveBefore('Cut out the old lintel', 'Lift and fix the new beam or lintel');
   moveBefore('Mount the sub-board', 'Test the new work');
@@ -11884,6 +12076,9 @@ function jobStepsFor(flags, factText, fallback) {
   }
   moveBefore('Lay and cut pavers', 'Move soil and mulch');
   moveBefore('Lay and cut pavers', 'Plant');
+  // Arriving at a private property comes before the work there.
+  const propertyStep = middle.find((item) => item.step === 'Enter a private property');
+  if (propertyStep) middle = [propertyStep, ...middle.filter((item) => item !== propertyStep)];
   const aboveStep = middle.find((item) => item.step === 'Work above traffic or a rail line');
   if (aboveStep) middle = [aboveStep, ...middle.filter((item) => item !== aboveStep)];
   const trafficStep = middle.find((item) => item.step === 'Set up traffic management');

@@ -30,8 +30,9 @@ const EXAMPLES = [
 ];
 // The telecommunications example's work task does not name the tower: its type of work does.
 const TOWER = 'Work on a telecommunications tower. Telecommunications equipment maintenance.';
-// The example names no work, only where it is done, so there are no job steps to draft.
-const NO_WORK = new Set(['Working near fuel or refrigerant lines']);
+// Every example names work the library has steps for (the fuel or refrigerant lines example has its own
+// step since the owner's decision of 6 October 2026).
+const NO_WORK = new Set([]);
 
 // Every question answered as a user would, with the first suggested answer.
 function draftAsUser(state, task, fallRisk) {
@@ -79,10 +80,10 @@ test('work among moving plant drafts with the step that keeps plant and people a
   assert.ok(draft.jobSteps.some((step) => step.step === 'Separate plant and people on site'));
 });
 
-test('the fuel or refrigerant lines example names no work, so it is stood down for job steps', () => {
+test('the fuel or refrigerant lines example drafts the step for work near live lines', () => {
   const draft = draftAsUser('qld', 'Working near fuel or refrigerant lines', 'no');
-  assert.equal(draft.kind, 'stand-down');
-  assert.match(draft.missing.join(' '), /^Job steps for this work/);
+  assert.equal(draft.kind, 'draft', (draft.missing || []).join(' '));
+  assert.ok(draft.jobSteps.some((step) => step.step === 'Work near live fuel, chemical or refrigerant lines'));
 });
 
 test('removing wall bracing is load-bearing demolition, and hot cutting chemical pipework is a flammable atmosphere', () => {

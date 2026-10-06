@@ -425,6 +425,9 @@ const TITLES = Object.freeze({
   trestleUse: 'Trestle platforms', pdtFixing: 'Powder-actuated fixing', peFusion: 'PE pipe butt fusion', wasteRemoval: 'Rubbish removal and site clean-ups', defectsVisit: 'Defects liability visits',
   joineryShop: 'Joinery and timber door workshop', switchboardShop: 'Switchboard workshop', powderCoat: 'Powder coating', precastCastIn: 'Cast-in items at the precast yard',
   pebbleFinish: 'Pebble pool finishes and acid washing', hvPoleRemove: 'Removing temporary high voltage poles and transformers',
+  generatorConnect: 'Connecting a temporary generator', blowerTruck: 'Blower truck placement', slingerTruck: 'Slinger truck placement', brushcutter: 'Brushcutting',
+  asbestosPits: 'Removing asbestos cement pits and ducts', privateProperty: 'Entering private property', conveyorClean: 'Cleaning around a running conveyor',
+  frpWrap: 'FRP column wrapping', basinLining: 'Basin lining', liveLines: 'Work near live fuel, chemical or refrigerant lines',
 });
 const MAX_LINES = 8;
 const MAX_TASK = 900;

@@ -11,13 +11,17 @@
 // counted); then 112 lines from the same batch, 25 cited to code or regulation sections read and 14 required
 // by two organisations, the other 73 from one organisation so not yet evidenced: 3,493 of 4,720, 74.0%;
 // then a second tier 1 builder's formwork standard, where four one-organisation lines are stated as mandatory
-// requirements and so count as tier 1: 3,497 of 4,720, 74.09%, which still rounds down to 0.740).
+// requirements and so count as tier 1: 3,497 of 4,720, 74.09%, which still rounds down to 0.740;
+// owner decisions of 6 October 2026: seven work-named steps held earlier and four new ones, most lines from
+// one organisation or none since no code, law or second organisation states them, three lines split into the
+// part several organisations agree on and the remainder, and the 35°C work at height line removed:
+// 3,507 of 4,777, 73.4%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
 const RECORD = require('../scenarios/control-evidence.json');
 
-const MEASURED = 0.740;
+const MEASURED = 0.734;
 
 test('every library control line is in the evidence record, and every record entry is a library line', () => {
   const lines = libraryLines();

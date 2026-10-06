@@ -48,6 +48,8 @@ const COMMON = new Set([
   // Found missing when the AI read 37 real scopes (task #97).
   'safetyScreens', 'tempStairs', 'workshopFab', 'floodTest', 'drainageCell', 'acousticMat', 'earthStakes', 'caulking', 'trestleUse', 'pdtFixing', 'peFusion', 'wasteRemoval', 'defectsVisit',
   'joineryShop', 'switchboardShop', 'powderCoat', 'precastCastIn', 'pebbleFinish', 'hvPoleRemove',
+  // Brought in only where the task's words name the work (owner decisions, 6 October 2026).
+  'generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines',
 ]);
 
 const BY_ID = new Map(TRADES.map((trade) => [trade.id, trade]));

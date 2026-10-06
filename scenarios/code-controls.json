@@ -4403,12 +4403,6 @@
  },
  {
   "op": "cite",
-  "find": "On days forecast at 35°C or more, work at height is planned for the cooler part of the day, and the supervisor sets the time it stops at the pre-start.",
-  "code": "NSW Falls",
-  "section": "s 8.3"
- },
- {
-  "op": "cite",
   "find": "Cover or barricade openings as soon as sheets are removed.",
   "code": "NSW Falls",
   "section": "s 4.2"
