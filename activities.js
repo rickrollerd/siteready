@@ -239,16 +239,16 @@ const HANGERS_STEP = {
 // Working from ladders: its own step wherever ladders are the likely access.
 const LADDER_STEP = {
   step: 'Work from ladders',
-  hazards: ['A fall from the ladder.', 'The ladder slips, tips or breaks.', 'Contact with power lines or live electrical parts.'],
+  hazards: ['A fall from the ladder.', 'The ladder slips, tips or breaks.', { only: 'nearLiveParts', text: 'Contact with power lines or live electrical parts.' }],
   controls: [
     'A platform ladder, EWP or scaffold is used where the work is more than short and light, or needs both hands.',
     src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
     src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
     src('Single and extension ladders are used for access or short, light work only, set on a solid, stable surface at about 1 in 4, secured against movement, and extending at least 1 m above the stepping-off point.', NSWC('NSW Falls', 's 9.1')),
     'Single and extension ladders are secured at both top and bottom.',
-    src('Near power lines or live electrical parts, ladders are non-conductive.', `${QCODE('Managing electrical risks', 's 7.2')}; ${NSWC('NSW Electrical risks', 's 8.2')}`),
-    'Ladders are kept outside the exclusion zones (approach distances) for the line or part.',
-    LIVE_LINES_OBSERVER,
+    { only: 'nearLiveParts', ...src('Near power lines or live electrical parts, ladders are non-conductive.', `${QCODE('Managing electrical risks', 's 7.2')}; ${NSWC('NSW Electrical risks', 's 8.2')}`) },
+    { only: 'nearLiveParts', text: 'Ladders are kept outside the exclusion zones (approach distances) for the line or part.' },
+    { only: 'power', ...LIVE_LINES_OBSERVER },
     'When a secured ladder is taken down, its bottom fixing stays in place until the top fixing has been released.',
     'Ladders stand at least 1 m back from any floor edge, void or floor opening that has no guardrail.',
     'A platform ladder with a platform 2 m or more above the floor is used only where a scaffold or EWP has been assessed as not reasonably practicable for the task.',

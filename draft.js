@@ -2983,6 +2983,10 @@ function suggestedFlags(task, facts, state) {
   // A floor is ground or blasted before it is coated.
   // Stair treads are prepared by hand, not with a floor grinder.
   if (flags.floorCoating && !/\b(new|freshly poured)\b/i.test(task) && !(/\b(stairs?|treads?)\b/i.test(task) && !/\bgrind\w*\b/i.test(task))) flags.floorGrind = true;
+  // The ladder step's power line lines come only where power lines are in the work or the site answers,
+  // and its non-conductive ladder line also where the work is at live electrical parts (owner decision,
+  // 6 October 2026: indoor SWMS do not carry power line lines).
+  flags.nearLiveParts = Boolean(flags.power || /\b(?:live|energi[sz]ed)\b[^.\n]{0,30}\b(?:parts?|electrical|switchboards?|boards?|conductors?|circuits?|equipment)\b|\b(?:switchboards?|distribution boards?)\b/i.test(`${task}\n${site}`));
   return flags;
 }
 
