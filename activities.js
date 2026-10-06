@@ -20,6 +20,14 @@ const PSTD = (section) => `Piling industry standard (WorkSafe Victoria and PFSF,
 const CPR = (section) => `Telecommunications (Cabling Provider) Rules 2025 (Cth) ${section}`;
 const SPA = (section) => `Security Providers Act 1993 (Qld) ${section}`;
 const ARC = (section) => `Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 ${section}`;
+// NSW Resources Regulator investigation reports, cited by the incident they report on, for lines where the
+// report itself states the requirement or finding. They are regulator findings, not law or a code of practice.
+const RR_REPORTS = {
+  blast: 'NSW Resources Regulator, investigation report into a dangerous blasting incident at a quarry on 10 April 2018 (August 2020)',
+  chute: 'NSW Resources Regulator, investigation report into the serious injury of a worker at a mine on 10 August 2021 (May 2023)',
+  scraper: 'NSW Resources Regulator, investigation report into the serious injury of a worker at a mine on 8 June 2019 (November 2020)',
+};
+const RR = (report, section) => `${RR_REPORTS[report]} ${section}`;
 const src = (text, source) => ({ text, source });
 // A Queensland code of practice section, checked against the Queensland code itself.
 const QLD_CODE_TITLES = {
@@ -2740,6 +2748,15 @@ const ACTIVITIES = [
         src('Guards taken off for the work are refitted and checked before the isolation is removed.', WHS('s 208')),
         'Emergency stops and pull-wire switches along the conveyor are tested before it runs again.',
       ],
+    }, {
+      step: 'Clean around a conveyor that is running',
+      hazards: ['Entanglement in the running conveyor, its flights or pulleys while cleaning beside it.', 'A foot or body goes through a conveyor guard, cover or mesh.', 'Moving parts and openings are hidden in poor light.'],
+      controls: [
+        src('A conveyor is run for cleaning, bedding in or commissioning only when every guard, guard rail and pull-wire stop is fitted and the stop has been tested that shift. If any is missing, the conveyor stays isolated and the cleaning is done by hand.', RR('scraper', 's 6.4.1, s 6.4.7, s 7.1, s 8')),
+        src('No one walks, stands or kneels on conveyor guards, covers or mesh. The walkway beside the conveyor is cleared to the floor before work starts. If it cannot be cleared, the conveyor is isolated.', RR('scraper', 's 4.2, s 7.2')),
+        src('A pull-wire stop runs along every side of the conveyor where people work and is within reach from each work position.', RR('scraper', 's 4.2, s 7.1')),
+        src('Work starts only with the area\'s fixed lighting working. Work does not start on cap lamps or torches alone.', RR('scraper', 's 4.2, s 6, s 7.4')),
+      ],
     }],
   },
   {
@@ -2753,6 +2770,9 @@ const ACTIVITIES = [
         'The shotfirer checks for misfires, and only the shotfirer deals with a misfire, as the blast plan sets out.',
         src('Drilling uses water or dust extraction.', QCODE('Silica', 's 7.4.1, s 7.4.2')),
         'Workers wear hearing protection while drilling.',
+        src('The shotfirer reviews the driller\'s logs for cavities, soft seams, water and broken ground before designing the charge and stemming.', RR('blast', 's 9.3.2.3')),
+        src('Before loading, the shotfirer profiles the face and surveys the deviation of every front row hole, including each redrilled hole, and checks the burden at each depth against the design minimum.', RR('blast', 's 9.3.2.2, s 9.3.2.5')),
+        src('A front row hole with less burden than the design minimum is redrilled, decked with inert stemming through the low burden section, or loaded with less explosive.', RR('blast', 's 9.3.2.2, s 9.3.2.5')),
       ],
     }, {
       step: 'Charge and fire the blast',
@@ -2765,6 +2785,18 @@ const ACTIVITIES = [
         src('After firing, the face is ventilated, and no one goes back in until the atmosphere is assessed and contaminants are below exposure standards.', NSWC('NSW Tunnels and shafts', 's 17.3')),
         'The shotfirer checks for misfires, and only the shotfirer deals with a misfire, as the blast plan sets out.',
         src('Loose rock is scaled and a competent person checks the face before drilling or mucking out starts again.', NSWC('NSW Tunnels and shafts', 's 10.3, s 10.10')),
+        src('Flyrock that lands outside the exclusion zone is reported to the principal contractor and the regulator straight away. Photos, video and the blast records are kept, and the scene is not disturbed until the regulator says so.', RR('blast', 's 10')),
+        src('Oversize rock on the floor is broken with a hydraulic rock breaker instead of secondary blasting. Where a toe or secondary shot is fired, it has its own exclusion zone in the blast plan.', RR('blast', 's 4.5.7, s 9.3.1')),
+        src('A loading chart records, for each hole, the explosive product and mass, stemming height and powder factor actually loaded against the design, and the shotfirer reviews it before firing and after the blast.', RR('blast', 's 9.2, s 12')),
+        src('Everyone on site during the blast attends the pre-blast briefing, where the shotfirer shows the exclusion zone, firing position, sentry positions and muster point on the blast plan diagram and states that flyrock can kill.', RR('blast', 's 4.5.6.4, s 9.4.1')),
+        src('Immediately before firing, the exclusion zone is swept and confirmed clear of people, vehicles and plant, and the shotfirer fires only after every sentry has confirmed by radio.', RR('blast', 's 4.5.6.5, s 4.5.6.6, s 7.2.3')),
+        src('If anyone enters the exclusion zone or moves forward of the firing position, the shotfirer calls "abort" on the radio and does not fire until the zone is cleared and confirmed again.', RR('blast', 's 4.5.6.5, s 4.5.6.6, s 7.2.3')),
+        src('The firing position is behind the last row of blast holes and outside the exclusion zone, never in front of the free face.', RR('blast', 's 9.3.4')),
+        src('Only the shotfirer and the people the blast plan names for the firing are at the firing position.', RR('blast', 's 9.2, s 12')),
+        src('During the blast, visitors, members of the public and workers with no blasting role are at the muster point outside the exclusion zone, and are inducted before they enter the site.', RR('blast', 's 9.2, s 12')),
+        src('A sentry is posted at each road, track and gate into the exclusion zone before firing, blocks it, confirms by radio that it is in position and clear, and stays until the shotfirer gives the all clear. A sentry does no other work while posted.', RR('blast', 's 7.2.3, s 9.2')),
+        src('The shotfirer sets the exclusion zone in the blast management plan so all flyrock lands inside it, and measures the distance from the blast to each boundary point and to the firing position with a laser range finder or GPS before loading starts.', RR('blast', 's 8.2, s 9.2, s 12')),
+        src('The blast management plan shows the exclusion zone boundary, the firing position, each sentry position and the muster point on a diagram.', RR('blast', 's 8.2, s 9.2, s 12')),
       ],
     }],
   },
@@ -7083,6 +7115,10 @@ const ACTIVITIES = [
         src('Work at height is done from an EWP or from walkways with their guardrails fitted.', QCODE('Managing the risk of falls', 's 4.2, s 5.1')),
         'Guards are fitted before the conveyor is run, and the drives are isolated and locked out whenever anyone works on the conveyor.',
         src('The conveyor is commissioned to a written procedure, with emergency stops and pull wires tested first.', QCODE('Managing the risks of plant in the workplace', 's 3.2, s 4.3')),
+        src('Any change to plant during installation, such as a temporary cover, a removed rail or a new guard, is risk assessed and approved under change management before the plant runs.', RR('scraper', 's 6.3, s 6.4.3, s 8')),
+        src('Plant being installed is not run until the supervisor has signed off the mechanical commissioning (guards, guard rails, pull-wire stops, warning signs) and has told the shift deputy or supervisor in writing what is and is not yet in place.', RR('scraper', 's 6.4.6, s 6.4.9, s 8')),
+        src('A temporary cover over a guard opening covers the whole opening, is fixed with bolts that need a tool to remove, takes a 450 N load at any point without deflecting into the danger zone, and is approved by the supervisor before the conveyor runs.', RR('scraper', 's 6.3, s 7.1, s 7.4')),
+        src('Plastic cable ties are not used to fix guards or covers.', RR('scraper', 's 6.3, s 7.1, s 7.4')),
       ],
     }],
   },
@@ -7376,6 +7412,8 @@ const ACTIVITIES = [
         src('Guards and emergency stops are fitted and tested before the plant is run, and it is isolated and locked out while anyone works on it.', `${QCODE('Managing the risks of plant in the workplace', 's 3.2, s 3.5, s 4.5')}; ${NSWC('NSW Plant', 's 3.2, s 3.5, s 4.3, s 4.5')}`),
         'Emergency stops are fitted before the plant is run.',
         'The emergency stops are pull-wire stops, and are tested before the plant is run.',
+        src('Each feeder that discharges into a chute has an emergency stop within reach of the chute, and the conveyor\'s pull-wire stop also stops the feeder. Both stops are tested before the plant is handed over.', RR('chute', 's 6.11.1, s 6.12')),
+        src('Belt speed sensors are connected to the control system so the conveyor and feeder stop when the drive runs and the belt does not move, and are tested before the plant is handed over.', RR('chute', 's 6.11.1, s 6.12')),
       ],
     }],
     ppe: ['harness', 'chinStrap'],
@@ -7392,6 +7430,12 @@ const ACTIVITIES = [
         src('Hearing protection is worn in signed areas.', QCODE('Managing noise and preventing hearing loss', 's 5.3')),
         'Loaders keep clear of people around stockpiles and hoppers.',
         'On a mine or quarry site, the work also follows the site\'s safety and health management system and rules, as the state\'s mining safety law requires.',
+        src('Each worker in the plant carries a working two-way radio, because mobile phones are not relied on for emergencies.', RR('chute', 's 7.6')),
+        src('The loader operator feeds the hopper only after confirming by radio with the plant operator that no one is at the conveyor, chute or feeder.', RR('chute', 's 3.6.5')),
+        src('Each isolation point and emergency stop is labelled and reachable from the ground or a guarded platform without reaching past moving parts. One that is not is fixed before the plant runs.', RR('chute', 's 6.10, s 7.5, s 11')),
+        src('No one stands, sits or climbs on conveyor guards, chutes, hoppers or spilled material while the plant can run. Chutes are viewed and cleared from a guarded platform or from the ground, with the plant isolated.', RR('chute', 's 6.9')),
+        src('The documented pre-start checklist is done before the plant runs, including a short test run after repairs. Any high fault (guards, pull wires, emergency stops, tail drum) tags the plant out of service until it is repaired and the repair is signed off.', RR('chute', 's 6.6')),
+        src('A pull wire that is slack, stretched or held by cable ties or signs is a fault: the conveyor is tagged out of service until the wire is replaced and tensioned and the stop is tested.', RR('chute', 's 3.6.3, s 6.11.2, s 8')),
       ],
     }, {
       unless: 'plantErect',
@@ -7402,6 +7446,10 @@ const ACTIVITIES = [
         'Conveyors, crushers and screens have guards fitted, and pull-wire and emergency stops are tested before each shift.',
         'Dust is controlled with water sprays and enclosures, and air monitoring is done for crystalline silica. Anyone in the dust wears a P2 respirator until monitoring shows exposure is below the workplace exposure standard.',
         'On a mine or quarry site, the work also follows the site\'s safety and health management system and rules, as the state\'s mining safety law requires.',
+        src('No platform, seat, access or water spray is added to the plant until it is risk assessed and approved, and any platform has guardrails and is guarded from the chute and feeder.', RR('chute', 's 6.8.4, s 10.3')),
+        src('Spillage around conveyors, tail pulleys and hoppers is checked at each pre-start and cleared with the plant isolated before the plant runs. The conveyor does not run with its tail pulley buried or its side guard off.', RR('chute', 's 6.3.3, s 7.2.1')),
+        src('Before anyone clears a blockage, digs out a chute or works near a tail pulley, every drive that can move material into the area (feeder, conveyor and any upstream plant) is isolated and locked with each worker\'s personal lock and tested by a start attempt.', RR('chute', 's 6.10, s 10.2')),
+        src('A pull-wire or emergency stop is never used as an isolation.', RR('chute', 's 6.10, s 10.2')),
       ],
     }],
     ppe: ['earMuffs', 'p2', 'hivis'],

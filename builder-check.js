@@ -385,7 +385,16 @@ function hardFails(swms, state, stage = 'review') {
   const railSignals = /\bdetonators?\b/i.test([...swms.plant, ...allControls, swms.task].join(' ')) && /\b(rail\w*|track|signall?\w*|protection officers?)\b/i.test([swms.task, ...swms.plant].join(' '));
   const uncontrolled = named.filter((item) => !(item.id === 'explosives' && railSignals) && !allControls.some((line) => (ANSWERS[item.id] || ANSWERS[item.check]).test(line)));
   const plantSteps = swms.steps.filter((step) => MOVING_PLANT.test(step.step) && PLANT_WORK.test(step.step) && !step.controls.some((line) => LOCKED_OUT.test(line) && !/^\s*if\b/i.test(line)));
+  // Explosives: the word "blast" is not a control. The exclusion zone has a distance (in metres) or is
+  // measured, and a sentry or blast guard is posted at each access point (regulator findings on a
+  // dangerous blasting incident: no zone was measured and no sentries were posted).
+  const blastGaps = [];
+  if (!railSignals && [...named, ...implied].some((item) => item.id === 'explosives')) {
+    if (!allControls.some((line) => /\bexclusion zones?\b/i.test(line) && /\b\d+(?:\.\d+)?\s?(?:m|metres?)\b|\bmeasur\w*\b/i.test(line))) blastGaps.push('a measured exclusion zone distance from the blast');
+    if (!allControls.some((line) => /\b(?:sentr(?:y|ies)|blast guards?)\b/i.test(line) && /\b(?:each|every|all)\b/i.test(line))) blastGaps.push('a sentry or blast guard at each access point to the exclusion zone');
+  }
   const h2gaps = [...(uncontrolled.length ? [`No controls for: ${uncontrolled.map((item) => item.label).join('; ')}. Add the controls, or delete any category that does not apply to this work.`] : []),
+    ...(blastGaps.length ? [`For the explosives work, add ${blastGaps.join(' and ')}.`] : []),
     ...(plantSteps.length ? [`Isolate and lock out the plant before anyone clears, cleans or reaches in: ${plantSteps.slice(0, 4).map((step) => step.step || 'step').join('; ')}.`] : [])];
   add('H2', 'Controls for each high risk category', Boolean(allControls.length) && !h2gaps.length,
     !allControls.length ? 'The SWMS has no controls.' : h2gaps.length ? h2gaps.join(' ') : 'Each high risk category listed has controls.');
