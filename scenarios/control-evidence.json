@@ -4775,5 +4775,7 @@
   "Work near the lines goes ahead only under the facility or plant owner's permit. The lines are isolated and drained or purged where the owner allows. Where they must stay live, they are protected from impact, cutting and heat.": {"kind":"none"},
   "Other trades do not cut, bend, load or disconnect refrigerant lines. Work on them is done only by a licensed refrigeration technician.": {"kind":"none"},
   "The safety data sheet for what each line carries is at the work area, and workers know the signs of a leak and what to do if one happens.": {"kind":"none"},
-  "A spill kit and a fire extinguisher suited to what the lines carry are at the work, and the emergency plan covers a release from the lines.": {"kind":"none"}
+  "A spill kit and a fire extinguisher suited to what the lines carry are at the work, and the emergency plan covers a release from the lines.": {"kind":"none"},
+  "The safety data sheet for the welding rods or wire is checked for the gases and fumes they give off.": {"kind":"code"},
+  "Where the services information shows a service near a hole, the service is found by potholing with hand tools or a vacuum unit before the hole is dug or augered.": {"kind":"code"}
 }

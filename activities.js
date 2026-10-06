@@ -50,6 +50,14 @@ const NSW_TITLES = require('./scenarios/nsw-code-titles.json');
 const NSWC = (code, section) => `SafeWork NSW Code of practice: ${NSW_TITLES[code]} ${section}`;
 const { localControl, localText } = require('./citations');
 
+// Lines reused word for word across steps, so each keeps the evidence recorded for it.
+// A safety observer near live overhead lines (the lines code s 2.3, s 4.2, s 4.3.2).
+const LIVE_LINES_OBSERVER = src('Near live lines, people, plant and loads stay outside the network operator\'s exclusion zones, with a trained safety observer, unless the network operator\'s access permit covers the work.', LINES('s 4.2, s 4.3.2'));
+// Potholing to prove a located service before a hole is dug near it (excavation code s 3.6).
+const POTHOLE_SERVICES = src('Where the services information shows a service near a hole, the service is found by potholing with hand tools or a vacuum unit before the hole is dug or augered.', `${QCODE('Excavation work', 's 3.6')}; ${NSWC('NSW Excavation', 's 3.6')}`);
+// The safety data sheet and labels for the products a step uses (WHS Regulation s 341, s 342, s 344).
+const SDS_EACH_PRODUCT = src('The current safety data sheet for each product is at the work area before first use, and every container, including anything decanted, is labelled.', WHS('s 341, s 342, s 344'));
+
 // Drilling, chasing or cutting concrete, masonry or stone is processing a crystalline
 // silica substance. These lines go with any step that does it.
 const SILICA_FOLLOW_UP = [
@@ -240,6 +248,7 @@ const LADDER_STEP = {
     'Single and extension ladders are secured at both top and bottom.',
     src('Near power lines or live electrical parts, ladders are non-conductive.', `${QCODE('Managing electrical risks', 's 7.2')}; ${NSWC('NSW Electrical risks', 's 8.2')}`),
     'Ladders are kept outside the exclusion zones (approach distances) for the line or part.',
+    LIVE_LINES_OBSERVER,
     'When a secured ladder is taken down, its bottom fixing stays in place until the top fixing has been released.',
     'Ladders stand at least 1 m back from any floor edge, void or floor opening that has no guardrail.',
     'A platform ladder with a platform 2 m or more above the floor is used only where a scaffold or EWP has been assessed as not reasonably practicable for the task.',
@@ -803,6 +812,7 @@ const ACTIVITIES = [
           { fact: 'groundBearing' },
           src('Check the ground or working platform can carry the crane\'s outrigger or track loads under the heaviest lift before setting up.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 6.16')),
           src('The crane operator, and the dogman or rigger, hold current high risk work licences.', WHS('s 81, schedule 3')),
+          'Crane lifts are done by the crane company under its lift plan.',
           'Before the first slew, the operator checks the slew and boom path is clear of structures and services, and the area the counterweight sweeps is barricaded so no one can be caught between it and a fixed object.',
           src('The lift exclusion zone is barricaded with signs at each entry before lifting starts, and nearby crews are told where it is and how long the lifts will run.', QCODE('Steel construction', 's 4.6')),
           'Where outriggers or tracks would bear within the zone of influence of an excavation, basement wall or retaining wall, or on a suspended slab, an engineer confirms the set-up position and loads in writing before the crane is set up.',
@@ -1655,6 +1665,7 @@ const ACTIVITIES = [
         controls: [
           src('Cable jointing resins are used as their safety data sheets set out, with chemical resistant gloves.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.2')),
           'Gas torches for heat shrink are used with an extinguisher nearby and flammables cleared.',
+          SDS_EACH_PRODUCT,
           { only: 'mainSwitchboard', ...src('Before the main switchboard is first energised, the arc flash risk from its fault current levels is assessed.', QCODE('Managing electrical risks', 's 2.2')) },
           { only: 'mainSwitchboard', text: 'The assessment gives the incident energy, so PPE is rated for the energy at the point of work.' },
           { ...src('The consumer mains and main switchboard are not connected for the first time until the distribution entity has examined them, confirmed there are no serious defects and tested them.', ESR('s 217, s 218')), only: 'mainSwitchboard' },
@@ -3117,6 +3128,7 @@ const ACTIVITIES = [
       controls: [
         { fact: 'hotWorkPermit' },
         src('Identify coatings before welding, and keep fume below the exposure standard. Galvanised steel gives off zinc oxide fume.', `${WHS('s 49')}; ${MODEL('Welding processes', 's 3.1, appendix B')}`),
+        src('The safety data sheet for the welding rods or wire is checked for the gases and fumes they give off.', `${QCODE('Welding processes', 's 3.1')}; ${NSWC('NSW Welding', 's 3.1')}`),
         src('Screens and signs protect people nearby from arc flash.', `${QCODE('Welding processes', 's 3.2')}; ${NSWC('NSW Welding', 's 3.2')}`),
         src('Hot work permit, fire-resistant barriers, fire-fighting equipment at hand, cylinders secured, and flashback arrestors fitted.', MODEL('Welding processes', 's 3.4')),
         src('No welding from ladders.', `${QCODE('Welding processes', 's 3.9')}; ${MODEL('Managing the risk of falls', 's 9.1')}`),
@@ -4450,6 +4462,7 @@ const ACTIVITIES = [
         { only: 'smallPlant', ...src('Holes are dug by a competent operator, with workers out of the plant\'s reach, and the holes are covered or fenced until they are poured.', QCODE('Excavation work', 's 4.3, s 4.4')) },
         { only: 'smallPlant', text: 'The mini excavator or auger attachment is used.' },
         src('Get the current underground services information, for example through Before You Dig Australia, before digging, and work to it.', WHS('s 304')),
+        POTHOLE_SERVICES,
         { only: 'footingPour', text: 'Concrete is placed into the holes from the truck chute, a barrow or a pump, with gloves and boots worn and skin contact washed off straight away.' },
         { unless: 'handDigOff', ...src('Digging is shared by taking turns, and loads are kept small.', QCODE('Hazardous manual tasks', 's 4.7')) },
         { unless: 'handDigOff', text: 'A powered auger is used only with both hands on the handles and is stopped before it is cleared.' },
@@ -5676,6 +5689,7 @@ const ACTIVITIES = [
         { only: 'pressureTest', text: 'Gas pipework is tested with air or nitrogen to the pressure and time the gas installation standard sets, never with water or oxygen, with no ignition sources nearby.' },
         'The area around the line under test is kept clear, and pressure is released before any fitting is touched.',
         'Purging is to a safe place outdoors, with no ignition sources nearby.',
+        SDS_EACH_PRODUCT,
       ],
     }],
   },
@@ -6342,6 +6356,7 @@ const ACTIVITIES = [
         src('Hose reels are lifted onto their brackets by two people or with a lifter.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
         'Hose reels are fixed to the wall or column with fixings suited to the load.',
         src('Masonry is drilled with on-tool extraction.', WHS('s 529B, s 529C')),
+        src('Fixings into masonry or concrete are drilled with on-tool extraction, and a fit tested P2 respirator is worn.', WHS('s 529B, s 529C')),
         'Walls are checked for cables and pipes before drilling.',
         src('Hose reels high on walls are fixed from a platform ladder or mobile scaffold.', QCODE('Managing the risk of falls', 's 5.1, s 9.1')),
         src('The hose reel water supply is connected and tested by a licensed plumber or fire services fitter.', `${PDA('s 56(1)')}; ${PDR('schedule 4, part 3, item 4')}`),
@@ -7940,6 +7955,8 @@ const ACTIVITIES = [
         'Footings are bored or excavated by machine to the engineer\'s details.',
         'Each pole is held by the crane until its base bolts are fixed or its footing can hold it, as the engineer\'s details set out.',
         'Overhead lines are identified before work starts, and the crane and pole stay outside the network operator\'s approach distances.',
+        src('A safety observer watches the crane or EWP where any part of it or the load could come within the exclusion zone of a line that stays live.', LINES('s 4.3.1, s 4.3.2')),
+        'Crane lifts are done by the crane company under its lift plan.',
         src('Work in or beside the road is done inside the traffic management set out for the job.', TRAFFIC('s 4.4')),
       ],
     }],
@@ -8359,6 +8376,7 @@ const ACTIVITIES = [
         src('No stepladders beside an open penetration without extra fall protection.', MODEL('Managing the risk of falls', 's 9.1')),
         src('Ladders are manufactured for industrial use and rated for at least 120 kg.', WHS('s 306M')),
         src('The current safety data sheet for each sealant, mastic and batt is at the work area, the products are on the register, and decanted products are labelled.', WHS('s 342, s 344, s 346')),
+        src('Fire rated sealants and mastics for penetrations are used as their safety data sheets set out, with good ventilation and gloves resistant to the product.', QCODE('Managing risks of hazardous chemicals', 's 2.2, s 4.2')),
         src('Keep dust and fibres below the exposure standard, monitor where unsure, and wear respiratory protection where fibres remain.', `${WHS('s 49, s 50')}; ${QCODE('Managing risks of hazardous chemicals', 's 1.5, s 3.3, s 4.1')}`),
       ],
     }],
@@ -8803,6 +8821,7 @@ const ACTIVITIES = [
         'Pipework is purged with oxygen-free nitrogen while brazing, to the medical gas installer\'s procedure.',
         'Before new pipework is used, it is pressure tested, purged, and tested for gas identity and purity to the medical gas installer\'s procedure, and it is connected to a live system only under the hospital\'s shutdown or tie-in permit.',
         src('Gas cylinders are secured at all times and stored upright, with flashback arrestors on the gas hoses.', MODEL('Welding processes', 's 3.4, s 3.6')),
+        SDS_EACH_PRODUCT,
       ],
     }],
     ppe: ['gloveWelding', 'filterEye'],
@@ -8943,6 +8962,7 @@ const ACTIVITIES = [
       controls: [
         src('Generators and tanks are lifted into place with a crane, with the load kept under control and within the crane\'s safe working limits.', `${WHS('s 219')}; ${QCODE('Hazardous manual tasks', 's 4.4')}; ${NSWC('NSW Manual tasks', 's 4.4')}`),
         'Crane lifts of generators and tanks are done by the crane company.',
+        'Crane lifts are done by the crane company under its lift plan.',
         'Where a crane is not used, generators and tanks are moved on skates and rollers.',
         src('Keep generators and tanks under control and never move them over people.', WHS('s 219')),
         { unless: 'generatorTest', ...src('The generator\'s connection, changeover switch and switchboard work are electrical work for a licensed electrician, with the supply isolated and proved de-energised first.', `${ESR('s 196')}; ${QCODE('Managing electrical risks', 's 4, s 4.1')}`) },
@@ -9035,6 +9055,7 @@ const ACTIVITIES = [
         hazards: ['Striking buried power, gas, water or sewer services.', 'Strain from digging and lifting posts.'],
         controls: [
           src('Get the underground services information before digging, and locate services on site.', WHS('s 304')),
+          POTHOLE_SERVICES,
           src('Use a post hole digger or auger.', QCODE('Hazardous manual tasks', 's 4.4')),
           src('Keep the guards in place.', WHS('s 208')),
           'Use two people for hand-held augers.',
@@ -9115,6 +9136,7 @@ const ACTIVITIES = [
       hazards: ['Striking buried services.', 'Entanglement in a post hole auger.', { unless: 'farmWork', text: 'Neighbours or the public near the work.' }, { only: 'farmWork', text: 'Stock moving into the work area.' }, 'Silica dust, noise and flying particles from cutting and coring.', 'Heat and sun.'],
       controls: [
         src('Get the underground services information before digging, and locate services on site, for example through Before You Dig Australia.', WHS('s 304')),
+        POTHOLE_SERVICES,
         'Augers are used with guards in place and loose clothing secured. Two people handle a two-person auger.',
         { unless: 'farmWork', ...src('Keep the public and neighbours out of the work area with barriers, and cover or fence open holes.', WHS('s 298')) },
         { only: 'farmWork', text: 'Stock are moved out of the paddock or yard, or kept out with a temporary fence, while the work is done, and open holes are covered or fenced.' },
@@ -9692,6 +9714,7 @@ addAfter('trench', {
     hazards: ['Burns from hot asphalt.', 'Fumes from hot asphalt and bitumen.', 'Traffic and plant near the work.'],
     controls: [
       'Hot asphalt is handled with long sleeves, gloves and boots, and kept away from other workers. Workers stand upwind of the fumes, and anyone whose task puts them downwind is rotated off that position during the shift.',
+      SDS_EACH_PRODUCT,
       src('Any roller or truck works inside the barriers set out for the work, with a spotter when reversing.', NSWC('NSW Moving plant on construction sites', 's 3.3, s 7')),
       'Any roller or truck works inside the traffic management set out for the work.',
       { only: 'potholeRepair', text: 'Use a plate compactor or small roller to compact the patch in layers, with its guards in place and hearing protection worn.' },
@@ -9822,7 +9845,9 @@ addAfter('landscape', {
       { unless: 'stumpOnly', text: 'Where trees are felled, they are felled from the ground only by competent chainsaw operators, with a plan for the direction of fall. A tree that must be dismantled at height is done by an arborist under their own SWMS.' },
       { unless: 'stumpOnly', text: 'Keep an exclusion zone around felling of at least twice the height of the tree, and around any work under a tree being cut.' },
       { unless: 'stumpOnly', text: 'Check for overhead power lines and buried services before felling or grinding. Work near power lines only under the network operator\'s requirements.' },
+      LIVE_LINES_OBSERVER,
       { unless: 'stumpOnly', text: 'Chainsaws have a working chain brake and are refuelled only when stopped and cool. Operators wear chainsaw chaps or trousers, a helmet with face shield, and hearing protection.' },
+      { unless: 'stumpOnly', ...src('Petrol engines are refuelled only when stopped and cool, from a labelled fuel container, with no ignition sources nearby.', `${QCODE('Managing risks of hazardous chemicals', 'appendix J')}; ${NSWC('NSW Cutting drilling and grinding concrete', 's 5.6')}`) },
     ],
   }, {
     step: 'Remove stumps and roots',
@@ -9830,6 +9855,7 @@ addAfter('landscape', {
     controls: [
       { unless: 'stumpOnly', text: 'Check for overhead power lines and buried services before felling or grinding. Work near power lines only under the network operator\'s requirements.' },
       { only: 'stumpOnly', ...src('Check for buried services before grinding or digging out the stump.', WHS('s 304')) },
+      LIVE_LINES_OBSERVER,
       'Stump grinders are used with their guards in place and an exclusion zone for flying debris.',
     ],
   }],
@@ -10247,6 +10273,7 @@ ACTIVITIES.push(
         src('Work at the eaves is done from a scaffold, mobile scaffold or EWP.', NSWC('NSW Work on roofs', 's 4.2')),
         src('Single or extension ladders are used for access, with 3 points of contact, or for permitted work only: nothing carried that restricts movement or balance, the body centred between the stiles, and tools used with one hand. Where a person could fall 2 m or more (3 m in housing construction), the worker keeps 3 limbs on the ladder or uses a pole strap or a harness not attached to the ladder, and the ladder is secured at the top or bottom. Ladders are industrial and rated for at least 120 kg.', WHS('s 306A, s 306K, s 306L, s 306M')),
         'Before work, find the overhead service line to the building. Keep ladders and long metal lengths well clear of it, and ask the distribution entity to cover or disconnect it where the work is close.',
+        LIVE_LINES_OBSERVER,
         'Cut-resistant gloves are worn for sheet metal.',
         'Cut edges are deburred.',
         src('Long lengths are carried by two people.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
@@ -10261,6 +10288,7 @@ ACTIVITIES.push(
         src('Work at the eaves is done from a scaffold, mobile scaffold or EWP.', NSWC('NSW Work on roofs', 's 4.2')),
         src('Single or extension ladders are used for access, with 3 points of contact, or for permitted work only: nothing carried that restricts movement or balance, the body centred between the stiles, and tools used with one hand. Where a person could fall 2 m or more (3 m in housing construction), the worker keeps 3 limbs on the ladder or uses a pole strap or a harness not attached to the ladder, and the ladder is secured at the top or bottom. Ladders are industrial and rated for at least 120 kg.', WHS('s 306A, s 306K, s 306L, s 306M')),
         'Before work, find the overhead service line to the building. Keep ladders and long metal lengths well clear of it, and ask the distribution entity to cover or disconnect it where the work is close.',
+        LIVE_LINES_OBSERVER,
         'Cut-resistant gloves are worn for sheet metal.',
         'Cut edges are deburred.',
         src('On a building built before 2004 (asbestos products were used until the national ban at the end of 2003), fibre cement eaves linings, gutters and downpipes are treated as asbestos unless tested, and are not cut, drilled or broken until they have been.', NSWC('NSW Asbestos', 's 1.1, s 2.3')),
@@ -10278,6 +10306,7 @@ ACTIVITIES.push(
         { fact: 'fallControl' },
         src('Work at the eaves is done from a scaffold, mobile scaffold or EWP.', NSWC('NSW Work on roofs', 's 4.2')),
         'Before work, find the overhead service line to the building. Keep ladders and long metal lengths well clear of it, and ask the distribution entity to cover or disconnect it where the work is close.',
+        LIVE_LINES_OBSERVER,
         src('On a building built before 2004 (asbestos products were used until the national ban at the end of 2003), fibre cement eaves linings, gutters and downpipes are treated as asbestos unless tested, and are not cut, drilled or broken until they have been.', NSWC('NSW Asbestos', 's 1.1, s 2.3')),
         src('High-pressure water and compressed air are never used on asbestos cement, and power tools only where their use is controlled.', `${WHS('s 446')}; ${NSWC('NSW Asbestos', 's 6.4')}`),
         'If asbestos cement is found or suspected, work on it stops until it is assessed and handled under the asbestos procedures.',
@@ -12248,6 +12277,12 @@ function jobStepsFor(flags, factText, fallback) {
     // Any state's wording of the assessment counts (the ACT's water feed rule, Victoria's high risk silica work).
     if (step.controls.some((line) => SAID_ONCE.some(([key, re]) => key === 'assess' && re.test(line)) || /\b(?:processing is high risk|high risk crystalline silica|continuous water feed)\b/i.test(line))) return step;
     return { ...step, controls: [...step.controls, ...SILICA_FOLLOW_UP.slice(0, 2).flatMap((item) => expand(item, factText, flags.cite)).map(pt).filter(Boolean)] };
+  }).map((step, index, all) => {
+    // The dust and slurry from processing silica are cleaned up by vacuum or wet methods. Where no
+    // line in the SWMS says how, the clean-up line goes with the first step that processes silica.
+    if (!processesSilica(step) || all.findIndex(processesSilica) !== index) return step;
+    if (all.some((other) => other.controls.some((line) => SILICA_CLEAN_UP.test(line) && /\b(clean\w*|dust|slurry|sweep\w*)\b/i.test(line)))) return step;
+    return { ...step, controls: [...step.controls, ...expand(SILICA_FOLLOW_UP[2], factText, flags.cite).map(pt).filter(Boolean)] };
   }).map((step) => {
     if (step.step === 'Before starting') { step.controls.forEach((line) => line.split(/(?<=\.)\s+(?=[A-Z])/).forEach((part) => SAID_ONCE.forEach(([key, re]) => { if (re.test(part)) saidKeys.add(key); }))); return step; }
     if (step.step === 'Finish and clean up') return step;
@@ -12269,6 +12304,10 @@ function jobStepsFor(flags, factText, fallback) {
 
 // Lines that say a silica material is drilled, cut or ground with a power tool.
 const SILICA_TOOL = /\b(on-tool extraction|drill\w*|saws?|sawn|grind\w*|grinders?|core drill\w*|chas(?:e|ed|ing)|jackhammers?|breakers?|demolition hammers?|power tools?)\b/i;
+// A step that processes silica: its hazards name silica dust and its controls a power tool.
+const processesSilica = (step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) && step.controls.some((line) => SILICA_TOOL.test(line));
+// A line that says how dust is cleaned up: by vacuum or wet methods, or not by dry sweeping.
+const SILICA_CLEAN_UP = /\b(vacuum\w*|wet (?:clean\w*|wip\w*|mop\w*|sweep\w*)|dry sweep\w*)\b/i;
 
 // A line left out where another line in the same step already says it, such as a state's
 // roof space rule that already treats the cables as energised.
