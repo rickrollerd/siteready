@@ -105,9 +105,10 @@
     try {
       const state = (document.querySelector('input[name="state"]:checked') || {}).value || '';
       const body = file ? { file: { name: file.name, data: await readFile(file) }, state } : { text, state };
-      lastBody = body;
-      if (await aiOn()) { await readWithAi(body); return; }
-      await quickRead(body);
+      // Owner decision, 7 October 2026: reading a scope needs an account, and the AI reads every
+      // scope. Signed out, the scope is kept and read once the user signs in.
+      if (!S.signedIn || !S.signedIn()) { await askToSignIn(body); return; }
+      await readScope(body);
     } catch (error) {
       $('scope-error').textContent = error.message;
     } finally {
@@ -115,23 +116,79 @@
     }
   });
 
-  // The quick read: SiteReady's own reader, for everyone, and the fallback when the AI is off.
-  async function quickRead(body) {
-    {
-      const response = await fetch(api('/api/scope'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'The scope could not be read.');
-      show(data);
+  const TYPE_TASKS = 'Or write the tasks in the Task box below.';
+
+  // Owner decision, 7 October 2026: SiteReady's keyword quick read is no longer used on this page.
+  // When the AI is off or fails, the page says so and the user tries again later or types the tasks.
+  async function readScope(body) {
+    if (!(await aiOn())) {
+      $('scope-results').innerHTML = `<p class="note">The AI reading of scopes is not switched on just now. Try again later. ${TYPE_TASKS}</p>`;
+      return;
     }
+    await readWithAi(body);
   }
+
+  // A scope given before signing in waits in this browser until the user signs in, even when the
+  // sign-in link opens in a new tab. It is kept in IndexedDB, which holds a large file.
+  let waiting = null;
+  function keptScope(mode, use) {
+    return new Promise((resolve) => {
+      if (!window.indexedDB) { resolve(null); return; }
+      try {
+        const open = indexedDB.open('siteready', 1);
+        open.onupgradeneeded = () => open.result.createObjectStore('kept');
+        open.onerror = () => resolve(null);
+        open.onsuccess = () => {
+          const tx = open.result.transaction('kept', mode);
+          const request = use(tx.objectStore('kept'));
+          tx.oncomplete = () => resolve(request.result === undefined ? null : request.result);
+          tx.onerror = () => resolve(null);
+        };
+      } catch {
+        resolve(null);
+      }
+    });
+  }
+  const keepScope = (body) => keptScope('readwrite', (store) => store.put(body, 'scope'));
+  const takeScope = async () => {
+    const body = waiting || await keptScope('readonly', (store) => store.get('scope'));
+    waiting = null;
+    if (body) await keptScope('readwrite', (store) => store.delete('scope'));
+    return body;
+  };
+
+  async function askToSignIn(body) {
+    if (S.accountsOn && !S.accountsOn()) {
+      $('scope-results').innerHTML = `<p class="note">Reading a scope needs an account, and accounts are not switched on here. Write the tasks in the Task box below.</p>`;
+      return;
+    }
+    waiting = body;
+    await keepScope(body);
+    $('scope-results').innerHTML = `<p class="note">Sign in, or start the free trial, to have the AI read this scope. It reads every word, including tables and appendices. Once you are signed in, the reading starts on its own. For one task, write the work in the Task box below instead.</p>
+      <div class="actions"><button type="button" data-open="signin">Sign in or start free trial</button></div>`;
+  }
+
+  // Called by account.js once the user is signed in: a scope given while signed out is read now.
+  S.onSignedIn = async () => {
+    const body = await takeScope();
+    if (!body) return;
+    $('scope-panel').open = true;
+    $('scope-error').textContent = '';
+    $('scope-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try {
+      await readScope(body);
+    } catch (error) {
+      $('scope-error').textContent = error.message;
+    }
+  };
 
   // The AI reading (Claude Opus 5.5 with the owner's brief), for signed-in accounts when it is
   // switched on. It reads every word, so it takes a few minutes; the page asks for it until done.
-  let lastBody = null;
-  let aiStatus = null;
+  let aiStatus = false;
   async function aiOn() {
     if (!S.signedIn || !S.signedIn() || !S.call) return false;
-    if (aiStatus === null) {
+    // Asked again until it is on, so "try again later" works without reloading the page.
+    if (!aiStatus) {
       try { aiStatus = Boolean((await (await fetch(api('/api/scope/ai'))).json()).enabled); } catch { aiStatus = false; }
     }
     return aiStatus;
@@ -142,12 +199,12 @@
     let reading = await S.call('POST', '/api/scope/ai', body);
     const started = Date.now();
     while (reading.status === 'reading') {
-      if (Date.now() - started > 20 * 60 * 1000) throw new Error('The AI reading is taking too long. Try again later, or use the quick read.');
+      if (Date.now() - started > 20 * 60 * 1000) throw new Error(`The AI reading is taking too long. Try again later. ${TYPE_TASKS}`);
       await wait(10000);
       reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}`);
     }
     if (reading.status !== 'done') {
-      $('scope-results').innerHTML = `<p class="note">${esc(reading.error || 'The AI reading failed.')}</p><div class="actions"><button type="button" class="secondary" id="scope-quick">Use the quick read instead</button></div>`;
+      $('scope-results').innerHTML = `<p class="note">${esc(reading.error || 'The AI reading failed. Try again later.')} ${TYPE_TASKS}</p>`;
       return;
     }
     showPackages(reading);
@@ -241,10 +298,6 @@
   $('scope-results').addEventListener('click', (event) => {
     if (event.target.closest('#project-start')) { startProject(); return; }
     if (event.target.closest('#scope-confirm')) { confirmPackages(); return; }
-    if (event.target.closest('#scope-quick')) {
-      quickRead(lastBody).catch((error) => { $('scope-error').textContent = error.message; });
-      return;
-    }
     const clauses = event.target.closest('[data-scope-clauses]');
     if (clauses) {
       const box = $(`scope-clauses-${clauses.dataset.scopeClauses}`);
@@ -338,8 +391,9 @@
     const item = project.items[index];
     useTask(item, `SWMS ${index + 1} of ${project.items.length}: ${item.title}`);
     renderProject();
-    // The page goes to the project box, which says which SWMS is open, after the layout has settled.
-    requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
+    // Owner decision, 7 October 2026: the page goes to the task, just under the Project SWMS list,
+    // not to the top of the details. Its first line says which SWMS is open.
+    requestAnimationFrame(() => $('start').scrollIntoView({ block: 'start' }));
     // A SWMS prepared before comes back as it was left: its answers, steps and the user's changes.
     // Once saved, its changes save as its next revision.
     if (item.body) {
@@ -367,12 +421,15 @@
 
   function renderProject() {
     const panel = $('project-panel');
-    if (!project) { panel.classList.add('hidden'); return; }
+    const now = $('project-now');
+    if (!project) { panel.classList.add('hidden'); now.classList.add('hidden'); return; }
     const ready = project.items.filter((item) => item.status === 'ready').length;
     const label = { ready: 'Ready', needs: 'Needs answers', todo: 'To do' };
     const current = project.items[project.current];
+    // The SWMS being prepared is named right above its task, at the top of the task box.
+    now.innerHTML = current ? `Now preparing SWMS ${project.current + 1} of ${project.items.length}: <strong>${esc(current.title)}</strong>. Check the task below and press Continue. When it is ready, a button under it opens the next one.` : '';
+    now.classList.toggle('hidden', !current);
     panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
-      ${current ? `<p class="project-now">Now preparing SWMS ${project.current + 1} of ${project.items.length}: <strong>${esc(current.title)}</strong>. It is open in the form below: fill in the details and press Continue. When it is ready, a button under it opens the next one.</p>` : ''}
       <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next. You can also open any SWMS in the list.</p>
       <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : item.status === 'needs' ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
       <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>

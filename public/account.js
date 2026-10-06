@@ -129,6 +129,12 @@
     $('signin').classList.add('hidden');
     if (passkeysWork() && me && !me.user.hasPasskey) $('faceid-offer').classList.remove('hidden');
     showPanel('my-swms');
+    scopeWaiting();
+  }
+
+  // A scope given while signed out is read by the AI once the user is signed in (scope.js).
+  function scopeWaiting() {
+    if (me && S.onSignedIn) S.onSignedIn();
   }
 
   function signedOut() {
@@ -164,7 +170,7 @@
     if (!config.accounts) { bar.classList.add('hidden'); return; }
     bar.classList.remove('hidden');
     if (!me) {
-      bar.innerHTML = `<span class="bar-note">Try it free: preview any SWMS. Sign in to download, save and share.</span>
+      bar.innerHTML = `<span class="bar-note">Try it free: preview any SWMS. Sign in to read a scope, download, save and share.</span>
         <button type="button" class="small" data-open="signin">Sign in or start free trial</button>`;
       document.querySelectorAll('.signed-in-only').forEach((el) => el.classList.add('hidden'));
       return;
@@ -685,6 +691,7 @@
       }
     }
     await refresh();
+    scopeWaiting();
   }
 
   start();

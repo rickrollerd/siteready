@@ -99,7 +99,7 @@ async function readSwms(documentText) {
   try {
     answer = await aiScope.callModel({ system: CHECK_BRIEF, content: `<document>\n${content}\n</document>`, schema: CHECK_SCHEMA, effort: 'medium' });
   } catch (error) {
-    // The scope reader's own messages talk about the quick read, so they are not passed on.
+    // The scope reader's own messages talk about a scope, so they are not passed on.
     if (error.status === 422) throw fail(422, 'The AI could not read this SWMS. Check it by hand.');
     throw fail(502, 'The SWMS could not be read just now. Try again.');
   }
