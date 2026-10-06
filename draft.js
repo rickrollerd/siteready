@@ -4170,8 +4170,39 @@ function settleFlags(flags, task) {
   off(out.peFusion && !/\b(braz\w*|solder\w*|copper)\b/i.test(task), 'hotWork');
   // Earthing is electrical work.
   if (out.earthStakes) out.electricalWork = true;
+  // Work the task names brings its own step or lines, and only then.
+  // Running refrigerant pipe or pair coil; on its own it sits with the pipe supports step.
+  out.pairCoil = /\bpair[- ]?coil\w*\b|\b(?:run\w*|install\w*|lay\w*|fix\w*)\b[^.]{0,30}\b(?:refrigerant|refrigeration|copper) (?:pipes?|pipework|piping|lines?)\b/i.test(task);
+  if (out.pairCoil && !out.refrigerantPipework && !out.refrigerantTest && !out.refrigerantCharge && !out.mechPipework) { out.mechPipework = true; out.pairCoilOnly = true; }
+  // A brick elevator, and cleaning down new brickwork.
+  out.brickElevator = Boolean(out.masonryLay) && /\b(?:brick|block) (?:elevators?|conveyors?)\b|\b(?:elevators?|conveyors?)\b[^.]{0,30}\b(?:bricks|blocks)\b/i.test(task);
+  out.brickClean = Boolean(out.masonryLay) && /\b(?:clean\w* down|acid (?:wash|clean)\w*|wash\w* down)\b[^.]{0,30}\b(?:brick\w*|block\w*|masonry|walls?)\b|\b(?:brick|masonry) clean\w*\b|\bclean\w* (?:the )?(?:new )?(?:brickwork|bricks|blockwork|masonry)\b/i.test(task);
+  // Removing old line marking, raised pavement markers and thermoplastic markings are line marking work.
+  const roadSurface = /\b(roads?|car ?parks?|pavements?|carriageways?|streets?)\b/i.test(task);
+  out.pavementMarkers = RPM.test(task) && (Boolean(out.lineMarking) || roadSurface);
+  out.lineRemoval = LINE_REMOVAL.test(task) && (Boolean(out.lineMarking) || roadSurface);
+  out.thermoplastic = /\bthermo-?plastic\b/i.test(task) && (Boolean(out.lineMarking) || out.pavementMarkers || out.lineRemoval || roadSurface);
+  if (out.pavementMarkers || out.lineRemoval || out.thermoplastic) out.lineMarking = true;
+  // The thermoplastic step has its own gas torch lines; heating it is not brazing.
+  off(out.thermoplastic && !/\b(braz\w*|solder\w*|weld\w*)\b/i.test(task), 'hotWork');
+  off(out.thermoplastic && !/\b(membranes?|torch-on|waterproof\w*|roofing)\b/i.test(task), 'wpTorch', 'wpRolls');
+  // Lines are painted only where painting or line marking is named beyond removing old lines or fixing markers.
+  const painted = task.replace(new RegExp(LINE_REMOVAL.source, 'gi'), ' ').replace(new RegExp(RPM.source, 'gi'), ' ').replace(/\bthermo-?plastic\b(?:[^.]{0,30}?\b(?:road |line |pavement )?(?:markings?|lines)\b)?/gi, ' ');
+  out.lineMarkNoPaint = Boolean(out.lineMarking) && !/\b(paint\w*|line ?mark\w*|linemark\w*|road markings?|(?:mark|lin)\w* (?:the )?(?:car ?park |parking )?(?:bays|lines)|spray\w*)\b/i.test(painted);
+  // Insulation boards fixed to a slab soffit.
+  out.soffitInsulation = Boolean(out.insulation) && /\b(soffits?|underside of (?:the )?(?:suspended )?(?:slabs?|podium|car ?park)|under ?slab|car ?park ceilings?)\b/i.test(task);
+  // Laser levels used for set-out in fitout (slab set-out has its own laser line).
+  out.laserLevel = /\blasers?\b/i.test(task) && !/\blasers? (?:cut\w*|weld\w*|scan\w*|range ?finders?|printers?|engrav\w*|measur\w*)\b/i.test(task) && !out.slabGround;
+  // The crane company's slinging lines for the loads the task names.
+  out.craneConcreteLoads = Boolean(out.crane) && /\b(precast|tilt[- ]?up|concrete (?:panels?|elements?|beams?|blocks?|pipes?|culverts?|pits?|barriers?|units?|stairs?|planks?))\b/i.test(task);
+  out.craneFormworkLoads = Boolean(out.crane) && /\b(formwork|falsework|form ?ply|props)\b/i.test(task);
+  out.craneScaffoldLoads = Boolean(out.crane) && /\bscaffold\w*\b/i.test(task);
   return out;
 }
+
+// Raised pavement markers, and removing old line marking.
+const RPM = /\b(?:raised (?:reflective )?pavement markers?|rr?pms?|road studs?|cat'?s[- ]?eyes)\b/i;
+const LINE_REMOVAL = /\b(?:remov\w*|grind\w* (?:off|out)|blast\w* off|eras\w*|obliterat\w*)\b[^.]{0,30}\b(?:old |existing )?(?:line ?markings?|linemarking|(?:road |pavement |car ?park )?markings|(?:road|car ?park|painted|white|yellow|traffic) lines)\b|\bline (?:marking )?removal\b/i;
 
 // Hot conditions: hot weather named in the task, or hot plant such as furnaces, kilns and
 // operating boilers (artificial extremes of temperature). A cold store is not hot work, and

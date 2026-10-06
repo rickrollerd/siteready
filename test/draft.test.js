@@ -521,3 +521,34 @@ test('hot work under a permit a step already names still gets a fire watch and a
   assert.ok(!said.some((line) => /^During hot work, a fire extinguisher is kept at the work/.test(line)));
   assert.equal(said.filter((line) => /\bfire watch\b/i.test(line)).length, 1, 'the cutting step keeps its own fire watch line');
 });
+
+test('steps from the third batch of real SWMS come in only where the task names that work', () => {
+  const { workFlags } = require('../draft');
+  const { jobStepsFor } = require('../activities');
+  const names = (task, ownCrane = false) => jobStepsFor(workFlags(task, {}, ownCrane), () => '', { step: 'Fallback', hazards: [], controls: ['x'] }).map((step) => step.step);
+  const lines = (task, ownCrane = false) => jobStepsFor(workFlags(task, {}, ownCrane), () => '', { step: 'Fallback', hazards: [], controls: ['x'] }).flatMap((step) => step.controls);
+  assert.ok(names('Install split system air conditioners, run pair coil to the head units, pressure test, evacuate and charge.').includes('Run and fix refrigerant pipe and pair coil'));
+  assert.ok(!names('Install split system air conditioners, pressure test, evacuate and charge.').includes('Run and fix refrigerant pipe and pair coil'));
+  const pairOnly = names('Run pair coil from the condensers to the head units.');
+  assert.ok(pairOnly.includes('Run and fix refrigerant pipe and pair coil') && !pairOnly.includes('Install mechanical pipework'));
+  const bricks = names('Lay face brick walls from scaffold, using a brick elevator, and clean down the brickwork with acid.');
+  assert.ok(bricks.includes('Set up and use the brick elevator') && bricks.includes('Clean down the brickwork'));
+  const plainBricks = names('Lay face brick walls to the new building from scaffold.');
+  assert.ok(!plainBricks.includes('Set up and use the brick elevator') && !plainBricks.includes('Clean down the brickwork'));
+  const roads = names('Remove old line markings and install raised pavement markers on the highway.');
+  assert.ok(roads.includes('Remove old line marking') && roads.includes('Install raised pavement markers') && !roads.includes('Paint line marking'));
+  const thermo = names('Heat and lay thermoplastic road markings with a gas torch on council roads.');
+  assert.ok(thermo.includes('Heat and lay thermoplastic markings with a gas torch'));
+  assert.ok(!thermo.includes('Lay torch-on membranes') && !thermo.includes('Braze and solder pipe joints (hot work)'));
+  const paint = names('Line mark the car park bays.');
+  assert.ok(paint.includes('Paint line marking') && !paint.includes('Remove old line marking') && !paint.includes('Heat and lay thermoplastic markings with a gas torch'));
+  assert.ok(names('Fix insulation boards to the underside of the car park slab.').includes('Fix insulation boards to the slab soffit'));
+  assert.ok(!names('Install ceiling insulation batts in the new office.').includes('Fix insulation boards to the slab soffit'));
+  assert.ok(names('Set out and frame steel stud walls with a laser level in an office fitout.').includes('Set up and use laser levels'));
+  assert.ok(!names('Frame steel stud walls in an office fitout.').includes('Set up and use laser levels'));
+  // The crane company's slinging lines follow the loads the task names.
+  const formLift = lines('Crane lifts of formwork props and frames for the builder.', true);
+  assert.ok(formLift.some((line) => /^Formwork frames are slung with two chain legs/.test(line)));
+  assert.ok(!formLift.some((line) => /^Scaffold components are lifted only in stillages/.test(line)));
+  assert.ok(!lines('Crane lifts of mechanical plant onto the roof for the builder.', true).some((line) => /^(Formwork frames are slung|Scaffold components are lifted only|Where a concrete item's weight is not marked)/.test(line)));
+});

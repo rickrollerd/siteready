@@ -7,13 +7,15 @@
 // evidenced: 3,436 of 4,571, 75.1%; regulator investigation findings for blasting, processing plant and
 // conveyors, cited to the reports but recorded as regulator guidance so not counted: 3,436 of 4,606, 74.6%;
 // practice upgrades from a third batch of real SWMS, 16 existing lines reaching two organisations:
-// 3,454 of 4,608, 74.96%; four borderline matches that covered only part of a line, or hedged it, were not counted).
+// 3,454 of 4,608, 74.96% (four borderline matches that covered only part of a line, or hedged it, were not
+// counted); then 112 lines from the same batch, 25 cited to code or regulation sections read and 14 required
+// by two organisations, the other 73 from one organisation so not yet evidenced: 3,493 of 4,720, 74.0%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
 const RECORD = require('../scenarios/control-evidence.json');
 
-const MEASURED = 0.749;
+const MEASURED = 0.740;
 
 test('every library control line is in the evidence record, and every record entry is a library line', () => {
   const lines = libraryLines();
