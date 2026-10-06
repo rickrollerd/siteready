@@ -58,11 +58,17 @@ const list = (value) => (Array.isArray(value) ? value.map((item) => (typeof item
 // "To be completed", "TBC", blanks and lines of underscores are not an answer. Nor is a template's
 // stand-in ("Various sites", "All sites") or a sample's ("Mr Example", "Level 7 Example St").
 const PLACEHOLDER = /^(?:to be (?:completed|confirmed|advised)\b.*|tb[cda]|n\/?a|none|nil|-+|_+|\.+|\?+|name:?\s*_*|various\b.*|(?:multiple|all|any|numerous|different)\b[\s–-]*(?:various\s+)?(?:sites?|locations?|projects?|jobs?|workplaces?|addresses)\b.*)$/i;
-const SAMPLE = /\b(?:example|sample|x{3,}|lorem ipsum|placeholder|insert (?:name|address|here)|your (?:name|company|address))\b/i;
+// A template's "[insert responsible person]" is a stand-in too.
+const SAMPLE = /\b(?:example|sample|x{3,}|lorem ipsum|placeholder|insert (?:name|address|here)|insert (?:the )?(?:responsible |competent )?(?:person|position|role)|your (?:name|company|address))\b|\[\s*insert\b[^\]]*\]/i;
 const filled = (value) => Boolean(text(value)) && !PLACEHOLDER.test(text(value)) && !SAMPLE.test(text(value)) && !/_{3,}/.test(text(value));
 // "All workers who sign on to this SWMS" names the signatories, not a person or position who
 // checks the controls (H6, W11).
 const ONLY_WORKERS = /^\s*(?:all|each|every|the)?\s*(?:workers?|employees?|persons?|people|personnel|staff|crew(?: members)?|work ?team|team(?: members)?|everyone|operatives?)\b/i;
+// "All PCBUs/Employers" names businesses, not a person or position (H6, W11).
+const ONLY_BUSINESSES = /^\s*(?:all|each|every|the|relevant)?\s*(?:pcbu(?:['’]?s)?|employers?|persons? conducting a business)\b/i;
+// "Person Responsible for SWMS Compliance (site foreman)" is the form's label and its answer:
+// the answer is read, so the label's "Person" does not read as the workers.
+const RESPONSIBLE_LABEL = /^\s*(?:the\s+)?persons?\s+responsible\b(?:\s+for\b[^:(,–-]*)?\s*[:(,–-]?\s*/i;
 
 function normaliseSwms(input = {}) {
   const site = input.site && typeof input.site === 'object' ? input.site : {};
@@ -104,7 +110,8 @@ function normaliseSwms(input = {}) {
 
 // A category the SWMS lists, recognised from its own wording.
 const NAMED = {
-  fall: /\bfall/i,
+  // "Work at Heights >2m" is how many forms tick the falls category.
+  fall: /\bfall|\bwork(?:ing)? (?:at|from) heights?\b/i,
   tower: /\btelecommunications? towers?\b/i,
   demolition: /\bdemoli/i,
   asbestos: /\basbestos\b/i,
@@ -119,8 +126,9 @@ const NAMED = {
   atmosphere: /\batmosphere\b/i,
   precast: /\b(tilt[- ]?up|precast)\b/i,
   road: /\b(roads?|roadways?|railways?|rail|traffic corridor|shipping lane)\b/i,
-  // "Mobile equipment" is the same category; a SWMS that lists concrete boom pumping lists the pump.
-  plant: /\bmobile (?:plant|equipment|machinery)\b|\bplant (?:movement|moving)\b|\bwork\w* (?:with |around |near |beside )+(?:powered )?(?:mobile )?plant\b|\bconcrete (?:boom )?pump\w*|\bboom pump\w*/i,
+  // "Mobile equipment" is the same category, and so is "any movement of powered plant" (the
+  // regulation's wording without "mobile"); a SWMS that lists concrete boom pumping lists the pump.
+  plant: /\bmobile (?:plant|equipment|machinery)\b|\bmov\w* (?:of )?(?:any )?powered plant\b|\bplant (?:movement|moving)\b|\bwork\w* (?:with |around |near |beside )+(?:powered )?(?:mobile )?plant\b|\bconcrete (?:boom )?pump\w*|\bboom pump\w*/i,
   temperature: /\bextremes? of temperature\b|\btemperature extremes?\b/i,
   water: /\bdrown|\b(?:in|near|over|adjacent to) water\b|\b(?:waterways?|creeks?|rivers?|river ?banks?|creek ?banks?|lakes?|dams?|canals?|foreshores?)\b/i,
   diving: /\bdiving\b/i,
@@ -157,6 +165,9 @@ const ANSWERS = {
 const PHYSICAL_FALL = /\b(guard ?rails?|edge protection|scaffold\w*|ewps?|elevat\w* work platforms?|scissor ?lifts?|boom lifts?|cherry pickers?|(?:mobile |temporary )?work(?:ing)? platforms?|safety (?:mesh|nets?)|catch (?:platforms?|scaffold\w*|decks?)|handrails?|roof rails?|perimeter (?:screens?|protection)|edge screens?|void protection|(?:void|penetration|hole|opening)s? covers?|cover\w* (?:all |the |any )?(?:voids?|penetrations?|openings?|holes?|skylights?)|(?:skylight|fragile roof) (?:covers?|mesh|guards?)|from the ground|stay\w* on the ground|(?:assembl|fabricat|buil)\w* (?:\w+ )?(?:on|at) (?:the )?ground(?: level)?|do not place a person)\b|\b(?:barricad\w*|fenc\w*|barriers?)\b[^.]{0,30}\b(?:trench\w*|excavat\w*|holes?|openings?|voids?|pits?|edges?|penetrations?|shafts?)\b|\b(?:trench\w*|excavat\w*|holes?|openings?|voids?|pits?|edges?|penetrations?|shafts?)\b[^.]{0,30}\b(?:barricad\w*|fenc\w*|barriers?)|\b(?:holes?|openings?|hatch\w*|voids?|penetrations?)\b[^.]{0,30}\b(?:protected|guarded)\b/i;
 // "No edge protection" or "without a scaffold" says it is not there.
 const NO_FALL_CONTROL = /\b(?:no|without|absence of|lack of|not (?:installed|provided|available))\b[^.,;]{0,20}\b(?:guard ?rails?|edge protection|scaffold\w*|ewps?|handrails?|safety mesh)\b/i;
+// A step whose name or hazards point to work at height (H5). "Slips, trips and falls" are on one level.
+const FALL_STEP = /\b(falls?|falling|heights?|roofs?|edges?|ladders?|scaffold\w*|voids?|openings?|ewps?|elevat\w*|platforms?|harness\w*)\b/i;
+const SAME_LEVEL = /\bslips?,?\s*(?:trips?,?\s*)?(?:and|&|or)\s*falls?\b/gi;
 
 // Where a control sits in the hierarchy: the same ranking draft.js orders each step's controls by.
 const { controlLevel, HIGHER } = require('./control-level');
@@ -172,8 +183,9 @@ const NAMED_EQUIPMENT = /\b(guard ?rails?|edge protection|scaffold\w*|ewps?|elev
 // "Where reasonably practicable" and "so far as is reasonably practicable" are the legal test in
 // the WHS Act (s 17 and s 18), not vague wording. "As needed", "where necessary" and the like still are.
 const REASONABLY_PRACTICABLE = /\b(?:so far as is |as far as is |where |when |if |unless |not )?reasonably practicable\b/gi;
-// "Appropriate PPE (long sleeve shirt, long pants, safety footwear)" names the PPE.
-const PPE_LISTED = /\b(?:appropriate|suitable|adequate|relevant|proper|necessary|correct|required) (?:ppe|personal protective equipment|protective (?:equipment|clothing)|safety (?:gear|equipment))\b(?=[^.]*?(?:\(|:|\bincluding\b|\bi\.?e\.?|\bnamely\b|\s[-–]\s)[^.]*?\b(?:gloves?|glasses|goggles|boots|footwear|hard ?hats?|helmets?|respirators?|p[123]\b|masks?|ear ?(?:plugs|muffs)|hearing protection|hi-?vis\w*|high visibility|long[- ]sleeved?|shirts?|pants|trousers|face shields?|aprons?|overalls|coveralls|harness\w*)\b)/gi;
+// "Appropriate PPE (long sleeve shirt, long pants, safety footwear)" names the PPE, and so does
+// "Appropriate PPE to be worn e.g. gloves, safety glasses, safety boots".
+const PPE_LISTED = /\b(?:appropriate|suitable|adequate|relevant|proper|necessary|correct|required) (?:ppe|personal protective equipment|protective (?:equipment|clothing)|safety (?:gear|equipment))\b(?=[^.]*?(?:\(|:|\bincluding\b|\bi\.?e\.?|\be\.?g\.?(?![a-z])|\bnamely\b|\s[-–]\s)[^.]*?\b(?:gloves?|glasses|goggles|boots|footwear|hard ?hats?|helmets?|respirators?|p[123]\b|masks?|ear ?(?:plugs|muffs)|hearing protection|hi-?vis\w*|high visibility|long[- ]sleeved?|shirts?|pants|trousers|face shields?|aprons?|overalls|coveralls|harness\w*)\b)/gi;
 // "Be aware of overhead lines; keep the boom 6 m clear" is followed by the control itself.
 const AWARE = /\b(?:(?:workers?|operators?|crew|staff|everyone|all persons|persons|people) (?:to|should|must|will|are to) )?be (?:aware|mindful) of\b/i;
 const ACTION = /^\s*(?:then |also )?(?:avoid|keep|maintain|stay|use|install|erect|fit|place|put|barricade|isolate|stop|wear|do not|don't|never|no one|position|secure|lock|tie|cover|test|follow|establish|set up|switch off|turn off|de-?energi[sz]e|shut|lower|park|chock|delineate|fence|close|clear|stand|work from)\b/i;
@@ -184,9 +196,10 @@ function withoutAwarenessBeforeAction(line) {
   return rest.some((part) => ACTION.test(part)) ? `${line.slice(0, match.index)} ${line.slice(match.index + match[0].length)}` : line;
 }
 // "Where possible asbestos materials remain" means where they may remain; "licensed and VOC'd as
-// required" keeps the licence firm; a step that plans an assessment ("Assess the exposure to noise
-// and determine the controls required") is not a control left to the worker.
-const NOT_VAGUE = /\bwhere possible\s+(?:\w+\s+){0,3}(?:remain|exist|(?:is|are|may be) present)\w*\b|\b(?:licen[cs]ed|ticketed|trained|competent|voc'?d|voc’d|accredited)\b[^.]{0,30}\bas required\b/gi;
+// required" keeps the licence firm; "as required (weekly)" gives how often; a step that plans an
+// assessment ("Assess the exposure to noise and determine the controls required") is not a
+// control left to the worker.
+const NOT_VAGUE = /\bwhere possible\s+(?:\w+\s+){0,3}(?:remain|exist|(?:is|are|may be) present)\w*\b|\b(?:licen[cs]ed|ticketed|trained|competent|voc'?d|voc’d|accredited)\b[^.]{0,30}\bas required\b|\bas required\s*[(,–-]?\s*(?:daily|weekly|fortnightly|monthly|each (?:day|shift|week|month)|every \d+ (?:days?|weeks?|months?))\b\)?/gi;
 const ASSESSMENT = /^\s*(?:assess|conduct|carry out|complete|undertake)\b[^.]*\b(?:assessments?|surveys?|monitoring|exposure)\b/i;
 const isVague = (line) => !ASSESSMENT.test(String(line)) && VAGUE.test(withoutAwarenessBeforeAction(String(line).replace(REASONABLY_PRACTICABLE, ' ').replace(PPE_LISTED, ' ').replace(NOT_VAGUE, ' ')));
 
@@ -213,11 +226,14 @@ const LICENSED_PLANT = [
 // often name what may be there. Isolation is read from the task and step names only: the high risk
 // category "energised electrical installations or services" also covers work near lines. Roof
 // access needs a permit only where the SWMS says the site runs a permit system. Cutting or grinding
-// metal throws sparks, so it is hot work wherever the SWMS says it is done, controls included.
+// metal throws sparks, so it is hot work wherever the SWMS says it is done, controls included; so is
+// oxy-fuel or gas cutting named in a control ("vests off before using oxy acetylene"). Welding is not
+// read from controls: they name it in passing ("inspect components for welding defects").
 const SITE_PERMITS = /\b(site permit (?:system|process)|(?:work )?permit (?:to work )?system|permits? (?:issued )?by the principal contractor|principal contractor'?s? permits?)\b/i;
 const PERMITS = [
   { label: 'hot work', name: 'a hot work permit',
     work: /\b(hot works?|weld(?:ing|ed|s)?|braz\w*|solder\w*|oxy[- ]?(?:acetylene|propane|cutting)|gas (?:cutting|torch\w*)|thermal cutting|cutting torch\w*|torch[- ]on)\b/i,
+    process: /\b(oxy[- ]?(?:acetylene|propane|cutting|fuel)|gas cutting|thermal cutting|cutting torch\w*)\b/i,
     sparks: /\b(?:(?:using|use|with|by) (?:an? |the )?angle grinders?|angle grinding|(?:cut\w*|grind\w*)\b[^.]{0,30}\b(?:metal|steel|bolts?|rebar|reo(?:bar)?)\b[^.]{0,30}\b(?:grinders?|cut-?off (?:saws?|wheels?)|discs?)|(?:cut\w*|grind\w*)\b[^.]{0,40}\bsparks?|sparks?\b[^.]{0,40}\b(?:cut\w*|grind\w*))\b/i,
     // Not hot work: heat or solvent welded vinyl and plastic seams, and painting or coating welds.
     ignore: /\b(?:(?:heat|hot air|solvent|plastic|poly|vinyl|seam)[- ]?weld\w*|weld\w* (?:the )?(?:vinyl|seams?|joins)|(?:heat|hot air|solvent)[- ]welded \w+(?: \w+)?|(?:paint\w*|touch\w* up|coat\w*|seal\w*|prime\w*|blend\w*) (?:the |all |any )?(?:\w+ )?welds?)\b/gi,
@@ -250,8 +266,10 @@ const PERMITS = [
     permit: /\broof (?:access )?permits?\b|\bpermits? (?:for|to) (?:access )?(?:the )?roof\b/i },
 ];
 
-// "Cut with snips, not a grinder, to avoid sparks" is not hot work.
+// "Cut with snips, not a grinder, to avoid sparks" is not hot work, and nor is "no oxy cutting
+// from a ladder".
 const NO_SPARKS = /\b(?:not|no|never|avoid\w*|without|instead of)\b[^.]{0,20}\b(?:(?:angle )?grind\w*|sparks?)\b/i;
+const NO_HOT_WORK = /\b(?:not|no|never|avoid\w*|without|instead of|prohibit\w*)\b[^.]{0,40}\b(?:oxy\w*|(?:gas|thermal) cutting|cutting torch\w*|hot works?)\b/i;
 const sentencesOf = (lines) => lines.join('\n').split(/(?<=[.;!?])\s+|\n/);
 
 // What a builder looks for beside the hot work permit (W12).
@@ -265,7 +283,10 @@ const POSITION = /\b(supervisors?|leading hands?|foreman|foremen|site managers?|
 
 // A position given the checking in a control (W11).
 const CHECKED_BY = new RegExp(`${POSITION.source}\\s+(?:\\w+\\s+){0,2}(?:checks?|inspects?|confirms?|verif\\w*|supervis\\w*|signs? off|approves?|monitors?|is responsible|ensures?)\\b|\\b(?:checked|inspected|supervised|signed off|approved|monitored|verified|confirmed|issued)\\b[^.]{0,20}\\bby (?:the |a |an )?${POSITION.source}`, 'i');
-const responsibleNamed = (value) => filled(value) && !(ONLY_WORKERS.test(value) && !POSITION.test(value));
+function responsibleNamed(value) {
+  const answer = text(value).replace(RESPONSIBLE_LABEL, '').replace(/[\s)\].:]+$/, '');
+  return filled(answer) && !((ONLY_WORKERS.test(answer) || ONLY_BUSINESSES.test(answer)) && !POSITION.test(answer));
+}
 
 const PLANT_WORDS = /\b(cranes?|forklifts?|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|excavators?|skid ?steers?|bobcats?|loaders?|rollers?|dozers?|graders?|telehandlers?|trucks?|concrete pumps?|scaffold\w*|power tools?|saws?|grinders?|generators?|compressors?)\b/i;
 
@@ -290,12 +311,17 @@ const MOBILE_PLANT = /\b(ewps?|elevat\w* work platforms?|scissor ?lifts?|boom (?
 const HAZARD_HEADING = /^[\s\d.]*(?:[\w&/-]+\s+){0,3}(?:hazards?|risks?|handling|tasks|noise|dust|fumes|heights?|electrical|electricity|traffic|fatigue|weather|elements|chemicals?|substances|security|safety|slips?|trips?|falls?|lighting|illumination|sun|heat|ppe|training|inductions?)\s*$/i;
 // Writing a plan later is not having one (W6).
 const PLAN_PROMISE = /\b(?:develop|prepare|establish|create|write|draft)\w*\b[^.]{0,30}\b(?:emergency|rescue|evacuation)\b[^.]{0,30}\b(?:plans?|procedures?)\b/i;
+// A template's question or prompt with no answer (W6).
+const TEMPLATE_QUESTION = /\?\s*$|^\s*(?:list|describe|detail|outline)\s+(?:the|all|any)\b/i;
 // Unfilled template text (W9).
 const TEMPLATE_PROMPT = /\b(?:enter (?:the )?(?:job|task|site|project|name|description|details)\w*|insert (?:photo|name|here|details)|example:|click (?:or tap )?here)|[-(]\s?specify\b/i;
 // Known unsafe controls (W3): a water jet or pressure gun trigger locked or tied on.
 const UNSAFE = /\btriggers?\b[^.]{0,30}\b(?:lock(?:ed|ing)?|tied|taped|wedged|cable[- ]tied)\s+(?:on|open|down|back)\b|\b(?:lock|tie|tape|wedge)\w*\s+(?:the\s+)?triggers?\s+(?:on|open|down|back)\b/i;
-// Cutting, drilling or grinding concrete or masonry makes silica dust (W3).
-const SILICA_WORK = /\b(?:concrete|masonry|brick|block\w*|pavers?|stone)\s+(?:cutt\w*|saw\w*|grind\w*|cor(?:e|ing)\b|drill\w*)|\b(?:saw[- ]?cut\w*|core drill\w*|cut\w*|grind\w*|chas\w*)\b[^.\n]{0,20}\b(?:concrete|masonry|bricks?|blocks?|pavers?|stone)\b/i;
+// Cutting, drilling or grinding concrete or masonry makes silica dust (W3), whichever way round
+// it is written ("concrete drilling", "drilling into concrete").
+const SILICA_WORK = /\b(?:concrete|masonry|brick|block\w*|pavers?|stone)\s+(?:cutt\w*|saw\w*|grind\w*|cor(?:e|ing)\b|drill\w*)|\b(?:saw[- ]?cut\w*|core drill\w*|cut\w*|grind\w*|chas\w*|drill\w*)\b[^.\n]{0,20}\b(?:concrete|masonry|bricks?|blocks?|pavers?|stone)\b/i;
+// Wetting down the materials or the area beforehand is not water at the cut (W3).
+const WET_DOWN = /\b(?:pre-?wet\w*|wet\w* down|wet\w* (?:the |all )?(?:materials?|bricks?|blocks?|surfaces?|(?:work )?areas?|ground|soil))\b/gi;
 
 // What triggers a review (W4): a change to the work or the workplace, and an incident or a control
 // that is not working ("if controls are inadequate, stop work, review the SWMS").
@@ -340,6 +366,10 @@ function stepText(step, task = '') {
 const MOVING_PLANT = /\b(conveyors?|feeders?|chutes?|crushers?|pulleys?|tail drums?)\b/i;
 const LOCKED_OUT = /\b(isolat\w*|lock(?:ed)? ?out|lockout|personal locks?)\b/i;
 const PLANT_WORK = /\b(clear\w*|clean\w*|dig\w*|unblock\w*|maintain\w*|maintenance|repair\w*|servic\w*|hos(?:e|ing)\w*|wash\w*|shovel\w*|reach\w*)\b/i;
+
+// "All workers are required to be consulted" states the duty, not that it was done (H7).
+const CONSULT_DUTY = /\b(?:(?:is|are) required to|must|shall|should|needs? to) be consulted\b/i;
+const consultationRecorded = (value) => filled(value) && text(value).split(/(?<=[.;!?])\s+/).some((line) => filled(line) && !CONSULT_DUTY.test(line));
 
 function hardFails(swms, state, stage = 'review') {
   const out = [];
@@ -427,28 +457,34 @@ function hardFails(swms, state, stage = 'review') {
     noAddress && noConditions ? 'No site address and no site conditions. The SWMS reads as generic.'
       : noAddress ? 'No site address.' : noConditions ? 'No site conditions (access, services, other trades, the public, ground).' : 'The site address and site conditions are given.');
 
-  // Vague wording in a step with a high risk hazard.
-  const riskySteps = swms.steps.filter((step) => highRiskMatches(stepText(step, swms.task), swms.fallRisk, state).length);
+  // Vague wording in a step with a high risk hazard. A "yes" to falls says some of the work is at
+  // height, not every step: a planning or manual handling step is a fall step only where its name or
+  // hazards say so, as when falls are not answered.
+  const riskySteps = swms.steps.filter((step) => {
+    const words = stepText(step, swms.task);
+    return highRiskMatches(words, swms.fallRisk === 'yes' ? '' : swms.fallRisk, state).length || (swms.fallRisk === 'yes' && FALL_STEP.test(words.replace(SAME_LEVEL, ' ')));
+  });
   const vague = riskySteps.flatMap((step) => step.controls.filter(isVague).map((line) => ({ step: step.step, line })));
   add('H5', 'Controls are definite, not left to the worker', !vague.length,
     vague.length ? `Controls for high risk hazards leave the decision to the worker: ${vague.slice(0, 5).map((item) => `"${item.line}" (${item.step || 'step'})`).join('; ')}. Say exactly what is done.` : 'No vague controls for high risk hazards.');
 
   add('H6', 'Person responsible for checking the controls', responsibleNamed(swms.responsiblePerson),
     responsibleNamed(swms.responsiblePerson) ? `${swms.responsiblePerson} checks the controls.`
-      : filled(swms.responsiblePerson) ? `No person is named as responsible for checking the controls: "${swms.responsiblePerson}" names the workers who sign on, not who checks.`
-        : 'No person is named as responsible for checking the controls.');
+      : ONLY_BUSINESSES.test(swms.responsiblePerson) ? `No person is named as responsible for checking the controls: "${swms.responsiblePerson}" names businesses, not a person or position who checks.`
+      : filled(swms.responsiblePerson) && !RESPONSIBLE_LABEL.test(swms.responsiblePerson) ? `No person is named as responsible for checking the controls: "${swms.responsiblePerson}" names the workers who sign on, not who checks.`
+      : 'No person is named as responsible for checking the controls.');
 
   // Owner decision (October 2026): a SWMS sent for review is not signed yet, so at review stage
   // the sign-on is a condition before work starts, not a hard fail. Consultation (s 299) is still
   // required: a consultation statement, or a named supervisor or responsible person. On site, the
   // sign-on is required.
   const signed = swms.signatures.length > 0;
-  const consulted = filled(swms.consultation) || responsibleNamed(swms.responsiblePerson);
+  const consulted = consultationRecorded(swms.consultation) || responsibleNamed(swms.responsiblePerson);
   const onSite = stage === 'on-site';
   add('H7', 'Workers consulted and signed on', signed || (!onSite && consulted),
     signed ? `${swms.signatures.length} worker${swms.signatures.length === 1 ? ' has' : 's have'} signed.`
       : !onSite && consulted ? 'Consultation is recorded. Workers must sign on before work starts.'
-        : filled(swms.consultation) ? 'Consultation is recorded, but no worker has signed the SWMS.' : 'No record that the workers were consulted or briefed, and no worker signatures.');
+        : consultationRecorded(swms.consultation) ? 'Consultation is recorded, but no worker has signed the SWMS.' : 'No record that the workers were consulted or briefed, and no worker signatures.');
   return { out, implied, named, preStart: signed ? [] : ['Workers must sign on before work starts.'] };
 }
 
@@ -519,7 +555,8 @@ function weighted(swms, state, context) {
     // Known unsafe controls, and concrete cutting with nothing for the silica dust.
     const unsafe = allControls.filter((line) => UNSAFE.test(line));
     if (unsafe.length) { points -= 3; fixes.push(`Remove an unsafe control: "${unsafe[0]}". A trigger locked on defeats the dead-man control (AS/NZS 4233.1).`); }
-    if (SILICA_WORK.test([swms.task, ...steps.map((step) => step.step)].join('\n')) && !allControls.some((line) => ANSWERS.silica.test(line))) { points -= 3; fixes.push('The work cuts or drills concrete or masonry: add the silica dust controls (water suppression or on-tool extraction, and the respirator).'); }
+    // The hazards are read too: "dust from drilling concrete" says the step drills it.
+    if (SILICA_WORK.test([swms.task, ...steps.flatMap((step) => [step.step, ...step.hazards])].join('\n')) && !allControls.some((line) => ANSWERS.silica.test(line.replace(WET_DOWN, ' ')))) { points -= 3; fixes.push('The work cuts or drills concrete or masonry: add the silica dust controls (water suppression or on-tool extraction, and the respirator).'); }
     add('W3', 'Controls are specific and checkable', 10, points, fixes, 'Controls are measurable and can be checked on site.');
   }
 
@@ -565,8 +602,9 @@ function weighted(swms, state, context) {
   {
     const fixes = [];
     let points = 0;
-    // A promise to write a plan ("develop an emergency plan") is not the plan.
-    const emergency = [...swms.emergency, ...allControls].filter((line) => !PLAN_PROMISE.test(line)).join(' ');
+    // A promise to write a plan ("develop an emergency plan") is not the plan, and nor is a
+    // template's question left unanswered ("List the equipment that will be used in the rescue").
+    const emergency = [...swms.emergency, ...allControls].filter((line) => !PLAN_PROMISE.test(line) && !TEMPLATE_QUESTION.test(line)).join(' ');
     if (/\bfirst aid\w*\b/i.test(emergency)) points += 3; else fixes.push('Say where first aid is and who the first aider is.');
     const contacts = /\b(000|emergency (?:contacts?|numbers?|services|procedures?|plan)|muster|hospital|evacuat\w*|raise the alarm)\b/i.test(emergency);
     if (contacts) points += 3; else fixes.push('Give the emergency contacts and procedure.');
@@ -675,7 +713,8 @@ function weighted(swms, state, context) {
     const domestic = domesticWork(swms.task, /^yes$/i.test(swms.residential) ? true : /^no$/i.test(swms.residential) ? false : undefined)
       || (!/^no$/i.test(swms.residential) && /\b(domestic dwellings?|householders?|home ?owners?)\b/i.test(allText));
     const needed = PERMITS.filter((item) => !(item.notDomestic && domestic)
-      && (item.work.test((item.notFromCategory ? ownWork : work).replace(item.ignore || /$^/g, ' ')) || (item.sparks && sentencesOf([ownWork, ...allControls]).some((line) => item.sparks.test(line) && !NO_SPARKS.test(line))))
+      && (item.work.test((item.notFromCategory ? ownWork : work).replace(item.ignore || /$^/g, ' ')) || (item.sparks && sentencesOf([ownWork, ...allControls]).some((line) => item.sparks.test(line) && !NO_SPARKS.test(line)))
+        || (item.process && sentencesOf(allControls).some((line) => item.process.test(line) && !NO_HOT_WORK.test(line))))
       && (!item.near || item.near.test(`${allText}\n${hazards}`)) && (!item.outside || !item.outside.test(controls)) && (!item.exempt || !item.exempt.test(controls)) && (!item.onlyWithSitePermits || sitePermits));
     // Hand digging or a hand auger, or a rural greenfield site, with the services located first
     // needs no dig permit beyond that.

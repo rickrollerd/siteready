@@ -787,3 +787,75 @@ test('spark-producing steps in a SiteReady draft name the hot work permit and th
     assert.equal(w12.points, 5, `${task}: ${w12.message}`);
   }
 });
+
+// Calibrated against 32 more real subcontractor SWMS (batch 3).
+test('H1: "Work at Heights >2m" names the falls category, and "any movement of powered plant" names mobile plant', () => {
+  for (const line of ['Work at Heights >2m', 'Working at heights', 'Work at height']) {
+    assert.ok(!failed(checkSwms(variant({ highRisk: [line] }))).includes('H1'), line);
+  }
+  assert.ok(failed(checkSwms(variant({ highRisk: ['Manual handling'] }))).includes('H1'));
+  const plant = { step: 'Load out with the skid steer', hazards: ['Struck by the skid steer.'], controls: ['An exclusion zone is kept around the skid steer.'] };
+  const regulation = 'Is carried out at an area in a workplace in which there is any movement of powered plant';
+  assert.ok(!failed(checkSwms(variant({ highRisk: [...GOOD.highRisk, regulation], steps: [...GOOD.steps, plant] }))).includes('H1'));
+  assert.ok(failed(checkSwms(variant({ steps: [...GOOD.steps, plant] }))).includes('H1'));
+});
+
+test('H5: with falls answered yes, a planning or manual handling step is not a fall step; a scaffold step still is', () => {
+  const planning = { step: 'General planning', hazards: ['Not following safe work procedures.'], controls: ['Toolbox meetings are held as required.'] };
+  const carrying = { step: 'Transporting', hazards: ['Manual handling injury.', 'Slips, trips and falls.'], controls: ['Team lift where required.'] };
+  assert.ok(!failed(checkSwms(variant({ steps: [...GOOD.steps, planning, carrying] }))).includes('H5'));
+  const scaffold = { step: 'Lay tiles from the scaffold', hazards: ['Fall from the scaffold.'], controls: ['Where required, the scaffold is erected by a licensed scaffolder.'] };
+  const h5 = item(checkSwms(variant({ steps: [...GOOD.steps, planning, scaffold] })), 'H5');
+  assert.equal(h5.pass, false);
+  assert.match(h5.message, /Lay tiles from the scaffold/);
+  assert.doesNotMatch(h5.message, /General planning/);
+});
+
+test('H5: a PPE list after "e.g." names the PPE; "as required" with how often is not vague', () => {
+  for (const line of ['Appropriate PPE to be worn at all times e.g. gloves, safety glasses, hearing protection, safety boots etc.',
+    'Wear appropriate PPE eg gloves and safety glasses.', 'Workers sign the Toolbox Talk as required (weekly).', 'Toolbox talks are held as required, weekly.']) assert.equal(isVague(line), false, line);
+  for (const line of ['Wear appropriate PPE.', 'Workers sign the Toolbox Talk as required.']) assert.equal(isVague(line), true, line);
+});
+
+test('W3: drilling into concrete, drilling named in the hazards, and wetting down materials are read for silica', () => {
+  const w3 = (step) => item(checkSwms(variant({ steps: [...GOOD.steps, step] })), 'W3').message;
+  assert.match(w3({ step: 'Drilling into concrete and installing anchors', hazards: ['Noise.'], controls: ['Hearing protection is worn.'] }), /silica dust controls/);
+  assert.match(w3({ step: 'Attach the pipework to the underside of the concrete soffit', hazards: ['Dust from drilling concrete.'], controls: ['Safety glasses are worn.'] }), /silica dust controls/);
+  const saw = { step: 'Cut bricks with the brick saw', hazards: ['Dust.'], controls: ['Wet down materials to alleviate dust.'] };
+  assert.match(w3(saw), /silica dust controls/);
+  assert.doesNotMatch(w3({ ...saw, controls: ['The brick saw has on-tool water suppression.'] }), /silica dust controls/);
+});
+
+test('W11 and H6: "[insert responsible person]" is a template stand-in, not a position', () => {
+  const steps = GOOD.steps.map((step) => ({ ...step, responsible: '[insert responsible person]', controls: step.controls.filter((line) => !/supervisor|scaffolder/i.test(line)) }));
+  assert.equal(item(checkSwms(variant({ steps })), 'W11').points, 0);
+  assert.ok(failed(checkSwms(variant({ responsiblePerson: '[insert responsible person]' }))).includes('H6'));
+});
+
+test('W6: unanswered rescue questions from a template earn no rescue points', () => {
+  const questions = ['Have the personnel who will carry out the rescue been trained in the rescue procedure?', 'List the equipment that will be used in the emergency rescue.'];
+  const w6 = (controls) => item(checkSwms(variant({ emergency: ['Call 000. First aid kit in the site shed; first aider Sam Lee.'], steps: [...GOOD.steps, { step: 'Rescue plan', hazards: ['A worker suspended in a harness.'], controls }] })), 'W6');
+  assert.equal(w6(questions).points, 6);
+  assert.match(w6(questions).message, /rescue plan/);
+  assert.equal(w6(['Rescue: a suspended worker is brought down with the EWP ground controls within 10 minutes.']).points, 10);
+});
+
+test('H6 and H7: businesses are not a responsible person; a form\'s "Person responsible" label is read past; a duty to consult is not a record', () => {
+  for (const value of ['PCBUs/Employers', 'All PCBU’s/Employers are responsible for reviewing this SWMS against site conditions.', 'PCBU\'s']) {
+    const result = checkSwms(variant({ responsiblePerson: value }));
+    assert.ok(failed(result).includes('H6'), value);
+    assert.match(item(result, 'H6').message, /names businesses/, value);
+  }
+  assert.ok(!failed(checkSwms(variant({ responsiblePerson: 'Person Responsible for SWMS Compliance (Site Foreman)' }))).includes('H6'));
+  for (const value of ['Person Responsible for SWMS Compliance', 'Person responsible: all workers']) assert.ok(failed(checkSwms(variant({ responsiblePerson: value }))).includes('H6'), value);
+  const unsigned = { signatures: [], responsiblePerson: 'PCBUs/Employers' };
+  assert.ok(failed(checkSwms(variant({ ...unsigned, consultation: 'All workers are required to be consulted with regards to the SWMS.' }))).includes('H7'));
+  assert.ok(failed(checkSwms(variant({ ...unsigned, consultation: 'Relevant workers must be consulted in the development of this SWMS' }))).includes('H7'));
+  assert.ok(!failed(checkSwms(variant({ ...unsigned, consultation: 'This SWMS was developed in consultation with the workers.' }))).includes('H7'));
+});
+
+test('W12: oxy-acetylene work named only in a control is hot work; a rule against it is not', () => {
+  const w12 = (controls) => item(checkSwms(variant({ steps: [...GOOD.steps, { step: 'Remove the old pipework', hazards: ['Burns.'], controls }] })), 'W12').message;
+  assert.match(w12(['High visibility vests are removed before using oxy acetylene.']), /hot work permit/);
+  assert.doesNotMatch(w12(['No oxy cutting from a ladder.']), /hot work/);
+});
