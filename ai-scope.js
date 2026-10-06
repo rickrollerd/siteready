@@ -132,7 +132,7 @@ async function callModel({ system, content, schema, effort }) {
     messages: [{ role: 'user', content }],
   });
   const message = await stream.finalMessage();
-  if (message.stop_reason === 'refusal') throw fail(422, 'The AI could not read this document. Use the quick read, and check every task.');
+  if (message.stop_reason === 'refusal') throw fail(422, 'The AI could not read this document. Try again later.');
   if (message.stop_reason === 'max_tokens') throw fail(422, 'This document has more work in it than the AI can list in one reading. Split it into parts and read each one.');
   const answer = message.content.filter((block) => block.type === 'text').map((block) => block.text).join('');
   try {
@@ -202,7 +202,7 @@ function errorMessage(error) {
   if (error instanceof Anthropic.RateLimitError) return 'The AI is busy. Try again in a few minutes.';
   if (error instanceof Anthropic.AuthenticationError || error instanceof Anthropic.PermissionDeniedError) return 'The AI reading is not set up on this server.';
   if (error instanceof Anthropic.APIConnectionError) return 'The AI could not be reached. Try again.';
-  return 'The AI reading failed. Try again, or use the quick read.';
+  return 'The AI reading failed. Try again later.';
 }
 
 // The same package wording gets the same steps whichever groups the AI chose (task #97):
@@ -235,7 +235,7 @@ function rowOut(row) {
 // Starts a reading, or returns the one already kept for this company and document.
 // The reading itself runs on after the request returns; the page asks for it by its id.
 async function startReading(company, text) {
-  if (!enabled()) throw fail(503, 'The AI reading is not switched on. Use the quick read.');
+  if (!enabled()) throw fail(503, 'The AI reading is not switched on. Try again later, or write the tasks in the Task box.');
   if (!company) throw fail(401, 'Sign in to have the AI read a scope.');
   const content = String(text || '');
   if (!content.trim()) throw fail(400, 'There is no text in this file to read.');

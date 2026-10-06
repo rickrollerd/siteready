@@ -359,33 +359,18 @@
       <p class="note hidden" id="profile-status"></p>
     </details>
 
-    <details class="panel" id="scope-panel">
-      <summary>Start from a scope of works or a quote</summary>
-      <p class="lede" style="margin-bottom:12px">Attach the scope of works or your quote, or paste it below. SiteReady lists the tasks in it that need a SWMS, with high risk work first. Pick one to fill in the task, then check it and continue as normal.</p>
+    <!-- Owner decision, 7 October 2026: the page runs in the order a SWMS is made. Company
+         details, project details, the scope or work description, then the task just under the
+         Project SWMS list, then Continue and the draft. The task is no longer below the site details. -->
+    <section class="panel" id="job-details">
+      <h2>Company</h2>
       <div class="field">
-        <label for="scope-file">Scope of works or quote file
-          <span class="hint">Word (.docx), PDF or text. Attach the scope or quote only, not the whole contract. Prices are ignored.</span>
+        <label for="company">Subcontractor
+          <span class="hint">Your company, doing this work.</span>
         </label>
-        <div id="scope-drop" class="drop-zone">
-          <input id="scope-file" type="file" accept=".docx,.pdf,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
-          <p class="meta" id="scope-drop-note">or drag the file here</p>
-          <button type="button" class="small secondary hidden" id="scope-file-clear">Remove file</button>
-        </div>
+        <input id="company" type="text" autocomplete="organization">
       </div>
-      <div class="field">
-        <label for="scope-text">Or paste the scope or quote</label>
-        <textarea id="scope-text" style="min-height:160px"></textarea>
-      </div>
-      <div class="actions">
-        <button type="button" id="scope-read">Find the tasks that need a SWMS</button>
-      </div>
-      <p class="error" id="scope-error"></p>
-      <div id="scope-results"></div>
-    </details>
-
-    <section id="project-panel" class="panel hidden" aria-live="polite"></section>
-    <form id="start" class="panel">
-      <h2>State and task</h2>
+      <h2 style="margin-top:18px">Project details</h2>
       <div class="field">
         <label for="workplace">Job address
           <span class="hint">Where the work is done. The state, and its law, are set from this address.</span>
@@ -414,12 +399,6 @@
         </label>
         <input id="principal" type="text" autocomplete="off" list="principal-list">
         <datalist id="principal-list"></datalist>
-      </div>
-      <div class="field">
-        <label for="company">Subcontractor
-          <span class="hint">Your company, doing this work.</span>
-        </label>
-        <input id="company" type="text" autocomplete="organization">
       </div>
       <div class="field">
         <label for="site-manager">Site manager
@@ -499,6 +478,36 @@
         </label>
         <input id="swms-ref" type="text" autocomplete="off">
       </div>
+    </section>
+
+    <details class="panel" id="scope-panel">
+      <summary>Start from a scope of works or a quote<span class="saved-name">· or write the work in the Task box below</span></summary>
+      <p class="lede" style="margin-bottom:12px">Attach the scope of works or your quote, or paste it below. The AI reads every word and lists the work packages in it that need a SWMS, for you to confirm. Sign in, or start the free trial, to have a scope read. For one task, write the work in the Task box below instead.</p>
+      <div class="field">
+        <label for="scope-file">Scope of works or quote file
+          <span class="hint">Word (.docx), PDF or text. Attach the scope or quote only, not the whole contract. Prices are ignored.</span>
+        </label>
+        <div id="scope-drop" class="drop-zone">
+          <input id="scope-file" type="file" accept=".docx,.pdf,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
+          <p class="meta" id="scope-drop-note">or drag the file here</p>
+          <button type="button" class="small secondary hidden" id="scope-file-clear">Remove file</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="scope-text">Or paste the scope or quote</label>
+        <textarea id="scope-text" style="min-height:160px"></textarea>
+      </div>
+      <div class="actions">
+        <button type="button" id="scope-read">Find the tasks that need a SWMS</button>
+      </div>
+      <p class="error" id="scope-error"></p>
+      <div id="scope-results"></div>
+    </details>
+
+    <section id="project-panel" class="panel hidden" aria-live="polite"></section>
+    <form id="start" class="panel">
+      <p class="project-now hidden" id="project-now" style="margin:0 0 14px"></p>
+      <h2>Task</h2>
       <div class="field pick">
         <label for="trade">Trade
           <span class="hint">Pick a trade and a common task to fill in the task, then change it to suit your job, such as the type of structure, slab and crane. Or write your own.</span>
