@@ -7,9 +7,13 @@
 // groups only for main work.
 // v3.3 (owner approved 5 October 2026): access equipment and methods the subcontractor must use are
 // activities even when written as a requirement (v3.2 dropped A-frames and mobile scaffolds).
+// v3.4 (owner approved 7 October 2026 "Update and test"): clauses about locating, protecting or not
+// damaging existing services are site conditions, not activities, unless this subcontractor installs,
+// diverts or repairs services (v3.3 made a general clause in the owner's formwork subcontract an
+// In-ground civil package with trench steps).
 // Change the brief only with the owner's approval, and raise BRIEF_VERSION when it changes,
 // so stored readings made with an older brief are read again.
-const BRIEF_VERSION = 'v3.3';
+const BRIEF_VERSION = 'v3.4';
 
 const PACKAGES = [
   'In-ground civil',
@@ -43,6 +47,7 @@ Rules:
    - Leave out blank or unfilled template lines (for example "____", "TBA", "[insert]").
    - Leave out rates, prices, day labour, invoicing and payment lines. Never quote a price.
    - Access equipment and methods this subcontractor must use (ladders, A-frames, trestles, mobile scaffolds, EWPs) are activities, even when the clause reads as a requirement.
+   - Clauses about locating, protecting or not damaging existing services are site conditions, not activities, unless the document says this subcontractor installs, diverts or repairs services.
 2. One row is one activity. Give a separate row for each item of plant or each method named (for example: crane lift, EWP, scaffold, ladder, core drilling, hot works). Do not split one activity into its sub-steps (install and later remove the same item is one row). Do not merge different activities into one row because they share a location.
 3. Name each activity plainly ("Install ductwork", "Lift chillers into the plant room"). Do not assume details the document does not give.
 4. For each row give:
