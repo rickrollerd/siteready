@@ -764,3 +764,26 @@ test('control levels: lock-out hardware, switching off, sealing, wrapping, HEPA 
     assert.notEqual(controlLevel(line), 'Isolate or engineer', line);
   }
 });
+
+// Steel stud cutting with an abrasive disc and grinding steel throw sparks: the drafts name the hot
+// work permit, the extinguisher and the fire watch (W12), as SiteReady drafts of real scopes did not.
+test('spark-producing steps in a SiteReady draft name the hot work permit and the fire watch (W12)', () => {
+  const { questionsFor } = require('../draft');
+  const { answersFor } = require('../presets');
+  // The job steps a scope reading picks for the waterproofer's surface preparation.
+  for (const [task, kinds] of [['Construct external wall steel stud framing to the residential tower perimeter.'], ['Prepare substrates by grinding. Cut off, grind back, epoxy coat and fill exposed metal items in concrete.', ['wpPrep']]]) {
+    const input = { state: 'qld', fallRisk: 'no', residential: 'no', task, ...(kinds ? { kinds } : {}), ...SITE };
+    const facts = {};
+    for (let round = 0; round < 8; round += 1) {
+      const asked = questionsFor({ ...input, facts });
+      const open = (asked.required || []).filter((question) => !facts[question.id]);
+      if (!open.length) break;
+      for (const question of open) facts[question.id] = question.choices ? question.choices[0].value : (answersFor(question.id, asked.task)[0] || {}).text || `As set out in the site plan: ${question.label}.`;
+    }
+    const draft = prepareDraft(draftBody({ ...input, facts }));
+    assert.equal(draft.kind, 'draft', task);
+    const w12 = item(check(fromDraft(draft, { state: 'qld' }), { state: 'qld' }), 'W12');
+    assert.match(w12.message, /hot work/, task);
+    assert.equal(w12.points, 5, `${task}: ${w12.message}`);
+  }
+});

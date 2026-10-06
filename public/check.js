@@ -20,7 +20,9 @@
   $('tabDraft').addEventListener('click', () => setMode('draft'));
 
   fetch('/api/states').then((response) => response.json()).then((data) => {
-    $('state').innerHTML = data.states.filter((state) => state.loaded).map((state) => `<option value="${esc(state.id)}">${esc(state.name)}</option>`).join('');
+    // Blank by default, so an uploaded SWMS is checked under the state it states, not Queensland's.
+    // A state chosen here overrides the document's.
+    $('state').innerHTML = `<option value="">As stated in the SWMS</option>${data.states.filter((state) => state.loaded).map((state) => `<option value="${esc(state.id)}">${esc(state.name)}</option>`).join('')}`;
   }).catch(() => {});
 
   function readFile(file) {
@@ -35,6 +37,7 @@
   async function body() {
     const common = { state: $('state').value, to: $('to').value, from: $('from').value };
     if (mode === 'draft') {
+      if (!$('state').value) throw new Error('Choose the state or territory of the work.');
       return { ...common, draft: { state: $('state').value, task: $('task').value, fallRisk: $('fallRisk').value, workplace: $('workplace').value, principalContractor: $('principalContractor').value, complianceResponsible: $('responsible').value } };
     }
     const file = $('file').files[0];
@@ -46,7 +49,9 @@
     const band = $('band');
     band.textContent = data.band;
     band.className = `band ${data.band === 'Accepted' ? 'accepted' : data.band === 'Accepted with changes' ? 'changes' : 'rejected'}`;
-    $('taskLine').textContent = data.task ? `Task: ${data.task}` : '';
+    const option = [...$('state').options].find((item) => item.value && item.value === data.state);
+    const stateLine = option ? `Checked under ${option.textContent} law.` : 'No state was found in the SWMS, so the national model WHS Regulations were used. Choose the state above and check again.';
+    $('taskLine').textContent = `${data.task ? `Task: ${String(data.task).replace(/\.$/, '')}. ` : ''}${stateLine}`;
     const notFound = $('notFound');
     notFound.classList.toggle('hidden', !(data.notFound && data.notFound.length));
     notFound.innerHTML = data.notFound && data.notFound.length ? `<strong>Check these lines against the SWMS.</strong> The AI gave them, but they are not word for word in the document:<ul>${data.notFound.slice(0, 10).map((line) => `<li>${esc(line)}</li>`).join('')}</ul>` : '';
