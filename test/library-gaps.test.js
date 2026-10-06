@@ -98,3 +98,15 @@ test('a generator control panel is not work on a fuel line; installing the gener
   assert.ok(!fuel(controls));
   assert.ok(fuel(drafted('qld', 'Install generators and fuel tank.')));
 });
+
+// The ladder step's power line lines come only where power lines or live parts are in the work or the
+// site answers (owner decision, 6 October 2026), so indoor SWMS do not carry them.
+test('the ladder step carries power line lines only where power lines or live parts are named', () => {
+  const ladder = (task, site) => prepareDraft({ state: 'qld', task, fallRisk: 'no', residential: 'no', site }).jobSteps.find((step) => step.step === 'Work from ladders');
+  const lines = (step) => step.controls.filter((line) => /power lines|exclusion zones|observer/i.test(line)).length;
+  const indoor = ladder('Install ductwork in the office ceiling.');
+  assert.equal(lines(indoor), 0);
+  assert.ok(!indoor.hazards.some((line) => /power lines/.test(line)));
+  assert.equal(lines(ladder('Install ductwork in the office ceiling.', { liveServices: 'Overhead power lines 3 m from the work.' })), 3);
+  assert.equal(lines(ladder('Install ductwork above the live switchboard.')), 2);
+});
