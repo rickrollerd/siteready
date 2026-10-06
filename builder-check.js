@@ -318,6 +318,9 @@ function responsibleNamed(value) {
 
 const PLANT_WORDS = /\b(cranes?|forklifts?|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|excavators?|skid ?steers?|bobcats?|loaders?|rollers?|dozers?|graders?|telehandlers?|trucks?|concrete pumps?|scaffold\w*|power tools?|saws?|grinders?|generators?|compressors?)\b/i;
 
+// Library step names that mention a road without saying the work is beside one (H1).
+const GENERAL_ROAD_STEP = /\b(?:haul\w*|deliver\w*|driv\w*|transport\w*|cart\w*)\b[^.]{0,40}\bpublic roads?\b|\broad or (?:the )?ground\b|^reinstate (?:the )?asphalt$/i;
+
 const SHALLOW_TRENCH = /\b(?:trench\w*|excavations?)\b[^.]{0,40}\b(?:kept|stays?|remains?)\s+(?:shallower|less)\s+than\s+1\.5\s?m\b/i;
 
 // A step name that only checks, inspects, locates or warns ("Check walls for gas lines", "be aware
@@ -630,6 +633,12 @@ function hardFails(swms, state, stage = 'review') {
   const list = highRiskList(state);
   const workNames = swms.steps.map((step) => step.step).filter((name) => !checkOnly(name));
   const impliedIds = new Set(highRiskMatches([swms.task, ...workNames].join('\n'), swms.fallRisk, state).map((item) => item.id));
+  // Road work is where the work is. It comes from the task, or from a step name that names the road on
+  // its own, not from the task and a step read together ("on the footpath" with "Set up traffic
+  // barriers"), nor from general step names: hauling loads on public roads is driving, not work beside
+  // a road, and "under the road or ground" or "Reinstate asphalt" do not say a road is there.
+  const isRoad = (text) => highRiskMatches(text, swms.fallRisk, state).some((item) => item.id === 'road');
+  if (impliedIds.has('road') && !isRoad(swms.task) && !workNames.some((name) => !GENERAL_ROAD_STEP.test(name) && isRoad(name))) impliedIds.delete('road');
   for (const item of highRiskMatches(swms.steps.filter((step) => checkOnly(step.step)).map((step) => step.step).join('\n'), swms.fallRisk, state)) if (item.id === 'fall') impliedIds.add('fall');
   if (swms.steps.some((step) => step.hazards.some((line) => LIVE_PARTS.test(line)))) impliedIds.add('electrical');
   const plantNames = swms.plant.map((line) => line.split(':')[0]);

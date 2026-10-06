@@ -1089,3 +1089,15 @@ test('the email lists the new items\' fixes by the points they lost', () => {
   assert.match(email, /name the products or product types used/);
   assert.ok(email.indexOf('For trenches') < email.indexOf('name the products'));
 });
+
+// Road work comes from the task, or from a step name that names the road on its own, not from general
+// library step names or the task and a step read together.
+test('H1: general step names and a footpath with traffic barriers do not imply road work; a named live road does', () => {
+  const swms = (task, steps) => ({ state: 'qld', task, fallRisk: 'no', site: { address: '1 Smith St, Paddington QLD 4064', conditions: ['Inside the facility.'] }, highRisk: [], responsiblePerson: 'Sam Lee, supervisor', steps: steps.map((step) => ({ step, hazards: ['Struck by a vehicle.'], controls: ['Barricade the area.'], responsible: 'Supervisor' })) });
+  const roadMissing = (s) => /road/i.test(item(checkSwms(s), 'H1').message) && !item(checkSwms(s), 'H1').pass;
+  assert.equal(roadMissing(swms('Install condensers on the footpath outside the ablutions.', ['Set up traffic barriers and temporary fencing'])), false);
+  assert.equal(roadMissing(swms('Deliver materials to site.', ['Haul and deliver the loads on public roads'])), false);
+  assert.equal(roadMissing(swms('Lay conduit across the site.', ['Bore under the road or ground with a directional drill', 'Reinstate asphalt'])), false);
+  assert.equal(roadMissing(swms('Line marking.', ['Set up traffic control on the live road'])), true);
+  assert.equal(roadMissing(swms('Repair the kerb beside the busy road.', ['Break out the kerb'])), true);
+});
