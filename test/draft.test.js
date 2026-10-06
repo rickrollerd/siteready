@@ -632,3 +632,13 @@ test('mobile scaffold use is treated as EWP use is: found from the task, facts a
   // Erecting a mobile scaffold is work of its own.
   assert.equal(steps('Erect and dismantle the mobile scaffold for the facade crew.').kind, 'draft');
 });
+
+// Where a live service runs ("overhead power on the street") is not where the work is: it does not
+// list road work as high risk construction work. A site answer that puts the work beside a road does.
+test('the live services answer saying where a service runs does not list road work', () => {
+  const base = { state: 'qld', task: 'Install plasterboard linings to internal walls.', fallRisk: 'no', residential: 'no', workplace: '12 Smith St, Paddington QLD 4064' };
+  const road = (site) => (prepareDraft({ ...base, site }).highRisk || []).some((item) => /\broad\b/i.test(item));
+  assert.equal(road({ liveServices: 'Overhead power on the street, 6 m from the work.' }), false);
+  assert.equal(road({ liveServices: 'Water main under the road.' }), false);
+  assert.equal(road({ liveServices: 'Overhead power on the street.', publicInterface: 'Work is beside a busy road with traffic passing.' }), true);
+});

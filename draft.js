@@ -1412,9 +1412,13 @@ function allRequiredFacts(fullTask, answer, state) {
   return facts;
 }
 
-// The site answers (live services, access and so on) as one piece of text, slang read.
+// The site answers (live services, access and so on) as one piece of text, slang read. The live
+// services answer says where a service runs ("overhead power on the street"); that place is not where
+// the work is, so it is left out and does not list road work as high risk construction work.
+const SERVICE_PLACE = /\s+(?:on|in|along|under|across|beside|down|up)\s+(?:the\s+|a\s+)?(?:\w+\s+)?(?:streets?|roads?|footpaths?|verges?|nature strips?|road reserves?)\b/gi;
 function siteConditions(site) {
-  return readSlang(Object.values(site || {}).map(supplied).filter(Boolean).join('\n'));
+  const answers = Object.entries(site || {}).map(([key, value]) => (key === 'liveServices' && typeof value === 'string' ? value.replace(SERVICE_PLACE, '') : value));
+  return readSlang(answers.map(supplied).filter(Boolean).join('\n'));
 }
 
 function combinedFacts(task, facts) {
