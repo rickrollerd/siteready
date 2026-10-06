@@ -257,7 +257,8 @@
       <p class="lede">A writing aid for one task. The subcontractor finishes the statement. <a href="/welcome.html">How it works and pricing</a></p>
     </header>
 
-    <div class="account-bar hidden" id="account-bar"></div>
+    <!-- Shown before the account script runs, so sign-in is never missing; the script replaces it, or hides it where accounts are off (owner, 7 October 2026). -->
+    <div class="account-bar" id="account-bar"><span class="bar-note">Try it free: preview any SWMS. Sign in to read a scope, download, save and share.</span> <button type="button" class="small" data-open="signin">Sign in or start free trial</button></div>
     <p class="note hidden" id="billing-status"></p>
 
     <section class="panel hidden" id="signin">
@@ -482,7 +483,7 @@
 
     <details class="panel" id="scope-panel">
       <summary>Start from a scope of works or a quote<span class="saved-name">· or write the work in the Task box below</span></summary>
-      <p class="lede" style="margin-bottom:12px">Attach the scope of works or your quote, or paste it below. The AI reads every word and lists the work packages in it that need a SWMS, for you to confirm. Sign in, or start the free trial, to have a scope read. For one task, write the work in the Task box below instead.</p>
+      <p class="lede" style="margin-bottom:12px">Attach the scope of works or your quote, or copy and paste the wording in the below box. The AI reads every word and lists the work packages in it that need a SWMS, for you to confirm. Sign in, or start the free trial, to have a scope read. For one task, write the work in the Task box below instead.</p>
       <div class="field">
         <label for="scope-file">Scope of works or quote file
           <span class="hint">Word (.docx), PDF or text. Attach the scope or quote only, not the whole contract. Prices are ignored.</span>
