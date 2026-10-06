@@ -190,7 +190,8 @@ const SCHEMA = [
     signature TEXT NOT NULL,
     signed_at TIMESTAMPTZ NOT NULL
   )`,
-  // Proof of reading (task #92): how each worker read the SWMS before signing on.
+  // Proof of reading (task #92): how each worker read the SWMS before signing on. Kept for
+  // SiteReady's own learning only: never shown to the business or put in the industry data.
   "ALTER TABLE signons ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT ''",
   'ALTER TABLE signons ADD COLUMN IF NOT EXISTS read_seconds INTEGER',
   'ALTER TABLE signons ADD COLUMN IF NOT EXISTS sections_viewed INTEGER',

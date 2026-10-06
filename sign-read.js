@@ -1,7 +1,11 @@
 // Proof that a worker read the SWMS before signing on (task #92): the sections and their
-// minimum reading times, the check questions, the reading record printed on the sign-on
-// sheet, and translations of the SWMS to help workers read it. The English version applies.
+// minimum reading times, the check questions, the line on the sign-on sheet, and translations
+// of the SWMS to help workers read it. The English version applies.
 // Each read gets its own two questions from a pool built from the SWMS (task #95).
+// How a worker read (language, time, sections viewed, check attempts) is kept for SiteReady's
+// own learning only (owner decision, 6 October 2026). It is never shown to the business or
+// the builder, never exported, and never put in the industry data: the sign-on sheet shows only
+// that the worker read, agreed and signed.
 const crypto = require('crypto');
 const db = require('./db');
 const aiScope = require('./ai-scope');
@@ -246,25 +250,10 @@ function sectionSeconds(sections, reported) {
 
 // ---- The line on the sign-on sheet ----
 
-function duration(seconds) {
-  const total = Math.max(0, Math.round(Number(seconds) || 0));
-  const minutes = Math.floor(total / 60);
-  return minutes ? `${minutes} min ${total % 60} s` : `${total} s`;
-}
-
-function readingNote(item) {
-  if (item.explained_by) return `Explained by ${item.explained_by} (supervisor)`;
-  if (!item.language) return '';
-  const language = languageFor(item.language);
-  const read = item.language === 'en' || !language ? 'Read in English' : `Read in ${language.name} (translation)`;
-  const total = Number(item.sections_total) || 0;
-  const viewed = Number(item.sections_viewed) || 0;
-  const parts = [read, duration(item.read_seconds), viewed >= total ? `all ${total} sections viewed` : `${viewed} of ${total} sections viewed`];
-  if (item.check_attempts !== null && item.check_attempts !== undefined) {
-    const attempts = Number(item.check_attempts);
-    parts.push(`check questions passed (${attempts} attempt${attempts === 1 ? '' : 's'})`);
-  }
-  return parts.join(', ');
+// The only line the sign-on sheet prints under a worker's name: who explained the SWMS, where a
+// supervisor did. How the worker read it is never printed.
+function signOnNote(item) {
+  return item && item.explained_by ? `Explained by ${item.explained_by} (supervisor)` : '';
 }
 
 // ---- Translation ----
@@ -362,5 +351,5 @@ async function translation(row, draft, code, readId) {
 
 module.exports = {
   LANGUAGES, languageFor, readSections, questionPool, checkQuestions, publicQuestions, tickedPpe, startRead, checkRead, markAnswers, wrongMessage, useRead,
-  sectionSeconds, readingNote, translation, TRANSLATE_SCHEMA, SERVER_SHARE,
+  sectionSeconds, signOnNote, translation, TRANSLATE_SCHEMA, SERVER_SHARE,
 };
