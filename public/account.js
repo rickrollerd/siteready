@@ -322,7 +322,7 @@
     $('new-confirm').addEventListener('change', ready);
     $('new-name').addEventListener('input', ready);
     ready();
-    const selected = $('site-picker') && $('site-picker').value;
+    const selected = S.siteId();
     if (selected && $('new-site')) $('new-site').value = selected;
     const run = async (fn) => {
       try { await fn(); } catch (error) { status('new-status', error.message, true); }
@@ -490,7 +490,7 @@
     $('saved-edit').addEventListener('click', () => run(async () => {
       await S.fillForm(data.input);
       S.editing = { id, title: swms.title };
-      if ($('site-picker')) $('site-picker').value = swms.siteId || '';
+      S.showSite(swms.siteId || '');
       if (S.prepare) await S.prepare();
     }));
     $('print-qr').addEventListener('click', () => {
@@ -511,21 +511,26 @@
     ['firstAider', 'First aider'], ['musterPoint', 'Muster point'],
   ];
 
+  // The site box takes a typed name: a new site's name, or a saved site's, which fills in its
+  // details. The saved site's id is found from its name.
+  const siteNamed = (name) => sites.find((site) => site.name.trim().toLowerCase() === String(name || '').trim().toLowerCase());
+  S.siteId = () => { const site = $('site-picker') && siteNamed($('site-picker').value); return site ? site.id : ''; };
+  S.showSite = (id) => { const site = sites.find((item) => item.id === id); if ($('site-picker')) $('site-picker').value = site ? site.name : ''; };
+
   function renderSitePicker() {
-    const picker = $('site-picker');
-    if (!picker) return;
-    const current = picker.value;
-    picker.innerHTML = ['<option value="">Choose a saved site</option>', ...sites.map((site) => `<option value="${esc(site.id)}">${esc(site.name)}</option>`)].join('');
-    picker.value = sites.some((site) => site.id === current) ? current : '';
+    const list = $('site-list');
+    if (!list) return;
+    list.innerHTML = sites.map((site) => `<option value="${esc(site.name)}"></option>`).join('');
   }
 
   $('site-picker').addEventListener('change', () => {
-    const site = sites.find((item) => item.id === $('site-picker').value);
+    const site = siteNamed($('site-picker').value);
     if (site) S.fillFields(site);
   });
 
   $('site-save-current').addEventListener('click', async () => {
-    const name = prompt('Name this site, for example "Hospital job, Herston"');
+    const typed = $('site-picker').value.trim();
+    const name = typed && !siteNamed(typed) ? typed : prompt('Name this site, for example "Hospital job, Herston"');
     if (!name) return;
     const values = S.payload();
     const body = { name };
@@ -534,7 +539,7 @@
       const { site } = await call('POST', '/api/sites', body);
       sites.push(site);
       renderSitePicker();
-      $('site-picker').value = site.id;
+      $('site-picker').value = site.name;
     } catch (error) {
       alert(error.message);
     }

@@ -402,9 +402,10 @@
       </div>
       <div class="field pick signed-in-only hidden">
         <label for="site-picker">Site
-          <span class="hint">Pick a saved site to fill in its details, or save the details below as a new site.</span>
+          <span class="hint">Type a new site's name, or pick a saved site to fill in its details. To keep a new site, fill in the details below and save them as a site.</span>
         </label>
-        <select id="site-picker"><option value="">Choose a saved site</option></select>
+        <input id="site-picker" type="text" autocomplete="off" list="site-list" placeholder="Site name, for example Hospital job, Herston">
+        <datalist id="site-list"></datalist>
         <button type="button" class="pick-button" id="site-save-current">Save these details as a site</button>
       </div>
       <div class="field">

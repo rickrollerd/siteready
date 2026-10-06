@@ -251,11 +251,18 @@ function runningLines(units) {
 }
 
 // The workers on a removed sign-on: rows with a date or time, or failing those, rows that read
-// like a name. Counted only; the rows themselves are dropped.
+// like a name. Counted only; the rows themselves are dropped. Whether the rows carry a date is
+// kept too, as the builder check asks for a date beside each signature (W9).
 function countRows(lines) {
   const rows = lines.filter((line) => !signOnStart(line)).map((line) => clean(line.replace(NOTE, ' '))).filter((line) => line && !SHEET_WORDING.test(line));
   const dated = rows.filter((line) => DATE_OR_TIME.test(line)).length;
-  return dated || rows.filter((line) => NAME_LIKE.test(line)).length;
+  if (dated) return { count: dated, undated: 0 };
+  const named = rows.filter((line) => NAME_LIKE.test(line)).length;
+  return { count: named, undated: named };
+}
+function addRows(summary, rows) {
+  summary.signOns += rows.count;
+  summary.signOnsUndated += rows.undated;
 }
 
 // Splits each part into what is kept and what is a sign-on. Throws where they cannot be split.
@@ -263,7 +270,7 @@ function stripUnits(units) {
   const running = runningLines(units);
   const otherText = (unit) => clean(units.filter((item) => item !== unit).map((item) => item.lines.join(' ')).join(' ')).toLowerCase();
   const kept = [];
-  const summary = { pagesRemoved: 0, sectionsRemoved: 0, signOns: 0, found: false };
+  const summary = { pagesRemoved: 0, sectionsRemoved: 0, signOns: 0, signOnsUndated: 0, found: false };
   let continuing = false;
   for (const unit of units) {
     const lines = unit.lines.map((line) => line.replace(/\r/g, ''));
@@ -289,7 +296,7 @@ function stripUnits(units) {
       while (from < lines.length && (running(lines[from]) || rowLike(texts[from]) || READING.test(texts[from]))) from += 1;
       const rows = lines.slice(0, from).filter((line, index) => !running(lines[index]) && texts[index]);
       if (rows.length) {
-        summary.signOns += countRows(rows);
+        addRows(summary, countRows(rows));
         summary.found = true;
       }
     }
@@ -309,7 +316,7 @@ function stripUnits(units) {
     const after = lines.slice(head);
     if (after.some((line, index) => content(head + index))) throw fail(422, REFUSED);
     summary.found = true;
-    summary.signOns += countRows(after.filter((line, index) => clean(line) && !running(line) && !known(texts[head + index])));
+    addRows(summary, countRows(after.filter((line, index) => clean(line) && !running(line) && !known(texts[head + index]))));
     continuing = true;
     const before = lines.slice(from, head);
     const preamble = !before.some((line, index) => content(from + index));

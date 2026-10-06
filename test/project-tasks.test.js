@@ -44,7 +44,8 @@ const TASKS = [
   ['qld', 'yes', 'weld shear studs through traydec onto steel beams', ['fall'], ['Weld shear studs']],
   ['qld', 'yes', 'lift and land precast rib floor units onto steel beams', ['fall', 'precast'], ['Land and fix the precast floor units']],
   ['wa', 'no', 'strip out internal walls around live ductwork and core-fill the blockwork walls', ['asbestos'], ['Strip out the room', 'Core fill blockwork']],
-  ['sa', 'no', 'wrap existing columns in FRP for seismic strengthening, with concrete dust from surface prep', null, null],
+  // FRP column wrapping has its own step since the owner's decision of 6 October 2026.
+  ['sa', 'no', 'wrap existing columns in FRP for seismic strengthening, with concrete dust from surface prep', [], ['Wrap columns with fibre reinforced polymer']],
 ];
 
 function draftAsUser(state, fallRisk, task) {
@@ -79,9 +80,8 @@ test('the project document tasks draft with their high risk work and pass the bu
 });
 
 test('work the library has no steps for yet is stood down, not drafted around', () => {
-  // Fibre reinforced polymer wrapping of columns has no job steps yet.
-  const [state, fall, task] = TASKS.find((item) => !item[3]);
-  assert.equal(draftAsUser(state, fall, task).kind, 'stand-down');
+  // Every project task now has steps (FRP column wrapping since 6 October 2026); work with none is still stood down.
+  assert.equal(draftAsUser('sa', 'no', 'install the widget assemblies to the frames').kind, 'stand-down');
 });
 
 test('a crane pad, the pour before others, and screed are not mistaken for other work', () => {
