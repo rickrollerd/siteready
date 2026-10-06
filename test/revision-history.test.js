@@ -170,6 +170,24 @@ test('an old revision prints as it was saved after the library changes, and upda
   assert.doesNotMatch(JSON.stringify(after.draft), /Old wording/);
 });
 
+test('an older revision prints the workers who signed it, and never how they read it', async () => {
+  const token = await signIn('signed-revision@history.example');
+  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  // A worker signed revision 1 after reading it in Vietnamese; the business sees only the signing.
+  await db.query(`INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, language, read_seconds, sections_viewed, sections_total, check_attempts, explained_by, revision)
+    VALUES ('rev1-signon', $1, 'Rev One Worker', 'Crew Co', '', $2, 'vi', 245, 7, 7, 2, '', 1)`, [swms.id, new Date()]);
+  await call('PUT', `/api/swms/${swms.id}`, { token, body: { title: 'Fence', ...CONFIRM } });
+  const READING = /Read in |sections? viewed|check questions|attempt|Vietnamese|\d+ min \d+ s/;
+  const old = await wordParts(await call('GET', `/api/swms/${swms.id}/docx?revision=1`, { token }));
+  assert.match(old.body, /Rev One Worker/);
+  assert.doesNotMatch(old.body, READING);
+  const oldPdf = pdfText(Buffer.from(await (await call('GET', `/api/swms/${swms.id}/pdf?revision=1`, { token })).arrayBuffer()));
+  assert.match(oldPdf, /Rev One Worker/);
+  assert.doesNotMatch(oldPdf, READING);
+  // Revision 2 has not been signed by that worker.
+  assert.doesNotMatch((await wordParts(await call('GET', `/api/swms/${swms.id}/docx`, { token }))).body, /Rev One Worker/);
+});
+
 test('a reference can be checked: business, title, revision and whether it is current, nothing else', async () => {
   const token = await signIn('verify@history.example', 'Verify History Pty Ltd');
   const first = await call('POST', '/api/draft.docx', { token, body: { ...INPUT, ...CONFIRM } });
