@@ -36,12 +36,21 @@ const EVERYDAY = 'monday tuesday wednesday thursday friday saturday sunday janua
   + 'toolbox prestart pre-start ring call phone email text ask tell notify contact check confirm see refer daily weekly morning afternoon night am pm '
   + 'boss foreman leading hand crew site office gate smoko lunch break yes no ok okay please note';
 
+// Public bodies, places and product or plant brands a site note names that identify no person or
+// business on the job, so they are kept. Brands that are also common surnames (Coates, Weber,
+// Hardie, Hanson) are left out of this list and are taken out.
+const PUBLIC_NAMES = 'telstra optus vodafone ausgrid endeavour energex ergon powerlink jemena ausnet citipower powercor transgrid electranet '
+  + 'tasnetworks evoenergy agl atco sydney melbourne brisbane perth adelaide hobart darwin canberra queensland victoria tasmania '
+  + 'safework worksafe comcare hilti makita milwaukee dewalt festool ramset paslode kango stihl husqvarna genie haulotte skyjack '
+  + 'manitou merlo franna hiab bobcat kubota komatsu caterpillar dulux sika ardex gyprock rondo boral holcim lysaght colorbond '
+  + 'kingspan bondor hebel promat tremco fosroc mapei davco bostik kwikstage layher cuplok ringlock acrow peri doka bunnings always dial';
+
 // Words SiteReady's own library uses, so a capitalised word that is not one of them (such as a
 // person's or a business's name) can be taken out.
 let vocabulary = null;
 function libraryWords() {
   if (vocabulary) return vocabulary;
-  vocabulary = new Set(EVERYDAY.split(' '));
+  vocabulary = new Set([...EVERYDAY.split(' '), ...PUBLIC_NAMES.split(' ')]);
   const add = (text) => { for (const word of String(text).toLowerCase().match(/[a-z][a-z'-]*/g) || []) vocabulary.add(word); };
   const walk = (value, depth = 0) => {
     if (depth > 8 || value === null || value === undefined) return;

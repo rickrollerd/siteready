@@ -2549,6 +2549,8 @@ const ACTIVITIES = [
         'Eye protection and gloves when cutting metal, and keep sparks away from combustible materials.',
         'Gloves worn when cutting metal are cut resistant. Deburr cut edges.',
         'Use snips or a metal cutting saw rather than an abrasive disc. An abrasive disc is used only for cuts that snips or a saw cannot make.',
+        // An abrasive disc throws sparks, an ignition source the code names beside welding (builder check W12).
+        src('Cuts with an abrasive disc are hot work: they are made only under the site\'s hot work permit, with combustible materials cleared or covered, a fire extinguisher at the work, and a fire watch during the cutting and for at least 30 minutes after it stops.', `${QCODE('Welding processes', 's 3.4')}; ${NSWC('NSW Welding', 's 3.4')}`),
       ],
     }],
   },
@@ -9200,6 +9202,7 @@ const ACTIVITIES = [
         { only: 'steelGrind', ...src('Grinding throws sparks that can ignite fuel: flammable and combustible materials are kept clear of the grinding area.', QCODE('Welding processes', 's 3.4')) },
         { only: 'steelGrind', text: 'A face shield is worn over safety glasses when grinding.' },
         { only: 'steelGrind', text: 'Grinding is done before any solvent-based primer or membrane is opened.' },
+        { only: 'steelGrind', ...src('Grinding steel is hot work: it is done only under the site\'s hot work permit, with a fire extinguisher at the work, and a fire watch during the grinding and for at least 30 minutes after it stops.', `${QCODE('Welding processes', 's 3.4')}; ${NSWC('NSW Welding', 's 3.4')}`) },
         { text: 'Cut fibre cement by scoring and snapping, or with a saw fitted with on-tool extraction.', only: 'fibreCement' },
         { only: 'regletCut', ...src('Reglets are cut into concrete with a saw fitted with water suppression or on-tool extraction, and the written silica assessment covers the reglet cutting.', `${QCODE('Silica', 's 7.4.1, s 7.4.2')}; ${NSWC('NSW Silica', 's 2.3, s 2.5.8')}`) },
       ],

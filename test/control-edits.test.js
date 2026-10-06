@@ -359,3 +359,12 @@ test('typing in the task keeps the changes that still apply, and reports the res
   assert.deepEqual([...new Set(draft.controlEdits.unmatched.map((item) => item.step))], ['Excavate']);
   assert.equal(draft.controlEdits.unmatched.length, 3);
 });
+
+test('the scrubber keeps public bodies and product brands, and still takes out people and surname brands', () => {
+  const { scrub } = require('../control-learning');
+  assert.equal(scrub('Telstra pit lids are lifted with a lid lifter.'), 'Telstra pit lids are lifted with a lid lifter.');
+  assert.equal(scrub('Ausgrid or Energex approval held before Hilti and Ramset tools are used.'), 'Ausgrid or Energex approval held before Hilti and Ramset tools are used.');
+  assert.equal(scrub('Workers sign the Dial Before You Dig plans.'), 'Workers sign the Dial Before You Dig plans.');
+  assert.equal(scrub('Call Dave Smith on 0412 345 678.'), 'Call [name] on [phone].');
+  assert.match(scrub('Coates supplies the Genie lift.'), /^\[name\] supplies the Genie lift\.$/);
+});

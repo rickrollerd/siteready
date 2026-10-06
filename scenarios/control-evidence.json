@@ -4604,5 +4604,7 @@
   "No platform, seat, access or water spray is added to the plant until it is risk assessed and approved, and any platform has guardrails and is guarded from the chute and feeder.": {"kind":"guidance"},
   "Spillage around conveyors, tail pulleys and hoppers is checked at each pre-start and cleared with the plant isolated before the plant runs. The conveyor does not run with its tail pulley buried or its side guard off.": {"kind":"guidance"},
   "Before anyone clears a blockage, digs out a chute or works near a tail pulley, every drive that can move material into the area (feeder, conveyor and any upstream plant) is isolated and locked with each worker's personal lock and tested by a start attempt.": {"kind":"guidance"},
-  "A pull-wire or emergency stop is never used as an isolation.": {"kind":"guidance"}
+  "A pull-wire or emergency stop is never used as an isolation.": {"kind":"guidance"},
+  "Cuts with an abrasive disc are hot work: they are made only under the site's hot work permit, with combustible materials cleared or covered, a fire extinguisher at the work, and a fire watch during the cutting and for at least 30 minutes after it stops.": {"kind":"code"},
+  "Grinding steel is hot work: it is done only under the site's hot work permit, with a fire extinguisher at the work, and a fire watch during the grinding and for at least 30 minutes after it stops.": {"kind":"code"}
 }
