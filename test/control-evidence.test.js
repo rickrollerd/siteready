@@ -15,7 +15,10 @@
 // owner decisions of 6 October 2026: seven work-named steps held earlier and four new ones, most lines from
 // one organisation or none since no code, law or second organisation states them, three lines split into the
 // part several organisations agree on and the remainder, and the 35°C work at height line removed:
-// 3,507 of 4,777, 73.4%).
+// 3,507 of 4,777, 73.4%; library gaps found by the builder check's minimum controls and hazardous
+// chemicals items in SiteReady's own drafts, filled by reusing evidenced lines word for word and two
+// new lines cited to code sections read (potholing near located services, the welding rods' safety
+// data sheet): 3,509 of 4,779, 73.4%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
