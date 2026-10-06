@@ -63,8 +63,9 @@ test.after(() => {
 });
 
 test('the brief is v3 and the answer schema is strict', () => {
-  assert.equal(BRIEF_VERSION, 'v3.3');
+  assert.equal(BRIEF_VERSION, 'v3.4');
   assert.match(BRIEF, /Access equipment and methods this subcontractor must use/);
+  assert.match(BRIEF, /Clauses about locating, protecting or not damaging existing services are site conditions, not activities/);
   assert.match(BRIEF, /the exclusion wins/);
   assert.match(BRIEF, /software set-up and configuration, licences, remote or off-site support, and training/);
   assert.match(BRIEF, /Read every word of the document/);
@@ -197,4 +198,121 @@ test('work the scope gives to others is kept only when the step is really in tha
   const reading = await aiScope.getReading(company, started.id);
   assert.deepEqual(reading.reading.packages[0].byOthers, [{ group: 'ductwork', step: 'Fix hangers and supports', party: 'Builder', clause: '4.2 (c)', says: 'The builder fixes the hangers.' }]);
   assert.deepEqual(reading.reading.packages[1].byOthers, []);
+});
+
+// Owner decisions of 7 October 2026, from his formwork subcontract: the same work at different
+// locations is one SWMS for the project, and a jumpform is one SWMS for the whole lot.
+const row = (activity, pack, where = '', plant = '', type = 'Site work') => ({ activity, type, package: pack, crew: '', clause: '', quotes: [], where, plant, conditions: '', unknowns: '', matrixColumn: '' });
+const FORMWORK = {
+  activities: [
+    row('Erect and strip suspended slab and beam formwork in the basements', 'Trade installation: basement', 'Basement 2, Basement 1 and Ground'),
+    row('Form kerbs, upstands and hobs', 'Trade installation: basement', 'Driveway ramps'),
+    row('Erect and strip suspended slab and beam formwork in the Commercial tower', 'Trade installation: commercial tower', 'Level 1 to Level 12'),
+    row('Form in situ columns', 'Trade installation: columns', 'Basement and Retail buildings'),
+    row('Erect and strip formwork decks on Contractor-supplied high propping', 'Trade installation: towers', 'Level 2 voids'),
+    row('Strip formwork and backprop slabs', 'Falsework and propping', 'All buildings', 'Props'),
+    row('Install, maintain and remove perimeter safety screens', 'Perimeter safety screens', 'Building perimeter'),
+    row('Form and strip rectangular penetrations in slabs', 'Penetrations and core drilling', 'All buildings'),
+    row('Move materials with forklifts', 'Materials handling', 'All floors', 'Forklift'),
+    row('Cut bars with oxy-acetylene set', 'Hot works', '', 'Oxy-acetylene set'),
+    row('Erect, manage and dismantle crane-liftable Climbtrac platform', 'Access equipment', 'Commercial tower feature wall', 'Climbtrac platform, tower crane'),
+    row('Use scissor lifts and boom lifts (EWP)', 'Access equipment', '', 'Scissor lifts, boom lifts'),
+    row('Design, erect, operate and dismantle internal self-climbing formwork hoists', 'Plant lifting and cranage', 'Both towers', 'Self-climbing formwork hoist'),
+    row('Lift formwork materials using the Contractor\'s tower cranes', 'Plant lifting and cranage', 'Site-wide', 'Tower cranes'),
+    row('Inspect and certify formwork before each pour', 'Trade installation: basement', '', '', 'Duty'),
+  ],
+  packages: [
+    { package: 'Trade installation: basement', groups: ['formwork', 'deckingStuds'], unmatched: [], byOthers: [] },
+    { package: 'Trade installation: commercial tower', groups: ['formwork', 'edgeBracket'], unmatched: [], byOthers: [{ group: 'scaffold', step: 'Erect the scaffold', party: 'Contractor', clause: '', says: 'Scaffold by the Contractor.' }] },
+    { package: 'Trade installation: columns', groups: ['formwork'], unmatched: [], byOthers: [] },
+    { package: 'Trade installation: towers', groups: ['formwork'], unmatched: [], byOthers: [{ group: 'formwork', step: 'Erect falsework and shores', party: 'Contractor', clause: '', says: 'High propping by the Contractor.' }] },
+    { package: 'Falsework and propping', groups: ['formwork'], unmatched: [], byOthers: [] },
+    { package: 'Perimeter safety screens', groups: ['edgeProtectionInstall'], unmatched: [], byOthers: [] },
+    { package: 'Penetrations and core drilling', groups: ['formwork'], unmatched: [], byOthers: [] },
+    { package: 'Materials handling', groups: ['forklift'], unmatched: [], byOthers: [] },
+    { package: 'Hot works', groups: ['oxyCutting'], unmatched: [], byOthers: [] },
+    { package: 'Access equipment', groups: ['jumpform', 'craneInterface', 'ewp'], unmatched: [], byOthers: [] },
+    { package: 'Plant lifting and cranage', groups: ['craneInterface', 'hoistInstall'], unmatched: [], byOthers: [] },
+  ],
+};
+const packageOf = (reading, name) => reading.packages.find((item) => item.package === name);
+const rowsOf = (reading, name) => reading.activities.filter((item) => item.package === name).map((item) => item.activity);
+
+test('formwork read by location becomes one formwork SWMS for the project, falsework included', () => {
+  const reading = aiScope.settlePackages(FORMWORK);
+  const name = 'Formwork and falsework: whole project';
+  assert.deepEqual(rowsOf(reading, name), [
+    'Erect and strip suspended slab and beam formwork in the basements', 'Form kerbs, upstands and hobs',
+    'Erect and strip suspended slab and beam formwork in the Commercial tower', 'Form in situ columns',
+    'Erect and strip formwork decks on Contractor-supplied high propping', 'Strip formwork and backprop slabs', 'Inspect and certify formwork before each pour',
+  ]);
+  // Each activity keeps its location.
+  const where = (activity) => reading.activities.find((item) => item.activity === activity).where;
+  assert.equal(where('Form kerbs, upstands and hobs'), 'basement: Driveway ramps');
+  assert.equal(where('Erect and strip suspended slab and beam formwork in the Commercial tower'), 'commercial tower: Level 1 to Level 12');
+  assert.equal(where('Erect and strip suspended slab and beam formwork in the basements'), 'Basement 2, Basement 1 and Ground');
+  assert.equal(where('Strip formwork and backprop slabs'), 'All buildings');
+  const formwork = packageOf(reading, name);
+  for (const id of ['formwork', 'deckingStuds', 'edgeBracket']) assert.ok(formwork.groups.includes(id), id);
+  // High propping by others in two voids does not take falsework out where the crew erects it everywhere else.
+  assert.deepEqual(formwork.byOthers.map((entry) => entry.step), ['Erect the scaffold']);
+  // Different work stays its own SWMS.
+  for (const other of ['Perimeter safety screens', 'Penetrations and core drilling', 'Materials handling', 'Hot works']) assert.equal(rowsOf(reading, other).length, 1, other);
+  for (const gone of ['Trade installation: basement', 'Trade installation: commercial tower', 'Trade installation: columns', 'Falsework and propping']) assert.equal(packageOf(reading, gone), undefined, gone);
+});
+
+test('a jumpform is one SWMS: its platform and hoists come out of access equipment and cranage', () => {
+  const reading = aiScope.settlePackages(FORMWORK);
+  const name = 'Jumpform: install, climb, maintain and dismantle';
+  assert.deepEqual(rowsOf(reading, name), ['Erect, manage and dismantle crane-liftable Climbtrac platform', 'Design, erect, operate and dismantle internal self-climbing formwork hoists']);
+  const jumpform = packageOf(reading, name);
+  for (const id of ['jumpform', 'craneInterface', 'hoistInstall']) assert.ok(jumpform.groups.includes(id), id);
+  // Access equipment keeps the EWP and loses the jumpform and the crane its platform named.
+  assert.deepEqual(rowsOf(reading, 'Access equipment'), ['Use scissor lifts and boom lifts (EWP)']);
+  assert.deepEqual(packageOf(reading, 'Access equipment').groups, ['ewp']);
+  // Cranage keeps the crane for its own lifts but not the hoist.
+  assert.deepEqual(packageOf(reading, 'Plant lifting and cranage').groups, ['craneInterface']);
+  // A mast climbing work platform or a self-climbing builder's hoist is not a jumpform.
+  const other = aiScope.settlePackages({
+    activities: [row('Use a mast climbing platform for the facade', 'Access equipment'), row('Install and climb the self-climbing hoist', 'Plant lifting and cranage')],
+    packages: [{ package: 'Access equipment', groups: ['mastClimber'], unmatched: [], byOthers: [] }, { package: 'Plant lifting and cranage', groups: ['hoistInstall'], unmatched: [], byOthers: [] }],
+  });
+  assert.deepEqual(other.activities.map((item) => item.package), ['Access equipment', 'Plant lifting and cranage']);
+});
+
+test('areas are not merged when their work differs, or when only the AI\'s general group is shared', () => {
+  const reading = aiScope.settlePackages({
+    activities: [
+      row('Install ductwork', 'Trade installation: level 1'),
+      row('Install the main switchboard', 'Trade installation: plant room'),
+      row('Install stainless steel security shrouds to exposed pipework', 'Trade installation: cells'),
+      row('Install ventilated security cages for external gas regulators', 'Trade installation: LPG'),
+    ],
+    packages: [
+      { package: 'Trade installation: level 1', groups: ['ductwork'], unmatched: [], byOthers: [] },
+      { package: 'Trade installation: plant room', groups: ['commissioning'], unmatched: [], byOthers: [] },
+      { package: 'Trade installation: cells', groups: ['fixtures'], unmatched: [], byOthers: [] },
+      { package: 'Trade installation: LPG', groups: ['fixtures', 'gasLineTest'], unmatched: [], byOthers: [] },
+    ],
+  });
+  assert.deepEqual(reading.activities.map((item) => item.package), ['Trade installation: level 1', 'Trade installation: plant room', 'Trade installation: cells', 'Trade installation: LPG']);
+});
+
+test('an area the AI found no job steps for joins the same work when its own words name it', () => {
+  const reading = aiScope.settlePackages({
+    activities: [
+      row('Install pool fencing', 'Trade installation: pool area'),
+      row('Install the boundary fence', 'Trade installation: boundary'),
+      row('Install fixings and sundry items to complete the fences', 'Trade installation: fences and gates'),
+      row('Seal airshafts airtight', 'Trade installation: shafts'),
+    ],
+    packages: [
+      { package: 'Trade installation: pool area', groups: ['fenceBuild'], unmatched: [], byOthers: [] },
+      { package: 'Trade installation: boundary', groups: ['fenceBuild'], unmatched: [], byOthers: [] },
+      { package: 'Trade installation: fences and gates', groups: [], unmatched: [], byOthers: [] },
+      { package: 'Trade installation: shafts', groups: [], unmatched: [], byOthers: [] },
+    ],
+  });
+  assert.deepEqual(reading.activities.map((item) => item.package), ['Trade installation: whole project', 'Trade installation: whole project', 'Trade installation: whole project', 'Trade installation: shafts']);
+  assert.deepEqual(reading.activities.map((item) => item.where), ['pool area', 'boundary', 'fences and gates', '']);
 });

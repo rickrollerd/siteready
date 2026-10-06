@@ -14,7 +14,8 @@ const Anthropic = require('@anthropic-ai/sdk');
 const db = require('./db');
 const { BRIEF, BRIEF_VERSION, SCHEMA, PACKAGES, STEPS_BRIEF, STEPS_SCHEMA } = require('./ai-brief');
 const { ACTIVITIES } = require('./activities');
-const { packageKinds } = require('./draft');
+const { packageKinds, suggestedKinds } = require('./draft');
+const { TITLES } = require('./scope');
 const { packageTask } = require('./public/scope-task');
 
 const MODEL = 'claude-opus-5-5';
@@ -209,14 +210,150 @@ function errorMessage(error) {
 // rubbish removal and clean-ups get the waste removal steps, not chemical cleaning, and
 // defects liability visits get the defects visit steps. Applied as each reading is read
 // back, so readings kept from before the change get it too.
+// After that, packages that are one SWMS are made one (owner decisions of 7 October 2026, below).
 function settlePackages(reading) {
   if (!reading || !Array.isArray(reading.packages)) return reading;
+  const settled = settleGroups(reading, () => true);
+  const merged = oneForTheProject(oneJumpform(settled));
+  if (merged === settled) return settled;
+  const out = settleGroups(merged, (item) => item.merged);
+  return { ...out, packages: out.packages.map(({ merged: _merged, ...item }) => item) };
+}
+
+function settleGroups(reading, which) {
   return {
     ...reading,
     packages: reading.packages.map((item) => {
-      const rows = (reading.activities || []).filter((row) => row.package === item.package && row.type !== 'Duty');
-      return rows.length ? { ...item, groups: packageKinds(packageTask(rows), item.groups || []) } : item;
+      const rows = siteRows(reading, item.package);
+      return rows.length && which(item) ? { ...item, groups: packageKinds(packageTask(rows), item.groups || []) } : item;
     }),
+  };
+}
+
+const siteRows = (reading, name) => (reading.activities || []).filter((row) => row.package === name && row.type !== 'Duty');
+
+// The groups each activity's own words name, among the groups the package has, counted.
+function groupVotes(rows, groups) {
+  const votes = new Map();
+  for (const row of rows) for (const id of suggestedKinds(packageTask([row]), {}, {})) if (groups.includes(id)) votes.set(id, (votes.get(id) || 0) + 1);
+  return votes;
+}
+
+// A package's main work: the group most of its activities name, with the AI's order breaking a tie,
+// and whether its own words name it at all (named) or only the AI chose it.
+function mainGroup(rows, groups) {
+  const votes = groupVotes(rows, groups);
+  const main = groups.reduce((best, id) => ((votes.get(id) || 0) > (votes.get(best) || 0) ? id : best), groups[0] || null);
+  return { main, named: votes.has(main) };
+}
+
+// A jumpform or self-climbing formwork system is one SWMS covering install, climbing, maintenance
+// and dismantling (owner, 7 October 2026: "Are they installing a jumpform, then 1 SWMS covers the
+// whole lot"). The owner's formwork subcontract put its climbing platform under Access equipment
+// and its self-climbing formwork hoists under Plant lifting and cranage. Every activity that names
+// the system (its platform, screens or hoists) comes into one package with the jumpform steps, and
+// brings the groups its own words name from the package it was in. A mast climbing work platform
+// and a self-climbing builder's hoist are not formwork, so they stay where they are.
+const CLIMBING = /\b(?:jump ?forms?|self[- ]climbing (?:form\w*|systems?|platforms?)|(?<!mast[- ])climbing (?:form\w*|platforms?)|climb ?trac\w*)\b/i;
+const JUMPFORM_PACKAGE = 'Jumpform: install, climb, maintain and dismantle';
+
+function oneJumpform(reading) {
+  const climbing = (reading.activities || []).filter((row) => row.type !== 'Duty' && CLIMBING.test(`${row.activity} ${row.plant || ''}`));
+  const from = [...new Set(climbing.map((row) => row.package))];
+  if (!climbing.length || (from.length === 1 && siteRows(reading, from[0]).every((row) => climbing.includes(row)))) return reading;
+  const groups = ['jumpform'];
+  const packages = reading.packages.map((item) => {
+    if (!from.includes(item.package)) return item;
+    const own = item.groups || [];
+    const moved = groupVotes(climbing.filter((row) => row.package === item.package), own);
+    const kept = groupVotes(siteRows(reading, item.package).filter((row) => !climbing.includes(row)), own);
+    for (const id of moved.keys()) if (!groups.includes(id)) groups.push(id);
+    // A group only the moved activities named goes with them.
+    return { ...item, groups: own.filter((id) => id !== 'jumpform' && !(moved.has(id) && !kept.has(id))), merged: true };
+  });
+  const activities = reading.activities.map((row) => (climbing.includes(row) ? { ...row, package: JUMPFORM_PACKAGE } : row));
+  const first = packages.findIndex((item) => from.includes(item.package));
+  const jumpform = { package: JUMPFORM_PACKAGE, groups, byOthers: [], unknown: [], unmatched: [], merged: true };
+  packages.splice(first < 0 ? packages.length : first, 0, jumpform);
+  // A package left with no activities at all goes.
+  return { ...reading, activities, packages: packages.filter((item) => activities.some((row) => row.package === item.package)) };
+}
+
+// One SWMS for the same work wherever it is done (owner, 7 October 2026: "One SWMS that covers all
+// of the project for this task is sufficient"). The owner's formwork subcontract came back as eight
+// formwork packages by area (basement, each tower, columns, stairs, all buildings) and one for
+// falsework and propping. Packages read as "Trade installation: [area]" with the same main group
+// become one package for the whole project, and each activity keeps its area in its where-note.
+// An area the AI found no job step groups for joins them when its activities' own words name that
+// main group (the fixings and sundries to complete the fences, in a fencing scope).
+// Areas are merged only around at least one whose activities' own words name the main group, so two
+// areas the AI gave the same general group (fixings for cell shrouds and for LPG cages) stay apart.
+// A package with a name of its own joins them only when its main group is the same and it brings
+// no other groups (falsework and propping in a formwork scope; perimeter screens and edge protection
+// have other main work, so they stay their own). Materials handling, waste, cleaning, protection and
+// site set-up stay their own whatever their groups. The packages on the brief's list (cranage, access
+// equipment, penetrations, hot works and the rest) are each one kind of work already, so they are
+// never merged into another.
+const TRADE_INSTALLATION = /^Trade installation:\s*/i;
+const SITE_SUPPORT = /\b(?:materials?|handling|storage|deliver\w*|waste|rubbish|clean\w*|housekeeping|protect\w*|establishment|set[- ]?up|traffic|exclusion|barricad\w*)\b/i;
+
+function oneForTheProject(reading) {
+  const listed = new Set(PACKAGES);
+  const read = reading.packages
+    .filter((item) => !listed.has(item.package) && item.package !== JUMPFORM_PACKAGE && (item.groups || []).length && siteRows(reading, item.package).length)
+    .map((item) => ({ item, ...mainGroup(siteRows(reading, item.package), item.groups) }))
+    .filter((entry) => entry.main !== 'jumpform');
+  const byMain = new Map();
+  for (const entry of read) if (TRADE_INSTALLATION.test(entry.item.package)) byMain.set(entry.main, [...(byMain.get(entry.main) || []), entry]);
+  const renamed = new Map();
+  const names = new Set(reading.packages.map((item) => item.package));
+  for (const [main, located] of byMain) {
+    const groups = [...new Set(located.flatMap((entry) => entry.item.groups))];
+    if (!located.some((entry) => entry.named)) continue;
+    const joining = read.filter((entry) => !TRADE_INSTALLATION.test(entry.item.package) && !SITE_SUPPORT.test(entry.item.package)
+      && entry.main === main && entry.item.groups.every((id) => groups.includes(id)));
+    // An area the AI found no groups for joins when its activities' own words name the main group.
+    const ungrouped = reading.packages.filter((item) => TRADE_INSTALLATION.test(item.package) && !(item.groups || []).length && siteRows(reading, item.package).length
+      && siteRows(reading, item.package).some((row) => suggestedKinds(packageTask([row]), {}, {}).includes(main))).map((item) => ({ item }));
+    const members = [...located, ...joining, ...ungrouped];
+    if (members.length < 2) continue;
+    // Named for the work where SiteReady has a name for it ("Formwork and falsework"), as the quick read does.
+    let name = `${TITLES[main] || 'Trade installation'}: whole project`;
+    if (names.has(name)) name = `Trade installation: ${located.map((entry) => entry.item.package.replace(TRADE_INSTALLATION, '')).join(', ')}`;
+    names.add(name);
+    for (const entry of members) renamed.set(entry.item.package, name);
+  }
+  if (!renamed.size) return reading;
+  // Each activity keeps the area its package was read for, unless its where-note already says it.
+  const activities = reading.activities.map((row) => {
+    const name = renamed.get(row.package);
+    if (!name) return row;
+    const area = TRADE_INSTALLATION.test(row.package) ? row.package.replace(TRADE_INSTALLATION, '').trim() : '';
+    const where = String(row.where || '').trim();
+    const kept = !area || where.toLowerCase().includes(area.toLowerCase()) ? where : where ? `${area}: ${where}` : area;
+    return { ...row, package: name, where: kept };
+  });
+  const packages = [];
+  for (const item of reading.packages) {
+    const name = renamed.get(item.package);
+    if (!name) { packages.push(item); continue; }
+    const into = packages.find((other) => other.package === name);
+    if (!into) { packages.push({ ...item, package: name, groups: [...(item.groups || [])], byOthers: [...(item.byOthers || [])], unmatched: [...(item.unmatched || [])], from: [item], merged: true }); continue; }
+    for (const id of item.groups || []) if (!into.groups.includes(id)) into.groups.push(id);
+    for (const text of item.unmatched || []) if (!into.unmatched.includes(text)) into.unmatched.push(text);
+    for (const entry of item.byOthers || []) if (!into.byOthers.some((other) => other.group === entry.group && other.step === entry.step)) into.byOthers.push(entry);
+    into.from.push(item);
+  }
+  // A step one area gives to others stays out only where every area doing that group's work
+  // says so: Contractor-supplied high propping in two voids does not take falsework out of the
+  // formwork SWMS when this subcontractor erects falsework everywhere else.
+  return {
+    ...reading,
+    activities,
+    packages: packages.map(({ from, ...item }) => (from ? {
+      ...item,
+      byOthers: item.byOthers.filter((entry) => from.every((part) => !(part.groups || []).includes(entry.group) || (part.byOthers || []).some((other) => other.group === entry.group && other.step === entry.step))),
+    } : item)),
   };
 }
 
