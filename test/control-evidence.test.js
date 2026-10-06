@@ -2,13 +2,15 @@
 // (evidence pass and its review, 6 October 2026: 3,222 of 4,321 lines, 74.6%; newly held law, refrigerant
 // code and piling standard: 3,289 of 4,346, 75.7%; practice upgrades and 152 practice lines, most from one
 // organisation so not yet evidenced: 3,341 of 4,498, 74.3%; owner decisions: 3,342 of 4,503, 74.2%;
-// a mandatory requirement in a tier 1 builder's own standard counts as evidenced: 3,401 of 4,504, 75.5%).
+// a mandatory requirement in a tier 1 builder's own standard counts as evidenced: 3,401 of 4,504, 75.5%;
+// second practice pass over newer real SWMS, 58 practice lines added, most from one organisation so not yet
+// evidenced: 3,436 of 4,571, 75.1%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
 const RECORD = require('../scenarios/control-evidence.json');
 
-const MEASURED = 0.755;
+const MEASURED = 0.751;
 
 test('every library control line is in the evidence record, and every record entry is a library line', () => {
   const lines = libraryLines();
