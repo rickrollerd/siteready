@@ -672,6 +672,17 @@ test('H2: a step that clears, cleans or digs at a conveyor, feeder or chute isol
   assert.ok(!failed(checkSwms(variant({ steps: [...GOOD.steps, { step: 'Digging and planting', hazards: ['Strain.'], controls: ['Use the auger with two people.'] }] }))).includes('H2'));
 });
 
+test('H2: explosives work needs a measured exclusion zone and a sentry at each access point, not the word "blast"', () => {
+  const blast = (controls) => checkSwms(variant({ task: 'Drill and blast the quarry bench.', highRisk: [...GOOD.highRisk, 'Work involving the use of explosives'],
+    steps: [...GOOD.steps, { step: 'Charge and fire the blast', hazards: ['Flyrock.'], controls: ['The blast is fired by a licensed shotfirer.', ...controls] }] }));
+  const vagueZone = blast(['Blast exclusion zones set in place and controlled before lead-in line is run out.', 'Sentries to be posted as per blasting procedure.']);
+  assert.ok(failed(vagueZone).includes('H2'));
+  assert.match(item(vagueZone, 'H2').message, /measured exclusion zone distance from the blast and a sentry or blast guard at each access point/);
+  assert.ok(!failed(blast(['The shotfirer measures the exclusion zone boundary with a laser range finder before loading.', 'A sentry is posted at each road and gate into the exclusion zone.'])).includes('H2'));
+  assert.ok(!failed(blast(['The exclusion zone is 500 m from the blast.', 'Blast guards are posted at all access points.'])).includes('H2'));
+  assert.match(item(blast(['The exclusion zone is 500 m from the blast.']), 'H2').message, /a sentry or blast guard at each access point/);
+});
+
 test('H5: more wording calibrated against real and regulator SWMS', () => {
   for (const line of ['Consult the asbestos register to identify where possible asbestos materials remain.', 'Crane operators hold a high risk work licence, and are licensed and VOC\'d as required.',
     'Assess the exposure of operators to noise and determine the required controls such as audiometric testing.', 'Appropriate PPE: respirator, gloves and safety boots.']) assert.equal(isVague(line), false, line);
