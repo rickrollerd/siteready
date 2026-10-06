@@ -112,6 +112,30 @@ test('a project SWMS opened again comes back with its changes (B2)', async () =>
   assert.deepEqual(drafts[drafts.length - 1].body.controlEdits, EDITS, 'and go with the next prepare');
 });
 
+test('a project download saves each SWMS, and the next download sends them as saved SWMS', async () => {
+  const body = { state: 'qld', task: 'Dig a trench.', fallRisk: 'no', controlEdits: EDITS };
+  const project = { current: 0, items: [{ title: 'Trench', task: 'Dig a trench.', trade: '', kinds: null, leaveOut: null, fallRisk: 'no', body, status: 'ready' }] };
+  const saved = encodeURIComponent(JSON.stringify([{ index: 0, id: 'proj-1', revision: 1 }]));
+  const p = page(server((method, route) => (route === '/api/project.zip' ? { body: {}, headers: { 'content-type': 'application/zip', 'x-siteready-saved': saved } } : null)), { 'siteready.project': JSON.stringify(project) });
+  await settle();
+  const zip = async () => {
+    p.document.getElementById('project-confirm').checked = true;
+    p.document.getElementById('project-name').value = 'Sam Lee';
+    const event = new FakeEvent('click', { bubbles: true });
+    event.target = { closest: (selector) => (selector === '#project-zip' ? { disabled: false } : null) };
+    p.document.body.dispatchEvent(event);
+    await settle();
+  };
+  await zip();
+  assert.equal(JSON.parse(p.window.localStorage.getItem('siteready.project')).items[0].swmsId, 'proj-1');
+  assert.match(p.document.getElementById('project-status').textContent, /Saved 1 SWMS under My SWMS/);
+  await zip();
+  const sent = p.calls.filter((call) => call.route === '/api/project.zip');
+  assert.equal(sent[0].body.swms[0].swmsId, undefined);
+  assert.equal(sent[1].body.swms[0].swmsId, 'proj-1');
+  assert.deepEqual(sent[1].body.swms[0].controlEdits, EDITS);
+});
+
 test('starting a new SWMS clears the changes and saves it as a new SWMS', async () => {
   const p = page(server());
   await settle();
