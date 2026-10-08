@@ -5,15 +5,15 @@
   },
   "qld-whs-reg": {
     "version": "2026-03-29",
-    "status": "unreadable"
+    "status": "ok"
   },
   "qld-es-act": {
     "version": "2026-03-27",
-    "status": "unreadable"
+    "status": "ok"
   },
   "qld-es-reg": {
     "version": "2026-09-01",
-    "status": "unreadable"
+    "status": "ok"
   },
   "nsw-whs-act": {
     "status": "unreadable"
@@ -55,11 +55,11 @@
   },
   "nt-whs-act": {
     "version": "REPW025",
-    "status": "ok"
+    "status": "unreadable"
   },
   "nt-whs-reg": {
     "version": "REPW025",
-    "status": "ok"
+    "status": "unreadable"
   },
   "act-whs-act": {
     "version": "R30 (current) 26 November 2025",
@@ -272,7 +272,13 @@
     "f6a7a105ec",
     "c94524ae61",
     "19918fb22e",
-    "4af0ee2c0a"
+    "4af0ee2c0a",
+    "85793917fc",
+    "0f40b134b6",
+    "81f117e99f",
+    "7a1b62d54b",
+    "7bf27f84f4",
+    "0ac4517079"
   ],
   "alerts:nsw-construction-alerts": {
     "status": "unreadable"
