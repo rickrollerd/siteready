@@ -354,7 +354,7 @@
     taskEl.dataset.preset = text;
     $('task-trade').value = item.trade || '';
     // The scope reader's steps for this task are ticked when the task is used as it stands.
-    window.siteReadyScopeTask = { task: text, kinds: item.kinds || null, leaveOut: item.leaveOut || null };
+    window.siteReadyScopeTask = { task: text, kinds: item.kinds || null, leaveOut: item.leaveOut || null, unmatched: item.unmatched || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });
     document.querySelector('input[name="fallRisk"]').dispatchEvent(new Event('change', { bubbles: true }));
     // In a project, openItem moves the page once the project box is drawn.
@@ -371,7 +371,7 @@
   function startProject() {
     if (project && project.items.some((item) => item.body) && !confirm('Start a new project? The SWMS prepared in the current project will be cleared.')) return;
     const chosen = found.map((item, index) => withAnswers(item, index)).filter((_item, index) => !added.size || added.has(index));
-    project = { current: 0, items: chosen.map((item) => ({ title: item.title, task: item.task, trade: item.trade || '', kinds: item.kinds || null, leaveOut: item.leaveOut || null, fallRisk: item.fallRisk || '', body: null, status: 'todo' })) };
+    project = { current: 0, items: chosen.map((item) => ({ title: item.title, task: item.task, trade: item.trade || '', kinds: item.kinds || null, leaveOut: item.leaveOut || null, unmatched: item.unmatched || null, fallRisk: item.fallRisk || '', body: null, status: 'todo' })) };
     saveProject();
     // The task list has done its job; closing it keeps the page short.
     $('scope-panel').open = false;
@@ -424,14 +424,14 @@
     const now = $('project-now');
     if (!project) { panel.classList.add('hidden'); now.classList.add('hidden'); return; }
     const ready = project.items.filter((item) => item.status === 'ready').length;
-    const label = { ready: 'Ready', needs: 'Needs answers', todo: 'To do' };
+    const label = { ready: 'Ready', needs: 'Needs answers', tick: 'Needs a tick', todo: 'To do' };
     const current = project.items[project.current];
     // The SWMS being prepared is named right above its task, at the top of the task box.
     now.innerHTML = current ? `Now preparing SWMS ${project.current + 1} of ${project.items.length}: <strong>${esc(current.title)}</strong>. Check the task below and press Continue. When it is ready, a button under it opens the next one.` : '';
     now.classList.toggle('hidden', !current);
     panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
       <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next. You can also open any SWMS in the list.</p>
-      <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : item.status === 'needs' ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
+      <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : ['needs', 'tick'].includes(item.status) ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
       <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
       <p class="meta" id="project-status" role="status"></p>
@@ -439,13 +439,33 @@
     panel.classList.remove('hidden');
   }
 
+  // A draft that names work SiteReady has no job steps for is ready once the box above it is
+  // ticked (owner decision D184).
+  const statusOf = (item) => {
+    if (item.kind !== 'draft') return 'needs';
+    const ticked = item.body.notCoveredConfirmed || [];
+    return (item.notCovered || []).every((part) => ticked.includes(part)) ? 'ready' : 'tick';
+  };
+  S.onCoverTick = (confirmed) => {
+    const item = project && project.items[project.current];
+    if (!item || !item.body || $('task').value.trim() !== item.body.task.trim()) return;
+    item.body = { ...item.body, notCoveredConfirmed: confirmed };
+    item.status = statusOf(item);
+    saveProject();
+    renderProject();
+  };
+
   // Each prepared draft is kept against its task; the result gets a Next SWMS button.
   S.onDraft = (draft, body) => {
     if (!project) return;
     const item = project.items[project.current];
-    if (!item || body.task.trim() !== item.task.trim()) return;
+    // The task box has one sentence to a line (useTask), so spacing is not compared.
+    const same = (text) => String(text || '').replace(/\s+/g, ' ').trim();
+    if (!item || same(body.task) !== same(item.task)) return;
     item.body = body;
-    item.status = draft.kind === 'draft' ? 'ready' : 'needs';
+    item.kind = draft.kind;
+    item.notCovered = draft.notCovered || [];
+    item.status = statusOf(item);
     saveProject();
     renderProject();
     const next = project.items.findIndex((other, index) => index > project.current && other.status !== 'ready');

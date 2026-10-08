@@ -2046,6 +2046,149 @@ function missingMainWork(fullTask, steps, added = null) {
   return null;
 }
 
+// ---- Parts of the task with no job steps (owner decision D184, 6 October 2026) ----
+// "We need an auto message for tasks we do not cover." Where the main work has no job steps the
+// SWMS is stood down (missingMainWork above). Where only part of the task has none ("Install the
+// generator and leak test the fuel line" gets the generator steps and nothing for the leak test),
+// that part is listed above the draft, so the user adds a step for it or covers it in another
+// SWMS. The list is shown on screen only: it is not printed in the SWMS.
+
+// Kinds whose job steps only get people, plant and materials to the work.
+const SUPPORT_KINDS = new Set(ACTIVITIES.filter((activity) => activity.when && activity.steps.length && activity.steps.every((step) => SUPPORT_STEPS.has(step.step))).map((activity) => activity.when));
+const PART_FILLER = /\b(?:the|a|an|and|or|to|of|for|in|on|at|by|with|from|all|any|new|existing|then|out|up|off|back|down|away|over|it|them|these|those|this|its|their|supply|provide|deliver)\b/gi;
+// When the work is done ("before Practical Completion") says nothing of what it is done to.
+const PART_WHEN = /\b(?:prior to|before|after|until|once|following|during|when)\b[^,.;]*/gi;
+// Words that say nothing of what the work is done to.
+const PART_GENERIC = /^(?:works?|systems?|equipment|materials?|services?|items?|areas?|sites?|levels?|buildings?|installations?|including|around|between|within|where|required|other|own|each|into|onto|handover|completion|practical|trade|final|associated|necessary|complete|throughout|floors?)$/i;
+
+// Whether a piece of a sentence names what the work is done to, not only its verbs ("Supply and")
+// or when it is done ("remove them before Practical Completion").
+function hasObject(text, verbs) {
+  return /[a-z]{3,}/i.test(String(text || '').replace(PART_WHEN, ' ').replace(new RegExp(verbs.source, 'gi'), ' ').replace(PART_FILLER, ' '));
+}
+
+// A word's stem, so "tested" finds "test" and "cutting" finds "cut".
+const stem = (word) => word.toLowerCase().replace(/(?:ies|ied|ying)$/, 'y').replace(/(?:ing|ed|es|s)$/, '').replace(/([^aeiou])\1$/, '$1').replace(/e$/, '');
+// Verbs that name the same work in step names: "Install brackets" is done in "Fix hangers and supports".
+const SAME_WORK = [['install', 'fix', 'fit', 'mount', 'hang', 'place', 'erect'], ['construct', 'build', 'form'], ['remov', 'strip', 'dismantl'], ['connect', 'terminat', 'wir'], ['test', 'commission']];
+const workStem = (word) => { const found = stem(word); return (SAME_WORK.find((group) => group.includes(found)) || [found])[0]; };
+
+// The text without notes in brackets, nested or left open. A note that keeps (keep) stays in the
+// text without its brackets, so "(by others)" still gives the work to others.
+function withoutNotes(text, keep = () => false) {
+  let out = String(text || '').replace(SCOPE_NOTES, ' ');
+  for (let before = ''; before !== out;) {
+    before = out;
+    out = out.replace(/\(([^()]*)\)/g, (note, inside) => (keep(inside) ? ` ${inside}` : ' '));
+  }
+  return out.replace(/\([^)]*$/gm, ' ').replace(/[()]/g, ' ');
+}
+
+// The parts of a task: its sentences, split at "and", "then" or a comma where a new piece of work
+// starts ("Install the generator and leak test the fuel line"). A list of verbs ("Erect, alter and
+// dismantle"), and a clause saying how the work is done ("lifted in by crane", "cutting pipe on
+// site"), stay with their work. A decimal point does not end a sentence.
+function taskParts(task, verbs, keep) {
+  const lead = '(?:(?!(?:the|a|an|all|any|each|new|existing|its|their|our)\\b)[a-z-]+\\s+(?=\\S+\\s+(?:the|a|an|all|each|any|new|existing)\\b))?';
+  const starts = new RegExp(`^${lead}(?:${verbs.source})`, 'i');
+  const newWork = (piece) => starts.test(piece) && !/^\S*(?:ing|ed|s|able)\b/i.test(piece.replace(new RegExp(`^${lead}`, 'i'), ''));
+  const parts = [];
+  for (const sentence of withoutNotes(task, keep).split(/[.;:](?!\d)/)) {
+    const pieces = sentence.split(/(,\s*(?:and\s+|then\s+)?|\s+(?:and|then)\s+)/i);
+    let current = pieces[0];
+    let last = pieces[0];
+    for (let index = 1; index < pieces.length; index += 2) {
+      const next = pieces[index + 1];
+      if (newWork(next.trim()) && hasObject(current, verbs) && /\S\s+\S/.test(last.trim())) {
+        parts.push(current);
+        current = next;
+      } else current += pieces[index] + next;
+      last = next;
+    }
+    parts.push(current);
+  }
+  return parts.map(cleanLine).filter(Boolean);
+}
+
+// The things a piece of text works on, as stems: not its verbs, fillers or general words.
+function partThings(text, verbs) {
+  return String(text || '').replace(new RegExp(verbs.source, 'gi'), ' ').replace(PART_FILLER, ' ').split(/[^A-Za-z-]+/).filter((word) => word.length >= 4 && !PART_GENERIC.test(word)).map(stem);
+}
+
+// The words of a step as stems, with each pair of words also run together ("plant rooms" for "plantrooms").
+function stepWords(text) {
+  const words = String(text || '').split(/[^A-Za-z-]+/).filter(Boolean);
+  return new Set([...words, ...words.slice(1).map((word, index) => `${words[index]}${word}`)].map(stem));
+}
+
+// Whether a job step in the draft is named for this work: the step's name has one of the part's
+// verbs ("Grout the tendon ducts" for "grout the ducts") and the step names one of the things the
+// part works on, or the step is for any work on what the part works on ("Work on live fire
+// systems" for "connect new pipework to the live fire system").
+function stepNamesPart(part, steps, verbs) {
+  const doing = new Set((part.match(new RegExp(verbs.source, 'gi')) || []).map((word) => workStem(word.split(/\s+/)[0])));
+  const things = partThings(part, verbs);
+  if (!doing.size || !things.length) return false;
+  return steps.some((step) => {
+    if (/^Work on /.test(step.step)) {
+      const named = partThings(step.step.slice(8), verbs);
+      return named.length > 0 && named.every((word) => things.includes(word));
+    }
+    const text = stepWords([step.step, ...step.hazards, ...step.controls].join(' '));
+    return step.step.split(/[^A-Za-z-]+/).some((word) => doing.has(workStem(word))) && things.some((word) => text.has(word));
+  });
+}
+
+// Moving, lifting and storing materials: the draft's handling or lifting steps cover it.
+const HANDLING = /\b(?:deliver|unload|preload|load|handle|hoist|lift|move|store|stack|distribute|position|carry|transport|receive|accept)\w*/gi;
+const HANDLING_STEP = new RegExp(`^(?:${HANDLING.source}|Rig|Land|Operate (?:forklifts|the hoist)|Work with the crane)`, 'i');
+
+// The parts of the task that are site work but get no job steps, in the user's words. A part whose
+// words find a kind of work with steps is covered, even where the user took those steps off or
+// left the work to others. Access, lifting or cutting steps cover a part only where the draft's
+// steps name what it works on: "hang the artwork from the scissor lift" needs steps for the
+// artwork, "erect the mobile scaffold" does not. A part that a
+// job step is named for is covered, and so is one a required fact already asks about (a pressure
+// test, an isolation). Conditions, places, standards, duties and paperwork are not work. A task
+// from a scope reading lists instead the rows the reader matched to no job steps (unmatched),
+// unless the row's words find a kind of work in the draft.
+function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched }) {
+  const { SITE_WORK, notOwnWork } = require('./scope');
+  const verbs = (text) => (text.match(new RegExp(SITE_WORK.source, 'gi')) || []).filter((word) => !/s$/i.test(word));
+  const steps = allSteps.filter((step) => !['Before starting', 'Finish and clean up'].includes(step.step));
+  const inDraft = new Set(kindsWithSteps(tradeFlags(task, facts, state)));
+  const handled = steps.some((step) => HANDLING_STEP.test(step.step));
+  const named = stepWords(steps.map((step) => [step.step, ...step.hazards, ...step.controls].join(' ')).join(' '));
+  const parts = Array.isArray(unmatched) ? unmatched.map((row) => cleanLine(withoutNotes(row, notOwnWork))) : taskParts(typed, SITE_WORK, notOwnWork);
+  return dedupe(parts.filter((part) => {
+    const text = readSlang(ownWork(part));
+    if (notOwnWork(text) || CATEGORY_FACTS.some((item) => item.applies(text))) return false;
+    const kinds = suggestedKinds(text, {}, state);
+    if (Array.isArray(unmatched)) return !kinds.some((id) => inDraft.has(id) && !SUPPORT_KINDS.has(id));
+    // Site work: a work verb, not only a noun such as "installations" or "fixings", and not when
+    // the work is done ("during the testing stages").
+    const work = text.replace(PART_WHEN, ' ');
+    if (!verbs(work).length || !hasObject(work, SITE_WORK)) return false;
+    if (kinds.some((id) => !SUPPORT_KINDS.has(id))) return false;
+    // Moving or lifting things, or work on what the draft's steps already name.
+    const doing = verbs(work.replace(HANDLING, ' '));
+    if (kinds.some((id) => inDraft.has(id)) && (!doing.length || partThings(work, SITE_WORK).every((word) => named.has(word)))) return false;
+    if (handled && !doing.length) return false;
+    return !stepNamesPart(work, steps, SITE_WORK);
+  }).map((part) => part.replace(/[.,;:]+$/, '')));
+}
+
+// Saving or downloading a draft with parts that have no job steps needs the user's tick above
+// the draft that they have dealt with them (owner decision D184): the input's notCoveredConfirmed
+// lists the parts ticked, so a tick given for one list does not pass a changed one. The message
+// that refuses, or ''.
+function notCoveredRefusal(draft, input) {
+  const parts = draft && draft.kind === 'draft' && Array.isArray(draft.notCovered) ? draft.notCovered : [];
+  const ticked = input && Array.isArray(input.notCoveredConfirmed) ? input.notCoveredConfirmed : [];
+  if (parts.every((part) => ticked.includes(part))) return '';
+  return `SiteReady has no job steps for: ${parts.join('; ')}. Tick the box above the draft to say you have added your own steps and controls, or covered this work in a separate SWMS, before saving or downloading.`;
+}
+
 function prepareDraft(input) {
   const asked = questionsFor(input);
   if (asked.kind === 'refused' || asked.kind === 'error') return asked;
@@ -2237,7 +2380,9 @@ function prepareDraft(input) {
   const warnings = [energisedWarning(riskTask, facts)].filter(Boolean);
   // The user's own hazards and Who go in last, so the registers and risk ratings are worked out
   // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
-  return applyStepEdits({ ...draft, ...registers, task: typed, warnings, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input);
+  // Parts of the task with no job steps, shown above the draft (owner decision D184).
+  const notCovered = notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched });
+  return applyStepEdits({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input);
 }
 
 // Gloves for the substances listed, and hearing protection where a step names noise,
@@ -5282,6 +5427,7 @@ module.exports = {
   highRiskMatches,
   questionsFor,
   prepareDraft,
+  notCoveredRefusal,
   stripLiftBleedText,
   blankName,
   HIERARCHY,

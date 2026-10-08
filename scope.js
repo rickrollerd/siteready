@@ -116,19 +116,23 @@ function ownPart(line) {
   return [sentences[0], ...sentences.slice(1).filter((sentence) => !others(sentence))].filter((sentence) => !paperworkOnly(sentence)).join(' ');
 }
 
+// A line that is not the subcontractor's own site work: others' work, standards, site rules,
+// supply only, or paperwork that names no work done on site.
+function notOwnWork(line) {
+  return QUOTE_TERMS.test(line) || NOT_OURS.test(line) || READY_FOR.test(line) || NOT_WORK.test(line) || STANDARDS_ONLY.test(line) || RULE.test(line) || SUPPLY_ONLY.test(line) || paperworkOnly(line);
+}
+
 // Whether a line describes the subcontractor's own site work. A listed item counts
 // when it names the trade's systems, even without a verb.
 function keep(line, listed = false, short = false) {
   if (words(line) < (short ? 1 : MIN_WORDS)) return false;
   // Scopes often list the work without a verb ("Duct work including access panels"),
   // so a line that names a kind of work counts too.
-  if (QUOTE_TERMS.test(line) || NOT_OURS.test(line) || READY_FOR.test(line) || NOT_WORK.test(line) || STANDARDS_ONLY.test(line) || RULE.test(line) || SUPPLY_ONLY.test(line)) return false;
+  if (notOwnWork(line)) return false;
   if (!isWork(line) && !(listed && namesTrade(line))) return false;
   // Mostly capitals is a title, not a description of work.
   const letters = line.replace(/[^A-Za-z]/g, '');
-  if (letters.length > 12 && letters.replace(/[^A-Z]/g, '').length / letters.length > 0.6) return false;
-  // A paperwork line is kept only if it also names work done on site.
-  return !paperworkOnly(line);
+  return !(letters.length > 12 && letters.replace(/[^A-Z]/g, '').length / letters.length > 0.6);
 }
 
 // Interface matrices give each item a row with a mark ("X") under the party that does it.
@@ -694,4 +698,4 @@ function mergeTasks(tasks) {
   return out;
 }
 
-module.exports = { tasksFromScope, siteWorkLines, TITLES };
+module.exports = { tasksFromScope, siteWorkLines, TITLES, SITE_WORK, notOwnWork };

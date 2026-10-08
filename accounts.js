@@ -9,7 +9,7 @@ const { recordControlEdits, recordFailedQuestions, enabled: learningEnabled, rem
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
-const { prepareDraft } = require('./draft');
+const { prepareDraft, notCoveredRefusal } = require('./draft');
 const { draftToDocx, draftedNote, revisionText, preparedFor } = require('./docx-draft');
 const { draftToPdf } = require('./pdf-draft');
 const { readLogo } = require('./logo');
@@ -346,6 +346,8 @@ router.post('/swms', requireAccess, route(async (req, res) => {
   const input = cleanInput(body.input);
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, draft.kind === 'stand-down' ? 'This SWMS is stood down until the missing facts are added, so it cannot be saved yet.' : (draft.message || 'This SWMS could not be prepared.'));
+  const uncovered = notCoveredRefusal(draft, input);
+  if (uncovered) throw fail(400, uncovered);
   const site = await ownSite(req, body.siteId);
   const { row } = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: titleFor(body, input), reason: textField(body.reason, 300) });
   res.status(201).json({ swms: swmsView(row) });
@@ -434,6 +436,9 @@ router.put('/swms/:id', requireAccess, route(async (req, res) => {
   const input = body.input ? cleanInput(body.input) : row.input;
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so the changes cannot be saved yet.');
+  // Changes from the form need the tick for parts with no job steps (owner decision D184).
+  const uncovered = body.input ? notCoveredRefusal(draft, input) : '';
+  if (uncovered) throw fail(400, uncovered);
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
   const { row: next } = await reviseSwms(req, row, { input, draft, name, siteId: site ? site.id : null, title: body.title || row.title, reason: textField(body.reason, 300) });
   res.json({ swms: swmsView(next) });

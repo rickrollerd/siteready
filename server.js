@@ -6,7 +6,7 @@ const path = require('path');
 const cluster = require('cluster');
 const os = require('os');
 const { listStates, findState } = require('./legislation');
-const { questionsFor, prepareDraft, legalSource, keepWarning } = require('./draft');
+const { questionsFor, prepareDraft, legalSource, keepWarning, notCoveredRefusal } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
 const { issueRef, placeOf } = require('./refs');
@@ -317,6 +317,8 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     if (!confirmation) return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve this SWMS, and enter your name, before downloading.' });
     const result = prepareDraft(signedInBody(req));
     if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
+    const uncovered = notCoveredRefusal(result, req.body);
+    if (uncovered) return res.status(400).json({ kind: 'error', message: uncovered });
     const saved = req.company ? await accounts.saveForDownload(req, req.body || {}) : null;
     if (saved) {
       await recordIndustry(saved.kept.draft, saved.kept.input, req.company).catch(() => {});
@@ -342,6 +344,8 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   }
   const result = prepareDraft(signedInBody(req));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
+  const uncovered = notCoveredRefusal(result, req.body);
+  if (uncovered) return res.status(400).json({ kind: 'error', message: uncovered });
   const saved = req.company ? await accounts.saveForDownload(req, req.body || {}) : null;
   if (saved) {
     await recordIndustry(saved.kept.draft, saved.kept.input, req.company).catch(() => {});
@@ -374,11 +378,14 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
   const zip = new JSZip();
   const used = new Set();
   const skipped = [];
+  // A SWMS with parts SiteReady has no job steps for, not ticked as dealt with, is left out (D184).
+  const unticked = [];
   const logo = readLogo(req.company ? req.company.logo : body.logo);
   const savedItems = [];
   for (const [index, item] of items.entries()) {
     const result = prepareDraft(signedInBody({ ...req, body: item || {} }));
     if (result.kind !== 'draft') { skipped.push(`${index + 1}. ${String((item && item.task) || '').slice(0, 80)}`); continue; }
+    if (notCoveredRefusal(result, item)) { unticked.push(`${index + 1}. ${String(item.swmsTitle || result.task || '').slice(0, 80)}: ${result.notCovered.join('; ')}`); continue; }
     let buffer;
     const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId, reviewConfirmed: true, reviewedBy: confirmation.name }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '' }) : null;
     if (saved) {
@@ -399,8 +406,12 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     record('download_word', req.company && req.company.id);
     await recordIndustry(result, signedInBody({ ...req, body: item || {} }), req.company).catch(() => {});
   }
-  if (!used.size) return res.status(400).json({ kind: 'error', message: 'None of the SWMS is ready to download. Answer the questions for each one first.' });
-  if (skipped.length) zip.file('Not included.txt', `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n`);
+  if (!used.size) return res.status(400).json({ kind: 'error', message: 'None of the SWMS is ready to download. Answer the questions for each one first, and tick the box above any draft that lists work SiteReady has no job steps for.' });
+  const notes = [
+    skipped.length ? `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n` : '',
+    unticked.length ? `SiteReady has no job steps for part of these SWMS, and the box above the draft was not ticked, so they are not in this download:\n${unticked.join('\n')}\n` : '',
+  ].filter(Boolean);
+  if (notes.length) zip.file('Not included.txt', notes.join('\n'));
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
   if (savedItems.length) res.setHeader('X-SiteReady-Saved', encodeURIComponent(JSON.stringify(savedItems)));
   res.setHeader('Content-Type', 'application/zip');

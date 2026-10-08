@@ -275,10 +275,12 @@
       </div>`;
   }
 
-  function confirmed(prefix) {
+  // cover is the box above the draft for work SiteReady has no job steps for (app.js, D184).
+  function confirmed(prefix, cover = null) {
     const tick = $(`${prefix}-confirm`).checked;
     const name = $(`${prefix}-name`).value.trim();
     if (!tick || !name) throw new Error('Tick the box and enter your name first.');
+    if (cover && !cover.checked) throw new Error('Tick the box above the draft for the work SiteReady has no job steps for first.');
     write(REVIEWER_KEY, name);
     return { reviewConfirmed: true, reviewedBy: name };
   }
@@ -322,11 +324,14 @@
       </div>
       <p class="note hidden" id="new-status"></p>
     </div>`;
-    // The buttons work once the box is ticked and a name is given.
+    // The buttons work once the box is ticked and a name is given, and, where SiteReady has no job
+    // steps for part of the task, once the tick above the draft is ticked too.
     const buttons = ['new-save', 'new-docx', 'new-pdf'].map($).filter(Boolean);
-    const ready = () => buttons.forEach((button) => { if (button.textContent !== 'Saved') button.disabled = !($('new-confirm').checked && $('new-name').value.trim()); });
+    const uncovered = kind === 'draft' && (draft.notCovered || []).length ? $('not-covered-confirm') : null;
+    const ready = () => buttons.forEach((button) => { if (button.textContent !== 'Saved') button.disabled = !($('new-confirm').checked && $('new-name').value.trim() && (!uncovered || uncovered.checked)); });
     $('new-confirm').addEventListener('change', ready);
     $('new-name').addEventListener('input', ready);
+    if (uncovered) uncovered.addEventListener('change', ready);
     ready();
     const selected = S.siteId();
     if (selected && $('new-site')) $('new-site').value = selected;
@@ -336,7 +341,7 @@
     // Signed in, a download saves the SWMS first (or its next revision, when it has changed), so
     // every print has a record. Later changes save as its next revision.
     const saveAndDownload = async (route, fallbackName) => {
-      const body = { ...S.actionInput, ...confirmed('new'), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
+      const body = { ...S.actionInput, ...confirmed('new', uncovered), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
       const { saved } = await download(route, fallbackName, body);
       if (!saved) return;
       S.editing = { id: saved.id, title: saved.title };
@@ -347,7 +352,7 @@
     $('new-pdf').addEventListener('click', () => run(() => saveAndDownload('/api/draft.pdf', 'SiteReady.pdf')));
     if ($('new-save')) {
       $('new-save').addEventListener('click', () => run(async () => {
-        const body = { input: S.actionInput, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new') };
+        const body = { input: S.actionInput, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new', uncovered) };
         const data = S.editing ? await call('PUT', `/api/swms/${S.editing.id}`, body) : await call('POST', '/api/swms', body);
         // Later changes to this SWMS save as its revisions.
         S.editing = { id: data.swms.id, title: data.swms.title };

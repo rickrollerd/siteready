@@ -283,6 +283,10 @@ function payload() {
     kinds: stepPicks || undefined,
     stepOrder: stepOrder || undefined,
     leaveOut: leaveOut || undefined,
+    // The rows of a scope reading that the reader matched to no job steps, for the task as read,
+    // and the parts with no job steps the user ticked as dealt with (owner decision D184).
+    unmatched: scopeUnmatched || undefined,
+    notCoveredConfirmed: coverTicked ? JSON.parse(coverTicked) : undefined,
     controlEdits: controlEdits || undefined,
     hazardEdits: hazardEdits || undefined,
     whoEdits: whoEdits || undefined,
@@ -474,6 +478,7 @@ document.getElementById('start').addEventListener('submit', (event) => {
   if (task !== choicesTask) {
     stepPicks = scope && scope.task === task && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
     leaveOut = scope && scope.task === task && Array.isArray(scope.leaveOut) ? [...scope.leaveOut] : null;
+    scopeUnmatched = scope && scope.task === task && Array.isArray(scope.unmatched) ? [...scope.unmatched] : null;
     choicesTask = task;
   }
   loadQuestions();
@@ -483,6 +488,10 @@ document.getElementById('start').addEventListener('submit', (event) => {
 let stepPicks = null;
 // Steps for work the scope gives to others, which the user chose to leave out.
 let leaveOut = null;
+// Rows of the scope reading with no job steps, while the task is the one read from the scope.
+let scopeUnmatched = null;
+// The parts with no job steps the user ticked as dealt with, as shown above the draft (D184).
+let coverTicked = null;
 // The job steps in the order the user put them in the preview, by name.
 let stepOrder = null;
 // The user's own changes to the controls, by job step name: { removed, changed, added }.
@@ -499,6 +508,8 @@ let choicesTask = null;
 function newSwms() {
   stepPicks = null;
   leaveOut = null;
+  scopeUnmatched = null;
+  coverTicked = null;
   stepOrder = null;
   controlEdits = null;
   hazardEdits = null;
@@ -746,6 +757,8 @@ async function fillForm(input) {
   document.getElementById('task-trade').value = input.trade || '';
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
+  scopeUnmatched = Array.isArray(input.unmatched) ? [...input.unmatched] : null;
+  coverTicked = Array.isArray(input.notCoveredConfirmed) ? JSON.stringify(input.notCoveredConfirmed) : null;
   choicesTask = String(input.task || '').trim();
   stepOrder = Array.isArray(input.stepOrder) ? [...input.stepOrder] : null;
   controlEdits = input.controlEdits && typeof input.controlEdits === 'object' ? JSON.parse(JSON.stringify(input.controlEdits)) : null;
@@ -1079,6 +1092,27 @@ document.addEventListener('click', (event) => {
 // Prepares the draft and shows it. Moving a job step prepares it again in the new order.
 let shownSteps = [];
 let shownDraft = null;
+
+// Parts of the task with no job steps (owner decision D184, 6 October 2026): named above the
+// draft, not printed in the SWMS, with a tick that the user has dealt with them. Saving and the
+// downloads wait for the tick (account.js, and the server). The tick holds for the list it was
+// given for (coverTicked), so a changed list needs ticking again.
+function notCoveredBlock(data) {
+  const parts = data.kind === 'draft' && Array.isArray(data.notCovered) ? data.notCovered : [];
+  if (!parts.length) return '';
+  const one = parts.length === 1;
+  return `<div class="warning not-covered"><p>SiteReady has no job steps for: ${esc(parts.join('; '))}. ${one ? 'Add your own step and controls for it, or cover it in a separate SWMS.' : 'Add your own steps and controls for each, or cover them in a separate SWMS.'}</p>
+    <label class="check"><input type="checkbox" id="not-covered-confirm" data-parts="${esc(JSON.stringify(parts))}"${coverTicked === JSON.stringify(parts) ? ' checked' : ''}><span>${one ? 'I have added my own step and controls for this, or it is covered in a separate SWMS.' : 'I have added my own steps and controls for these, or they are covered in a separate SWMS.'}</span></label></div>`;
+}
+document.addEventListener('change', (event) => {
+  if (event.target.id !== 'not-covered-confirm') return;
+  coverTicked = event.target.checked ? event.target.dataset.parts : null;
+  const confirmed = coverTicked ? JSON.parse(coverTicked) : undefined;
+  const S = window.SiteReady;
+  if (S.actionInput) S.actionInput = { ...S.actionInput, notCoveredConfirmed: confirmed };
+  // A SWMS in a project is ready once ticked.
+  if (S.onCoverTick) S.onCoverTick(confirmed);
+});
 async function prepareDraft({ scroll = true } = {}) {
   const button = document.getElementById('prepare');
   button.disabled = true;
@@ -1099,7 +1133,7 @@ async function prepareDraft({ scroll = true } = {}) {
     const report = data.controlEdits || {};
     followRewords(report.remapped);
     shownReport = report;
-    const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), editNotes(report, { discard: true })].join('');
+    const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), notCoveredBlock(data), editNotes(report, { discard: true })].join('');
     shownDraft = data;
     resultEl.innerHTML = `${warnings}<div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
