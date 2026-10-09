@@ -377,7 +377,7 @@ async function main() {
     const result = results[index];
     const before = state[source.id] || {};
     const label = `${source.jurisdiction}: ${source.title}`;
-    const shown = result.via === 'feed' ? `watched through the legislation site's feed, ${result.entries.length} entries naming it this week` : result.version || result.detail;
+    const shown = result.via === 'feed' ? `watched through the legislation site's feed, ${result.entries.length} ${result.entries.length === 1 ? 'entry' : 'entries'} naming it this week` : result.version || result.detail;
     console.log(`${result.status === 'ok' ? 'OK  ' : 'FAIL'} ${label} | ${shown} | ${source.url}`);
     if (source.handCheck) handPages.push({ key: source.id, label, url: source.url, why: source.handCheck });
 
@@ -397,7 +397,7 @@ async function main() {
       const key = (entry) => `${entry.id} ${entry.updated}`;
       const seen = new Set(before.seen || []);
       if (before.via !== 'feed') {
-        recorded.push(`- ${label}: now watched through the legislation site's feed (${result.entries.length} entries naming it this week).`);
+        recorded.push(`- ${label}: now watched through the legislation site's feed (${result.entries.length} ${result.entries.length === 1 ? 'entry' : 'entries'} naming it this week).`);
       } else {
         for (const entry of result.entries.filter((item) => !seen.has(key(item)))) {
           changes.push(`- **${label}**: the NSW legislation site lists "${entry.title}" (${entry.updated}). Check whether it changes this law, and its version date.\n  ${entry.link}`);

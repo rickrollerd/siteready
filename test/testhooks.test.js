@@ -91,6 +91,8 @@ test('a change to the law can be released to a test business, and its notice rea
   const inbox = await (await call('GET', '/api/test/inbox?to=notice-admin@siteready.test', { headers: SECRET })).json();
   assert.equal(inbox.messages[0].subject, 'SiteReady: 1 SWMS to review after a change');
   assert.match(inbox.messages[0].text, /- Test fence \(revision 1\): 1 change/);
+  assert.match(inbox.messages[0].text, /Nothing in it has changed yet\. It still prints as it was saved/);
+  assert.match(inbox.messages[0].text, /It is marked "Review: the law or SiteReady changed"\./);
   const list = (await (await call('GET', '/api/swms', { headers: mine.auth })).json()).swms;
   assert.deepEqual(list[0].changeReview, [reason]);
   // A real business's SWMS cannot be changed by the hook.
