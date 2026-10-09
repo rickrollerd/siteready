@@ -12,7 +12,7 @@ const aiScope = require('../ai-scope');
 const signRead = require('../sign-read');
 const { prepareDraft } = require('../draft');
 const { withCompany } = require('../accounts');
-const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 
 let server;
 let base;
@@ -60,13 +60,13 @@ function abnFor(seed) {
 }
 
 // The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
-const INPUT = {
+const INPUT = ready({
   ...ANSWERED,
   state: 'qld',
   task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
   fallRisk: 'yes',
   facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
-};
+});
 const SIGNATURE = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
 
 // A saved SWMS and its sign-on key, for a fresh business.

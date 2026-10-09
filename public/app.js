@@ -159,7 +159,7 @@ function setProfile(next) {
   const company = document.getElementById('company');
   if (!company.value || company.value === profile.name) company.value = next.name || '';
   // Signed in, the company on every SWMS is the account's own.
-  if (next.name) { company.value = next.name; company.readOnly = true; company.title = 'Set from your company details.'; }
+  if (next.name) { company.value = next.name; company.readOnly = true; company.title = 'Set from your Company profile.'; }
   profile = next;
   pendingLogo = next.logo || '';
   showProfile();
@@ -291,6 +291,8 @@ function payload() {
     hazardEdits: hazardEdits || undefined,
     whoEdits: whoEdits || undefined,
     fills: fills || undefined,
+    plantChoice: plantChoice || undefined,
+    emergency: emergencyAnswers || undefined,
     facts,
     site,
   };
@@ -504,6 +506,12 @@ let hazardEdits = null;
 let whoEdits = null;
 // The user's answers for the blanks (____) in control lines, by line: { line: [answer, ...] }.
 let fills = null;
+// The plant the user confirmed (goal 2): { used, notUsed, added: [{ item, licence }] }, and the
+// changes made in the plant box not yet confirmed: { ticks: { name: true or false }, own: [...] }.
+let plantChoice = null;
+let plantPending = null;
+// The answers to the emergency questions for the work (goal 2), by question.
+let emergencyAnswers = null;
 // The task the step picks and steps left out were made for.
 let choicesTask = null;
 
@@ -519,6 +527,9 @@ function newSwms() {
   hazardEdits = null;
   whoEdits = null;
   fills = null;
+  plantChoice = null;
+  plantPending = null;
+  emergencyAnswers = null;
   choicesTask = null;
   ppeTouched.clear();
   if (window.SiteReady) window.SiteReady.editing = null;
@@ -772,6 +783,9 @@ function fillStart(input) {
   hazardEdits = input.hazardEdits && typeof input.hazardEdits === 'object' ? JSON.parse(JSON.stringify(input.hazardEdits)) : null;
   whoEdits = input.whoEdits && typeof input.whoEdits === 'object' ? { ...input.whoEdits } : null;
   fills = input.fills && typeof input.fills === 'object' ? JSON.parse(JSON.stringify(input.fills)) : null;
+  plantChoice = input.plantChoice && typeof input.plantChoice === 'object' ? JSON.parse(JSON.stringify(input.plantChoice)) : null;
+  plantPending = null;
+  emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
   showFallExplanation();
 }
 
@@ -961,7 +975,7 @@ function gateBlock(gaps) {
   const answers = gaps.some((gap) => gap.kind !== 'cover');
   return `<div class="panel gate" id="gate-panel" role="region" aria-labelledby="gate-title">
     <h3 id="gate-title">Before you can download this SWMS</h3>
-    <p>SiteReady does not produce a SWMS until the site questions are answered, no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}${answers ? ', then press Update the draft' : ''}:</p>
+    <p>SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given, no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}${answers ? ', then press Update the draft' : ''}:</p>
     <ul class="gate-list">${gaps.map((gap, i) => `<li><button type="button" class="link" ${gap.kind === 'cover' ? 'data-cover-jump' : `data-gate-go="${i}"`}>${esc(gap.label)}</button><span class="meta">${esc(gap.need)}</span></li>`).join('')}</ul>
     ${answers ? '<div class="actions"><button type="button" id="gate-update">Update the draft</button></div>' : ''}
   </div>`;
@@ -1020,6 +1034,62 @@ resultEl.addEventListener('click', (event) => {
   edit.textContent = on ? 'Done changing this step' : 'Change this step';
 });
 
+// ---- The plant and the emergency response, asked in the draft (goal 2) ----
+
+// The plant SiteReady lists, as a tick list the user confirms before download: what the crew uses
+// is ticked, plant SiteReady is not sure of starts unticked, and the user adds their own with the
+// licence or ticket to operate it. Only the plant confirmed prints.
+function plantTicked(item) {
+  if (plantPending && plantPending.ticks && item.item in plantPending.ticks) return plantPending.ticks[item.item];
+  if (plantChoice && (plantChoice.used || []).includes(item.item)) return true;
+  if (plantChoice && (plantChoice.notUsed || []).includes(item.item)) return false;
+  return !item.maybe;
+}
+const plantOwn = () => (plantPending && plantPending.own) || (plantChoice && plantChoice.added) || [];
+function plantBlock(draft) {
+  const listed = draft.plantInferred || [];
+  const gap = (draft.gate || []).find((item) => item.kind === 'plant');
+  const done = plantChoice && !gap && !plantPending;
+  const status = plantPending ? 'You have changes. Press Confirm the plant to use them.'
+    : !plantChoice ? 'Not confirmed yet. The download waits for it.'
+      : gap ? gap.need : 'Confirmed. Only the plant ticked here prints on the SWMS.';
+  const ticks = listed.length
+    ? listed.map((item) => `<label class="check"><input type="checkbox" data-plant-item="${esc(item.item)}"${plantTicked(item) ? ' checked' : ''}><span>${esc(item.item)}${item.maybe ? ' <span class="meta">SiteReady is not sure this is used. Tick it only if it is.</span>' : ''}</span></label>`).join('')
+    : '<p class="meta">SiteReady found no plant in this task. Add the plant and equipment your crew uses, if any.</p>';
+  const own = plantOwn().map((item, i) => `<p class="plant-own"><strong>${esc(item.item)}</strong>: ${item.licence ? esc(item.licence) : 'licence or ticket not given'} <button type="button" class="link" data-plant-remove="${i}">Remove</button></p>`).join('');
+  return `<div class="panel answer-panel${done ? ' done' : ''}" id="plant-panel">
+    <fieldset class="field" id="plant-ticks" tabindex="-1"><legend>Confirm the plant and equipment for this job</legend>
+      <p class="meta">SiteReady listed these from the task and the job steps. Tick what your crew will use, untick what it will not, and add anything missing. Only the plant you confirm prints on the SWMS. The job steps stay as they are: change them under Job steps if the method changes.</p>
+      ${ticks}${own}
+    </fieldset>
+    <div class="field"><label for="plant-own-item">Add your own plant or equipment</label><input id="plant-own-item" type="text" maxlength="200" placeholder="For example: 1.7 t mini excavator"></div>
+    <div class="field"><label for="plant-own-licence">Licence or ticket to operate it<span class="hint">Write No if none is needed.</span></label><input id="plant-own-licence" type="text" maxlength="300"></div>
+    <div class="actions"><button type="button" class="secondary" id="plant-add">Add this item</button><button type="button" id="plant-confirm">Confirm the plant</button></div>
+    <p class="meta plant-status" id="plant-status" role="status">${esc(status)}</p>
+  </div>`;
+}
+
+// The emergency questions for the high risk work in this SWMS (emergency.js), answered on the page
+// and printed in the emergency arrangements.
+function emergencyBlock(draft) {
+  const asked = draft.emergencyQuestions || [];
+  if (!asked.length) return '';
+  const answer = (item) => (emergencyAnswers && typeof emergencyAnswers[item.id] === 'string' ? emergencyAnswers[item.id] : item.answer || '');
+  return `<div class="panel answer-panel" id="emergency-panel">
+    <p><strong>Emergency response for this work</strong></p>
+    <p class="meta">A reviewer looks for how your crew responds to an emergency in this work, not only the heading. Answer each question for this site. The answers print in the emergency arrangements above. Not applicable is not an answer here: SiteReady asks only about work this SWMS involves.</p>
+    ${asked.map((item) => `<div class="field"><label for="emg-${esc(item.id)}">${esc(item.ask)}<span class="hint">${esc(item.hint)}</span></label><textarea id="emg-${esc(item.id)}" data-emergency="${esc(item.id)}" maxlength="600">${esc(answer(item))}</textarea></div>`).join('')}
+    <div class="actions"><button type="button" id="emergency-update">Update the draft</button></div>
+  </div>`;
+}
+
+// The note printed under a step's controls where its rating counts controls in an earlier step
+// (docx-draft.js sharedNote).
+function sharedNote(step, steps) {
+  if (!step.seeAlso || !step.seeAlso.length) return '';
+  return `The controls in ${step.seeAlso.map((name) => `step ${steps.findIndex((other) => other.step === name) + 1} (${name})`).join(' and ')} also apply here.`;
+}
+
 // Printing the page prints every section, folded or not.
 if (typeof window.addEventListener === 'function') {
   window.addEventListener('beforeprint', () => document.querySelectorAll('details.sheet-fold').forEach((el) => { el.open = true; }));
@@ -1076,8 +1146,9 @@ function render(draft, { movable = false } = {}) {
   // Lines that are a legal requirement, or that SiteReady recommends keeping, say why before the
   // user goes ahead. A removed or weakened line asks why, which the user can leave blank.
   const report = draft.controlEdits || {};
+  const shared = (step) => sharedNote(step, draft.jobSteps || []);
   const controlCell = (step, index) => {
-    if (!movable) return list(step.controls);
+    if (!movable) return `${list(step.controls)}${shared(step) ? `<p class="ctl-shared">${esc(shared(step))}</p>` : ''}`;
     const legal = (draft.controlLegal || [])[index] || [];
     const warn = (draft.controlWarn || [])[index] || [];
     const removed = ((controlEdits || {})[step.step] || {}).removed || [];
@@ -1087,6 +1158,7 @@ function render(draft, { movable = false } = {}) {
     const folds = (i) => step.controls.length > MANY_CONTROLS && i >= FEW_CONTROLS && !(blankKeys.steps[index] || [])[i];
     const hidden = step.controls.filter((_line, i) => folds(i)).length;
     return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+      ${shared(step) ? `<p class="ctl-shared">${esc(shared(step))}</p>` : ''}
       ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
       ${hidden ? `<button type="button" class="secondary ctl-show" data-ctl-more="${index}">Show all ${step.controls.length} controls</button>` : ''}
       ${asks.map((item) => whyBox(index, item)).join('')}
@@ -1114,14 +1186,16 @@ function render(draft, { movable = false } = {}) {
     const names = [stepsEditing.has(step.step) ? 'editing' : '', stepsOpen.has(step.step) ? 'open-all' : ''].filter(Boolean);
     return names.length ? ` class="${names.join(' ')}"` : '';
   };
-  const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}` : '');
+  // A rating still High after the controls says what happens before the step starts, as printed.
+  const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}${risk.response ? `<span class="risk-response">${esc(risk.response)}</span>` : ''}` : '');
   const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"${stepRowClass(step)}` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<button type="button" class="secondary step-edit" data-step-edit="${index}" aria-expanded="${stepsEditing.has(step.step)}">${stepsEditing.has(step.step) ? 'Done changing this step' : 'Change this step'}</button><span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${hazardCell(step, index)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${whoCell(step, index)}</td></tr>`).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  const registers = `${(draft.plant || []).length ? `<h4>Plant and equipment</h4>${grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence]))}` : ''}
+  const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence])) : '';
+  const registers = `${plantTable || movable ? `<h4>Plant and equipment</h4>${movable ? plantBlock(draft) : ''}${plantTable || '<p class="meta">No plant prints on this SWMS.</p>'}` : ''}
     ${draft.substances && draft.substances.items.length ? `<h4>Hazardous substances</h4>${grid(['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], draft.substances.items.map((item) => [item.product, '', 'Yes / No', '']))}` : ''}
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
-    ${(draft.emergency || []).length ? `<h4>Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}` : ''}
+    ${(draft.emergency || []).length ? `<h4>Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}${movable ? emergencyBlock(draft) : ''}` : ''}
     ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? folded('Legislation and codes of practice', grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]), `${draft.sources.legislation.length + draft.sources.codes.length} listed`) : ''}`;
   const ppe = `<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.map((item) => `${item.ticked ? '&#9745;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}</td></tr>`).join('')}</tbody></table>`;
   const people = `<table><tbody>
@@ -1337,6 +1411,72 @@ document.addEventListener('click', async (event) => {
     const panel = document.getElementById('gate-panel');
     (panel || document.getElementById('result-actions') || resultEl).scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+});
+
+// The plant box (goal 2): ticks and items of the user's own are kept until Confirm the plant, which
+// prepares the draft again with only the plant confirmed.
+function plantTicksNow() {
+  const ticks = {};
+  resultEl.querySelectorAll('[data-plant-item]').forEach((box) => { ticks[box.dataset.plantItem] = box.checked; });
+  return ticks;
+}
+function plantChanged(own) {
+  plantPending = { ticks: plantTicksNow(), own };
+  const panel = document.getElementById('plant-panel');
+  if (panel && shownDraft) panel.outerHTML = plantBlock(shownDraft);
+}
+resultEl.addEventListener('change', (event) => {
+  const box = event.target.closest && event.target.closest('[data-plant-item]');
+  if (!box) return;
+  plantPending = { ticks: plantTicksNow(), own: [...plantOwn()] };
+  const status = document.getElementById('plant-status');
+  if (status) status.textContent = 'You have changes. Press Confirm the plant to use them.';
+});
+resultEl.addEventListener('click', async (event) => {
+  const status = document.getElementById('plant-status');
+  const itemBox = document.getElementById('plant-own-item');
+  const licenceBox = document.getElementById('plant-own-licence');
+  const typed = () => (itemBox && itemBox.value.trim() ? [{ item: itemBox.value.trim(), licence: licenceBox ? licenceBox.value.trim() : '' }] : []);
+  if (event.target.closest('#plant-add')) {
+    if (!typed().length) {
+      if (status) status.textContent = 'Type the plant or equipment first.';
+      if (itemBox) itemBox.focus();
+      return;
+    }
+    plantChanged([...plantOwn(), ...typed()]);
+    const box = document.getElementById('plant-own-item');
+    if (box) box.focus();
+    return;
+  }
+  const remove = event.target.closest('[data-plant-remove]');
+  if (remove) {
+    const own = [...plantOwn()];
+    own.splice(Number(remove.dataset.plantRemove), 1);
+    plantChanged(own);
+    return;
+  }
+  if (event.target.closest('#plant-confirm')) {
+    // An item typed but not added yet is added with the rest.
+    const ticks = plantTicksNow();
+    const names = Object.keys(ticks);
+    plantChoice = { used: names.filter((name) => ticks[name]), notUsed: names.filter((name) => !ticks[name]), added: [...plantOwn(), ...typed()] };
+    plantPending = null;
+    await prepareDraft({ scroll: false });
+    const panel = document.getElementById('plant-panel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  if (event.target.closest('#emergency-update')) {
+    await prepareDraft({ scroll: false });
+    const panel = document.getElementById('emergency-panel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+// An emergency answer is kept for the next draft as it is typed.
+resultEl.addEventListener('input', (event) => {
+  const box = event.target.closest && event.target.closest('[data-emergency]');
+  if (!box) return;
+  emergencyAnswers = { ...(emergencyAnswers || {}), [box.dataset.emergency]: box.value };
 });
 
 // An answer typed in a blank is kept for the next draft, and shown in the same blank wherever the line prints.

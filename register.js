@@ -596,6 +596,27 @@ function whereUsed(licence) {
   const [first, ...rest] = licence.split('. ');
   return [`${first}, where one is used`, ...rest].join('. ');
 }
+const WHERE_USED = /, where one is used\b/;
+
+// The plant the user confirmed (goal 2: ask for the plant, do not guess it). choice is
+// { used, notUsed, added }: the names of the plant SiteReady listed that the crew uses and does not
+// use, and the user's own items ({ item, licence }). Without a choice, the plant SiteReady listed
+// prints as it is (the preview), and the download waits for it (download-gate.js). Plant confirmed
+// as used is no longer "where one is used". An item of the user's own takes its notes from the
+// plant SiteReady knows by that name, otherwise the pre-start check, and the licence the user gave.
+function confirmedPlant(plant, choice, stateId) {
+  if (!choice || typeof choice !== 'object') return plant;
+  const used = new Set(Array.isArray(choice.used) ? choice.used : []);
+  const kept = plant.filter((item) => used.has(localPlant(item, stateId).item)).map((item) => ({ ...item, licence: item.licence.replace(WHERE_USED, '') }));
+  for (const own of Array.isArray(choice.added) ? choice.added : []) {
+    const name = String((own && own.item) || '').trim();
+    if (!name || kept.some((item) => item.item.toLowerCase() === name.toLowerCase())) continue;
+    const known = plantFor(name)[0];
+    const licence = String((own && own.licence) || '').trim();
+    kept.push({ item: name, inspection: known ? known.inspection : PRESTART, licence: licence || (known ? known.licence.replace(WHERE_USED, '') : ''), own: true });
+  }
+  return kept;
+}
 
 // Plant or access equipment that is itself maintained, serviced, repaired or inspected is not
 // being used ("Maintain mobile plant (plant: Forklifts, telehandlers, EWPs)"): in such a sentence
@@ -650,22 +671,27 @@ function registersFor(draft, input = {}) {
   // A piling rig's auger is part of the rig, not a post hole auger.
   if (plant.some((item) => item.item === 'Piling rig')) plant.splice(0, plant.length, ...plant.filter((item) => item.item !== 'Post hole auger'));
   if (buildingGenerator) plant.push({ item: 'Standby generator (building plant)', inspection: 'Serviced and tested to the manufacturer\'s instructions. Guards, exhaust and fuel system checked before each run.', licence: 'No. Switching by licensed electricians' });
+  // Register notes cite the state's own regulation.
+  const stateId = (findState(draft.state) || { id: 'qld' }).id;
+  // The plant SiteReady lists, for the user to confirm (goal 2), and the plant that prints: only
+  // what the user confirmed, once they have.
+  const plantInferred = plant.map((item) => localPlant(item, stateId)).map((item) => ({ item: item.item, maybe: WHERE_USED.test(item.licence) }));
+  const listed = confirmedPlant(plant, input.plantChoice, stateId);
   const substances = substancesFor(`${task}\n${hazardText}\n${steps.map((step) => step.step).join('\n')}`, (input.facts || {}).safetyDataSheet, steps.flatMap((step) => step.controls).join('\n'));
   let sources = legislationFor([...steps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
   if (!/Queensland/.test(draft.state || '')) sources = addStateLaw(sources, draft.state);
-  const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, plant.map((item) => localPlant(item, (findState(draft.state) || { id: 'qld' }).id)), draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(withoutSource(line))))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
-  if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` });
+  const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, listed.map((item) => localPlant(item, stateId)), draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(withoutSource(line))))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
+  if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant: listed, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` });
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Plumbing and drainage licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Plumbing and Drainage Act 2018 (Qld)'])].sort() };
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Gas work licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'])].sort() };
-  // Register notes cite the state's own regulation.
-  const stateId = (findState(draft.state) || { id: 'qld' }).id;
   return {
-    plant: plant.map((item) => localPlant(item, stateId)).map((item) => ({ ...item, inspection: localNote(stateId === 'qld' ? item.inspection : item.inspection.replace(/ Yearly inspection and six-yearly major inspection \(Concrete Pumping Code s 5\)\./, ' Inspected and maintained to the manufacturer\'s instructions, including its periodic and major inspections.'), stateId), licence: localNote(item.licence, stateId) })),
+    plant: listed.map((item) => localPlant(item, stateId)).map((item) => ({ ...item, inspection: localNote(stateId === 'qld' ? item.inspection : item.inspection.replace(/ Yearly inspection and six-yearly major inspection \(Concrete Pumping Code s 5\)\./, ' Inspected and maintained to the manufacturer\'s instructions, including its periodic and major inspections.'), stateId), licence: localNote(item.licence, stateId) })),
+    plantInferred,
     substances,
     // Silica training where a step's hazards are silica dust, or dust its controls treat as crystalline silica.
     qualifications,
     // Codes of practice are cited only where they have been matched to the state (Queensland so far).
-    emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`).map((row) => (stateId !== 'qld' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
+    emergency: emergencyFor(allText, input, draft.highRisk || [], listed, `${task}\n${hazardText}`).map((row) => (stateId !== 'qld' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
     sources,
     jobSteps: ratedSteps(steps),
   };

@@ -24,6 +24,8 @@ const MIN_BYTES = 1024;
 const YEAR = 'public, max-age=31536000, immutable';
 const REVALIDATE = 'no-cache';
 const DAY = 'public, max-age=86400';
+// Where the service worker's version goes (sw.js).
+const SHELL_MARK = '__SHELL_VERSION__';
 
 // The encoding to send: Brotli where the browser takes it, else gzip, else none.
 function pickEncoding(req) {
@@ -83,6 +85,21 @@ function staticFiles(root) {
         deps[dep] = entry.version;
         return `${before}${ref}?v=${entry.version}${after}`;
       }));
+    }
+    // The offline page's service worker (sw.js) is given its version: a fingerprint of itself and
+    // the files it keeps, so a release that changes any of them replaces the phone's kept copy.
+    if (full.endsWith('.js') && body.includes(SHELL_MARK)) {
+      const text = body.toString('utf8');
+      const list = (/\bSHELL\s*=\s*\[([^\]]*)\]/.exec(text) || [])[1] || '';
+      const parts = [text];
+      for (const [, ref] of list.matchAll(/'(\/[A-Za-z0-9._/-]+)'/g)) {
+        const dep = fileFor(ref);
+        const shellFile = dep && dep !== full ? load(dep) : null;
+        if (!shellFile) continue;
+        deps[dep] = shellFile.version;
+        parts.push(shellFile.version);
+      }
+      body = Buffer.from(text.split(SHELL_MARK).join(fingerprint(parts.join('\n'))));
     }
     const entry = {
       mtimeMs: stat.mtimeMs,
@@ -169,4 +186,4 @@ function apiResponses(req, res, next) {
   next();
 }
 
-module.exports = { staticFiles, staticOptions, apiResponses, pickEncoding, MIN_BYTES };
+module.exports = { staticFiles, staticOptions, apiResponses, pickEncoding, MIN_BYTES, SHELL_MARK };

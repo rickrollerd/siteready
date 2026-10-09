@@ -8,7 +8,7 @@ const Stripe = require('stripe');
 const { app } = require('../server');
 const db = require('../db');
 const billing = require('../billing');
-const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 
 // A stand-in for Stripe that records what was asked of it, and uses the real
 // library to sign and check webhooks.
@@ -133,7 +133,7 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
   const token = await signIn('industry@co.example');
   const abn = '83 914 571 673';
   assert.equal((await call('PUT', '/api/company', { token, body: { name: 'Secret Builders Pty Ltd', abn } })).status, 200);
-  const input = {
+  const input = ready({
     ...ANSWERED,
     state: 'qld',
     trade: 'Plumber',
@@ -141,7 +141,7 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
     task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
     fallRisk: 'yes',
     facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
-  };
+  });;
   const confirm = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
   const before = Number((await db.one('SELECT COUNT(*) AS n FROM industry_records')).n);
   assert.equal((await call('POST', '/api/swms', { token, body: { input, ...confirm } })).status, 201);

@@ -74,6 +74,23 @@ function fills(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
+// The plant the user confirmed (goal 2): the names of the plant SiteReady listed that the crew
+// uses and does not use, and the user's own items with the licence or ticket to operate each.
+function plantChoice(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const names = (list) => (Array.isArray(list) ? [...new Set(list.filter((item) => typeof item === 'string').slice(0, 80).map((item) => textField(item, 200)).filter(Boolean))] : []);
+  const added = Array.isArray(value.added) ? value.added.filter((item) => item && typeof item === 'object' && typeof item.item === 'string').slice(0, 30)
+    .map((item) => ({ item: textField(item.item, 200), licence: textField(item.licence, 300) })).filter((item) => item.item) : [];
+  return { used: names(value.used), notUsed: names(value.notUsed), added };
+}
+
+// The answers to the emergency questions for the work (goal 2, emergency.js), by question.
+function emergencyAnswers(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const entries = Object.entries(value).slice(0, 30).filter(([id, answer]) => /^[A-Za-z]{1,40}$/.test(id) && typeof answer === 'string').map(([id, answer]) => [id, textField(answer, 600)]).filter(([, answer]) => answer);
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 function draftBody(body) {
   const facts = body.facts && typeof body.facts === 'object' ? body.facts : {};
   const site = body.site && typeof body.site === 'object' ? body.site : {};
@@ -117,6 +134,8 @@ function draftBody(body) {
     hazardEdits: hazardEdits(body.hazardEdits),
     whoEdits: whoEdits(body.whoEdits),
     fills: fills(body.fills),
+    plantChoice: plantChoice(body.plantChoice),
+    emergency: emergencyAnswers(body.emergency),
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {

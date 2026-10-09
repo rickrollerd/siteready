@@ -11,7 +11,7 @@ const { prepareDraft, legalSource, OWN_MARK } = require('../draft');
 const { draftBody } = require('../input');
 const { draftToDocx } = require('../docx-draft');
 const { recordControlEdits } = require('../control-learning');
-const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 
 let server;
 let base;
@@ -59,7 +59,7 @@ async function signIn(email, company) {
 }
 
 // The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
-const INPUT = { ...ANSWERED, state: 'qld', task: 'Dig a trench 1 m deep with an excavator.', fallRisk: 'no', trade: 'civil' };
+const INPUT = ready({ ...ANSWERED, state: 'qld', task: 'Dig a trench 1 m deep with an excavator.', fallRisk: 'no', trade: 'civil' });
 const plain = prepareDraft(draftBody(INPUT));
 const excavate = plain.jobSteps.find((step) => step.step === 'Excavate');
 const before = plain.jobSteps.find((step) => step.step === 'Before starting');
@@ -287,7 +287,9 @@ test('warned changes, reasons, hazard and Who changes and unmatched changes are 
     assert.equal(by('hazardNotApplicable').reason, 'anotherWay');
     assert.equal(by('whoChanged').new_line, '[name], leading hand');
     assert.equal(rows.find((row) => row.outcome === 'unmatched').original, 'A line from an older release.');
-    assert.doesNotMatch(JSON.stringify(rows), /Dave|Smith|0412|example\.com|Kim Lee/);
+    // Only the text fields: random hex ids and keys can contain "0412" by chance.
+    const text = rows.map(({ original, new_line, note, warning, step, reason }) => [original, new_line, note, warning, step, reason].join(' ')).join(' ');
+    assert.doesNotMatch(text, /Dave|Smith|0412|example\.com|Kim Lee/);
     assert.ok(swms.id);
   } finally {
     delete process.env.CONTROL_LEARNING;

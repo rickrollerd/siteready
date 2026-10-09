@@ -20,11 +20,19 @@
 //   so a scaffold named only in passing never forces a false answer.
 // - The five site questions (live services, public interface, other trades, ground, access).
 //   "None" is accepted for all but access: there is always a way to the work.
+// - The plant to be used (goal 2: "ask for the plant, do not guess it"): the user confirms the plant
+//   SiteReady lists, ticking what the crew uses and adding their own, and gives the licence or ticket
+//   for an item of their own SiteReady does not know. Plant SiteReady lists after the user confirmed
+//   (the task or steps changed) is asked about again.
+// - The emergency response for each high risk category the SWMS involves (emergency.js): the one or
+//   two facts a reviewer looks for. "Not applicable" is not accepted: a question is asked only where
+//   its category applies.
 // - Any blank (____) or "To be completed" left in what prints: in the user's own answers, which are
 //   filled in their boxes, and in SiteReady's control lines, which are filled where they show.
 const { SITE_FIELDS } = require('./legislation');
 const { questionsFor, involvesScaffold, notCoveredRefusal } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
+const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
 
 // Each field: the input key, the page box it is answered in, its label and what is needed.
 const FIELDS = [
@@ -60,6 +68,9 @@ const SITE_NONE = new Set(['liveServices', 'publicInterface', 'otherTrades', 'gr
 const clean = (value) => String(typeof value === 'string' ? value : '').replace(/\s+/g, ' ').trim();
 // "None", "Nil", "No", "N/A" or "Not applicable", and "No first aider" and the like.
 const NONE = /^(?:none|nil|nobody|no ?one|n\/a|not applicable|not required|not needed)\b|^(?:na|no)\.?$|^no (?:first aiders?|muster points?|principal contractors?|scaffold\w*|reviewers?|supervisors?)\b/i;
+// An emergency answer that is only "None" or "Not applicable". A longer answer that starts so ("No one
+// enters the trench: ...") is an answer.
+const NO_ANSWER = /^(?:none|nil|nobody|no ?one|n\/?a|not applicable|not required|not needed|no|does not apply|not used)\.?$/i;
 // Not an answer yet: unknown, a question mark, a dash, or a placeholder.
 const NOT_YET = /^(?:unknown|not (?:yet )?known|not provided|to be advised|if not known yet\b.*|\?+|-+|\.+|x+)$/i;
 
@@ -69,6 +80,21 @@ function fieldNeed(item, value) {
   if (!text) return item.need;
   if (leftOpen(text) || NOT_YET.test(text)) return `"${text.slice(0, 60)}" is not an answer yet. ${item.need}`;
   if (NONE.test(text) && !item.none) return `${item.label} cannot be "${text.slice(0, 60)}": every SWMS names it. ${item.need}`;
+  return '';
+}
+
+// What the plant still needs: confirming, plant listed since it was confirmed, or the licence for an
+// item of the user's own. '' when it is confirmed.
+const PLANT_NEED = 'Tick the plant and equipment your crew will use on this job, untick what it will not use, add any that is missing, then press Confirm the plant. Only the plant you confirm prints on the SWMS.';
+function plantNeed(input, draft) {
+  const choice = input.plantChoice && typeof input.plantChoice === 'object' ? input.plantChoice : null;
+  if (!choice) return PLANT_NEED;
+  const listed = Array.isArray(draft.plantInferred) ? draft.plantInferred : (draft.plant || []).map((row) => ({ item: row.item }));
+  const seen = new Set([...(choice.used || []), ...(choice.notUsed || [])]);
+  const unseen = listed.filter((item) => !seen.has(item.item)).map((item) => item.item);
+  if (unseen.length) return `SiteReady now also lists ${unseen.join(', ')}. Tick ${unseen.length === 1 ? 'it' : 'each one'} if your crew uses it, then press Confirm the plant.`;
+  const open = (draft.plant || []).filter((row) => row.own && !clean(row.licence)).map((row) => row.item);
+  if (open.length) return `Give the licence or ticket to operate ${open.join(', ')}, or write No if none is needed, then press Confirm the plant.`;
   return '';
 }
 
@@ -123,6 +149,18 @@ function downloadGaps(input = {}, draft = {}, options = {}) {
     const text = clean(input[item.id]);
     if (text && leftOpen(text)) gaps.push({ id: item.id, kind: 'field', field: item.field, label: item.label, need: `"${text.slice(0, 60)}" is not an answer. Fill it in, or leave the box empty.` });
   }
+  // The plant to be used, confirmed by the user, and the emergency response for the work (goal 2).
+  const plant = plantNeed(input, draft);
+  if (plant) gaps.push({ id: 'plant', kind: 'plant', field: 'plant-ticks', label: 'Plant and equipment', need: plant });
+  const said = input.emergency && typeof input.emergency === 'object' ? input.emergency : {};
+  for (const item of emergencyQuestions(draft, said)) {
+    const text = clean(item.answer);
+    const ask = `${item.ask} ${item.hint}`;
+    const need = !text ? ask
+      : NO_ANSWER.test(text) ? `"${text.slice(0, 60)}" is not an answer here: this SWMS involves ${INVOLVES[item.category]}. ${ask}`
+        : leftOpen(text) || NOT_YET.test(text) ? `"${text.slice(0, 60)}" is not an answer yet. ${ask}` : '';
+    if (need) gaps.push({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}`, need });
+  }
   // The user's own answers with a blank still in them where the SWMS prints them, filled in their own
   // boxes. An answer the SWMS does not print leaves no blank in it.
   const facts = input.facts && typeof input.facts === 'object' ? input.facts : {};
@@ -154,6 +192,8 @@ function downloadGaps(input = {}, draft = {}, options = {}) {
   // the first aider, muster point and hospital as answered.
   const asked = new Set(gaps.map((gap) => gap.id));
   const given = FIELDS.concat(OPTIONAL).filter((item) => asked.has(item.id)).map((item) => clean(input[item.id])).filter(Boolean);
+  // An emergency answer left open is asked for above, under its question.
+  given.push(...Object.values(said).map(clean).filter((value) => value && leftOpen(value)));
   const other = [];
   for (const row of draft.emergency || []) {
     const text = [row.equipment, row.detail].filter(Boolean).join('. ');
@@ -176,7 +216,7 @@ function gateMessage(gaps) {
   const names = [...new Set(gaps.filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))];
   const cover = gaps.find((gap) => gap.kind === 'cover');
   return [
-    names.length ? `SiteReady does not produce a SWMS until the site questions are answered and no blank is left in it. Still to answer: ${names.join('; ')}.` : '',
+    names.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it. Still to answer: ${names.join('; ')}.` : '',
     cover ? cover.message : '',
   ].filter(Boolean).join(' ');
 }

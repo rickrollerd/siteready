@@ -1,6 +1,8 @@
 // Workers open this page from the QR code, read the SWMS and sign with a finger.
 // The form stays locked until the worker has read to the end and each section has been on
 // screen for its minimum reading time. The server checks the time again, and the answers.
+// What the worker has read and typed is kept on the phone until they sign on (sign-keep.js), so
+// a reload or lost signal carries on where they were (goal 7).
 (() => {
   const $ = (id) => document.getElementById(id);
   const token = new URLSearchParams(window.location.search).get('t') || '';
@@ -17,6 +19,57 @@
   let reachedEnd = false;
   let unlocked = false;
   let finished = false;
+
+  // Kept on this phone: what was read and typed before a reload. key marks this worker's sign-on,
+  // so one sent again after its answer was lost to no signal is not saved twice.
+  const keep = window.siteReadySignKeep || null;
+  const saved = keep ? keep.read(token) : null;
+  let key = '';
+  let restoreAnswers = null;
+  let signatureKept = '';
+  let keepTimer = null;
+  let keptAt = 0;
+  // The 24 hours run from when the sign-on was first kept, however often it is kept again.
+  let firstKept = saved ? Number(saved.kept) : 0;
+
+  function newKey() {
+    const bytes = new Uint8Array(18);
+    if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(bytes);
+    else for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  function keepNow() {
+    clearTimeout(keepTimer);
+    if (!keep || !data || finished) return;
+    keptAt = performance.now();
+    const answers = {};
+    document.querySelectorAll('#questions input:checked').forEach((input) => { answers[input.name] = input.value; });
+    keep.write(token, {
+      kept: firstKept || (firstKept = Date.now()),
+      key,
+      readId: data.readId,
+      seconds: Object.fromEntries(Object.entries(seconds).map(([id, value]) => [id, Math.round(value * 10) / 10])),
+      reachedEnd,
+      unlocked,
+      scroll: Math.round(window.scrollY || 0),
+      language: language.code,
+      answers,
+      name: $('name').value,
+      company: $('company').value,
+      explained: $('explained').checked,
+      supervisor: $('supervisor').value,
+      confirmed: $('confirmed').checked,
+      signature: drawn ? signatureKept : '',
+    });
+  }
+  const keepSoon = () => { clearTimeout(keepTimer); keepTimer = setTimeout(keepNow, 400); };
+
+  // Signed on, or the link is no longer valid: nothing about the worker is left on the phone.
+  function forget() {
+    clearTimeout(keepTimer);
+    if (keep) keep.clear(token);
+  }
 
   // A translated item with its English beneath; English only when no translation is chosen.
   function both(english, other) {
@@ -43,7 +96,8 @@
       }),
       section('ppe', `<h2>PPE to wear</h2><ul>${data.ppe.length ? list(data.ppe, tr.ppe) : '<li>None listed.</li>'}</ul>`),
     ].join('');
-    const picked = {};
+    const picked = { ...(restoreAnswers || {}) };
+    restoreAnswers = null;
     document.querySelectorAll('#questions input:checked').forEach((input) => { picked[input.name] = input.value; });
     $('questions').innerHTML = data.questions.length ? `<p class="meta">Answer these to show you have read the SWMS.</p>${data.questions.map((q, n) => {
       const other = (tr.questions || [])[n] || {};
@@ -83,8 +137,15 @@
     if (!data || finished || document.visibilityState !== 'visible' || step > 2) return;
     for (const id of Object.keys(visible)) if (visible[id]) seconds[id] = (seconds[id] || 0) + step;
     progress();
+    // The reading time is kept every few seconds while the worker reads.
+    if (now - keptAt > 3000) keepNow();
   }, 250);
-  document.addEventListener('visibilitychange', () => { last = performance.now(); });
+  document.addEventListener('visibilitychange', () => {
+    last = performance.now();
+    if (document.visibilityState === 'hidden') keepNow();
+  });
+  window.addEventListener('pagehide', keepNow);
+  window.addEventListener('scroll', keepSoon, { passive: true });
 
   function progress() {
     if (!data || finished) return;
@@ -112,12 +173,43 @@
     $('supervisor-field').classList.toggle('hidden', !explained);
   }
 
+  // What was typed comes back. The reading and answers come back only for the same read: a SWMS
+  // changed since, or a read over a day old, is read again from the start.
+  function restore(kept, sameRead) {
+    $('name').value = kept.name || '';
+    $('company').value = kept.company || '';
+    $('supervisor').value = kept.supervisor || '';
+    $('explained').checked = Boolean(kept.explained);
+    if (!sameRead) return;
+    for (const [id, value] of Object.entries(kept.seconds || {})) if (Number.isFinite(Number(value))) seconds[id] = Number(value);
+    reachedEnd = Boolean(kept.reachedEnd);
+    unlocked = Boolean(kept.unlocked);
+    $('confirmed').checked = Boolean(kept.confirmed);
+    restoreAnswers = kept.answers && typeof kept.answers === 'object' ? kept.answers : null;
+  }
+
   async function load() {
     try {
-      const response = await fetch(api);
+      // A kept read carries on where it was; a worker whose sign-on was saved is told so.
+      const query = new URLSearchParams();
+      if (saved && saved.readId) query.set('read', saved.readId);
+      if (saved && saved.key) query.set('key', saved.key);
+      const response = await fetch(query.toString() ? `${api}?${query}` : api);
       const body = await response.json();
-      if (!response.ok) throw new Error(body.message || 'This sign-on link is not valid.');
+      if (!response.ok) {
+        if (response.status === 404) forget();
+        throw new Error(body.message || 'This sign-on link is not valid.');
+      }
+      if (body.signed) {
+        forget();
+        finished = true;
+        $('title').textContent = 'Signed on';
+        show('done', body.message);
+        return;
+      }
       data = body;
+      key = (saved && saved.key) || newKey();
+      if (saved) restore(saved, body.resumed);
       $('title').textContent = data.title;
       $('where').textContent = [data.company, data.workplace, data.revision].filter(Boolean).join(' · ');
       if (data.languages.length) {
@@ -128,7 +220,16 @@
       $('swms').classList.remove('hidden');
       $('sign-form').classList.remove('hidden');
       $('progress').classList.remove('hidden');
-      setUpPad();
+      setUpPad(saved && saved.signature);
+      if (saved && body.resumed) {
+        if (saved.scroll > 0) window.scrollTo(0, saved.scroll);
+        if (body.wait > 0) holdFor(body.wait);
+      }
+      if (saved && saved.language && saved.language !== 'en' && data.languages.some((item) => item.code === saved.language)) {
+        $('language').value = saved.language;
+        $('language').dispatchEvent(new Event('change'));
+      }
+      keepNow();
     } catch (error) {
       $('title').textContent = 'Sign-on';
       show('load-error', error.message);
@@ -164,13 +265,16 @@
     $('banner').classList.toggle('hidden', !translated);
     $('less-reliable').classList.toggle('hidden', !(translated && language.lessReliable));
     render();
+    keepSoon();
   });
 
   $('explained').addEventListener('change', progress);
+  $('sign-form').addEventListener('input', keepSoon);
+  $('sign-form').addEventListener('change', keepSoon);
 
   // The signature pad draws with a finger, stylus or mouse.
   let drawn = false;
-  function setUpPad() {
+  function setUpPad(keptSignature) {
     const pad = $('pad');
     const ratio = Math.max(1, window.devicePixelRatio || 1);
     const size = () => {
@@ -185,6 +289,16 @@
       drawn = false;
     };
     size();
+    // A signature drawn before a reload is drawn again.
+    if (keptSignature && /^data:image\/png;base64,/.test(keptSignature)) {
+      const picture = new Image();
+      picture.onload = () => {
+        pad.getContext('2d').drawImage(picture, 0, 0, pad.clientWidth, pad.clientHeight);
+        drawn = true;
+        signatureKept = keptSignature;
+      };
+      picture.src = keptSignature;
+    }
     let last = null;
     const point = (event) => {
       const box = pad.getBoundingClientRect();
@@ -206,10 +320,20 @@
       last = next;
       drawn = true;
     });
-    const stop = () => { last = null; };
+    const stop = () => {
+      if (last && drawn) {
+        signatureKept = pad.toDataURL('image/png');
+        keepSoon();
+      }
+      last = null;
+    };
     pad.addEventListener('pointerup', stop);
     pad.addEventListener('pointercancel', stop);
-    $('clear').addEventListener('click', size);
+    $('clear').addEventListener('click', () => {
+      size();
+      signatureKept = '';
+      keepSoon();
+    });
   }
 
   // The signature is sent small, as a 360 x 120 picture.
@@ -292,6 +416,7 @@
     }
     const reading = { sections: Object.fromEntries(data.sections.map((item) => [item.id, Math.round((seconds[item.id] || 0) * 10) / 10])) };
     $('submit').disabled = true;
+    keepNow();
     try {
       const response = await fetch(api, {
         method: 'POST',
@@ -299,7 +424,7 @@
         body: JSON.stringify({
           name: $('name').value, company: $('company').value, signature: signatureImage(), confirmed: true,
           readId: data.readId, answers, language: language.code, reading,
-          explained, supervisor: explained ? $('supervisor').value : '',
+          explained, supervisor: explained ? $('supervisor').value : '', key,
         }),
       });
       const body = await response.json();
@@ -326,6 +451,7 @@
         throw new Error(body.message || 'The sign-on could not be saved.');
       }
       finished = true;
+      forget();
       $('sign-form').classList.add('hidden');
       $('progress').classList.add('hidden');
       show('done', body.message);

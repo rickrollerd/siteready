@@ -11,7 +11,7 @@ const JSZip = require('jszip');
 const { app } = require('../server');
 const db = require('../db');
 const revisions = require('../revisions');
-const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 
 let server;
 let base;
@@ -56,7 +56,7 @@ async function signIn(email, name = 'History Co Pty Ltd') {
 }
 
 // The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
-const INPUT = { ...ANSWERED, state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', date: '5 October 2026' };
+const INPUT = ready({ ...ANSWERED, state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', date: '5 October 2026' });
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 const REF = /SR-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/;
 
@@ -274,7 +274,7 @@ test('a reference can be checked: business, title, revision and whether it is cu
 test('a project download saves each SWMS, and saves a changed one as its next revision', async () => {
   const token = await signIn('project@history.example');
   const fence = { ...INPUT, swmsTitle: 'Fencing' };
-  const paint = { ...ANSWERED, state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', residential: 'no', date: '5 October 2026', facts: { safetyDataSheet: 'Water-based acrylic paint SDS, revision 2, at the work area.' }, swmsTitle: 'Painting' };
+  const paint = ready({ ...ANSWERED, state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', residential: 'no', date: '5 October 2026', facts: { safetyDataSheet: 'Water-based acrylic paint SDS, revision 2, at the work area.' }, swmsTitle: 'Painting' });
   const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence, paint], ...CONFIRM } });
   assert.equal(response.status, 200);
   const saved = JSON.parse(decodeURIComponent(response.headers.get('x-siteready-saved')));
