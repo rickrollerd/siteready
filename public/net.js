@@ -78,7 +78,38 @@
     list.forEach((item) => item.reject(plainError()));
   }
 
+  // A worker's sign-on details kept on this phone (sign-keep.js) are removed 24 hours after they
+  // were first kept, when any page with this script opens.
+  const SIGNON_PREFIX = 'siteready.signon.';
+  const SIGNON_HOURS = 24;
+  function purgeSignOns(now = Date.now()) {
+    let store = null;
+    try { store = window.localStorage; } catch { return; }
+    if (!store || typeof store.key !== 'function') return;
+    try {
+      for (let i = store.length - 1; i >= 0; i -= 1) {
+        const key = store.key(i);
+        if (!key || !key.startsWith(SIGNON_PREFIX)) continue;
+        let kept = 0;
+        try { kept = Number(JSON.parse(store.getItem(key)).kept) || 0; } catch { kept = 0; }
+        if (!(now - kept < SIGNON_HOURS * 60 * 60 * 1000)) store.removeItem(key);
+      }
+    } catch { /* storage not readable */ }
+  }
+
+  // The offline page (sw.js): a page opened or reloaded with no signal shows SiteReady's own
+  // "No signal" page instead of the browser's error. Not in the phone app shells.
+  function registerOffline() {
+    try {
+      if (!('serviceWorker' in navigator) || window.Capacitor || window.isSecureContext === false) return;
+      navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(() => {});
+    } catch { /* not supported */ }
+  }
+
   window.fetch = guarded;
   window.addEventListener('online', () => { if (waiting.length) retry(); });
-  window.siteReadyNet = { MESSAGE, noSignal, waiting: () => waiting.length, retry, giveUp };
+  purgeSignOns();
+  if (document.readyState === 'complete') registerOffline();
+  else window.addEventListener('load', registerOffline);
+  window.siteReadyNet = { MESSAGE, noSignal, waiting: () => waiting.length, retry, giveUp, purgeSignOns };
 })();

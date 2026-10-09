@@ -614,19 +614,41 @@ async function swmsForToken(token) {
   return { row, company };
 }
 
+// The key a worker's phone makes for one sign-on: random letters and digits only.
+const clientKey = (value) => (/^[A-Za-z0-9_-]{16,64}$/.test(String(value || '')) ? String(value) : '');
+
+// The sign-on already saved under this phone's key, if any (a sign-on sent again after its
+// answer was lost to no signal).
+async function signedWithKey(row, key) {
+  const valid = clientKey(key);
+  return valid ? db.one('SELECT worker_name FROM signons WHERE swms_id = $1 AND client_key = $2', [row.id, valid]) : null;
+}
+
+const thanks = (name, row) => `Thanks ${name}. You are signed on to ${row.title}.`;
+
 // The worker reads every section open, in order. The page gets a read id whose start time is
 // kept here, the sections with their minimum reading times, and the check questions without
 // their answers. Only ticked PPE is sent, so the decoys are not marked as unticked.
+// After a reload or lost signal the phone sends back its read id (read) and sign-on key (key):
+// the same read carries on, with its questions and any wait, or the page is told the worker
+// has already signed on.
 router.get('/sign/:token', route(async (req, res) => {
   const { row, company } = await swmsForToken(req.params.token);
+  const signed = await signedWithKey(row, req.query.key);
+  if (signed) {
+    res.json({ signed: true, message: thanks(signed.worker_name, row) });
+    return;
+  }
   const draft = await signedDraft(row, company);
-  const readId = await signRead.startRead(row, draft);
+  const kept = await signRead.resumeRead(row, draft, req.query.read);
+  const readId = kept ? kept.id : await signRead.startRead(row, draft);
   res.json({
     title: row.title, company: company.name, task: draft.task, workplace: draft.workplace,
     // The revision the worker reads and signs, as the Word and PDF files print it.
     revision: revisionText({ revision: String(row.revision || 1), revisionDate: longDate(row.revised_at || row.created_at) }),
     highRisk: draft.highRisk || [], jobSteps: draft.jobSteps || [], ppe: signRead.tickedPpe(draft),
-    readId, sections: signRead.readSections(draft), questions: signRead.publicQuestions(signRead.checkQuestions(row.id, readId, draft)),
+    readId, sections: signRead.readSections(draft), questions: signRead.publicQuestions(signRead.checkQuestions(row.id, readId, draft, kept ? Number(kept.attempts) || 0 : 0)),
+    resumed: Boolean(kept), wait: kept ? signRead.waitLeft(kept) : 0,
     languages: aiScope.enabled() ? signRead.LANGUAGES.map(({ code, label, rtl }) => ({ code, label, rtl: Boolean(rtl) })) : [],
   });
 }));
@@ -640,6 +662,12 @@ router.get('/sign/:token/translation', route(async (req, res) => {
 router.post('/sign/:token', route(async (req, res) => {
   const { row, company } = await swmsForToken(req.params.token);
   const body = req.body || {};
+  // Sent again after the answer was lost: the sign-on is already saved, so it is not saved twice.
+  const already = await signedWithKey(row, body.key);
+  if (already) {
+    res.status(201).json({ ok: true, message: thanks(already.worker_name, row) });
+    return;
+  }
   const name = textField(body.name, 120).replace(/\s+/g, ' ');
   const signature = String(body.signature || '');
   if (!name) throw fail(400, 'Enter your name.');
@@ -688,14 +716,14 @@ router.post('/sign/:token', route(async (req, res) => {
   if (Number(signed.n) >= limit) throw fail(409, `This SWMS has reached its limit of ${limit} sign-ons. Ask your supervisor to save a new copy of the SWMS and share its QR code.`);
   if (reading) await signRead.useRead(reading.read);
   await db.query(
-    `INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, language, read_seconds, sections_viewed, sections_total, section_seconds, check_attempts, explained_by, revision)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+    `INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, language, read_seconds, sections_viewed, sections_total, section_seconds, check_attempts, explained_by, revision, client_key)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
     [auth.newId(), row.id, name, textField(body.company, 200), signature, new Date(),
       reading ? reading.language : '', reading ? reading.readSeconds : null, reading ? reading.viewed : null, reading ? reading.total : null,
-      reading ? JSON.stringify(reading.sectionSeconds) : null, reading ? reading.attempts : null, explainedBy, row.revision || 1],
+      reading ? JSON.stringify(reading.sectionSeconds) : null, reading ? reading.attempts : null, explainedBy, row.revision || 1, clientKey(body.key) || null],
   );
   record('worker_signon', row.company_id);
-  res.status(201).json({ ok: true, message: `Thanks ${name}. You are signed on to ${row.title}.` });
+  res.status(201).json({ ok: true, message: thanks(name, row) });
 }));
 
 // ---- Review reminders ----

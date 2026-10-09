@@ -304,6 +304,18 @@ async function startRead(row, draft) {
   return id;
 }
 
+// A reading kept on the worker's phone carries on after a reload or lost signal (goal 7): the same
+// read, so its start time and its questions, while it is unused, the SWMS has not changed and it
+// is under a day old. Otherwise there is none, and the page starts a new read.
+const RESUME_HOURS = 24;
+async function resumeRead(row, draft, readId, now = new Date()) {
+  if (!readId) return null;
+  const read = await db.one('SELECT * FROM sign_reads WHERE id = $1 AND swms_id = $2', [String(readId).slice(0, 64), row.id]);
+  if (!read || read.used_at || read.content_hash !== contentHash(row.title, draft)) return null;
+  if (now.getTime() - new Date(read.started_at).getTime() > RESUME_HOURS * 60 * 60 * 1000) return null;
+  return read;
+}
+
 // Checks the read session for a sign-on, and returns how long the worker had the SWMS open.
 async function checkRead(row, draft, readId, now = new Date()) {
   const read = readId ? await db.one('SELECT * FROM sign_reads WHERE id = $1 AND swms_id = $2', [String(readId), row.id]) : null;
@@ -477,7 +489,7 @@ async function translation(row, draft, code, readId) {
 }
 
 module.exports = {
-  LANGUAGES, languageFor, readSections, questionPool, checkQuestions, publicQuestions, tickedPpe, startRead, checkRead, markAnswers, wrongMessage, useRead,
-  waitLeft, waitMessage,
+  LANGUAGES, languageFor, readSections, questionPool, checkQuestions, publicQuestions, tickedPpe, startRead, resumeRead, checkRead, markAnswers, wrongMessage, useRead,
+  waitLeft, waitMessage, RESUME_HOURS,
   sectionSeconds, signOnNote, translation, TRANSLATE_SCHEMA, SERVER_SHARE,
 };

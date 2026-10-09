@@ -201,6 +201,9 @@ const SCHEMA = [
   "ALTER TABLE signons ADD COLUMN IF NOT EXISTS explained_by TEXT NOT NULL DEFAULT ''",
   // The revision the worker signed. Sign-ons from before revisions were kept have none.
   'ALTER TABLE signons ADD COLUMN IF NOT EXISTS revision INTEGER',
+  // A random key the worker's phone makes for one sign-on, so a sign-on sent again after a lost
+  // answer (no signal) is not saved twice (goal 7).
+  'ALTER TABLE signons ADD COLUMN IF NOT EXISTS client_key TEXT',
   // Each time a worker opens the sign-on page: the server's own start time for the read.
   `CREATE TABLE IF NOT EXISTS sign_reads (
     id TEXT PRIMARY KEY,
