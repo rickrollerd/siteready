@@ -1104,6 +1104,14 @@ function notCoveredBlock(data) {
   return `<div class="warning not-covered"><p>SiteReady has no job steps for: ${esc(parts.join('; '))}. ${one ? 'Add your own step and controls for it, or cover it in a separate SWMS.' : 'Add your own steps and controls for each, or cover them in a separate SWMS.'}</p>
     <label class="check"><input type="checkbox" id="not-covered-confirm" data-parts="${esc(JSON.stringify(parts))}"${coverTicked === JSON.stringify(parts) ? ' checked' : ''}><span>${one ? 'I have added my own step and controls for this, or it is covered in a separate SWMS.' : 'I have added my own steps and controls for these, or they are covered in a separate SWMS.'}</span></label></div>`;
 }
+// "Go to the box", beside the buttons that wait for it: the box is brought into view and focused.
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('[data-cover-jump]')) return;
+  const box = document.getElementById('not-covered-confirm');
+  if (!box) return;
+  box.closest('.not-covered').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  box.focus({ preventScroll: true });
+});
 document.addEventListener('change', (event) => {
   if (event.target.id !== 'not-covered-confirm') return;
   coverTicked = event.target.checked ? event.target.dataset.parts : null;

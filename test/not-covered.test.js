@@ -252,8 +252,14 @@ test('the page names the parts above the draft, and saving waits for the tick', 
   p.document.getElementById('new-name').dispatchEvent(new FakeEvent('input'));
   assert.equal(p.document.getElementById('new-save').disabled, true, 'not until the box above the draft is ticked');
   assert.equal(p.document.getElementById('new-docx').disabled, true);
+  // Beside the buttons, a line says why they wait, with a button to the box.
+  const actions = p.document.getElementById('result-actions').innerHTML;
+  assert.ok(actions.indexOf('Tick the box above the draft about work SiteReady has no job steps for, then save or download.') >= 0 && actions.indexOf('Tick the box above') < actions.indexOf('id="new-save"'));
+  assert.match(actions, /data-cover-jump>Go to the box</);
+  assert.equal(p.document.getElementById('new-cover-note').classList.contains('hidden'), false);
   tick(p);
   assert.equal(p.document.getElementById('new-save').disabled, false);
+  assert.equal(p.document.getElementById('new-cover-note').classList.contains('hidden'), true, 'the line goes once ticked');
   p.document.getElementById('new-save').click();
   await settle();
   const saved = p.calls.filter((call) => call.route === '/api/swms' && call.method === 'POST');
@@ -270,6 +276,7 @@ test('a fully covered draft shows no warning', async () => {
   p.document.getElementById('task').value = 'Install the generator.';
   await prepare(p);
   assert.doesNotMatch(p.document.getElementById('result').innerHTML, /no job steps|not-covered/);
+  assert.doesNotMatch(p.document.getElementById('result-actions').innerHTML, /new-cover-note/);
 });
 
 test('in a project, a SWMS with parts that have no job steps is ready once ticked', async () => {
@@ -289,8 +296,10 @@ test('in a project, a SWMS with parts that have no job steps is ready once ticke
   const stored = () => JSON.parse(p.window.localStorage.getItem('siteready.project')).items[0];
   assert.equal(stored().status, 'tick');
   assert.match(p.document.getElementById('project-panel').innerHTML, /Needs a tick/);
+  assert.match(p.document.getElementById('project-panel').innerHTML, /SWMS 1, Generator, waits for the box above its draft[^<]*<button type="button" class="link" data-cover-jump>Go to the box/);
   tick(p);
   assert.equal(stored().status, 'ready');
+  assert.doesNotMatch(p.document.getElementById('project-panel').innerHTML, /waits for the box/);
   assert.deepEqual(stored().body.notCoveredConfirmed, ['leak test the fuel line']);
   tick(p, false);
   assert.equal(stored().status, 'tick');

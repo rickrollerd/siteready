@@ -275,6 +275,11 @@
       </div>`;
   }
 
+  // Said beside the Save and download buttons while the box above the draft is not ticked, with a
+  // button that goes to the box (app.js).
+  const COVER_NOTE = 'Tick the box above the draft about work SiteReady has no job steps for, then save or download. <button type="button" class="link" data-cover-jump>Go to the box</button>';
+  S.coverNote = COVER_NOTE;
+
   // cover is the box above the draft for work SiteReady has no job steps for (app.js, D184).
   function confirmed(prefix, cover = null) {
     const tick = $(`${prefix}-confirm`).checked;
@@ -317,6 +322,7 @@
       ${kind === 'draft' && !local ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
       ${kind === 'draft' && editing ? '<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"></div>' : ''}
       ${kind === 'draft' && !local ? '<p class="meta">Downloading saves the SWMS under My SWMS, so every copy printed has a record and a revision. The PDF and the QR sign-on are the copies workers sign; the Word file is a working copy.</p>' : ''}
+      ${kind === 'draft' && (draft.notCovered || []).length ? `<p class="note" id="new-cover-note">${COVER_NOTE}</p>` : ''}
       <div class="actions">
         ${kind === 'draft' && !local ? `<button type="button" id="new-save">${editing ? 'Save changes' : 'Save SWMS'}</button>` : ''}
         <button type="button" class="secondary" id="new-docx">Download Word</button>
@@ -328,7 +334,11 @@
     // steps for part of the task, once the tick above the draft is ticked too.
     const buttons = ['new-save', 'new-docx', 'new-pdf'].map($).filter(Boolean);
     const uncovered = kind === 'draft' && (draft.notCovered || []).length ? $('not-covered-confirm') : null;
-    const ready = () => buttons.forEach((button) => { if (button.textContent !== 'Saved') button.disabled = !($('new-confirm').checked && $('new-name').value.trim() && (!uncovered || uncovered.checked)); });
+    const ready = () => {
+      buttons.forEach((button) => { if (button.textContent !== 'Saved') button.disabled = !($('new-confirm').checked && $('new-name').value.trim() && (!uncovered || uncovered.checked)); });
+      // Why the buttons wait, said beside them: the box can be pages above on a phone.
+      if (uncovered) $('new-cover-note').classList.toggle('hidden', uncovered.checked);
+    };
     $('new-confirm').addEventListener('change', ready);
     $('new-name').addEventListener('input', ready);
     if (uncovered) uncovered.addEventListener('change', ready);
