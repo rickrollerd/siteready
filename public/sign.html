@@ -41,6 +41,10 @@
     button { border: 1px solid #1f4e3d; background: #1f4e3d; color: #fff; border-radius: 6px; padding: 12px 14px; font: inherit; font-weight: 600; width: 100%; cursor: pointer; }
     button.secondary { background: #fff; color: #1f4e3d; width: auto; padding: 6px 12px; font-size: 14px; margin-top: 6px; }
     .error { color: #8a2b2b; }
+    /* The progress bar is fixed along the bottom: errors and questions scroll clear of it. */
+    #sign-error { background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 6px; padding: 10px 12px; margin: 0 0 12px; scroll-margin: 16px 0 96px; }
+    #sign-error a { display: inline-block; margin: 6px 12px 0 0; color: #8a2b2b; font-weight: 600; }
+    .q { scroll-margin: 16px 0 96px; }
     .done { background: #e8f3ee; border: 1px solid #9cc9b3; border-radius: 8px; padding: 16px; margin-top: 14px; font-weight: 600; }
     .hidden { display: none; }
   </style>
@@ -96,9 +100,9 @@
         <label class="check"><input type="checkbox" id="confirmed"><span>This SWMS has been explained to me, I understand it, and I will follow it. If the work changes or a control is not working, I will stop and tell my supervisor.</span></label>
       </div>
       <p class="meta" id="privacy-notice">The business that owns this SWMS collects your name, employer, signature and the time you sign, as its record that you were consulted on and understood the SWMS, as safety law requires. SiteReady stores that record for the business and does not use it for anything else. How you read the SWMS (time on each section, language and check answers) is kept by SiteReady only, to improve SiteReady. It is never shown to the business, the builder or anyone else. <a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>
+      <p class="error hidden" id="sign-error" role="alert"></p>
       <button type="submit" id="submit">Sign on</button>
       </fieldset>
-      <p class="error hidden" id="sign-error"></p>
     </form>
     <div class="progress hidden" id="progress"></div>
     <div class="done hidden" id="done"></div>

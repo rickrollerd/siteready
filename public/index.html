@@ -197,10 +197,17 @@
     .swms-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e1e6ec; }
     .swms-row .meta { display: block; }
     .due { color: #8a2b2b; font-weight: 600; }
+    .resign { margin: 4px 0 10px; }
+    .resign p { margin: 0 0 6px; }
+    .resign p:last-child { margin: 0; }
+    .signed-head { font-size: 15px; margin: 14px 0 6px; }
     .wrap-actions { flex-wrap: wrap; }
     .qr-box { display: flex; gap: 16px; align-items: center; margin-bottom: 8px; }
     .qr { width: 160px; flex: none; }
     .qr svg { width: 100%; height: auto; display: block; }
+    /* The sign-on link is one long word: it wraps inside the box on a phone. */
+    .qr-box > div { min-width: 0; }
+    .qr-box a { overflow-wrap: anywhere; }
     .site-item { border: 1px solid #e1e6ec; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; }
     .site-item > summary { cursor: pointer; font-weight: 600; }
     .site-item[open] > summary { margin-bottom: 10px; }

@@ -112,38 +112,114 @@ function ppePool(draft, random) {
   const unticked = (group) => [...new Set(group.items.filter((item) => !item.ticked && !ticked.has(item.label) && fair(item.label)).map((item) => item.label))];
   const all = [...new Set(groups.flatMap(unticked))];
   if (!ticked.size || all.length < 3) return [];
+  // The wrong answers are never everyday PPE, so an everyday item as the right answer would stand
+  // out. The question asks only about PPE particular to this work; a SWMS with none gets a second
+  // job step question instead.
   const seen = new Set();
-  return groups.flatMap((group) => group.items.filter((item) => item.ticked && !seen.has(item.label) && seen.add(item.label)).map((item) => {
+  return groups.flatMap((group) => group.items.filter((item) => item.ticked && !EVERYDAY_PPE.test(item.label) && !seen.has(item.label) && seen.add(item.label)).map((item) => {
     const near = shuffled(unticked(group), random);
     const far = shuffled(all.filter((label) => !near.includes(label)), random);
     return poolItem('ppe', 'Which of these PPE does this SWMS list?', item.label, [...near, ...far]);
   }));
 }
 
-// Library step names that share no telling word with this SWMS's steps make clear decoys.
+// Library step names and controls are the decoys. Words any job could use are left out of the
+// comparison, and words are stemmed lightly, so "roofing" and "roof" count as one.
 const COMMON = new Set(['before', 'starting', 'finish', 'clean', 'install', 'remove', 'check', 'work', 'from', 'with', 'into', 'over', 'under', 'make', 'lift', 'carry', 'fix', 'set', 'use', 'the', 'and', 'for', 'out', 'up']);
 const keyWords = (name) => String(name).toLowerCase().split(/[^a-z0-9]+/).map((word) => word.replace(/s$/, '')).filter((word) => word.length > 2 && !COMMON.has(word));
 const GENERIC_STEP_WORDS = new Set(['leave', 'close', 'connect', 'commission', 'test', 'prepare', 'plan', 'tidy', 'pack', 'start', 'stop', 'site', 'area', 'job', 'task', 'materials', 'equipment', 'tools', 'load', 'unload', 'deliver', 'store', 'handle', 'move', 'access', 'mark', 'measure', 'inspect', 'secure', 'complete', 'hand', 'over']);
+const PLAIN_WORDS = new Set(['are', 'all', 'any', 'each', 'every', 'when', 'where', 'while', 'not', 'than', 'then', 'been', 'being', 'have', 'has', 'had', 'must', 'should', 'will', 'can', 'this', 'that', 'these', 'those', 'its', 'their', 'there', 'only', 'after', 'who', 'what', 'which', 'per', 'such', 'also', 'more', 'used', 'kept', 'made', 'done', 'given', 'person', 'people', 'worker', 'new', 'old', 'way', 'place', 'one', 'two']);
+const stem = (word) => word.replace(/(?<=\w{3})(ing|ed)$/, '');
+const terms = (text) => new Set(keyWords(text).filter((word) => !GENERIC_STEP_WORDS.has(word) && !PLAIN_WORDS.has(word)).map(stem));
+const shared = (a, b) => [...a].filter((word) => b.has(word)).length;
+// Two lines are near twins when they share half their words, or one's words are all in the other.
+const twins = (a, b) => {
+  const n = shared(a, b);
+  return n > 0 && (2 * n / (a.size + b.size) >= 0.5 || n === Math.min(a.size, b.size));
+};
+// Doing words say little about the work: "Replace the flashing" is not close to "Replace the pump".
+const ACTION_WORDS = new Set(['replace', 'repair', 'erect', 'build', 'lay', 'fit', 'run', 'place', 'strip', 'dismantle', 'apply', 'form', 'stand', 'break', 'dig', 'drive', 'operate', 'maintain', 'service', 'cut', 'drill', 'clear', 'keep', 'stay', 'wear', 'worn', 'used', 'kept']);
+// The closest lines kept as decoys: enough that each answer finds close ones both shorter and
+// longer than itself.
+const CLOSE_KEPT = 400;
+// A word in more library lines than this says little about the work ("gloves", "edge", "load").
+const SPECIFIC_LINES = 100;
+// Lines any job could have are never wrong answers: a worker could fairly think they are in this
+// SWMS. Everyday PPE (as for the PPE question), heat and rest, and manual handling.
+const ANY_JOB = /\b(rest breaks?|shade|drink|fatigue|manual handling|team lift|first aid)\b/i;
 let libraryNames = null;
 let libraryControls = null;
+let libraryWords = null;
 
-// Each job step, with library step names as decoys.
+// How many library lines (step names and controls) use each word: rarer words tell more.
+function wordLines() {
+  if (!libraryWords) {
+    libraryWords = new Map();
+    const lines = new Set(ACTIVITIES.flatMap((activity) => activity.steps.flatMap((step) => [step.step, ...step.controls.map(controlText)])).filter(Boolean));
+    for (const line of lines) for (const word of terms(line)) libraryWords.set(word, (libraryWords.get(word) || 0) + 1);
+  }
+  return libraryWords;
+}
+
+const libraryTerms = new Map();
+// A library line's words, worked out once. null: a line any job could have, never a decoy.
+function lineTerms(text) {
+  if (!libraryTerms.has(text)) libraryTerms.set(text, EVERYDAY_PPE.test(text) || ANY_JOB.test(text) ? null : terms(text));
+  return libraryTerms.get(text);
+}
+
+// Wrong answers close to the work, so guessing does not pass: each shares a telling word with this
+// SWMS, so it reads as something this job could have. To stay fair to a worker reading in a
+// second language, who looks back at the SWMS to answer, none is in this SWMS, a near twin of any
+// line in it, or a line any job could have. Closest first, by how telling the shared words are.
+// Where too few are close, any clearly different line fills in.
+function closeDecoys(candidates, own, { work, task }) {
+  const counts = wordLines();
+  const weight = (word) => Math.log(4 * SPECIFIC_LINES / Math.min(counts.get(word) || 1, 4 * SPECIFIC_LINES));
+  const ownTerms = own.map(terms);
+  const lines = [...new Set(candidates)].map((text) => ({ text, words: lineTerms(text) })).filter(({ words }) => words && words.size > 0);
+  const fair = ({ words }) => !ownTerms.some((other) => twins(words, other));
+  const ranked = lines.map((item) => {
+    // Words of the task itself count twice: a guess from the task's words alone should not pass.
+    const common = [...item.words].filter((word) => work.has(word) && !ACTION_WORDS.has(word));
+    return { ...item, specific: common.some((word) => (counts.get(word) || 0) <= SPECIFIC_LINES), score: common.reduce((sum, word) => sum + weight(word) * (task.has(word) ? 2 : 1), 0) };
+  }).filter((item) => item.specific).sort((a, b) => b.score - a.score || a.text.localeCompare(b.text));
+  const close = [];
+  for (const item of ranked) {
+    if (close.length >= CLOSE_KEPT) break;
+    if (fair(item)) close.push(item.text);
+  }
+  if (close.length >= DECOYS_KEPT) return close;
+  return [...close, ...lines.filter((item) => !close.includes(item.text) && fair(item)).map((item) => item.text).sort()];
+}
+
+// Every word in this SWMS's job steps, hazards and controls: what makes a decoy close to the work.
+const workTermsOf = (draft) => ({ work: terms([draft.task || '', ...(draft.jobSteps || []).flatMap((step) => [step.step, ...step.hazards, ...step.controls])].join(' ')), task: terms(draft.task || '') });
+
+// The decoys kept for one answer: the closest to the work, half shorter than it and half longer
+// where the list allows, so a read can put the right answer anywhere from shortest to longest.
+const LENGTH_SIDE = 12;
+function bothLengths(correct, decoys, random) {
+  const shorter = shuffled(decoys.filter((text) => text.length <= correct.length).slice(0, LENGTH_SIDE), random);
+  const longer = shuffled(decoys.filter((text) => text.length > correct.length).slice(0, LENGTH_SIDE), random);
+  const half = DECOYS_KEPT / 2;
+  const kept = [...shorter.slice(0, Math.max(half, DECOYS_KEPT - longer.length)), ...longer.slice(0, Math.max(half, DECOYS_KEPT - shorter.length))].slice(0, DECOYS_KEPT);
+  return [...kept, ...decoys.filter((text) => !kept.includes(text))];
+}
+
+// Each job step, with library step names close to the work as decoys.
 function stepPool(draft, steps, random) {
   if (!libraryNames) libraryNames = [...new Set(ACTIVITIES.flatMap((activity) => activity.steps.map((step) => step.step)))].filter((name) => !ROUTINE_STEPS.includes(name));
   const own = (draft.jobSteps || []).map((step) => step.step);
   const lower = new Set(own.map((name) => name.toLowerCase()));
-  const used = new Set(own.flatMap(keyWords));
-  const outside = libraryNames.filter((name) => !lower.has(name.toLowerCase()));
   // A decoy names real work ("Place and tie reo"), not a step any job could have ("Leave and close up").
   const telling = (name) => keyWords(name).some((word) => !GENERIC_STEP_WORDS.has(word));
-  let decoys = outside.filter((name) => telling(name) && !keyWords(name).some((word) => used.has(word)));
-  if (decoys.length < 3) decoys = outside;
+  const decoys = closeDecoys(libraryNames.filter((name) => !lower.has(name.toLowerCase()) && telling(name)), own, workTermsOf(draft));
   if (decoys.length < 3) return [];
-  return steps.map((name) => poolItem('step', 'Which of these is a job step in this SWMS?', name, shuffled(decoys, random), name));
+  return steps.map((name) => poolItem('step', 'Which of these is a job step in this SWMS?', name, bothLengths(name, decoys, random), name));
 }
 
-// Up to two short controls from each job step, with controls from other library steps as decoys.
-// A decoy shares no telling word with anything in this SWMS's steps, so it is clearly not here.
+// Up to two short controls from each job step, with library controls close to the work as decoys.
 const controlText = (control) => (typeof control === 'string' ? control : (control && typeof control.text === 'string' && control.text) || '');
 const shortControl = (text) => Boolean(text) && text.length <= MAX_CONTROL_LENGTH && !/[()]/.test(text);
 function controlPool(draft, random) {
@@ -153,12 +229,14 @@ function controlPool(draft, random) {
   }
   const own = draft.jobSteps || [];
   const names = new Set(own.map((step) => step.step.toLowerCase()));
-  const used = new Set(own.flatMap((step) => [step.step, ...step.hazards, ...step.controls]).flatMap(keyWords));
+  const lines = own.flatMap((step) => [step.step, ...step.hazards, ...step.controls]);
   const telling = (text) => keyWords(text).filter((word) => !GENERIC_STEP_WORDS.has(word)).length >= 2;
-  const decoys = [...new Set(libraryControls.filter((item) => !names.has(item.step) && telling(item.text) && !keyWords(item.text).some((word) => used.has(word))).map((item) => item.text))];
+  const candidates = libraryControls.filter((item) => !names.has(item.step) && telling(item.text) && !lines.includes(item.text)).map((item) => item.text);
+  // A decoy is not a near twin of any control, hazard or PPE item in this SWMS.
+  const decoys = closeDecoys(candidates, [...lines, ...tickedPpe(draft)], workTermsOf(draft));
   if (decoys.length < 3) return [];
   return own.flatMap((step, index) => (ROUTINE_STEPS.includes(step.step) ? [] : shuffled([...new Set(step.controls.filter(shortControl))], random).slice(0, 2)
-    .map((control) => poolItem('control', `Which of these is a control in step ${index + 1} (${step.step})?`, control, shuffled(decoys, random), step.step))));
+    .map((control) => poolItem('control', `Which of these is a control in step ${index + 1} (${step.step})?`, control, bothLengths(control, decoys, random), step.step))));
 }
 
 // Every question this SWMS can ask, made the same way every time from the SWMS alone, so it
@@ -174,19 +252,42 @@ function poolPhrases(pool) {
   return [...new Set([...pool.ppe, ...pool.steps].flatMap((item) => [item.question, item.correct, ...item.decoys]))];
 }
 
+// Three wrong answers for one question: from none to all three shorter than the right answer, at
+// random, so neither the longest nor the shortest answer is more often right.
+function threeDecoys(item, random) {
+  const decoys = shuffled(item.decoys, random);
+  const shorter = decoys.filter((text) => text.length <= item.correct.length);
+  const longer = decoys.filter((text) => text.length > item.correct.length);
+  const wanted = Math.floor(random() * 4);
+  const picked = [...shorter.slice(0, wanted), ...longer.slice(0, 3 - Math.min(wanted, shorter.length))];
+  return [...picked, ...decoys.filter((text) => !picked.includes(text))];
+}
+
 // Two questions for one read, drawn from the pool by the read id, so each worker gets their own
 // and the same read always gets the same ones. When there is no PPE question, a second job step
-// question takes its place.
-function checkQuestions(swmsId, readId, draft) {
+// question takes its place. After each wrong attempt (round) the worker gets fresh questions,
+// not asked before in this read while the pool has others, so trying every answer in turn
+// does not work.
+function checkQuestions(swmsId, readId, draft, round = 0) {
   const pool = questionPool(swmsId, draft);
-  const random = seeded(`questions:${readId}`);
-  const take = (items) => items.splice(Math.floor(random() * items.length), 1)[0];
-  const ask = (id, item) => ({ ...question(id, item.question, item.correct, shuffled(item.decoys, random), item.kind === 'ppe' ? 'ppe' : 'steps', random), kind: item.kind, step: item.step });
-  const steps = [...pool.steps];
-  const out = [];
-  if (pool.ppe.length) out.push(ask('ppe', take([...pool.ppe])));
-  if (steps.length) out.push(ask('steps', take(steps)));
-  if (!pool.ppe.length && steps.length) out.push(ask('steps2', take(steps)));
+  const asked = new Set();
+  const key = (item) => `${item.question}\n${item.correct}`;
+  let out = [];
+  for (let n = 0; n <= Math.max(0, Math.floor(Number(round) || 0)); n += 1) {
+    const random = seeded(n ? `questions:${readId}:${n}` : `questions:${readId}`);
+    const fresh = (items) => (items.some((item) => !asked.has(key(item))) ? items.filter((item) => !asked.has(key(item))) : [...items]);
+    const take = (items) => items.splice(Math.floor(random() * items.length), 1)[0];
+    const ask = (id, item) => ({ ...question(id, item.question, item.correct, threeDecoys(item, random), item.kind === 'ppe' ? 'ppe' : 'steps', random), kind: item.kind, step: item.step, key: key(item) });
+    const steps = fresh(pool.steps);
+    // Once every PPE question has been asked in this read, a second job step question is asked
+    // instead, while there are fresh ones.
+    const ppe = pool.ppe.length > 0 && (n === 0 || pool.ppe.some((item) => !asked.has(key(item))) || steps.length < 2);
+    out = [];
+    if (ppe) out.push(ask('ppe', take(fresh(pool.ppe))));
+    if (steps.length) out.push(ask('steps', take(steps)));
+    if (!ppe && steps.length) out.push(ask('steps2', take(steps.length ? steps : fresh(pool.steps))));
+    out.forEach((item) => asked.add(item.key));
+  }
   return out;
 }
 
@@ -216,20 +317,43 @@ async function checkRead(row, draft, readId, now = new Date()) {
   return { read, elapsed, sections };
 }
 
-// Marks each answer. Returns the wrong questions, and counts the attempt.
-async function markAnswers(read, questions, answers) {
-  const given = answers && typeof answers === 'object' ? answers : {};
-  const rows = await db.query('UPDATE sign_reads SET attempts = attempts + 1 WHERE id = $1 RETURNING attempts', [read.id]);
-  const attempts = rows[0] ? Number(rows[0].attempts) : 1;
-  const wrong = questions.filter((item) => !Number.isInteger(given[item.id]) || given[item.id] !== item.answer);
-  return { attempts, wrong };
+// Two wrong attempts are free. After that the worker waits before trying again, longer each
+// time up to 2 minutes, and is asked to read the sections again: a worker who read the SWMS
+// answers well inside that, and guessing becomes slower than reading.
+const FREE_ATTEMPTS = 2;
+const WAIT_STEP_SECONDS = 30;
+const MAX_WAIT_SECONDS = 120;
+const waitAfter = (wrongAttempts) => (wrongAttempts < FREE_ATTEMPTS ? 0 : Math.min(MAX_WAIT_SECONDS, WAIT_STEP_SECONDS * (wrongAttempts - FREE_ATTEMPTS + 1)));
+
+// Seconds before this read may be answered again (0 when it may be answered now).
+function waitLeft(read, now = new Date()) {
+  const wait = waitAfter(Number(read.attempts) || 0);
+  if (!wait || !read.wrong_at) return 0;
+  return Math.max(0, Math.ceil(wait - (now.getTime() - new Date(read.wrong_at).getTime()) / 1000));
 }
 
-function wrongMessage(questions, wrong) {
+function waitMessage(seconds) {
+  return `Read the sections again before you answer. You can answer again in ${seconds} seconds.`;
+}
+
+// Marks each answer. Returns the wrong questions, and counts the attempt. A wrong attempt's time
+// is kept, for the wait before the next.
+async function markAnswers(read, questions, answers, now = new Date()) {
+  const given = answers && typeof answers === 'object' ? answers : {};
+  const wrong = questions.filter((item) => !Number.isInteger(given[item.id]) || given[item.id] !== item.answer);
+  const rows = wrong.length
+    ? await db.query('UPDATE sign_reads SET attempts = attempts + 1, wrong_at = $2 WHERE id = $1 RETURNING attempts', [read.id, now])
+    : await db.query('UPDATE sign_reads SET attempts = attempts + 1 WHERE id = $1 RETURNING attempts', [read.id]);
+  const attempts = rows[0] ? Number(rows[0].attempts) : 1;
+  return { attempts, wrong, wait: wrong.length ? waitAfter(attempts) : 0 };
+}
+
+// wait: the seconds before the next try, after two wrong attempts.
+function wrongMessage(questions, wrong, wait = 0) {
   const parts = wrong.map((item) => `question ${questions.indexOf(item) + 1}`);
   const sections = [...new Set(wrong.map((item) => (item.section === 'ppe' ? 'PPE to wear' : 'Job steps')))];
   const which = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]} are` : `${parts[0]} is`;
-  return `The answer to ${which} not right. Read the ${sections.join(' and ')} section${sections.length > 1 ? 's' : ''} again, then try again.`;
+  return `The answer to ${which} not right. Read the ${sections.join(' and ')} section${sections.length > 1 ? 's' : ''} again, then answer the new questions.${wait ? ` You can answer again in ${wait} seconds.` : ''}`;
 }
 
 // Marks the read used, once only, so one reading signs on one worker.
@@ -319,7 +443,9 @@ async function translation(row, draft, code, readId) {
   const language = languageFor(String(code || ''));
   if (!language) throw fail(400, 'That language is not offered.');
   const english = translatable(row.title, draft, poolPhrases(questionPool(row.id, draft)));
-  const questions = readId ? checkQuestions(row.id, String(readId).slice(0, 64), draft) : [];
+  // The questions the worker has now: fresh ones after each wrong attempt.
+  const read = readId ? await db.one('SELECT attempts FROM sign_reads WHERE id = $1 AND swms_id = $2', [String(readId).slice(0, 64), row.id]) : null;
+  const questions = readId ? checkQuestions(row.id, String(readId).slice(0, 64), draft, read ? Number(read.attempts) : 0) : [];
   const contentKey = hash(JSON.stringify(english));
   const id = hash(`${row.id}:${contentKey}:${language.code}`);
   const out = (value) => ({ language: { code: language.code, name: language.name, rtl: Boolean(language.rtl), lessReliable: Boolean(language.lessReliable) }, ...value });
@@ -352,5 +478,6 @@ async function translation(row, draft, code, readId) {
 
 module.exports = {
   LANGUAGES, languageFor, readSections, questionPool, checkQuestions, publicQuestions, tickedPpe, startRead, checkRead, markAnswers, wrongMessage, useRead,
+  waitLeft, waitMessage,
   sectionSeconds, signOnNote, translation, TRANSLATE_SCHEMA, SERVER_SHARE,
 };

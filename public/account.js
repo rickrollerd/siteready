@@ -361,8 +361,10 @@
       const body = { ...S.actionInput, ...confirmed('new', uncovered), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
       const { saved } = await download(route, fallbackName, body);
       if (!saved) return;
-      S.editing = { id: saved.id, title: saved.title };
-      status('new-status', `Saved as "${saved.title}", revision ${saved.revision}, and downloaded. Find it under My SWMS. Changes you make now save as its next revision.`);
+      // A new revision was saved when the number moved on from the one being changed.
+      const revised = saved.revision > 1 && !(S.editing && S.editing.id === saved.id && S.editing.revision === saved.revision);
+      S.editing = { id: saved.id, title: saved.title, revision: saved.revision };
+      status('new-status', `Saved as "${saved.title}", revision ${saved.revision}, and downloaded. Find it under My SWMS. Changes you make now save as its next revision.${revised ? resignLine(saved.revision) : ''}`);
       if ($('new-save')) { $('new-save').textContent = 'Saved'; $('new-save').disabled = true; }
     };
     $('new-docx').addEventListener('click', () => run(() => saveAndDownload('/api/draft.docx', 'SiteReady.docx')));
@@ -372,8 +374,8 @@
         const body = { input: S.actionInput, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new', uncovered) };
         const data = S.editing ? await call('PUT', `/api/swms/${S.editing.id}`, body) : await call('POST', '/api/swms', body);
         // Later changes to this SWMS save as its revisions.
-        S.editing = { id: data.swms.id, title: data.swms.title };
-        status('new-status', `Saved "${data.swms.title}", revision ${data.swms.revision || 1}. Find it under My SWMS, where workers can sign on by QR code.`);
+        S.editing = { id: data.swms.id, title: data.swms.title, revision: data.swms.revision || 1 };
+        status('new-status', `Saved "${data.swms.title}", revision ${data.swms.revision || 1}. Find it under My SWMS, where workers can sign on by QR code.${data.swms.revision > 1 ? resignLine(data.swms.revision, data.swms.signedEarlier) : ''}`);
         $('new-save').textContent = 'Saved';
         $('new-save').disabled = true;
       }));
@@ -388,7 +390,28 @@
 
   // ---- My SWMS ----
 
+  // Said when a new revision is saved: earlier sign-ons do not cover it. earlier is how many
+  // workers signed only an earlier revision, where known.
+  const resignLine = (revision, earlier) => ` Workers must sign on to revision ${revision} before starting work: sign-ons to an earlier revision do not cover it.${earlier ? ` ${earlier === 1 ? 'One worker' : `${earlier} workers`} signed an earlier revision and must sign again.` : ''} Ask your supervisor to have them scan the QR code again.`;
+
   const shortDate = (value) => new Date(value).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  // Sign-ons count on the current revision only. Workers who signed an earlier revision are
+  // counted apart: they must sign the current one before they start work.
+  const signedText = (item) => {
+    const now = item.revision > 1 ? `${item.signons} signed on to revision ${esc(item.revision)}` : `${item.signons} signed on`;
+    return item.signedEarlier ? `${now} · <span class="due">${item.signedEarlier} still to sign revision ${esc(item.revision)}</span>` : now;
+  };
+
+  // After a new revision: who has signed it, and who signed only an earlier one and must sign it.
+  function resignNote(swms, signons, earlier) {
+    if ((swms.revision || 1) < 2 || (signons.length && !earlier.length)) return '';
+    const head = signons.length ? '' : `<p><strong>No one has signed on to revision ${esc(swms.revision)} yet.</strong> It was saved on ${shortDate(swms.revisedAt)}. Sign-ons to an earlier revision do not cover it.</p>`;
+    const who = earlier.length
+      ? `<p>Tell your supervisor: ${earlier.length === 1 ? 'the worker below signed an earlier revision and must' : `the ${earlier.length} workers below signed an earlier revision and must each`} read and sign revision ${esc(swms.revision)}, by scanning the QR code again, before starting work.</p>`
+      : `<p>Tell your supervisor: every worker must read and sign revision ${esc(swms.revision)}, by scanning the QR code, before starting work.</p>`;
+    return `<div class="warning resign" id="resign-note">${head}${who}</div>`;
+  }
 
   async function loadSwms() {
     const list = $('swms-list');
@@ -400,7 +423,7 @@
         <div class="swms-row">
           <div>
             <strong>${esc(item.title)}</strong>
-            <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${item.signons} signed on · ${item.reviewDue ? '<span class="due">Review due</span>' : `Review by ${shortDate(item.reviewDueAt)}`}</span>
+            <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Review due</span>' : `Review by ${shortDate(item.reviewDueAt)}`}</span>
           </div>
           <button type="button" class="small" data-swms="${esc(item.id)}">Open</button>
         </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (Word, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>';
@@ -435,6 +458,7 @@
   async function openSwms(id) {
     const data = await call('GET', `/api/swms/${id}`);
     const { swms, draft, signons } = data;
+    const earlier = data.earlierSignons || [];
     const history = data.revisions && data.revisions.length > 1 ? (await call('GET', `/api/swms/${id}/revisions`)).revisions : data.revisions;
     const update = data.update || { available: false, changes: [] };
     const resultEl = S.resultEl;
@@ -472,9 +496,16 @@
             <div class="actions"><button type="button" class="secondary" id="print-qr">Print the QR code</button></div>
           </div>
         </div>
-        <table><thead><tr><th>Name</th><th>Company</th><th>Signed</th></tr></thead><tbody>
-          ${signons.length ? signons.map((item) => `<tr><td>${esc(item.worker_name)}${item.note ? `<br><span class="meta">${esc(item.note)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${new Date(item.signed_at).toLocaleString('en-AU')}</td></tr>`).join('') : '<tr><td colspan="3">No one has signed on yet.</td></tr>'}
+        ${resignNote(swms, signons, earlier)}
+        <h3 class="signed-head">${swms.revision > 1 ? `Signed on to revision ${esc(swms.revision)} (current)` : 'Signed on'}</h3>
+        <table id="signed-current"><thead><tr><th>Name</th><th>Company</th><th>Signed</th></tr></thead><tbody>
+          ${signons.length ? signons.map((item) => `<tr><td>${esc(item.worker_name)}${item.note ? `<br><span class="meta">${esc(item.note)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${new Date(item.signed_at).toLocaleString('en-AU')}</td></tr>`).join('') : `<tr><td colspan="3">No one has signed on${swms.revision > 1 ? ` to revision ${esc(swms.revision)}` : ''} yet.</td></tr>`}
         </tbody></table>
+        ${earlier.length ? `<h3 class="signed-head">Signed an earlier revision only</h3>
+        <p class="meta">These workers have not signed revision ${esc(swms.revision)}. Their sign-ons stay on the revision they signed.</p>
+        <table id="signed-earlier"><thead><tr><th>Name</th><th>Company</th><th>Signed</th></tr></thead><tbody>
+          ${earlier.map((item) => `<tr><td>${esc(item.worker_name)}${item.note ? `<br><span class="meta">${esc(item.note)}</span>` : ''}</td><td>${esc(item.worker_company)}</td><td>${item.revision ? `Revision ${esc(item.revision)}` : 'An earlier revision'}<br><span class="meta">${new Date(item.signed_at).toLocaleString('en-AU')}</span></td></tr>`).join('')}
+        </tbody></table>` : ''}
       </div>
       ${draft.controlEdits && S.editNotes ? S.editNotes(draft.controlEdits) : ''}
       <div class="sheet">${S.render(draft)}</div>`;
@@ -493,7 +524,7 @@
       $('saved-update-go').addEventListener('click', () => run(async () => {
         const next = await call('PUT', `/api/swms/${id}`, { reason: 'Updated to SiteReady\'s current wording', ...confirmed('saved') });
         await openSwms(id);
-        status('saved-status', `Saved revision ${next.swms.revision} with the updated wording.`);
+        status('saved-status', `Saved revision ${next.swms.revision} with the updated wording.${resignLine(next.swms.revision, next.swms.signedEarlier)}`);
         loadSwms();
       }));
     }
@@ -517,14 +548,14 @@
     // away, and the form above holds its answers. Saving makes the next revision.
     $('saved-edit').addEventListener('click', () => run(async () => {
       await S.fillForm(data.input);
-      S.editing = { id, title: swms.title };
+      S.editing = { id, title: swms.title, revision: swms.revision };
       S.showSite(swms.siteId || '');
       if (S.prepare) await S.prepare();
     }));
     $('print-qr').addEventListener('click', () => {
       const win = window.open('', '_blank');
       if (!win) return;
-      win.document.write(`<!DOCTYPE html><html><head><title>Sign on: ${esc(swms.title)}</title></head><body style="font-family:sans-serif;text-align:center;padding:40px"><h1>Sign on to this SWMS</h1><h2>${esc(swms.title)}</h2><div style="width:320px;margin:24px auto">${qr}</div><p>Scan with your phone camera, read the SWMS and sign.</p></body></html>`);
+      win.document.write(`<!DOCTYPE html><html><head><title>Sign on: ${esc(swms.title)}</title></head><body style="font-family:sans-serif;text-align:center;padding:40px"><h1>Sign on to this SWMS</h1><h2>${esc(swms.title)}</h2><p>Revision ${esc(swms.revision)}</p><div style="width:320px;margin:24px auto">${qr}</div><p>Scan with your phone camera, read the SWMS and sign.</p>${swms.revision > 1 ? '<p>If you signed an earlier revision, read and sign this one before you start work.</p>' : ''}</body></html>`);
       win.document.close();
       win.print();
     });

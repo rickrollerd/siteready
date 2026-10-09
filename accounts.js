@@ -287,12 +287,37 @@ router.get('/swms/export.zip', requireUser, route(async (req, res) => {
   res.send(out);
 }));
 
+// Each SWMS counts the workers signed on to its current revision, and separately those who
+// signed only an earlier revision and must sign again.
 router.get('/swms', requireUser, route(async (req, res) => {
   const rows = await db.query('SELECT * FROM swms WHERE company_id = $1 AND archived = FALSE ORDER BY updated_at DESC', [req.company.id]);
-  const counts = await db.query('SELECT swms_id, COUNT(*) AS n FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE company_id = $1) GROUP BY swms_id', [req.company.id]);
-  const signed = Object.fromEntries(counts.map((item) => [item.swms_id, Number(item.n)]));
-  res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, signons: signed[row.id] || 0 })) });
+  const all = await db.query('SELECT swms_id, worker_name, signed_at, revision FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE company_id = $1) ORDER BY signed_at', [req.company.id]);
+  res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, ...signonCounts(splitSignons(all.filter((item) => item.swms_id === row.id), row)) })) });
 }));
+
+// Which revision a sign-on is for. One from before sign-ons kept their revision counts for the
+// current revision only when it was signed after that revision was saved; otherwise it was an
+// earlier one (null: which one is not known).
+function signedRevision(item, row) {
+  if (item.revision) return Number(item.revision);
+  return new Date(item.signed_at) >= new Date(row.revised_at || row.created_at) ? (row.revision || 1) : null;
+}
+
+const workerKey = (name) => String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+
+// The sign-ons on the current revision, and the workers who signed only an earlier one (each
+// by their latest sign-on): a new revision needs every worker to sign it before starting work.
+// items are in the order signed.
+function splitSignons(items, row) {
+  const revision = row.revision || 1;
+  const current = items.filter((item) => signedRevision(item, row) === revision);
+  const signedCurrent = new Set(current.map((item) => workerKey(item.worker_name)));
+  const earlier = new Map();
+  for (const item of items) if (signedRevision(item, row) !== revision && !signedCurrent.has(workerKey(item.worker_name))) earlier.set(workerKey(item.worker_name), item);
+  return { current, earlier: [...earlier.values()] };
+}
+
+const signonCounts = ({ current, earlier }) => ({ signons: current.length, signedEarlier: earlier.length });
 
 // What the account holds of its people and sites when a SWMS is saved, so the control learning
 // store can take their names out of what the user typed. Read only when learning is on.
@@ -409,12 +434,16 @@ function revisionView(item, row) {
 router.get('/swms/:id', requireUser, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
   // Only that each worker read, agreed and signed: how they read it is not the business's to see.
-  const signons = (await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 ORDER BY signed_at`, [row.id]))
-    .map((item) => ({ worker_name: item.worker_name, worker_company: item.worker_company, signed_at: item.signed_at, note: signRead.signOnNote(item) }));
+  // signons are those on the current revision; earlierSignons the workers who signed only an
+  // earlier revision, with the revision they signed, who must sign the current one.
+  const { current, earlier } = splitSignons(await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 ORDER BY signed_at`, [row.id]), row);
+  const sheetLine = (item) => ({ worker_name: item.worker_name, worker_company: item.worker_company, signed_at: item.signed_at, note: signRead.signOnNote(item) });
+  const signons = current.map(sheetLine);
+  const earlierSignons = earlier.map((item) => ({ ...sheetLine(item), revision: signedRevision(item, row) }));
   const kept = await revisions.revisionOf(row, req.company, row.revision || 1, withCompany);
   const draft = kept ? kept.draft : withRevision(prepareDraft(withCompany(row.input, req.company)), row);
   const history = (await revisions.listRevisions(row.id)).map((item) => revisionView(item, row)).reverse();
-  res.json({ swms: swmsView(row, { ref: kept ? kept.ref : '' }), input: row.input, draft, signons, revisions: history, update: updatedWording(row, req.company, kept) });
+  res.json({ swms: swmsView(row, { ref: kept ? kept.ref : '' }), input: row.input, draft, signons, earlierSignons, revisions: history, update: updatedWording(row, req.company, kept) });
 }));
 
 // Every revision kept, newest first, each with what changed from the one before.
@@ -451,7 +480,9 @@ router.put('/swms/:id', requireAccess, route(async (req, res) => {
   needsAnswers(withCompany(input, req.company), draft, '', { cover: Boolean(body.input) });
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
   const { row: next } = await reviseSwms(req, row, { input, draft, name, siteId: site ? site.id : null, title: body.title || row.title, reason: textField(body.reason, 300) });
-  res.json({ swms: swmsView(next) });
+  // The new revision has no sign-ons yet: the page says who must sign it.
+  const signed = await db.query('SELECT worker_name, signed_at, revision FROM signons WHERE swms_id = $1 ORDER BY signed_at', [next.id]);
+  res.json({ swms: swmsView(next, signonCounts(splitSignons(signed, next))) });
 }));
 
 router.post('/swms/:id/reviewed', requireAccess, route(async (req, res) => {
@@ -484,7 +515,7 @@ router.delete('/swms/:id', requireUser, route(async (req, res) => {
 
 // The sign-on columns the business sees, in the app, the Word and PDF files and the export.
 // The reading record (language, read time, sections viewed, check attempts) is never read here.
-const SIGNON_SHEET = 'worker_name, worker_company, signature, signed_at, explained_by';
+const SIGNON_SHEET = 'worker_name, worker_company, signature, signed_at, explained_by, revision';
 
 // The saved revision and its date, printed on the SWMS and read by the builder check.
 function withRevision(draft, row) {
@@ -501,7 +532,10 @@ async function documentParts(company, row, revision = row.revision || 1) {
   const current = kept.revision === (row.revision || 1);
   // Only that each worker read, agreed and signed: how they read it is not the business's to see,
   // on any revision, however long ago it was saved.
+  // A sign-on from before sign-ons kept their revision prints on the current revision only when
+  // it was signed after that revision was saved, and on the earlier ones otherwise.
   const signons = (await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 AND (revision = $2 OR revision IS NULL) ORDER BY signed_at`, [row.id, kept.revision]))
+    .filter((item) => item.revision || (current ? signedRevision(item, row) !== null : signedRevision(item, row) === null))
     .map((item) => ({
       worker_name: item.worker_name, worker_company: item.worker_company, signature: item.signature,
       signedDate: longDate(item.signed_at), note: signRead.signOnNote(item),
@@ -614,15 +648,24 @@ router.post('/sign/:token', route(async (req, res) => {
   let reading = null;
   if (!explainedBy) {
     const { read, elapsed, sections } = await signRead.checkRead(row, draft, body.readId);
-    const questions = signRead.checkQuestions(row.id, read.id, draft);
+    // The questions for this try: fresh ones after each wrong attempt.
+    const questions = signRead.checkQuestions(row.id, read.id, draft, read.attempts);
     let attempts = null;
     if (questions.length) {
+      // After two wrong attempts the worker waits a little before the next.
+      const wait = signRead.waitLeft(read);
+      if (wait) {
+        res.status(429).json({ kind: 'error', message: signRead.waitMessage(wait), wait });
+        return;
+      }
       const marked = await signRead.markAnswers(read, questions, body.answers);
       if (marked.wrong.length) {
         // Each wrong answer, without the worker, business, site or SWMS (control learning only).
         const language = signRead.languageFor(body.language) ? body.language : 'en';
         await recordFailedQuestions(marked.wrong, body.answers, { draft, input: row.input, company, language }).catch(() => {});
-        res.status(400).json({ kind: 'error', message: signRead.wrongMessage(questions, marked.wrong), wrong: marked.wrong.map((item) => item.id), sections: [...new Set(marked.wrong.map((item) => item.section))] });
+        // The next try gets fresh questions, and after two wrong attempts a wait.
+        const next = signRead.publicQuestions(signRead.checkQuestions(row.id, read.id, draft, marked.attempts));
+        res.status(400).json({ kind: 'error', message: signRead.wrongMessage(questions, marked.wrong, marked.wait), wrong: marked.wrong.map((item) => item.id), sections: [...new Set(marked.wrong.map((item) => item.section))], questions: next, wait: marked.wait });
         return;
       }
       ({ attempts } = marked);
@@ -636,7 +679,8 @@ router.post('/sign/:token', route(async (req, res) => {
   }
   // A cap on sign-ons per SWMS stops a leaked QR code being used to flood it.
   const limit = Number(process.env.SIGNON_LIMIT) > 0 ? Number(process.env.SIGNON_LIMIT) : SIGNON_LIMIT;
-  const signed = await db.one('SELECT COUNT(*) AS n FROM signons WHERE swms_id = $1', [row.id]);
+  // Counted on the current revision: each new revision is signed by the whole crew again.
+  const signed = await db.one('SELECT COUNT(*) AS n FROM signons WHERE swms_id = $1 AND revision = $2', [row.id, row.revision || 1]);
   if (Number(signed.n) >= limit) throw fail(409, `This SWMS has reached its limit of ${limit} sign-ons. Ask your supervisor to save a new copy of the SWMS and share its QR code.`);
   if (reading) await signRead.useRead(reading.read);
   await db.query(

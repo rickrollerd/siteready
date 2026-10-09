@@ -210,6 +210,8 @@ const SCHEMA = [
     attempts INTEGER NOT NULL DEFAULT 0,
     used_at TIMESTAMPTZ
   )`,
+  // When the last wrong answer was given, for the wait before the next try.
+  'ALTER TABLE sign_reads ADD COLUMN IF NOT EXISTS wrong_at TIMESTAMPTZ',
   // A SWMS translated once per language, kept against a fingerprint of its English.
   `CREATE TABLE IF NOT EXISTS sign_translations (
     id TEXT PRIMARY KEY,

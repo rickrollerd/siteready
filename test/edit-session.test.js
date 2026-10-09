@@ -233,6 +233,25 @@ test('Change on a saved SWMS opens it ready to edit, and its changes save as its
   assert.ok(p.calls.some((call) => call.method === 'PUT' && call.route === '/api/swms/saved-9'));
 });
 
+test('a download saved as a new revision says workers must sign it; the same revision again does not', async () => {
+  let revision = 0;
+  const p = page(server((method, route) => (route === '/api/draft.docx'
+    ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 'dl-2', 'x-siteready-revision': String(Math.min(2, (revision += 1))), 'x-siteready-title': 'Dig%20a%20trench' } } : null)));
+  await settle();
+  p.document.getElementById('task').value = 'Dig a trench.';
+  await prepare(p);
+  const download = async () => {
+    p.document.getElementById('new-confirm').checked = true;
+    p.document.getElementById('new-name').value = 'Sam Lee';
+    p.document.getElementById('new-docx').click();
+    await settle();
+    return p.document.getElementById('new-status').textContent;
+  };
+  assert.doesNotMatch(await download(), /must sign/);
+  assert.match(await download(), /revision 2, and downloaded\..* Workers must sign on to revision 2 before starting work: sign-ons to an earlier revision do not cover it\./);
+  assert.doesNotMatch(await download(), /must sign/, 'printing revision 2 again is not a new revision');
+});
+
 test('downloading saves the SWMS, and later changes save as its next revision', async () => {
   const p = page(server((method, route) => (route === '/api/draft.docx'
     ? { body: {}, headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 'dl-1', 'x-siteready-revision': '1', 'x-siteready-title': 'Dig%20a%20trench' } } : null)));
@@ -248,8 +267,9 @@ test('downloading saves the SWMS, and later changes save as its next revision', 
   await settle();
   const download = p.calls.find((call) => call.route === '/api/draft.docx');
   assert.equal(download.body.swmsId, undefined, 'a new SWMS');
-  assert.deepEqual(JSON.parse(JSON.stringify(p.window.SiteReady.editing)), { id: 'dl-1', title: 'Dig a trench' });
+  assert.deepEqual(JSON.parse(JSON.stringify(p.window.SiteReady.editing)), { id: 'dl-1', title: 'Dig a trench', revision: 1 });
   assert.match(p.document.getElementById('new-status').textContent, /Saved as "Dig a trench", revision 1, and downloaded/);
+  assert.doesNotMatch(p.document.getElementById('new-status').textContent, /must sign/, 'revision 1 has no earlier sign-ons');
   p.run("applyLineEdit(shownDraft.jobSteps[0], 'Plant is inspected daily.', '')");
   await settle();
   tick();

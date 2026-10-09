@@ -226,19 +226,67 @@
 
   const SECTION_NAMES = { ppe: ['sec-ppe', 'PPE to wear'], steps: ['steps-start', 'Job steps'] };
 
+  // An error shows just above the Sign on button, scrolled to the middle of the screen so the
+  // progress bar along the bottom never covers it.
+  function showError(html) {
+    $('sign-error').innerHTML = html;
+    $('sign-error').classList.remove('hidden');
+    $('sign-error').scrollIntoView({ block: 'center' });
+  }
+
+  // After a wrong answer the worker gets new questions, in their language where one is chosen.
+  async function newQuestions(questions) {
+    data.questions = questions;
+    $('questions').innerHTML = '';
+    if (translated) {
+      try {
+        const response = await fetch(`${api}/translation?lang=${encodeURIComponent(language.code)}&read=${encodeURIComponent(data.readId)}`);
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.message);
+        translations[language.code] = body;
+        translated = body;
+      } catch {
+        // The new questions show in English rather than with the old questions' translation.
+        translated = { ...translated, questions: [] };
+      }
+    }
+    render();
+  }
+
+  // After two wrong attempts the Sign on button waits, counting down, while the worker reads again.
+  let holding = null;
+  function holdFor(seconds) {
+    clearInterval(holding);
+    const button = $('submit');
+    let left = Math.max(1, Math.ceil(seconds));
+    const tick = () => {
+      if (left <= 0) {
+        clearInterval(holding);
+        button.disabled = false;
+        button.textContent = 'Sign on';
+        return;
+      }
+      button.disabled = true;
+      button.textContent = `Read again: you can answer in ${left} s`;
+      left -= 1;
+    };
+    tick();
+    holding = setInterval(tick, 1000);
+  }
+
   $('sign-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     $('sign-error').classList.add('hidden');
     document.querySelectorAll('.q.wrong').forEach((element) => element.classList.remove('wrong'));
     const explained = $('explained').checked;
-    if (explained && !$('supervisor').value.trim()) return show('sign-error', 'Enter the name of the supervisor who explained the SWMS to you.');
-    if (!drawn) return show('sign-error', 'Sign in the box first.');
-    if (!$('confirmed').checked) return show('sign-error', 'Tick the box to confirm the SWMS has been explained to you.');
+    if (explained && !$('supervisor').value.trim()) return showError(esc('Enter the name of the supervisor who explained the SWMS to you.'));
+    if (!drawn) return showError(esc('Sign in the box first.'));
+    if (!$('confirmed').checked) return showError(esc('Tick the box to confirm the SWMS has been explained to you.'));
     const answers = {};
     if (!explained) {
       for (const q of data.questions) {
         const chosen = document.querySelector(`#questions input[name="${q.id}"]:checked`);
-        if (!chosen) return show('sign-error', 'Answer each question before you sign on.');
+        if (!chosen) return showError(esc('Answer each question before you sign on.'));
         answers[q.id] = Number(chosen.value);
       }
     }
@@ -256,12 +304,23 @@
       });
       const body = await response.json();
       if (!response.ok) {
-        // A wrong answer names the question and links to the section to read again.
+        // A wrong answer names the question and links to the section to read again. The next
+        // try has new questions, and after two wrong attempts a short wait.
         if (Array.isArray(body.wrong)) {
-          body.wrong.forEach((id) => { const element = $(`q-${id}`); if (element) element.classList.add('wrong'); });
-          $('sign-error').innerHTML = `${esc(body.message)} ${(body.sections || []).filter((id) => SECTION_NAMES[id]).map((id) => `<a href="#${SECTION_NAMES[id][0]}">Go to ${SECTION_NAMES[id][1]}</a>`).join(' ')}`;
-          $('sign-error').classList.remove('hidden');
+          const fresh = Array.isArray(body.questions) && body.questions.length > 0;
+          if (fresh) await newQuestions(body.questions);
+          else body.wrong.forEach((id) => { const element = $(`q-${id}`); if (element) element.classList.add('wrong'); });
           $('submit').disabled = false;
+          if (body.wait) holdFor(body.wait);
+          const links = (body.sections || []).filter((id) => SECTION_NAMES[id]).map((id) => `<a href="#${SECTION_NAMES[id][0]}">Go to ${SECTION_NAMES[id][1]}</a>`);
+          if (fresh) links.push('<a href="#questions">Go to the new questions</a>');
+          showError(`${esc(body.message)} ${links.join(' ')}`);
+          return;
+        }
+        // Answered again before the wait was over.
+        if (response.status === 429 && body.wait) {
+          holdFor(body.wait);
+          showError(esc(body.message));
           return;
         }
         throw new Error(body.message || 'The sign-on could not be saved.');
@@ -271,7 +330,7 @@
       $('progress').classList.add('hidden');
       show('done', body.message);
     } catch (error) {
-      show('sign-error', error.message);
+      showError(esc(error.message));
       $('submit').disabled = false;
     }
   });
