@@ -10,7 +10,7 @@ const db = require('../db');
 const signRead = require('../sign-read');
 const { prepareDraft } = require('../draft');
 const { withCompany } = require('../accounts');
-const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 
 let server;
 let base;
@@ -47,13 +47,13 @@ function abnFor(seed) {
   return abnFor(`${seed}x`);
 }
 
-const INPUT = {
+const INPUT = ready({
   ...ANSWERED,
   state: 'qld',
   task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
   fallRisk: 'yes',
   facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
-};
+});
 const SIGNATURE = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
 const KEY = 'a1b2c3d4e5f60718293a4b5c6d7e8f90abcd';
 
