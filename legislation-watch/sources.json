@@ -39,14 +39,26 @@
     "jurisdiction": "New South Wales",
     "title": "Work Health and Safety Act 2011",
     "url": "https://legislation.nsw.gov.au/view/html/inforce/current/act-2011-010",
-    "knownBlocked": "The NSW legislation site refuses automated requests from GitHub (HTTP 403). Check this one by hand."
+    "feed": {
+      "urls": ["https://legislation.nsw.gov.au/feed?id=thisweek", "https://legislation.nsw.gov.au/feed?id=newinforce"],
+      "ids": ["act-2011-010"],
+      "titlePattern": "^Work Health and Safety (?:\\(.*\\) )?(?:Legislation )?Amendment\\b.*\\bAct\\b|^Work Health and Safety Act 2011"
+    },
+    "handCheck": "The NSW legislation pages refuse automated requests (HTTP 403, a bot check), so the version date is read by hand. Amending laws are watched daily through the site's feed.",
+    "knownBlocked": "The NSW legislation site's feed could not be read, and its pages refuse automated requests (HTTP 403). Check this one by hand."
   },
   {
     "id": "nsw-whs-reg",
     "jurisdiction": "New South Wales",
     "title": "Work Health and Safety Regulation 2025",
     "url": "https://legislation.nsw.gov.au/view/html/inforce/current/sl-2025-0440",
-    "knownBlocked": "The NSW legislation site refuses automated requests from GitHub (HTTP 403). Check this one by hand."
+    "feed": {
+      "urls": ["https://legislation.nsw.gov.au/feed?id=thisweek", "https://legislation.nsw.gov.au/feed?id=newinforce"],
+      "ids": ["sl-2025-0440"],
+      "titlePattern": "^Work Health and Safety (?:\\(.*\\) )?(?:Legislation )?Amendment\\b.*\\bRegulation\\b|^Work Health and Safety Regulation 2025"
+    },
+    "handCheck": "The NSW legislation pages refuse automated requests (HTTP 403, a bot check), so the version date is read by hand. Amending regulations are watched daily through the site's feed.",
+    "knownBlocked": "The NSW legislation site's feed could not be read, and its pages refuse automated requests (HTTP 403). Check this one by hand."
   },
   {
     "id": "vic-ohs-act",

@@ -1,0 +1,4 @@
+{
+  "note": "Goal 10. Add one notice for each change to the law or the library released to customers, in the same pull request as the change (handover/CHANGE-PROCESS.md, step 6). When the server starts with a notice it has not run, it marks every saved SWMS that would now print differently and emails each business's administrator one list with the reason. id: short and unique, never reused. released: the release date. reason: one or two plain sentences a subcontractor understands, naming the law or code and the date it changed. states: optional, the state ids the change applies to (qld, nsw, vic, sa, wa, tas, act, nt).",
+  "notices": []
+}

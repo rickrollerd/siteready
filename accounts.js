@@ -18,6 +18,7 @@ const signRead = require('./sign-read');
 const aiScope = require('./ai-scope');
 const revisions = require('./revisions');
 const { downloadGaps, gateMessage } = require('./download-gate');
+const libraryNotices = require('./library-notices');
 
 const REVIEW_MONTHS = 3;
 const REMIND_DAYS_BEFORE = 7;
@@ -292,7 +293,9 @@ router.get('/swms/export.zip', requireUser, route(async (req, res) => {
 router.get('/swms', requireUser, route(async (req, res) => {
   const rows = await db.query('SELECT * FROM swms WHERE company_id = $1 AND archived = FALSE ORDER BY updated_at DESC', [req.company.id]);
   const all = await db.query('SELECT swms_id, worker_name, signed_at, revision FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE company_id = $1) ORDER BY signed_at', [req.company.id]);
-  res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, ...signonCounts(splitSignons(all.filter((item) => item.swms_id === row.id), row)) })) });
+  // SWMS a released change to the law or library would print differently (goal 10).
+  const flags = await libraryNotices.flagsFor(req.company.id);
+  res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, ...signonCounts(splitSignons(all.filter((item) => item.swms_id === row.id), row)), changeReview: flags[row.id] || [] })) });
 }));
 
 // Which revision a sign-on is for. One from before sign-ons kept their revision counts for the
@@ -443,7 +446,8 @@ router.get('/swms/:id', requireUser, route(async (req, res) => {
   const kept = await revisions.revisionOf(row, req.company, row.revision || 1, withCompany);
   const draft = kept ? kept.draft : withRevision(prepareDraft(withCompany(row.input, req.company)), row);
   const history = (await revisions.listRevisions(row.id)).map((item) => revisionView(item, row)).reverse();
-  res.json({ swms: swmsView(row, { ref: kept ? kept.ref : '' }), input: row.input, draft, signons, earlierSignons, revisions: history, update: updatedWording(row, req.company, kept) });
+  const reasons = (await libraryNotices.flagsFor(req.company.id))[row.id] || [];
+  res.json({ swms: swmsView(row, { ref: kept ? kept.ref : '', changeReview: reasons }), input: row.input, draft, signons, earlierSignons, revisions: history, update: { ...updatedWording(row, req.company, kept), reasons } });
 }));
 
 // Every revision kept, newest first, each with what changed from the one before.
@@ -730,6 +734,7 @@ async function removeExpired(now = new Date()) {
   await db.query('DELETE FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM sign_translations WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms_revisions WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
+  await db.query('DELETE FROM swms_review_flags WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms WHERE archived = TRUE AND updated_at < $1', [cutoff]);
   // A read session is only needed while the worker is signing on.
   await db.query('DELETE FROM sign_reads WHERE started_at < $1', [new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)]);
@@ -738,4 +743,4 @@ async function removeExpired(now = new Date()) {
   await removeOldEdits(now);
 }
 
-module.exports = { validAbn, router, sendReviewReminders, removeExpired, withCompany, saveForDownload, documentParts, sendDocument, REVIEW_MONTHS };
+module.exports = { validAbn, router, sendReviewReminders, removeExpired, withCompany, updatedWording, saveForDownload, documentParts, sendDocument, REVIEW_MONTHS };

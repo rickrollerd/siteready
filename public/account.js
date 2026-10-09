@@ -424,6 +424,7 @@
           <div>
             <strong>${esc(item.title)}</strong>
             <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Review due</span>' : `Review by ${shortDate(item.reviewDueAt)}`}</span>
+            ${(item.changeReview || []).length ? `<span class="meta"><span class="due">Review: the law or SiteReady changed</span> ${esc(item.changeReview[item.changeReview.length - 1])}</span>` : ''}
           </div>
           <button type="button" class="small" data-swms="${esc(item.id)}">Open</button>
         </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (Word, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>';
@@ -470,6 +471,7 @@
         <p class="meta">Revision ${esc(swms.revision)}, saved ${shortDate(swms.revisedAt)}${swms.ref ? ` · SiteReady reference ${esc(swms.ref)}` : ''}</p>
         <p class="meta">Last reviewed ${shortDate(swms.lastReviewedAt)} by ${esc(swms.reviewedBy)} · ${swms.reviewDue ? '<span class="due">Review due now</span>' : `next review by ${shortDate(swms.reviewDueAt)}`}</p>
         ${update.available ? `<div class="note" id="saved-update"><p><strong>Updated wording is available.</strong> SiteReady's library or the law has changed since this revision was saved. This revision prints as it was saved. To use the updated wording, check the changes and make a new revision.</p>
+          ${(update.reasons || []).map((reason) => `<p><strong>Why:</strong> ${esc(reason)}</p>`).join('')}
           <details><summary>What would change (${update.changes.length})</summary><ul>${update.changes.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>
           <div class="actions"><button type="button" class="secondary" id="saved-update-go">Make a new revision with the updated wording</button></div>
           <p class="meta">Uses the name and tick under Mark as reviewed below.</p></div>` : ''}

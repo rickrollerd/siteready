@@ -30,10 +30,16 @@ function stable(value) {
 
 const tickedPpe = (draft) => (draft.ppe || []).flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.label));
 
-// What the SWMS says, for comparing two prints. The header (dates, revision, company details)
-// is left out: it is not library wording.
+// The law a SWMS is written to, as printed in its header: the regulation, its version and the section.
+const lawOf = (draft) => ({ instrument: draft.instrument || '', versionLabel: draft.versionLabel || '', sectionRef: draft.sectionRef || '' });
+const lawText = (law) => [law.instrument, law.versionLabel, law.sectionRef].filter(Boolean).join(', ');
+
+// What the SWMS says, for comparing two prints. The rest of the header (dates, revision, company
+// details) is left out: it is not library wording. The law and its version are in: a new version
+// of the regulation is a change to the SWMS.
 function printedContent(draft) {
   return {
+    law: lawOf(draft),
     highRisk: draft.highRisk || [],
     jobSteps: (draft.jobSteps || []).map((step) => ({ step: step.step, hazards: step.hazards || [], controls: step.controls || [], responsible: step.responsible || '' })),
     ppe: tickedPpe(draft),
@@ -73,13 +79,36 @@ function changesBetween(before, after) {
   diff(before.highRisk, after.highRisk, 'highRisk');
   diff(tickedPpe(before), tickedPpe(after), 'ppe');
   diff((before.qualifications || []), (after.qualifications || []), 'qualification');
+  // The rest of what is printed: the law and its version, the laws and codes listed, the general
+  // controls, plant, substances, emergency arrangements, references and the review wording.
+  const oldLaw = lawText(lawOf(before));
+  const newLaw = lawText(lawOf(after));
+  if (oldLaw !== newLaw) out.push({ kind: 'law', change: 'changed', text: newLaw, from: oldLaw });
+  const sources = (draft) => [...((draft.sources && draft.sources.legislation) || []), ...((draft.sources && draft.sources.codes) || [])];
+  diff(sources(before), sources(after), 'source');
+  diff((before.controls || []).map((item) => item.text || ''), (after.controls || []).map((item) => item.text || ''), 'general');
+  const plant = (draft) => (draft.plant || []).map((item) => [item.item, item.inspection, item.licence ? `licence: ${item.licence}` : ''].filter(Boolean).join('. '));
+  diff(plant(before), plant(after), 'plant');
+  const substances = (draft) => ((draft.substances && draft.substances.items) || []).map((item) => item.product || '');
+  diff(substances(before), substances(after), 'substance');
+  const emergency = (draft) => (draft.emergency || []).map((item) => [item.type, item.equipment, item.detail].filter(Boolean).join(': '));
+  diff(emergency(before), emergency(after), 'emergency');
+  const references = (draft) => (draft.references || []).map((item) => (typeof item === 'string' ? item : stable(item)));
+  diff(references(before), references(after), 'reference');
+  if ((before.review || '') !== (after.review || '')) out.push({ kind: 'review', change: 'changed', text: after.review || '', from: before.review || '' });
+  // Anything else in the print that differs, so a change is never shown as nothing.
+  if (!out.length && contentHash(before) !== contentHash(after)) out.push({ kind: 'other', change: 'changed', text: 'Other printed wording' });
   return out;
 }
 
-const KIND_WORDS = { step: 'Job step', hazard: 'Hazard', control: 'Control', who: 'Who', highRisk: 'High risk construction work', ppe: 'PPE', qualification: 'Licence or training' };
+const KIND_WORDS = {
+  step: 'Job step', hazard: 'Hazard', control: 'Control', who: 'Who', highRisk: 'High risk construction work', ppe: 'PPE', qualification: 'Licence or training',
+  law: 'Law', source: 'Law or code listed', general: 'General control', plant: 'Plant', substance: 'Hazardous substance', emergency: 'Emergency arrangement', reference: 'Reference', review: 'Review wording', other: 'Other printed wording',
+};
 // One line for each change, for the page.
 function changeText(item) {
   const where = item.step && item.kind !== 'step' ? `${item.step}: ` : '';
+  if (item.kind === 'other') return 'Other printed wording changed';
   if (item.change === 'changed') return `${where}${KIND_WORDS[item.kind]} changed from "${item.from}" to "${item.text}"`;
   return `${where}${KIND_WORDS[item.kind]} ${item.change}: ${item.text}`;
 }

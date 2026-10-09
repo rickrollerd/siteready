@@ -334,6 +334,30 @@ const SCHEMA = [
     item TEXT NOT NULL DEFAULT '',
     chosen TEXT NOT NULL DEFAULT ''
   )`,
+  // Goal 10: each change to the library or the law released to customers (library-notices.json),
+  // run once: when, how many saved SWMS it changed, and how many emails went out.
+  `CREATE TABLE IF NOT EXISTS library_notices (
+    id TEXT PRIMARY KEY,
+    reason TEXT NOT NULL,
+    released TEXT NOT NULL DEFAULT '',
+    library_version TEXT NOT NULL DEFAULT '',
+    started_at TIMESTAMPTZ NOT NULL,
+    finished_at TIMESTAMPTZ,
+    swms_count INTEGER,
+    companies INTEGER,
+    emails INTEGER
+  )`,
+  // Each saved SWMS a released change would print differently, with the reason. It shows in My
+  // SWMS until the SWMS is reviewed or saved as a new revision.
+  `CREATE TABLE IF NOT EXISTS swms_review_flags (
+    swms_id TEXT NOT NULL,
+    notice_id TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    changes INTEGER NOT NULL DEFAULT 0,
+    flagged_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (swms_id, notice_id)
+  )`,
 ];
 
 async function migrate() {

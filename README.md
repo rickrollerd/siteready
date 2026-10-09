@@ -131,10 +131,25 @@ The references in `legislation.js` must be checked against each state's official
 
 `.github/workflows/legislation-watch.yml` runs every morning at 06:17 Brisbane time. It reads the version shown on the official legislation page for each state and territory's WHS (or Victorian OHS) Act and Regulation, and the Queensland Electrical Safety Act and Regulation. The pages are listed in `legislation-watch/sources.json`.
 
-- When a version changes, it opens a GitHub issue and sends an email. The app then needs updating and the update signed off.
+- When a version changes, it opens a GitHub issue and sends an email. The app then needs updating and the update signed off, following the 30-day change process (handover/CHANGE-PROCESS.md in the data folder).
 - When a page cannot be read, it reports that once, when it starts, so a change is not missed silently.
-- The NSW site refuses automated requests from GitHub, so the NSW pages are reported for a manual check.
 - The versions last seen are kept in `legislation-watch/state.json`.
+
+How each page is read (tested 9 October 2026; each list file says which way for each page):
+
+| Pages | How | Gaps |
+|---|---|---|
+| NSW WHS Act and Regulation | The NSW legislation site's feed of new and changed laws (`feed?id=thisweek` and `feed?id=newinforce`): any entry with the law's id or an amending law's title is reported | The pages themselves refuse automated requests (a bot check), so the version date is checked by hand monthly |
+| Other Acts and Regulations | The version date on the official page | |
+| Code lists: SWA, NSW, WA, SA | The page | |
+| Code lists: Victoria | WorkSafe Victoria's sitemap, with the date each compliance code page last changed | |
+| Code lists: Qld, Tas, ACT, NT | A real browser (Playwright), as these sites have a bot check | The bot check lets the browser through some days only. A list counts as watched while it was read in the last week; after that a hand check is due. Queensland's approved codes are also watched through the Codes of Practice Notice |
+| Safety alerts: NSW, WA, SA | The page | |
+| Safety alerts: Victoria | WorkSafe Victoria's sitemap | |
+
+A page not read automatically, or marked `handCheck`, is listed in the report under "Hand checks due" once a month until someone checks it by hand and records the check in `legislation-watch/hand-checks.json` (page, date, who, what was found). The run log prints each such page with the date of its last hand check, so nothing reads as watched when it is not.
+
+When a change is released, add a notice to `library-notices.json` in the same pull request (see "Telling customers which SWMS to review" below).
 
 The check runs from the default branch (`main`). Email needs three repository secrets (Settings, Secrets and variables, Actions):
 
@@ -145,6 +160,14 @@ The check runs from the default branch (`main`). Email needs three repository se
 | `SMTP_PASSWORD` | A Gmail app password for that address (needs 2-Step Verification) |
 
 Without them, the issue is still opened and GitHub notifies the repository owner.
+
+## Telling customers which SWMS to review
+
+Each saved revision is kept as it printed. After a change to the law or the library is released, `library-notices.js` runs each new notice in `library-notices.json` once, when the server starts: it finds every saved, active SWMS whose current revision would now print differently (the same comparison as "Updated wording is available", which includes the regulation's printed version and the list of laws and codes), marks it in My SWMS with the reason ("Review: the law or SiteReady changed"), and emails each business's administrator one list. The mark clears when the SWMS is saved as a new revision or marked reviewed.
+
+On staging, `POST /api/test/library-notice` (test hooks on) makes the named test business's SWMS read as if saved under an older regulation version and runs a notice for them, so the email can be read in the test inbox.
+
+To find the control lines a changed section affects: `node scripts/lines-citing.js <state> "<law or code>" <section>`.
 
 ## Legislation cross-check
 

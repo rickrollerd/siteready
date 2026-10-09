@@ -15,6 +15,7 @@ const { draftToPdf } = require('./pdf-draft');
 const db = require('./db');
 const auth = require('./auth');
 const accounts = require('./accounts');
+const libraryNotices = require('./library-notices');
 const billing = require('./billing');
 const admin = require('./admin');
 const { record, recordError } = require('./events');
@@ -495,7 +496,11 @@ function start() {
     db.migrate().catch((error) => console.error('Database setup failed:', error.message));
     // One process sends review reminders, every 6 hours.
     if (!cluster.worker || cluster.worker.id === 1) {
-      const remind = () => Promise.all([accounts.sendReviewReminders(), accounts.removeExpired()]).catch((error) => console.error('Review reminders failed:', error.message));
+      const remind = () => {
+        Promise.all([accounts.sendReviewReminders(), accounts.removeExpired()]).catch((error) => console.error('Review reminders failed:', error.message));
+        // A change to the law or the library released with this version is run once (library-notices.json).
+        libraryNotices.runLibraryNotices().catch((error) => console.error('Library notices failed:', error.message));
+      };
       setTimeout(remind, 60 * 1000);
       setInterval(remind, 6 * 60 * 60 * 1000).unref();
     }

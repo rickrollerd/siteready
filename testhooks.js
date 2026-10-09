@@ -67,6 +67,33 @@ function install(app, { sendReviewReminders, removeExpired }) {
       return res.json({ ok: true, swmsReminded: sent, now: now.toISOString() });
     } catch (error) { return next(error); }
   });
+  // Goal 10: a change to the law, as a release would bring, for the customer notice test. The
+  // saved SWMS named are made to read as if saved under an older version of the regulation, then a
+  // notice is run with the reason given. Only SWMS of businesses whose users are all test addresses.
+  router.post('/library-notice', async (req, res, next) => {
+    try {
+      const body = req.body || {};
+      const reason = String(body.reason || '').trim().slice(0, 500);
+      const ids = Array.isArray(body.swmsIds) ? body.swmsIds.map(String).slice(0, 50) : [];
+      if (!reason || !ids.length) return res.status(400).json({ kind: 'error', message: 'Give a reason and the swmsIds to age.' });
+      const companies = new Set();
+      for (const id of ids) {
+        const row = await db.one('SELECT id, company_id, revision FROM swms WHERE id = $1 AND archived = FALSE', [id]);
+        const users = row ? await db.query('SELECT email FROM users WHERE company_id = $1', [row.company_id]) : [];
+        if (!row || !users.length || !users.every((user) => isTestAddress(user.email))) return res.status(400).json({ kind: 'error', message: `SWMS ${id} is not a test business's.` });
+        const kept = await db.one('SELECT draft FROM swms_revisions WHERE swms_id = $1 AND revision = $2', [row.id, row.revision || 1]);
+        if (!kept) return res.status(400).json({ kind: 'error', message: `SWMS ${id} has no saved revision. Open it once first.` });
+        const draft = typeof kept.draft === 'string' ? JSON.parse(kept.draft) : kept.draft;
+        draft.versionLabel = `${draft.versionLabel || ''} (older version, test)`.trim();
+        await db.query('UPDATE swms_revisions SET draft = $1 WHERE swms_id = $2 AND revision = $3', [JSON.stringify(draft), row.id, row.revision || 1]);
+        companies.add(row.company_id);
+      }
+      const { runLibraryNotices } = require('./library-notices');
+      // Only the test businesses named are searched and emailed.
+      const notice = { id: `test-${Date.now()}`, reason, released: new Date().toISOString().slice(0, 10), companies: [...companies] };
+      return res.json({ ok: true, results: await runLibraryNotices({ notices: [notice] }) });
+    } catch (error) { return next(error); }
+  });
   app.use('/api/test', router);
   console.log(`Staging test hooks are on. Mail to @${DOMAIN()} goes to the test inbox.`);
   return true;
