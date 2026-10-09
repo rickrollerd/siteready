@@ -14,9 +14,11 @@ const { draftToDocx } = require('../docx-draft');
 const { HIERARCHY, findState } = require('../legislation');
 const scenarios = require('../scenarios/scenarios.json');
 
-// Filled in as a user would before sending the SWMS to the builder.
+// Filled in as a user would before sending the SWMS to the builder. Goal 2: the reviewer, first aider
+// and muster point (and the scaffold supervisor, for a scaffold) are answered before any download.
 const SITE = {
   workplace: '12 Smith Street, Paddington QLD 4064', principalContractor: 'ABC Builders Pty Ltd', complianceResponsible: 'Sam Lee, supervisor',
+  reviewer: 'Sam Lee, supervisor', firstAider: 'Jo Smith', musterPoint: 'Front gate on Smith Street', scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding',
   date: '5 October 2026', reviewDate: '5 November 2026',
   site: { liveServices: 'Overhead power on the street, 6 m from the work.', publicInterface: 'The footpath stays open behind a hoarding.', otherTrades: 'No other trades work under ours.', ground: 'Level, firm ground.', access: 'Side gate on the east boundary; deliveries by the driveway.' },
 };

@@ -64,6 +64,16 @@ function whoEdits(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
+// The user's answers for the blanks (____) in control lines, by line (goal 2): a few answers a line.
+function fills(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const entries = Object.entries(value).slice(0, 60)
+    .filter(([, answers]) => Array.isArray(answers))
+    .map(([line, answers]) => [textField(line, 1500), answers.slice(0, 12).map((item) => textField(item, 300))])
+    .filter(([line, answers]) => line && answers.some(Boolean));
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 function draftBody(body) {
   const facts = body.facts && typeof body.facts === 'object' ? body.facts : {};
   const site = body.site && typeof body.site === 'object' ? body.site : {};
@@ -98,10 +108,15 @@ function draftBody(body) {
     kinds: Array.isArray(body.kinds) ? body.kinds.filter((id) => typeof id === 'string').slice(0, 80).map((id) => id.slice(0, 40)) : undefined,
     // The job steps in the order the user put them, by name.
     leaveOut: Array.isArray(body.leaveOut) ? body.leaveOut.filter((name) => typeof name === 'string').slice(0, 50).map((name) => textField(name, 300)) : undefined,
+    // The rows of a scope reading that the reader matched to no job steps (owner decision D184).
+    unmatched: Array.isArray(body.unmatched) ? body.unmatched.filter((row) => typeof row === 'string').slice(0, 60).map((row) => textField(row, 400)).filter(Boolean) : undefined,
+    // The parts with no job steps the user ticked as dealt with, above the draft (D184).
+    notCoveredConfirmed: Array.isArray(body.notCoveredConfirmed) ? body.notCoveredConfirmed.filter((part) => typeof part === 'string').slice(0, 60).map((part) => textField(part, 5000)) : undefined,
     stepOrder: Array.isArray(body.stepOrder) ? body.stepOrder.filter((name) => typeof name === 'string').slice(0, 150).map((name) => textField(name, 300)) : undefined,
     controlEdits: controlEdits(body.controlEdits),
     hazardEdits: hazardEdits(body.hazardEdits),
     whoEdits: whoEdits(body.whoEdits),
+    fills: fills(body.fills),
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {

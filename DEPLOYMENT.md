@@ -24,6 +24,8 @@
    - `APP_URL`: the public address, for example `https://siteready.co.nz` (used in sign-in links, QR codes and Face ID)
    - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`: the mail account that sends sign-in links and review reminders (Gmail: `smtp.gmail.com`, port `465`, an app password)
    - `NODE_ENV=production`
+   - `INDUSTRY_KEY`: a long random value (at least 32 characters) for the keyed business code in the industry data. Without it, production keeps no industry records and the log says so.
+   - `CONTROL_LEARNING_KEY`: another long random value (at least 32 characters), set before `CONTROL_LEARNING=on`. Without it, control learning stays off in production and the log says so.
 3. Railway sets `PORT`. The other optional settings are in `.env.example`.
 
 Without `DATABASE_URL` the app still drafts and previews, but signing in, downloads and saving are switched off.

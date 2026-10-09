@@ -96,7 +96,8 @@ function question(id, text, correct, decoys, section, random) {
 const DECOYS_KEPT = 6;
 // A control is an answer only when it is short and carries no citation.
 const MAX_CONTROL_LENGTH = 120;
-const poolItem = (kind, text, correct, decoys) => ({ kind, question: text, correct, decoys: decoys.slice(0, DECOYS_KEPT) });
+// step: the job step a step or control question tests, kept with a failed answer (control-learning.js).
+const poolItem = (kind, text, correct, decoys, step = '') => ({ kind, question: text, correct, decoys: decoys.slice(0, DECOYS_KEPT), step });
 
 const EVERYDAY_PPE = /\b(sleeves?|pants|trousers|clothing|shirts?|hi-?vis|glasses|goggles|gloves?|boots?|hard hats?|hats?|helmets?|sunscreen|sun|brim|neck flaps?|chin straps?|ear|hearing|dust masks?|knee)\b/i;
 
@@ -138,7 +139,7 @@ function stepPool(draft, steps, random) {
   let decoys = outside.filter((name) => telling(name) && !keyWords(name).some((word) => used.has(word)));
   if (decoys.length < 3) decoys = outside;
   if (decoys.length < 3) return [];
-  return steps.map((name) => poolItem('step', 'Which of these is a job step in this SWMS?', name, shuffled(decoys, random)));
+  return steps.map((name) => poolItem('step', 'Which of these is a job step in this SWMS?', name, shuffled(decoys, random), name));
 }
 
 // Up to two short controls from each job step, with controls from other library steps as decoys.
@@ -157,7 +158,7 @@ function controlPool(draft, random) {
   const decoys = [...new Set(libraryControls.filter((item) => !names.has(item.step) && telling(item.text) && !keyWords(item.text).some((word) => used.has(word))).map((item) => item.text))];
   if (decoys.length < 3) return [];
   return own.flatMap((step, index) => (ROUTINE_STEPS.includes(step.step) ? [] : shuffled([...new Set(step.controls.filter(shortControl))], random).slice(0, 2)
-    .map((control) => poolItem('control', `Which of these is a control in step ${index + 1} (${step.step})?`, control, shuffled(decoys, random)))));
+    .map((control) => poolItem('control', `Which of these is a control in step ${index + 1} (${step.step})?`, control, shuffled(decoys, random), step.step))));
 }
 
 // Every question this SWMS can ask, made the same way every time from the SWMS alone, so it
@@ -180,7 +181,7 @@ function checkQuestions(swmsId, readId, draft) {
   const pool = questionPool(swmsId, draft);
   const random = seeded(`questions:${readId}`);
   const take = (items) => items.splice(Math.floor(random() * items.length), 1)[0];
-  const ask = (id, item) => question(id, item.question, item.correct, shuffled(item.decoys, random), item.kind === 'ppe' ? 'ppe' : 'steps', random);
+  const ask = (id, item) => ({ ...question(id, item.question, item.correct, shuffled(item.decoys, random), item.kind === 'ppe' ? 'ppe' : 'steps', random), kind: item.kind, step: item.step });
   const steps = [...pool.steps];
   const out = [];
   if (pool.ppe.length) out.push(ask('ppe', take([...pool.ppe])));

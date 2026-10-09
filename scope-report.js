@@ -26,6 +26,8 @@ const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]/g;
 const safe = (text) => String(text || '').toWellFormed().replace(CONTROL, ' ');
 const clean = (text) => String(text || '').replace(/\s+/g, ' ').trim();
 
+const { hrcwSummary, HRCW_NOTE } = require('./public/scope-hrcw');
+
 const NOTE = 'This report is the AI\'s reading of the scope of works. Check every item against the scope before you rely on it. Raise the conflicts and unknowns with the builder before you price or start the work.';
 const CONFLICT_ADVICE = 'Raise each of these with the builder before you price or start the work. Ask which clause applies, and get the answer in writing.';
 
@@ -61,8 +63,10 @@ function reportSections(reading) {
     }
   }
 
+  // The high risk construction work each package's SWMS would list (ai-scope.js packageHighRisk).
+  const flags = new Map((reading && Array.isArray(reading.highRisk) ? reading.highRisk : []).map((item) => [item.package, item]));
   return {
-    work: [...work].map(([name, rows]) => ({ package: name, rows, unmatched: ((steps.get(name) || {}).unmatched || []).map(clean).filter(Boolean) })),
+    work: [...work].map(([name, rows]) => ({ package: name, rows, unmatched: ((steps.get(name) || {}).unmatched || []).map(clean).filter(Boolean), highRisk: flags.has(name) ? hrcwSummary(flags.get(name)) : null })),
     byOthers,
     conflicts: (reading && Array.isArray(reading.conflicts) ? reading.conflicts : []).filter(Boolean).map((item) => ({
       clauseA: clean(item.clauseA), quoteA: clean(item.quoteA), clauseB: clean(item.clauseB), quoteB: clean(item.quoteB), why: clean(item.why), confidence: clean(item.confidence),
@@ -125,12 +129,17 @@ const none = (text) => para(text, { color: MUTED, italics: true });
 
 const WIDTHS = [3300, 1900, CONTENT_WIDTH - 5200];
 
-function workBlocks(sections) {
+function workBlocks(sections, options = {}) {
   const out = [heading('1. The work this subcontractor does')];
   if (!sections.work.length) return [...out, none('The AI found no site or off-site work for this subcontractor.')];
   out.push(para('Grouped by work package. Each activity has its clause and the words the scope uses.', { color: MUTED }));
+  if (sections.work.some((pack) => pack.highRisk)) out.push(para(`${HRCW_NOTE}${options.state && options.state.instrument ? ` The categories are those of the ${options.state.instrument}.` : ''}`, { color: MUTED }));
   for (const pack of sections.work) {
     out.push(subheading(`${pack.package} (${pack.rows.length} ${pack.rows.length === 1 ? 'activity' : 'activities'})`));
+    if (pack.highRisk) {
+      out.push(para(`${pack.highRisk.heading}.`, { bold: true, size: 20, after: 40 }));
+      for (const line of pack.highRisk.lines) out.push(para(`${/[.]$/.test(line) ? line : `${line}.`}`, { size: 20, after: 40 }));
+    }
     out.push(table(['Activity', 'Clause', 'The scope says'], WIDTHS, pack.rows.map((item) => [
       [item.activity, ...(item.type === 'Off-site work' ? [{ text: 'Off-site work', color: MUTED }] : []), ...(item.where ? [{ text: `Where: ${item.where}`, color: MUTED }] : [])],
       item.clause || 'Not given',
@@ -189,6 +198,18 @@ function dutyBlocks(sections) {
   return out;
 }
 
+// How many packages are high risk construction work, are likely to be, may be, or have none found.
+function highRiskCount(work) {
+  const of = (status) => work.filter((pack) => pack.highRisk && pack.highRisk.status === status).length;
+  const parts = [
+    [of('yes'), 'high risk: a SWMS is required by law'],
+    [of('likely'), 'likely high risk'],
+    [of('depends'), 'may be high risk'],
+    [of('none'), 'none found'],
+  ].filter(([n]) => n).map(([n, text]) => `${n} ${text}`);
+  return `${parts.join('; ')} (of ${work.length} work ${work.length === 1 ? 'package' : 'packages'})`;
+}
+
 function summaryRows(sections, options) {
   const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
   const activities = sections.work.reduce((sum, pack) => sum + pack.rows.length, 0);
@@ -196,6 +217,7 @@ function summaryRows(sections, options) {
     ['Prepared for', options.company && options.company.name ? options.company.name : 'Your business'],
     ['Date', options.date || ''],
     ['Your work', `${count(activities, 'activity', 'activities')} in ${count(sections.work.length, 'work package', 'work packages')}`],
+    ...(sections.work.some((pack) => pack.highRisk) ? [['High risk construction work', highRiskCount(sections.work)]] : []),
     ['Work by others', count(sections.byOthers.length, 'item', 'items')],
     ['Conflicts', count(sections.conflicts.length, 'conflict', 'conflicts')],
     ['Unknowns', `${count(sections.unknowns.length, 'activity', 'activities')} with something not yet known`],
@@ -212,7 +234,7 @@ function childrenFor(reading, options = {}) {
     para(NOTE, { color: MUTED, size: 20, after: 200 }),
     ...(checks.passed === false ? [para(`Some of the AI's quotes could not be matched word for word to the document (${unmatched}). Check those items against the scope.`, { bold: true, size: 20, after: 200 })] : []),
     table(null, [2400, CONTENT_WIDTH - 2400], summaryRows(sections, options).map(([label, value]) => [{ text: label, bold: true }, value])),
-    ...workBlocks(sections),
+    ...workBlocks(sections, options),
     ...byOthersBlocks(sections),
     ...conflictBlocks(sections),
     ...unknownBlocks(sections),
@@ -224,7 +246,8 @@ function today() {
   return new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Australia/Brisbane' }).format(new Date());
 }
 
-// options: company (name on the report), checks (the reading's check against the brief), date.
+// options: company (name on the report), checks (the reading's check against the brief), date,
+// state (whose regulation names the high risk construction work).
 async function reportToDocx(reading, options = {}) {
   const settings = { ...options, date: options.date || today() };
   const document = new Document({

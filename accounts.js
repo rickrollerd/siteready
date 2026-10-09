@@ -5,7 +5,7 @@ const QRCode = require('qrcode');
 const db = require('./db');
 const JSZip = require('jszip');
 const { recordIndustry } = require('./industry');
-const { recordControlEdits, removeOld: removeOldEdits } = require('./control-learning');
+const { recordControlEdits, recordFailedQuestions, enabled: learningEnabled, removeOld: removeOldEdits } = require('./control-learning');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
@@ -17,6 +17,7 @@ const { record } = require('./events');
 const signRead = require('./sign-read');
 const aiScope = require('./ai-scope');
 const revisions = require('./revisions');
+const { downloadGaps, gateMessage } = require('./download-gate');
 
 const REVIEW_MONTHS = 3;
 const REMIND_DAYS_BEFORE = 7;
@@ -293,6 +294,18 @@ router.get('/swms', requireUser, route(async (req, res) => {
   res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, signons: signed[row.id] || 0 })) });
 }));
 
+// What the account holds of its people and sites when a SWMS is saved, so the control learning
+// store can take their names out of what the user typed. Read only when learning is on.
+async function learningAccount(req, swmsId, reviewedBy) {
+  if (!learningEnabled()) return {};
+  return {
+    users: await db.query('SELECT name, email FROM users WHERE company_id = $1', [req.company.id]),
+    sites: await db.query('SELECT name, details FROM sites WHERE company_id = $1', [req.company.id]),
+    workers: await db.query('SELECT worker_name, worker_company, explained_by FROM signons WHERE swms_id = $1', [swmsId]),
+    reviewedBy,
+  };
+}
+
 // A new saved SWMS at revision 1, kept as it prints.
 async function createSwms(req, { input, draft, name, siteId = null, title, reason = '' }) {
   const id = auth.newId();
@@ -307,7 +320,7 @@ async function createSwms(req, { input, draft, name, siteId = null, title, reaso
   record('swms_saved', req.company.id);
   await recordIndustry(draft, input, req.company).catch(() => {});
   // The changes in this revision, recorded once for it.
-  await recordControlEdits(draft, input, { company: req.company, swmsId: row.id, revision: 1, now }).catch(() => {});
+  await learningAccount(req, row.id, name).then((account) => recordControlEdits(draft, input, { company: req.company, swmsId: row.id, revision: 1, now, account })).catch(() => {});
   return { row, kept };
 }
 
@@ -318,8 +331,16 @@ async function reviseSwms(req, row, { input, draft, name, siteId = row.site_id, 
     [titleFor({ title }, input), JSON.stringify(input), siteId, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   const next = await db.one('SELECT * FROM swms WHERE id = $1', [row.id]);
   const kept = await revisions.keepRevision({ row: next, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
-  await recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now }).catch(() => {});
+  await learningAccount(req, next.id, name).then((account) => recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account })).catch(() => {});
   return { row: next, kept };
+}
+
+// Goal 2: a SWMS is not saved or printed until its site questions are answered and no blank is
+// left in it (download-gate.js). The refusal carries the list, for the page to show.
+// options.cover false leaves out the D184 tick: a saved SWMS was ticked when it was saved.
+function needsAnswers(input, draft, after = '', options = {}) {
+  const gaps = downloadGaps(input, draft, options);
+  if (gaps.length) throw Object.assign(fail(400, `${gateMessage(gaps)}${after}`), { gate: gaps });
 }
 
 // Saving, like downloading, needs the business name and ABN, which are printed on every SWMS.
@@ -334,6 +355,8 @@ router.post('/swms', requireAccess, route(async (req, res) => {
   const input = cleanInput(body.input);
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, draft.kind === 'stand-down' ? 'This SWMS is stood down until the missing facts are added, so it cannot be saved yet.' : (draft.message || 'This SWMS could not be prepared.'));
+  // The site answers (goal 2) and the tick for parts with no job steps (D184), named together.
+  needsAnswers(withCompany(input, req.company), draft);
   const site = await ownSite(req, body.siteId);
   const { row } = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: titleFor(body, input), reason: textField(body.reason, 300) });
   res.status(201).json({ swms: swmsView(row) });
@@ -350,6 +373,8 @@ async function saveForDownload(req, body, options = {}) {
   const input = cleanInput(body);
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') return null;
+  // The routes that call this have checked the D184 tick already.
+  needsAnswers(withCompany(input, req.company), draft, '', { cover: false });
   const reason = textField(body.reason, 300);
   const existing = typeof body.swmsId === 'string' && body.swmsId
     ? await db.one('SELECT * FROM swms WHERE id = $1 AND company_id = $2 AND archived = FALSE', [body.swmsId, req.company.id]) : null;
@@ -422,6 +447,8 @@ router.put('/swms/:id', requireAccess, route(async (req, res) => {
   const input = body.input ? cleanInput(body.input) : row.input;
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so the changes cannot be saved yet.');
+  // Changes from the form need the tick for parts with no job steps (owner decision D184).
+  needsAnswers(withCompany(input, req.company), draft, '', { cover: Boolean(body.input) });
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
   const { row: next } = await reviseSwms(req, row, { input, draft, name, siteId: site ? site.id : null, title: body.title || row.title, reason: textField(body.reason, 300) });
   res.json({ swms: swmsView(next) });
@@ -444,6 +471,7 @@ router.post('/swms/:id/copy', requireAccess, route(async (req, res) => {
   const input = typeof row.input === 'string' ? JSON.parse(row.input) : row.input;
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so it cannot be copied yet.');
+  needsAnswers(withCompany(input, req.company), draft, ' Open it, answer them and save it, then copy it.', { cover: false });
   const { row: copy } = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: textField(body.title, 200) || `Copy of ${row.title}`.slice(0, 200), reason: `Copied from ${row.title}`.slice(0, 300) });
   res.status(201).json({ swms: swmsView(copy) });
 }));
@@ -479,7 +507,7 @@ async function documentParts(company, row, revision = row.revision || 1) {
       signedDate: longDate(item.signed_at), note: signRead.signOnNote(item),
     }));
   const confirmation = current || !kept.confirmation ? { name: row.reviewed_by, date: longDate(row.last_reviewed_at) } : kept.confirmation;
-  return { draft: kept.draft, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company };
+  return { draft: kept.draft, input: kept.input, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company };
 }
 
 // Sends a saved SWMS's revision as Word or PDF. The headers say which saved SWMS and revision
@@ -487,6 +515,8 @@ async function documentParts(company, row, revision = row.revision || 1) {
 async function sendDocument(req, res, row, format, revision) {
   const parts = await documentParts(req.company, row, revision);
   if (!parts) throw fail(404, 'That revision was not found.');
+  // A SWMS saved before the gate, with site questions unanswered, is not printed until it is revised.
+  needsAnswers(parts.input || {}, parts.draft, ' Open this SWMS, answer them and save it as a new revision, then download it.', { cover: false });
   res.setHeader('X-SiteReady-Swms', row.id);
   res.setHeader('X-SiteReady-Revision', String(parts.revision));
   res.setHeader('X-SiteReady-Title', encodeURIComponent(row.title));
@@ -589,6 +619,9 @@ router.post('/sign/:token', route(async (req, res) => {
     if (questions.length) {
       const marked = await signRead.markAnswers(read, questions, body.answers);
       if (marked.wrong.length) {
+        // Each wrong answer, without the worker, business, site or SWMS (control learning only).
+        const language = signRead.languageFor(body.language) ? body.language : 'en';
+        await recordFailedQuestions(marked.wrong, body.answers, { draft, input: row.input, company, language }).catch(() => {});
         res.status(400).json({ kind: 'error', message: signRead.wrongMessage(questions, marked.wrong), wrong: marked.wrong.map((item) => item.id), sections: [...new Set(marked.wrong.map((item) => item.section))] });
         return;
       }

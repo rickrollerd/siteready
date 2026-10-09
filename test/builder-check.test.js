@@ -105,7 +105,8 @@ test('H3: falls controlled by harness alone', () => {
 
 test('H4: not site specific', () => {
   assert.deepEqual(failed(checkSwms(variant({ site: { address: '', conditions: GOOD.site.conditions } }))), ['H4']);
-  assert.deepEqual(failed(checkSwms(variant({ site: { address: 'To be completed', conditions: GOOD.site.conditions } }))), ['H4']);
+  // A placeholder is no address (H4), and a placeholder left in the SWMS is a must-fix item (H8, goal 2).
+  assert.deepEqual(failed(checkSwms(variant({ site: { address: 'To be completed', conditions: GOOD.site.conditions } }))), ['H4', 'H8']);
   assert.deepEqual(failed(checkSwms(variant({ site: { address: GOOD.site.address, conditions: [] } }))), ['H4']);
 });
 
@@ -146,7 +147,7 @@ test('W3: each vague line costs at least a point, so one phrase in a long SWMS i
 
 test('H6 and H7: no responsible person; no worker signatures', () => {
   assert.deepEqual(failed(checkSwms(variant({ responsiblePerson: '' }))), ['H6']);
-  assert.deepEqual(failed(checkSwms(variant({ responsiblePerson: '____' }))), ['H6']);
+  assert.deepEqual(failed(checkSwms(variant({ responsiblePerson: '____' }))), ['H6', 'H8']);
   // On site, a SWMS no worker has signed fails H7.
   const unsigned = checkSwms(variant({ signatures: [{ name: '', date: '' }] }), { stage: 'on-site' });
   assert.deepEqual(failed(unsigned), ['H7']);
@@ -219,8 +220,11 @@ test('email: accepted is a short approval; otherwise the changes by priority, ha
 
 // SiteReady's own drafts, checked as a builder would check the printed SWMS. Site details, the
 // person responsible and the principal contractor are filled in, as a user would before sending.
+// Goal 2: the reviewer, first aider and muster point (and the scaffold supervisor, for a scaffold) are
+// answered before any download, so a SWMS sent to a builder has them.
 const SITE = {
   workplace: '12 Smith Street, Paddington QLD 4064', principalContractor: 'ABC Builders Pty Ltd', complianceResponsible: 'Sam Lee, supervisor', reviewDate: '5 November 2026',
+  reviewer: 'Sam Lee, supervisor', firstAider: 'Jo Smith', musterPoint: 'Front gate on Smith Street', scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding',
   site: { liveServices: 'Overhead power on the street, 6 m from the work.', publicInterface: 'The footpath stays open behind a hoarding.', otherTrades: 'No other trades work under ours.', ground: 'Level, firm ground.', access: 'Scaffold stair on the east side; deliveries by the driveway.' },
 };
 function draftCheck(index, signed = true, stage = 'review') {
@@ -382,14 +386,15 @@ test('W9: a revision number is credited, as text or as a number', () => {
 test('W10: higher order controls are listed before administrative controls and PPE within each step', () => {
   assert.equal(item(checkSwms(GOOD), 'W10').points, 4);
   const steps = structuredClone(GOOD.steps);
-  // Gloves first, then the mesh: out of order in the one step that has both kinds.
+  // Gloves first, then the mesh: out of order. The roof access step (the scaffold stair, then the
+  // supervisor's tag check) is judged too and is in order, so one of the two judged steps is out.
   steps[2].controls = [steps[2].controls[2], steps[2].controls[0], steps[2].controls[1]];
   const result = item(checkSwms(variant({ steps })), 'W10');
-  assert.equal(result.points, 0);
+  assert.equal(result.points, 2);
   assert.match(result.message, /in: Remove and replace roof sheets\./);
-  // With a second step in order, half the judged steps are in order.
+  // With a third judged step in order, two of the three are in order.
   const ordered = { step: 'Fix the flashings', hazards: ['Falling from the roof edge.'], controls: ['Flashings are fixed from inside the guardrail.', 'Gloves are worn.'] };
-  assert.equal(item(checkSwms(variant({ steps: [...steps, ordered] })), 'W10').points, 2);
+  assert.equal(item(checkSwms(variant({ steps: [...steps, ordered] })), 'W10').points, 3);
   // A step with no higher order control is not judged here (W2 marks it).
   const admin = [{ step: 'Plan the work', hazards: ['Working at height.'], controls: ['The supervisor briefs the crew.', 'Gloves are worn.'] }];
   assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, ...admin] })), 'W10').points, 4);

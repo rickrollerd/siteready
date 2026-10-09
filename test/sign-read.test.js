@@ -12,7 +12,7 @@ const aiScope = require('../ai-scope');
 const signRead = require('../sign-read');
 const { prepareDraft } = require('../draft');
 const { withCompany } = require('../accounts');
-const { setupAccounts, lastLinkToken } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
 
 let server;
 let base;
@@ -21,7 +21,13 @@ test.before(async () => {
   delete process.env.ANTHROPIC_API_KEY;
   await setupAccounts();
   server = app.listen(0);
+  // As in production (server.js): the pool test below holds the process for seconds, and a
+  // shorter keep-alive closes the socket the next request reuses ("fetch failed").
+  server.keepAliveTimeout = 65000;
   await new Promise((resolve) => server.once('listening', resolve));
+  // A test that runs for more than 5 s without a request lets the server close the idle
+  // keep-alive connection just as the next request reuses it ("fetch failed" on a busy machine).
+  server.keepAliveTimeout = 60000;
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
@@ -53,7 +59,9 @@ function abnFor(seed) {
   return abnFor(`${seed}x`);
 }
 
+// The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
 const INPUT = {
+  ...ANSWERED,
   state: 'qld',
   task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
   fallRisk: 'yes',
@@ -62,11 +70,11 @@ const INPUT = {
 const SIGNATURE = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
 
 // A saved SWMS and its sign-on key, for a fresh business.
-async function savedSwms(email) {
+async function savedSwms(email, input = INPUT) {
   await call('POST', '/api/auth/email', { body: { email } });
   const { token } = await (await call('POST', '/api/auth/verify', { body: { token: lastLinkToken(email) } })).json();
   await call('PUT', '/api/company', { token, body: { name: `Test business ${email}`, abn: abnFor(email) } });
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, reviewConfirmed: true, reviewedBy: 'Alex Chen' } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: { input, reviewConfirmed: true, reviewedBy: 'Alex Chen' } })).json();
   const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
   return { token, swms, key };
 }
@@ -433,5 +441,107 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
   } finally {
     delete process.env.ANTHROPIC_API_KEY;
     aiScope.useClient(null);
+  }
+});
+
+// ---- Failed check questions, kept without names (goal 11) ----
+
+const controlLearning = require('../control-learning');
+const missCount = async () => Number((await db.one('SELECT COUNT(*) AS n FROM check_question_misses')).n);
+const MISS_INPUT = { ...INPUT, trade: 'Fire services', workplace: 'Ward block, 9 Example Street, Woolloongabba QLD 4102' };
+
+test('with CONTROL_LEARNING off, a wrong answer is not kept', async () => {
+  delete process.env.CONTROL_LEARNING;
+  const { swms, key } = await savedSwms('missoff@read.example', MISS_INPUT);
+  const view = await (await call('GET', `/api/sign/${key}`)).json();
+  await openFor(view.readId, 3600);
+  const answers = rightAnswers(await questionsFor(swms.id, view.readId));
+  const before = await missCount();
+  const wrong = await call('POST', `/api/sign/${key}`, { body: { name: 'Off Worker', signature: SIGNATURE, confirmed: true, readId: view.readId, answers: { ...answers, ppe: (answers.ppe + 1) % 4 } } });
+  assert.equal(wrong.status, 400);
+  assert.equal(await missCount(), before);
+});
+
+test('with CONTROL_LEARNING on, each wrong answer is kept without the worker, business, site or SWMS', async () => {
+  process.env.CONTROL_LEARNING = 'on';
+  try {
+    const { swms, key } = await savedSwms('misses@read.example', MISS_INPUT);
+    const view = await (await call('GET', `/api/sign/${key}`)).json();
+    await openFor(view.readId, 3600);
+    const questions = await questionsFor(swms.id, view.readId);
+    const answers = rightAnswers(questions);
+    const ppe = questions.find((q) => q.id === 'ppe');
+    const steps = questions.find((q) => q.id === 'steps');
+    const body = { name: 'Mira Kovac', company: 'Example Crew Pty Ltd', signature: SIGNATURE, confirmed: true, readId: view.readId, language: 'vi' };
+    const before = await missCount();
+
+    // A wrong PPE answer: one row.
+    const wrongPpe = (answers.ppe + 1) % 4;
+    assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, answers: { ...answers, ppe: wrongPpe } } })).status, 400);
+    const rows = await db.query('SELECT * FROM check_question_misses');
+    assert.equal(rows.length, before + 1);
+    const row = rows[rows.length - 1];
+    assert.deepEqual(Object.keys(row).sort(), ['chosen', 'id', 'item', 'kind', 'language', 'month', 'state', 'step', 'trade'], 'no worker, business, site, SWMS, read or time column');
+    assert.deepEqual([row.kind, row.step, row.item, row.chosen], ['ppe', '', ppe.options[ppe.answer], ppe.options[wrongPpe]]);
+    assert.deepEqual([row.language, row.state, row.trade], ['vi', 'qld', 'Fire services']);
+    assert.match(row.month, /^\d{4}-\d{2}$/);
+
+    // A wrong step or control answer: the step it tested is kept too.
+    const wrongStep = (answers.steps + 1) % 4;
+    assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, language: 'xx', answers: { ...answers, steps: wrongStep } } })).status, 400);
+    const stepRow = (await db.query("SELECT * FROM check_question_misses WHERE kind <> 'ppe'")).pop();
+    assert.ok(['step', 'control'].includes(stepRow.kind));
+    assert.deepEqual([stepRow.item, stepRow.chosen], [steps.options[steps.answer], steps.options[wrongStep]]);
+    assert.ok(view.jobSteps.some((step) => step.step === stepRow.step), 'the step tested, by its name in the SWMS');
+    assert.equal(stepRow.language, 'en', 'a language not offered is kept as English');
+
+    // Questions left unanswered and right answers add nothing.
+    assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, answers: {} } })).status, 400);
+    assert.equal(await missCount(), before + 2);
+    assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, answers } })).status, 201);
+    assert.equal(await missCount(), before + 2);
+
+    const kept = JSON.stringify(await db.query('SELECT * FROM check_question_misses'));
+    for (const text of ['Mira', 'Kovac', 'Example Crew', 'Test business', 'misses@read', 'Woolloongabba', 'Ward block', 'Alex Chen', swms.id, view.readId, key]) assert.ok(!kept.includes(text), `no ${text}`);
+
+    // The owner's summary counts them; the reading record on the sign-on row is not moved yet.
+    const summary = await controlLearning.summary();
+    assert.equal(summary.failedQuestions.total, before + 2);
+    assert.ok(summary.failedQuestions.items.some((item) => item.kind === 'ppe' && item.item === ppe.options[ppe.answer]));
+    assert.equal((await db.one('SELECT check_attempts FROM signons WHERE swms_id = $1', [swms.id])).check_attempts, 4);
+  } finally {
+    delete process.env.CONTROL_LEARNING;
+  }
+});
+
+test('failed questions leave out a business that opted out of industry data, production without its key, and go after 3 years', async () => {
+  process.env.CONTROL_LEARNING = 'on';
+  const railway = process.env.RAILWAY_ENVIRONMENT_NAME;
+  try {
+    const wrongOnce = async (email, setup = async () => {}) => {
+      const { swms, key } = await savedSwms(email, MISS_INPUT);
+      await setup(swms);
+      const view = await (await call('GET', `/api/sign/${key}`)).json();
+      await openFor(view.readId, 3600);
+      const answers = rightAnswers(await questionsFor(swms.id, view.readId));
+      const before = await missCount();
+      assert.equal((await call('POST', `/api/sign/${key}`, { body: { name: 'Any Worker', signature: SIGNATURE, confirmed: true, readId: view.readId, answers: { ...answers, ppe: (answers.ppe + 1) % 4 } } })).status, 400);
+      return (await missCount()) - before;
+    };
+    assert.equal(await wrongOnce('missoptout@read.example', (swms) => db.query('UPDATE companies SET industry_opt_out = TRUE WHERE id = (SELECT company_id FROM swms WHERE id = $1)', [swms.id])), 0);
+    process.env.RAILWAY_ENVIRONMENT_NAME = 'production';
+    delete process.env.CONTROL_LEARNING_KEY;
+    assert.equal(await wrongOnce('missprod@read.example'), 0);
+    if (railway === undefined) delete process.env.RAILWAY_ENVIRONMENT_NAME;
+    else process.env.RAILWAY_ENVIRONMENT_NAME = railway;
+    assert.equal(await wrongOnce('misskept@read.example'), 1);
+
+    await db.query("INSERT INTO check_question_misses (id, month, kind) VALUES ('old-miss', '2023-09', 'ppe')");
+    await controlLearning.removeOld(new Date('2026-10-07T00:00:00Z'));
+    assert.equal(await db.one("SELECT id FROM check_question_misses WHERE id = 'old-miss'"), null);
+  } finally {
+    delete process.env.CONTROL_LEARNING;
+    if (railway === undefined) delete process.env.RAILWAY_ENVIRONMENT_NAME;
+    else process.env.RAILWAY_ENVIRONMENT_NAME = railway;
   }
 });

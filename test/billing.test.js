@@ -8,7 +8,7 @@ const Stripe = require('stripe');
 const { app } = require('../server');
 const db = require('../db');
 const billing = require('../billing');
-const { setupAccounts, lastLinkToken } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
 
 // A stand-in for Stripe that records what was asked of it, and uses the real
 // library to sign and check webhooks.
@@ -134,6 +134,7 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
   const abn = '83 914 571 673';
   assert.equal((await call('PUT', '/api/company', { token, body: { name: 'Secret Builders Pty Ltd', abn } })).status, 200);
   const input = {
+    ...ANSWERED,
     state: 'qld',
     trade: 'Plumber',
     workplace: 'Ward 3, Toowoomba Hospital, Pechey St, Toowoomba QLD 4350',

@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');
-const { setupAccounts, lastLinkToken } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
 
 let server;
 let base;
@@ -11,6 +11,9 @@ test.before(async () => {
   await setupAccounts();
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
+  // A test that runs for more than 5 s without a request lets the server close the idle
+  // keep-alive connection just as the next request reuses it ("fetch failed" on a busy machine).
+  server.keepAliveTimeout = 60000;
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
@@ -57,7 +60,7 @@ test('security headers and rate limit headers are set', async () => {
 });
 
 test('a draft and its Word file are prepared', async () => {
-  const body = { state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no' };
+  const body = { state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no', ...ANSWERED };
   const draft = await post('/api/draft', body);
   assert.equal(draft.status, 200);
   assert.equal((await draft.json()).kind, 'draft');
@@ -124,8 +127,8 @@ test('required questions carry standard answers, and each answer is accepted', a
 });
 
 test('a project downloads as one zip with a Word file for each ready SWMS', async () => {
-  const fence = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no' };
-  const paint = { state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', residential: 'no', facts: { safetyDataSheet: 'Water-based acrylic paint SDS, revision 2, at the work area.' } };
+  const fence = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', ...ANSWERED };
+  const paint = { state: 'qld', task: 'Paint the interior walls of a shop with water-based paint.', fallRisk: 'no', residential: 'no', facts: { safetyDataSheet: 'Water-based acrylic paint SDS, revision 2, at the work area.' }, ...ANSWERED };
   const unready = { state: 'qld', task: 'Lift steel beams with a crane.', fallRisk: 'no', crane: 'own' };
   const refused = await post('/api/project.zip', { swms: [fence] }, null, session);
   assert.equal(refused.status, 400, 'needs the review confirmation');
@@ -141,7 +144,7 @@ test('a project downloads as one zip with a Word file for each ready SWMS', asyn
 });
 
 test('project zip files are named by the task titles from the scope', async () => {
-  const fence = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing' };
+  const fence = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing', ...ANSWERED };
   const response = await post('/api/project.zip', { swms: [fence], reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
   const zip = await require('jszip').loadAsync(Buffer.from(await response.arrayBuffer()));
   assert.deepEqual(Object.keys(zip.files), ['01 Fencing.docx']);
@@ -177,7 +180,7 @@ test('every downloaded SWMS carries a SiteReady reference that traces to the acc
   const { findRef } = require('../refs');
   const token = await signIn('refs@siteready.test');
   await put('/api/company', { name: 'Ref Test Pty Ltd', abn: '33 102 417 000' }, token);
-  const body = { state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no', reviewConfirmed: true, reviewedBy: 'Sam Lee' };
+  const body = { state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no', reviewConfirmed: true, reviewedBy: 'Sam Lee', ...ANSWERED };
   const response = await post('/api/draft.docx', body, null, token);
   assert.equal(response.status, 200, await response.clone().text());
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));

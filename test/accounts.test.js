@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { app } = require('../server');
 const db = require('../db');
 const { sendReviewReminders, removeExpired } = require('../accounts');
-const { setupAccounts, lastLinkToken, mailbox } = require('./helpers');
+const { setupAccounts, lastLinkToken, mailbox, ANSWERED } = require('./helpers');
 
 let server;
 let base;
@@ -52,7 +52,9 @@ async function signIn(email, { company = true } = {}) {
   return token;
 }
 
+// The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
 const INPUT = {
+  ...ANSWERED,
   state: 'qld',
   task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
   fallRisk: 'yes',
