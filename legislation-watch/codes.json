@@ -9,8 +9,9 @@
     "id": "qld-codes",
     "jurisdiction": "Queensland",
     "title": "Codes of practice",
-    "url": "https://www.worksafe.qld.gov.au/laws-and-compliance/workplace-health-and-safety-laws/codes-of-practice",
-    "knownBlocked": "WorkSafe Queensland refuses automated requests. Queensland's approved codes are still watched daily through the Work Health and Safety (Codes of Practice) Notice 2022 on the legislation site. Check this page by hand monthly."
+    "url": "https://www.worksafe.qld.gov.au/laws-and-compliance/codes-of-practice",
+    "read": "browser",
+    "knownBlocked": "WorkSafe Queensland's bot check did not let the browser through today. Queensland's approved codes are still watched daily through the Work Health and Safety (Codes of Practice) Notice 2022 on the legislation site."
   },
   {
     "id": "nsw-codes",
@@ -22,8 +23,11 @@
     "id": "vic-codes",
     "jurisdiction": "Victoria",
     "title": "Compliance codes",
-    "url": "https://www.worksafe.vic.gov.au/compliance-codes-and-practice-notes",
-    "knownBlocked": "WorkSafe Victoria's page cannot be read automatically. Check the compliance codes by hand monthly; the news search covers WorkSafe Victoria compliance codes."
+    "url": "https://www.worksafe.vic.gov.au/compliance-codes",
+    "read": "sitemap",
+    "sitemap": "https://www.worksafe.vic.gov.au/sitemap.xml",
+    "linkPattern": "^/resources/(?:archived-)?compliance-codes?-",
+    "knownBlocked": "WorkSafe Victoria's sitemap could not be read today. Its compliance code pages are listed there with the date each was last changed."
   },
   {
     "id": "wa-codes",
@@ -42,20 +46,26 @@
     "jurisdiction": "Tasmania",
     "title": "Codes of practice",
     "url": "https://worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice",
-    "knownBlocked": "WorkSafe Tasmania refuses automated requests. Check by hand monthly; the news search covers WorkSafe Tasmania codes."
+    "read": "browser",
+    "linkPattern": "/codes-of-practice/cop-folder/[^/]+$",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today."
   },
   {
     "id": "act-codes",
     "jurisdiction": "Australian Capital Territory",
     "title": "Work Safety Group public notices (new and updated codes)",
     "url": "https://www.act.gov.au/open/work-safety-group-public-notices",
-    "knownBlocked": "The ACT Government site refuses automated requests. Check by hand monthly; the news search covers WorkSafe ACT codes."
+    "read": "browser",
+    "textPattern": "^Notice issued \\d",
+    "knownBlocked": "The ACT Government site's bot check did not let the browser through today."
   },
   {
     "id": "nt-codes",
     "jurisdiction": "Northern Territory",
     "title": "Codes of practice",
-    "url": "https://worksafe.nt.gov.au/codes-of-practice",
-    "knownBlocked": "NT WorkSafe refuses automated requests. Check by hand monthly; the news search covers NT WorkSafe codes."
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice",
+    "read": "browser",
+    "linkPattern": "/forms-and-resources/codes-of-practice/[^/]+$",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today."
   }
 ]

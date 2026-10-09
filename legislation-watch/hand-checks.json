@@ -1,0 +1,4 @@
+{
+  "note": "Each check a person makes of a page the daily watch cannot read. key is the page's key in state.json (a law's id, code:<id> or alerts:<id>). Add a line after each check; the watch reports a page again when its last hand check is more than a month old.",
+  "checks": []
+}

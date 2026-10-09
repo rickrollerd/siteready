@@ -13,6 +13,7 @@ on:
       - 'legislation-watch/codes.json'
       - 'legislation-watch/news.json'
       - 'legislation-watch/alerts.json'
+      - 'legislation-watch/hand-checks.json'
       - '.github/workflows/legislation-watch.yml'
 
 permissions:
@@ -26,13 +27,17 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Pages behind a bot check are read in a real browser, one at a time, which takes a few minutes.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
+
+      - name: Install a browser for the pages behind a bot check
+        run: npm install --no-save playwright@1 && npx playwright install --with-deps chromium > /dev/null
 
       - name: Check every page can be read
         if: github.event_name == 'push'

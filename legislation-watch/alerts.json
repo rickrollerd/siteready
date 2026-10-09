@@ -4,7 +4,7 @@
     "jurisdiction": "New South Wales",
     "title": "SafeWork NSW construction safety alerts",
     "url": "https://www.safework.nsw.gov.au/resource-library/list-of-all-safety-alerts/safety-alert-accordions/construction-safety-alerts",
-    "linkPattern": "/safety-alert-accordions/construction-safety-alerts/[^\"#?]+",
+    "linkPattern": "/safety-alerts/safety-alerts/[^\"#?]+",
     "licence": "CC BY 4.0: the control may follow the alert's wording, cited to it."
   },
   {
@@ -12,7 +12,7 @@
     "jurisdiction": "New South Wales",
     "title": "SafeWork NSW electrical safety alerts",
     "url": "https://www.safework.nsw.gov.au/resource-library/list-of-all-safety-alerts/safety-alert-accordions/electrical-safety-alerts",
-    "linkPattern": "/safety-alert-accordions/electrical-safety-alerts/[^\"#?]+",
+    "linkPattern": "/safety-alerts/safety-alerts/[^\"#?]+",
     "licence": "CC BY 4.0: the control may follow the alert's wording, cited to it."
   },
   {
@@ -20,7 +20,7 @@
     "jurisdiction": "New South Wales",
     "title": "SafeWork NSW machinery, plant and equipment safety alerts",
     "url": "https://www.safework.nsw.gov.au/resource-library/list-of-all-safety-alerts/safety-alert-accordions/machinery-safety-alerts",
-    "linkPattern": "/safety-alert-accordions/machinery-safety-alerts/[^\"#?]+",
+    "linkPattern": "/safety-alerts/safety-alerts/[^\"#?]+",
     "licence": "CC BY 4.0: the control may follow the alert's wording, cited to it."
   },
   {
@@ -52,8 +52,10 @@
     "jurisdiction": "Victoria",
     "title": "WorkSafe Victoria safety alerts",
     "url": "https://www.worksafe.vic.gov.au/safety-alerts",
-    "linkPattern": "/safety-alerts?/[^\"#?]+|/[a-z0-9-]+-safety-alert[^\"#?]*",
+    "read": "sitemap",
+    "sitemap": "https://www.worksafe.vic.gov.au/sitemap.xml",
+    "linkPattern": "^/safety-alerts/[^/]+$",
     "licence": "Copyright, non-profit only: link and write the control in SiteReady's own words.",
-    "knownBlocked": "WorkSafe Victoria's safety alerts page builds its list in the browser, so it cannot be read automatically. Check it by hand monthly, or subscribe to its alert emails."
+    "knownBlocked": "WorkSafe Victoria's sitemap could not be read today. Its safety alert pages are listed there."
   }
 ]

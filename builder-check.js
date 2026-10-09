@@ -36,15 +36,24 @@
 // W11 (5 to 4) each gave a share, and W9 took 1 for dated signatures (5 to 6).
 // Now: W1 12, W2 12, W3 10, W4 6, W5 8, W6 8, W7 8, W8 2, W9 6, W10 4, W11 4, W12 5, W13 12, W14 3 = 100.
 //
+// Goal 3 (owner, 7 October 2026) and the review checklist, items 6 and 10 (built 9 October 2026; the
+// split of points is for the owner to confirm): hazards rated, and residual risk shown. W15 (4) takes
+// 2 points each from W1 (hazards, 12 to 10) and W2 (hierarchy, 12 to 10): a step
+// with no rating before the controls, or no rating after them, loses its share, and so does a step
+// still rated High after the controls with nothing said about it. That step is also H9, a must-fix
+// item: the checklist's one fail for residual risk is a High (or Extreme) rating with no further
+// controls and no named person who accepts it before work starts. A missing rating is never a fail.
+// Now: W1 10, W2 10, W3 10, W4 6, W5 8, W6 8, W7 8, W8 2, W9 6, W10 4, W11 4, W12 5, W13 12, W14 3, W15 4 = 100.
+//
 // Goal 2 (owner, 7 October 2026): H8, a blank (____) or a "To be completed" placeholder left anywhere
 // the SWMS prints (a control, a hazard, the plant, the emergency arrangements or a field) is a
 // must-fix item, as a reviewer would fail it. Such a line no longer reads as a pass.
 //
 // The SWMS comes in one structured form, whatever its source (an AI reading of an uploaded
 // document, or a SiteReady draft):
-// { state, task, fallRisk, site: { address, conditions[] }, highRisk[], steps[{ step, hazards[], controls[], responsible }],
-//   ppe[], responsiblePerson, consultation, signatures[{ name, date }], revision, date, reviewDate,
-//   principalContractor, licences[], plant[], emergency[], review, legislation[], riskMatrix }
+// { state, task, fallRisk, site: { address, conditions[] }, highRisk[], steps[{ step, hazards[], controls[], responsible,
+//   riskBefore, riskAfter, riskResponse }], ppe[], responsiblePerson, consultation, signatures[{ name, date }], revision,
+//   date, reviewDate, principalContractor, licences[], plant[], emergency[], review, legislation[], riskMatrix, riskAcceptance }
 const { findState, highRiskList } = require('./legislation');
 const { highRiskMatches, domesticWork } = require('./draft');
 const { leftOpen } = require('./blanks');
@@ -60,6 +69,7 @@ const SOURCES = {
   H6: 'Model Code of Practice: Construction Work (how controls are implemented, monitored and reviewed)',
   H7: 'WHS Regulations s 299; WHSQ construction blitz 2023 ("involve workers")',
   H8: 'Tier 1 SWMS review checklists (no blanks, placeholders or leftover template text); goal 2 (owner, 7 October 2026): no SWMS is produced with blanks left in it',
+  H9: 'Contractor SWMS review checklist item 10 (a residual rating that is still High has a stated response: more controls, or the named person who accepts the risk before work starts); tier 1 SWMS standard and risk assessment requirement (a residual rating in the top band is not accepted); goal 3 (owner, 7 October 2026)',
   W1: 'Model Code of Practice: Construction Work (SWMS content); WHSQ construction blitz 2023 (task specific)',
   W2: 'Hierarchy of control (WHS Regulations s 36); Model Code of Practice: Construction Work',
   W3: 'Tier 1 SWMS review checklists; SafeWork NSW campaign findings. Each vague line costs at least 1 point (owner decision, 6 October 2026)',
@@ -73,6 +83,7 @@ const SOURCES = {
   W11: 'Model Code of Practice: Construction Work (who implements, monitors and reviews each control); WHS Regulations s 299(3); a tier 1 builder\'s published SWMS review checklist (evidence: a position per step, not one person for the SWMS)',
   W12: 'WHS Regulations s 67 (confined space entry permit), s 166 (overhead and underground electric lines) and s 304 (underground essential services); Model Code of Practice: Construction Work; a tier 1 builder\'s published SWMS review checklist (evidence that tier 1 builders check named permits)',
   W13: 'WHS Regulations part 6.4 (s 304 underground essential services, s 305 managing excavation risks, s 306 trenches 1.5 m or deeper), s 78 to s 80 (falls), s 166 (electric lines), s 69 and s 74 (confined spaces) and chapter 8 (asbestos); the codes of practice SiteReady cites for falls, excavation, electric lines, electrical risks, confined spaces, asbestos, demolition, moving plant, tilt-up and precast, traffic management, silica, cranes and telecommunication towers. A lift plan for each crane lift (owner decision, 6 October 2026)',
+  W15: 'Contractor SWMS review checklist items 6 and 10 (each step rated before and after the controls; a High after the controls has a stated response); tier 1 SWMS standard and builder SWMS procedure risk assessment guides (likelihood and consequence, inherent and residual). The law does not require a rating, so a missing one costs points and never fails (goal 3, owner, 7 October 2026)',
   W14: 'WHS Regulations s 344 and s 346 (safety data sheets at hand, the hazardous chemicals register); Managing risks of hazardous chemicals code of practice (labelling, following the safety data sheet) (owner decision, 6 October 2026)',
 };
 
@@ -114,7 +125,7 @@ function normaliseSwms(input = {}) {
     otherFields: list(input.otherFields),
     highRisk: list(input.highRisk),
     steps: (Array.isArray(input.steps) ? input.steps : []).filter((item) => item && typeof item === 'object')
-      .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls), responsible: text(item.responsible) })),
+      .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls), responsible: text(item.responsible), rating: ratingOf(item) })),
     ppe: list(input.ppe),
     responsiblePerson: text(input.responsiblePerson),
     consultation: text(input.consultation),
@@ -132,6 +143,23 @@ function normaliseSwms(input = {}) {
     review: text(input.review),
     legislation: list(input.legislation),
     riskMatrix: input.riskMatrix === true,
+    // A statement for the whole SWMS of who accepts a rating still High after the controls.
+    riskAcceptance: text(input.riskAcceptance),
+  };
+}
+
+// A step's ratings before and after the controls, and what is done about a rating still High after
+// them. Given as riskBefore, riskAfter and riskResponse (the AI reading), or as risk: { before, after,
+// response } (a SiteReady draft). Null where the form gives no rating field at all for the step.
+function ratingOf(item) {
+  const risk = item.risk && typeof item.risk === 'object' ? item.risk : null;
+  const level = (value) => text(value && typeof value === 'object' ? value.level || value.label : value);
+  const given = ['riskBefore', 'riskAfter', 'riskResponse'].some((key) => typeof item[key] === 'string') || Boolean(risk);
+  if (!given) return null;
+  return {
+    before: level(risk ? risk.before : item.riskBefore),
+    after: level(risk ? risk.after : item.riskAfter),
+    response: text(risk ? risk.response : item.riskResponse),
   };
 }
 
@@ -631,6 +659,27 @@ const PLANT_WORK = /\b(clear\w*|clean\w*|dig\w*|unblock\w*|maintain\w*|maintenan
 const CONSULT_DUTY = /\b(?:(?:is|are) required to|must|shall|should|needs? to) be consulted\b/i;
 const consultationRecorded = (value) => filled(value) && text(value).split(/(?<=[.;!?])\s+/).some((line) => filled(line) && !CONSULT_DUTY.test(line));
 
+// ---- Risk ratings and residual risk (H9, W15) ----
+
+// A rating in the top bands of a matrix, as a SWMS writes it ("High", "Extreme", "H", "Very high").
+const HIGH_RATING = /\b(?:high|extreme|very high|critical|severe|intolerable|unacceptable)\b|^\s*(?:h|e|vh|ex)\s*$/i;
+const isHigh = (level) => filled(level) && HIGH_RATING.test(level);
+// A person named by name ("Sam Lee") or by position ("the site supervisor").
+const NAMED_PERSON = /\b[A-Z][a-z]+(?:\s+[A-Z][a-z'-]+)+\b/;
+// "Add controls or have the supervisor accept the risk" tells the reader what to do; it does not say
+// what was done or who accepts it.
+const GENERIC_RESPONSE = /^\s*add (?:more |further |extra )?controls?\b[^.]*\bor\b[^.]*\baccept|\bwhere a rating\b[^.]*\bstill high\b/i;
+// What is said about a rating still High after the controls: a named person or position who accepts it
+// before work starts, or further controls. The SWMS-wide statement counts for every step.
+function residualAnswered(rating, swms) {
+  return [rating.response, swms.riskAcceptance].some((line) => filled(line) && !GENERIC_RESPONSE.test(line) && (/\baccept\w*\b/i.test(line)
+    ? (POSITION.test(line) || NAMED_PERSON.test(line.replace(/^\s*\w+/, ' ')))
+    : checkable(line) || HIGHER.has(controlLevel(line))));
+}
+// The steps that carry hazards or controls: the ones a reviewer expects rated.
+const ratedSteps = (swms) => swms.steps.filter((step) => step.hazards.length || step.controls.length);
+const residualOpen = (swms) => ratedSteps(swms).filter((step) => step.rating && isHigh(step.rating.after) && !residualAnswered(step.rating, swms));
+
 function hardFails(swms, state, stage = 'review') {
   const out = [];
   const allControls = swms.steps.flatMap((step) => step.controls);
@@ -777,6 +826,12 @@ function hardFails(swms, state, stage = 'review') {
   add('H8', 'No blanks or placeholders left', !open.length,
     open.length ? `Blanks or placeholders are left in the SWMS: ${open.slice(0, 5).map((item) => `"${item.line.slice(0, 160)}" (${item.where})`).join('; ')}${open.length > 5 ? `; and ${open.length - 5} more` : ''}. Fill each one in with what applies on this job.`
       : 'No blanks or placeholders are left.');
+  // A step still rated High (or Extreme) after its controls, with no further controls and no named
+  // person who accepts the risk before work starts (review checklist item 10, its one fail).
+  const residual = residualOpen(swms);
+  add('H9', 'Residual High risk has a response', !residual.length,
+    residual.length ? `Steps are still rated High after the controls, with no further controls and no named person who accepts the risk: ${residual.slice(0, 4).map((step) => step.step || 'step').join('; ')}. Add controls that lower the rating, or name the person who accepts the risk before the work starts.`
+      : 'No step is left High after its controls without a response.');
   return { out, implied, named, preStart: signed ? [] : ['Workers must sign on before work starts.'] };
 }
 
@@ -791,15 +846,15 @@ function weighted(swms, state, context) {
   const allControls = steps.flatMap((step) => step.controls);
   const allText = [swms.task, ...steps.map((step) => [step.step, ...step.hazards, ...step.controls].join('. ')), ...swms.site.conditions, ...swms.plant, ...swms.licences, swms.review].join('\n');
 
-  // W1 Hazards match the job steps (12; was 15): 8 for every step having hazards, 4 for hazards
-  // that are the step's own.
+  // W1 Hazards match the job steps (10; was 15, then 12): 7 for every step having hazards, 3 for hazards
+  // that are the step's own. 2 points went to W15 (ratings) on 7 October 2026.
   {
     const fixes = [];
     let points = 0;
     if (!steps.length) fixes.push('Break the work into job steps, each with its own hazards.');
     else {
       const withHazards = steps.filter((step) => step.hazards.length);
-      points += 8 * (withHazards.length / steps.length);
+      points += 7 * (withHazards.length / steps.length);
       if (withHazards.length < steps.length) fixes.push(`Give every job step its own hazards (${steps.length - withHazards.length} of ${steps.length} have none).`);
       // Copied lists are found by similarity, not only an exact match: the same generic list with
       // one or two items swapped is still copied. One "Whole task" step, or steps that are only
@@ -811,14 +866,14 @@ function weighted(swms, state, context) {
       if (sets.length > 1 && repeated / sets.length > 0.5) fixes.push('The same hazards are copied into most steps. List the hazards each step really has.');
       else if (steps.length === 1) fixes.push('The SWMS has one step for the whole task. Break the work into job steps, each with its own hazards.');
       else if (headings.length > steps.length / 2) fixes.push('The steps are hazard headings, not job steps. List the steps of the work in order, each with its own hazards.');
-      else points += 4;
-      if (steps.length === 1) points = Math.min(points, 4);
+      else points += 3;
+      if (steps.length === 1) points = Math.min(points, 3);
     }
-    add('W1', 'Hazards match the job steps', 12, points, fixes, 'Each step has its own hazards.');
+    add('W1', 'Hazards match the job steps', 10, points, fixes, 'Each step has its own hazards.');
   }
 
-  // W2 Controls follow the hierarchy (12; was 20, then 15): 8 for a higher order control in each
-  // high risk step, 4 for few PPE controls.
+  // W2 Controls follow the hierarchy (10; was 20, then 15, then 12): 7 for a higher order control in
+  // each high risk step, 3 for few PPE controls. 2 points went to W15 (residual risk) on 7 October 2026.
   {
     const fixes = [];
     let points = 0;
@@ -828,12 +883,12 @@ function weighted(swms, state, context) {
     const risky = steps.filter((step) => highRiskMatches(stepText(step, swms.task), swms.fallRisk, state).length);
     const judged = risky.length ? risky : steps;
     const strong = judged.filter((step) => step.controls.some((line) => HIGHER.has(controlLevel(line))));
-    if (judged.length) points += 8 * (strong.length / judged.length);
+    if (judged.length) points += 7 * (strong.length / judged.length);
     if (judged.length && strong.length < judged.length) fixes.push(`Add an elimination, substitution, isolation or engineering control to: ${judged.filter((step) => !strong.includes(step)).slice(0, 4).map((step) => step.step).join('; ')}.`);
     const ppeShare = levels.length ? levels.filter((level) => level === 'PPE').length / levels.length : 1;
-    if (ppeShare <= 0.2) points += 4;
-    else if (ppeShare <= 0.35) { points += 2; fixes.push('Too many controls are PPE. Put higher order controls first.'); } else fixes.push('Most controls are PPE. Put elimination, isolation and engineering controls before PPE.');
-    add('W2', 'Controls follow the hierarchy', 12, points, fixes, 'Each high risk step has a higher order control, and few controls are PPE.');
+    if (ppeShare <= 0.2) points += 3;
+    else if (ppeShare <= 0.35) { points += 1.5; fixes.push('Too many controls are PPE. Put higher order controls first.'); } else fixes.push('Most controls are PPE. Put elimination, isolation and engineering controls before PPE.');
+    add('W2', 'Controls follow the hierarchy', 10, points, fixes, 'Each high risk step has a higher order control, and few controls are PPE.');
   }
 
   // W3 Controls are specific and checkable (10; was 15, 2 went to W11 and 3 to W12).
@@ -1085,6 +1140,30 @@ function weighted(swms, state, context) {
     }
     add('W14', 'Hazardous chemicals named, with safety data sheets', 3, points, fixes, used.length ? 'The chemicals used are named and their safety data sheets are at hand.' : 'No hazardous chemicals are used.');
   }
+
+  // W15 Hazards rated, residual risk shown (4): 2 for every step rated before its controls, 2 for every
+  // step rated after them, where a rating still High after them has a response (H9 fails it too).
+  // A form with no rating field for any step (a reading made before ratings were read) is judged by
+  // whether the SWMS prints a risk matrix.
+  {
+    const fixes = [];
+    const judged = ratedSteps(swms);
+    let points = 0;
+    if (!judged.length) fixes.push('Rate the risk of each job step before and after its controls.');
+    else if (!judged.some((step) => step.rating)) {
+      if (swms.riskMatrix) points = 4;
+      else fixes.push('Rate the risk of each job step before and after its controls, with the likelihood and consequence matrix the ratings come from.');
+    } else {
+      const before = judged.filter((step) => step.rating && filled(step.rating.before));
+      const after = judged.filter((step) => step.rating && filled(step.rating.after));
+      const open = residualOpen(swms);
+      points = 2 * (before.length / judged.length) + 2 * ((after.length - open.length) / judged.length);
+      const unrated = judged.filter((step) => !before.includes(step) || !after.includes(step));
+      if (unrated.length) fixes.push(`Rate the risk before and after the controls for each job step (${unrated.length} of ${judged.length} ${judged.length === 1 ? 'is' : 'are'} not rated both ways: ${unrated.slice(0, 4).map((step) => step.step || 'step').join('; ')}).`);
+      if (open.length) fixes.push(`For each step still rated High after the controls, add controls that lower the rating or name who accepts the risk before work starts: ${open.slice(0, 4).map((step) => step.step || 'step').join('; ')}.`);
+    }
+    add('W15', 'Hazards rated, residual risk shown', 4, points, fixes, 'Each step is rated before and after its controls, and no High rating is left without a response.');
+  }
   return out;
 }
 
@@ -1139,7 +1218,9 @@ function fromDraft(draft, extra = {}) {
     ...(draft.controls || []).map((item) => item && item.text).filter(leftOpen),
     ...(draft.references || []).map((item) => item && item.text).filter(leftOpen),
   ];
-  const steps = (draft.jobSteps || []).map((step) => ({ step: step.step, hazards: step.hazards || [], controls: step.controls || [], responsible: step.responsible || '' }));
+  // Each step's ratings as printed in its Risk rating column, with what is said about a High after the controls.
+  const steps = (draft.jobSteps || []).map((step) => ({ step: step.step, hazards: step.hazards || [], controls: step.controls || [], responsible: step.responsible || '',
+    ...(step.risk ? { risk: { before: step.risk.before && step.risk.before.level, after: step.risk.after && step.risk.after.level, response: step.risk.response || '' } } : { riskBefore: '', riskAfter: '', riskResponse: '' }) }));
   return {
     state: extra.state || '',
     task: draft.task,

@@ -90,9 +90,15 @@ async function draftFor(swmsId) {
   return prepareDraft(withCompany(row.input, company));
 }
 
-// The questions for one read of a SWMS, with their answers.
-async function questionsFor(swmsId, readId) {
-  return signRead.checkQuestions(swmsId, readId, await draftFor(swmsId));
+// The questions for one read of a SWMS, with their answers: those first asked, or those after
+// this many wrong attempts.
+async function questionsFor(swmsId, readId, round = 0) {
+  return signRead.checkQuestions(swmsId, readId, await draftFor(swmsId), round);
+}
+
+// The wait after a wrong attempt has passed: the last wrong answer is backdated.
+async function waited(readId, seconds = 600) {
+  await db.query('UPDATE sign_reads SET wrong_at = $1 WHERE id = $2', [new Date(Date.now() - seconds * 1000), readId]);
 }
 
 const rightAnswers = (questions) => Object.fromEntries(questions.map((q) => [q.id, q.answer]));
@@ -123,6 +129,7 @@ test('the page gets every section with its reading time, and questions without t
   assert.ok(view.ppe.includes(ppe.options[ppe.answer]));
   assert.equal(ppe.options.filter((option) => view.ppe.includes(option)).length, 1, 'the decoys are PPE not ticked');
   assert.ok(ppe.options.filter((option) => !view.ppe.includes(option)).every((option) => !/sleeves|pants|clothing|hi-?vis|glasses|gloves|boots|hard hat|sunscreen|brim|chin strap/i.test(option)), 'no everyday PPE as a wrong answer');
+  assert.doesNotMatch(ppe.options[ppe.answer], /sleeves|pants|clothing|hi-?vis|glasses|gloves|boots|hard hat|sunscreen|brim|chin strap/i, 'nor as the right one, where it would stand out');
   // The second asks for a job step, or for a control in one step.
   const steps = questions.find((q) => q.id === 'steps');
   const names = view.jobSteps.map((step) => step.step);
@@ -165,34 +172,78 @@ test('a sign-on is refused without a read id, and when the SWMS was not open lon
   assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, readId: otherView.readId } })).status, 400);
 });
 
-test('a wrong answer names the question and the section to read again, and the worker can retry', async () => {
+test('a wrong answer names the section to read again, and the next try has new questions', async () => {
   const { swms, key } = await savedSwms('wrong@read.example');
   const view = await (await call('GET', `/api/sign/${key}`)).json();
   await openFor(view.readId, 3600);
-  const questions = await questionsFor(swms.id, view.readId);
-  const answers = rightAnswers(questions);
+  const first = await questionsFor(swms.id, view.readId);
+  const answers = rightAnswers(first);
   const body = { name: 'Retry Worker', signature: SIGNATURE, confirmed: true, readId: view.readId };
 
   const wrongPpe = await call('POST', `/api/sign/${key}`, { body: { ...body, answers: { ...answers, ppe: (answers.ppe + 1) % 4 } } });
   assert.equal(wrongPpe.status, 400);
-  const first = await wrongPpe.json();
-  assert.deepEqual(first.wrong, ['ppe']);
-  assert.deepEqual(first.sections, ['ppe']);
-  assert.match(first.message, /question 1 is not right/);
-  assert.match(first.message, /PPE to wear section/);
+  const reply = await wrongPpe.json();
+  assert.deepEqual(reply.wrong, ['ppe']);
+  assert.deepEqual(reply.sections, ['ppe']);
+  assert.match(reply.message, /question 1 is not right/);
+  assert.match(reply.message, /PPE to wear section again, then answer the new questions\.$/);
+  assert.equal(reply.wait, 0, 'no wait after the first wrong attempt');
+  // New questions for the next try, without their answers, and the job step question is a new one.
+  const second = await questionsFor(swms.id, view.readId, 1);
+  assert.deepEqual(reply.questions, signRead.publicQuestions(second));
+  assert.doesNotMatch(JSON.stringify(reply), /"answer"|"correct"/);
+  assert.notEqual(second.find((q) => q.kind !== 'ppe').key, first.find((q) => q.kind !== 'ppe').key);
 
-  const wrongSteps = await call('POST', `/api/sign/${key}`, { body: { ...body, answers: { ...answers, steps: (answers.steps + 1) % 4 } } });
-  const second = await wrongSteps.json();
-  assert.deepEqual(second.wrong, ['steps']);
-  assert.match(second.message, /question 2 is not right.*Job steps section/);
+  // The first questions' right answers do not pass now.
+  const stale = await call('POST', `/api/sign/${key}`, { body: { ...body, answers } });
+  assert.equal(stale.status, 400, 'the answers to the first questions do not sign on');
+  const staleReply = await stale.json();
+  assert.equal(staleReply.wait, 30, 'after two wrong attempts, a wait');
+  assert.match(staleReply.message, /You can answer again in 30 seconds\./);
 
+  // Answering again before the wait is over is turned away, and not counted as an attempt.
+  const third = await questionsFor(swms.id, view.readId, 2);
+  const early = await call('POST', `/api/sign/${key}`, { body: { ...body, answers: rightAnswers(third) } });
+  assert.equal(early.status, 429);
+  const earlyReply = await early.json();
+  assert.ok(earlyReply.wait > 0 && earlyReply.wait <= 30);
+  assert.match(earlyReply.message, /^Read the sections again before you answer\. You can answer again in \d+ seconds\.$/);
+
+  // After the wait, nothing answered: both questions are wrong, and the wait is longer.
+  await waited(view.readId, 31);
   const none = await (await call('POST', `/api/sign/${key}`, { body: { ...body, answers: {} } })).json();
-  assert.deepEqual(none.wrong, ['ppe', 'steps']);
-  assert.match(none.message, /PPE to wear and Job steps sections/);
+  assert.equal(none.wrong.length, 2);
+  // Once the one PPE question has been asked, both questions are on the job steps.
+  assert.deepEqual(third.map((q) => q.section), ['steps', 'steps']);
+  assert.match(none.message, /question 1 and question 2 are not right\. Read the Job steps section again/);
+  assert.equal(none.wait, 60);
 
-  assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, answers } })).status, 201);
+  await waited(view.readId, 61);
+  const fourth = await questionsFor(swms.id, view.readId, 3);
+  assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, answers: rightAnswers(fourth) } })).status, 201);
   const row = await db.one('SELECT * FROM signons WHERE swms_id = $1', [swms.id]);
-  assert.equal(row.check_attempts, 4, 'every attempt is counted');
+  assert.equal(row.check_attempts, 4, 'every marked attempt is counted, not the one turned away');
+});
+
+test('the wait after wrong answers grows to 2 minutes at most, and questions are not repeated while others are left', async () => {
+  const at = (attempts, secondsAgo) => signRead.waitLeft({ attempts, wrong_at: new Date(Date.now() - secondsAgo * 1000) });
+  assert.equal(at(0, 0), 0);
+  assert.equal(at(1, 0), 0, 'one wrong attempt: no wait');
+  assert.equal(at(2, 0), 30);
+  assert.equal(at(2, 10), 20);
+  assert.equal(at(2, 30), 0);
+  assert.equal(at(3, 0), 60);
+  assert.equal(at(4, 0), 90);
+  assert.equal(at(9, 0), 120);
+  assert.equal(signRead.waitLeft({ attempts: 3, wrong_at: null }), 0);
+
+  // Trying every answer in turn does not work: each try asks job step and control questions not
+  // asked before in this read.
+  const draft = prepareDraft(INPUT);
+  assert.ok(signRead.questionPool('rounds', draft).steps.length >= 6);
+  const asked = [0, 1, 2].flatMap((round) => signRead.checkQuestions('rounds', 'read-1', draft, round).filter((q) => q.kind !== 'ppe').map((q) => q.key));
+  assert.ok(asked.length >= 3);
+  assert.equal(new Set(asked).size, asked.length, 'no job step or control question twice');
 });
 
 test('each read gets its own questions, and is marked on its own questions only', async () => {
@@ -217,49 +268,104 @@ test('each read gets its own questions, and is marked on its own questions only'
   const copied = await call('POST', `/api/sign/${key}`, { body: { ...body, readId: other.view.readId, answers } });
   assert.equal(copied.status, 400);
   assert.ok((await copied.json()).wrong.length >= 1);
-  assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, readId: other.view.readId, answers: other.own } })).status, 201);
+  // The next try has new questions: the worker answers their own.
+  const next = rightAnswers(await questionsFor(swms.id, other.view.readId, 1));
+  assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, readId: other.view.readId, answers: next } })).status, 201);
   assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, name: 'First Worker', readId: first.readId, answers } })).status, 201);
 });
 
-test('every question in the pool is fair, for each scenario SWMS', () => {
+test('every question in the pool is fair, and its wrong answers are close to the work, for each scenario SWMS', () => {
   const generic = /^(before starting|finish and clean up|leave and close up)$/i;
-  const words = (text) => String(text).toLowerCase().split(/[^a-z0-9]+/).map((word) => word.replace(/s$/, '')).filter((word) => word.length > 2);
+  const everyday = /\b(sleeves|pants|clothing|hi-?vis|glasses|gloves|boots|hard hat|sunscreen|brim|chin strap)\b/i;
+  const STOP = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'over', 'under', 'out', 'are', 'not', 'any', 'each', 'all', 'only', 'before', 'after', 'when', 'where', 'work', 'use', 'used']);
+  const words = (text) => new Set(String(text).toLowerCase().split(/[^a-z0-9]+/).map((word) => word.replace(/s$/, '')).filter((word) => word.length > 2 && !STOP.has(word)));
+  // How much two lines say the same: words in common over the words in both.
+  const overlap = (a, b) => {
+    const x = words(a);
+    const y = words(b);
+    const n = [...x].filter((word) => y.has(word)).length;
+    return x.size + y.size ? (2 * n) / (x.size + y.size) : 0;
+  };
   const scenarios = [{ id: 'sprinklers', ...INPUT }, ...require('../scenarios/scenarios.json')];
+  let close = 0;
+  let decoys = 0;
   for (const input of scenarios) {
     const draft = prepareDraft({ state: 'qld', ...input });
     const pool = signRead.questionPool(input.id, draft);
     const ticked = signRead.tickedPpe(draft);
     const names = draft.jobSteps.map((step) => step.step);
     const controls = draft.jobSteps.flatMap((step) => step.controls);
-    assert.ok(pool.ppe.length >= 3 && pool.steps.length >= 4, `${input.id}: a pool to draw from`);
+    const lines = draft.jobSteps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]);
+    const work = words(`${draft.task} ${lines.join(' ')}`);
+    assert.ok(pool.steps.length >= 4, `${input.id}: a pool to draw from`);
     assert.ok(pool.steps.some((item) => item.kind === 'control'), `${input.id}: control questions`);
+    // PPE is asked about only where the SWMS lists PPE particular to the work.
+    assert.equal(pool.ppe.length > 0, ticked.some((label) => !everyday.test(label)), `${input.id}: a PPE question when there is particular PPE`);
     for (const item of pool.ppe) {
       assert.equal(item.question, 'Which of these PPE does this SWMS list?');
       assert.ok(ticked.includes(item.correct));
+      assert.doesNotMatch(item.correct, everyday, `${input.id}: the right answer is not everyday PPE, which would stand out`);
       assert.ok(item.decoys.length >= 3);
       for (const decoy of item.decoys) {
         assert.ok(!ticked.includes(decoy), `${input.id}: ${decoy} is not ticked`);
-        assert.doesNotMatch(decoy, /sleeves|pants|clothing|hi-?vis|glasses|gloves|boots|hard hat|sunscreen|brim|chin strap/i, `${input.id}: no everyday PPE as a wrong answer`);
+        assert.doesNotMatch(decoy, everyday, `${input.id}: no everyday PPE as a wrong answer`);
       }
     }
     for (const item of pool.steps) {
-      assert.ok(item.decoys.length >= 3);
+      assert.equal(item.decoys.length, 6);
       if (item.kind === 'step') {
         assert.equal(item.question, 'Which of these is a job step in this SWMS?');
         assert.ok(names.includes(item.correct) && !['Before starting', 'Finish and clean up'].includes(item.correct));
-        for (const decoy of item.decoys) assert.ok(!names.includes(decoy) && !generic.test(decoy), `${input.id}: ${decoy} is a clear decoy`);
+        for (const decoy of item.decoys) {
+          assert.ok(!names.includes(decoy) && !generic.test(decoy), `${input.id}: ${decoy} is a step name not in this SWMS`);
+          for (const name of names) assert.ok(overlap(decoy, name) < 0.6, `${input.id}: ${decoy} is not a near twin of ${name}`);
+        }
       } else {
         const [, number, name] = /^Which of these is a control in step (\d+) \((.+)\)\?$/.exec(item.question);
         assert.equal(draft.jobSteps[number - 1].step, name);
         assert.ok(draft.jobSteps[number - 1].controls.includes(item.correct), `${input.id}: the answer is a control in that step`);
-        const own = new Set(draft.jobSteps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]).flatMap(words));
         for (const decoy of item.decoys) {
           assert.ok(!controls.includes(decoy), `${input.id}: ${decoy} is not in this SWMS`);
-          assert.ok(!words(decoy).some((word) => own.has(word) && !['the', 'and', 'for', 'with', 'from', 'into', 'over', 'under', 'out', 'use', 'set', 'fix', 'make', 'lift', 'carry', 'check', 'install', 'remove', 'work', 'before', 'starting', 'finish', 'clean'].includes(word)), `${input.id}: ${decoy} shares no telling word with the SWMS`);
+          assert.doesNotMatch(decoy, everyday, `${input.id}: ${decoy} is not everyday PPE any job could have`);
+          for (const line of [...lines, ...ticked]) assert.ok(overlap(decoy, line) < 0.6, `${input.id}: ${decoy} is not a near twin of ${line}`);
         }
+      }
+      // Close to the work: the wrong answers share words with this SWMS, so they cannot be ruled
+      // out without reading it.
+      for (const decoy of item.decoys) {
+        decoys += 1;
+        if ([...words(decoy)].some((word) => work.has(word))) close += 1;
       }
     }
   }
+  assert.ok(close / decoys >= 0.95, `wrong answers close to the work: ${close} of ${decoys}`);
+});
+
+// A worker who does not read, and guesses from the task's words or picks the longest answer,
+// passes no more often than chance allows, give or take.
+test('guessing from the task, or by the longest answer, does not pass', () => {
+  const STOP = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'over', 'under', 'out', 'are', 'not', 'any', 'each', 'all', 'work']);
+  const words = (text) => new Set(String(text).toLowerCase().split(/[^a-z0-9]+/).map((word) => word.replace(/s$/, '')).filter((word) => word.length > 3 && !STOP.has(word)));
+  let asked = 0;
+  let byTask = 0;
+  let byLength = 0;
+  for (const input of require('../scenarios/scenarios.json')) {
+    const draft = prepareDraft({ state: 'qld', ...input });
+    const task = words(input.task);
+    for (let read = 0; read < 20; read += 1) {
+      for (const q of signRead.checkQuestions(input.id, `guess-${read}`, draft)) {
+        asked += 1;
+        const scores = q.options.map((option) => [...words(option)].filter((word) => task.has(word)).length);
+        const best = Math.max(...scores);
+        if (scores[q.answer] === best) byTask += 1 / scores.filter((score) => score === best).length;
+        const lengths = q.options.map((option) => option.length);
+        if (lengths.indexOf(Math.max(...lengths)) === q.answer) byLength += 1;
+      }
+    }
+  }
+  // Chance is 1 in 4 (25%).
+  assert.ok(byTask / asked < 0.4, `guessed from the task: ${Math.round((100 * byTask) / asked)}%`);
+  assert.ok(byLength / asked < 0.35, `the longest answer: ${Math.round((100 * byLength) / asked)}%`);
 });
 
 // How a worker read is kept for SiteReady's own learning only (owner decision, 6 October 2026):
@@ -431,6 +537,14 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
     assert.equal((await call('GET', `/api/sign/${key}/translation?lang=ko`)).status, 200);
     assert.equal(client.calls.length, 4);
 
+    // After a wrong answer the read has new questions, and its translation follows them.
+    const retry = await (await call('GET', `/api/sign/${key}`)).json();
+    await openFor(retry.readId, 3600);
+    const wrong = await (await call('POST', `/api/sign/${key}`, { body: { name: 'Retry Worker', signature: SIGNATURE, confirmed: true, readId: retry.readId, answers: {}, language: 'vi' } })).json();
+    const retried = await (await call('GET', `/api/sign/${key}/translation?lang=vi&read=${retry.readId}`)).json();
+    assert.notDeepEqual(wrong.questions, retry.questions);
+    assert.deepEqual(retried.questions, wrong.questions.map((q) => ({ question: `[vi] ${q.question}`, options: q.options.map((option) => `[vi] ${option}`) })));
+
     // Answering in a translation is marked the same way, and the record names the language.
     await openFor(view.readId, 3600);
     const answers = rightAnswers(await questionsFor(swms.id, view.readId));
@@ -471,7 +585,6 @@ test('with CONTROL_LEARNING on, each wrong answer is kept without the worker, bu
     const questions = await questionsFor(swms.id, view.readId);
     const answers = rightAnswers(questions);
     const ppe = questions.find((q) => q.id === 'ppe');
-    const steps = questions.find((q) => q.id === 'steps');
     const body = { name: 'Mira Kovac', company: 'Example Crew Pty Ltd', signature: SIGNATURE, confirmed: true, readId: view.readId, language: 'vi' };
     const before = await missCount();
 
@@ -486,9 +599,11 @@ test('with CONTROL_LEARNING on, each wrong answer is kept without the worker, bu
     assert.deepEqual([row.language, row.state, row.trade], ['vi', 'qld', 'Fire services']);
     assert.match(row.month, /^\d{4}-\d{2}$/);
 
-    // A wrong step or control answer: the step it tested is kept too.
-    const wrongStep = (answers.steps + 1) % 4;
-    assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, language: 'xx', answers: { ...answers, steps: wrongStep } } })).status, 400);
+    // A wrong step or control answer, on the new questions: the step it tested is kept too.
+    const next = await questionsFor(swms.id, view.readId, 1);
+    const steps = next.find((q) => q.id === 'steps');
+    const wrongStep = (steps.answer + 1) % 4;
+    assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, language: 'xx', answers: { ...rightAnswers(next), steps: wrongStep } } })).status, 400);
     const stepRow = (await db.query("SELECT * FROM check_question_misses WHERE kind <> 'ppe'")).pop();
     assert.ok(['step', 'control'].includes(stepRow.kind));
     assert.deepEqual([stepRow.item, stepRow.chosen], [steps.options[steps.answer], steps.options[wrongStep]]);
@@ -496,9 +611,11 @@ test('with CONTROL_LEARNING on, each wrong answer is kept without the worker, bu
     assert.equal(stepRow.language, 'en', 'a language not offered is kept as English');
 
     // Questions left unanswered and right answers add nothing.
+    await waited(view.readId);
     assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, answers: {} } })).status, 400);
     assert.equal(await missCount(), before + 2);
-    assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, answers } })).status, 201);
+    await waited(view.readId);
+    assert.equal((await call('POST', `/api/sign/${key}`, { body: { ...body, answers: rightAnswers(await questionsFor(swms.id, view.readId, 3)) } })).status, 201);
     assert.equal(await missCount(), before + 2);
 
     const kept = JSON.stringify(await db.query('SELECT * FROM check_question_misses'));

@@ -189,6 +189,68 @@ test('an older revision prints the workers who signed it, and never how they rea
   assert.doesNotMatch((await wordParts(await call('GET', `/api/swms/${swms.id}/docx`, { token }))).body, /Rev One Worker/);
 });
 
+// Goal 6: every worker signs on to the current version. A new revision starts with no sign-ons;
+// workers who signed an earlier one are shown apart, as still to sign.
+test('after a new revision, the owner sees no one has signed it, and who signed only an earlier one', async () => {
+  const limit = process.env.SIGNON_LIMIT;
+  process.env.SIGNON_LIMIT = '2';
+  try {
+    const token = await signIn('resign@history.example');
+    const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+    const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
+    const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+    const signOn = (name) => call('POST', `/api/sign/${key}`, { body: { name, company: 'Crew Co', signature, confirmed: true, explained: true, supervisor: 'Sam Lee' } });
+    const listed = async () => (await (await call('GET', '/api/swms', { token })).json()).swms.find((item) => item.id === swms.id);
+    const detail = async () => (await call('GET', `/api/swms/${swms.id}`, { token })).json();
+
+    assert.equal((await signOn('Jo Worker')).status, 201);
+    assert.equal((await signOn('Kim Worker')).status, 201);
+    assert.equal((await signOn('Third Worker')).status, 409, 'the cap on sign-ons for this revision');
+    assert.deepEqual([(await listed()).signons, (await listed()).signedEarlier], [2, 0]);
+    // A sign-on from before sign-ons kept their revision, signed on revision 1.
+    await db.query(`INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, explained_by)
+      VALUES ('legacy-before', $1, 'Old Worker', 'Crew Co', '', $2, '')`, [swms.id, new Date()]);
+
+    // Revision 2: no one has signed it, the earlier signers are listed apart, and the save says so.
+    const saved = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: { title: 'Fence, revision 2', reason: 'Gate added', ...CONFIRM } })).json();
+    assert.equal(saved.swms.revision, 2);
+    assert.deepEqual([saved.swms.signons, saved.swms.signedEarlier], [0, 3]);
+    let view = await detail();
+    assert.deepEqual(view.signons, []);
+    assert.deepEqual(view.earlierSignons.map((item) => [item.worker_name, item.revision]), [['Jo Worker', 1], ['Kim Worker', 1], ['Old Worker', null]]);
+    assert.equal(view.earlierSignons[0].note, 'Explained by Sam Lee (supervisor)');
+    assert.doesNotMatch(JSON.stringify(view.earlierSignons), /read_seconds|check_attempts|language|section/);
+    assert.deepEqual([(await listed()).signons, (await listed()).signedEarlier], [0, 3], 'the list does not count earlier sign-ons as on this revision');
+
+    // Jo signs revision 2 (the cap counts this revision only), and a sign-on with no revision kept,
+    // made after revision 2 was saved, counts on it too.
+    assert.equal((await signOn('Jo Worker')).status, 201);
+    await db.query(`INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, explained_by)
+      VALUES ('legacy-after', $1, 'New Worker', 'Crew Co', '', $2, '')`, [swms.id, new Date(Date.now() + 1000)]);
+    view = await detail();
+    assert.deepEqual(view.signons.map((item) => item.worker_name), ['Jo Worker', 'New Worker']);
+    assert.deepEqual(view.earlierSignons.map((item) => item.worker_name), ['Kim Worker', 'Old Worker'], 'Jo has signed this revision');
+    assert.deepEqual([(await listed()).signons, (await listed()).signedEarlier], [2, 2]);
+
+    // The sheets: each revision prints the workers who signed it.
+    const current = (await wordParts(await call('GET', `/api/swms/${swms.id}/docx`, { token }))).body;
+    assert.match(current, /Jo Worker/);
+    assert.match(current, /New Worker/);
+    assert.doesNotMatch(current, /Kim Worker|Old Worker/);
+    const first = (await wordParts(await call('GET', `/api/swms/${swms.id}/docx?revision=1`, { token }))).body;
+    assert.match(first, /Kim Worker/);
+    assert.match(first, /Old Worker/);
+    assert.doesNotMatch(first, /New Worker/);
+
+    // The cap counts sign-ons on this revision, as kept with it.
+    assert.equal((await signOn('Kim Worker')).status, 201);
+    assert.equal((await signOn('Third Worker')).status, 409);
+  } finally {
+    if (limit === undefined) delete process.env.SIGNON_LIMIT;
+    else process.env.SIGNON_LIMIT = limit;
+  }
+});
+
 test('a reference can be checked: business, title, revision and whether it is current, nothing else', async () => {
   const token = await signIn('verify@history.example', 'Verify History Pty Ltd');
   const first = await call('POST', '/api/draft.docx', { token, body: { ...INPUT, ...CONFIRM } });

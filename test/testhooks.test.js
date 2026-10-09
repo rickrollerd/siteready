@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');
 const testhooks = require('../testhooks');
-const { setupAccounts, mailbox } = require('./helpers');
+const { setupAccounts, mailbox, lastLinkToken, ANSWERED } = require('./helpers');
 
 let server;
 let base;
@@ -52,6 +52,53 @@ test('reminders can be run as if on a later date', async () => {
   assert.equal(run.ok, true);
   assert.equal(run.now, later);
   assert.equal((await call('POST', '/api/test/run-reminders', { headers: SECRET, body: { now: 'soon' } })).status, 400);
+});
+
+let abnSeed = 600;
+// A valid ABN for each test business.
+function newAbn() {
+  const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+  for (;;) {
+    abnSeed += 1;
+    const tail = String(700000000 + abnSeed * 7919).slice(-9);
+    for (let head = 10; head <= 99; head += 1) {
+      const digits = `${head}${tail}`;
+      const total = [...digits].reduce((sum, d, i) => sum + (Number(d) - (i === 0 ? 1 : 0)) * weights[i], 0);
+      if (total % 89 === 0) return digits;
+    }
+  }
+}
+
+// A business signed in by the test inbox, with one saved SWMS.
+async function testBusiness(email, name, abn = newAbn()) {
+  await call('POST', '/api/auth/email', { body: { email } });
+  const inbox = email.endsWith('@siteready.test') ? (await (await call('GET', `/api/test/inbox?to=${email}`, { headers: SECRET })).json()).messages : [];
+  const link = inbox.length ? /\?login=([A-Za-z0-9_-]+)/.exec(inbox[0].text)[1] : lastLinkToken(email);
+  const { token } = await (await call('POST', '/api/auth/verify', { body: { token: link } })).json();
+  const auth = { Authorization: `Bearer ${token}` };
+  await call('PUT', '/api/company', { headers: auth, body: { name, abn } });
+  const input = { ...ANSWERED, state: 'nsw', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', date: '5 October 2026' };
+  const saved = await (await call('POST', '/api/swms', { headers: auth, body: { input, title: 'Test fence', reviewConfirmed: true, reviewedBy: 'Alex Chen' } })).json();
+  return { auth, id: saved.swms.id };
+}
+
+test('a change to the law can be released to a test business, and its notice read in the test inbox (goal 10)', async () => {
+  const mine = await testBusiness('notice-admin@siteready.test', 'Notice Test Pty Ltd');
+  const reason = 'Test: the NSW Work Health and Safety Regulation 2025 has a new version in force.';
+  const run = await (await call('POST', '/api/test/library-notice', { headers: SECRET, body: { reason, swmsIds: [mine.id] } })).json();
+  assert.equal(run.ok, true);
+  assert.deepEqual(run.results.map((item) => [item.swms, item.companies, item.emails]), [[1, 1, 1]]);
+  const inbox = await (await call('GET', '/api/test/inbox?to=notice-admin@siteready.test', { headers: SECRET })).json();
+  assert.equal(inbox.messages[0].subject, 'SiteReady: 1 SWMS to review after a change');
+  assert.match(inbox.messages[0].text, /- Test fence \(revision 1\): 1 change/);
+  assert.match(inbox.messages[0].text, /Nothing in it has changed yet\. It still prints as it was saved/);
+  assert.match(inbox.messages[0].text, /It is marked "Review: the law or SiteReady changed"\./);
+  const list = (await (await call('GET', '/api/swms', { headers: mine.auth })).json()).swms;
+  assert.deepEqual(list[0].changeReview, [reason]);
+  // A real business's SWMS cannot be changed by the hook.
+  const real = await testBusiness('owner@realco.example', 'Real Co Pty Ltd');
+  assert.equal((await call('POST', '/api/test/library-notice', { headers: SECRET, body: { reason, swmsIds: [real.id] } })).status, 400);
+  assert.equal((await call('POST', '/api/test/library-notice', { body: { reason, swmsIds: [mine.id] } })).status, 404);
 });
 
 test('the hooks are never on in production or with a short secret', () => {

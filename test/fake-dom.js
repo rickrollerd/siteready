@@ -106,6 +106,8 @@ function makeDocument() {
 
     after() {}
 
+    before() {}
+
     remove() {}
 
     getContext() { return null; }

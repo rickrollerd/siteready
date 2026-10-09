@@ -15,7 +15,7 @@ const { draftBody } = require('./input');
 const { swmsWithoutSignOns } = require('./signon-strip');
 const { record } = require('./events');
 
-const CHECK_BRIEF_VERSION = 'check-v2';
+const CHECK_BRIEF_VERSION = 'check-v3';
 
 const CHECK_BRIEF = `You copy the contents of a safe work method statement (SWMS) from an Australian construction site into a fixed form. A separate program scores it. You do not judge, score, fix or improve the SWMS.
 
@@ -31,7 +31,9 @@ Rules:
 9. legislation: each act, regulation, code or standard the document lists in a legislation or references list.
 10. riskMatrix: true only if the document prints a risk matrix (a likelihood and consequence chart).
 11. fallRisk: "yes" if the document says a person could fall 2 metres or more, "no" if it says no one could, otherwise "".
-12. state: the Australian state or territory the work is in, as an abbreviation (qld, nsw, vic, sa, wa, tas, nt, act), or "".`;
+12. state: the Australian state or territory the work is in, as an abbreviation (qld, nsw, vic, sa, wa, tas, nt, act), or "".
+13. For each step, riskBefore and riskAfter: the risk rating the document gives that step (or its hazards) before and after the controls, as written (for example "High", "Medium", "H", "12"), or "". Where hazards in a step are rated separately, give the highest. riskResponse: what the document says is done about a rating still high after the controls (further controls, or who accepts the risk), word for word, or "".
+14. riskAcceptance: the document's own words, for the whole SWMS, on who accepts a risk still rated high after the controls, or "".`;
 
 const text = { type: 'string' };
 const texts = { type: 'array', items: text };
@@ -43,7 +45,7 @@ const CHECK_SCHEMA = object({
   siteAddress: text,
   siteConditions: texts,
   highRisk: texts,
-  steps: { type: 'array', items: object({ step: text, hazards: texts, controls: texts, responsible: text }) },
+  steps: { type: 'array', items: object({ step: text, hazards: texts, controls: texts, responsible: text, riskBefore: text, riskAfter: text, riskResponse: text }) },
   ppe: texts,
   responsiblePerson: text,
   consultation: text,
@@ -58,6 +60,7 @@ const CHECK_SCHEMA = object({
   review: text,
   legislation: texts,
   riskMatrix: { type: 'boolean' },
+  riskAcceptance: text,
 });
 
 function fail(status, message) {
@@ -71,7 +74,7 @@ function validSwms(value) {
   return Boolean(value) && typeof value === 'object'
     && ['task', 'siteAddress', 'responsiblePerson', 'consultation', 'revision', 'date', 'reviewDate', 'principalContractor', 'review'].every((key) => typeof value[key] === 'string')
     && ['siteConditions', 'highRisk', 'ppe', 'licences', 'plant', 'emergency', 'legislation'].every((key) => strings(value[key]))
-    && Array.isArray(value.steps) && value.steps.every((step) => step && typeof step.step === 'string' && strings(step.hazards) && strings(step.controls) && ['string', 'undefined'].includes(typeof step.responsible))
+    && Array.isArray(value.steps) && value.steps.every((step) => step && typeof step.step === 'string' && strings(step.hazards) && strings(step.controls) && ['responsible', 'riskBefore', 'riskAfter', 'riskResponse'].every((key) => ['string', 'undefined'].includes(typeof step[key])))
     && Array.isArray(value.signatures) && value.signatures.every((item) => item && typeof item.name === 'string');
 }
 
@@ -83,7 +86,7 @@ function quotesNotFound(swms, documentText) {
     return !words || doc.includes(words) || doc.includes(words.replace(/[.;:,]+$/, ''));
   };
   const lines = [
-    ...swms.steps.flatMap((step) => [...step.hazards, ...step.controls]),
+    ...swms.steps.flatMap((step) => [...step.hazards, ...step.controls, ...(step.riskResponse ? [step.riskResponse] : [])]),
     ...swms.siteConditions, ...swms.licences, ...swms.plant, ...swms.emergency,
   ];
   return lines.filter((line) => !found(line)).map((line) => line.slice(0, 300));
