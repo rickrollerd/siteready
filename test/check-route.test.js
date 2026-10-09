@@ -217,9 +217,9 @@ test('only starting a check counts against its limit; asking for the result does
   process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
   standIn(50);
   const response = await post('/api/check', { text: 'Task: Paint the shop walls. Paint fumes. Ventilate the shop.' }, token);
-  assert.match(response.headers.get('ratelimit-policy') || '', /"30-in-15min"/);
+  assert.match(response.headers.get('ratelimit-policy') || '', /"check"; q=30;/);
   const { id } = await response.json();
   const poll = await get(`/api/check/${id}`, token);
-  assert.doesNotMatch(poll.headers.get('ratelimit-policy') || '', /"30-in-15min"/);
+  assert.doesNotMatch(poll.headers.get('ratelimit-policy') || '', /"check"; q=30;/);
   await finished(id);
 });
