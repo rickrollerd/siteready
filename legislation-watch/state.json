@@ -55,11 +55,11 @@
   },
   "nt-whs-act": {
     "version": "REPW025",
-    "status": "unreadable"
+    "status": "ok"
   },
   "nt-whs-reg": {
     "version": "REPW025",
-    "status": "unreadable"
+    "status": "ok"
   },
   "act-whs-act": {
     "version": "R30 (current) 26 November 2025",
@@ -278,7 +278,10 @@
     "81f117e99f",
     "7a1b62d54b",
     "7bf27f84f4",
-    "0ac4517079"
+    "0ac4517079",
+    "c8c0dc4d84",
+    "1bb5ba3477",
+    "23296da4b3"
   ],
   "alerts:nsw-construction-alerts": {
     "status": "unreadable"
