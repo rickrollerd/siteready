@@ -41,6 +41,8 @@
     .pass .rule { color: #1f4e3d; }
     .source { color: #5c6773; font-size: 13px; }
     .hidden { display: none; }
+    #progress p { margin: 0 0 8px; }
+    #progress p:last-child { margin: 0; }
     /* Phones (goal 7): controls at least 44 px and text at least 16 px. */
     @media (max-width: 640px) {
       .meta, label, .source { font-size: 16px; }
@@ -92,6 +94,10 @@
       <button type="submit" id="go">Check the SWMS</button>
     </form>
 
+    <div id="progress" class="panel hidden">
+      <p role="status">The AI is reading every word of the SWMS, including its tables, and then the rules score it. A long SWMS can take a few minutes. Keep this page open: the result is not kept anywhere else.</p>
+      <p class="meta">Reading for <span id="elapsed" role="timer">0 s</span>.</p>
+    </div>
     <div id="error" aria-live="polite"></div>
     <div id="result" class="hidden" aria-live="polite">
       <div class="panel">

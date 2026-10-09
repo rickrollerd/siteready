@@ -24,6 +24,7 @@ const { localText } = require('./citations');
 const { scopeText } = require('./scope-text');
 const { tasksFromScope } = require('./scope');
 const aiScope = require('./ai-scope');
+const checkJobs = require('./check-jobs');
 const { reportToDocx } = require('./scope-report');
 const places = require('./places');
 const { recordIndustry } = require('./industry');
@@ -258,12 +259,39 @@ app.get('/api/scope/ai/:id/report.docx', auth.requireUser, async (req, res, next
 
 // The builder SWMS check (task #106): score a subcontractor's SWMS and draft the email back.
 // Signed-in accounts only, with its own limit, as an uploaded SWMS is read by the AI.
-app.use('/api/check', limiter(positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30)));
+// Reading a long SWMS takes minutes, longer than a proxy waits for one answer, so an uploaded or
+// pasted SWMS is started as a check (check-jobs.js) and the page asks for it by its id. A SiteReady
+// draft needs no AI and is checked at once. Only starting a check counts against this limit; the
+// page asking whether it is ready does not.
+const checkLimit = limiter(positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30));
+app.use('/api/check', (req, res, next) => (req.method === 'POST' ? checkLimit(req, res, next) : next()));
 app.post('/api/check', auth.requireUser, async (req, res, next) => {
   try {
-    const result = await require('./check-read').runCheck(req.body || {}, req.company);
-    record('builder_check', req.company && req.company.id);
+    const checkRead = require('./check-read');
+    const body = req.body || {};
+    const { company, user } = req;
+    if (checkRead.readsDocument(body)) {
+      checkRead.readyToRead(body);
+      const started = checkJobs.startJob(user.id, async () => {
+        const result = await checkRead.runCheck(body, company);
+        record('builder_check', company && company.id);
+        return result;
+      }, (error) => recordError('POST /api/check (reading)', error));
+      return res.status(202).json(started);
+    }
+    const result = await checkRead.runCheck(body, company);
+    record('builder_check', company && company.id);
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+// The check's result once ready, for the account that started it. It is dropped as it is read.
+app.get('/api/check/:id', auth.requireUser, async (req, res, next) => {
+  try {
+    const job = await checkJobs.takeJob(req.user.id, req.params.id);
+    if (!job) return res.status(404).json({ kind: 'error', message: 'This check is not kept any more. Results are dropped once shown, or 10 minutes after the check, and a server restart drops them too. Check the SWMS again.' });
+    res.json(job);
   } catch (error) {
     next(error);
   }
@@ -494,6 +522,8 @@ function start() {
   if (cluster.isPrimary) for (const line of keyProblems()) console.error(line);
   if (workers > 1 && cluster.isPrimary) {
     for (let i = 0; i < workers; i += 1) cluster.fork();
+    // A builder check runs in one worker; another worker asked for it asks through here.
+    checkJobs.relayChecks(cluster);
     cluster.on('exit', (worker, code, signal) => {
       console.error(`Worker ${worker.process.pid} stopped (${signal || code}). Starting another.`);
       cluster.fork();

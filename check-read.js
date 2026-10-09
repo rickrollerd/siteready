@@ -4,7 +4,9 @@
 // never by the AI.
 //
 // Nothing is kept: the document and the reading are used for the one check and dropped.
-// Switched off with the AI scope reading (aiScope.enabled()).
+// Switched off with the AI scope reading (aiScope.enabled()). A long SWMS takes minutes to read,
+// so the server runs the check as a job held in memory only (check-jobs.js) and the page asks
+// for the result; the result is dropped once it is read.
 //
 // Worker sign-on pages are taken out before anything is sent (owner decision, 6 October 2026):
 // see signon-strip.js. The workers are counted here first, so H7 still knows they signed.
@@ -68,6 +70,7 @@ function fail(status, message) {
 }
 
 const MAX_CHARACTERS = 400000;
+const OFF = 'Reading an uploaded SWMS is not switched on. Check a SiteReady draft instead.';
 
 function validSwms(value) {
   const strings = (items) => Array.isArray(items) && items.every((item) => typeof item === 'string');
@@ -94,7 +97,7 @@ function quotesNotFound(swms, documentText) {
 
 // The structured form, read from the document text. One call; nothing is stored.
 async function readSwms(documentText) {
-  if (!aiScope.enabled()) throw fail(503, 'Reading an uploaded SWMS is not switched on. Check a SiteReady draft instead.');
+  if (!aiScope.enabled()) throw fail(503, OFF);
   const content = String(documentText || '');
   if (!content.trim()) throw fail(400, 'There is no text in this file to read.');
   if (content.length > MAX_CHARACTERS) throw fail(413, 'This document is too long to check. Check one SWMS at a time.');
@@ -140,6 +143,19 @@ async function strippedText(body, company) {
   return stripped;
 }
 
+// An uploaded or pasted SWMS is read by the AI; a SiteReady draft or a SWMS already in the
+// structured form is not, so it is checked at once.
+function readsDocument(body) {
+  return !(body.draft && typeof body.draft === 'object') && !(body.swms && typeof body.swms === 'object');
+}
+
+// Refused before a check by the AI is started, so the page hears at once: nothing attached, or
+// the reading switched off.
+function readyToRead(body) {
+  if (!(typeof body.text === 'string' && body.text.trim()) && !(body.file && body.file.data)) throw fail(400, 'Attach the SWMS or paste it first.');
+  if (!aiScope.enabled()) throw fail(503, OFF);
+}
+
 // POST /api/check: a SiteReady draft (no AI), a SWMS already in the structured form, or an
 // uploaded or pasted document read by the AI. Returns the score, the findings and the email.
 async function runCheck(body, company) {
@@ -177,4 +193,4 @@ async function runCheck(body, company) {
   return { ...result, source, notFound, email: emailDraft(result, email) };
 }
 
-module.exports = { readSwms, runCheck, validSwms, quotesNotFound, useStripLog, CHECK_BRIEF, CHECK_SCHEMA, CHECK_BRIEF_VERSION };
+module.exports = { readSwms, runCheck, readsDocument, readyToRead, validSwms, quotesNotFound, useStripLog, CHECK_BRIEF, CHECK_SCHEMA, CHECK_BRIEF_VERSION };
