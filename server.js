@@ -31,6 +31,7 @@ const draftTranslate = require('./draft-translate');
 const { keyProblems } = require('./secret-keys');
 const { downloadGaps, gateMessage } = require('./download-gate');
 const { hasBlank, blankKey } = require('./blanks');
+const delivery = require('./delivery');
 
 require('dotenv').config();
 
@@ -59,6 +60,8 @@ app.set('trust proxy', Number.isInteger(trustProxy) && trustProxy >= 0 ? trustPr
 app.use(helmet());
 // The native app reads the file name, and the saved SWMS and revision a download was saved as.
 app.use(cors({ origin: allowedOrigins(), exposedHeaders: ['Content-Disposition', 'X-SiteReady-Swms', 'X-SiteReady-Revision', 'X-SiteReady-Title', 'X-SiteReady-Saved'] }));
+// Answers are compressed, and not kept by the browser unless a route says so (delivery.js).
+app.use('/api', delivery.apiResponses);
 // Stripe's webhook is checked against the raw body, so it comes before the JSON reader.
 app.post('/api/billing/webhook', ...billing.webhook);
 
@@ -72,7 +75,9 @@ const wordJson = express.json({ limit: '1mb' });
 const scopeJson = express.json({ limit: '15mb' });
 const projectJson = express.json({ limit: '5mb' });
 app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
-app.use(express.static(path.join(__dirname, 'public')));
+// The page's text files are sent compressed and kept by the phone until they change (goal 7).
+app.use(delivery.staticFiles(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), delivery.staticOptions));
 
 // Limits are per client address. Phones on mobile data and a site office on one
 // connection often share an address, so the limits are set for a busy site, not
@@ -160,11 +165,15 @@ app.get('/api/abn', async (req, res, next) => {
   }
 });
 
+// The states, the pick lists and the job step library change only when SiteReady is updated,
+// so a phone keeps them for an hour instead of asking again on every visit.
 app.get('/api/states', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
   res.json({ states: listStates() });
 });
 
 app.get('/api/presets', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
   res.json({ trades: TRADES });
 });
 

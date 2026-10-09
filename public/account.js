@@ -157,6 +157,7 @@
     }
     renderBar();
     renderSitePicker();
+    if (me && S.redrawActions) S.redrawActions();
   }
 
   function trialText(company) {
@@ -229,6 +230,9 @@
     if (event.target.id === 'sign-out') {
       await call('POST', '/api/auth/logout').catch(() => {});
       signedOut();
+      // Work not saved is not left on a shared phone for the next person. An expired session
+      // keeps it, so the user can sign in again and carry on.
+      if (S.clearUnsaved) S.clearUnsaved();
       ['my-swms', 'sites-panel', 'team-panel'].forEach((id) => $(id).classList.add('hidden'));
     }
   });
@@ -364,6 +368,8 @@
       // A new revision was saved when the number moved on from the one being changed.
       const revised = saved.revision > 1 && !(S.editing && S.editing.id === saved.id && S.editing.revision === saved.revision);
       S.editing = { id: saved.id, title: saved.title, revision: saved.revision };
+      // Saved, so the copy kept on this device is no longer needed (goal 7).
+      if (S.clearUnsaved) S.clearUnsaved();
       status('new-status', `Saved as "${saved.title}", revision ${saved.revision}, and downloaded. Find it under My SWMS. Changes you make now save as its next revision.${revised ? resignLine(saved.revision) : ''}`);
       if ($('new-save')) { $('new-save').textContent = 'Saved'; $('new-save').disabled = true; }
     };
@@ -375,6 +381,7 @@
         const data = S.editing ? await call('PUT', `/api/swms/${S.editing.id}`, body) : await call('POST', '/api/swms', body);
         // Later changes to this SWMS save as its revisions.
         S.editing = { id: data.swms.id, title: data.swms.title, revision: data.swms.revision || 1 };
+        if (S.clearUnsaved) S.clearUnsaved();
         status('new-status', `Saved "${data.swms.title}", revision ${data.swms.revision || 1}. Find it under My SWMS, where workers can sign on by QR code.${data.swms.revision > 1 ? resignLine(data.swms.revision, data.swms.signedEarlier) : ''}`);
         $('new-save').textContent = 'Saved';
         $('new-save').disabled = true;
@@ -749,5 +756,6 @@
     scopeWaiting();
   }
 
-  start();
+  // The page waits for this before it brings back unsaved work, so its buttons match the account.
+  S.accountReady = start().catch(() => {});
 })();

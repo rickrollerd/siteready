@@ -20,6 +20,10 @@
     .bad { background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 8px; padding: 16px; margin-top: 14px; }
     dt { font-weight: 600; font-size: 14px; margin-top: 8px; }
     dd { margin: 0; }
+    /* Phones (goal 7): text at least 16 px. */
+    @media (max-width: 640px) {
+      .meta, label, dt { font-size: 16px; }
+    }
   </style>
 </head>
 <body>
@@ -34,6 +38,7 @@
     <div id="result" aria-live="polite"></div>
     <p class="meta" style="margin-top:14px">A genuine reference shows the SWMS was prepared with SiteReady for the business named. That business reviews, approves and is responsible for its SWMS. Check the business named here matches the one named on the SWMS. The signed record is the one kept in SiteReady: changes made to a printed or Word copy outside SiteReady are not part of it.</p>
   </div>
+  <script src="/net.js" data-message="No signal. Try again when you have signal."></script>
   <script src="/verify.js"></script>
 </body>
 </html>

@@ -41,6 +41,12 @@
     .pass .rule { color: #1f4e3d; }
     .source { color: #5c6773; font-size: 13px; }
     .hidden { display: none; }
+    /* Phones (goal 7): controls at least 44 px and text at least 16 px. */
+    @media (max-width: 640px) {
+      .meta, label, .source { font-size: 16px; }
+      select, input[type="text"], textarea { min-height: 44px; }
+      input[type="file"] { min-height: 44px; padding: 8px 0; font-size: 16px; }
+    }
   </style>
 </head>
 <body>
@@ -107,6 +113,7 @@
       </div>
     </div>
   </div>
+  <script src="/net.js" data-message="No signal. What you have entered stays on this page; try again when you have signal."></script>
   <script src="/check.js"></script>
 </body>
 </html>

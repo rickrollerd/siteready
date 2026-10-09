@@ -47,6 +47,14 @@
     .q { scroll-margin: 16px 0 96px; }
     .done { background: #e8f3ee; border: 1px solid #9cc9b3; border-radius: 8px; padding: 16px; margin-top: 14px; font-weight: 600; }
     .hidden { display: none; }
+    /* Phones (goal 7): controls at least 44 px each way and text at least 16 px. The progress bar is left as it is. */
+    @media (max-width: 640px) {
+      h2, .meta, .en, .banner, li, label { font-size: 16px; }
+      select, input[type="text"] { min-height: 44px; }
+      button.secondary { min-height: 44px; padding: 10px 14px; font-size: 16px; }
+      .check, .q label { min-height: 44px; align-items: center; }
+      .check input, .q input { margin-top: 0; width: 22px; height: 22px; }
+    }
   </style>
 </head>
 <body>

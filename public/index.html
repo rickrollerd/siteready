@@ -271,6 +271,54 @@
       .qr-box { flex-direction: column; align-items: flex-start; }
       button { width: 100%; }
     }
+    /* Sections printed for others to fill in start folded on a phone (app.js folded). */
+    details.sheet-fold > summary { cursor: pointer; margin: 20px 0 8px; }
+    details.sheet-fold > summary h4 { display: inline; margin: 0; }
+    details.sheet-fold .fold-note { display: block; color: #5c6773; font-size: 14px; font-weight: 400; margin: 2px 0 0 1.2em; }
+    details.sheet-fold[open] .fold-note { display: none; }
+    .step-edit, .ctl-show, .phone-only { display: none; }
+    /* Phones (goal 7): every control at least 44 px each way and text at least 16 px, for a thumb
+       and eyes on site. The layout on a computer is unchanged. */
+    @media (max-width: 640px) {
+      .lede, label, .hint, .meta, .status, .error, .note, .warning, .banner, .site-footer, .bar-note, .tag, .tag-risk,
+      h2, details.panel > summary, .saved-name, .step-warning, .project-status, .step-list .step-names, .step-list .tag,
+      .ppe-group legend, .choice legend, .picks-label, .pick-button, th, td, .sheet p, .sheet li, .sign div, input[type="file"],
+      button.small, .scope-task h3, .scope-task p, .scope-task details, .scope-clauses, .scope-hrcw, .scope-conflicts,
+      .conflict-dialog, .scope-others, .ctl-tools, .ctl-why, .ctl-why select, .ctl-why input, .ctl-warn, .translate .en,
+      .gate p, .gate-list .meta, .gate-need, .blank-input, details.sheet-fold .fold-note { font-size: 16px; }
+      table.stack td::before { font-size: 16px; }
+      button, select, .pick select, select.plain, input[type="text"], input[type="search"], input[type="date"], .blank-input { min-height: 44px; }
+      button { min-width: 44px; }
+      button.link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; text-align: left; }
+      .bar-links { gap: 0 16px; }
+      .pick-button { padding: 9px 14px; }
+      .step-move button { width: 44px; min-width: 44px; height: 44px; }
+      input[type="file"] { min-height: 44px; padding: 8px 0; }
+      input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; }
+      .choice label, .ppe-group label, .state, .step-list label, .confirm .check, .not-covered .check, .gate-list li { min-height: 44px; align-items: center; }
+      .confirm .check input, .not-covered .check input { margin-top: 0; }
+      .ppe-group label { margin-bottom: 0; }
+      .address-list li { min-height: 44px; }
+      details.panel > summary, .site-item > summary, details.revisions > summary, .scope-task details > summary, .note details > summary, details.sheet-fold > summary { padding: 11px 0; }
+      .site-footer a { display: inline-block; padding: 11px 0; }
+      .ctl-why select, .ctl-why input { min-height: 44px; padding: 6px 8px; }
+      /* The draft: each step's tools show after Change this step, and a long list of controls shows
+         its first lines until Show all (app.js). Removed lines and the reasons asked stay in view. */
+      .phone-only { display: inline; }
+      .step-edit { display: block; margin: 8px 0 0; }
+      .ctl-show { display: block; margin: 6px 0 4px; }
+      tr[data-step-row]:not(.editing) li > .ctl-tools,
+      tr[data-step-row]:not(.editing) [data-who-step] .ctl-tools,
+      tr[data-step-row]:not(.editing) [data-ctl="add"],
+      tr[data-step-row]:not(.editing) [data-hz="add"],
+      tr[data-step-row]:not(.editing) .step-move { display: none; }
+      tr[data-step-row]:not(.editing):not(.open-all) li.ctl-more { display: none; }
+      tr[data-step-row].editing .ctl-show, tr[data-step-row].open-all .ctl-show { display: none; }
+      tr[data-step-row].editing li > .ctl-tools { display: flex; flex-wrap: wrap; gap: 0 16px; margin: 0; }
+      .step-move { display: flex; margin: 8px 0 0; }
+      /* Lists in the stacked tables use the width of the phone. */
+      .sheet td ul { margin: 4px 0; padding-left: 1.15em; }
+    }
   </style>
 </head>
 <body>
@@ -600,6 +648,7 @@
     <section id="result" class="hidden"></section>
     <p class="site-footer">SiteReady prepares draft SWMS. Your business reviews, approves and is responsible for every SWMS it uses. <a href="/terms.html">Terms of use</a> · <a href="/privacy.html">Privacy</a></p>
   </div>
+  <script src="/net.js"></script>
   <script src="/address.js"></script>
   <script src="/app.js"></script>
   <script src="/account.js"></script>

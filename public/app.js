@@ -482,7 +482,8 @@ document.getElementById('start').addEventListener('submit', (event) => {
     scopeUnmatched = scope && scope.task === task && Array.isArray(scope.unmatched) ? [...scope.unmatched] : null;
     choicesTask = task;
   }
-  loadQuestions();
+  // With no signal the plain message shows here, not nothing (goal 7).
+  loadQuestions().catch((error) => { document.getElementById('start-error').textContent = error.message; });
 });
 
 // Job steps: null follows the steps SiteReady finds in the task; a list is the user's own picks.
@@ -618,7 +619,8 @@ async function refreshSteps() {
   const site = {};
   document.querySelectorAll('[data-site]').forEach((el) => { site[el.dataset.site] = el.value; });
   const ppe = new Set([...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value));
-  if (!(await loadQuestions({ stay: true }))) return;
+  const loaded = await loadQuestions({ stay: true }).catch((error) => { document.getElementById('facts-error').textContent = error.message; return false; });
+  if (!loaded) return;
   document.querySelectorAll('[data-fact]').forEach((el) => {
     const value = kept[el.dataset.fact];
     if (value === undefined) return;
@@ -748,7 +750,8 @@ function fillFields(values) {
   applyAddressState();
 }
 
-async function fillForm(input) {
+// The task and site details of a SWMS, without asking the server for its questions.
+function fillStart(input) {
   const pick = (name, value) => {
     const el = value && document.querySelector(`input[name="${name}"][value="${value}"]`);
     if (el) el.checked = true;
@@ -770,7 +773,11 @@ async function fillForm(input) {
   whoEdits = input.whoEdits && typeof input.whoEdits === 'object' ? { ...input.whoEdits } : null;
   fills = input.fills && typeof input.fills === 'object' ? JSON.parse(JSON.stringify(input.fills)) : null;
   showFallExplanation();
-  if (!(await loadQuestions())) return;
+}
+
+async function fillForm(input, options = {}) {
+  fillStart(input);
+  if (!(await loadQuestions(options))) return false;
   document.querySelectorAll('[data-fact]').forEach((el) => {
     const value = (input.facts || {})[el.dataset.fact] || '';
     if (el.type === 'radio') el.checked = el.value === value || (!value && el.defaultChecked);
@@ -780,6 +787,7 @@ async function fillForm(input) {
   document.querySelectorAll('[data-site]').forEach((el) => { el.value = (input.site || {})[el.dataset.site] || ''; });
   (questions && questions.required || []).forEach((item) => markPicks(item.id));
   if (Array.isArray(input.ppe)) document.querySelectorAll('[data-ppe]').forEach((el) => { el.checked = input.ppe.includes(el.value); });
+  return true;
 }
 
 // Testing live equipment needs arc-rated clothing and insulated gloves (Model Code s 9.5).
@@ -970,6 +978,53 @@ function showGate() {
   markGaps(shownGaps.filter((gap) => gap.kind !== 'cover'));
 }
 
+// ---- A shorter draft on a phone (goal 7) ----
+
+// On a phone the draft was about 45 screens long, mostly the job steps' controls with a Change and
+// Remove beside every line. On a phone (the same width the tables stack at) each step's tools show
+// after Change this step, a step with many controls shows its first few with a button for the rest,
+// and the forms printed for others to fill in (legislation list, principal contractor review,
+// worker sign-on lines) start folded under their heading. Only the screen changes: the Word and PDF
+// files, and the SWMS saved, are the same. On a computer everything shows as before.
+const PHONE_WIDTH = '(max-width: 640px)';
+const onPhone = () => Boolean(window.matchMedia && window.matchMedia(PHONE_WIDTH).matches);
+// A step with more than this many controls shows the first FEW_CONTROLS on a phone.
+const MANY_CONTROLS = 8;
+const FEW_CONTROLS = 6;
+// The steps being changed, and those showing all their controls, by job step name, so they stay
+// so when the draft is prepared again after a change.
+const stepsEditing = new Set();
+const stepsOpen = new Set();
+
+// A section that starts folded on a phone, under a heading that says what is in it.
+function folded(heading, body, note = '') {
+  return `<details class="sheet-fold"${onPhone() ? '' : ' open'}><summary><h4>${esc(heading)}</h4>${note ? `<span class="fold-note">${esc(note)}</span>` : ''}</summary>${body}</details>`;
+}
+
+resultEl.addEventListener('click', (event) => {
+  const edit = event.target.closest('[data-step-edit]');
+  const more = event.target.closest('[data-ctl-more]');
+  if (!edit && !more) return;
+  const row = (edit || more).closest('tr[data-step-row]');
+  const step = shownDraft && (shownDraft.jobSteps || [])[Number(row.dataset.stepRow)];
+  if (!step) return;
+  if (more) {
+    stepsOpen.add(step.step);
+    row.classList.add('open-all');
+    return;
+  }
+  const on = !stepsEditing.has(step.step);
+  if (on) stepsEditing.add(step.step); else stepsEditing.delete(step.step);
+  row.classList.toggle('editing', on);
+  edit.setAttribute('aria-expanded', String(on));
+  edit.textContent = on ? 'Done changing this step' : 'Change this step';
+});
+
+// Printing the page prints every section, folded or not.
+if (typeof window.addEventListener === 'function') {
+  window.addEventListener('beforeprint', () => document.querySelectorAll('details.sheet-fold').forEach((el) => { el.open = true; }));
+}
+
 function render(draft, { movable = false } = {}) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
   const logo = profile.logo ? `<img class="sheet-logo" src="${esc(profile.logo)}" alt="">` : '';
@@ -1028,8 +1083,12 @@ function render(draft, { movable = false } = {}) {
     const removed = ((controlEdits || {})[step.step] || {}).removed || [];
     const warned = (report.warned || []).filter((item) => item.step === step.step);
     const asks = (report.applied || []).filter((item) => item.step === step.step && (item.kind === 'removed' || warned.some((other) => other.text === item.from)));
-    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+    // On a phone, a long list shows its first lines; a line with a blank to fill in always shows.
+    const folds = (i) => step.controls.length > MANY_CONTROLS && i >= FEW_CONTROLS && !(blankKeys.steps[index] || [])[i];
+    const hidden = step.controls.filter((_line, i) => folds(i)).length;
+    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
       ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
+      ${hidden ? `<button type="button" class="secondary ctl-show" data-ctl-more="${index}">Show all ${step.controls.length} controls</button>` : ''}
       ${asks.map((item) => whyBox(index, item)).join('')}
       <button type="button" class="link" data-ctl="add" data-ctl-step="${index}">Add your own control</button><p class="meta ctl-msg" data-ctl-msg="${index}" role="status"></p>`;
   };
@@ -1051,15 +1110,19 @@ function render(draft, { movable = false } = {}) {
   const whoCell = (step, index) => (movable
     ? `<span data-who-step="${index}">${esc(step.responsible || '')}<span class="ctl-tools"><button type="button" class="link" data-who="change">Change</button></span></span>`
     : esc(step.responsible || ''));
+  const stepRowClass = (step) => {
+    const names = [stepsEditing.has(step.step) ? 'editing' : '', stepsOpen.has(step.step) ? 'open-all' : ''].filter(Boolean);
+    return names.length ? ` class="${names.join(' ')}"` : '';
+  };
   const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}` : '');
-  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${hazardCell(step, index)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${whoCell(step, index)}</td></tr>`).join('')}</tbody></table>
+  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"${stepRowClass(step)}` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<button type="button" class="secondary step-edit" data-step-edit="${index}" aria-expanded="${stepsEditing.has(step.step)}">${stepsEditing.has(step.step) ? 'Done changing this step' : 'Change this step'}</button><span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${hazardCell(step, index)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${whoCell(step, index)}</td></tr>`).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const registers = `${(draft.plant || []).length ? `<h4>Plant and equipment</h4>${grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence]))}` : ''}
     ${draft.substances && draft.substances.items.length ? `<h4>Hazardous substances</h4>${grid(['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], draft.substances.items.map((item) => [item.product, '', 'Yes / No', '']))}` : ''}
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
     ${(draft.emergency || []).length ? `<h4>Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}` : ''}
-    ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? `<h4>Legislation and codes of practice</h4>${grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]])}` : ''}`;
+    ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? folded('Legislation and codes of practice', grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]), `${draft.sources.legislation.length + draft.sources.codes.length} listed`) : ''}`;
   const ppe = `<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.map((item) => `${item.ticked ? '&#9745;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}</td></tr>`).join('')}</tbody></table>`;
   const people = `<table><tbody>
       ${row('Works manager', draft.worksManager) || '<tr><th>Works manager</th><td></td></tr>'}
@@ -1072,7 +1135,7 @@ function render(draft, { movable = false } = {}) {
     <h4>Responsibilities</h4>${people}
     <h4>High risk construction work</h4>${risks}
     <h4>Controls</h4>${controls}
-    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change it. Lines you write or change are marked as your own. A hazard that does not apply is marked so, not deleted. SiteReady warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why.</p>' : ''}${steps}
+    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change it. Lines you write or change are marked as your own. A hazard that does not apply is marked so, not deleted. SiteReady warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why.<span class="phone-only"> On a phone, tap Change this step to move a step or change its lines.</span></p>' : ''}${steps}
     <h4>Personal protective equipment</h4>${ppe}
     ${registers}
     <h4>${esc(draft.reviewHeading)}</h4>
@@ -1081,19 +1144,17 @@ function render(draft, { movable = false } = {}) {
     ${(draft.references || []).length ? `<h4>Documents to keep on site with this SWMS</h4><table><tbody>${draft.references.map((item) => `<tr><th>${esc(item.label)}</th><td>${esc(item.text)}</td></tr>`).join('')}</tbody></table>` : ''}
     <h4>Prepared by</h4>
     <table><tbody>${[['Name and position', draft.preparedBy], ['Signature', ''], ['Date', draft.preparedBy ? draft.date : ''], ['Date given to the principal contractor', '']].map(([label, value]) => `<tr><th>${label}</th><td>${esc(value)}</td></tr>`).join('')}</tbody></table>
-    <h4>Principal contractor review</h4>
-    <p class="meta">Completed by the principal contractor before the work starts.</p>
+    ${folded('Principal contractor review', `<p class="meta">Completed by the principal contractor before the work starts.</p>
     <table><tbody>
       <tr><th>Principal contractor</th><td>${esc(draft.principalContractor)}</td></tr>
       ${['Date SWMS received', 'Reviewed by (name and position)'].map((label) => `<tr><th>${label}</th><td></td></tr>`).join('')}
       <tr><th>Outcome</th><td>&#9744; Accepted &nbsp; &#9744; Accepted with changes &nbsp; &#9744; Not accepted: revise and resubmit</td></tr>
       ${['Comments or changes', 'Signature', 'Date'].map((label) => `<tr><th>${label}</th><td></td></tr>`).join('')}
-    </tbody></table>
-    <h4>Worker sign-on</h4>
-    <p>By signing, I confirm this SWMS has been explained to me, I understand it, and I will follow it. If the work changes or a control is not working, I will stop and tell my supervisor.</p>
+    </tbody></table>`, 'Filled in by the principal contractor')}
+    ${folded('Worker sign-on', `<p>By signing, I confirm this SWMS has been explained to me, I understand it, and I will follow it. If the work changes or a control is not working, I will stop and tell my supervisor.</p>
     <div class="sign"><div>Name</div><div>Signature</div><div>Date</div></div>
     <div class="sign"><div></div><div></div><div></div></div>
-    <p class="meta">The Word file has two pages of lines for workers to sign.</p>`;
+    <p class="meta">The Word file has two pages of lines for workers to sign.</p>`, 'Lines for workers to sign')}`;
 }
 
 // The nearest hospitals and medical centres to the job address. Each lookup is a paid
@@ -1172,6 +1233,8 @@ document.addEventListener('click', (event) => {
 // Prepares the draft and shows it. Moving a job step prepares it again in the new order.
 let shownSteps = [];
 let shownDraft = null;
+// What was sent for the draft shown, for its buttons once the user signs in.
+let shownSent = null;
 
 // Parts of the task with no job steps (owner decision D184, 6 October 2026): named above the
 // draft, not printed in the SWMS, with a tick that the user has dealt with them. Saving and the
@@ -1230,11 +1293,13 @@ async function prepareDraft({ scroll = true } = {}) {
     showGate();
     // What is saved: the input sent, with changes moved onto any line SiteReady has reworded.
     const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
+    shownSent = sent;
     // Downloading and saving need an account; the account script adds those buttons.
     window.SiteReady.showActions(data, sent);
     if (data.kind === 'draft') showTranslate(sent);
     // A SWMS in a project is recorded against its task.
     if (window.SiteReady.onDraft) window.SiteReady.onDraft(data, sent);
+    keepUnsaved();
     if (scroll) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;
@@ -1689,7 +1754,105 @@ function renderTranslation(tr) {
     <div class="actions"><button type="button" class="secondary" data-translate-close>Close the translation</button></div>`;
 }
 
+// ---- Unsaved work kept on this device (goal 7) ----
+
+// What the user has typed for a SWMS not yet saved (the task, the answers, the site details and their
+// changes to the draft) is kept in this browser, so a reload or a lost signal does not lose it. It
+// is cleared when the SWMS is saved, on Start again, on sign out, and after 14 days. Nothing about
+// workers is on this page, so none is kept. Storage can be off (private browsing): then nothing is.
+const UNSAVED_KEY = 'siteready.unsaved';
+const UNSAVED_DAYS = 14;
+// The business details come from the company profile, which is kept on its own.
+const PROFILE_PARTS = ['companyAbn', 'companyAddress', 'companyPhone', 'companyEmail'];
+let keepTimer = null;
+let restoring = false;
+// Set once the user types on this page, so work brought back never overwrites it.
+let typedHere = false;
+
+function unsavedStage() {
+  if (!resultEl.classList.contains('hidden') && document.getElementById('result-actions')) return 'draft';
+  return factsForm.classList.contains('hidden') ? 'start' : 'facts';
+}
+
+function keepUnsaved() {
+  clearTimeout(keepTimer);
+  if (restoring) return;
+  const input = payload();
+  PROFILE_PARTS.forEach((key) => { delete input[key]; });
+  if (!input.task && !input.workplace && !input.principalContractor) return;
+  const editing = window.SiteReady && window.SiteReady.editing;
+  try {
+    localStorage.setItem(UNSAVED_KEY, JSON.stringify({ at: Date.now(), stage: unsavedStage(), input, editing: editing || null }));
+  } catch { /* not kept */ }
+}
+
+function clearUnsaved() {
+  clearTimeout(keepTimer);
+  try { localStorage.removeItem(UNSAVED_KEY); } catch { /* nothing kept */ }
+}
+
+// Kept a moment after the typing stops. Boxes in the company profile, sign-in and team panels are
+// not part of a SWMS.
+const KEPT_IN = '#job-details, #start, #facts, #result';
+['input', 'change'].forEach((type) => document.addEventListener(type, (event) => {
+  if (restoring || !event.target.closest || !event.target.closest(KEPT_IN) || event.target.closest('.confirm, .review-box, #result-translate')) return;
+  if (event.isTrusted) typedHere = true;
+  clearTimeout(keepTimer);
+  keepTimer = setTimeout(keepUnsaved, 400);
+}));
+
+async function restoreUnsaved() {
+  let kept = null;
+  try { kept = JSON.parse(localStorage.getItem(UNSAVED_KEY) || 'null'); } catch { kept = null; }
+  if (!kept || typeof kept !== 'object' || !kept.input || typeof kept.input !== 'object') return false;
+  if (!(Date.now() - Number(kept.at) < UNSAVED_DAYS * 24 * 60 * 60 * 1000)) { clearUnsaved(); return false; }
+  // Something typed or opened since the page loaded is not overwritten.
+  if (document.getElementById('task').value.trim()) return false;
+  // The download and save buttons depend on whether the user is signed in.
+  if (window.SiteReady && window.SiteReady.accountReady) await window.SiteReady.accountReady;
+  if (typedHere || document.getElementById('task').value.trim()) return false;
+  const input = { ...kept.input };
+  // Signed in, the company is the account's own.
+  if (document.getElementById('company').value.trim()) delete input.company;
+  restoring = true;
+  try {
+    if (kept.stage === 'start') fillStart(input);
+    else if (await fillForm(input, { stay: true }).catch(() => false)) {
+      if (kept.editing && window.SiteReady) window.SiteReady.editing = kept.editing;
+      if (kept.stage === 'draft') await prepareDraft({ scroll: false });
+    } else fillStart(input);
+  } finally {
+    restoring = false;
+  }
+  const when = new Date(Number(kept.at));
+  const today = when.toDateString() === new Date().toDateString();
+  const note = document.createElement('p');
+  note.className = 'note';
+  note.id = 'unsaved-note';
+  note.innerHTML = `Your unsaved work from ${esc(when.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }))}${today ? ' today' : `, ${esc(when.toLocaleDateString('en-AU', { day: 'numeric', month: 'long' }))}`} is back, as you left it on this phone. <button type="button" class="link" id="unsaved-clear">Start again</button>`;
+  const stage = kept.stage === 'draft' && !resultEl.classList.contains('hidden') ? resultEl : kept.stage !== 'start' && !factsForm.classList.contains('hidden') ? factsForm : document.getElementById('start');
+  stage.before(note);
+  note.scrollIntoView({ block: 'start' });
+  return true;
+}
+
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('#unsaved-clear')) return;
+  clearUnsaved();
+  window.location.reload();
+});
+
+// A draft shown before the user signed in (such as one brought back after the sign-in link opened
+// the page again) gets its download and save buttons once signed in.
+function redrawActions() {
+  const box = document.getElementById('result-actions');
+  if (!box || !shownDraft || !shownSent || !box.querySelector('[data-open="signin"]')) return;
+  window.SiteReady.showActions(shownDraft, shownSent);
+  if (shownDraft.kind === 'draft') showTranslate(shownSent);
+}
+
 window.SiteReady = Object.assign(window.SiteReady || {}, {
+  keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions,
   api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals,
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
@@ -1698,6 +1861,11 @@ window.SiteReady = Object.assign(window.SiteReady || {}, {
 addPrincipals([], false);
 document.getElementById('principal').addEventListener('change', (event) => addPrincipals([event.target.value], true));
 
-loadStates().catch(() => {
+// Work left unsaved on this device comes back once the states are in and the page's other scripts
+// (the account's buttons) have run: with the states kept by the phone, they can be in first.
+const scriptsRun = document.readyState === 'loading'
+  ? new Promise((resolve) => { document.addEventListener('DOMContentLoaded', resolve, { once: true }); })
+  : Promise.resolve();
+loadStates().then(() => scriptsRun.then(() => restoreUnsaved()).catch(() => false), () => {
   document.getElementById('start-error').textContent = 'The state list could not be loaded.';
 });
