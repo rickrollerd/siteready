@@ -287,7 +287,9 @@ test('warned changes, reasons, hazard and Who changes and unmatched changes are 
     assert.equal(by('hazardNotApplicable').reason, 'anotherWay');
     assert.equal(by('whoChanged').new_line, '[name], leading hand');
     assert.equal(rows.find((row) => row.outcome === 'unmatched').original, 'A line from an older release.');
-    assert.doesNotMatch(JSON.stringify(rows), /Dave|Smith|0412|example\.com|Kim Lee/);
+    // Only the text fields: random hex ids and keys can contain "0412" by chance.
+    const text = rows.map(({ original, new_line, note, warning, step, reason }) => [original, new_line, note, warning, step, reason].join(' ')).join(' ');
+    assert.doesNotMatch(text, /Dave|Smith|0412|example\.com|Kim Lee/);
     assert.ok(swms.id);
   } finally {
     delete process.env.CONTROL_LEARNING;
