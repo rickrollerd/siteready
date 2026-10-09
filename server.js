@@ -335,7 +335,7 @@ function gateRefusal(input, result) {
 function needsCompanyDetails(req) {
   return req.company && (!String(req.company.name || '').trim() || !String(req.company.abn || '').trim());
 }
-const COMPANY_DETAILS_MESSAGE = 'Add your company name and ABN under Company details before downloading. They are printed on every SWMS.';
+const COMPANY_DETAILS_MESSAGE = 'Add your company name and ABN under Company profile before downloading. They are printed on every SWMS.';
 
 app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
   if (needsCompanyDetails(req)) return res.status(400).json({ kind: 'error', message: COMPANY_DETAILS_MESSAGE });

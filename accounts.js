@@ -373,7 +373,7 @@ function needsAnswers(input, draft, after = '', options = {}) {
 
 // Saving, like downloading, needs the business name and ABN, which are printed on every SWMS.
 function needsCompany(req) {
-  if (!String(req.company.name || '').trim() || !String(req.company.abn || '').trim()) throw fail(400, 'Add your business name and ABN under Company details before saving. They are printed on every SWMS.');
+  if (!String(req.company.name || '').trim() || !String(req.company.abn || '').trim()) throw fail(400, 'Add your company name and ABN under Company profile before saving. They are printed on every SWMS.');
 }
 
 router.post('/swms', requireAccess, route(async (req, res) => {

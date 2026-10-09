@@ -69,7 +69,10 @@ test('a draft and its Word file are prepared', async () => {
   session = await signIn('sam@example.com');
   const noCompany = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
   assert.equal(noCompany.status, 400, 'no download until the company name and ABN are added');
-  assert.match((await noCompany.json()).message, /company name and ABN/);
+  // The message names the section as the page heads it.
+  const heading = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'index.html'), 'utf8').match(/<summary>([^<]+)<span class="saved-name" id="profile-summary">/)[1];
+  assert.equal(heading, 'Company profile');
+  assert.match((await noCompany.json()).message, new RegExp(`company name and ABN under ${heading} before downloading`));
   assert.equal((await put('/api/company', { name: 'Lee Fencing', abn: '51 824 753 556' }, session)).status, 200);
   const refused = await post('/api/draft.docx', body, null, session);
   assert.equal(refused.status, 400);

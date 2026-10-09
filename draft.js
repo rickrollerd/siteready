@@ -405,7 +405,7 @@ const RAIL_IN_USE = { test: (text) => RAIL_RAW.test(String(text || '')) || /\bba
 const WATER = /\b(drown(?:ing)?|in or near water|(?:near|adjacent to|alongside|beside|next to) (?:an? |the )?(?:filled |full |existing |operating |\d+ ?(?:m2|m²|sq ?m) )?(?:swimming |lap |public |outdoor |indoor )?(?:pools?|spas?)\b(?! (?:fences?|fencing|equipment|plant\w*|rooms?|pumps?|filters?|lights?|lighting|heaters?|controllers?|switchboards?|services))|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|diving (?:towers?|platforms?)|mov(?:e)?able pool floors?|(?:into|in) (?:a |the )?(?:swimming |competition |lap |\d+ ?m )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to|along) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|(?:river|creek|lake|harbour|canal|sea|ocean|dam|water(?:way)?)s? (?:is )?(?:directly )?(?:below|beneath|underneath)|(?:near|above|adjacent to|alongside|beside|by|over) (?:a |the )?(?:tidal |fast[- ]flowing |open )?(?:river|creek|lake|harbour|canal|ocean|dam wall|waterways?|open water|water(?! (?:meters?|tanks?|heaters?|pipes?|pipework|mains?|services?|lines?|supply|supplies|connections?|filters?|treatment|proofing|based|jets?|blast\w*|carts?|trucks?|bottles?|coolers?|outlets?|taps?|points?|fountains?|bubblers?|fixtures?))(?=\b))|(?:over|above) (?:a |the )?(?:swimming |lap |public )?pools?(?! (?:fences?|fencing|equipment|plant|rooms?|decks?|surrounds?|areas?|copings?|edges?|tiles?|houses?|pumps?|filters?))|jetty|wharf|pontoon|boat ramp|sea ?wall|breakwaters?|(?:from|on) (?:a |the )?(?:jack-?up )?barges?|jack-?up barges?|dredg\w*)\b/i;
 
 function isScaffoldErection(text) {
-  return /\bscaffold\w*\b/i.test(String(text || '').replace(/\bmobile scaffold\w*/gi, '')) && (/\b(erect\w*|dismantl\w*|strik\w* (?:the )?scaffold|alter\w*)\b/i.test(text) || /\b(?:install\w*|build\w*) (?:a |the )?(?:temporary |new )?scaffold\w*/i.test(text)
+  return /\bscaffold\w*\b/i.test(String(text || '').replace(/\bmobile scaffold\w*/gi, '')) && (/\b(erect\w*|dismantl\w*|strik\w* (?:the )?scaffold|alter\w*)\b/i.test(text) || /\b(?:install\w*|build\w*) (?:a |the )?(?:temporary |new )?scaffold\w*|\bput\w* (?:up )?(?:a |the )?(?:full |perimeter |external )?scaffold\b/i.test(text)
     // A title: "installation, adjustment and removal of a modular scaffolding system".
     || /\b(?:install\w*|adjust\w*)\b[^.]{0,80}\bscaffold(?:ing)? systems?\b/i.test(text));
 }
@@ -827,7 +827,7 @@ function fallControlLevel(line) {
   return 'Administrative';
 }
 
-const FORMWORK = /\b(formwork|falsework|formply|deck forms?|table forms?|backprop\w*)\b/i;
+const FORMWORK = /\b(formwork|falsework|formply|deck forms?|table forms?|backprop\w*|(?:walls?|columns?) forms?|forms? up (?:the )?(?:columns?|walls?|cores?))\b/i;
 const JUMPFORM = /\b(jump ?forms?|self[- ]climbing (?:form\w*|system)|climbing form\w*)\b/i;
 const PT = /\b(post[- ]?tension\w*|pt slabs?|pt tendons?|stressing)\b/i;
 // Work that puts materials or plant on a formwork deck or a suspended slab.
@@ -3447,7 +3447,7 @@ function typedTitleFlags(flags, task, ownCrane) {
 
   // Electrical.
   on(T(/\bconduits?\b[^.]{0,40}\b(?:prior to|before)\s+(?:pouring\s+|the\s+)?(?:concrete|pours?|pouring)\b/i), 'castIn');
-  on(T(/\b(?:conduits?|pipework|pipes?|cables?|cabling)\b[^.]{0,25}\b(?:in|into)[- ]?(?:the )?ground\b(?!\s*[\w-])|\bin-?ground (?:and under-?slab )?(?:[\w-]+ ){0,3}(?:conduits?|pipework|pipes?|cabling|mains?|drainage)\b/i), 'trench');
+  on(T(/\b(?:conduits?|pipework|pipes?|cables?|cabling)\b[^.]{0,25}\b(?:in|into)[- ]?(?:the )?ground\b(?!\s*[\w-])|\b(?:conduits?|pipework|pipes?|cables?|cabling)\b[^.]{0,25}\bin the ground\b(?!\s*(?:floors?|levels?|slabs?|storeys?|bearing|conditions|water)\b)|\bin-?ground (?:and under-?slab )?(?:[\w-]+ ){0,3}(?:conduits?|pipework|pipes?|cabling|mains?|drainage)\b/i), 'trench');
   on(T(/\bconduits?\b[^.]{0,25}\bwalls? and ceilings?\b|\b(?:power and light(?:ing)?|light and power|lighting|power) cabling\b/i), 'fitOff', 'isolation');
   on(T(/\b(?:cable|ladder) (?:and (?:cable |ladder )?)?trays?\b|\bcable supports?\b/i) && ELECTRICAL_CORE.test(t), 'containment');
   on(T(/\b(?:mims|pyrotenax|mineral insulated)\b/i) && T(/\bcables?\b/i), 'cablePull');
@@ -3580,8 +3580,224 @@ function typedTitleFlags(flags, task, ownCrane) {
   on(T(/\bpermanent generators?\b/i), 'generatorPlant');
   on(T(/\b(?:high voltage|hv)\b[^.]{0,20}\bsubstations?\b/i) && plain, 'substationEquip', 'hvWork');
   on(T(/\btimber (?:and engineered timber )?floors\b/i), 'timberFloor');
+  plainWordings(t, short, plain, (when, ...ids) => on(when, ...ids.filter((id) => !flags[id])));
   out.titleKinds = added;
   return out;
+}
+
+// Plain wordings: how subbies type a task on a phone ("plasterboard walls", "frame and sheet",
+// "set AHUs on the roof", "kerb machine"), short and often with no verb. Shorthand and common
+// misspellings are read first (slang.js, spelling.js). Each rule only reads a short typed task,
+// and ticks a kind only where its job steps are the work. A kind the task's words already give is
+// left to those words, so its facts are asked as before. The typed wordings, with the kinds
+// each should tick, are in test/typed-variants.data.js.
+function plainWordings(t, short, plain, on) {
+  const P = (re) => short && re.test(t);
+  // Not the work: a removal, a test, a service or a repair of something already there.
+  const fixing = !/\b(remov\w*|demolish\w*|strip\w*|disconnect\w*|decommission\w*|servic(?:e|es|ed|ing)\b|repair\w*|maint\w*|clean\w*|test\w*|inspect\w*|replac\w*|relocat\w*)\b/i.test(t);
+  // Asbestos, bridges and carpentry.
+  on(P(/\b(?:non-?)?friable\b|\bclass [ab] (?:asbestos )?remov\w*/i), 'asbestos');
+  on(P(/(?<!roof )\babutments?\b|\bwing ?walls?\b|\bhead ?stocks?\b|\bbridge (?:piers?|pile caps?|footings?)\b|^bridge decks?$/i) && !/\b(?:repair\w*|maint\w*|bearings?)\b/i.test(t), 'formwork', 'reo', 'concrete');
+  on(P(/\bgirders?\b/i) && P(/\b(?:erect\w*|land\w*|lift\w*|plac\w*|install\w*|set\w*|launch\w*)\b/i), /\bsteel girders?\b/i.test(t) ? 'steelErect' : 'precast', 'craneInterface');
+  on(P(/\bbearings?\b/i) && P(/\b(?:bridges?|overpass\w*|viaducts?|decks?|girders?)\b/i), 'bridgeBearings');
+  on(P(/\bparapets?\b/i) && P(/\b(?:bridges?|expansion joints?|decks?)\b/i), 'roadBarrier');
+  on(P(/\bpost-tensioning\b/i) && P(/\b(?:bridges?|girders?|headstocks?|crossheads?)\b/i), 'stressing');
+  on(P(/\b(?:off|from|on) (?:a |the )?barges?\b/i), 'water');
+  on(P(/\btemporary (?:works )?(?:platforms?|bridges?)\b/i) && P(/\b(?:bridges?|creeks?|rivers?)\b/i), 'tempBridge');
+  on(P(/\bbridge (?:maintenance|repairs?)\b|\b(?:maint\w*|repair\w*)\b[^.]{0,20}\bbridges?\b/i), 'concreteRepair');
+  on(P(/\bskirtings?\b|\barchitraves?\b/i) && fixing, 'carpJoinery', 'carpentryWork');
+  on(P(/\bdoor (?:hardware|furniture)\b[^.]{0,15}\bframes?\b|\bdoors? and frames\b/i), 'doorHang');
+  on(P(/\bframe up\b|\b(?:stand|erect|install)\w* (?:the )?(?:roof )?trusses\b/i), 'carpFraming', 'carpentryWork');
+  on(P(/^timber (?:stairs?|handrails?|balustrades?|screens?)\b|\btimber (?:stairs?|handrails?|balustrades?|screens?)\b[^.]{0,30}\b(?:open|edges?|balcon\w*|voids?)\b/i) && fixing, 'carpEdge', 'carpentryWork');
+  // Civil earthworks.
+  on(P(/\bclear\w* (?:the )?site\b|\bsite clear\w*|\bclear and grub\w*|\bgrubb\w*/i) && !/\b(?:rubbish|waste|debris|demoli\w*)\b/i.test(t), 'vegClearing');
+  on(P(/\bdetail(?:ed)? excavat\w*|\b(?:excavat|dig)\w* (?:the )?(?:pad |strip )?footings?\b[^.]{0,30}\b(?:excavators?|tonne)\b/i), 'detailDig');
+  on(P(/\bpothol(?:ing|e (?:the |for |to )?(?:locate |expose |find )?(?:the )?(?:services?|cables?|pipes?|utilities))\b|\bnon-destructive dig\w*|\bhydro ?(?:vac\w*|excavat\w*)|\bvac(?:uum)? (?:trucks?|excavat\w*)/i) && !/\bemergenc\w*/i.test(t), 'vacExcavation');
+  on(P(/\brock\b/i) && P(/\b(?:hammer\w*|rip\w*|break\w*)\b/i), 'rockBreak');
+  on(P(/\bsoft spots?\b|\bcut,? (?:and )?fill\b/i), 'earthworks', 'sitePlant');
+  on(P(/\bfloat\w* (?:the |an? )?(?:excavators?|dozers?|rollers?|graders?|machines?|loaders?|plant)\b/i), 'heavyHaulage');
+  // Cleaning, concrete and cranes.
+  on(P(/\bacid[- ]?(?:clean|etch)\w*/i), 'cleaning');
+  on(P(/\bempt\w* (?:the )?(?:skips?|bins?)\b|^(?:site )?rubbish(?: removal)?$/i), 'wasteRemoval');
+  on(P(/^(?:(?:pour|plac)\w* (?:the )?)?(?:concrete )?(?:slabs? on (?:the )?ground|ground slabs?)(?: pours?)?$/i), 'slabGround', 'slabPour');
+  on(P(/^(?:concrete )?(?:boom|line) pump(?:s|ing)?\b|\b(?:pump|place|finish|screed)\w* (?:and (?:place|finish|screed|pour)\w* )?(?:the )?(?:level |suspended )?(?:slab|deck)\b/i) && !/\b(?:on|onto|off) (?:the )?(?:slab|deck)\b/i.test(t), 'concrete');
+  on(P(/\bconcrete (?:patch\w*|repairs?|remediation)\b|\bmake good\b[^.]{0,20}\bconcrete\b/i), 'concreteRepair');
+  on(P(/\b(?:rig\w* up|assembl\w*|dismantl\w*)\b[^.]{0,15}\bcrawlers?\b/i), 'craneAssembly');
+  on(P(/\bskates\b|\bchain ?block\w*/i), 'plantLift');
+  on(P(/\bman ?(?:box|cage)\b|\bwork ?box\b/i), 'craneInterface');
+  // Demolition and strip-out.
+  on(P(/\b(?:cut|form|mak|creat)\w* (?:new )?openings?\b[^.]{0,30}\bwalls?\b/i), 'structuralOpening');
+  on(P(/\b(?:cut|form|mak|creat)\w* (?:new )?openings?\b[^.]{0,30}\b(?:slabs?|floors?)\b/i), 'sawCut');
+  // Electrical.
+  on(P(/\b(?:temporary|portable|hire|site) generators?\b|\bgenerators?\b[^.]{0,20}\b(?:hook up|connect\w*|set up)\b|\b(?:connect\w*|hook\w* up|set\w* up)\b[^.]{0,15}\bgenerators?\b/i) && !/\b(?:permanent|standby|emergency)\b/i.test(t), 'generatorConnect');
+  on(P(/\bconduits?\b/i) && P(/\b(?:reo|decks?|slabs?|pours?)\b/i) && !/\b(?:in-ground|underground|trench\w*|pits?|core|cor(?:e|ing)|drill\w*|chas\w*)\b/i.test(t), 'castIn', 'electricalWork');
+  on(P(/\bunderground (?:conduits?|cables?|cabling|services|pipes?|pipework|mains?|drainage)\b/i), 'trench');
+  on(P(/\btray and ladder\b|\bladder and tray\b/i), 'containment');
+  on(P(/\blight fittings?\b/i) && fixing, 'fitOff', 'isolation');
+  on(P(/\belectrical (?:rough[- ]in|fit[- ]off)\b|\brough[- ]in\b[^.]{0,20}\b(?:conduits?|cabl\w*|power|lights?)\b|\bfit[- ]off\b[^.]{0,20}\b(?:power points?|lights?|lighting|switches|power)\b/i), 'fitOff', 'isolation');
+  on(P(/^(?:electrical )?isolations?\b|\block ?outs?\b|\b(?:in|on|to) (?:an? |the )?(?:existing )?live (?:switchboards?|boards?|distribution boards?|circuits?|electrical|installations?)\b/i) && !/\b(?:fire|sprinklers?|water|gas|plumbing|sewers?|mechanical|plant)\b/i.test(t), 'isolation');
+  on(P(/\b(?:test|commission)\w*\b[^.]{0,30}\b(?:switchboards?|boards?|distribution boards?|circuits?|electrical)\b/i) && !/\btag\w*/i.test(t), 'commissioning', 'isolation');
+  on(P(/\b(?:hv|high voltage)\b[^.]{0,15}\b(?:terminat\w*|joint\w*)\b|\b(?:terminat|joint)\w* (?:the )?(?:hv|high voltage)\b/i), 'hvTermination', 'hvWork');
+  on(P(/\bcable joint\w*|\bjoint\w* (?:the )?(?:lv |low voltage )?cables?\b/i) && !/\b(?:hv|high voltage|heat shrink\w*|torch\w*)\b/i.test(t), 'commissioning', 'isolation');
+  on(P(/^(?:hv |kiosk |padmount |zone )?substations?(?: install\w*)?$|\bkiosk substations?\b|\bring main units?\b/i), 'substationEquip', 'hvWork');
+  on(P(/^(?:light(?:ing)?|street ?light(?:ing)?|lamp) poles?\b/i) && plain, 'poleErect', 'footingHoles');
+  on(P(/^solar(?: pv| panels?| power| systems?| arrays?)?(?: install\w*)?$|\binstall\w* (?:the )?solar\b/i) && !/\bhot water\b/i.test(t), 'solarPV', 'roofAccess');
+  on(/^earthing$/i.test(t), 'earthStakes');
+  on(P(/\b(?:permanent|standby|emergency|backup) generators?\b/i) && fixing, 'generatorPlant');
+  on(P(/^fire (?:detection|alarms?)\b/i) && plain, 'fireAlarm');
+  on(P(/\b(?:electrical|power|lighting|cabling|fire|sprinkler|mechanical|plumbing|hydraulic) (?:services )?strip[- ]out\b|\bmake safe\b/i), 'servicesStrip');
+  // Facade, fire and flooring.
+  on(P(/\bunitised\b|^curtain walls?(?: install\w*)?$/i), 'panelInstall');
+  on(P(/\bbalustrad\w*/i) && fixing, 'balustradeEdge');
+  on(P(/\bcladding\b/i) && plain && !/\b(?:roof\w*)\b/i.test(t), 'claddingInstall');
+  on(P(/\b(?:from|off|using) (?:a |the )?(?:bmu|swing stage)\b/i) && !/\bclean\w*/i.test(t), 'swingStage');
+  on(P(/^sprinkler(?:s| fitting| install\w*| mains?| pipework| pipes| heads| systems?)\b|\bsprinkler (?:mains?|pipework|pipes|heads|branch lines?|ranges?)\b/i) && fixing && !/\b(?:in-ground|underground|buried|isolat\w*|impair\w*)\b/i.test(t), 'fireAtHeight', 'fireWork');
+  on(P(/^hydrants?(?: and hose reels?)?(?: pipework| pipes| install\w*| mains?)?$|\bhydrant (?:and hose reel )?(?:pipework|pipes|mains?|risers?)\b/i) && fixing && !/\b(?:in-ground|underground|buried)\b/i.test(t), 'fireAtHeight', 'fireWork');
+  on(P(/\bfire mains?\b/i) && P(/\b(?:in-ground|underground|under (?:the )?slab|lay\w*|trench\w*|buried)\b/i), 'trench');
+  on(P(/\bfire (?:pumps?|pump ?sets?)\b/i) && fixing, 'pumpInstall', 'fireWork');
+  on(P(/\bfire (?:water )?tanks?\b/i) && fixing, 'tankPlace');
+  on(P(/\bhood suppression\b/i), 'gasSuppression');
+  on(P(/\bhose reels?\b/i) && fixing, 'hoseReels');
+  on(P(/\bfire (?:system |services? )?isolations?\b|\bimpair\w*/i), 'fireLive', 'fireWork');
+  on(P(/\bflow (?:and discharge )?tests?\b|\bdischarge tests?\b/i), 'pressureTest');
+  on(P(/\bfire (?:maintenance|servicing|inspections?|testing)\b|\b(?:routine|six[- ]monthly|monthly|annual|yearly) fire\b/i), 'fireLive', 'fireWork');
+  on(P(/\bgrind\w*\b[^.]{0,20}\b(?:floors?|slabs?)\b/i) && !/\b(?:epoxy|coat\w*|polish\w*)\b/i.test(t), 'floorGrind', 'floorWork');
+  on(P(/\b(?:epoxy|resin|polyurethane) (?:floor\w*|coat\w*)\b/i), 'floorCoating', 'floorWork');
+  on(P(/\bfloor sand\w*|\bsand\w* (?:the )?(?:timber )?floors?\b/i), 'floorSanding', 'floorWork');
+  // Formwork and insulation.
+  const groundForms = P(/\b(?:footings?|slabs? on ground|ground slabs?|edge forms?|slab edges?)\b/i) && !/\b(?:suspended|decks?|columns?|core|stairs?)\b/i.test(t);
+  on(!/\bjump\w*/i.test(t) && P(/\b(?:walls?|columns?|core|stairs?|beams?) forms?\b|\bform(?:ing)? up\b[^.]{0,30}\b(?:columns?|walls?|cores?|stairs?|beams?|decks?)\b/i) && !groundForms, 'formwork');
+  on(groundForms && P(/\bforms?\b|\bformwork\b|\bform(?:ing)? up\b/i), 'slabGround');
+  on(P(/\bjump\w* (?:the )?(?:core )?forms?\b/i), 'jumpform');
+  on(P(/^(?:perimeter|safety|climbing|edge|protection) screens?\b/i) && plain, 'safetyScreens');
+  // Landscaping.
+  on(P(/\birrigation\b/i) && fixing, 'shallowTrench');
+  on(P(/\bplant\w* (?:the )?(?:[\w-]+ ){0,2}trees?\b|\bstreet trees?\b|\badvanced trees?\b|\breveg\w*|\bhydro ?mulch\w*|\bbatter planting\b/i), 'landscape');
+  on(P(/\b(?:mulch|soil|bark) blow\w*|\bblow\w* (?:in )?(?:the )?(?:mulch|soil|bark)\b/i), 'blowerTruck');
+  on(P(/^(?:roof gardens?|green roofs?|podium (?:planting|landscap\w*|gardens?))\b/i), 'landscapeLift', 'greenRoofLayers');
+  // Lifts and line marking. A lift typed this way is the lift (elevator) being installed; access
+  // lifts (scissor and boom lifts) are taken out in typedTitleFixes.
+  on(P(/\blanding (?:screens?|openings?|barriers?)\b/i), 'liftShaft', 'liftWork');
+  on(P(/\bmachine rooms?\b/i) && P(/\b(?:lift\w*|hoist\w*|motors?|machines?)\b/i) || P(/\blift (?:equipment|machines?|motors?) hoist\w*/i), 'liftLifting', 'liftWork');
+  on(P(/^(?:passenger |goods |new )?lifts? install\w*/i), 'liftInstall', 'liftWork');
+  on(P(/\blift (?:commission\w*|testing|car tops?)\b|\blift pits? (?:work|testing)\b/i), 'liftCar', 'liftWork');
+  on(P(/\breplac\w* (?:the )?(?:\w+ )?lifts?\b/i), 'liftCar', 'liftMotor', 'liftWork');
+  on(P(/^stair ?lifts?\b/i), 'stairLiftInstall');
+  on(P(/\bline (?:marking )?removal\b|\b(?:grind|blast)\w* (?:off |out )?(?:the )?(?:old )?(?:line marking|lines)\b/i), 'lineMarking');
+  // Masonry and mechanical.
+  on(P(/^(?:hebel|aac)\b/i) && plain, 'claddingInstall');
+  on(P(/\b(?:brick|masonry|brickwork|stone) (?:repairs?|restoration)\b/i), 'repointing');
+  on(P(/\b(?:air handling units?|chillers?|cooling towers?|condensers?|condensing units?|packaged units?|rooftop units?)\b/i) && P(/^(?:set|land|plac|crane|lift|receiv|position)\w*|\b(?:set|land|plac|crane|lift|receiv|position)\w* (?:the |new )?(?:air handling|chillers?|cooling|condens|packaged|rooftop)/i) && fixing, 'plantLift', 'mechanicalWork');
+  on(P(/\b(?:air handling units?|chillers?|cooling towers?|condensers?|condensing units?|packaged units?)\b/i) && P(/\b(?:on|onto) (?:the )?roof\b/i) && fixing, 'roofPlant');
+  on(P(/\b(?:hang\w*|install\w*|run\w*|fix\w*) (?:the )?(?:[\w-]+ ){0,3}ducts\b|^ducts? install\w*|\bair ducts\b/i) && !/\b(?:post-tension\w*|tendons?|strands?|cables?|conduits?|comms|communications|telecom\w*|nbn|underground|in-ground|trench\w*|pits?|electrical|data)\b/i.test(t), 'ductwork', 'mechanicalWork');
+  on(P(/\b(?:chilled|heating|condenser) (?:hot )?water (?:pipework|pipes?|piping|lines?|mains?)\b/i), 'mechPipework', 'mechanicalWork');
+  on(P(/\brefrigera(?:nt|tion) (?:pipework|pipes?|piping|lines?|copper)\b|\b(?:vrf|vrv|air conditioning|split system) (?:copper|pipework|pipes?|piping|lines?)\b|\bcopper (?:pipework|pipes?|piping|lines?)\b[^.]{0,30}\b(?:vrf|vrv|air conditioning|split systems?)\b|\bbraz\w*\b[^.]{0,30}\bcopper\b/i) && fixing, 'refrigerantPipework', 'refrigerantWork', 'mechanicalWork');
+  on(P(/^gas charg\w*/i), 'refrigerantCharge', 'refrigerantWork');
+  on(P(/\bcassettes?\b/i) && fixing, 'splitInstall', 'mechanicalWork');
+  on(P(/^(?:toilet |kitchen |in-?line |roof |smoke )?exhaust fans?\b/i) && plain, 'ductwork', 'mechanicalWork');
+  on(P(/\b(?:duct(?:work)?|pipe(?:work)?) (?:lagging|insulation|insulating)\b|\blag\w*\b[^.]{0,20}\b(?:ducts?|ductwork|pipes?|pipework)\b/i) && fixing && !/\basbestos\b/i.test(t), 'mechInsulation');
+  on(P(/\b(?:bms|controls) (?:cabling|panels?|wiring)\b/i), 'controlPanelInstall');
+  on(P(/\bbalanc\w* (?:the )?(?:air|system|ductwork)\b|\b(?:mechanical|hvac|air conditioning) commission\w*|\bcommission\w*\b[^.]{0,20}\b(?:air handling units?|hvac)\b/i), 'mechCommissioning', 'mechanicalWork');
+  on(P(/\b(?:air conditioning|hvac|air handling units?|split systems?|chillers?)\b[^.]{0,20}\b(?:servic\w*|maint\w*)\b|\b(?:servic\w*|maint\w*)\b[^.]{0,20}\b(?:air conditioning|hvac|air handling units?|split systems?|chillers?)\b/i), 'acService', 'mechanicalWork');
+  // Old services made safe and taken out, by any trade.
+  on(P(/\b(?:remov|decommission|disconnect|strip)\w*\b[^.]{0,20}\b(?:(?:the )?(?:old|existing|redundant) )?(?:sprinklers?|fire services?|air conditioning(?: units?)?|split systems?|plant|cabling|cables)\b|\bcap\w* (?:off )?(?:the )?(?:old |existing |redundant )?(?:services|plumbing|pipework|pipes|water|gas)\b|\b(?:isolat|disconnect)\w* and cap\b/i) && !/\basbestos\b/i.test(t), 'servicesStrip');
+  // Painting and piling.
+  on(P(/\bairless\b/i), 'paintSpray');
+  on(P(/\bcoat\w* (?:the )?(?:structural )?steel\b/i), 'painting');
+  on(P(/\b(?:piling |pile )?rig (?:set up|assembl\w*|mobilis\w*|delivery)\b|\bpiling (?:platform|mat)\b|\b(?:set\w* up|assembl\w*|mobilis\w*|deliver\w*) (?:the )?(?:piling |pile )rigs?\b/i), 'pilingPlatform');
+  on(P(/^cfa(?: pil(?:es|ing))?\b|\bbored (?:piers?|piles?|piling)\b(?! rigs?)/i), 'pilingRig', 'pilingWork');
+  on(P(/\bbored (?:piers?|piles?)\b/i) && P(/\bcas(?:ing|ed)\b/i), 'openBore');
+  on(P(/\bdriv\w* (?:the )?(?:\w+ ){0,2}pil(?:es?|ing)\b|\bpile driv\w*/i), 'drivenPiles', 'pilingWork');
+  on(P(/\bcut\w* (?:down |off )?(?:the )?piles?\b|\bpile (?:cut downs?|heads?)\b|\btrim\w* (?:the )?piles?\b/i), 'pileTrim');
+  on(P(/\brigid inclusions?\b|\bstone columns?\b|\bwick drains?\b/i), 'groundImprove');
+  on(P(/\bmarine piling\b|\bpil\w*\b[^.]{0,20}\b(?:from|off|on) (?:a |the )?(?:jack-?up )?barges?\b/i), 'marinePlant', 'water');
+  // Pipelines, drainage and plumbing.
+  on(/^(?:stormwater|sewer|sewerage|drainage)$/i.test(t) || P(/\b(?:stormwater|sewer|drainage) (?:pits?|pipes?)\b/i) && fixing && !/\b(?:connect\w*|live|existing|clean\w*|cctv|relin\w*|jet\w*)\b/i.test(t), 'trench');
+  on(P(/\bgravity sewers?\b|\bsewer (?:mains?|lines?|pipes?|reticulation)\b/i) && fixing && !/\b(?:connect\w*|live|existing|cut in|tie in|pump\w*|relin\w*|cctv|jet\w*)\b/i.test(t), 'trench');
+  on(P(/^wet wells?\b/i), 'tankPlace', 'pumpInstall');
+  on(P(/\bunder (?:the )?(?:road|rail\w*|highway|creek|driveway|footpath) bor\w*|\bbor\w* under (?:the )?(?:road|rail\w*|highway|creek|driveway|footpath)\b/i), 'hddBore');
+  on(P(/\bgas (?:pipes?|pipework|lines?)\b/i) && fixing && !/\b(?:medical|refrigerant|nitrogen)\b/i.test(t), 'gasFitting');
+  on(P(/\bcctv\b[^.]{0,20}\b(?:drains?|pipes?|sewers?|stormwater|lines?)\b|\b(?:drains?|pipes?|sewers?) cctv\b/i), 'drainClear');
+  on(P(/\b(?:detention|retention|stormwater|bio-?retention|infiltration) basins?\b/i) && !/\b(?:lin\w*|membranes?)\b/i.test(t), 'earthworks', 'sitePlant');
+  on(P(/\bin-ground (?:sewer|stormwater)\b|\b(?:sewer|stormwater|drainage|drains?)\b[^.]{0,30}\bunder (?:the )?(?:building|slab|floor)\b/i), 'trench');
+  on(P(/\bconnect\w*\b[^.]{0,20}\b(?:to|into) (?:the )?(?:council |live |water |town )?mains?\b/i) && P(/\bwater\b/i), 'waterConnection');
+  on(P(/\bpuddle flanges?\b/i), 'castInPlumbing', 'plumbingWork');
+  on(P(/\bunder ?slab (?:plumbing|drainage|drains?|pipes?|pipework|sewer)\b/i), 'underslabDrainage', 'plumbingWork');
+  on(P(/\bhydraulic (?:services )?(?:pipework|pipes?|piping|risers?|stacks?|reticulation)\b|\b(?:plumbing|hydraulic|sanitary|soil|waste|pvc|copper) (?:risers?|stacks?)\b|\b(?:stacks?|pipework|pipes?)\b[^.]{0,20}\b(?:in|up) (?:the )?risers?\b/i) && fixing && !/\b(?:in-ground|underground|under ?slab|trench\w*|fire|sprinklers?|hydrants?|refrigerant|chilled|mechanical|vrf|air conditioning|gas|sewer\w*|drainage|collect\w*)\b/i.test(t), 'hydraulicRisers', 'plumbingWork');
+  on(P(/\b(?:plumbing|hydraulic|hydraulic services) (?:rough[- ]in|fit[- ]off)\b|\b(?:rough[- ]in|fit[- ]off)\b[^.]{0,30}\b(?:toilets?|basins?|sinks?|tapware|fixtures?)\b/i), 'plumbingFitOff', 'plumbingWork');
+  on(P(/\bhot water (?:units?|plant|systems?|heaters?|cylinders?)\b/i) && fixing && !/\b(?:solar|heat pumps?)\b/i.test(t), 'pumpInstall', 'hotWater');
+  on(P(/\b(?:water |booster )?pumps? and (?:water )?tanks?\b|\bbooster pumps?\b/i) && fixing, 'pumpInstall', 'tankPlace');
+  on(P(/\bsewer pump (?:wells?|stations?|pits?)\b|\bpump wells?\b/i) && fixing, 'pumpInstall', 'tankPlace');
+  on(P(/\bflush\w* and (?:pressure )?test\w*/i), 'pressureTest');
+  on(P(/^(?:downpipes?|rainwater heads?|siphonic (?:drainage|outlets?|systems?))\b|\bsiphonic (?:drainage|outlets?|systems?)\b/i) && fixing, 'gutters', 'roofAccess');
+  // Precast, rail and retaining walls.
+  on(P(/^tilt-up(?: panels?| walls?| construction)?$|\btilt panels?\b/i), 'precast', 'craneInterface');
+  on(P(/\bhollowcore\b|\b(?:precast )?floor planks?\b/i), 'precastFloor', 'craneInterface');
+  on(P(/\bseating units?\b|\bprecast seating\b/i), 'precastTier');
+  on(P(/\bmodular pods?\b|\b(?:precast|volumetric|modular) modules?\b/i), 'moduleInstall');
+  on(P(/\btrack (?:laying|construction|renewal|upgrades?)\b|\btamp\w*|\bballast\w*|\bre-?sleeper\w*|\bsleepers\b[^.]{0,20}\btracks?\b/i), 'trackWork', 'railCorridor');
+  on(P(/\bturn ?outs?\b/i) && P(/\b(?:renew\w*|install\w*|rail\w*|tracks?|replac\w*)\b/i), 'trackWork', 'railCorridor');
+  on(P(/\bstation platforms?\b|\bplatform works?\b|\brail protection\b/i), 'railCorridor');
+  on(P(/^gabions?(?: walls?| baskets?)?\b|\bgabion baskets?\b/i), 'retainingWall', 'gabion');
+  on(P(/\bsleeper (?:retaining )?walls?\b|^retaining walls?$|\bretaining walls? blocks?\b|\bblock retaining walls?\b/i), 'retainingWall');
+  on(P(/\b(?:in situ|in-situ|cast in situ|concrete|form\w* and pour\w*|pour\w*)\b[^.]{0,20}\bretaining walls?\b/i), 'retainingWall', 'concreteWall');
+  on(P(/\breinforced earth\b|\bprecast retaining (?:walls?|panels?)\b/i), 'precast', 'retainingWall');
+  on(P(/\bground anchors?\b|\brock bolt\w*|\brock anchors?\b/i), 'anchorsProps');
+  on(P(/\brock (?:walling|armour|revetment|beaching)\b/i), 'rockLining');
+  // Roads and pavements.
+  on(P(/\bproof roll\w*|\bsubgrade (?:prep\w*|trim\w*)\b|\btrim\w* (?:and \w+ )?(?:the )?subgrade\b/i), 'earthworks', 'sitePlant');
+  on(P(/\broad ?base\b|\bbase ?course\b/i), 'gravelLay');
+  on(/^(?:asphalt|hot ?mix)(?: (?:paving|laying|surfacing|resurfacing|works?))?$|\blay\w* (?:the )?(?:new )?asphalt\b/i.test(t) && short, 'asphaltLay', 'roadPlant');
+  on(/^(?:asphalt )?(?:milling|profiling)$/i.test(t) || P(/\b(?:mill|profil)\w*\b[^.]{0,20}\b(?:asphalt|road|pavement)\b/i), 'roadPlant');
+  on(P(/\b(?:two|2|single|one|double)[- ]coat seal\b|\bspray(?:ed)? seal\w*|\bprimer ?seal\b/i), 'sprayRoad');
+  on(/^concrete roads?$/i.test(t), 'slabGround', 'slabPour');
+  on(P(/^(?:concrete |extruded |slip ?formed |barrier |mountable |layback )?kerb(?:s|ing)?(?: and (?:channel|gutter))?(?: machine| install\w*| pour\w*| work)?$|\bkerb machine\b|\bextrud\w* kerbs?\b|\bslip ?form\w* kerbs?\b|\bpour\w* (?:the )?(?:concrete )?kerbs?\b|\bconcrete kerbs?\b/i) && fixing, 'kerbInstall');
+  on(P(/^(?:concrete )?(?:footpaths?|shared paths?|driveways?)$/i), 'slabGround', 'slabPour');
+  on(P(/\bwire rope (?:safety )?barriers?\b|\bw-?beam\b|\bthrie[- ]?beam\b|\b(?:road|crash) (?:safety )?barriers?\b/i) && fixing, 'roadBarrier');
+  // Roofing, scaffolding and access.
+  on(P(/\bre-roof\w*|\bre-?sheet\w* (?:the )?roof/i), 'roofStrip', 'roof');
+  on(P(/\bclad (?:the )?(?:\w+ )?walls?\b/i), 'claddingInstall');
+  on(P(/^skylights?\b/i) && plain, 'skylight', 'roofAccess');
+  on(P(/\broof penetrations?\b|\bpenetrations? (?:on|through|in) (?:the )?roof\b/i) && fixing, 'roofPenetration', 'roofAccess');
+  on(P(/\broof anchors?\b|\bheight safety\b|\broof walkways?\b|\banchor points?\b/i) && fixing, 'anchorInstall');
+  on(P(/\b(?:kwikstage|cuplock|ringlock|modular|tube and coupler|perimeter|hung|cantilever\w*) scaffold\w*|\bscaffold\w* (?:around|to) (?:the )?(?:outside|building|perimeter)\b/i) && !/\bmobile\b/i.test(t), 'scaffold');
+  on(/^(?:builders'?|personnel|materials?|passenger) (?:and materials )?hoists?$/i.test(t), 'hoistInstall', 'hoistOperate');
+  on(P(/\bhoist (?:driv\w*|operat\w*)\b|\b(?:run|driv)\w* (?:the )?(?:builders'? )?hoist\b/i), 'hoistOperate');
+  on(P(/^(?:temporary )?edge protection\b/i) && plain, 'edgeProtectionInstall');
+  on(P(/^stair ?towers?\b/i), 'tempStairs');
+  on(P(/\b(?:work\w*|use) (?:off|from|on) (?:a |the )?(?:step |platform |extension |a-frame )?ladders?\b/i), 'ladderUse');
+  // Shopfitting and site establishment.
+  on(P(/^(?:shop ?front |timber |site )?hoardings?$/i), 'siteEstablish');
+  on(P(/\bcounters?\b|\bdisplay (?:units?|cabinets?)\b/i) && fixing && !/\b(?:traffic|vehicle|people|bike|cycle|pedestrian) counters?\b/i.test(t), 'carpJoinery', 'carpentryWork');
+  on(P(/^(?:tenancy |stud |office |internal )?partitions?(?: walls?)?(?: and (?:ceilings?|bulkheads?))?$|\btenancy walls?\b|\bstud partitions?\b/i), 'carpFraming', 'carpentryWork', 'plasterSheets', 'plasterHeight');
+  on(P(/^(?:shop ?front |shop |building |external |illuminated )?(?:signage|signs)(?: install\w*)?$|\bshop ?front signage\b/i), 'signageInstall');
+  on(P(/\b(?:temporary|site|construction) fenc\w*/i), 'siteEstablish');
+  on(P(/\bsite (?:sheds?|amenities|offices?)\b/i) && !/\b(?:plumbing|power|electrical|water|sewer)\b/i.test(t), 'siteSheds');
+  on(P(/\bspotters?\b/i) && P(/\b(?:plant|machines?|excavators?|trucks?)\b/i), 'sitePlant');
+  // Plasterboard, steel fixing and post-tensioning.
+  on(P(/^(?:plasterboard|gyprock|drywall)(?: walls?| ceilings?| linings?| sheeting| install\w*)*\b|\b(?:frame|stud) and sheet\b|\bsheet\w* (?:the )?(?:walls?|ceilings?|partitions?|bulkheads?)\b|\b(?:walls?|ceilings?) sheeting\b|\bhang\w* (?:the )?(?:plaster)?board\b/i) && !/\b(?:roof\w*|metal|cladding|fibre cement|formwork|ply\w*|external|colorbond)\b/i.test(t), 'plasterSheets', 'plasterHeight', 'plasterWork');
+  on(P(/\b(?:frame|stud) and sheet\b/i), 'carpFraming', 'carpentryWork');
+  on(/^(?:plaster )?setting$/i.test(t) || P(/\bset(?:ting)? and sand\w*|\bstopping and sanding\b|\bplaster(?:board)? setting\b|\bsetting (?:the )?(?:plasterboard|joints|board)\b/i), 'plasterSanding', 'plasterWork');
+  on(P(/\bceiling tiles?\b|\bgrid (?:and tile )?ceilings?\b|\bceiling grids?\b|\btile ceilings?\b|\blay-?in tiles?\b/i) && fixing, 'ceilingGrid');
+  on(P(/\bshaft ?liner\b/i), 'carpFraming', 'plasterSheets');
+  on(P(/\b(?:soffit|eaves?) lin\w*/i) && fixing, 'eaveLining');
+  on(P(/\bfibre cement (?:sheet\w*|cladding|boards?|panels?)\b/i) && P(/\b(?:facade|external|cladding|walls?)\b/i), 'claddingInstall');
+  on(P(/\b(?:column|wall|reo|rebar|reinforcement) cages?\b/i), 'reo');
+  on(/^post-tensioning$/i.test(t) || (P(/\bpost-tensioning\b/i) && plain && !/\b(?:bridges?|girders?|headstocks?|crossheads?|stress\w*|ducts?|strands?|tendons?|anchorages?|grout\w*)\b/i.test(t)), 'ptTendons', 'stressing');
+  on(P(/\bstress\w* and grout\w*|\bstress\w* (?:the )?(?:post-tension\w*|tendons?|strands?)\b/i), 'stressing');
+  on(P(/\bpost-tensioning (?:ducts?|strands?|tendons?)\b/i) && !/\bstress\w*/i.test(t), 'ptTendons');
+  // Structural steel, tiling and waterproofing.
+  on(P(/\bstand\w* (?:the )?steel\b|\b(?:steel|structural steel) erect\w*|\berect\w* (?:the )?(?:structural )?steel\b/i), 'steelErect', 'steelWork');
+  on(P(/^(?:bondek|condeck|kingflor|metal (?:floor )?deck(?:ing)?|steel (?:floor )?deck(?:ing)?)\b|\b(?:lay|install|fix)\w* (?:the )?(?:bondek|condeck|kingflor|metal (?:floor )?deck\w*|steel (?:floor )?deck\w*)\b|\bshear stud\w*/i) && !/\broof\w*/i.test(t), 'deckingStuds', 'steelWork');
+  on(P(/\bheavy (?:steel )?lifts?\b|\blong span\b/i), 'heavyLift');
+  on(P(/\bsteel (?:stairs?|platforms?|walkways?|landings?)\b|\b(?:grating|grid mesh|checker plates?)\b/i) && fixing, 'accessSteel', 'steelWork');
+  on(P(/\bstrengthen\w* (?:the )?(?:existing )?(?:steel|beams?|columns?)\b/i), 'steelErect', 'steelWork');
+  on(P(/^(?:stone|large format|porcelain|ceramic|floor|wall|natural stone|marble) (?:floor )?tiles?(?: install\w*| lay\w*)?$|\bpool (?:tiling|coping|tiles?)\b/i), 'tileLay', 'tileCut', 'tileMix', 'tilingWork');
+  on(P(/^(?:wet area |bathroom )?waterproof\w*$|\bwaterproof\w*\b[^.]{0,20}\b(?:bathrooms?|wet areas?|showers?|laundr\w*|kitchens?)\b|\bwet areas? (?:waterproof\w*|membranes?)\b/i), 'wpPrep', 'wpLiquid', 'waterproofing');
+  on(P(/\b(?:balcon\w*|podiums?|planters?|terraces?)\b/i) && P(/\b(?:waterproof\w*|membranes?)\b/i) && !/\b(?:torch\w*|sheet membranes?|bitumen)\b/i.test(t), 'wpLiquid', 'waterproofing');
+  on(P(/^roof membranes?$/i), 'wpLiquid', 'waterproofing');
+  on(P(/\btanking\b|\b(?:basement|below ground|lift pits?) (?:walls? )?waterproof\w*|\bwaterproof\w* (?:the )?(?:basement|lift pits?|below ground)\b/i), 'belowGroundWp', 'waterproofing');
+  on(P(/^(?:silicone|sealants?|caulking|mastic)(?: joints?| work)?$|\bsealants? (?:to|around) (?:the )?(?:windows?|doors?|joints?|facades?|frames?)\b|\bseal\w* (?:the )?(?:expansion|movement|control) joints?\b/i), 'caulking');
 }
 
 // Lifts that are access plant, not lifts (elevators).
@@ -3622,6 +3838,26 @@ function typedTitleFixes(out, task) {
   off(T(/\btraffic management\b/i) && !T(/\b(?:haul\w*|deliver\w*|oversize|over-?mass|escorts?|low ?loaders?|truck and dog)\b/i), 'heavyHaulage');
   off(/^(?:ductwork|pipework)\b[^.]{0,30}\b(?:insulat\w*|lagging)\b/i.test(t) && !T(/\b(?:install\w*|run\w*|fix\w*) (?:the |new )?(?:ductwork|pipework)\b/i), 'ductwork', 'mechPipework');
   off(T(/\bdemolition hammers?\b/i) && !T(/\bdemolish\w*|\bdemolition (?:of|works?)\b/i), 'demolition', 'structureDemolition');
+  // Plain typed wordings (plainWordings): the near steps their words also call up are taken out.
+  const short = t.split(/\s+/).length <= 22 && !/[.!?]\s+\S/.test(t);
+  const P = (re) => short && re.test(t);
+  // A survey or sampling is not removal; a generator hooked up for site power is not a permanent one.
+  off(P(/\bhaz ?mat\b|\bhazardous materials? (?:surveys?|audits?)\b|\bsampling\b|\bsurveys?\b|\baudits?\b/i) && !T(/\bremov\w*|\bstrip\w*|\babate\w*/i), 'asbestos', 'demolition', 'structureDemolition');
+  // A mast climbing work platform is not a swing stage; the library has no steps for it.
+  off(P(/\bmast ?climb\w*/i) && !T(/\bswing stages?\b/i), 'swingStage');
+  // A sediment basin is not a hand basin.
+  off(P(/\b(?:sediment|silt\w*) (?:basins?|ponds?|traps?)\b/i), 'plumbingFitOff');
+  off(P(/\bpothol(?:ing|e (?:the |for |to ))/i) && !T(/\b(?:asphalt|fill\w*|patch\w*|repair\w*|reinstat\w*)\b/i), 'asphalt');
+  off(Boolean(out.generatorConnect) && !T(/\b(?:permanent|standby|emergency)\b/i), 'generatorPlant');
+  off(Boolean(out.refrigerantPipework) && short && !T(/\bducts?\b|\bductwork\b/i), 'ductwork');
+  off(Boolean(out.servicesStrip) && P(/\b(?:electrical|power|lighting|cabling|fire|sprinkler|mechanical|plumbing|hydraulic) (?:services )?strip[- ]out\b|\bmake safe\b/i) && !T(/\b(?:ceilings?|partitions?|walls?|carpets?|fit-?outs?|soft strip|floor coverings?)\b/i), 'stripOut', 'officeStrip');
+  off(P(/\bhollowcore\b|\bfloor planks?\b/i) && !T(/\b(?:panels?|walls?|columns?|beams?)\b/i), 'precast');
+  off(P(/\bscrew (?:piles?|piers?|piling)\b/i) && !T(/\b(?:cfa|bored|driven)\b/i), 'pilingRig', 'drivenPiles', 'pileComplete', 'pileCage', 'pileConcrete', 'cfaCage', 'openBore');
+  off(P(/\bde-?stress\w*|\bdetension\w*|\bcut\w* into (?:the )?(?:post-tension\w*|pt)\b/i), 'stressing', 'ptTendons');
+  off(Boolean(out.ceilingGrid) && P(/\bceiling tiles?\b|\bgrid (?:and tile )?ceilings?\b|\bceiling grids?\b|\btile ceilings?\b|\blay-?in tiles?\b/i) && !T(/\b(?:plasterboard|gyprock|bulkheads?|floor tiles?|wall tiles?)\b/i), 'tileCut', 'tileMix', 'tileLay', 'tilingWork', 'plasterCeiling', 'plasterSheets');
+  off(Boolean(out.kerbInstall) && short && !T(/\b(?:slabs?|paths?|footpaths?|driveways?|crossovers?|footings?)\b/i), 'slabGround', 'slabPour');
+  off(P(/\b(?:duct(?:work)?|pipe(?:work)?) (?:lagging|insulation|insulating)\b|\blagg\w*\b[^.]{0,20}\b(?:ducts?|ductwork|pipes?|pipework)\b/i), 'insulation');
+  off(P(/\b(?:footings?|slabs? on ground|ground slabs?|edge forms?|slab edges?)\b/i) && P(/\bforms?\b|\bformwork\b|\bform(?:ing)? up\b/i) && !T(/\b(?:suspended|decks?|columns?|core|stairs?)\b/i), 'formwork', 'propping');
   return out;
 }
 
@@ -4918,7 +5154,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // Installing risers or pipework at height, not other work done in the risers.
     // The riser, stack or ceiling is where something is installed, in the same sentence.
     // Stacks a drain collects are the stack plumber's work, not this drain's.
-    hydraulicRisers: isPlumbing(task) && /\binstall\w*\b[^.]*\b(risers?|stacks?|(?<!maintenance |inspection |access )shafts?|ceilings?|at height)\b|\b(risers?|stacks?|(?<!maintenance |inspection |access )shafts?|ceilings?|at height)\b[^.]*\binstall\w*/i.test(task.replace(/\b(?:collect\w*|serv\w*)\b[^.]{0,30}?\bstacks?\b/gi, ' ')) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
+    hydraulicRisers: isPlumbing(task) && /\b(?:runs?|running)\b[^.]{0,60}\b(?:stacks?|pipes?|pipework)\b[^.]{0,30}\brisers?\b|\binstall\w*\b[^.]*\b(risers?|stacks?|(?<!maintenance |inspection |access )shafts?|ceilings?|at height)\b|\b(risers?|stacks?|(?<!maintenance |inspection |access )shafts?|ceilings?|at height)\b[^.]*\binstall\w*/i.test(task.replace(/\b(?:collect\w*|serv\w*)\b[^.]{0,30}?\bstacks?\b/gi, ' ')) && !/\b(rough[- ]in|fit[- ]off)\b/i.test(task),
     hotWork: HOT_WORK.test(task),
     // Soil and waste pipes are PVC with solvent cement joints as a rule.
     solventCement: /\b(solvent (?:cement|weld\w*)|pvc (?:glue|cement)|pvc pip\w*|soil and waste)\b/i.test(task) || (/\bprimers?\b/i.test(task) && /\b(pvc|pipe\w*)\b/i.test(task)),
@@ -4936,7 +5172,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     neighbours: BULK_EXCAVATION.test(task) && /\b(neighbour\w*|street|footpath|adjacent|adjoining)\b/i.test(task),
     steelWork: STEEL_WORK.test(task),
     steelLift: STEEL_WORK.test(task) && /\b(cranes?|cranage|lift\w*|land\w*|erect\w*)\b/i.test(task),
-    steelErect: STEEL_WORK.test(task) && /\b(erect\w*|install\w*|connect\w*|bolt\w*|rigg\w*)\b/i.test(task),
+    steelErect: STEEL_WORK.test(task) && /\b(erect\w*|install\w*|connect\w*|bolt\w*|rigg\w*|stand\w* (?:up )?(?:the )?(?:structural )?steel)\b/i.test(task),
     // Welding aluminium members on site is the same arc welding step.
     steelWeld: (STEEL_WORK.test(task) || /\balumin\w*\b[^.]{0,30}\b(?:members?|frames?|posts?|balustrades?|handrails?|sections?|brackets?)\b/i.test(task)) && /\b(weld\w*)\b/i.test(task),
     aluminiumWeld: /\balumin\w*\b/i.test(task) && /\b(weld\w*)\b/i.test(task) && !STEEL_WORK.test(task),
@@ -4947,7 +5183,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     masonryGrout: MASONRY_WORK.test(task) && /\b(grout\w*|core[- ]fill\w*)\b/i.test(task),
     masonryEdge: MASONRY_WORK.test(task) && /\b(slab edges?|edges?|perimeter)\b/i.test(task),
     plasterWork: PLASTER_WORK.test(task),
-    plasterSheets: /\bclad,? and line\b|\band line it\b/i.test(task) || PLASTER_WORK.test(task) && /\b(sheets?|fix\w*|hang\w*|install\w*)\b/i.test(task) && !(/\b(ceiling grids?|grid ceilings?|ceiling tiles?)\b/i.test(task) && !/\b(plasterboard|gyprock|drywall|sheets?)\b/i.test(task)),
+    plasterSheets: /\bclad,? and line\b|\band line it\b|\b(?:frame|stud)\w*\b[^.]{0,40}\band sheets? (?:them|it|the walls?)\b/i.test(task) || PLASTER_WORK.test(task) && /\b(sheets?|fix\w*|hang\w*|install\w*)\b/i.test(task) && !(/\b(ceiling grids?|grid ceilings?|ceiling tiles?)\b/i.test(task) && !/\b(plasterboard|gyprock|drywall|sheets?)\b/i.test(task)),
     plasterHeight: PLASTER_WORK.test(task),
     plasterCeiling: PLASTER_WORK.test(task) && /\b(ceiling (?:grids?|sheets?|linings?)|suspended ceilings?|ceiling (?:plasterboard|gyprock|drywall)|(?:plasterboard|gyprock|drywall) ceiling\w*|suspended (?:grid )?ceilings?|grid ceilings?)\b/i.test(task),
     plasterSanding: PLASTER_WORK.test(task) && /\b(sand\w*|set\w*|cut\w*|stopping)\b/i.test(task),
@@ -4975,7 +5211,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     tileEdge: isTiling(task) && /\b(balcon\w*|terraces?|edges?(?![- ](?:strips?|trims?|profiles?|angles?|beads?|tiles?|bands?|grips?|finish\w*))|podium)\b/i.test(task),
     // Mobile scaffold use is found the way EWP use is: from the task, the facts and the site answers (owner decision, 6 October 2026).
     mobileScaffold: MOBILE_SCAFFOLD.test(combinedFacts(task, facts)),
-    hoistInstall: /\b(install\w*|erect\w*|climb\w*|dismantl\w*|jump\w*|extend\w*)\b[^.]{0,40}\b(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
+    hoistInstall: /\b(install\w*|erect\w*|climb\w*|dismantl\w*|jump\w*|extend\w*|puts? up)\b[^.]{0,40}\b(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
     hoistOperate: /\b(operat\w*|run\w*|driv\w*)\b (?:the )?(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
     carpentryWork: CARPENTRY_WORK.test(task) && !FORMWORK.test(task),
     carpLoad: CARPENTRY_WORK.test(task) && !FORMWORK.test(task) && /\b(hoists?|deliver\w*|carr\w*|mov\w*|sheets?|joinery|cabinets?)\b/i.test(task),
@@ -4992,7 +5228,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     pileTrim: PILING_WORK.test(task) && /\b(trim\w*|crop\w*|break\w* (?:down )?(?:the )?pile(?: heads?|s))\b/i.test(task),
     retentionWall: PILING_WORK.test(task) && /\b(excavat\w*|dig\w*)\b/i.test(task) && /\b(secant|contiguous|retention walls?|sheet pil\w*|shoring walls?|bulk excavat\w*)\b/i.test(task),
     fireWork: FIRE_SERVICES.test(task),
-    fireAtHeight: FIRE_SERVICES.test(task) && /\b(install\w*|ceilings?|risers?|at height)\b/i.test(task) && (!/\b(underground|in-?ground|buried)\b/i.test(task) || /\b(ceilings?|risers?|at height)\b/i.test(task)),
+    fireAtHeight: FIRE_SERVICES.test(task) && /\b(install\w*|ceilings?|risers?|at height|roof spaces?|branch lines?|fit\w* the heads|from (?:boom|scissor) lifts?)\b/i.test(task) && (!/\b(underground|in-?ground|buried)\b/i.test(task) || /\b(ceilings?|risers?|at height)\b/i.test(task)),
     fireGrooving: FIRE_SERVICES.test(task) && /\b(groov\w*|thread\w*|cut\w*)\b/i.test(task),
     fireLive: FIRE_SERVICES.test(task) && /\b(live|isolat\w*|impair\w*|pump rooms?|connect\w*|commission\w*)\b/i.test(task.replace(/\bconnect\w* (?:it )?to (?:the )?(?:town|council|water|authority'?s?) mains?\b/gi, '')),
     liftWork: LIFT_WORK.test(task) && !BULK_EXCAVATION.test(task),
@@ -5346,7 +5582,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // Heavy plant lifted, delivered or moved into place; not scissor or boom lifts.
     plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:air[- ]?condition\w*|rooftop|package\w*|a\/?c) units?|fans?(?!\s+coil)|plant)\b/i.test(task) && (/\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*|set(?:ting)? (?:the |new |each )?(?:[\w-]+ )?(?:units?|condensers?|chillers?|ahus?|plant))\b/i.test(task) || (/\binstall\w*/i.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:rooftop|package\w*) units?|plant)\b/i.test(task) && !/\b(range ?hoods?|exhaust fans?)\b/i.test(task))),
     // A sentence that only marks or labels services names them; it does not install them.
-    ductwork: /\bducted\b/i.test(task) && /\b(install\w*|replac\w*)\b/i.test(task) || MECHANICAL_WORK.test(task) && /\b(install\w*|exhaust systems?|supply and fix|fit(?:s|ted|ting)?)\b/i.test(task.replace(/\b(?:supply and )?install\w* (?:all )?(?:the )?(?:insulation|lagging)\b[^.]*/gi, '').replace(/[^.]+\.?/g, (sentence) => (/\b(mark\w*|label\w*|colour bands?|pipe markers?|flow arrows?)\b/i.test(sentence) && !/\b(?:install|supply|fit|run|replace)(?:s|ed|ing)?\b/i.test(sentence) ? ' ' : sentence))) && (!/\bon the roof\b/i.test(task) || /\b(?:install\w*|run\w*|connect\w*|fix\w*) (?:the |new )?(?:ductwork|ducting|ducts?)\b/i.test(task)) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task)) || /\b(split systems?|indoor units?|outdoor units?|wall[- ]hung units?)\b/i.test(task)),
+    ductwork: /\bducted\b/i.test(task) && /\b(install\w*|replac\w*)\b/i.test(task) || /\b(?:hang\w*|install\w*|run\w*|fix\w*)\b[^.]{0,40}\bair ducts?\b/i.test(task) || MECHANICAL_WORK.test(task) && /\b(install\w*|exhaust systems?|supply and fix|fit(?:s|ted|ting)?)\b/i.test(task.replace(/\b(?:supply and )?install\w* (?:all )?(?:the )?(?:insulation|lagging)\b[^.]*/gi, '').replace(/[^.]+\.?/g, (sentence) => (/\b(mark\w*|label\w*|colour bands?|pipe markers?|flow arrows?)\b/i.test(sentence) && !/\b(?:install|supply|fit|run|replace)(?:s|ed|ing)?\b/i.test(sentence) ? ' ' : sentence))) && (!/\bon the roof\b/i.test(task) || /\b(?:install\w*|run\w*|connect\w*|fix\w*) (?:the |new )?(?:ductwork|ducting|ducts?)\b/i.test(task)) && (/\b(ductwork|duct(?:ing| runs?| sections?)|ducts)\b/i.test(task) || (/\b(fan coil units?|fcus?)\b/i.test(task) && !REFRIGERANT.test(task)) || /\b(split systems?|indoor units?|outdoor units?|wall[- ]hung units?)\b/i.test(task)),
     refrigerantPipework: REFRIGERANT.test(task) && /\b(braz\w*|silver solder\w*)\b/i.test(task),
     // Installing a split system includes pressure testing, evacuating and releasing or adding the charge.
     refrigerantTest: REFRIGERANT.test(task) && (PRESSURE_TEST.test(task) || SPLIT_INSTALL.test(task)),
@@ -5362,8 +5598,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // A builder's rule against in-slab conduits is not conduit work.
     // Rules about cast-in conduits (none unless unavoidable, scan before drilling, avoid
     // striking them, the builder's own) are not installing them.
-    castIn: /\bconduits?\b[^.]*\b(?:during (?:the )?pour\w*|before (?:the )?pour|pouring of concrete)\b|\b(cast[- ]in|in[- ]slab)\b/i.test(task.replace(/[^.]+\.?/g, (sentence) => (/\b(no|unless|if|builder will|by others)\b/i.test(sentence) || /\b(scan\w*|detect\w*|free of|impact|damag\w*|strik\w*|hit\w*|avoid\w*|integrity)\b/i.test(sentence) && /\b(drill\w*|cor(?:e|ing)|cut\w*|penetrat\w*|scan\w*)\b/i.test(sentence) ? ' ' : sentence))) && ELECTRICAL_CORE.test(task),
-    containment: /\b(cable trays?|cable ladders?|containment|busduct)\b/i.test(task) && ELECTRICAL_CORE.test(task),
+    castIn: /\bconduits?\b[^.]*\b(?:during (?:the )?pour\w*|before (?:the )?pour|pouring of concrete)\b|\bconduits?\b[^.]{0,60}\b(?:in|among|amongst|into) (?:the )?reo\b|\b(cast[- ]in|in[- ]slab)\b/i.test(task.replace(/[^.]+\.?/g, (sentence) => (/\b(no|unless|if|builder will|by others)\b/i.test(sentence) || /\b(scan\w*|detect\w*|free of|impact|damag\w*|strik\w*|hit\w*|avoid\w*|integrity)\b/i.test(sentence) && /\b(drill\w*|cor(?:e|ing)|cut\w*|penetrat\w*|scan\w*)\b/i.test(sentence) ? ' ' : sentence))) && ELECTRICAL_CORE.test(task),
+    containment: /\b(cable trays?|cable ladders?|containment|busduct|tray and ladder|ladder and tray)\b/i.test(task) && ELECTRICAL_CORE.test(task),
     cablePull: (/\b(cable pull\w*|pull\w* (?:the )?cables?|cable drums?|drums? of cable|submains?|consumer mains)\b/i.test(task) && ELECTRICAL_CORE.test(task)) || /\b(?:run\w*|lay\w*|install\w*)\b[^.]{0,20}\b(?:underground )?(?:power|supply|cable)\b[^.]{0,30}\bto (?:a |the )?(?:shed|garage|granny flat|pump|outbuilding|gate)\b/i.test(task),
     ictWork: ICT_WORK.test(task),
     securityWork: SECURITY_WORK.test(task),
