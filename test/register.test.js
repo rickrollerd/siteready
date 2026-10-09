@@ -30,11 +30,13 @@ test('plant, substances, licences, emergency arrangements and the reference numb
   assert.ok(draft.sources.legislation.includes('Work Health and Safety Regulation 2011 (Qld)'));
 });
 
-test('each work step is rated before and after its controls, and controls lower the rating', () => {
+test('each step is rated before and after its controls, Before starting too, and controls lower the rating', () => {
   const draft = slab();
-  assert.equal(draft.jobSteps[0].risk, null);
+  // A reviewer marks a step with no rating (review checklist item 6), so Before starting is rated too.
+  assert.equal(draft.jobSteps[0].step, 'Before starting');
+  assert.ok(draft.jobSteps[0].risk.before.level);
   const order = ['Low', 'Moderate', 'High', 'Extreme'];
-  for (const step of draft.jobSteps.slice(1)) {
+  for (const step of draft.jobSteps) {
     assert.ok(order.indexOf(step.risk.after.level) <= order.indexOf(step.risk.before.level), step.step);
   }
   const fall = riskFor({ hazards: ['A person falls from the edge.'], controls: ['Edge protection is installed at every open edge.'] });

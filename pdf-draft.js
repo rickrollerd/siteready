@@ -3,7 +3,7 @@
 const PDFDocument = require('pdfkit');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
-const { revisionText } = require('./docx-draft');
+const { revisionText, sharedNote } = require('./docx-draft');
 
 const INK = '#1C2430';
 const MUTED = '#5C6773';
@@ -180,7 +180,7 @@ function companyHeader(doc, draft, logo, logoImage) {
 
 const lines = (value) => String(value || ' ').split('\n').map((line) => ({ text: line || ' ' }));
 const row = (...values) => ({ cells: values.map(lines) });
-const riskLines = (risk) => (risk ? [`Before: ${risk.before.level}`, risk.before.label, `After: ${risk.after.level}`, risk.after.label].join('\n') : ' ');
+const riskLines = (risk) => (risk ? [`Before: ${risk.before.level}`, risk.before.label, `After: ${risk.after.level}`, risk.after.label, ...(risk.response ? [risk.response] : [])].join('\n') : ' ');
 
 function registers(doc, draft, w) {
   if ((draft.plant || []).length) {
@@ -267,7 +267,7 @@ function draftToPdf(draft, options = {}) {
         cells: [
           [{ text: `${index + 1}. ${step.step}`, bold: true }],
           step.hazards.map((line) => ({ text: `•  ${line}` })),
-          step.controls.map((line) => ({ text: `•  ${line}` })),
+          [...step.controls, ...sharedNote(step, draft.jobSteps)].map((line) => ({ text: `•  ${line}` })),
           lines(riskLines(step.risk)),
           [{ text: step.responsible || ' ' }],
         ],

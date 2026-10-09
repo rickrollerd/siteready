@@ -316,6 +316,9 @@ function packageKinds(rawTask, kinds) {
   out = out.filter((id) => !NAMED_KINDS.includes(id) || named[id]);
   for (const id of NAMED_KINDS) if (named[id] && !out.includes(id)) out.push(id);
   if (workshopOnly(task)) out = out.filter((id) => WORKSHOP_KINDS.includes(id));
+  // Where the AI chose no groups at all, the work the words name on their own (a flood test, sealant
+  // and caulking) still gets its steps, rather than the package being stood down.
+  if (!kinds.length) for (const id of GAP_KINDS) if (flags[id] && KIND_SET.has(id) && !out.includes(id)) out.push(id);
   return out;
 }
 
@@ -1861,6 +1864,51 @@ function methodSteps(task, facts, site, pack) {
 // Reviewed when the work changes, and after an incident or a control that is not working (WHS Regulations s 38).
 const REVIEW = 'The controls are put in place before the task starts. They are checked while the task is underway. They are reviewed before the task starts again, if the task changes, and after an incident or near miss or when a control is not working.';
 
+// The review section, built from this task's own triggers (goal 10: a SWMS prompts its own review
+// when the crew, plant, process or conditions change; goal 2 review: one fixed paragraph on every
+// SWMS reads as a template). It names who checks the controls, the plant listed, the site conditions
+// answered and the weather where the work is outdoors, and keeps the triggers the law and the review
+// checklist ask for (WHS Regulations s 38 and s 302; review checklist items 18 and 19).
+const CONDITION_LABELS = { liveServices: 'live services', publicInterface: 'the public', otherTrades: 'other trades', ground: 'ground', access: 'access' };
+const listed = (items) => (items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}` : items[0] || '');
+// "Sam Lee, supervisor" in the middle of a sentence closes with a comma.
+const named = (who) => (who.includes(',') ? `${who},` : who);
+const plantName = (name) => name.replace(/\s*\([^)]*\)/g, '').split(' ').map((word, index) => (index === 0 && !/^[A-Z]{2,}/.test(word) ? word.toLowerCase() : word)).join(' ');
+function reviewFor(draft, facts = {}) {
+  const who = draft.reviewer || draft.complianceResponsible || draft.siteManager || 'the supervisor';
+  const plant = [...new Set((draft.plant || []).map((item) => plantName(item.item)))].slice(0, 4);
+  const conditions = (draft.site || []).filter((row) => row.text && !/^(?:none|not applicable)$/i.test(row.text)).map((row) => CONDITION_LABELS[row.id]).filter(Boolean);
+  if (OUTDOOR_NAMED.test(combinedFacts(draft.task || '', facts))) conditions.push('the weather');
+  const triggers = [
+    plant.length ? `plant is brought in other than that listed here (${plant.join(', ')})` : 'plant is brought in',
+    'the method, sequence or materials change',
+    'the work moves to a new area or level',
+    conditions.length ? `the site conditions change (${listed(conditions)})` : 'the site conditions change',
+    (draft.highRisk || []).length ? 'high risk construction work not listed here is added' : 'the work becomes high risk construction work',
+    'a new hazard is found',
+    'a control is not working or the SWMS is not being followed',
+    'after an incident or near miss',
+    'when a health and safety representative asks',
+  ];
+  return [
+    `The controls are put in place before the task starts, and checked by ${named(who)} at each pre-start and while the work is under way.`,
+    'A new worker is briefed on this SWMS and signs on before starting.',
+    `This SWMS is reviewed, and revised where needed, before work goes on when ${triggers.slice(0, -2).join('; ')}; ${triggers[triggers.length - 2]}; or ${triggers[triggers.length - 1]}.`,
+    'Work stops if the SWMS cannot be followed, and restarts only when it can. A revision is explained to the crew, who sign on again, and given to the principal contractor before the changed work starts.',
+  ].join(' ');
+}
+
+// A step still rated High after its controls says what happens before it starts, naming the
+// person responsible for the SWMS (review checklist item 10: a residual High needs further controls
+// or a named person who accepts it). The lines shared with an earlier step were only for the rating.
+function withRiskResponse(draft) {
+  const who = draft.complianceResponsible || draft.siteManager || draft.worksManager || 'the supervisor';
+  const jobSteps = (draft.jobSteps || []).map(({ sharedControls: _shared, ...step }) => (step.risk && step.risk.after.level === 'High'
+    ? { ...step, risk: { ...step.risk, response: `This step does not start until ${named(who)} adds controls that lower this rating, or accepts the risk in writing.` } }
+    : step));
+  return { ...draft, jobSteps };
+}
+
 function fallWarning(metres) {
   return `You answered No, but the task mentions work at height, such as a roof, a scaffold, an upper storey, or a height above ${metres} metres. Check that no one can fall more than ${metres} metres, for example because a scaffold, parapet or edge protection is already in place. If someone can, go back and answer Yes.`;
 }
@@ -2080,8 +2128,12 @@ function missingMainWork(fullTask, steps, added = null) {
     if ((!added || HARD_MAIN_WORK.has(label)) && pattern.test(label === 'blasting with explosives (licensed shotfirer work)' ? withoutToolExplosives(task) : task) && !covered.test(text)) return label;
   }
   const own = new Set();
-  // Where drilling into concrete is the job itself (anchors, wheel stops, fixings), the drilling step is the main work.
-  if (/\b(drill\w*|grind\w*|anchor bolts?|dynabolts?|chemical anchors?)\b/i.test(task)) own.add('Drill or cut concrete, masonry or stone');
+  // Where drilling or cutting into concrete is the job itself (anchors, wheel stops, fixings, reglets
+  // saw cut for flashings), the drilling step is the main work.
+  if (/\b(drill\w*|grind\w*|anchor bolts?|dynabolts?|chemical anchors?|saw[- ]?cut\w*|reglets?|chas(?:e|es|ed|ing))\b/i.test(task)) own.add('Drill or cut concrete, masonry or stone');
+  // Where traffic control is the job itself (traffic guidance schemes and traffic controllers for
+  // others' work), setting up the traffic management is the main work.
+  if (/\b(?:provid\w*|set\w* up|install\w*|implement\w*|run\w*|carry out|manag\w*)\b[^.]{0,30}\btraffic (?:guidance|control|management)\b/i.test(task)) own.add('Set up traffic management');
   // Spreading gravel or soil with a bobcat is the small plant step's own work.
   if (/\b(bobcats?|skid ?steers?|posi-?tracks?)\b/i.test(task) && /\b(gravel|soil|fill|driveways?|tracks?|level\w*|spread\w*)\b/i.test(task)) own.add('Operate small earthmoving plant');
   // Working where plant moves and is not kept apart from people is the separation step's own work.
@@ -2525,7 +2577,7 @@ function buildDraft(input, screen) {
   const finished = applyStepEdits({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input);
   // The user's answers in the blanks (____) of control lines, and the scaffold supervisor only
   // where the SWMS involves a scaffold.
-  return withFills({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input) }, input.fills);
+  return withFills(withRiskResponse({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills);
 }
 
 // Gloves for the substances listed, and hearing protection where a step names noise,
@@ -2569,7 +2621,8 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   const ticked = (ids) => ppe.some((group) => group.items.some((item) => item.ticked && ids.includes(item.id)));
   const tick = (id) => { for (const group of ppe) for (const item of group.items) if (item.id === id) item.ticked = true; };
   // The respirator fit testing line goes with steps that use a respirator, or a list the user chose with one.
-  let jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: Array.isArray(input.ppe) && ticked(['p2', 'halfFace']) });
+  const setting = settingOf(task, facts, input.site);
+  let jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: Array.isArray(input.ppe) && ticked(['p2', 'halfFace']) }, setting);
   // PPE the job steps call for is ticked, so the PPE section and the steps agree.
   // A list the user chose is left as they chose it.
   if (!Array.isArray(input.ppe)) {
@@ -2584,7 +2637,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     if (/\bP2\b|\b[Rr]espirators?\b|\bdust masks?\b/i.test(said)) {
       if (!ticked(['p2', 'halfFace'])) tick('p2');
       // A respirator brings its fit testing line into the steps.
-      jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: true });
+      jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: true }, setting);
     }
     // Night work has no sun exposure.
     if ((/\b(at night|overnight|night ?shifts?|night works?)\b/i.test(task) && !/\b(day|daytime|days)\b/i.test(task)) || (INDOOR_WORK.test(task) && !/\b(external\w*|outside|outdoors?|roofs?(?! spaces?| cavit| truss)|balcon\w*|eaves|facade|yards?|car ?parks?|footpaths?|gardens?)\b/i.test(task))) for (const group of ppe) for (const item of group.items) if (['sunscreen', 'sunHat', 'glassesTinted'].includes(item.id)) item.ticked = false;
@@ -3820,7 +3873,8 @@ function settleFlags(flags, task) {
   out.pergolaWork = /\bpergolas?\b/i.test(task);
   out.sprinkler = /\bsprinkler\w*\b/i.test(task);
   out.doorWork = /\bdoors?\b/i.test(task);
-  out.groundFloor = /\b(ground floor|single storey|ground level)\b/i.test(task);
+  // Ground floor work only: a task that also names upper levels keeps the upper storey lines.
+  out.groundFloor = /\b(ground floor|single storey|ground level)\b/i.test(task) && !out.multiLevel && !/\b(multiple levels|upper (?:storeys?|floors?|levels?)|first floor|two storey|multi-?storey)\b/i.test(task);
   out.boomGate = /\b(boom gates?|booms?|ticket machines?|car park entry)\b/i.test(task);
   out.jointSealOnly = Boolean(out.facadeSeal && /\bjoints?\b/i.test(task) && !/\b(install\w*|fix\w*) (?:the )?(?:\w+ )?(?:panels?|cladding|glazing)\b/i.test(task));
   out.towerWork = /\b(towers?|masts?|monopoles?)\b/i.test(task) && !/\b(tower cranes?|water towers?|cooling towers?)\b/i.test(task);
@@ -5394,7 +5448,7 @@ function transformerFlags(facts = {}) {
 
 // Job steps, each with its hazards and controls. Work the library does not know
 // gets one middle step built from the task, its hazards and its controls.
-function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
+function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, setting = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
     if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass', 'scaffoldType'].includes(id)) return choiceAnswer(id, facts[id]);
@@ -5420,7 +5474,7 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}) {
   });
   const answers = Object.values(facts || {}).filter((value) => typeof value === 'string').join('\n');
   const scaffoldType = scaffoldTypeAnswer(task) || choiceAnswer('scaffoldType', facts.scaffoldType);
-  const withClass = scaffoldLicenceLine(tidySteps(steps, combinedFacts(task, facts), answers), scaffoldType);
+  const withClass = scaffoldLicenceLine(tidySteps(steps, combinedFacts(task, facts), answers, setting), scaffoldType);
   return state.id === 'qld' ? scaffoldDesignLines(withClass, scaffoldType, task) : withClass;
 }
 
@@ -5522,24 +5576,75 @@ const SAID_BY_FACT = [
   [/^Line marking paint is used outdoors or with ventilation, away from ignition sources, as its safety data sheet says\.(?: \(.*\))?$/, /\bventilat\w*\b[^.]*\bignition\b|\bignition\b[^.]*\bventilat\w*\b/i, ''],
 ];
 
-function tidySteps(steps, source, answers = '') {
+// Lines that do not fit where the work is read as template text (goal 2 review, 7 October 2026):
+// wind, lightning, traffic and power line lines on indoor work, and boom lift lines on scissor lift
+// work. A line is left out only where the task's own words and answers show it cannot apply: the
+// work is stated as indoors, with nothing outdoors, or only scissor lifts are named. In doubt, it stays.
+const INDOOR_STATED = /\b(indoors?|inside (?:the |a |an |each |every )?(?:building|rooms?|wards?|offices?|apartments?|units?|tenanc(?:y|ies)|shops?|plant rooms?|switch ?rooms?|ceilings?|roof spaces?)|internal(?:ly)?|interiors?|fit-?outs?|ceiling (?:spaces?|voids?|cavit\w*)|in(?:to)? the ceilings?|wards?|corridors?|plant rooms?|switch ?rooms?|comms rooms?|risers?)\b/i;
+const OUTDOOR_NAMED = /\b(outdoors?|outside|external\w*|exterior|roofs?|roofing|facades?|cladding|balcon\w*|terraces?|podiums?|streets?|roads?|footpaths?|car ?parks?|driveways?|yards?|grounds?|gardens?|landscap\w*|fences?\b|boundar(?:y|ies)|poles?|towers?|bridges?|civil|excavat\w*|trench\w*|awnings?|canop(?:y|ies)|verandahs?|decks?|pools?|open air|weather|winds?|rain|cranes?|loading docks?|wharf|jett(?:y|ies)|carports?|sheds?|site works)\b/i;
+const POWER_LINES_NAMED = /\b(overhead (?:power|electric\w*|service|supply)? ?(?:lines?|cables?|wires?|mains|conductors?)|power ?lines?|electric lines?|aerial (?:lines?|cables?))\b/i;
+const TRAFFIC_NAMED = /\b(traffic|roads?|roadways?|streets?|live lanes?|lanes?|car ?parks?|carparks?|driveways?|loading docks?|vehicles?)\b/i;
+const OTHER_PLATFORMS = /\b(booms?|knuckle|cherry ?pickers?|articulat\w*|telescopic|stick|truck[- ]mounted|vertical (?:mast|lift)|spider lifts?|telehandlers?|swing ?stages?)\b/i;
+const SCISSOR_EWP = /\bscissor[- ]?(?:lifts? )?(?:type )?(?:ewps?|elevating work platforms?)\b|\b(?:ewps?|elevating work platforms?)\s*\(\s*scissor[^)]*\)/gi;
+const SETTING_LINES = [
+  { indoors: true, pattern: /^Outdoors, stop in winds above the manufacturer's limit/ },
+  { indoors: true, pattern: /^When lightning is (?:within 10 km|seen or thunder heard nearby)/ },
+  { indoors: true, pattern: /^Wind is monitored on site with an anemometer/ },
+  { indoors: true, unlessTraffic: true, pattern: /^Near traffic, the boom's pivot point/ },
+  { indoors: true, unlessLines: true, pattern: /^(?:Where the EWP could enter Zone B of a power line|If the EWP contacts a power line|After contact with a power line)/ },
+  { scissorOnly: true, pattern: /^(?:Where a boom-type platform is used near soffits|Every boom-type EWP used on site has a working secondary guarding device|Near traffic, the boom's pivot point|A telehandler is used as an EWP only)/ },
+];
+
+// Where the work is: indoors only, and whether only scissor lifts are named. Read from the task and the
+// answers to its questions. Power lines and traffic are also read from the site answers, so a line about
+// them stays wherever any answer names them.
+function settingOf(task, facts = {}, site = {}) {
+  const own = combinedFacts(task, facts);
+  const answers = [own, ...Object.values(site || {}).filter((value) => typeof value === 'string')].join('\n');
+  const platforms = own.replace(SCISSOR_EWP, ' scissor lift ');
+  return {
+    indoors: INDOOR_STATED.test(own) && !OUTDOOR_NAMED.test(own),
+    powerLines: POWER_LINES_NAMED.test(answers),
+    traffic: TRAFFIC_NAMED.test(answers),
+    scissorOnly: /\bscissor ?lifts?\b/i.test(platforms) && !OTHER_PLATFORMS.test(platforms) && !/\b(?:ewps?|elevating work platforms?)\b/i.test(platforms),
+  };
+}
+
+function fitsSetting(line, setting = {}) {
+  return !SETTING_LINES.some((item) => item.pattern.test(line)
+    && ((item.indoors && setting.indoors && !(item.unlessTraffic && setting.traffic) && !(item.unlessLines && setting.powerLines))
+      || (item.scissorOnly && setting.scissorOnly)));
+}
+
+// A line given again in a later step is printed once, in the first step. The later step keeps a
+// note of it (sharedControls, not printed as a control), so its risk rating still counts it.
+function tidySteps(steps, source, answers = '', setting = {}) {
   const harness = harnessInUse(source);
   const task = String(source || '');
-  const seen = new Set();
+  const seen = new Map();
   const key = (line) => line.replace(/\s*\([^)]*\)\s*$/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-  return steps.map((step) => ({
-    ...step,
-    hazards: step.hazards.filter((line) => !TASK_ONLY.some(([pattern, needs]) => pattern.test(line) && !needs.test(task))),
-    controls: step.controls.map((line) => SAID_BY_FACT.reduce((text, [pattern, said, instead]) => (said.test(answers) ? text.replace(pattern, instead) : text), line)).filter((line) => {
+  return steps.map((step) => {
+    const shared = [];
+    const controls = step.controls.map((line) => SAID_BY_FACT.reduce((text, [pattern, said, instead]) => (said.test(answers) ? text.replace(pattern, instead) : text), line)).filter((line) => {
       if (!line) return false;
       if (!harness && HARNESS_ONLY.test(line)) return false;
       if (TASK_ONLY.some(([pattern, needs]) => pattern.test(line) && !needs.test(task))) return false;
+      if (!fitsSetting(line, setting)) return false;
       const id = key(line);
-      if (seen.has(id)) return false;
-      seen.add(id);
+      if (seen.has(id)) {
+        if (seen.get(id) !== step.step) shared.push({ text: line, step: seen.get(id) });
+        return false;
+      }
+      seen.set(id, step.step);
       return true;
-    }),
-  }));
+    });
+    return {
+      ...step,
+      hazards: step.hazards.filter((line) => !TASK_ONLY.some(([pattern, needs]) => pattern.test(line) && !needs.test(task))),
+      controls,
+      ...(shared.length ? { sharedControls: [...(step.sharedControls || []), ...shared] } : {}),
+    };
+  });
 }
 
 function stripLiftBleedText(text) {

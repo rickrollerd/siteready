@@ -298,7 +298,7 @@ function jobStepsTable(steps) {
         children: [
           linesCell([`${index + 1}. ${step.step}`], widths[0], { bold: true }),
           linesCell(step.hazards, widths[1], { bullet: true }),
-          linesCell(step.controls, widths[2], { bullet: true }),
+          linesCell([...step.controls, ...sharedNote(step, steps)], widths[2], { bullet: true }),
           linesCell(step.risk ? riskText(step.risk).split('\n') : [], widths[3]),
           linesCell(step.responsible ? [step.responsible] : [], widths[4]),
         ],
@@ -320,7 +320,11 @@ function gridTable(labels, widths, rows) {
 }
 
 const RISK_NOTE = 'Suggested ratings from the matrix below, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.';
-const riskText = (risk) => (risk ? `Before: ${risk.before.level}\n${risk.before.label}\nAfter: ${risk.after.level}\n${risk.after.label}` : '');
+// A rating still High after the controls prints what happens before the step starts.
+const riskText = (risk) => (risk ? `Before: ${risk.before.level}\n${risk.before.label}\nAfter: ${risk.after.level}\n${risk.after.label}${risk.response ? `\n${risk.response}` : ''}` : '');
+// A step whose rating counts controls printed once in an earlier step names that step.
+const sharedNote = (step, steps) => (step.seeAlso && step.seeAlso.length
+  ? [`The controls in ${step.seeAlso.map((name) => `step ${steps.findIndex((other) => other.step === name) + 1} (${name})`).join(' and ')} also apply here.`] : []);
 
 function registerBlocks(draft) {
   const blocks = [];
@@ -581,4 +585,4 @@ async function draftToDocx(draft, options = {}) {
   return Packer.toBuffer(buildDocument(draft, options));
 }
 
-module.exports = { preparedFor, workingCopy, draftToDocx, draftedNote, revisionText };
+module.exports = { sharedNote, preparedFor, workingCopy, draftToDocx, draftedNote, revisionText };

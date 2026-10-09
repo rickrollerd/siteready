@@ -29,14 +29,14 @@ const GOOD = Object.freeze({
   steps: [
     { step: 'Set up roof access', hazards: ['A fall from the ladder or stair while getting onto the roof.'], controls: [
       'Access is by the scaffold stair only, inspected and tagged by the scaffolder before use.',
-      'The supervisor checks the scaffold tag before each shift.'] },
+      'The supervisor checks the scaffold tag before each shift.'], riskBefore: 'High', riskAfter: 'Moderate' },
     { step: 'Install roof edge protection', hazards: ['Falling from the roof edge.', 'Falling through skylights.'], controls: [
       'A perimeter guardrail scaffold is installed around the roof edge before work starts, with the working deck no more than 300 mm below the eaves.',
-      'Skylights are covered with fixed covers rated to take a fall before anyone goes onto the roof.'], responsible: 'Scaffolder' },
+      'Skylights are covered with fixed covers rated to take a fall before anyone goes onto the roof.'], responsible: 'Scaffolder', riskBefore: 'High', riskAfter: 'Moderate' },
     { step: 'Remove and replace roof sheets', hazards: ['Falling through the open roof frame.', 'Cuts from sheet edges.'], controls: [
       'Safety mesh to AS/NZS 4389 is fixed under the new sheets before they are laid.',
       'Sheets are lifted to the roof by a materials hoist, not carried up the stair.',
-      'Cut resistant gloves are worn when handling sheets.'], responsible: 'Leading hand' },
+      'Cut resistant gloves are worn when handling sheets.'], responsible: 'Leading hand', riskBefore: 'High', riskAfter: 'Moderate' },
   ],
   ppe: ['Hard hat', 'Safety boots', 'Cut resistant gloves'],
   responsiblePerson: 'Sam Lee, roofing supervisor',
@@ -327,7 +327,7 @@ const item = (result, rule) => result.findings.find((finding) => finding.rule ==
 
 test('the 100 points are split as decided: W10 to W12 from the items they overlap (5 October), W13 and W14 by rebalancing (6 October 2026)', () => {
   const maxima = Object.fromEntries(checkSwms(GOOD).findings.filter((finding) => !finding.hard).map((finding) => [finding.rule, finding.max]));
-  assert.deepEqual(maxima, { W1: 12, W2: 12, W3: 10, W4: 6, W5: 8, W6: 8, W7: 8, W8: 2, W9: 6, W10: 4, W11: 4, W12: 5, W13: 12, W14: 3 });
+  assert.deepEqual(maxima, { W1: 10, W2: 10, W3: 10, W4: 6, W5: 8, W6: 8, W7: 8, W8: 2, W9: 6, W10: 4, W11: 4, W12: 5, W13: 12, W14: 3, W15: 4 });
   assert.equal(Object.values(maxima).reduce((sum, max) => sum + max, 0), 100);
   assert.match(SOURCES.W13, /s 306/);
   assert.match(SOURCES.W14, /safety data sheets/);

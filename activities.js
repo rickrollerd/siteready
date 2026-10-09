@@ -863,6 +863,7 @@ const ACTIVITIES = [
         hazards: ['Crushing between the load and the structure.'],
         controls: [
           src('Land the load on dunnage on a stable surface, with the load spread evenly.', TOWER('s 7.2.3')),
+          src('Use tag lines to control the load.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
           'Land the load within the rated load of where it lands, and secure it before releasing the rigging.',
           'Loads are landed onto timber bearers or dunnage so slings can be pulled clear without hands or feet going under the load.',
           'When loading a truck, the load is landed where the driver agrees and is chained or strapped to the deck before the crane takes off its weight and the rigging is removed. The driver stays off the deck while the load is landed.',
@@ -1034,7 +1035,11 @@ const ACTIVITIES = [
         unless: 'formStripOnly',
         step: 'Inspect before the pour',
         hazards: ['Formwork fails during the pour.'],
-        controls: ['A competent person checks the formwork and falsework are built to the design, and signs it off, before the pour.'],
+        controls: [
+          'A competent person checks the formwork and falsework are built to the design, and signs it off, before the pour.',
+          // Formwork that fails during the pour harms whoever is under it (residual risk review, 7 October 2026).
+          src('No one is under the formwork deck or inside the falsework while wet concrete is placed.', NSWC('NSW Formwork', 's 7.14')),
+        ],
       },
       {
         unless: 'formStripOnly',
@@ -1502,6 +1507,7 @@ const ACTIVITIES = [
         src('Use non-conductive ladders for electrical work.', NSWC('NSW Electrical risks', 's 8.2')),
         src('Extension ladders used for electrical work are no longer than 9.2 m.', WHS('s 306M')),
         src('Ladders are used for access, and work is done from the platforms set out in the fall controls.', QCODE('Managing the risk of falls', 's 9.1')),
+        src('Use platform ladders or a working platform, not the top steps of a stepladder.', QCODE('Managing the risk of falls', 's 9.1')),
         src('Risers and shafts are covered, screened or fenced at each level, and any opened section is fenced while it is open.', QCODE('Managing the risk of falls', 's 4.2')),
         'Only the section being worked on is opened.',
         src('Restrain tools with wrist lanyards, tool holders or pouches when working near switchboards.', `${QCODE('Managing electrical risks', 's 7.1')}; ${NSWC('NSW Electrical risks', 's 8.1')}`),
@@ -1874,6 +1880,7 @@ const ACTIVITIES = [
           src('Team lifts are an interim control only. One person plans and takes charge of each team lift.', MODEL('Hazardous manual tasks', 's 4.9')),
           src('Forklifts are kept apart from people, with a warning device. A forklift left unattended is parked level, with the brake on and the key removed.', `${WHS('s 215, s 218')}; ${QCODE('Managing the risks of plant in the workplace', 's 2.3.1, s 3.8, s 4.4')}`),
           src('Forklifts carry no passengers.', WHS('s 218')),
+          src('Separate people from forklift routes with barriers, and use a spotter where people are near.', NSWC('NSW Moving plant on construction sites', 's 3.3, s 7')),
           src('Leave an access way around plant for maintenance (about 600 mm is suggested).', MODEL('Managing the risks of plant in the workplace', 's 3.2')),
         ],
       },
@@ -2174,6 +2181,7 @@ const ACTIVITIES = [
         { only: 'riserWork', ...src('Risers and shafts are covered or screened at each level. Covers are strong enough to take anyone who could fall onto them, securely fixed so they cannot be moved or removed by accident, and marked as covering a hole.', `${WHS('s 306F')}; ${QCODE('Managing the risk of falls', 's 4.2')}`) },
         { only: 'riserWork', text: 'Only the section being worked on is opened.' },
         src('Ladders are industrial and rated for at least 120 kg.', WHS('s 306M')),
+        src('Use platform ladders or a working platform, not the top steps of a stepladder.', QCODE('Managing the risk of falls', 's 9.1')),
         src('When working from a ladder, keep two feet and one other point of contact with it, and use a tool belt.', MODEL('Managing the risk of falls', 's 9.1')),
         src('Barricade and sign the area below.', `${WHS('s 55')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
         src('Tools and materials are kept from falling by toe boards, tool lanyards and securing loose materials, and an exclusion zone is kept below the work.', NSWC('NSW Construction work', 'appendix K')),
@@ -8083,6 +8091,7 @@ const ACTIVITIES = [
       controls: [
         { fact: 'spoilPlan' },
         src('Spoil is stockpiled back from excavation edges and outside their zone of influence.', QCODE('Excavation work', 's 4.1')),
+        src('Trucks are loaded in a set loading area with a spotter, and no one stands beside a truck while it is loaded or tips.', NSWC('NSW Moving plant on construction sites', 's 6.6, s 7')),
         'Spoil is stockpiled only where the principal contractor allows, away from drains and site boundaries, and no higher or steeper than it stays stable.',
         'Stockpiles are covered with tarps or kept damp with water sprays to stop dust and runoff, and work stops in winds that lift dust off them. Contaminated or unknown spoil is kept in its own covered stockpile, apart from clean spoil.',
         'Where spoil is contaminated or may contain asbestos, workers wear gloves and coveralls, wash before eating, and the material is handled under the remediation or asbestos plan.',
@@ -10371,6 +10380,7 @@ ACTIVITIES.push(
         'Hoods and exhaust ducts are lifted into place with a lifter or from a platform, supported until fixed to structure checked for their weight, and never held overhead from a ladder.',
         { only: 'fireSuppression', text: 'The hood fire suppression system is installed and commissioned by a licensed fire protection contractor to the manufacturer\'s design, and is not left isolated once cooking starts.' },
         src('The fan and hood lighting are connected by a licensed electrician.', QCODE('Managing electrical risks', 's 4')),
+        src('The circuit is isolated and proved de-energised before the power connection is made.', QCODE('Managing electrical risks', 's 4.1')),
         'Cut-resistant gloves are worn when handling the hood and duct sections.',
       ],
     }],
@@ -12265,8 +12275,9 @@ function jobStepsFor(flags, factText, fallback) {
     .filter((step) => !seen.has(step.step) && seen.add(step.step));
   // Post-tensioning checks apply only where the task is on post-tensioned slabs.
   const pt = (line) => (flags.ptSlab ? line : line.replace(/a post-tensioning tendon or /gi, '').split(/(?<=\.)\s+(?=[A-Z])/).filter((part) => !/post-tension|tendon/i.test(part)).join(' '));
-  // A line already given in an earlier step is not repeated in a later one.
-  const said = new Set();
+  // A line already given in an earlier step is not repeated in a later one. The later step keeps a
+  // note of it (sharedControls, not printed), so its risk rating still counts it.
+  const said = new Map();
   const saidKeys = new Set();
   // A step left with no controls (energised work answered "none") is not work this SWMS covers.
   return steps.map((step) => ({
@@ -12290,6 +12301,7 @@ function jobStepsFor(flags, factText, fallback) {
   }).map((step) => {
     if (step.step === 'Before starting') { step.controls.forEach((line) => line.split(/(?<=\.)\s+(?=[A-Z])/).forEach((part) => SAID_ONCE.forEach(([key, re]) => { if (re.test(part)) saidKeys.add(key); }))); return step; }
     if (step.step === 'Finish and clean up') return step;
+    const shared = step.controls.filter((line) => said.has(line)).map((line) => ({ text: line, step: said.get(line) }));
     const controls = step.controls.filter((line) => !said.has(line)).map((line) => {
       // A rule already given in full in an earlier step (the written silica assessment,
       // silica health monitoring, hearing tests) is not repeated sentence by sentence.
@@ -12301,8 +12313,8 @@ function jobStepsFor(flags, factText, fallback) {
       keys.forEach((key) => saidKeys.add(key));
       return kept;
     }).filter(Boolean);
-    controls.forEach((line) => said.add(line));
-    return { ...step, controls: controls.filter((line) => !COVERED.some(([pattern, by]) => pattern.test(line) && controls.some((other) => other !== line && by.test(other)))) };
+    controls.forEach((line) => { if (!said.has(line)) said.set(line, step.step); });
+    return { ...step, controls: controls.filter((line) => !COVERED.some(([pattern, by]) => pattern.test(line) && controls.some((other) => other !== line && by.test(other)))), ...(shared.length ? { sharedControls: shared } : {}) };
   }).filter((step) => step.fallback || step.controls.length);
 }
 

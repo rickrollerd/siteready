@@ -10,6 +10,7 @@
 // to AS/NZS 3012 (Electrical Safety Regulation 2026 (Qld) s 140).
 const { localNote, localText } = require('./citations');
 const { findState } = require('./legislation');
+const { controlLevel, HIGHER } = require('./control-level');
 const TEST_TAG = 'Inspected, tested and tagged to AS/NZS 3012. Checked for damage before use.';
 const PRESTART = 'Pre-start check each shift. Serviced to the manufacturer\'s instructions.';
 const PLANT = [
@@ -185,15 +186,22 @@ const LIKELIHOOD = { 5: 'Almost certain', 4: 'Likely', 3: 'Possible', 2: 'Unlike
 const CONSEQUENCE = { 5: 'Catastrophic', 4: 'Major', 3: 'Moderate', 2: 'Minor', 1: 'Negligible' };
 
 // How bad the worst hazard in a step could be.
-const CATASTROPHIC = /\b(energis\w*|live (?:cables?|parts?|electrical)|electric\w* shock|unsafe equipment|start\w* without warning|rotating parts?|entangle\w*|(?:falls?|falling) (?:from|into|through|off|down)|fall of more|from height|collapse\w*|fails? during|failure|strik\w* [^.]{0,40}\b(?:services?|cables?|gas|electrical)|hidden services|fails?|struck|falling objects?|traffic|vehicle strike|objects? fall\w*|buried|engulf\w*|electric shock|electrocut\w*|energised|struck by|strikes? a person|crush\w*|overturn\w*|rolls? over|drown\w*|asphyxi\w*|explosion|explod\w*|oxygen|toxic|tips? or falls|load falls|swings? into)\b/i;
+const CATASTROPHIC = /\b(energis\w*|live (?:cables?|parts?|electrical)|contact with (?:live|energi[sz]ed|exposed live)|live (?:\w+ ){0,2}(?:outputs?|boards?|switchboards?|terminals?|conductors?)|electric\w* shock|unsafe equipment|start\w* without warning|rotating parts?|entangle\w*|(?:falls?|falling) (?:from|into|through|off|down)|fall of more|from height|collapse\w*|fails? during|failure|strik\w* [^.]{0,40}\b(?:services?|cables?|gas|electrical)|hidden services|fails?|struck|falling objects?|traffic|vehicle strike|objects? fall\w*|buried|engulf\w*|electric shock|electrocut\w*|energised|struck by|strikes? a person|crush\w*|overturn\w*|rolls? over|drown\w*|asphyxi\w*|explosion|explod\w*|oxygen|toxic|tips? or falls|load falls|swings? into)\b/i;
 const MAJOR = /\b(moving parts|ducts or plenums|silica|asbestos|amputat\w*|burns?|fire|hearing|isocyanates?|cancer|fumes?|vapour|hose whip|burst|kickback|impalement|chemical)\b/i;
 const MODERATE = /\b(cuts?|strain\w*|back|manual|vibration|noise|dust|knee|eyes?|skin|heat|sun|flying)\b/i;
 // Controls that change the hazard itself, rather than relying on people.
 const ENGINEERING = /\b(edge protection|guardrails?|guards?|barricad\w*|exclusion zones?|shor\w*|bench\w*|batter\w*|extraction|wet (?:cutting|methods?)|water suppression|isolat\w*|de-?energis\w*|locked out|covers?|scaffolds?|working platforms?|elevating work platforms?|scissor lifts?|ventilat\w*|rcds?|interlock\w*|gantr\w*|trench shields?|props?|propped|certified|engineer's design|catch (?:nets?|platforms?)|fixed deck|toe ?boards?|mesh screens?|vacuum excavat\w*|pothol\w*|hand dig\w*|no one (?:is |works |stands )?(?:in|under|below)|tag lines?|platform ladders?|rated lifting points?|barriers?|separat\w* (?:the work )?from (?:passing )?traffic|landing (?:bays?|platforms?))\b/i;
 
+// Crushed hands, fingers or feet, and strain or crush from handling, are a major injury, not a
+// fatality. They are taken out before the catastrophic list is read, which would take any "crush"
+// as a person crushed by plant or a load.
+const HANDS_CRUSHED = /\b(?:crush\w*|pinch\w*|caught)\b[^.]{0,20}\b(?:hands?|fingers?|feet|foot|toes?)\b|\b(?:hands?|fingers?|feet|foot|toes?)\b[^.]{0,20}\b(?:crush\w*|pinch\w*|caught)\b|\bstrain(?:s|ed)? (?:or|and) crush\w*(?: injur\w*)?/gi;
+
 function consequenceOf(hazards) {
   const text = hazards.join(' ');
-  if (CATASTROPHIC.test(text)) return 5;
+  const handled = text.replace(HANDS_CRUSHED, ' hand injury ');
+  if (CATASTROPHIC.test(handled)) return 5;
+  if (handled !== text) return 4;
   if (MAJOR.test(text)) return 4;
   if (MODERATE.test(text)) return 3;
   // Unmatched hazards are rated moderate for the supervisor to confirm, not played down.
@@ -204,16 +212,80 @@ function rating(likelihood, consequence) {
   return { likelihood, consequence, level: MATRIX[likelihood][consequence - 1], label: `${LIKELIHOOD[likelihood]} x ${CONSEQUENCE[consequence]}` };
 }
 
-// A suggested rating before and after the step's controls. Controls are taken to
-// lower the likelihood, not the consequence: rare where the hazard itself is
-// controlled (guarding, isolation, edge protection), unlikely where it relies on
-// how people work.
-function riskFor(step) {
+// A control that changes the hazard itself: one of the engineering words above, any elimination,
+// substitution, isolation or engineering control by the ranking the steps are printed in, or a
+// physical control that ranking reads as a rule: a load restrained with straps or chains, a tanker
+// earthed or bonded, an emergency shut-off, the area around a test kept clear of people, or a
+// circuit kept from being re-energised.
+const ALSO_HIGHER = /\b(?:restrained (?:with|to|by)|load restraint|earthed or bonded|bonded|emergency shut-?offs?|prevent\w* re-?energi[sz]\w*)\b|\b(?:area|zone)s?\b[^.]{0,40}\bkept clear\b|\bwith the area clear\b/i;
+const higherOrder = (line) => ENGINEERING.test(line) || ALSO_HIGHER.test(line) || HIGHER.has(controlLevel(line));
+
+// What answers a catastrophic hazard, by its kind. A guardrail does not answer electric shock, a pipe
+// lifter does not answer a fall and safety mesh does not answer a fall from the edge, so a higher order
+// control counts for a catastrophic hazard only where it is of the kind that answers it. A hazard of no
+// kind listed here takes any higher order control. A person's fall is told from a load or object
+// falling by what falls.
+const FALLING_THING = /\b(?:loads?|materials?|objects?|tools?|frames?|pipes?|lengths|fittings?|sheets?|panels?|bundles?|packs?|collectors?|tanks?|items?|equipment|debris|rocks?|stone|bricks?|it|they)\b[^.]{0,25}\bfall/i;
+const PERSON_FALL = (words) => /\bfall(?:s|ing)? (?:from|into|through|off|down|between)\b|\bfall of more\b|\bfrom height\b/i.test(words) && !FALLING_THING.test(words);
+const ANSWERED_BY = [
+  // A fall through or into something: covers, mesh, screens, fencing or guarding at the opening.
+  { hazard: (words) => PERSON_FALL(words) && /\b(?:through|into|between|gaps?)\b/i.test(words),
+    control: /\b(covers?|covered|safety (?:mesh|nets?)|mesh|catch (?:nets?|platforms?)|screen\w*|fenc\w*|barricad\w*|barriers?|guard ?rails?|edge protection|handrails?|guarded|boarded|crawl boards?|(?:work(?:ing)?|step) platforms?|scaffold\w*|landing gates?)\b/i },
+  // A fall from an edge, a ladder or a platform: something that stops the fall or a platform to work from.
+  { hazard: (words) => PERSON_FALL(words) && !/\b(?:through|into|between|gaps?)\b/i.test(words),
+    control: /\b(edge protection|guard ?rails?|handrails?|scaffold\w*|ewps?|elevating work platforms?|scissor ?lifts?|boom lifts?|(?:work(?:ing)?|step) platforms?|platform ladders?|from (?:an? |the )?(?:\w+ )?platforms?|safety nets?|catch (?:nets?|platforms?)|barriers?|landing gates?|gates? (?:stay )?closed|protected edge|travel restraint|restraint systems?|from (?:the )?(?:ground|floor)|on the ground|inside the building)\b/i },
+  { hazard: (words) => /\b(energi[sz]\w*|live (?:cables?|parts?|electrical|conductors?|ups|outputs?|boards?)|electric\w* shock|electrocut\w*|arc flash)\b/i.test(words),
+    control: /\b(isolat\w*|de-?energi[sz]\w*|prevent\w* re-?energi[sz]\w*|lock\w* (?:out|off)|lockout|locks?|tag(?:ged)? out|danger tags?|switch\w* off|covers?|covered|shroud\w*|insulat\w*|rcds?|residual current|safety switch|non-conductive|approach distances?|exclusion zones?|no[- ]go zones?|barriers?|guards?|enclos\w*)\b/i },
+  { hazard: (words) => /\b(?:struck|strikes?|run over|hit)\b[^.]{0,40}\b(?:trucks?|plant|vehicles?|traffic|forklifts?|excavators?|machines?|machinery|sprayers?|spreaders?|rollers?|cars?)\b|\btraffic\b|\bvehicle strike\b|\bcrushed by (?:plant|a vehicle|a truck|a forklift|mobile plant)\b/i.test(words),
+    control: /\b(exclusion zones?|no[- ]go zones?|barriers?|barricad\w*|separat\w*|fenc\w*|closures?|kept apart|bollards?|no one\b[^.]{0,30}\b(?:beside|in|under|near|behind|within)|walkways?|delineat\w*|wheel stops?)\b/i },
+  // A load or object that falls, swings, tips or crushes: no one under or beside it, the load secured or guided.
+  { hazard: (words) => FALLING_THING.test(words) || /\b(crush\w*|loads? (?:falls?|drops?|swings?|shifts?)|falling objects?|objects? fall\w*|dropped|swings? into|tips? (?:over|or falls)|topple\w*|rolls? down)\b/i.test(words),
+    control: /\b(no one\b[^.]{0,30}\b(?:under|beneath|between|in|inside|beside|below|downhill)|tag lines?|exclusion zones?|drop zones?|barricad\w*|chock\w*|brac\w*|secured|restrained|tied|tethered|lanyards?|toe ?boards?|kept apart|separat\w*|guards?|catch (?:nets?|platforms?)|screens?)\b/i },
+  { hazard: (words) => /\b(collapse\w*|fails?|failure|overturn\w*|rolls? over|bursts?)\b/i.test(words),
+    control: /\b(props?|propp\w*|shor\w*|brac\w*|engineer\w*|design\w*|certif\w*|rated|bench\w*|batter\w*|shields?|outriggers?|guards?|exclusion zones?|no one\b[^.]{0,30}\b(?:under|beneath|between|in|inside|beside)|kept clear|clear of people|area clear|relief valves?|landing gates?)\b/i },
+];
+
+// A suggested rating before and after the step's controls. Controls are taken to lower the
+// likelihood, not the consequence: rare where the hazard itself is controlled (guarding, isolation,
+// edge protection), unlikely where it relies on how people work. Any line naming one of the
+// engineering words above counts, as before. A higher order control by the ranking the steps are
+// printed in, or one the step shares with an earlier step (shared, printed there once), also counts
+// where it is of the kind that answers the step's worst hazard (ANSWERED_BY).
+// strict leaves out the old rule that any engineering line counts, to tell which controls a
+// rating relies on (ratedSteps).
+function riskFor(step, shared = [], strict = false) {
   const consequence = consequenceOf(step.hazards || []);
   const before = consequence >= 4 ? 3 : 4;
-  const engineered = (step.controls || []).some((line) => ENGINEERING.test(line));
+  const higher = [...(step.controls || []), ...shared].filter(higherOrder);
+  const worst = (step.hazards || []).filter((line) => (consequence === 5 ? CATASTROPHIC.test(String(line).replace(HANDS_CRUSHED, ' ')) : true));
+  const answered = higher.length > 0 && worst.every((line) => {
+    const kinds = ANSWERED_BY.filter((item) => item.hazard(line));
+    return !kinds.length || kinds.some((item) => higher.some((control) => item.control.test(control)));
+  });
+  const engineered = (!strict && (step.controls || []).some((line) => ENGINEERING.test(line))) || answered;
   const after = engineered ? 1 : 2;
   return { before: rating(before, consequence), after: rating(Math.min(after, before), consequence) };
+}
+
+// Every step is rated, Before starting included: a reviewer marks a step with no rating (review
+// checklist item 6). A control printed once in an earlier step and shared with this one counts for
+// this step's rating while the earlier step still prints it. Where the rating relies on it, the
+// step names that earlier step (seeAlso), so the reader finds the control.
+const lineKey = (line) => String(line).replace(/\s*\([^)]*\)\s*$/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+function ratedSteps(steps) {
+  const printed = new Map();
+  for (const step of steps) for (const line of step.controls || []) if (!printed.has(lineKey(line))) printed.set(lineKey(line), step.step);
+  return steps.map(({ seeAlso: _seeAlso, ...step }) => {
+    const shared = (step.sharedControls || []).filter((item) => printed.has(lineKey(item.text)) && printed.get(lineKey(item.text)) !== step.step);
+    if (!shared.length) return { ...step, risk: riskFor(step) };
+    const risk = riskFor(step, shared.map((item) => item.text));
+    // The step names the earlier steps whose lines answer a hazard its own lines do not.
+    const own = riskFor(step, [], true).after.likelihood;
+    if (riskFor(step, shared.map((item) => item.text), true).after.likelihood === own) return { ...step, risk };
+    const names = [...new Set(shared.map((item) => printed.get(lineKey(item.text))))];
+    const needed = names.filter((name) => riskFor(step, shared.filter((item) => printed.get(lineKey(item.text)) === name).map((item) => item.text), true).after.likelihood !== own);
+    return { ...step, risk, seeAlso: needed.length ? needed : names };
+  });
 }
 
 // Plant operated or erected by others: the licence belongs to them.
@@ -595,9 +667,8 @@ function registersFor(draft, input = {}) {
     // Codes of practice are cited only where they have been matched to the state (Queensland so far).
     emergency: emergencyFor(allText, input, draft.highRisk || [], plant, `${task}\n${hazardText}`).map((row) => (stateId !== 'qld' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
     sources,
-    // Before starting is checks and briefings, not a work step, so it is not rated.
-    jobSteps: steps.map((step) => ({ ...step, risk: step.step === 'Before starting' ? null : riskFor(step) })),
+    jobSteps: ratedSteps(steps),
   };
 }
 
-module.exports = { registersFor, withoutServicedPlant, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, legislationFor };
+module.exports = { registersFor, withoutServicedPlant, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, ANSWERED_BY, legislationFor };
