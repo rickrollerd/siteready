@@ -382,14 +382,15 @@ test('W9: a revision number is credited, as text or as a number', () => {
 test('W10: higher order controls are listed before administrative controls and PPE within each step', () => {
   assert.equal(item(checkSwms(GOOD), 'W10').points, 4);
   const steps = structuredClone(GOOD.steps);
-  // Gloves first, then the mesh: out of order in the one step that has both kinds.
+  // Gloves first, then the mesh: out of order. The roof access step (the scaffold stair, then the
+  // supervisor's tag check) is judged too and is in order, so one of the two judged steps is out.
   steps[2].controls = [steps[2].controls[2], steps[2].controls[0], steps[2].controls[1]];
   const result = item(checkSwms(variant({ steps })), 'W10');
-  assert.equal(result.points, 0);
+  assert.equal(result.points, 2);
   assert.match(result.message, /in: Remove and replace roof sheets\./);
-  // With a second step in order, half the judged steps are in order.
+  // With a third judged step in order, two of the three are in order.
   const ordered = { step: 'Fix the flashings', hazards: ['Falling from the roof edge.'], controls: ['Flashings are fixed from inside the guardrail.', 'Gloves are worn.'] };
-  assert.equal(item(checkSwms(variant({ steps: [...steps, ordered] })), 'W10').points, 2);
+  assert.equal(item(checkSwms(variant({ steps: [...steps, ordered] })), 'W10').points, 3);
   // A step with no higher order control is not judged here (W2 marks it).
   const admin = [{ step: 'Plan the work', hazards: ['Working at height.'], controls: ['The supervisor briefs the crew.', 'Gloves are worn.'] }];
   assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, ...admin] })), 'W10').points, 4);

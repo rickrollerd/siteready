@@ -1268,7 +1268,8 @@ const ACTIVITIES = [
           src('Vibrators have their leads checked and tagged and are protected by an RCD.', ESR('s 140')),
           'Rotate operators to limit hand-arm vibration.',
           src('Petrol-driven saws, trowels and generators used in an enclosed area have ventilation or local exhaust ventilation that keeps the exhaust from collecting.', `${QCODE('Managing risks of hazardous chemicals', 'appendix J')}; ${NSWC('NSW Cutting drilling and grinding concrete', 's 4.4, s 5, s 5.6')}; ${NSWC('NSW Hazardous chemicals', 'appendix J')}`),
-          src('Petrol-driven saws, trowels and generators are refuelled only when stopped and cool.', `${QCODE('Managing risks of hazardous chemicals', 'appendix J')}; ${NSWC('NSW Cutting drilling and grinding concrete', 's 4.4, s 5, s 5.6')}; ${NSWC('NSW Hazardous chemicals', 'appendix J')}`),
+          // The NSW hazardous chemicals code appendix J has no refuelling text; the cutting code s 5.6 does (goal 5 citation check).
+          src('Petrol-driven saws, trowels and generators are refuelled only when stopped and cool.', `${QCODE('Managing risks of hazardous chemicals', 'appendix J')}; ${NSWC('NSW Cutting drilling and grinding concrete', 's 4.4, s 5, s 5.6')}`),
           'Petrol-driven saws, trowels and generators run only outdoors or where exhaust cannot collect.',
           { unless: 'noDeck', ...src('Vacuum decks with an H or M class vacuum first. Compressed air is used only where safer methods are not reasonably practicable, with RPE for the operator and an exclusion zone for others.', QCODE('Silica', 's 8.1')) },
           { unless: 'noDeck', text: 'Compressed air is used only for loose debris the vacuum cannot reach, never on concrete dust or slurry, with eye protection and a P2 respirator.' },
@@ -11137,7 +11138,8 @@ ACTIVITIES.push(
         'Hands are kept clear of the clamps and pipe ends while the machine closes, and the hydraulic pressure is released before hands go near the clamps.',
         src('The generator and leads are tested and tagged, the supply is RCD protected, and leads are kept out of water.', QCODE('Managing electrical risks', 's 3, s 3.2, s 3.3')),
         'The operator stays out of the fumes from the heater plate and the joint.',
-        src('Pipe is lifted into the machine with roller stands or mechanical aids. Team lifts are an interim control only.', QCODE('Hazardous manual tasks', 's 4.1, s 4.9')),
+        // The Queensland code has no s 4.9; team handling is s 4.7 there (goal 5 citation check).
+        src('Pipe is lifted into the machine with roller stands or mechanical aids. Team lifts are an interim control only.', QCODE('Hazardous manual tasks', 's 4.1, s 4.7')),
         'Joints are made at the surface and lowered in, or in a trench only where it is supported or battered and the machine is set back from the edge.',
       ],
     }],
