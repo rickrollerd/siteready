@@ -275,10 +275,10 @@
       </div>`;
   }
 
-  // Said beside the Save and download buttons while the box above the draft is not ticked, with a
-  // button that goes to the box (app.js).
-  const COVER_NOTE = 'Tick the box above the draft about work SiteReady has no job steps for, then save or download. <button type="button" class="link" data-cover-jump>Go to the box</button>';
-  S.coverNote = COVER_NOTE;
+  // Said beside the Save and download buttons while anything is outstanding: the site questions and
+  // blanks (goal 2) and the tick for work SiteReady has no job steps for (D184), all listed in one
+  // box above (app.js), with a button that goes to it.
+  const gateNote = (count) => `Download and save wait for ${count === 1 ? 'the item' : `the ${count} items`} listed above under "Before you can download this SWMS". <button type="button" class="link" data-gate-list>Go to the list</button>`;
 
   // cover is the box above the draft for work SiteReady has no job steps for (app.js, D184).
   function confirmed(prefix, cover = null) {
@@ -316,13 +316,18 @@
     const siteOptions = ['<option value="">No site</option>', ...sites.map((site) => `<option value="${esc(site.id)}">${esc(site.name)}</option>`)].join('');
     // A saved SWMS being changed: its changes save as its next revision until a new SWMS is started.
     const editing = !local && S.editing;
+    // Goal 2: nothing downloads or saves until the site questions are answered (the list above). The
+    // D184 tick is counted from the box above the draft, as the user ticks it.
+    const gaps = kind === 'draft' ? (draft.gate || []).filter((gap) => gap.kind !== 'cover') : [];
+    const covering = kind === 'draft' && (draft.notCovered || []).length > 0;
+    const waitingNow = gaps.length + (covering && !($('not-covered-confirm') && $('not-covered-confirm').checked) ? 1 : 0);
     box.innerHTML = `<div class="panel confirm">
       ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision, in SiteReady's current wording. Earlier revisions stay as they were saved. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
       ${confirmBlock('new')}
       ${kind === 'draft' && !local ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
       ${kind === 'draft' && editing ? '<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"></div>' : ''}
       ${kind === 'draft' && !local ? '<p class="meta">Downloading saves the SWMS under My SWMS, so every copy printed has a record and a revision. The PDF and the QR sign-on are the copies workers sign; the Word file is a working copy.</p>' : ''}
-      ${kind === 'draft' && (draft.notCovered || []).length ? `<p class="note" id="new-cover-note">${COVER_NOTE}</p>` : ''}
+      ${gaps.length || covering ? `<p class="note gate-hold${waitingNow ? '' : ' hidden'}" id="new-gate-note">${waitingNow ? gateNote(waitingNow) : ''}</p>` : ''}
       <div class="actions">
         ${kind === 'draft' && !local ? `<button type="button" id="new-save">${editing ? 'Save changes' : 'Save SWMS'}</button>` : ''}
         <button type="button" class="secondary" id="new-docx">Download Word</button>
@@ -333,11 +338,13 @@
     // The buttons work once the box is ticked and a name is given, and, where SiteReady has no job
     // steps for part of the task, once the tick above the draft is ticked too.
     const buttons = ['new-save', 'new-docx', 'new-pdf'].map($).filter(Boolean);
-    const uncovered = kind === 'draft' && (draft.notCovered || []).length ? $('not-covered-confirm') : null;
+    const uncovered = covering ? $('not-covered-confirm') : null;
     const ready = () => {
-      buttons.forEach((button) => { if (button.textContent !== 'Saved') button.disabled = !($('new-confirm').checked && $('new-name').value.trim() && (!uncovered || uncovered.checked)); });
-      // Why the buttons wait, said beside them: the box can be pages above on a phone.
-      if (uncovered) $('new-cover-note').classList.toggle('hidden', uncovered.checked);
+      const waiting = gaps.length + (uncovered && !uncovered.checked ? 1 : 0);
+      buttons.forEach((button) => { if (button.textContent !== 'Saved') button.disabled = waiting > 0 || !($('new-confirm').checked && $('new-name').value.trim()); });
+      // Why the buttons wait, said beside them: the list can be pages above on a phone.
+      const note = $('new-gate-note');
+      if (note) { note.innerHTML = waiting ? gateNote(waiting) : ''; note.classList.toggle('hidden', !waiting); }
     };
     $('new-confirm').addEventListener('change', ready);
     $('new-name').addEventListener('input', ready);

@@ -12,7 +12,7 @@ const aiScope = require('../ai-scope');
 const signRead = require('../sign-read');
 const { prepareDraft } = require('../draft');
 const { withCompany } = require('../accounts');
-const { setupAccounts, lastLinkToken } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
 
 let server;
 let base;
@@ -59,7 +59,9 @@ function abnFor(seed) {
   return abnFor(`${seed}x`);
 }
 
+// The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
 const INPUT = {
+  ...ANSWERED,
   state: 'qld',
   task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
   fallRisk: 'yes',

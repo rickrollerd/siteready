@@ -6,7 +6,7 @@ const path = require('path');
 const cluster = require('cluster');
 const os = require('os');
 const { listStates, findState } = require('./legislation');
-const { questionsFor, prepareDraft, legalSource, keepWarning, notCoveredRefusal } = require('./draft');
+const { questionsFor, prepareDraft, legalSource, keepWarning } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
 const { issueRef, placeOf } = require('./refs');
@@ -28,6 +28,8 @@ const places = require('./places');
 const { recordIndustry } = require('./industry');
 const draftTranslate = require('./draft-translate');
 const { keyProblems } = require('./secret-keys');
+const { downloadGaps, gateMessage } = require('./download-gate');
+const { hasBlank, blankKey } = require('./blanks');
 
 require('dotenv').config();
 
@@ -263,9 +265,16 @@ app.post('/api/draft', (req, res) => {
   // For the preview only: the source of each control line that is a legal requirement, and why
   // removing or weakening a line is not recommended, so the page can warn before the user goes
   // ahead. Empty for other lines.
+  // What must still be answered before it can be downloaded (goal 2), shown beside each item.
   const legal = result.kind === 'draft' ? {
     controlLegal: (result.jobSteps || []).map((step) => step.controls.map(legalSource)),
     controlWarn: (result.jobSteps || []).map((step) => step.controls.map(keepWarning)),
+    gate: downloadGaps(draftBody(req.body || {}), result),
+    // The line each blank (____) is filled in by, for the boxes on the page.
+    blankKeys: {
+      steps: (result.jobSteps || []).map((step) => step.controls.map((line) => (hasBlank(line) ? blankKey(line) : ''))),
+      controls: (result.controls || []).map((item) => (hasBlank(item.text) ? blankKey(item.text) : '')),
+    },
   } : {};
   res.json({ ...result, ...legal });
 });
@@ -304,6 +313,13 @@ function signedInBody(req) {
   return req.company ? accounts.withCompany(draftBody(body), req.company) : draftBody(body);
 }
 
+// Goal 2: no download until the site questions are answered and no blank is left (download-gate.js).
+// The refusal lists what is still needed, for the page to show beside each item.
+function gateRefusal(input, result) {
+  const gaps = result.kind === 'draft' ? downloadGaps(input, result) : [];
+  return gaps.length ? { kind: 'error', message: gateMessage(gaps), gate: gaps } : null;
+}
+
 // Downloads print the company's own name and ABN, so they must be saved first.
 function needsCompanyDetails(req) {
   return req.company && (!String(req.company.name || '').trim() || !String(req.company.abn || '').trim());
@@ -317,8 +333,9 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
     if (!confirmation) return res.status(400).json({ kind: 'error', message: 'Confirm that your business will review and approve this SWMS, and enter your name, before downloading.' });
     const result = prepareDraft(signedInBody(req));
     if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
-    const uncovered = notCoveredRefusal(result, req.body);
-    if (uncovered) return res.status(400).json({ kind: 'error', message: uncovered });
+    // The site answers (goal 2) and the tick for parts with no job steps (D184), named together.
+    const refusal = gateRefusal(signedInBody(req), result);
+    if (refusal) return res.status(400).json(refusal);
     const saved = req.company ? await accounts.saveForDownload(req, req.body || {}) : null;
     if (saved) {
       await recordIndustry(saved.kept.draft, saved.kept.input, req.company).catch(() => {});
@@ -344,8 +361,9 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   }
   const result = prepareDraft(signedInBody(req));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
-  const uncovered = notCoveredRefusal(result, req.body);
-  if (uncovered) return res.status(400).json({ kind: 'error', message: uncovered });
+  // The site answers (goal 2) and the tick for parts with no job steps (D184), named together.
+  const refusal = gateRefusal(signedInBody(req), result);
+  if (refusal) return res.status(400).json(refusal);
   const saved = req.company ? await accounts.saveForDownload(req, req.body || {}) : null;
   if (saved) {
     await recordIndustry(saved.kept.draft, saved.kept.input, req.company).catch(() => {});
@@ -382,10 +400,17 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
   const unticked = [];
   const logo = readLogo(req.company ? req.company.logo : body.logo);
   const savedItems = [];
+  // SWMS with site questions unanswered or blanks left are not in the zip (goal 2).
+  const gated = [];
   for (const [index, item] of items.entries()) {
     const result = prepareDraft(signedInBody({ ...req, body: item || {} }));
     if (result.kind !== 'draft') { skipped.push(`${index + 1}. ${String((item && item.task) || '').slice(0, 80)}`); continue; }
-    if (notCoveredRefusal(result, item)) { unticked.push(`${index + 1}. ${String(item.swmsTitle || result.task || '').slice(0, 80)}: ${result.notCovered.join('; ')}`); continue; }
+    // The site answers and blanks (goal 2) and the D184 tick: a SWMS missing site answers is listed
+    // with all it needs; one missing only the tick is listed with its parts with no job steps.
+    const gaps = downloadGaps(signedInBody({ ...req, body: item || {} }), result);
+    const named = String((item && (item.swmsTitle || item.task)) || result.task || '').slice(0, 80);
+    if (gaps.some((gap) => gap.kind !== 'cover')) { gated.push(`${index + 1}. ${named}: still to answer: ${[...new Set(gaps.map((gap) => gap.label))].join('; ')}`); continue; }
+    if (gaps.length) { unticked.push(`${index + 1}. ${named}: ${result.notCovered.join('; ')}`); continue; }
     let buffer;
     const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId, reviewConfirmed: true, reviewedBy: confirmation.name }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '' }) : null;
     if (saved) {
@@ -406,9 +431,10 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     record('download_word', req.company && req.company.id);
     await recordIndustry(result, signedInBody({ ...req, body: item || {} }), req.company).catch(() => {});
   }
-  if (!used.size) return res.status(400).json({ kind: 'error', message: 'None of the SWMS is ready to download. Answer the questions for each one first, and tick the box above any draft that lists work SiteReady has no job steps for.' });
+  if (!used.size) return res.status(400).json({ kind: 'error', message: `None of the SWMS is ready to download. ${gated.length ? `SiteReady does not produce a SWMS until the site questions are answered and no blank is left in it. ${gated.join(' ')}${unticked.length ? ' ' : ''}` : ''}${unticked.length ? `Tick the box above the draft that lists work SiteReady has no job steps for: ${unticked.join(' ')}` : ''}${!gated.length && !unticked.length ? 'Answer the questions for each one first.' : ''}` });
   const notes = [
     skipped.length ? `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n` : '',
+    gated.length ? `These SWMS still have site questions or blanks to answer, so they are not in this download:\n${gated.join('\n')}\n` : '',
     unticked.length ? `SiteReady has no job steps for part of these SWMS, and the box above the draft was not ticked, so they are not in this download:\n${unticked.join('\n')}\n` : '',
   ].filter(Boolean);
   if (notes.length) zip.file('Not included.txt', notes.join('\n'));
@@ -444,7 +470,9 @@ app.use((error, req, res, _next) => {
   // A worker sign-on key is never written to the error log.
   if (status >= 500) recordError(`${req.method} ${req.path.replace(/^\/api\/sign\/[^/]+/, '/api/sign/:token')}`, error);
   const message = error.publicMessage && error.message ? error.message : status < 500 ? 'The request could not be read.' : 'The statement could not be prepared.';
-  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message });
+  // What a SWMS still needs before it is saved or downloaded (goal 2), for the page to show.
+  const gate = error.publicMessage && Array.isArray(error.gate) ? { gate: error.gate } : {};
+  res.status(status >= 400 && status < 600 ? status : 500).json({ kind: 'error', message, ...gate });
 });
 
 // One worker per processor core. A worker that stops is replaced.

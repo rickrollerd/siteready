@@ -432,6 +432,7 @@
     panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
       <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next. You can also open any SWMS in the list.</p>
       <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : ['needs', 'tick'].includes(item.status) ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
+      ${project.items.map((item, index) => (item.status === 'needs' && (item.needs || []).length ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, still needs before download: ${esc(item.needs.join('; '))}. ${index === project.current ? '<button type="button" class="link" data-gate-list>See what is needed</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       ${project.items.map((item, index) => (item.status === 'tick' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for the box above its draft about work SiteReady has no job steps for. Tick it to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to the box</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
@@ -442,8 +443,9 @@
 
   // A draft that names work SiteReady has no job steps for is ready once the box above it is
   // ticked (owner decision D184).
+  // One with site questions or blanks still to answer (goal 2) needs answers first.
   const statusOf = (item) => {
-    if (item.kind !== 'draft') return 'needs';
+    if (item.kind !== 'draft' || (item.needs || []).length) return 'needs';
     const ticked = item.body.notCoveredConfirmed || [];
     return (item.notCovered || []).every((part) => ticked.includes(part)) ? 'ready' : 'tick';
   };
@@ -466,6 +468,8 @@
     item.body = body;
     item.kind = draft.kind;
     item.notCovered = draft.notCovered || [];
+    // What is left to answer before download (goal 2): the site questions and blanks.
+    item.needs = [...new Set((draft.gate || []).filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))];
     item.status = statusOf(item);
     saveProject();
     renderProject();

@@ -11,7 +11,7 @@ const { prepareDraft, legalSource, OWN_MARK } = require('../draft');
 const { draftBody } = require('../input');
 const { draftToDocx } = require('../docx-draft');
 const { recordControlEdits } = require('../control-learning');
-const { setupAccounts, lastLinkToken } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
 
 let server;
 let base;
@@ -58,7 +58,8 @@ async function signIn(email, company) {
   return token;
 }
 
-const INPUT = { state: 'qld', task: 'Dig a trench 1 m deep with an excavator.', fallRisk: 'no', trade: 'civil' };
+// The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
+const INPUT = { ...ANSWERED, state: 'qld', task: 'Dig a trench 1 m deep with an excavator.', fallRisk: 'no', trade: 'civil' };
 const plain = prepareDraft(draftBody(INPUT));
 const excavate = plain.jobSteps.find((step) => step.step === 'Excavate');
 const before = plain.jobSteps.find((step) => step.step === 'Before starting');

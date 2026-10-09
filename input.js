@@ -64,6 +64,16 @@ function whoEdits(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
+// The user's answers for the blanks (____) in control lines, by line (goal 2): a few answers a line.
+function fills(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const entries = Object.entries(value).slice(0, 60)
+    .filter(([, answers]) => Array.isArray(answers))
+    .map(([line, answers]) => [textField(line, 1500), answers.slice(0, 12).map((item) => textField(item, 300))])
+    .filter(([line, answers]) => line && answers.some(Boolean));
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 function draftBody(body) {
   const facts = body.facts && typeof body.facts === 'object' ? body.facts : {};
   const site = body.site && typeof body.site === 'object' ? body.site : {};
@@ -106,6 +116,7 @@ function draftBody(body) {
     controlEdits: controlEdits(body.controlEdits),
     hazardEdits: hazardEdits(body.hazardEdits),
     whoEdits: whoEdits(body.whoEdits),
+    fills: fills(body.fills),
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {

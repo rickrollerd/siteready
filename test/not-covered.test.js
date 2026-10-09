@@ -11,7 +11,7 @@ const { app } = require('../server');
 const { prepareDraft } = require('../draft');
 const { draftToDocx } = require('../docx-draft');
 const { draftToPdf } = require('../pdf-draft');
-const { setupAccounts, lastLinkToken } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
 const { loadPage, settle, FakeEvent } = require('./fake-dom');
 
 const FACTS = { safetyDataSheet: 'The diesel safety data sheet is kept at the work area.' };
@@ -140,39 +140,58 @@ async function signIn(email, tail) {
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Sam Lee' };
 const COVERED = 'SiteReady has no job steps for: leak test the fuel line. Tick the box above the draft to say you have added your own steps and controls, or covered this work in a separate SWMS, before saving or downloading.';
 const TICKED = { notCoveredConfirmed: ['leak test the fuel line'] };
+// The site questions answered (goal 2), so only the tick is outstanding.
+const READY = { ...GENERATOR, ...ANSWERED };
 
 test('the preview lists the parts, and downloads are refused until the user ticks that they are covered', async () => {
   const token = await signIn('generator@notcovered.example', '512345678');
-  const preview = await (await call('POST', '/api/draft', { body: GENERATOR })).json();
+  const preview = await (await call('POST', '/api/draft', { body: READY })).json();
   assert.deepEqual(preview.notCovered, ['leak test the fuel line']);
   for (const route of ['/api/draft.docx', '/api/draft.pdf']) {
-    const refused = await call('POST', route, { token, body: { ...GENERATOR, ...CONFIRM } });
+    const refused = await call('POST', route, { token, body: { ...READY, ...CONFIRM } });
     assert.equal(refused.status, 400, route);
     assert.equal((await refused.json()).message, COVERED);
   }
   assert.equal((await (await call('GET', '/api/swms', { token })).json()).swms.length, 0, 'nothing was saved');
   // A tick given for another list does not pass this one.
-  assert.equal((await call('POST', '/api/draft.docx', { token, body: { ...GENERATOR, ...CONFIRM, notCoveredConfirmed: ['something else'] } })).status, 400);
-  const word = await call('POST', '/api/draft.docx', { token, body: { ...GENERATOR, ...CONFIRM, ...TICKED } });
+  assert.equal((await call('POST', '/api/draft.docx', { token, body: { ...READY, ...CONFIRM, notCoveredConfirmed: ['something else'] } })).status, 400);
+  const word = await call('POST', '/api/draft.docx', { token, body: { ...READY, ...CONFIRM, ...TICKED } });
   assert.equal(word.status, 200);
   assert.match(word.headers.get('content-type'), /wordprocessingml/);
-  const pdf = await call('POST', '/api/draft.pdf', { token, body: { ...GENERATOR, ...CONFIRM, ...TICKED } });
+  const pdf = await call('POST', '/api/draft.pdf', { token, body: { ...READY, ...CONFIRM, ...TICKED } });
   assert.equal(pdf.status, 200);
   // A task with every part covered needs no tick.
-  const fence = await call('POST', '/api/draft.docx', { token, body: { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', ...CONFIRM } });
+  const fence = await call('POST', '/api/draft.docx', { token, body: { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', ...ANSWERED, ...CONFIRM } });
   assert.equal(fence.status, 200);
+});
+
+test('with the site questions blank as well, the refusal names both, and the project note lists all it needs', async () => {
+  const token = await signIn('both@notcovered.example', '545678901');
+  const refused = await call('POST', '/api/draft.docx', { token, body: { ...GENERATOR, ...CONFIRM } });
+  assert.equal(refused.status, 400);
+  const data = await refused.json();
+  assert.match(data.message, /^SiteReady does not produce a SWMS until the site questions are answered and no blank is left in it\. Still to answer: Job address; Principal contractor;/);
+  assert.ok(data.message.endsWith(COVERED), data.message);
+  assert.ok(data.gate.some((gap) => gap.kind === 'cover') && data.gate.some((gap) => gap.id === 'musterPoint'));
+  // Ticked, only the site questions are left; answered, only the tick.
+  assert.doesNotMatch((await (await call('POST', '/api/draft.docx', { token, body: { ...GENERATOR, ...TICKED, ...CONFIRM } })).json()).message, /no job steps/);
+  assert.equal((await (await call('POST', '/api/draft.docx', { token, body: { ...READY, ...CONFIRM } })).json()).message, COVERED);
+  assert.equal((await call('POST', '/api/draft.docx', { token, body: { ...READY, ...TICKED, ...CONFIRM } })).status, 200);
+  const zip = await call('POST', '/api/project.zip', { token, body: { swms: [{ ...READY, ...TICKED, swmsTitle: 'Ready' }, { ...GENERATOR, swmsTitle: 'Generator' }], ...CONFIRM } });
+  const note = await (await JSZip.loadAsync(Buffer.from(await zip.arrayBuffer()))).file('Not included.txt').async('string');
+  assert.match(note, /2\. Generator: still to answer: Tick for work SiteReady has no job steps for; Job address;/);
 });
 
 test('saving is refused until ticked, and the sign-on page does not show the list', async () => {
   const token = await signIn('save@notcovered.example', '523456789');
-  const refused = await call('POST', '/api/swms', { token, body: { input: GENERATOR, ...CONFIRM } });
+  const refused = await call('POST', '/api/swms', { token, body: { input: READY, ...CONFIRM } });
   assert.equal(refused.status, 400);
   assert.equal((await refused.json()).message, COVERED);
-  const saved = await call('POST', '/api/swms', { token, body: { input: { ...GENERATOR, ...TICKED }, ...CONFIRM } });
+  const saved = await call('POST', '/api/swms', { token, body: { input: { ...READY, ...TICKED }, ...CONFIRM } });
   assert.equal(saved.status, 201);
   const { swms } = await saved.json();
   // Changes from the form need the tick again: a new part, ticked or not.
-  const changed = { ...GENERATOR, task: 'Install the generator, leak test the fuel line and hang the artwork.' };
+  const changed = { ...READY, task: 'Install the generator, leak test the fuel line and hang the artwork.' };
   assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: { ...changed, ...TICKED }, ...CONFIRM } })).status, 400);
   assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: { ...changed, notCoveredConfirmed: ['leak test the fuel line', 'hang the artwork'] }, ...CONFIRM } })).status, 200);
   const signToken = new URL(swms.signonPath, base).searchParams.get('t');
@@ -183,19 +202,19 @@ test('saving is refused until ticked, and the sign-on page does not show the lis
 
 test('a project download leaves out a SWMS whose parts with no job steps are not ticked', async () => {
   const token = await signIn('project@notcovered.example', '534567890');
-  const fence = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing' };
+  const fence = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing', ...ANSWERED };
   const download = async (generator) => {
     const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence, { ...generator, swmsTitle: 'Generator' }], ...CONFIRM } });
     assert.equal(response.status, 200);
     return JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   };
-  const unticked = await download(GENERATOR);
+  const unticked = await download(READY);
   assert.deepEqual(Object.keys(unticked.files).filter((name) => name.endsWith('.docx')), ['01 Fencing.docx']);
   const note = await unticked.file('Not included.txt').async('string');
   assert.match(note, /SiteReady has no job steps for part of these SWMS, and the box above the draft was not ticked/);
   assert.match(note, /2\. Generator: leak test the fuel line/);
   assert.doesNotMatch(note, /Fencing/);
-  const ticked = await download({ ...GENERATOR, ...TICKED });
+  const ticked = await download({ ...READY, ...TICKED });
   assert.equal(Object.keys(ticked.files).filter((name) => name.endsWith('.docx')).length, 2, 'both SWMS are in the download');
   assert.equal(ticked.file('Not included.txt'), null);
 });
@@ -252,14 +271,19 @@ test('the page names the parts above the draft, and saving waits for the tick', 
   p.document.getElementById('new-name').dispatchEvent(new FakeEvent('input'));
   assert.equal(p.document.getElementById('new-save').disabled, true, 'not until the box above the draft is ticked');
   assert.equal(p.document.getElementById('new-docx').disabled, true);
-  // Beside the buttons, a line says why they wait, with a button to the box.
+  // Above the buttons, one list of everything outstanding (with the site questions of goal 2), its
+  // item for this going to the box; beside the buttons, a line says why they wait.
+  const gate = p.document.getElementById('result-gate').innerHTML;
+  assert.match(gate, /Before you can download this SWMS/);
+  assert.match(gate, /data-cover-jump>Work SiteReady has no job steps for</);
   const actions = p.document.getElementById('result-actions').innerHTML;
-  assert.ok(actions.indexOf('Tick the box above the draft about work SiteReady has no job steps for, then save or download.') >= 0 && actions.indexOf('Tick the box above') < actions.indexOf('id="new-save"'));
-  assert.match(actions, /data-cover-jump>Go to the box</);
-  assert.equal(p.document.getElementById('new-cover-note').classList.contains('hidden'), false);
+  assert.ok(actions.indexOf('Download and save wait for the item listed above under "Before you can download this SWMS".') >= 0 && actions.indexOf('Download and save wait') < actions.indexOf('id="new-save"'));
+  assert.match(actions, /data-gate-list>Go to the list</);
+  assert.equal(p.document.getElementById('new-gate-note').classList.contains('hidden'), false);
   tick(p);
   assert.equal(p.document.getElementById('new-save').disabled, false);
-  assert.equal(p.document.getElementById('new-cover-note').classList.contains('hidden'), true, 'the line goes once ticked');
+  assert.equal(p.document.getElementById('new-gate-note').classList.contains('hidden'), true, 'the line goes once ticked');
+  assert.equal(p.document.getElementById('result-gate').innerHTML, '', 'and so does the list');
   p.document.getElementById('new-save').click();
   await settle();
   const saved = p.calls.filter((call) => call.route === '/api/swms' && call.method === 'POST');
@@ -276,7 +300,7 @@ test('a fully covered draft shows no warning', async () => {
   p.document.getElementById('task').value = 'Install the generator.';
   await prepare(p);
   assert.doesNotMatch(p.document.getElementById('result').innerHTML, /no job steps|not-covered/);
-  assert.doesNotMatch(p.document.getElementById('result-actions').innerHTML, /new-cover-note/);
+  assert.doesNotMatch(p.document.getElementById('result-actions').innerHTML, /new-gate-note/);
 });
 
 test('in a project, a SWMS with parts that have no job steps is ready once ticked', async () => {

@@ -8,7 +8,7 @@ const { app } = require('../server');
 const db = require('../db');
 const { validAbn } = require('../accounts');
 const { plainName, nearlySameName } = require('../admin');
-const { setupAccounts, lastLinkToken } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
 
 const DAY = 86400000;
 let server;
@@ -95,7 +95,7 @@ test('a reference from a real download traces to the account, with the job\'s st
   assert.equal((await call('PUT', '/api/company', { token, body: { name: 'Lookup Roofing Pty Ltd', abn } })).status, 200);
   const user = await db.one('SELECT company_id FROM users WHERE email = $1', ['roofer@lookup.example']);
   const body = {
-    state: 'nsw', task: 'Replace a 3m length of fence.', fallRisk: 'no', workplace: '14 Pitt Street, Sydney NSW 2000',
+    ...ANSWERED, state: 'nsw', task: 'Replace a 3m length of fence.', fallRisk: 'no', workplace: '14 Pitt Street, Sydney NSW 2000',
     reviewConfirmed: true, reviewedBy: 'Jo Lee',
   };
   const response = await call('POST', '/api/draft.docx', { token, body });

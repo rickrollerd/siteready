@@ -37,6 +37,11 @@ const DRAFT = {
   workplace: '12 Smith Street, Paddington QLD 4064',
   principalContractor: 'ABC Builders Pty Ltd',
   complianceResponsible: 'Sam Lee, supervisor',
+  // Goal 2: answered before any download, so a SWMS sent to a builder has them (H8 otherwise).
+  reviewer: 'Sam Lee, supervisor',
+  firstAider: 'Jo Smith',
+  musterPoint: 'Front gate on Smith Street',
+  scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding',
   facts: {
     fallControl: 'Scaffolders install each lift with advance guardrails before stepping up, and the working deck is fully planked.',
     systemInstructions: 'Tube and fitting scaffold erected to the scaffold designer\'s drawings SD-01 revision A.',

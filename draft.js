@@ -6,6 +6,7 @@ const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
 const { registersFor } = require('./register');
 const { inHierarchyOrder, controlLevel } = require('./control-level');
+const { withFills } = require('./blanks');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
 
@@ -26,8 +27,17 @@ function blankName(value) {
 function supplied(value) {
   const text = cleanLine(value);
   if (!text) return '';
-  if (/^(not provided|n\/a|na|unknown|tbc|none)$/i.test(text)) return '';
+  if (/^(not provided|n\/a|na|unknown|tbc|none|nil|no|not applicable)\.?$/i.test(text)) return '';
   return text;
+}
+
+// "None" or "Not applicable", where the user has said so (goal 2: an answer the download gate
+// accepts for a site question that can truly have none). Printed as the answer; it adds no hazard.
+const NONE_ANSWER = /^(?:none|nil|no|n\/a|na|not applicable)\.?$/i;
+function noneAnswer(value) {
+  const text = cleanLine(value);
+  if (!NONE_ANSWER.test(text)) return '';
+  return /^(?:n\/a|na|not applicable)\.?$/i.test(text) ? 'Not applicable' : 'None';
 }
 
 function sentences(text) {
@@ -1789,6 +1799,26 @@ function siteLines(site) {
   });
 }
 
+// The site answers as the SWMS prints them: "None" or "Not applicable" where the user said so.
+function printedSite(site) {
+  return siteLines(site).map((field) => ({ ...field, text: field.text || noneAnswer(site[field.id]) }));
+}
+
+// A scaffold put up for the work (by a scaffolding company, with a handover), not a mobile tower
+// the crew sets up itself. The scaffold supervisor is asked for and printed only then.
+const FIXED_SCAFFOLD = /\bscaffold(?:s|ing)?\b(?! towers?)/i;
+function involvesScaffold(draft) {
+  if ((draft.plant || []).some((item) => /^(Scaffold|Swing stage)/.test(item.item))) return true;
+  return [draft.task, ...(draft.jobSteps || []).map((step) => step.step)].some((text) => FIXED_SCAFFOLD.test(String(text || '').replace(/\b(?:mobile|rolling) (?:aluminium |alloy )?scaffold\w*/gi, ' ')));
+}
+
+// The scaffold supervisor row: the user's answer, or "To be completed" until it is given, only where
+// the SWMS involves a scaffold. "Not applicable" leaves the row off.
+function scaffoldRow(draft, input) {
+  if (!involvesScaffold(draft) || noneAnswer(input.scaffoldSupervisor)) return '';
+  return keptFact(input.scaffoldSupervisor) || TO_COMPLETE;
+}
+
 function methodSteps(task, facts, site, pack) {
   if (isScaffoldErection(task)) {
     const fall = keptFact(facts.fallControl);
@@ -2225,12 +2255,14 @@ function prepareDraft(input) {
     reviewHeading: state.reviewHeading,
     sectionTitle: state.sectionTitle,
     contents: state.contents,
-    principalContractor: keptFact(input.principalContractor),
+    // "Not applicable" prints as given, where no principal contractor is appointed for the work.
+    principalContractor: keptFact(input.principalContractor) || noneAnswer(input.principalContractor),
     subcontractor: blankName(input.company || input.subcontractor),
     companyDetails: companyDetails(input),
     workplace: blankName(input.workplace || input.siteAddress),
     siteManager: keptFact(input.siteManager),
-    scaffoldSupervisor: keptFact(input.scaffoldSupervisor) || TO_COMPLETE,
+    // Set again once the job steps and plant are known (scaffoldRow).
+    scaffoldSupervisor: scaffoldRow({ task }, input),
     hospital: keptFact(input.hospital),
     firstAider: keptFact(input.firstAider),
     musterPoint: keptFact(input.musterPoint) || TO_COMPLETE,
@@ -2300,7 +2332,7 @@ function prepareDraft(input) {
     hazards,
     controls: finalControls,
     review: REVIEW,
-    site: siteLines(site),
+    site: printedSite(site),
     method: steps,
     workers: [{ name: '', signature: '', date: '' }],
     signed: false,
@@ -2382,7 +2414,10 @@ function prepareDraft(input) {
   // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
   // Parts of the task with no job steps, shown above the draft (owner decision D184).
   const notCovered = notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched });
-  return applyStepEdits({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input);
+  const finished = applyStepEdits({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input);
+  // The user's answers in the blanks (____) of control lines, and the scaffold supervisor only
+  // where the SWMS involves a scaffold.
+  return withFills({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input) }, input.fills);
 }
 
 // Gloves for the substances listed, and hearing protection where a step names noise,
@@ -5430,6 +5465,8 @@ module.exports = {
   notCoveredRefusal,
   stripLiftBleedText,
   blankName,
+  noneAnswer,
+  involvesScaffold,
   HIERARCHY,
   REVIEW,
 };

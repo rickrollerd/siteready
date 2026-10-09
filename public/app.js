@@ -290,6 +290,7 @@ function payload() {
     controlEdits: controlEdits || undefined,
     hazardEdits: hazardEdits || undefined,
     whoEdits: whoEdits || undefined,
+    fills: fills || undefined,
     facts,
     site,
   };
@@ -500,6 +501,8 @@ let controlEdits = null;
 // responsible for each step's controls (the Who column), by job step name.
 let hazardEdits = null;
 let whoEdits = null;
+// The user's answers for the blanks (____) in control lines, by line: { line: [answer, ...] }.
+let fills = null;
 // The task the step picks and steps left out were made for.
 let choicesTask = null;
 
@@ -514,6 +517,7 @@ function newSwms() {
   controlEdits = null;
   hazardEdits = null;
   whoEdits = null;
+  fills = null;
   choicesTask = null;
   ppeTouched.clear();
   if (window.SiteReady) window.SiteReady.editing = null;
@@ -764,6 +768,7 @@ async function fillForm(input) {
   controlEdits = input.controlEdits && typeof input.controlEdits === 'object' ? JSON.parse(JSON.stringify(input.controlEdits)) : null;
   hazardEdits = input.hazardEdits && typeof input.hazardEdits === 'object' ? JSON.parse(JSON.stringify(input.hazardEdits)) : null;
   whoEdits = input.whoEdits && typeof input.whoEdits === 'object' ? { ...input.whoEdits } : null;
+  fills = input.fills && typeof input.fills === 'object' ? JSON.parse(JSON.stringify(input.fills)) : null;
   showFallExplanation();
   if (!(await loadQuestions())) return;
   document.querySelectorAll('[data-fact]').forEach((el) => {
@@ -894,6 +899,77 @@ function revisionText(draft) {
   return `Revision ${draft.revision || 1}${date ? `, ${date}` : ''}`;
 }
 
+// ---- The download gate (goal 2) ----
+
+// A control line with a box in each blank. The first box for a line is where the list above the
+// download buttons takes the user.
+function fillBox(line, key, gate, anchored) {
+  const gap = (gate || []).find((item) => item.kind === 'line' && item.key === key);
+  if (!gap) return esc(line);
+  const rest = String(line).replace(/\s+/g, ' ').trim().slice(key.length);
+  const answers = (fills || {})[key] || [];
+  const first = !anchored.has(key);
+  anchored.add(key);
+  const boxes = gap.parts.map((part, n) => `${esc(part)}${n < gap.parts.length - 1 ? `<input type="text" class="blank-input" data-fill-key="${esc(key)}" data-fill-n="${n}" value="${esc(answers[n] || '')}" aria-label="Blank ${n + 1} of ${gap.parts.length - 1} in this control"${first && n === 0 ? ` id="gap-${esc(gap.id)}"` : ''}>` : ''}`).join('');
+  return `<span class="blank-fill">${boxes}${esc(rest)}</span><span class="gate-need">Fill in the blank before download.</span>`;
+}
+
+// The page box each item is answered in, and the marks beside each one.
+const gateTarget = (gap) => (gap.kind === 'line' ? document.getElementById(`gap-${gap.id}`) : gap.field ? document.getElementById(gap.field) : null);
+function markGaps(gaps) {
+  document.querySelectorAll('.gate-need[data-gate-for]').forEach((el) => el.remove());
+  document.querySelectorAll('[aria-invalid="true"]').forEach((el) => { el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); });
+  for (const gap of gaps) {
+    if (gap.kind === 'line' || !gap.field) continue;
+    const el = document.getElementById(gap.field);
+    if (!el) continue;
+    const note = document.createElement('p');
+    note.className = 'gate-need';
+    note.dataset.gateFor = gap.field;
+    note.id = `need-${gap.field}`;
+    note.textContent = `Needed before download: ${gap.need}`;
+    (el.closest('.field') || el.parentElement).appendChild(note);
+    el.setAttribute('aria-invalid', 'true');
+    el.setAttribute('aria-describedby', note.id);
+  }
+}
+
+// Everything still outstanding before download, in one list: the site questions and blanks the
+// server found (goal 2), and the tick for work SiteReady has no job steps for (D184), counted from
+// the box above the draft as the user ticks it.
+function outstanding(data) {
+  if (!data || data.kind !== 'draft') return [];
+  const gaps = (data.gate || []).filter((gap) => gap.kind !== 'cover');
+  const parts = Array.isArray(data.notCovered) ? data.notCovered : [];
+  if (parts.length && coverTicked !== JSON.stringify(parts)) {
+    gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${parts.join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.` });
+  }
+  return gaps;
+}
+
+// What is still needed, listed above the download buttons, each with a link that goes to it.
+function gateBlock(gaps) {
+  if (!gaps.length) return '';
+  const answers = gaps.some((gap) => gap.kind !== 'cover');
+  return `<div class="panel gate" id="gate-panel" role="region" aria-labelledby="gate-title">
+    <h3 id="gate-title">Before you can download this SWMS</h3>
+    <p>SiteReady does not produce a SWMS until the site questions are answered, no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}${answers ? ', then press Update the draft' : ''}:</p>
+    <ul class="gate-list">${gaps.map((gap, i) => `<li><button type="button" class="link" ${gap.kind === 'cover' ? 'data-cover-jump' : `data-gate-go="${i}"`}>${esc(gap.label)}</button><span class="meta">${esc(gap.need)}</span></li>`).join('')}</ul>
+    ${answers ? '<div class="actions"><button type="button" id="gate-update">Update the draft</button></div>' : ''}
+  </div>`;
+}
+
+// The list and the line above the draft, drawn again when the draft or the tick changes.
+let shownGaps = [];
+function showGate() {
+  shownGaps = outstanding(shownDraft);
+  const holder = document.getElementById('result-gate');
+  if (holder) holder.innerHTML = gateBlock(shownGaps);
+  const top = document.getElementById('result-gate-top');
+  if (top) top.innerHTML = shownGaps.length ? `<p class="warning gate-top">This SWMS cannot be downloaded yet: ${shownGaps.length === 1 ? 'one item needs' : `${shownGaps.length} items need`} dealing with. <button type="button" class="link" data-gate-list>See what is needed</button></p>` : '';
+  markGaps(shownGaps.filter((gap) => gap.kind !== 'cover'));
+}
+
 function render(draft, { movable = false } = {}) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
   const logo = profile.logo ? `<img class="sheet-logo" src="${esc(profile.logo)}" alt="">` : '';
@@ -934,7 +1010,11 @@ function render(draft, { movable = false } = {}) {
   const risks = draft.highRisk.length
     ? `<ul>${draft.highRisk.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`
     : '<p>This task is not identified as high risk construction work.</p>';
-  const controls = `<table><thead><tr><th>Hierarchy</th><th>Control</th></tr></thead><tbody>${draft.controls.map((item) => `<tr><td>${esc(item.level)}</td><td>${esc(item.text)}</td></tr>`).join('')}</tbody></table>`;
+  // A control with a blank (____) has a box in each blank for the user's answer (goal 2).
+  const blankKeys = draft.blankKeys || { steps: [], controls: [] };
+  const anchored = new Set();
+  const lineText = (line, key) => (movable && key ? fillBox(line, key, draft.gate, anchored) : esc(line));
+  const controls = `<table><thead><tr><th>Hierarchy</th><th>Control</th></tr></thead><tbody>${draft.controls.map((item, i) => `<tr><td>${esc(item.level)}</td><td>${lineText(item.text, blankKeys.controls[i])}</td></tr>`).join('')}</tbody></table>`;
   const site = draft.site.map((field) => `<p><strong>${esc(field.label)}</strong></p><div class="blank">${esc(field.text)}</div>`).join('');
   const list = (items) => `<ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
   // In the preview each control can be changed or removed, and the user can add their own.
@@ -948,7 +1028,7 @@ function render(draft, { movable = false } = {}) {
     const removed = ((controlEdits || {})[step.step] || {}).removed || [];
     const warned = (report.warned || []).filter((item) => item.step === step.step);
     const asks = (report.applied || []).filter((item) => item.step === step.step && (item.kind === 'removed' || warned.some((other) => other.text === item.from)));
-    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${esc(line)}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
       ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
       ${asks.map((item) => whyBox(index, item)).join('')}
       <button type="button" class="link" data-ctl="add" data-ctl-step="${index}">Add your own control</button><p class="meta ctl-msg" data-ctl-msg="${index}" role="status"></p>`;
@@ -1120,6 +1200,8 @@ document.addEventListener('change', (event) => {
   if (S.actionInput) S.actionInput = { ...S.actionInput, notCoveredConfirmed: confirmed };
   // A SWMS in a project is ready once ticked.
   if (S.onCoverTick) S.onCoverTick(confirmed);
+  // The list above the buttons drops the tick, or puts it back.
+  showGate();
 });
 async function prepareDraft({ scroll = true } = {}) {
   const button = document.getElementById('prepare');
@@ -1143,8 +1225,9 @@ async function prepareDraft({ scroll = true } = {}) {
     shownReport = report;
     const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), notCoveredBlock(data), editNotes(report, { discard: true })].join('');
     shownDraft = data;
-    resultEl.innerHTML = `${warnings}<div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-actions"></div>`;
+    resultEl.innerHTML = `${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
+    showGate();
     // What is saved: the input sent, with changes moved onto any line SiteReady has reworded.
     const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
     // Downloading and saving need an account; the account script adds those buttons.
@@ -1163,6 +1246,47 @@ async function prepareDraft({ scroll = true } = {}) {
 factsForm.addEventListener('submit', (event) => {
   event.preventDefault();
   prepareDraft();
+});
+
+// The gate's list: each item goes to where it is answered; Update the draft checks again.
+document.addEventListener('click', async (event) => {
+  if (event.target.closest('[data-gate-list]')) {
+    const panel = document.getElementById('gate-panel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  const go = event.target.closest('[data-gate-go]');
+  if (go && shownDraft) {
+    const gap = shownGaps[Number(go.dataset.gateGo)];
+    const el = gap && gateTarget(gap);
+    if (!el) return;
+    // A box in a closed section is opened first.
+    const closed = el.closest('details:not([open])');
+    if (closed) closed.open = true;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.focus({ preventScroll: true });
+    return;
+  }
+  if (event.target.closest('#gate-update')) {
+    await prepareDraft({ scroll: false });
+    const panel = document.getElementById('gate-panel');
+    (panel || document.getElementById('result-actions') || resultEl).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
+// An answer typed in a blank is kept for the next draft, and shown in the same blank wherever the line prints.
+resultEl.addEventListener('input', (event) => {
+  const box = event.target.closest && event.target.closest('.blank-input');
+  if (!box) return;
+  const key = box.dataset.fillKey;
+  const n = Number(box.dataset.fillN);
+  fills = fills || {};
+  const answers = [...(fills[key] || [])];
+  answers[n] = box.value;
+  fills[key] = answers;
+  resultEl.querySelectorAll('.blank-input').forEach((other) => {
+    if (other !== box && other.dataset.fillKey === key && Number(other.dataset.fillN) === n) other.value = box.value;
+  });
 });
 
 function moveStep(from, to) {

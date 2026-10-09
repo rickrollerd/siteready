@@ -105,7 +105,8 @@ test('H3: falls controlled by harness alone', () => {
 
 test('H4: not site specific', () => {
   assert.deepEqual(failed(checkSwms(variant({ site: { address: '', conditions: GOOD.site.conditions } }))), ['H4']);
-  assert.deepEqual(failed(checkSwms(variant({ site: { address: 'To be completed', conditions: GOOD.site.conditions } }))), ['H4']);
+  // A placeholder is no address (H4), and a placeholder left in the SWMS is a must-fix item (H8, goal 2).
+  assert.deepEqual(failed(checkSwms(variant({ site: { address: 'To be completed', conditions: GOOD.site.conditions } }))), ['H4', 'H8']);
   assert.deepEqual(failed(checkSwms(variant({ site: { address: GOOD.site.address, conditions: [] } }))), ['H4']);
 });
 
@@ -146,7 +147,7 @@ test('W3: each vague line costs at least a point, so one phrase in a long SWMS i
 
 test('H6 and H7: no responsible person; no worker signatures', () => {
   assert.deepEqual(failed(checkSwms(variant({ responsiblePerson: '' }))), ['H6']);
-  assert.deepEqual(failed(checkSwms(variant({ responsiblePerson: '____' }))), ['H6']);
+  assert.deepEqual(failed(checkSwms(variant({ responsiblePerson: '____' }))), ['H6', 'H8']);
   // On site, a SWMS no worker has signed fails H7.
   const unsigned = checkSwms(variant({ signatures: [{ name: '', date: '' }] }), { stage: 'on-site' });
   assert.deepEqual(failed(unsigned), ['H7']);
@@ -219,8 +220,11 @@ test('email: accepted is a short approval; otherwise the changes by priority, ha
 
 // SiteReady's own drafts, checked as a builder would check the printed SWMS. Site details, the
 // person responsible and the principal contractor are filled in, as a user would before sending.
+// Goal 2: the reviewer, first aider and muster point (and the scaffold supervisor, for a scaffold) are
+// answered before any download, so a SWMS sent to a builder has them.
 const SITE = {
   workplace: '12 Smith Street, Paddington QLD 4064', principalContractor: 'ABC Builders Pty Ltd', complianceResponsible: 'Sam Lee, supervisor', reviewDate: '5 November 2026',
+  reviewer: 'Sam Lee, supervisor', firstAider: 'Jo Smith', musterPoint: 'Front gate on Smith Street', scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding',
   site: { liveServices: 'Overhead power on the street, 6 m from the work.', publicInterface: 'The footpath stays open behind a hoarding.', otherTrades: 'No other trades work under ours.', ground: 'Level, firm ground.', access: 'Scaffold stair on the east side; deliveries by the driveway.' },
 };
 function draftCheck(index, signed = true, stage = 'review') {

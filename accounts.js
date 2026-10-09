@@ -9,7 +9,7 @@ const { recordControlEdits, recordFailedQuestions, enabled: learningEnabled, rem
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
-const { prepareDraft, notCoveredRefusal } = require('./draft');
+const { prepareDraft } = require('./draft');
 const { draftToDocx, draftedNote, revisionText, preparedFor } = require('./docx-draft');
 const { draftToPdf } = require('./pdf-draft');
 const { readLogo } = require('./logo');
@@ -17,6 +17,7 @@ const { record } = require('./events');
 const signRead = require('./sign-read');
 const aiScope = require('./ai-scope');
 const revisions = require('./revisions');
+const { downloadGaps, gateMessage } = require('./download-gate');
 
 const REVIEW_MONTHS = 3;
 const REMIND_DAYS_BEFORE = 7;
@@ -334,6 +335,14 @@ async function reviseSwms(req, row, { input, draft, name, siteId = row.site_id, 
   return { row: next, kept };
 }
 
+// Goal 2: a SWMS is not saved or printed until its site questions are answered and no blank is
+// left in it (download-gate.js). The refusal carries the list, for the page to show.
+// options.cover false leaves out the D184 tick: a saved SWMS was ticked when it was saved.
+function needsAnswers(input, draft, after = '', options = {}) {
+  const gaps = downloadGaps(input, draft, options);
+  if (gaps.length) throw Object.assign(fail(400, `${gateMessage(gaps)}${after}`), { gate: gaps });
+}
+
 // Saving, like downloading, needs the business name and ABN, which are printed on every SWMS.
 function needsCompany(req) {
   if (!String(req.company.name || '').trim() || !String(req.company.abn || '').trim()) throw fail(400, 'Add your business name and ABN under Company details before saving. They are printed on every SWMS.');
@@ -346,8 +355,8 @@ router.post('/swms', requireAccess, route(async (req, res) => {
   const input = cleanInput(body.input);
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, draft.kind === 'stand-down' ? 'This SWMS is stood down until the missing facts are added, so it cannot be saved yet.' : (draft.message || 'This SWMS could not be prepared.'));
-  const uncovered = notCoveredRefusal(draft, input);
-  if (uncovered) throw fail(400, uncovered);
+  // The site answers (goal 2) and the tick for parts with no job steps (D184), named together.
+  needsAnswers(withCompany(input, req.company), draft);
   const site = await ownSite(req, body.siteId);
   const { row } = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: titleFor(body, input), reason: textField(body.reason, 300) });
   res.status(201).json({ swms: swmsView(row) });
@@ -364,6 +373,8 @@ async function saveForDownload(req, body, options = {}) {
   const input = cleanInput(body);
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') return null;
+  // The routes that call this have checked the D184 tick already.
+  needsAnswers(withCompany(input, req.company), draft, '', { cover: false });
   const reason = textField(body.reason, 300);
   const existing = typeof body.swmsId === 'string' && body.swmsId
     ? await db.one('SELECT * FROM swms WHERE id = $1 AND company_id = $2 AND archived = FALSE', [body.swmsId, req.company.id]) : null;
@@ -437,8 +448,7 @@ router.put('/swms/:id', requireAccess, route(async (req, res) => {
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so the changes cannot be saved yet.');
   // Changes from the form need the tick for parts with no job steps (owner decision D184).
-  const uncovered = body.input ? notCoveredRefusal(draft, input) : '';
-  if (uncovered) throw fail(400, uncovered);
+  needsAnswers(withCompany(input, req.company), draft, '', { cover: Boolean(body.input) });
   const site = body.siteId === undefined ? { id: row.site_id } : await ownSite(req, body.siteId);
   const { row: next } = await reviseSwms(req, row, { input, draft, name, siteId: site ? site.id : null, title: body.title || row.title, reason: textField(body.reason, 300) });
   res.json({ swms: swmsView(next) });
@@ -461,6 +471,7 @@ router.post('/swms/:id/copy', requireAccess, route(async (req, res) => {
   const input = typeof row.input === 'string' ? JSON.parse(row.input) : row.input;
   const draft = prepareDraft(withCompany(input, req.company));
   if (draft.kind !== 'draft') throw fail(400, 'This SWMS is stood down until the missing facts are added, so it cannot be copied yet.');
+  needsAnswers(withCompany(input, req.company), draft, ' Open it, answer them and save it, then copy it.', { cover: false });
   const { row: copy } = await createSwms(req, { input, draft, name, siteId: site ? site.id : null, title: textField(body.title, 200) || `Copy of ${row.title}`.slice(0, 200), reason: `Copied from ${row.title}`.slice(0, 300) });
   res.status(201).json({ swms: swmsView(copy) });
 }));
@@ -496,7 +507,7 @@ async function documentParts(company, row, revision = row.revision || 1) {
       signedDate: longDate(item.signed_at), note: signRead.signOnNote(item),
     }));
   const confirmation = current || !kept.confirmation ? { name: row.reviewed_by, date: longDate(row.last_reviewed_at) } : kept.confirmation;
-  return { draft: kept.draft, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company };
+  return { draft: kept.draft, input: kept.input, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company };
 }
 
 // Sends a saved SWMS's revision as Word or PDF. The headers say which saved SWMS and revision
@@ -504,6 +515,8 @@ async function documentParts(company, row, revision = row.revision || 1) {
 async function sendDocument(req, res, row, format, revision) {
   const parts = await documentParts(req.company, row, revision);
   if (!parts) throw fail(404, 'That revision was not found.');
+  // A SWMS saved before the gate, with site questions unanswered, is not printed until it is revised.
+  needsAnswers(parts.input || {}, parts.draft, ' Open this SWMS, answer them and save it as a new revision, then download it.', { cover: false });
   res.setHeader('X-SiteReady-Swms', row.id);
   res.setHeader('X-SiteReady-Revision', String(parts.revision));
   res.setHeader('X-SiteReady-Title', encodeURIComponent(row.title));

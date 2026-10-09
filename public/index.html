@@ -242,6 +242,17 @@
     .translate .en { display: block; color: #5c6773; font-size: 13px; }
     .translate ul { padding-inline-start: 1.2em; }
     .banner { background: #fff7e0; border: 1px solid #e3c977; border-radius: 8px; padding: 10px 14px; margin: 12px 0; font-size: 14px; }
+    .gate { border-color: #e3b76b; background: #fffaf0; }
+    .gate h3 { font-size: 17px; margin: 0 0 6px; }
+    .gate p { font-size: 15px; margin: 0 0 8px; }
+    .gate-list { list-style: none; margin: 8px 0 4px; padding: 0; }
+    .gate-list li { border-top: 1px solid #f0dcb4; padding: 8px 0; }
+    .gate-list button.link { width: auto; text-align: left; }
+    .gate-list .meta { display: block; font-size: 14px; color: #3d4a59; margin-top: 2px; }
+    .gate-need { display: block; font-size: 13px; font-weight: 600; color: #8a4b00; margin: 4px 0 0; }
+    .gate-top { margin: 0 0 12px; }
+    [aria-invalid="true"] { border-color: #c77700 !important; box-shadow: 0 0 0 2px #fde3b8; }
+    .blank-input { display: inline-block; width: 12em; max-width: 100%; border: 1px solid #c77700; border-radius: 4px; padding: 2px 6px; margin: 2px 4px; font-size: 14px; background: #fffaf0; }
     .tag-risk { font-size: 12px; font-weight: 600; color: #8a2b2b; background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
     @media (max-width: 640px) {
       .wrap { padding: 18px 12px 48px; }
@@ -377,7 +388,7 @@
       <h2 style="margin-top:18px">Project details</h2>
       <div class="field">
         <label for="workplace">Job address
-          <span class="hint">Where the work is done. The state, and its law, are set from this address.</span>
+          <span class="hint">Where the work is done. The state, and its law, are set from this address. Needed before download.</span>
         </label>
         <div class="address-box">
           <input id="workplace" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="workplace-list">
@@ -399,7 +410,7 @@
       </div>
       <div class="field">
         <label for="principal">Principal contractor
-          <span class="hint">The main contractor (MC) running the site.</span>
+          <span class="hint">The main contractor (MC) running the site. Needed before download. Write Not applicable only if no principal contractor is appointed for this work.</span>
         </label>
         <input id="principal" type="text" autocomplete="off" list="principal-list">
         <datalist id="principal-list"></datalist>
@@ -424,13 +435,13 @@
       </div>
       <div class="field">
         <label for="compliance-responsible">Person who makes sure the SWMS is followed
-          <span class="hint">Who makes sure the crew follows this SWMS on site, usually your supervisor or leading hand.</span>
+          <span class="hint">Who makes sure the crew follows this SWMS on site, usually your supervisor or leading hand. Needed before download.</span>
         </label>
         <input id="compliance-responsible" type="text" autocomplete="off">
       </div>
       <div class="field">
         <label for="reviewer">Person who reviews the controls
-          <span class="hint">Who checks the controls are working and updates this SWMS if the job changes.</span>
+          <span class="hint">Who checks the controls are working and updates this SWMS if the job changes. Needed before download.</span>
         </label>
         <input id="reviewer" type="text" autocomplete="off">
       </div>
@@ -442,9 +453,9 @@
       </div>
       <div class="field">
         <label for="scaffold-supervisor">Scaffold supervisor
-          <span class="hint">The scaffolding company's supervisor who hands over and tags the scaffold.</span>
+          <span class="hint">The scaffolding company's supervisor who hands over and tags the scaffold. Needed before download only where the SWMS involves a scaffold; printed only then.</span>
         </label>
-        <input id="scaffold-supervisor" type="text" autocomplete="off" placeholder="If not known yet, complete before submitting for approval">
+        <input id="scaffold-supervisor" type="text" autocomplete="off">
       </div>
       <div class="field">
         <label for="hospital">Hospital
@@ -456,15 +467,15 @@
       </div>
       <div class="field">
         <label for="first-aider">First aider
-          <span class="hint">A trained first aider on site, yours or the main contractor's.</span>
+          <span class="hint">A trained first aider on site, yours or the main contractor's. Needed before download.</span>
         </label>
         <input id="first-aider" type="text" autocomplete="off">
       </div>
       <div class="field">
         <label for="muster-point">Muster point
-          <span class="hint">Where everyone meets in an emergency. Ask the main contractor.</span>
+          <span class="hint">Where everyone meets in an emergency. Ask the main contractor. Needed before download.</span>
         </label>
-        <input id="muster-point" type="text" autocomplete="off" placeholder="If not known yet, complete before submitting for approval">
+        <input id="muster-point" type="text" autocomplete="off">
       </div>
       <div class="field">
         <label for="draft-date">Date of the draft</label>
@@ -568,7 +579,7 @@
       <p class="lede" style="margin-bottom:12px">Ticked items are suggested for this task. Change them to suit the job and the site rules.</p>
       <div id="ppe-block"></div>
       <h2 style="margin-top:18px">Site-specific</h2>
-      <p class="lede" style="margin-bottom:12px">Leave a line blank if you do not have it. A blank line stays blank.</p>
+      <p class="lede" style="margin-bottom:12px">Answer each one for this site. They are needed before download. Where there truly is none, write None (Access always needs an answer).</p>
       <div id="site-block"></div>
       <div class="actions">
         <button type="submit" id="prepare">Prepare the statement</button>

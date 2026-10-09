@@ -24,4 +24,17 @@ function lastLinkToken(email) {
   return match && match[1];
 }
 
-module.exports = { setupAccounts, lastLinkToken, mailbox };
+// Goal 2: a SWMS downloads or saves only once its site questions and key people are answered
+// (download-gate.js). Tests about something else download with these answers.
+const ANSWERED = {
+  workplace: '12 Smith Street, Paddington QLD 4064',
+  principalContractor: 'ABC Builders Pty Ltd',
+  complianceResponsible: 'Sam Lee, supervisor',
+  reviewer: 'Sam Lee, supervisor',
+  firstAider: 'Jo Smith',
+  musterPoint: 'Front gate on Smith Street',
+  scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding',
+  site: { liveServices: 'None', publicInterface: 'None', otherTrades: 'None', ground: 'None', access: 'Through the main site gate.' },
+};
+
+module.exports = { setupAccounts, lastLinkToken, mailbox, ANSWERED };

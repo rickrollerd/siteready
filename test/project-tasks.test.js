@@ -8,8 +8,11 @@ const { findState, highRiskList } = require('../legislation');
 const { answersFor } = require('../presets');
 const { checkSwms, fromDraft } = require('../builder-check');
 
+// Goal 2: the reviewer, first aider and muster point (and the scaffold supervisor, for a scaffold) are
+// answered before any download, as a user would.
 const SITE = {
   workplace: '12 Smith Street, Test Town', principalContractor: 'ABC Builders Pty Ltd', complianceResponsible: 'Sam Lee, supervisor', date: '5 October 2026', reviewDate: '5 November 2026',
+  reviewer: 'Sam Lee, supervisor', firstAider: 'Jo Smith', musterPoint: 'Front gate', scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding',
   site: { liveServices: 'Services are shown on the site services plan.', publicInterface: 'The public stay outside the site fence.', otherTrades: 'Other trades are kept out of the work area.', ground: 'Level, firm ground.', access: 'Through the main site gate.' },
 };
 
@@ -56,7 +59,8 @@ function draftAsUser(state, fallRisk, task) {
     let added = false;
     for (const item of asked.required || []) {
       if (facts[item.id]) continue;
-      facts[item.id] = item.id === 'liveElectrical' ? 'no' : item.choices ? item.choices[0].value : (answersFor(item.id, asked.task)[0] || {}).text || `As set out in the site plan: ${item.label}.`;
+      // A standard answer's blanks (____) are filled in, as a user must before downloading (goal 2).
+      facts[item.id] = item.id === 'liveElectrical' ? 'no' : item.choices ? item.choices[0].value : ((answersFor(item.id, asked.task)[0] || {}).text || `As set out in the site plan: ${item.label}.`).replace(/_{3,}/g, 'as on the site plan');
       added = true;
     }
     if (!added) break;

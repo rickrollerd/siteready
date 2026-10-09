@@ -36,6 +36,10 @@
 // W11 (5 to 4) each gave a share, and W9 took 1 for dated signatures (5 to 6).
 // Now: W1 12, W2 12, W3 10, W4 6, W5 8, W6 8, W7 8, W8 2, W9 6, W10 4, W11 4, W12 5, W13 12, W14 3 = 100.
 //
+// Goal 2 (owner, 7 October 2026): H8, a blank (____) or a "To be completed" placeholder left anywhere
+// the SWMS prints (a control, a hazard, the plant, the emergency arrangements or a field) is a
+// must-fix item, as a reviewer would fail it. Such a line no longer reads as a pass.
+//
 // The SWMS comes in one structured form, whatever its source (an AI reading of an uploaded
 // document, or a SiteReady draft):
 // { state, task, fallRisk, site: { address, conditions[] }, highRisk[], steps[{ step, hazards[], controls[], responsible }],
@@ -43,6 +47,7 @@
 //   principalContractor, licences[], plant[], emergency[], review, legislation[], riskMatrix }
 const { findState, highRiskList } = require('./legislation');
 const { highRiskMatches, domesticWork } = require('./draft');
+const { leftOpen } = require('./blanks');
 
 const BANDS = { accepted: 'Accepted', changes: 'Accepted with changes', rejected: 'Not accepted' };
 
@@ -54,6 +59,7 @@ const SOURCES = {
   H5: 'Tier 1 SWMS review checklists; regulator guidance. Fails only where a vague line is the only control for a high risk hazard in its step (owner decision, 6 October 2026)',
   H6: 'Model Code of Practice: Construction Work (how controls are implemented, monitored and reviewed)',
   H7: 'WHS Regulations s 299; WHSQ construction blitz 2023 ("involve workers")',
+  H8: 'Tier 1 SWMS review checklists (no blanks, placeholders or leftover template text); goal 2 (owner, 7 October 2026): no SWMS is produced with blanks left in it',
   W1: 'Model Code of Practice: Construction Work (SWMS content); WHSQ construction blitz 2023 (task specific)',
   W2: 'Hierarchy of control (WHS Regulations s 36); Model Code of Practice: Construction Work',
   W3: 'Tier 1 SWMS review checklists; SafeWork NSW campaign findings. Each vague line costs at least 1 point (owner decision, 6 October 2026)',
@@ -102,6 +108,10 @@ function normaliseSwms(input = {}) {
     // "Yes" or "No", or a SiteReady answer such as "No. No work is done where ...".
     fallRisk: (/^(yes|no)\b/i.exec(text(input.fallRisk)) || [''])[0].toLowerCase(),
     site: { address: text(site.address || input.siteAddress), conditions: list(site.conditions || input.siteConditions).filter(filled) },
+    // Every site condition as written, for blanks and placeholders (H8).
+    siteWritten: list(site.conditions || input.siteConditions),
+    // Other printed fields the check does not judge, read only for blanks and placeholders (H8).
+    otherFields: list(input.otherFields),
     highRisk: list(input.highRisk),
     steps: (Array.isArray(input.steps) ? input.steps : []).filter((item) => item && typeof item === 'object')
       .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls), responsible: text(item.responsible) })),
@@ -756,6 +766,17 @@ function hardFails(swms, state, stage = 'review') {
     signed ? `${swms.signatures.length} worker${swms.signatures.length === 1 ? ' has' : 's have'} signed.`
       : !onSite && consulted ? 'Consultation is recorded. Workers must sign on before work starts.'
         : consultationRecorded(swms.consultation) ? 'Consultation is recorded, but no worker has signed the SWMS.' : 'No record that the workers were consulted or briefed, and no worker signatures.');
+  // Goal 2: a blank (____) or "To be completed" left in what prints is a must-fix item.
+  const open = [
+    ...[['Task', swms.task], ['Site address', swms.site.address], ['Principal contractor', swms.principalContractor], ['Responsible person', swms.responsiblePerson], ['Review date', swms.reviewDate], ['Date', swms.date]]
+      .filter(([, value]) => leftOpen(value)).map(([where, line]) => ({ where, line })),
+    ...swms.steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls, step.responsible].filter(leftOpen).map((line) => ({ where: step.step || 'step', line }))),
+    ...[['plant', swms.plant], ['emergency', swms.emergency], ['licences', swms.licences], ['PPE', swms.ppe], ['site conditions', swms.siteWritten], ['fields', swms.otherFields]]
+      .flatMap(([where, lines]) => lines.filter((line) => typeof line === 'string' && leftOpen(line)).map((line) => ({ where, line }))),
+  ];
+  add('H8', 'No blanks or placeholders left', !open.length,
+    open.length ? `Blanks or placeholders are left in the SWMS: ${open.slice(0, 5).map((item) => `"${item.line.slice(0, 160)}" (${item.where})`).join('; ')}${open.length > 5 ? `; and ${open.length - 5} more` : ''}. Fill each one in with what applies on this job.`
+      : 'No blanks or placeholders are left.');
   return { out, implied, named, preStart: signed ? [] : ['Workers must sign on before work starts.'] };
 }
 
@@ -1107,9 +1128,17 @@ function checkSwms(input, options = {}) {
 function fromDraft(draft, extra = {}) {
   const conditions = (draft.site || []).filter((row) => filled(row.text)).map((row) => `${row.label}: ${row.text}`);
   const emergency = (draft.emergency || []).map((row) => [row.type, row.equipment, row.detail].filter(Boolean).join(': '));
-  if (filled(draft.hospital)) emergency.push(`Hospital: ${draft.hospital}`);
-  if (filled(draft.firstAider)) emergency.push(`First aider: ${draft.firstAider}`);
-  if (filled(draft.musterPoint)) emergency.push(`Muster point: ${draft.musterPoint}`);
+  // As printed, placeholders included ("Muster point: To be completed"), so H8 sees what the reviewer sees.
+  if (text(draft.hospital)) emergency.push(`Hospital: ${draft.hospital}`);
+  if (text(draft.firstAider)) emergency.push(`First aider: ${draft.firstAider}`);
+  if (text(draft.musterPoint)) emergency.push(`Muster point: ${draft.musterPoint}`);
+  const otherFields = [
+    ...(draft.site || []).filter((row) => leftOpen(row.text)).map((row) => `${row.label}: ${row.text}`),
+    ...[['Scaffold supervisor', draft.scaffoldSupervisor], ['Site manager', draft.siteManager], ['Works manager', draft.worksManager], ['Person responsible for reviewing the control measures', draft.reviewer]]
+      .filter(([, value]) => text(value)).map(([label, value]) => `${label}: ${value}`),
+    ...(draft.controls || []).map((item) => item && item.text).filter(leftOpen),
+    ...(draft.references || []).map((item) => item && item.text).filter(leftOpen),
+  ];
   const steps = (draft.jobSteps || []).map((step) => ({ step: step.step, hazards: step.hazards || [], controls: step.controls || [], responsible: step.responsible || '' }));
   return {
     state: extra.state || '',
@@ -1130,6 +1159,7 @@ function fromDraft(draft, extra = {}) {
     licences: draft.qualifications || [],
     plant: (draft.plant || []).map((row) => [row.item, row.inspection, row.licence].filter(Boolean).join(': ')),
     emergency,
+    otherFields,
     review: draft.review || '',
     legislation: (draft.sources && draft.sources.legislation) || [],
     riskMatrix: steps.length > 0 && (draft.jobSteps || []).some((step) => step.risk),
