@@ -13,6 +13,9 @@ function connect() {
     max: Number(process.env.DATABASE_POOL || 5),
     ssl: local || process.env.DATABASE_SSL === 'off' ? false : { rejectUnauthorized: false },
   });
+  // A connection the database drops while idle (a restart or an outage) is reported here.
+  // Without a listener it stopped the server process; the next query opens a new connection.
+  pool.on('error', (error) => console.warn(`Database connection lost: ${error.message}`));
   return pool;
 }
 
@@ -361,6 +364,14 @@ const SCHEMA = [
     flagged_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (swms_id, notice_id)
   )`,
+  // Rate limit counts, shared by every server process (rate-store.js). The key is a keyed
+  // fingerprint, never an IP address or email address; a row is deleted soon after reset_at.
+  `CREATE TABLE IF NOT EXISTS rate_limits (
+    key TEXT PRIMARY KEY,
+    hits INTEGER NOT NULL,
+    reset_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS rate_limits_reset_at ON rate_limits (reset_at)',
 ];
 
 async function migrate() {

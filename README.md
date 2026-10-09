@@ -106,8 +106,11 @@ See `.env.example`.
 | `RATE_LIMIT_WINDOW_MS` | 900000 | Rate limit window (15 minutes) |
 | `RATE_LIMIT_MAX_REQUESTS` | 600 | Requests per window per client address, other than the Word file |
 | `RATE_LIMIT_WORD_REQUESTS` | 300 | Word files per window per client address |
+| `RATE_LIMIT_EMAIL_REQUESTS` | 10 | Sign-in emails and team invitations per window to one inbox |
+| `RATE_LIMIT_EMAIL_IP_REQUESTS` | 3 times the above | Sign-in emails and team invitations per window from one client address |
+| `RATE_LIMIT_KEY` | `INDUSTRY_KEY` or `SESSION_SECRET` | Secret for the fingerprints rate limit counts are kept under in the database, so no IP address or email address is stored |
 | `TRUST_PROXY` | 1 | Number of proxies in front of the server. Set 0 when clients connect directly, or a client can fake its address to get round the rate limit. |
-| `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. |
+| `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. With a database, every worker (and every copy of the server) shares one rate limit count; without one, each worker counts on its own. |
 
 ## Native app
 

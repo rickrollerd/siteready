@@ -1,7 +1,7 @@
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
-const { rateLimit } = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const path = require('path');
 const cluster = require('cluster');
 const os = require('os');
@@ -33,6 +33,7 @@ const { keyProblems } = require('./secret-keys');
 const { downloadGaps, gateChecks, gateMessage } = require('./download-gate');
 const { hasBlank, blankKey } = require('./blanks');
 const delivery = require('./delivery');
+const { SharedStore } = require('./rate-store');
 
 require('dotenv').config();
 
@@ -82,37 +83,54 @@ app.use(express.static(path.join(__dirname, 'public'), delivery.staticOptions));
 
 // Limits are per client address. Phones on mobile data and a site office on one
 // connection often share an address, so the limits are set for a busy site, not
-// one person. Each server process keeps its own count.
+// one person. Every server process, and every copy of the server, shares one count
+// for each client (rate-store.js).
 const windowMs = positiveNumber(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000);
-const limiter = (limit, skip) => rateLimit({
+const limiter = (name, limit, { skip, keyGenerator, failClosed } = {}) => rateLimit({
   windowMs,
   limit,
   skip,
+  keyGenerator,
+  identifier: name,
+  store: new SharedStore(name, { failClosed }),
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   message: { kind: 'error', message: 'Too many requests. Try again in a few minutes.' },
 });
 // The Word file takes most of the work, so it has its own, lower limit.
-app.use(WORD_ROUTE, limiter(positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300)));
-// Sign-in emails and worker sign-ons have tighter limits.
-app.use(['/api/auth/email', '/api/company/users'], limiter(positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10)));
-app.use('/api/sign', limiter(positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS, 200)));
+app.use(WORD_ROUTE, limiter('word-file', positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300)));
+// Sign-in emails and team invitations: each inbox gets at most 10 links in the window, and each
+// client address can send links to three times as many inboxes, so a site office or a mobile
+// network sharing one address can still sign several people up. Only sending counts; opening the
+// team list does not. With the shared count unreadable, no email is sent (rate-store.js).
+const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users'];
+const emailLimit = positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10);
+const notSending = (req) => req.method !== 'POST';
+app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {
+  skip: notSending,
+  keyGenerator: (req) => {
+    const email = auth.cleanEmail(req.body && req.body.email);
+    return email ? `inbox:${email}` : ipKeyGenerator(req.ip);
+  },
+  failClosed: true,
+}));
+app.use(EMAIL_ROUTES, limiter('sign-in-email-ip', positiveNumber(process.env.RATE_LIMIT_EMAIL_IP_REQUESTS, emailLimit * 3), { skip: notSending, failClosed: true }));
+app.use('/api/sign', limiter('sign-on', positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS, 200)));
 // Each SWMS is translated once per language and then kept, so few requests reach the AI;
 // this lower limit stops one phone asking for every language over and over.
-app.use(/^\/api\/sign\/[^/]+\/translation/, limiter(positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
-app.use('/api/draft/translation', limiter(positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
-app.use('/api', limiter(
-  positiveNumber(process.env.RATE_LIMIT_MAX_REQUESTS, 600),
-  (req) => req.originalUrl.startsWith(WORD_ROUTE),
-));
-// Sessions are read after the limits, so a refused request never reaches the database.
+app.use(/^\/api\/sign\/[^/]+\/translation/, limiter('sign-on-translation', positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
+app.use('/api/draft/translation', limiter('draft-translation', positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
+app.use('/api', limiter('api', positiveNumber(process.env.RATE_LIMIT_MAX_REQUESTS, 600), {
+  skip: (req) => req.originalUrl.startsWith(WORD_ROUTE),
+}));
+// Sessions are read after the limits, so a refused request goes no further.
 app.use(auth.readSession);
 
 const { draftBody } = require('./input');
 
 // Job address suggestions. Each one is a paid Google request, so it has its own limit.
-app.use('/api/address', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300)));
-app.use('/api/nearby-care', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
+app.use('/api/address', limiter('address', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300)));
+app.use('/api/nearby-care', limiter('nearby-care', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
 app.get('/api/nearby-care', async (req, res, next) => {
   try {
     res.json(await places.nearbyCare(req.query.address));
@@ -132,7 +150,7 @@ app.get('/api/address', async (req, res, next) => {
 // Anyone holding a SWMS can check its SiteReady reference: whether it is genuine, the business
 // it was prepared for, its title and revision, and whether that revision is still the current one
 // (owner decision, 6 October 2026). Nothing else is shown: no controls, no ABN, no dates.
-app.use('/api/verify', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
+app.use('/api/verify', limiter('verify', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
 app.get('/api/verify/:ref', async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
@@ -156,7 +174,7 @@ app.get('/api/verify/:ref', async (req, res, next) => {
   }
 });
 
-app.use('/api/abn', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
+app.use('/api/abn', limiter('abn', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
 app.get('/api/abn', async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
@@ -201,8 +219,8 @@ app.post('/api/draft/questions', (req, res) => {
 });
 
 // Reading a scope takes more work than a draft, so it has a lower limit.
-app.use('/api/project.zip', limiter(positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300) / 10));
-const scopeLimit = limiter(positiveNumber(process.env.RATE_LIMIT_SCOPE_REQUESTS, 60));
+app.use('/api/project.zip', limiter('project-zip', positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300) / 10));
+const scopeLimit = limiter('scope', positiveNumber(process.env.RATE_LIMIT_SCOPE_REQUESTS, 60));
 // The quick read has its own limit; the AI reading's routes (under /api/scope/ai) have theirs.
 app.use(SCOPE_ROUTE, (req, res, next) => (req.path.startsWith('/ai') ? next() : scopeLimit(req, res, next)));
 app.post(SCOPE_ROUTE, async (req, res, next) => {
@@ -220,7 +238,7 @@ app.post(SCOPE_ROUTE, async (req, res, next) => {
 // The AI reading of a scope. It takes a few minutes, so it is started here and the page
 // asks for it by its id. Signed-in accounts only; the quick read above stays for everyone.
 // Only starting a reading counts against this limit; the page asking whether it is ready does not.
-const aiScopeLimit = limiter(positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20));
+const aiScopeLimit = limiter('ai-scope', positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20));
 app.use('/api/scope/ai', (req, res, next) => (req.method === 'POST' ? aiScopeLimit(req, res, next) : next()));
 app.get('/api/scope/ai', (req, res) => res.json({ enabled: aiScope.enabled() }));
 app.post('/api/scope/ai', auth.requireAccess, async (req, res, next) => {
@@ -263,7 +281,7 @@ app.get('/api/scope/ai/:id/report.docx', auth.requireUser, async (req, res, next
 // pasted SWMS is started as a check (check-jobs.js) and the page asks for it by its id. A SiteReady
 // draft needs no AI and is checked at once. Only starting a check counts against this limit; the
 // page asking whether it is ready does not.
-const checkLimit = limiter(positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30));
+const checkLimit = limiter('check', positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30));
 app.use('/api/check', (req, res, next) => (req.method === 'POST' ? checkLimit(req, res, next) : next()));
 app.post('/api/check', auth.requireUser, async (req, res, next) => {
   try {
@@ -532,6 +550,7 @@ function start() {
       cluster.fork();
     });
     console.log(`SiteReady server running on http://localhost:${PORT} with ${workers} workers`);
+    if (!db.enabled()) console.warn(`No database: each of the ${workers} workers keeps its own rate limit counts.`);
     return;
   }
   if (db.enabled()) {
