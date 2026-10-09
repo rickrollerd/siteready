@@ -1,55 +1,125 @@
 // Rate limit counts shared by every server process (goals 7 and 9).
-// The server runs one process per processor core (server.js), and Railway may run more than one
-// copy of the server. A count kept in each process's memory let a client have the limit once per
-// process: with 24 processes, 10 sign-in emails became 240. The count is kept in the database
-// instead, one row per client and limit, updated by one statement, so every process and every
-// copy of the server counts the same requests.
-// Without a database (a local run or a test without accounts) each process counts in memory.
-// A row holds a keyed fingerprint of the client, never the IP address or email address, and is
-// deleted within a minute of its window ending.
-const crypto = require('crypto');
+// The server runs one worker process per processor core (server.js). A count kept in each
+// worker let a client have the limit once per worker: with 24 workers, 10 sign-in emails
+// became 240. The count is now kept in the memory of the primary process, which every worker
+// asks over the cluster's own channel, so all workers count the same requests. Nothing is
+// written to storage, as the privacy policy says (privacy.html, "Limits on use").
+// One copy of the server only: a second copy (a second Railway replica) would keep its own
+// count, and would need a shared store and a change to the privacy policy first.
+// A single process (WEB_CONCURRENCY=1, tests) counts in its own memory.
+const cluster = require('cluster');
 const { MemoryStore } = require('express-rate-limit');
-const db = require('./db');
-const { secretKey } = require('./secret-keys');
 
-const BUILT_IN = 'siteready-rate-limit';
-// A count the database has not given back in this time is left to the process's own count,
-// so a slow database does not hold up every request.
+const TAG = 'siteready-rate-limit';
+const COMMANDS = new Set(['increment', 'decrement', 'resetKey']);
+// A count the primary has not given back in this time is left to the worker's own count.
 const TIMEOUT_MS = 2000;
 const TICK_MS = 100;
-const SWEEP_MS = 60 * 1000;
 const WARN_MS = 60 * 1000;
+const SWEEP_MS = 60 * 1000;
 
-// Starts a new window when the old one has ended, otherwise adds one, in a single statement,
-// so two processes counting the same client at the same moment both count.
-const COUNT = `INSERT INTO rate_limits (key, hits, reset_at) VALUES ($1, 1, $3::timestamptz)
-  ON CONFLICT (key) DO UPDATE SET
-    hits = CASE WHEN rate_limits.reset_at <= $2::timestamptz THEN 1 ELSE rate_limits.hits + 1 END,
-    reset_at = CASE WHEN rate_limits.reset_at <= $2::timestamptz THEN $3::timestamptz ELSE rate_limits.reset_at END
-  RETURNING hits, reset_at`;
+// ---- The primary process: every count, in memory ----
 
-function fingerprint(key) {
-  const secret = secretKey(['RATE_LIMIT_KEY', 'INDUSTRY_KEY', 'SESSION_SECRET'], BUILT_IN) || BUILT_IN;
-  return crypto.createHmac('sha256', secret).update(`rate-limit:${key}`).digest('base64url').slice(0, 32);
+// Each count is read in the same step it is added to, so questions that arrive together each
+// get their own number.
+const counts = new Map();
+let sweeping = null;
+
+// The primary's answer to one worker's question.
+function answer({ id, name, windowMs, command, key }) {
+  if (!sweeping) {
+    // Ended windows are dropped once a minute, so no address is held after its window.
+    sweeping = setInterval(() => {
+      const now = Date.now();
+      for (const [entry, count] of counts) if (count.resetAt <= now) counts.delete(entry);
+    }, SWEEP_MS);
+    sweeping.unref();
+  }
+  const entry = `${name}\n${key}`;
+  const now = Date.now();
+  let count = counts.get(entry);
+  let result = null;
+  if (command === 'increment') {
+    if (!count || count.resetAt <= now) {
+      count = { hits: 0, resetAt: now + windowMs };
+      counts.set(entry, count);
+    }
+    count.hits += 1;
+    result = { totalHits: count.hits, resetTime: count.resetAt };
+  } else if (command === 'decrement') {
+    if (count && count.hits > 0) count.hits -= 1;
+  } else if (command === 'resetKey') {
+    counts.delete(entry);
+  }
+  return { tag: TAG, id, result };
 }
 
-// The time counts only while the process is free to read the answer, in steps of TICK_MS: a
-// process busy preparing drafts, or still connecting, is not a database that does not answer.
-function withinTime(promise) {
-  let timer;
-  const late = new Promise((resolve, reject) => {
+// Called once in the primary, before the workers start.
+function servePrimary() {
+  cluster.on('message', (worker, message) => {
+    if (!message || message.tag !== TAG || !COMMANDS.has(message.command)) return;
+    // A worker that has just stopped cannot be answered; the primary carries on.
+    try {
+      if (worker.isConnected()) worker.send(answer(message));
+    } catch {
+      // Nothing to do.
+    }
+  });
+}
+
+// ---- A worker process ----
+
+const waiting = new Map();
+let nextId = 0;
+let listening = false;
+
+function listen() {
+  if (listening) return;
+  listening = true;
+  process.on('message', (message) => {
+    if (!message || message.tag !== TAG || !waiting.has(message.id)) return;
+    const resolve = waiting.get(message.id);
+    waiting.delete(message.id);
+    resolve(message.result);
+  });
+}
+
+// The time counts only while the worker is free to read the answer, in steps of TICK_MS:
+// a worker busy preparing a draft is not a primary that does not answer.
+function ask(name, windowMs, command, key) {
+  return new Promise((resolve, reject) => {
+    if (typeof process.send !== 'function' || process.connected === false) {
+      reject(new Error('the primary process cannot be reached'));
+      return;
+    }
+    listen();
+    const id = nextId;
+    nextId += 1;
+    let timer;
     let waited = 0;
+    const done = (fn, value) => {
+      clearTimeout(timer);
+      waiting.delete(id);
+      fn(value);
+    };
     const tick = () => {
       waited += TICK_MS;
-      if (waited >= TIMEOUT_MS) reject(new Error(`no answer in ${TIMEOUT_MS / 1000} seconds`));
+      if (waited >= TIMEOUT_MS) done(reject, new Error(`no answer in ${TIMEOUT_MS / 1000} seconds`));
       else timer = setTimeout(tick, TICK_MS);
     };
+    waiting.set(id, (result) => done(resolve, result));
     timer = setTimeout(tick, TICK_MS);
+    try {
+      process.send({ tag: TAG, id, name, windowMs, command, key }, undefined, undefined, (error) => {
+        if (error) done(reject, error);
+      });
+    } catch (error) {
+      done(reject, error);
+    }
   });
-  return Promise.race([promise, late]).finally(() => clearTimeout(timer));
 }
 
-// One line a minute at most, so a database outage does not fill the log.
+// One line a minute at most, so a fault does not fill the log.
 let warnedAt = 0;
 function warn(text) {
   if (Date.now() - warnedAt < WARN_MS) return;
@@ -57,22 +127,13 @@ function warn(text) {
   console.warn(text);
 }
 
-// Each process deletes ended windows once a minute, once it has counted in the database.
-let sweeping = null;
-function startSweep() {
-  if (sweeping) return;
-  sweeping = setInterval(() => {
-    if (db.enabled()) db.query('DELETE FROM rate_limits WHERE reset_at <= $1', [new Date()]).catch(() => {});
-  }, SWEEP_MS);
-  sweeping.unref();
-}
-
-// failClosed: when the shared count cannot be read, refuse the request rather than count it in
-// this process alone. Used only for sign-in emails: an email costs money and can be aimed at
-// someone else's inbox, and with the database down a sign-in link cannot be saved anyway.
-// Every other limit fails open: it counts in this process, with a warning in the log.
+// failClosed: when the primary cannot be asked, refuse the request rather than count it in
+// this worker alone. Used only for sign-in emails: an email costs money and can be aimed at
+// someone else's inbox. Every other limit fails open: it counts in this worker, with a
+// warning in the log.
 class SharedStore {
   constructor(name, { failClosed = false } = {}) {
+    this.name = name;
     this.prefix = `${name}:`;
     this.failClosed = failClosed;
     this.localKeys = false;
@@ -84,38 +145,30 @@ class SharedStore {
     this.memory.init(options);
   }
 
-  async count(key) {
-    const now = Date.now();
-    const rows = await db.query(COUNT, [fingerprint(this.prefix + key), new Date(now), new Date(now + this.windowMs)]);
-    startSweep();
-    return { totalHits: Number(rows[0].hits), resetTime: new Date(rows[0].reset_at) };
-  }
-
   async increment(key) {
-    if (!db.enabled()) return this.memory.increment(key);
+    if (!cluster.isWorker) return this.memory.increment(key);
     try {
-      return await withinTime(this.count(key));
+      const result = await ask(this.name, this.windowMs, 'increment', key);
+      return { totalHits: result.totalHits, resetTime: new Date(result.resetTime) };
     } catch (error) {
       if (this.failClosed) {
         warn(`Rate limits: the shared count could not be read (${error.message}). Sign-in emails are refused until it can.`);
         throw Object.assign(new Error('Sign-in emails cannot be sent just now. Try again in a few minutes.'), { status: 503, publicMessage: true });
       }
-      warn(`Rate limits: the shared count could not be read (${error.message}). Each process counts on its own until it can.`);
+      warn(`Rate limits: the shared count could not be read (${error.message}). Each worker counts on its own until it can.`);
       return this.memory.increment(key);
     }
   }
 
   async decrement(key) {
     await this.memory.decrement(key);
-    if (!db.enabled()) return;
-    await db.query('UPDATE rate_limits SET hits = hits - 1 WHERE key = $1 AND hits > 0', [fingerprint(this.prefix + key)]).catch(() => {});
+    if (cluster.isWorker) await ask(this.name, this.windowMs, 'decrement', key).catch(() => {});
   }
 
   async resetKey(key) {
     await this.memory.resetKey(key);
-    if (!db.enabled()) return;
-    await db.query('DELETE FROM rate_limits WHERE key = $1', [fingerprint(this.prefix + key)]).catch(() => {});
+    if (cluster.isWorker) await ask(this.name, this.windowMs, 'resetKey', key).catch(() => {});
   }
 }
 
-module.exports = { SharedStore, fingerprint, TIMEOUT_MS };
+module.exports = { SharedStore, servePrimary, answer, TAG, TIMEOUT_MS };

@@ -108,9 +108,10 @@ See `.env.example`.
 | `RATE_LIMIT_WORD_REQUESTS` | 300 | Word files per window per client address |
 | `RATE_LIMIT_EMAIL_REQUESTS` | 10 | Sign-in emails and team invitations per window to one inbox |
 | `RATE_LIMIT_EMAIL_IP_REQUESTS` | 3 times the above | Sign-in emails and team invitations per window from one client address |
-| `RATE_LIMIT_KEY` | `INDUSTRY_KEY` or `SESSION_SECRET` | Secret for the fingerprints rate limit counts are kept under in the database, so no IP address or email address is stored |
 | `TRUST_PROXY` | 1 | Number of proxies in front of the server. Set 0 when clients connect directly, or a client can fake its address to get round the rate limit. |
-| `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. With a database, every worker (and every copy of the server) shares one rate limit count; without one, each worker counts on its own. |
+| `WEB_CONCURRENCY` | number of cores | Server worker processes. Set 1 to run a single process. Every worker shares one rate limit count, kept in the memory of the primary process. |
+
+Rate limit counts are kept in memory only, in the primary process, so they hold for one copy of the server. A second copy (a second Railway replica) would keep its own counts, so each limit would double. Before adding one, move the counts to a shared store and change the privacy policy, which says the IP address is kept in memory and not written to storage.
 
 ## Native app
 

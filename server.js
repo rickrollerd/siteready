@@ -5,6 +5,7 @@ const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const path = require('path');
 const cluster = require('cluster');
 const os = require('os');
+const crypto = require('crypto');
 const { listStates, findState } = require('./legislation');
 const { questionsFor, prepareDraft, legalSource, keepWarning } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
@@ -33,7 +34,7 @@ const { keyProblems } = require('./secret-keys');
 const { downloadGaps, gateChecks, gateMessage } = require('./download-gate');
 const { hasBlank, blankKey } = require('./blanks');
 const delivery = require('./delivery');
-const { SharedStore } = require('./rate-store');
+const { SharedStore, servePrimary } = require('./rate-store');
 
 require('dotenv').config();
 
@@ -83,8 +84,8 @@ app.use(express.static(path.join(__dirname, 'public'), delivery.staticOptions));
 
 // Limits are per client address. Phones on mobile data and a site office on one
 // connection often share an address, so the limits are set for a busy site, not
-// one person. Every server process, and every copy of the server, shares one count
-// for each client (rate-store.js).
+// one person. Every worker process shares one count for each client, kept in the
+// primary process's memory (rate-store.js).
 const windowMs = positiveNumber(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000);
 const limiter = (name, limit, { skip, keyGenerator, failClosed } = {}) => rateLimit({
   windowMs,
@@ -95,14 +96,14 @@ const limiter = (name, limit, { skip, keyGenerator, failClosed } = {}) => rateLi
   store: new SharedStore(name, { failClosed }),
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  message: { kind: 'error', message: 'Too many requests. Try again in a few minutes.' },
+  message: { kind: 'error', message: `Too many requests. Try again in ${Math.ceil(windowMs / 60000)} minutes.` },
 });
 // The Word file takes most of the work, so it has its own, lower limit.
 app.use(WORD_ROUTE, limiter('word-file', positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300)));
 // Sign-in emails and team invitations: each inbox gets at most 10 links in the window, and each
 // client address can send links to three times as many inboxes, so a site office or a mobile
 // network sharing one address can still sign several people up. Only sending counts; opening the
-// team list does not. With the shared count unreadable, no email is sent (rate-store.js).
+// team list does not. If the shared count cannot be read, no email is sent (rate-store.js).
 const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users'];
 const emailLimit = positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10);
 const notSending = (req) => req.method !== 'POST';
@@ -110,7 +111,8 @@ app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {
   skip: notSending,
   keyGenerator: (req) => {
     const email = auth.cleanEmail(req.body && req.body.email);
-    return email ? `inbox:${email}` : ipKeyGenerator(req.ip);
+    // The inbox is counted by a fingerprint, so the count holds no email address.
+    return email ? `inbox:${crypto.createHash('sha256').update(email).digest('hex').slice(0, 32)}` : ipKeyGenerator(req.ip);
   },
   failClosed: true,
 }));
@@ -542,6 +544,8 @@ function start() {
   // In production, a feature whose secret key is missing stays off, and the log names the variable.
   if (cluster.isPrimary) for (const line of keyProblems()) console.error(line);
   if (workers > 1 && cluster.isPrimary) {
+    // The primary keeps the rate limit counts for every worker.
+    servePrimary();
     for (let i = 0; i < workers; i += 1) cluster.fork();
     // A builder check runs in one worker; another worker asked for it asks through here.
     checkJobs.relayChecks(cluster);
@@ -550,7 +554,6 @@ function start() {
       cluster.fork();
     });
     console.log(`SiteReady server running on http://localhost:${PORT} with ${workers} workers`);
-    if (!db.enabled()) console.warn(`No database: each of the ${workers} workers keeps its own rate limit counts.`);
     return;
   }
   if (db.enabled()) {
@@ -583,6 +586,7 @@ if (require.main === module) start();
 
 module.exports = {
   app,
+  start,
   prepareDraft,
   questionsFor,
 };
