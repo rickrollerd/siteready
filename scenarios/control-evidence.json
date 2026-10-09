@@ -4777,5 +4777,15 @@
   "The safety data sheet for what each line carries is at the work area, and workers know the signs of a leak and what to do if one happens.": {"kind":"none"},
   "A spill kit and a fire extinguisher suited to what the lines carry are at the work, and the emergency plan covers a release from the lines.": {"kind":"none"},
   "The safety data sheet for the welding rods or wire is checked for the gases and fumes they give off.": {"kind":"code"},
-  "Where the services information shows a service near a hole, the service is found by potholing with hand tools or a vacuum unit before the hole is dug or augered.": {"kind":"code"}
+  "Where the services information shows a service near a hole, the service is found by potholing with hand tools or a vacuum unit before the hole is dug or augered.": {"kind":"code"},
+  "Each column is bolted down and stable, and each beam secured, before the slings are released. Only the riggers or doggers release a load, once it is fixed and supported.": {"kind":"code"},
+  "Slings are released from the floor or ground with long slings or remote release shackles, or from an EWP.": {"kind":"code"},
+  "Temporary bracing and guys go in as the erection engineer's sequential erection procedure and marking plan show, and a member is erected only once the bracing that keeps it stable is on hand and used.": {"kind":"code"},
+  "Where erection cannot start in a braced bay, the extent of temporary support is decided with the erection engineer before any work starts.": {"kind":"code"},
+  "Bracing is assembled on the ground unless it can only go together in place, and is lifted into place by the lifting plant. Light bracing lifted by hand is raised on a hand line by a rigger working from an EWP.": {"kind":"code"},
+  "Temporary guys and bracing are securely anchored to anchor points that can resist the forces on them. Any movement of an anchor is reported to the erector and dealt with at once.": {"kind":"code"},
+  "Guys are marked with coloured bunting, with visual barriers between the guys and the areas where plant and vehicles move.": {"kind":"code"},
+  "Temporary guys and bracing are inspected at the start of each shift. The erection supervisor checks the structure is stable at the end of each day, while connections are incomplete, and when strong winds are forecast.": {"kind":"code"},
+  "Work stops at a point the sequence does not plan for, with the structure not yet complete to the erection engineer's design, only with the builder's or erection engineer's approval.": {"kind":"code"},
+  "Temporary bracing and guys are removed only at the stage the sequential erection procedure sets, once the permanent bracing or floors make the structure stable. Any change to the sequence is approved by the builder and the erection engineer first.": {"kind":"code"}
 }

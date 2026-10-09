@@ -19,8 +19,9 @@ const NSW_CODE = /^SafeWork NSW Code of practice: /;
 // processing plant and conveyor work.
 const NATIONAL = [/^Ozone Protection/, /^Telecommunications \(Cabling Provider\)/, /^Australian Refrigeration Council/, /^NSW Resources Regulator, investigation report /];
 // Sources that are one state's own are cited only in that state's drafts: the SafeWork NSW codes
-// of practice, Victoria's piling industry standard, and Western Australia's plumbing licensing regulations.
-const STATE_ONLY = { nsw: NSW_CODE, vic: /^Piling industry standard/, wa: /^Plumbers Licensing and Plumbing Standards Regulations 2000 \(WA\)/ };
+// of practice, Victoria's piling and structural steel industry standards, and Western Australia's plumbing
+// licensing regulations.
+const STATE_ONLY = { nsw: NSW_CODE, vic: /^(?:Piling industry standard|Safe erection of structural steel industry standard)/, wa: /^Plumbers Licensing and Plumbing Standards Regulations 2000 \(WA\)/ };
 const ownState = (part) => Object.keys(STATE_ONLY).find((id) => STATE_ONLY[id].test(part));
 
 function mapReference(reference, state) {

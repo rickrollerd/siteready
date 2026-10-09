@@ -66,20 +66,49 @@
     $('result').classList.remove('hidden');
   }
 
+  const headers = () => ({ 'Content-Type': 'application/json', ...(session ? { Authorization: `Bearer ${session}`, 'X-Session-Token': session } : {}) });
+  async function answer(response) {
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.message || 'The SWMS could not be checked. Try again.');
+    return data;
+  }
+  const wait = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+  const minutes = (seconds) => (seconds < 60 ? `${seconds} s` : `${Math.floor(seconds / 60)} min ${seconds % 60} s`);
+
+  // An uploaded or pasted SWMS is read by the AI, which takes up to a few minutes for a long one, so
+  // the server starts the check and the page asks for the result every few seconds until it is ready.
+  async function waitForCheck(started) {
+    const progress = $('progress');
+    const begun = Date.now();
+    const clock = () => { $('elapsed').textContent = minutes(Math.round((Date.now() - begun) / 1000)); };
+    clock();
+    progress.classList.remove('hidden');
+    progress.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    const ticking = setInterval(clock, 1000);
+    try {
+      let check = started;
+      while (check.status === 'checking') {
+        if (Date.now() - begun > 20 * 60 * 1000) throw new Error('The check is taking too long. Try again later.');
+        await wait(3000);
+        check = await answer(await fetch(`/api/check/${encodeURIComponent(check.id)}`, { headers: headers() }));
+      }
+      if (check.status !== 'done') throw new Error(check.error || 'The SWMS could not be checked. Try again.');
+      return check;
+    } finally {
+      clearInterval(ticking);
+      progress.classList.add('hidden');
+    }
+  }
+
   $('checkForm').addEventListener('submit', async (event) => {
     event.preventDefault();
     $('error').innerHTML = '';
+    $('result').classList.add('hidden');
     $('go').disabled = true;
     $('go').textContent = 'Checking...';
     try {
-      const response = await fetch('/api/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(session ? { Authorization: `Bearer ${session}`, 'X-Session-Token': session } : {}) },
-        body: JSON.stringify(await body()),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || 'The SWMS could not be checked. Try again.');
-      show(data);
+      const data = await answer(await fetch('/api/check', { method: 'POST', headers: headers(), body: JSON.stringify(await body()) }));
+      show(data.status === 'checking' ? await waitForCheck(data) : data);
     } catch (error) {
       $('error').innerHTML = `<div class="bad">${esc(error.message)}</div>`;
     } finally {

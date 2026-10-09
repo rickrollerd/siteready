@@ -13,6 +13,9 @@ function connect() {
     max: Number(process.env.DATABASE_POOL || 5),
     ssl: local || process.env.DATABASE_SSL === 'off' ? false : { rejectUnauthorized: false },
   });
+  // A connection the database drops while idle (a restart or an outage) is reported here.
+  // Without a listener it stopped the server process; the next query opens a new connection.
+  pool.on('error', (error) => console.warn(`Database connection lost: ${error.message}`));
   return pool;
 }
 

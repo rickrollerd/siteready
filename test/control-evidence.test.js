@@ -18,7 +18,9 @@
 // 3,507 of 4,777, 73.4%; library gaps found by the builder check's minimum controls and hazardous
 // chemicals items in SiteReady's own drafts, filled by reusing evidenced lines word for word and two
 // new lines cited to code sections read (potholing near located services, the welding rods' safety
-// data sheet): 3,509 of 4,779, 73.4%).
+// data sheet): 3,509 of 4,779, 73.4%; temporary bracing and slings released only once members are secured,
+// ten lines from the Qld steel construction code and Victoria's steel erection industry standard, both read:
+// 3,519 of 4,789, 73.5%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');

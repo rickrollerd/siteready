@@ -1,10 +1,11 @@
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
-const { rateLimit } = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const path = require('path');
 const cluster = require('cluster');
 const os = require('os');
+const crypto = require('crypto');
 const { listStates, findState } = require('./legislation');
 const { questionsFor, prepareDraft, legalSource, keepWarning } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
@@ -24,14 +25,16 @@ const { localText } = require('./citations');
 const { scopeText } = require('./scope-text');
 const { tasksFromScope } = require('./scope');
 const aiScope = require('./ai-scope');
+const checkJobs = require('./check-jobs');
 const { reportToDocx } = require('./scope-report');
 const places = require('./places');
 const { recordIndustry } = require('./industry');
 const draftTranslate = require('./draft-translate');
 const { keyProblems } = require('./secret-keys');
-const { downloadGaps, gateMessage } = require('./download-gate');
+const { downloadGaps, gateChecks, gateMessage } = require('./download-gate');
 const { hasBlank, blankKey } = require('./blanks');
 const delivery = require('./delivery');
+const { SharedStore, servePrimary } = require('./rate-store');
 
 require('dotenv').config();
 
@@ -81,37 +84,55 @@ app.use(express.static(path.join(__dirname, 'public'), delivery.staticOptions));
 
 // Limits are per client address. Phones on mobile data and a site office on one
 // connection often share an address, so the limits are set for a busy site, not
-// one person. Each server process keeps its own count.
+// one person. Every worker process shares one count for each client, kept in the
+// primary process's memory (rate-store.js).
 const windowMs = positiveNumber(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000);
-const limiter = (limit, skip) => rateLimit({
+const limiter = (name, limit, { skip, keyGenerator, failClosed } = {}) => rateLimit({
   windowMs,
   limit,
   skip,
+  keyGenerator,
+  identifier: name,
+  store: new SharedStore(name, { failClosed }),
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  message: { kind: 'error', message: 'Too many requests. Try again in a few minutes.' },
+  message: { kind: 'error', message: `Too many requests. Try again in ${Math.ceil(windowMs / 60000)} minutes.` },
 });
 // The Word file takes most of the work, so it has its own, lower limit.
-app.use(WORD_ROUTE, limiter(positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300)));
-// Sign-in emails and worker sign-ons have tighter limits.
-app.use(['/api/auth/email', '/api/company/users'], limiter(positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10)));
-app.use('/api/sign', limiter(positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS, 200)));
+app.use(WORD_ROUTE, limiter('word-file', positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300)));
+// Sign-in emails and team invitations: each inbox gets at most 10 links in the window, and each
+// client address can send links to three times as many inboxes, so a site office or a mobile
+// network sharing one address can still sign several people up. Only sending counts; opening the
+// team list does not. If the shared count cannot be read, no email is sent (rate-store.js).
+const EMAIL_ROUTES = ['/api/auth/email', '/api/company/users'];
+const emailLimit = positiveNumber(process.env.RATE_LIMIT_EMAIL_REQUESTS, 10);
+const notSending = (req) => req.method !== 'POST';
+app.use(EMAIL_ROUTES, limiter('sign-in-email-inbox', emailLimit, {
+  skip: notSending,
+  keyGenerator: (req) => {
+    const email = auth.cleanEmail(req.body && req.body.email);
+    // The inbox is counted by a fingerprint, so the count holds no email address.
+    return email ? `inbox:${crypto.createHash('sha256').update(email).digest('hex').slice(0, 32)}` : ipKeyGenerator(req.ip);
+  },
+  failClosed: true,
+}));
+app.use(EMAIL_ROUTES, limiter('sign-in-email-ip', positiveNumber(process.env.RATE_LIMIT_EMAIL_IP_REQUESTS, emailLimit * 3), { skip: notSending, failClosed: true }));
+app.use('/api/sign', limiter('sign-on', positiveNumber(process.env.RATE_LIMIT_SIGN_REQUESTS, 200)));
 // Each SWMS is translated once per language and then kept, so few requests reach the AI;
 // this lower limit stops one phone asking for every language over and over.
-app.use(/^\/api\/sign\/[^/]+\/translation/, limiter(positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
-app.use('/api/draft/translation', limiter(positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
-app.use('/api', limiter(
-  positiveNumber(process.env.RATE_LIMIT_MAX_REQUESTS, 600),
-  (req) => req.originalUrl.startsWith(WORD_ROUTE),
-));
-// Sessions are read after the limits, so a refused request never reaches the database.
+app.use(/^\/api\/sign\/[^/]+\/translation/, limiter('sign-on-translation', positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
+app.use('/api/draft/translation', limiter('draft-translation', positiveNumber(process.env.RATE_LIMIT_TRANSLATE_REQUESTS, 30)));
+app.use('/api', limiter('api', positiveNumber(process.env.RATE_LIMIT_MAX_REQUESTS, 600), {
+  skip: (req) => req.originalUrl.startsWith(WORD_ROUTE),
+}));
+// Sessions are read after the limits, so a refused request goes no further.
 app.use(auth.readSession);
 
 const { draftBody } = require('./input');
 
 // Job address suggestions. Each one is a paid Google request, so it has its own limit.
-app.use('/api/address', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300)));
-app.use('/api/nearby-care', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
+app.use('/api/address', limiter('address', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300)));
+app.use('/api/nearby-care', limiter('nearby-care', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
 app.get('/api/nearby-care', async (req, res, next) => {
   try {
     res.json(await places.nearbyCare(req.query.address));
@@ -131,7 +152,7 @@ app.get('/api/address', async (req, res, next) => {
 // Anyone holding a SWMS can check its SiteReady reference: whether it is genuine, the business
 // it was prepared for, its title and revision, and whether that revision is still the current one
 // (owner decision, 6 October 2026). Nothing else is shown: no controls, no ABN, no dates.
-app.use('/api/verify', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
+app.use('/api/verify', limiter('verify', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
 app.get('/api/verify/:ref', async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
@@ -155,7 +176,7 @@ app.get('/api/verify/:ref', async (req, res, next) => {
   }
 });
 
-app.use('/api/abn', limiter(positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
+app.use('/api/abn', limiter('abn', positiveNumber(process.env.RATE_LIMIT_ADDRESS_REQUESTS, 300) / 10));
 app.get('/api/abn', async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
@@ -200,8 +221,8 @@ app.post('/api/draft/questions', (req, res) => {
 });
 
 // Reading a scope takes more work than a draft, so it has a lower limit.
-app.use('/api/project.zip', limiter(positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300) / 10));
-const scopeLimit = limiter(positiveNumber(process.env.RATE_LIMIT_SCOPE_REQUESTS, 60));
+app.use('/api/project.zip', limiter('project-zip', positiveNumber(process.env.RATE_LIMIT_WORD_REQUESTS, 300) / 10));
+const scopeLimit = limiter('scope', positiveNumber(process.env.RATE_LIMIT_SCOPE_REQUESTS, 60));
 // The quick read has its own limit; the AI reading's routes (under /api/scope/ai) have theirs.
 app.use(SCOPE_ROUTE, (req, res, next) => (req.path.startsWith('/ai') ? next() : scopeLimit(req, res, next)));
 app.post(SCOPE_ROUTE, async (req, res, next) => {
@@ -219,7 +240,7 @@ app.post(SCOPE_ROUTE, async (req, res, next) => {
 // The AI reading of a scope. It takes a few minutes, so it is started here and the page
 // asks for it by its id. Signed-in accounts only; the quick read above stays for everyone.
 // Only starting a reading counts against this limit; the page asking whether it is ready does not.
-const aiScopeLimit = limiter(positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20));
+const aiScopeLimit = limiter('ai-scope', positiveNumber(process.env.RATE_LIMIT_AI_SCOPE_REQUESTS, 20));
 app.use('/api/scope/ai', (req, res, next) => (req.method === 'POST' ? aiScopeLimit(req, res, next) : next()));
 app.get('/api/scope/ai', (req, res) => res.json({ enabled: aiScope.enabled() }));
 app.post('/api/scope/ai', auth.requireAccess, async (req, res, next) => {
@@ -258,12 +279,39 @@ app.get('/api/scope/ai/:id/report.docx', auth.requireUser, async (req, res, next
 
 // The builder SWMS check (task #106): score a subcontractor's SWMS and draft the email back.
 // Signed-in accounts only, with its own limit, as an uploaded SWMS is read by the AI.
-app.use('/api/check', limiter(positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30)));
+// Reading a long SWMS takes minutes, longer than a proxy waits for one answer, so an uploaded or
+// pasted SWMS is started as a check (check-jobs.js) and the page asks for it by its id. A SiteReady
+// draft needs no AI and is checked at once. Only starting a check counts against this limit; the
+// page asking whether it is ready does not.
+const checkLimit = limiter('check', positiveNumber(process.env.RATE_LIMIT_CHECK_REQUESTS, 30));
+app.use('/api/check', (req, res, next) => (req.method === 'POST' ? checkLimit(req, res, next) : next()));
 app.post('/api/check', auth.requireUser, async (req, res, next) => {
   try {
-    const result = await require('./check-read').runCheck(req.body || {}, req.company);
-    record('builder_check', req.company && req.company.id);
+    const checkRead = require('./check-read');
+    const body = req.body || {};
+    const { company, user } = req;
+    if (checkRead.readsDocument(body)) {
+      checkRead.readyToRead(body);
+      const started = checkJobs.startJob(user.id, async () => {
+        const result = await checkRead.runCheck(body, company);
+        record('builder_check', company && company.id);
+        return result;
+      }, (error) => recordError('POST /api/check (reading)', error));
+      return res.status(202).json(started);
+    }
+    const result = await checkRead.runCheck(body, company);
+    record('builder_check', company && company.id);
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+// The check's result once ready, for the account that started it. It is dropped as it is read.
+app.get('/api/check/:id', auth.requireUser, async (req, res, next) => {
+  try {
+    const job = await checkJobs.takeJob(req.user.id, req.params.id);
+    if (!job) return res.status(404).json({ kind: 'error', message: 'This check is not kept any more. Results are dropped once shown, or 10 minutes after the check, and a server restart drops them too. Check the SWMS again.' });
+    res.json(job);
   } catch (error) {
     next(error);
   }
@@ -276,11 +324,14 @@ app.post('/api/draft', (req, res) => {
   // For the preview only: the source of each control line that is a legal requirement, and why
   // removing or weakening a line is not recommended, so the page can warn before the user goes
   // ahead. Empty for other lines.
-  // What must still be answered before it can be downloaded (goal 2), shown beside each item.
+  // What must still be answered before it can be downloaded (goal 2), shown beside each item, and
+  // every check with how its answer is judged, so the page can clear an item as it is answered.
+  const checks = result.kind === 'draft' ? gateChecks(draftBody(req.body || {}), result) : [];
   const legal = result.kind === 'draft' ? {
     controlLegal: (result.jobSteps || []).map((step) => step.controls.map(legalSource)),
     controlWarn: (result.jobSteps || []).map((step) => step.controls.map(keepWarning)),
-    gate: downloadGaps(draftBody(req.body || {}), result),
+    gate: checks.filter((check) => check.need).map(({ rule: _rule, ...gap }) => gap),
+    gateChecks: checks,
     // The line each blank (____) is filled in by, for the boxes on the page.
     blankKeys: {
       steps: (result.jobSteps || []).map((step) => step.controls.map((line) => (hasBlank(line) ? blankKey(line) : ''))),
@@ -493,7 +544,11 @@ function start() {
   // In production, a feature whose secret key is missing stays off, and the log names the variable.
   if (cluster.isPrimary) for (const line of keyProblems()) console.error(line);
   if (workers > 1 && cluster.isPrimary) {
+    // The primary keeps the rate limit counts for every worker.
+    servePrimary();
     for (let i = 0; i < workers; i += 1) cluster.fork();
+    // A builder check runs in one worker; another worker asked for it asks through here.
+    checkJobs.relayChecks(cluster);
     cluster.on('exit', (worker, code, signal) => {
       console.error(`Worker ${worker.process.pid} stopped (${signal || code}). Starting another.`);
       cluster.fork();
@@ -531,6 +586,7 @@ if (require.main === module) start();
 
 module.exports = {
   app,
+  start,
   prepareDraft,
   questionsFor,
 };

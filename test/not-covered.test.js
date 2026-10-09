@@ -300,7 +300,8 @@ test('a fully covered draft shows no warning', async () => {
   p.document.getElementById('task').value = 'Install the generator.';
   await prepare(p);
   assert.doesNotMatch(p.document.getElementById('result').innerHTML, /no job steps|not-covered/);
-  assert.doesNotMatch(p.document.getElementById('result-actions').innerHTML, /new-gate-note/);
+  // The line beside the buttons is there for later, hidden and empty.
+  assert.match(p.document.getElementById('result-actions').innerHTML, /<p class="note gate-hold hidden" id="new-gate-note" role="status"><\/p>/);
 });
 
 test('in a project, a SWMS with parts that have no job steps is ready once ticked', async () => {
