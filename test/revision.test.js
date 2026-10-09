@@ -11,7 +11,7 @@ const { draftBody } = require('../input');
 const { draftToDocx } = require('../docx-draft');
 const { draftToPdf } = require('../pdf-draft');
 const { fromDraft, checkSwms } = require('../builder-check');
-const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 
 let server;
 let base;
@@ -41,13 +41,13 @@ async function signIn(email) {
 }
 
 // The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
-const INPUT = {
+const INPUT = ready({
   ...ANSWERED,
   state: 'qld',
   task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
   fallRisk: 'yes',
   facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
-};
+});
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 
 async function wordText(buffer) {

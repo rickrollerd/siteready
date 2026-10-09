@@ -11,7 +11,7 @@ const { app } = require('../server');
 const { prepareDraft } = require('../draft');
 const { draftToDocx } = require('../docx-draft');
 const { draftToPdf } = require('../pdf-draft');
-const { setupAccounts, lastLinkToken, ANSWERED } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 const { loadPage, settle, FakeEvent } = require('./fake-dom');
 
 const FACTS = { safetyDataSheet: 'The diesel safety data sheet is kept at the work area.' };
@@ -141,7 +141,7 @@ const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Sam Lee' };
 const COVERED = 'SiteReady has no job steps for: leak test the fuel line. Tick the box above the draft to say you have added your own steps and controls, or covered this work in a separate SWMS, before saving or downloading.';
 const TICKED = { notCoveredConfirmed: ['leak test the fuel line'] };
 // The site questions answered (goal 2), so only the tick is outstanding.
-const READY = { ...GENERATOR, ...ANSWERED };
+const READY = ready({ ...GENERATOR, ...ANSWERED });
 
 test('the preview lists the parts, and downloads are refused until the user ticks that they are covered', async () => {
   const token = await signIn('generator@notcovered.example', '512345678');
@@ -161,7 +161,7 @@ test('the preview lists the parts, and downloads are refused until the user tick
   const pdf = await call('POST', '/api/draft.pdf', { token, body: { ...READY, ...CONFIRM, ...TICKED } });
   assert.equal(pdf.status, 200);
   // A task with every part covered needs no tick.
-  const fence = await call('POST', '/api/draft.docx', { token, body: { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', ...ANSWERED, ...CONFIRM } });
+  const fence = await call('POST', '/api/draft.docx', { token, body: ready({ state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', ...ANSWERED, ...CONFIRM }) });
   assert.equal(fence.status, 200);
 });
 
@@ -170,7 +170,7 @@ test('with the site questions blank as well, the refusal names both, and the pro
   const refused = await call('POST', '/api/draft.docx', { token, body: { ...GENERATOR, ...CONFIRM } });
   assert.equal(refused.status, 400);
   const data = await refused.json();
-  assert.match(data.message, /^SiteReady does not produce a SWMS until the site questions are answered and no blank is left in it\. Still to answer: Job address; Principal contractor;/);
+  assert.match(data.message, /^SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it\. Still to answer: Job address; Principal contractor;/);
   assert.ok(data.message.endsWith(COVERED), data.message);
   assert.ok(data.gate.some((gap) => gap.kind === 'cover') && data.gate.some((gap) => gap.id === 'musterPoint'));
   // Ticked, only the site questions are left; answered, only the tick.
@@ -202,7 +202,7 @@ test('saving is refused until ticked, and the sign-on page does not show the lis
 
 test('a project download leaves out a SWMS whose parts with no job steps are not ticked', async () => {
   const token = await signIn('project@notcovered.example', '534567890');
-  const fence = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing', ...ANSWERED };
+  const fence = ready({ state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing', ...ANSWERED });
   const download = async (generator) => {
     const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence, { ...generator, swmsTitle: 'Generator' }], ...CONFIRM } });
     assert.equal(response.status, 200);

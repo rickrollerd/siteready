@@ -37,4 +37,19 @@ const ANSWERED = {
   site: { liveServices: 'None', publicInterface: 'None', otherTrades: 'None', ground: 'None', access: 'Through the main site gate.' },
 };
 
-module.exports = { setupAccounts, lastLinkToken, mailbox, ANSWERED };
+// The plant and the emergency response are asked for each task (goal 2): ready() confirms the plant
+// SiteReady lists as used and answers each emergency question, for tests about something else.
+function ready(input) {
+  const { prepareDraft } = require('../draft');
+  const { draftBody } = require('../input');
+  let out = input;
+  for (let pass = 0; pass < 2; pass += 1) {
+    const draft = prepareDraft(draftBody(out));
+    if (draft.kind !== 'draft') return out;
+    const emergency = Object.fromEntries((draft.emergencyQuestions || []).map((item) => [item.id, `${item.short} answer for this site`]));
+    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) } };
+  }
+  return out;
+}
+
+module.exports = { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready };

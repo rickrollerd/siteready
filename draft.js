@@ -7,6 +7,7 @@ const { fixSpelling } = require('./spelling');
 const { registersFor, withoutServicedPlant } = require('./register');
 const { inHierarchyOrder, controlLevel } = require('./control-level');
 const { withFills } = require('./blanks');
+const { withEmergencyAnswers } = require('./emergency');
 
 const HIERARCHY_RANK = Object.fromEntries(HIERARCHY.map((level, index) => [level, index]));
 
@@ -2577,7 +2578,8 @@ function buildDraft(input, screen) {
   const finished = applyStepEdits({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input);
   // The user's answers in the blanks (____) of control lines, and the scaffold supervisor only
   // where the SWMS involves a scaffold.
-  return withFills(withRiskResponse({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills);
+  // The answers to the emergency questions for the work print in the emergency arrangements (goal 2).
+  return withEmergencyAnswers(withFills(withRiskResponse({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency);
 }
 
 // Gloves for the substances listed, and hearing protection where a step names noise,

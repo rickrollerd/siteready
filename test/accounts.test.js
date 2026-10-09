@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { app } = require('../server');
 const db = require('../db');
 const { sendReviewReminders, removeExpired } = require('../accounts');
-const { setupAccounts, lastLinkToken, mailbox, ANSWERED } = require('./helpers');
+const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready } = require('./helpers');
 
 let server;
 let base;
@@ -53,13 +53,13 @@ async function signIn(email, { company = true } = {}) {
 }
 
 // The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
-const INPUT = {
+const INPUT = ready({
   ...ANSWERED,
   state: 'qld',
   task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
   fallRisk: 'yes',
   facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
-};
+});
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 
 // The right answers to one read's check questions, worked out as the server does.

@@ -442,7 +442,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     record('download_word', req.company && req.company.id);
     await recordIndustry(result, signedInBody({ ...req, body: item || {} }), req.company).catch(() => {});
   }
-  if (!used.size) return res.status(400).json({ kind: 'error', message: `None of the SWMS is ready to download. ${gated.length ? `SiteReady does not produce a SWMS until the site questions are answered and no blank is left in it. ${gated.join(' ')}${unticked.length ? ' ' : ''}` : ''}${unticked.length ? `Tick the box above the draft that lists work SiteReady has no job steps for: ${unticked.join(' ')}` : ''}${!gated.length && !unticked.length ? 'Answer the questions for each one first.' : ''}` });
+  if (!used.size) return res.status(400).json({ kind: 'error', message: `None of the SWMS is ready to download. ${gated.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it. ${gated.join(' ')}${unticked.length ? ' ' : ''}` : ''}${unticked.length ? `Tick the box above the draft that lists work SiteReady has no job steps for: ${unticked.join(' ')}` : ''}${!gated.length && !unticked.length ? 'Answer the questions for each one first.' : ''}` });
   const notes = [
     skipped.length ? `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n` : '',
     gated.length ? `These SWMS still have site questions or blanks to answer, so they are not in this download:\n${gated.join('\n')}\n` : '',

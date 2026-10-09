@@ -9,7 +9,7 @@ const { app } = require('../server');
 const db = require('../db');
 const revisions = require('../revisions');
 const notices = require('../library-notices');
-const { setupAccounts, lastLinkToken, mailbox, ANSWERED } = require('./helpers');
+const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready } = require('./helpers');
 
 let server;
 let base;
@@ -56,7 +56,7 @@ const FENCE = { ...ANSWERED, task: 'Replace a 3m length of timber fence.', fallR
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 
 async function save(token, input, title) {
-  const response = await call('POST', '/api/swms', { token, body: { input, title, ...CONFIRM } });
+  const response = await call('POST', '/api/swms', { token, body: { input: ready(input), title, ...CONFIRM } });
   assert.equal(response.status, 201);
   return (await response.json()).swms;
 }
