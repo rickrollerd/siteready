@@ -32,6 +32,8 @@
 const { SITE_FIELDS } = require('./legislation');
 const { questionsFor, involvesScaffold, notCoveredRefusal } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
+// How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
+const { clean, answerNeed } = require('./public/gate-rules');
 const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
 
 // Each field: the input key, the page box it is answered in, its label and what is needed.
@@ -64,24 +66,6 @@ const SITE_NEED = {
   access: 'Say how the crew gets to the work area, and how plant and materials get there.',
 };
 const SITE_NONE = new Set(['liveServices', 'publicInterface', 'otherTrades', 'ground']);
-
-const clean = (value) => String(typeof value === 'string' ? value : '').replace(/\s+/g, ' ').trim();
-// "None", "Nil", "No", "N/A" or "Not applicable", and "No first aider" and the like.
-const NONE = /^(?:none|nil|nobody|no ?one|n\/a|not applicable|not required|not needed)\b|^(?:na|no)\.?$|^no (?:first aiders?|muster points?|principal contractors?|scaffold\w*|reviewers?|supervisors?)\b/i;
-// An emergency answer that is only "None" or "Not applicable". A longer answer that starts so ("No one
-// enters the trench: ...") is an answer.
-const NO_ANSWER = /^(?:none|nil|nobody|no ?one|n\/?a|not applicable|not required|not needed|no|does not apply|not used)\.?$/i;
-// Not an answer yet: unknown, a question mark, a dash, or a placeholder.
-const NOT_YET = /^(?:unknown|not (?:yet )?known|not provided|to be advised|if not known yet\b.*|\?+|-+|\.+|x+)$/i;
-
-// Why a field's answer is not enough, or '' when it is answered.
-function fieldNeed(item, value) {
-  const text = clean(value);
-  if (!text) return item.need;
-  if (leftOpen(text) || NOT_YET.test(text)) return `"${text.slice(0, 60)}" is not an answer yet. ${item.need}`;
-  if (NONE.test(text) && !item.none) return `${item.label} cannot be "${text.slice(0, 60)}": every SWMS names it. ${item.need}`;
-  return '';
-}
 
 // What the plant still needs: confirming, plant listed since it was confirmed, or the licence for an
 // item of the user's own. '' when it is confirmed.
@@ -129,37 +113,33 @@ function printedTexts(draft) {
   ].filter((text) => typeof text === 'string' && text);
 }
 
-// What this SWMS still needs before it is downloaded or saved: a list of
-// { id, kind: 'field' | 'site' | 'fact' | 'line' | 'other', field, label, need, key?, parts?, step? }.
-// Empty when it can be downloaded. A stood-down SWMS has its own list of what is missing.
+// Every check the gate makes on this SWMS, answered or not: a list of
+// { id, kind: 'cover' | 'field' | 'site' | 'plant' | 'emergency' | 'fact' | 'line' | 'other', field, label,
+// need, rule?, key?, parts?, step? }. need is '' where the answer passes. rule, where given, is how the
+// answer is judged (public/gate-rules.js answerNeed), so the page can judge it again as the user types
+// and show the item again if the answer is taken out. Items without a rule (the plant, anything else
+// left open in what prints) are judged here only.
 // options.cover false leaves out the D184 tick, for a SWMS already saved (it was ticked when saved,
 // or saved before the tick existed).
-function downloadGaps(input = {}, draft = {}, options = {}) {
+function gateChecks(input = {}, draft = {}, options = {}) {
   if (!draft || draft.kind !== 'draft') return [];
+  const checks = [];
   const gaps = [];
+  const add = (check) => { checks.push(check); if (check.need) gaps.push(check); };
+  const judged = (check, rule, value) => add({ ...check, need: answerNeed(rule, value), rule });
   // Parts of the task with no job steps, not ticked as dealt with above the draft (D184).
   const uncovered = options.cover === false ? '' : notCoveredRefusal(draft, input);
-  if (uncovered) gaps.push({ id: 'notCovered', kind: 'cover', field: 'not-covered-confirm', label: 'Tick for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${draft.notCovered.join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.`, message: uncovered });
+  if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-confirm', label: 'Tick for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${draft.notCovered.join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.`, message: uncovered });
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
-    const need = fieldNeed(item, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));
-    if (need) gaps.push({ id: item.id, kind: 'field', field: item.field, label: item.label, need });
+    judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { ask: item.need, name: item.label, none: Boolean(item.none) }, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));
   }
-  for (const item of OPTIONAL) {
-    const text = clean(input[item.id]);
-    if (text && leftOpen(text)) gaps.push({ id: item.id, kind: 'field', field: item.field, label: item.label, need: `"${text.slice(0, 60)}" is not an answer. Fill it in, or leave the box empty.` });
-  }
+  for (const item of OPTIONAL) judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { optional: true }, input[item.id]);
   // The plant to be used, confirmed by the user, and the emergency response for the work (goal 2).
-  const plant = plantNeed(input, draft);
-  if (plant) gaps.push({ id: 'plant', kind: 'plant', field: 'plant-ticks', label: 'Plant and equipment', need: plant });
+  add({ id: 'plant', kind: 'plant', field: 'plant-ticks', label: 'Plant and equipment', need: plantNeed(input, draft) });
   const said = input.emergency && typeof input.emergency === 'object' ? input.emergency : {};
   for (const item of emergencyQuestions(draft, said)) {
-    const text = clean(item.answer);
-    const ask = `${item.ask} ${item.hint}`;
-    const need = !text ? ask
-      : NO_ANSWER.test(text) ? `"${text.slice(0, 60)}" is not an answer here: this SWMS involves ${INVOLVES[item.category]}. ${ask}`
-        : leftOpen(text) || NOT_YET.test(text) ? `"${text.slice(0, 60)}" is not an answer yet. ${ask}` : '';
-    if (need) gaps.push({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}`, need });
+    judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category] }, item.answer);
   }
   // The user's own answers with a blank still in them where the SWMS prints them, filled in their own
   // boxes. An answer the SWMS does not print leaves no blank in it.
@@ -167,14 +147,12 @@ function downloadGaps(input = {}, draft = {}, options = {}) {
   const printed = printedTexts(draft);
   const blankFacts = Object.entries(facts).filter(([, value]) => typeof value === 'string' && hasBlank(value) && printed.some((text) => fromAnswer(text, [value])));
   const labels = blankFacts.length ? factLabels(input) : new Map();
-  for (const [id] of blankFacts) {
-    gaps.push({ id: `fact.${id}`, kind: 'fact', field: `fact-${id}`, label: labels.get(id) || 'Your answer to a question', need: 'Your answer still has a blank (____). Fill it in, or take out the part that does not apply.' });
+  for (const [id, value] of blankFacts) {
+    judged({ id: `fact.${id}`, kind: 'fact', field: `fact-${id}`, label: labels.get(id) || 'Your answer to a question' }, { ask: 'Your answer still has a blank (____). Fill it in, or take out the part that does not apply.', blank: true }, value);
   }
   const site = input.site && typeof input.site === 'object' ? input.site : {};
   for (const field of SITE_FIELDS) {
-    const item = { label: field.label, need: SITE_NEED[field.id] || `Answer ${field.label}.`, none: SITE_NONE.has(field.id) };
-    const need = fieldNeed(item, site[field.id]);
-    if (need) gaps.push({ id: `site.${field.id}`, kind: 'site', field: `site-${field.id}`, label: `Site: ${field.label}`, need });
+    judged({ id: `site.${field.id}`, kind: 'site', field: `site-${field.id}`, label: `Site: ${field.label}` }, { ask: SITE_NEED[field.id] || `Answer ${field.label}.`, name: field.label, none: SITE_NONE.has(field.id) }, site[field.id]);
   }
   // SiteReady's own control lines with a blank, each filled in where it shows on the draft.
   const answers = blankFacts.map(([, value]) => String(value));
@@ -184,7 +162,7 @@ function downloadGaps(input = {}, draft = {}, options = {}) {
     const key = blankKey(text);
     if (seen.has(key)) return;
     seen.add(key);
-    gaps.push({ id: `line.${seen.size}`, kind: 'line', key, parts: blankParts(text), step: step || '', label: step ? `Job step: ${step}` : 'Controls', need: 'This control has a blank (____). Fill it in with what applies on this job.' });
+    judged({ id: `line.${seen.size}`, kind: 'line', key, parts: blankParts(text), step: step || '', label: step ? `Job step: ${step}` : 'Controls' }, { ask: 'This control has a blank (____). Fill it in with what applies on this job.', line: key }, []);
   };
   for (const step of draft.jobSteps || []) for (const text of [...(step.hazards || []), ...(step.controls || [])]) line(text, step.step);
   for (const item of draft.controls || []) line(item && item.text);
@@ -205,9 +183,16 @@ function downloadGaps(input = {}, draft = {}, options = {}) {
   for (const row of draft.references || []) if (leftOpen(row.text) && !fromAnswer(row.text, answers)) other.push([row.label || 'Documents', row.text]);
   for (const key of ['date', 'subcontractor']) if (leftOpen(draft[key])) other.push([key === 'date' ? 'Date of the draft' : 'Subcontractor', draft[key]]);
   for (const [label, text] of other) {
-    gaps.push({ id: `other.${gaps.length}`, kind: 'other', field: '', label, need: `A blank or "To be completed" is left in: "${clean(text).slice(0, 160)}". Answer the question it comes from, or change the line.` });
+    add({ id: `other.${gaps.length}`, kind: 'other', field: '', label, need: `A blank or "To be completed" is left in: "${clean(text).slice(0, 160)}". Answer the question it comes from, or change the line.` });
   }
-  return gaps;
+  return checks;
+}
+
+// What this SWMS still needs before it is downloaded or saved: a list of
+// { id, kind, field, label, need, key?, parts?, step? }, the checks above that did not pass.
+// Empty when it can be downloaded. A stood-down SWMS has its own list of what is missing.
+function downloadGaps(input = {}, draft = {}, options = {}) {
+  return gateChecks(input, draft, options).filter((check) => check.need).map(({ rule: _rule, ...gap }) => gap);
 }
 
 // The refusal for the download routes, naming every item still outstanding: the site questions and
@@ -221,4 +206,4 @@ function gateMessage(gaps) {
   ].filter(Boolean).join(' ');
 }
 
-module.exports = { downloadGaps, gateMessage, FIELDS, isPlaceholder };
+module.exports = { downloadGaps, gateChecks, gateMessage, FIELDS, isPlaceholder };

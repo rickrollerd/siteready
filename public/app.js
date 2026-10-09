@@ -933,35 +933,78 @@ function fillBox(line, key, gate, anchored) {
   const first = !anchored.has(key);
   anchored.add(key);
   const boxes = gap.parts.map((part, n) => `${esc(part)}${n < gap.parts.length - 1 ? `<input type="text" class="blank-input" data-fill-key="${esc(key)}" data-fill-n="${n}" value="${esc(answers[n] || '')}" aria-label="Blank ${n + 1} of ${gap.parts.length - 1} in this control"${first && n === 0 ? ` id="gap-${esc(gap.id)}"` : ''}>` : ''}`).join('');
-  return `<span class="blank-fill">${boxes}${esc(rest)}</span><span class="gate-need">Fill in the blank before download.</span>`;
+  return `<span class="blank-fill">${boxes}${esc(rest)}</span><span class="gate-need" data-gate-line="${esc(key)}">Fill in the blank before download.</span>`;
 }
 
-// The page box each item is answered in, and the marks beside each one.
+// The page box each item is answered in, and the marks beside each one. A note is changed only
+// where it differs, as this runs while the user types.
 const gateTarget = (gap) => (gap.kind === 'line' ? document.getElementById(`gap-${gap.id}`) : gap.field ? document.getElementById(gap.field) : null);
 function markGaps(gaps) {
-  document.querySelectorAll('.gate-need[data-gate-for]').forEach((el) => el.remove());
-  document.querySelectorAll('[aria-invalid="true"]').forEach((el) => { el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); });
-  for (const gap of gaps) {
-    if (gap.kind === 'line' || !gap.field) continue;
+  const byField = new Map(gaps.filter((gap) => gap.kind !== 'line' && gap.field).map((gap) => [gap.field, gap]));
+  document.querySelectorAll('.gate-need[data-gate-for]').forEach((note) => {
+    if (byField.has(note.dataset.gateFor) && document.getElementById(note.dataset.gateFor)) return;
+    const el = document.getElementById(note.dataset.gateFor);
+    if (el) { el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); }
+    note.remove();
+  });
+  for (const gap of byField.values()) {
     const el = document.getElementById(gap.field);
     if (!el) continue;
-    const note = document.createElement('p');
-    note.className = 'gate-need';
-    note.dataset.gateFor = gap.field;
-    note.id = `need-${gap.field}`;
-    note.textContent = `Needed before download: ${gap.need}`;
-    (el.closest('.field') || el.parentElement).appendChild(note);
+    let note = document.getElementById(`need-${gap.field}`);
+    if (!note) {
+      note = document.createElement('p');
+      note.className = 'gate-need';
+      note.dataset.gateFor = gap.field;
+      note.id = `need-${gap.field}`;
+      const holder = el.closest('.field') || el.parentElement;
+      if (holder) holder.appendChild(note);
+    }
+    const text = `Needed before download: ${gap.need}`;
+    if (note.textContent !== text) note.textContent = text;
     el.setAttribute('aria-invalid', 'true');
     el.setAttribute('aria-describedby', note.id);
   }
+  // A control line's note shows while any of its blanks is still empty.
+  const lines = new Set(gaps.filter((gap) => gap.kind === 'line').map((gap) => gap.key));
+  document.querySelectorAll('.gate-need[data-gate-line]').forEach((note) => { note.hidden = !lines.has(note.dataset.gateLine); });
 }
 
+// Each check the server made on the draft shown (download-gate.js gateChecks), judged again by the
+// same rule (gate-rules.js) against what is in its box now, so an item drops off as soon as it is
+// answered and comes back if the answer is taken out. The server checks again before any download.
+// Items it judges alone (the plant, anything else left open) wait for the draft to be prepared again.
+let shownChecks = [];
+function liveNeed(check) {
+  const rules = window.SiteReadyGate;
+  if (!check.rule || !rules) return check.need;
+  if (check.kind === 'line') return rules.answerNeed(check.rule, (fills || {})[check.key] || []);
+  const el = check.field ? document.getElementById(check.field) : null;
+  return el ? rules.answerNeed(check.rule, el.value) : check.need;
+}
+
+// The answers the SWMS prints as given (gate-rules.js AS_GIVEN): these go with a download as they
+// are now. A change to anything else since the draft was prepared needs the draft prepared again.
+const asGiven = () => (window.SiteReadyGate ? window.SiteReadyGate.AS_GIVEN : []);
+// What the user changes in their own flows, which prepare the draft again or update what is saved,
+// and the business details, which a download takes from the account's company profile.
+const OWN_FLOWS = ['controlEdits', 'hazardEdits', 'whoEdits', 'notCoveredConfirmed', 'company', 'companyAbn', 'companyAddress', 'companyPhone', 'companyEmail'];
+function redrawKey(input) {
+  const rest = { ...input };
+  for (const key of [...asGiven(), ...OWN_FLOWS]) delete rest[key];
+  return JSON.stringify(rest);
+}
+function currentAnswers() {
+  const now = payload();
+  return Object.fromEntries(asGiven().map((key) => [key, now[key]]));
+}
+const draftStale = () => Boolean(shownSent && shownDraft && shownDraft.kind === 'draft' && redrawKey(payload()) !== redrawKey(shownSent));
+
 // Everything still outstanding before download, in one list: the site questions and blanks the
-// server found (goal 2), and the tick for work SiteReady has no job steps for (D184), counted from
-// the box above the draft as the user ticks it.
+// server found (goal 2), judged again as the user answers, and the tick for work SiteReady has no
+// job steps for (D184), counted from the box above the draft as the user ticks it.
 function outstanding(data) {
   if (!data || data.kind !== 'draft') return [];
-  const gaps = (data.gate || []).filter((gap) => gap.kind !== 'cover');
+  const gaps = shownChecks.filter((check) => check.kind !== 'cover').map((check) => ({ ...check, need: liveNeed(check) })).filter((check) => check.need);
   const parts = Array.isArray(data.notCovered) ? data.notCovered : [];
   if (parts.length && coverTicked !== JSON.stringify(parts)) {
     gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${parts.join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.` });
@@ -975,22 +1018,45 @@ function gateBlock(gaps) {
   const answers = gaps.some((gap) => gap.kind !== 'cover');
   return `<div class="panel gate" id="gate-panel" role="region" aria-labelledby="gate-title">
     <h3 id="gate-title">Before you can download this SWMS</h3>
-    <p>SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given, no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}${answers ? ', then press Update the draft' : ''}:</p>
+    <p>SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given, no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}. Each one comes off this list as soon as it is answered:</p>
     <ul class="gate-list">${gaps.map((gap, i) => `<li><button type="button" class="link" ${gap.kind === 'cover' ? 'data-cover-jump' : `data-gate-go="${i}"`}>${esc(gap.label)}</button><span class="meta">${esc(gap.need)}</span></li>`).join('')}</ul>
     ${answers ? '<div class="actions"><button type="button" id="gate-update">Update the draft</button></div>' : ''}
   </div>`;
 }
 
-// The list and the line above the draft, drawn again when the draft or the tick changes.
+// The list and the line above the draft, drawn again when the draft or the tick changes, and as
+// the user answers. Each is changed only where it differs, so a phone does not jump while typing.
 let shownGaps = [];
+const setHtml = (el, html) => { if (el && el.innerHTML !== html) el.innerHTML = html; };
+// The list as last drawn, cleared with each new draft.
+let gateDrawn = '';
 function showGate() {
   shownGaps = outstanding(shownDraft);
-  const holder = document.getElementById('result-gate');
-  if (holder) holder.innerHTML = gateBlock(shownGaps);
-  const top = document.getElementById('result-gate-top');
-  if (top) top.innerHTML = shownGaps.length ? `<p class="warning gate-top">This SWMS cannot be downloaded yet: ${shownGaps.length === 1 ? 'one item needs' : `${shownGaps.length} items need`} dealing with. <button type="button" class="link" data-gate-list>See what is needed</button></p>` : '';
+  const S = window.SiteReady || {};
+  const drawn = JSON.stringify(shownGaps.map((gap) => [gap.label, gap.need]));
+  if (drawn !== gateDrawn) {
+    gateDrawn = drawn;
+    setHtml(document.getElementById('result-gate'), gateBlock(shownGaps));
+  }
+  setHtml(document.getElementById('result-gate-top'), shownGaps.length ? `<p class="warning gate-top">This SWMS cannot be downloaded yet: ${shownGaps.length === 1 ? 'one item needs' : `${shownGaps.length} items need`} dealing with. <button type="button" class="link" data-gate-list>See what is needed</button></p>` : '');
   markGaps(shownGaps.filter((gap) => gap.kind !== 'cover'));
+  // The buttons under the draft (account.js), and a SWMS in a project (scope.js).
+  if (S.onGateChange) S.onGateChange();
+  if (S.onAnswers && shownDraft && shownDraft.kind === 'draft' && shownSent) {
+    S.onAnswers({ task: shownSent.task, needs: [...new Set(shownGaps.filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))], answers: currentAnswers(), stale: draftStale() });
+  }
 }
+// What the buttons under the draft wait for: the items still outstanding, and whether the draft must
+// be prepared again to print what was typed since.
+const liveGate = () => ({ waiting: shownGaps.length, stale: draftStale() });
+// Judged again as the user types or ticks anywhere on the page, once per frame.
+let gateFrame = 0;
+['input', 'change'].forEach((type) => document.addEventListener(type, (event) => {
+  if (!shownDraft || shownDraft.kind !== 'draft' || resultEl.classList.contains('hidden') || (event.target.closest && event.target.closest('.confirm'))) return;
+  if (gateFrame) return;
+  const later = window.requestAnimationFrame || ((fn) => setTimeout(fn, 16));
+  gateFrame = later(() => { gateFrame = 0; showGate(); });
+}));
 
 // ---- A shorter draft on a phone (goal 7) ----
 
@@ -1362,12 +1428,14 @@ async function prepareDraft({ scroll = true } = {}) {
     shownReport = report;
     const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), notCoveredBlock(data), editNotes(report, { discard: true })].join('');
     shownDraft = data;
+    shownChecks = data.gateChecks || data.gate || [];
+    gateDrawn = '';
     resultEl.innerHTML = `${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
-    showGate();
     // What is saved: the input sent, with changes moved onto any line SiteReady has reworded.
     const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
     shownSent = sent;
+    showGate();
     // Downloading and saving need an account; the account script adds those buttons.
     window.SiteReady.showActions(data, sent);
     if (data.kind === 'draft') showTranslate(sent);
@@ -1406,7 +1474,7 @@ document.addEventListener('click', async (event) => {
     el.focus({ preventScroll: true });
     return;
   }
-  if (event.target.closest('#gate-update')) {
+  if (event.target.closest('#gate-update, [data-gate-update]')) {
     await prepareDraft({ scroll: false });
     const panel = document.getElementById('gate-panel');
     (panel || document.getElementById('result-actions') || resultEl).scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1992,7 +2060,7 @@ function redrawActions() {
 }
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
-  keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions,
+  keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers,
   api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals,
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },

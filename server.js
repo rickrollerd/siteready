@@ -30,7 +30,7 @@ const places = require('./places');
 const { recordIndustry } = require('./industry');
 const draftTranslate = require('./draft-translate');
 const { keyProblems } = require('./secret-keys');
-const { downloadGaps, gateMessage } = require('./download-gate');
+const { downloadGaps, gateChecks, gateMessage } = require('./download-gate');
 const { hasBlank, blankKey } = require('./blanks');
 const delivery = require('./delivery');
 
@@ -304,11 +304,14 @@ app.post('/api/draft', (req, res) => {
   // For the preview only: the source of each control line that is a legal requirement, and why
   // removing or weakening a line is not recommended, so the page can warn before the user goes
   // ahead. Empty for other lines.
-  // What must still be answered before it can be downloaded (goal 2), shown beside each item.
+  // What must still be answered before it can be downloaded (goal 2), shown beside each item, and
+  // every check with how its answer is judged, so the page can clear an item as it is answered.
+  const checks = result.kind === 'draft' ? gateChecks(draftBody(req.body || {}), result) : [];
   const legal = result.kind === 'draft' ? {
     controlLegal: (result.jobSteps || []).map((step) => step.controls.map(legalSource)),
     controlWarn: (result.jobSteps || []).map((step) => step.controls.map(keepWarning)),
-    gate: downloadGaps(draftBody(req.body || {}), result),
+    gate: checks.filter((check) => check.need).map(({ rule: _rule, ...gap }) => gap),
+    gateChecks: checks,
     // The line each blank (____) is filled in by, for the boxes on the page.
     blankKeys: {
       steps: (result.jobSteps || []).map((step) => step.controls.map((line) => (hasBlank(line) ? blankKey(line) : ''))),

@@ -479,6 +479,20 @@
     renderProject();
   };
 
+  // As the user answers under the draft (app.js), the SWMS in the project takes the answers that print
+  // as given, and what it still needs. A change that needs the draft prepared again waits for it.
+  S.onAnswers = ({ task, needs, answers, stale }) => {
+    const item = project && project.items[project.current];
+    const same = (text) => String(text || '').replace(/\s+/g, ' ').trim();
+    if (stale || !item || !item.body || item.kind !== 'draft' || same(task) !== same(item.body.task)) return;
+    const before = JSON.stringify([item.needs, item.status]);
+    item.body = { ...item.body, ...answers };
+    item.needs = needs;
+    item.status = statusOf(item);
+    saveProject();
+    if (JSON.stringify([item.needs, item.status]) !== before) renderProject();
+  };
+
   // Each prepared draft is kept against its task; the result gets a Next SWMS button.
   S.onDraft = (draft, body) => {
     if (!project) return;
