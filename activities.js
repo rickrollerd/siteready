@@ -17,6 +17,8 @@ const MODEL = (code, section) => `Model Code: ${code} ${section}`;
 const OZONE = (section) => `Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth) ${section}`;
 // Victoria's piling industry standard, cited only in Victorian drafts (citations.js).
 const PSTD = (section) => `Piling industry standard (WorkSafe Victoria and PFSF, 2014, Victorian guidance) ${section}`;
+// Victoria's structural steel erection industry standard, cited only in Victorian drafts (citations.js).
+const VSTEEL = (section) => `Safe erection of structural steel industry standard (WorkSafe Victoria, 2009, Victorian guidance) ${section}`;
 const CPR = (section) => `Telecommunications (Cabling Provider) Rules 2025 (Cth) ${section}`;
 const SPA = (section) => `Security Providers Act 1993 (Qld) ${section}`;
 const ARC = (section) => `Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 ${section}`;
@@ -3104,6 +3106,8 @@ const ACTIVITIES = [
         'The crane is used only within the crane company\'s wind limits.',
         'Beams and columns are slung with two chain legs, double wrapped and choked, and columns without cleats also get a half hitch. A member lifted on one leg is lifted on its own, double wrapped.',
         'Members are not rigged one below another on the same hook (Christmas tree lifts).',
+        src('Each column is bolted down and stable, and each beam secured, before the slings are released. Only the riggers or doggers release a load, once it is fixed and supported.', `${QCODE('Steel construction', 's 4.3.5, s 5.4')}; ${VSTEEL('s 6.4, appendix 1')}`),
+        src('Slings are released from the floor or ground with long slings or remote release shackles, or from an EWP.', `${QCODE('Steel construction', 's 3.4, s 4.3.5')}; ${VSTEEL('s 6.4')}`),
       ],
     }],
   },
@@ -3125,6 +3129,21 @@ const ACTIVITIES = [
         src('Static lines are installed by people holding a basic scaffolding or basic rigging licence (or higher).', WHS('schedule 3')),
         src('Impact wrenches and bolting are repetitive: rotate tasks.', `${WHS('s 60')}; ${QCODE('Hazardous manual tasks', 's 4.7')}`),
         src('Impact wrenches and bolting are noisy: reduce noise at the source. Where noise still exceeds 85 dB(A) over 8 hours or 140 dB(C) peak, wear hearing protection and have hearing tests.', WHS('s 56, s 57, s 58')),
+      ],
+    }, {
+      // Temporary bracing and guys, where the task names them (the steel code s 5, Victoria's standard s 6.4).
+      only: 'steelBracing',
+      step: 'Install and remove temporary bracing',
+      hazards: ['The part-built frame or a member collapses because bracing or guys are missing, moved or taken out too early.', 'A worker, plant or a vehicle strikes a guy or brace.'],
+      controls: [
+        src('Temporary bracing and guys go in as the erection engineer\'s sequential erection procedure and marking plan show, and a member is erected only once the bracing that keeps it stable is on hand and used.', `${QCODE('Steel construction', 's 5.1')}; ${VSTEEL('s 6.3.2, s 6.4')}`),
+        src('Where erection cannot start in a braced bay, the extent of temporary support is decided with the erection engineer before any work starts.', `${QCODE('Steel construction', 's 5.2')}; ${VSTEEL('s 6.4')}`),
+        src('Bracing is assembled on the ground unless it can only go together in place, and is lifted into place by the lifting plant. Light bracing lifted by hand is raised on a hand line by a rigger working from an EWP.', QCODE('Steel construction', 's 4.3.10')),
+        src('Temporary guys and bracing are securely anchored to anchor points that can resist the forces on them. Any movement of an anchor is reported to the erector and dealt with at once.', `${QCODE('Steel construction', 's 5.1')}; ${VSTEEL('s 6.4')}`),
+        src('Guys are marked with coloured bunting, with visual barriers between the guys and the areas where plant and vehicles move.', `${QCODE('Steel construction', 's 5.1')}; ${VSTEEL('s 6.4')}`),
+        src('Temporary guys and bracing are inspected at the start of each shift. The erection supervisor checks the structure is stable at the end of each day, while connections are incomplete, and when strong winds are forecast.', `${QCODE('Steel construction', 's 5.1')}; ${VSTEEL('s 6.4')}`),
+        src('Work stops at a point the sequence does not plan for, with the structure not yet complete to the erection engineer\'s design, only with the builder\'s or erection engineer\'s approval.', VSTEEL('s 6.4')),
+        src('Temporary bracing and guys are removed only at the stage the sequential erection procedure sets, once the permanent bracing or floors make the structure stable. Any change to the sequence is approved by the builder and the erection engineer first.', `${QCODE('Steel construction', 'appendix 2')}; ${VSTEEL('appendix 1')}`),
       ],
     }],
     ppe: ['harness', 'chinStrap'],

@@ -24,6 +24,7 @@ const SOURCES = {
   cablingRules: ['Telecommunications (Cabling Provider) Rules 2025 (Cth), as made', 'https://www.legislation.gov.au/F2025L00386/asmade/2025-03-21/text/original/pdf'],
   securityAct: ['Security Providers Act 1993 (Qld), current', 'https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-1993-083'],
   pilingStandard: ['Piling work and foundation engineering sites: A guide to managing safety (industry standard, WorkSafe Victoria and PFSF, edition 1, January 2014)', 'http://pilingfederation.org.au/wp-content/uploads/2017/08/Piling-Works-Industry-Standard.pdf'],
+  steelStandard: ['Industry standard: Safe erection of structural steel for buildings (WorkSafe Victoria, edition 1, May 2009)', 'https://content-v2.api.worksafe.vic.gov.au/sites/default/files/2020-03/ISBN-Safe-erection-structural-steel-buildings-industry-standard-2009-05a.pdf'],
   scaffoldCode: ['Scaffolding Code of Practice 2021 (Qld)', 'https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0027/76347/scaffolding-cop-2021.pdf'],
   mobilePlantSupport: ['Safe support of mobile plant guide (Office of Industrial Relations, Qld)', 'https://www.worksafe.qld.gov.au/__data/assets/pdf_file/0008/20150/safe-support-mobile-plant-guide.pdf'],
   constructionCode: ['Model Code of Practice: Construction work (Safe Work Australia, November 2024)', 'https://www.safeworkaustralia.gov.au/sites/default/files/2024-11/model_code_of_practice-construction_work-nov24.pdf'],

@@ -680,6 +680,12 @@ function residualAnswered(rating, swms) {
 const ratedSteps = (swms) => swms.steps.filter((step) => step.hazards.length || step.controls.length);
 const residualOpen = (swms) => ratedSteps(swms).filter((step) => step.rating && isHigh(step.rating.after) && !residualAnswered(step.rating, swms));
 
+// The task and each step name read as sentences of their own. The category rules read a sentence at a
+// time (props count for structural alterations or repairs only when one is in the same sentence), and
+// lines joined with a bare line break run together as one sentence: "Install temporary support" and
+// "Remove the braces" would read as removing a load-bearing part that the props hold up.
+const asSentences = (lines) => lines.map((line) => String(line || '').trim()).filter(Boolean).map((line) => (/[.!?]$/.test(line) ? line : `${line}.`)).join('\n');
+
 function hardFails(swms, state, stage = 'review') {
   const out = [];
   const allControls = swms.steps.flatMap((step) => step.controls);
@@ -691,14 +697,14 @@ function hardFails(swms, state, stage = 'review') {
   // there, and plant listed that works at height or moves about the site is used.
   const list = highRiskList(state);
   const workNames = swms.steps.map((step) => step.step).filter((name) => !checkOnly(name));
-  const impliedIds = new Set(highRiskMatches([swms.task, ...workNames].join('\n'), swms.fallRisk, state).map((item) => item.id));
+  const impliedIds = new Set(highRiskMatches(asSentences([swms.task, ...workNames]), swms.fallRisk, state).map((item) => item.id));
   // Road work is where the work is. It comes from the task, or from a step name that names the road on
   // its own, not from the task and a step read together ("on the footpath" with "Set up traffic
   // barriers"), nor from general step names: hauling loads on public roads is driving, not work beside
   // a road, and "under the road or ground" or "Reinstate asphalt" do not say a road is there.
   const isRoad = (text) => highRiskMatches(text, swms.fallRisk, state).some((item) => item.id === 'road');
   if (impliedIds.has('road') && !isRoad(swms.task) && !workNames.some((name) => !GENERAL_ROAD_STEP.test(name) && isRoad(name))) impliedIds.delete('road');
-  for (const item of highRiskMatches(swms.steps.filter((step) => checkOnly(step.step)).map((step) => step.step).join('\n'), swms.fallRisk, state)) if (item.id === 'fall') impliedIds.add('fall');
+  for (const item of highRiskMatches(asSentences(swms.steps.filter((step) => checkOnly(step.step)).map((step) => step.step)), swms.fallRisk, state)) if (item.id === 'fall') impliedIds.add('fall');
   if (swms.steps.some((step) => step.hazards.some((line) => LIVE_PARTS.test(line)))) impliedIds.add('electrical');
   const plantNames = swms.plant.map((line) => line.split(':')[0]);
   if (swms.fallRisk !== 'no' && plantNames.some((line) => PLANT_AT_HEIGHT.test(line))) impliedIds.add('fall');
@@ -709,7 +715,7 @@ function hardFails(swms, state, stage = 'review') {
   const statedDepths = [...`${swms.task}`.matchAll(/\b(\d+(?:\.\d+)?)\s?m(?:etres?)?\s+deep\b/gi)].map((match) => Number(match[1]));
   const keptShallow = SHALLOW_TRENCH.test(allControls.join('\n')) && !statedDepths.some((depth) => depth > 1.5);
   const missing = implied.filter((item) => !namedIds.has(item.id) && !(keptShallow && item.id === 'trench'));
-  const hazardOnly = highRiskMatches(swms.steps.flatMap((step) => step.hazards).join('\n'), swms.fallRisk, state)
+  const hazardOnly = highRiskMatches(asSentences(swms.steps.flatMap((step) => step.hazards)), swms.fallRisk, state)
     .filter((item) => !namedIds.has(item.id) && !missing.some((other) => other.id === item.id));
   const alsoCheck = hazardOnly.length ? ` Also check, as the hazards name it: ${hazardOnly.map((item) => item.label).join('; ')}.` : '';
   const add = (rule, title, pass, message) => out.push({ rule, title, hard: true, pass, points: 0, max: 0, message, source: SOURCES[rule] });
