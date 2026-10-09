@@ -144,3 +144,35 @@ test('the page loads the shared wording, and the cards no longer promise marks t
   assert.match(page, /\?state=\$\{encodeURIComponent\(body\.state/);
   assert.match(page, /report\.docx\?state=/);
 });
+
+const { highRiskMatches } = require('../draft');
+const { registersFor } = require('../register');
+const { findState } = require('../legislation');
+const categories = (text) => highRiskMatches(text, '', findState('qld')).map((item) => item.id);
+
+test('water counts only where a person could fall in or be submerged, not the water a fixture uses', () => {
+  assert.ok(!categories('Connect power to drinking fountains (Adjacent to ablution blocks; conditions: Electrical connection near water).').includes('water'));
+  assert.ok(!categories('Fit the taps and sinks near water in the kitchen.').includes('water'));
+  for (const text of ['Install handrails on the jetty over water.', 'Pour the abutment beside the river.', 'Tile the pool waterline next to the filled pool.', 'Build the boardwalk near water.']) {
+    assert.ok(categories(text).includes('water'), text);
+  }
+});
+
+test('a generator only brings a fuel line where it is installed, connected or commissioned, not "if power is not connected"', () => {
+  const fuel = (task) => screen(task).categories.some((item) => item.id === 'chemicalLine');
+  assert.ok(!fuel('Provide and run a temporary generator if permanent power is not connected (plant: Temporary generator).'));
+  assert.ok(!fuel('Provide a temporary generator until permanent power is connected.'));
+  assert.ok(fuel('Install and connect the standby generator and its day tank.'));
+});
+
+test('plant or an EWP that is maintained, serviced or repaired is not plant or access in use', () => {
+  const task = 'Maintain mobile plant and keep pre-use check records (plant: Forklifts, telehandlers, EWPs, hoists).';
+  assert.ok(!categories(task).includes('plant'));
+  assert.deepEqual(screen(task, { kinds: ['plantService'] }), { categories: [], dependsOn: [] });
+  const plant = registersFor({ task, state: 'Queensland', highRisk: [], jobSteps: [], controls: [] }).plant.map((item) => item.item);
+  assert.ok(!plant.some((item) => /forklift|telehandler|elevating/i.test(item)), plant.join('; '));
+  // Plant used in another sentence still counts, and so does plant used to do the work.
+  assert.ok(categories('Service the tower crane. Unload materials from trucks.').includes('plant'));
+  assert.ok(categories('Move materials with forklifts.').includes('plant'));
+  assert.ok(ids(screen('Install ceiling services from scissor lifts.')).some((id) => id.startsWith('fall')));
+});

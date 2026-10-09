@@ -525,6 +525,15 @@ function whereUsed(licence) {
   return [`${first}, where one is used`, ...rest].join('. ');
 }
 
+// Plant or access equipment that is itself maintained, serviced, repaired or inspected is not
+// being used ("Maintain mobile plant (plant: Forklifts, telehandlers, EWPs)"): in such a sentence
+// the plant is taken out before the plant or fall categories are looked for.
+const SERVICED_PLANT = /^\s*(?:maintain|servic|repair|inspect|pre-?start check|pre-?use check)\w*\b[^.]{0,40}\b(?:mobile plant|plant|equipment|machinery|vehicles?|forklifts?|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|telehandlers?|excavators?|cranes?|hoists?|trucks?|loaders?|generators?)\b/i;
+const PLANT_WORDS = /\b(?:mobile plant|plant|equipment|machinery|vehicles?|forklifts?|ewps?|elevating work platforms?|scissor lifts?|boom lifts?|telehandlers?|excavators?|(?:mobile |tower )?cranes?|hoists?|trucks?|loaders?|skid ?steers?|bobcats?|rollers?)\b/gi;
+function withoutServicedPlant(text) {
+  return String(text || '').replace(/[^.]+\.?/g, (sentence) => (SERVICED_PLANT.test(sentence) ? sentence.replace(PLANT_WORDS, ' ') : sentence));
+}
+
 function registersFor(draft, input = {}) {
   const steps = draft.jobSteps || [];
   const task = draft.task || '';
@@ -534,7 +543,7 @@ function registersFor(draft, input = {}) {
   // step names or the hazards, not every control line that mentions plant to keep
   // clear of.
   // A hazard such as "struck by forklifts" is the site's plant, not the crew's.
-  const useText = `${task}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText.replace(/\b(?:forklifts?|telehandlers?)\b/gi, '')}`;
+  const useText = `${withoutServicedPlant(task)}\n${(draft.controls || []).map((item) => item.text).join('\n')}\n${steps.map((step) => step.step).join('\n')}\n${hazardText.replace(/\b(?:forklifts?|telehandlers?)\b/gi, '')}`;
   // Control lines that say the crew uses plant, not the ones about keeping clear of it.
   const usedInControls = steps.flatMap((step) => step.controls).filter((line) => /^(?:Nail guns?:|Line marking machines?|Sanders?\b|Mixers?\b|Mixer guards|Lifting beams?\b|Cut and trim bars|A trencher|Trenchers?\b)/.test(line) || /^(?:Use|Using|Cut)\b|\b(?:are|is) (?:run|used|operated)(?: only)? (?:by|with)\b|\bcut with\b/i.test(line) && !/\b(?:\w+ )or (?:an? )?(?:forklift|crane|telehandler|ewp|hoist)\b/i.test(line) && !/\b(keep|clear of|away from|others|crane company|pumping company)\b/i.test(line));
   // Lines naming the plant a step is done from or lifted with: definite when one item is named, otherwise each is used where chosen.
@@ -591,4 +600,4 @@ function registersFor(draft, input = {}) {
   };
 }
 
-module.exports = { registersFor, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, legislationFor };
+module.exports = { registersFor, withoutServicedPlant, MATRIX, LIKELIHOOD, CONSEQUENCE, riskFor, legislationFor };
