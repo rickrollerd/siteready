@@ -49,6 +49,19 @@ const SLANG = [
   [/\bhi-?abs?\b/gi, 'vehicle loading crane'],
   [/\bacrows?\b/gi, 'props'],
   [/\bdunn(?:y|ies)\b/gi, 'toilets'],
+  // How SWMS titles are worded: "Installation of switchboards" is installing them, "duct work"
+  // is ductwork and "storm water" is stormwater.
+  [/\binstall(?:at)?ion of\b/gi, 'install'],
+  [/\bduct work\b/gi, 'ductwork'],
+  [/\bstorm water\b/gi, 'stormwater'],
+  [/\bsub soil\b/gi, 'subsoil'],
+  [/\belevated work platform/gi, 'elevating work platform'],
+  [/\b((?:de-?)?energi)([zZ])(e|ed|es|ing|ation)\b/gi, (word, start, z, end) => `${start}${z === 'Z' ? 'S' : 's'}${end}`],
+  [/ & /g, ' and '],
+  [/\bposi tracks?\b/gi, 'posi-track'],
+  [/\brefrigerate (pip(?:e|es|ing|ework)|lines?)\b/gi, 'refrigerant $1'],
+  [/\bair condition (units?)\b/gi, 'air conditioning $1'],
+  [/\bhydraulics\b/gi, 'hydraulic services'],
 ];
 
 function readSlang(text) {

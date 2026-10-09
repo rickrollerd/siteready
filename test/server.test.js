@@ -11,6 +11,9 @@ test.before(async () => {
   await setupAccounts();
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
+  // A test that runs for more than 5 s without a request lets the server close the idle
+  // keep-alive connection just as the next request reuses it ("fetch failed" on a busy machine).
+  server.keepAliveTimeout = 60000;
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
