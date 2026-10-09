@@ -23,21 +23,31 @@
     return `Prepare a SWMS for ${added.size ? `the ${count} added ${count === 1 ? 'task' : 'tasks'}` : `every task (${count})`}`;
   }
 
+  // A package's high risk construction work, in the words the list, the cards and the report share.
+  const hrcwOf = (flag) => (flag && window.SiteReadyHrcw ? window.SiteReadyHrcw.hrcwSummary(flag) : null);
+  const hrcwText = (summary) => `<strong>${esc(summary.heading)}.</strong> ${summary.lines.map((line) => esc(/[.]$/.test(line) ? line : `${line}.`)).join(' ')}`;
+
   function show(data) {
     found = data.tasks || [];
     added = new Set();
     const note = data.note ? `<p class="note">${esc(data.note)}</p>` : '';
+    const flagged = found.some((item) => item.hrcw);
     $('scope-results').innerHTML = note + (found.length
-      ? `<p class="meta" style="margin-top:10px">${found.length} ${found.length === 1 ? 'task' : 'tasks'} found. Tasks marked high risk construction work need a SWMS by law; most builders ask for one for every task. Check each one against the scope before you rely on it. Add the tasks you need, then press the button at the bottom.</p>` + found.map((item, index) => `
+      ? `<p class="meta" style="margin-top:10px">${found.length} ${found.length === 1 ? 'task' : 'tasks'} found. ${flagged ? 'Each task shows the high risk construction work its work involves, worked out by the same rules its SWMS uses. That work needs a SWMS by law. Where a task says likely or depends on, its SWMS questions settle it. A principal contractor may still ask for a SWMS for every task.' : 'Tasks marked high risk construction work need a SWMS by law; most builders ask for one for every task.'} Check each one against the scope before you rely on it. Add the tasks you need, then press the button at the bottom.</p>` + found.map((item, index) => {
+        const summary = hrcwOf(item.hrcw);
+        const tag = summary ? summary.tag : item.needsSwms ? 'High risk' : '';
+        return `
         <div class="scope-task" data-card="${index}">
-          <h3>${esc(item.title)}${item.needsSwms ? ' <span class="tag-risk">High risk</span>' : ''}</h3>
+          <h3>${esc(item.title)}${tag ? ` <span class="tag-risk">${esc(tag)}</span>` : ''}</h3>
+          ${summary ? `<p class="meta scope-hrcw">${hrcwText(summary)}</p>` : ''}
           <p>${esc(item.task)}</p>
-          ${(item.highRisk || []).length ? `<p class="meta">High risk construction work: ${esc(item.highRisk.join('; '))}</p>` : ''}
+          ${!summary && (item.highRisk || []).length ? `<p class="meta">High risk construction work: ${esc(item.highRisk.join('; '))}</p>` : ''}
           ${(item.byOthers || []).map((entry, j) => `<fieldset class="scope-others"><legend>Scope review: ${esc(entry.step.toLowerCase())} by others</legend><p class="meta">${esc(entry.says)}${entry.clause ? ` (${esc(entry.clause)})` : ''} Do you need this in your SWMS?</p><label><input type="radio" name="others-${index}-${j}" value="no" checked> No, leave it out</label> <label><input type="radio" name="others-${index}-${j}" value="yes"> Yes, our crew does some of it</label></fieldset>`).join('')}
           ${(item.unmatched || []).length ? `<p class="meta">No job steps in the library for: ${esc(item.unmatched.join('; '))}. Pick the steps for these under Job steps, or describe them in the task.</p>` : ''}
           ${item.clauses ? `<button type="button" class="small secondary" data-scope-clauses="${index}" aria-expanded="false">Show scope clauses</button><div class="scope-clauses hidden" id="scope-clauses-${index}">${item.clauses.map((row) => `<p><strong>${esc(row.activity)}</strong>${row.clause ? ` <span class="meta">${esc(row.clause)}${row.matrixColumn ? `, ${esc(row.matrixColumn)}` : ''}</span>` : ''}</p>${row.quotes.map((quote) => `<blockquote>${esc(quote)}</blockquote>`).join('')}`).join('')}</div>` : `<details><summary>From the scope (${item.lines.length} ${item.lines.length === 1 ? 'line' : 'lines'})</summary><ul>${item.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>`}
           <button type="button" class="small" data-scope-task="${index}" aria-pressed="false">Add this task</button>
-        </div>`).join('') + `<div class="actions scope-go"><button type="button" id="project-start">${projectButton()}</button></div><p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>`
+        </div>`;
+      }).join('') + `<div class="actions scope-go"><button type="button" id="project-start">${projectButton()}</button></div><p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>`
       : (note ? '' : '<p class="note">No site work that needs a SWMS was found. If the scope does include site work, paste the part that describes it.</p>'));
   }
 
@@ -201,7 +211,8 @@
     while (reading.status === 'reading') {
       if (Date.now() - started > 20 * 60 * 1000) throw new Error(`The AI reading is taking too long. Try again later. ${TYPE_TASKS}`);
       await wait(10000);
-      reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}`);
+      // The state picked on the form names the high risk construction work in each package.
+      reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}?state=${encodeURIComponent(body.state || '')}`);
     }
     if (reading.status !== 'done') {
       $('scope-results').innerHTML = `<p class="note">${esc(reading.error || 'The AI reading failed. Try again later.')} ${TYPE_TASKS}</p>`;
@@ -222,14 +233,21 @@
     }
     return [...groups.entries()].map(([name, rows]) => ({ name, rows, work: rows.some((row) => row.type !== 'Duty') }));
   }
+  // Each package's high risk construction work, worked out on the server by the SWMS's own rules.
+  const flagsOf = (reading) => new Map((reading.highRisk || []).map((item) => [item.package, item]));
   function showPackages(reading) {
     aiReading = reading;
     const packages = packagesOf(reading.reading);
     const checks = reading.checks || {};
     const warn = checks.passed === false ? `<p class="note">Some of the AI's quotes could not be matched word for word to the document (${(checks.quotesNotFound || []).length + (checks.quotesShortened || []).length}). Check those tasks against the scope.</p>` : '';
     const conflicts = reading.reading.conflicts || [];
-    $('scope-results').innerHTML = `${warn}<p class="meta" style="margin-top:10px">The AI found ${reading.reading.activities.length} activities in ${packages.length} work packages. Each package you confirm becomes one SWMS. Untick any package that is not yours, then confirm.</p>
-      <div class="scope-packages">${packages.map((pack, index) => `<label class="scope-package"><input type="checkbox" data-package="${index}" ${pack.work ? 'checked' : ''}> <strong>${esc(pack.name)}</strong> <span class="meta">(${pack.rows.length} ${pack.rows.length === 1 ? 'activity' : 'activities'}${pack.work ? '' : ', duties only: no SWMS needed'})</span><span class="meta scope-package-list">${pack.rows.map((row) => esc(row.activity)).join('; ')}</span></label>`).join('')}</div>
+    const flags = flagsOf(reading.reading);
+    const note = flags.size && window.SiteReadyHrcw ? ` ${esc(window.SiteReadyHrcw.HRCW_NOTE)}` : '';
+    $('scope-results').innerHTML = `${warn}<p class="meta" style="margin-top:10px">The AI found ${reading.reading.activities.length} activities in ${packages.length} work packages. Each package you confirm becomes one SWMS. Untick any package that is not yours, then confirm.${note}</p>
+      <div class="scope-packages">${packages.map((pack, index) => {
+        const summary = pack.work ? hrcwOf(flags.get(pack.name)) : null;
+        return `<label class="scope-package"><input type="checkbox" data-package="${index}" ${pack.work ? 'checked' : ''}> <strong>${esc(pack.name)}</strong> <span class="meta">(${pack.rows.length} ${pack.rows.length === 1 ? 'activity' : 'activities'}${pack.work ? '' : ', duties only: no SWMS needed'})</span>${summary ? `<span class="scope-hrcw scope-hrcw-${summary.status}">${hrcwText(summary)}</span>` : ''}<span class="meta scope-package-list">${pack.rows.map((row) => esc(row.activity)).join('; ')}</span></label>`;
+      }).join('')}</div>
       ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul><button type="button" class="small secondary" id="conflict-open">Show the conflicts in full</button></details>` : ''}
       <div class="actions"><button type="button" id="scope-confirm">Confirm these work packages</button> <button type="button" class="secondary" data-scope-report>Scope review report (Word)</button></div>
       <p class="error" id="scope-report-error"></p>`;
@@ -261,7 +279,7 @@
     if (error) error.textContent = '';
     button.disabled = true;
     try {
-      await S.download(`/api/scope/ai/${encodeURIComponent(aiReading.id)}/report.docx`, 'Scope-review-report.docx');
+      await S.download(`/api/scope/ai/${encodeURIComponent(aiReading.id)}/report.docx?state=${encodeURIComponent(aiReading.state || '')}`, 'Scope-review-report.docx');
     } catch (problem) {
       if (error) error.textContent = problem.message; else alert(problem.message);
     } finally {
@@ -275,6 +293,7 @@
     $('scope-error').textContent = '';
     // The job steps the AI chose from the library for each package; the rule engine still adds high risk work.
     const steps = new Map((aiReading.reading.packages || []).map((item) => [item.package, item]));
+    const flags = flagsOf(aiReading.reading);
     show({
       tasks: ticked.map((pack) => {
         const rows = pack.rows.filter((row) => row.type !== 'Duty');
@@ -289,7 +308,9 @@
           task: window.SiteReadyScopeTask.packageTask(use),
           lines: [],
           clauses: use.map((row) => ({ activity: row.activity, clause: row.clause, quotes: row.quotes, matrixColumn: row.matrixColumn })),
-          needsSwms: false,
+          // The same flag the package list showed; the SWMS itself settles it once its questions are answered.
+          hrcw: flags.get(pack.name) || null,
+          needsSwms: Boolean(flags.get(pack.name)) && hrcwOf(flags.get(pack.name)).status === 'yes',
         };
       }),
     });

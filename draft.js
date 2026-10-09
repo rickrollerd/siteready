@@ -654,7 +654,8 @@ function trenchDepths(text) {
 const NOT_DUG = /\btrench (?:drains?|grates?|covers?)\b|\btreat\w*\s+(?:the\s+)?(?:ground (?:areas?|surfaces?)\s+(?:and|or)\s+)?(?:the\s+)?trench\w*|\bcable trenches\b|\btrenches in (?:the )?(?:switch|plant|pump|comms) ?rooms?\b|\b(?:sides?|bottoms?|bases?|floors?|walls?)(?:\s+and\s+(?:sides?|bottoms?|bases?|floors?|walls?))?\s+of\s+(?:the\s+|all\s+)?trench\w*/gi;
 
 function deepExcavation(text) {
-  text = String(text || '').replace(/\b(?:lift|riser|service|ventilation|stair|air)\s+shafts?\b|\bin the shafts\b|\bshaft ?walls?\b/gi, ' ');
+  // A shaft void is an opening through a building's floors, not a dig.
+  text = String(text || '').replace(/\b(?:lift|riser|service|ventilation|stair|air)\s+shafts?\b|\bin the shafts\b|\bshaft ?walls?\b|\bshaft voids?\b/gi, ' ');
   if (LIFT_WORK.test(text)) text = text.replace(/\bshafts?\b/gi, ' ');
   text = text.replace(NOT_DUG, ' ');
   if (/\btunnel\w*\b/i.test(text)) return true;
@@ -745,7 +746,9 @@ function highRiskMatches(raw, answer, state) {
     // Structural alterations or repairs to an existing structure that need temporary support.
     // Propping and backpropping new formwork and slabs is not an alteration or repair.
     // Stripping formwork or removing back props takes away temporary works; it alters or repairs nothing.
-    temporary: mentioned(text, /\bstructural alterations?\b/i) || mentioned(text, LOAD_BEARING_REMOVAL) || mentioned(text, MASONRY_OPENING) || mentioned(text, SUBFLOOR_REPAIR) || mentioned(text, HOUSE_JACKING) || (mentioned(text, /\b(temporary (?:support|props?)|props?|propping|propped)\b/i) && mentioned(String(text || '').replace(/\b(?:strip\w*|remov\w*|dismantl\w*)\b[^.]{0,30}?\b(?:back[- ]?)?(?:props?|propping|shores?|formwork|falsework)\b/gi, ' '), /\b(alter\w*|repair\w*|existing|remov\w*|demoli\w*|load[- ]bearing|openings?|underpin\w*)\b/i)),
+    // The props and the alteration are read from the same sentence: formwork props in one activity
+    // and "remove nails" in another are not propping for a repair.
+    temporary: mentioned(text, /\bstructural alterations?\b/i) || mentioned(text, LOAD_BEARING_REMOVAL) || mentioned(text, MASONRY_OPENING) || mentioned(text, SUBFLOOR_REPAIR) || mentioned(text, HOUSE_JACKING) || sentences(String(text || '').replace(/\b(?:strip\w*|remov\w*|dismantl\w*)\b[^.]{0,30}?\b(?:back[- ]?)?(?:props?|propping|shores?|formwork|falsework)\b/gi, ' ')).some((line) => mentioned(line, /\b(temporary (?:support|props?)|props?|propping|propped)\b/i) && mentioned(line, /\b(alter\w*|repair\w*|existing|remov\w*|demoli\w*|load[- ]bearing|openings?|underpin\w*)\b/i)),
     confined: mentioned(text, /\bconfined space\b/i),
     // Detailed excavation digs the pile caps, lift pits and service trenches: with no depth of
     // 1.5 m or less stated, it is taken as deeper, as a trench of unstated depth is.
@@ -2220,7 +2223,95 @@ function notCoveredRefusal(draft, input) {
 }
 
 function prepareDraft(input) {
-  const asked = questionsFor(input);
+  return buildDraft(input, false);
+}
+
+// Short names for the high risk construction work categories, for a list of work packages,
+// where the regulation's full wording would be too long to read at a glance.
+const HRCW_SHORT = {
+  fall: 'Fall of more than {m} m',
+  tower: 'Telecommunication tower',
+  demolition: 'Demolition of a load-bearing structure',
+  asbestos: 'Asbestos',
+  temporary: 'Temporary support for structural alterations or repairs',
+  confined: 'Confined space',
+  trench: 'Trench or shaft deeper than 1.5 m, or a tunnel',
+  tunnel: 'Tunnel',
+  explosives: 'Explosives',
+  gas: 'Pressurised gas mains or piping',
+  chemicalLine: 'Chemical, fuel or refrigerant lines',
+  electrical: 'Energised electrical installations or services',
+  atmosphere: 'Contaminated or flammable atmosphere',
+  precast: 'Tilt-up or precast concrete',
+  road: 'Road, railway or other traffic corridor in use',
+  plant: 'Moving powered mobile plant',
+  temperature: 'Artificial extremes of temperature',
+  water: 'Water or liquid with a risk of drowning',
+  diving: 'Diving work',
+  silica: 'Silica processing with power tools',
+};
+
+// Places at height a task's words name: a fall is suggested there, and the user confirms it.
+const FALL_PLACE = /\b(slab edges?|edges?|roofs?|roofing|eaves|balcon\w*|scaffold\w*|ewps?|elevating work platforms?|boom lifts?|scissor lifts?|at height|voids?|risers?|shafts?|parapets?|ladders?|mezzanines?|jump ?forms?|self[- ]climbing|climbing (?:form\w*|platforms?))\b/i;
+// A person falling from an edge, platform or roof, or through an opening, in a job step's hazards.
+const STEP_FALL = /(?:\bperson |\bworkers? |^an? |^)(?:fall|falls|falling) (?:from (?!a ladder\b)|through\b|into (?:an? |the )?(?:open )?(?:riser|shaft|void|opening))/i;
+// Traffic named as using the road or rail line while the work is done.
+const TRAFFIC_IN_USE = /\b(?:live|busy|public|moving|passing|open to|under|alongside|next to) traffic\b|\btraffic (?:lanes? )?(?:is |are |remains? )?(?:open|in use|running|flowing|passing)\b|\b(?:live|busy|open|operating) (?:roads?|streets?|lanes?|carriageways?|highways?|motorways?|freeways?|buses)\b|\bin use by traffic\b/i;
+
+// The high risk construction work a SWMS for this task would list before any of its questions are
+// answered, by the SWMS's own rules: the scope's work packages are flagged with it (goal 4). The fall
+// question is left to the task's words, as it is before the user answers. A category is "likely"
+// where it rests on something the words do not say (a height, a depth, traffic on the road), and
+// "yes" where they say it. dependsOn lists the categories a question the SWMS asks can still bring.
+// said: other words about the same work (the scope's own quotes), read only to settle a "likely".
+function screenHighRisk(input, said = '') {
+  const state = stateFor(input);
+  const out = { categories: [], dependsOn: [] };
+  if (!state || !state.loaded) return out;
+  const draft = buildDraft(input, true);
+  // Workshop work is not construction work on site, so its SWMS lists no high risk work.
+  if (draft.kind !== 'draft' || workshopOnly(namedInPassing(draft.task))) return out;
+  const metres = fallMetres(state);
+  const words = `${draft.task}\n${String(said || '')}`;
+  const shortName = (id) => (HRCW_SHORT[id] || id).replace('{m}', String(metres));
+  // What a "likely" category rests on, or '' where the words settle it.
+  const restsOn = {
+    fall: () => (statedHeights(words).some((height) => height > metres) || /\bfall(?:ing)? (?:of )?(?:more than )?(?:2|two|3|three)\b/i.test(words) ? '' : 'the working height'),
+    trench: () => (trenchDepths(words).some((depth) => depth > 1.5) || /\btunnel\w*\b/i.test(words) ? '' : 'the depth of the dig'),
+    road: () => (TRAFFIC_IN_USE.test(words) || RAIL_IN_USE.test(words) ? '' : 'whether the work is on or next to a road or railway open to traffic'),
+  };
+  // A fall the words do not bring is likely where they name a place at height (a slab edge, a void).
+  const fallLabel = state.residential && state.residentialFallLabel ? state.residentialFallLabel : (highRiskList(state).find((item) => item.id === 'fall') || {}).label;
+  const placed = fallLabel && !draft.highRisk.includes(fallLabel) && FALL_PLACE.test(draft.task) ? [fallLabel] : [];
+  for (const item of highRiskList(state)) {
+    const label = item.id === 'fall' ? fallLabel : item.label;
+    if (![...draft.highRisk, ...placed].includes(label)) continue;
+    const on = restsOn[item.id] ? restsOn[item.id]() : '';
+    out.categories.push({ id: item.id, label, short: shortName(item.id), likely: Boolean(on), dependsOn: on });
+  }
+  const listed = new Set(out.categories.map((item) => item.id));
+  const asked = new Set(draft.missing || []);
+  const steps = draft.jobSteps || [];
+  const depends = [
+    ['fall', steps.some((step) => (step.hazards || []).some((line) => STEP_FALL.test(String(line)))), 'the working height'],
+    ['electrical', asked.has('liveElectrical'), 'whether any of the work is near live electrical parts'],
+    ['electrical', asked.has('energisedWork'), 'whether any testing or commissioning is done near energised parts'],
+    ['confined', asked.has('spaceAssessment'), 'whether a pit, tank or manhole entered is a confined space'],
+    ['atmosphere', asked.has('refrigerantClass'), 'the refrigerant used (A2L, A2 and A3 refrigerants are flammable)'],
+  ];
+  for (const [id, applies, on] of depends) {
+    if (!applies || listed.has(id) || !highRiskList(state).some((item) => item.id === id)) continue;
+    listed.add(id);
+    out.dependsOn.push({ id, short: shortName(id), on });
+  }
+  return out;
+}
+
+// screen is set only by screenHighRisk below, never by a request: the questions are left
+// unanswered and the draft is worked out anyway, so its high risk list is what the task's
+// own words and job steps bring.
+function buildDraft(input, screen) {
+  const asked = questionsFor(screen ? { ...input, fallRisk: 'no', residential: input.residential || 'no' } : input);
   if (asked.kind === 'refused' || asked.kind === 'error') return asked;
   const state = stateFor(input);
   // The SWMS shows the task as typed; the work is read from it with site slang expanded.
@@ -2285,7 +2376,7 @@ function prepareDraft(input) {
     test: packIsTest(input),
   };
 
-  if (missing.length) {
+  if (missing.length && !screen) {
     return {
       kind: 'stand-down',
       ...header,
@@ -2344,7 +2435,7 @@ function prepareDraft(input) {
   const mainMissing = missingMainWork(task, draft.jobSteps || [], added);
   // Picks that leave no step of the user's own (only the required ones) are no picks at all.
   const nothingPicked = Boolean(state.kinds) && !state.kinds.length;
-  if ((draft.jobSteps || []).some((step) => step.fallback) || mainMissing || nothingPicked) {
+  if (((draft.jobSteps || []).some((step) => step.fallback) || mainMissing || nothingPicked) && !screen) {
     return {
       kind: 'stand-down',
       ...header,
@@ -2408,6 +2499,7 @@ function prepareDraft(input) {
     }
   }
   if (workshopOnly(riskTask)) draft.highRisk = [];
+  if (screen) return { ...draft, missing: missing.map((item) => item.id) };
   // Answers that contradict the task's own words, shown above the draft. The answer stands.
   const warnings = [energisedWarning(riskTask, facts)].filter(Boolean);
   // The user's own hazards and Who go in last, so the registers and risk ratings are worked out
@@ -5463,6 +5555,8 @@ module.exports = {
   questionsFor,
   prepareDraft,
   notCoveredRefusal,
+  screenHighRisk,
+  FALL_PLACE,
   stripLiftBleedText,
   blankName,
   noneAnswer,

@@ -120,3 +120,44 @@ test('the report route gives the company its own reading as Word, and refuses an
   assert.equal((await get('report-reading-1')).status, 401);
   assert.equal((await get('report-reading-2', owner.token)).status, 409);
 });
+
+test('the reading and the report show each package\'s high risk construction work, in the state\'s words', async () => {
+  const owner = await signIn('hrcw@owner.example');
+  await keepReading('hrcw-reading-1', owner.companyId);
+  const headers = { Authorization: `Bearer ${owner.token}` };
+  const reading = await (await fetch(`${base}/api/scope/ai/hrcw-reading-1?state=nsw`, { headers })).json();
+  assert.equal(reading.state, 'nsw');
+  // Packages with site work only; the duties package is not flagged.
+  assert.deepEqual(reading.reading.highRisk.map((item) => item.package), ['Mechanical installation', 'Plant lifting and cranage']);
+  const lift = reading.reading.highRisk[1];
+  assert.ok(lift.categories.some((item) => item.id === 'plant' && /^Is carried out in an area at a workplace in which there is movement of powered mobile plant$/.test(item.label) && item.short === 'Moving powered mobile plant'));
+  // No state given: Queensland, as the quick read does.
+  assert.equal((await (await fetch(`${base}/api/scope/ai/hrcw-reading-1`, { headers })).json()).state, 'qld');
+
+  const text = await textOf(Buffer.from(await (await fetch(`${base}/api/scope/ai/hrcw-reading-1/report.docx?state=nsw`, { headers })).arrayBuffer()));
+  for (const words of [
+    'High risk construction work', 'of 2 work packages',
+    'Each work package shows the high risk construction work its work involves', 'The categories are those of the Work Health and Safety Regulation 2025 (NSW).',
+    'High risk construction work: a SWMS is required by law.', 'Moving powered mobile plant.',
+  ]) assert.ok(text.includes(words), `missing: ${words}`);
+  // Each package's flag sits under its own heading.
+  const work = text.slice(text.indexOf('Plant lifting and cranage (1 activity)'), text.indexOf('2. Work the scope'));
+  assert.ok(work.includes('Moving powered mobile plant.'));
+});
+
+test('a package with no high risk construction work says so, and that the principal contractor may still want a SWMS', async () => {
+  const reading = {
+    ...READING,
+    highRisk: [
+      { package: 'Mechanical installation', categories: [], dependsOn: [] },
+      { package: 'Plant lifting and cranage', categories: [{ id: 'plant', label: 'x', short: 'Moving powered mobile plant', likely: false, dependsOn: '' }], dependsOn: [] },
+    ],
+  };
+  const text = await textOf(await reportToDocx(reading, { date: '7 October 2026' }));
+  assert.ok(text.includes('1 high risk: a SWMS is required by law; 1 none found (of 2 work packages)'));
+  const pack = text.slice(text.indexOf('Mechanical installation (2 activities)'), text.indexOf('Plant lifting and cranage (1 activity)'));
+  assert.ok(pack.includes('No high risk construction work found in this work.'));
+  assert.ok(pack.includes('A SWMS may still be required by the principal contractor.'));
+  // A reading without flags gives the report as before.
+  assert.ok(!(await textOf(await reportToDocx(READING))).includes('high risk construction work'));
+});

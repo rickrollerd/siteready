@@ -14,7 +14,8 @@ const Anthropic = require('@anthropic-ai/sdk');
 const db = require('./db');
 const { BRIEF, BRIEF_VERSION, SCHEMA, PACKAGES, STEPS_BRIEF, STEPS_SCHEMA } = require('./ai-brief');
 const { ACTIVITIES } = require('./activities');
-const { packageKinds, suggestedKinds } = require('./draft');
+const { packageKinds, suggestedKinds, screenHighRisk } = require('./draft');
+const { findState } = require('./legislation');
 const { TITLES } = require('./scope');
 const { packageTask } = require('./public/scope-task');
 
@@ -357,6 +358,49 @@ function oneForTheProject(reading) {
   };
 }
 
+// Goal 4: each work package with site work is flagged with the high risk construction work its
+// SWMS would list before any question is answered, by the SWMS's own rules (draft.js). The task is
+// the one its task card sends, with the package's job step groups, and with the steps the scope
+// gives to others left out, as the card leaves them out unless the user says otherwise. The AI's
+// quotes are read only to settle a "likely" (a height, a depth or traffic the activities leave
+// out): on their own they also name general clauses and other trades' work, so they add nothing.
+// Worked out each time a reading is read back, so a rule change reaches kept readings too, and
+// kept for the last readings asked for. Each package waits its turn, so a long scope does not hold
+// up other requests.
+const FLAGS_KEPT = 100;
+const flagsKept = new Map();
+async function packageHighRisk(reading, state) {
+  const out = [];
+  const steps = new Map((reading.packages || []).map((item) => [item.package, item]));
+  const names = [...new Set((reading.activities || []).map((row) => row.package || 'Other work'))];
+  for (const name of names) {
+    const rows = (reading.activities || []).filter((row) => (row.package || 'Other work') === name && row.type !== 'Duty');
+    if (!rows.length) continue;
+    // Work the AI read as done off site (a workshop, a factory) is not construction work on site.
+    if (rows.every((row) => row.type === 'Off-site work')) {
+      out.push({ package: name, categories: [], dependsOn: [], offSite: true });
+      continue;
+    }
+    const chosen = steps.get(name);
+    const input = { state, task: packageTask(rows), kinds: chosen ? chosen.groups : null, leaveOut: chosen ? (chosen.byOthers || []).map((entry) => entry.step) : [] };
+    out.push({ package: name, ...screenHighRisk(input, rows.flatMap((row) => row.quotes || []).join('\n')) });
+    await new Promise((resolve) => { setImmediate(resolve); });
+  }
+  return out;
+}
+
+// The state picked on the form names the categories; Queensland when none is given, as the quick read does.
+async function withHighRisk(out, stateName) {
+  if (!out.reading) return out;
+  const state = (findState(stateName) || findState('qld')).id;
+  const key = `${out.id}:${out.briefVersion}:${state}`;
+  if (!flagsKept.has(key)) {
+    flagsKept.set(key, await packageHighRisk(out.reading, state));
+    if (flagsKept.size > FLAGS_KEPT) flagsKept.delete(flagsKept.keys().next().value);
+  }
+  return { ...out, reading: { ...out.reading, highRisk: flagsKept.get(key) }, state };
+}
+
 function rowOut(row) {
   return {
     id: row.id,
@@ -371,7 +415,7 @@ function rowOut(row) {
 
 // Starts a reading, or returns the one already kept for this company and document.
 // The reading itself runs on after the request returns; the page asks for it by its id.
-async function startReading(company, text) {
+async function startReading(company, text, stateName) {
   if (!enabled()) throw fail(503, 'The AI reading is not switched on. Try again later, or write the tasks in the Task box.');
   if (!company) throw fail(401, 'Sign in to have the AI read a scope.');
   const content = String(text || '');
@@ -381,7 +425,7 @@ async function startReading(company, text) {
   await markStale();
   const kept = await db.one("SELECT * FROM ai_readings WHERE company_id = $1 AND doc_hash = $2 AND brief_version = $3 AND status <> 'failed' ORDER BY created_at DESC LIMIT 1",
     [company.id, hash, BRIEF_VERSION]);
-  if (kept) return { ...rowOut(kept), kept: true };
+  if (kept) return { ...(await withHighRisk(rowOut(kept), stateName)), kept: true };
   const id = crypto.randomUUID();
   await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
     [id, company.id, hash, BRIEF_VERSION, MODEL, 'reading', content.length, new Date()]);
@@ -409,12 +453,12 @@ async function markStale() {
     ['The reading was interrupted. Try again.', new Date(), new Date(Date.now() - STALE_MINUTES * 60 * 1000)]);
 }
 
-async function getReading(company, id) {
+async function getReading(company, id, stateName) {
   if (!company) throw fail(401, 'Sign in to see this reading.');
   await markStale();
   const row = await db.one('SELECT * FROM ai_readings WHERE id = $1 AND company_id = $2', [String(id || ''), company.id]);
   if (!row) throw fail(404, 'That reading was not found.');
-  return rowOut(row);
+  return withHighRisk(rowOut(row), stateName);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, checkReading, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, stepCatalogue, callModel, MODEL };
+module.exports = { enabled, useClient, startReading, getReading, checkReading, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };

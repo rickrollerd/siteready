@@ -4,7 +4,7 @@
 // work is matched to the kinds of work the drafting library knows, and lines of
 // the same kind become one proposed task. A task is marked as needing a SWMS when
 // it is high risk construction work.
-const { workFlags, highRiskMatches, groundSlabOnly, suggestedKinds, workshopWork } = require('./draft');
+const { workFlags, highRiskMatches, groundSlabOnly, suggestedKinds, workshopWork, FALL_PLACE } = require('./draft');
 const { ACTIVITIES } = require('./activities');
 const { findState, highRiskList } = require('./legislation');
 const { TRADES, tradeIds } = require('./trades');
@@ -572,7 +572,7 @@ function tasksFromScope(text, stateId = 'qld') {
       // The trades the task belongs to, so its SWMS uses only their job steps.
       trade: trades.join(','),
       // A fall is suggested where the work is at an edge, on a roof or at height; the user confirms it.
-      fallRisk: highRisk.some((label) => /falling/i.test(label)) || /\b(slab edges?|edges?|roofs?|roofing|eaves|balcon\w*|scaffold\w*|ewps?|elevating work platforms?|boom lifts?|scissor lifts?|at height|voids?|risers?|shafts?|parapets?|ladders?|mezzanines?)\b/i.test(task) || kinds.some((kind) => FALL_KINDS.has(kind)) ? 'yes' : '',
+      fallRisk: highRisk.some((label) => /falling/i.test(label)) || FALL_PLACE.test(task) || kinds.some((kind) => FALL_KINDS.has(kind)) ? 'yes' : '',
       needsSwms: highRisk.length > 0,
       // The job steps to tick for this task when it is used.
       kinds,

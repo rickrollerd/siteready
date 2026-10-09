@@ -215,7 +215,7 @@ app.get('/api/scope/ai', (req, res) => res.json({ enabled: aiScope.enabled() }))
 app.post('/api/scope/ai', auth.requireAccess, async (req, res, next) => {
   try {
     const text = await scopeText(req.body || {});
-    const started = await aiScope.startReading(req.company, text);
+    const started = await aiScope.startReading(req.company, text, req.body && req.body.state);
     record(started.kept ? 'ai_scope_kept' : 'ai_scope', req.company && req.company.id);
     const { done, ...out } = started;
     res.status(started.status === 'reading' ? 202 : 200).json(out);
@@ -225,7 +225,8 @@ app.post('/api/scope/ai', auth.requireAccess, async (req, res, next) => {
 });
 app.get('/api/scope/ai/:id', auth.requireUser, async (req, res, next) => {
   try {
-    res.json(await aiScope.getReading(req.company, req.params.id));
+    // The state picked on the form names the high risk construction work in each package.
+    res.json(await aiScope.getReading(req.company, req.params.id, req.query.state));
   } catch (error) {
     next(error);
   }
@@ -233,9 +234,9 @@ app.get('/api/scope/ai/:id', auth.requireUser, async (req, res, next) => {
 // The scope review report (Word) of a finished reading: the company's own readings only.
 app.get('/api/scope/ai/:id/report.docx', auth.requireUser, async (req, res, next) => {
   try {
-    const reading = await aiScope.getReading(req.company, req.params.id);
+    const reading = await aiScope.getReading(req.company, req.params.id, req.query.state);
     if (reading.status !== 'done' || !reading.reading) return res.status(409).json({ kind: 'error', message: 'The AI reading is not finished yet. Try again when it is.' });
-    const buffer = await reportToDocx(reading.reading, { company: req.company, checks: reading.checks });
+    const buffer = await reportToDocx(reading.reading, { company: req.company, checks: reading.checks, state: findState(reading.state) });
     record('scope_report', req.company && req.company.id);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', 'attachment; filename="Scope-review-report.docx"');
