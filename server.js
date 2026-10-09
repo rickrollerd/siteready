@@ -27,6 +27,7 @@ const { reportToDocx } = require('./scope-report');
 const places = require('./places');
 const { recordIndustry } = require('./industry');
 const draftTranslate = require('./draft-translate');
+const { keyProblems } = require('./secret-keys');
 
 require('dotenv').config();
 
@@ -439,6 +440,8 @@ app.use((error, req, res, _next) => {
 function start() {
   const PORT = process.env.PORT || 3849;
   const workers = Math.floor(positiveNumber(process.env.WEB_CONCURRENCY, os.availableParallelism()));
+  // In production, a feature whose secret key is missing stays off, and the log names the variable.
+  if (cluster.isPrimary) for (const line of keyProblems()) console.error(line);
   if (workers > 1 && cluster.isPrimary) {
     for (let i = 0; i < workers; i += 1) cluster.fork();
     cluster.on('exit', (worker, code, signal) => {

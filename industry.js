@@ -9,9 +9,15 @@
 // smaller counts roll up to the first two digits, then the state, then are left out.
 const crypto = require('crypto');
 const db = require('./db');
+const { industryKey } = require('./secret-keys');
 
-const KEY = () => process.env.INDUSTRY_KEY || process.env.SESSION_SECRET || 'siteready-industry';
-const code = (value) => crypto.createHmac('sha256', KEY()).update(String(value)).digest('hex').slice(0, 24);
+// INDUSTRY_KEY (or SESSION_SECRET). In production there is no built-in key: without one, no
+// industry record is kept (secret-keys.js).
+const code = (value) => {
+  const key = industryKey();
+  if (!key) throw new Error('INDUSTRY_KEY is not set.');
+  return crypto.createHmac('sha256', key).update(String(value)).digest('hex').slice(0, 24);
+};
 
 // The general type of project, from fixed categories. The task's own words are not kept.
 const PROJECT_TYPES = [
@@ -114,6 +120,7 @@ function recordFor(draft, input, company) {
 
 async function recordIndustry(draft, input, company) {
   if (!db.enabled() || !company || company.industry_opt_out || !draft || draft.kind !== 'draft') return;
+  if (!industryKey()) return;
   const record = recordFor(draft, input || {}, company);
   const seen = await db.one('SELECT 1 AS found FROM industry_records WHERE dedupe = $1', [record.dedupe]);
   if (seen) return;

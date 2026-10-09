@@ -5,7 +5,7 @@ const QRCode = require('qrcode');
 const db = require('./db');
 const JSZip = require('jszip');
 const { recordIndustry } = require('./industry');
-const { recordControlEdits, removeOld: removeOldEdits } = require('./control-learning');
+const { recordControlEdits, recordFailedQuestions, enabled: learningEnabled, removeOld: removeOldEdits } = require('./control-learning');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
@@ -293,6 +293,18 @@ router.get('/swms', requireUser, route(async (req, res) => {
   res.json({ swms: rows.map((row) => swmsView(row, { task: row.input.task, signons: signed[row.id] || 0 })) });
 }));
 
+// What the account holds of its people and sites when a SWMS is saved, so the control learning
+// store can take their names out of what the user typed. Read only when learning is on.
+async function learningAccount(req, swmsId, reviewedBy) {
+  if (!learningEnabled()) return {};
+  return {
+    users: await db.query('SELECT name, email FROM users WHERE company_id = $1', [req.company.id]),
+    sites: await db.query('SELECT name, details FROM sites WHERE company_id = $1', [req.company.id]),
+    workers: await db.query('SELECT worker_name, worker_company, explained_by FROM signons WHERE swms_id = $1', [swmsId]),
+    reviewedBy,
+  };
+}
+
 // A new saved SWMS at revision 1, kept as it prints.
 async function createSwms(req, { input, draft, name, siteId = null, title, reason = '' }) {
   const id = auth.newId();
@@ -307,7 +319,7 @@ async function createSwms(req, { input, draft, name, siteId = null, title, reaso
   record('swms_saved', req.company.id);
   await recordIndustry(draft, input, req.company).catch(() => {});
   // The changes in this revision, recorded once for it.
-  await recordControlEdits(draft, input, { company: req.company, swmsId: row.id, revision: 1, now }).catch(() => {});
+  await learningAccount(req, row.id, name).then((account) => recordControlEdits(draft, input, { company: req.company, swmsId: row.id, revision: 1, now, account })).catch(() => {});
   return { row, kept };
 }
 
@@ -318,7 +330,7 @@ async function reviseSwms(req, row, { input, draft, name, siteId = row.site_id, 
     [titleFor({ title }, input), JSON.stringify(input), siteId, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   const next = await db.one('SELECT * FROM swms WHERE id = $1', [row.id]);
   const kept = await revisions.keepRevision({ row: next, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
-  await recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now }).catch(() => {});
+  await learningAccount(req, next.id, name).then((account) => recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account })).catch(() => {});
   return { row: next, kept };
 }
 
@@ -589,6 +601,9 @@ router.post('/sign/:token', route(async (req, res) => {
     if (questions.length) {
       const marked = await signRead.markAnswers(read, questions, body.answers);
       if (marked.wrong.length) {
+        // Each wrong answer, without the worker, business, site or SWMS (control learning only).
+        const language = signRead.languageFor(body.language) ? body.language : 'en';
+        await recordFailedQuestions(marked.wrong, body.answers, { draft, input: row.input, company, language }).catch(() => {});
         res.status(400).json({ kind: 'error', message: signRead.wrongMessage(questions, marked.wrong), wrong: marked.wrong.map((item) => item.id), sections: [...new Set(marked.wrong.map((item) => item.section))] });
         return;
       }

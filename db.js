@@ -317,6 +317,21 @@ const SCHEMA = [
     created_at TIMESTAMPTZ NOT NULL
   )`,
   'CREATE INDEX IF NOT EXISTS control_edit_events_swms ON control_edit_events (swms_key, revision)',
+  // Wrong answers to the check questions at worker sign-on (goal 11): the kind of question, the
+  // step and item it tested, the wrong option chosen, the language, state, trade and month. No
+  // worker, business, site, SWMS or read, and no time finer than the month. Written only when
+  // CONTROL_LEARNING is on; kept 3 years.
+  `CREATE TABLE IF NOT EXISTS check_question_misses (
+    id TEXT PRIMARY KEY,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    language TEXT NOT NULL DEFAULT '',
+    kind TEXT NOT NULL,
+    step TEXT NOT NULL DEFAULT '',
+    item TEXT NOT NULL DEFAULT '',
+    chosen TEXT NOT NULL DEFAULT ''
+  )`,
 ];
 
 async function migrate() {

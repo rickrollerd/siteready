@@ -368,3 +368,88 @@ test('the scrubber keeps public bodies and product brands, and still takes out p
   assert.equal(scrub('Call Dave Smith on 0412 345 678.'), 'Call [name] on [phone].');
   assert.match(scrub('Coates supplies the Genie lift.'), /^\[name\] supplies the Genie lift\.$/);
 });
+
+// ---- The scrubber with the account's own names (goal 11, item 2). Every name here is invented. ----
+
+const ACCOUNT = {
+  company: { name: 'Harbourline Constructions Pty Ltd', address: '7 Corella Court, Milton QLD 4064', email: 'office@harbourline.example' },
+  input: { workplace: '18 Wattlebird Lane, Toowong QLD 4066', principalContractor: 'Brookvale Building Group', siteManager: 'Dave Okafor', firstAider: 'Priya Ramesh (leading hand)', musterPoint: 'Gate 2 car park' },
+  rows: {
+    users: [{ name: 'Lena Marsh', email: 'lena.marsh@harbourline.example' }, { name: '', email: 'tomh@gmail.com' }],
+    sites: [{ name: 'Kestrel Point Apartments', details: { principalContractor: 'Brookvale Building Group', siteManager: 'Dave Okafor' } }],
+    workers: [{ worker_name: 'Ravi Patel', worker_company: 'Coastline Formwork', explained_by: '' }],
+    reviewedBy: 'Tom Halloran',
+  },
+};
+
+test('the scrubber takes out the account\'s own business, site, principal contractor and people names, in any case', () => {
+  const { scrub, accountValues, accountTerms } = require('../control-learning');
+  const terms = accountTerms(accountValues(ACCOUNT.company, ACCOUNT.input, ACCOUNT.rows));
+  const cases = [
+    // Notes as subbies type them: lower case, initials, the site by its short name.
+    ['ask dave from harbourline first', 'ask [name] from [name] first'],
+    ['bbg super wants permits signed before 7am', '[name] super wants permits signed before 7am'],
+    ['Use the Genie scissor lift on level 3 of kestrel point', 'Use the Genie scissor lift on level 3 of [site]'],
+    ['Kestrel Point Apartments level 4 slab edge', '[site] level 4 slab edge'],
+    ['toowong job: gate 2 only, no deliveries before 7am', '[site] job: gate 2 only, no deliveries before 7am'],
+    ['priya ramesh is first aider, radio channel 4', '[name] is first aider, radio channel 4'],
+    ['lena to check scaffold tags weekly', '[name] to check scaffold tags weekly'],
+    ['ravi from coastline does the formwork strip', '[name] from [name] does the formwork strip'],
+    ['tom halloran signs off the permit', '[name] signs off the permit'],
+    ['brookvale want hold points photographed', '[name] want hold points photographed'],
+    ['OKAFOR TO SIGN THE PERMIT', '[name] TO SIGN THE PERMIT'],
+    // Library words in the account's names are not taken out on their own.
+    ['Muster at the gate 2 car park, the leading hand calls the roll.', 'Muster at the gate 2 car park, the leading hand calls the roll.'],
+  ];
+  for (const [typed, kept] of cases) assert.equal(scrub(typed, '', terms), kept, typed);
+  // Without the account, the same notes keep the names the patterns cannot see.
+  assert.equal(scrub('ask dave from harbourline first'), 'ask [name] from harbourline first');
+  assert.equal(scrub('bbg super wants permits signed before 7am'), 'bbg super wants permits signed before 7am');
+});
+
+test('the scrubber takes out lower-case given names, initials in capitals, businesses before a trade word and named places', () => {
+  const { scrub } = require('../control-learning');
+  const cases = [
+    ['ask dave from abc plumbing first', 'ask [name] from [name] plumbing first'],
+    ['ring mick from coates hire for the tag', 'ring [name] from [name] hire for the tag'],
+    ['HCG supervisor checks the harness', '[name] supervisor checks the harness'],
+    ['smith and sons deliver the steel', '[name] and sons deliver the steel'],
+    ['Barricade near the Royal Brisbane Hospital entry', 'Barricade near the [site] entry'],
+    ['barricade near the royal brisbane hospital entry', 'barricade near the [site] entry'],
+    ['Brisbane Airport works need an airside permit', '[site] works need an airside permit'],
+    ['Spotter from Coates on site at 42 Smith Street', 'Spotter from [name] on site at [address]'],
+    // Library lines, site short forms and public names stay as typed.
+    ['LOTO on the MSB before the sparky starts. SWMS and JSA signed.', 'LOTO on the MSB before the sparky starts. SWMS and JSA signed.'],
+    ['PPE: P2 mask and safety glasses, check with the PC', 'PPE: P2 mask and safety glasses, check with the PC'],
+    ['Mobile scaffold tower is inspected before use.', 'Mobile scaffold tower is inspected before use.'],
+    ['the car park and the site office', 'the car park and the site office'],
+    ['Telstra pit lids are lifted with a lid lifter.', 'Telstra pit lids are lifted with a lid lifter.'],
+    ['DO NOT ENTER THE EXCLUSION ZONE WHILE THE CRANE IS LIFTING', 'DO NOT ENTER THE EXCLUSION ZONE WHILE THE CRANE IS LIFTING'],
+  ];
+  for (const [typed, kept] of cases) assert.equal(scrub(typed), kept, typed);
+});
+
+test('a saved SWMS records the user\'s words without the account\'s business, site, principal contractor or people', async () => {
+  process.env.CONTROL_LEARNING = 'on';
+  try {
+    const token = await signIn('lena.marsh@harbourline.example', 'Harbourline Constructions Pty Ltd');
+    const site = await (await call('POST', '/api/sites', { token, body: { name: 'Kestrel Point Apartments', workplace: '18 Wattlebird Lane, Toowong QLD 4066', principalContractor: 'Brookvale Building Group', siteManager: 'Dave Okafor', firstAider: 'Priya Ramesh' } })).json();
+    const edits = {
+      'Before starting': { removed: [LEGAL_LINE], reasons: [{ line: LEGAL_LINE, reason: 'othersCover', note: 'brookvale check white cards at the toowong gate, ask dave okafor' }] },
+      Excavate: { added: ['Ask dave before the bbg super walks the kestrel point slab edge.', 'lena marsh signs the dig permit with harbourline.'] },
+    };
+    const input = { ...INPUT, controlEdits: edits, whoEdits: { Excavate: 'priya (first aider)' } };
+    const saved = await call('POST', '/api/swms', { token, body: { input, siteId: site.site.id, reviewConfirmed: true, reviewedBy: 'Tom Halloran' } });
+    assert.equal(saved.status, 201);
+    const key = (await db.query('SELECT swms_key FROM control_edit_events WHERE original = $1 AND reason = $2', [LEGAL_LINE, 'othersCover'])).pop().swms_key;
+    const rows = await db.query('SELECT * FROM control_edit_events WHERE swms_key = $1', [key]);
+    const lines = rows.map((row) => row.new_line).sort();
+    assert.ok(lines.includes('Ask [name] before the [name] super walks the [site] slab edge.'), lines.join(' | '));
+    assert.ok(lines.includes('[name] signs the dig permit with [name].'), lines.join(' | '));
+    assert.ok(lines.includes('[name] (first aider)'), lines.join(' | '));
+    assert.equal(rows.find((row) => row.kind === 'removed').note, '[name] check white cards at the [site] gate, ask [name]');
+    assert.doesNotMatch(JSON.stringify(rows), /harbourline|brookvale|bbg|kestrel|toowong|wattlebird|dave|okafor|priya|ramesh|lena|marsh|halloran/i);
+  } finally {
+    delete process.env.CONTROL_LEARNING;
+  }
+});
