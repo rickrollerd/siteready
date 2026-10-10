@@ -532,6 +532,8 @@ function newSwms() {
   emergencyAnswers = null;
   choicesTask = null;
   ppeTouched.clear();
+  // Its questions start blank.
+  freshFacts = true;
   if (window.SiteReady) window.SiteReady.editing = null;
 }
 let stepLibrary = { groups: [] };
@@ -631,26 +633,7 @@ const REMOVED_WARNINGS = {
 
 // Changing the steps asks the questions again, keeping what has been filled in.
 async function refreshSteps() {
-  const kept = {};
-  document.querySelectorAll('[data-fact]').forEach((el) => {
-    if (el.type === 'radio') { if (el.checked) kept[el.dataset.fact] = el.value; } else kept[el.dataset.fact] = el.value;
-  });
-  const site = {};
-  document.querySelectorAll('[data-site]').forEach((el) => { site[el.dataset.site] = el.value; });
-  const ppe = new Set([...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value));
-  const loaded = await loadQuestions({ stay: true }).catch((error) => { document.getElementById('facts-error').textContent = error.message; return false; });
-  if (!loaded) return;
-  document.querySelectorAll('[data-fact]').forEach((el) => {
-    const value = kept[el.dataset.fact];
-    if (value === undefined) return;
-    if (el.type === 'radio') el.checked = el.value === value;
-    else el.value = value;
-  });
-  applyShowIf();
-  document.querySelectorAll('[data-site]').forEach((el) => { if (site[el.dataset.site] !== undefined) el.value = site[el.dataset.site]; });
-  (questions && questions.required || []).forEach((item) => markPicks(item.id));
-  // PPE the user ticked or unticked stays as they set it; the rest follows the new suggestion.
-  document.querySelectorAll('[data-ppe]').forEach((el) => { if (ppeTouched.has(el.value)) el.checked = ppe.has(el.value); else if (ppe.has(el.value)) el.checked = true; });
+  await loadQuestions({ stay: true, keepTicked: true }).catch((error) => { document.getElementById('facts-error').textContent = error.message; return false; });
 }
 
 // Ticking a harness or life jacket asks about it; unticking one takes the question away.
@@ -686,13 +669,140 @@ document.getElementById('steps-reset').addEventListener('click', () => {
 
 loadStepLibrary();
 
+// The answers given for this SWMS, by question, so a question asked again (after Continue, a change
+// of steps, or an answer that brings in another question) keeps its answer, and one that goes and
+// comes back has it again. A new SWMS starts blank (freshFacts).
+let factMemory = {};
+let siteMemory = {};
+let freshFacts = false;
+
+function shownAnswers(selector, key) {
+  const out = {};
+  document.querySelectorAll(selector).forEach((el) => {
+    if (el.type === 'radio') { if (el.checked) out[el.dataset[key]] = el.value; } else out[el.dataset[key]] = el.value;
+  });
+  return out;
+}
+
+// One question, as the page shows it.
+function factHtml(item) {
+  const extra = item.prompt && item.prompt.replace(/\.$/, '') !== item.label
+    ? `<span class="hint">${esc(item.prompt)}</span>` : '';
+  if (item.choices) {
+    // A choice with a default starts on it. One shown only after another answer (showIf) starts hidden.
+    const showIf = item.showIf ? Object.entries(item.showIf)[0] : null;
+    return `<fieldset class="field choice${showIf ? ' hidden' : ''}" data-q="${esc(item.id)}"${showIf ? ` data-show-if="${esc(showIf[0])}" data-show-value="${esc(showIf[1])}"` : ''}>
+        <legend>${esc(item.label)}</legend>${extra}
+        ${item.choices.map((choice) => `<label style="display:flex;margin:0 0 8px"><input type="radio" name="fact-${esc(item.id)}" data-fact="${esc(item.id)}" value="${esc(choice.value)}"${choice.value === item.default ? ' checked' : ''}> ${esc(choice.label)}</label>`).join('')}
+      </fieldset>`;
+  }
+  const picks = (item.suggestions || []).length
+    ? `<div class="picks"><span class="picks-label">Standard answers:</span>${item.suggestions.map((pick, index) => `<button type="button" class="pick-button" data-pick-for="${esc(item.id)}" data-pick="${index}">${esc(pick.label)}</button>`).join('')}</div>`
+    : '';
+  return `<div class="field" data-q="${esc(item.id)}">
+        <label for="fact-${esc(item.id)}">${esc(item.label)}${extra}</label>
+        ${picks}
+        <textarea id="fact-${esc(item.id)}" data-fact="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
+      </div>`;
+}
+
+// Draws the questions. A question already on the page stays as it is, with its answer, the cursor
+// and the scroll where they were; a new one is put in its place with any answer it had before; one
+// no longer asked goes, its answer remembered.
+function drawRequired(required) {
+  const block = document.getElementById('required-block');
+  Object.assign(factMemory, shownAnswers('#required-block [data-fact]', 'fact'));
+  if (!required.length) {
+    block.innerHTML = '<p class="lede">No further fact is required for this task.</p>';
+    return;
+  }
+  let lede = block.querySelector('.required-lede');
+  if (!lede) {
+    block.innerHTML = '';
+    lede = document.createElement('p');
+    lede.className = 'lede required-lede';
+    lede.style.marginBottom = '12px';
+    lede.textContent = 'If a required fact is blank, the task is stood down. A method is not written.';
+    block.appendChild(lede);
+  }
+  const shown = new Map([...block.querySelectorAll('[data-q]')].map((el) => [el.dataset.q, el]));
+  let before = lede;
+  for (const item of required) {
+    const sig = JSON.stringify(item);
+    let el = shown.get(item.id);
+    shown.delete(item.id);
+    if (!el || el.dataset.sig !== sig) {
+      const holder = document.createElement('div');
+      holder.innerHTML = factHtml(item);
+      const made = holder.firstElementChild;
+      made.dataset.sig = sig;
+      const value = factMemory[item.id];
+      if (value !== undefined) {
+        made.querySelectorAll('[data-fact]').forEach((input) => {
+          if (input.type === 'radio') input.checked = input.value === value;
+          else input.value = value;
+        });
+      }
+      if (el) el.replaceWith(made);
+      el = made;
+    }
+    if (before.nextElementSibling !== el) before.after(el);
+    before = el;
+  }
+  shown.forEach((el) => el.remove());
+  applyShowIf();
+  required.forEach((item) => markPicks(item.id));
+}
+
+// Asks the questions again with the answers given so far, so a question an answer brings in (a
+// harness named in the fall control, a harness or life jacket ticked) shows straight away. Only the
+// questions change. A later ask wins over an earlier one still on its way.
+let askSeq = 0;
+let askTimer = null;
+let asking = null;
+function askAgain() {
+  asking = askOnce();
+  return asking;
+}
+async function askOnce() {
+  clearTimeout(askTimer);
+  askTimer = null;
+  if (factsForm.classList.contains('hidden') || !questions) return;
+  const seq = ++askSeq;
+  try {
+    const response = await fetch(api('/api/draft/questions'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload()),
+    });
+    if (!response.ok || seq !== askSeq) return;
+    const data = await response.json();
+    if (seq !== askSeq || !Array.isArray(data.required)) return;
+    questions = { ...questions, required: data.required };
+    drawRequired(data.required);
+  } catch {
+    // With no signal the questions stay as they are; Prepare the statement says what is missing.
+  }
+}
+function askAgainSoon() {
+  clearTimeout(askTimer);
+  askTimer = setTimeout(askAgain, 700);
+}
+
 async function loadQuestions(options = {}) {
   document.getElementById('start-error').textContent = '';
   resultEl.classList.add('hidden');
+  // The answers on the page stay, unless this is a new SWMS.
+  const fresh = freshFacts;
+  const sent = payload();
+  // A new SWMS is asked with the PPE SiteReady suggests for it, not the last task's.
+  if (fresh) delete sent.ppe;
+  // An ask already on its way is out of date once this one is sent.
+  askSeq += 1;
   const response = await fetch(api('/api/draft/questions'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload()),
+    body: JSON.stringify(sent),
   });
   const data = await response.json();
   if (!response.ok) {
@@ -700,6 +810,7 @@ async function loadQuestions(options = {}) {
     return false;
   }
   questions = data;
+  freshFacts = false;
   // Spelling SiteReady fixed in the task, shown so the user can check it.
   const note = document.getElementById('spelling-note');
   const fixes = data.spellingFixes || [];
@@ -712,37 +823,30 @@ async function loadQuestions(options = {}) {
   const notice = document.getElementById('steps-notice');
   notice.textContent = (data.standDown && data.standDown.message) || '';
   notice.classList.toggle('hidden', !notice.textContent);
-  const required = data.required || [];
-  document.getElementById('required-block').innerHTML = required.length
-    ? `<p class="lede" style="margin-bottom:12px">If a required fact is blank, the task is stood down. A method is not written.</p>` + required.map((item) => {
-      const extra = item.prompt && item.prompt.replace(/\.$/, '') !== item.label
-        ? `<span class="hint">${esc(item.prompt)}</span>` : '';
-      if (item.choices) {
-        // A choice with a default starts on it. One shown only after another answer (showIf) starts hidden.
-        const showIf = item.showIf ? Object.entries(item.showIf)[0] : null;
-        return `
-      <fieldset class="field choice${showIf ? ' hidden' : ''}"${showIf ? ` data-show-if="${esc(showIf[0])}" data-show-value="${esc(showIf[1])}"` : ''}>
-        <legend>${esc(item.label)}</legend>${extra}
-        ${item.choices.map((choice) => `<label style="display:flex;margin:0 0 8px"><input type="radio" name="fact-${esc(item.id)}" data-fact="${esc(item.id)}" value="${esc(choice.value)}"${choice.value === item.default ? ' checked' : ''}> ${esc(choice.label)}</label>`).join('')}
-      </fieldset>`;
-      }
-      const picks = (item.suggestions || []).length
-        ? `<div class="picks"><span class="picks-label">Standard answers:</span>${item.suggestions.map((pick, index) => `<button type="button" class="pick-button" data-pick-for="${esc(item.id)}" data-pick="${index}">${esc(pick.label)}</button>`).join('')}</div>`
-        : '';
-      return `
-      <div class="field">
-        <label for="fact-${esc(item.id)}">${esc(item.label)}${extra}</label>
-        ${picks}
-        <textarea id="fact-${esc(item.id)}" data-fact="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
-      </div>`;
-    }).join('')
-    : '<p class="lede">No further fact is required for this task.</p>';
+  if (fresh) {
+    factMemory = {};
+    siteMemory = {};
+    document.getElementById('required-block').innerHTML = '';
+  } else {
+    Object.assign(siteMemory, shownAnswers('[data-site]', 'site'));
+  }
+  drawRequired(data.required || []);
+  // PPE the user ticked or unticked stays as they set it. The rest follows the new suggestion, and
+  // when only the steps changed, what was ticked stays ticked.
+  const ppeShown = !fresh && document.querySelector('[data-ppe]');
+  const ticked = new Set(Array.isArray(sent.ppe) ? sent.ppe : []);
   document.getElementById('ppe-block').innerHTML = (data.ppe || []).map((group) => `
     <fieldset class="ppe-group">
       <legend>${esc(group.area)}</legend>
       ${group.items.map((item) => `<label><input type="checkbox" data-ppe value="${esc(item.id)}"${item.ticked ? ' checked' : ''}> ${esc(item.label)}</label>`).join('')}
     </fieldset>
   `).join('');
+  if (ppeShown) {
+    document.querySelectorAll('[data-ppe]').forEach((el) => {
+      if (ppeTouched.has(el.value)) el.checked = ticked.has(el.value);
+      else if (options.keepTicked && ticked.has(el.value)) el.checked = true;
+    });
+  }
   document.getElementById('site-block').innerHTML = (data.site || []).map((item) => `
     <div class="field">
       <label for="site-${esc(item.id)}">${esc(item.label)}${item.hint ? `<span class="hint">${esc(item.hint)}</span>` : ''}</label>
@@ -750,9 +854,14 @@ async function loadQuestions(options = {}) {
       <textarea id="site-${esc(item.id)}" data-site="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
     </div>
   `).join('');
+  document.querySelectorAll('[data-site]').forEach((el) => { if (siteMemory[el.dataset.site] !== undefined) el.value = siteMemory[el.dataset.site]; });
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
   factsForm.classList.remove('hidden');
   if (!options.stay) factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // The questions were asked with the PPE ticked before; if the new suggestion ticks a harness or a
+  // life jacket, its questions are asked for too.
+  const now = [...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value);
+  if (Array.isArray(sent.ppe) && (now.length !== ticked.size || now.some((id) => !ticked.has(id)))) await askAgain();
   return true;
 }
 
@@ -799,6 +908,11 @@ function fillStart(input) {
   plantChoice = input.plantChoice && typeof input.plantChoice === 'object' ? JSON.parse(JSON.stringify(input.plantChoice)) : null;
   plantPending = null;
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
+  // The answers are this SWMS's own, shown once its questions are asked (on Continue).
+  factMemory = input.facts && typeof input.facts === 'object' ? { ...input.facts } : {};
+  siteMemory = input.site && typeof input.site === 'object' ? { ...input.site } : {};
+  freshFacts = false;
+  ['required-block', 'site-block', 'ppe-block'].forEach((id) => { document.getElementById(id).innerHTML = ''; });
   showFallExplanation();
 }
 
@@ -813,7 +927,11 @@ async function fillForm(input, options = {}) {
   applyShowIf();
   document.querySelectorAll('[data-site]').forEach((el) => { el.value = (input.site || {})[el.dataset.site] || ''; });
   (questions && questions.required || []).forEach((item) => markPicks(item.id));
-  if (Array.isArray(input.ppe)) document.querySelectorAll('[data-ppe]').forEach((el) => { el.checked = input.ppe.includes(el.value); });
+  if (Array.isArray(input.ppe)) {
+    document.querySelectorAll('[data-ppe]').forEach((el) => { el.checked = input.ppe.includes(el.value); });
+    // The questions follow the SWMS's own PPE (a harness or life jacket brings its questions).
+    await askAgain();
+  }
   return true;
 }
 
@@ -853,11 +971,14 @@ document.getElementById('required-block').addEventListener('click', (event) => {
   if (pattern.test(box.value)) {
     box.value = box.value.replace(pattern, '').replace(/\s{2,}/g, ' ').trim();
     markPicks(item.id);
+    askAgain();
     box.focus();
     return;
   }
   box.value = box.value.trim() ? `${box.value.trim()} ${pick.text}` : pick.text;
   markPicks(item.id);
+  // A standard answer can bring in another question (a harness named in the fall control).
+  askAgain();
   box.focus();
   const blank = box.value.indexOf('____');
   if (blank >= 0) box.setSelectionRange(blank, blank + 4);
@@ -866,6 +987,8 @@ document.getElementById('required-block').addEventListener('click', (event) => {
 document.getElementById('required-block').addEventListener('input', (event) => {
   const id = event.target.id && event.target.id.startsWith('fact-') ? event.target.id.slice(5) : '';
   if (id) markPicks(id);
+  // An answer can bring in another question, asked for once the typing pauses.
+  if (event.target.dataset && event.target.dataset.fact) askAgainSoon();
 });
 
 // A question asked only after another answer (such as the transformer's oil, once the pole has a
@@ -876,7 +999,10 @@ function applyShowIf() {
     el.classList.toggle('hidden', !chosen || chosen.value !== el.dataset.showValue);
   });
 }
-document.getElementById('required-block').addEventListener('change', applyShowIf);
+document.getElementById('required-block').addEventListener('change', (event) => {
+  applyShowIf();
+  if (event.target.dataset && event.target.dataset.fact) askAgain();
+});
 
 // Trade and task pick lists fill in the task, the fall question and who runs the crane.
 let trades = [];
@@ -1424,6 +1550,9 @@ async function prepareDraft({ scroll = true } = {}) {
   button.disabled = true;
   document.getElementById('facts-error').textContent = '';
   try {
+    // Questions an answer just brought in are on the page before the draft is asked for.
+    if (askTimer) await askAgain();
+    else if (asking) await asking;
     const body = JSON.stringify(payload());
     const response = await fetch(api('/api/draft'), {
       method: 'POST',
@@ -1445,6 +1574,8 @@ async function prepareDraft({ scroll = true } = {}) {
     gateDrawn = '';
     resultEl.innerHTML = `${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
+    // A stood down draft names the facts still needed; each is asked for on the page.
+    if (data.kind === 'stand-down') askAgain();
     // What is saved: the input sent, with changes moved onto any line SiteReady has reworded.
     const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
     shownSent = sent;
