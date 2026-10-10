@@ -429,6 +429,30 @@ router.get('/admin/control-learning', auth.requireUser, route(async (req, res) =
   res.json(await require('./control-learning').summary());
 }));
 
+// Goal 11: the monthly learning report for one month (YYYY-MM, Queensland time; the last whole
+// month if not given) and the months before it, as JSON or as text for the owner to keep. Owner
+// only: nothing here is customer facing.
+const reportMonth = (req) => {
+  const { isMonth } = require('./control-learning');
+  const month = String(req.query.month || '').trim();
+  if (month && !isMonth(month)) throw auth.fail(400, 'Give the month as YYYY-MM.');
+  return month || undefined;
+};
+
+router.get('/admin/control-learning/report', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  res.json(await require('./control-learning').monthlyReport({ month: reportMonth(req) }));
+}));
+
+router.get('/admin/control-learning/report.md', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  const { monthlyReport, reportMarkdown } = require('./control-learning');
+  const report = await monthlyReport({ month: reportMonth(req) });
+  res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="siteready-learning-${report.month}.md"`);
+  res.send(reportMarkdown(report));
+}));
+
 // ---- Access log ----
 
 router.get('/admin/access-log', auth.requireUser, route(async (req, res) => {

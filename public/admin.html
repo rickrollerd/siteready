@@ -23,12 +23,18 @@
     .error { color: #8a2b2b; }
     .note { font-size: 13px; color: #5c6773; }
     form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-    input[type="search"], input[type="text"] { flex: 1 1 220px; font: inherit; padding: 7px 10px; border: 1px solid #b9c2cd; border-radius: 6px; }
+    input[type="search"], input[type="text"], input[type="month"] { flex: 1 1 220px; font: inherit; padding: 7px 10px; border: 1px solid #b9c2cd; border-radius: 6px; }
     button { font: inherit; padding: 7px 14px; border: 1px solid #2d5b8a; background: #2d5b8a; color: #fff; border-radius: 6px; cursor: pointer; }
     a { color: #2d5b8a; }
     dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; font-size: 14px; }
     dt { color: #5c6773; }
     dd { margin: 0; }
+    .learning-status { padding: 8px 10px; border-radius: 6px; background: #eef6ee; border: 1px solid #b9d8b9; font-size: 14px; }
+    .learning-status.off { background: #fff6e5; border-color: #e3c78a; }
+    button.secondary { background: #fff; color: #2d5b8a; }
+    details summary { cursor: pointer; font-size: 14px; color: #2d5b8a; }
+    td.nowrap { white-space: nowrap; }
+    ul.plain { margin: 6px 0; padding-left: 20px; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -49,6 +55,12 @@
       <form id="account-form"><input type="search" id="account-q" placeholder="Name, ABN or email" autocomplete="off" aria-label="Search accounts"><button type="submit">Search</button></form>
       <table id="accounts"></table>
       <div id="account-detail"></div>
+    </div>
+    <div class="panel" id="learning-panel">
+      <h2>Monthly learning report</h2>
+      <p class="note">What users changed and which check questions workers got wrong, for one month and the months before it (goal 11). Counts only: no names, businesses or sites. Candidate library changes are for a person to check; this report never changes the library. For you only: nothing here is shown to customers.</p>
+      <form id="learning-form"><input type="month" id="learning-month" aria-label="Month" placeholder="YYYY-MM"><button type="submit">Show</button><button type="button" class="secondary" id="learning-download">Download as text</button></form>
+      <div id="learning"></div>
     </div>
     <div class="panel"><h2>Warning signs</h2><p class="note">Things worth a look. None of them proves a login is shared or a trial repeated.</p><table id="warnings"></table></div>
     <div class="panel"><h2>Unusual sign-ins</h2><p>People signing in from 4 or more devices in 30 days, or 4 or more networks in 7 days. This can mean a login is being shared.</p><table id="signins"></table></div>

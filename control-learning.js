@@ -236,6 +236,10 @@ function placeName(match, before, kind, known) {
 // The user's words with personal details taken out. Words in the line SiteReady wrote stay.
 // terms: the account's own names (accountTerms), when the account is known.
 function scrub(text, original = '', terms = null) {
+  return takeOut(text, original, terms).slice(0, 600);
+}
+
+function takeOut(text, original = '', terms = null) {
   if (!text) return '';
   const known = new Set(String(original).toLowerCase().match(/[a-z][a-z'-]*/g) || []);
   const words = libraryWords();
@@ -255,8 +259,7 @@ function scrub(text, original = '', terms = null) {
     .replace(/(?<![[\w'-])[A-Z][A-Z'&-]*[A-Z]\b/g, (word) => (keep(word) ? word : '[name]'))
     .replace(givenPattern(), (word) => (known.has(word.toLowerCase()) ? word : '[name]'))
     .replace(BUSINESS_AFTER, (match, word, rest) => (keep(word) ? match : `[name]${rest}`))
-    .replace(/\[(name|site)\](?:\s+\[(?:name|site)\])+/g, '[$1]')
-    .slice(0, 600);
+    .replace(/\[(name|site)\](?:\s+\[(?:name|site)\])+/g, '[$1]');
 }
 
 // ---- Recording ----
@@ -398,4 +401,279 @@ async function summary() {
   };
 }
 
-module.exports = { enabled, recordControlEdits, recordFailedQuestions, summary, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS };
+// ---- The monthly learning report (goal 11) ----
+
+// How many different saved SWMS must show the same pattern before it is listed as a candidate
+// library change. 5 is a placeholder: the number is the owner's decision and has not been made.
+const CANDIDATE_THRESHOLD = 5;
+const THRESHOLD_DECIDED = false;
+const MONTH = /^\d{4}-(?:0[1-9]|1[0-2])$/;
+const QLD_OFFSET = 10 * 3600000;
+const MONTHS_SHOWN = 12;
+// Changes that went into the SWMS. A refused change is not in it, and an unmatched one was made on
+// a line SiteReady no longer prints, so neither is a pattern in the library as it is.
+const MADE = new Set(['applied', 'warned']);
+const CANDIDATE_GROUPS = ['removed', 'added', 'notApplicable', 'reverted'];
+const LEARNING_OFF = 'Control learning is off: nothing is being recorded. It records only when CONTROL_LEARNING=on and CONTROL_LEARNING_KEY is set, and is held off until the privacy policy covers it and account administrators have had 30 days\' notice.';
+const ACCEPTANCE_NOTE = 'First-time acceptance (goal 3) is not captured yet: no reviewer\'s decision is recorded, so it cannot be computed or trended.';
+
+const isMonth = (month) => MONTH.test(String(month || ''));
+const shiftMonth = (month, by) => {
+  const [year, number] = month.split('-').map(Number);
+  return new Date(Date.UTC(year, number - 1 + by, 1)).toISOString().slice(0, 7);
+};
+// The moment a month starts in Queensland time, as the months in the learning tables are counted.
+const monthStarts = (month) => {
+  const [year, number] = month.split('-').map(Number);
+  return new Date(Date.UTC(year, number - 1, 1) - QLD_OFFSET);
+};
+// The last whole month, the one a monthly report is normally run for.
+const lastWholeMonth = (now = new Date()) => shiftMonth(monthOf(now), -1);
+const rate = (top, bottom) => Math.round((top / bottom) * 100) / 100;
+// Same words in the same order, whatever the case, punctuation or spacing.
+const sameWording = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9[\]]+/g, ' ').trim();
+
+// What the report shows of a step or a line. Every step and line is SiteReady's, or the user's
+// words already scrubbed, but a SiteReady line can carry what the user typed for a site fact, and a
+// step can be made from the task's own words. So each line is scrubbed again, and a step whose
+// words are not all library words is not shown by name.
+function stepShown(step) {
+  const words = String(step || '').toLowerCase().match(/[a-z][a-z'-]*/g) || [];
+  const plainOnly = plainWords();
+  return words.length && words.every((word) => plainOnly.has(word)) ? String(step) : OWN_STEP;
+}
+const lineShown = (text) => takeOut(text);
+
+// Each pattern of one group, counted by the different saved SWMS it was seen in, not by rows: one
+// SWMS saved many times, or with the same change on many revisions, counts once.
+function patternsOf(rows, keyOf, month, threshold) {
+  const patterns = new Map();
+  for (const row of rows) {
+    const key = keyOf(row);
+    if (!key) continue;
+    const entry = patterns.get(key) || { row, swms: new Set(), thisMonth: new Set(), rows: 0, legal: '', wordings: new Map() };
+    entry.swms.add(row.swms_key);
+    if (row.month === month) entry.thisMonth.add(row.swms_key);
+    entry.rows += 1;
+    entry.legal = entry.legal || row.legal || '';
+    entry.wordings.set(row.new_line, (entry.wordings.get(row.new_line) || 0) + 1);
+    patterns.set(key, entry);
+  }
+  const all = [...patterns.values()];
+  const shown = all.filter((entry) => entry.swms.size >= threshold)
+    .sort((a, b) => b.swms.size - a.swms.size || b.rows - a.rows || String(a.row.step).localeCompare(String(b.row.step)))
+    .map((entry) => {
+      // The wording most often used, for a group made of several wordings of one line.
+      const wording = [...entry.wordings.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))[0][0];
+      return {
+        step: stepShown(entry.row.step),
+        kind: entry.row.kind,
+        line: lineShown(entry.row.original),
+        newLine: lineShown(wording),
+        swms: entry.swms.size,
+        swmsThisMonth: entry.thisMonth.size,
+        rows: entry.rows,
+        legalRequirement: entry.legal,
+        // A candidate becomes a library line only with a source we hold (D181), the goal 5 evidence
+        // test and a person's sign-off. The report never changes the library.
+        goal5CheckNeeded: true,
+      };
+    });
+  return { shown, below: all.length - shown.length };
+}
+
+// Whether a rate fell each month over the last three months (lower is better for both).
+function trendOf(months, field, why) {
+  const last = months.slice(-3);
+  const values = last.map((item) => ({ month: item.month, value: item[field] }));
+  const missing = last.find((item) => item[field] === null);
+  if (missing) return { values, fell: null, says: `Cannot say: ${missing.month} has no figure (${missing[why]}).` };
+  const fell = last[1][field] < last[0][field] && last[2][field] < last[1][field];
+  return { values, fell, says: fell ? 'Fell each month: the right way.' : 'Did not fall each month: not yet the right way.' };
+}
+
+// The month's report, for the owner (goal 11). month: YYYY-MM, in Queensland time like the
+// tables; the last whole month if not given. It covers that month and up to 11 before it, reads
+// only counts and what the learning tables already hold, and changes nothing.
+async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new Date() } = {}) {
+  const chosen = isMonth(month) ? month : lastWholeMonth(now);
+  const edits = await db.query('SELECT swms_key, revision, month, step, kind, outcome, original, new_line, legal, edit_key, kept FROM control_edit_events WHERE month <= $1', [chosen]);
+  const misses = await db.query('SELECT month, kind, step, item FROM check_question_misses WHERE month <= $1', [chosen]);
+  const firstRecorded = [...edits, ...misses].map((row) => row.month).sort()[0] || null;
+  // From the first month anything was recorded (at most 11 months back), and always the last three.
+  let first = shiftMonth(chosen, -2);
+  if (firstRecorded && firstRecorded < first) first = firstRecorded > shiftMonth(chosen, 1 - MONTHS_SHOWN) ? firstRecorded : shiftMonth(chosen, 1 - MONTHS_SHOWN);
+  const list = [];
+  for (let item = first; item <= chosen; item = shiftMonth(item, 1)) list.push(item);
+
+  // Counts of saves and sign-ons, by Queensland month, leaving out businesses that opted out of
+  // industry data, as the learning tables do.
+  const range = [monthStarts(first), monthStarts(shiftMonth(chosen, 1))];
+  const optedOut = new Set((await db.query('SELECT id FROM companies WHERE industry_opt_out = TRUE')).map((row) => row.id));
+  const counted = (rows) => rows.filter((row) => !optedOut.has(row.company_id));
+  const events = counted(await db.query("SELECT company_id, type, created_at FROM events WHERE type IN ('swms_saved', 'worker_signon') AND created_at >= $1 AND created_at < $2", range));
+  const revisions = counted(await db.query('SELECT s.company_id, r.created_at FROM swms_revisions r LEFT JOIN swms s ON s.id = r.swms_id WHERE r.created_at >= $1 AND r.created_at < $2', range));
+  const countBy = (rows, test = () => true) => {
+    const out = new Map();
+    for (const row of rows) if (test(row)) out.set(monthOf(new Date(row.created_at)), (out.get(monthOf(new Date(row.created_at))) || 0) + 1);
+    return out;
+  };
+  const saved = countBy(events, (row) => row.type === 'swms_saved');
+  const signons = countBy(events, (row) => row.type === 'worker_signon');
+  const revisionsSaved = countBy(revisions);
+
+  // A change is new in a revision when the revision before of the same SWMS did not have it.
+  const editKeys = new Map();
+  for (const row of edits) {
+    const key = `${row.swms_key}:${row.revision}`;
+    if (!editKeys.has(key)) editKeys.set(key, new Set());
+    editKeys.get(key).add(row.edit_key);
+  }
+  const isNew = (row) => !(editKeys.get(`${row.swms_key}:${Number(row.revision) - 1}`) || new Set()).has(row.edit_key);
+
+  const months = list.map((item) => {
+    const rows = edits.filter((row) => row.month === item);
+    const firsts = rows.filter((row) => Number(row.revision) === 1);
+    const wrong = misses.filter((row) => row.month === item);
+    const recorded = Boolean(firstRecorded) && item >= firstRecorded;
+    const out = {
+      month: item,
+      recorded,
+      swmsSaved: saved.get(item) || 0,
+      newSwmsChanged: new Set(firsts.map((row) => row.swms_key)).size,
+      newSwmsChanges: firsts.length,
+      revisionsSaved: revisionsSaved.get(item) || 0,
+      revisionsChanged: new Set(rows.map((row) => `${row.swms_key}:${row.revision}`)).size,
+      changes: rows.length,
+      newChanges: rows.filter(isNew).length,
+      signons: signons.get(item) || 0,
+      wrongAnswers: wrong.length,
+      wrongByKind: { ppe: 0, step: 0, control: 0 },
+    };
+    for (const row of wrong) out.wrongByKind[row.kind] = (out.wrongByKind[row.kind] || 0) + 1;
+    const notRecorded = 'nothing recorded yet';
+    out.editRate = recorded && out.swmsSaved ? rate(out.newSwmsChanges, out.swmsSaved) : null;
+    out.editRateWhy = !recorded ? notRecorded : out.swmsSaved ? '' : 'no SWMS saved';
+    out.shareChanged = recorded && out.swmsSaved ? rate(out.newSwmsChanged, out.swmsSaved) : null;
+    out.revisionRate = recorded && out.revisionsSaved ? rate(out.newChanges, out.revisionsSaved) : null;
+    out.wrongRate = recorded && out.signons ? rate(out.wrongAnswers, out.signons) : null;
+    out.wrongRateWhy = !recorded ? notRecorded : out.signons ? '' : 'no worker sign-ons';
+    return out;
+  });
+
+  // Failed check questions this month: the items workers got wrong most.
+  const missed = new Map();
+  for (const row of misses.filter((item) => item.month === chosen)) {
+    const key = `${row.kind}\n${row.step}\n${row.item}`;
+    missed.set(key, (missed.get(key) || 0) + 1);
+  }
+  const items = [...missed.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 15).map(([key, wrong]) => {
+    const [kind, step, item] = key.split('\n');
+    return { kind, step: step ? stepShown(step) : '', item: lineShown(item), wrong };
+  });
+
+  // Candidate library changes, from every change up to the end of the month.
+  const made = edits.filter((row) => MADE.has(row.outcome));
+  const at = (row) => `${row.step}\n`;
+  const candidates = {
+    removed: patternsOf(made.filter((row) => row.kind === 'removed'), (row) => at(row) + row.original, chosen, threshold),
+    added: patternsOf(made.filter((row) => row.kind === 'added'), (row) => sameWording(row.new_line) && at(row) + sameWording(row.new_line), chosen, threshold),
+    notApplicable: patternsOf(made.filter((row) => row.kind === 'hazardNotApplicable'), (row) => at(row) + row.original, chosen, threshold),
+    reverted: patternsOf(made.filter((row) => row.kept === false), (row) => `${at(row)}${row.kind}\n${row.original}\n${sameWording(row.new_line)}`, chosen, threshold),
+  };
+
+  const recording = enabled();
+  const shown = months.find((item) => item.month === chosen);
+  return {
+    month: chosen,
+    whole: chosen < monthOf(now),
+    recording,
+    recordingNote: recording ? 'Control learning is on: changes and failed check questions are being recorded.' : LEARNING_OFF,
+    firstRecorded,
+    method: [
+      'Months are calendar months in Queensland time (no daylight saving), as the learning tables count them. Saves and sign-ons are counted from their recorded time on the same basis.',
+      'The edit rate is the changes recorded on new SWMS (their first revision) divided by the SWMS saved events of the same month. SWMS saved is counted once when a new SWMS is saved, a copy included, and not when a revision is saved, so first revisions are its like for like.',
+      'Changes per saved revision covers every revision: changes new in a revision (not in the revision before of the same SWMS) divided by the revisions saved that month (the revision history). A change kept from the revision before is recorded again on each revision, so all changes recorded would count it twice.',
+      'A change is any change the user made: a line removed, changed or added, a hazard changed, added or marked "does not apply", or the Who column changed, whatever came of it (applied, warned, refused, or no longer matching a line).',
+      'Wrong answers per sign-on is the wrong check answers recorded divided by the worker sign-on events. A worker who gives up still leaves wrong answers but no sign-on, and a sign-on where a supervisor explained the SWMS has no questions.',
+      'Businesses that opted out of industry data are left out of every count, by their choice today. Learning rows from before an opt out stay until deleted; saves and sign-ons from them do not count.',
+      'Months before the first recorded row show no rate. The report cannot tell when learning was switched off: a month while it was off reads as no changes.',
+      'SWMS deleted from the archive take their revision history with them, so revisions saved in older months can fall.',
+      `Candidate library changes count each pattern by the different saved SWMS it was seen in (by their fingerprint), not by rows, from every change up to the end of ${chosen}. The store holds no business, so one business with many SWMS counts once per SWMS. Only changes that went into the SWMS (applied or warned) count. Lines users add are grouped within a step by wording: the same words in the same order, whatever the case, punctuation or spacing.`,
+      'Steps not wholly in SiteReady\'s own words are shown as "(a step made from the task)", and every line is passed through the name scrubber again before it is shown.',
+    ],
+    months,
+    failedQuestions: { total: shown.wrongAnswers, byKind: shown.wrongByKind, items },
+    candidates: {
+      threshold,
+      thresholdDecided: THRESHOLD_DECIDED,
+      thresholdNote: `Shown when seen in at least ${threshold} different saved SWMS. The number awaits the owner's decision.`,
+      rule: 'A candidate becomes a library line only with a source we hold (D181), the goal 5 evidence test, the line check and a person\'s sign-off. This report never changes the library.',
+      ...candidates,
+    },
+    trend: {
+      editRate: trendOf(months, 'editRate', 'editRateWhy'),
+      wrongRate: trendOf(months, 'wrongRate', 'wrongRateWhy'),
+      acceptance: { captured: false, says: ACCEPTANCE_NOTE },
+    },
+  };
+}
+
+// ---- The report as text, for the owner to keep each month ----
+
+const cell = (value) => String(value ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
+const figure = (value, why) => (value === null ? `none (${why || 'not computed'})` : String(value));
+const GROUP_TITLES = {
+  removed: 'SiteReady lines most often removed',
+  added: 'Lines users keep adding',
+  notApplicable: 'Hazards marked "does not apply"',
+  reverted: 'Changes undone in the next revision',
+};
+const KIND_WORDS = { removed: 'removed', changed: 'changed', added: 'added', hazardChanged: 'hazard changed', hazardAdded: 'hazard added', hazardNotApplicable: 'hazard does not apply', whoChanged: 'Who changed' };
+
+function table(head, rows, empty) {
+  if (!rows.length) return `${empty}\n`;
+  return [`| ${head.join(' | ')} |`, `|${head.map(() => '---').join('|')}|`, ...rows.map((row) => `| ${row.map(cell).join(' | ')} |`)].join('\n') + '\n';
+}
+
+function reportMarkdown(report) {
+  const out = [];
+  out.push(`# SiteReady learning report: ${report.month}`, '');
+  out.push(`Goal 11. ${report.whole ? 'A whole month.' : 'This month so far: the month is not over.'} Counts only: no names, businesses or sites.`, '');
+  out.push(`**${report.recordingNote}**`, '');
+  out.push('## Edit rate by month', '');
+  out.push(table(['Month', 'SWMS saved', 'New SWMS changed', 'Changes on new SWMS', 'Edit rate', 'Revisions saved', 'Changes new in a revision', 'Changes per saved revision'],
+    report.months.map((item) => [item.month, item.swmsSaved, item.newSwmsChanged, item.newSwmsChanges, figure(item.editRate, item.editRateWhy), item.revisionsSaved, item.newChanges, figure(item.revisionRate, item.recorded ? 'no revisions saved' : 'nothing recorded yet')]), 'No months.'));
+  out.push('## Failed check questions by month', '');
+  out.push(table(['Month', 'Worker sign-ons', 'Wrong answers', 'PPE', 'Step', 'Control', 'Wrong answers per sign-on'],
+    report.months.map((item) => [item.month, item.signons, item.wrongAnswers, item.wrongByKind.ppe, item.wrongByKind.step, item.wrongByKind.control, figure(item.wrongRate, item.wrongRateWhy)]), 'No months.'));
+  out.push(`### Most often wrong in ${report.month}`, '');
+  out.push(table(['Kind', 'Step', 'Right answer', 'Wrong answers'], report.failedQuestions.items.map((item) => [item.kind, item.step, item.item, item.wrong]), 'No wrong answers recorded this month.'));
+  out.push('## The last three months', '');
+  for (const [name, trend] of [['Edit rate', report.trend.editRate], ['Wrong answers per sign-on', report.trend.wrongRate]]) {
+    out.push(`- ${name}: ${trend.values.map((item) => `${item.month} ${item.value === null ? 'none' : item.value}`).join(', ')}. ${trend.says}`);
+  }
+  out.push(`- ${report.trend.acceptance.says}`, '');
+  out.push('## Candidate library changes', '');
+  out.push(`${report.candidates.thresholdNote} ${report.candidates.rule}`, '');
+  for (const group of CANDIDATE_GROUPS) {
+    const { shown, below } = report.candidates[group];
+    out.push(`### ${GROUP_TITLES[group]}`, '');
+    const head = group === 'added' ? ['Step', 'Line added', 'SWMS', 'This month', 'Goal 5 check needed']
+      : group === 'reverted' ? ['Step', 'Change', 'SiteReady line', 'User line', 'SWMS', 'This month', 'Goal 5 check needed']
+        : ['Step', group === 'notApplicable' ? 'Hazard' : 'Line', 'SWMS', 'This month', 'Legal requirement', 'Goal 5 check needed'];
+    const rows = shown.map((item) => {
+      if (group === 'added') return [item.step, item.newLine, item.swms, item.swmsThisMonth, 'Yes'];
+      if (group === 'reverted') return [item.step, KIND_WORDS[item.kind] || item.kind, item.line, item.newLine, item.swms, item.swmsThisMonth, 'Yes'];
+      return [item.step, item.line, item.swms, item.swmsThisMonth, item.legalRequirement || 'No', 'Yes'];
+    });
+    out.push(table(head, rows, 'None at or above the threshold.'));
+    out.push(`Below the threshold: ${below} pattern${below === 1 ? '' : 's'}.`, '');
+  }
+  out.push('## Method', '');
+  for (const line of report.method) out.push(`- ${line}`);
+  out.push('');
+  return out.join('\n');
+}
+
+module.exports = { enabled, recordControlEdits, recordFailedQuestions, summary, monthlyReport, reportMarkdown, lastWholeMonth, isMonth, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS, CANDIDATE_THRESHOLD };
