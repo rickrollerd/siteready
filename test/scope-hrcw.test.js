@@ -176,3 +176,118 @@ test('plant or an EWP that is maintained, serviced or repaired is not plant or a
   assert.ok(categories('Move materials with forklifts.').includes('plant'));
   assert.ok(ids(screen('Install ceiling services from scissor lifts.')).some((id) => id.startsWith('fall')));
 });
+
+// Goal 4 marking pre-check (10 October 2026): the HRCW flags found wrong or missing on real scopes.
+const falls = (task, extra) => ids(screen(task, extra)).filter((id) => id.startsWith('fall'));
+// The high risk work the finished SWMS lists, with each question given its first offered answer.
+const highRisk = (task, extra = {}) => {
+  const { questionsFor } = require('../draft');
+  const { answersFor } = require('../presets');
+  const input = { state: 'qld', task, fallRisk: 'no', residential: 'no', ...extra };
+  const facts = {};
+  for (let round = 0; round < 8; round += 1) {
+    const asked = questionsFor({ ...input, facts });
+    const open = (asked.required || []).filter((item) => !facts[item.id]);
+    if (!open.length) break;
+    for (const item of open) facts[item.id] = item.id === 'liveElectrical' ? 'no' : item.choices ? item.choices[0].value : (answersFor(item.id, asked.task)[0] || {}).text || `As set out in the site plan: ${item.label}.`;
+  }
+  const draft = prepareDraft({ ...input, facts });
+  assert.equal(draft.kind, 'draft', `${task}: ${(draft.missing || []).join('; ')}`);
+  return draft.highRisk;
+};
+
+test('an edge is a place at height only where the words name the edge of a slab, roof, deck or the like', () => {
+  for (const task of ['Install edging E1 - Edge Type 1. Construct pavements PT5 and PT7.', 'Supply and fix aluminium angles and edge strips at door thresholds.', 'Install stainless steel corner trims, bump guards and edge protectors.', 'Construct 2 infinity edges to the pool.']) {
+    assert.deepEqual(falls(task), [], task);
+  }
+  assert.deepEqual(falls('Install handrails along the slab edges.'), ['fall?']);
+  assert.deepEqual(falls('Install, maintain and remove leading edge protection around the working decks.'), ['fall?']);
+});
+
+test('solar panels, fascias, eave gutters, suspended slabs, working decks, column forms and new light poles are places at height', () => {
+  for (const [task, kinds] of [
+    ['Install solar system.', ['solarPV']],
+    ['Install solar hot water system.', ['solarHotWaterRoof']],
+    ['Apply membrane to eave gutters and fascias.', ['wpLiquid']],
+    ['Paint external cladding, fascia linings and timber doors.', null],
+    ['Place, tie and chair reinforcement (Suspended slabs, stairs and landings).', null],
+    ['Assist crane lifting of reinforcement to the working deck.', null],
+    ['Form in situ columns.', null],
+    ['Install camera poles and media converters at each pole.', null],
+    ['Install external lighting, light poles and street lights.', null],
+  ]) assert.deepEqual(falls(task, kinds ? { kinds } : {}), ['fall?'], task);
+  // Floor and road gutters, pole footings, poles only lifted and ground mounted solar are not.
+  for (const task of ['Install slot drains, floor wastes and floor gutters.', 'Clean the footpaths, gutters and roadways.', 'Build the kerb and guttering.', 'Install light pole footings.', 'Unload, handle and hoist the camera poles.', 'Install ground mounted solar panels on the farm.']) {
+    assert.deepEqual(falls(task), [], task);
+  }
+});
+
+test('a level above the ground floor named with an open edge or a suspended floor settles the fall', () => {
+  const task = 'Erect and strip formwork to the tower suspended slabs and beams.';
+  assert.deepEqual(falls(task), ['fall?']);
+  assert.deepEqual(falls(task, {}), falls(task));
+  assert.deepEqual(ids(screen(task, {}, 'Suspended slabs and beams level 2 to level 22. Allow for all leading edge protection.')).filter((id) => id.startsWith('fall')), ['fall']);
+  assert.deepEqual(falls('Install and relocate perimeter safety screens (Residential Building perimeter, Level 2 and Level 8 upward; conditions: Building perimeter at height).'), ['fall']);
+  // A level with no edge, void or suspended floor named says nothing of the drop; nor does a basement level.
+  assert.deepEqual(falls('Lay carpet tiles to the offices on level 5.'), []);
+  assert.deepEqual(falls('Install handrails along the slab edges on basement level 2.'), ['fall?']);
+});
+
+test('a pool in service holds water; beside a pool the words do not say is filled, drowning rests on it', () => {
+  const water = (task) => screen(task).categories.find((item) => item.id === 'water');
+  assert.equal(water('Maintain pool from commissioning to Practical Completion (Pool and plant room).').likely, false);
+  assert.equal(water('Commission pool and water feature systems (Pool, water features and plant room).').likely, false);
+  const beside = water('Install pool side bungalows (Pool side; conditions: Near pool).');
+  assert.equal(beside.likely, true);
+  assert.equal(beside.dependsOn, 'whether the pool holds water while the work is done');
+  assert.equal(water('Install shade sails over the filled swimming pool.').likely, false);
+  // The SWMS's own rules list drowning for the pool in service; pool fencing is still left to the pool being filled.
+  assert.ok(categories('Service the pool and water features for three months.').includes('water'));
+  assert.ok(!highRisk('Install the pool fence over the pool deck.').some((label) => /drowning/i.test(label)));
+  assert.ok(!categories('Service the pool pumps and filters in the plant room.').includes('water'));
+});
+
+test('a trench job step makes the dig a trench of unstated depth, in the flag and in the SWMS', () => {
+  const task = 'Install underground stormwater pipes and pits. Roadsaw existing pavement for stormwater.';
+  const flag = screen(task, { kinds: ['trench'] });
+  assert.ok(ids(flag).includes('trench?'), ids(flag).join(' '));
+  assert.ok(highRisk(task, { kinds: ['trench'] }).some((label) => /trench/i.test(label)));
+  // A depth of 1.5 m or less, or a cable or conduit trench of unstated depth, brings none.
+  assert.ok(!ids(screen('Install underground stormwater pipes 900 mm deep.', { kinds: ['trench'] })).some((id) => id.startsWith('trench')));
+  assert.ok(!ids(screen('Install underground conduits to the garden lights.', { kinds: ['trench'] })).some((id) => id.startsWith('trench')));
+  assert.ok(!highRisk('Install underground stormwater pipes 900 mm deep.', { kinds: ['trench'] }).some((label) => /trench/i.test(label)));
+  // The depth is read from the in-ground work's own words, not from where the spoil goes.
+  assert.ok(ids(screen('Excavate, backfill and compact (spoil to the green keepers shed). Install cast-in and underground pipework from the pool plant room.', { kinds: ['trench'] })).includes('trench?'));
+  // Trench steps with no pipes, drains, pits or mains named in the ground bring none: a swale is no trench.
+  assert.ok(!ids(screen('Construct drainage swales. Excavate to reduced levels.', { kinds: ['trench'] })).some((id) => id.startsWith('trench')));
+  assert.ok(!ids(screen('Install the standby generators and connect their diesel fuel lines and day tanks in the generator room.')).some((id) => id.startsWith('trench')));
+});
+
+test('refrigerant pipework, charging and recovery job steps are work on refrigerant lines', () => {
+  const kinds = ['refrigerantPipework', 'refrigerantTest', 'refrigerantCharge'];
+  assert.ok(ids(screen('Install remote refrigeration.', { kinds })).includes('chemicalLine'));
+  assert.ok(highRisk('Install remote refrigeration.', { kinds }).some((label) => /refrigerant/i.test(label)));
+  assert.ok(ids(screen('Carry out routine HVAC maintenance including filter replacement and re-gassing.', { kinds: ['refrigerantCharge'] })).includes('chemicalLine'));
+  // Copper pipe alone is plumbing: copper water, gas or in-ground pipework gets no refrigerant step or flag.
+  const { questionsFor } = require('../draft');
+  for (const task of ['INSTALLING PVC/COPPER PIPEWORK INTO GROUND', 'Run copper pipes for the hot water system.', 'Install copper gas pipework to the kitchen.']) {
+    const kinds = questionsFor({ state: 'qld', task, fallRisk: 'no' }).steps.suggested;
+    assert.ok(!kinds.some((id) => /^refrigerant|^mechPipework$/.test(id)), `${task}: ${kinds.join(',')}`);
+    assert.ok(!ids(screen(task)).includes('chemicalLine'), task);
+  }
+  // Copper named with air conditioning, VRF or condensers is refrigerant pipe.
+  for (const task of ['aircon copper pipework', 'Run copper lines to the VRF condensers.']) assert.ok(ids(screen(task)).includes('chemicalLine'), task);
+  // Self-contained kitchen refrigeration and ductwork bring none.
+  assert.ok(!ids(screen('Install proprietary kitchen equipment (refrigeration, cooking and dish machines).', { kinds: ['kitchenEquipment'] })).includes('chemicalLine'));
+});
+
+test('generators, leads and task lighting for the crew\'s own work are not work on an energised installation', () => {
+  const electrical = (task, kinds) => ids(screen(task, { kinds })).includes('electrical');
+  assert.ok(!electrical('Provide temporary power (generators and fuel), lead stands and task lighting (plant: Generators, fuel, lead stands, task lighting).', ['tempPower']));
+  assert.ok(!highRisk('Provide temporary power (generators and fuel), lead stands and task lighting.', { kinds: ['tempPower'] }).some((label) => /energised/i.test(label)));
+  // Installing, maintaining or relocating construction power is.
+  assert.ok(electrical('Maintain temporary electrical equipment, including replacing globes and lamps.', ['tempPower']));
+  assert.ok(highRisk('Maintain temporary electrical equipment, including replacing globes and lamps.', { kinds: ['tempPower'] }).some((label) => /energised/i.test(label)));
+  assert.ok(electrical('Install temporary lighting, emergency and exit lighting in buildings.', ['tempPower']));
+  assert.ok(electrical('Install and relocate the temporary electrical distribution boards and wiring in buildings.', ['tempPower']));
+});
