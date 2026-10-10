@@ -8,6 +8,7 @@ const express = require('express');
 const db = require('./db');
 const { releasableFigures } = require('./industry');
 const auth = require('./auth');
+const removal = require('./business-removal');
 
 const router = express.Router();
 const route = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -220,7 +221,7 @@ router.get('/admin/companies/:id', auth.requireUser, route(async (req, res) => {
     plan: planView(company),
     users: users.map((user) => ({ email: user.email, name: user.name, isAdmin: Boolean(user.is_admin), createdAt: user.created_at, lastSeenAt: user.last_seen_at })),
     trialAbn: holder
-      ? { abn: holder.abn, heldByThisAccount: holder.company_id === company.id, holderId: holder.company_id, holderName: holder.name || '', createdAt: holder.created_at }
+      ? { abn: holder.abn, heldByThisAccount: holder.company_id === company.id, holderId: holder.company_id, holderName: holder.name || '', holderDeleted: !holder.company_id, createdAt: holder.created_at }
       : null,
     downloadsByMonth: months.map((month) => ({ month, downloads: perMonth[month] })),
     refs: refs.map((row) => ({ ref: row.ref, title: row.title, state: row.state || '', postcode: row.postcode || '', createdAt: row.created_at })),
@@ -232,6 +233,25 @@ router.get('/admin/companies/:id', auth.requireUser, route(async (req, res) => {
       users: [...byUser.values()].map((entry) => ({ email: entry.email, signins: entry.signins, devices: entry.devices.size, networks: entry.networks.size, last: entry.last })),
     },
   });
+}));
+
+// ---- Deleting a business ----
+
+// Deletes a whole business on its request (privacy policy, "How long we keep it"). The owner types
+// the business name to confirm. Refused while its Stripe subscription is still running.
+router.post('/admin/companies/:id/delete', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  const result = await removal.deleteBusiness(String(req.params.id || '').slice(0, 100), { confirm: (req.body || {}).confirm, adminEmail: req.user.email });
+  res.json({ ok: true, ...result });
+}));
+
+// Businesses that stopped paying, or whose trial ended, more than 12 months ago. Listed for the
+// owner to decide on; nothing is deleted automatically. Looking at the list is logged.
+router.get('/admin/removal-due', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  await logAccess(req, 'removal_list', '');
+  const list = await removal.dueForRemoval();
+  res.json({ months: removal.RETENTION_MONTHS, companies: list.map((item) => ({ ...item, accountLink: accountLink(item.id) })) });
 }));
 
 // ---- Warning signs ----

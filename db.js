@@ -364,6 +364,9 @@ const SCHEMA = [
     flagged_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (swms_id, notice_id)
   )`,
+  // When a business's subscription ended, as Stripe reports it, so the owner can see which
+  // businesses stopped paying more than 12 months ago (privacy policy, "How long we keep it").
+  'ALTER TABLE companies ADD COLUMN IF NOT EXISTS plan_ended_at TIMESTAMPTZ',
 ];
 
 async function migrate() {

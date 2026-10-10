@@ -84,6 +84,16 @@ router.post('/billing/portal', auth.requireUser, route(async (req, res) => {
   res.json({ url: session.url });
 }));
 
+// Stripe statuses for a subscription that has ended. Any other Stripe status (active, trialing,
+// past_due, unpaid, incomplete, paused) is a subscription still running at Stripe.
+const ENDED = ['canceled', 'incomplete_expired'];
+const liveSubscription = (company) => Boolean(company) && company.plan_status !== 'trial' && !ENDED.includes(company.plan_status);
+// Stripe gives times in seconds.
+const endDate = (subscription) => {
+  const seconds = Number(subscription.ended_at || subscription.canceled_at);
+  return seconds > 0 ? new Date(seconds * 1000) : new Date();
+};
+
 async function companyForSubscription(subscription) {
   const id = subscription.metadata && subscription.metadata.companyId;
   if (id) return db.one('SELECT * FROM companies WHERE id = $1', [id]);
@@ -102,8 +112,10 @@ async function handleEvent(event) {
     if (!company) return;
     const status = event.type === 'customer.subscription.deleted' ? 'canceled' : item.status;
     if (status !== company.plan_status) record(`plan_${status}`, company.id);
-    await db.query('UPDATE companies SET plan_status = $1, stripe_subscription_id = $2, stripe_customer_id = $3 WHERE id = $4',
-      [status, item.id, String(item.customer), company.id]);
+    // The day a subscription ended starts the 12 months its data is kept for; a new one clears it.
+    const ended = ENDED.includes(status) ? (company.plan_ended_at || endDate(item)) : null;
+    await db.query('UPDATE companies SET plan_status = $1, stripe_subscription_id = $2, stripe_customer_id = $3, plan_ended_at = $4 WHERE id = $5',
+      [status, item.id, String(item.customer), ended, company.id]);
   }
 }
 
@@ -123,4 +135,4 @@ const webhook = [
   }),
 ];
 
-module.exports = { router, webhook, enabled, useStripe, handleEvent };
+module.exports = { router, webhook, enabled, useStripe, handleEvent, liveSubscription };

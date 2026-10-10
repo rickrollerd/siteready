@@ -10,6 +10,12 @@
 const crypto = require('crypto');
 const db = require('./db');
 const { industryKey } = require('./secret-keys');
+const { tradeIds } = require('./trades');
+const { ACTIVITIES } = require('./activities');
+
+// The trade and kinds of work come from the page as fixed ids. Anything else sent in their place
+// (a name or a phone number typed into a request) is free text and is dropped.
+const KINDS = new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean));
 
 // INDUSTRY_KEY (or SESSION_SECRET). In production there is no built-in key: without one, no
 // industry record is kept (secret-keys.js).
@@ -105,10 +111,10 @@ function recordFor(draft, input, company) {
     state: String(input.state || '').toLowerCase().slice(0, 3),
     postcode,
     postcodeArea: postcode ? postcode.slice(0, 2) : '',
-    trade: String(input.trade || '').slice(0, 60),
+    trade: tradeIds(input.trade).join(',').slice(0, 60),
     projectType: projectType(`${draft.task || ''} ${input.workplace || ''}`),
     steps,
-    kinds: Array.isArray(input.kinds) ? [...new Set(input.kinds)].slice(0, 80) : [],
+    kinds: Array.isArray(input.kinds) ? [...new Set(input.kinds.filter((id) => KINDS.has(id)))].slice(0, 80) : [],
     highRisk: [...(draft.highRisk || [])],
     plant,
     licences,
@@ -171,4 +177,8 @@ async function releasableFigures({ month, trade, projectType: type } = {}) {
   return { figures, withheldSwms: withheld, minBusinesses: MIN_BUSINESSES };
 }
 
-module.exports = { recordIndustry, recordFor, controlsFor, CONTROL_CODES, projectType, releasableFigures, MIN_BUSINESSES };
+// The keyed code a business's industry records carry, so they can be found and removed when the
+// business is deleted. Without the key there is no code (and no records were kept).
+const businessCode = (companyId) => (industryKey() ? code(companyId) : '');
+
+module.exports = { recordIndustry, recordFor, controlsFor, CONTROL_CODES, projectType, releasableFigures, businessCode, MIN_BUSINESSES };

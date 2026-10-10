@@ -35,6 +35,11 @@
     details summary { cursor: pointer; font-size: 14px; color: #2d5b8a; }
     td.nowrap { white-space: nowrap; }
     ul.plain { margin: 6px 0; padding-left: 20px; font-size: 14px; }
+    .danger { margin-top: 20px; padding: 12px 14px; border: 1px solid #c9a0a0; border-radius: 8px; background: #fbf4f4; }
+    .danger h3 { margin-top: 0; color: #8a2b2b; }
+    button.danger-button { background: #8a2b2b; border-color: #8a2b2b; }
+    .done { color: #1f5f3a; font-weight: 600; }
+    button, input[type="text"], input[type="search"] { min-height: 44px; box-sizing: border-box; }
   </style>
 </head>
 <body>
@@ -61,6 +66,12 @@
       <p class="note">What users changed and which check questions workers got wrong, for one month and the months before it (goal 11). Counts only: no names, businesses or sites. Candidate library changes are for a person to check; this report never changes the library. For you only: nothing here is shown to customers.</p>
       <form id="learning-form"><input type="month" id="learning-month" aria-label="Month" placeholder="YYYY-MM"><button type="submit">Show</button><button type="button" class="secondary" id="learning-download">Download as text</button></form>
       <div id="learning"></div>
+    </div>
+    <div class="panel">
+      <h2>Due for removal</h2>
+      <p class="note">Businesses whose subscription ended, or whose free trial ended, more than 12 months ago. The privacy policy and terms keep their data for 12 months after they stop paying. Nothing is deleted automatically: open one and delete it there.</p>
+      <form id="removal-form"><button type="submit">Show businesses due for removal</button></form>
+      <table id="removal"></table>
     </div>
     <div class="panel"><h2>Warning signs</h2><p class="note">Things worth a look. None of them proves a login is shared or a trial repeated.</p><table id="warnings"></table></div>
     <div class="panel"><h2>Unusual sign-ins</h2><p>People signing in from 4 or more devices in 30 days, or 4 or more networks in 7 days. This can mean a login is being shared.</p><table id="signins"></table></div>

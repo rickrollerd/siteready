@@ -193,10 +193,16 @@ test('review reminders go out once per review period, and a review restarts the 
   const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
   await db.query('UPDATE swms SET review_due_at = $1 WHERE id = $2', [new Date(Date.now() + 2 * 86400000), swms.id]);
   const before = mailbox.length;
-  await sendReviewReminders();
+  process.env.APP_URL = 'https://siteready.example/';
+  try {
+    await sendReviewReminders();
+  } finally {
+    delete process.env.APP_URL;
+  }
   const sent = mailbox.slice(before).filter((item) => item.to === 'remind@me.example');
   assert.equal(sent.length, 1);
   assert.match(sent[0].text, /3 monthly review/);
+  assert.match(sent[0].text, /Open My SWMS: https:\/\/siteready\.example\/#my-swms/, 'the email links to My SWMS at the app\'s own address');
   await sendReviewReminders();
   assert.equal(mailbox.slice(before).filter((item) => item.to === 'remind@me.example').length, 1, 'not sent twice');
 
@@ -235,15 +241,57 @@ test('a deleted SWMS is hidden at once and removed with its sign-ons after 30 da
   assert.equal((await db.query('SELECT * FROM signons WHERE swms_id = $1', [swms.id])).length, 0);
 });
 
-test('a business can export all its saved SWMS in one zip', async () => {
+test('a deleted site is hidden at once and removed after 30 days', async () => {
+  const token = await signIn('purge-site@delete.example');
+  const { site } = await (await call('POST', '/api/sites', { token, body: { name: 'Old job', workplace: '1 Old Road, Toowong QLD 4066', principalContractor: 'Old Builders' } })).json();
+  assert.equal((await call('DELETE', `/api/sites/${site.id}`, { token })).status, 200);
+  assert.equal((await (await call('GET', '/api/sites', { token })).json()).sites.length, 0, 'hidden at once');
+  await removeExpired();
+  assert.equal((await db.query('SELECT * FROM sites WHERE id = $1', [site.id])).length, 1, 'kept for 30 days');
+  await db.query('UPDATE sites SET updated_at = $1 WHERE id = $2', [new Date(Date.now() - 31 * 24 * 60 * 60 * 1000), site.id]);
+  await removeExpired();
+  assert.equal((await db.query('SELECT * FROM sites WHERE id = $1', [site.id])).length, 0);
+});
+
+test('a business can export all its saved SWMS in one zip: every revision, its sign-ons, the team and sites', async () => {
+  const JSZip = require('jszip');
   const token = await signIn('export@all.example');
   assert.equal((await call('GET', '/api/swms/export.zip', { token })).status, 404, 'nothing saved yet');
+  await call('PUT', '/api/me', { token, body: { name: 'Erin Export' } });
+  const { site } = await (await call('POST', '/api/sites', { token, body: { name: 'Hospital job', workplace: '12 Smith Street, Paddington QLD 4064', principalContractor: 'ABC Builders Pty Ltd', firstAider: 'Jo Smith' } })).json();
+  const first = (await (await call('POST', '/api/swms', { token, body: { input: INPUT, siteId: site.id, ...CONFIRM } })).json()).swms;
   await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } });
-  await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } });
+  // A worker signs revision 1, then revision 2 is saved and another worker signs it.
+  const key = first.signonPath.split('t=')[1];
+  const signature = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
+  const sign = (name) => call('POST', `/api/sign/${key}`, { body: { name, company: 'Crew Co', signature, confirmed: true, explained: true, supervisor: 'Sam Lee' } });
+  assert.equal((await sign('Rev One Worker')).status, 201);
+  assert.equal((await call('PUT', `/api/swms/${first.id}`, { token, body: { input: { ...INPUT, musterPoint: 'Rear gate' }, ...CONFIRM, reason: 'Muster point moved' } })).status, 200);
+  assert.equal((await sign('Rev Two Worker')).status, 201);
+  // A sign-on to a revision SiteReady did not keep (saved before each revision was kept).
+  await db.query('INSERT INTO signons (id, swms_id, worker_name, worker_company, signature, signed_at, revision) VALUES ($1, $2, $3, $4, $5, $6, $7)', ['s-unkept', first.id, 'Old Rev Worker', 'Crew Co', signature, new Date(), 7]);
+
   const response = await call('GET', '/api/swms/export.zip', { token });
   assert.equal(response.status, 200);
-  const zip = await require('jszip').loadAsync(Buffer.from(await response.arrayBuffer()));
-  assert.equal(Object.keys(zip.files).filter((name) => name.endsWith('.docx')).length, 2);
+  const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
+  const names = Object.keys(zip.files).sort();
+  const title = first.title.replace(/[^A-Za-z0-9 -]+/g, '').trim().replace(/\s+/g, ' ').slice(0, 60);
+  assert.deepEqual(names, ['Company, team and sites.txt', `${title} (2) revision 1.docx`, `${title} revision 1.docx`, `${title} revision 2.docx`].sort());
+  const xml = async (name) => (await JSZip.loadAsync(await zip.file(name).async('nodebuffer'))).file('word/document.xml').async('string');
+  const rev1 = await xml(`${title} revision 1.docx`);
+  const rev2 = await xml(`${title} revision 2.docx`);
+  assert.ok(rev1.includes('Rev One Worker') && !rev1.includes('Rev Two Worker'), 'revision 1 has its own sign-ons');
+  assert.ok(rev2.includes('Rev Two Worker') && !rev2.includes('Rev One Worker'), 'revision 2 has its own sign-ons');
+  assert.ok(rev2.includes('Rear gate') && !rev1.includes('Rear gate'));
+  const text = await zip.file('Company, team and sites.txt').async('string');
+  assert.match(text, /Name: Test business export@all\.example/);
+  assert.match(text, /Erin Export, Administrator, export@all\.example/);
+  assert.match(text, /Hospital job\r\n  Job address: 12 Smith Street, Paddington QLD 4064\r\n  Principal contractor: ABC Builders Pty Ltd/);
+  assert.match(text, /First aider: Jo Smith/);
+  assert.match(text, /Old Rev Worker, Crew Co, signed .*, revision 7/, 'a sign-on no Word file can print is listed');
+  // Workers who signed on are not listed with the team, and nothing of another business is in it.
+  assert.ok(!/Rev One Worker|Rev Two Worker/.test(text));
+  assert.ok(!/remind@me\.example|lapsed@trial/.test(text));
 });
 
 test('one free trial per ABN, and the ABN must be a valid ABN', async () => {

@@ -20,6 +20,8 @@ const crypto = require('crypto');
 const db = require('./db');
 const { findState } = require('./legislation');
 const { controlLearningKey } = require('./secret-keys');
+const { tradeIds } = require('./trades');
+const { ACTIVITIES } = require('./activities');
 
 // In production, CONTROL_LEARNING_KEY must be set too, or nothing is kept (secret-keys.js).
 const enabled = () => String(process.env.CONTROL_LEARNING || '').trim().toLowerCase() === 'on' && Boolean(controlLearningKey());
@@ -29,6 +31,11 @@ const RETENTION_YEARS = 3;
 const hash = (text) => crypto.createHash('sha256').update(String(text)).digest('hex');
 // The saved SWMS by a keyed fingerprint, so a row cannot be traced back to it without the key.
 const swmsKey = (id) => crypto.createHmac('sha256', controlLearningKey()).update(String(id)).digest('hex');
+// The trade and kinds of work as fixed ids only, as in the industry data: anything else sent in
+// their place (a name or phone number typed into a request) is free text and is dropped.
+const KINDS = new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean));
+const knownTrade = (input) => tradeIds(input && input.trade).join(',').slice(0, 100);
+const knownKinds = (input) => (Array.isArray(input && input.kinds) ? [...new Set(input.kinds.filter((id) => KINDS.has(id)))].slice(0, 80) : []);
 
 // ---- Taking personal details out of what the user typed ----
 
@@ -289,8 +296,8 @@ async function recordControlEdits(draft, input, { company, swmsId, revision = 1,
   const fields = {
     month: monthOf(now),
     state: state ? state.id : '',
-    trade: String((input && input.trade) || '').slice(0, 100),
-    kinds: JSON.stringify(Array.isArray(input && input.kinds) ? input.kinds.slice(0, 80) : []),
+    trade: knownTrade(input),
+    kinds: JSON.stringify(knownKinds(input)),
     highRisk: JSON.stringify((draft.highRisk || []).slice(0, 40)),
   };
   const changes = changesOf(draft.controlEdits);
@@ -344,7 +351,7 @@ async function recordFailedQuestions(questions, answers, { draft, input, company
     const wrong = item.kind === 'step' && own.has(item.options[chosen]) ? OWN_STEP : String(item.options[chosen]);
     await db.query(
       'INSERT INTO check_question_misses (id, month, state, trade, language, kind, step, item, chosen) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-      [crypto.randomBytes(12).toString('hex'), monthOf(now), state ? state.id : '', String((input && input.trade) || '').slice(0, 100), String(language || 'en').slice(0, 20),
+      [crypto.randomBytes(12).toString('hex'), monthOf(now), state ? state.id : '', knownTrade(input), String(language || 'en').slice(0, 20),
         String(item.kind || ''), step.slice(0, 300), tested.slice(0, 600), wrong.slice(0, 600)],
     );
     count += 1;

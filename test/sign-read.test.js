@@ -424,7 +424,12 @@ test('a sign-on keeps the reading record, and none of it reaches the business', 
   assert.doesNotMatch(text, READING_PRINTED);
   const exported = await call('GET', '/api/swms/export.zip', { token });
   const zip = await JSZip.loadAsync(Buffer.from(await exported.arrayBuffer()));
-  for (const name of Object.keys(zip.files)) {
+  const names = Object.keys(zip.files);
+  // The text file lists the team and sites, never the workers who signed on or how they read.
+  const listed = await zip.file('Company, team and sites.txt').async('string');
+  assert.ok(!listed.includes('Record Worker'));
+  assert.doesNotMatch(listed, READING_PRINTED);
+  for (const name of names.filter((item) => item.endsWith('.docx'))) {
     const inner = await JSZip.loadAsync(await zip.file(name).async('nodebuffer'));
     const exportedXml = await inner.file('word/document.xml').async('string');
     assert.ok(exportedXml.includes('Record Worker'));
@@ -562,7 +567,7 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
 
 const controlLearning = require('../control-learning');
 const missCount = async () => Number((await db.one('SELECT COUNT(*) AS n FROM check_question_misses')).n);
-const MISS_INPUT = { ...INPUT, trade: 'Fire services', workplace: 'Ward block, 9 Example Street, Woolloongabba QLD 4102' };
+const MISS_INPUT = { ...INPUT, trade: 'fire', workplace: 'Ward block, 9 Example Street, Woolloongabba QLD 4102' };
 
 test('with CONTROL_LEARNING off, a wrong answer is not kept', async () => {
   delete process.env.CONTROL_LEARNING;
@@ -596,7 +601,7 @@ test('with CONTROL_LEARNING on, each wrong answer is kept without the worker, bu
     const row = rows[rows.length - 1];
     assert.deepEqual(Object.keys(row).sort(), ['chosen', 'id', 'item', 'kind', 'language', 'month', 'state', 'step', 'trade'], 'no worker, business, site, SWMS, read or time column');
     assert.deepEqual([row.kind, row.step, row.item, row.chosen], ['ppe', '', ppe.options[ppe.answer], ppe.options[wrongPpe]]);
-    assert.deepEqual([row.language, row.state, row.trade], ['vi', 'qld', 'Fire services']);
+    assert.deepEqual([row.language, row.state, row.trade], ['vi', 'qld', 'fire']);
     assert.match(row.month, /^\d{4}-\d{2}$/);
 
     // A wrong step or control answer, on the new questions: the step it tested is kept too.

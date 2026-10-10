@@ -104,10 +104,21 @@ test('Stripe webhooks set the plan, and a bad signature is refused', async () =>
   me = await (await call('GET', '/api/me', { token })).json();
   assert.equal(me.company.hasAccess, true, 'access is kept while a failed payment is retried');
 
-  await webhook({ id: 'evt_3', type: 'customer.subscription.deleted', data: { object: { ...subscription, status: 'canceled' } } });
+  assert.equal((await db.one('SELECT plan_ended_at FROM companies WHERE id = $1', [user.company_id])).plan_ended_at, null, 'a running subscription has no end date');
+
+  // Stripe's end date is kept: the 12 months the data is kept for start from it.
+  const endedAt = Math.floor(Date.parse('2026-03-02T00:00:00Z') / 1000);
+  await webhook({ id: 'evt_3', type: 'customer.subscription.deleted', data: { object: { ...subscription, status: 'canceled', ended_at: endedAt } } });
   me = await (await call('GET', '/api/me', { token })).json();
   assert.equal(me.company.planStatus, 'canceled');
   assert.equal(me.company.hasAccess, false);
+  assert.equal(new Date((await db.one('SELECT plan_ended_at FROM companies WHERE id = $1', [user.company_id])).plan_ended_at).toISOString(), '2026-03-02T00:00:00.000Z');
+  // The same news again keeps the first end date; a new subscription clears it.
+  await webhook({ id: 'evt_3b', type: 'customer.subscription.updated', data: { object: { ...subscription, status: 'canceled', ended_at: endedAt + 86400 } } });
+  assert.equal(new Date((await db.one('SELECT plan_ended_at FROM companies WHERE id = $1', [user.company_id])).plan_ended_at).toISOString(), '2026-03-02T00:00:00.000Z');
+  await webhook({ id: 'evt_3c', type: 'customer.subscription.created', data: { object: { ...subscription, id: 'sub_2', status: 'active' } } });
+  assert.equal((await db.one('SELECT plan_ended_at FROM companies WHERE id = $1', [user.company_id])).plan_ended_at, null);
+  await webhook({ id: 'evt_3d', type: 'customer.subscription.deleted', data: { object: { ...subscription, id: 'sub_2', status: 'canceled', ended_at: endedAt } } });
 
   const portal = await call('POST', '/api/billing/portal', { token });
   assert.equal((await portal.json()).url, 'https://billing.stripe.test/p1');
@@ -136,7 +147,7 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
   const input = ready({
     ...ANSWERED,
     state: 'qld',
-    trade: 'Plumber',
+    trade: 'fire',
     workplace: 'Ward 3, Toowoomba Hospital, Pechey St, Toowoomba QLD 4350',
     task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
     fallRisk: 'yes',
@@ -152,7 +163,7 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
   assert.ok(row, 'the record keeps the postcode');
   assert.equal(row.postcode_area, '43');
   assert.equal(row.state, 'qld');
-  assert.equal(row.trade, 'Plumber');
+  assert.equal(row.trade, 'fire');
   assert.equal(row.project_type, 'hospital');
   assert.match(row.month, /^\d{4}-\d{2}$/);
   assert.ok(JSON.parse(row.steps).length > 0);
@@ -175,9 +186,18 @@ test('a saved SWMS leaves one de-identified industry record, and an opted out bu
 
   assert.equal((await call('POST', '/api/admin/industry/opt-out', { token, body: { abn } })).status, 403);
   assert.equal((await call('POST', '/api/admin/industry/opt-out', { token: owner, body: { abn } })).status, 200);
-  const other = { ...input, task: 'Cut and fit copper pipe to the hand basins in the ward.' };
+  const other = ready({ ...input, trade: 'plumbing', task: 'Cut and fit copper pipe to the hand basins in the ward.' });
   assert.equal((await call('POST', '/api/swms', { token, body: { input: other, ...confirm } })).status, 201);
   assert.equal(Number((await db.one('SELECT COUNT(*) AS n FROM industry_records')).n), before + 1, 'no record after opting out');
+});
+
+test('an industry record keeps only known trade and kind ids, never text sent in their place', () => {
+  const { recordFor } = require('../industry');
+  const draft = { kind: 'draft', task: 'Install cable tray', jobSteps: [], plant: [], controls: [], highRisk: [] };
+  const record = recordFor(draft, { state: 'nsw', trade: 'electrical, Bob Ng 0412 345 678', kinds: ['containment', 'Call Bree on 0400 111 222'] }, { id: 'company-1' });
+  assert.equal(record.trade, 'electrical');
+  assert.deepEqual(record.kinds, ['containment']);
+  assert.equal(recordFor(draft, { state: 'nsw', trade: 'Bob Ng 0412 345 678' }, { id: 'company-1' }).trade, '');
 });
 
 test('figures by place are released only where at least 10 businesses are counted', async () => {

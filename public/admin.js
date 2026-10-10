@@ -1,11 +1,13 @@
-// Shows the owner's numbers, reference lookup, accounts, warning signs and the access log.
+// Shows the owner's numbers, reference lookup, accounts, warning signs and the access log, and
+// lets the owner delete a business on request and see which are due for removal.
 // Uses the session from the main page.
 (async () => {
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   let token = '';
   try { token = localStorage.getItem('siteready.session') || ''; } catch { /* none */ }
-  const api = async (path) => {
-    const response = await fetch(path, { headers: token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {} });
+  const api = async (path, body) => {
+    const headers = { ...(token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) };
+    const response = await fetch(path, body ? { method: 'POST', headers, body: JSON.stringify(body) } : { headers });
     return { ok: response.ok, status: response.status, data: await response.json().catch(() => ({})) };
   };
   const $ = (id) => document.getElementById(id);
@@ -50,7 +52,7 @@
     (data.errors.map((item) => `<tr><td>${esc(when(item.created_at))}</td><td>${esc(item.route)}</td><td>${esc(item.message)}</td></tr>`).join('') || '<tr><td colspan="3">No errors.</td></tr>');
 
   // Every look at a reference or account is logged, so the log is shown again after each one.
-  const ACTIONS = { ref_lookup: 'Reference lookup', account_view: 'Opened account', account_search: 'Searched accounts' };
+  const ACTIONS = { ref_lookup: 'Reference lookup', account_view: 'Opened account', account_search: 'Searched accounts', business_deleted: 'Deleted a business', removal_list: 'Listed businesses due for removal' };
   async function loadAccessLog() {
     const result = await api('/api/admin/access-log');
     if (!result.ok) { $('access-log').innerHTML = `<tr><td class="error">${esc(result.data.message || 'Not available.')}</td></tr>`; return; }
@@ -104,6 +106,7 @@
     const { company, plan, users, trialAbn, downloadsByMonth, refs, signins } = result.data;
     let trial = 'No trial is recorded against this ABN.';
     if (trialAbn && trialAbn.heldByThisAccount) trial = `ABN ${esc(trialAbn.abn)} had its free trial on this account, from ${esc(day(trialAbn.createdAt))}.`;
+    else if (trialAbn && trialAbn.holderDeleted) trial = `ABN ${esc(trialAbn.abn)} had its free trial on an account since deleted.`;
     else if (trialAbn) trial = `ABN ${esc(trialAbn.abn)} had its free trial on another account: <a href="${esc(accountHref(trialAbn.holderId))}">${esc(trialAbn.holderName || trialAbn.holderId)}</a>.`;
     box.innerHTML = `<h3>${esc(company.name || '(no name)')}</h3>
       <dl>
@@ -127,9 +130,42 @@
         signins.users.map((item) => `<tr><td>${esc(item.email)}</td><td class="n">${esc(item.signins)}</td><td class="n">${esc(item.devices)}</td><td class="n">${esc(item.networks)}</td><td>${esc(when(item.last))}</td></tr>`), 'No users.')}</table>
       <h3>Last ${esc(refs.length)} references</h3>
       <table>${rows('<tr><th>Reference</th><th>Task</th><th>Job place</th><th>Downloaded</th></tr>',
-        refs.map((item) => `<tr><td>${esc(item.ref)}</td><td>${esc(item.title)}</td><td>${esc(place(item.state, item.postcode))}</td><td>${esc(when(item.createdAt))}</td></tr>`), 'No SWMS downloaded yet.')}</table>`;
+        refs.map((item) => `<tr><td>${esc(item.ref)}</td><td>${esc(item.title)}</td><td>${esc(place(item.state, item.postcode))}</td><td>${esc(when(item.createdAt))}</td></tr>`), 'No SWMS downloaded yet.')}</table>
+      <div class="danger">
+        <h3>Delete this business</h3>
+        <p class="note">Only when the business asks, or when it is due for removal. Everything kept for it goes: its people, sites, saved SWMS with every revision, worker sign-ons, references and counts. Its ABN is kept, with no name, so it cannot have a second free trial. This cannot be undone.${paying(plan) ? ' <strong>It still has a Stripe subscription: cancel it in Stripe first.</strong>' : ''}</p>
+        <form id="delete-form">
+          <input type="text" id="delete-confirm" autocomplete="off" aria-label="${company.name ? 'Type the business name to confirm' : 'Type the account id to confirm'}" placeholder="${esc(company.name ? `Type ${company.name}` : `Type ${company.id}`)}">
+          <button type="submit" class="danger-button">Delete this business</button>
+        </form>
+        <p id="delete-result"></p>
+      </div>`;
+    $('delete-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const typed = $('delete-confirm').value.trim();
+      if (!typed) { $('delete-result').innerHTML = `<span class="error">Type the ${company.name ? 'business name' : 'account id'} to confirm.</span>`; return; }
+      const done = await api(`/api/admin/companies/${encodeURIComponent(company.id)}/delete`, { confirm: typed });
+      loadAccessLog();
+      if (!done.ok) { $('delete-result').innerHTML = `<span class="error">${esc(done.data.message || 'Not deleted.')}</span>`; return; }
+      const stripe = done.data.stripeCustomer ? ` Its Stripe customer record (${esc(done.data.stripeCustomer)}) is still in Stripe: delete it there too if the request covers it.` : '';
+      box.innerHTML = `<p class="done">The business was deleted on ${esc(day(done.data.deletedAt))} (account id ${esc(done.data.id)}).${stripe}</p>`;
+      history.replaceState(null, '', location.pathname);
+    });
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+  // A Stripe subscription still running (active, overdue or otherwise not ended).
+  const paying = (plan) => plan && !['trial', 'canceled', 'incomplete_expired'].includes(plan.status);
+
+  // Businesses due for removal under the 12 month rule. Listed when asked, as the list is logged.
+  $('removal-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const result = await api('/api/admin/removal-due');
+    loadAccessLog();
+    if (!result.ok) { $('removal').innerHTML = `<tr><td class="error">${esc(result.data.message || 'Not available.')}</td></tr>`; return; }
+    $('removal').innerHTML = rows('<tr><th>Business</th><th>Ended</th><th>Last signed in</th></tr>',
+      result.data.companies.map((item) => `<tr><td><a href="${esc(accountHref(item.id))}">${esc(item.name || '(no name)')}</a></td><td>${esc(item.reason)} ${esc(item.endedAt ? day(item.endedAt) : '(date not recorded: check Stripe)')}</td><td>${esc(day(item.lastSeenAt) || 'Never')}</td></tr>`),
+      `No business stopped paying, or ended its trial, more than ${result.data.months} months ago.`);
+  });
   const fromHash = () => {
     const match = /^#account=(.+)$/.exec(location.hash);
     if (!match) return;
