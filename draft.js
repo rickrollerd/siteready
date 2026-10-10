@@ -5732,7 +5732,10 @@ function settleFlags(flags, task) {
   if (out.earthStakes) out.electricalWork = true;
   // Work the task names brings its own step or lines, and only then.
   // Running refrigerant pipe or pair coil; on its own it sits with the pipe supports step.
-  out.pairCoil = /\bpair[- ]?coil\w*\b|\b(?:run\w*|install\w*|lay\w*|fix\w*)\b[^.]{0,30}\b(?:refrigerant|refrigeration|copper) (?:pipes?|pipework|piping|lines?)\b/i.test(task);
+  // Copper pipe is refrigerant pipe only where the task names air conditioning or refrigeration:
+  // copper water, gas or in-ground pipework is plumbing.
+  out.pairCoil = /\bpair[- ]?coil\w*\b|\b(?:run\w*|install\w*|lay\w*|fix\w*)\b[^.]{0,30}\b(?:refrigerant|refrigeration) (?:pipes?|pipework|piping|lines?)\b/i.test(task)
+    || /\b(?:run\w*|install\w*|lay\w*|fix\w*)\b[^.]{0,30}\bcopper (?:pipes?|pipework|piping|lines?)\b/i.test(task) && /\b(refrigera\w*|air[- ]?condition\w*|a\/c|aircon\w*|vrf|vrv|condens(?:er|ing) units?|condensers?|split systems?|heat pumps?|cool ?rooms?|freezer rooms?)\b/i.test(task);
   if (out.pairCoil && !out.refrigerantPipework && !out.refrigerantTest && !out.refrigerantCharge && !out.mechPipework) { out.mechPipework = true; out.pairCoilOnly = true; }
   // A brick elevator, and cleaning down new brickwork.
   out.brickElevator = Boolean(out.masonryLay) && /\b(?:brick|block) (?:elevators?|conveyors?)\b|\b(?:elevators?|conveyors?)\b[^.]{0,30}\b(?:bricks|blocks)\b/i.test(task);

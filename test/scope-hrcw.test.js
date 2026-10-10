@@ -268,6 +268,15 @@ test('refrigerant pipework, charging and recovery job steps are work on refriger
   assert.ok(ids(screen('Install remote refrigeration.', { kinds })).includes('chemicalLine'));
   assert.ok(highRisk('Install remote refrigeration.', { kinds }).some((label) => /refrigerant/i.test(label)));
   assert.ok(ids(screen('Carry out routine HVAC maintenance including filter replacement and re-gassing.', { kinds: ['refrigerantCharge'] })).includes('chemicalLine'));
+  // Copper pipe alone is plumbing: copper water, gas or in-ground pipework gets no refrigerant step or flag.
+  const { questionsFor } = require('../draft');
+  for (const task of ['INSTALLING PVC/COPPER PIPEWORK INTO GROUND', 'Run copper pipes for the hot water system.', 'Install copper gas pipework to the kitchen.']) {
+    const kinds = questionsFor({ state: 'qld', task, fallRisk: 'no' }).steps.suggested;
+    assert.ok(!kinds.some((id) => /^refrigerant|^mechPipework$/.test(id)), `${task}: ${kinds.join(',')}`);
+    assert.ok(!ids(screen(task)).includes('chemicalLine'), task);
+  }
+  // Copper named with air conditioning, VRF or condensers is refrigerant pipe.
+  for (const task of ['aircon copper pipework', 'Run copper lines to the VRF condensers.']) assert.ok(ids(screen(task)).includes('chemicalLine'), task);
   // Self-contained kitchen refrigeration and ductwork bring none.
   assert.ok(!ids(screen('Install proprietary kitchen equipment (refrigeration, cooking and dish machines).', { kinds: ['kitchenEquipment'] })).includes('chemicalLine'));
 });
