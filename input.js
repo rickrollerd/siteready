@@ -145,6 +145,7 @@ function draftBody(body) {
       braceArrangement: field(facts.braceArrangement, 2000),
       safetyDataSheet: field(facts.safetyDataSheet, 4000),
       fallControl: field(facts.fallControl, 2000),
+      fallAccess: field(facts.fallAccess, 100),
       asbestosArrangement: field(facts.asbestosArrangement, 2000),
       trenchSupport: field(facts.trenchSupport, 2000),
       controlsConsidered: field(facts.controlsConsidered, 2000),

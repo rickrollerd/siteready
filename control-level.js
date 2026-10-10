@@ -94,6 +94,21 @@ function controlLevel(input) {
   return level;
 }
 
+// A physical fall control (H3): what stops the fall, not a harness, a ladder, a barricade under
+// the work or an isolation elsewhere in the step. Working from the ground removes the fall, and a
+// barricade or fence at a trench, hole or edge stops a fall into it.
+const PHYSICAL_FALL = /\b(guard ?rails?|edge protection|scaffold\w*|ewps?|elevat\w* work platforms?|scissor ?lifts?|boom lifts?|cherry pickers?|(?:mobile |temporary )?work(?:ing)? platforms?|safety (?:mesh|nets?)|catch (?:platforms?|scaffold\w*|decks?)|handrails?|roof rails?|perimeter (?:screens?|protection)|edge screens?|void protection|(?:void|penetration|hole|opening)s? covers?|cover\w* (?:all |the |any )?(?:voids?|penetrations?|openings?|holes?|skylights?)|(?:skylight|fragile roof) (?:covers?|mesh|guards?)|from the ground|stay\w* on the ground|(?:assembl|fabricat|buil)\w* (?:\w+ )?(?:on|at) (?:the )?ground(?: level)?|do not place a person)\b|\b(?:barricad\w*|fenc\w*|barriers?)\b[^.]{0,30}\b(?:trench\w*|excavat\w*|holes?|openings?|voids?|pits?|edges?|penetrations?|shafts?)\b|\b(?:trench\w*|excavat\w*|holes?|openings?|voids?|pits?|edges?|penetrations?|shafts?)\b[^.]{0,30}\b(?:barricad\w*|fenc\w*|barriers?)|\b(?:holes?|openings?|hatch\w*|voids?|penetrations?)\b[^.]{0,30}\b(?:protected|guarded)\b/i;
+// "No edge protection" or "without a scaffold" says it is not there.
+const NO_FALL_CONTROL = /\b(?:no|without|absence of|lack of|not (?:installed|provided|available))\b[^.,;]{0,20}\b(?:guard ?rails?|edge protection|scaffold\w*|ewps?|handrails?|safety mesh)\b/i;
+
+// A line that stops a fall by itself, read without its printed citation: "(Scaffolding Code of
+// Practice ...)" names a code, not a scaffold.
+const withoutCitation = (line) => String(line || '').replace(CITATION, '');
+function stopsFall(line) {
+  const text = withoutCitation(line);
+  return PHYSICAL_FALL.test(text) && !NO_FALL_CONTROL.test(text);
+}
+
 // Elimination, substitution, isolation and engineering controls.
 const HIGHER = new Set(['Eliminate', 'Substitute', 'Isolate or engineer']);
 
@@ -108,4 +123,4 @@ function inHierarchyOrder(controls) {
     .map((item) => item.line);
 }
 
-module.exports = { controlLevel, HIGHER, inHierarchyOrder };
+module.exports = { controlLevel, HIGHER, inHierarchyOrder, PHYSICAL_FALL, NO_FALL_CONTROL, stopsFall, withoutCitation };

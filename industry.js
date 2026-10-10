@@ -73,6 +73,7 @@ const CHOICE_VALUES = {
   deckMethod: ['below', 'top'],
   scaffoldType: ['modular', 'tubeCoupler', 'hung', 'mobile'],
   refrigerantClass: ['a1', 'a2l', 'a3'],
+  fallAccess: ['edge', 'ewp', 'scaffold', 'mobileScaffold', 'ladder', 'restraint'],
 };
 
 function controlsFor(draft, input) {

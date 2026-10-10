@@ -72,7 +72,8 @@
           "Climb the hoist mast"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Working at height"
         ]
       }
     },
@@ -92,7 +93,8 @@
           "Operate the hoist"
         ],
         "missing": [
-          "Fall control"
+          "Fall control",
+          "Working at height"
         ]
       }
     }

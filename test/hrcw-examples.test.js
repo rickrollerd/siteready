@@ -71,7 +71,10 @@ for (const state of ['qld', 'nsw']) {
 }
 
 test('the telecommunications example drafts a maintenance step, on the tower when the tower is named', () => {
-  assert.deepEqual(draftAsUser('qld', 'Telecommunications equipment maintenance', 'yes').jobSteps.map((step) => step.step), ['Before starting', 'Maintain rooftop antennas and equipment', 'Finish and clean up']);
+  // Answered Yes to falls, the user also says how the crew works at height (the first way offered, edge
+  // protection), and that job step comes before the work at height.
+  assert.deepEqual(draftAsUser('qld', 'Telecommunications equipment maintenance', 'yes').jobSteps.map((step) => step.step), ['Before starting', 'Work at edges', 'Maintain rooftop antennas and equipment', 'Finish and clean up']);
+  assert.deepEqual(draftAsUser('qld', 'Telecommunications equipment maintenance', 'no').jobSteps.map((step) => step.step), ['Before starting', 'Maintain rooftop antennas and equipment', 'Finish and clean up']);
   assert.ok(draftAsUser('qld', TOWER, 'yes').jobSteps.some((step) => step.step === 'Maintain antennas and equipment on the tower'));
 });
 

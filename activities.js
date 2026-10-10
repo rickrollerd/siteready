@@ -12475,6 +12475,48 @@ const partSource = (part) => (part.reg ? REGS[part.reg](part.section) : codeSour
   }
 }());
 
+// Work at height where none of the task's own steps stops a fall: the user says how the crew works
+// at height (the fallAccess question) and that access step is added. Each access step then opens with
+// the fall hierarchy (work from the ground or a platform, edge protection before fall arrest). Every
+// line is the library's own, reused word for word with its source (D181), so this runs once the
+// code lines above are in place.
+const libraryLine = (text) => {
+  for (const activity of ACTIVITIES) {
+    for (const step of activity.steps || []) {
+      const found = step.controls.find((item) => (typeof item === 'string' ? item : item.text) === text);
+      if (found) return found;
+    }
+  }
+  throw new Error(`No library line: ${text}`);
+};
+const asLine = (item) => (typeof item === 'string' ? { text: item } : item);
+const FALL_HIERARCHY = libraryLine('Work from the ground, a platform or a scaffold. Where a person could still fall, prevent it with edge protection or work platforms before using fall arrest.');
+for (const [when, name] of [['ewp', 'Use an elevating work platform'], ['mobileScaffold', 'Use mobile scaffolds'], ['ladderUse', 'Work from ladders'], ['wpEdge', 'Work at edges']]) {
+  stepOf(when, name).controls.unshift({ only: 'fallAccess', ...FALL_HIERARCHY });
+}
+// Chosen as travel restraint, the edge step names the anchors and the rescue (kept only where a harness is used).
+stepOf('wpEdge', 'Work at edges').controls.push({ only: 'fallAccess', ...libraryLine('Where harnesses are used, anchors are engineer designed or approved by a competent person, no one works alone, and a rescue procedure is set up and tested.') });
+// Working from a scaffold someone else erected: the user's side of the scaffold lines.
+addAfter('mobileScaffold', {
+  when: 'scaffoldUse',
+  steps: [{
+    step: 'Work from the scaffold',
+    hazards: ['A fall from the platform or access.', 'Tools and materials fall onto people below.'],
+    controls: [
+      FALL_HIERARCHY,
+      ...[
+        'A scaffold from which a person or thing could fall more than 4 m is not used until a competent person gives written confirmation it is complete. It is inspected before use, after any incident or repair, and at least every 30 days.',
+        'Edge protection, with a top rail, mid rail and toe board, at every open edge of a work platform: top rail at least 900 mm.',
+        'Do not loosen, relocate or remove scaffold ties, planks or guardrails to get access to walls and openings. Only a competent person alters the scaffold, in line with the scaffold plan.',
+        'After a storm, high wind or heavy rain, a competent person inspects the scaffold, including its base, ties and any sheeting, before anyone uses it again.',
+        'No materials are placed on platforms 450 mm wide or less.',
+        'Ladders are not set up on a scaffold platform, balcony or roof to gain extra height, or over a void.',
+        'Tools and materials are kept from falling by toe boards, tool lanyards and securing loose materials, and an exclusion zone is kept below the work.',
+      ].map((text) => asLine(libraryLine(text))),
+    ],
+  }],
+});
+
 // The citation helpers, for lines other modules add with their sources (draft.js permits).
 const CITE = { WHS, MODEL, QCODE, NSWC, LINES };
 
