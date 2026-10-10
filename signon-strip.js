@@ -3,7 +3,9 @@
 // sign-on times, reading records and "I have read and understood" tables never leave SiteReady.
 // The document is read page by page (PDF, or pasted text with page breaks) or section by
 // section (Word: page breaks and headings), and each part is kept, cut at its sign-on heading,
-// or removed whole. Where a sign-on cannot be cut out cleanly (sign-on rows mixed into the
+// or removed whole. Pasted text with no page breaks is one part: its sign-on is found by its
+// heading and its table (the header row, even with each cell on its own line, as a text
+// extractor, Word or a PDF viewer gives it) and cut to the end, or to the next heading. Where a sign-on cannot be cut out cleanly (sign-on rows mixed into the
 // method pages, or a page that is only a picture and cannot be read), the upload is refused.
 // The number of workers signed on is counted here, before anything is removed, so the check's
 // H7 still knows a sign-on exists without any name being sent.
@@ -18,6 +20,7 @@ function fail(status, message) {
 }
 
 const REFUSED = 'This SWMS has worker sign-on details (names, signatures or sign-on times) mixed in with the SWMS itself, so it was not sent to be read. Remove the sign-on pages and upload it again.';
+const REFUSED_PASTED = 'This SWMS has worker sign-on details (names, signatures or sign-on times) mixed in with the SWMS itself, so it was not sent to be read. Take the sign-on rows out and paste it again.';
 const PICTURE = (where) => `${where} is only a picture, such as a scanned page, so it cannot be checked for worker names and signatures. Remove the sign-on pages, and any scanned pages, and upload it again.`;
 
 // ---- What a sign-on looks like ----
@@ -51,6 +54,44 @@ const DATE_OR_TIME = /\b\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\b|\b\d{1,2}(?:st|nd|rd|t
 const NAME_LIKE = /^(?:\d+[.)]?\s+)?(?:[A-Z][A-Za-z'’.-]*\s+){1,7}[A-Z][A-Za-z'’.-]*$/;
 const SWMS_WORDS = /\b(?:swms|safe work|method|statement|project|task|site|job|hazards?|controls?|risks?|steps?|ppe|emergency|revision|page)\b/i;
 const rowLike = (line) => !SWMS_WORDS.test(line) && (DATE_OR_TIME.test(line) || NAME_LIKE.test(line.replace(/\t/g, ' ')));
+const DATE_ONLY = new RegExp(`^(?:${DATE_OR_TIME.source})$`, 'i');
+
+// Text copied out of a Word file or a PDF often puts each table cell on its own line, so a
+// sign-on table's header row arrives as "Name", "Company", "Signature", "Date", one per line.
+const HEADER_CELL = /^(?:(?:print(?:ed)?|full|workers?['’]?s?|employees?['’]?s?) )?(?:names?|company|companies|employer|business|firm|contractor|trade|position|role|occupation|signatures?|signed|date(?: signed)?|time(?: signed| in| out)?|sign(?:ed)?[- ]?(?:in|on|out)(?: time)?|licen[cs]e(?: no\.?| number)?|(?:white )?card(?: no\.?| number)?|ticket|induction(?: date| no\.?| number)?|phone|mobile|no\.?|#)$/i;
+const DATE_CELL = /\b(?:date|time)\b|\bsign(?:ed)?[- ]?(?:in|on|out)\b/i;
+const TEXT_CELL = /\b(?:names?|company|companies|employer|business|firm|contractor|trade|position|role|occupation)\b/i;
+// The heading over a table of the SWMS's own sign-offs: who prepared, approved or reviewed it.
+const SIGN_OFF = (line) => AUTHOR.test(line) || (/\breview/i.test(line) && !/\bworkers?\b/i.test(line));
+// Each header row split one cell per line: three or more cells, with a name and a signature, not
+// under a "Prepared by", "Approved by" or "Reviews" heading. Returns where each starts and its cells.
+function splitHeaders(texts) {
+  const found = [];
+  for (let i = 0; i < texts.length; i += 1) {
+    if (!HEADER_CELL.test(texts[i])) continue;
+    const cells = [];
+    let j = i;
+    let gap = 0;
+    for (; j < texts.length && gap <= 2; j += 1) {
+      if (!texts[j]) { gap += 1; continue; }
+      if (!HEADER_CELL.test(texts[j])) break;
+      cells.push(texts[j]);
+      gap = 0;
+    }
+    const before = texts.slice(Math.max(0, i - 4), i).filter(Boolean).slice(-2);
+    if (cells.length >= 3 && cells.some((cell) => /\bnames?\b/i.test(cell)) && cells.some((cell) => /\bsign/i.test(cell)) && !before.some(SIGN_OFF)) {
+      found.push({ start: i, cells });
+    }
+    i = j - 1;
+  }
+  return found;
+}
+// Wider than a sign-on title, for a heading directly over a sign-on's declaration or table.
+const SIGN_ON_HEADING = /\bsign(?:ed|ing)?(?:[- ]?(?:on|off|in))?\b|\backnowledg\w*|\bdeclar\w*|\binduct\w*|\bbrief\w*|\bconsult\w*/i;
+const HEADING_WORDS = /\b(?:appendix|attachment|annex|schedule|section|part|emergency|rescue|reviews?|legislation|references?|risks?|hazards?|controls?|steps?|method|statement|swms|ppe|plant|permits?|training|competenc\w*|consultation|matrix|procedures?|plan|first aid|responsibilit\w*|job|tasks?|activit\w*)\b/i;
+// A line that opens the next part of the document after a sign-on: a short heading, not a row.
+const isHeading = (line) => line.length <= 80 && !/[.;,:]$/.test(line) && !BULLET.test(line) && !rowLike(line) && !HEADER_CELL.test(line)
+  && !SHEET_WORDING.test(line) && !READING.test(line) && !DATE_OR_TIME.test(line);
 
 // A line of the SWMS itself: a sentence about the work, or a bullet or numbered line of one.
 // Company names often carry trade words ("Edge Scaffolding"), so a single word is not enough.
@@ -238,26 +279,43 @@ async function documentUnits(body) {
 
 // Lines repeated on several pages are running headers and footers ("Page 3 of 9", the title).
 // A sign-on heading is never one, so a sign-on sheet's repeated table header is still found.
+// A line that is only a date keeps its digits, so a worker's sign-on date is not taken for the
+// date printed on every page.
 function runningLines(units) {
-  const key = (line) => clean(line).toLowerCase().replace(/\d+/g, '#');
+  const key = (line) => {
+    const text = clean(line).toLowerCase();
+    return DATE_ONLY.test(text) ? text : text.replace(/\d+/g, '#');
+  };
   const seen = new Map();
   for (const unit of units) {
     for (const line of new Set(unit.lines.map(key).filter(Boolean))) seen.set(line, (seen.get(line) || 0) + 1);
   }
+  // Pasted text with no page breaks: a long line repeated three times or more is a running line.
+  const repeated = new Map();
+  if (units.length < 3) {
+    for (const line of units.flatMap((unit) => unit.lines.map(key)).filter((item) => item.length >= 25)) repeated.set(line, (repeated.get(line) || 0) + 1);
+  }
   return (line) => {
     const text = clean(line);
-    return !text || /^page #+(?: of #+)?$/i.test(key(text)) || (units.length >= 3 && seen.get(key(text)) >= 2 && !signOnStart(text));
+    if (!text || /(?:^|\s)page:? #+(?: of #+)?$/i.test(key(text))) return true;
+    return ((units.length >= 3 && seen.get(key(text)) >= 2) || repeated.get(key(text)) >= 3) && !signOnStart(text);
   };
 }
 
 // The workers on a removed sign-on: rows with a date or time, or failing those, rows that read
 // like a name. Counted only; the rows themselves are dropped. Whether the rows carry a date is
-// kept too, as the builder check asks for a date beside each signature (W9).
-function countRows(lines) {
-  const rows = lines.filter((line) => !signOnStart(line)).map((line) => clean(line.replace(NOTE, ' '))).filter((line) => line && !SHEET_WORDING.test(line));
+// kept too, as the builder check asks for a date beside each signature (W9). Where the header
+// row came one cell per line, so do the rows: each row's dates, or failing those its names and
+// companies, are shared out by the header's columns.
+function countRows(lines, header = null) {
+  // Rows kept on one line (their cells split by tabs) are one worker each, whatever the header.
+  const cells = header && !lines.some((line) => line.includes('\t')) ? header : null;
+  const rows = lines.filter((line) => !signOnStart(line) && !(header && HEADER_CELL.test(clean(line))))
+    .map((line) => clean(line.replace(NOTE, ' '))).filter((line) => line && !SHEET_WORDING.test(line));
+  const columns = (pattern) => (cells ? Math.max(1, cells.filter((cell) => pattern.test(cell)).length) : 1);
   const dated = rows.filter((line) => DATE_OR_TIME.test(line)).length;
-  if (dated) return { count: dated, undated: 0 };
-  const named = rows.filter((line) => NAME_LIKE.test(line)).length;
+  if (dated) return { count: Math.ceil(dated / columns(DATE_CELL)), undated: 0 };
+  const named = Math.ceil(rows.filter((line) => NAME_LIKE.test(line)).length / columns(TEXT_CELL));
   return { count: named, undated: named };
 }
 function addRows(summary, rows) {
@@ -266,6 +324,9 @@ function addRows(summary, rows) {
 }
 
 // Splits each part into what is kept and what is a sign-on. Throws where they cannot be split.
+// A part is cut at each sign-on heading. The sign-on runs to the end of the part, or, where it
+// has a heading of its own (such as "Worker sign-on"), to the next heading, as pasted text has
+// no pages to end it. Sign-on rows anywhere else are mixed into the method, and are refused.
 function stripUnits(units) {
   const running = runningLines(units);
   const otherText = (unit) => clean(units.filter((item) => item !== unit).map((item) => item.lines.join(' ')).join(' ')).toLowerCase();
@@ -275,16 +336,14 @@ function stripUnits(units) {
   for (const unit of units) {
     const lines = unit.lines.map((line) => line.replace(/\r/g, ''));
     const texts = lines.map(clean);
-    const known = (() => {
-      let other = null;
-      // A line made only of text found elsewhere in the document (the task, the site, the revision).
-      return (text) => {
-        other = other === null ? otherText(unit) : other;
-        const parts = text.split(/\s+·\s+|\t/).map((part) => clean(part).toLowerCase()).filter((part) => part.length >= 3);
-        return parts.length > 0 && parts.every((part) => other.includes(part));
-      };
-    })();
-    const content = (index) => !running(lines[index]) && texts[index] && swmsLine(texts[index]) && !SHEET_WORDING.test(texts[index]) && !READING.test(texts[index]) && !known(texts[index]);
+    const elsewhere = otherText(unit);
+    // A line made only of text found elsewhere in the document (the task, the site, the revision).
+    const knownIn = (other) => (text) => {
+      const parts = text.split(/\s+·\s+|\t/).map((part) => clean(part).toLowerCase()).filter((part) => part.length >= 3);
+      return parts.length > 0 && parts.every((part) => other.includes(part));
+    };
+    const contentWith = (known) => (index) => !running(lines[index]) && texts[index] && swmsLine(texts[index]) && !SHEET_WORDING.test(texts[index]) && !READING.test(texts[index]) && !known(texts[index]);
+    const content = contentWith(knownIn(elsewhere));
     if (!texts.some(Boolean)) {
       if (unit.images) throw fail(422, PICTURE(unit.kind === 'page' ? unit.label : 'Part of this Word file'));
       continuing = false;
@@ -300,7 +359,19 @@ function stripUnits(units) {
         summary.found = true;
       }
     }
-    const head = texts.findIndex((text, index) => index >= from && !running(lines[index]) && signOnStart(text));
+    const headers = splitHeaders(texts);
+    // A heading that opens the next part: one printed on every page, or one that reads as a heading
+    // of the SWMS. A company's name is never taken for one.
+    const opener = (index) => isHeading(texts[index]) && !/\b(?:pty|ltd|limited|p\/l|inc)\b/i.test(texts[index])
+      && (running(lines[index]) || HEADING_WORDS.test(texts[index]) || /^\d+(?:\.\d+)*[.)]?\s/.test(texts[index]) || (/[A-Z]{2}/.test(texts[index]) && !/[a-z]/.test(texts[index])));
+    // A heading just above the sign-on that names it, such as "Worker instruction and sign off".
+    const headedAbove = (index) => {
+      let above = index - 1;
+      while (above >= 0 && (!texts[above] || running(lines[above]))) above -= 1;
+      return above >= 0 && texts[above].length <= 70 && !/[.;:]$/.test(texts[above]) && SIGN_ON_HEADING.test(texts[above]) && !SIGN_OFF(texts[above]);
+    };
+    const startsAt = (index) => !running(lines[index]) && (signOnStart(texts[index]) || headers.some((header) => header.start === index));
+    let head = texts.findIndex((text, index) => index >= from && startsAt(index));
     if (head < 0) {
       const rest = lines.slice(from);
       if (from > 0 && !rest.some((line, index) => !running(line) && clean(line))) {
@@ -312,24 +383,49 @@ function stripUnits(units) {
       kept.push({ unit, lines: rest });
       continue;
     }
-    // Everything from the sign-on heading to the end of the part must be the sign-on itself.
-    const after = lines.slice(head);
-    if (after.some((line, index) => content(head + index))) throw fail(422, REFUSED);
-    summary.found = true;
-    addRows(summary, countRows(after.filter((line, index) => clean(line) && !running(line) && !known(texts[head + index]))));
-    continuing = true;
-    const before = lines.slice(from, head);
-    const preamble = !before.some((line, index) => content(from + index));
+    const left = [];
+    let at = from;
+    const keep = (start, stop) => { for (let index = start; index < stop; index += 1) left.push(index); };
+    continuing = false;
+    while (head >= 0) {
+      keep(at, head);
+      // The task, site and revision printed under the sign-on heading are found before it.
+      const known = knownIn(`${elsewhere} ${clean(texts.slice(0, head).join(' ')).toLowerCase()}`);
+      const signOnContent = contentWith(known);
+      let end = lines.length;
+      const next = texts.findIndex((text, index) => index > head && signOnContent(index));
+      if (next >= 0) {
+        // Content after the sign-on: allowed only after a sign-on with its own heading, and only
+        // from a heading that opens the next part.
+        // Running lines (the title and footer printed on each page) may come before that heading.
+        let opens = next;
+        while (opens - 1 > head && (!texts[opens - 1] || running(lines[opens - 1]) || opener(opens - 1))) opens -= 1;
+        while (opens < next && !texts[opens]) opens += 1;
+        const titled = texts.slice(head, opens).some((text) => isTitle(text)) || headedAbove(head);
+        if (!titled || opens >= next || !texts.slice(opens, next).some((text, index) => text && opener(opens + index))) throw fail(422, REFUSED);
+        end = opens;
+      }
+      const part = texts.slice(head, end);
+      const header = headers.find((item) => item.start >= head && item.start < end);
+      summary.found = true;
+      addRows(summary, countRows(lines.slice(head, end).filter((line, index) => part[index] && !running(line) && !known(part[index])), header ? header.cells : null));
+      at = end;
+      if (end === lines.length) { continuing = true; break; }
+      head = texts.findIndex((text, index) => index >= end && startsAt(index));
+    }
+    keep(at, lines.length);
+    const preamble = !left.some(content);
     if (preamble) {
       summary[unit.kind === 'page' ? 'pagesRemoved' : 'sectionsRemoved'] += 1;
       continue;
     }
     summary.sectionsRemoved += 1;
-    kept.push({ unit, lines: before });
+    kept.push({ unit, lines: left.map((index) => lines[index]) });
   }
   // What is left must carry no sign-on at all, or the sign-on was mixed into the method.
   for (const { lines } of kept) {
-    if (lines.some((line) => signOnStart(clean(line)) || READING.test(line))) throw fail(422, REFUSED);
+    const texts = lines.map(clean);
+    if (texts.some((text) => signOnStart(text) || READING.test(text)) || splitHeaders(texts).length) throw fail(422, REFUSED);
   }
   return { kept, summary };
 }
@@ -338,7 +434,13 @@ function stripUnits(units) {
 // removed. Nothing here keeps or logs the removed text.
 async function swmsWithoutSignOns(body) {
   const { units, pasted } = await documentUnits(body);
-  const { kept, summary } = stripUnits(units);
+  let stripped;
+  try {
+    stripped = stripUnits(units);
+  } catch (error) {
+    throw pasted && error.message === REFUSED ? fail(422, REFUSED_PASTED) : error;
+  }
+  const { kept, summary } = stripped;
   const removed = summary.pagesRemoved + summary.sectionsRemoved;
   const text = removed === 0 && pasted ? pasted : kept.map(({ lines }) => lines.join('\n').trim()).filter(Boolean).join('\n\n');
   return { text: text.slice(0, MAX_TEXT), ...summary };

@@ -3,7 +3,7 @@
 // categories, asbestos removed by others, and the steel crew's bracing, dogging and rigging.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { prepareDraft, questionsFor, screenHighRisk } = require('../draft');
+const { prepareDraft, questionsFor, screenHighRisk, packageKinds } = require('../draft');
 const { packageHighRisk, settlePackages } = require('../ai-scope');
 
 // The draft as the page makes it: every question the draft asks is answered, a choice with the
@@ -66,6 +66,59 @@ test('SWMS3: a pour inside a station box excavation brings no trenching or pipe 
   const dig = draft({ ...SITE, state: 'qld', fallRisk: 'no', task: 'Excavate a trench 2.4 m deep and lay the stormwater pipe.' });
   for (const name of ['Excavate', 'Work in the trench', 'Lay pipes']) assert.ok(steps(dig).includes(name), name);
   assert.ok(steps(draft({ ...SITE, state: 'qld', fallRisk: 'no', task: 'Bulk earthworks with dozers, scrapers and haul trucks on the haul road.' })).includes('Run earthmoving plant'));
+});
+
+const INSIDE = 'Work inside a deep excavation';
+
+test('SWMS3: work inside an existing deep excavation, station box or shaft has its own step, from the Excavation work code', () => {
+  const d = draft({ ...SITE, state: 'qld', task: STATION_BOX }, { spaceAssessment: 'notConfined' });
+  assert.deepEqual(steps(d).slice(0, 2), ['Before starting', INSIDE], 'getting in and working safely in the box comes before the pour');
+  const step = d.jobSteps.find((item) => item.step === INSIDE);
+  const lines = step.controls.join('\n');
+  // Access and egress, the ground and batter watch, objects and plant at the edge, and emergency egress.
+  for (const pattern of [/steps, a ramp or a ladder secured in place/, /landing platforms or scaffold towers/, /second way in and out is kept for emergency use/, /toe boards/, /frequently checks the ground, batters and ground support/,
+    /Plant does not operate or travel near the edge/, /outside the zone of influence/, /rescuing a worker from the excavation/]) assert.match(lines, pattern);
+  // Every line is cited to the Excavation work code sections it comes from.
+  for (const line of step.controls) assert.match(line, /\(Excavation work Code of Practice 2021 \(Qld\) s (?:3\.8|4 \(Table 2\), s 4\.4|4\.1(?:, s 4\.4)?|4\.3|4\.4|6\.7)\)$/, line);
+  assert.match(risk(d), /trench with an excavated depth greater than 1\.5 ?m/);
+  // The crew digs nothing, so there is no permit to dig.
+  assert.ok(!d.jobSteps.some((item) => item.controls.some((line) => /^No digging starts/.test(line))));
+  // In New South Wales the SafeWork NSW code, with the same section numbers.
+  const nsw = draft({ ...SITE, state: 'nsw', task: STATION_BOX }, { spaceAssessment: 'notConfined' });
+  for (const line of nsw.jobSteps.find((item) => item.step === INSIDE).controls) assert.match(line, /\(SafeWork NSW Code of practice: Excavation work \(January 2020\) s [\d.]+/, line);
+  // At the base of an existing shaft, and inside an existing excavation: the step, and no trench steps.
+  for (const task of ['Fix reinforcement and pour the base slab at the bottom of the shaft, 14 m deep.', 'Form and pour the pile caps at the base of the existing excavation 3 m deep.', 'Install the pump and pipework inside the existing wet well shaft 9 m deep.']) {
+    const inside = draft({ ...SITE, state: 'qld', fallRisk: 'no', task });
+    assert.ok(steps(inside).includes(INSIDE), task);
+    for (const name of ['Excavate', 'Work in the trench', 'Backfill the trench']) assert.ok(!steps(inside).includes(name), `${task}: ${name}`);
+  }
+});
+
+test('the deep excavation step comes only for work inside one deeper than 1.5 m that the crew does not dig', () => {
+  const none = [
+    // Digging it: the trench, earthmoving and basement steps cover the work.
+    'Excavate a trench 2.4 m deep and lay the stormwater pipe.',
+    'Bulk excavate the station box to 18 m deep with excavators.',
+    'Excavate the shaft to 12 m deep and install the liner rings inside the shaft.',
+    'Dig the pile caps inside the excavation 3 m deep with a mini excavator.',
+    'Install ground anchors and walers inside the station box excavation 18 m deep as the dig goes down.',
+    'Working in or around trenches and excavations, 2.5 m deep.',
+    // Not deeper than 1.5 m, or no depth given for an excavation.
+    'Form and pour a footing inside the excavation 1.2 m deep.',
+    'Pour the base slab within the station box excavation.',
+    // A basement, and shafts through a building.
+    'Fix reo in the basement excavation 6 m deep.',
+    'Install lift guide rails inside the lift shaft.',
+    'lift install in shaft',
+    'Hoisting machines, rails and equipment into the shaft and machine room',
+    'Install pipework in the riser shaft from level 1 to level 9.',
+    'Install ductwork in the ventilation shaft from basement to roof, 40 m.',
+  ];
+  for (const task of none) assert.ok(!steps(draft({ ...SITE, state: 'qld', fallRisk: 'no', task })).includes(INSIDE), task);
+  // From a scope: the package that puts its work in the station box gets the step whatever the AI
+  // chose, and a package that does not cannot have it.
+  assert.ok(packageKinds('Place and compact concrete to the station box base slab (Station box; conditions: All work is within a confined station box up to 18m deep with a single egress ramp).', ['concrete']).includes('inExcavation'));
+  assert.deepEqual(packageKinds('Place and compact concrete to the ground floor slab.', ['concrete', 'inExcavation']), ['concrete']);
 });
 
 test('confined space: the words "confined" or atmosphere monitoring ask the question; a switchroom does not', () => {

@@ -330,3 +330,91 @@ test('a SiteReady SWMS with its own sign-on sheet: the sheet is removed from the
     assert.ok(!result.hardFails.includes('H7'), name);
   }
 });
+
+// ---- Pasted text, as a text extractor, Word or a PDF viewer gives it ----
+
+const mammoth = require('mammoth');
+const { PDFParse } = require('pdf-parse');
+
+const SIGNONS = [
+  { worker_name: CREW[0].name, worker_company: CREW[0].employer, signature: `data:image/png;base64,${SIGNATURE.toString('base64')}`, signedDate: '6 October 2026', note: '' },
+  { worker_name: CREW[1].name, worker_company: CREW[1].employer, signature: '', signedDate: '6 October 2026', note: 'Explained by Imogen Thistlewood (supervisor)' },
+  { worker_name: CREW[2].name, worker_company: CREW[2].employer, signature: `data:image/png;base64,${SIGNATURE.toString('base64')}`, signedDate: '7 October 2026', note: '' },
+];
+const PASTED_PRIVATE = [...CREW.flatMap((item) => [item.name, item.employer]), 'Imogen Thistlewood', 'Worker sign-on', 'By signing'];
+function assertPastedPrivate(text, label) {
+  for (const item of PASTED_PRIVATE) assert.ok(!text.includes(item), `${label}: "${item}" is left in`);
+}
+const roofDraft = () => prepareDraft(draftBody({ state: 'qld', task: 'Install metal roof sheeting on a new two storey house.', fallRisk: 'yes', workplace: '14 Banksia Road, Ashgrove QLD 4060', facts: { fallControl: 'Scaffold with edge protection around the roof perimeter.' } }));
+// Each table cell on its own line, as a text extractor gives it from the Word file.
+const extracted = async (signons) => (await mammoth.extractRawText({ buffer: Buffer.from(await draftToDocx(roofDraft(), { signons })) })).value;
+// Word's own plain text: a table row on one line, its cells split by tabs.
+const wordRows = (text) => text.replace(/\n\nName\n\nCompany\n\nSignature\n\nDate\n\n/, '\n\nName\tCompany\tSignature\tDate\n')
+  .replace(new RegExp(`(${CREW.map((item) => item.name).join('|')})\\n\\n(?:(Explained by [^\\n]+)\\n\\n)?([^\\n]+)\\n\\n\\n\\n([^\\n]+)`, 'g'), (whole, name, note, company, date) => `${name}${note ? ` ${note}` : ''}\t${company}\t\t${date}`);
+// A PDF viewer's copy: every page's text in turn, with no page breaks.
+async function viewerCopy(pdfBuffer) {
+  const parser = new PDFParse({ data: pdfBuffer });
+  try {
+    return (await parser.getText()).pages.map((page) => page.text).join('\n');
+  } finally {
+    await parser.destroy();
+  }
+}
+
+test('a SiteReady SWMS pasted from a text extractor, Word or a PDF viewer: the sign-on at the end is cut and the workers counted', async () => {
+  const docxText = await extracted(SIGNONS);
+  const pasted = [
+    ['text extractor', docxText],
+    ['Word copy', wordRows(docxText)],
+    ['PDF viewer copy', await viewerCopy(await draftToPdf(roofDraft(), { signons: SIGNONS }))],
+  ];
+  assert.ok(pasted[1][1].includes(`${CREW[0].name}\t${CREW[0].employer}\t\t6 October 2026`), 'the Word copy has one row per line');
+  for (const [label, text] of pasted) {
+    assert.ok(!text.includes('\f'), `${label}: no page breaks`);
+    const stripped = await swmsWithoutSignOns({ text });
+    assertPastedPrivate(stripped.text, label);
+    assert.deepEqual([stripped.found, stripped.signOns, stripped.signOnsUndated], [true, 3, 0], `${label}: three dated sign-ons`);
+    for (const line of ['Scaffold with edge protection around the roof perimeter.', 'Principal contractor review', 'Legislation and codes of practice']) assert.ok(stripped.text.includes(line), `${label}: "${line}" is kept`);
+  }
+  // An empty sign-on sheet is cut too, with no one counted.
+  const empty = await swmsWithoutSignOns({ text: await extracted([]) });
+  assert.deepEqual([empty.found, empty.signOns, empty.text.includes('Worker sign-on')], [true, 0, false]);
+});
+
+test('pasted text through the check: names never reach the AI, and H7 sees three workers', async (t) => {
+  const { sent, logged } = setUp(t);
+  const result = await runCheck({ text: await extracted(SIGNONS), stage: 'on-site' }, {});
+  assertPastedPrivate(sent[0], 'sent');
+  assert.deepEqual(logged, [{ pagesRemoved: 0, sectionsRemoved: 1, signOns: 3, refused: false }]);
+  assert.ok(!result.hardFails.includes('H7'));
+  assert.match(result.findings.find((item) => item.rule === 'H7').message, /^3 workers have signed\./);
+});
+
+test('pasted text: a sign-on under its own heading in the middle is cut to the next heading; rows mixed into the method are refused', async () => {
+  const method = METHOD.join('\n');
+  const cells = (crew) => crew.flatMap((item) => [item.name, '', item.employer, '', '', '', item.date, '']);
+  // A sign-on section between the steps and an appendix, one cell per line.
+  const middle = [method, '', 'Worker Sign-On Sheet', '', 'I have read and understood this SWMS.', '', 'Name', '', 'Company', '', 'Signature', '', 'Date', '', ...cells(CREW),
+    'Appendix: Emergency plan', 'Control: The rescue kit and the plan are kept in the site office, and the supervisor runs the rescue.'].join('\n');
+  const cut = await swmsWithoutSignOns({ text: middle });
+  assertNothingPrivate(cut.text);
+  assert.deepEqual([cut.signOns, cut.signOnsUndated], [3, 0]);
+  assert.ok(cut.text.includes('Skylights are covered') && cut.text.includes('Appendix: Emergency plan') && cut.text.includes('the supervisor runs the rescue'));
+  // Rows with no heading of their own, between two steps.
+  const untitled = [...METHOD.slice(0, 9), 'Name', 'Company', 'Signature', 'Date', ...cells(CREW.slice(0, 2)), ...METHOD.slice(9)].join('\n');
+  await assert.rejects(swmsWithoutSignOns({ text: untitled }), (error) => error.status === 422 && /Take the sign-on rows out and paste it again\.$/.test(error.message));
+  // A sign-on heading whose rows run straight into a step, with no heading between.
+  const runOn = [...METHOD.slice(0, 9), 'Worker sign-on', 'Name', 'Company', 'Signature', 'Date', ...cells(CREW.slice(0, 2)), ...METHOD.slice(10)].join('\n');
+  await assert.rejects(swmsWithoutSignOns({ text: runOn }), (error) => error.status === 422);
+});
+
+test('pasted text: undated rows one cell per line are counted per worker; a sign-off block is not a sign-on', async () => {
+  const text = `${METHOD.join('\n')}\n\nWorker sign-on\n\nName\n\nCompany\n\nSignature\n\n${CREW.map((item) => `${item.name}\n\n${item.employer}\n\n`).join('')}`;
+  const stripped = await swmsWithoutSignOns({ text });
+  assertNothingPrivate(stripped.text);
+  assert.deepEqual([stripped.signOns, stripped.signOnsUndated], [3, 3]);
+  const approval = `${METHOD.join('\n')}\n\nApproved by\n\nName\n\nPosition\n\nSignature\n\nDate\n\nPrepared by\nName\nSignature\nDate`;
+  const kept = await swmsWithoutSignOns({ text: approval });
+  assert.equal(kept.text, approval);
+  assert.equal(kept.found, false);
+});

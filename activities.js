@@ -562,6 +562,33 @@ const ACTIVITIES = [
     }],
   },
   {
+    // Work at the base of an existing excavation, station box or shaft deeper than 1.5 m that this
+    // crew does not dig, such as a pour in a station box (tester cycle 1, SWMS3). Each line is from the
+    // Excavation work codes (Queensland 2021 and SafeWork NSW, the same section numbers): s 3.8 the
+    // emergency plan, Table 2 and s 4.4 falls and access, s 4.1 loads near excavations, s 4.3 plant near
+    // the edge, s 6.7 regular inspection.
+    when: 'inExcavation',
+    steps: [{
+      step: 'Work inside a deep excavation',
+      hazards: [
+        'A fall from the edge into the excavation, or while climbing in or out.',
+        'The ground, a batter or the ground support gives way onto workers below.',
+        'Spoil, materials or tools fall from the edge onto workers below.',
+        'Plant or loads near the edge collapse the side, or plant goes over the edge.',
+        'Workers cannot get out quickly in an emergency, such as a ground slip, flooding or a gas leak.',
+      ],
+      controls: [
+        src('Workers get in and out only by steps, a ramp or a ladder secured in place, with landing platforms or scaffold towers inside a deep excavation.', `${QCODE('Excavation work', 's 4 (Table 2), s 4.4')}; ${NSWC('NSW Excavation', 's 4 (Table 2), s 4.4')}`),
+        src('A second way in and out is kept for emergency use, apart from the main access.', `${QCODE('Excavation work', 's 4.4')}; ${NSWC('NSW Excavation', 's 4.4')}`),
+        src('The edge has guard rails, barriers or covers, with toe boards where material could fall in.', `${QCODE('Excavation work', 's 4.1, s 4.4')}; ${NSWC('NSW Excavation', 's 4.1, s 4.4')}`),
+        src('Spoil, materials and other loads are kept away from the edge and outside the zone of influence, unless the ground support is designed by a competent person to carry them.', `${QCODE('Excavation work', 's 4.1')}; ${NSWC('NSW Excavation', 's 4.1')}`),
+        src('Plant does not operate or travel near the edge unless the ground support is designed by a competent person to carry it. Wheel stops or other barriers keep plant back from the edge.', `${QCODE('Excavation work', 's 4.3')}; ${NSWC('NSW Excavation', 's 4.3')}`),
+        src('A competent person frequently checks the ground, batters and ground support for fretting, slipping, slumping or swelling. Any repair to the excavation, or strengthening of the support, is done from above before work below continues.', `${QCODE('Excavation work', 's 6.7')}; ${NSWC('NSW Excavation', 's 6.7')}`),
+        src('The emergency plan covers ground slip, engulfment, flooding, gas leaks and rescuing a worker from the excavation, is part of the principal contractor\'s emergency plan for the project, and the crew is trained in it.', `${QCODE('Excavation work', 's 3.8')}; ${NSWC('NSW Excavation', 's 3.8')}`),
+      ],
+    }],
+  },
+  {
     when: 'trench',
     steps: [
       {
@@ -11854,6 +11881,12 @@ function jobStepsFor(flags, factText, fallback) {
   // Asbestos is checked, and the room stripped out, before anything new goes in.
   const FIRST = ['Check for asbestos before starting', 'Prepare the asbestos work area', 'Remove the asbestos', 'Break out and remove asbestos cement pits or ducts', 'Bag, label and dispose of asbestos waste', 'Strip out the room'];
   middle = [...FIRST.flatMap((name) => middle.filter((step) => step.step === name)), ...middle.filter((step) => !FIRST.includes(step.step))];
+  // Getting into a deep excavation, and working safely in it, comes before the work done there.
+  const inside = middle.filter((step) => step.step === 'Work inside a deep excavation');
+  if (inside.length) {
+    const lead = middle.filter((step) => FIRST.includes(step.step));
+    middle = [...lead, ...inside, ...middle.filter((step) => !lead.includes(step) && !inside.includes(step))];
+  }
   // An asbestos meter panel comes out only once the supply is disconnected.
   if (middle.some((step) => step.step === 'Replace the meter box and consumer mains connection')) {
     const off = ['Have the supply disconnected', 'Isolate and prove de-energised'].flatMap((name) => middle.filter((step) => step.step === name));

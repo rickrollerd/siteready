@@ -324,7 +324,8 @@ function packageKinds(rawTask, kinds) {
 }
 
 // Kinds of work brought in only where the task's words name them (namedWorkFlags).
-const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines'];
+// Work inside a deep excavation others dug comes only where the words put the work there.
+const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -675,6 +676,25 @@ const NOT_DUG = /\btrench (?:drains?|grates?|covers?)\b|\btreat\w*\s+(?:the\s+)?
 // An excavation named as where the work is done ("pour the base slab within the station box
 // excavation") is not this crew digging, so it brings no trench, pipe laying or backfill steps.
 const EXCAVATION_PLACE = /\b(?:in|within|inside|into|at the (?:base|bottom|floor) of)\s+(?:the\s+|an?\s+)?(?:[\w-]+\s+){0,3}?(?:station box(?:es)?(?:\s+excavations?)?|excavations?)\b/gi;
+
+// Work done inside an existing excavation, station box or shaft that the crew does not dig (tester
+// cycle 1, SWMS3): a pour, formwork or fit-out at the base. A shaft void through a building's floors
+// is not one.
+const EXCAVATION_INSIDE = /\b(?:in|within|inside|into|down|at the (?:base|bottom|floor) of)\s+(?:the\s+|an?\s+)?(?:(?!(?:and|or|around|near|beside|next|trench\w*|pits?)\b)[\w-]+\s+){0,4}?(?:station box(?:es)?(?:\s+excavations?)?|excavations?|(?<!(?:lift|riser|service|ventilation|stair|air|vent|plumbing|electrical|duct|pipe|mechanical|comms|cable|garbage|rubbish|chute|light|smoke|exhaust|services)\s)shafts?)\b(?:,?\s*(?:up to |about |around |over |some )?\d+(?:\.\d+)?\s*(?:m|metres?|meters?)\s+deep\b)?/gi;
+// The task with the excavation it works inside taken out, and its depth with it. In lift work, a
+// shaft is the lift shaft and stays. "In or around trenches and excavations" names trenches too.
+function withoutExcavationPlace(text) {
+  const lift = LIFT_WORK.test(text) || /\b(?:lifts?|machine rooms?|landing doors?|car tops?|hoistways?)\b/i.test(text);
+  return String(text || '').replace(EXCAVATION_INSIDE, (place) => (lift && /\bshafts?\b/i.test(place) ? place : ' '));
+}
+// Digging by this crew: the trench and earthmoving steps cover work in what it digs.
+const OWN_DIG = /\b(?:excavat(?:e|es|ed|ing)|dig(?:s|ging)?|dug|trench(?:es|ing)?|bulk (?:excavation|earthworks)|detailed excavation|earthworks|muck\w* out|shaft sinking|sink\w* (?:the |a )?shafts?|underpin\w*)\b/i;
+function inDeepExcavation(task, flags) {
+  const text = String(task || '');
+  const rest = withoutExcavationPlace(text);
+  if (flags.trench || flags.earthworks || rest === text || !deepExcavation(text)) return false;
+  return !OWN_DIG.test(rest);
+}
 
 function deepExcavation(text) {
   // A shaft void is an opening through a building's floors, not a dig.
@@ -2808,8 +2828,13 @@ const permitLine = (permit, stateId) => localControl(permit.line, permit.source,
 // options: the state (for the sources) and whether the work is domestic.
 function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
   let steps = jobSteps;
+  // Work inside an excavation others dug, with no step that digs, needs no permit to dig: the
+  // excavation named as the place, and the category's wording, are not digging.
+  const inside = (step) => step.step === 'Work inside a deep excavation';
+  const noDigging = steps.some(inside) && !steps.some((step) => !inside(step) && DIG_WORK.test(step.step));
   for (const permit of PERMITS) {
     if (permit.notDomestic && options.domestic) continue;
+    if (noDigging && permit.work === DIG_WORK) continue;
     if (!steps.length || !permit.work.test(work) || (alreadyRead && permit.work.test(alreadyRead))) continue;
     const named = steps.findIndex((step) => step.controls.some((line) => permit.named.test(line)));
     if (named >= 0) {
@@ -3328,7 +3353,7 @@ function tradeFlags(task, facts, state) {
 
 // Job steps the task's words call for that are flagged when taken off: asbestos,
 // isolation, confined spaces, water, traffic, power lines, propping and trench support.
-const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench']);
+const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench', 'inExcavation']);
 const KIND_SET = new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean));
 
 // Picked steps that strip out, demolish or cut into an existing building need asbestos
@@ -3450,6 +3475,7 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     ...gapFlags(task),
   };
   const settled = settleFlags(typedTitleFlags(out, task, ownCrane), task);
+  settled.inExcavation = inDeepExcavation(task, settled);
   const claimed = claimedSentences(task, settled);
   if (!claimed.length) return settled;
   // Kinds of work named only in a claimed sentence are left out; the hazards the task's
@@ -5176,7 +5202,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // The answers count as they do for the high risk category (a trench support answer that
     // names trenches with no depth), so the trench steps never contradict the category.
     deepTrench: trenchDig(combinedFacts(task, facts)),
-    trench: (trenchDig(task.replace(EXCAVATION_PLACE, ' ')) || /\b(excavat(?!ors?\b)\w*|trench\w*)\b/i.test(task.replace(NOT_DUG, ' ').replace(EXCAVATION_PLACE, ' ')) || /\b(?:install\w*|lay\w*|replac\w*|repair\w*)\b[^.]{0,40}\b(?:underground (?:run )?(?:pipework|pipes?|services)|(?:collapsed |broken |damaged |cracked )(?:stormwater|sewer|drainage|water) pipes?|(?:stormwater|sewer|drainage) pipes? \d|water reticulation|pipes? for (?:a |the )?(?:new )?\w+'?s? (?:water|sewer|stormwater|drainage)|(?:pipework|pipes?|mains?|services|conduits?) underground|in-?ground (?:drainage|pipework)|(?:sewer|house|stormwater)(?:\/house)? drainage (?:systems?|lines?)|(?:stormwater|sewer|drainage) (?:pipes?|lines?|mains?)|(?:precast |concrete )?(?:pits?|manholes?)|(?:detention|underground|storage|onsite detention) tanks?|grease traps?|septic (?:tanks?|systems?)|absorption trench\w*|culverts?|culvert pipes?|cattle grids?)\b/i.test(task) && !/\b(?:directional(?:ly)? (?:drill|bor)\w*|hdd|under ?bor\w*|bored under)\b/i.test(task)) && !((PILING_WORK.test(task) || BULK_EXCAVATION.test(task) || EARTHWORKS.test(task)) && !/\btrench\w*\b/i.test(task)),
+    trench: (trenchDig(withoutExcavationPlace(task)) || /\b(excavat(?!ors?\b)\w*|trench\w*)\b/i.test(withoutExcavationPlace(task.replace(NOT_DUG, ' '))) || /\b(?:install\w*|lay\w*|replac\w*|repair\w*)\b[^.]{0,40}\b(?:underground (?:run )?(?:pipework|pipes?|services)|(?:collapsed |broken |damaged |cracked )(?:stormwater|sewer|drainage|water) pipes?|(?:stormwater|sewer|drainage) pipes? \d|water reticulation|pipes? for (?:a |the )?(?:new )?\w+'?s? (?:water|sewer|stormwater|drainage)|(?:pipework|pipes?|mains?|services|conduits?) underground|in-?ground (?:drainage|pipework)|(?:sewer|house|stormwater)(?:\/house)? drainage (?:systems?|lines?)|(?:stormwater|sewer|drainage) (?:pipes?|lines?|mains?)|(?:precast |concrete )?(?:pits?|manholes?)|(?:detention|underground|storage|onsite detention) tanks?|grease traps?|septic (?:tanks?|systems?)|absorption trench\w*|culverts?|culvert pipes?|cattle grids?)\b/i.test(task) && !/\b(?:directional(?:ly)? (?:drill|bor)\w*|hdd|under ?bor\w*|bored under)\b/i.test(task)) && !((PILING_WORK.test(task) || BULK_EXCAVATION.test(task) || EARTHWORKS.test(task)) && !/\btrench\w*\b/i.test(task)),
     propping: CATEGORY_FACTS.find((item) => item.id === 'temporarySupport').applies(task),
     // Removing old services (pipework, cabling, ductwork) is not building demolition unless the building fabric is named.
     demolition: mentioned(task, DEMOLITION) && !servicesOnlyDemolition(task),
