@@ -24,8 +24,9 @@ const SLANG = [
   [/\bs\/s\b|\bSS\b/g, 'stainless steel'],
   [/\bpenos?\b/gi, 'penetrations'],
   [/\bpowerlines?\b/gi, 'power lines'],
-  // Asbestos cement: "AC pipe" or "AC sheet" is asbestos cement. "AC pipework" and "AC unit" are air conditioning.
-  [/\bAC (pipes?|mains?|sheets?|sheeting)\b/g, 'asbestos cement $1'],
+  // Asbestos cement: "AC pipe" or "AC sheet" is asbestos cement, and so is "AC roof sheets". "AC pipework" and
+  // "AC unit" are air conditioning.
+  [/\bAC ((?:roof |wall |eaves? |fence )?(?:pipes?|mains?|sheets?|sheeting|linings?))\b/g, 'asbestos cement $1'],
   [/\baircon\b|\ba\/c\b/gi, 'air conditioning'],
   [/\bAC (units?|systems?)\b/g, 'air conditioning $1'],
   // Demolition
