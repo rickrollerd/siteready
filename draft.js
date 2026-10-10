@@ -2448,7 +2448,38 @@ function stepPicks(task, facts, state) {
   return { suggested, chosen, locked: suggested.filter((id) => LOCKED_KINDS.has(id)) };
 }
 
+// The questions for a task, and, before any are answered, whether the SWMS will be stood down for
+// want of job steps for the work, so the user hears it here and not only at the draft.
 function questionsFor(input) {
+  const asked = askQuestions(input);
+  if (asked.kind !== 'questions') return asked;
+  const reason = buildDraft(input, 'steps');
+  if (!reason || !reason.noSteps) return asked;
+  // Steps for where the work is done (the rail corridor, the road, work above traffic) are not ticked
+  // as if they were the work. Plant and access steps stay ticked: running the hoist can be the work
+  // itself. The user's own picks stay as they made them.
+  const around = stateFor(input).kinds ? [] : asked.steps.chosen.filter((id) => AROUND_KINDS.has(id));
+  const chosen = asked.steps.chosen.filter((id) => !around.includes(id));
+  return {
+    ...asked,
+    steps: { ...asked.steps, chosen, around },
+    standDown: { message: standDownNotice(reason.noSteps, around, chosen) },
+  };
+}
+
+// The notice on the questions page for a task that will be stood down, in plain words.
+function standDownNotice(why, around, chosen) {
+  if (why.nothingPicked) return 'No job steps are ticked, so SiteReady will not draft this SWMS. Tick or add the job steps for the work under Job steps.';
+  const work = why.mainMissing && why.mainMissing !== 'the main work in this task' ? why.mainMissing : 'this work';
+  const kinds = new Map(require('./steps').stepLibrary().groups.flatMap((group) => group.kinds).map((kind) => [kind.id, kind.label]));
+  const names = (ids) => ids.map((id) => kinds.get(id)).filter(Boolean).join('; ');
+  const found = names(around) ? ` The steps found for where the work is done (${names(around)}) are not the work itself, so they are not ticked.` : '';
+  const support = chosen.filter((id) => SUPPORT_KINDS.has(id));
+  const ticked = why.mainMissing && !why.fallback && names(support) ? ` The steps ticked (${names(support)}) cover only the access, lifting or other work around it.` : '';
+  return `SiteReady has no job steps for ${work} yet, so it will not draft this SWMS.${found}${ticked} To go on, add the job steps that cover the work itself under Job steps, describe the work in more detail (what is installed, removed or built, and how), or write this SWMS yourself.`;
+}
+
+function askQuestions(input) {
   const state = stateFor(input);
   if (!state) {
     return { kind: 'refused', message: 'Choose a state.' };
@@ -2635,6 +2666,10 @@ function missingMainWork(fullTask, steps, added = null) {
 // that part is listed above the draft, so the user adds a step for it or covers it in another
 // SWMS. The list is shown on screen only: it is not printed in the SWMS.
 
+// Kinds whose job steps are only for where the work is done, not the work: shown unticked on the
+// questions page when the work itself has no job steps.
+const AROUND_STEPS = new Set(['Work in the rail corridor', 'Work above traffic or a rail line', 'Set up traffic management', 'Plan the work near overhead power lines', 'Separate plant and people on site']);
+const AROUND_KINDS = new Set(ACTIVITIES.filter((activity) => activity.when && activity.steps.length && activity.steps.every((step) => AROUND_STEPS.has(step.step))).map((activity) => activity.when));
 // Kinds whose job steps only get people, plant and materials to the work.
 const SUPPORT_KINDS = new Set(ACTIVITIES.filter((activity) => activity.when && activity.steps.length && activity.steps.every((step) => SUPPORT_STEPS.has(step.step))).map((activity) => activity.when));
 const PART_FILLER = /\b(?:the|a|an|and|or|to|of|for|in|on|at|by|with|from|all|any|new|existing|then|out|up|off|back|down|away|over|it|them|these|those|this|its|their|supply|provide|deliver)\b/gi;
@@ -2867,8 +2902,10 @@ function screenHighRisk(input, said = '') {
 // screen is set only by screenHighRisk below, never by a request: the questions are left
 // unanswered and the draft is worked out anyway, so its high risk list is what the task's
 // own words and job steps bring.
+// screen 'steps' is set only by questionsFor: the answers given so far stand, and the build stops
+// once it knows whether the SWMS is stood down for want of job steps ({ noSteps }).
 function buildDraft(input, screen) {
-  const asked = questionsFor(screen ? { ...input, fallRisk: 'no', residential: input.residential || 'no' } : input);
+  const asked = askQuestions(screen === true ? { ...input, fallRisk: 'no', residential: input.residential || 'no' } : input);
   if (asked.kind === 'refused' || asked.kind === 'error') return asked;
   const state = stateFor(input);
   // The SWMS shows the task as typed; the work is read from it with site slang expanded.
@@ -2993,11 +3030,13 @@ function buildDraft(input, screen) {
   const mainMissing = missingMainWork(task, draft.jobSteps || [], added);
   // Picks that leave no step of the user's own (only the required ones) are no picks at all.
   const nothingPicked = Boolean(state.kinds) && !state.kinds.length;
-  if (((draft.jobSteps || []).some((step) => step.fallback) || mainMissing || nothingPicked) && !screen) {
+  const fallback = (draft.jobSteps || []).some((step) => step.fallback);
+  if (screen === 'steps') return { noSteps: fallback || mainMissing || nothingPicked ? { fallback, mainMissing, nothingPicked } : null };
+  if ((fallback || mainMissing || nothingPicked) && !screen) {
     return {
       kind: 'stand-down',
       ...header,
-      missing: [!nothingPicked && mainMissing && !(draft.jobSteps || []).some((step) => step.fallback) ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Pick the job steps that cover the work under Job steps, describe the work in more detail, or write this SWMS yourself.` : NO_STEPS],
+      missing: [!nothingPicked && mainMissing && !fallback ? `Job steps for this work: SiteReady does not have job steps for ${mainMissing} yet, only for the access, lifting or other work around it. Pick the job steps that cover the work under Job steps, describe the work in more detail, or write this SWMS yourself.` : NO_STEPS],
       statement: 'This task is stood down. It does not start.',
       method: [], hazards: [], controls: [], site: [], review: '', signed: false, approved: false,
     };
@@ -6523,6 +6562,7 @@ module.exports = {
   workFlags,
   highRiskMatches,
   questionsFor,
+  askQuestions,
   prepareDraft,
   notCoveredRefusal,
   screenHighRisk,

@@ -30,7 +30,7 @@
 // - Any blank (____) or "To be completed" left in what prints: in the user's own answers, which are
 //   filled in their boxes, and in SiteReady's control lines, which are filled where they show.
 const { SITE_FIELDS } = require('./legislation');
-const { questionsFor, involvesScaffold, notCoveredRefusal } = require('./draft');
+const { askQuestions, involvesScaffold, notCoveredRefusal } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
 const { clean, answerNeed } = require('./public/gate-rules');
@@ -85,7 +85,7 @@ function plantNeed(input, draft) {
 // The question each answer belongs to, for its label.
 function factLabels(input) {
   try {
-    const asked = questionsFor(input);
+    const asked = askQuestions(input);
     return new Map((asked.required || []).map((item) => [item.id, item.label]));
   } catch (error) {
     return new Map();
