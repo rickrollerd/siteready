@@ -1062,6 +1062,9 @@ const SWITCHBOARD_WORK = { test: (text) => SWITCHBOARD_WORDS.test(String(text ||
 const MECHANICAL_WORK = /\b(mechanical services|heat recovery ventilat\w*|hrv|erv|ventilation systems?|evaporative coolers?|hvac|ducted (?:gas )?heating|ducted (?:air|systems?)|air[- ]?condition\w*|ductwork|duct(?:ing| runs?| sections?)|refrigerant|refrigeration|split systems?|fan coil units?|fcus?|ahus?|air handling units?|chillers?|cooling towers?|condensers?|condensing units?|jet fans?|exhaust fans?|chilled water|vrf|vrv)\b/i;
 const SPLIT_INSTALL = /\binstall\w*\b[^.]{0,40}\b(?:split systems?|(?:wall[- ]mounted |wall )?air ?conditioning units?(?! on (?:the|a) roof)|air ?conditioners?(?! on (?:the|a) roof))\b/i;
 const REFRIGERANT = /\b(refrigerant|refrigeration|split systems?|condensing units?|condenser units?|vrf|vrv|reverse cycle|ducted air ?condition\w*)\b/i;
+// Air conditioning plant taken out: the refrigerant in it is recovered by a licence holder first, whatever
+// the units are called ("remove aircon units", "Remove the condensers from the roof").
+const AC_PLANT_REMOVAL = /\b(?:remov|decommission|disconnect|strip)\w*\b[^.]{0,30}\b(?:condensers?|condensing units?|condenser units?|air ?con\w*(?! ?ducts?| ?ductwork| grilles?| diffusers?| registers?)(?: units?| plant)?|a\/?c units?|split systems?|rooftop units?|packaged? units?)\b/i;
 const PLUMBING_ONLY_WORDS = /\b(plumb\w*|sanitary|sewer\w*|drain\w*|hot water|cold water|tapware|toilets?|basins?)\b/i;
 function isPlumbing(text) {
   // Subsoil drains on a sports field carry groundwater, not sewage, so they are not drainage under the plumbing law.
@@ -2565,10 +2568,11 @@ const MAIN_WORK = [
   [/^(?![^]*\b(?:temporary|builder'?s?) (?:power )?poles?\b)[^]*\b(light(?:ing)? poles?|poles?\b[^.]{0,30}\b(?:stand|erect|install)\w*|(?:stand|erect|install)\w* [^.]{0,30}\bpoles?)\b/i, 'pole erection', /\b(poles?|Install security devices)\b/i],
   [/\bcore fill\w*\b/i, 'core filling', /\bcore fill\b/i],
   [/\b((?<!\b(?:lay\w*|install\w*|construct\w*|build\w*|new|gravity|pressure|rising)\s+(?:the\s+|a\s+)?(?:new\s+)?(?:gravity\s+|pressure\s+)?)sewer mains?|council mains?|connect\w*[^.]{0,30}\bsewer)\b/i, 'connection to the live sewer', /\bConnect to the live sewer\b/],
-  [/\b(?:install|replac|lift|remov)\w*\b[^.]{0,40}\b(?:air ?con\w* units?|rooftop units?|condensers?|package units?)\b/i, 'air conditioning plant installation', /\b(Install split system|Install plant|Receive plant|Isolate plant|Install ductwork)\b/],
+  // Removing units alone is the removal entry below.
+  [/\b(?:install|replac|lift)\w*\b[^.]{0,40}\b(?:air ?con\w* units?|rooftop units?|condensers?|package units?)\b/i, 'air conditioning plant installation', /\b(Install split system|Install plant|Receive plant|Isolate plant|Install ductwork)\b/],
   [/^(?![^]*\bhydro[- ]?demoli)[^]*\bdemolish\w*\b[^.]{0,30}\b(?:garages?|sheds?|houses?|buildings?|carports?|decks?|pergolas?|verandahs?|structures?)\b/i, 'demolition of a whole structure', /\b(Demolish the structure|Take down the shed frame)\b/],
   [/\b(pool shells?|shotcrete|gunite|spray\w* concrete)\b/i, 'pool shell and sprayed concrete work', /\b(shotcrete|sprayed concrete|Spray the pool shell)\b/i],
-  [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer|seal floor joints)/i],
+  [/\b(pressure clean\w*|pressure wash\w*|re-?seal\w*|wash\w* and seal\w*)\b/i, 'pressure cleaning and sealing', /\b(pressure clean|pressure wash|sealer|seal floor joints|Seal glazing|Apply sealant|Seal the facade joints)/i],
   [/\bpergolas?\b/i, 'pergola work', /\b(pergola|footings?|post holes?|shallow trench|Dig|Erect the frame|Prop and repair)\b/i],
   [/\bline marking\b/i, 'line marking', /\bline marking\b/i],
   [/\btank stands?\b/i, 'tank stand construction', /\btank stand\b/i],
@@ -2589,18 +2593,19 @@ const MAIN_WORK = [
   [/\b(?:install|erect|assembl|build)\w*\s+(?:an? |the )?(?:new )?(?:(?:garden|kit|colorbond|steel|metal)\s+)+sheds?\b/i, 'shed kit assembly', /\b(shed kit|shed frame)\b/i],
   [/\bbollards?\b/i, 'bollard installation', /\bbollards\b/i],
   [/\bexhaust fans?\b[^.]{0,40}\b(?:ceilings?|roof spaces?)\b|\b(?:ceilings?|roof spaces?)\b[^.]{0,40}\bexhaust fans?\b/i, 'exhaust fan work in a ceiling', /\bWork in the roof space\b/],
-  [/\bremov\w*\b[^.]{0,30}\b(?:split systems?|air ?condition\w*)/i, 'removing the units', /\b(Receive plant|Fix the units in place|Install ductwork|Remove the old services)\b/],
+  [/\bremov\w*\b[^.]{0,30}\b(?:split systems?|air ?con\w*|rooftop units?|condensers?|package units?)/i, 'removing the units', /\b(Receive plant|Fix the units in place|Install ductwork|Remove the old services)\b/],
   // A circuit breaker is electrical work, not concrete breaking.
   [/\b(jackhammer\w*|break\w* (?:out|up)|(?<!circuit[- ])breakers?)\b/i, 'breaking out concrete', /\b(break|Trim pile heads|Demolish|Saw cut)/i],
   [/^(?![^]*\b(?:repoint\w*|sandstone|brick\w*|masonry|stone walls?|render\w*|concrete|retaining walls?|fire ?walls?|fibro|asbestos)\b)[^]*\b(?:patch\w*|repair\w*)\b[^.]{0,30}\b(?:plasterboard|linings?|walls?(?! frames?| framing)|ceilings?)\b/i, 'patching linings', /\b(?:Cut (?:and fix )?plasterboard|Set the joints|Sand the joints)\b/],
   [/\b(underfloor heating|heating cables?|heating mats?)\b/i, 'underfloor heating installation', /\b(heating|Rough-in|Fit off)\b/i],
   [/^\s*(?:install|fix|replac)\w*\s+(?:[\w-]+\s+){0,3}(?:cladding|weatherboards?)\b/i, 'cladding installation', /\bcladding\b/i],
   [/^\s*install\w*\s+(?:an? |the |new )*(?:passenger |goods )?(?:lifts?|elevators?)\b(?! (?:pits?|shafts?|cores?|the|materials|equipment|it|them|panels?|sheets?|landing doors?|doors?))/i, 'lift installation', /\b(Work on the car top|Lift machines, rails|Install the lift rails|Replace the lift motor|Erect and connect steel)\b/],
-  [/\btrees?\b[^.]{0,40}\b(cranes?)\b|\bcranes?\b[^.]{0,40}\btrees?\b/i, 'tree removal', /\bRemove trees\b/],
+  // Trees planted with a crane ("Plant advanced trees with a HIAB") are landscaping, not removal.
+  [/\b(?<!\b(?:plant|plants|planting|planted|transplant\w*)\s+(?:[\w-]+\s+){0,2})trees?\b[^.]{0,40}\b(cranes?)\b|\bcranes?\b[^.]{0,40}\b(?<!\b(?:plant|plants|planting|planted|transplant\w*)\s+(?:[\w-]+\s+){0,2})trees?\b/i, 'tree removal', /\bRemove trees\b/],
   [/\b(?:replac|fix|repair|re-?bed|repoint|lay|install)\w*\b[^.]{0,30}\b(?:roof tiles?|tiled roofs?|ridge caps?)\b/i, 'tiled roof work', /\b(?:tiled|slate) roof\b|\bStrip the (?:slates|roof tiles)\b/i],
   [/\b(ev|electric vehicle|car) chargers?\b/i, 'EV charger installation', /\b(Rough-in|Fit off|Test the new work|Connect and commission)\b/],
   [/\b(?:lay|install|run)\w*\b[^.]{0,30}\b(?:drainage|drain|sewer|stormwater) (?:lines?|pipes?|pipework)\b/i, 'laying the drainage line', /\b(Lay pipes|Excavate)\b/],
-  [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(gutters?(?! guards?)|downpipes?)\b/i, 'gutter and downpipe installation', /\b(gutters?|roofing)\b/i],
+  [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(gutters?(?! guards?)|downpipes?)\b/i, 'gutter and downpipe installation', /\b(gutters?|downpipes?|roofing)\b/i],
   [/\b(?:install\w*|replac\w*|fit\w*|fix\w*)\b[^.]{0,30}\b(skylights?|roof windows?)\b/i, 'skylight installation', /\bskylight\b/i],
 ];
 
@@ -2648,10 +2653,16 @@ function missingMainWork(fullTask, steps, added = null) {
   if (/\b(?:provid\w*|set\w* up|install\w*|implement\w*|run\w*|carry out|manag\w*)\b[^.]{0,30}\btraffic (?:guidance|control|management)\b/i.test(task)) own.add('Set up traffic management');
   // Spreading gravel or soil with a bobcat is the small plant step's own work.
   if (/\b(bobcats?|skid ?steers?|posi-?tracks?)\b/i.test(task) && /\b(gravel|soil|fill|driveways?|tracks?|level\w*|spread\w*)\b/i.test(task)) own.add('Operate small earthmoving plant');
+  // Hoist operation named as the work ("Builders' hoist operation") is the hoist driver's own work.
+  if (/\bhoists?'? operations?\b/i.test(task)) own.add('Operate the hoist');
+  // Building or putting up a mobile scaffold is erecting it ("Build the mobile scaffold in the foyer").
+  if (/\b(?:build\w*|put\w* up|set\w* up|install\w*)\s+(?:(?:the|a|an|two|three|four|\d+|new|our|alloy|aluminium|small|tall)\s+){0,2}(?:mobile scaffold|(?:scaffold |mobile |aluminium )towers?)/i.test(task)) own.add('Use mobile scaffolds');
   // Working where plant moves and is not kept apart from people is the separation step's own work.
   if (AMONG_PLANT.test(task)) own.add('Separate plant and people on site');
   // Erecting or dismantling a mobile scaffold is work of its own; using one only gets to the work.
   if (/\b(erect\w*|dismantl\w*|assembl\w*)\b[^.]{0,30}\b(?:mobile scaffold|(?:scaffold |mobile |aluminium )towers?)|\b(?:mobile scaffold\w*|(?:scaffold |mobile |aluminium )towers?)\b[^.]{0,20}\b(erect\w*|dismantl\w*)/i.test(task)) own.add('Use mobile scaffolds');
+  // Driving the builders hoist is the hoist driver's own work; riding it only gets to the work.
+  if (/\b(?:operat\w*|driv\w*|run\w*)\b[^.]{0,30}\b(?:builders?'? |personnel |materials? |passenger )?(?:and materials )?hoists?\b/i.test(task)) own.add('Operate the hoist');
   const support = new Set([...SUPPORT_STEPS].filter((name) => !own.has(name)));
   // A building named as the place ("Residential Building", "Building 3") is not building work.
   const work = task.replace(/\bbuildings?\b(?!\s+(?:a|an|the|new|up)\b)/gi, ' ');
@@ -3945,7 +3956,7 @@ function readWorkFlags(fullTask, facts = {}, ownCrane = false, nested = false, a
   const written = writtenWordings(task);
   const out = {
     ...flags,
-    roofAccess: /\b(on (?:the|a) roofs?|roof discharge points?|roof[- ]mounted|roof ?tops?|solar (?:hot water|panels?|collectors?|systems?)|lightning (?:conductors?|protection)|roof (?:cowls?|penetrations?|plant|vents?)|(?:re)?paint\w* (?:the |a )?(?:house |metal |steel |tiled? |iron |shed )?roofs?|roof paint\w*|bird (?:spikes|proofing)|gutter guards?|whirlybirds?|skylights?|(?:roof|ridge|barge|apron|parapet) (?:flashings?|cappings?)|(?:ridge|hip) caps?|deck ?tites?|box gutters?|valley (?:gutters?|irons?|trays?)|above (?:the )?roof|through (?:the )?roof)\b/i.test(task),
+    roofAccess: /\b(on (?:the|a) roofs?|(?:remov\w*|tak\w* down|clear\w*|strip\w*)\b[^.]{0,40}\b(?:from|off) (?:the|a) roofs?|roof discharge points?|roof[- ]mounted|roof ?tops?|solar (?:hot water|panels?|collectors?|systems?)|lightning (?:conductors?|protection)|roof (?:cowls?|penetrations?|plant|vents?)|(?:re)?paint\w* (?:the |a )?(?:house |metal |steel |tiled? |iron |shed )?roofs?|roof paint\w*|bird (?:spikes|proofing)|gutter guards?|whirlybirds?|skylights?|(?:roof|ridge|barge|apron|parapet) (?:flashings?|cappings?)|(?:ridge|hip) caps?|deck ?tites?|box gutters?|valley (?:gutters?|irons?|trays?)|above (?:the )?roof|through (?:the )?roof)\b/i.test(task),
     oxyCutting: /\b(oxy(?:-?acetylene)?(?: cutting)?|gas cutting|flame cutting|thermal cutting)\b/i.test(task),
     silicaDrill: SILICA_WORK.test(task) && !OWN_CUTTING.some((id) => flags[id]),
     smallPlant: /\b(skid ?steers?|bobcats?|posi-?tracks?|mini (?:excavators?|loaders?)|tractors?)\b/i.test(task),
@@ -4094,7 +4105,7 @@ function typedTitleFlags(flags, task, ownCrane) {
   on(T(/\b(?:repair\w*|replac\w*)\b[^.]{0,20}\bductwork\b/i), 'ductwork');
   on(T(/\b(?:toilet|kitchen|in-?line) exhaust fans?\b/i) && T(/\binstall\w*/i), 'ductwork', 'mechanicalWork');
   on(T(/\b(?:install\w*|run\w*|lay\w*)\b[^.]{0,40}\bcondensate (?:flexi |flexible |rigid )?(?:drain )?(?:pipework|piping|pipes?|lines?|drains?)\b/i), 'mechPipework', 'mechanicalWork');
-  on(T(/\b(?:disconnect\w*|remov\w*|decommission\w*)\b[^.]{0,30}\b(?:air ?condition\w*|split systems?|(?:a\/?c|air conditioning) units?)\b/i), 'servicesStrip');
+  on(T(/\b(?:disconnect\w*|remov\w*|decommission\w*)\b[^.]{0,30}\b(?:air ?condition\w*|split systems?|(?:a\/?c|air conditioning) units?|condensers?|condensing units?|rooftop units?|package units?)\b/i), 'servicesStrip');
   on(S(/air ?condition\w* units?\b/) && T(/\binstall\w*/i), 'splitInstall', 'mechanicalWork');
   on(T(/\bsplit systems?\b/i) && plain && !T(/\b(?:install|replac|fit|supply)\w*/i), 'splitInstall');
   on(T(/\bair balanc\w*/i), 'mechCommissioning', 'mechanicalWork');
@@ -4170,7 +4181,9 @@ function typedTitleFlags(flags, task, ownCrane) {
   on(T(/\btower cranes? (?:erect\w*|climb\w*|dismantl\w*|install\w*|jump\w*)/i), 'towerCraneErect');
   on(T(/\bcrawler cranes? (?:assembl\w*|dismantl\w*|rig\w* up)/i), 'craneAssembly');
   on(T(/\bdual (?:and heavy )?(?:crane )?lifts?\b/i), 'dualLift', ownCrane ? 'crane' : 'craneInterface');
-  on(T(/\bhoists?\b[^.]{0,20}\b(?:install\w*|erect\w*|climb\w*|dismantl\w*)\b/i) && !VEHICLE_HOIST.test(t), 'hoistInstall');
+  // The hoist itself installed ("hoist installation"), not the hoist used to install other work
+  // ("Use the builders hoist to install the joints").
+  on(T(/\bhoists?'?(?:\s+(?:masts?|is|are|being|to be|will be|has been))*[\s,:]+(?:install\w*|erect\w*|climb\w*|dismantl\w*)\b/i) && !VEHICLE_HOIST.test(t), 'hoistInstall');
   on(T(/\bhoists? operat\w*/i) && !VEHICLE_HOIST.test(t), 'hoistOperate');
   on(/^(?:install\w*|erect\w*|stand\w*) (?:the |new )?poles?$/i.test(t), 'poleErect', 'footingHoles');
   on(T(/\bvoid protection\b/i) && T(/\b(?:install\w*|remov\w*|erect\w*)\b/i), 'edgeProtectionInstall');
@@ -4324,7 +4337,7 @@ function plainWordings(t, short, plain, on) {
   on(P(/\bbalanc\w* (?:the )?(?:air|system|ductwork)\b|\b(?:mechanical|hvac|air conditioning) commission\w*|\bcommission\w*\b[^.]{0,20}\b(?:air handling units?|hvac)\b/i), 'mechCommissioning', 'mechanicalWork');
   on(P(/\b(?:air conditioning|hvac|air handling units?|split systems?|chillers?)\b[^.]{0,20}\b(?:servic\w*|maint\w*)\b|\b(?:servic\w*|maint\w*)\b[^.]{0,20}\b(?:air conditioning|hvac|air handling units?|split systems?|chillers?)\b/i), 'acService', 'mechanicalWork');
   // Old services made safe and taken out, by any trade.
-  on(P(/\b(?:remov|decommission|disconnect|strip)\w*\b[^.]{0,20}\b(?:(?:the )?(?:old|existing|redundant) )?(?:sprinklers?|fire services?|air conditioning(?: units?)?|split systems?|plant|cabling|cables)\b|\bcap\w* (?:off )?(?:the )?(?:old |existing |redundant )?(?:services|plumbing|pipework|pipes|water|gas)\b|\b(?:isolat|disconnect)\w* and cap\b/i) && !/\basbestos\b/i.test(t), 'servicesStrip');
+  on(P(/\b(?:remov|decommission|disconnect|strip)\w*\b[^.]{0,20}\b(?:(?:the )?(?:old|existing|redundant) )?(?:sprinklers?|fire services?|air conditioning(?: units?)?|split systems?|plant(?!\s+(?:new|out|them|it)\b|\s+(?:(?:the|some|a|an|\d+|[\w-]+)\s+){0,2}(?:trees?|shrubs?|hedges?|seedlings?|tubestock|natives?|grass|turf|gardens?|beds?|plants|ones)\b)|cabling|cables)\b|\bcap\w* (?:off )?(?:the )?(?:old |existing |redundant )?(?:services|plumbing|pipework|pipes|water|gas)\b|\b(?:isolat|disconnect)\w* and cap\b/i) && !/\basbestos\b/i.test(t), 'servicesStrip');
   // Painting and piling.
   on(P(/\bairless\b/i), 'paintSpray');
   on(P(/\bcoat\w* (?:the )?(?:structural )?steel\b/i), 'painting');
@@ -5631,7 +5644,7 @@ function settleFlags(flags, task) {
   // A hoist mast climbed or extended alone is not installed or dismantled.
   out.hoistClimbOnly = Boolean(out.hoistInstall) && /\b(climb\w*|extend\w*|jump\w*|rais\w* (?:the )?(?:hoist )?mast)\b/i.test(task) && !/\b(install\w*|erect\w*|dismantl\w*|remov\w*|set up|take down)\b/i.test(task);
   // Loading platforms are installed in their own step only when the task names installing them.
-  out.loadPlatformInstall = Boolean(out.loadOut) && /\b(install\w*|erect\w*|fit\w*|relocat\w*|jump\w*|climb\w*|dismantl\w*|remov\w*|strip\w*)\b[^.]{0,30}\b(?:loading|landing) platforms?\b/i.test(task);
+  out.loadPlatformInstall = Boolean(out.loadOut) && /\b(install\w*|erect\w*|fit\w*|relocat\w*|jump\w*|climb\w*|dismantl\w*|remov\w*|strip\w*)\b[^.]{0,30}\b(?:loading|landing) platforms?\b|\b(?:loading|landing) platforms? (?:install|installation|erection|relocation|removal|dismantle|dismantling)\b/i.test(task);
   out.loadPlatformOnly = out.loadPlatformInstall && !/\b(load(?:ing)?[- ]?out|materials?|loads?|deliver\w*|stillages?|pallets?)\b/i.test(task);
   // A backfilled trench has its surface reinstated in its own step only when a surface is named
   // or the trench is in a road or footpath; asphalt has its own reinstatement step.
@@ -5731,9 +5744,12 @@ function namedWorkFlags(task, flags = {}) {
   return out;
 }
 
+// The roof named as the place of the work, not as what is worked on.
+const ROOF_PLACE = /\b(?:from|on|off|onto|across|at|over) (?:the |a )?(?:\w+ )?roofs?\b|\broof ?tops?\b/gi;
+
 // Raised pavement markers, and removing old line marking.
 const RPM = /\b(?:raised (?:reflective )?pavement markers?|rr?pms?|road studs?|cat'?s[- ]?eyes)\b/i;
-const LINE_REMOVAL = /\b(?:remov\w*|grind\w* (?:off|out)|blast\w* off|eras\w*|obliterat\w*)\b[^.]{0,30}\b(?:old |existing )?(?:line ?markings?|linemarking|(?:road |pavement |car ?park )?markings|(?:road|car ?park|painted|white|yellow|traffic) lines)\b|\bline (?:marking )?removal\b/i;
+const LINE_REMOVAL = /\b(?:remov\w*|grind\w* (?:off|out)|blast\w* off|eras\w*|obliterat\w*)\b[^.]{0,30}\b(?:old |existing )?(?:line ?markings?|linemarking|(?:road |pavement |car ?park )?markings|(?:road|car ?park|painted|white|yellow|traffic) lines)\b|\bline (?:marking )?removal\b|\b(?:grind|blast)\w* (?:off |out )?(?:the )?(?:old |existing )?lines\b/i;
 
 // Hot conditions: hot weather named in the task, or hot plant such as furnaces, kilns and
 // operating boilers (artificial extremes of temperature). A cold store is not hot work, and
@@ -5847,7 +5863,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     tileEdge: isTiling(task) && /\b(balcon\w*|terraces?|edges?(?![- ](?:strips?|trims?|profiles?|angles?|beads?|tiles?|bands?|grips?|finish\w*))|podium)\b/i.test(task),
     // Mobile scaffold use is found the way EWP use is: from the task, the facts and the site answers (owner decision, 6 October 2026).
     mobileScaffold: MOBILE_SCAFFOLD.test(combinedFacts(task, facts)),
-    hoistInstall: /\b(install\w*|erect\w*|climb\w*|dismantl\w*|jump\w*|extend\w*|puts? up)\b[^.]{0,40}\b(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
+    // The hoist is what is installed: no word of using it ("using", "in", "to") comes between the verb and the hoist.
+    hoistInstall: /\b(install\w*|erect\w*|climb\w*|dismantl\w*|jump\w*|extend\w*|puts? up)(?:[\s,]+(?!(?:using|uses?|with|in|into|inside|from|by|on|onto|off|up|via|to|through)\b)[\w'-]+){0,5}[\s,]+hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
     hoistOperate: /\b(operat\w*|run\w*|driv\w*)\b (?:the )?(?:builders'? |personnel (?:and materials )?|materials )?hoists?\b/i.test(task) && !VEHICLE_HOIST.test(task),
     carpentryWork: CARPENTRY_WORK.test(task) && !FORMWORK.test(task),
     carpLoad: CARPENTRY_WORK.test(task) && !FORMWORK.test(task) && /\b(hoists?|deliver\w*|carr\w*|mov\w*|sheets?|joinery|cabinets?)\b/i.test(task),
@@ -5901,7 +5918,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // Boilers being installed, not boilers named only as what a supply connects to.
     boilerPlant: /\b(?:install\w*|commission\w*|set\w*|lift\w*|replac\w*|supply and install)\b[^.]{0,40}\b(?:boilers?|pressure vessels?|calorifiers?|steam plant)\b|\b(?:boilers?|pressure vessels?|calorifiers?)\b[^.]{0,30}\b(?:install\w*|commission\w*)\b/i.test(task),
     cleaningStands: (CLEANING.test(task) || /\bclean\w* (?:the |all )?(?:[\w-]+ )?(?:stands?|grandstands?|seats?|tiers?|aisles?)\b/i.test(task)) && /\b(stands?|seats?|tiers?|grandstands?|aisles?)\b/i.test(task),
-    landscapeLift: LANDSCAPE.test(task) && /\b(soil|mulch|plant\w*|turf|planters?|landscap\w*)\b/i.test(task) && /\b(podium|roofs?|cranes?|(?:a|the|by|materials?|builder'?s|site|goods) hoists?)\b/i.test(task),
+    // A crane planting trees at ground level is not lifting soil and plants up to a slab.
+    landscapeLift: LANDSCAPE.test(task) && /\b(soil|mulch|plant\w*|turf|planters?|landscap\w*)\b/i.test(task) && (/\b(podium|roofs?|(?:a|the|by|materials?|builder'?s|site|goods) hoists?)\b/i.test(task) || /\bcranes?\b/i.test(task) && /\b(levels?|slabs?|decks?|suspended|terraces?|balcon\w*|upper|floors?)\b/i.test(task)),
     dualLift: /\b(dual lifts?|tandem lifts?|two (?:crawler |mobile )?cranes)\b/i.test(task),
     precastTier: /\bprecast\b/i.test(task) && PRECAST_TIER.test(task) && /\b(install\w*|plac\w*|lift\w*|erect\w*|land\w*)\b/i.test(task),
     safetyNet: /\bsafety nets?\b/i.test(task),
@@ -5921,7 +5939,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     roofSpaceRule: /\b(houses?|homes?|dwellings?|townhouses?|duplex\w*|home units?|unit blocks?|apartments?|flats?|garages?|carports?|sheds?|residential)\b/i.test(task),
     generatorTest: /\b(operation of (?:the )?generators?|load shed\w*|load bank\w*|generators? (?:testing|test runs?|load tests?)|load test\w* (?:the )?generators?)\b/i.test(task),
     serviceLabels: /\b(marking (?:of )?pipes|pipe markers?|flow (?:direction )?markers?|colour bands|(?:label\w*|identification) (?:of )?(?:pipes|pipework|ducts|ductwork|services|valves))\b/i.test(task),
-    servicesStrip: /\b(?:demoli\w*|remov\w*|strip\w*)\b[^.]{0,60}\b(?:plant|pipework|pipes|cabling|cables|cable (?:trays?|ladders?)|ductwork|light fittings|services|(?:existing|old|redundant) (?:lighting|power|wiring|plumbing|refrigeration|cool ?rooms?|lifts?)|(?:existing|old|redundant) (?:[\w-]+ ){0,3}equipment|its refrigeration)\b|\b(?:plant|pipework|cabling|ductwork|services)\b[^.]{0,60}\bto be (?:demolished|removed)\b/i.test(task),
+    // "Plant new trees" plants; it is not plant to remove.
+    servicesStrip: /\b(?:demoli\w*|remov\w*|strip\w*)\b[^.]{0,60}\b(?:plant(?!\s+(?:new|out|them|it)\b|\s+(?:(?:the|some|a|an|\d+|[\w-]+)\s+){0,2}(?:trees?|shrubs?|hedges?|seedlings?|tubestock|natives?|grass|turf|gardens?|beds?|plants|ones)\b)|pipework|pipes|cabling|cables|cable (?:trays?|ladders?)|ductwork|light fittings|services|(?:existing|old|redundant) (?:lighting|power|wiring|plumbing|refrigeration|cool ?rooms?|lifts?)|(?:existing|old|redundant) (?:[\w-]+ ){0,3}equipment|its refrigeration)\b|\b(?:plant|pipework|cabling|ductwork|services)\b[^.]{0,60}\bto be (?:demolished|removed)\b/i.test(task),
     hardwareFit: /\b(?:door|window|architectural) hardware\b|\b(?:install|fit)\w*[^.]{0,30}\b(?:hinges|(?:door )?closers|locks(?:ets?)?|lever sets|cylinders)\b/i.test(task),
     // Work that may go into a roof or ceiling space.
     roofSpaceWork: /\b(roof ?spaces?|ceiling spaces?|ceilings?|attics?|in the roof|downlights?|light fittings?|lighting|rewir\w*|smoke alarms?|ceiling fans?)\b/i.test(task),
@@ -6194,7 +6213,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     glazingDrill: GLAZING_WORK.test(task) && ((/\bdrill\w*\b/i.test(task) && /\b(tiled|tiles?|masonry|concrete)\b/i.test(task)) || /\bshower screens?\b/i.test(task)),
     // Taping or marking glazing so it can be seen is not glass installation.
     glassHandle: !/^\s*$/.test(task.replace(/\b(?:tap(?:e|ing)|mark\w*)\b[^.]*\bglaz\w*[^.]*\.?/gi, '')) && GLAZING_WORK.test(task.replace(/\b(?:tap(?:e|ing)|mark\w*)\b[^.]*\bglaz\w*[^.]*\.?/gi, '')) && /\b(glass|glazing|mirrors?|screens?|windows?)\b/i.test(task) && !/\b(clean\w*|wash\w*)\b[^.]{0,20}\bwindows?\b/i.test(task) && (!/\bhardware\b/i.test(task) || /\b(?:install|fit|replac|supply)\w*[^.]{0,30}\b(?:glass|glazing|panes?|windows?(?! hardware)|mirrors?|screens?)\b/i.test(task)),
-    glazingSeal: GLAZING_WORK.test(task) && /\b(seal\w*|silicon\w*)\b/i.test(task) || /\bseal\w* (?:the |all )?(?:[\w-]+ )?windows?(?: frames?| perimeters?)?\b/i.test(task),
+    glazingSeal: GLAZING_WORK.test(task) && /\b(seal\w*|silicon\w*)\b/i.test(task) || /\b(?:re-?)?seal\w* (?:the |all )?(?:[\w-]+ )?windows?(?: frames?| perimeters?)?\b/i.test(task),
     stoneWork: STONE_WORK.test(task),
     siteSheds: /\b(site sheds?|site offices?|temporary (?:site )?offices?|site amenities|amenities (?:sheds?|blocks?)|site toilets?|portable toilets?|crib (?:rooms?|sheds?)|dongas?|demountables?|(?:site|temporary) (?:office|toilets?|crib))\b/i.test(task) && !/\bslabs? for (?:an? |the )?(?:\w+ )?sheds?\b/i.test(task) && /\b(set up|install\w*|erect\w*|lift\w*|place\w*)\b/i.test(task),
     stoneSilica: STONE_WORK.test(task) && /\b(cut\w*|drill\w*|polish\w*|grind\w*)\b/i.test(task),
@@ -6204,7 +6223,9 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // Removing, repairing, modifying or disposing of installed engineered stone (s 529F).
     engStoneWork: ENG_STONE_INSTALLED.test(task) && /\bengineered stone\b/i.test(task),
     stoneHandle: STONE_WORK.test(task) && /\b(install\w*|set\w*|carr\w*|mov\w*|lift\w*|fit\w*|replac\w*)\b/i.test(task) && !/\blaminate\b/i.test(task),
-    roofStrip: /\broof\w*\b/i.test(roofTask) && /\b(remov\w*|replac\w*|strip\w*|re-?roof\w*)\b/i.test(roofTask),
+    // The roof named only as where the work is ("Remove the condensers from the roof", "rooftop units")
+    // is not roof stripping unless roofing is named.
+    roofStrip: /\broof\w*\b/i.test(roofTask) && /\b(remov\w*|replac\w*|strip\w*|re-?roof\w*)\b/i.test(roofTask) && (/\broof\w*\b/i.test(roofTask.replace(ROOF_PLACE, ' ')) || /\b(sheet\w*|roofing|tiles?|iron|cladding|flashings?|cappings?|purlins?|battens?|sarking|membranes?|gutters?|valleys?|valley (?:trays?|gutters?)|ridges?)\b/i.test(roofTask)),
     facadeWork: FACADE_WORK.test(task),
     // A scaffold to a facade, with loading bays, loads no facade panels.
     panelLoad: FACADE_WORK.test(task) && /\b(load\w*|deliver\w*|stillages?|racks?|land\w*)\b/i.test(task) && !(scaffold && !/\b(panels?|cladding|curtain walls?|glazing units?|stillages?)\b/i.test(task)),
@@ -6215,7 +6236,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     edgeBracket: FACADE_WORK.test(task) && /\bbrackets?\b/i.test(task) && /\bslab edges?\b/i.test(task),
     facadeSeal: FACADE_WORK.test(task) && /\b(seal\w*|silicon\w*|caulk\w*)\b/i.test(task),
     mechanicalWork: MECHANICAL_WORK.test(task),
-    refrigerantWork: REFRIGERANT.test(task),
+    refrigerantWork: REFRIGERANT.test(task) || AC_PLANT_REMOVAL.test(task),
     // Heavy plant lifted, delivered or moved into place; not scissor or boom lifts.
     plantLift: MECHANICAL_WORK.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:air[- ]?condition\w*|rooftop|package\w*|a\/?c) units?|fans?(?!\s+coil)|plant)\b/i.test(task) && (/\b((?<!scissor\s+|boom\s+)lift\w*|cranes?|hoist\w*|deliver\w*|receiv\w*|unload\w*|skates?|pallet jacks?|position\w*|mov\w*|rig\w*|set(?:ting)? (?:the |new |each )?(?:[\w-]+ )?(?:units?|condensers?|chillers?|ahus?|plant))\b/i.test(task) || (/\binstall\w*/i.test(task) && /\b(ahus?|air handling units?|chillers?|cooling towers?|condens\w* units?|condensers?|(?:rooftop|package\w*) units?|plant)\b/i.test(task) && !/\b(range ?hoods?|exhaust fans?)\b/i.test(task))),
     // A sentence that only marks or labels services names them; it does not install them.

@@ -59,8 +59,8 @@ test('work with no job steps at all is told too, and a task that drafts is not',
 });
 
 test('plant and access steps stay ticked, since running them can be the work; the notice names them', () => {
-  // These stand down at the draft today (unchanged here); the hoist and the mobile scaffold stay ticked.
-  for (const [task, kind, name] of [['Builders\' hoist operation', 'hoistOperate', 'Operate the hoist'], ['build the mobile scaff in the foyer', 'mobileScaffold', 'Use mobile scaffolds']]) {
+  // The acoustic baffles have no job steps, so this stands down at the draft; the mobile scaffold stays ticked.
+  for (const [task, kind, name] of [['Install the acoustic baffles from a mobile scaffold', 'mobileScaffold', 'Use mobile scaffolds']]) {
     const asked = ask(task);
     assert.deepEqual(asked.steps.chosen, [kind], task);
     assert.deepEqual(asked.steps.around, [], task);
@@ -111,4 +111,88 @@ test('the page shows the notice above the job steps, leaves the steps around the
   await settle();
   assert.deepEqual(bodies[bodies.length - 1].kinds, ['road', 'workAbove', 'hotWork']);
   assert.equal(page.document.getElementById('steps-notice').classList.contains('hidden'), true);
+});
+
+// Typed tasks that stood down or were misread, though the library has job steps for the work.
+test('typed tasks the library has job steps for are drafted with the steps for the work', () => {
+  const middle = (draft) => draft.jobSteps.map((step) => step.step).filter((name) => !['Before starting', 'Finish and clean up'].includes(name));
+  for (const [task, steps] of [
+    // The hoist driver's own SWMS, and erecting a mobile scaffold ("scaff"), are the work itself.
+    ['Builders\' hoist operation', ['Operate the hoist']],
+    ['run the builders hoist', ['Operate the hoist']],
+    ['build the mobile scaff in the foyer', ['Use mobile scaffolds']],
+    ['Put up two mobile scaffolds', ['Use mobile scaffolds']],
+    // The verb after the loading platform ("instal" is spelt "install").
+    ['loading platform instal', ['Install loading platforms']],
+    // Grinding off old lines is removing line marking, as the kind reads it.
+    ['grind off old lines', ['Remove old line marking']],
+    // Planting trees with a vehicle loading crane is not tree removal, nor a lift to a podium.
+    ['plant advanced trees with a HIAB', ['Unload with the truck loading crane (hiab)', 'Plant']],
+    // Removing units is removal, not installation.
+    ['remove aircon units', ['Isolate and make safe the old services', 'Remove the old services']],
+    // Resealing windows is sealing glazing, from the building maintenance unit.
+    ['reseal the windows from the BMU', ['Work from a swing stage', 'Seal glazing']],
+    ['install downpipes and rainwater heads', ['Install downpipes']],
+  ]) {
+    const asked = ask(task);
+    assert.equal(asked.standDown, undefined, task);
+    const draft = drafted(task);
+    assert.equal(draft.kind, 'draft', task);
+    assert.deepEqual(middle(draft), steps, task);
+  }
+  // Riding the hoist, or doing other work from a mobile scaffold, still is not the work.
+  assert.equal(drafted('Build the wall from the mobile scaffold').kind, 'stand-down');
+  assert.equal(drafted('Install the acoustic baffles from a mobile scaffold').kind, 'stand-down');
+  // A tree removed with a crane is still tree removal; soil lifted to a level by crane is still lifted.
+  assert.ok(middle(drafted('Remove the dead tree with a crane')).includes('Remove trees'));
+  assert.ok(middle(drafted('Lift the soil and plants to level 5 with the tower crane and plant the planters')).includes('Get soil and plants to the podium'));
+  // Old water lines under a road are not line marking.
+  assert.ok(!(ask('Remove the old water lines under the road').steps.suggested || []).includes('lineMarking'));
+  // Resealing pavers is still pressure cleaning and sealing.
+  assert.ok(middle(drafted('Reseal the driveway')).includes('Apply sealers to concrete, pavers or timber'));
+});
+
+// The thing worked on chooses the steps, not the place, the access plant or a word read the wrong way.
+test('condensers removed from a roof, work taken up in the hoist and trees planted are read as such', () => {
+  const kinds = (task) => ask(task).steps.suggested;
+  // Condensers removed from the roof are plant removal on a roof, not stripping the roof.
+  const condensers = drafted('Remove the condensers from the roof');
+  assert.equal(condensers.kind, 'draft');
+  const names = condensers.jobSteps.map((step) => step.step);
+  for (const name of ['Get onto the roof', 'Isolate and make safe the old services', 'Remove the old services']) assert.ok(names.includes(name), name);
+  assert.ok(!names.includes('Remove old roofing'));
+  assert.ok(!kinds('Remove the old rooftop units').includes('roofStrip'));
+  // Roofing named is still roof work.
+  for (const task of ['Remove the sheeting from the roof', 'Replace the valley trays on the roof.', 'Replace the roof']) assert.ok(kinds(task).includes('roofStrip'), task);
+  // The builders hoist used to get work up is access; the hoist itself installed is hoist installation.
+  for (const task of ['Use the builders hoist to install the bridge expansion joints', 'Install the panels using the builders hoist', 'Take the acoustic baffles up in the builders hoist and install them']) assert.ok(!kinds(task).includes('hoistInstall'), task);
+  assert.ok(middleNames(drafted('Use the builders hoist to get the plasterboard up and install the ceilings')).includes('Fix ceiling sheets'));
+  for (const task of ['Hoist installation', 'install and climb the builders hoist', 'erect hoist and tie in', 'Builders\' hoists: install, climb and dismantle', 'Your crew puts up a personnel and materials hoist on the side of the building.']) assert.ok(kinds(task).includes('hoistInstall'), task);
+  // "Plant new trees" is planting, not plant to remove.
+  assert.ok(!kinds('Remove the old trees with a crane and plant new trees').includes('servicesStrip'));
+  assert.ok(!kinds('Remove the old shrubs and plant new ones').includes('servicesStrip'));
+  assert.ok(kinds('Remove the old plant and equipment').includes('servicesStrip'));
+  const trees = middleNames(drafted('Remove the old trees with a crane and plant new trees'));
+  for (const name of ['Remove trees', 'Plant']) assert.ok(trees.includes(name), name);
+  assert.ok(!trees.includes('Remove the old services'));
+});
+
+function middleNames(draft) {
+  return draft.jobSteps.map((step) => step.step).filter((name) => !['Before starting', 'Finish and clean up'].includes(name));
+}
+
+// Air conditioning plant taken out has its refrigerant recovered by a licence holder first.
+test('removing air conditioning units brings the refrigerant licence and recovery lines', () => {
+  const lines = (draft) => draft.jobSteps.flatMap((step) => step.controls.map((control) => String(control.text || control))).join('\n');
+  for (const task of ['remove aircon units', 'Remove the condensers from the roof', 'Remove the old rooftop package units', 'Decommission the condensing units', 'remove the split systems', 'remove old AC']) {
+    const draft = drafted(task);
+    assert.equal(draft.kind, 'draft', task);
+    assert.match(lines(draft), /Refrigerant is recovered by a refrigerant handling licence holder before pipework or plant is opened\./, task);
+    assert.match(lines(draft), /only by holders of a refrigerant handling licence/, task);
+  }
+  // Air conditioning ductwork is not refrigerant plant, and AC fire door cores are asbestos cement.
+  assert.doesNotMatch(lines(drafted('Remove the old air conditioning ductwork')), /refrigerant/i);
+  const cores = drafted('Remove the AC fire door cores and asbestos containing switchboard backing panels');
+  assert.doesNotMatch(lines(cores), /refrigerant/i);
+  assert.ok(!cores.jobSteps.some((step) => step.step === 'Remove the old services'));
 });
