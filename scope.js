@@ -432,6 +432,8 @@ const TITLES = Object.freeze({
   generatorConnect: 'Connecting a temporary generator', blowerTruck: 'Blower truck placement', slingerTruck: 'Slinger truck placement', brushcutter: 'Brushcutting',
   asbestosPits: 'Removing asbestos cement pits and ducts', privateProperty: 'Entering private property', conveyorClean: 'Cleaning around a running conveyor',
   frpWrap: 'FRP column wrapping', basinLining: 'Basin lining', liveLines: 'Work near live fuel, chemical or refrigerant lines',
+  tbmShaft: 'TBM launch and retrieval shafts', plantRemoval: 'Lifting out old plant', liftController: 'Lift controller upgrades', underpinning: 'Underpinning',
+  fireSpray: 'Sprayed fire protection to steel', rockSaw: 'Rock sawing', ictTerminate: 'Terminating data outlets and patch panels',
 });
 const MAX_LINES = 8;
 const MAX_TASK = 900;

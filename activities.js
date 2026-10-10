@@ -22,6 +22,10 @@ const VSTEEL = (section) => `Safe erection of structural steel industry standard
 const CPR = (section) => `Telecommunications (Cabling Provider) Rules 2025 (Cth) ${section}`;
 const SPA = (section) => `Security Providers Act 1993 (Qld) ${section}`;
 const ARC = (section) => `Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 ${section}`;
+// WorkSafe Victoria's lift work handbook, regulator guidance cited only in Victorian drafts (citations.js).
+const VLIFT = (section) => `Lift work on construction projects: a handbook for workplaces (WorkSafe Victoria, 2019, Victorian guidance) ${section}`;
+// The national unit of competency for underpinning, cited in every state (citations.js). One source only.
+const RIIC = (section) => `RIICFW301A Construct underpinning (national unit of competency, 2011) ${section}`;
 // NSW Resources Regulator investigation reports, cited by the incident they report on, for lines where the
 // report itself states the requirement or finding. They are regulator findings, not law or a code of practice.
 const RR_REPORTS = {
@@ -39,6 +43,7 @@ const QLD_CODE_TITLES = {
   'Construction work': 'Model Code: Construction work',
   'Demolition': 'Demolition work Code of Practice 2021 (Qld)',
   'Silica': 'Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 (Qld)',
+  'Spray painting': 'Spray painting and powder coating Code of Practice 2021 (Qld)',
 };
 const QCODE = (code, section) => `${QLD_CODE_TITLES[code]} ${section}`;
 // Queensland codes that are not model codes, cited by their own section numbers.
@@ -12536,6 +12541,236 @@ addAfter('mobileScaffold', {
       ].map((text) => asLine(libraryLine(text))),
     ],
   }],
+});
+
+// Gap job steps (research of 10 October 2026, scratchpad/gap-steps/GAP-STEPS.md), each only where the
+// task's words name the work (draft.js namedWorkFlags). Every new line is from a source held, cited
+// to the section read (D181); a line already in the library is reused word for word with its source.
+const reuse = (text) => {
+  const { text: line, source } = asLine(libraryLine(text));
+  return source ? src(line, source) : { text: line };
+};
+const TUNNELS = (section) => NSWC('NSW Tunnels and shafts', section);
+const PLANT_CODES = (section) => `${QCODE('Managing the risks of plant in the workplace', section)}; ${NSWC('NSW Plant', section)}`;
+const EXCAVATION_CODES = (section) => `${QCODE('Excavation work', section)}; ${NSWC('NSW Excavation', section)}`;
+const SPRAY_CODES = (section) => `${QCODE('Spray painting', section)}; ${NSWC('NSW Spray painting', section)}`;
+
+// TBM launch and retrieval shafts. Every new line is from the SafeWork NSW Tunnels and shafts code
+// (chapters 9, 10 and 15), so it is cited in NSW drafts only, as the tunnel work lines are.
+addAfter('tunnelWork', {
+  when: 'tbmShaft',
+  steps: [{
+    step: 'Work at the TBM launch or retrieval shaft',
+    hazards: ['A fall into the open shaft.', 'Objects fall onto workers at the shaft bottom.', 'No safe way out of the shaft in an emergency.', 'Damaged services in the shaft.'],
+    controls: [
+      src('Every open shaft edge has edge protection, designed, installed, inspected and maintained to stop people, tools and materials falling in.', TUNNELS('s 9.2')),
+      src('When the shaft is left unattended, it is closed with covers rated for the loads or with locked barriers, and signed for falls and falling objects.', TUNNELS('s 9.2')),
+      src('An exclusion zone is kept around the shaft top and every lifting area, signed, physically barricaded and open to authorised workers only. It is reviewed when the work, equipment or conditions change.', TUNNELS('s 9.2')),
+      src('Falling objects are controlled with tool lanyards, secured materials and overhead protection or catch platforms, and work above the shaft is limited while people work below.', TUNNELS('s 9.2')),
+      src('The shaft has a safe way in and out for its depth, such as stairs, ladders or a hoist, and a second way out, such as a ladder, a second crane or a winch and davit, with lighting and communications for evacuation.', TUNNELS('s 9.3')),
+      src('Services in the shaft are identified, colour coded, fixed securely to the shaft wall and protected from damage.', TUNNELS('s 9.5')),
+      reuse('Everyone underground is tagged in and out.'),
+    ],
+  }, {
+    step: 'Lift loads into and out of the shaft',
+    hazards: ['A load or TBM part falls or swings in the shaft.', 'The crane overturns or overloads the shaft wall.', 'The crane operator cannot see the load in the shaft.'],
+    controls: [
+      src('Excavators lift only loads that are part of the excavation and only where they are rated for lifting. TBM parts are lifted by cranes or gantry cranes.', TUNNELS('s 15.4')),
+      src('The shaft is cleared of everyone not needed for the lift, and those needed stand in set safe positions.', TUNNELS('s 15.2')),
+      src('Crane pads and travel paths are built to the geotechnical requirements so the crane stays stable and does not overload the shaft lining or the tunnel.', TUNNELS('s 15.2')),
+      src('The hoist keeps at least three full turns of rope on the drum with the hook at full depth, and has last-wrap protection.', TUNNELS('s 15.2')),
+      reuse('The crane company plans and does the lifts under its own lift plan, with a lift study where the lift needs it. Its licensed crew slings, directs and releases loads.'),
+      src('Each lift into or out of the shaft follows a lift plan that covers the load weights, lifting gear, crane configuration, radii, wind and exclusion zones, and the plan is given to the operators, doggers and riggers before the lift. Designed, multi-crane or near-capacity lifts involve specialist heavy lift expertise.', TUNNELS('s 15.1')),
+      src('One designated dogger or rigger directs each load. Where the operator cannot see the load in the shaft, CCTV or other aids are used with a set handover between the doggers at the top and the bottom, and CCTV does not replace direct supervision.', TUNNELS('s 15.1, s 15.2')),
+    ],
+  }, {
+    step: 'Launch or receive the TBM',
+    only: 'tbmLaunch',
+    hazards: ['The face collapses or floods at the tunnel eye during break-in or break-out.', 'Crushed by thrust rams, grippers, the segment erector or shield parts.', 'Contact with the cutterhead.', 'Fire in the TBM electrical or hydraulic systems.', 'Hydraulic hose failure.'],
+    controls: [
+      src('The cutterhead is locked out with interlocks or trapped keys before anyone enters it, and other maintenance stops while cutterhead work is under way.', TUNNELS('s 10.2')),
+      src('Thrust rams, grippers and the segment erector are guarded, access doors and platforms near them are interlocked, and operators check the area is clear and limbs are out of crush zones before they move.', TUNNELS('s 10.2')),
+      reuse('Jacks, pumps and hoses are rated for the loads, inspected before use, and the system is depressurised before any fitting is undone.'),
+      src('Break-in and break-out at the tunnel eye go ahead under the project\'s permit to tunnel, after the ground and groundwater data, ground treatment and monitoring are reviewed against the design, with exclusion zones around the break-in. Excavation stops if conditions fall outside the design.', TUNNELS('s 10.4, s 10.5, appendix G')),
+      src('The TBM is commissioned on site by driving a first length of tunnel under the supervision of the TBM supplier and the principal contractor.', TUNNELS('s 10.2')),
+      src('Geotechnical monitoring results are given to the crew and reviewed, so any change in ground behaviour is acted on.', TUNNELS('s 10.11')),
+      reuse('Hot work underground is done only under a hot work permit, with a fire extinguisher at the work area.'),
+      reuse('The tunnel emergency plan covers refuge chambers, self-rescuers and the rescue team.'),
+    ],
+  }],
+  ppe: ['hivisNight', 'earMuffs'],
+});
+
+// Old plant taken out at ground level or indoors (condensers, air conditioning units, chillers): the
+// lifting and moving. Where the old services step is in the draft it disconnects the plant first.
+addAfter('servicesStrip', {
+  when: 'plantRemoval',
+  steps: [{
+    step: 'Disconnect the plant being removed',
+    unless: 'servicesStrip',
+    hazards: ['Contact with live electrical supply or stored energy in the plant.', 'Refrigerant, water or gas released when lines are cut.', 'Old lagging or gaskets that may contain asbestos.'],
+    controls: [
+      reuse('Before removal, each service is located and disconnected at its source: electrical circuits by a licensed electrician, locked out and proved de-energised; water and drainage drained; gas purged by a licensed gas fitter.'),
+      { only: 'refrigerantWork', ...reuse('Refrigerant is recovered by a refrigerant handling licence holder before pipework or plant is opened.') },
+      reuse('Isolate every energy source, control stored energy, then test by trying to start the plant.'),
+      reuse('Lagging and insulation are checked against the asbestos register before they are disturbed.'),
+    ],
+  }, {
+    step: 'Lift and move out the plant being removed',
+    hazards: ['The unit falls or tips while it is lifted, skated or loaded.', 'Crushed between the unit and walls, doorways or the truck.', 'Strain lifting or pushing the unit.', 'The floor, ramp or route is overloaded.', { only: 'forklift', text: 'A forklift strikes a person.' }],
+    controls: [
+      reuse('Move plant with mechanical aids such as skates, pallet jacks or powered tugs, not by carrying.'),
+      src('Where the unit is lifted, it is lifted with plant designed and rated to lift its weight, such as a gantry or chain block, with lifting gear suited to the load, kept under control, and with no one under it.', WHS('s 219')),
+      reuse('Lifting beams and anchors are rated and tagged before use.'),
+      { only: 'forklift', ...reuse('Forklifts are kept apart from people, with a warning device. A forklift left unattended is parked level, with the brake on and the key removed.') },
+      { only: 'forklift', ...reuse('Separate people from forklift routes with barriers, and use a spotter where people are near.') },
+      reuse('The route is checked for floor loads.'),
+      reuse('The route is checked for door sizes.'),
+      reuse('Team lifts are an interim control only. One person plans and takes charge of each team lift.'),
+      { only: 'forklift', ...reuse('Forklifts carry no passengers.') },
+    ],
+  }],
+  ppe: ['gloveCut'],
+});
+
+// Lift controller upgrades: the design change, isolation and stored energy, and the lift well.
+addAfter('liftMotor', {
+  when: 'liftController',
+  steps: [{
+    step: 'Replace the lift controller',
+    hazards: ['Electric shock from the lift supply, the controller or stored energy in the drive.', 'The car moves while the controller or safety circuits are disconnected.', 'A fall into the shaft at an open landing door or from the car top.', 'Strain or crush moving controller cabinets.', 'People use the lift, or are trapped in it, while it is out of service.', 'A lift worker is hurt where no one can see them.'],
+    controls: [
+      reuse('The lift is taken out of service.'),
+      src('The car is parked at a landing and secured against movement, as the lift maker\'s procedure requires, before the controller or its safety circuits are disconnected.', PLANT_CODES('s 4.5')),
+      reuse('The main switch is isolated and locked out with personal locks before work starts.'),
+      reuse('The controller is tested de-energised before work starts.'),
+      src('Stored energy in drives, capacitors and brakes is released or controlled, and proved, before anyone touches the terminals.', PLANT_CODES('s 4.5')),
+      reuse('Secure barriers stop anyone but the people working in the lift well from reaching its openings. People working in the well use secure working platforms or equivalent to stop a fall, a secure barrier protects them from falling objects, and there is a safe way into and out of the pit.'),
+      reuse('Before energised testing or fault finding, barriers are fitted to stop contact with nearby exposed conductive parts. Afterwards, disconnected conductors are reconnected, covers replaced and the equipment left in a safe state.'),
+      reuse('Move plant with mechanical aids such as skates, pallet jacks or powered tugs, not by carrying.'),
+      src('Before work starts, the lift owner or lift company confirms whether the new controller changes the registered lift design in a way that may affect health and safety, such as its safety circuits or control functions. If it does, the altered design is registered with the regulator.', `${WHS('s 244, schedule 5')}; ${PLANT_CODES('s 5.1')}`),
+      src('The holder of the lift registration tells the regulator in writing if the lift is altered so that it needs new control measures.', WHS('s 282')),
+      reuse('The lift is signed out of service at every landing.'),
+      reuse('Where the car must move for inspection or testing, its controls are operated only by the person doing the work, and can be locked off.'),
+      src('A lift worker who cannot be seen by another worker is checked on at agreed times by radio or phone, and the emergency plan covers rescue from the car top, the pit and the machine room.', VLIFT('s 5.2, s 5.3')),
+      reuse('The work is done by licensed lift technicians, and the lift is tested before it is returned to service.'),
+    ],
+  }],
+});
+
+// Underpinning existing footings: pits dug and supported to a design, in the schedule's sequence.
+addAfter('shoringWall', {
+  when: 'underpinning',
+  steps: [{
+    step: 'Dig and support the underpinning pits',
+    hazards: ['The neighbouring footing or wall moves or collapses while it is undermined.', 'A pit side collapses onto a worker.', 'A fall into an open pit.', 'Poor air or engine fumes in a deep, narrow pit.', 'Strain and hand injuries digging by hand and lifting spoil.', 'Striking underground services.'],
+    controls: [
+      src('Plant with a petrol or diesel engine, such as a compressor, generator or pump, is not run in a pit while anyone is in it.', EXCAVATION_CODES('s 4.6')),
+      reuse('The shoring is designed for the site conditions by a competent person, such as an engineer, and installed progressively as the excavation proceeds. No one works ahead of the installed shoring.'),
+      reuse('Keep spoil, materials, plant and traffic out of the excavation\'s zone of influence unless the support is designed for those loads.'),
+      src('Each pit is closed with a cover fixed in place and strong enough for anyone who could fall onto it, or with guard rails and toe boards, whenever no one is working in it.', `${EXCAVATION_CODES('s 4.4, s 5.3')}; ${WHS('s 306F')}`),
+      src('Each pit has a safe way in and out, such as a secured ladder.', EXCAVATION_CODES('s 4.4')),
+      src('Spoil is lifted out of deep pits with hoisting equipment kept in good order.', EXCAVATION_CODES('s 5.3')),
+      reuse('No digging until steps are taken to prevent collapse of neighbouring buildings. Digging below their footings is assessed by a competent person and supported. Vibration and flooding of neighbours are controlled.'),
+      src('Underpinning is dug and supported only to a design by a competent person, such as an engineer.', EXCAVATION_CODES('s 3.5')),
+      src('Pits are dug in the sections and sequence set by the underpinning schedule, and alternate sections are underpinned in turn.', RIIC('PC 2.2, PC 4.3')),
+      reuse('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.'),
+      src('Before entry to a deep or narrow pit, the air is checked. Where it could be poor, it is monitored while people are in the pit, and a person at the top keeps watch.', EXCAVATION_CODES('s 4.6')),
+      src('Workers digging by hand in the same pit are kept far enough apart that picks and shovels cannot strike each other.', EXCAVATION_CODES('s 4.7')),
+      reuse('A competent person inspects the sides and support often, and after rain.'),
+      reuse('Movement of the shoring and the neighbouring building is monitored against the engineer\'s trigger levels, and work stops if a level is reached.'),
+    ],
+  }, {
+    step: 'Place the underpinning and remove the shoring',
+    hazards: ['A pit side collapses as shoring is removed.', 'Cement burns from concrete and grout.'],
+    controls: [
+      src('Shoring in a pit is removed in the reverse order to its installation, and no one works outside the protection of the shoring that remains.', EXCAVATION_CODES('s 6.4')),
+      src('Each section is underpinned and backfilled in the sequence the underpinning schedule sets.', RIIC('PC 4.2, PC 4.3')),
+    ],
+  }],
+});
+
+// Sprayed fire protection to steel. The spray painting code covers liquid coatings applied under
+// pressure, such as intumescent paints. The concrete pumping lines for cementitious sprays wait on
+// the owner (GAP-STEPS.md section 8), so a cementitious spray gets only the shared spraying lines.
+addAfter('passiveFire', {
+  when: 'fireSpray',
+  steps: [{
+    step: 'Check the steel and the area before spraying',
+    only: 'fireSprayExisting',
+    hazards: ['Old sprayed insulation or coatings on the steel may contain asbestos.'],
+    controls: [
+      reuse('Buildings built before 31 December 1989 are checked for asbestos before demolition or refurbishment. Where there is no asbestos register, a competent person inspects first. Material that cannot be identified, but a competent person believes is asbestos, is treated as asbestos.'),
+      reuse('If asbestos is found or suspected, a competent person identifies it, or it is assumed to be asbestos, and it is removed by a licensed asbestos removalist unless the regulation allows otherwise.'),
+    ],
+  }, {
+    step: 'Spray the fire protection coating',
+    hazards: ['Breathing spray mist, solvent vapour or dust.', { only: 'fireSprayPaint', text: 'Paint injected through the skin by an airless spray gun.' }, 'Fire from flammable coatings and solvents.', 'A fall while spraying at height.', { only: 'fireSprayCement', text: 'Cement burns to skin and eyes.' }, 'Strain from spraying overhead and moving product.'],
+    controls: [
+      src('Only the spray gun and its cables are inside the exclusion zone. Other electrical equipment, drums of coating and solvent, and waste rags are kept outside it.', SPRAY_CODES('s 3.4, s 4.1')),
+      src('No hot work, smoking or other ignition source is allowed inside the exclusion zone, and a fire extinguisher is kept at the spraying area.', SPRAY_CODES('s 3.4, s 4.1')),
+      src('Where the fire rating and the product approval allow it, a water-based product is used instead of a solvent-based one, or the coating is brushed or rolled instead of sprayed.', SPRAY_CODES('s 2.3')),
+      src('A spray exclusion zone is set around the spraying, at least 3 m in every direction and 2 m above and below for low risk products, and larger where the product, the process or the wind needs it. It has physical barriers and signs saying "Spray painting area, authorised personnel only".', SPRAY_CODES('s 4.1')),
+      src('The spraying is screened so drift cannot reach walkways, public areas or air conditioning intakes, and spraying stops when the wind would carry drift off the area.', SPRAY_CODES('s 4.1')),
+      src('Indoors, the area is of open construction or a mechanical exhaust is run, so flammable or toxic vapour cannot build up.', SPRAY_CODES('s 4.1')),
+      { only: 'fireSprayPaint', ...src('Airless spray guns have the tip guard fitted and a working trigger lock, and the gun and the steel being sprayed are earthed.', SPRAY_CODES('s 3.2, s 3.6')) },
+      { fact: 'fallControl' },
+      src('Product is moved with trolleys or lifting aids, not carried.', SPRAY_CODES('s 3.3')),
+      reuse('The current safety data sheet for each product is at the work area before first use, and every container, including anything decanted, is labelled.'),
+      { only: 'fireSprayPaint', ...src('Pressure is released from the gun and the pump before cleaning, unblocking or changing the tip, and the nozzle is never cleaned or tested against a hand or a cloth held in the hand.', SPRAY_CODES('s 3.2')) },
+      { only: 'fireSprayPaint', ...src('Anyone with an injection injury, even one that looks minor, goes straight to hospital for treatment.', SPRAY_CODES('s 3.2')) },
+      { only: 'fireSprayIso', ...reuse('Workers exposed to isocyanates where there is a significant risk to health have health monitoring.') },
+      src('Respiratory protection is chosen from the product\'s safety data sheet: an air-supplied respirator for two-part polyurethane products, and for other products at least a respirator with a combined vapour and particle filter where the exposure standard could be exceeded, worn with full overalls, chemical gloves and eye protection.', SPRAY_CODES('s 3.10')),
+      src('Anyone entering the exclusion zone while spraying is under way wears the same protective equipment as the sprayer.', SPRAY_CODES('s 4.1')),
+      { only: 'fireSprayCement', ...reuse('Bags are opened with eye protection, gloves and a P2 respirator worn.') },
+    ],
+  }],
+  ppe: ['gloveChemical', 'goggles'],
+});
+
+// Rock sawing with an excavator rock saw or a rock trencher. Cutting rock with plant is processing a
+// crystalline silica substance (WHS Regulation s 529A).
+addAfter('rockBreak', {
+  when: 'rockSaw',
+  steps: [{
+    step: 'Cut rock with a rock saw',
+    hazards: ['Silica dust from sawing sandstone and other rock.', 'Contact with the turning saw wheel or chain.', 'Flying chips and broken teeth.', 'Noise and vibration, including at neighbouring buildings.', 'The excavator or trencher overturns or a face collapses at an edge.', 'Striking underground services.'],
+    controls: [
+      src('The saw is stopped and isolated, with stored energy released, before anyone clears it, inspects it or changes the teeth, chain or wheel.', PLANT_CODES('s 4.5')),
+      src('Rock is sawn with the saw\'s water supply running, or with dust extraction, and anyone in the area still at risk of breathing the dust wears a fit tested respirator.', WHS('s 529A, s 529B')),
+      src('The saw wheel or chain has its guards in place, and no one is within reach of it while it turns.', `${WHS('s 208')}; ${PLANT_CODES('s 4.1')}`),
+      reuse('Plant does not operate or travel near the edge unless the ground support is designed by a competent person to carry it. Wheel stops or other barriers keep plant back from the edge.'),
+      reuse('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.'),
+      ...SILICA_FOLLOW_UP,
+      src('Saw attachments are changed only by competent people to the maker\'s instructions, in an area closed to others. The excavator is isolated or, where it cannot be, kept under the operator\'s control with only the movement needed, and the operator and the helper confirm by sight or radio before any movement.', NSWC('NSW Moving plant on construction sites', 's 6.13')),
+      src('The operator is competent on the excavator or trencher and on the rock saw attachment fitted to it.', EXCAVATION_CODES('s 4.3')),
+      { only: 'neighbours', ...reuse('No digging until steps are taken to prevent collapse of neighbouring buildings. Digging below their footings is assessed by a competent person and supported. Vibration and flooding of neighbours are controlled.') },
+      reuse('Hearing protection is worn within the signposted area, and operators\' exposure to vibration is managed by rotating tasks.'),
+      reuse('The respirator is at least P2.'),
+    ],
+  }],
+  ppe: ['earMuffs', 'p2', 'glassesClear'],
+});
+
+// Terminating data outlets and patch panels. Testing and certifying the cabling has no source held
+// (AS/CA S009 and the test equipment side), so it is not in the step's name and stays a part the
+// draft names as not covered (D184). The registered cabler lines come from Before starting, and the
+// fibre lines from the fibre splicing step.
+addAfter('ictCabling', {
+  when: 'ictTerminate',
+  steps: [{
+    step: 'Terminate the data outlets and patch panels',
+    hazards: ['Cuts from cable strippers, punch-down tools and blades.', 'A fall from a ladder or platform at outlets and in ceilings.', 'Contact with energised parts at power outlets, in shared risers and in comms rooms.'],
+    controls: [
+      reuse('Where exposed energised parts are nearby, they are de-energised or covered before work starts, and non-conductive ladders are used near them.'),
+      reuse('Use platform ladders or a working platform, not the top steps of a stepladder.'),
+      reuse('Ladders are industrial and rated for at least 120 kg.'),
+      { only: 'ictTerminateCeiling', ...reuse('Barricade and sign the area below.') },
+      reuse('Ratchet crimpers and cable strippers suit the cable size, and blades are kept sharp and cut away from the body.'),
+      reuse('The de-energising or covering is done by an electrician.'),
+    ],
+  }],
+  ppe: ['glassesClear'],
 });
 
 // The citation helpers, for lines other modules add with their sources (draft.js permits).

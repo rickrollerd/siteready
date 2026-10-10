@@ -50,6 +50,8 @@ const COMMON = new Set([
   'joineryShop', 'switchboardShop', 'powderCoat', 'precastCastIn', 'pebbleFinish', 'hvPoleRemove',
   // Brought in only where the task's words name the work (owner decisions, 6 October 2026).
   'generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines',
+  // Gap job steps (10 October 2026), each only where the task's words name the work.
+  'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate',
   // Any trade can work inside a deep excavation, station box or shaft that others dug, and lay pipes in it.
   'inExcavation', 'inTrench', 'layInExcavation',
 ]);

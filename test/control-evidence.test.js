@@ -20,13 +20,16 @@
 // new lines cited to code sections read (potholing near located services, the welding rods' safety
 // data sheet): 3,509 of 4,779, 73.4%; temporary bracing and slings released only once members are secured,
 // ten lines from the Qld steel construction code and Victoria's steel erection industry standard, both read:
-// 3,519 of 4,789, 73.5%).
+// 3,519 of 4,789, 73.5%; gap job steps of 10 October 2026 (TBM shafts, plant removal, lift controllers,
+// underpinning, sprayed fire protection, rock sawing, data outlet terminations): 50 new lines, 47 cited to
+// code or regulation sections read, the lift worker check-in line from regulator guidance and the two
+// underpinning sequence lines from one training unit, so not yet evidenced: 3,573 of 4,846, 73.7%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
 const RECORD = require('../scenarios/control-evidence.json');
 
-const MEASURED = 0.734;
+const MEASURED = 0.737;
 
 test('every library control line is in the evidence record, and every record entry is a library line', () => {
   const lines = libraryLines();
