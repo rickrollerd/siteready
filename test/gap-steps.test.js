@@ -106,12 +106,15 @@ test('cementitious fire spray waits for the owner on the concrete pumping lines'
   assert.ok(lines(paint).some((line) => /^Airless spray guns have the tip guard fitted/.test(line)));
 });
 
-test('the underpinning pit order rests on one training unit, recorded as one source', () => {
+test('the underpinning lines cite no training unit (owner decision D200)', () => {
   for (const text of ['Pits are dug in the sections and sequence set by the underpinning schedule, and alternate sections are underpinned in turn.', 'Each section is underpinned and backfilled in the sequence the underpinning schedule sets.']) {
-    assert.deepEqual(RECORD[text], { kind: 'practice', orgs: 1 });
+    assert.equal(RECORD[text], undefined);
   }
-  const step = stepNamed(draft('underpin the existing footings', 'nsw'), 'Dig and support the underpinning pits');
-  assert.ok(lines(step).some((line) => /alternate sections are underpinned in turn\. \(RIICFW301A Construct underpinning \(national unit of competency, 2011\) PC 2\.2, PC 4\.3\)$/.test(line)));
+  for (const name of ['Dig and support the underpinning pits', 'Place the underpinning and remove the shoring']) {
+    const step = stepNamed(draft('underpin the existing footings', 'nsw'), name);
+    assert.ok(step, name);
+    assert.ok(!lines(step).some((line) => /RIICFW301A|unit of competency/.test(line)), lines(step).join('\n'));
+  }
 });
 
 test('the TBM shaft lines cite the NSW tunnels code in NSW drafts only', () => {
