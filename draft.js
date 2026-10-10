@@ -316,6 +316,8 @@ function packageKinds(rawTask, kinds) {
   const named = workFlags(task);
   out = out.filter((id) => !NAMED_KINDS.includes(id) || named[id]);
   for (const id of NAMED_KINDS) if (named[id] && !out.includes(id)) out.push(id);
+  // Work inside an excavation others dug is not this crew digging a trench, whatever the AI chose.
+  if (named.inExcavation) out = out.filter((id) => id !== 'trench');
   if (workshopOnly(task)) out = out.filter((id) => WORKSHOP_KINDS.includes(id));
   // Where the AI chose no groups at all, the work the words name on their own (a flood test, sealant
   // and caulking) still gets its steps, rather than the package being stood down.
@@ -325,7 +327,7 @@ function packageKinds(rawTask, kinds) {
 
 // Kinds of work brought in only where the task's words name them (namedWorkFlags).
 // Work inside a deep excavation others dug comes only where the words put the work there.
-const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation'];
+const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation', 'inTrench', 'layInExcavation'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -648,7 +650,10 @@ function trenchDepths(text) {
     // "Trenches 1.5 m deep or more are shored" sets a threshold; it does not give the trench's depth.
     if (/^\s*(?:or|and)\s+(?:more|deeper|over|greater)\b/i.test(String(text || '').slice(pattern.lastIndex))) continue;
     // "Deeper than 1.5 m" is past that depth; "no deeper than 1.5 m" is at most that depth.
-    const past = match[3] && /deeper/i.test(match[0]) && !/\b(?:no|not|never)\s+$/i.test(String(text || '').slice(0, match.index));
+    // "Over 1.5 metres deep" is past it too, unless it sets a threshold ("trenches over 1.5 m deep are shored").
+    const before = String(text || '').slice(0, match.index);
+    const over = Boolean(match[1]) && /\b(?:over|more than|greater than|in excess of)\s+$/i.test(before) && !/^\s*(?:are|is|must|shall|will|need\w*|requir\w*|get|have|has)\b/i.test(String(text || '').slice(pattern.lastIndex));
+    const past = (match[3] && /deeper/i.test(match[0]) && !/\b(?:no|not|never)\s+$/i.test(before)) || over;
     depths.push(Number(match[1] || match[2] || match[3]) + (past ? 0.01 : 0));
   }
   // "A 1.2 m trench" and "excavate to 1.2 m": a figure of 6 m or less before the word trench,
@@ -675,25 +680,65 @@ const NOT_DUG = /\btrench (?:drains?|grates?|covers?)\b|\btreat\w*\s+(?:the\s+)?
 
 // An excavation named as where the work is done ("pour the base slab within the station box
 // excavation") is not this crew digging, so it brings no trench, pipe laying or backfill steps.
-const EXCAVATION_PLACE = /\b(?:in|within|inside|into|at the (?:base|bottom|floor) of)\s+(?:the\s+|an?\s+)?(?:[\w-]+\s+){0,3}?(?:station box(?:es)?(?:\s+excavations?)?|excavations?)\b/gi;
-
 // Work done inside an existing excavation, station box or shaft that the crew does not dig (tester
 // cycle 1, SWMS3): a pour, formwork or fit-out at the base. A shaft void through a building's floors
 // is not one.
-const EXCAVATION_INSIDE = /\b(?:in|within|inside|into|down|at the (?:base|bottom|floor) of)\s+(?:the\s+|an?\s+)?(?:(?!(?:and|or|around|near|beside|next|trench\w*|pits?)\b)[\w-]+\s+){0,4}?(?:station box(?:es)?(?:\s+excavations?)?|excavations?|(?<!(?:lift|riser|service|ventilation|stair|air|vent|plumbing|electrical|duct|pipe|mechanical|comms|cable|garbage|rubbish|chute|light|smoke|exhaust|services)\s)shafts?)\b(?:,?\s*(?:up to |about |around |over |some )?\d+(?:\.\d+)?\s*(?:m|metres?|meters?)\s+deep\b)?/gi;
+const BUILDING_SHAFT = '(?:lift|riser|service|services|ventilation|vent|stair|air|plumbing|electrical|duct|pipe|mechanical|comms|cable|garbage|rubbish|chute|light|smoke|exhaust)';
+const EXCAVATION_INSIDE = new RegExp(`\\b(?:in|within|inside|into|down|at the (?:base|bottom|floor) of)\\s+(?:the\\s+|an?\\s+)?(?:(?!(?:and|or|around|near|beside|next|trench\\w*|pits?)\\b)[\\w-]+\\s+){0,4}?(?:station box(?:es)?(?:\\s+excavations?)?|excavations?|(?<!${BUILDING_SHAFT}\\s)shafts?)\\b(?:,?\\s*(?:up to |about |around |over |some )?\\d+(?:\\.\\d+)?\\s*(?:m|metres?|meters?)\\s+deep\\b)?`, 'gi');
+// The same places and also a pit, wet well, basement dig, cutting or a trench others dug, with the
+// way its depth is written ("2 m deep", "2.5m", "over 1.5 metres", "deep") (tester, 10 October 2026).
+// A pit that is a built chamber (lift, stormwater or service pit) is not an excavation.
+const BUILT_PIT = '(?:lift|stormwater|service|inspection|sump|grease|drainage|comms|communications|telstra|nbn|electrical|valve|meter|junction|access|gully|silt|cable|draw|pull|grated|inlet|soak|septic|sewer|kerb|field|entry|trap)';
+const DEEP_PLACE = new RegExp(`\\b(?:in|within|inside|into|down|(?:at|in|on|to) the (?:base|bottom|floor) of)\\s+(?:the\\s+|an?\\s+)?((?:(?!(?:and|or|around|near|beside|next|of|from|to|with|for)\\b)[\\w.-]+,?\\s+){0,4}?)(station box(?:es)?(?:\\s+excavations?)?|(?:basement|bulk)\\s+(?:excavations?|digs?)|excavations?|(?<!${BUILDING_SHAFT}\\s)shafts?|wet wells?|(?<!${BUILT_PIT}\\s)pits?(?!\\s+(?:lids?|covers?|grates?|walls?|lines?))|(?<=(?:the|a|rail|railway|road|motorway|highway|rock|existing|deep)\\s)cuttings?|trench(?:es)?)\\b((?:,?\\s*(?:(?:up to|about|around|over|some|more than|deeper than|greater than|at least|approximately)\\s+)?\\d+(?:\\.\\d+)?\\s*(?:m|metres?|meters?)\\b(?:\\s+deep\\b)?)?)`, 'gi');
+// Others dug it: a trench counts as a place only then (or when it is the existing or open trench),
+// and these words are not the crew digging.
+const DUG_BY_OTHERS = /\b(?:already|previously)\s+(?:dug|excavated|opened)\b|\b(?:dug|excavated|opened)\s+(?:by|for us by)\s+(?:others|another (?:trade|contractor|crew)|the\s+(?:[\w-]+\s+){0,3}?(?:contractors?|crew|team|builder|others))\b/gi;
+const DEPTH_FIGURE = /\b(?:(over|more than|deeper than|greater than|at least|in excess of)\s+)?(\d+(?:\.\d+)?)\s*(?:m|metres?|meters?)\b/gi;
+
+// The places in the text that the work is done inside, each with whether it is deeper than 1.5 m.
+function excavationPlaces(text) {
+  text = String(text || '');
+  const lift = LIFT_WORK.test(text) || /\b(?:lifts?|machine rooms?|landing doors?|car tops?|hoistways?)\b/i.test(text);
+  const others = new RegExp(DUG_BY_OTHERS.source, 'i').test(text);
+  const places = [];
+  for (const match of text.matchAll(DEEP_PLACE)) {
+    const [place, words, noun, tail] = match;
+    // In lift work a shaft is the lift shaft; a shaft between a building's levels, risers or ceilings is a shaft void.
+    if (/^shafts?$/i.test(noun) && (lift || /\b(?:levels?|floors?|storeys?|risers?|ceilings?|apartments?|roofs?|screened)\b/i.test(text))) continue;
+    if (/^trench/i.test(noun) && !others && !/\b(?:existing|open)\b/i.test(words)) continue;
+    const kind = /^station/i.test(noun) ? 'station box' : /^(?:basement|bulk)/i.test(noun) ? 'basement' : /^(?:shaft|wet)/i.test(noun) ? 'shaft' : /^pit/i.test(noun) ? 'pit' : /^cutting/i.test(noun) ? 'cutting' : /^trench/i.test(noun) ? 'trench' : 'excavation';
+    // The depth given with the place, then any depth the task gives; a shaft or wet well is deep unless
+    // a depth says otherwise, and the word "deep" before the place says it is deep.
+    const figures = [...`${words} ${tail}`.matchAll(DEPTH_FIGURE)].map((figure) => Number(figure[2]) + (figure[1] ? 0.01 : 0));
+    const depths = figures.length ? figures : [...trenchDepths(text), ...[...text.matchAll(DEPTH_FIGURE)].filter((figure) => figure[1] && /^\s*deep\b/i.test(text.slice(figure.index + figure[0].length))).map((figure) => Number(figure[2]) + 0.01)];
+    const deep = /\bshallow\b/i.test(words) ? false : depths.length ? depths.some((depth) => depth > 1.5) : /\bdeep\b/i.test(words) || kind === 'shaft';
+    places.push({ place, kind, deep });
+  }
+  return places;
+}
+
 // The task with the excavation it works inside taken out, and its depth with it. In lift work, a
 // shaft is the lift shaft and stays. "In or around trenches and excavations" names trenches too.
+// A pit, cutting, basement dig or trench others dug is taken out only where it is deeper than 1.5 m,
+// so the work inside it has its own step; a shallower one stays as it was.
 function withoutExcavationPlace(text) {
   const lift = LIFT_WORK.test(text) || /\b(?:lifts?|machine rooms?|landing doors?|car tops?|hoistways?)\b/i.test(text);
-  return String(text || '').replace(EXCAVATION_INSIDE, (place) => (lift && /\bshafts?\b/i.test(place) ? place : ' '));
+  let out = String(text || '').replace(EXCAVATION_INSIDE, (place) => (lift && /\bshafts?\b/i.test(place) ? place : ' '));
+  for (const item of excavationPlaces(out).filter((place) => place.deep)) out = out.replace(item.place, ' ');
+  return out === String(text || '') ? out : out.replace(DUG_BY_OTHERS, ' ');
 }
 // Digging by this crew: the trench and earthmoving steps cover work in what it digs.
 const OWN_DIG = /\b(?:excavat(?:e|es|ed|ing)|dig(?:s|ging)?|dug|trench(?:es|ing)?|bulk (?:excavation|earthworks)|detailed excavation|earthworks|muck\w* out|shaft sinking|sink\w* (?:the |a )?shafts?|underpin\w*)\b/i;
+// Pipes, drains or conduits laid in the excavation: the laying is named straight after its verb. A drainage
+// cell or gravel, and drains behind a retaining wall, have their own steps.
+const LAY_IN_EXCAVATION = /\b(?:lay\w*|install\w*|plac\w*|connect\w*|replac\w*)\s+(?:(?:the|new|all|[\w-]+)\s+){0,3}?(?:pipes?|pipework|pipelines?|drains?(?!\s+behind)|drainage(?!\s+(?:cells?|gravel|aggregate|layers?|mats?|boards?|blankets?|sand|behind))|sewer (?:pipes?|pipework|mains?|lines?)|stormwater(?!\s+(?:pits?|tanks?))|conduits?|mains?)\b/i;
+// Work done from ground level beside or above the excavation is not work inside it.
+const FROM_ABOVE = /\bfrom (?:the )?(?:ground level|ground|surface|street(?: level)?|above|top|outside|edge)\b|\bwithout entering\b|\bno one (?:enters|goes (?:in|down))\b/i;
 function inDeepExcavation(task, flags) {
   const text = String(task || '');
+  if (flags.earthworks || FROM_ABOVE.test(text) || !excavationPlaces(text).some((item) => item.deep)) return false;
   const rest = withoutExcavationPlace(text);
-  if (flags.trench || flags.earthworks || rest === text || !deepExcavation(text)) return false;
-  return !OWN_DIG.test(rest);
+  return rest !== text && !OWN_DIG.test(rest);
 }
 
 function deepExcavation(text) {
@@ -716,7 +761,8 @@ function deepExcavation(text) {
     if (/\bbasement walls?\b[^.]{0,40}\b(?:from )?(?:the )?outside\b|\boutside of (?:a |the )?basement walls?\b/i.test(text)) return true;
     // Work inside an excavation or station box with a stated depth over 1.5 m is work in or near a
     // trench (the Excavation work code: longer than wide, open to the surface along its length).
-    if (new RegExp(EXCAVATION_PLACE.source, 'i').test(text) && !/\b(basements?|bulk excavat\w*)\b/i.test(text) && trenchDepths(text).some((depth) => depth > 1.5)) return true;
+    // A basement dig and a cutting are not trenches or shafts; a shaft is read above.
+    if (!/\b(basements?|bulk excavat\w*)\b/i.test(text) && excavationPlaces(text).some((item) => item.deep && !['basement', 'cutting', 'shaft'].includes(item.kind))) return true;
     return /\b(sewer\w*|pipe\w*|lines?|pits?|drains?|stormwater|services?|conduits?|cables?|mains?|manholes?|maintenance holes?)\b/i.test(text) && /\b(excavat\w*|dig\w*|lay\w*|connect\w*|install\w*)\b/i.test(text) && !/\b(basements?|bulk excavat\w*|detailed excavat\w*)\b/i.test(text) && trenchDepths(text).some((depth) => depth > 1.5);
   }
   const depths = trenchDepths(text);
@@ -2930,9 +2976,10 @@ const permitLine = (permit, stateId) => localControl(permit.line, permit.source,
 function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
   let steps = jobSteps;
   // Work inside an excavation others dug, with no step that digs, needs no permit to dig: the
-  // excavation named as the place, and the category's wording, are not digging.
-  const inside = (step) => step.step === 'Work inside a deep excavation';
-  const noDigging = steps.some(inside) && !steps.some((step) => !inside(step) && DIG_WORK.test(step.step));
+  // excavation named as the place, and the category's wording, are not digging. Nor is working in a
+  // trench others dug.
+  const inside = (step) => ['Work inside a deep excavation', 'Work in the trench'].includes(step.step);
+  const noDigging = steps.some((step) => step.step === 'Work inside a deep excavation') && !steps.some((step) => !inside(step) && DIG_WORK.test(step.step));
   for (const permit of PERMITS) {
     if (permit.notDomestic && options.domestic) continue;
     if (noDigging && permit.work === DIG_WORK) continue;
@@ -3454,7 +3501,7 @@ function tradeFlags(task, facts, state) {
 
 // Job steps the task's words call for that are flagged when taken off: asbestos,
 // isolation, confined spaces, water, traffic, power lines, propping and trench support.
-const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench', 'inExcavation']);
+const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench', 'inExcavation', 'inTrench']);
 const KIND_SET = new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean));
 
 // Picked steps that strip out, demolish or cut into an existing building need asbestos
@@ -3577,6 +3624,17 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
   };
   const settled = settleFlags(typedTitleFlags(out, task, ownCrane), task);
   settled.inExcavation = inDeepExcavation(task, settled);
+  // Inside an excavation others dug, the crew digs and backfills no trench. In a trench others dug, the
+  // trench's own work step with its shoring lines stays (inTrench). Pipes, drains or conduits laid there
+  // have the trench's laying steps, and a pit only where the work names one besides the place.
+  if (settled.inExcavation) {
+    const laying = LAY_IN_EXCAVATION.test(task);
+    settled.trench = false;
+    settled.inTrench = excavationPlaces(task).some((item) => item.deep && item.kind === 'trench');
+    settled.layInExcavation = laying && !settled.inTrench;
+    if (laying) settled.trenchPits = Boolean(settled.trenchPits) && /\b(?<!lift |tank |test |borrow |sump )pits?\b(?! lids?| covers?| grates?)|\b(?:manholes?|maintenance holes?|access chambers?)\b/i.test(withoutExcavationPlace(task));
+    else if (settled.inTrench) settled.noPipeLaying = true;
+  }
   const claimed = claimedSentences(task, settled);
   if (!claimed.length) return settled;
   // Kinds of work named only in a claimed sentence are left out; the hazards the task's

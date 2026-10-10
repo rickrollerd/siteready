@@ -412,7 +412,7 @@ const SUBJECT = /^(?:the )?subcontractor(?:'s)? (?:shall|is to|must|will|has all
 // Task names for the kinds whose first job step does not name the work well.
 const TITLES = Object.freeze({
   road: 'Traffic management', power: 'Work near overhead power lines', scaffold: 'Scaffolding', roof: 'Roof work', roofStrip: 'Removing old roofing',
-  trench: 'Trenching and underground services', propping: 'Temporary works and propping', demolition: 'Demolition', crane: 'Crane lifts', towerCrane: 'Tower crane lifts',
+  trench: 'Trenching and underground services', layInExcavation: 'Lay pipes, pits or conduits in the excavation', inTrench: 'Work in a trench others dug', propping: 'Temporary works and propping', demolition: 'Demolition', crane: 'Crane lifts', towerCrane: 'Tower crane lifts',
   slabGround: 'Slabs on ground, paths and driveways', slabPour: 'Placing slabs on ground', formwork: 'Formwork and falsework', reo: 'Reinforcement', concrete: 'Concrete placing and finishing', precast: 'Precast installation',
   tempPower: 'Construction power and temporary lighting', castIn: 'Cast-in conduits', containment: 'Cable tray and containment at height',
   isolation: 'Terminations, testing and connection to supply', commissioning: 'Switchboards and mains', coreDrill: 'Core drilling and penetrations',

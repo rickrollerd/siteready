@@ -619,6 +619,7 @@ const REMOVED_WARNINGS = {
   power: 'The work is near power lines. Make sure approach distances are kept.',
   propping: 'The work needs temporary support. Make sure the structure is propped before it is cut or loaded.',
   trench: 'The work involves a trench. Make sure the trench is supported or kept shallow before anyone enters it.',
+  inTrench: 'The work is in a trench deeper than 1.5 m. Make sure the trench is supported before anyone enters it.',
 };
 
 // Changing the steps asks the questions again, keeping what has been filled in.

@@ -274,6 +274,79 @@ const PAIR_COIL_STEP = {
   ],
 };
 
+// Work in a trench, whether the crew dug it or others did (inTrench).
+const WORK_IN_TRENCH = {
+    step: 'Work in the trench',
+    hazards: ['Trench collapse buries a worker.', 'Falling into the trench.', 'Water or bad air in the trench.'],
+    controls: [
+      { only: 'deepTrench', ...src('Workers do not enter any part of the trench that is not protected by the support, and do not work ahead of shoring while it is being installed.', `${QCODE('Excavation work', 's 6.3')}; ${NSWC('NSW Excavation', 's 6.3')}`) },
+      { only: 'deepTrench', text: 'The support is checked before anyone enters the trench.' },
+      { only: 'deepTrench', ...src('Work only inside the trench support, with the access ladder secured to it.', QCODE('Excavation work', 's 4.4, s 6.3')) },
+      { unless: ['deepTrench', 'tankPit'], ...src('Before anyone enters, check the depth. The trench is kept shallower than 1.5 m. If it must go deeper, work stops and this SWMS is reviewed: a trench deeper than 1.5 m is high risk construction work, and a trench 1.5 m deep or more is shored, benched or battered before anyone enters.', WHS('s 291, s 306')) },
+      { unless: ['deepTrench', 'tankPit'], text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
+      // The tank pit has its own line in the tank step: here it is the pipe trenches.
+      { only: 'tankPit', unless: 'deepTrench', ...src('Before anyone enters, check the depth. The pipe trenches are kept shallower than 1.5 m. If one must go deeper, work stops and this SWMS is reviewed: a trench deeper than 1.5 m is high risk construction work, and a trench 1.5 m deep or more is shored, benched or battered before anyone enters.', WHS('s 291, s 306')) },
+      { only: 'tankPit', unless: 'deepTrench', text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
+      { fact: 'fallControl' },
+      src('A competent person frequently checks the soil, trench walls and support for fretting, slipping, slumping or swelling, and any repair or strengthening is done from above before work below continues.', `${QCODE('Excavation work', 's 6.7')}; ${NSWC('NSW Excavation', 's 6.7')}`),
+      'The check is made at the start of each shift and after rain.',
+      src('Check the air with a gas monitor before entry, with a safety observer at the surface.', MODEL('Excavation work', 's 4.6')),
+      src('The emergency plan covers ground slip, flooding, gas leaks and rescue from the trench.', MODEL('Excavation work', 's 3.7')),
+      'No one is in the trench within reach of the bucket while the excavator is digging, trimming or backfilling that section. Workers climb out first, and the spotter stops the machine if anyone is still in.',
+      { unless: 'deepTrench', ...src('Where the walls could slump onto a worker, such as in sandy, wet, fissured or previously dug ground, the trench is shored, benched or battered before entry, even when it is shallower than 1.5 m.', `${QCODE('Excavation work', 's 5.1')}; ${NSWC('NSW Excavation', 's 5.1')}`) },
+      src('Any trench a worker enters has a ladder or safe ramp near the work, and a second way out at the other end of the open run so no one can be trapped by a slump.', `${QCODE('Excavation work', 's 4.4')}; ${NSWC('NSW Excavation', 's 4.4')}`),
+      'Timber trench shoring is at least F8 grade hardwood, never softwood, and every shoring member is placed and adjusted from the surface, never by a worker standing in unsupported ground.',
+      'In excavations 1.2 m deep or more, ladders, stairs or ramps are placed so no one is more than 10 m from a way out. Ladders extend 900 mm above the top and are tied, and the floor along each way out is kept clear.',
+      'The competent person\'s check looks for cracks along the edges, bulging or heaving at the base, slumping, sinking edges and soil falling from the face. If any is seen, everyone leaves the excavation until the ground is made safe.',
+    ],
+  };
+
+// Laying pipes, pits and conduits in a trench, or in an excavation others dug (layInExcavation).
+const LAYING_STEPS = [
+  {
+    unless: 'noPipeLaying',
+    only: 'trenchPipes',
+    step: 'Lay pipes',
+    hazards: ['A suspended pipe or pit strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain lifting pipe lengths.', { only: 'sewerRepair', text: 'Contact with sewage and sewer gas when the broken pipe is opened.' }],
+    controls: [
+      // A broken sewer is opened only once the flow in it is stopped.
+      { only: 'sewerRepair', ...src('The air at the open pipe is checked with a gas detector before anyone works at it.', QCODE('Excavation work', 's 4.6')) },
+      { only: 'sewerRepair', text: 'Before the broken pipe is cut out, the flow is stopped: the occupants are told not to use water, and the line is plugged or bypassed upstream.' },
+      { only: 'sewerRepair', text: 'Gloves, eye protection and overalls are worn, cuts are covered, sewage-soaked soil and the old pipe are bagged for disposal, and hands are washed before eating.' },
+      src('Where pipes or pits are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
+      src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
+      'Keep hands clear between the load and the trench wall when lowering.',
+      src('Team lift or use mechanical aids for pipe lengths and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
+    ],
+  },
+  {
+    unless: 'noPipeLaying',
+    only: 'trenchPits',
+    step: 'Install pits',
+    hazards: ['A suspended pipe or pit strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain handling pit sections and lids.'],
+    controls: [
+      src('Where pipes or pits are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
+      src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
+      'Keep hands clear between the load and the trench wall when lowering.',
+      src('Team lift or use mechanical aids for pipe lengths and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
+      src('A worker enters the trench to set a pit only where the trench is shored, benched or battered, and open pits are covered or fenced when no one is working at them.', QCODE('Excavation work', 's 4.4, s 5.1')),
+      'Pits are set on their prepared base and levelled from outside the trench.',
+    ],
+  },
+  {
+    unless: 'noPipeLaying',
+    only: 'trenchConduits',
+    step: 'Lay conduits',
+    hazards: ['A suspended conduit bundle strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain lifting conduit lengths and bundles.'],
+    controls: [
+      src('Where pipes, pits or conduit bundles are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
+      src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
+      'Keep hands clear between the load and the trench wall when lowering.',
+      src('Team lift or use mechanical aids for pipe lengths, conduit bundles and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
+    ],
+  },
+];
+
 const ACTIVITIES = [
   {
     when: 'road',
@@ -572,21 +645,34 @@ const ACTIVITIES = [
       step: 'Work inside a deep excavation',
       hazards: [
         'A fall from the edge into the excavation, or while climbing in or out.',
-        'The ground, a batter or the ground support gives way onto workers below.',
+        { unless: 'inTrench', text: 'The ground, a batter or the ground support gives way onto workers below.' },
         'Spoil, materials or tools fall from the edge onto workers below.',
         'Plant or loads near the edge collapse the side, or plant goes over the edge.',
-        'Workers cannot get out quickly in an emergency, such as a ground slip, flooding or a gas leak.',
+        { unless: 'inTrench', text: 'Workers cannot get out quickly in an emergency, such as a ground slip, flooding or a gas leak.' },
       ],
       controls: [
-        src('Workers get in and out only by steps, a ramp or a ladder secured in place, with landing platforms or scaffold towers inside a deep excavation.', `${QCODE('Excavation work', 's 4 (Table 2), s 4.4')}; ${NSWC('NSW Excavation', 's 4 (Table 2), s 4.4')}`),
-        src('A second way in and out is kept for emergency use, apart from the main access.', `${QCODE('Excavation work', 's 4.4')}; ${NSWC('NSW Excavation', 's 4.4')}`),
+        { unless: 'inTrench', ...src('Workers get in and out only by steps, a ramp or a ladder secured in place, with landing platforms or scaffold towers inside a deep excavation.', `${QCODE('Excavation work', 's 4 (Table 2), s 4.4')}; ${NSWC('NSW Excavation', 's 4 (Table 2), s 4.4')}`) },
+        { unless: 'inTrench', ...src('A second way in and out is kept for emergency use, apart from the main access.', `${QCODE('Excavation work', 's 4.4')}; ${NSWC('NSW Excavation', 's 4.4')}`) },
         src('The edge has guard rails, barriers or covers, with toe boards where material could fall in.', `${QCODE('Excavation work', 's 4.1, s 4.4')}; ${NSWC('NSW Excavation', 's 4.1, s 4.4')}`),
         src('Spoil, materials and other loads are kept away from the edge and outside the zone of influence, unless the ground support is designed by a competent person to carry them.', `${QCODE('Excavation work', 's 4.1')}; ${NSWC('NSW Excavation', 's 4.1')}`),
         src('Plant does not operate or travel near the edge unless the ground support is designed by a competent person to carry it. Wheel stops or other barriers keep plant back from the edge.', `${QCODE('Excavation work', 's 4.3')}; ${NSWC('NSW Excavation', 's 4.3')}`),
-        src('A competent person frequently checks the ground, batters and ground support for fretting, slipping, slumping or swelling. Any repair to the excavation, or strengthening of the support, is done from above before work below continues.', `${QCODE('Excavation work', 's 6.7')}; ${NSWC('NSW Excavation', 's 6.7')}`),
+        { unless: 'inTrench', ...src('A competent person frequently checks the ground, batters and ground support for fretting, slipping, slumping or swelling. Any repair to the excavation, or strengthening of the support, is done from above before work below continues.', `${QCODE('Excavation work', 's 6.7')}; ${NSWC('NSW Excavation', 's 6.7')}`) },
         src('The emergency plan covers ground slip, engulfment, flooding, gas leaks and rescuing a worker from the excavation, is part of the principal contractor\'s emergency plan for the project, and the crew is trained in it.', `${QCODE('Excavation work', 's 3.8')}; ${NSWC('NSW Excavation', 's 3.8')}`),
       ],
     }],
+  },
+  {
+    // Work in a trench deeper than 1.5 m that others dug: the trench's own work step with its shoring lines,
+    // and its laying steps where pipes, drains or conduits are laid, without the dig and backfill steps
+    // (coordinator, 10 October 2026). The excavation step above keeps only the edge, loads and plant lines.
+    when: 'inTrench',
+    steps: [WORK_IN_TRENCH, ...LAYING_STEPS],
+  },
+  {
+    // Pipes, pits or conduits laid inside an excavation others dug: the trench's laying steps, without
+    // its digging, trench and backfill steps (tester, 10 October 2026).
+    when: 'layInExcavation',
+    steps: LAYING_STEPS,
   },
   {
     when: 'trench',
@@ -637,74 +723,9 @@ const ACTIVITIES = [
           src('No one is in the excavation or within reach of the breaker or bucket while the pit is broken out and lifted out.', NSWC('NSW Moving plant on construction sites', 's 5.3')),
         ],
       },
-      {
-        step: 'Work in the trench',
-        hazards: ['Trench collapse buries a worker.', 'Falling into the trench.', 'Water or bad air in the trench.'],
-        controls: [
-          { only: 'deepTrench', ...src('Workers do not enter any part of the trench that is not protected by the support, and do not work ahead of shoring while it is being installed.', `${QCODE('Excavation work', 's 6.3')}; ${NSWC('NSW Excavation', 's 6.3')}`) },
-          { only: 'deepTrench', text: 'The support is checked before anyone enters the trench.' },
-          { only: 'deepTrench', ...src('Work only inside the trench support, with the access ladder secured to it.', QCODE('Excavation work', 's 4.4, s 6.3')) },
-          { unless: ['deepTrench', 'tankPit'], ...src('Before anyone enters, check the depth. The trench is kept shallower than 1.5 m. If it must go deeper, work stops and this SWMS is reviewed: a trench deeper than 1.5 m is high risk construction work, and a trench 1.5 m deep or more is shored, benched or battered before anyone enters.', WHS('s 291, s 306')) },
-          { unless: ['deepTrench', 'tankPit'], text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
-          // The tank pit has its own line in the tank step: here it is the pipe trenches.
-          { only: 'tankPit', unless: 'deepTrench', ...src('Before anyone enters, check the depth. The pipe trenches are kept shallower than 1.5 m. If one must go deeper, work stops and this SWMS is reviewed: a trench deeper than 1.5 m is high risk construction work, and a trench 1.5 m deep or more is shored, benched or battered before anyone enters.', WHS('s 291, s 306')) },
-          { only: 'tankPit', unless: 'deepTrench', text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
-          { fact: 'fallControl' },
-          src('A competent person frequently checks the soil, trench walls and support for fretting, slipping, slumping or swelling, and any repair or strengthening is done from above before work below continues.', `${QCODE('Excavation work', 's 6.7')}; ${NSWC('NSW Excavation', 's 6.7')}`),
-          'The check is made at the start of each shift and after rain.',
-          src('Check the air with a gas monitor before entry, with a safety observer at the surface.', MODEL('Excavation work', 's 4.6')),
-          src('The emergency plan covers ground slip, flooding, gas leaks and rescue from the trench.', MODEL('Excavation work', 's 3.7')),
-          'No one is in the trench within reach of the bucket while the excavator is digging, trimming or backfilling that section. Workers climb out first, and the spotter stops the machine if anyone is still in.',
-          { unless: 'deepTrench', ...src('Where the walls could slump onto a worker, such as in sandy, wet, fissured or previously dug ground, the trench is shored, benched or battered before entry, even when it is shallower than 1.5 m.', `${QCODE('Excavation work', 's 5.1')}; ${NSWC('NSW Excavation', 's 5.1')}`) },
-          src('Any trench a worker enters has a ladder or safe ramp near the work, and a second way out at the other end of the open run so no one can be trapped by a slump.', `${QCODE('Excavation work', 's 4.4')}; ${NSWC('NSW Excavation', 's 4.4')}`),
-          'Timber trench shoring is at least F8 grade hardwood, never softwood, and every shoring member is placed and adjusted from the surface, never by a worker standing in unsupported ground.',
-          'In excavations 1.2 m deep or more, ladders, stairs or ramps are placed so no one is more than 10 m from a way out. Ladders extend 900 mm above the top and are tied, and the floor along each way out is kept clear.',
-          'The competent person\'s check looks for cracks along the edges, bulging or heaving at the base, slumping, sinking edges and soil falling from the face. If any is seen, everyone leaves the excavation until the ground is made safe.',
-        ],
-      },
+      WORK_IN_TRENCH,
       // Pipes, pits and conduits are each laid only where the task names them; pipes where it names none.
-      {
-        unless: 'noPipeLaying',
-        only: 'trenchPipes',
-        step: 'Lay pipes',
-        hazards: ['A suspended pipe or pit strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain lifting pipe lengths.', { only: 'sewerRepair', text: 'Contact with sewage and sewer gas when the broken pipe is opened.' }],
-        controls: [
-          // A broken sewer is opened only once the flow in it is stopped.
-          { only: 'sewerRepair', ...src('The air at the open pipe is checked with a gas detector before anyone works at it.', QCODE('Excavation work', 's 4.6')) },
-          { only: 'sewerRepair', text: 'Before the broken pipe is cut out, the flow is stopped: the occupants are told not to use water, and the line is plugged or bypassed upstream.' },
-          { only: 'sewerRepair', text: 'Gloves, eye protection and overalls are worn, cuts are covered, sewage-soaked soil and the old pipe are bagged for disposal, and hands are washed before eating.' },
-          src('Where pipes or pits are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
-          src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
-          'Keep hands clear between the load and the trench wall when lowering.',
-          src('Team lift or use mechanical aids for pipe lengths and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
-        ],
-      },
-      {
-        unless: 'noPipeLaying',
-        only: 'trenchPits',
-        step: 'Install pits',
-        hazards: ['A suspended pipe or pit strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain handling pit sections and lids.'],
-        controls: [
-          src('Where pipes or pits are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
-          src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
-          'Keep hands clear between the load and the trench wall when lowering.',
-          src('Team lift or use mechanical aids for pipe lengths and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
-          src('A worker enters the trench to set a pit only where the trench is shored, benched or battered, and open pits are covered or fenced when no one is working at them.', QCODE('Excavation work', 's 4.4, s 5.1')),
-          'Pits are set on their prepared base and levelled from outside the trench.',
-        ],
-      },
-      {
-        unless: 'noPipeLaying',
-        only: 'trenchConduits',
-        step: 'Lay conduits',
-        hazards: ['A suspended conduit bundle strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain lifting conduit lengths and bundles.'],
-        controls: [
-          src('Where pipes, pits or conduit bundles are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
-          src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
-          'Keep hands clear between the load and the trench wall when lowering.',
-          src('Team lift or use mechanical aids for pipe lengths, conduit bundles and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
-        ],
-      },
+      ...LAYING_STEPS,
       {
         unless: 'noBackfillStep',
         step: 'Backfill the trench',

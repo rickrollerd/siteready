@@ -87,7 +87,8 @@ test('SWMS3: work inside an existing deep excavation, station box or shaft has i
   const nsw = draft({ ...SITE, state: 'nsw', task: STATION_BOX }, { spaceAssessment: 'notConfined' });
   for (const line of nsw.jobSteps.find((item) => item.step === INSIDE).controls) assert.match(line, /\(SafeWork NSW Code of practice: Excavation work \(January 2020\) s [\d.]+/, line);
   // At the base of an existing shaft, and inside an existing excavation: the step, and no trench steps.
-  for (const task of ['Fix reinforcement and pour the base slab at the bottom of the shaft, 14 m deep.', 'Form and pour the pile caps at the base of the existing excavation 3 m deep.', 'Install the pump and pipework inside the existing wet well shaft 9 m deep.']) {
+  // A basement dig is an excavation too (tester, 10 October 2026).
+  for (const task of ['Fix reinforcement and pour the base slab at the bottom of the shaft, 14 m deep.', 'Form and pour the pile caps at the base of the existing excavation 3 m deep.', 'Install the pump and pipework inside the existing wet well shaft 9 m deep.', 'Fix reo in the basement excavation 6 m deep.']) {
     const inside = draft({ ...SITE, state: 'qld', fallRisk: 'no', task });
     assert.ok(steps(inside).includes(INSIDE), task);
     for (const name of ['Excavate', 'Work in the trench', 'Backfill the trench']) assert.ok(!steps(inside).includes(name), `${task}: ${name}`);
@@ -106,8 +107,7 @@ test('the deep excavation step comes only for work inside one deeper than 1.5 m 
     // Not deeper than 1.5 m, or no depth given for an excavation.
     'Form and pour a footing inside the excavation 1.2 m deep.',
     'Pour the base slab within the station box excavation.',
-    // A basement, and shafts through a building.
-    'Fix reo in the basement excavation 6 m deep.',
+    // Shafts through a building.
     'Install lift guide rails inside the lift shaft.',
     'lift install in shaft',
     'Hoisting machines, rails and equipment into the shaft and machine room',
