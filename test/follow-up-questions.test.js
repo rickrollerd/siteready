@@ -34,7 +34,8 @@ test('each answer that brings in a question brings it from the questions route',
   assert.ok(suggested.ppe.some((group) => group.items.some((item) => item.id === 'harness' && item.ticked)));
   // Start details (on Continue): the crane run by the subcontractor, and the job steps picked.
   assert.ok(ids({ state: 'qld', task: 'Lift the steel beams into place with the mobile crane.', fallRisk: 'no', crane: 'own' }).includes('craneChart'));
-  assert.ok(!ids({ ...INTUMESCENT, kinds: undefined }).includes('fallAccess'));
+  // Work with no job steps of its own asks no Working at height until a step is added.
+  assert.ok(!ids({ state: 'qld', task: 'Install the bridge expansion joints', fallRisk: 'yes', crane: 'company' }).includes('fallAccess'));
   assert.ok(ids(INTUMESCENT).includes('fallAccess'));
 });
 
