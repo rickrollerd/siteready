@@ -24,8 +24,6 @@ const SPA = (section) => `Security Providers Act 1993 (Qld) ${section}`;
 const ARC = (section) => `Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025 Part 2 ${section}`;
 // WorkSafe Victoria's lift work handbook, regulator guidance cited only in Victorian drafts (citations.js).
 const VLIFT = (section) => `Lift work on construction projects: a handbook for workplaces (WorkSafe Victoria, 2019, Victorian guidance) ${section}`;
-// The national unit of competency for underpinning, cited in every state (citations.js). One source only.
-const RIIC = (section) => `RIICFW301A Construct underpinning (national unit of competency, 2011) ${section}`;
 // NSW Resources Regulator investigation reports, cited by the incident they report on, for lines where the
 // report itself states the requirement or finding. They are regulator findings, not law or a code of practice.
 const RR_REPORTS = {
@@ -12673,7 +12671,6 @@ addAfter('shoringWall', {
       src('Spoil is lifted out of deep pits with hoisting equipment kept in good order.', EXCAVATION_CODES('s 5.3')),
       reuse('No digging until steps are taken to prevent collapse of neighbouring buildings. Digging below their footings is assessed by a competent person and supported. Vibration and flooding of neighbours are controlled.'),
       src('Underpinning is dug and supported only to a design by a competent person, such as an engineer.', EXCAVATION_CODES('s 3.5')),
-      src('Pits are dug in the sections and sequence set by the underpinning schedule, and alternate sections are underpinned in turn.', RIIC('PC 2.2, PC 4.3')),
       reuse('Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.'),
       src('Before entry to a deep or narrow pit, the air is checked. Where it could be poor, it is monitored while people are in the pit, and a person at the top keeps watch.', EXCAVATION_CODES('s 4.6')),
       src('Workers digging by hand in the same pit are kept far enough apart that picks and shovels cannot strike each other.', EXCAVATION_CODES('s 4.7')),
@@ -12685,7 +12682,6 @@ addAfter('shoringWall', {
     hazards: ['A pit side collapses as shoring is removed.', 'Cement burns from concrete and grout.'],
     controls: [
       src('Shoring in a pit is removed in the reverse order to its installation, and no one works outside the protection of the shoring that remains.', EXCAVATION_CODES('s 6.4')),
-      src('Each section is underpinned and backfilled in the sequence the underpinning schedule sets.', RIIC('PC 4.2, PC 4.3')),
     ],
   }],
 });

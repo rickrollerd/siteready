@@ -16,8 +16,8 @@ const QLD_CODES = require('./scenarios/qld-codes.json');
 const QLD_REG = 'Work Health and Safety Regulation 2011 (Qld) ';
 const NSW_CODE = /^SafeWork NSW Code of practice: /;
 // National sources apply in every state, as do the regulator investigation findings cited for blasting,
-// processing plant and conveyor work, and the national unit of competency cited for underpinning.
-const NATIONAL = [/^Ozone Protection/, /^Telecommunications \(Cabling Provider\)/, /^Australian Refrigeration Council/, /^NSW Resources Regulator, investigation report /, /^RIICFW301A Construct underpinning \(national unit of competency/];
+// processing plant and conveyor work.
+const NATIONAL = [/^Ozone Protection/, /^Telecommunications \(Cabling Provider\)/, /^Australian Refrigeration Council/, /^NSW Resources Regulator, investigation report /];
 // Sources that are one state's own are cited only in that state's drafts: the SafeWork NSW codes
 // of practice, Victoria's piling and structural steel industry standards and lift work handbook, and
 // Western Australia's plumbing licensing regulations.

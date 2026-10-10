@@ -104,6 +104,11 @@ function makeDocument() {
 
     appendChild(child) { return child; }
 
+    // The first element of the HTML set, as a new element.
+    get firstElementChild() { return this.html ? new Element('div') : null; }
+
+    replaceWith() {}
+
     after() {}
 
     before() {}
