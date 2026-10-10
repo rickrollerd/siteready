@@ -97,3 +97,12 @@ test('phone styles: controls at least 44 px and text at least 16 px on every pag
   // The sign-on progress bar belongs to another piece of work and is left as it is.
   assert.match(read('sign.html'), /\.progress \{ position: sticky; bottom: 0; background: #1f4e3d; color: #fff; border-radius: 8px; padding: 10px 14px; margin-top: 14px; font-size: 14px; font-weight: 600; \}/);
 });
+
+test('My SWMS: a long title or site name wraps, so each row\'s Open button keeps its full width on a phone', () => {
+  const index = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  assert.match(index, /\.swms-row > div \{ flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; \}/);
+  assert.match(index, /\.swms-row > button \{ flex: none; \}/);
+  // What changed in each revision opens from a 44 px summary on a phone.
+  const phone = index.slice(index.lastIndexOf('@media (max-width: 640px)'));
+  assert.match(phone, /details\.revisions details > summary[^{]*\{ padding: 11px 0; \}/);
+});

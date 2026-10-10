@@ -44,6 +44,7 @@
     .address-list li[aria-selected="true"], .address-list li:hover { background: #fff4d1; }
     .state-warning { color: #9a3b00; }
     .step-warning { display: block; color: #9a3b00; font-size: 0.95em; margin-top: 4px; }
+    .step-note { display: block; color: #5c6773; font-size: 0.95em; font-weight: 400; margin-top: 4px; }
     .project-list { list-style: none; margin: 8px 0; padding: 0; }
     .project-list li { display: flex; gap: 8px; align-items: center; justify-content: space-between; border-top: 1px solid #e1e6ec; padding: 8px 0; }
     .project-list li.current { font-weight: 600; }
@@ -187,7 +188,7 @@
     .sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 10px; }
     .sheet-company { font-weight: 700; margin: 0 0 2px; }
     .sheet-logo { max-width: min(300px, 45%); max-height: 100px; width: auto; height: auto; display: block; margin-left: auto; }
-    input[type="file"] { font-size: 14px; }
+    input[type="file"] { font-size: 14px; max-width: 100%; }
     .account-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 10px 14px; }
     .bar-note { font-size: 14px; color: #3d4a59; }
     .bar-links { display: flex; flex-wrap: wrap; gap: 4px 14px; }
@@ -196,6 +197,9 @@
     select.plain { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; padding: 9px 11px; }
     .swms-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e1e6ec; }
     .swms-row .meta { display: block; }
+    /* The title and details wrap, however long a word, so the Open button keeps its full width. */
+    .swms-row > div { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+    .swms-row > button { flex: none; }
     .due { color: #8a2b2b; font-weight: 600; }
     .resign { margin: 4px 0 10px; }
     .resign p { margin: 0 0 6px; }
@@ -295,7 +299,7 @@
        and eyes on site. The layout on a computer is unchanged. */
     @media (max-width: 640px) {
       .lede, label, .hint, .meta, .status, .error, .note, .warning, .banner, .site-footer, .bar-note, .tag, .tag-risk,
-      h2, details.panel > summary, .saved-name, .step-warning, .project-status, .step-list .step-names, .step-list .tag,
+      h2, details.panel > summary, .saved-name, .step-warning, .step-note, .project-status, .step-list .step-names, .step-list .tag,
       .ppe-group legend, .choice legend, .picks-label, .pick-button, th, td, .sheet p, .sheet li, .sign div, input[type="file"],
       button.small, .scope-task h3, .scope-task p, .scope-task details, .scope-clauses, .scope-hrcw, .scope-conflicts,
       .conflict-dialog, .scope-others, .ctl-tools, .ctl-why, .ctl-why select, .ctl-why input, .ctl-warn, .translate .en,
@@ -314,7 +318,7 @@
       .confirm .check input, .not-covered .check input { margin-top: 0; }
       .ppe-group label { margin-bottom: 0; }
       .address-list li { min-height: 44px; }
-      details.panel > summary, .site-item > summary, details.revisions > summary, .scope-task details > summary, .note details > summary, details.sheet-fold > summary { padding: 11px 0; }
+      details.panel > summary, .site-item > summary, details.revisions > summary, details.revisions details > summary, .scope-task details > summary, .note details > summary, details.sheet-fold > summary { padding: 11px 0; }
       .site-footer a { display: inline-block; padding: 11px 0; }
       .ctl-why select, .ctl-why input { min-height: 44px; padding: 6px 8px; }
       /* The draft: each step's tools show after Change this step, and a long list of controls shows
@@ -636,6 +640,7 @@
 
     <form id="facts" class="panel hidden">
       <p class="warning hidden" id="fall-warning"></p>
+      <p class="warning hidden" id="steps-notice" role="status"></p>
       <h2>Job steps</h2>
       <p class="lede" style="margin-bottom:12px">Ticked steps go into the SWMS. SiteReady ticks the ones it found in the task. Untick any that are not part of this job, and add any that are missing. Steps marked recommended are called for by the task's words; if you untick one, make sure that risk is covered another way.</p>
       <ul class="step-list" id="steps-block"></ul>

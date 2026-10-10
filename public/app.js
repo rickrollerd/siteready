@@ -592,17 +592,24 @@ function searchStepsLater() {
   }, 200);
 }
 
+// Steps for where the work is done, for a task SiteReady has no job steps for: shown, not ticked.
+let stepsAround = [];
+
 function renderSteps(steps) {
   const chosen = new Set(steps.chosen || []);
   const locked = new Set(steps.locked || []);
+  const around = new Set(steps.around || []);
+  stepsAround = [...around];
   // Suggested steps keep their place when unticked; added steps follow them.
   const ids = [...new Set([...(steps.suggested || []), ...(stepPicks || []), ...(steps.chosen || [])])];
   document.getElementById('steps-block').innerHTML = ids.length ? ids.map((id) => {
     const kind = stepById.get(id) || { label: id, steps: [] };
     const others = kind.steps.filter((name) => name !== kind.label);
     const names = others.length ? `<span class="step-names">${esc(others.join('; '))}</span>` : '';
-    const off = locked.has(id) && !chosen.has(id);
-    const warning = off ? `<span class="step-warning">${esc(REMOVED_WARNINGS[id] || 'The task calls for this step. Make sure this risk is covered another way before work starts.')}</span>` : '';
+    const off = locked.has(id) && !chosen.has(id) && !around.has(id);
+    const warning = around.has(id)
+      ? '<span class="step-note">For where the work is done, not the work itself. It is ticked again when you add a step for the work.</span>'
+      : off ? `<span class="step-warning">${esc(REMOVED_WARNINGS[id] || 'The task calls for this step. Make sure this risk is covered another way before work starts.')}</span>` : '';
     return `<li><label><input type="checkbox" data-step value="${esc(id)}"${chosen.has(id) ? ' checked' : ''}><span>${esc(kind.label)}${locked.has(id) ? '<span class="tag">Recommended</span>' : ''}${names}${warning}</span></label></li>`;
   }).join('') : '<li>No job steps were found in the task. Add the steps for the work below.</li>';
   fillStepAdd();
@@ -662,7 +669,8 @@ document.getElementById('steps-block').addEventListener('change', (event) => {
 document.getElementById('step-add').addEventListener('change', (event) => {
   const id = event.target.value;
   if (!id) return;
-  const current = stepPicks || [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value);
+  // The steps for the work around it come back with the first step added for the work itself.
+  const current = stepPicks || [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value).concat(stepsAround);
   stepPicks = [...new Set([...current, id])];
   document.getElementById('step-search').value = '';
   stepSearchIds = null;
@@ -700,6 +708,10 @@ async function loadQuestions(options = {}) {
   const warning = document.getElementById('fall-warning');
   warning.textContent = (data.fall && data.fall.warning) || '';
   warning.classList.toggle('hidden', !warning.textContent);
+  // Work SiteReady has no job steps for is stood down: the user hears it here, not only at the draft.
+  const notice = document.getElementById('steps-notice');
+  notice.textContent = (data.standDown && data.standDown.message) || '';
+  notice.classList.toggle('hidden', !notice.textContent);
   const required = data.required || [];
   document.getElementById('required-block').innerHTML = required.length
     ? `<p class="lede" style="margin-bottom:12px">If a required fact is blank, the task is stood down. A method is not written.</p>` + required.map((item) => {
