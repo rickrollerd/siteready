@@ -26,7 +26,8 @@ const SLANG = [
   [/\bpowerlines?\b/gi, 'power lines'],
   // Asbestos cement: "AC pipe" or "AC sheet" is asbestos cement, and so is "AC roof sheets". "AC pipework" and
   // "AC unit" are air conditioning.
-  [/\bAC ((?:roof |wall |eaves? |fence )?(?:pipes?|mains?|sheets?|sheeting|linings?))\b/g, 'asbestos cement $1'],
+  // So are AC fire door cores, pits, conduits, flues, cladding and fencing.
+  [/\bAC ((?:roof |wall |eaves? |fence )?(?:pipes?|mains?|sheets?|sheeting|linings?)|(?:fire )?door cores?|pits?|conduits?|flues?|cladding|fenc(?:e|es|ing))\b/g, 'asbestos cement $1'],
   [/\baircon\b|\ba\/c\b/gi, 'air conditioning'],
   [/\bAC (units?|systems?)\b/g, 'air conditioning $1'],
   // Demolition

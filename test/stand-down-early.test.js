@@ -180,3 +180,19 @@ test('condensers removed from a roof, work taken up in the hoist and trees plant
 function middleNames(draft) {
   return draft.jobSteps.map((step) => step.step).filter((name) => !['Before starting', 'Finish and clean up'].includes(name));
 }
+
+// Air conditioning plant taken out has its refrigerant recovered by a licence holder first.
+test('removing air conditioning units brings the refrigerant licence and recovery lines', () => {
+  const lines = (draft) => draft.jobSteps.flatMap((step) => step.controls.map((control) => String(control.text || control))).join('\n');
+  for (const task of ['remove aircon units', 'Remove the condensers from the roof', 'Remove the old rooftop package units', 'Decommission the condensing units', 'remove the split systems', 'remove old AC']) {
+    const draft = drafted(task);
+    assert.equal(draft.kind, 'draft', task);
+    assert.match(lines(draft), /Refrigerant is recovered by a refrigerant handling licence holder before pipework or plant is opened\./, task);
+    assert.match(lines(draft), /only by holders of a refrigerant handling licence/, task);
+  }
+  // Air conditioning ductwork is not refrigerant plant, and AC fire door cores are asbestos cement.
+  assert.doesNotMatch(lines(drafted('Remove the old air conditioning ductwork')), /refrigerant/i);
+  const cores = drafted('Remove the AC fire door cores and asbestos containing switchboard backing panels');
+  assert.doesNotMatch(lines(cores), /refrigerant/i);
+  assert.ok(!cores.jobSteps.some((step) => step.step === 'Remove the old services'));
+});
