@@ -149,7 +149,7 @@ test('work inside an existing deep excavation is found however it is written, an
 });
 
 test('the draft for work inside a deep excavation has the step and no dig steps, and the trench category where it is not a basement or cutting', () => {
-  for (const task of ['Lay blockwork in a deep excavation.', 'Install drainage at the base of the existing excavation, over 1.5 metres deep.', 'Concrete repairs inside an existing excavation over 1.5 metres deep.', 'Lay blockwork at the bottom of the pit 2.5 m deep.', 'Install conduits in the open trench 2 m deep, excavated by the civil contractor.']) {
+  for (const task of ['Lay blockwork in a deep excavation.', 'Install drainage at the base of the existing excavation, over 1.5 metres deep.', 'Concrete repairs inside an existing excavation over 1.5 metres deep.', 'Lay blockwork at the bottom of the pit 2.5 m deep.', 'Install drainage inside the excavation 2.5 m deep.']) {
     const d = draft(task);
     assert.equal(d.kind, 'draft', task);
     const steps = d.jobSteps.map((step) => step.step);
@@ -168,9 +168,8 @@ test('the draft for work inside a deep excavation has the step and no dig steps,
 test('pipes, drains or conduits laid in an excavation others dug have the trench laying steps, without its dig steps', () => {
   const cases = [
     ['Install drainage at the base of the existing excavation, over 1.5 metres deep.', 'Lay pipes'],
-    ['Lay the stormwater pipes in the existing trench 2.4 m deep dug by others.', 'Lay pipes'],
     ['Plumber to install sewer pipework inside the basement excavation, 5 m deep.', 'Lay pipes'],
-    ['Install conduits in the open trench 2 m deep, excavated by the civil contractor.', 'Lay conduits'],
+    ['Install the electrical conduits in the base of the excavation 2.5 m deep.', 'Lay conduits'],
   ];
   for (const [task, laying] of cases) {
     assert.ok(suggested(task).includes('layInExcavation'), task);
@@ -183,6 +182,41 @@ test('pipes, drains or conduits laid in an excavation others dug have the trench
   }
   // Digging the trench keeps the trench steps.
   assert.ok(!suggested('Dig the trench 2 m deep and install drainage.').includes('layInExcavation'));
+});
+
+test('in a trench others dug, the trench work step and its shoring lines stay; the dig, backfill and permit to dig go', () => {
+  const cases = [
+    ['Lay the stormwater pipes in the existing trench 2.4 m deep dug by others.', ['Work in the trench', 'Lay pipes']],
+    ['Install conduits in the open trench 2 m deep, excavated by the civil contractor.', ['Work in the trench', 'Lay conduits']],
+    ['Survey and set out in the existing trench 2.5 m deep, dug by others.', ['Work in the trench']],
+  ];
+  for (const [task, own] of cases) {
+    const kinds = suggested(task);
+    assert.ok(kinds.includes('inExcavation') && kinds.includes('inTrench') && !kinds.includes('trench') && !kinds.includes('layInExcavation'), `${task}: ${kinds}`);
+    const d = draft(task);
+    const steps = d.jobSteps.map((step) => step.step).filter((name) => !['Before starting', 'Finish and clean up'].includes(name));
+    assert.deepEqual(steps, [INSIDE, ...own], task);
+    const trench = d.jobSteps.find((step) => step.step === 'Work in the trench').controls.join('\n');
+    assert.match(trench, /do not work ahead of shoring while it is being installed/, task);
+    assert.match(trench, /second way out at the other end of the open run/, task);
+    assert.ok(!d.jobSteps.some((step) => step.controls.some((line) => /^No digging starts/.test(line))), task);
+    // The excavation step adds only what the trench step does not say: the edge, loads and plant near
+    // it, and the principal contractor's emergency plan.
+    const inside = d.jobSteps.find((step) => step.step === INSIDE).controls;
+    assert.equal(inside.length, 4, task);
+    for (const pattern of [/guard rails, barriers or covers, with toe boards/, /outside the zone of influence/, /Plant does not operate or travel near the edge/, /principal contractor's emergency plan/]) assert.ok(inside.some((line) => pattern.test(line)), `${task}: ${pattern}`);
+  }
+  // A trench the crew digs keeps every trench step and the permit to dig.
+  const dig = draft('Excavate a trench 2.4 m deep and lay the stormwater pipe.');
+  for (const name of ['Locate underground services', 'Excavate', 'Work in the trench', 'Lay pipes', 'Backfill the trench']) assert.ok(dig.jobSteps.some((step) => step.step === name), name);
+  assert.ok(!dig.jobSteps.some((step) => step.step === INSIDE));
+  assert.ok(dig.jobSteps.some((step) => step.controls.some((line) => /^No digging starts/.test(line))));
+  // Station boxes, shafts, pits and basement digs have the whole excavation step and no trench step.
+  for (const task of ['Fix reo and pour the base slab in the station box, 20m deep.', 'Strip the formwork inside the shaft, 10 m deep.', 'Lay blockwork at the bottom of the pit 2.5 m deep.', 'Fix reo in the basement excavation 6 m deep.']) {
+    const d = draft(task);
+    assert.equal(d.jobSteps.find((step) => step.step === INSIDE).controls.length, 7, task);
+    assert.ok(!d.jobSteps.some((step) => step.step === 'Work in the trench'), task);
+  }
 });
 
 test('a scope package inside an excavation others dug loses the trench steps the AI chose; one the crew digs keeps them', () => {

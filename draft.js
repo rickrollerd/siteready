@@ -327,7 +327,7 @@ function packageKinds(rawTask, kinds) {
 
 // Kinds of work brought in only where the task's words name them (namedWorkFlags).
 // Work inside a deep excavation others dug comes only where the words put the work there.
-const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation', 'layInExcavation'];
+const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation', 'inTrench', 'layInExcavation'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -2976,9 +2976,10 @@ const permitLine = (permit, stateId) => localControl(permit.line, permit.source,
 function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
   let steps = jobSteps;
   // Work inside an excavation others dug, with no step that digs, needs no permit to dig: the
-  // excavation named as the place, and the category's wording, are not digging.
-  const inside = (step) => step.step === 'Work inside a deep excavation';
-  const noDigging = steps.some(inside) && !steps.some((step) => !inside(step) && DIG_WORK.test(step.step));
+  // excavation named as the place, and the category's wording, are not digging. Nor is working in a
+  // trench others dug.
+  const inside = (step) => ['Work inside a deep excavation', 'Work in the trench'].includes(step.step);
+  const noDigging = steps.some((step) => step.step === 'Work inside a deep excavation') && !steps.some((step) => !inside(step) && DIG_WORK.test(step.step));
   for (const permit of PERMITS) {
     if (permit.notDomestic && options.domestic) continue;
     if (noDigging && permit.work === DIG_WORK) continue;
@@ -3500,7 +3501,7 @@ function tradeFlags(task, facts, state) {
 
 // Job steps the task's words call for that are flagged when taken off: asbestos,
 // isolation, confined spaces, water, traffic, power lines, propping and trench support.
-const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench', 'inExcavation']);
+const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench', 'inExcavation', 'inTrench']);
 const KIND_SET = new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean));
 
 // Picked steps that strip out, demolish or cut into an existing building need asbestos
@@ -3623,12 +3624,16 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
   };
   const settled = settleFlags(typedTitleFlags(out, task, ownCrane), task);
   settled.inExcavation = inDeepExcavation(task, settled);
-  // Inside an excavation others dug, the crew digs no trench. Pipes, drains or conduits it lays there have
-  // the trench's laying steps, and a pit only where the work names one besides the place.
+  // Inside an excavation others dug, the crew digs and backfills no trench. In a trench others dug, the
+  // trench's own work step with its shoring lines stays (inTrench). Pipes, drains or conduits laid there
+  // have the trench's laying steps, and a pit only where the work names one besides the place.
   if (settled.inExcavation) {
+    const laying = LAY_IN_EXCAVATION.test(task);
     settled.trench = false;
-    settled.layInExcavation = LAY_IN_EXCAVATION.test(task);
-    if (settled.layInExcavation) settled.trenchPits = Boolean(settled.trenchPits) && /\b(?<!lift |tank |test |borrow |sump )pits?\b(?! lids?| covers?| grates?)|\b(?:manholes?|maintenance holes?|access chambers?)\b/i.test(withoutExcavationPlace(task));
+    settled.inTrench = excavationPlaces(task).some((item) => item.deep && item.kind === 'trench');
+    settled.layInExcavation = laying && !settled.inTrench;
+    if (laying) settled.trenchPits = Boolean(settled.trenchPits) && /\b(?<!lift |tank |test |borrow |sump )pits?\b(?! lids?| covers?| grates?)|\b(?:manholes?|maintenance holes?|access chambers?)\b/i.test(withoutExcavationPlace(task));
+    else if (settled.inTrench) settled.noPipeLaying = true;
   }
   const claimed = claimedSentences(task, settled);
   if (!claimed.length) return settled;
