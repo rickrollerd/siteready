@@ -873,6 +873,11 @@ function fallControlLevel(line) {
 const FORMWORK = /\b(formwork|falsework|formply|deck forms?|table forms?|backprop\w*|(?:walls?|columns?) forms?|forms? up (?:the )?(?:columns?|walls?|cores?))\b/i;
 const JUMPFORM = /\b(jump ?forms?|self[- ]climbing (?:form\w*|system)|climbing form\w*)\b/i;
 const PT = /\b(post[- ]?tension\w*|pt slabs?|pt tendons?|stressing)\b/i;
+// Stressing or destressing rail (setting continuously welded rail to its neutral temperature) is
+// track work, not post-tensioning: "tamping and stressing the rail" has no tendons in it.
+const RAIL_STRESS = /\b(?:rails?|track|cwr)\s+(?:de-?)?stress\w*|\b(?:de-?)?stress\w*\s+(?:of\s+)?(?:the\s+)?(?:new\s+|existing\s+)?(?:rails?|track|cwr|continuously welded)\b/i;
+const TENDON_WORDS = /\b(?:tendons?|strands?|post[- ]?tension\w*|pt\b|ducts?|anchorages?)/i;
+const railStressOnly = (text) => RAIL_STRESS.test(String(text || '')) && !TENDON_WORDS.test(String(text || ''));
 // Work that puts materials or plant on a formwork deck or a suspended slab.
 function loadsOnDeckOrSlab(text) {
   const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
@@ -3998,7 +4003,7 @@ function typedTitleFixes(out, task) {
   off(T(/\b(?:installed|building|mechanical|hvac) plant\b/i), 'plantService');
   off(T(/\breinforced (?:soil|earth)\b/i) && !T(/\b(?:reo|rebar|steel fix\w*|reinforcement)\b/i), 'reo');
   off(T(/\bslip ?form\w* paving\b|\bconcrete (?:road )?pavements?\b/i) && !T(/\bpavers?\b/i), 'paving');
-  off(T(/\brail (?:welding|stressing)\b|\b(?:aluminothermic|flash butt)\b/i), 'stressing');
+  off(T(/\brail (?:welding|stressing)\b|\b(?:aluminothermic|flash butt)\b/i) || railStressOnly(t), 'stressing', 'ptSlab', 'ptTendons');
   off((out.precast || out.stressing || out.ptTendons) && !T(/\btil(?:e|es|ing|ed)\b/i), 'tileCut', 'tileMix', 'tileLay');
   off(T(/\bsheet pil\w*/i) && !T(/\b(?:drill\w*|auger\w*|cfa|bored)\b/i), 'pilingRig');
   off(T(/\b(?:lift|machine room|landing)\b/i) && T(/\bshafts?\b/i) && !T(/\b(?:excavat\w*|dig\w*|trench\w*|bored)\b/i), 'trench', 'deepTrench');
@@ -5312,9 +5317,9 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     ptTendons: PT.test(task) && /\b(place|placing|install\w*|lay\w*|fix\w*)\b/i.test(task) && /\b(ducts?|tendons?|strand)\b/i.test(task),
     // Attending a pour for another trade (keeping reo cover) is not placing the concrete.
     concrete: /\b(cast[- ]in|in[- ]slab)\b/i.test(pourTask) ? /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete)\b/i.test(pourTask) : /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(pourTask),
-    stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing|stress\w*\b[^.]{0,30}\btendons?)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
+    stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing|stress\w*\b[^.]{0,30}\btendons?)\b/i.test(task) && !/\bground anchors?\b/i.test(task) && !railStressOnly(task),
     jumpform: JUMPFORM.test(task),
-    ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
+    ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task) && !/\bground anchors?\b/i.test(task) && !railStressOnly(task),
     // Painting or masking around electrical fittings is not electrical work.
     electricalWork: ELECTRICAL_WORK.test(task.replace(/\b(?:around|mask\w*|protect\w*|cut in|clear of)\b[^.]*/gi, '')),
     plumbingWork: isPlumbing(task),
