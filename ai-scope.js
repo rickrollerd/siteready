@@ -233,10 +233,11 @@ function settleGroups(reading, which) {
 
 const siteRows = (reading, name) => (reading.activities || []).filter((row) => row.package === name && row.type !== 'Duty');
 
-// The groups each activity's own words name, among the groups the package has, counted.
+// The groups each activity's own words name, among the groups the package has, counted. Every word
+// counts here, as when packages were first grouped; the job steps leave out words for others' work.
 function groupVotes(rows, groups) {
   const votes = new Map();
-  for (const row of rows) for (const id of suggestedKinds(packageTask([row]), {}, {})) if (groups.includes(id)) votes.set(id, (votes.get(id) || 0) + 1);
+  for (const row of rows) for (const id of suggestedKinds(packageTask([row]), {}, { allWords: true })) if (groups.includes(id)) votes.set(id, (votes.get(id) || 0) + 1);
   return votes;
 }
 
@@ -315,7 +316,7 @@ function oneForTheProject(reading) {
       && entry.main === main && entry.item.groups.every((id) => groups.includes(id)));
     // An area the AI found no groups for joins when its activities' own words name the main group.
     const ungrouped = reading.packages.filter((item) => TRADE_INSTALLATION.test(item.package) && !(item.groups || []).length && siteRows(reading, item.package).length
-      && siteRows(reading, item.package).some((row) => suggestedKinds(packageTask([row]), {}, {}).includes(main))).map((item) => ({ item }));
+      && siteRows(reading, item.package).some((row) => suggestedKinds(packageTask([row]), {}, { allWords: true }).includes(main))).map((item) => ({ item }));
     const members = [...located, ...joining, ...ungrouped];
     if (members.length < 2) continue;
     // Named for the work where SiteReady has a name for it ("Formwork and falsework"), as the quick read does.

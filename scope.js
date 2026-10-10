@@ -71,7 +71,7 @@ function isWork(line) {
 // Whether a line names a trade's own systems ("Wet pipe sprinkler protection", "Air
 // handling units and fans"). A listed item under a work heading often has no verb.
 function namesTrade(line) {
-  const flags = workFlags(line);
+  const flags = workFlags(line, {}, false, false, true);
   return TRADES.some((trade) => (trade.signal instanceof RegExp ? trade.signal.test(line) : Boolean(trade.signal && flags[trade.signal])));
 }
 
@@ -436,7 +436,7 @@ const TITLES = Object.freeze({
 const MAX_LINES = 8;
 const MAX_TASK = 900;
 
-function kindsOf(line, flags = workFlags(line)) {
+function kindsOf(line, flags = workFlags(line, {}, false, false, true)) {
   return KINDS.filter((kind) => flags[kind.when] && !DETAIL.has(kind.when));
 }
 
@@ -498,7 +498,7 @@ function tasksFromScope(text, stateId = 'qld') {
   const titled = titleTrades(text);
   const titledKinds = new Set(TRADES.filter((trade) => titled.has(trade.id)).flatMap((trade) => trade.kinds));
   for (const line of lines) {
-    const flags = workFlags(ownWork(line));
+    const flags = workFlags(ownWork(line), {}, false, false, true);
     const kinds = kindsOf(line, flags);
     for (const kind of kinds) {
       if (!groups.has(kind.when)) groups.set(kind.when, { kind, lines: [] });
@@ -557,12 +557,12 @@ function tasksFromScope(text, stateId = 'qld') {
   const order = (when) => KINDS.findIndex((kind) => kind.when === when);
   // Hot weather or heat stress named anywhere in the scope, even in a line that is not itself
   // site work, is a condition of all its work: each task gets the step for hot conditions.
-  const hot = String(text || '').split(/\n+/).some((line) => /\b(hot|heat|summer|temperatures?|°\s?C|furnaces?|kilns?|ovens?|boilers?)\b/i.test(line) && workFlags(ownWork(line)).heatWork);
+  const hot = String(text || '').split(/\n+/).some((line) => /\b(hot|heat|summer|temperatures?|°\s?C|furnaces?|kilns?|ovens?|boilers?)\b/i.test(line) && workFlags(ownWork(line), {}, false, false, true).heatWork);
   const makeTask = (id, step, found, trades, groupKinds = []) => {
     const title = TITLES[id] || step;
     const task = taskText(found);
     const highRisk = highRiskMatches(task, '', state).map((item) => item.label);
-    const kinds = [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')) }), ...(hot ? ['heatWork'] : [])])];
+    const kinds = [...new Set([...groupKinds, ...suggestedKinds(task, {}, { ownCrane: false, trades: tradeIds(trades.join(',')), allWords: true }), ...(hot ? ['heatWork'] : [])])];
     return {
       id,
       title,
@@ -580,7 +580,7 @@ function tasksFromScope(text, stateId = 'qld') {
   };
   // A line that also installs the item ("Fabricate off site, supply and install ...") is read
   // as its site work, so it is not workshop work.
-  for (const group of groups.values()) if (OWN_TASK.has(group.kind.when)) group.lines = group.lines.filter((line) => workFlags(ownWork(taskLine(line)))[group.kind.when]);
+  for (const group of groups.values()) if (OWN_TASK.has(group.kind.when)) group.lines = group.lines.filter((line) => workFlags(ownWork(taskLine(line)), {}, false, false, true)[group.kind.when]);
   const tasks = [...groups.values()]
     .filter((group) => group.lines.length)
     // A short pasted scope may not show a trade; then every kind found in lines that say

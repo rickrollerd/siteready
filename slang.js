@@ -136,6 +136,19 @@ const SLANG = [
   [/\bspay (?=(?:foam|paint\w*|insulation|seal\w*)\b)/gi, 'spray '],
   [/\bwal\b/gi, 'wall'],
   [/\btrey\b/gi, 'tray'],
+  // Trade words used as verbs before what they are done to: "Membrane the shower bases", "Tank the
+  // basement walls", "Glaze the shopfronts", "Plant out the median", "Frame the
+  // walls", "Form the deck", "Concrete the stairs", "Mark out the courts", "Insulate the roof".
+  [/\bmembrane (?=(?:the|all|each|both)\b)/gi, 'waterproof '],
+  [/\btank (?=(?:the|all|each|both)\b)/gi, 'apply tanking to '],
+  [/\bglaze (?=(?:the|all|each|both)\b)/gi, 'fit the glass to '],
+  [/\bplant(?: out)? (?=(?:the|all|each|both)\b)(?!the (?:room|deck|rooms|equipment)\b)/gi, 'planting '],
+  [/\bframe (?=(?:the|all|each|both)\b)(?!the (?:door|window)s?\b)/gi, 'build framing to '],
+  [/(^|[.;:]\s*)form(?=,\s*(?:reo|reinforce)\b)/gi, '$1formwork'],
+  [/(^|[.;:]\s*|\band\s+|\bthen\s+)form (?=(?:the|all|each|both)\b)(?![^.]*\bwith (?:blocks?|bricks?|masonry|pavers?|stone|sleepers?)\b)/gi, '$1erect formwork to '],
+  [/(^|[.;:]\s*|\band\s+|\bthen\s+)concrete (?=(?:the|all|each|both)\b)/gi, '$1pour concrete to '],
+  [/\bmark out (?=(?:the|all|each|both)\b)/gi, 'line mark '],
+  [/\binsulate (?=(?:the|all|each|both)\b)/gi, 'fit insulation to '],
   // "Tilling" is tiling unless the task is about soil.
   [/\btilling\b/gi, (word, at, whole) => (/\b(?:soil|garden|lawns?|turf|rotary|hoe|beds?|landscap\w*|paddocks?)\b/i.test(whole) ? word : 'tiling')],
 ];

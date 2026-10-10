@@ -80,7 +80,9 @@ test('title rules do not fire on written tasks that use the same words another w
   assert.ok(!ticks('Form and pour a concrete driveway and path at a house, with the concrete truck and a line pump in the street, open to traffic.').includes('concrete'));
   assert.ok(!ticks('Install cable tray and pull structured data cabling in the risers and corridor ceilings.').includes('containment'));
   assert.ok(!ticks('Protect and clean site and external infrastructure, footpaths, gutters and roadways.').includes('road'));
-  assert.ok(ticks('Insulate the ductwork and chilled water pipework with glasswool and foam lagging, in the ceilings and risers.').includes('mechPipework'));
+  // Insulating the pipework is the lagging steps, not installing the pipework (others' pipework names the thing insulated).
+  const lagging = ticks('Insulate the ductwork and chilled water pipework with glasswool and foam lagging, in the ceilings and risers.');
+  assert.ok(lagging.includes('mechInsulation') && !lagging.includes('mechPipework'), lagging.join(', '));
 });
 
 test('a scissor lift, boom lift or EWP used for access never ticks lift (elevator) installation', () => {
