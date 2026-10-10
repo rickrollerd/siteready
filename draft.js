@@ -2989,8 +2989,10 @@ const SITE_WORK_ONLY = () => require('./scope').SITE_WORK;
 // job step is named for is covered, and so is one a required fact already asks about (a pressure
 // test, an isolation). Conditions, places, standards, duties and paperwork are not work. A task
 // from a scope reading lists instead the rows the reader matched to no job steps (unmatched),
-// unless the row's words find a kind of work in the draft.
-function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched }) {
+// unless the row's words find a kind of work in the draft. A task picked from the pick list adds
+// the parts its catalogue entry says SiteReady has no job steps for (pickGaps), while its words are
+// as picked: they are listed whatever the words find, so a near-miss step never hides them.
+function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched, pickGaps }) {
   const { SITE_WORK, notOwnWork } = require('./scope');
   const verbs = (text) => (text.match(new RegExp(SITE_WORK.source, 'gi')) || []).filter((word) => !/s$/i.test(word));
   const steps = allSteps.filter((step) => !['Before starting', 'Finish and clean up'].includes(step.step));
@@ -2998,6 +3000,7 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
   const handled = steps.some((step) => HANDLING_STEP.test(step.step));
   const named = stepWords(steps.map((step) => [step.step, ...step.hazards, ...step.controls.map(withoutStateCodes)].join(' ')).join(' '));
   const parts = Array.isArray(unmatched) ? unmatched.map((row) => cleanLine(withoutNotes(row, notOwnWork))) : taskParts(typed, SITE_WORK, notOwnWork);
+  const picked = (Array.isArray(pickGaps) ? pickGaps : []).map((part) => cleanLine(part).replace(/[.,;:]+$/, '')).filter(Boolean);
   const found = dedupe(parts.filter((part) => {
     const text = readSlang(ownWork(part));
     if (notOwnWork(text) || CATEGORY_FACTS.some((item) => item.applies(text))) return false;
@@ -3015,10 +3018,11 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
     return !stepNamesPart(work, steps, SITE_WORK);
   }).map((part) => part.replace(/[.,;:]+$/, '')));
   // Work only the user's own steps cover (D211), and heavy items with no step that places them.
+  // A picked task's own parts with no job steps come first (D184).
   const own = leftToUser(typed, steps);
-  const listed = [...own, ...found];
+  const listed = [...picked, ...own, ...found];
   const heavy = heavyItemParts(typed, steps, inDraft, named, state).filter((item) => !listed.some((part) => sameText(part).includes(sameText(item.replace(/^\S+\s+/, '')))));
-  return dedupe([...own, ...found.filter((part) => !own.some((mine) => sameText(mine).includes(sameText(part)) || sameText(part).includes(sameText(mine)))), ...heavy, ...dataTestParts(Array.isArray(unmatched) ? parts : String(typed || '').split(/[.;:\n](?!\d)/), steps, found)]);
+  return dedupe([...picked, ...own, ...found.filter((part) => !own.some((mine) => sameText(mine).includes(sameText(part)) || sameText(part).includes(sameText(mine)))), ...heavy, ...dataTestParts(Array.isArray(unmatched) ? parts : String(typed || '').split(/[.;:\n](?!\d)/), steps, found)]);
 }
 
 // Testing and certifying data cabling has no job steps (no source held for it, GAP-STEPS.md section 10),
@@ -3386,7 +3390,7 @@ function buildDraft(input, screen) {
   // The user's own hazards and Who go in last, so the registers and risk ratings are worked out
   // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
   // Parts of the task with no job steps, shown above the draft (owner decision D184).
-  const notCovered = notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched });
+  const notCovered = notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched, pickGaps: input.pickGaps });
   // Where that work is all the task's work, a tick is not enough: the user writes the step for it.
   if (userMain.length) draft.notCoveredMain = notCovered.filter((part) => userMain.includes(part));
   // The steps the user wrote for work SiteReady does not cover go in once the registers and ratings

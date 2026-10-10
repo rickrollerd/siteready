@@ -96,22 +96,26 @@ test('the Word file is refused without a name, even when confirmed', async () =>
   assert.equal((await post('/api/draft.docx', body, null, session)).status, 400);
 });
 
-test('trade and task pick lists come from the tested project sets', async () => {
+test('trade and task pick lists come from the trade catalogue, in groups', async () => {
   const response = await fetch(`${base}/api/presets`);
   assert.equal(response.status, 200);
-  const { trades } = await response.json();
+  const { groups, trades } = await response.json();
+  assert.deepEqual(groups, ['Site and plant', 'Civil and infrastructure', 'Structure', 'Services', 'Finishes', 'Any trade']);
   const ids = trades.map((trade) => trade.id);
-  assert.ok(ids.includes('piling'));
-  for (const id of ['structure', 'electrical', 'plumbing', 'mechanical', 'facade', 'tiling']) assert.ok(ids.includes(id), id);
+  for (const id of ['piling', 'formwork', 'concreting', 'electrical', 'plumbing-hydraulics', 'mechanical', 'facade-glazing', 'tiling', 'civil-earthworks', 'roads-pavements', 'pipelines-drainage', 'bridges', 'rail', 'demolition-stripout', 'shared-access-and-handling']) assert.ok(ids.includes(id), id);
   assert.equal(new Set(ids).size, ids.length);
   for (const trade of trades) {
+    assert.ok(groups.includes(trade.group), trade.id);
     assert.ok(trade.tasks.length >= 1);
     for (const item of trade.tasks) {
       assert.ok(item.task && item.title);
       assert.ok(['yes', 'no'].includes(item.fallRisk));
       assert.ok(['company', 'own'].includes(item.crane));
+      assert.ok(Array.isArray(item.kinds) && Array.isArray(item.gaps) && Array.isArray(item.leaveOut));
     }
   }
+  // House work is not the market: no house trades (goal 1).
+  assert.ok(!trades.some((trade) => /^Houses:|house|domestic/i.test(trade.name)));
 });
 
 test('required questions carry standard answers, and each answer is accepted', async () => {
@@ -156,7 +160,8 @@ test('project zip files are named by the task titles from the scope', async () =
 test('the welcome page figures match what the app offers (Australian Consumer Law: claims must be provable)', () => {
   const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'welcome.html'), 'utf8');
   const { TRADES } = require('../presets');
-  const trades = TRADES.length;
+  // Access, plant and tools for any trade is a pick of its own, not a trade.
+  const trades = TRADES.filter((trade) => trade.group !== 'Any trade').length;
   const tasks = TRADES.reduce((n, trade) => n + (trade.tasks || []).length, 0);
   const claimed = html.match(/(\d+) trades and over (\d+) common tasks/);
   assert.ok(claimed, 'the figures are on the page');

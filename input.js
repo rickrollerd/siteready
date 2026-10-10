@@ -179,6 +179,8 @@ function draftBody(body) {
     leaveOut: Array.isArray(body.leaveOut) ? body.leaveOut.filter((name) => typeof name === 'string').slice(0, 50).map((name) => textField(name, 300)) : undefined,
     // The rows of a scope reading that the reader matched to no job steps (owner decision D184).
     unmatched: Array.isArray(body.unmatched) ? body.unmatched.filter((row) => typeof row === 'string').slice(0, 60).map((row) => textField(row, 400)).filter(Boolean) : undefined,
+    // The parts of a task picked from the pick list that SiteReady has no job steps for (goal 1).
+    pickGaps: Array.isArray(body.pickGaps) ? body.pickGaps.filter((part) => typeof part === 'string').slice(0, 10).map((part) => textField(part, 300)).filter(Boolean) : undefined,
     // The parts with no job steps the user ticked as dealt with, above the draft (D184).
     notCoveredConfirmed: Array.isArray(body.notCoveredConfirmed) ? body.notCoveredConfirmed.filter((part) => typeof part === 'string').slice(0, 60).map((part) => textField(part, 5000)) : undefined,
     stepOrder: Array.isArray(body.stepOrder) ? body.stepOrder.filter((name) => typeof name === 'string').slice(0, 150).map((name) => textField(name, 300)) : undefined,

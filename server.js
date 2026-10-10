@@ -21,7 +21,14 @@ const libraryNotices = require('./library-notices');
 const billing = require('./billing');
 const admin = require('./admin');
 const { record, recordError } = require('./events');
-const { TRADES, answersFor } = require('./presets');
+const { TRADES, GROUPS, answersFor } = require('./presets');
+// The pick lists as the page needs them: each task's words, job steps and parts with no job steps.
+const PICK_TRADES = TRADES.map((trade) => ({
+  id: trade.id,
+  name: trade.name,
+  group: trade.group,
+  tasks: trade.tasks.map((item) => ({ id: item.id, title: item.title, task: item.task, fallRisk: item.fallRisk, crane: item.crane, kinds: item.kinds, leaveOut: item.leaveOut, gaps: item.gaps, coverage: item.coverage })),
+}));
 const { localText } = require('./citations');
 const { scopeText } = require('./scope-text');
 const { tasksFromScope } = require('./scope');
@@ -196,7 +203,7 @@ app.get('/api/states', (_req, res) => {
 
 app.get('/api/presets', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
-  res.json({ trades: TRADES });
+  res.json({ groups: GROUPS, trades: PICK_TRADES });
 });
 
 // Job steps whose name, hazards or controls match the words searched.
