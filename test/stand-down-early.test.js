@@ -151,3 +151,32 @@ test('typed tasks the library has job steps for are drafted with the steps for t
   // Resealing pavers is still pressure cleaning and sealing.
   assert.ok(middle(drafted('Reseal the driveway')).includes('Apply sealers to concrete, pavers or timber'));
 });
+
+// The thing worked on chooses the steps, not the place, the access plant or a word read the wrong way.
+test('condensers removed from a roof, work taken up in the hoist and trees planted are read as such', () => {
+  const kinds = (task) => ask(task).steps.suggested;
+  // Condensers removed from the roof are plant removal on a roof, not stripping the roof.
+  const condensers = drafted('Remove the condensers from the roof');
+  assert.equal(condensers.kind, 'draft');
+  const names = condensers.jobSteps.map((step) => step.step);
+  for (const name of ['Get onto the roof', 'Isolate and make safe the old services', 'Remove the old services']) assert.ok(names.includes(name), name);
+  assert.ok(!names.includes('Remove old roofing'));
+  assert.ok(!kinds('Remove the old rooftop units').includes('roofStrip'));
+  // Roofing named is still roof work.
+  for (const task of ['Remove the sheeting from the roof', 'Replace the valley trays on the roof.', 'Replace the roof']) assert.ok(kinds(task).includes('roofStrip'), task);
+  // The builders hoist used to get work up is access; the hoist itself installed is hoist installation.
+  for (const task of ['Use the builders hoist to install the bridge expansion joints', 'Install the panels using the builders hoist', 'Take the acoustic baffles up in the builders hoist and install them']) assert.ok(!kinds(task).includes('hoistInstall'), task);
+  assert.ok(middleNames(drafted('Use the builders hoist to get the plasterboard up and install the ceilings')).includes('Fix ceiling sheets'));
+  for (const task of ['Hoist installation', 'install and climb the builders hoist', 'erect hoist and tie in', 'Builders\' hoists: install, climb and dismantle', 'Your crew puts up a personnel and materials hoist on the side of the building.']) assert.ok(kinds(task).includes('hoistInstall'), task);
+  // "Plant new trees" is planting, not plant to remove.
+  assert.ok(!kinds('Remove the old trees with a crane and plant new trees').includes('servicesStrip'));
+  assert.ok(!kinds('Remove the old shrubs and plant new ones').includes('servicesStrip'));
+  assert.ok(kinds('Remove the old plant and equipment').includes('servicesStrip'));
+  const trees = middleNames(drafted('Remove the old trees with a crane and plant new trees'));
+  for (const name of ['Remove trees', 'Plant']) assert.ok(trees.includes(name), name);
+  assert.ok(!trees.includes('Remove the old services'));
+});
+
+function middleNames(draft) {
+  return draft.jobSteps.map((step) => step.step).filter((name) => !['Before starting', 'Finish and clean up'].includes(name));
+}
