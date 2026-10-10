@@ -764,6 +764,8 @@ async function removeExpired(now = new Date()) {
   await db.query('DELETE FROM swms_revisions WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms_review_flags WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms WHERE archived = TRUE AND updated_at < $1', [cutoff]);
+  // A deleted site is removed after 30 days too. A SWMS keeps its own copy of the site's details.
+  await db.query('DELETE FROM sites WHERE archived = TRUE AND updated_at < $1', [cutoff]);
   // A read session is only needed while the worker is signing on.
   await db.query('DELETE FROM sign_reads WHERE started_at < $1', [new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)]);
   await db.query('DELETE FROM signins WHERE created_at < $1', [new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)]);

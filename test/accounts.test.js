@@ -235,6 +235,18 @@ test('a deleted SWMS is hidden at once and removed with its sign-ons after 30 da
   assert.equal((await db.query('SELECT * FROM signons WHERE swms_id = $1', [swms.id])).length, 0);
 });
 
+test('a deleted site is hidden at once and removed after 30 days', async () => {
+  const token = await signIn('purge-site@delete.example');
+  const { site } = await (await call('POST', '/api/sites', { token, body: { name: 'Old job', workplace: '1 Old Road, Toowong QLD 4066', principalContractor: 'Old Builders' } })).json();
+  assert.equal((await call('DELETE', `/api/sites/${site.id}`, { token })).status, 200);
+  assert.equal((await (await call('GET', '/api/sites', { token })).json()).sites.length, 0, 'hidden at once');
+  await removeExpired();
+  assert.equal((await db.query('SELECT * FROM sites WHERE id = $1', [site.id])).length, 1, 'kept for 30 days');
+  await db.query('UPDATE sites SET updated_at = $1 WHERE id = $2', [new Date(Date.now() - 31 * 24 * 60 * 60 * 1000), site.id]);
+  await removeExpired();
+  assert.equal((await db.query('SELECT * FROM sites WHERE id = $1', [site.id])).length, 0);
+});
+
 test('a business can export all its saved SWMS in one zip', async () => {
   const token = await signIn('export@all.example');
   assert.equal((await call('GET', '/api/swms/export.zip', { token })).status, 404, 'nothing saved yet');
