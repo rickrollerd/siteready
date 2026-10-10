@@ -330,7 +330,8 @@ function packageKinds(rawTask, kinds) {
 
 // Kinds of work brought in only where the task's words name them (namedWorkFlags).
 // Work inside a deep excavation others dug comes only where the words put the work there.
-const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation', 'inTrench', 'layInExcavation'];
+const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation', 'inTrench', 'layInExcavation',
+  'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -2789,7 +2790,7 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
   const handled = steps.some((step) => HANDLING_STEP.test(step.step));
   const named = stepWords(steps.map((step) => [step.step, ...step.hazards, ...step.controls].join(' ')).join(' '));
   const parts = Array.isArray(unmatched) ? unmatched.map((row) => cleanLine(withoutNotes(row, notOwnWork))) : taskParts(typed, SITE_WORK, notOwnWork);
-  return dedupe(parts.filter((part) => {
+  const found = dedupe(parts.filter((part) => {
     const text = readSlang(ownWork(part));
     if (notOwnWork(text) || CATEGORY_FACTS.some((item) => item.applies(text))) return false;
     const kinds = suggestedKinds(text, {}, { ...state, allWords: true });
@@ -2805,6 +2806,24 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
     if (handled && !doing.length) return false;
     return !stepNamesPart(work, steps, SITE_WORK);
   }).map((part) => part.replace(/[.,;:]+$/, '')));
+  return dedupe([...found, ...dataTestParts(Array.isArray(unmatched) ? parts : String(typed || '').split(/[.;:\n](?!\d)/), steps, found)]);
+}
+
+// Testing and certifying data cabling has no job steps (no source held for it, GAP-STEPS.md section 10),
+// though terminating it does. Named in the same part as the termination ("Terminate, test and certify the
+// data outlets"), the testing is still named as not covered (D184).
+const DATA_TEST = /\b(?:test(?:s|ed|ing)?|certif\w*)\b/gi;
+const DATA_TERMINATE_VERB = /\b(?:terminat\w*|punch\w* down|fit\w*[- ]?off|re-?terminat\w*)\b/gi;
+function dataTestParts(parts, steps, found) {
+  if (!steps.some((step) => step.step === 'Terminate the data outlets and patch panels')) return [];
+  if (found.some((part) => new RegExp(DATA_TEST.source, 'i').test(part))) return [];
+  return parts.map((part) => cleanLine(String(part)).replace(/[.,;:]+$/, '')).filter((part) => DATA_TERMINATE.test(part) && new RegExp(DATA_TEST.source, 'i').test(part)).map((part) => {
+    const verbs = [...new Set((part.match(DATA_TEST) || []).map((word) => word.toLowerCase()))];
+    // The verbs, with the "and" or comma between them, come off the front or the end; what they work on stays.
+    const verb = `(?:${DATA_TERMINATE_VERB.source}|${DATA_TEST.source})`;
+    const thing = part.replace(new RegExp(`^(?:\\s*(?:,|and|then)?\\s*${verb})+\\s*`, 'i'), '').replace(new RegExp(`(?:\\s*(?:,|and|then)?\\s*${verb})+\\s*$`, 'i'), '').replace(/\s+/g, ' ').trim().replace(/^[A-Z](?=[a-z])/, (letter) => letter.toLowerCase());
+    return `${verbs.join(' and ')} ${thing}`;
+  });
 }
 
 // Saving or downloading a draft with parts that have no job steps needs the user's tick above
@@ -3897,8 +3916,8 @@ function suggestedFlags(task, facts, state) {
 
 // Kinds of work any trade can strike, found from the task's own words, on top of
 // the trade kinds below. Drilling or cutting concrete counts only where no other
-// cutting step (tiles, masonry, saw cutting, coring, stone, grinding) covers it.
-const OWN_CUTTING = ['paving', 'tileCut', 'masonryCut', 'sawCut', 'coreDrill', 'stoneSilica', 'floorGrind', 'wpPrep', 'pileTrim', 'structuralOpening', 'slabGround', 'slabPour'];
+// cutting step (tiles, masonry, saw cutting, coring, stone, grinding, rock sawing) covers it.
+const OWN_CUTTING = ['paving', 'tileCut', 'masonryCut', 'sawCut', 'coreDrill', 'stoneSilica', 'floorGrind', 'wpPrep', 'pileTrim', 'structuralOpening', 'slabGround', 'slabPour', 'rockSaw'];
 
 // Concrete slabs on the ground: house and ground floor slabs, driveways, paths, kerbs,
 // crossovers and pads. With no suspended slab in the task, the ground steps take the
@@ -5706,6 +5725,8 @@ function settleFlags(flags, task) {
   // Owner decisions of 6 October 2026: these steps come in only where the task's words name the work.
   Object.assign(out, namedWorkFlags(task, out));
   if (out.asbestosPits) out.asbestos = true;
+  // Rock cut with a rock saw is not concrete saw cutting or drilling, unless concrete or masonry is named too.
+  off(out.rockSaw && !/\b(concrete|slabs?|asphalt|pavements?|masonry|bricks?|blocks?|kerbs?)\b/i.test(task), 'sawCut', 'silicaDrill');
   // "Fibre reinforced polymer" is not reinforcement work.
   off(out.frpWrap && !/\b(reo|rebar|reinforc\w* (?:bars?|steel|mesh|cages?))\b/i.test(task.replace(FRP, ' ')), 'reo');
   return typedTitleFixes(out, task);
@@ -5741,8 +5762,40 @@ function namedWorkFlags(task, flags = {}) {
   out.liveLinesRefrigerant = out.liveLines && /\b(?:refrigerant|refrigeration|ammonia)\b/i.test(task);
   // A school site keeps the school's own lines (portable buildings).
   out.schoolSite = /\b(?:schools?|classrooms?|students?)\b/i.test(task);
+  // Gap job steps (10 October 2026): a TBM's launch or retrieval shaft, old plant lifted out, a lift
+  // controller upgrade, underpinning, sprayed fire protection, rock sawing and data outlet terminations.
+  out.tbmShaft = TBM.test(task) && TBM_SHAFT.test(task);
+  out.tbmLaunch = out.tbmShaft && TBM_LAUNCH.test(task);
+  out.plantRemoval = PLANT_REMOVAL.test(task);
+  out.liftController = LIFT_CONTROLLER.test(task) && /\b(?:upgrad|replac|install|modernis|moderniz|chang|swap|retrofit|renew|fit|remov)\w*/i.test(task);
+  // House restumping or raising keeps its own steps.
+  out.underpinning = /\bunderpin\w*/i.test(task) && !flags.restump;
+  out.fireSpray = FIRE_SPRAY.test(task);
+  out.fireSprayCement = out.fireSpray && /\b(?:cementitious|vermiculite|gypsum|mineral fibre|perlite)\b/i.test(task);
+  out.fireSprayPaint = out.fireSpray && (!out.fireSprayCement || /\bintumescent\b/i.test(task));
+  out.fireSprayIso = out.fireSpray && /\b(?:isocyanates?|polyurethane|two[- ](?:pack|part)|2[- ]?(?:pack|part))\b/i.test(task);
+  out.fireSprayExisting = out.fireSpray && /\b(?:existing|old|refurbish\w*|retrofit\w*|re-?spray\w*|repair\w*|patch\w*|mak\w* good)\b/i.test(task);
+  out.rockSaw = ROCK_SAW.test(task);
+  out.ictTerminate = DATA_TERMINATE.test(task);
+  out.ictTerminateCeiling = out.ictTerminate && /\bceilings?\b/i.test(task);
   return out;
 }
+
+// A tunnel boring machine named with its shaft, its launch or its retrieval.
+const TBM = /\b(?:tbms?|tunnel boring machines?)\b/i;
+const TBM_LAUNCH = /\b(?:launch\w*|retriev\w*|receiv\w*|receival|break-?(?:in|out|through)s?|breakthroughs?)\b/i;
+const TBM_SHAFT = new RegExp(`\\bshafts?\\b|${TBM_LAUNCH.source}`, 'i');
+// Old air conditioning plant, chillers, air handling units and cooling towers removed or taken out.
+const PLANT_REMOVAL = /\b(?:remov|decommission|strip)\w*\b[^.]{0,30}\b(?:condensers?|condensing units?|condenser units?|air ?con\w*(?! ?ducts?| ?ductwork| grilles?| diffusers?| registers?)(?: units?| plant)?|a\/?c units?|split systems?|rooftop units?|packaged? units?|chillers?|air handling units?|ahus?|cooling towers?)\b|\b(?:tak\w*|lift\w*) out (?:the |all |both |each )?(?:old |existing |redundant )*(?:condensers?|condensing units?|air ?con\w* units?|a\/?c units?|split systems?|chillers?|air handling units?|ahus?|cooling towers?)\b/i;
+// A lift's controller or control system.
+const LIFT_CONTROLLER = /\b(?:lift|elevator)s?'? (?:controllers?|control (?:systems?|panels?|gear|equipment|cabinets?))\b|\bcontrollers?\b[^.]{0,30}\b(?:lifts?|elevators?)\b/i;
+// Fire protection sprayed or coated onto steel: intumescent paint, cementitious or vermiculite spray.
+const FIRE_SPRAY = /\b(?:spray\w*|appl\w*|coat\w*)\b[^.]{0,30}\bfire (?:protection|proofing|resistant coatings?|rated coatings?|retardant coatings?)\b|\bfire ?proof\w*\b[^.]{0,40}\b(?:steel\w*|beams?|columns?|members?|structure)\b|\b(?:steel\w*|beams?|columns?)\b[^.]{0,40}\bfire ?proof\w*|\bintumescent (?:paint|coating|spray)\w*|\bsprayed fire\b|\bfire spray\w*|\bfire[- ]rated spray\w*|\bspray[- ]applied fire\w*|\b(?:vermiculite|cementitious)\b[^.]{0,20}\bspray\w*|\bspray\w*\b[^.]{0,20}\b(?:vermiculite|cementitious)\b/i;
+// Rock cut with a rock saw, a rock wheel or a rock trencher.
+const ROCK_SAW = /\brock ?saw\w*|\brock (?:wheels?|trench(?:ers?|ing))\b|\bsaw\w*\b[^.]{0,25}\b(?:rock|sandstone|bedrock)\b|\b(?:rock|sandstone)\b[^.]{0,15}\bsaw\w*/i;
+// Data outlets, patch panels or structured cabling terminated or fitted off.
+// A termination box, panel or frame is a thing installed, not the work of terminating.
+const DATA_TERMINATE = /\b(?:terminat\w*|punch\w* down|fit\w*[- ]?off|re-?terminat\w*)\b(?! (?:box|boxes|enclosures?|trays?|panels?|strips?|blocks?|frames?|units?)\b)[^.]{0,40}\b(?:data (?:outlets?|points?|cabl\w*|sockets?)|patch panels?|cat ?\d\w*|structured cabling|rj45s?|keystones?|network (?:outlets?|points?)|comms outlets?|telecommunications outlets?)\b|\b(?:data (?:outlets?|points?|cabl\w*)|patch panels?|structured cabling|cat ?\d\w*(?: cabl\w*)?)\b[^.]{0,30}\b(?:terminat\w*|fit\w*[- ]?off)\b(?! (?:box|boxes|enclosures?|trays?|panels?|strips?|blocks?|frames?|units?)\b)/i;
 
 // The roof named as the place of the work, not as what is worked on.
 const ROOF_PLACE = /\b(?:from|on|off|onto|across|at|over) (?:the |a )?(?:\w+ )?roofs?\b|\broof ?tops?\b/gi;

@@ -128,8 +128,8 @@ test('typed tasks the library has job steps for are drafted with the steps for t
     ['grind off old lines', ['Remove old line marking']],
     // Planting trees with a vehicle loading crane is not tree removal, nor a lift to a podium.
     ['plant advanced trees with a HIAB', ['Unload with the truck loading crane (hiab)', 'Plant']],
-    // Removing units is removal, not installation.
-    ['remove aircon units', ['Isolate and make safe the old services', 'Remove the old services']],
+    // Removing units is removal, not installation, and the old units are lifted out (gap steps, 10 October 2026).
+    ['remove aircon units', ['Isolate and make safe the old services', 'Remove the old services', 'Lift and move out the plant being removed']],
     // Resealing windows is sealing glazing, from the building maintenance unit.
     ['reseal the windows from the BMU', ['Work from a swing stage', 'Seal glazing']],
     ['install downpipes and rainwater heads', ['Install downpipes']],
