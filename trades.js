@@ -50,8 +50,8 @@ const COMMON = new Set([
   'joineryShop', 'switchboardShop', 'powderCoat', 'precastCastIn', 'pebbleFinish', 'hvPoleRemove',
   // Brought in only where the task's words name the work (owner decisions, 6 October 2026).
   'generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines',
-  // Any trade can work inside a deep excavation, station box or shaft that others dug.
-  'inExcavation',
+  // Any trade can work inside a deep excavation, station box or shaft that others dug, and lay pipes in it.
+  'inExcavation', 'layInExcavation',
 ]);
 
 const BY_ID = new Map(TRADES.map((trade) => [trade.id, trade]));

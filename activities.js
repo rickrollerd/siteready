@@ -274,6 +274,52 @@ const PAIR_COIL_STEP = {
   ],
 };
 
+// Laying pipes, pits and conduits in a trench, or in an excavation others dug (layInExcavation).
+const LAYING_STEPS = [
+  {
+    unless: 'noPipeLaying',
+    only: 'trenchPipes',
+    step: 'Lay pipes',
+    hazards: ['A suspended pipe or pit strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain lifting pipe lengths.', { only: 'sewerRepair', text: 'Contact with sewage and sewer gas when the broken pipe is opened.' }],
+    controls: [
+      // A broken sewer is opened only once the flow in it is stopped.
+      { only: 'sewerRepair', ...src('The air at the open pipe is checked with a gas detector before anyone works at it.', QCODE('Excavation work', 's 4.6')) },
+      { only: 'sewerRepair', text: 'Before the broken pipe is cut out, the flow is stopped: the occupants are told not to use water, and the line is plugged or bypassed upstream.' },
+      { only: 'sewerRepair', text: 'Gloves, eye protection and overalls are worn, cuts are covered, sewage-soaked soil and the old pipe are bagged for disposal, and hands are washed before eating.' },
+      src('Where pipes or pits are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
+      src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
+      'Keep hands clear between the load and the trench wall when lowering.',
+      src('Team lift or use mechanical aids for pipe lengths and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
+    ],
+  },
+  {
+    unless: 'noPipeLaying',
+    only: 'trenchPits',
+    step: 'Install pits',
+    hazards: ['A suspended pipe or pit strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain handling pit sections and lids.'],
+    controls: [
+      src('Where pipes or pits are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
+      src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
+      'Keep hands clear between the load and the trench wall when lowering.',
+      src('Team lift or use mechanical aids for pipe lengths and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
+      src('A worker enters the trench to set a pit only where the trench is shored, benched or battered, and open pits are covered or fenced when no one is working at them.', QCODE('Excavation work', 's 4.4, s 5.1')),
+      'Pits are set on their prepared base and levelled from outside the trench.',
+    ],
+  },
+  {
+    unless: 'noPipeLaying',
+    only: 'trenchConduits',
+    step: 'Lay conduits',
+    hazards: ['A suspended conduit bundle strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain lifting conduit lengths and bundles.'],
+    controls: [
+      src('Where pipes, pits or conduit bundles are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
+      src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
+      'Keep hands clear between the load and the trench wall when lowering.',
+      src('Team lift or use mechanical aids for pipe lengths, conduit bundles and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
+    ],
+  },
+];
+
 const ACTIVITIES = [
   {
     when: 'road',
@@ -589,6 +635,12 @@ const ACTIVITIES = [
     }],
   },
   {
+    // Pipes, pits or conduits laid inside an excavation others dug: the trench's laying steps, without
+    // its digging, trench and backfill steps (tester, 10 October 2026).
+    when: 'layInExcavation',
+    steps: LAYING_STEPS,
+  },
+  {
     when: 'trench',
     steps: [
       {
@@ -663,48 +715,7 @@ const ACTIVITIES = [
         ],
       },
       // Pipes, pits and conduits are each laid only where the task names them; pipes where it names none.
-      {
-        unless: 'noPipeLaying',
-        only: 'trenchPipes',
-        step: 'Lay pipes',
-        hazards: ['A suspended pipe or pit strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain lifting pipe lengths.', { only: 'sewerRepair', text: 'Contact with sewage and sewer gas when the broken pipe is opened.' }],
-        controls: [
-          // A broken sewer is opened only once the flow in it is stopped.
-          { only: 'sewerRepair', ...src('The air at the open pipe is checked with a gas detector before anyone works at it.', QCODE('Excavation work', 's 4.6')) },
-          { only: 'sewerRepair', text: 'Before the broken pipe is cut out, the flow is stopped: the occupants are told not to use water, and the line is plugged or bypassed upstream.' },
-          { only: 'sewerRepair', text: 'Gloves, eye protection and overalls are worn, cuts are covered, sewage-soaked soil and the old pipe are bagged for disposal, and hands are washed before eating.' },
-          src('Where pipes or pits are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
-          src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
-          'Keep hands clear between the load and the trench wall when lowering.',
-          src('Team lift or use mechanical aids for pipe lengths and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
-        ],
-      },
-      {
-        unless: 'noPipeLaying',
-        only: 'trenchPits',
-        step: 'Install pits',
-        hazards: ['A suspended pipe or pit strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain handling pit sections and lids.'],
-        controls: [
-          src('Where pipes or pits are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
-          src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
-          'Keep hands clear between the load and the trench wall when lowering.',
-          src('Team lift or use mechanical aids for pipe lengths and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
-          src('A worker enters the trench to set a pit only where the trench is shored, benched or battered, and open pits are covered or fenced when no one is working at them.', QCODE('Excavation work', 's 4.4, s 5.1')),
-          'Pits are set on their prepared base and levelled from outside the trench.',
-        ],
-      },
-      {
-        unless: 'noPipeLaying',
-        only: 'trenchConduits',
-        step: 'Lay conduits',
-        hazards: ['A suspended conduit bundle strikes or crushes a person.', 'Hands crushed between the load and the trench wall.', 'Strain lifting conduit lengths and bundles.'],
-        controls: [
-          src('Where pipes, pits or conduit bundles are lifted with the excavator, this is done only where it has a rated lifting point, the load is within its lifting chart, and the operator is competent to lift with it.', NSWC('NSW Moving plant on construction sites', 's 6.4, s 8.2')),
-          src('No one is in the trench under a suspended load. Guide loads with tag lines from outside the trench until they are near the bottom.', NSWC('NSW Moving plant on construction sites', 's 6.4')),
-          'Keep hands clear between the load and the trench wall when lowering.',
-          src('Team lift or use mechanical aids for pipe lengths, conduit bundles and small pits.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
-        ],
-      },
+      ...LAYING_STEPS,
       {
         unless: 'noBackfillStep',
         step: 'Backfill the trench',
