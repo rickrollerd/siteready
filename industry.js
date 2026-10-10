@@ -177,4 +177,8 @@ async function releasableFigures({ month, trade, projectType: type } = {}) {
   return { figures, withheldSwms: withheld, minBusinesses: MIN_BUSINESSES };
 }
 
-module.exports = { recordIndustry, recordFor, controlsFor, CONTROL_CODES, projectType, releasableFigures, MIN_BUSINESSES };
+// The keyed code a business's industry records carry, so they can be found and removed when the
+// business is deleted. Without the key there is no code (and no records were kept).
+const businessCode = (companyId) => (industryKey() ? code(companyId) : '');
+
+module.exports = { recordIndustry, recordFor, controlsFor, CONTROL_CODES, projectType, releasableFigures, businessCode, MIN_BUSINESSES };

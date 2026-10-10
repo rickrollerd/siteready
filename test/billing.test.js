@@ -104,10 +104,21 @@ test('Stripe webhooks set the plan, and a bad signature is refused', async () =>
   me = await (await call('GET', '/api/me', { token })).json();
   assert.equal(me.company.hasAccess, true, 'access is kept while a failed payment is retried');
 
-  await webhook({ id: 'evt_3', type: 'customer.subscription.deleted', data: { object: { ...subscription, status: 'canceled' } } });
+  assert.equal((await db.one('SELECT plan_ended_at FROM companies WHERE id = $1', [user.company_id])).plan_ended_at, null, 'a running subscription has no end date');
+
+  // Stripe's end date is kept: the 12 months the data is kept for start from it.
+  const endedAt = Math.floor(Date.parse('2026-03-02T00:00:00Z') / 1000);
+  await webhook({ id: 'evt_3', type: 'customer.subscription.deleted', data: { object: { ...subscription, status: 'canceled', ended_at: endedAt } } });
   me = await (await call('GET', '/api/me', { token })).json();
   assert.equal(me.company.planStatus, 'canceled');
   assert.equal(me.company.hasAccess, false);
+  assert.equal(new Date((await db.one('SELECT plan_ended_at FROM companies WHERE id = $1', [user.company_id])).plan_ended_at).toISOString(), '2026-03-02T00:00:00.000Z');
+  // The same news again keeps the first end date; a new subscription clears it.
+  await webhook({ id: 'evt_3b', type: 'customer.subscription.updated', data: { object: { ...subscription, status: 'canceled', ended_at: endedAt + 86400 } } });
+  assert.equal(new Date((await db.one('SELECT plan_ended_at FROM companies WHERE id = $1', [user.company_id])).plan_ended_at).toISOString(), '2026-03-02T00:00:00.000Z');
+  await webhook({ id: 'evt_3c', type: 'customer.subscription.created', data: { object: { ...subscription, id: 'sub_2', status: 'active' } } });
+  assert.equal((await db.one('SELECT plan_ended_at FROM companies WHERE id = $1', [user.company_id])).plan_ended_at, null);
+  await webhook({ id: 'evt_3d', type: 'customer.subscription.deleted', data: { object: { ...subscription, id: 'sub_2', status: 'canceled', ended_at: endedAt } } });
 
   const portal = await call('POST', '/api/billing/portal', { token });
   assert.equal((await portal.json()).url, 'https://billing.stripe.test/p1');
