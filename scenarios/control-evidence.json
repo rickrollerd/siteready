@@ -4787,5 +4787,12 @@
   "Guys are marked with coloured bunting, with visual barriers between the guys and the areas where plant and vehicles move.": {"kind":"code"},
   "Temporary guys and bracing are inspected at the start of each shift. The erection supervisor checks the structure is stable at the end of each day, while connections are incomplete, and when strong winds are forecast.": {"kind":"code"},
   "Work stops at a point the sequence does not plan for, with the structure not yet complete to the erection engineer's design, only with the builder's or erection engineer's approval.": {"kind":"code"},
-  "Temporary bracing and guys are removed only at the stage the sequential erection procedure sets, once the permanent bracing or floors make the structure stable. Any change to the sequence is approved by the builder and the erection engineer first.": {"kind":"code"}
+  "Temporary bracing and guys are removed only at the stage the sequential erection procedure sets, once the permanent bracing or floors make the structure stable. Any change to the sequence is approved by the builder and the erection engineer first.": {"kind":"code"},
+  "Workers get in and out only by steps, a ramp or a ladder secured in place, with landing platforms or scaffold towers inside a deep excavation.": {"kind":"code"},
+  "A second way in and out is kept for emergency use, apart from the main access.": {"kind":"code"},
+  "The edge has guard rails, barriers or covers, with toe boards where material could fall in.": {"kind":"code"},
+  "Spoil, materials and other loads are kept away from the edge and outside the zone of influence, unless the ground support is designed by a competent person to carry them.": {"kind":"code"},
+  "Plant does not operate or travel near the edge unless the ground support is designed by a competent person to carry it. Wheel stops or other barriers keep plant back from the edge.": {"kind":"code"},
+  "A competent person frequently checks the ground, batters and ground support for fretting, slipping, slumping or swelling. Any repair to the excavation, or strengthening of the support, is done from above before work below continues.": {"kind":"code"},
+  "The emergency plan covers ground slip, engulfment, flooding, gas leaks and rescuing a worker from the excavation, is part of the principal contractor's emergency plan for the project, and the crew is trained in it.": {"kind":"code"}
 }

@@ -149,7 +149,8 @@
         ],
         "missing": [
           "Safety data sheet",
-          "Fall control"
+          "Fall control",
+          "Working at height"
         ]
       }
     },
@@ -180,7 +181,8 @@
         "missing": [
           "Fall control",
           "Refrigerant safety class",
-          "Plant isolation procedure"
+          "Plant isolation procedure",
+          "Working at height"
         ]
       }
     }

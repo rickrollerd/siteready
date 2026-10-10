@@ -562,6 +562,33 @@ const ACTIVITIES = [
     }],
   },
   {
+    // Work at the base of an existing excavation, station box or shaft deeper than 1.5 m that this
+    // crew does not dig, such as a pour in a station box (tester cycle 1, SWMS3). Each line is from the
+    // Excavation work codes (Queensland 2021 and SafeWork NSW, the same section numbers): s 3.8 the
+    // emergency plan, Table 2 and s 4.4 falls and access, s 4.1 loads near excavations, s 4.3 plant near
+    // the edge, s 6.7 regular inspection.
+    when: 'inExcavation',
+    steps: [{
+      step: 'Work inside a deep excavation',
+      hazards: [
+        'A fall from the edge into the excavation, or while climbing in or out.',
+        'The ground, a batter or the ground support gives way onto workers below.',
+        'Spoil, materials or tools fall from the edge onto workers below.',
+        'Plant or loads near the edge collapse the side, or plant goes over the edge.',
+        'Workers cannot get out quickly in an emergency, such as a ground slip, flooding or a gas leak.',
+      ],
+      controls: [
+        src('Workers get in and out only by steps, a ramp or a ladder secured in place, with landing platforms or scaffold towers inside a deep excavation.', `${QCODE('Excavation work', 's 4 (Table 2), s 4.4')}; ${NSWC('NSW Excavation', 's 4 (Table 2), s 4.4')}`),
+        src('A second way in and out is kept for emergency use, apart from the main access.', `${QCODE('Excavation work', 's 4.4')}; ${NSWC('NSW Excavation', 's 4.4')}`),
+        src('The edge has guard rails, barriers or covers, with toe boards where material could fall in.', `${QCODE('Excavation work', 's 4.1, s 4.4')}; ${NSWC('NSW Excavation', 's 4.1, s 4.4')}`),
+        src('Spoil, materials and other loads are kept away from the edge and outside the zone of influence, unless the ground support is designed by a competent person to carry them.', `${QCODE('Excavation work', 's 4.1')}; ${NSWC('NSW Excavation', 's 4.1')}`),
+        src('Plant does not operate or travel near the edge unless the ground support is designed by a competent person to carry it. Wheel stops or other barriers keep plant back from the edge.', `${QCODE('Excavation work', 's 4.3')}; ${NSWC('NSW Excavation', 's 4.3')}`),
+        src('A competent person frequently checks the ground, batters and ground support for fretting, slipping, slumping or swelling. Any repair to the excavation, or strengthening of the support, is done from above before work below continues.', `${QCODE('Excavation work', 's 6.7')}; ${NSWC('NSW Excavation', 's 6.7')}`),
+        src('The emergency plan covers ground slip, engulfment, flooding, gas leaks and rescuing a worker from the excavation, is part of the principal contractor\'s emergency plan for the project, and the crew is trained in it.', `${QCODE('Excavation work', 's 3.8')}; ${NSWC('NSW Excavation', 's 3.8')}`),
+      ],
+    }],
+  },
+  {
     when: 'trench',
     steps: [
       {
@@ -11854,6 +11881,12 @@ function jobStepsFor(flags, factText, fallback) {
   // Asbestos is checked, and the room stripped out, before anything new goes in.
   const FIRST = ['Check for asbestos before starting', 'Prepare the asbestos work area', 'Remove the asbestos', 'Break out and remove asbestos cement pits or ducts', 'Bag, label and dispose of asbestos waste', 'Strip out the room'];
   middle = [...FIRST.flatMap((name) => middle.filter((step) => step.step === name)), ...middle.filter((step) => !FIRST.includes(step.step))];
+  // Getting into a deep excavation, and working safely in it, comes before the work done there.
+  const inside = middle.filter((step) => step.step === 'Work inside a deep excavation');
+  if (inside.length) {
+    const lead = middle.filter((step) => FIRST.includes(step.step));
+    middle = [...lead, ...inside, ...middle.filter((step) => !lead.includes(step) && !inside.includes(step))];
+  }
   // An asbestos meter panel comes out only once the supply is disconnected.
   if (middle.some((step) => step.step === 'Replace the meter box and consumer mains connection')) {
     const off = ['Have the supply disconnected', 'Isolate and prove de-energised'].flatMap((name) => middle.filter((step) => step.step === name));
@@ -12441,6 +12474,48 @@ const partSource = (part) => (part.reg ? REGS[part.reg](part.section) : codeSour
     }
   }
 }());
+
+// Work at height where none of the task's own steps stops a fall: the user says how the crew works
+// at height (the fallAccess question) and that access step is added. Each access step then opens with
+// the fall hierarchy (work from the ground or a platform, edge protection before fall arrest). Every
+// line is the library's own, reused word for word with its source (D181), so this runs once the
+// code lines above are in place.
+const libraryLine = (text) => {
+  for (const activity of ACTIVITIES) {
+    for (const step of activity.steps || []) {
+      const found = step.controls.find((item) => (typeof item === 'string' ? item : item.text) === text);
+      if (found) return found;
+    }
+  }
+  throw new Error(`No library line: ${text}`);
+};
+const asLine = (item) => (typeof item === 'string' ? { text: item } : item);
+const FALL_HIERARCHY = libraryLine('Work from the ground, a platform or a scaffold. Where a person could still fall, prevent it with edge protection or work platforms before using fall arrest.');
+for (const [when, name] of [['ewp', 'Use an elevating work platform'], ['mobileScaffold', 'Use mobile scaffolds'], ['ladderUse', 'Work from ladders'], ['wpEdge', 'Work at edges']]) {
+  stepOf(when, name).controls.unshift({ only: 'fallAccess', ...FALL_HIERARCHY });
+}
+// Chosen as travel restraint, the edge step names the anchors and the rescue (kept only where a harness is used).
+stepOf('wpEdge', 'Work at edges').controls.push({ only: 'fallAccess', ...libraryLine('Where harnesses are used, anchors are engineer designed or approved by a competent person, no one works alone, and a rescue procedure is set up and tested.') });
+// Working from a scaffold someone else erected: the user's side of the scaffold lines.
+addAfter('mobileScaffold', {
+  when: 'scaffoldUse',
+  steps: [{
+    step: 'Work from the scaffold',
+    hazards: ['A fall from the platform or access.', 'Tools and materials fall onto people below.'],
+    controls: [
+      FALL_HIERARCHY,
+      ...[
+        'A scaffold from which a person or thing could fall more than 4 m is not used until a competent person gives written confirmation it is complete. It is inspected before use, after any incident or repair, and at least every 30 days.',
+        'Edge protection, with a top rail, mid rail and toe board, at every open edge of a work platform: top rail at least 900 mm.',
+        'Do not loosen, relocate or remove scaffold ties, planks or guardrails to get access to walls and openings. Only a competent person alters the scaffold, in line with the scaffold plan.',
+        'After a storm, high wind or heavy rain, a competent person inspects the scaffold, including its base, ties and any sheeting, before anyone uses it again.',
+        'No materials are placed on platforms 450 mm wide or less.',
+        'Ladders are not set up on a scaffold platform, balcony or roof to gain extra height, or over a void.',
+        'Tools and materials are kept from falling by toe boards, tool lanyards and securing loose materials, and an exclusion zone is kept below the work.',
+      ].map((text) => asLine(libraryLine(text))),
+    ],
+  }],
+});
 
 // The citation helpers, for lines other modules add with their sources (draft.js permits).
 const CITE = { WHS, MODEL, QCODE, NSWC, LINES };

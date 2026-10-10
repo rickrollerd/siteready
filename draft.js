@@ -324,7 +324,8 @@ function packageKinds(rawTask, kinds) {
 }
 
 // Kinds of work brought in only where the task's words name them (namedWorkFlags).
-const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines'];
+// Work inside a deep excavation others dug comes only where the words put the work there.
+const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -676,6 +677,25 @@ const NOT_DUG = /\btrench (?:drains?|grates?|covers?)\b|\btreat\w*\s+(?:the\s+)?
 // excavation") is not this crew digging, so it brings no trench, pipe laying or backfill steps.
 const EXCAVATION_PLACE = /\b(?:in|within|inside|into|at the (?:base|bottom|floor) of)\s+(?:the\s+|an?\s+)?(?:[\w-]+\s+){0,3}?(?:station box(?:es)?(?:\s+excavations?)?|excavations?)\b/gi;
 
+// Work done inside an existing excavation, station box or shaft that the crew does not dig (tester
+// cycle 1, SWMS3): a pour, formwork or fit-out at the base. A shaft void through a building's floors
+// is not one.
+const EXCAVATION_INSIDE = /\b(?:in|within|inside|into|down|at the (?:base|bottom|floor) of)\s+(?:the\s+|an?\s+)?(?:(?!(?:and|or|around|near|beside|next|trench\w*|pits?)\b)[\w-]+\s+){0,4}?(?:station box(?:es)?(?:\s+excavations?)?|excavations?|(?<!(?:lift|riser|service|ventilation|stair|air|vent|plumbing|electrical|duct|pipe|mechanical|comms|cable|garbage|rubbish|chute|light|smoke|exhaust|services)\s)shafts?)\b(?:,?\s*(?:up to |about |around |over |some )?\d+(?:\.\d+)?\s*(?:m|metres?|meters?)\s+deep\b)?/gi;
+// The task with the excavation it works inside taken out, and its depth with it. In lift work, a
+// shaft is the lift shaft and stays. "In or around trenches and excavations" names trenches too.
+function withoutExcavationPlace(text) {
+  const lift = LIFT_WORK.test(text) || /\b(?:lifts?|machine rooms?|landing doors?|car tops?|hoistways?)\b/i.test(text);
+  return String(text || '').replace(EXCAVATION_INSIDE, (place) => (lift && /\bshafts?\b/i.test(place) ? place : ' '));
+}
+// Digging by this crew: the trench and earthmoving steps cover work in what it digs.
+const OWN_DIG = /\b(?:excavat(?:e|es|ed|ing)|dig(?:s|ging)?|dug|trench(?:es|ing)?|bulk (?:excavation|earthworks)|detailed excavation|earthworks|muck\w* out|shaft sinking|sink\w* (?:the |a )?shafts?|underpin\w*)\b/i;
+function inDeepExcavation(task, flags) {
+  const text = String(task || '');
+  const rest = withoutExcavationPlace(text);
+  if (flags.trench || flags.earthworks || rest === text || !deepExcavation(text)) return false;
+  return !OWN_DIG.test(rest);
+}
+
 function deepExcavation(text) {
   // A shaft void is an opening through a building's floors, not a dig.
   text = String(text || '').replace(/\b(?:lift|riser|service|ventilation|stair|air)\s+shafts?\b|\bin the shafts\b|\bshaft ?walls?\b|\bshaft voids?\b/gi, ' ');
@@ -853,6 +873,11 @@ function fallControlLevel(line) {
 const FORMWORK = /\b(formwork|falsework|formply|deck forms?|table forms?|backprop\w*|(?:walls?|columns?) forms?|forms? up (?:the )?(?:columns?|walls?|cores?))\b/i;
 const JUMPFORM = /\b(jump ?forms?|self[- ]climbing (?:form\w*|system)|climbing form\w*)\b/i;
 const PT = /\b(post[- ]?tension\w*|pt slabs?|pt tendons?|stressing)\b/i;
+// Stressing or destressing rail (setting continuously welded rail to its neutral temperature) is
+// track work, not post-tensioning: "tamping and stressing the rail" has no tendons in it.
+const RAIL_STRESS = /\b(?:rails?|track|cwr)\s+(?:de-?)?stress\w*|\b(?:de-?)?stress\w*\s+(?:of\s+)?(?:the\s+)?(?:new\s+|existing\s+)?(?:rails?|track|cwr|continuously welded)\b/i;
+const TENDON_WORDS = /\b(?:tendons?|strands?|post[- ]?tension\w*|pt\b|ducts?|anchorages?)/i;
+const railStressOnly = (text) => RAIL_STRESS.test(String(text || '')) && !TENDON_WORDS.test(String(text || ''));
 // Work that puts materials or plant on a formwork deck or a suspended slab.
 function loadsOnDeckOrSlab(text) {
   const source = String(text || '').replace(new RegExp(JUMPFORM.source, 'gi'), '');
@@ -900,6 +925,7 @@ const TEMP_POWER = /\b(construction (?:power|wiring|lighting)|temporary (?:power
 function choiceAnswer(id, value) {
   if (id === 'deckMethod') return deckMethodAnswer(value);
   const text = String(value || '').toLowerCase();
+  if (id === 'fallAccess') return (FALL_ACCESS.find((item) => item.value.toLowerCase() === text.trim()) || {}).value || '';
   if (id === 'spaceAssessment') {
     if (/\bnot ?confined|not a confined\b/.test(text)) return 'notConfined';
     if (/\bconfined\b/.test(text)) return 'confined';
@@ -1421,6 +1447,86 @@ function pickedStepFacts(fullTask, answer, state) {
   return extra;
 }
 
+// How the crew works at height, asked where the fall answer is Yes but none of the task's own job
+// steps stops a fall (hoist installation, crane assembly, PT stressing, pipework in ceilings). Each
+// way adds its library job step, which opens with the fall hierarchy: work from the ground or a
+// platform, then edge protection or work platforms, before fall arrest.
+const FALL_ACCESS = [
+  { value: 'edge', label: 'On a floor, deck or roof with edge protection or covers at every open edge', kind: 'wpEdge' },
+  { value: 'ewp', label: 'From an EWP (scissor lift or boom lift)', kind: 'ewp' },
+  { value: 'scaffold', label: 'From a scaffold put up by a licensed scaffolder', kind: 'scaffoldUse' },
+  { value: 'mobileScaffold', label: 'From a mobile scaffold', kind: 'mobileScaffold' },
+  { value: 'ladder', label: 'From a ladder, for short, light work only', kind: 'ladderUse' },
+  { value: 'restraint', label: 'In a travel restraint harness, set so no one can reach the edge', kind: 'wpEdge' },
+];
+// The way the task's words point to is listed first; otherwise edge protection.
+const ACCESS_FIRST = [
+  ['edge', /\b(slabs?|decks?|edges?|bridges?|balcon(?:y|ies)|podiums?|landings?|tendons?|stressing)\b/i],
+  ['scaffold', /\b(brick\w*|blockwork|block walls?|render\w*|facades?|cladding)\b/i],
+  ['ewp', /\b(ceilings?|overhead|high level|soffits?|cabl\w*|lights?|lighting|ducts?|ductwork|pipework|pipes?|trays?|conduits?|signs?|signage|beams?|columns?|cranes?|booms?|masts?)\b/i],
+];
+function accessChoices(task) {
+  const first = (ACCESS_FIRST.find(([, pattern]) => pattern.test(String(task || ''))) || ['edge'])[0];
+  return [...FALL_ACCESS.filter((item) => item.value === first), ...FALL_ACCESS.filter((item) => item.value !== first)];
+}
+
+// Whether the job steps for the task carry fall controls the builder check accepts: a line for the
+// falls category (H2) and one that stops a fall by itself, such as edge protection, a scaffold, an
+// EWP, covers or working from the ground (H3). With no answers, the steps' own library lines are read;
+// with the answers, a fall control answer printed in a step counts too.
+function fallStepsControlled(fullTask, facts, state) {
+  const steps = jobStepsForTask(fullTask, facts || {}, [], [], state);
+  return {
+    // With no job steps at all the task is stood down for that, not asked how it reaches height.
+    noSteps: steps.some((step) => step.fallback),
+    // A tower is climbed on its own fall arrest climbing system, as the climbing step says.
+    tower: steps.some((step) => step.step === 'Climb the tower'),
+    controlled: require('./builder-check').fallsControlled(steps.flatMap((step) => step.controls)),
+  };
+}
+const ACCESS_SEEN = new Map();
+function fallAccessNeeded(fullTask, answer, state) {
+  if (!state || !state.id || !fallRiskFor(fullTask, answer)) return false;
+  const key = JSON.stringify([fullTask, state.id, state.kinds, state.trades, state.ownCrane, state.noCrane]);
+  if (!ACCESS_SEEN.has(key)) {
+    if (ACCESS_SEEN.size > 500) ACCESS_SEEN.clear();
+    const found = fallStepsControlled(fullTask, {}, state);
+    ACCESS_SEEN.set(key, !found.noSteps && !found.tower && !found.controlled);
+  }
+  return ACCESS_SEEN.get(key);
+}
+
+// A fall control answer, or the task's own words, that already names the way up ("Scissor lifts with
+// guardrails are used ...") answers the question when it is left blank. A harness alone names none.
+const ACCESS_NAMED = [
+  ['ewp', /\b(ewps?|elevating work platforms?|scissor ?lifts?|boom ?lifts?|cherry ?pickers?|knuckle booms?)\b/i],
+  ['mobileScaffold', /\b(mobile scaffold\w*|scaffold towers?|aluminium towers?)\b/i],
+  ['scaffold', /\bscaffold\w*/i],
+  ['restraint', /\b(travel restraint|restraint (?:systems?|lines?))\b/i],
+  ['edge', /\b(edge protection|guard ?rails?|handrails?|safety mesh|covers?|covered|screens?|screened|(?:landing|full height) gates?)\b/i],
+  ['ladder', /\bladders?\b/i],
+];
+function namedAccess(task, facts) {
+  const line = fallLineFor(combinedFacts(task, facts || {}), facts || {});
+  return line ? (ACCESS_NAMED.find(([, pattern]) => pattern.test(line)) || [''])[0] : '';
+}
+
+// The way up for the draft: the one the user chose; left blank, none where a fall control answer
+// printed in a step already controls the fall, otherwise the one the fall control answer names.
+function accessAnswer(task, facts, state) {
+  const chosen = choiceAnswer('fallAccess', facts && facts.fallAccess);
+  if (chosen) return chosen;
+  if (fallStepsControlled(task, facts, state).controlled) return 'none';
+  return namedAccess(task, facts);
+}
+
+// The job step flags for the way up, where the question applies.
+function fallAccessFlags(task, facts, state, answer) {
+  if (!fallAccessNeeded(task, answer, state)) return {};
+  const chosen = FALL_ACCESS.find((item) => item.value === accessAnswer(task, facts, state));
+  return chosen ? { [chosen.kind]: true, fallAccess: true, ...(chosen.value === 'restraint' ? { accessRestraint: true } : {}) } : {};
+}
+
 function allRequiredFacts(fullTask, answer, state) {
   const task = ownWork(fullTask);
   const facts = [];
@@ -1460,6 +1566,16 @@ function allRequiredFacts(fullTask, answer, state) {
       id: 'fallControl',
       label: 'Fall control',
       prompt: `How a fall of more than ${fallMetres(state)} metres is prevented.`,
+    });
+  }
+  // No job step for this work stops a fall: the user says how the crew works at height, and the
+  // step for that way is added (fallAccess).
+  if (fallAccessNeeded(fullTask, answer, state)) {
+    facts.push({
+      id: 'fallAccess',
+      label: 'Working at height',
+      prompt: `How the crew reaches work more than ${fallMetres(state)} metres up. The job step for it is added to the SWMS.`,
+      choices: accessChoices(fullTask).map(({ value, label }) => ({ value, label })),
     });
   }
   // State facts for precast and tilt-up panels, such as Western Australia's regulator notice.
@@ -1579,7 +1695,9 @@ const TOPIC_PATTERNS = {
   safetyDataSheet: /\b(safety data sheet|sds)\b/i,
 };
 
-function factState(item, task, facts) {
+function factState(item, task, facts, state) {
+  // The way up to work at height can also be named in the fall control answer.
+  if (item.id === 'fallAccess') return accessAnswer(task, facts, state) ? 'supplied' : 'missing';
   if (item.choices) {
     // A choice with a default needs no answer; one shown only after another answer is needed only then.
     if (item.default) return 'supplied';
@@ -1603,7 +1721,7 @@ function factState(item, task, facts) {
 
 function missingFacts(task, facts, answer, state, ppeIds = []) {
   return withHarness(requiredFactsFor(task, answer, state), facts, ppeIds)
-    .map((item) => ({ ...item, state: factState(item, task, facts) }))
+    .map((item) => ({ ...item, state: factState(item, task, facts, state) }))
     .filter((item) => item.state !== 'supplied');
 }
 
@@ -2667,7 +2785,9 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   const tick = (id) => { for (const group of ppe) for (const item of group.items) if (item.id === id) item.ticked = true; };
   // The respirator fit testing line goes with steps that use a respirator, or a list the user chose with one.
   const setting = settingOf(task, facts, input.site);
-  let jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: Array.isArray(input.ppe) && ticked(['p2', 'halfFace']) }, setting);
+  // The way up to work at height the user chose, where no job step of the task stops a fall.
+  const access = fallAccessFlags(task, facts, state, fallAnswer(input.fallRisk));
+  let jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: Array.isArray(input.ppe) && ticked(['p2', 'halfFace']), ...access }, setting);
   // PPE the job steps call for is ticked, so the PPE section and the steps agree.
   // A list the user chose is left as they chose it.
   if (!Array.isArray(input.ppe)) {
@@ -2675,6 +2795,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     if (/\bknee pads?\b/i.test(said)) tick('kneePads');
     if (/\bsunglasses\b/i.test(said)) tick('glassesTinted');
     if (/\buse travel restraint\b/i.test(said)) tick('harness');
+    if (access.accessRestraint) tick('harness');
     if (/\bheat resistant gloves\b/i.test(said)) tick('gloveWelding');
     if (/\bgumboots\b/i.test(said)) tick('gumboots');
     if (/\bgloves resistant to the product\b|\bchemical resistant gloves\b|\bgloves and eye protection their safety data sheets list\b/i.test(said)) tick('gloveChemical');
@@ -2682,7 +2803,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
     if (/\bP2\b|\b[Rr]espirators?\b|\bdust masks?\b/i.test(said)) {
       if (!ticked(['p2', 'halfFace'])) tick('p2');
       // A respirator brings its fit testing line into the steps.
-      jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: true }, setting);
+      jobSteps = jobStepsForTask(task, facts, hazards, controls, state, { respirator: true, ...access }, setting);
     }
     // Night work has no sun exposure.
     if ((/\b(at night|overnight|night ?shifts?|night works?)\b/i.test(task) && !/\b(day|daytime|days)\b/i.test(task)) || (INDOOR_WORK.test(task) && !/\b(external\w*|outside|outdoors?|roofs?(?! spaces?| cavit| truss)|balcon\w*|eaves|facade|yards?|car ?parks?|footpaths?|gardens?)\b/i.test(task))) for (const group of ppe) for (const item of group.items) if (['sunscreen', 'sunHat', 'glassesTinted'].includes(item.id)) item.ticked = false;
@@ -2808,8 +2929,13 @@ const permitLine = (permit, stateId) => localControl(permit.line, permit.source,
 // options: the state (for the sources) and whether the work is domestic.
 function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
   let steps = jobSteps;
+  // Work inside an excavation others dug, with no step that digs, needs no permit to dig: the
+  // excavation named as the place, and the category's wording, are not digging.
+  const inside = (step) => step.step === 'Work inside a deep excavation';
+  const noDigging = steps.some(inside) && !steps.some((step) => !inside(step) && DIG_WORK.test(step.step));
   for (const permit of PERMITS) {
     if (permit.notDomestic && options.domestic) continue;
+    if (noDigging && permit.work === DIG_WORK) continue;
     if (!steps.length || !permit.work.test(work) || (alreadyRead && permit.work.test(alreadyRead))) continue;
     const named = steps.findIndex((step) => step.controls.some((line) => permit.named.test(line)));
     if (named >= 0) {
@@ -3328,7 +3454,7 @@ function tradeFlags(task, facts, state) {
 
 // Job steps the task's words call for that are flagged when taken off: asbestos,
 // isolation, confined spaces, water, traffic, power lines, propping and trench support.
-const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench']);
+const LOCKED_KINDS = new Set(['asbestosCheck', 'asbestos', 'isolation', 'confined', 'water', 'road', 'power', 'propping', 'trench', 'inExcavation']);
 const KIND_SET = new Set(ACTIVITIES.map((activity) => activity.when).filter(Boolean));
 
 // Picked steps that strip out, demolish or cut into an existing building need asbestos
@@ -3450,6 +3576,7 @@ function workFlags(fullTask, facts = {}, ownCrane = false) {
     ...gapFlags(task),
   };
   const settled = settleFlags(typedTitleFlags(out, task, ownCrane), task);
+  settled.inExcavation = inDeepExcavation(task, settled);
   const claimed = claimedSentences(task, settled);
   if (!claimed.length) return settled;
   // Kinds of work named only in a claimed sentence are left out; the hazards the task's
@@ -3876,7 +4003,7 @@ function typedTitleFixes(out, task) {
   off(T(/\b(?:installed|building|mechanical|hvac) plant\b/i), 'plantService');
   off(T(/\breinforced (?:soil|earth)\b/i) && !T(/\b(?:reo|rebar|steel fix\w*|reinforcement)\b/i), 'reo');
   off(T(/\bslip ?form\w* paving\b|\bconcrete (?:road )?pavements?\b/i) && !T(/\bpavers?\b/i), 'paving');
-  off(T(/\brail (?:welding|stressing)\b|\b(?:aluminothermic|flash butt)\b/i), 'stressing');
+  off(T(/\brail (?:welding|stressing)\b|\b(?:aluminothermic|flash butt)\b/i) || railStressOnly(t), 'stressing', 'ptSlab', 'ptTendons');
   off((out.precast || out.stressing || out.ptTendons) && !T(/\btil(?:e|es|ing|ed)\b/i), 'tileCut', 'tileMix', 'tileLay');
   off(T(/\bsheet pil\w*/i) && !T(/\b(?:drill\w*|auger\w*|cfa|bored)\b/i), 'pilingRig');
   off(T(/\b(?:lift|machine room|landing)\b/i) && T(/\bshafts?\b/i) && !T(/\b(?:excavat\w*|dig\w*|trench\w*|bored)\b/i), 'trench', 'deepTrench');
@@ -5176,7 +5303,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     // The answers count as they do for the high risk category (a trench support answer that
     // names trenches with no depth), so the trench steps never contradict the category.
     deepTrench: trenchDig(combinedFacts(task, facts)),
-    trench: (trenchDig(task.replace(EXCAVATION_PLACE, ' ')) || /\b(excavat(?!ors?\b)\w*|trench\w*)\b/i.test(task.replace(NOT_DUG, ' ').replace(EXCAVATION_PLACE, ' ')) || /\b(?:install\w*|lay\w*|replac\w*|repair\w*)\b[^.]{0,40}\b(?:underground (?:run )?(?:pipework|pipes?|services)|(?:collapsed |broken |damaged |cracked )(?:stormwater|sewer|drainage|water) pipes?|(?:stormwater|sewer|drainage) pipes? \d|water reticulation|pipes? for (?:a |the )?(?:new )?\w+'?s? (?:water|sewer|stormwater|drainage)|(?:pipework|pipes?|mains?|services|conduits?) underground|in-?ground (?:drainage|pipework)|(?:sewer|house|stormwater)(?:\/house)? drainage (?:systems?|lines?)|(?:stormwater|sewer|drainage) (?:pipes?|lines?|mains?)|(?:precast |concrete )?(?:pits?|manholes?)|(?:detention|underground|storage|onsite detention) tanks?|grease traps?|septic (?:tanks?|systems?)|absorption trench\w*|culverts?|culvert pipes?|cattle grids?)\b/i.test(task) && !/\b(?:directional(?:ly)? (?:drill|bor)\w*|hdd|under ?bor\w*|bored under)\b/i.test(task)) && !((PILING_WORK.test(task) || BULK_EXCAVATION.test(task) || EARTHWORKS.test(task)) && !/\btrench\w*\b/i.test(task)),
+    trench: (trenchDig(withoutExcavationPlace(task)) || /\b(excavat(?!ors?\b)\w*|trench\w*)\b/i.test(withoutExcavationPlace(task.replace(NOT_DUG, ' '))) || /\b(?:install\w*|lay\w*|replac\w*|repair\w*)\b[^.]{0,40}\b(?:underground (?:run )?(?:pipework|pipes?|services)|(?:collapsed |broken |damaged |cracked )(?:stormwater|sewer|drainage|water) pipes?|(?:stormwater|sewer|drainage) pipes? \d|water reticulation|pipes? for (?:a |the )?(?:new )?\w+'?s? (?:water|sewer|stormwater|drainage)|(?:pipework|pipes?|mains?|services|conduits?) underground|in-?ground (?:drainage|pipework)|(?:sewer|house|stormwater)(?:\/house)? drainage (?:systems?|lines?)|(?:stormwater|sewer|drainage) (?:pipes?|lines?|mains?)|(?:precast |concrete )?(?:pits?|manholes?)|(?:detention|underground|storage|onsite detention) tanks?|grease traps?|septic (?:tanks?|systems?)|absorption trench\w*|culverts?|culvert pipes?|cattle grids?)\b/i.test(task) && !/\b(?:directional(?:ly)? (?:drill|bor)\w*|hdd|under ?bor\w*|bored under)\b/i.test(task)) && !((PILING_WORK.test(task) || BULK_EXCAVATION.test(task) || EARTHWORKS.test(task)) && !/\btrench\w*\b/i.test(task)),
     propping: CATEGORY_FACTS.find((item) => item.id === 'temporarySupport').applies(task),
     // Removing old services (pipework, cabling, ductwork) is not building demolition unless the building fabric is named.
     demolition: mentioned(task, DEMOLITION) && !servicesOnlyDemolition(task),
@@ -5190,9 +5317,9 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     ptTendons: PT.test(task) && /\b(place|placing|install\w*|lay\w*|fix\w*)\b/i.test(task) && /\b(ducts?|tendons?|strand)\b/i.test(task),
     // Attending a pour for another trade (keeping reo cover) is not placing the concrete.
     concrete: /\b(cast[- ]in|in[- ]slab)\b/i.test(pourTask) ? /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete)\b/i.test(pourTask) : /\b(concrete pump\w*|placing boom|pump(?:ing)? concrete|pour\w*|(?:plac\w*|finish\w*) (?:and (?:finish\w*|plac\w*) )?(?:the )?concrete|concrete (?:plac\w*|finish\w*))\b/i.test(pourTask),
-    stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing|stress\w*\b[^.]{0,30}\btendons?)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
+    stressing: /\b(stress(?:ing)? (?:the )?tendons?|stressing|stress\w*\b[^.]{0,30}\btendons?)\b/i.test(task) && !/\bground anchors?\b/i.test(task) && !railStressOnly(task),
     jumpform: JUMPFORM.test(task),
-    ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task) && !/\bground anchors?\b/i.test(task),
+    ptSlab: PT.test(task) && !/\b(cast[- ]in|in[- ]slab)\b/i.test(task) && !/\bground anchors?\b/i.test(task) && !railStressOnly(task),
     // Painting or masking around electrical fittings is not electrical work.
     electricalWork: ELECTRICAL_WORK.test(task.replace(/\b(?:around|mask\w*|protect\w*|cut in|clear of)\b[^.]*/gi, '')),
     plumbingWork: isPlumbing(task),
@@ -5761,8 +5888,23 @@ function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, sett
   });
   const answers = Object.values(facts || {}).filter((value) => typeof value === 'string').join('\n');
   const scaffoldType = scaffoldTypeAnswer(task) || choiceAnswer('scaffoldType', facts.scaffoldType);
-  const withClass = scaffoldLicenceLine(tidySteps(steps, combinedFacts(task, facts), answers, setting), scaffoldType);
+  // Travel restraint chosen as the way to work at height is a harness in use, so its lines stay.
+  const restraint = extra.accessRestraint ? '\nTravel restraint is used.' : '';
+  const withClass = scaffoldLicenceLine(tidySteps(extra.fallAccess ? accessBeforeHeight(steps, extra) : steps, combinedFacts(task, facts) + restraint, answers, setting), scaffoldType);
   return state.id === 'qld' ? scaffoldDesignLines(withClass, scaffoldType, task) : withClass;
+}
+
+// The way up the user chose (fallAccess) is set up before the first step that works at height, or
+// straight after Before starting where no step names a fall.
+function accessBeforeHeight(steps, flags) {
+  const names = new Set(ACTIVITIES.filter((activity) => FALL_ACCESS.some((item) => item.kind === activity.when) && flags[activity.when]).flatMap((activity) => activity.steps.map((step) => step.step)));
+  const access = steps.filter((step) => names.has(step.step));
+  if (!access.length) return steps;
+  const rest = steps.filter((step) => !names.has(step.step));
+  // A person's fall, not tools or materials falling onto people below.
+  const high = rest.findIndex((step) => step.step !== 'Before starting' && step.hazards.some((line) => /\b(?:a (?:person )?falls?|falls? (?:from|into|through|off)|falling from|heights?)\b/i.test(line)));
+  const at = high >= 0 ? high : rest.findIndex((step) => step.step !== 'Before starting');
+  return at < 0 ? [...rest, ...access] : [...rest.slice(0, at), ...access, ...rest.slice(at)];
 }
 
 // Queensland's Scaffolding Code of Practice 2021, Table 1: who designs and first inspects each scaffold.

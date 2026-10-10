@@ -216,18 +216,16 @@ const ANSWERS = {
   silica: /\b(extraction|wet\w*|water suppression|on-tool|respirators?|vacuum\w*|silica)\b/i,
 };
 
-// A physical fall control (H3): what stops the fall, not a harness, a ladder, a barricade under
-// the work or an isolation elsewhere in the step. Working from the ground removes the fall, and a
-// barricade or fence at a trench, hole or edge stops a fall into it.
-const PHYSICAL_FALL = /\b(guard ?rails?|edge protection|scaffold\w*|ewps?|elevat\w* work platforms?|scissor ?lifts?|boom lifts?|cherry pickers?|(?:mobile |temporary )?work(?:ing)? platforms?|safety (?:mesh|nets?)|catch (?:platforms?|scaffold\w*|decks?)|handrails?|roof rails?|perimeter (?:screens?|protection)|edge screens?|void protection|(?:void|penetration|hole|opening)s? covers?|cover\w* (?:all |the |any )?(?:voids?|penetrations?|openings?|holes?|skylights?)|(?:skylight|fragile roof) (?:covers?|mesh|guards?)|from the ground|stay\w* on the ground|(?:assembl|fabricat|buil)\w* (?:\w+ )?(?:on|at) (?:the )?ground(?: level)?|do not place a person)\b|\b(?:barricad\w*|fenc\w*|barriers?)\b[^.]{0,30}\b(?:trench\w*|excavat\w*|holes?|openings?|voids?|pits?|edges?|penetrations?|shafts?)\b|\b(?:trench\w*|excavat\w*|holes?|openings?|voids?|pits?|edges?|penetrations?|shafts?)\b[^.]{0,30}\b(?:barricad\w*|fenc\w*|barriers?)|\b(?:holes?|openings?|hatch\w*|voids?|penetrations?)\b[^.]{0,30}\b(?:protected|guarded)\b/i;
-// "No edge protection" or "without a scaffold" says it is not there.
-const NO_FALL_CONTROL = /\b(?:no|without|absence of|lack of|not (?:installed|provided|available))\b[^.,;]{0,20}\b(?:guard ?rails?|edge protection|scaffold\w*|ewps?|handrails?|safety mesh)\b/i;
+// Fall arrest named only as what comes last, or only as a condition (H3's message).
+const HARNESS_NAMED_ONLY = /\b(?:before|instead of|rather than)\b[^.]{0,40}\b(?:harness\w*|fall arrest)\b|^\s*(?:where|if|when)\b[^,.]{0,40}\b(?:harness\w*|fall arrest|lanyards?)\b[^,.]{0,20}\b(?:is|are) used\b/i;
 // A step whose name or hazards point to work at height (H5). "Slips, trips and falls" are on one level.
 const FALL_STEP = /\b(falls?|falling|heights?|roofs?|edges?|ladders?|scaffold\w*|voids?|openings?|ewps?|elevat\w*|platforms?|harness\w*)\b/i;
 const SAME_LEVEL = /\bslips?,?\s*(?:trips?,?\s*)?(?:and|&|or)\s*falls?\b/gi;
 
 // Where a control sits in the hierarchy: the same ranking draft.js orders each step's controls by.
-const { controlLevel, HIGHER } = require('./control-level');
+// A physical fall control (H3), and wording that says one is not there, are shared with the draft,
+// which adds an access step where none of the task's own steps stops a fall.
+const { controlLevel, HIGHER, PHYSICAL_FALL, NO_FALL_CONTROL, stopsFall, withoutCitation } = require('./control-level');
 
 // Wording that leaves the decision to the worker (H5).
 const VAGUE = /\b(?:appropriate|suitable|adequate|relevant|proper|necessary|correct|required) (?:ppe|controls?|precautions?|equipment|measures|care|protection|safety (?:gear|equipment))\b|\btake (?:due |extra |all |reasonable )?care\b|\bas (?:required|needed|necessary|appropriate)\b|\b(?:where|when|if) (?:required|necessary|needed|possible|practical|appropriate)\b|\bbe (?:careful|aware|vigilant|mindful|alert)\b|\bcommon sense\b|\bwatch (?:out|your step)\b|\bremain (?:alert|vigilant)\b|\bwhere practicable\b|\b(?:workers?|operators?|crew|staff|everyone|all persons|persons|people) (?:to|should|must|will|are to) (?:be aware|take care|be careful|use caution|watch out|stay alert)\b|\b(?:supervisors?|leading hands?|foreman|foremen|site managers?) (?:to|will|should|must) ensure\b|\buse (?:caution|care)\b|\bbe aware of\b|\bcorrect (?:lifting )?techniques?\b|\blift(?:ing)? correctly\b|\bproper lifting(?: techniques?)?\b|\blook out for\b|\bkeep an eye (?:on|out)\b|\bin the event of an? (?:unexpected|unforeseen|unplanned) (?:risk|hazard|event|occurrence|situation)\b|\b(?:where|when|if|as) deemed (?:necessary|appropriate|required|needed)\b|\b(?:using|exercis\w*|with) (?:extreme |due |great )?caution\b/i;
@@ -763,7 +761,10 @@ function hardFails(swms, state, stage = 'review') {
     // of lowering material to the ground is not a fall control for people.
     const higher = [...allControls.filter((line) => !isVague(line) && !/\betc\b/i.test(line) && !/\b(?:lower|drop)\w*\b[^.]{0,40}\bto (?:the )?ground\b/i.test(line)), ...swms.plant.map((line) => line.split(':')[0]).filter((line) => PLANT_AT_HEIGHT.test(line))].some((line) => PHYSICAL_FALL.test(line) && !NO_FALL_CONTROL.test(line));
     const justified = allControls.some((line) => /\bnot (?:reasonably )?practicable\b/i.test(line) && /\b(edge protection|guard ?rails?|scaffold\w*|ewps?|elevating work platforms?)\b/i.test(line));
-    const harness = fallLines.some((line) => /\b(harness|fall arrest|lanyard)\b/i.test(line));
+    // A line that names fall arrest only as the last resort ("fall prevention comes before work
+    // positioning or fall arrest") or as a condition ("Where harnesses are used, ...") does not say
+    // a harness is the fall control.
+    const harness = fallLines.some((line) => /\b(harness|fall arrest|lanyard)\b/i.test(line) && !HARNESS_NAMED_ONLY.test(line));
     add('H3', 'Falls controlled by edge protection, scaffold or EWP, not harness alone', higher || justified,
       higher || justified ? 'Falls are controlled by edge protection, a scaffold, an EWP or another higher order control.'
         : harness ? 'Falls are controlled by a harness alone. Use edge protection, a scaffold or an EWP, or say why they are not reasonably practicable.'
@@ -1296,4 +1297,12 @@ function emailDraft(result, options = {}) {
   };
 }
 
-module.exports = { checkSwms, bandFor, normaliseSwms, fromDraft, emailDraft, controlLevel, isVague, BANDS, SOURCES, VAGUE };
+// Whether a set of control lines both answers the falls category (H2) and stops a fall (H3), read
+// without their citations and leaving out vague lines. The draft asks how the crew works at height
+// where the task's own job steps do not (draft.js, fallAccess).
+function fallsControlled(lines) {
+  const kept = lines.map(withoutCitation).filter((line) => !isVague(line) && !/\betc\b/i.test(line));
+  return kept.some((line) => ANSWERS.fall.test(line)) && kept.some(stopsFall);
+}
+
+module.exports = { checkSwms, bandFor, normaliseSwms, fromDraft, emailDraft, controlLevel, isVague, fallsControlled, BANDS, SOURCES, VAGUE };
