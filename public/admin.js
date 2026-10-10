@@ -154,6 +154,72 @@
       'No AI readings yet.')
     : `<tr><td class="error">${esc(ai.data.message || 'Not available.')}</td></tr>`;
 
+  // The monthly learning report (goal 11): rates by month, failed check questions, the last three
+  // months, and candidate library changes for a person to check.
+  const figure = (value, why) => (value === null || value === undefined ? `<span class="note">None (${esc(why || 'not computed')})</span>` : esc(value));
+  const GROUPS = [
+    ['removed', 'SiteReady lines most often removed', 'Line'],
+    ['added', 'Lines users keep adding', 'Line added'],
+    ['notApplicable', 'Hazards marked "does not apply"', 'Hazard'],
+    ['reverted', 'Changes undone in the next revision', 'Change'],
+  ];
+  const KINDS = { removed: 'Removed', changed: 'Changed', added: 'Added', hazardChanged: 'Hazard changed', hazardAdded: 'Hazard added', hazardNotApplicable: 'Hazard does not apply', whoChanged: 'Who changed' };
+  async function loadLearning(month) {
+    const box = $('learning');
+    const result = await api(`/api/admin/control-learning/report${month ? `?month=${encodeURIComponent(month)}` : ''}`);
+    if (!result.ok) { box.innerHTML = `<p class="error">${esc(result.data.message || 'Not available.')}</p>`; return; }
+    const report = result.data;
+    if (!$('learning-month').value) $('learning-month').value = report.month;
+    const trend = (name, item) => `<li>${esc(name)}: ${item.values.map((value) => `${esc(value.month)} ${value.value === null ? 'none' : esc(value.value)}`).join(', ')}. ${esc(item.says)}</li>`;
+    const candidates = GROUPS.map(([group, title, what]) => {
+      const { shown, below } = report.candidates[group];
+      const body = shown.map((item) => {
+        const line = group === 'added' ? esc(item.newLine)
+          : group === 'reverted' ? `${esc(KINDS[item.kind] || item.kind)}: ${esc(item.line)}${item.newLine ? ` <span class="note">to</span> ${esc(item.newLine)}` : ''}`
+            : `${esc(item.line)}${item.legalRequirement ? ` <span class="note">(legal requirement: ${esc(item.legalRequirement)})</span>` : ''}`;
+        return `<tr><td>${esc(item.step)}</td><td>${line}</td><td class="n">${esc(item.swms)}</td><td class="n">${esc(item.swmsThisMonth)}</td><td>Goal 5 check needed</td></tr>`;
+      });
+      return `<h3>${esc(title)}</h3><table>${rows(`<tr><th>Step</th><th>${esc(what)}</th><th class="n">SWMS</th><th class="n">This month</th><th>Before the library</th></tr>`, body, 'None at or above the threshold.')}</table>
+        <p class="note">Below the threshold: ${esc(below)} pattern${below === 1 ? '' : 's'}.</p>`;
+    }).join('');
+    box.innerHTML = `<p class="learning-status${report.recording ? '' : ' off'}">${esc(report.recordingNote)}</p>
+      <p class="note">Report for ${esc(report.month)}: ${report.whole ? 'a whole month' : 'this month so far, the month is not over'}.</p>
+      <h3>Edit rate by month</h3>
+      <p class="note">Edit rate: changes on new SWMS for each new SWMS saved. Lower is better.</p>
+      <table>${rows('<tr><th>Month</th><th class="n">SWMS saved</th><th class="n">New SWMS changed</th><th class="n">Changes on new SWMS</th><th class="n">Edit rate</th><th class="n">Revisions saved</th><th class="n">Changes new in a revision</th><th class="n">Per saved revision</th></tr>',
+        report.months.map((item) => `<tr><td class="nowrap">${esc(item.month)}</td><td class="n">${esc(item.swmsSaved)}</td><td class="n">${esc(item.newSwmsChanged)}</td><td class="n">${esc(item.newSwmsChanges)}</td><td class="n">${figure(item.editRate, item.editRateWhy)}</td><td class="n">${esc(item.revisionsSaved)}</td><td class="n">${esc(item.newChanges)}</td><td class="n">${figure(item.revisionRate, item.recorded ? 'no revisions saved' : 'nothing recorded yet')}</td></tr>`), 'No months.')}</table>
+      <h3>Failed check questions by month</h3>
+      <table>${rows('<tr><th>Month</th><th class="n">Worker sign-ons</th><th class="n">Wrong answers</th><th class="n">PPE</th><th class="n">Step</th><th class="n">Control</th><th class="n">Per sign-on</th></tr>',
+        report.months.map((item) => `<tr><td class="nowrap">${esc(item.month)}</td><td class="n">${esc(item.signons)}</td><td class="n">${esc(item.wrongAnswers)}</td><td class="n">${esc(item.wrongByKind.ppe)}</td><td class="n">${esc(item.wrongByKind.step)}</td><td class="n">${esc(item.wrongByKind.control)}</td><td class="n">${figure(item.wrongRate, item.wrongRateWhy)}</td></tr>`), 'No months.')}</table>
+      <h3>Most often wrong in ${esc(report.month)}</h3>
+      <table>${rows('<tr><th>Kind</th><th>Step</th><th>Right answer</th><th class="n">Wrong answers</th></tr>',
+        report.failedQuestions.items.map((item) => `<tr><td>${esc(item.kind)}</td><td>${esc(item.step)}</td><td>${esc(item.item)}</td><td class="n">${esc(item.wrong)}</td></tr>`), 'No wrong answers recorded this month.')}</table>
+      <h3>The last three months</h3>
+      <ul class="plain">${trend('Edit rate', report.trend.editRate)}${trend('Wrong answers per sign-on', report.trend.wrongRate)}<li>${esc(report.trend.acceptance.says)}</li></ul>
+      <h3>Candidate library changes</h3>
+      <p class="note">${esc(report.candidates.thresholdNote)} ${esc(report.candidates.rule)}</p>
+      ${candidates}
+      <details><summary>How these are worked out</summary><ul class="plain">${report.method.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>`;
+  }
+  $('learning-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    loadLearning($('learning-month').value.trim());
+  });
+  // The month's report as a text file to keep.
+  $('learning-download').addEventListener('click', async () => {
+    const month = $('learning-month').value.trim();
+    const response = await fetch(`/api/admin/control-learning/report.md${month ? `?month=${encodeURIComponent(month)}` : ''}`, { headers: token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {} });
+    if (!response.ok) { $('learning').insertAdjacentHTML('afterbegin', `<p class="error">${esc((await response.json().catch(() => ({}))).message || 'Not available.')}</p>`); return; }
+    const name = (/filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '') || [])[1] || 'siteready-learning.md';
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(await response.blob());
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  });
+  await loadLearning('');
+
   await loadAccessLog();
   fromHash();
 })();
