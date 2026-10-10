@@ -266,22 +266,67 @@ function titleFor(body, input) {
   return `${sentence.slice(0, 100).replace(/[\s,;:]+\S*$/, '')}…`;
 }
 
-// Every saved SWMS in one zip of Word files, with their sign-ons: the business's export.
-// Open to any signed-in user, so data can be taken out even after a subscription ends.
+const SITE_LABELS = {
+  workplace: 'Job address', principalContractor: 'Principal contractor', siteManager: 'Site manager', scaffoldSupervisor: 'Scaffold supervisor',
+  hospital: 'Nearest hospital', firstAider: 'First aider', musterPoint: 'Muster point', worksManager: 'Works manager', worksManagerPhone: 'Works manager phone',
+  complianceResponsible: 'Responsible for checking controls', reviewer: 'Reviewer',
+};
+
+// The export's plain text file: the company profile, the business's own people (name, role and
+// email; never workers who signed on), its sites, and any sign-ons to a revision SiteReady did not
+// keep, which no Word file can print.
+function exportText(company, users, sites, unprinted, at) {
+  const lines = [`SiteReady export for ${company.name || 'your business'}, ${longDate(at)}`, '', 'Company profile'];
+  for (const [label, value] of [['Name', company.name], ['ABN', company.abn], ['Address', company.address], ['Phone', company.phone], ['Email', company.email]]) lines.push(`${label}: ${value || ''}`);
+  lines.push('', 'Team (people in your SiteReady account)');
+  for (const user of users) lines.push(`${user.name || '(no name)'}, ${user.is_admin ? 'Administrator' : 'User'}, ${user.email}`);
+  lines.push('', 'Sites');
+  if (!sites.length) lines.push('No sites saved.');
+  for (const site of sites) {
+    lines.push('', site.name);
+    for (const [key, label] of Object.entries(SITE_LABELS)) if (site.details && site.details[key]) lines.push(`  ${label}: ${site.details[key]}`);
+  }
+  if (unprinted.length) {
+    lines.push('', 'Sign-ons to revisions saved before SiteReady kept each revision (not in any Word file)');
+    for (const item of unprinted) lines.push(`${item.title}: ${item.worker_name}${item.worker_company ? `, ${item.worker_company}` : ''}, signed ${longDate(item.signed_at)}${item.revision ? `, revision ${item.revision}` : ''}`);
+  }
+  return `${lines.join('\r\n')}\r\n`;
+}
+
+// Every saved SWMS in one zip: each revision as its own Word file, named by its revision, with the
+// sign-ons to that revision, and a text file of the company profile, team and sites. The
+// business's export. Open to any signed-in user, so data can be taken out even after a
+// subscription ends.
 router.get('/swms/export.zip', requireUser, route(async (req, res) => {
   const rows = await db.query('SELECT * FROM swms WHERE company_id = $1 AND archived = FALSE ORDER BY created_at', [req.company.id]);
   if (!rows.length) throw fail(404, 'There are no saved SWMS to export.');
   const zip = new JSZip();
   const used = new Set();
+  const unprinted = [];
   for (const row of rows) {
-    const parts = await documentParts(req.company, row);
-    if (!parts) continue;
-    const buffer = await draftToDocx(parts.draft, parts);
-    let name = fileName(row, 'docx');
-    for (let n = 2; used.has(name); n += 1) name = fileName(row, 'docx').replace(/\.docx$/, ` ${n}.docx`);
-    used.add(name);
-    zip.file(name, Buffer.from(buffer));
+    // Two SWMS with the same title get "(2)" and so on, so no file replaces another.
+    const title = fileName(row, 'docx').replace(/\.docx$/, '');
+    let base = title;
+    for (let n = 2; used.has(base); n += 1) base = `${title} (${n})`;
+    used.add(base);
+    const kept = new Set();
+    for (let revision = 1; revision <= (row.revision || 1); revision += 1) {
+      const parts = await documentParts(req.company, row, revision);
+      if (!parts) continue;
+      kept.add(parts.revision);
+      zip.file(`${base} revision ${parts.revision}.docx`, Buffer.from(await draftToDocx(parts.draft, parts)));
+    }
+    // Sign-ons to a revision with no kept copy print on no Word file, so they are listed instead.
+    const signons = await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 ORDER BY signed_at`, [row.id]);
+    const earlierKept = [...kept].some((revision) => revision < (row.revision || 1));
+    for (const item of signons) {
+      const revision = signedRevision(item, row);
+      if (revision ? !kept.has(revision) : !earlierKept) unprinted.push({ ...item, title: row.title, revision });
+    }
   }
+  const users = await db.query('SELECT name, email, is_admin FROM users WHERE company_id = $1 ORDER BY created_at', [req.company.id]);
+  const sites = await db.query('SELECT name, details FROM sites WHERE company_id = $1 AND archived = FALSE ORDER BY name', [req.company.id]);
+  zip.file('Company, team and sites.txt', exportText(req.company, users, sites, unprinted, new Date()));
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
   res.setHeader('Content-Type', 'application/zip');
   res.setHeader('Content-Disposition', 'attachment; filename="SiteReady-saved-SWMS.zip"');
@@ -739,11 +784,14 @@ async function sendReviewReminders(now = new Date()) {
   for (const [companyId, rows] of byCompany) {
     const users = await db.query('SELECT email FROM users WHERE company_id = $1', [companyId]);
     const lines = rows.map((row) => `- ${row.title}: review ${new Date(row.review_due_at) <= now ? 'overdue since' : 'due'} ${longDate(row.review_due_at)}`);
+    // The link opens My SWMS (after signing in, if the device is not signed in).
+    const base = auth.appUrl(null);
+    const open = base ? `Open My SWMS: ${base}/#my-swms\n\nCheck each one against the site, and mark it reviewed.` : 'Open SiteReady, check each one against the site, and mark it reviewed.';
     for (const user of users) {
       await sendMail({
         to: user.email,
         subject: `SiteReady: ${rows.length} SWMS due for review`,
-        text: `These SWMS are due for their ${REVIEW_MONTHS} monthly review:\n\n${lines.join('\n')}\n\nOpen SiteReady, check each one against the site, and mark it reviewed.`,
+        text: `These SWMS are due for their ${REVIEW_MONTHS} monthly review:\n\n${lines.join('\n')}\n\n${open}`,
       });
     }
     for (const row of rows) await db.query('UPDATE swms SET reminder_sent_at = $1 WHERE id = $2', [now, row.id]);

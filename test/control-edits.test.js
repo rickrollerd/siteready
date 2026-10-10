@@ -59,7 +59,7 @@ async function signIn(email, company) {
 }
 
 // The site questions answered, as a SWMS needs before it is saved or downloaded (goal 2).
-const INPUT = ready({ ...ANSWERED, state: 'qld', task: 'Dig a trench 1 m deep with an excavator.', fallRisk: 'no', trade: 'civil' });
+const INPUT = ready({ ...ANSWERED, state: 'qld', task: 'Dig a trench 1 m deep with an excavator.', fallRisk: 'no', trade: 'excavation' });
 const plain = prepareDraft(draftBody(INPUT));
 const excavate = plain.jobSteps.find((step) => step.step === 'Excavate');
 const before = plain.jobSteps.find((step) => step.step === 'Before starting');
@@ -232,7 +232,7 @@ test('with CONTROL_LEARNING on, each change is kept once for each saved revision
     assert.equal(changed.original, CODE_LINE);
     assert.equal(changed.new_line, 'Spoil is kept 2 m back from the trench edge.');
     assert.equal(changed.state, 'qld');
-    assert.equal(changed.trade, 'civil');
+    assert.equal(changed.trade, 'excavation');
     assert.deepEqual(JSON.parse(changed.kinds), ['trench']);
     assert.match(changed.month, /^\d{4}-\d{2}$/);
     assert.notEqual(changed.swms_key, swms.id);
@@ -291,6 +291,24 @@ test('warned changes, reasons, hazard and Who changes and unmatched changes are 
     const text = rows.map(({ original, new_line, note, warning, step, reason }) => [original, new_line, note, warning, step, reason].join(' ')).join(' ');
     assert.doesNotMatch(text, /Dave|Smith|0412|example\.com|Kim Lee/);
     assert.ok(swms.id);
+  } finally {
+    delete process.env.CONTROL_LEARNING;
+  }
+});
+
+test('a trade or kind of work that is not a known id is free text and is not kept', async () => {
+  process.env.CONTROL_LEARNING = 'on';
+  try {
+    const token = await signIn('freetext@edits.example', 'Free Text Learning Pty Ltd');
+    const input = { ...INPUT, trade: 'Jo Bloggs 0400 111 222', kinds: ['trench', 'Call Jo Bloggs'], controlEdits: EDITS };
+    await call('POST', '/api/swms', { token, body: { input, reviewConfirmed: true, reviewedBy: 'Sam Lee' } });
+    const rows = await db.query("SELECT trade, kinds FROM control_edit_events WHERE trade <> 'excavation'");
+    assert.ok(rows.length > 0);
+    for (const row of rows) {
+      assert.equal(row.trade, '');
+      assert.deepEqual(JSON.parse(row.kinds), ['trench']);
+    }
+    assert.doesNotMatch(JSON.stringify(await db.query('SELECT * FROM control_edit_events')), /Jo Bloggs|0400/);
   } finally {
     delete process.env.CONTROL_LEARNING;
   }

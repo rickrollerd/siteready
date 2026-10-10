@@ -33,9 +33,10 @@ function cleanEmail(value) {
   return /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/.test(email) ? email : '';
 }
 
-// Where links in emails point, and which page origins passkeys accept.
+// Where links in emails point, and which page origins passkeys accept. An email sent on a timer
+// has no request: its links need APP_URL, and without it there is no address ('').
 function appUrl(req) {
-  return (process.env.APP_URL || `${req.protocol}://${req.get('host')}`).replace(/\/+$/, '');
+  return (process.env.APP_URL || (req ? `${req.protocol}://${req.get('host')}` : '')).replace(/\/+$/, '');
 }
 
 function passkeySettings(req) {

@@ -460,7 +460,7 @@
             ${(item.changeReview || []).length ? `<span class="meta"><span class="due">Review: the law or SiteReady changed</span> ${esc(item.changeReview[item.changeReview.length - 1])}</span>` : ''}
           </div>
           <button type="button" class="small" data-swms="${esc(item.id)}">Open</button>
-        </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (Word, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>';
+        </div>`).join('') + '<div class="actions" style="margin-top:12px"><button type="button" class="small secondary" id="swms-export">Export all saved SWMS (every revision in Word, with team and sites, one zip)</button></div>' : '<p class="lede">No saved SWMS yet. Prepare one below and save it.</p>';
     } catch (error) {
       list.innerHTML = `<p class="error">${esc(error.message)}</p>`;
     }
@@ -780,6 +780,17 @@
     }
     await refresh();
     scopeWaiting();
+    // The review reminder email links to My SWMS (/#my-swms). Signed out, the sign-in box opens;
+    // signing in then shows My SWMS.
+    if (window.location.hash === '#my-swms' && config.accounts) {
+      if (me) showPanel('my-swms');
+      else {
+        $('signin').classList.remove('hidden');
+        $('faceid-signin').classList.toggle('hidden', !passkeysWork());
+        status('signin-status', 'Sign in to see My SWMS.');
+        $('signin').scrollIntoView({ block: 'start' });
+      }
+    }
   }
 
   // The page waits for this before it brings back unsaved work, so its buttons match the account.
