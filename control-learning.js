@@ -12,6 +12,12 @@
 // account, site, task wording or SWMS id is kept. A business that opted out of industry data is
 // left out. Rows are deleted after 3 years.
 //
+// Job steps users write for work SiteReady has no job steps for are kept here too, under the same
+// switch, once for each saved revision: the part of the task each was written for, its name,
+// hazards, controls and Who, with personal details and the account's names taken out as above, and
+// the state, trade and month. These are the library's gaps that users fill themselves. The part of
+// the task is the only task wording kept, and only for these steps.
+//
 // Failed check questions at worker sign-on are kept here too, under the same switch: for each wrong
 // answer, the kind of question, the step or PPE item it tested, the wrong option chosen, the
 // language, state, trade and month. No worker, business, site or SWMS is linked to them, and a
@@ -325,12 +331,71 @@ async function recordControlEdits(draft, input, { company, swmsId, revision = 1,
   return count;
 }
 
+// ---- Steps users write for work SiteReady does not cover (owner, 11 October 2026) ----
+
+// "We need to gather this data for our own learning." The words of the part of the task a step was
+// written for (or of the step's name, for a step written for work the warning did not name), as a
+// key that groups the same work typed a little differently ("jack and skate the transformer" and
+// "Jack & skate transformers"): its words in lower case, without small words or placeholders, each
+// without its ending, in order.
+const GAP_FILLER = new Set(['the', 'a', 'an', 'and', 'or', 'to', 'of', 'for', 'in', 'on', 'at', 'by', 'with', 'from', 'into', 'onto', 'all', 'any', 'new', 'existing', 'then', 'its', 'their', 'name', 'site', 'address', 'phone', 'email', 'number']);
+const gapStem = (word) => word.replace(/(?:ing|ed|es|s|e)$/, '');
+function gapKey(text) {
+  const words = String(text || '').toLowerCase().match(/[a-z][a-z'-]*/g) || [];
+  return [...new Set(words.filter((word) => word.length > 1 && !GAP_FILLER.has(word)).map(gapStem))].sort().join(' ').slice(0, 300);
+}
+
+// The steps the user wrote that print in the SWMS (draft.js), as written, with the part each is for.
+function writtenSteps(draft, input) {
+  const { OWN_STEP_MARK } = require('./draft');
+  const printed = new Set(((draft && draft.jobSteps) || []).filter((step) => step.own).map((step) => step.step));
+  return (Array.isArray(input && input.ownSteps) ? input.ownSteps : []).filter((item) => item && printed.has(`${item.name} ${OWN_STEP_MARK}`));
+}
+
+// Records the steps the user wrote in a saved revision, once, as recordControlEdits does: the part
+// of the task, the step's name, hazards, controls and Who, each scrubbed, with the state, trade and
+// month. When the next revision is saved, each step of the revision before is marked kept or not:
+// kept when a step is still written for the same work. Returns how many were recorded.
+async function recordOwnSteps(draft, input, { company, swmsId, revision = 1, now = new Date(), account = {} } = {}) {
+  if (!enabled() || !db.enabled() || !draft || !swmsId) return 0;
+  if (!company || company.industry_opt_out) return 0;
+  const steps = writtenSteps(draft, input);
+  const key = swmsKey(swmsId);
+  if (!steps.length && Number(revision) <= 1) return 0;
+  const state = findState(input && input.state);
+  const terms = accountTerms(accountValues(company, input || {}, account || {}));
+  const clean = (text) => scrub(text, '', terms);
+  const parts = new Set();
+  let count = 0;
+  for (const item of steps) {
+    const part = clean(item.part).slice(0, 1000);
+    const row = { part, step: clean(item.name).slice(0, 300), hazards: (item.hazards || []).map(clean), controls: (item.controls || []).map(clean), who: clean(item.who).slice(0, 120) };
+    const partKey = gapKey(part || row.step);
+    parts.add(partKey);
+    const stepKey = hash(JSON.stringify([row.part, row.step, row.hazards, row.controls, row.who]));
+    const inserted = await db.query(
+      `INSERT INTO own_step_events (id, swms_key, revision, month, state, trade, part, part_key, step, hazards, controls, who, step_key, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT (id) DO NOTHING RETURNING id`,
+      [hash(`${key}:${revision}:${stepKey}`), key, Number(revision), monthOf(now), state ? state.id : '', knownTrade(input), row.part, partKey, row.step,
+        JSON.stringify(row.hazards), JSON.stringify(row.controls), row.who, stepKey, now],
+    );
+    count += inserted.length;
+  }
+  // Whether each step of the revision before is still written for the same work in this one.
+  if (Number(revision) > 1) {
+    const earlier = await db.query('SELECT id, part_key FROM own_step_events WHERE swms_key = $1 AND revision = $2', [key, Number(revision) - 1]);
+    for (const row of earlier) await db.query('UPDATE own_step_events SET kept = $1 WHERE id = $2', [parts.has(row.part_key), row.id]);
+  }
+  return count;
+}
+
 // ---- Failed check questions at worker sign-on ----
 
 // The step or PPE item a question tested, and the option the worker chose, are SiteReady's own
 // words: step names, short library controls and PPE labels. A step made from the task's own
-// words is not kept by name.
+// words, or one the user wrote, is not kept by name, and a line the user wrote is not kept.
 const OWN_STEP = '(a step made from the task)';
+const OWN_LINE = '(a line the user wrote)';
 
 // Records each wrong answer of one sign-on attempt: the kind of question (ppe, step or control),
 // the step and item it tested, the wrong option chosen, the language, state, trade and month.
@@ -340,14 +405,15 @@ const OWN_STEP = '(a step made from the task)';
 async function recordFailedQuestions(questions, answers, { draft, input, company, language = 'en', now = new Date() } = {}) {
   if (!enabled() || !db.enabled() || !company || company.industry_opt_out || !Array.isArray(questions)) return 0;
   const given = answers && typeof answers === 'object' ? answers : {};
-  const own = new Set(((draft && draft.jobSteps) || []).filter((step) => step.fallback).map((step) => step.step));
+  const own = new Set(((draft && draft.jobSteps) || []).filter((step) => step.fallback || step.own).map((step) => step.step));
+  const written = new Set(((draft && draft.jobSteps) || []).filter((step) => step.own).map((step) => step.step));
   const state = findState(input && input.state);
   let count = 0;
   for (const item of questions) {
     const chosen = given[item.id];
     if (!Number.isInteger(chosen) || chosen === item.answer || chosen < 0 || chosen >= item.options.length) continue;
     const step = item.kind === 'ppe' ? '' : own.has(item.step) ? OWN_STEP : String(item.step || '');
-    const tested = item.kind === 'step' && own.has(item.step) ? OWN_STEP : String(item.options[item.answer] || '');
+    const tested = item.kind === 'step' && own.has(item.step) ? OWN_STEP : item.kind === 'control' && written.has(item.step) ? OWN_LINE : String(item.options[item.answer] || '');
     const wrong = item.kind === 'step' && own.has(item.options[chosen]) ? OWN_STEP : String(item.options[chosen]);
     await db.query(
       'INSERT INTO check_question_misses (id, month, state, trade, language, kind, step, item, chosen) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
@@ -367,6 +433,7 @@ async function removeOld(now = new Date()) {
   await db.query('DELETE FROM control_edit_events WHERE created_at < $1', [cutoff]);
   await db.query('DELETE FROM control_edits WHERE month < $1', [monthOf(cutoff)]);
   await db.query('DELETE FROM check_question_misses WHERE month < $1', [monthOf(cutoff)]);
+  await db.query('DELETE FROM own_step_events WHERE created_at < $1', [cutoff]);
 }
 
 // Counts for the owner: changes by kind and outcome, the steps changed most, and how many changes
@@ -421,6 +488,9 @@ const MONTHS_SHOWN = 12;
 // a line SiteReady no longer prints, so neither is a pattern in the library as it is.
 const MADE = new Set(['applied', 'warned']);
 const CANDIDATE_GROUPS = ['removed', 'added', 'notApplicable', 'reverted'];
+// The pieces of work users wrote steps for most, listed in the report.
+const OWN_STEPS_SHOWN = 20;
+const OWN_STEPS_TITLE = 'Steps users wrote for work SiteReady does not cover';
 const LEARNING_OFF = 'Control learning is off: nothing is being recorded. It records only when CONTROL_LEARNING=on and CONTROL_LEARNING_KEY is set, and is held off until the privacy policy covers it and account administrators have had 30 days\' notice.';
 const ACCEPTANCE_NOTE = 'First-time acceptance (goal 3) is not captured yet: no reviewer\'s decision is recorded, so it cannot be computed or trended.';
 
@@ -506,7 +576,8 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
   const chosen = isMonth(month) ? month : lastWholeMonth(now);
   const edits = await db.query('SELECT swms_key, revision, month, step, kind, outcome, original, new_line, legal, edit_key, kept FROM control_edit_events WHERE month <= $1', [chosen]);
   const misses = await db.query('SELECT month, kind, step, item FROM check_question_misses WHERE month <= $1', [chosen]);
-  const firstRecorded = [...edits, ...misses].map((row) => row.month).sort()[0] || null;
+  const written = await db.query('SELECT swms_key, month, part, part_key, step, hazards, controls FROM own_step_events WHERE month <= $1', [chosen]);
+  const firstRecorded = [...edits, ...misses, ...written].map((row) => row.month).sort()[0] || null;
   // From the first month anything was recorded (at most 11 months back), and always the last three.
   let first = shiftMonth(chosen, -2);
   if (firstRecorded && firstRecorded < first) first = firstRecorded > shiftMonth(chosen, 1 - MONTHS_SHOWN) ? firstRecorded : shiftMonth(chosen, 1 - MONTHS_SHOWN);
@@ -589,6 +660,25 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
     reverted: patternsOf(made.filter((row) => row.kept === false), (row) => `${at(row)}${row.kind}\n${row.original}\n${sameWording(row.new_line)}`, chosen, threshold),
   };
 
+  // Steps users wrote for work SiteReady does not cover, from every saved revision up to the end of
+  // the month: each piece of work by the different saved SWMS a step was written for it in, most first.
+  const gaps = new Map();
+  for (const row of written) {
+    const entry = gaps.get(row.part_key) || { swms: new Set(), thisMonth: new Set(), parts: new Map(), steps: new Map(), written: new Set() };
+    entry.swms.add(row.swms_key);
+    if (row.month === chosen) entry.thisMonth.add(row.swms_key);
+    entry.parts.set(row.part, (entry.parts.get(row.part) || 0) + 1);
+    entry.steps.set(row.step, (entry.steps.get(row.step) || 0) + 1);
+    entry.written.add(`${row.step}\n${row.hazards}\n${row.controls}`);
+    gaps.set(row.part_key, entry);
+  }
+  const most = (counts) => [...counts.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))[0][0];
+  const ownSteps = {
+    total: gaps.size,
+    items: [...gaps.values()].sort((a, b) => b.swms.size - a.swms.size || b.thisMonth.size - a.thisMonth.size || most(a.parts).localeCompare(most(b.parts))).slice(0, OWN_STEPS_SHOWN)
+      .map((entry) => ({ part: lineShown(most(entry.parts) || most(entry.steps)), step: lineShown(most(entry.steps)), swms: entry.swms.size, swmsThisMonth: entry.thisMonth.size, versions: entry.written.size, goal5CheckNeeded: true })),
+  };
+
   const recording = enabled();
   const shown = months.find((item) => item.month === chosen);
   return {
@@ -608,9 +698,11 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
       'SWMS deleted from the archive take their revision history with them, so revisions saved in older months can fall.',
       `Candidate library changes count each pattern by the different saved SWMS it was seen in (by their fingerprint), not by rows, from every change up to the end of ${chosen}. The store holds no business, so one business with many SWMS counts once per SWMS. Only changes that went into the SWMS (applied or warned) count. Lines users add are grouped within a step by wording: the same words in the same order, whatever the case, punctuation or spacing.`,
       'Steps not wholly in SiteReady\'s own words are shown as "(a step made from the task)", and every line is passed through the name scrubber again before it is shown.',
+      `Steps users wrote for work SiteReady does not cover are grouped by the words of the part of the task they were written for (small words and word endings dropped), and counted by the different saved SWMS a step was written for it in, from every revision up to the end of ${chosen}. They are not counted in the edit rate. The wording shown is the one most often used. A step becomes library steps only with a source we hold (D181), the goal 5 evidence test and a person's sign-off.`,
     ],
     months,
     failedQuestions: { total: shown.wrongAnswers, byKind: shown.wrongByKind, items },
+    ownSteps,
     candidates: {
       threshold,
       thresholdDecided: THRESHOLD_DECIDED,
@@ -661,6 +753,10 @@ function reportMarkdown(report) {
     out.push(`- ${name}: ${trend.values.map((item) => `${item.month} ${item.value === null ? 'none' : item.value}`).join(', ')}. ${trend.says}`);
   }
   out.push(`- ${report.trend.acceptance.says}`, '');
+  out.push(`## ${OWN_STEPS_TITLE}`, '');
+  out.push(`The library's gaps users fill themselves, by the different saved SWMS a step was written in, most first: ${report.ownSteps.total} piece${report.ownSteps.total === 1 ? '' : 's'} of work in all. A step becomes library steps only with a source we hold (D181), the goal 5 evidence test and a person's sign-off.`, '');
+  out.push(table(['Work SiteReady does not cover', 'Step users wrote', 'SWMS', 'This month', 'Different steps written', 'Goal 5 check needed'],
+    report.ownSteps.items.map((item) => [item.part, item.step, item.swms, item.swmsThisMonth, item.versions, 'Yes']), 'No steps written by users recorded.'));
   out.push('## Candidate library changes', '');
   out.push(`${report.candidates.thresholdNote} ${report.candidates.rule}`, '');
   for (const group of CANDIDATE_GROUPS) {
@@ -683,4 +779,4 @@ function reportMarkdown(report) {
   return out.join('\n');
 }
 
-module.exports = { enabled, recordControlEdits, recordFailedQuestions, summary, monthlyReport, reportMarkdown, lastWholeMonth, isMonth, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS, CANDIDATE_THRESHOLD };
+module.exports = { enabled, recordControlEdits, recordOwnSteps, gapKey, OWN_STEPS_TITLE, recordFailedQuestions, summary, monthlyReport, reportMarkdown, lastWholeMonth, isMonth, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS, CANDIDATE_THRESHOLD };

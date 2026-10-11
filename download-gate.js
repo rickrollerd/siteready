@@ -29,8 +29,9 @@
 //   its category applies.
 // - Any blank (____) or "To be completed" left in what prints: in the user's own answers, which are
 //   filled in their boxes, and in SiteReady's control lines, which are filled where they show.
+//   In a job step the user wrote for work SiteReady does not cover, the user changes the step.
 const { SITE_FIELDS } = require('./legislation');
-const { askQuestions, involvesScaffold, notCoveredRefusal } = require('./draft');
+const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
 const { clean, answerNeed } = require('./public/gate-rules');
@@ -114,7 +115,7 @@ function printedTexts(draft) {
 }
 
 // Every check the gate makes on this SWMS, answered or not: a list of
-// { id, kind: 'cover' | 'field' | 'site' | 'plant' | 'emergency' | 'fact' | 'line' | 'other', field, label,
+// { id, kind: 'cover' | 'field' | 'site' | 'plant' | 'emergency' | 'fact' | 'line' | 'own' | 'other', field, label,
 // need, rule?, key?, parts?, step? }. need is '' where the answer passes. rule, where given, is how the
 // answer is judged (public/gate-rules.js answerNeed), so the page can judge it again as the user types
 // and show the item again if the answer is taken out. Items without a rule (the plant, anything else
@@ -129,7 +130,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   const judged = (check, rule, value) => add({ ...check, need: answerNeed(rule, value), rule });
   // Parts of the task with no job steps, not ticked as dealt with above the draft (D184).
   const uncovered = options.cover === false ? '' : notCoveredRefusal(draft, input);
-  if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-confirm', label: 'Tick for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${draft.notCovered.join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.`, message: uncovered });
+  if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-confirm', label: 'Tick for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${notCoveredLeft(draft).join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.`, message: uncovered });
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
     judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { ask: item.need, name: item.label, none: Boolean(item.none) }, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));
@@ -164,7 +165,12 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     seen.add(key);
     judged({ id: `line.${seen.size}`, kind: 'line', key, parts: blankParts(text), step: step || '', label: step ? `Job step: ${step}` : 'Controls' }, { ask: 'This control has a blank (____). Fill it in with what applies on this job.', line: key }, []);
   };
-  for (const step of draft.jobSteps || []) for (const text of [...(step.hazards || []), ...(step.controls || [])]) line(text, step.step);
+  for (const step of (draft.jobSteps || []).filter((item) => !item.own)) for (const text of [...(step.hazards || []), ...(step.controls || [])]) line(text, step.step);
+  // A step the user wrote with a blank or "To be completed" left in it: the user changes the step.
+  (draft.jobSteps || []).filter((step) => step.own).forEach((step, n) => {
+    const open = [step.step, ...(step.hazards || []), ...(step.controls || []), step.responsible].find((text) => typeof text === 'string' && leftOpen(text));
+    if (open) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `Your step has a blank (____) or "To be completed" left in: "${clean(open).slice(0, 160)}". Change your step to say what applies.` });
+  });
   for (const item of draft.controls || []) line(item && item.text);
   // Anything else left open in what prints, not already asked for above: the emergency rows print
   // the first aider, muster point and hospital as answered.

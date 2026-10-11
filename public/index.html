@@ -174,6 +174,16 @@
     .not-covered p { margin: 0 0 6px; }
     .not-covered .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; margin: 10px 0 0; }
     .not-covered .check input { margin-top: 3px; flex: none; }
+    /* Steps the user writes for work SiteReady does not cover (owner, 11 October 2026). */
+    .cover-parts { margin: 8px 0 0; padding-left: 1.2em; }
+    .cover-parts li { margin: 0 0 8px; }
+    .cover-tools { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-top: 4px; }
+    .cover-done { color: #1f6b3f; }
+    .own-step-form { background: #fff; border: 1px solid #c5cdd6; border-radius: 8px; padding: 12px; margin: 10px 0 4px; color: #1f2933; }
+    .own-step-form .field { margin: 0 0 10px; }
+    .own-form-title { margin: 0 0 4px; }
+    .own-tools { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 0; font-size: 13px; }
+    tr.own-step > td:first-child { border-left: 3px solid #e3b76b; }
     .hidden { display: none; }
     .warn { color: #a11; font-weight: 600; }
     #abn-found { margin-top: 6px; }
@@ -303,7 +313,7 @@
       .ppe-group legend, .choice legend, .picks-label, .pick-button, th, td, .sheet p, .sheet li, .sign div, input[type="file"],
       button.small, .scope-task h3, .scope-task p, .scope-task details, .scope-clauses, .scope-hrcw, .scope-conflicts,
       .conflict-dialog, .scope-others, .ctl-tools, .ctl-why, .ctl-why select, .ctl-why input, .ctl-warn, .translate .en,
-      .gate p, .answer-panel legend, .answer-panel .check, .ctl-shared, .risk-response, .gate-list .meta, .gate-need, .blank-input, details.sheet-fold .fold-note { font-size: 16px; }
+      .gate p, .answer-panel legend, .answer-panel .check, .ctl-shared, .own-tools, .cover-tools, .risk-response, .gate-list .meta, .gate-need, .blank-input, details.sheet-fold .fold-note { font-size: 16px; }
       table.stack td::before { font-size: 16px; }
       button, select, .pick select, select.plain, input[type="text"], input[type="search"], input[type="date"], .blank-input { min-height: 44px; }
       button { min-width: 44px; }
@@ -335,6 +345,8 @@
       tr[data-step-row].editing .ctl-show, tr[data-step-row].open-all .ctl-show { display: none; }
       tr[data-step-row].editing li > .ctl-tools { display: flex; flex-wrap: wrap; gap: 0 16px; margin: 0; }
       .step-move { display: flex; margin: 8px 0 0; }
+      /* A step the user wrote shows its tools and arrows: it is changed in its own form. */
+      tr[data-step-row].own-step .step-move { display: flex; }
       /* Lists in the stacked tables use the width of the phone. */
       .sheet td ul { margin: 4px 0; padding-left: 1.15em; }
     }

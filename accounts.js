@@ -5,7 +5,7 @@ const QRCode = require('qrcode');
 const db = require('./db');
 const JSZip = require('jszip');
 const { recordIndustry } = require('./industry');
-const { recordControlEdits, recordFailedQuestions, enabled: learningEnabled, removeOld: removeOldEdits } = require('./control-learning');
+const { recordControlEdits, recordOwnSteps, recordFailedQuestions, enabled: learningEnabled, removeOld: removeOldEdits } = require('./control-learning');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
@@ -392,8 +392,11 @@ async function createSwms(req, { input, draft, name, siteId = null, title, reaso
   const kept = await revisions.keepRevision({ row, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
   record('swms_saved', req.company.id);
   await recordIndustry(draft, input, req.company).catch(() => {});
-  // The changes in this revision, recorded once for it.
-  await learningAccount(req, row.id, name).then((account) => recordControlEdits(draft, input, { company: req.company, swmsId: row.id, revision: 1, now, account })).catch(() => {});
+  // The changes in this revision, and the steps the user wrote, recorded once for it.
+  await learningAccount(req, row.id, name).then(async (account) => {
+    await recordControlEdits(draft, input, { company: req.company, swmsId: row.id, revision: 1, now, account }).catch(() => {});
+    await recordOwnSteps(draft, input, { company: req.company, swmsId: row.id, revision: 1, now, account }).catch(() => {});
+  }).catch(() => {});
   return { row, kept };
 }
 
@@ -404,7 +407,10 @@ async function reviseSwms(req, row, { input, draft, name, siteId = row.site_id, 
     [titleFor({ title }, input), JSON.stringify(input), siteId, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   const next = await db.one('SELECT * FROM swms WHERE id = $1', [row.id]);
   const kept = await revisions.keepRevision({ row: next, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
-  await learningAccount(req, next.id, name).then((account) => recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account })).catch(() => {});
+  await learningAccount(req, next.id, name).then(async (account) => {
+    await recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account }).catch(() => {});
+    await recordOwnSteps(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account }).catch(() => {});
+  }).catch(() => {});
   return { row: next, kept };
 }
 
