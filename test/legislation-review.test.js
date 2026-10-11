@@ -473,7 +473,7 @@ test('an excavator lifts pile heads only where designed plant is not reasonably 
 
 test('NSW: traffic control work needs a traffic control work training card (s 184A, s 184C)', () => {
   const nsw = draft('nsw', 'Replace kerb and channel and a stormwater pit on a busy arterial road with traffic controllers and an excavator.');
-  assert.ok(lines(nsw).some((item) => /^Traffic control work \(directing traffic on a public road, and implementing, designing, amending or inspecting the work zone traffic management plan\) is done only by workers holding a traffic control work training card, or a temporary card, for that type of work.*\(Work Health and Safety Regulation 2025 \(NSW\) s 184A, s 184C\)$/.test(item)));
+  assert.ok(lines(nsw).some((item) => /^Traffic control work \(directing traffic on a public road, and implementing, designing, amending or inspecting the work zone traffic management plan \(TMP\)\) is done only by workers holding a traffic control work training card, or a temporary card, for that type of work.*\(Work Health and Safety Regulation 2025 \(NSW\) s 184A, s 184C\)$/.test(item)));
   assert.ok(!lines(nsw).some((item) => /road authority requires/.test(item)));
   assert.ok(nsw.qualifications.includes('Traffic control work training card, or temporary card, for the type of traffic control work (Work Health and Safety Regulation 2025 (NSW) s 184C)'));
   // Other states keep the general wording.

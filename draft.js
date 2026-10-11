@@ -385,7 +385,8 @@ function packageKinds(rawTask, kinds) {
 // Kinds of work brought in only where the task's words name them (namedWorkFlags).
 // Work inside a deep excavation others dug comes only where the words put the work there.
 const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation', 'inTrench', 'layInExcavation',
-  'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate'];
+  'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate',
+  'erosionControl', 'handTrim', 'mastClimber'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -463,8 +464,9 @@ const STRUCTURE_PART_REMOVAL = /\b(?:remov\w*|cut\w* out|break\w* out|demolish\w
 const structurePartRemoval = (text) => sentences(text).some((line) => STRUCTURE_PART_REMOVAL.test(line) && !/\b(?:slabs? on ground|ground slabs?|on-ground|cores|core (?:holes?|drill\w*)|coring|penetrations?)\b/i.test(line));
 const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|motorways?|freeways?|next to (?:live )?traffic|rural roads?|road pavements?|road upgrades?|on-?ramps?|roundabouts?|live buses|bypass(?:es)?(?! (?:pipework|pipes?|valves?|lines?|ducts?|dampers?|switch\w*|circuits?))|overpass(?:es)?|bridges? over (?:a |the )?(?:busy |live )?(?:roads?|motorways?|highways?)|(?:resurfac\w*|reseal\w*) (?:a |the )?(?:roads?|streets?|lanes?)|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
 // "Any traffic control required" is a general clause: it names no road the work is on.
-// So is "a traffic management plan applies", which can be the site's own plan.
-const CONDITIONAL_TRAFFIC = /\b(?:any|such)\s+(?:required\s+|necessary\s+)?traffic\s+(?:control|management)(?:\s*\/\s*(?:control|management))?|\b(?:site\s+)?traffic\s+management\s+plans?\s+appl(?:y|ies)\b|\btraffic\s+(?:control|management)\s+(?:if|where|when|as)\s+(?:required|necessary|needed)\b/gi;
+// So is "a traffic management plan (TMP) applies", which can be the site's own plan.
+// So is a site's own traffic management plan (TMP) for plant and people inside the site.
+const CONDITIONAL_TRAFFIC = /\b(?:any|such)\s+(?:required\s+|necessary\s+)?traffic\s+(?:control|management)(?:\s*\/\s*(?:control|management))?|\b(?:site\s+)?traffic\s+management\s+plans?\s+appl(?:y|ies)\b|\btraffic\s+(?:control|management)\s+(?:if|where|when|as)\s+(?:required|necessary|needed)\b|\b(?:the\s+)?site(?:'s)?\s+traffic\s+management\s+plans?(?:\s*\(tmps?\))?/gi;
 // Work in a road reserve is beside the road. A footpath, verge or nature strip carries
 // only pedestrians, so work on one is beside a road in use only where the text also
 // names the road, its traffic or kerb, or the council's road reserve.
@@ -1105,6 +1107,12 @@ function choiceAnswer(id, value) {
     if (/\b(testing|commissioning|energised parts|within 3 ?m)\b/.test(text)) return 'testing';
     if (/\b(none|no|de-energised)\b/.test(text)) return 'none';
   }
+  // The choices added for the owner's pick list review: the stored value, or the start of its label.
+  if (['clearingSpoil', 'blindingMethod', 'asbestosAirMonitoring'].includes(id)) {
+    const item = CATEGORY_FACTS.find((fact) => fact.id === id);
+    const found = item.choices.find((choice) => choice.value.toLowerCase() === text.trim() || (text.trim() && choice.label.toLowerCase().startsWith(text.trim())));
+    return found ? found.value : '';
+  }
   return '';
 }
 
@@ -1330,6 +1338,48 @@ const CATEGORY_FACTS = [
     applies: (text) => /\b(gantr(?:y|ies)|covered ways?)\b/i.test(String(text || '')),
   },
   {
+    // Cleared vegetation and topsoil are either stockpiled and covered on site or trucked away: the
+    // user says which (owner's pick list review, 11 October 2026), and the controls follow it.
+    id: 'clearingSpoil',
+    label: 'Cleared material and topsoil',
+    prompt: 'What happens to the cleared material and stripped topsoil?',
+    choices: [
+      { value: 'stockpile', label: 'Stockpiled and covered on site' },
+      { value: 'offsite', label: 'Loaded into trucks and taken off site' },
+    ],
+    level: 'Administrative',
+    applies: (text) => /\b(?:topsoil|grub(?:b\w*)?|site clearing|clear\w* (?:and grub\w*|the site|(?:the )?vegetation|trees))\b/i.test(String(text || '')),
+  },
+  {
+    // Blinding is placed straight from the agitator's chute, pumped or barrowed: the user says which.
+    id: 'blindingMethod',
+    label: 'How the blinding is placed',
+    prompt: 'How is the blinding concrete placed?',
+    choices: [
+      { value: 'chute', label: 'Straight from the agitator truck\'s chute' },
+      { value: 'pump', label: 'Pumped' },
+      { value: 'barrow', label: 'Wheelbarrowed' },
+    ],
+    level: 'Administrative',
+    applies: (text) => /\bblinding\b/i.test(String(text || '')),
+  },
+  {
+    // Air monitoring is not mandatory for non-friable removal but may be done (How to safely remove
+    // asbestos code s 3.11): an option the user chooses (owner's pick list review, 11 October 2026).
+    id: 'asbestosAirMonitoring',
+    label: 'Air monitoring during the asbestos removal',
+    prompt: 'Will air monitoring be done during this non-friable asbestos removal?',
+    choices: [
+      { value: 'yes', label: 'Yes: by an independent licensed asbestos assessor or a competent person' },
+      { value: 'no', label: 'No: arranged only if the controls are in doubt or asbestos is disturbed' },
+    ],
+    // Not mandatory for non-friable removal, so it starts on No and the user may choose Yes.
+    default: 'no',
+    level: 'Administrative',
+    applies: (text) => /\basbestos\b/i.test(String(text || '')) && /\bremov\w*/i.test(String(text || ''))
+      && !/(?<!\bnon[- ]?)\bfriable\b|\b(class a\b|lagging|loose[- ]fill|limpet|sprayed asbestos|asbestos[- ]contaminated dust)/i.test(String(text || '')),
+  },
+  {
     // Removing high voltage poles: a pole with no transformer has no transformer lift or lines.
     id: 'poleTransformer',
     label: 'Transformer on the pole',
@@ -1453,7 +1503,7 @@ const CATEGORY_FACTS = [
   {
     id: 'excavationPlan',
     label: 'Excavation and traffic plan',
-    prompt: 'The excavation sequence and stage levels, the geotechnical design it follows (document and revision), the batter angles, and the site traffic management plan for plant and trucks.',
+    prompt: 'The excavation sequence and stage levels, the geotechnical design it follows (document and revision), the batter angles, and the site traffic management plan (TMP) for plant and trucks.',
     level: 'Administrative',
     applies: (text) => /\b(bulk excavat\w*|excavat\w* (?:the |out the )?basement|dig\w* (?:out )?(?:the )?basement)\b/i.test(String(text || '')) || EARTHWORKS.test(String(text || '')),
   },
@@ -4335,7 +4385,7 @@ function readWorkFlags(fullTask, facts = {}, ownCrane = false, nested = false, a
     ...gapFlags(task),
     ...written,
   };
-  const titled = settleFlags(typedTitleFlags(out, task, ownCrane), task);
+  const titled = settleFlags(typedTitleFlags(out, task, ownCrane), task, facts);
   const settled = allWords ? titled : withoutOthersKinds(titled, task, facts, ownCrane, nested);
   // Kinds named only in others' work do not settle the crew's own kinds away: read again with those kinds
   // taken out before settling, a kind of the crew's own that comes back stays ("Install downpipes and
@@ -4343,7 +4393,7 @@ function readWorkFlags(fullTask, facts = {}, ownCrane = false, nested = false, a
   if (!allWords) {
     const unsettled = withoutOthersOnly(typedTitleFlags(out, task, ownCrane), task, facts, ownCrane);
     if (unsettled) {
-      const again = withoutOthersKinds(settleFlags(unsettled, task), task, facts, ownCrane, nested);
+      const again = withoutOthersKinds(settleFlags(unsettled, task, facts), task, facts, ownCrane, nested);
       for (const id of KIND_IDS) if (again[id] && !settled[id]) settled[id] = true;
     }
   }
@@ -4869,7 +4919,7 @@ function typedTitleFixes(out, task) {
 // Where a specific step covers the work, the general step that its words also
 // call up is taken out: a shade sail is not a pergola roof, a box gutter is not
 // an eaves gutter.
-function settleFlags(flags, task) {
+function settleFlags(flags, task, facts = {}) {
   const out = { ...flags };
   const off = (when, ...ids) => { if (when) for (const id of ids) out[id] = false; };
   off(out.trafficSignals, 'fitOff');
@@ -6021,6 +6071,11 @@ function settleFlags(flags, task) {
   out.slabRepairPour = Boolean(out.slabGround) && !out.crackInjection;
   // Spoil kept on site for reuse is not carted away.
   out.spoilStaysOnSite = Boolean(out.spoilManage) && /\b(re-?us\w*|kept on site|keep\w* (?:it )?on site|retain\w* on site|stays? on site)\b/i.test(task) && !/\b(cart\w*|trucks?|tip\w*|dispos\w*|off ?site|surplus|excess)\b/i.test(task);
+  // The user's answer for cleared material and topsoil (owner's pick list review, 11 October 2026):
+  // stockpiled and covered on site, or trucked away, so only that step is kept.
+  const clearing = choiceAnswer('clearingSpoil', (facts || {}).clearingSpoil);
+  if (clearing === 'stockpile') out.spoilStaysOnSite = Boolean(out.spoilManage);
+  out.spoilGoesOffSite = Boolean(out.spoilManage) && clearing === 'offsite';
   // Landscaping: moving soil and mulch, and planting, are separate steps, each when named and both when neither is.
   const plantsNamed = /\b(plants|planting|planted|trees?|shrubs?|seedlings?|tubestock|hedges?|reveg\w*|seed(?:s|ed|ing)?)\b|\b(?:and|then|to) plant\b|\bplant (?:them|it|out|up|the (?:beds?|planters?|gardens?|trees|shrubs))\b/i.test(task.replace(/\bplant\w* rooms?\b/gi, ''));
   const soilNamed = /\b(soils?|topsoil|mulch\w*|compost|potting mix|growing media|garden beds?|planter boxes?|landscap\w*)\b/i.test(task);
@@ -6126,6 +6181,23 @@ function namedWorkFlags(task, flags = {}) {
   out.rockSaw = ROCK_SAW.test(task);
   out.ictTerminate = DATA_TERMINATE.test(task);
   out.ictTerminateCeiling = out.ictTerminate && /\bceilings?\b/i.test(task);
+  // The owner's pick list review, part 1 (11 October 2026): erosion and sediment controls, hand
+  // trimming and blinding, and mast climbing work platforms, each only where the words name the work,
+  // and the detail flags the lines added for the review use.
+  out.erosionControl = /\b(?:erosion and sediment|sediment (?:fences?|basins?|traps?|controls?)|silt (?:fences?|controls?|curtains?|socks?)|erosion controls?|shake ?down grids?|rumble grids?)\b/i.test(task)
+    && /\b(?:install\w*|maintain\w*|erect\w*|remov\w*|construct\w*|build\w*|plac\w*|controls? (?:are|is) )\b/i.test(task);
+  out.handTrim = /\bhand[- ]?trim\w*|\btrim\w* (?:the )?(?:base|floor|batters?|formation)? ?by hand\b|\bhand[- ]compact\w*|\bblinding\b/i.test(task);
+  out.blinding = /\bblinding\b/i.test(task);
+  out.mastClimber = /\bmast[- ]climb\w*|\bmcwps?\b/i.test(task) && /\b(?:install\w*|erect\w*|dismantl\w*|assembl\w*)\b/i.test(task);
+  out.softStrip = /\b(?:soft[- ]strip\w*|strip[- ]?outs?|strip(?:ping)? out)\b/i.test(task) && !/\bdemoli(?:sh|tion)\w*/i.test(task.replace(/\bsoft[- ]strip\w*/gi, ' '));
+  out.pcbRemoval = /\b(?:pcbs?|polychlorinated biphenyls?)\b/i.test(task) && /\b(?:capacitors?|light fittings?|fittings?|ballasts?)\b/i.test(task);
+  out.structuralDemo = DEMOLITION.test(task) && /\b(?:structur\w*|load[- ]bearing)\b/i.test(task.replace(/\bnon[- ](?:structural|load[- ]bearing)\b/gi, ' '));
+  out.asbestosRemoval = /\basbestos\b/i.test(task) && /\bremov\w*/i.test(task);
+  out.hazmatSampling = /\bsampl\w*/i.test(task) && /\b(?:asbestos|hazardous materials?|haz ?mats?|suspect materials?)\b/i.test(task);
+  out.engineeredScaffold = /\b(?:hung|suspended|cantilever(?:ed)?|spur(?:red)?|drop|support) scaffold\w*|\bbirdcage\w*/i.test(task);
+  out.penetrationCovers = /\bpenetrations?\b/i.test(task);
+  out.craneWorkbox = /\b(?:work ?box\w*|man ?box\w*|personnel box\w*)\b/i.test(task);
+  out.bulkEarthworks = /\bbulk (?:earthworks|excavation)\b|\bcut and fill\b/i.test(task);
   return out;
 }
 
@@ -6403,7 +6475,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     underfloorHeating: /\bunderfloor heating\b|\bheating (?:cables?|mats?)\b|\bheated floors?\b/i.test(task),
     wallDrainage: /\b(drainage|ag(?:ricultural)? (?:drains?|pipes?)|subsoil (?:drains?|drainage|pipes?)|backfill\w*)\b[^.]{0,40}\bbehind (?:a |the )?(?:new |existing )?(?:\w+ )?(?:retaining )?walls?\b|\bretaining wall drainage\b/i.test(task),
     // Temporary barriers set out for a road works zone or closure, or temporary concrete or water-filled
-    // barriers, which are traffic barriers, are placed as the traffic management plan sets out
+    // barriers, which are traffic barriers, are placed as the traffic management plan (TMP) sets out
     // ("Install the temporary concrete barriers ... for the road works zone").
     footpathClosure: /\b(?:footpath|lane|road) closures?\b/i.test(task) && /\b(barriers?|fenc\w*|hoardings?)\b/i.test(task) || TEMP_BARRIERS.test(task) && (TRAFFIC_PLACE.test(task) || /\b(?:concrete|water[- ]filled|jersey)\s+barriers?\b/i.test(task)),
     bmuClean: /\b(building maintenance units?|bmus?)\b/i.test(task) && /\bclean\w*\b/i.test(task),
@@ -6753,9 +6825,10 @@ function transformerFlags(facts = {}) {
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, setting = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
-    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass', 'scaffoldType'].includes(id)) return choiceAnswer(id, facts[id]);
+    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass', 'scaffoldType', 'clearingSpoil', 'blindingMethod'].includes(id)) return choiceAnswer(id, facts[id]);
     // Unanswered, the gantry is designed for construction or demolition work above it (10 kPa).
     if (id === 'gantryLoad') return choiceAnswer(id, facts[id]) || 'construction';
+    if (id === 'asbestosAirMonitoring') return choiceAnswer(id, facts[id]) || 'no';
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));

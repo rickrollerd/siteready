@@ -23,13 +23,16 @@
 // 3,519 of 4,789, 73.5%; gap job steps of 10 October 2026 (TBM shafts, plant removal, lift controllers,
 // underpinning, sprayed fire protection, rock sawing, data outlet terminations): 50 new lines, 47 cited to
 // code or regulation sections read, the lift worker check-in line from regulator guidance and the two
-// underpinning sequence lines from one training unit, so not yet evidenced: 3,573 of 4,846, 73.7%).
+// underpinning sequence lines from one training unit, so not yet evidenced: 3,573 of 4,846, 73.7%;
+// the owner's pick list review, part 1 (11 October 2026): 48 new lines, 46 cited to code, regulation or
+// two organisations (EPA Victoria and the NSW Blue Book), two from EPA Victoria's guidance alone, so not yet
+// evidenced, and one line reworded (the site traffic management plan): 3,619 of 4,892, 73.98%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
 const RECORD = require('../scenarios/control-evidence.json');
 
-const MEASURED = 0.737;
+const MEASURED = 0.739;
 
 test('every library control line is in the evidence record, and every record entry is a library line', () => {
   const lines = libraryLines();

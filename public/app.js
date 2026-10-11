@@ -647,7 +647,7 @@ function renderSteps(steps) {
 
 // Shown when a step the task's words call for is taken off.
 const REMOVED_WARNINGS = {
-  road: 'The task mentions a road or street. Make sure traffic is managed before work starts, for example under the principal contractor\'s traffic management plan.',
+  road: 'The task mentions a road or street. Make sure traffic is managed before work starts, for example under the principal contractor\'s traffic management plan (TMP).',
   asbestosCheck: 'The work could disturb asbestos. Make sure asbestos is identified before work starts.',
   asbestos: 'The task involves asbestos. It must be removed under the asbestos rules, by a licensed removalist where required.',
   isolation: 'The work needs power or plant isolated. Make sure it is isolated and proved before work starts.',

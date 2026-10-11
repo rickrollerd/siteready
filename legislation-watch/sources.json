@@ -88,6 +88,14 @@
       },
       {
         "state": "qld",
+        "name": "How to manage and control asbestos in the workplace Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "How to safely remove asbestos Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
         "name": "Managing noise and preventing hearing loss at work Code of Practice 2021 (Qld)"
       },
       {
@@ -105,6 +113,10 @@
       {
         "state": "qld",
         "name": "Managing the risk of falls at workplaces Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Mobile crane Code of Practice 2024 (Qld)"
       },
       {
         "state": "qld",
@@ -133,6 +145,19 @@
       {
         "state": "qld",
         "name": "Welding processes Code of Practice 2021 (Qld)"
+      }
+    ]
+  },
+  {
+    "id": "qld-koala-plan",
+    "jurisdiction": "Queensland",
+    "title": "Nature Conservation (Koala) Conservation Plan 2017 (fauna spotters for clearing)",
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2017-0152",
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2017-0152",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Nature Conservation (Koala) Conservation Plan 2017 (Qld)"
       }
     ]
   },

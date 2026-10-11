@@ -42,9 +42,10 @@ const NSW_CODE = /^SafeWork NSW Code of practice: /;
 // processing plant and conveyor work.
 const NATIONAL = [/^Ozone Protection/, /^Telecommunications \(Cabling Provider\)/, /^Australian Refrigeration Council/, /^NSW Resources Regulator, investigation report /];
 // Sources that are one state's own are cited only in that state's drafts: the SafeWork NSW codes
-// of practice, Victoria's piling and structural steel industry standards and lift work handbook, and
+// of practice and the NSW Blue Book (soils and construction), Victoria's piling and structural steel
+// industry standards, lift work handbook and EPA Victoria's construction guide, and
 // Western Australia's plumbing licensing regulations.
-const STATE_ONLY = { nsw: NSW_CODE, vic: /^(?:Piling industry standard|Safe erection of structural steel industry standard|Lift work on construction projects: a handbook)/, wa: /^Plumbers Licensing and Plumbing Standards Regulations 2000 \(WA\)/ };
+const STATE_ONLY = { nsw: new RegExp(`${NSW_CODE.source}|^Managing Urban Stormwater: Soils and Construction`), vic: /^(?:Piling industry standard|Safe erection of structural steel industry standard|Lift work on construction projects: a handbook|EPA Victoria, )/, wa: /^Plumbers Licensing and Plumbing Standards Regulations 2000 \(WA\)/ };
 const ownState = (part) => Object.keys(STATE_ONLY).find((id) => STATE_ONLY[id].test(part));
 
 function mapReference(reference, state) {
@@ -183,7 +184,7 @@ const OUTSIDE_QLD = [
   [/^Any high voltage electrical installation is not connected until an accredited auditor has inspected and certified it\.$/, 'Any high voltage electrical installation is inspected and approved as the state\'s electrical safety law and the network operator require before it is connected.'],
   [/^No electrical work is done on or near energised parts \(within 3 m of an exposed energised part\)\./, 'No electrical work is done on or near energised parts. Parts of the installation that stay energised, such as construction power, are identified, and the work is kept separated from them. If that changes, stop and prepare for energised work as the state\'s WHS or electrical safety law requires.'],
   [/^Work on or near energised parts is done only where the regulation allows, such as testing/, 'Work on or near energised parts is done only where the state\'s law allows, such as testing, and never because it is more convenient.'],
-  [/^Traffic controllers who hold Queensland traffic controller accreditation/, 'Traffic controllers who hold the traffic controller accreditation the state\'s road authority requires direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.'],
+  [/^Traffic controllers who hold Queensland traffic controller accreditation/, 'Traffic controllers who hold the traffic controller accreditation the state\'s road authority requires direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan (TMP) sets out.'],
   [/^Where the scaffold is next to a street, the principal contractor provides the hoarding, gantry or closure the regulation requires,/, 'Where the scaffold is next to a street, the principal contractor provides the hoarding, gantry or closure the local council or road authority requires, and lifts over the footpath happen only with the area closed or a gantry in place.'],
   [/^Security equipment such as CCTV, access control, intercoms and alarms is installed only by licensed security equipment installers\.$/, 'Security equipment such as CCTV, access control, intercoms and alarms is installed by installers holding any security licence or registration the state requires.'],
   [/^Where objects could fall onto the street or footpath, work goes ahead only once the principal contractor has the protection the regulation sets/, 'Where objects could fall onto the street or footpath, work goes ahead only once the principal contractor has a hoarding, gantry, closure or catch platform in place as the local council or road authority requires.'],
@@ -390,7 +391,7 @@ const TAS_TEXT = [
 // New South Wales: traffic control work is done only by holders of a traffic control work
 // training card for that type of work, issued by the regulator (s 184A, s 184C, s 184D).
 const NSW_TEXT = [
-  [/^Traffic controllers who hold Queensland traffic controller accreditation/, `Traffic control work (directing traffic on a public road, and implementing, designing, amending or inspecting the work zone traffic management plan) is done only by workers holding a traffic control work training card, or a temporary card, for that type of work, who have done that type of work in the last 2 years if they trained more than 2 years ago, or by a trainee under supervision as section 184C(2) allows. Traffic controllers direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan sets out.${cite('nsw', '184A', '184C')}`],
+  [/^Traffic controllers who hold Queensland traffic controller accreditation/, `Traffic control work (directing traffic on a public road, and implementing, designing, amending or inspecting the work zone traffic management plan (TMP)) is done only by workers holding a traffic control work training card, or a temporary card, for that type of work, who have done that type of work in the last 2 years if they trained more than 2 years ago, or by a trainee under supervision as section 184C(2) allows. Traffic controllers direct vehicles, pedestrians and traffic on the footpath and road, as the traffic management plan (TMP) sets out.${cite('nsw', '184A', '184C')}`],
 ];
 
 // The Northern Territory keeps the 35 degree policy line, as Queensland does.

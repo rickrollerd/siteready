@@ -116,7 +116,7 @@ const PLANT = [
   { item: 'Pipe laying attachment', pattern: /\b(pipe laying attachments?|pipe layers?|side ?booms?)\b/i, inspection: 'Rated for the pipe, tagged and checked before use.', licence: 'No. Operator competent' },
   { item: 'Truck and dog trailer', pattern: /\btruck and dogs?(?: trailers?)?\b/i, inspection: PRESTART, licence: 'Heavy vehicle driver\'s licence for the combination' },
   { item: 'Cable drum trailer', pattern: /\b(?:cable )?drum trailers?\b/i, inspection: `${PRESTART} Drum shaft, brakes and hitch checked.`, licence: 'No. Operator trained' },
-  { item: 'Variable message sign trailer', pattern: /\b(variable message (?:boards?|signs?)|vms boards?)\b/i, inspection: PRESTART, licence: 'No. Placed under the traffic management plan' },
+  { item: 'Variable message sign trailer', pattern: /\b(variable message (?:boards?|signs?)|vms boards?)\b/i, inspection: PRESTART, licence: 'No. Placed under the traffic management plan (TMP)' },
   { item: 'Jacking and skidding system', pattern: /\b(skid(?:ding)? (?:systems?|tracks?|beams?)|jack(?:ing)? and skid\w*)\b/i, inspection: 'Set up and checked by its supplier to the engineered procedure before the move.', licence: 'No. Operated by the supplier\'s trained crew' },
   { item: 'Concrete conveyor', pattern: /\b(concrete conveyors?|conveyor and pump|by conveyor)\b/i, inspection: `${PRESTART} Guards, belt and emergency stops checked.`, licence: 'No. Operator trained' },
   { item: 'Ladders', pattern: /\bladders?\b/i, inspection: 'Industrial rated, at least 120 kg. Checked before each use.', licence: 'No' },

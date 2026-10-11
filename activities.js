@@ -359,18 +359,18 @@ const ACTIVITIES = [
       step: 'Set up traffic management',
       hazards: ['Workers struck by passing vehicles.', 'Vehicles or pedestrians enter the work area.'],
       controls: [
-        'Set up traffic control to the approved traffic management plan before work starts, with the road authority\'s written approval obtained first for any work or traffic control on a public road.',
+        'Set up traffic control to the approved traffic management plan (TMP) and its traffic guidance scheme (TGS) before work starts, with the road authority\'s written approval obtained first for any work or traffic control on a public road.',
         src('The principal contractor manages the risks from traffic near the site.', WHS('s 315')),
-        src('Where there is no principal contractor, our supervisor ensures the signs, traffic control devices and barriers in the traffic management plan are erected before work starts.', TRAFFIC('s 4.3, s 4.4')),
-        'Where there is no principal contractor, our supervisor puts the traffic management plan in place.',
+        src('Where there is no principal contractor, our supervisor ensures the signs, traffic control devices and barriers in the traffic management plan (TMP) are erected before work starts.', TRAFFIC('s 4.3, s 4.4')),
+        'Where there is no principal contractor, our supervisor puts the traffic management plan (TMP) in place.',
         src('Only accredited traffic controllers direct traffic at and through the worksite, as the approved operating procedure sets out.', TRAFFIC('s 5.1, s 5.3')),
-        'Traffic controllers who hold Queensland traffic controller accreditation also direct pedestrians on the footpath and road, as the traffic management plan sets out.',
+        'Traffic controllers who hold Queensland traffic controller accreditation also direct pedestrians on the footpath and road, as the traffic management plan (TMP) sets out.',
         'Keep work, plant and materials inside the separated work area.',
         { text: 'Over or next to a railway, work goes ahead only under the rail operator\'s access permit and its protection officer arrangements.', only: 'railCorridor' },
         src('Footpath or road closures have written approval from the authority that controls the area.', WHS('s 315M')),
         src('Protective barriers separate the work area from live traffic, and pedestrians, including people with disabilities, are guided past or around the work on a safe, marked route.', TRAFFIC('s 4.3, s 4.5.4')),
         src('Deliveries are unloaded in a loading area inside the site or the closed work area, on solid level ground with workers on foot kept out, not from the live road.', NSWC('NSW Moving plant on construction sites', 's 6.6')),
-        'A delivery that can only be unloaded from the road is unloaded inside traffic control set up to the traffic management plan.',
+        'A delivery that can only be unloaded from the road is unloaded inside traffic control set up to the traffic management plan (TMP).',
         src('A spotter guides trucks reversing into or out of the work area.', NSWC('NSW Moving plant on construction sites', 's 7')),
         'Vehicles stopped on or beside the road for short works show a working amber beacon and a vehicle-mounted warning sign, with cones set around the vehicle and work area before work starts.',
         'Where the pedestrian detour crosses a kerb and channel, a firm, non-slip ramp that wheelchairs, prams and mobility scooters can use is fitted at each crossing point.',
@@ -1414,7 +1414,7 @@ const ACTIVITIES = [
         { only: 'civilSite', text: 'Check the ground, deck or working platform can take the platform, and keep it back from edges, batters and open excavations.' },
         src('Use the platform only on a solid level surface, unless it is designed for rough terrain.', QCODE('Managing the risk of falls', 's 5.1')),
         { unless: 'civilSite', text: 'Sequence trades so they are not working above or below each other.' },
-        { only: 'ubiu', text: 'The under-bridge unit works inside a lane closure under the traffic management plan, with its outriggers set and the deck checked for its loads, and is run only by its trained operator.' },
+        { only: 'ubiu', text: 'The under-bridge unit works inside a lane closure under the traffic management plan (TMP), with its outriggers set and the deck checked for its loads, and is run only by its trained operator.' },
         'Outdoors, stop in winds above the manufacturer\'s limit, and check for overhead power lines, keeping the platform outside the approach distances.',
         src('The operator is trained for the platform. A high risk work licence is needed only for a boom-type platform with a boom of 11 m or more.', WHS('s 81, schedule 3')),
         'Where a boom-type platform is used, the harness is attached to the platform\'s anchor point.',
@@ -2515,7 +2515,7 @@ const ACTIVITIES = [
         hazards: ['Crushing or falling parts during assembly.', 'Delivery trucks strike people.', 'A fall from the mast or rig.'],
         controls: [
           src('Assemble and dismantle the rig to the manufacturer\'s procedure, by a crew trained in that procedure for that rig.', QCODE('Managing the risks of plant in the workplace', 's 3.2')),
-          src('Deliveries follow the site traffic management plan.', `${PSTD('s 4.4, s 4.9')}; ${QCODE('Excavation work', 's 4.3')}`),
+          src('Deliveries follow the site traffic management plan (TMP).', `${PSTD('s 4.4, s 4.9')}; ${QCODE('Excavation work', 's 4.3')}`),
           'Exclusion zone around assembly and disassembly.',
           src('Drivers follow the traffic controller and the piling crew.', PSTD('s 4.9')),
           src('Keep rigs and trucks apart from people.', WHS('s 215')),
@@ -2811,7 +2811,7 @@ const ACTIVITIES = [
       controls: [
         { fact: 'excavationPlan' },
         src('Manage the risk of plant overturning and colliding with people or things. Plant that could hit people has a warning device.', WHS('s 214, s 215')),
-        src('A traffic management plan is in place before plant starts. Ramps and haul roads are built and maintained.', MODEL('Excavation work', 's 4.3')),
+        src('A traffic management plan (TMP) is in place before plant starts. Ramps and haul roads are built and maintained.', MODEL('Excavation work', 's 4.3')),
         src('Physical barriers separate people from plant. Operators and ground workers use two way acknowledgement before anyone approaches plant.', MODEL('Excavation work', 's 2.3, s 4.3')),
         src('Plant, trucks and stockpiles stay out of the zone of influence unless the support is designed for them. Wheel stops at edges.', MODEL('Excavation work', 's 4.1, s 4.3')),
         src('Batters are no steeper than 45 degrees unless designed by a competent person and certified in writing. If ground conditions change, stop until the ground is stable.', MODEL('Excavation work', 's 6.1')),
@@ -3007,7 +3007,7 @@ const ACTIVITIES = [
         { unless: 'anchorsProps', ...src('No digging until steps are taken to prevent collapse of neighbouring buildings. Digging below their footings is assessed by a competent person and supported. Vibration and flooding of neighbours are controlled.', MODEL('Excavation work', 's 3.4')) },
         { unless: 'shoringWall', ...src('Underground services information covers adjacent areas too.', WHS('s 304')) },
         src('The site is secured from unauthorised access, and the edge near the street is supported against traffic loads.', `${WHS('s 298')}; ${MODEL('Excavation work', 's 5.1')}`),
-        src('Accredited traffic controllers direct trucks in and out of the site, as the principal contractor\'s traffic management plan sets out.', TRAFFIC('s 5.1')),
+        src('Accredited traffic controllers direct trucks in and out of the site, as the principal contractor\'s traffic management plan (TMP) sets out.', TRAFFIC('s 5.1')),
       ],
     }],
   },
@@ -4512,7 +4512,7 @@ const ACTIVITIES = [
       unless: ['poleOnly', 'pitsByTrench'],
       hazards: ['Struck by passing traffic.', 'Striking underground services or overhead lines.', { unless: 'polesNamed', text: 'Electric shock connecting to the supply.' }],
       controls: [
-        src('All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
+        src('All work is inside the closure set out in the traffic management plan (TMP), with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
         { only: 'barrierReplace', text: 'The damaged rail and posts are unbolted and lifted out with plant or two people.' },
         { only: 'barrierReplace', text: 'The end of the remaining barrier is protected until the new section is fixed.' },
         'Underground services are located before pits and conduits are dug, and plant keeps its approach distances from overhead lines.',
@@ -4525,7 +4525,7 @@ const ACTIVITIES = [
       only: 'polesNamed',
       hazards: ['Struck by passing traffic.', 'A pole falls while it is lifted or stood.', 'Striking underground services or overhead lines.', 'Electric shock connecting to the supply.'],
       controls: [
-        src('All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
+        src('All work is inside the closure set out in the traffic management plan (TMP), with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
         { only: 'poleOnly', text: 'Underground services are located before pits and conduits are dug, and plant keeps its approach distances from overhead lines.' },
         { unless: 'poleOnly', text: 'The crane truck and EWP keep their approach distances from overhead lines.' },
         { only: 'polesNamed', ...src('Poles are lifted with a crane truck by licensed operators and doggers, under control and with no load over people, and bolted before the slings are released.', WHS('s 81, s 219, schedule 3')) },
@@ -4925,7 +4925,7 @@ const ACTIVITIES = [
       step: 'Set up traffic barriers and temporary fencing',
       hazards: ['Struck by passing traffic.', 'Strain lifting barriers and fence panels.', 'Fencing blown over by wind.'],
       controls: [
-        'Barriers are placed in the order the traffic management plan sets out.',
+        'Barriers are placed in the order the traffic management plan (TMP) sets out.',
         'Barriers are placed working from the protected side.',
         'Water-filled and concrete barriers are moved with plant or trolleys.',
         'Water-filled barriers are filled once in place.',
@@ -5132,7 +5132,7 @@ const ACTIVITIES = [
       step: 'Install road safety barrier',
       hazards: ['Struck by passing traffic.', 'Striking buried services or overhead lines when driving posts.', 'Noise and vibration from the post driver.', 'Strain and crush injuries handling barrier rails.'],
       controls: [
-        src('All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
+        src('All work is inside the closure set out in the traffic management plan (TMP), with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
         src('Get the current underground services information, for example through Before You Dig Australia, locate services on site before posts are driven, and work to it.', `${WHS('s 304')}; ${QCODE('Excavation work', 's 3.6')}`),
         src('The post driver keeps its approach distances from overhead lines.', NSWC('NSW Electric lines', 's 4.2')),
         'The post driver is run only by a trained operator, with an exclusion zone around it.',
@@ -5147,7 +5147,7 @@ const ACTIVITIES = [
       step: 'Spray seal the road',
       hazards: ['Burns from hot bitumen.', 'Struck by the sprayer, spreader, roller or passing traffic.', 'Bitumen fumes.', 'Fire from heated bitumen or cutter.'],
       controls: [
-        src('All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
+        src('All work is inside the closure set out in the traffic management plan (TMP), with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
         'Only trained operators run the bitumen sprayer and aggregate spreader.',
         'No one stands beside the spray bar while it is spraying.',
         'Workers near hot bitumen wear long sleeves, gloves, boots and a face shield, and burns are cooled with water straight away.',
@@ -6563,7 +6563,7 @@ const ACTIVITIES = [
       step: 'Stand the noise wall posts and panels',
       hazards: ['Struck by passing traffic.', 'A post or panel falls or swings while it is lifted.', 'Striking buried services when boring post holes.', 'A worker falls into an open post hole.'],
       controls: [
-        src('All work is inside the closure set out in the traffic management plan, with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
+        src('All work is inside the closure set out in the traffic management plan (TMP), with traffic controllers where the plan requires them.', TRAFFIC('s 4.4, s 5.1')),
         src('Underground services are located before post holes are bored.', WHS('s 304')),
         'Open holes are covered or fenced.',
         src('Posts and panels are lifted with a crane by licensed operators and doggers under a lift plan, with an exclusion zone under the load, and panels are slid into the posts from the ground or an EWP, never by a worker standing under them.', TILT('s 12.1, s 13.1, s 13.2')),
@@ -7447,7 +7447,7 @@ const ACTIVITIES = [
       step: 'Run the road plant inside the work zone',
       hazards: [{ unless: 'asphaltHot', text: 'A worker is struck or run over by the road plant or trucks.' }, { only: 'roadBuild', text: 'A worker is struck by the excavator, grader, road rollers or trucks.' }, { only: 'asphaltHot', text: 'A worker is struck or run over by the paver, road rollers or trucks.' }, 'Struck by passing traffic.', { unless: 'lineMarkOnly', text: 'Entanglement in a cutting or mixing drum, auger or conveyor.' }, { only: 'asphaltHot', text: 'Burns from hot asphalt.' }, { only: 'limeWork', text: 'Burns to skin and eyes from lime and cement.' }, 'Dust and fumes.'],
       controls: [
-        src('All plant works inside the traffic management set out for the job, with a truck mounted attenuator behind the work where the traffic management plan requires it.', TRAFFIC('s 4.4')),
+        src('All plant works inside the traffic management set out for the job, with a truck mounted attenuator behind the work where the traffic management plan (TMP) requires it.', TRAFFIC('s 4.4')),
         src('Each machine is run by a competent operator and checked before each shift.', NSWC('NSW Moving plant on construction sites', 's 4.3, appendix B')),
         'Each machine has its guards fitted.',
         { unless: 'lineMarkOnly', ...src('Drums, augers and conveyors are stopped and isolated before anyone clears or inspects them.', QCODE('Managing the risks of plant in the workplace', 's 4.5')) },
@@ -7824,7 +7824,7 @@ const ACTIVITIES = [
       step: 'Set up the traffic switch and message signs',
       hazards: ['Struck by passing traffic while placing signs, barriers or message boards.', 'Drivers confused by the change in traffic arrangement.', 'Struck by the truck or trailer placing the equipment.'],
       controls: [
-        src('The traffic switch follows the traffic management plan and staging approved by the road authority, and is set up only by workers holding the state\'s traffic management qualifications for the work.', TRAFFIC('s 4.1, s 4.5, s 6.3')),
+        src('The traffic switch follows the traffic management plan (TMP), its traffic guidance scheme (TGS) and the staging approved by the road authority, and is set up only by workers holding the state\'s traffic management qualifications for the work.', TRAFFIC('s 4.1, s 4.5, s 6.3')),
         src('Signs, barriers and message boards are placed in the order the plan sets, with traffic slowed or stopped where the plan requires it.', TRAFFIC('s 4.4, s 4.5')),
         'Workers place them from behind a truck mounted attenuator or a protected position.',
         'Variable message boards are parked clear of traffic, levelled and locked, and show the messages and timing the plan approves before the switch is made.',
@@ -8177,7 +8177,7 @@ const ACTIVITIES = [
       controls: [
         { fact: 'spoilPlan' },
         src('Trucks are loaded in a set loading area with a spotter, and no one stands beside a truck while it is loaded or tips.', NSWC('NSW Moving plant on construction sites', 's 6.6, s 7')),
-        'Loads are covered and restrained before trucks leave, wheels are cleaned or a shaker grid is used at the gate, and trucks leave under the site traffic management plan.',
+        'Loads are covered and restrained before trucks leave, wheels are cleaned or a shaker grid is used at the gate, and trucks leave under the site traffic management plan (TMP).',
         'Spoil leaves site only for a facility or site licensed or approved to take that type of waste, with the waste records the state environment regulator requires.',
         'Where spoil is contaminated or may contain asbestos, workers wear gloves and coveralls, wash before eating, and the material is handled under the remediation or asbestos plan.',
       ],
@@ -8552,7 +8552,7 @@ const ACTIVITIES = [
         src('Use a spotter for reversing trucks.', NSWC('NSW Moving plant on construction sites', 's 7')),
         src('An exclusion zone, with signs and barricades, around trucks and plant while they load and unload.', `${WHS('s 214, s 215')}; ${QCODE('Managing the risks of plant in the workplace', 's 3.8')}`),
         { only: 'craneInterface', text: 'Traffic controllers hold pedestrians and traffic when the crane company\'s dogman asks. Crane lifts are run by the crane company.' },
-        'The current site traffic plan, showing plant routes, pedestrian routes and crossings, is displayed at each site entry, and is updated and briefed at the pre-start whenever a route changes.',
+        'The current site traffic management plan (TMP), showing plant routes, pedestrian routes and crossings, is displayed at each site entry, and is updated and briefed at the pre-start whenever a route changes.',
         'Light vehicles use routes and parking kept separate from heavy plant and trucks. A light vehicle enters a heavy plant work area only after its driver has made radio contact with the plant operators working there.',
         'Before entering a machine\'s operating zone, the worker confirms with the operator where the blind spots are, where they will stand and for how long, and then stays where the operator can see them until they leave the zone.',
         'The spotter and operator agree the radio channel and hand signals before work starts. The spotter keeps visual contact with the operator throughout, and the operator stops the machine at once if sight or radio contact is lost.',
@@ -8858,7 +8858,7 @@ const ACTIVITIES = [
         { only: 'waterCart', text: 'Water carts keep to the routes and speeds set for haul roads, and do not over-water ramps, corners or intersections where plant could slide.' },
         src('Plan haul roads and plant routes for blind spots, and keep plant away from overhangs and the edges of deep excavations. Ground workers wear high visibility clothing.', MODEL('Excavation work', 's 4.3')),
         src('Where a person could fall from a cut face or batter crest, install barriers or bunds, and set up clear pedestrian detours.', MODEL('Excavation work', 's 4.4')),
-        { unless: 'noSpoilGate', ...src('Spoil trucks leave through the site gate under the traffic management plan.', NSWC('NSW Moving plant on construction sites', 's 6.23')) },
+        { unless: 'noSpoilGate', ...src('Spoil trucks leave through the site gate under the traffic management plan (TMP).', NSWC('NSW Moving plant on construction sites', 's 6.23')) },
         { only: 'compaction', ...src('Rollers and plate compactors are run by competent operators. Ride-on rollers have rollover protection and a seat belt, and keep back from trench and batter edges.', NSWC('NSW Moving plant on construction sites', 's 4.3, s 6.1, s 6.8')) },
         { only: 'compaction', text: 'Vibration is managed by rotating operators.' },
         src('Keep dust down with wet methods, such as water carts.', NSWC('NSW Silica', 'appendix A')),
@@ -8984,7 +8984,7 @@ const ACTIVITIES = [
         'A register of who is on site is kept.',
         src('The principal contractor finds the essential services at or near the work before it starts.', WHS('s 40, s 315')),
         { only: 'hospitalCut', ...src('Services may be hidden in slabs and walls: scan and confirm before drilling or cutting.', NSWC('NSW Cutting drilling and grinding concrete', 's 6.2')) },
-        { only: 'ambulance', ...src('The traffic management plan provides for emergency vehicles and sets out traffic control by traffic controllers.', TRAFFIC('s 4.5.3, s 4.5.4')) },
+        { only: 'ambulance', ...src('The traffic management plan (TMP) provides for emergency vehicles and sets out traffic control by traffic controllers.', TRAFFIC('s 4.5.3, s 4.5.4')) },
         { only: 'ambulance', text: 'Ambulance routes and the emergency department entry stay clear at all times; trucks and plant give way to ambulances, and controllers hold site traffic when an ambulance approaches.' },
         src('Objects cannot fall onto people next to the work: exclusion zones, enclosed lifting areas and no loads over people.', `${WHS('s 54, s 55, s 219')}; ${QCODE('Managing the risk of falls', 's 8.1')}`),
         src('Workers\' exposure to dust and noise is kept below the exposure standards.', WHS('s 49, s 56, s 57')),
@@ -9913,7 +9913,7 @@ addAfter('earthworks', {
       'Operators and ground workers use two way acknowledgement before anyone approaches.',
       src('Seatbelts are worn where rollover protection is fitted. Plant works across slopes as little as possible and stays back from edges, batters and excavations.', NSWC('NSW Moving plant on construction sites', 's 6.1, s 6.7, s 6.8')),
       src('Routes are planned away from pedestrians, and a spotter is used where the operator cannot see.', NSWC('NSW Moving plant on construction sites', 's 6.21, s 7')),
-      src('Where plant travels on a public road, it does so only under the traffic management plan.', TRAFFIC('s 4.4')),
+      src('Where plant travels on a public road, it does so only under the traffic management plan (TMP).', TRAFFIC('s 4.4')),
     ],
   }],
   ppe: ['hivis', 'earPlugs'],
@@ -10710,7 +10710,7 @@ ACTIVITIES.push(
       only: 'lineRemoval',
       hazards: ['Struck by traffic or the removal plant.', 'Dust from grinding markings off the surface.', 'Injury from a high pressure water jet.', 'Noise from the removal plant.'],
       controls: [
-        src('The area is closed to vehicles and plant with barriers, cones and signs. On a road in use, a traffic management plan is followed and traffic controllers are used where it requires them.', TRAFFIC('s 4.1, s 4.5')),
+        src('The area is closed to vehicles and plant with barriers, cones and signs. On a road in use, a traffic management plan (TMP) is followed and traffic controllers are used where it requires them.', TRAFFIC('s 4.1, s 4.5')),
         src('Markings are ground off only with a grinder or scabbler fitted with dust extraction or water suppression, and a P2 respirator is worn where dust remains.', NSWC('NSW Cutting drilling and grinding concrete', 's 6.3')),
         'Water blasting is done only by trained operators, to AS/NZS 4233.1, with a dead man control on the lance, hoses and fittings rated for the pressure, and whip checks on the joints.',
         'Operators wear a face shield, waterproof clothing and boots rated for water blasting, and hearing protection.',
@@ -10723,7 +10723,7 @@ ACTIVITIES.push(
       controls: [
         { fact: 'safetyDataSheet' },
         src('Line marking paint is used outdoors or with ventilation, away from ignition sources, as its safety data sheet says.', QCODE('Managing risks of hazardous chemicals', 's 4.2')),
-        src('The area is closed to vehicles and plant with barriers, cones and signs. On a road in use, a traffic management plan is followed and traffic controllers are used where it requires them.', TRAFFIC('s 4.1, s 4.5')),
+        src('The area is closed to vehicles and plant with barriers, cones and signs. On a road in use, a traffic management plan (TMP) is followed and traffic controllers are used where it requires them.', TRAFFIC('s 4.1, s 4.5')),
         { only: 'forkliftSite', ...src('In a working warehouse or car park, the area is separated from forklifts and vehicles with physical barriers agreed with the site, not just paint or tape.', NSWC('NSW Moving plant on construction sites', 's 3.3')) },
         { only: 'siteVehicles', unless: 'forkliftSite', ...src('In a car park or driveway in use, the area is separated from vehicles with physical barriers agreed with the site, not just paint or tape.', NSWC('NSW Moving plant on construction sites', 's 3.3')) },
         src('Line marking machines are used with their guards in place.', QCODE('Managing the risks of plant in the workplace', 's 4.1')),
@@ -10752,7 +10752,7 @@ ACTIVITIES.push(
       only: 'pavementMarkers',
       hazards: ['Struck by traffic while placing markers.', 'Burns from hot bitumen adhesive.', 'Skin contact with adhesives.', 'Strain from bending and kneeling.'],
       controls: [
-        src('The area is closed to vehicles and plant with barriers, cones and signs. On a road in use, a traffic management plan is followed and traffic controllers are used where it requires them.', TRAFFIC('s 4.1, s 4.5')),
+        src('The area is closed to vehicles and plant with barriers, cones and signs. On a road in use, a traffic management plan (TMP) is followed and traffic controllers are used where it requires them.', TRAFFIC('s 4.1, s 4.5')),
         src('The current safety data sheet for each product is at the work area before first use, and every container, including anything decanted, is labelled.', WHS('s 341, s 342, s 344')),
         'Workers near hot bitumen wear long sleeves, gloves, boots and a face shield, and burns are cooled with water straight away.',
         src('A spill kit and fire extinguisher are at hand, and spills are contained and cleaned up straight away.', `${QCODE('Managing risks of hazardous chemicals', 's 4.2')}; ${NSWC('NSW Moving plant on construction sites', 's 6.17')}; ${NSWC('NSW Hazardous chemicals', 's 4.2')}`),
@@ -12777,6 +12777,247 @@ addAfter('ictCabling', {
     ],
   }],
   ppe: ['glassesClear'],
+});
+
+// The owner's pick list review, part 1 (11 October 2026, decisions/PICKLIST-FEEDBACK-2026-10-11-part1.md).
+// Each new line is from a source held in the data repo (sources/picklist-feedback, and the codes and
+// regulation already held), cited to the section read (D181). A line already in the library is
+// reused word for word with its source. EPA Victoria's guide is cited in Victorian drafts only, and
+// the NSW Blue Book in NSW drafts only (citations.js).
+const DEMOLITION_CODES = (section) => `${QCODE('Demolition', section)}; ${NSWC('NSW Demolition', section)}`;
+const MOBILE_CRANE = (section) => `Mobile crane Code of Practice 2024 (Qld) ${section}`;
+const MANAGE_ASBESTOS = (section) => `How to manage and control asbestos in the workplace Code of Practice 2021 (Qld) ${section}`;
+const REMOVE_ASBESTOS = (section) => `How to safely remove asbestos Code of Practice 2021 (Qld) ${section}`;
+const EPA_VIC = (section) => `EPA Victoria, Civil construction, building and demolition guide (Publication 1834.2, September 2025) ${section}`;
+const BLUE_BOOK = (section) => `Managing Urban Stormwater: Soils and Construction, Volume 1 (Landcom, 2004) ${section}`;
+const MOVING_PLANT = (section) => NSWC('NSW Moving plant on construction sites', section);
+const addTo = (when, name, controls) => stepOf(when, name).controls.push(...controls);
+
+// Trucks leaving the site keep the road and footpath clean (EPA Victoria, Guidance Sheet 3; Blue Book s 6.3.9).
+const ROAD_CLEAN = src('Trucks leave over a stabilised site exit or rumble grid with their loads covered, and any mud, soil or debris carried onto the road or footpath is cleaned up straight away with a broom, shovel or street sweeper, not washed into drains.', `${EPA_VIC('Guidance Sheet 3')}; ${BLUE_BOOK('s 6.3.9')}`);
+// The project's environmental management plan (EPA Victoria s 3.2.2).
+const EMP_LINE = src('Where the project has an environmental management plan, the controls it sets for dust, noise, water, waste and the work area are in place before work starts and are followed.', EPA_VIC('s 3.2.2'));
+// Monitoring the structure while it is demolished (demolition codes s 5.4, s 5.9).
+const DEMOLITION_WATCH = src('While demolition goes on, the structure, and any part kept or propped, is watched for unplanned movement, cracking or subsidence. If any is found, demolition there stops until the structural engineer has inspected it, and goes on only as the engineer directs.', DEMOLITION_CODES('s 5.4, s 5.9'));
+
+// Sheds, containers and large loads go only onto ground or footings ready for them (s 202).
+addTo('siteSheds', 'Set up site sheds', [
+  src('Sheds, containers and other large loads are placed only once the ground, footings or supports their supplier or engineer specifies are complete and ready to take the load.', WHS('s 202')),
+]);
+
+// Soft strip leaves the structure alone: removing a load-bearing part is demolition work (codes s 1.1).
+addTo('officeStrip', 'Strip out ceilings, partitions and floor coverings', [
+  { only: 'softStrip', ...src('Structural elements, such as columns, beams, slabs and load-bearing walls, are left untouched. Removing or cutting any of them is demolition work, high risk construction work that this strip-out SWMS does not cover.', DEMOLITION_CODES('s 1.1')) },
+]);
+
+// Old light fittings with PCB capacitors (demolition codes s 4.2).
+ACTIVITIES.find((item) => item.when === 'officeStrip').steps.push({
+  step: 'Remove fittings with PCB capacitors',
+  only: 'pcbRemoval',
+  hazards: ['Skin contact with PCB oil from a leaking or damaged capacitor.', 'PCBs spilt and spread to the environment.'],
+  controls: [
+    reuse('Services in the ceilings and partitions are isolated and made safe by the licensed trades before strip-out.'),
+    src('Damaged or leaking capacitors are handled so that no PCB oil touches workers, and any spill is cleaned up and disposed of as PCB waste.', DEMOLITION_CODES('s 4.2')),
+    src('Workers handling capacitors or fittings that may hold PCBs wear gloves resistant to PCBs, such as polyethylene, nitrile rubber or neoprene.', DEMOLITION_CODES('s 4.2')),
+    src('Capacitors and parts holding PCBs are placed in a polyethylene bag, then in a marked, sealable metal container.', DEMOLITION_CODES('s 4.2')),
+    src('Containers that cannot be taken away at once are kept in a protected area that stops PCBs escaping to the environment.', DEMOLITION_CODES('s 4.2')),
+  ],
+});
+
+// Building demolition: the engineer's sequence, watching the structure, dust and clean roads.
+addTo('structureDemolition', 'Demolish the structure', [
+  { unless: ['bridgeDemo', 'lightStructure'], ...src('The structure is demolished in the sequence the structural engineer\'s demolition design or instructions set, with the temporary bracing they show, so it stays stable at every stage.', DEMOLITION_CODES('s 3.3')) },
+  { unless: 'lightStructure', ...DEMOLITION_WATCH },
+  src('Dust is kept down with water throughout demolition and load-out, by hoses held by workers standing clear of falling debris or by sprays fitted to the machines. Work stops while dust is blowing beyond the site boundary, until it is under control.', EPA_VIC('s 5.3.3')),
+  EMP_LINE,
+  ROAD_CLEAN,
+]);
+
+// Partial demolition of a structure: the engineer's design first, services by their own trade.
+addTo('demolition', 'Demolish', [
+  { only: 'structuralDemo', ...src('No part of the structure is demolished until the structural engineer has given the demolition design or clear written instructions for it, and the work follows them in the engineer\'s sequence.', DEMOLITION_CODES('s 3.3')) },
+  { only: 'structuralDemo', ...DEMOLITION_WATCH },
+  { only: 'structuralDemo', ...src('Electrical services in the part being demolished are disconnected or made safe by a licensed electrician, and water, sewer and drainage by a licensed plumber, before demolition starts.', `${ESA('s 55(1)')}; ${PDA('s 56(1)')}`) },
+]);
+
+// Licensed asbestos removal: the licence class, the notices, and air monitoring as the user's choice.
+addTo('asbestos', 'Prepare the asbestos work area', [
+  { only: 'asbestosRemoval', ...src('Licensed asbestos removal work is done by a removalist holding the licence class it needs: Class A for friable asbestos, Class A or Class B for more than 10 m2 of non-friable asbestos. The asbestos removal supervisor is present throughout Class A work and readily available for Class B work.', WHS('s 458, s 459')) },
+  { only: 'asbestosRemoval', ...src('Before licensed removal starts, the removalist tells the person in control of the workplace that it is to be done and when. At domestic premises, the person who commissioned it, the occupier, the owner and the neighbours are told too.', WHS('s 467')) },
+  { only: 'asbestosRemoval', ...src('The principal contractor tells its workers and others at the workplace, and takes reasonable steps to tell businesses and neighbours next to it, that asbestos removal is to be done and when, before it starts.', WHS('s 468')) },
+  {
+    unless: 'friableAsbestos',
+    choice: 'asbestosAirMonitoring',
+    options: {
+      yes: [
+        src('Air (control) monitoring is done before and during the removal by an independent licensed asbestos assessor or a competent person, by the membrane filter method, to check the controls are working.', REMOVE_ASBESTOS('s 3.11')),
+        src('At 0.01 fibres/mL or more, the controls are reviewed and the cause found and fixed. Above 0.02 fibres/mL, removal stops, the regulator is told, and work restarts only when further monitoring shows 0.01 fibres/mL or less.', `${WHS('s 476')}; ${REMOVE_ASBESTOS('s 3.11')}`),
+      ],
+      no: [
+        src('Air monitoring is not planned for this non-friable removal. It is arranged if the controls are in doubt, after an uncontrolled disturbance of asbestos, or where the work is in or next to a public place.', REMOVE_ASBESTOS('s 3.11')),
+      ],
+    },
+  },
+]);
+
+// Taking samples of suspect materials in a hazardous materials survey (the asbestos code's appendix B).
+ACTIVITIES.find((item) => item.when === 'asbestosCheck').steps.push({
+  step: 'Take samples of suspect materials',
+  only: 'hazmatSampling',
+  hazards: ['Asbestos fibres are released when a sample is cut.', 'Dust and debris spread from the sample point.'],
+  controls: [
+    src('Samples are taken only by a competent person, trained to handle and take asbestos samples.', MANAGE_ASBESTOS('s 2.4')),
+    src('Before sampling, no one else is nearby, heating, cooling and fans are off (outdoors, sampling waits for a still day), and a plastic drop sheet is laid under the sample point.', MANAGE_ASBESTOS('appendix B')),
+    src('The sampler wears disposable gloves, disposable coveralls and a P2 respirator, and keeps the respirator on until the clean-up is complete.', MANAGE_ASBESTOS('appendix B')),
+    src('The material is wetted with a fine mist of water with a few drops of detergent, or a water and PVA glue mix on damaged material, before a small piece is cut through its full depth with hand tools, disturbing it no more than needed.', `${MANAGE_ASBESTOS('appendix B')}; ${REMOVE_ASBESTOS('appendix E')}`),
+    src('Straight after sampling, the sample point is patched with tape and its edges sealed with waterproof sealant, the area is wiped with a damp rag, and the drop sheet, rags and PPE go in labelled, double bagged asbestos waste bags.', MANAGE_ASBESTOS('appendix B')),
+    src('Each sample is double bagged, sealed and labelled with the date, location and an asbestos warning, and sent to a NATA-accredited laboratory or one the regulator approves or runs.', `${MANAGE_ASBESTOS('s 2.4, appendix B')}; ${WHS('s 422')}`),
+  ],
+});
+
+// Hung, cantilevered, suspended and support scaffolds: the engineer's design and the bearing for its loads.
+addTo('scaffold', 'Erect the scaffold', [
+  { only: 'engineeredScaffold', ...src('Hung, drop and suspended scaffolds, cantilevered or spurred scaffolds over 6 m high, and birdcages that are clad or over 20 m high are erected only to an engineer\'s verified design, and are inspected before first use as Table 1 of the scaffolding code sets out. Any structural change goes back to the engineer before it is made.', SCAFF('s 2.2')) },
+  { only: 'engineeredScaffold', ...src('Before erection, the bearing for the scaffold\'s loads is confirmed: ground with any doubt, such as soft ground, fill or services, by a geotechnical engineer, and a slab, suspended floor or other structure that carries or holds the scaffold by a structural engineer, with any propping they call for in place.', SCAFF('s 2.3, s 2.3.1, s 2.3.2')) },
+  { only: 'engineeredScaffold', ...src('Hung and suspended scaffolds are erected by holders of an advanced scaffolding licence (SA). Cantilevered and spur scaffolds need at least an intermediate scaffolding licence (SI).', WHS('schedule 3')) },
+]);
+
+// Penetrations in floors and roofs are covered as part of the edge protection work.
+addTo('edgeProtectionInstall', 'Install or remove edge protection', [
+  { only: 'penetrationCovers', ...reuse('Cover or barricade every penetration as soon as it is formed. Covers withstand a fall onto them, are fixed in place so they cannot be moved by accident, and are marked as covering a hole.') },
+]);
+
+// Lifting people in a crane workbox (mobile crane code s 11.6; steel construction code s 3.5).
+ACTIVITIES.find((item) => item.when === 'crane').steps.push({
+  step: 'Lift people in the crane workbox',
+  only: 'craneWorkbox',
+  hazards: ['A person falls from the workbox.', 'The workbox or its slings fail, or the box drops.', 'The workbox strikes the structure, crushing the people in it.', 'People are stranded in the workbox.'],
+  controls: [
+    src('A workbox is used only where a recorded risk assessment shows a scaffold, an EWP or another access system is not practicable.', MOBILE_CRANE('s 11.6.1')),
+    src('The workbox is design registered and marked with its SWL, tare mass and design registration number. It has sides at least 1 m high, a handrail around the inside, fall arrest anchor points, and any door opens inwards, closes itself and latches.', `${MOBILE_CRANE('s 11.6.1')}; ${QCODE('Steel construction', 's 3.5.5')}`),
+    src('The workbox slings are tagged and fixed to its lifting points by hammerlocks or moused shackles, with a factor of safety of at least 8 for chain and 10 for wire rope.', `${MOBILE_CRANE('s 11.6.1')}; ${QCODE('Steel construction', 's 3.5.5')}`),
+    src('Everyone in the workbox wears a full body harness with an energy-absorbing lanyard clipped to the box\'s anchor points or the main sling ring above their heads, never in the throat of the hook.', `${MOBILE_CRANE('s 11.6.1')}; ${QCODE('Steel construction', 's 3.5.4')}`),
+    src('Everyone using a harness is trained in its selection, fitting, use, inspection and care, and in the rescue procedure, and checks it before each use.', QCODE('Managing the risk of falls', 's 1.3, s 7.3')),
+    src('At least one person in the workbox holds a dogging or rigging licence and directs the crane operator, who holds the licence for the crane.', `${MOBILE_CRANE('s 11.6.1')}; ${WHS('s 81, schedule 3')}`),
+    src('The crane has a rated capacity of at least twice the total load of the workbox and its contents at the working radius, and not less than 1000 kg, with an upper hoist limit, controls that stop the crane when released, and no free fall.', `${MOBILE_CRANE('s 11.6.3')}; ${QCODE('Steel construction', 's 3.5.6')}`),
+    src('The crane operator stays at the controls the whole time the workbox is occupied, and moves it only under power.', QCODE('Steel construction', 's 3.5.7')),
+    src('The lift follows a documented lifting procedure for lifting people in the workbox.', MOBILE_CRANE('s 7.5')),
+    reuse('Rescue procedures are set up and tested, and workers are trained in them.'),
+  ],
+});
+
+// Clearing and earthworks: services found before grubbing and digging, spotters, the environmental
+// management plan, and the cleared material stockpiled and covered or trucked away, as the user chooses.
+const POTHOLE_FIRST = src('Before plant grubs out large trees and stumps or starts bulk earthworks, services the information shows near the work are exposed by potholing with hand tools or a vacuum unit, and marked.', `${QCODE('Excavation work', 's 3.6')}; ${NSWC('NSW Excavation', 's 3.6')}`);
+addTo('vegClearing', 'Clear vegetation with the mulcher and excavator', [
+  reuse('Get the current underground services information before digging, and work to it.'),
+  POTHOLE_FIRST,
+  reuse('Spotters are trained and competent, do no other task, stand in the operator\'s view (or use two-way radio), keep clear of the plant\'s travel path and tip or roll over distance, are easily identifiable, and are authorised to stop work.'),
+  src('Fauna spotters have the qualifications and experience, or the shown skills and knowledge, to find animals in the trees and habitat being cleared, and are present while the trees are cleared.', 'Nature Conservation (Koala) Conservation Plan 2017 (Qld) s 11'),
+  EMP_LINE,
+  src('Only the area approved for clearing is cleared. Vegetation along drains, waterways and steep slopes is kept, and vegetation to be kept is fenced off before work starts.', `${EPA_VIC('s 5.3.1')}; ${BLUE_BOOK('s 4.3.2')}`),
+  {
+    choice: 'clearingSpoil',
+    options: {
+      stockpile: [
+        src('Topsoil and cleared material are stockpiled only where the plan or the principal contractor sets, at least 2 m from waterways, drains, roads and steep slopes, with clean water diverted around them and a sediment fence or bund on the low side.', `${EPA_VIC('s 5.3.1, Guidance Sheet 2')}; ${BLUE_BOOK('s 4.3.2')}`),
+        src('Stockpiles left for more than 10 days are covered or stabilised, and are kept damp or covered so dust does not blow off them.', `${EPA_VIC('Guidance Sheet 2')}; ${BLUE_BOOK('s 4.3.2, s 6.3.10')}`),
+      ],
+      offsite: [
+        reuse('Spoil leaves site only for a facility or site licensed or approved to take that type of waste, with the waste records the state environment regulator requires.'),
+        reuse('Trucks are loaded in a set loading area with a spotter, and no one stands beside a truck while it is loaded or tips.'),
+        ROAD_CLEAN,
+      ],
+    },
+  },
+]);
+// Spoil trucked away, as the user chose, is not stockpiled on site.
+stepOf('spoilManage', 'Stockpile and cover spoil').unless = 'spoilGoesOffSite';
+addTo('earthworks', 'Run earthmoving plant', [
+  POTHOLE_FIRST,
+  { only: 'bulkEarthworks', ...EMP_LINE },
+  { only: 'bulkEarthworks', ...ROAD_CLEAN },
+]);
+
+// Erosion and sediment controls (EPA Victoria chapter 5; Blue Book chapters 4, 6 and 8).
+addAfter('earthworks', {
+  when: 'erosionControl',
+  steps: [{
+    step: 'Install and maintain erosion and sediment controls',
+    hazards: ['Struck by plant while installing fences, drains or basins.', 'Strain driving stakes and handling fence rolls and rock.', 'Hand injuries from star pickets and stakes.', 'A fall into a sediment basin or its water.'],
+    controls: [
+      src('Erosion and sediment controls are installed before clearing or earthworks start, as the erosion and sediment control plan or environmental management plan shows, and stay until the ground is stabilised.', `${EPA_VIC('s 5.2, s 5.3.2')}; ${BLUE_BOOK('s 2.2, s 6.3.2')}`),
+      src('Clean water from upslope is diverted around the disturbed ground, and sediment fences or other traps are placed on the low side of disturbed ground and stockpiles, so sediment stays close to where it comes from.', `${EPA_VIC('s 5.3.2')}; ${BLUE_BOOK('s 4.3.2, s 6.3.2')}`),
+      src('Exposed ground is stabilised as each area is finished, and only the area needed is opened up at a time.', `${EPA_VIC('s 5.3.1')}; ${BLUE_BOOK('s 6.3.10')}`),
+      src('The controls are inspected after rain and at regular intervals, damage is repaired, and sediment built up behind fences and in traps and drains is cleaned out.', `${EPA_VIC('s 5.3.1')}; ${BLUE_BOOK('s 8.2')}`),
+      ROAD_CLEAN,
+      reuse('Cap stakes and star pickets as soon as they are in place.'),
+      reuse('Operators and ground workers use two way acknowledgement before anyone approaches.'),
+    ],
+  }],
+});
+
+// Hand trimming, compacting and blinding (bulk and detailed excavation).
+addAfter('earthworks', {
+  when: 'handTrim',
+  steps: [{
+    step: 'Trim and compact the base by hand',
+    hazards: ['Back strain from shovelling and raking.', 'A worker is struck by another worker\'s shovel or bar.', 'Noise, vibration and exhaust fumes from plate compactors and rammers.', 'A worker is struck or crushed by a remote-controlled roller.'],
+    controls: [
+      src('The bulk of the material is removed by machine and only the finishing cut is trimmed by hand. Shovelling and raking are rotated with other tasks and broken with rest.', QCODE('Hazardous manual tasks', 's 4.1, s 4.7')),
+      reuse('When digging by hand, workers using picks, shovels or bars keep far enough apart that they cannot strike each other.'),
+      reuse('Rollers and plate compactors are run by competent operators. Ride-on rollers have rollover protection and a seat belt, and keep back from trench and batter edges.'),
+      src('Plate compactors and rammers are models with low vibration, and operators are rotated to limit hand-arm vibration.', QCODE('Hazardous manual tasks', 's 4.6, s 4.7')),
+      reuse('Hearing protection is worn while the plate compactor runs.'),
+      reuse('Plant with a combustion engine, such as a compressor or generator, is never used in the trench while workers are in it. Where engine exhaust could collect, ventilate and monitor for carbon monoxide.'),
+      src('A remote-controlled roller is fit for the task and stops safely if its control signal is lost or it fails.', MOVING_PLANT('s 6.9')),
+      src('The operator of a remote-controlled roller stands where they can see it and its path clearly, and other workers are kept out of its path while it runs.', MOVING_PLANT('s 6.9')),
+    ],
+  }, {
+    step: 'Place the blinding concrete',
+    only: 'blinding',
+    hazards: ['Cement burns to the skin and eyes.', 'A reversing agitator truck or the pump strikes a worker.', 'Strain from barrowing and spreading concrete.', 'The truck or pump causes the excavation edge to collapse.'],
+    controls: [
+      reuse('Wear gloves and eye protection.'),
+      reuse('Wash wet concrete off the skin straight away.'),
+      {
+        choice: 'blindingMethod',
+        options: {
+          chute: [
+            src('The agitator truck stands back from the excavation edge, and people keep clear of the chute while it is swung or extended.', QCODE('Concrete pumping', 's 4.2.2.2, s 4.3.1')),
+            reuse('The truck\'s concrete chute is moved only when the truck is stationary, preferably by the driver or with the driver\'s permission.'),
+            reuse('Concrete trucks reverse only with a spotter, into a marked area kept clear of people.'),
+          ],
+          pump: [
+            reuse('A truck-mounted pump stands on ground that can take the outrigger loads, with pads under the outriggers.'),
+            reuse('Check pipes, clamps and the end hose before pumping.'),
+            reuse('Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.'),
+            reuse('Concrete trucks reverse only with a spotter, into a marked area kept clear of people.'),
+          ],
+          barrow: [
+            src('Barrow runs are kept short, firm, level and clear, with planks over trenches and soft ground, barrows are filled only to a load the worker can push and balance, and barrowing is rotated with other tasks.', QCODE('Hazardous manual tasks', 's 4.6, s 4.7')),
+            reuse('Concrete trucks reverse only with a spotter, into a marked area kept clear of people.'),
+          ],
+        },
+      },
+    ],
+  }],
+});
+
+// Mast climbing work platforms (falls code s 5.1; WHS Regulation s 201, s 204, s 243, schedules 3 and 5).
+addAfter('swingStage', {
+  when: 'mastClimber',
+  steps: [{
+    step: 'Install, climb and dismantle the mast climbing work platform',
+    hazards: ['A fall from the platform or mast while it is installed, extended or dismantled.', 'The mast or platform collapses from a poor base or missing ties.', 'Components or tools fall onto people below.'],
+    controls: [
+      src('The mast climbing work platform is installed, climbed and dismantled to the manufacturer\'s instructions and the engineer\'s design for its base, mast and ties, with the mast tied to the building as the manufacturer prescribes, and is commissioned before use.', `${WHS('s 201, s 204')}; ${QCODE('Managing the risk of falls', 's 5.1')}`),
+      src('Erecting and dismantling the mast climbing work platform is done by holders of a basic rigging or intermediate scaffolding licence, or trainees supervised by one.', `${QCODE('Managing the risk of falls', 's 5.1')}; ${WHS('schedule 3')}`),
+      src('The mast climbing work platform has a registered design.', WHS('s 243, schedule 5')),
+      reuse('Exclusion zone below with keep out signs and a person controlling it while erecting and dismantling.'),
+      reuse('Components are lowered with a gin wheel or crane.'),
+    ],
+  }],
 });
 
 // The citation helpers, for lines other modules add with their sources (draft.js permits).

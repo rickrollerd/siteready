@@ -108,7 +108,7 @@ const ANSWERS = {
     ['Contaminated or unknown spoil', 'Spoil is treated as contaminated until test report ____ shows otherwise. It is kept apart and covered at ____, handled under ____ (remediation or asbestos plan), and taken only to ____ (a facility licensed for that waste), with the waste tracking records the state environment regulator requires.'],
   ],
   excavationPlan: [
-    ['Geotechnical design', 'Excavation follows the geotechnical design ____ (revision ____) in stages to the levels shown, with batters no steeper than ____, and plant and trucks follow the site traffic management plan ____.'],
+    ['Geotechnical design', 'Excavation follows the geotechnical design ____ (revision ____) in stages to the levels shown, with batters no steeper than ____, and plant and trucks follow the site traffic management plan (TMP) ____.'],
   ],
   rigExclusionZone: [
     ['Fenced radius', 'Each rig has a fenced and signed exclusion zone of ____ m radius. Only the rig crew enters, with the operator\'s agreement, controlled by the piling supervisor.'],

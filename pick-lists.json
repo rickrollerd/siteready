@@ -31,7 +31,7 @@
     {
      "id": "site-sheds",
      "title": "Site sheds and amenities: deliver, place, connect and remove",
-     "task": "Site sheds and amenities: deliver the site sheds and containers, lift them into place with the crane crew, stack them with stairs and landings, connect services, and later remove the site sheds.",
+     "task": "Site sheds and amenities: confirm the ground or footings are complete and ready for each load, deliver the site sheds and containers, lift them into place with the crane crew, stack them with stairs and landings, connect services, and later remove the site sheds.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -61,7 +61,7 @@
     {
      "id": "traffic-public-road",
      "title": "Traffic management on public roads",
-     "task": "Traffic management on public roads: set up, check and remove signs and devices to the approved traffic guidance scheme, lane and footpath closures, traffic controllers, night work and traffic switches.",
+     "task": "Traffic management on public roads: set up, check and remove signs and devices to the approved traffic management plan (TMP) and its traffic guidance scheme (TGS), lane and footpath closures, traffic controllers holding the tickets and training the work needs, night work and traffic switches.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -77,7 +77,7 @@
     {
      "id": "traffic-on-site",
      "title": "Site traffic and plant movement management",
-     "task": "Run the vehicle management plan inside the site: gate control, spotters, separating plant and people, exclusion zones and delivery loading zones.",
+     "task": "Run the site traffic management plan (TMP) inside the site: gate control, trained spotters, separating plant and people, exclusion zones and delivery loading zones.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -98,7 +98,7 @@
     {
      "id": "strip-out",
      "title": "Internal strip-out (soft strip)",
-     "task": "Internal strip-out (soft strip) once the services are made safe: strip out ceilings, partitions, floor coverings and joinery, remove redundant services, and load waste into skips and bins.",
+     "task": "Internal strip-out (soft strip) once the services are made safe, leaving all structural elements untouched: strip out ceilings, partitions, floor coverings and joinery, remove redundant services, and load waste into skips and bins.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -115,7 +115,7 @@
     {
      "id": "building-demolition",
      "title": "Building demolition: roof removal, machine demolition and load-out",
-     "task": "Building demolition: strip the roof sheets and timbers, demolish the structure by hand and by excavator or high reach machine, protect neighbours, control dust and noise, and load out the waste into skips and trucks.",
+     "task": "Building demolition in the sequence the structural engineer sets, with the structure monitored for movement: strip the roof sheets and timbers, demolish the structure by hand and by excavator or high reach machine, protect neighbours, suppress dust with hoses or machine-mounted sprays as the environmental management plan requires, control noise, and load out the waste into skips and trucks, keeping the roads and footpaths clean.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
@@ -133,18 +133,18 @@
     {
      "id": "partial-demolition",
      "title": "Partial demolition and structural alterations in existing buildings",
-     "task": "Partial demolition in an existing building that stays in use: install temporary support to the engineer's design, remove walls, cut an opening in a load-bearing wall, and demolish parts of the structure.",
+     "task": "Partial demolition and structural alterations in an existing building that stays in use, to the structural engineer's demolition design or written instructions: live services isolated or removed by their own licensed trades, temporary support installed to the engineer's design, and the parts of the structure demolished.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
-      "wallRemoval",
-      "structuralOpening",
       "propping",
       "demolition"
      ],
      "leaveOut": [],
-     "gaps": [],
-     "coverage": "full",
+     "gaps": [
+      "the parts of the structure being demolished (describe what comes out, where it is and how it is taken down)"
+     ],
+     "coverage": "partial",
      "basis": "evidence"
     }
    ]
@@ -157,7 +157,7 @@
     {
      "id": "non-friable",
      "title": "Non-friable asbestos removal (Class B)",
-     "task": "Remove non-friable asbestos (Class B): fibre cement sheeting, eaves, vinyl and adhesives, removed whole by wet methods with hand tools, bagged and labelled, with decontamination and clearance before the area reopens. Includes asbestos cement roof sheets removed from the roof.",
+     "task": "Remove non-friable asbestos (Class B) by a licensed asbestos removalist, with the notices given before work starts: fibre cement sheeting, eaves, vinyl and adhesives, removed whole by wet methods with hand tools, bagged and labelled, with air monitoring where chosen, decontamination and clearance before the area reopens. Includes asbestos cement roof sheets removed from the roof.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
@@ -172,7 +172,7 @@
     {
      "id": "friable",
      "title": "Friable asbestos removal (Class A) in an enclosure",
-     "task": "Remove friable asbestos (Class A) lagging, sprayed insulation and low density board by wet methods inside a sealed enclosure under negative pressure, with air monitoring and clearance by an independent licensed assessor.",
+     "task": "Remove friable asbestos (Class A) by a licensed asbestos removalist, with the notices given before work starts: lagging, sprayed insulation and low density board removed by wet methods inside a sealed enclosure under negative pressure, with air monitoring and clearance by an independent licensed asbestos assessor.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -188,7 +188,7 @@
     {
      "id": "asbestos-soil-pits",
      "title": "Asbestos in soil, pits and ducts",
-     "task": "Remove asbestos cement pits and ducts and asbestos contaminated soil: wet the ground, remove the soil in sections, monitor dust, and dispose of the waste.",
+     "task": "Remove asbestos cement pits and ducts and asbestos contaminated soil by a licensed asbestos removalist: wet the ground, remove the soil in sections, monitor dust, and dispose of the waste.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -206,7 +206,7 @@
     {
      "id": "hazmat-survey",
      "title": "Hazardous materials survey and sampling",
-     "task": "Hazardous materials survey before refurbishment or demolition: inspect ceilings, roof spaces, plant rooms and roofs, and take samples of suspect materials.",
+     "task": "Hazardous materials survey before refurbishment or demolition: inspect ceilings, roof spaces, plant rooms and roofs, and take samples of suspect materials by a competent person in PPE, wetting the material first and sealing each sample point.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
@@ -215,10 +215,8 @@
       "roofAccess"
      ],
      "leaveOut": [],
-     "gaps": [
-      "taking destructive samples of suspect materials and sealing the sample points"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -233,7 +231,6 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "removing PCB capacitors and oils from old light fittings as hazardous waste",
       "removing synthetic mineral fibre insulation as hazardous waste"
      ],
      "coverage": "partial",
@@ -263,7 +260,7 @@
     {
      "id": "hung-suspended",
      "title": "Hung, cantilevered and suspended scaffolds, including swing stages",
-     "task": "Hung and suspended scaffolds: erect the hung scaffold from the structure, and rig, inspect and dismantle the swing stage for other trades.",
+     "task": "Hung, cantilevered and suspended scaffolds, including swing stages, by advanced scaffolders to the engineer's design: confirm the ground or structure can take the loads with the geotechnical or structural engineer, erect the hung or cantilevered scaffold from the structure, and rig, inspect and dismantle the swing stage for other trades.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
@@ -281,7 +278,7 @@
     {
      "id": "support-scaffold",
      "title": "Birdcage and load-bearing support scaffolds",
-     "task": "Support scaffolds: erect and dismantle the birdcage scaffold and support scaffold under formwork decks and voids, and erect the falsework and shores to the design.",
+     "task": "Birdcage and load-bearing support scaffolds to the engineer's design: confirm the ground or slab can take the loads with the geotechnical or structural engineer, erect and dismantle the birdcage scaffold and support scaffold under formwork decks and voids, and erect the falsework and shores to the design.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
@@ -335,7 +332,7 @@
     {
      "id": "edge-protection-stairs-nets",
      "title": "Temporary edge protection, stair towers and safety nets",
-     "task": "Install and remove temporary edge protection at slab and roof edges and voids, temporary stair towers, and safety nets and static lines, with inspections.",
+     "task": "Install and remove temporary edge protection at slab and roof edges and voids, cover and protect penetrations in floors and roofs, and install temporary stair towers, safety nets and static lines, with inspections.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
@@ -351,15 +348,18 @@
     {
      "id": "mast-climbers",
      "title": "Mast climbing work platforms: install and dismantle",
-     "task": "Mast climbing work platforms: install the base and mast, tie it in, climb and extend, inspect, and dismantle.",
+     "task": "Mast climbing work platforms: install the base and mast to the engineer's design and the manufacturer's instructions, tie it in, climb and extend, inspect, and dismantle.",
      "fallRisk": "yes",
      "crane": "company",
-     "kinds": [],
+     "kinds": [
+      "mastClimber"
+     ],
      "leaveOut": [],
      "gaps": [
-      "installing, climbing and dismantling a mast climbing work platform"
+      "the engineer's approval of the ground or structure for the base and tie loads, and what to do where the engineer's design and the manufacturer's instructions differ",
+      "climbing, extending and using the platform (load limits, daily checks and wind limits)"
      ],
-     "coverage": "none",
+     "coverage": "partial",
      "basis": "inferred"
     }
    ]
@@ -478,7 +478,7 @@
     {
      "id": "crane-workbox",
      "title": "Lifting people in a crane workbox",
-     "task": "Lift people in a crane workbox, only where an EWP cannot be used: lift with the mobile crane under a permit, with a registered workbox, harnesses, a wind limit and a rescue plan.",
+     "task": "Lift people in a crane workbox, only where an EWP cannot be used: a registered, engineer-designed workbox, harnesses worn by trained and licensed workers, lifted with the mobile crane under a lift plan, with a wind limit and a rescue plan.",
      "fallRisk": "yes",
      "crane": "own",
      "kinds": [
@@ -486,7 +486,7 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "working from a crane workbox (permit, free-fall lock, wind limit and rescue)"
+      "the site permit and the rescue procedure for people stranded in the workbox"
      ],
      "coverage": "partial",
      "basis": "evidence"
@@ -501,18 +501,19 @@
     {
      "id": "site-clearing",
      "title": "Site clearing, grubbing and topsoil stripping",
-     "task": "Site clearing: remove trees and stumps, clear and grub the vegetation, strip the topsoil and stockpile and cover it, inside the approved clearing footprint.",
+     "task": "Site clearing once the services are located and the clearing limits marked: install the erosion and sediment controls, pothole to expose services before grubbing, remove trees and stumps with trained fauna spotters, clear and grub the vegetation, strip the topsoil, and stockpile and cover it or truck it off site, as the environmental management plan requires.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "vegClearing",
       "treeRemoval",
       "earthworks",
-      "spoilManage"
+      "spoilManage",
+      "erosionControl"
      ],
      "leaveOut": [],
      "gaps": [
-      "fauna spotters and stopping work for cultural heritage finds"
+      "stopping work for cultural heritage finds"
      ],
      "coverage": "partial",
      "basis": "evidence"
@@ -520,36 +521,37 @@
     {
      "id": "bulk-earthworks",
      "title": "Bulk earthworks: cut, fill and compaction",
-     "task": "Bulk earthworks: cut and fill with excavators, dozers, scrapers and trucks, compact the fill with rollers and a rolling impact compactor, trim the batters, and stockpile and cart away spoil.",
+     "task": "Bulk earthworks once the services are located and the set-out marked: install the erosion and sediment controls, cut and fill with excavators, dozers, scrapers and trucks, compact the fill with rollers and a rolling impact compactor, trim the batters and hand trim the base, hand compact with plate compactors, rammers or remote-controlled rollers, place the blinding, and stockpile and cart away spoil, as the environmental management plan requires.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "earthworks",
       "impactRoller",
       "spoilManage",
-      "smallPlant"
+      "smallPlant",
+      "erosionControl",
+      "handTrim"
      ],
      "leaveOut": [],
      "gaps": [],
-     "coverage": "partial",
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "detailed-excavation",
      "title": "Detailed excavation for footings, pits and pile caps",
-     "task": "Detailed excavation for pad and strip footings, pile caps, pits and trenches with smaller excavators, including excavations deeper than 1.5 m, then hand trim the base.",
+     "task": "Detailed excavation for pad and strip footings, pile caps, pits and trenches with smaller excavators, including excavations deeper than 1.5 m, then hand trim and compact the base and place the blinding.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "detailDig",
       "footingHoles",
-      "trench"
+      "trench",
+      "handTrim"
      ],
      "leaveOut": [],
-     "gaps": [
-      "hand trimming and compacting the base and spreading blinding"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -570,7 +572,7 @@
     {
      "id": "locate-services",
      "title": "Locating and exposing services by potholing or vacuum excavation",
-     "task": "Locate underground services: electronic location, potholing by hand and vacuum excavation with a hydro or air vacuum truck, then mark and protect the exposed services.",
+     "task": "Locate underground services before clearing, grubbing large trees and bulk earthworks: electronic location, potholing by hand and vacuum excavation with a hydro or air vacuum truck, then mark and protect the exposed services.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -635,12 +637,14 @@
      "task": "Install, maintain and remove erosion and sediment controls: silt fences, sediment basins, diversion drains, check dams and shake down grids at the site exit.",
      "fallRisk": "no",
      "crane": "company",
-     "kinds": [],
+     "kinds": [
+      "erosionControl"
+     ],
      "leaveOut": [],
      "gaps": [
-      "installing and maintaining silt fences, sediment basins, check dams and shake down grids"
+      "building sediment basins and diversion drains with plant (excavation and embankments)"
      ],
-     "coverage": "none",
+     "coverage": "partial",
      "basis": "evidence"
     },
     {
@@ -1208,7 +1212,7 @@
     {
      "id": "road-marking",
      "title": "Road line marking and raised pavement markers",
-     "task": "Road line marking: set out and paint lines from the line marking truck or by hand on the road, lay thermoplastic with a gas torch, and fix raised pavement markers, under the traffic management plan.",
+     "task": "Road line marking: set out and paint lines from the line marking truck or by hand on the road, lay thermoplastic with a gas torch, and fix raised pavement markers, under the traffic management plan (TMP).",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
