@@ -1,0 +1,364 @@
+{
+ "docs": {
+  "qld": {
+   "esr": "Electrical Safety Regulation 2026 (Qld)"
+  },
+  "nsw": {},
+  "vic": {
+   "esa": "Electricity Safety Act 1998 (Vic)",
+   "esg": "Electricity Safety (General) Regulations 2019 (Vic)"
+  },
+  "sa": {},
+  "wa": {
+   "lic": "Electricity (Licensing) Regulations 1991 (WA)"
+  },
+  "tas": {
+   "olact": "Occupational Licensing Act 2005 (Tas)",
+   "olreg": "Occupational Licensing (Electrical Work) Regulations 2018 (Tas)"
+  },
+  "act": {
+   "col": "Construction Occupations (Licensing) Act 2004 (ACT)",
+   "esa": "Electricity Safety Act 1971 (ACT)"
+  },
+  "nt": {
+   "esa": "Electrical Safety Act 2022 (NT)",
+   "esr": "Electrical Safety Regulations 2024 (NT)"
+  }
+ },
+ "lines": {
+  "qld": {
+   "Energised electrical work is never done because it is more convenient. It goes ahead only where the regulation permits, after a competent person's recorded risk assessment, with the isolation point clearly marked, kept clear and able to be operated quickly.": [
+    "esr s 195",
+    "esr s 199"
+   ]
+  },
+  "nsw": {
+   "All construction wiring and electrical equipment complies with AS/NZS 3012.": [
+    "whs s 163"
+   ],
+   "Circuits have RCD protection as AS/NZS 3012 requires.": [
+    "whs s 163"
+   ],
+   "Fittings and outlets are connected only to circuits that are isolated and proved de-energised.": [
+    "whs s 154",
+    "whs s 155"
+   ],
+   "High voltage exposed parts are treated as energised until isolated and found not to be energised, and are earthed after being de-energised, before anyone works on them.": [
+    "whs s 155"
+   ],
+   "The circuit is isolated and proved de-energised before the power connection is made.": [
+    "whs s 154",
+    "whs s 155"
+   ]
+  },
+  "vic": {
+   "After later work, an installation is reconnected only if the work was done by a licensed person and tested as electrically safe and compliant with the wiring rules.": [
+    "esa s 38",
+    "esa s 44",
+    "esg r 240"
+   ],
+   "Any power connection is made by a licensed electrician.": [
+    "esa s 38"
+   ],
+   "Apprentices are supervised by a licensed electrician as the state's electrical licensing rules require.": [
+    "esa s 39",
+    "esg r 507"
+   ],
+   "Each termination is tested before the cable is energised.": [
+    "esa s 44"
+   ],
+   "Electrical connections are made by a licensed electrician.": [
+    "esa s 38"
+   ],
+   "Electrical work is done or supervised only by licensed electricians, for a licensed electrical contractor, as the state's electrical licensing law requires.": [
+    "esa s 30",
+    "esa s 38"
+   ],
+   "Energised electrical work is never done because it is more convenient. It goes ahead only where the regulation permits, after a competent person's recorded risk assessment, with the isolation point clearly marked, kept clear and able to be operated quickly.": [
+    "esg r 509",
+    "esg r 510"
+   ],
+   "Installing and connecting electrical cable is electrical work for a licensed electrician.": [
+    "esa s 38"
+   ],
+   "No part of a worker, operating plant or vehicle enters an exclusion zone while the line is energised. Exclusion zones extend in all directions, not just sideways.": [
+    "esg r 612",
+    "esg r 614"
+   ],
+   "Power connections are electrical work for a licensed electrician.": [
+    "esa s 38"
+   ],
+   "Power to lit signs is connected by a licensed electrician.": [
+    "esa s 38"
+   ],
+   "The connection is electrical work for a licensed electrician, and the light is tested after the work.": [
+    "esa s 38",
+    "esa s 44"
+   ],
+   "The fan and hood lighting are connected by a licensed electrician.": [
+    "esa s 38"
+   ],
+   "The pump's electrical connection is made by a licensed electrician.": [
+    "esa s 38"
+   ],
+   "Trees are not cut or trimmed where any part of the tree is within the exclusion zone, or could fall or be carried into it. That work is left to authorised persons.": [
+    "esg r 616",
+    "esg r 617"
+   ],
+   "Wiring for automatic gate motors is done by a licensed electrician and tested before it is connected to supply.": [
+    "esa s 38",
+    "esa s 44"
+   ]
+  },
+  "sa": {
+   "All construction wiring and electrical equipment complies with AS/NZS 3012.": [
+    "whs r 163"
+   ],
+   "Circuits have RCD protection as AS/NZS 3012 requires.": [
+    "whs r 163"
+   ],
+   "Equipment that is due for testing but has not been tested is not used, for example by locking it away or fitting lock out labels and tags.": [
+    "whs r 151"
+   ],
+   "High voltage exposed parts are treated as energised until isolated and found not to be energised, and are earthed after being de-energised, before anyone works on them.": [
+    "whs r 155"
+   ]
+  },
+  "wa": {
+   "A competent person tests that the parts are de-energised before anyone touches them (test before you touch).": [
+    "whs r 152"
+   ],
+   "All construction wiring and electrical equipment complies with AS/NZS 3012.": [
+    "whs r 163"
+   ],
+   "Any power connection is made by a licensed electrician.": [
+    "lic r 19"
+   ],
+   "Apprentices are supervised by a licensed electrician as the state's electrical licensing rules require.": [
+    "lic r 50"
+   ],
+   "Circuits have RCD protection as AS/NZS 3012 requires.": [
+    "whs r 163"
+   ],
+   "Electrical connections are made by a licensed electrician.": [
+    "lic r 19"
+   ],
+   "Electrical work is done or supervised only by licensed electricians, for a licensed electrical contractor, as the state's electrical licensing law requires.": [
+    "lic r 19",
+    "lic r 33",
+    "lic r 50"
+   ],
+   "Fittings and outlets are connected only to circuits that are isolated and proved de-energised.": [
+    "whs r 152"
+   ],
+   "Give the network operator the notice it requires, and issue the electrical certificate of compliance or safety the state requires.": [
+    "lic r 51",
+    "lic r 52",
+    "lic r 52B"
+   ],
+   "Hardwired alarms are connected by a licensed electrician, with the circuit isolated and tested de-energised first.": [
+    "lic r 19",
+    "whs r 152"
+   ],
+   "Installing and connecting electrical cable is electrical work for a licensed electrician.": [
+    "lic r 19"
+   ],
+   "No part of a worker, operating plant or vehicle enters an exclusion zone while the line is energised. Exclusion zones extend in all directions, not just sideways.": [
+    "whs r 166A"
+   ],
+   "Power connections are electrical work for a licensed electrician.": [
+    "lic r 19"
+   ],
+   "Power to lit signs is connected by a licensed electrician.": [
+    "lic r 19"
+   ],
+   "The circuit is isolated and proved de-energised before the power connection is made.": [
+    "whs r 152"
+   ],
+   "The fan and hood lighting are connected by a licensed electrician.": [
+    "lic r 19"
+   ],
+   "The generator's connection, changeover switch and switchboard work are electrical work for a licensed electrician, with the supply isolated and proved de-energised first.": [
+    "lic r 19",
+    "whs r 152"
+   ],
+   "The mains connection to the panel is electrical work for a licensed electrician, with the circuit isolated and proved de-energised first.": [
+    "lic r 19",
+    "whs r 152"
+   ],
+   "The pump's electrical connection is made by a licensed electrician.": [
+    "lic r 19"
+   ],
+   "Treat every exposed part as energised until it is isolated and tested by a competent person and found de-energised.": [
+    "whs r 152"
+   ],
+   "Wiring and the power connection are electrical work for a licensed electrician, with the circuit isolated and proved de-energised first.": [
+    "lic r 19",
+    "whs r 152"
+   ]
+  },
+  "tas": {
+   "A competent person tests that the parts are de-energised before anyone touches them (test before you touch).": [
+    "whs r 155"
+   ],
+   "All construction wiring and electrical equipment complies with AS/NZS 3012.": [
+    "whs r 163"
+   ],
+   "Any power connection is made by a licensed electrician.": [
+    "olact s 22",
+    "olreg r 5"
+   ],
+   "Apprentices are supervised by a licensed electrician as the state's electrical licensing rules require.": [
+    "olact s 22"
+   ],
+   "Circuits have RCD protection as AS/NZS 3012 requires.": [
+    "whs r 163"
+   ],
+   "Electrical work is done or supervised only by licensed electricians, for a licensed electrical contractor, as the state's electrical licensing law requires.": [
+    "olact s 21",
+    "olact s 22",
+    "olreg r 5"
+   ],
+   "Fittings and outlets are connected only to circuits that are isolated and proved de-energised.": [
+    "whs r 154",
+    "whs r 155"
+   ],
+   "High voltage exposed parts are treated as energised until isolated and found not to be energised, and are earthed after being de-energised, before anyone works on them.": [
+    "whs r 155"
+   ],
+   "Power to lit signs is connected by a licensed electrician.": [
+    "olact s 22",
+    "olreg r 5"
+   ],
+   "The circuit is isolated and proved de-energised before the power connection is made.": [
+    "whs r 154",
+    "whs r 155"
+   ],
+   "The fan and hood lighting are connected by a licensed electrician.": [
+    "olact s 22",
+    "olreg r 5"
+   ],
+   "The pump's electrical connection is made by a licensed electrician.": [
+    "olact s 22",
+    "olreg r 5"
+   ]
+  },
+  "act": {
+   "A competent person tests that the parts are de-energised before anyone touches them (test before you touch).": [
+    "whs s 155"
+   ],
+   "All construction wiring and electrical equipment complies with AS/NZS 3012.": [
+    "whs s 163"
+   ],
+   "Any power connection is made by a licensed electrician.": [
+    "col s 11",
+    "col s 84"
+   ],
+   "Apprentices are supervised by a licensed electrician as the territory's electrical licensing rules require.": [
+    "col s 84"
+   ],
+   "Circuits have RCD protection as AS/NZS 3012 requires.": [
+    "whs s 163"
+   ],
+   "Electrical work is done or supervised only by licensed electricians, for a licensed electrical contractor, as the territory's electrical licensing law requires.": [
+    "col s 11",
+    "col s 84"
+   ],
+   "Fittings and outlets are connected only to circuits that are isolated and proved de-energised.": [
+    "whs s 154",
+    "whs s 155"
+   ],
+   "High voltage exposed parts are treated as energised until isolated and found not to be energised, and are earthed after being de-energised, before anyone works on them.": [
+    "whs s 155"
+   ],
+   "Power to lit signs is connected by a licensed electrician.": [
+    "col s 11",
+    "col s 84"
+   ],
+   "The circuit is isolated and proved de-energised before the power connection is made.": [
+    "whs s 154",
+    "whs s 155"
+   ],
+   "The connection is electrical work for a licensed electrician, and the light is tested after the work.": [
+    "col s 11",
+    "col s 84",
+    "esa s 6"
+   ],
+   "The fan and hood lighting are connected by a licensed electrician.": [
+    "col s 11",
+    "col s 84"
+   ],
+   "The pump's electrical connection is made by a licensed electrician.": [
+    "col s 11",
+    "col s 84"
+   ]
+  },
+  "nt": {
+   "All construction wiring and electrical equipment complies with AS/NZS 3012.": [
+    "esr r 105",
+    "esr r 106"
+   ],
+   "Any power connection is made by a licensed electrician.": [
+    "esa s 34",
+    "esa s 65"
+   ],
+   "Apprentices are supervised by a licensed electrician as the territory's electrical licensing rules require.": [
+    "esr r 56"
+   ],
+   "Before a high load travels under overhead power lines, the network operator is consulted about the route.": [
+    "esr r 173"
+   ],
+   "Before the insulation is installed, the electrical risk in the ceiling space is assessed by a competent person, and live cables and fittings are isolated or kept clear of.": [
+    "esr r 130",
+    "esr r 132",
+    "esr r 133"
+   ],
+   "Circuits have RCD protection as AS/NZS 3012 requires.": [
+    "esr r 105",
+    "esr r 106"
+   ],
+   "Electrical work is done or supervised only by licensed electricians, for a licensed electrical contractor, as the territory's electrical licensing law requires.": [
+    "esa s 34",
+    "esa s 65",
+    "esa s 66"
+   ],
+   "Give the network operator the notice it requires, and issue the electrical certificate of compliance or safety the territory requires.": [
+    "esa s 40",
+    "esa s 41"
+   ],
+   "High voltage exposed parts are treated as energised until isolated and found not to be energised, and are earthed after being de-energised, before anyone works on them.": [
+    "esr r 73"
+   ],
+   "Insulation is not fastened with metal staples or other conductive fasteners, and is kept clear of recessed light fittings and their transformers as the wiring rules require.": [
+    "esr r 131",
+    "esr r 135"
+   ],
+   "Power to lit signs is connected by a licensed electrician.": [
+    "esa s 34",
+    "esa s 65"
+   ],
+   "Run construction power leads on the deck where they will not be damaged by water, concrete or work, or protect them.": [
+    "esr r 68"
+   ],
+   "Run the leads for winches and tools where they will not be damaged, or protect them.": [
+    "esr r 68"
+   ],
+   "The connection is electrical work for a licensed electrician, and the light is tested after the work.": [
+    "esa s 65",
+    "esr r 86"
+   ],
+   "The fan and hood lighting are connected by a licensed electrician.": [
+    "esa s 34",
+    "esa s 65"
+   ],
+   "The pump's electrical connection is made by a licensed electrician.": [
+    "esa s 34",
+    "esa s 65"
+   ],
+   "Workers without an electrical licence do only the conduit work the territory's electrical licensing law allows, under a licensed electrician's supervision. Any earthing or bonding is done by licensed workers.": [
+    "esa s 9",
+    "esa s 65"
+   ]
+  }
+ }
+}

@@ -308,7 +308,8 @@ test('a trade or kind of work that is not a known id is free text and is not kep
       assert.equal(row.trade, '');
       assert.deepEqual(JSON.parse(row.kinds), ['trench']);
     }
-    assert.doesNotMatch(JSON.stringify(await db.query('SELECT * FROM control_edit_events')), /Jo Bloggs|0400/);
+    // Text fields only: the ids and keys are random hex and can contain any digits.
+    assert.doesNotMatch(JSON.stringify(await db.query('SELECT trade, kinds, high_risk, step, original, new_line, warning, legal, reason, note FROM control_edit_events')), /Jo Bloggs|0400/);
   } finally {
     delete process.env.CONTROL_LEARNING;
   }

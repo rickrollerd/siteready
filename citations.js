@@ -28,6 +28,11 @@ const STATE_CODES = require('./scenarios/state-codes.json');
 // Act sections and compliance code paragraphs that state the same duty or control. They are cited
 // alongside the regulation sections matched by heading (STATE_CITATIONS).
 const VIC_LINES = require('./scenarios/vic-lines.json');
+// Electrical lines are matched line by line to each state's own electrical safety law
+// (scenarios/state-lines.json): its licensing and electrical safety Acts and regulations, and Part 4.7
+// of its WHS regulations ("whs"). Each printed line listed there was read against the state's text and
+// carries only the sections that state every requirement in it, as the line prints in that state.
+const STATE_LINES = require('./scenarios/state-lines.json');
 const NOT_ON_LINE = Object.fromEntries(Object.entries(STATE_CODES).filter(([id]) => id !== 'lines')
   .map(([id, { notOnLine }]) => [id, new Set(Object.entries(notOnLine).flatMap(([key, lines]) => lines.map((n) => `${key}\u0000${STATE_CODES.lines[n]}`)))]));
 
@@ -540,6 +545,36 @@ function vicCited(line, cited) {
   return [...act, ...regs, ...parts, ...codes].join('; ');
 }
 
+// The title a state line table reference is cited under: the state's WHS regulation, or one of its
+// electrical safety laws.
+const lineTitle = (stateId, key) => (key === 'whs' ? STATE_CITATIONS[stateId].regulation : STATE_LINES.docs[stateId][key]);
+
+// A line's references with the state's electrical law matched to it added: merged into the document's
+// part where the line already cites it, otherwise as a new part after the line's other sources.
+function lineCited(line, cited, stateId) {
+  const refs = (STATE_LINES.lines[stateId] || {})[line];
+  if (!refs) return cited;
+  const parts = cited ? cited.split('; ') : [];
+  const byTitle = new Map();
+  for (const ref of refs) {
+    const [key, ...rest] = ref.split(' ');
+    const title = lineTitle(stateId, key);
+    if (!byTitle.has(title)) byTitle.set(title, []);
+    byTitle.get(title).push(rest.join(' '));
+  }
+  for (const [title, list] of byTitle) {
+    const index = parts.findIndex((part) => part.startsWith(`${title} `));
+    if (index < 0) {
+      parts.push(`${title} ${list.join(', ')}`);
+      continue;
+    }
+    const has = parts[index].slice(title.length + 1).split(', ');
+    const more = list.filter((ref) => !has.includes(ref));
+    if (more.length) parts[index] = `${parts[index]}, ${more.join(', ')}`;
+  }
+  return parts.join('; ');
+}
+
 // A control line with its sources, as printed for the state. A line reworded for the state
 // keeps its own sources only where the rewording still holds for them (KEEP); otherwise it
 // carries the citation written into it, or none.
@@ -554,28 +589,13 @@ function localControl(text, source, stateId) {
     return `${head}${cited ? ` (${cited})` : ''}. ${rest}`;
   }
   const local = own ? localSource(source, stateId, text) : '';
-  const cited = stateId === 'vic' ? vicCited(out, local) : local;
+  const cited = lineCited(out, stateId === 'vic' ? vicCited(out, local) : local, stateId);
   return cited ? `${out} (${cited})` : out;
 }
 
-// A printed line as it reads without the state's own code references (Victoria's compliance codes
-// among them), so lines are still read and matched with each other by their words as before those
-// references were added (a line said once, not twice; a code's title is not the line's wording).
-// Lines in Queensland and NSW have none.
-const escaped = (title) => title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const REF = String.raw`(?:s|appendix|para) [\w.]+(?: \([^()]*\))?`;
-const CODE_PART = `(?:${[...new Set([...Object.entries(STATE_CODES).filter(([id]) => id !== 'lines').flatMap(([, { codes }]) => Object.values(codes)), ...Object.values(VIC_LINES.codes)])]
-  .sort((a, b) => b.length - a.length).map(escaped).join('|')}) ${REF}(?:, ${REF})*`;
-const STATE_CODE_ONLY = new RegExp(String.raw`\s?\(${CODE_PART}\)`, 'g');
-const STATE_CODE_PART = new RegExp(String.raw`; ${CODE_PART}|${CODE_PART}; `, 'g');
-const withoutStateCodes = (line) => (typeof line === 'string' ? line.replace(STATE_CODE_PART, '').replace(STATE_CODE_ONLY, '') : line);
-
-// A printed line as it printed before the state codes (#194) and Victoria's line table added their
-// references: the state code parts and the Victorian Act and regulation references matched to the
-// line are taken out, and the rest of the citation stays. The sign-on check questions read lines this
-// way, so a line does not leave the question pool because it gained a reference.
-function withoutAddedReferences(line) {
-  const plain = withoutStateCodes(line);
+// A printed line with the references a line table added taken out of its trailing citation: added
+// maps each document's title to the references its part gained. The rest of the citation stays.
+function withoutRefs(plain, added) {
   if (typeof plain !== 'string' || !plain.endsWith(')')) return plain;
   let depth = 0;
   let at = -1;
@@ -584,16 +604,52 @@ function withoutAddedReferences(line) {
     else if (plain[i] === '(' && --depth === 0) { at = i; break; }
   }
   const text = at > 0 ? plain.slice(0, at).trimEnd() : '';
-  const refs = VIC_LINES.lines[text];
-  if (!refs) return plain;
-  const added = new Set(refs);
+  const gained = added(text);
+  if (!gained.size) return plain;
   const parts = plain.slice(at + 1, -1).split('; ').map((part) => {
-    const title = [VIC_LINES.act, STATE_CITATIONS.vic.regulation].find((name) => part.startsWith(`${name} `));
+    const title = [...gained.keys()].find((name) => part.startsWith(`${name} `));
     if (!title) return part;
-    const kept = part.slice(title.length + 1).split(', ').filter((ref) => !added.has(ref));
+    const kept = part.slice(title.length + 1).split(', ').filter((ref) => !gained.get(title).has(ref));
     return kept.length ? `${title} ${kept.join(', ')}` : '';
   }).filter(Boolean);
   return parts.length ? `${text} (${parts.join('; ')})` : text;
+}
+
+// The references the electrical line table adds to a line, by title (any state's: titles are the state's own).
+function lineAdded(text) {
+  const added = new Map();
+  for (const [stateId, lines] of Object.entries(STATE_LINES.lines)) {
+    for (const ref of lines[text] || []) {
+      const [key, ...rest] = ref.split(' ');
+      const title = lineTitle(stateId, key);
+      added.set(title, (added.get(title) || new Set()).add(rest.join(' ')));
+    }
+  }
+  return added;
+}
+
+// A printed line as it reads without the state's own code references (Victoria's compliance codes
+// among them) and without the electrical law references the line table added, so lines are still read
+// and matched with each other by their words as before those references were added (a line said once,
+// not twice; a code's or an Act's title is not the line's wording). Lines in Queensland and NSW have no
+// code references.
+const escaped = (title) => title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const REF = String.raw`(?:s|appendix|para) [\w.]+(?: \([^()]*\))?`;
+const CODE_PART = `(?:${[...new Set([...Object.entries(STATE_CODES).filter(([id]) => id !== 'lines').flatMap(([, { codes }]) => Object.values(codes)), ...Object.values(VIC_LINES.codes)])]
+  .sort((a, b) => b.length - a.length).map(escaped).join('|')}) ${REF}(?:, ${REF})*`;
+const STATE_CODE_ONLY = new RegExp(String.raw`\s?\(${CODE_PART}\)`, 'g');
+const STATE_CODE_PART = new RegExp(String.raw`; ${CODE_PART}|${CODE_PART}; `, 'g');
+const withoutStateCodes = (line) => (typeof line === 'string' ? withoutRefs(line.replace(STATE_CODE_PART, '').replace(STATE_CODE_ONLY, ''), lineAdded) : line);
+
+// A printed line as it printed before the state codes (#194) and the line tables (Victoria's, and each
+// state's electrical law) added their references: the state code parts and the references matched to
+// the line are taken out, and the rest of the citation stays. The sign-on check questions read lines this
+// way, so a line does not leave the question pool because it gained a reference.
+function withoutAddedReferences(line) {
+  return withoutRefs(withoutStateCodes(line), (text) => {
+    const refs = new Set(VIC_LINES.lines[text] || []);
+    return refs.size ? new Map([[VIC_LINES.act, refs], [STATE_CITATIONS.vic.regulation, refs]]) : new Map();
+  });
 }
 
 // Short Queensland regulation references in register notes, such as "(WHS Reg s 213)",
