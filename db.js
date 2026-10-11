@@ -340,6 +340,28 @@ const SCHEMA = [
     item TEXT NOT NULL DEFAULT '',
     chosen TEXT NOT NULL DEFAULT ''
   )`,
+  // Job steps users write for work SiteReady has no job steps for (owner, 11 October 2026), once for
+  // each saved revision: the part of the task the step was written for, the step's name, hazards,
+  // controls and Who, each with personal details taken out, and the state, trade and month. The
+  // SWMS is known only by a keyed fingerprint. Written only when CONTROL_LEARNING is on; kept 3 years.
+  `CREATE TABLE IF NOT EXISTS own_step_events (
+    id TEXT PRIMARY KEY,
+    swms_key TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    part TEXT NOT NULL DEFAULT '',
+    part_key TEXT NOT NULL DEFAULT '',
+    step TEXT NOT NULL DEFAULT '',
+    hazards TEXT NOT NULL DEFAULT '[]',
+    controls TEXT NOT NULL DEFAULT '[]',
+    who TEXT NOT NULL DEFAULT '',
+    step_key TEXT NOT NULL,
+    kept BOOLEAN,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS own_step_events_swms ON own_step_events (swms_key, revision)',
   // Goal 10: each change to the library or the law released to customers (library-notices.json),
   // run once: when, how many saved SWMS it changed, and how many emails went out.
   `CREATE TABLE IF NOT EXISTS library_notices (

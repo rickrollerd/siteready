@@ -64,6 +64,28 @@ function whoEdits(value) {
   return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
+// Job steps the user writes for work SiteReady has no job steps for (owner, 11 October 2026): the
+// part of the task each is written for, as the warning above the draft named it, the step's name,
+// its hazards and controls (one a line) and who is responsible. A step's name is used once.
+function ownSteps(value) {
+  if (!Array.isArray(value)) return undefined;
+  const lines = (list, limit, max) => (Array.isArray(list) ? list.filter((item) => typeof item === 'string').map((item) => textField(item.replace(/\s+/g, ' '), max)).filter(Boolean).slice(0, limit) : []);
+  const names = new Set();
+  const out = value.filter((item) => item && typeof item === 'object' && !Array.isArray(item)).slice(0, 20).map((item) => ({
+    part: textField(item.part, 1000),
+    name: textField(String(item.name || '').replace(/\s+/g, ' '), 300),
+    hazards: lines(item.hazards, 20, 400),
+    controls: lines(item.controls, 30, 600),
+    who: textField(item.who, 120),
+  })).filter((item) => {
+    const key = item.name.toLowerCase();
+    if (!item.name || names.has(key)) return false;
+    names.add(key);
+    return true;
+  });
+  return out.length ? out : undefined;
+}
+
 // The user's answers for the blanks (____) in control lines, by line (goal 2): a few answers a line.
 function fills(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
@@ -133,6 +155,7 @@ function draftBody(body) {
     controlEdits: controlEdits(body.controlEdits),
     hazardEdits: hazardEdits(body.hazardEdits),
     whoEdits: whoEdits(body.whoEdits),
+    ownSteps: ownSteps(body.ownSteps),
     fills: fills(body.fills),
     plantChoice: plantChoice(body.plantChoice),
     emergency: emergencyAnswers(body.emergency),

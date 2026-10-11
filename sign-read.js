@@ -246,7 +246,8 @@ function controlPool(draft, random) {
 // can be translated once. PPE questions, and job step and control questions.
 function questionPool(swmsId, draft) {
   const random = seeded(`pool:${swmsId}`);
-  const steps = (draft.jobSteps || []).map((step) => step.step).filter((name) => !ROUTINE_STEPS.includes(name));
+  // A step the user wrote is not asked by name: its mark would give the answer away. Its controls are asked.
+  const steps = (draft.jobSteps || []).filter((step) => !step.own).map((step) => step.step).filter((name) => !ROUTINE_STEPS.includes(name));
   return { ppe: ppePool(draft, random), steps: [...stepPool(draft, steps, random), ...controlPool(draft, random)] };
 }
 

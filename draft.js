@@ -7,7 +7,7 @@ const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
 const { registersFor, withoutServicedPlant } = require('./register');
-const { inHierarchyOrder, controlLevel } = require('./control-level');
+const { inHierarchyOrder, controlLevel, HIGHER } = require('./control-level');
 const { withFills } = require('./blanks');
 const { withEmergencyAnswers } = require('./emergency');
 
@@ -2927,10 +2927,10 @@ function dataTestParts(parts, steps, found) {
 
 // Saving or downloading a draft with parts that have no job steps needs the user's tick above
 // the draft that they have dealt with them (owner decision D184): the input's notCoveredConfirmed
-// lists the parts ticked, so a tick given for one list does not pass a changed one. The message
-// that refuses, or ''.
+// lists the parts ticked, so a tick given for one list does not pass a changed one. A part the
+// user has written a step for needs no tick. The message that refuses, or ''.
 function notCoveredRefusal(draft, input) {
-  const parts = draft && draft.kind === 'draft' && Array.isArray(draft.notCovered) ? draft.notCovered : [];
+  const parts = notCoveredLeft(draft);
   const ticked = input && Array.isArray(input.notCoveredConfirmed) ? input.notCoveredConfirmed : [];
   if (parts.every((part) => ticked.includes(part))) return '';
   return `SiteReady has no job steps for: ${parts.join('; ')}. Tick the box above the draft to say you have added your own steps and controls, or covered this work in a separate SWMS, before saving or downloading.`;
@@ -3264,7 +3264,9 @@ function buildDraft(input, screen) {
   // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
   // Parts of the task with no job steps, shown above the draft (owner decision D184).
   const notCovered = notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched });
-  const finished = applyStepEdits({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input);
+  // The steps the user wrote for work SiteReady does not cover go in once the registers and ratings
+  // are worked out from SiteReady's own steps.
+  const finished = applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input), input);
   // The user's answers in the blanks (____) of control lines, and the scaffold supervisor only
   // where the SWMS involves a scaffold.
   // The answers to the emergency questions for the work print in the emergency arrangements (goal 2).
@@ -3859,8 +3861,11 @@ function applyStepEdits(draft, input) {
     applied: [...(before.applied || [])], refused: [...(before.refused || [])], warned: [...(before.warned || [])],
     remapped: [...(before.remapped || [])], unmatched: [...(before.unmatched || [])],
   };
-  const hazardKeys = hazardEdits ? stepsForEdits(draft.jobSteps, hazardEdits) : new Map();
-  const whoKeys = whoEdits ? stepsForEdits(draft.jobSteps, whoEdits) : new Map();
+  // The user's own steps take no hazard or Who changes: they are changed where they are written.
+  const library = draft.jobSteps.map((step, index) => (step.own ? -1 : index)).filter((index) => index >= 0);
+  const keysFor = (edits) => new Map([...stepsForEdits(draft.jobSteps.filter((step) => !step.own), edits)].map(([at, name]) => [library[at], name]));
+  const hazardKeys = hazardEdits ? keysFor(hazardEdits) : new Map();
+  const whoKeys = whoEdits ? keysFor(whoEdits) : new Map();
   for (const name of Object.keys(hazardEdits || {}).filter((item) => ![...hazardKeys.values()].includes(item))) {
     const mine = hazardEdits[name] || {};
     for (const item of mine.changed || []) report.unmatched.push({ step: name, kind: 'hazardChanged', text: item.from, to: item.to, reason: 'step' });
@@ -3924,6 +3929,73 @@ function applyStepEdits(draft, input) {
     return next;
   });
   return { ...draft, jobSteps, controlEdits: report };
+}
+
+// ---- Steps the user writes for work SiteReady does not cover (owner, 11 October 2026) ----
+
+// "Where SiteReady has no job steps for part of a task, warn the user that they must enter the
+// specific steps themselves." From the warning above the draft (D184) the user writes a step for a
+// part SiteReady has no job steps for, or under the job steps for work the warning does not name:
+// its name, its hazards and controls, one a line, and who is responsible. It prints in the job
+// steps before the closing step, its name marked as the user's own, and moves like any step. Its lines are the user's words as written: SiteReady adds no permit
+// or category line to them, and works out no plant, licence or emergency row from them. Its risk is
+// rated like any step's. A step needs at least one hazard and one control to print; once one prints
+// for a part, that part needs no tick before download. The download gate and the builder check
+// read its words like any other.
+const OWN_STEP_MARK = '(Our own step)';
+const CLOSING_STEP = 'Finish and clean up';
+const sameText = (text) => String(text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+// The steps the user wrote that print: each has a name, a hazard and a control.
+function ownStepsOf(input) {
+  return (Array.isArray(input && input.ownSteps) ? input.ownSteps : []).filter((item) => item && item.name && (item.hazards || []).length && (item.controls || []).length);
+}
+
+// What the page says about a step the user wrote, shown beside it and not printed: what keeps it
+// from printing, and what a reviewer marks down (vague wording, controls out of hierarchy order), as
+// the builder check reads it. A blank or placeholder left in it is listed by the download gate.
+function ownStepNotes(item) {
+  const { isVague } = require('./builder-check');
+  const notes = [];
+  if (!(item.hazards || []).length) notes.push('Add at least one hazard. A step with no hazard does not print.');
+  if (!(item.controls || []).length) notes.push('Add at least one control. A step with no control does not print.');
+  const vague = (item.controls || []).filter((line) => isVague(line));
+  if (vague.length) notes.push(`The wording is vague: "${vague[0].slice(0, 120)}". Say what is done, by whom, or to what standard. A reviewer marks vague controls down.`);
+  const higher = (item.controls || []).map((line) => HIGHER.has(controlLevel(line)));
+  if (higher.includes(true) && higher.includes(false) && higher.lastIndexOf(true) > higher.indexOf(false)) {
+    notes.push('Put the controls in hierarchy order: removing the hazard, a safer way, and barriers or guards before procedures, training and PPE. A reviewer marks controls out of order down.');
+  }
+  return notes;
+}
+
+// The job steps with the user's own steps in, before the closing step, then in the order the user
+// put them in. With no steps of the user's own, the job steps are as they were.
+function withOwnSteps(draft, input) {
+  const written = Array.isArray(input && input.ownSteps) ? input.ownSteps : [];
+  if (!written.length || !Array.isArray(draft.jobSteps)) return draft;
+  const { riskFor } = require('./register');
+  const made = ownStepsOf(input).map((item) => {
+    const step = { step: `${item.name} ${OWN_STEP_MARK}`, hazards: [...item.hazards], controls: [...item.controls], own: true };
+    return { ...step, responsible: item.who || positionFor({ step: item.name }), risk: riskFor(step) };
+  });
+  const at = draft.jobSteps.findIndex((step) => step.step === CLOSING_STEP);
+  const jobSteps = at < 0 ? [...draft.jobSteps, ...made] : [...draft.jobSteps.slice(0, at), ...made, ...draft.jobSteps.slice(at)];
+  // The parts of the task the user wrote a printed step for.
+  const parts = new Set(ownStepsOf(input).map((item) => sameText(item.part)).filter(Boolean));
+  return {
+    ...draft,
+    jobSteps: made.length ? inOrder(jobSteps, input.stepOrder) : draft.jobSteps,
+    notCoveredWritten: (draft.notCovered || []).filter((part) => parts.has(sameText(part))),
+    ownStepNotes: written.map((item) => ({ name: item.name, part: item.part, prints: ownStepsOf({ ownSteps: [item] }).length > 0, notes: ownStepNotes(item) })),
+  };
+}
+
+// The parts of the task with no job steps that still need the tick: those the user has not written
+// a printed step for.
+function notCoveredLeft(draft) {
+  const parts = draft && draft.kind === 'draft' && Array.isArray(draft.notCovered) ? draft.notCovered : [];
+  const written = new Set(draft && Array.isArray(draft.notCoveredWritten) ? draft.notCoveredWritten : []);
+  return parts.filter((part) => !written.has(part));
 }
 
 // The job steps in the order the user chose. A step not in that order, such as one added
@@ -6784,6 +6856,9 @@ module.exports = {
   askQuestions,
   prepareDraft,
   notCoveredRefusal,
+  notCoveredLeft,
+  ownStepNotes,
+  OWN_STEP_MARK,
   screenHighRisk,
   FALL_PLACE,
   stripLiftBleedText,

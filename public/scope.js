@@ -463,11 +463,11 @@
   }
 
   // A draft that names work SiteReady has no job steps for is ready once the box above it is
-  // ticked (owner decision D184).
+  // ticked (owner decision D184), or the user has written a step for each part.
   // One with site questions or blanks still to answer (goal 2) needs answers first.
   const statusOf = (item) => {
     if (item.kind !== 'draft' || (item.needs || []).length) return 'needs';
-    const ticked = item.body.notCoveredConfirmed || [];
+    const ticked = [...(item.body.notCoveredConfirmed || []), ...(item.notCoveredWritten || [])];
     return (item.notCovered || []).every((part) => ticked.includes(part)) ? 'ready' : 'tick';
   };
   S.onCoverTick = (confirmed) => {
@@ -503,6 +503,7 @@
     item.body = body;
     item.kind = draft.kind;
     item.notCovered = draft.notCovered || [];
+    item.notCoveredWritten = draft.notCoveredWritten || [];
     // What is left to answer before download (goal 2): the site questions and blanks.
     item.needs = [...new Set((draft.gate || []).filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))];
     item.status = statusOf(item);

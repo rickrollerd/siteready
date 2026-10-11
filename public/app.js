@@ -290,6 +290,7 @@ function payload() {
     controlEdits: controlEdits || undefined,
     hazardEdits: hazardEdits || undefined,
     whoEdits: whoEdits || undefined,
+    ownSteps: ownSteps || undefined,
     fills: fills || undefined,
     plantChoice: plantChoice || undefined,
     emergency: emergencyAnswers || undefined,
@@ -504,6 +505,9 @@ let controlEdits = null;
 // responsible for each step's controls (the Who column), by job step name.
 let hazardEdits = null;
 let whoEdits = null;
+// The job steps the user wrote for work SiteReady has no job steps for: [{ part, name, hazards,
+// controls, who }], hazards and controls one a line.
+let ownSteps = null;
 // The user's answers for the blanks (____) in control lines, by line: { line: [answer, ...] }.
 let fills = null;
 // The plant the user confirmed (goal 2): { used, notUsed, added: [{ item, licence }] }, and the
@@ -526,6 +530,7 @@ function newSwms() {
   controlEdits = null;
   hazardEdits = null;
   whoEdits = null;
+  ownSteps = null;
   fills = null;
   plantChoice = null;
   plantPending = null;
@@ -904,6 +909,7 @@ function fillStart(input) {
   controlEdits = input.controlEdits && typeof input.controlEdits === 'object' ? JSON.parse(JSON.stringify(input.controlEdits)) : null;
   hazardEdits = input.hazardEdits && typeof input.hazardEdits === 'object' ? JSON.parse(JSON.stringify(input.hazardEdits)) : null;
   whoEdits = input.whoEdits && typeof input.whoEdits === 'object' ? { ...input.whoEdits } : null;
+  ownSteps = Array.isArray(input.ownSteps) && input.ownSteps.length ? JSON.parse(JSON.stringify(input.ownSteps)) : null;
   fills = input.fills && typeof input.fills === 'object' ? JSON.parse(JSON.stringify(input.fills)) : null;
   plantChoice = input.plantChoice && typeof input.plantChoice === 'object' ? JSON.parse(JSON.stringify(input.plantChoice)) : null;
   plantPending = null;
@@ -1126,7 +1132,7 @@ function liveNeed(check) {
 const asGiven = () => (window.SiteReadyGate ? window.SiteReadyGate.AS_GIVEN : []);
 // What the user changes in their own flows, which prepare the draft again or update what is saved,
 // and the business details, which a download takes from the account's company profile.
-const OWN_FLOWS = ['controlEdits', 'hazardEdits', 'whoEdits', 'notCoveredConfirmed', 'company', 'companyAbn', 'companyAddress', 'companyPhone', 'companyEmail'];
+const OWN_FLOWS = ['controlEdits', 'hazardEdits', 'whoEdits', 'ownSteps', 'notCoveredConfirmed', 'company', 'companyAbn', 'companyAddress', 'companyPhone', 'companyEmail'];
 function redrawKey(input) {
   const rest = { ...input };
   for (const key of [...asGiven(), ...OWN_FLOWS]) delete rest[key];
@@ -1144,9 +1150,10 @@ const draftStale = () => Boolean(shownSent && shownDraft && shownDraft.kind === 
 function outstanding(data) {
   if (!data || data.kind !== 'draft') return [];
   const gaps = shownChecks.filter((check) => check.kind !== 'cover').map((check) => ({ ...check, need: liveNeed(check) })).filter((check) => check.need);
-  const parts = Array.isArray(data.notCovered) ? data.notCovered : [];
-  if (parts.length && coverTicked !== JSON.stringify(parts)) {
-    gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${parts.join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.` });
+  // A part the user wrote a step for needs no tick.
+  const parts = coverLeft(data);
+  if (parts.length && !coverDone(parts)) {
+    gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${parts.join('; ')}. Write a step for it, or cover it in a separate SWMS, then tick the box above the draft.` });
   }
   return gaps;
 }
@@ -1393,7 +1400,20 @@ function render(draft, { movable = false } = {}) {
   };
   // A rating still High after the controls says what happens before the step starts, as printed.
   const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}${risk.response ? `<span class="risk-response">${esc(risk.response)}</span>` : ''}` : '');
-  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"${stepRowClass(step)}` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<button type="button" class="secondary step-edit" data-step-edit="${index}" aria-expanded="${stepsEditing.has(step.step)}">${stepsEditing.has(step.step) ? 'Done changing this step' : 'Change this step'}</button><span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${hazardCell(step, index)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${whoCell(step, index)}</td></tr>`).join('')}</tbody></table>
+  const libraryRow = (step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"${stepRowClass(step)}` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<button type="button" class="secondary step-edit" data-step-edit="${index}" aria-expanded="${stepsEditing.has(step.step)}">${stepsEditing.has(step.step) ? 'Done changing this step' : 'Change this step'}</button><span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${hazardCell(step, index)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${whoCell(step, index)}</td></tr>`;
+  // A step the user wrote (owner, 11 October 2026): its lines as written, with what a reviewer would
+  // mark down said beside it, changed or removed in the form it was written in, and moved like any step.
+  let ownSeen = 0;
+  const ownRow = (step, index, all) => {
+    ownSeen += 1;
+    const name = step.step.replace(/\s*\(Our own step\)$/, '');
+    const notes = ((draft.ownStepNotes || []).find((item) => item.name === name) || {}).notes || [];
+    const moves = `<span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>`;
+    return `<tr draggable="true" data-step-row="${index}" data-own-row="${esc(name)}" class="own-step"><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>
+      <span class="own-tools" data-own-tools="${esc(name)}"><button type="button" class="link" id="own-step-${ownSeen}" data-own-change="${esc(name)}">Change your step</button><button type="button" class="link" data-own-remove="${esc(name)}">Remove your step</button></span>${moves}
+      ${notes.map((note) => `<p class="warning ctl-warn">${esc(note)}</p>`).join('')}</td><td data-label="Hazards and risks">${list(step.hazards)}</td><td data-label="Controls">${list(step.controls)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${esc(step.responsible || '')}</td></tr>`;
+  };
+  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => (movable && step.own ? ownRow(step, index, all) : libraryRow(step, index, all))).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence])) : '';
@@ -1415,6 +1435,7 @@ function render(draft, { movable = false } = {}) {
     <h4>High risk construction work</h4>${risks}
     <h4>Controls</h4>${controls}
     <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change it. Lines you write or change are marked as your own. A hazard that does not apply is marked so, not deleted. SiteReady warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why.<span class="phone-only"> On a phone, tap Change this step to move a step or change its lines.</span></p>' : ''}${steps}
+    ${movable ? '<p class="own-new"><button type="button" class="secondary small" data-own-new>Write a step of your own</button> <span class="meta">For work SiteReady has no job step for. It prints marked as your own.</span></p>' : ''}
     <h4>Personal protective equipment</h4>${ppe}
     ${registers}
     <h4>${esc(draft.reviewHeading)}</h4>
@@ -1519,12 +1540,39 @@ let shownSent = null;
 // draft, not printed in the SWMS, with a tick that the user has dealt with them. Saving and the
 // downloads wait for the tick (account.js, and the server). The tick holds for the list it was
 // given for (coverTicked), so a changed list needs ticking again.
+//
+// Each part has a button to write a step for it (owner, 11 October 2026): the step prints in the
+// SWMS marked as the user's own, and a part with a step written for it needs no tick.
+const coverParts = (data) => (data && data.kind === 'draft' && Array.isArray(data.notCovered) ? data.notCovered : []);
+function coverLeft(data) {
+  const written = new Set(Array.isArray(data.notCoveredWritten) ? data.notCoveredWritten : []);
+  return coverParts(data).filter((part) => !written.has(part));
+}
+// The tick covers the parts it was given for: a part added since needs ticking again.
+function coverDone(parts) {
+  const ticked = coverTicked ? JSON.parse(coverTicked) : [];
+  return parts.every((part) => ticked.includes(part));
+}
+const sameWords = (text) => String(text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+const ownFor = (part) => (ownSteps || []).find((item) => sameWords(item.part) === sameWords(part));
 function notCoveredBlock(data) {
-  const parts = data.kind === 'draft' && Array.isArray(data.notCovered) ? data.notCovered : [];
+  const parts = coverParts(data);
   if (!parts.length) return '';
   const one = parts.length === 1;
+  const written = new Set(Array.isArray(data.notCoveredWritten) ? data.notCoveredWritten : []);
+  const left = coverLeft(data);
+  const rows = parts.map((part, index) => {
+    const mine = ownFor(part);
+    const tools = mine && written.has(part)
+      ? `<span class="cover-done">Your step "${esc(mine.name)}" is in the job steps below.</span> <button type="button" class="link" data-own-change="${esc(mine.name)}">Change your step</button>`
+      : `<button type="button" class="small" data-own-write="${index}">${mine ? 'Finish your step for this' : 'Write a step for this'}</button>`;
+    return `<li data-cover-part="${index}"><strong>${esc(part)}</strong><span class="cover-tools">${tools}</span></li>`;
+  }).join('');
+  const many = left.length > 1;
   return `<div class="warning not-covered"><p>SiteReady has no job steps for: ${esc(parts.join('; '))}. ${one ? 'Add your own step and controls for it, or cover it in a separate SWMS.' : 'Add your own steps and controls for each, or cover them in a separate SWMS.'}</p>
-    <label class="check"><input type="checkbox" id="not-covered-confirm" data-parts="${esc(JSON.stringify(parts))}"${coverTicked === JSON.stringify(parts) ? ' checked' : ''}><span>${one ? 'I have added my own step and controls for this, or it is covered in a separate SWMS.' : 'I have added my own steps and controls for these, or they are covered in a separate SWMS.'}</span></label></div>`;
+    <p>You must enter the specific steps for this work yourself: SiteReady cannot write them for you.</p>
+    <ul class="cover-parts">${rows}</ul>
+    ${left.length ? `<label class="check"><input type="checkbox" id="not-covered-confirm" data-parts="${esc(JSON.stringify(left))}"${coverDone(left) ? ' checked' : ''}><span>${left.length < parts.length ? `For ${many ? 'the rest' : `"${esc(left[0])}"`}: ` : ''}${many ? 'I have added my own steps and controls for these, or they are covered in a separate SWMS.' : 'I have added my own step and controls for this, or it is covered in a separate SWMS.'}</span></label>` : ''}</div>`;
 }
 // "Go to the box", beside the buttons that wait for it: the box is brought into view and focused.
 document.addEventListener('click', (event) => {
@@ -1837,6 +1885,133 @@ resultEl.addEventListener('click', (event) => {
   const line = step.hazards[Number(holder.dataset.hzLine)];
   if (action === 'change') lineEditor(holder, hazardText(line), (text) => applyHazardEdit(step, line, 'change', text));
   else applyHazardEdit(step, line, action);
+});
+
+// ---- Steps the user writes for work SiteReady does not cover (owner, 11 October 2026) ----
+
+// A short form: the step's name (the part of the task, to start), its hazards and controls, one on
+// each line, with the hierarchy of control to write them in, and who is responsible. Saved, it goes
+// with the draft like the user's other changes, and prints in the job steps marked as their own.
+const OWN_HIERARCHY = 'Write them in hierarchy order: first remove the hazard, then a safer way of doing the work, then barriers, guards or isolation, then procedures, permits and training, and PPE last. Say what is done, by whom, or to what standard.';
+const linesOf = (text) => String(text || '').split(/\n+/).map((line) => line.replace(/\s+/g, ' ').trim()).filter(Boolean);
+const startName = (part) => String(part || '').replace(/\s+/g, ' ').trim().replace(/^[a-z]/, (letter) => letter.toUpperCase());
+function closeOwnForm() {
+  resultEl.querySelectorAll('.own-step-form, .own-form-row').forEach((el) => el.remove());
+}
+// holder: the element the form goes after. item: the step being changed, or null for a new one for part.
+function ownStepForm(holder, item, part) {
+  closeOwnForm();
+  const value = item || { part, name: startName(part), hazards: [], controls: [], who: 'Supervisor' };
+  const form = document.createElement('div');
+  form.className = 'own-step-form';
+  form.setAttribute('role', 'group');
+  form.setAttribute('aria-labelledby', 'own-form-title');
+  const title = value.part ? `${item ? 'Change your step' : 'Write a step'} for: ${value.part}` : item ? `Change your step: ${value.name}` : 'Write a step of your own';
+  form.innerHTML = `<p class="own-form-title" id="own-form-title"><strong>${esc(title)}</strong></p>
+    <p class="meta">Write what is done, what could go wrong and how it is controlled on this job. The step prints in the SWMS marked as your own.</p>
+    <div class="field"><label for="own-name">Job step</label><input id="own-name" type="text" maxlength="300" value="${esc(value.name)}"></div>
+    <div class="field"><label for="own-hazards">Hazards, one on each line</label><textarea id="own-hazards" rows="4">${esc((value.hazards || []).join('\n'))}</textarea></div>
+    <div class="field"><label for="own-controls">Controls, one on each line</label><p class="meta" id="own-controls-hint">${esc(OWN_HIERARCHY)}</p><textarea id="own-controls" rows="6" aria-describedby="own-controls-hint">${esc((value.controls || []).join('\n'))}</textarea></div>
+    <div class="field"><label for="own-who">Who is responsible</label><input id="own-who" type="text" maxlength="120" value="${esc(value.who || '')}"></div>
+    <div class="actions"><button type="button" data-own-save>Save your step</button><button type="button" class="secondary" data-own-cancel>Cancel</button></div>
+    <p class="error" role="alert" data-own-error></p>`;
+  form.dataset.ownPart = value.part || '';
+  form.dataset.ownWas = item ? item.name : '';
+  if (holder.closest('tr')) {
+    // From a row of the job steps: the form takes the table's full width under the row.
+    const row = document.createElement('tr');
+    row.className = 'own-form-row';
+    const cell = document.createElement('td');
+    cell.colSpan = 5;
+    cell.appendChild(form);
+    row.appendChild(cell);
+    holder.closest('tr').after(row);
+  } else if (holder.tagName === 'LI') holder.appendChild(form);
+  else holder.after(form);
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  form.querySelector('#own-name').focus({ preventScroll: true });
+}
+function saveOwnStep(form) {
+  const error = form.querySelector('[data-own-error]');
+  const was = form.dataset.ownWas;
+  const next = {
+    part: form.dataset.ownPart,
+    name: form.querySelector('#own-name').value.replace(/\s+/g, ' ').trim().slice(0, 300),
+    hazards: linesOf(form.querySelector('#own-hazards').value).slice(0, 20),
+    controls: linesOf(form.querySelector('#own-controls').value).slice(0, 30),
+    who: form.querySelector('#own-who').value.replace(/\s+/g, ' ').trim().slice(0, 120),
+  };
+  const wrong = !next.name ? ['own-name', 'Give the job step a name.']
+    : !next.hazards.length ? ['own-hazards', 'Write at least one hazard. A step needs a hazard and a control to print.']
+      : !next.controls.length ? ['own-controls', 'Write at least one control. A step needs a hazard and a control to print.']
+        : (ownSteps || []).some((other) => other.name !== was && sameWords(other.name) === sameWords(next.name)) ? ['own-name', 'You already have a step with this name. Give this one another name.'] : null;
+  if (wrong) {
+    error.textContent = wrong[1];
+    form.querySelector(`#${wrong[0]}`).focus();
+    return;
+  }
+  const list = [...(ownSteps || [])];
+  const at = list.findIndex((other) => other.name === was);
+  if (at >= 0) list[at] = next; else list.push(next);
+  ownSteps = list;
+  // A renamed step keeps its place in the order the user chose.
+  if (was && was !== next.name && stepOrder) stepOrder = stepOrder.map((name) => (name === `${was} (Our own step)` ? `${next.name} (Our own step)` : name));
+  afterOwnChange(next.name);
+}
+function removeOwnStep(name) {
+  ownSteps = (ownSteps || []).filter((other) => other.name !== name);
+  if (!ownSteps.length) ownSteps = null;
+  afterOwnChange('');
+}
+// The draft is prepared again with the change, and the step, or the warning, is brought into view.
+async function afterOwnChange(name) {
+  await prepareDraft({ scroll: false });
+  const row = name && [...resultEl.querySelectorAll('[data-own-row]')].find((el) => el.dataset.ownRow === name);
+  const target = row || resultEl.querySelector('.not-covered') || resultEl;
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const button = row && row.querySelector('[data-own-change]');
+  if (button) button.focus({ preventScroll: true });
+}
+resultEl.addEventListener('click', (event) => {
+  if (!shownDraft) return;
+  if (event.target.closest('[data-own-new]')) {
+    ownStepForm(event.target.closest('.own-new'), null, '');
+    return;
+  }
+  const write = event.target.closest('[data-own-write]');
+  if (write) {
+    const part = (shownDraft.notCovered || [])[Number(write.dataset.ownWrite)];
+    if (part) ownStepForm(write.closest('li') || write, ownFor(part) || null, part);
+    return;
+  }
+  const change = event.target.closest('[data-own-change]');
+  if (change) {
+    const item = (ownSteps || []).find((other) => other.name === change.dataset.ownChange);
+    if (item) ownStepForm(change.closest('li') || change, item, item.part);
+    return;
+  }
+  const remove = event.target.closest('[data-own-remove]');
+  if (remove) {
+    // Asked once more, in place, before the step goes.
+    const tools = remove.closest('[data-own-tools]');
+    tools.dataset.ownWere = tools.innerHTML;
+    tools.innerHTML = `<span class="ctl-msg">Remove this step from the SWMS?</span> <button type="button" class="link" data-own-remove-yes="${esc(remove.dataset.ownRemove)}">Remove it</button><button type="button" class="link" data-own-keep>Keep it</button>`;
+    tools.querySelector('[data-own-keep]').focus();
+    return;
+  }
+  const yes = event.target.closest('[data-own-remove-yes]');
+  if (yes) { removeOwnStep(yes.dataset.ownRemoveYes); return; }
+  const keep = event.target.closest('[data-own-keep]');
+  if (keep) {
+    const tools = keep.closest('[data-own-tools]');
+    tools.innerHTML = tools.dataset.ownWere || '';
+    const again = tools.querySelector('[data-own-remove]');
+    if (again) again.focus();
+    return;
+  }
+  const form = event.target.closest('.own-step-form');
+  if (form && event.target.closest('[data-own-save]')) { saveOwnStep(form); return; }
+  if (form && event.target.closest('[data-own-cancel]')) closeOwnForm();
 });
 
 // What the server did with the user's changes: those refused, those made on a line SiteReady has

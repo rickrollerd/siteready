@@ -232,6 +232,10 @@
         report.failedQuestions.items.map((item) => `<tr><td>${esc(item.kind)}</td><td>${esc(item.step)}</td><td>${esc(item.item)}</td><td class="n">${esc(item.wrong)}</td></tr>`), 'No wrong answers recorded this month.')}</table>
       <h3>The last three months</h3>
       <ul class="plain">${trend('Edit rate', report.trend.editRate)}${trend('Wrong answers per sign-on', report.trend.wrongRate)}<li>${esc(report.trend.acceptance.says)}</li></ul>
+      <h3>Steps users wrote for work SiteReady does not cover</h3>
+      <p class="note">The library's gaps users fill themselves, by the different saved SWMS a step was written in, most first: ${esc(report.ownSteps.total)} piece${report.ownSteps.total === 1 ? '' : 's'} of work in all. A step becomes library steps only with a source we hold, the goal 5 evidence test and a person's sign-off.</p>
+      <table>${rows('<tr><th>Work SiteReady does not cover</th><th>Step users wrote</th><th class="n">SWMS</th><th class="n">This month</th><th class="n">Different steps</th><th>Before the library</th></tr>',
+        report.ownSteps.items.map((item) => `<tr><td>${esc(item.part)}</td><td>${esc(item.step)}</td><td class="n">${esc(item.swms)}</td><td class="n">${esc(item.swmsThisMonth)}</td><td class="n">${esc(item.versions)}</td><td>Goal 5 check needed</td></tr>`), 'No steps written by users recorded.')}</table>
       <h3>Candidate library changes</h3>
       <p class="note">${esc(report.candidates.thresholdNote)} ${esc(report.candidates.rule)}</p>
       ${candidates}

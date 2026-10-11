@@ -7,7 +7,7 @@ const cluster = require('cluster');
 const os = require('os');
 const crypto = require('crypto');
 const { listStates, findState } = require('./legislation');
-const { questionsFor, prepareDraft, legalSource, keepWarning } = require('./draft');
+const { questionsFor, prepareDraft, legalSource, keepWarning, notCoveredLeft } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
 const { issueRef, placeOf } = require('./refs');
@@ -472,7 +472,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     const gaps = downloadGaps(signedInBody({ ...req, body: item || {} }), result);
     const named = String((item && (item.swmsTitle || item.task)) || result.task || '').slice(0, 80);
     if (gaps.some((gap) => gap.kind !== 'cover')) { gated.push(`${index + 1}. ${named}: still to answer: ${[...new Set(gaps.map((gap) => gap.label))].join('; ')}`); continue; }
-    if (gaps.length) { unticked.push(`${index + 1}. ${named}: ${result.notCovered.join('; ')}`); continue; }
+    if (gaps.length) { unticked.push(`${index + 1}. ${named}: ${notCoveredLeft(result).join('; ')}`); continue; }
     let buffer;
     const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId, reviewConfirmed: true, reviewedBy: confirmation.name }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '' }) : null;
     if (saved) {
