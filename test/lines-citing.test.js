@@ -43,3 +43,17 @@ test('the script prints the lines for a person to read', () => {
   assert.match(out, /NSW: \d+ control lines? citing Work Health and Safety Regulation 2025 s 299/);
   assert.match(out, /next to an operating hospital/);
 });
+
+test('"all" lists every line citing a law or code, in any section, for a new version of the whole document', () => {
+  const plant = linesCiting('vic', 'Compliance code: Plant 2019 (Vic)', 'all');
+  assert.ok(plant.length >= 5);
+  for (const item of plant) assert.match(item.printed, /Compliance code: Plant 2019 \(Vic\) para \d+/);
+  const nt = linesCiting('nt', 'Electrical Safety Regulations 2024 (NT)', 'all');
+  assert.ok(nt.length >= 5);
+  for (const item of nt) assert.match(item.printed, /Electrical Safety Regulations 2024 \(NT\) r \d+/);
+  // Every line found for one section is among the lines found for the whole document.
+  const one = linesCiting('nsw', 'Work Health and Safety Regulation 2025', 's 78').map((item) => item.text);
+  const all = new Set(linesCiting('nsw', 'Work Health and Safety Regulation 2025', 'all').map((item) => item.text));
+  assert.ok(one.every((text) => all.has(text)));
+  assert.deepEqual(linesCiting('wa', 'Compliance code: Plant 2019 (Vic)', 'all'), [], 'a code is found only in its own state');
+});

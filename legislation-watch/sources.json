@@ -4,35 +4,137 @@
     "jurisdiction": "Queensland",
     "title": "Work Health and Safety Act 2011",
     "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2011-018",
-    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/act-2011-018"
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/act-2011-018",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Work Health and Safety Act 2011 (Qld)"
+      }
+    ]
   },
   {
     "id": "qld-whs-reg",
     "jurisdiction": "Queensland",
     "title": "Work Health and Safety Regulation 2011",
     "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2011-0240",
-    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2011-0240"
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2011-0240",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Work Health and Safety Regulation 2011 (Qld)"
+      }
+    ]
   },
   {
     "id": "qld-es-act",
     "jurisdiction": "Queensland",
     "title": "Electrical Safety Act 2002",
     "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2002-042",
-    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/act-2002-042"
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/act-2002-042",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Electrical Safety Act 2002 (Qld)"
+      }
+    ]
   },
   {
     "id": "qld-es-reg",
     "jurisdiction": "Queensland",
     "title": "Electrical Safety Regulation 2026",
     "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2026-0113",
-    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2026-0113"
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2026-0113",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Electrical Safety Regulation 2026 (Qld)"
+      }
+    ]
   },
   {
     "id": "qld-codes-notice",
     "jurisdiction": "Queensland",
     "title": "Work Health and Safety (Codes of Practice) Notice 2022 (the list of approved codes)",
     "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2022-0096",
-    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2022-0096"
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2022-0096",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Concrete pumping Code of Practice 2019 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Confined spaces Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Demolition work Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Electrical Safety Code of Practice 2020: Working near overhead and underground electric lines (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Electrical Safety Code of Practice 2021: Managing electrical risks in the workplace (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Excavation work Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Hazardous manual tasks Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Managing noise and preventing hearing loss at work Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Managing risks of plant in the workplace Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Managing the risk of falls at workplaces Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Scaffolding Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Spray painting and powder coating Code of Practice 2021 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Steel construction Code of Practice 2004 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Tilt-up and pre-cast construction Code of Practice 2003 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Tower crane Code of Practice 2017 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Traffic management for construction or maintenance work Code of Practice 2008 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Welding processes Code of Practice 2021 (Qld)"
+      }
+    ]
   },
   {
     "id": "nsw-whs-act",
@@ -40,12 +142,23 @@
     "title": "Work Health and Safety Act 2011",
     "url": "https://legislation.nsw.gov.au/view/html/inforce/current/act-2011-010",
     "feed": {
-      "urls": ["https://legislation.nsw.gov.au/feed?id=thisweek", "https://legislation.nsw.gov.au/feed?id=newinforce"],
-      "ids": ["act-2011-010"],
+      "urls": [
+        "https://legislation.nsw.gov.au/feed?id=thisweek",
+        "https://legislation.nsw.gov.au/feed?id=newinforce"
+      ],
+      "ids": [
+        "act-2011-010"
+      ],
       "titlePattern": "^Work Health and Safety (?:\\(.*\\) )?(?:Legislation )?Amendment\\b.*\\bAct\\b|^Work Health and Safety Act 2011"
     },
     "handCheck": "The NSW legislation pages refuse automated requests (HTTP 403, a bot check), so the version date is read by hand. Amending laws are watched daily through the site's feed.",
-    "knownBlocked": "The NSW legislation site's feed could not be read, and its pages refuse automated requests (HTTP 403). Check this one by hand."
+    "knownBlocked": "The NSW legislation site's feed could not be read, and its pages refuse automated requests (HTTP 403). Check this one by hand.",
+    "cites": [
+      {
+        "state": "nsw",
+        "name": "Work Health and Safety Act 2011 (NSW)"
+      }
+    ]
   },
   {
     "id": "nsw-whs-reg",
@@ -53,95 +166,663 @@
     "title": "Work Health and Safety Regulation 2025",
     "url": "https://legislation.nsw.gov.au/view/html/inforce/current/sl-2025-0440",
     "feed": {
-      "urls": ["https://legislation.nsw.gov.au/feed?id=thisweek", "https://legislation.nsw.gov.au/feed?id=newinforce"],
-      "ids": ["sl-2025-0440"],
+      "urls": [
+        "https://legislation.nsw.gov.au/feed?id=thisweek",
+        "https://legislation.nsw.gov.au/feed?id=newinforce"
+      ],
+      "ids": [
+        "sl-2025-0440"
+      ],
       "titlePattern": "^Work Health and Safety (?:\\(.*\\) )?(?:Legislation )?Amendment\\b.*\\bRegulation\\b|^Work Health and Safety Regulation 2025"
     },
     "handCheck": "The NSW legislation pages refuse automated requests (HTTP 403, a bot check), so the version date is read by hand. Amending regulations are watched daily through the site's feed.",
-    "knownBlocked": "The NSW legislation site's feed could not be read, and its pages refuse automated requests (HTTP 403). Check this one by hand."
+    "knownBlocked": "The NSW legislation site's feed could not be read, and its pages refuse automated requests (HTTP 403). Check this one by hand.",
+    "cites": [
+      {
+        "state": "nsw",
+        "name": "Work Health and Safety Regulation 2025 (NSW)"
+      }
+    ]
   },
   {
     "id": "vic-ohs-act",
     "jurisdiction": "Victoria",
     "title": "Occupational Health and Safety Act 2004",
     "url": "https://www.legislation.vic.gov.au/in-force/acts/occupational-health-and-safety-act-2004",
-    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} \\d{3}) In force"
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} \\d{3}) In force",
+    "cites": [
+      {
+        "state": "vic",
+        "name": "Occupational Health and Safety Act 2004 (Vic)"
+      }
+    ]
   },
   {
     "id": "vic-ohs-reg",
     "jurisdiction": "Victoria",
     "title": "Occupational Health and Safety Regulations 2017",
     "url": "https://www.legislation.vic.gov.au/in-force/statutory-rules/occupational-health-and-safety-regulations-2017",
-    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} \\d{3}) In force"
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} \\d{3}) In force",
+    "cites": [
+      {
+        "state": "vic",
+        "name": "Occupational Health and Safety Regulations 2017 (Vic)"
+      }
+    ]
   },
   {
     "id": "sa-whs-act",
     "jurisdiction": "South Australia",
     "title": "Work Health and Safety Act 2012",
     "url": "https://www.legislation.sa.gov.au/lz?path=%2Fc%2Fa%2Fwork+health+and+safety+act+2012",
-    "versionPattern": "Historical \\((\\d{1,2} [A-Za-z]+ \\d{4} - \\d{1,2} [A-Za-z]+ \\d{4})"
+    "versionPattern": "Historical \\((\\d{1,2} [A-Za-z]+ \\d{4} - \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "sa",
+        "name": "Work Health and Safety Act 2012 (SA)"
+      }
+    ]
   },
   {
     "id": "sa-whs-reg",
     "jurisdiction": "South Australia",
     "title": "Work Health and Safety Regulations 2012",
     "url": "https://www.legislation.sa.gov.au/lz?path=%2Fc%2Fr%2Fwork+health+and+safety+regulations+2012",
-    "versionPattern": "Historical \\((\\d{1,2} [A-Za-z]+ \\d{4} - \\d{1,2} [A-Za-z]+ \\d{4})"
+    "versionPattern": "Historical \\((\\d{1,2} [A-Za-z]+ \\d{4} - \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "sa",
+        "name": "Work Health and Safety Regulations 2012 (SA)"
+      }
+    ]
   },
   {
     "id": "wa-whs-act",
     "jurisdiction": "Western Australia",
     "title": "Work Health and Safety Act 2020",
     "url": "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a147282.html",
-    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} Current \\S+)"
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} Current \\S+)",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Work Health and Safety Act 2020 (WA)"
+      }
+    ]
   },
   {
     "id": "wa-whs-reg",
     "jurisdiction": "Western Australia",
     "title": "Work Health and Safety (General) Regulations 2022",
     "url": "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_s53267.html",
-    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} Current \\S+)"
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} Current \\S+)",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Work Health and Safety (General) Regulations 2022 (WA)"
+      }
+    ]
   },
   {
     "id": "tas-whs-act",
     "jurisdiction": "Tasmania",
     "title": "Work Health and Safety Act 2012",
     "url": "https://www.legislation.tas.gov.au/view/html/inforce/current/act-2012-001",
-    "versionPattern": "Authorised Versions (\\d{4}-\\d{2}-\\d{2})"
+    "versionPattern": "Authorised Versions (\\d{4}-\\d{2}-\\d{2})",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Work Health and Safety Act 2012 (Tas)"
+      }
+    ]
   },
   {
     "id": "tas-whs-reg",
     "jurisdiction": "Tasmania",
     "title": "Work Health and Safety Regulations 2022",
     "url": "https://www.legislation.tas.gov.au/view/html/inforce/current/sr-2022-109",
-    "versionPattern": "Authorised Versions (\\d{4}-\\d{2}-\\d{2})"
+    "versionPattern": "Authorised Versions (\\d{4}-\\d{2}-\\d{2})",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Work Health and Safety Regulations 2022 (Tas)"
+      }
+    ]
   },
   {
     "id": "nt-whs-act",
     "jurisdiction": "Northern Territory",
     "title": "Work Health and Safety (National Uniform Legislation) Act 2011",
     "url": "https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-ACT-2011",
-    "versionPattern": "Reprint(?: No)?:?\\s*([A-Z]+\\d+)"
+    "versionPattern": "Reprint(?: No)?:?\\s*([A-Z]+\\d+)",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Work Health and Safety (National Uniform Legislation) Act 2011 (NT)"
+      }
+    ]
   },
   {
     "id": "nt-whs-reg",
     "jurisdiction": "Northern Territory",
     "title": "Work Health and Safety (National Uniform Legislation) Regulations 2011",
     "url": "https://legislation.nt.gov.au/Legislation/WORK-HEALTH-AND-SAFETY-NATIONAL-UNIFORM-LEGISLATION-REGULATIONS-2011",
-    "versionPattern": "Reprint(?: No)?:?\\s*([A-Z]+\\d+)"
+    "versionPattern": "Reprint(?: No)?:?\\s*([A-Z]+\\d+)",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Work Health and Safety (National Uniform Legislation) Regulations 2011 (NT)"
+      }
+    ]
   },
   {
     "id": "act-whs-act",
     "jurisdiction": "Australian Capital Territory",
     "title": "Work Health and Safety Act 2011",
     "url": "https://www.legislation.act.gov.au/a/2011-35/",
-    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})"
+    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Work Health and Safety Act 2011 (ACT)"
+      }
+    ]
   },
   {
     "id": "act-whs-reg",
     "jurisdiction": "Australian Capital Territory",
     "title": "Work Health and Safety Regulation 2011",
     "url": "https://www.legislation.act.gov.au/sl/2011-36/",
-    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})"
+    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Work Health and Safety Regulation 2011 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "qld-pg-act",
+    "jurisdiction": "Queensland",
+    "title": "Petroleum and Gas (Production and Safety) Act 2004",
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2004-025",
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/act-2004-025",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Petroleum and Gas (Production and Safety) Act 2004 (Qld)"
+      }
+    ]
+  },
+  {
+    "id": "qld-pd-act",
+    "jurisdiction": "Queensland",
+    "title": "Plumbing and Drainage Act 2018",
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2018-017",
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/act-2018-017",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Plumbing and Drainage Act 2018 (Qld)"
+      }
+    ]
+  },
+  {
+    "id": "qld-pd-reg",
+    "jurisdiction": "Queensland",
+    "title": "Plumbing and Drainage Regulation 2019 (approves the Queensland Plumbing and Wastewater Code)",
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2019-0042",
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/sl-2019-0042",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Plumbing and Drainage Regulation 2019 (Qld)"
+      },
+      {
+        "state": "qld",
+        "name": "Queensland Plumbing and Wastewater Code Version 2025.1 (Qld)"
+      }
+    ]
+  },
+  {
+    "id": "qld-security-act",
+    "jurisdiction": "Queensland",
+    "title": "Security Providers Act 1993",
+    "url": "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-1993-083",
+    "htmlPattern": "/view/whole/html/inforce/(\\d{4}-\\d{2}-\\d{2})/act-1993-083",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Security Providers Act 1993 (Qld)"
+      }
+    ]
+  },
+  {
+    "id": "vic-es-act",
+    "jurisdiction": "Victoria",
+    "title": "Electricity Safety Act 1998",
+    "url": "https://www.legislation.vic.gov.au/in-force/acts/electricity-safety-act-1998",
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} \\d{3}) In force",
+    "cites": [
+      {
+        "state": "vic",
+        "name": "Electricity Safety Act 1998 (Vic)"
+      }
+    ]
+  },
+  {
+    "id": "vic-esg-reg",
+    "jurisdiction": "Victoria",
+    "title": "Electricity Safety (General) Regulations 2019",
+    "url": "https://www.legislation.vic.gov.au/in-force/statutory-rules/electricity-safety-general-regulations-2019",
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} \\d{3}) In force",
+    "cites": [
+      {
+        "state": "vic",
+        "name": "Electricity Safety (General) Regulations 2019 (Vic)"
+      }
+    ]
+  },
+  {
+    "id": "wa-elec-lic-reg",
+    "jurisdiction": "Western Australia",
+    "title": "Electricity (Licensing) Regulations 1991",
+    "url": "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_s4407.html",
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} Current \\S+)",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Electricity (Licensing) Regulations 1991 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-elec-act",
+    "jurisdiction": "Western Australia",
+    "title": "Electricity Act 1945",
+    "url": "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a244.html",
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} Current \\S+)",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Electricity Act 1945"
+      }
+    ]
+  },
+  {
+    "id": "wa-plumbers-reg",
+    "jurisdiction": "Western Australia",
+    "title": "Plumbers Licensing and Plumbing Standards Regulations 2000",
+    "url": "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_s1820.html",
+    "versionPattern": "(\\d{1,2} [A-Za-z]+ \\d{4} Current \\S+)",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Plumbers Licensing and Plumbing Standards Regulations 2000 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "tas-ol-act",
+    "jurisdiction": "Tasmania",
+    "title": "Occupational Licensing Act 2005",
+    "url": "https://www.legislation.tas.gov.au/view/html/inforce/current/act-2005-047",
+    "versionPattern": "Authorised Versions (\\d{4}-\\d{2}-\\d{2})",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Occupational Licensing Act 2005 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-ol-elec-reg",
+    "jurisdiction": "Tasmania",
+    "title": "Occupational Licensing (Electrical Work) Regulations 2018",
+    "url": "https://www.legislation.tas.gov.au/view/html/inforce/current/sr-2018-089",
+    "versionPattern": "Authorised Versions (\\d{4}-\\d{2}-\\d{2})",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Occupational Licensing (Electrical Work) Regulations 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-eisa-act",
+    "jurisdiction": "Tasmania",
+    "title": "Electricity Industry Safety and Administration Act 1997",
+    "url": "https://www.legislation.tas.gov.au/view/html/inforce/current/act-1997-072",
+    "htmlPattern": "PublicationDate%3D(\\d{8})",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Electricity Industry Safety and Administration Act 1997"
+      }
+    ]
+  },
+  {
+    "id": "act-es-act",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Electricity Safety Act 1971",
+    "url": "https://www.legislation.act.gov.au/a/1971-30/",
+    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Electricity Safety Act 1971 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-col-act",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Construction Occupations (Licensing) Act 2004",
+    "url": "https://www.legislation.act.gov.au/a/2004-12/",
+    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Construction Occupations (Licensing) Act 2004 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-utilities-act",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Utilities Act 2000",
+    "url": "https://www.legislation.act.gov.au/a/2000-65/",
+    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Utilities Act 2000"
+      }
+    ]
+  },
+  {
+    "id": "act-utr-act",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Utilities (Technical Regulation) Act 2014",
+    "url": "https://www.legislation.act.gov.au/a/2014-60/",
+    "versionPattern": "(R\\w+ \\(current\\) \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Utilities (Technical Regulation) Act 2014"
+      }
+    ]
+  },
+  {
+    "id": "nt-es-act",
+    "jurisdiction": "Northern Territory",
+    "title": "Electrical Safety Act 2022",
+    "url": "https://legislation.nt.gov.au/Legislation/ELECTRICAL-SAFETY-ACT-2022",
+    "versionPattern": "Reprint(?: No)?:?\\s*([A-Z]+\\d+[A-Z0-9]*)",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Electrical Safety Act 2022 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-es-reg",
+    "jurisdiction": "Northern Territory",
+    "title": "Electrical Safety Regulations 2024",
+    "url": "https://legislation.nt.gov.au/Legislation/ELECTRICAL-SAFETY-REGULATIONS-2024",
+    "versionPattern": "Reprint(?: No)?:?\\s*([A-Z]+\\d+[A-Z0-9]*)",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Electrical Safety Regulations 2024 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-er-act",
+    "jurisdiction": "Northern Territory",
+    "title": "Electricity Reform Act 2000",
+    "url": "https://legislation.nt.gov.au/Legislation/ELECTRICITY-REFORM-ACT-2000",
+    "versionPattern": "Reprint(?: No)?:?\\s*([A-Z]+\\d+[A-Z0-9]*)",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Electricity Reform Act 2000 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "cth-ozone-reg",
+    "jurisdiction": "Commonwealth",
+    "title": "Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995",
+    "url": "https://www.legislation.gov.au/F1996B02085/latest/versions",
+    "versionPattern": "Set up an alert (F\\d{4}[A-Z]\\d+(?: C\\d+)? \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "all",
+        "name": "Ozone Protection and Synthetic Greenhouse Gas Management Regulations 1995 (Cth)"
+      }
+    ]
+  },
+  {
+    "id": "cth-cabling-rules",
+    "jurisdiction": "Commonwealth",
+    "title": "Telecommunications (Cabling Provider) Rules 2025",
+    "url": "https://www.legislation.gov.au/F2025L00386/latest/versions",
+    "versionPattern": "Set up an alert (F\\d{4}[A-Z]\\d+(?: C\\d+)? \\d{1,2} [A-Za-z]+ \\d{4})",
+    "cites": [
+      {
+        "state": "all",
+        "name": "Telecommunications (Cabling Provider) Rules 2025 (Cth)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-demolition",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Demolition work Code of Practice 2020 (NI2020-541)",
+    "url": "https://legislation.act.gov.au/ni/2020-541/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Demolition work Code of Practice 2020 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-excavation",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Excavation work Code of Practice 2020 (NI2020-542)",
+    "url": "https://legislation.act.gov.au/ni/2020-542/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Excavation work Code of Practice 2020 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-manual",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Hazardous manual tasks Code of Practice 2020 (NI2020-544)",
+    "url": "https://legislation.act.gov.au/ni/2020-544/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Hazardous manual tasks Code of Practice 2020 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-falls",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Managing the risk of falls at workplaces Code of Practice 2020 (NI2020-553)",
+    "url": "https://legislation.act.gov.au/ni/2020-553/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Managing the risk of falls at workplaces Code of Practice 2020 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-electrical",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Managing electrical risks in the workplace Code of Practice 2020 (NI2020-556)",
+    "url": "https://legislation.act.gov.au/ni/2020-556/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Managing electrical risks in the workplace Code of Practice 2020 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-abrasive",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Abrasive blasting Code of Practice 2022 (NI2022-682)",
+    "url": "https://legislation.act.gov.au/ni/2022-682/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Abrasive blasting Code of Practice 2022 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-welding",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Welding processes Code of Practice 2022 (NI2022-683)",
+    "url": "https://legislation.act.gov.au/ni/2022-683/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Welding processes Code of Practice 2022 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-spray",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Spray painting and powder coating Code of Practice 2022 (NI2022-685)",
+    "url": "https://legislation.act.gov.au/ni/2022-685/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Spray painting and powder coating Code of Practice 2022 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-chemicals",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Managing risks of hazardous chemicals in the workplace Code of Practice 2022 (NI2022-687)",
+    "url": "https://legislation.act.gov.au/ni/2022-687/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of Practice 2022 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-asbestos-manage",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the How to manage and control asbestos in the workplace Code of Practice 2022 (NI2022-691)",
+    "url": "https://legislation.act.gov.au/ni/2022-691/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "How to manage and control asbestos in the workplace Code of Practice 2022 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-formwork",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Formwork Code of Practice 2024 (NI2024-56)",
+    "url": "https://legislation.act.gov.au/ni/2024-56/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Formwork Code of Practice 2024 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-tower",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Tower crane Code of Practice 2025 (NI2025-173)",
+    "url": "https://legislation.act.gov.au/ni/2025-173/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Tower crane Code of Practice 2025 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-noise",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Managing noise and preventing hearing loss at work Code of Practice 2025 (NI2025-440)",
+    "url": "https://legislation.act.gov.au/ni/2025-440/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Managing noise and preventing hearing loss at work Code of Practice 2025 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-confined",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Confined spaces Code of Practice 2025 (NI2025-443)",
+    "url": "https://legislation.act.gov.au/ni/2025-443/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Confined spaces Code of Practice 2025 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-plant",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Managing the risks of plant in the workplace Code of Practice 2025 (NI2025-445)",
+    "url": "https://legislation.act.gov.au/ni/2025-445/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Managing the risks of plant in the workplace Code of Practice 2025 (ACT)"
+      }
+    ]
+  },
+  {
+    "id": "act-code-construction",
+    "jurisdiction": "Australian Capital Territory",
+    "title": "Approval of the Construction work Code of Practice 2025 (NI2025-446)",
+    "url": "https://legislation.act.gov.au/ni/2025-446/",
+    "versionPattern": "((?:Current|Repealed) law) Law history",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Construction work Code of Practice 2025 (ACT)"
+      }
+    ]
   }
 ]
