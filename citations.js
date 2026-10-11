@@ -2,9 +2,11 @@
 // states that have been checked, the Queensland regulation sections are
 // swapped for the matching sections of that state's own regulation. The match
 // was made by section heading and checked against the state's text
-// (scenarios/state-citations.json). Sources that do not apply in a state, such
-// as Queensland-only sections, Queensland Acts and model codes of practice not
-// checked for that state, are left out rather than guessed.
+// (scenarios/state-citations.json). Code of practice sections are cited as the
+// state's own approved code where its text was matched (scenarios/state-codes.json).
+// Sources that do not apply in a state, such as Queensland-only sections, Queensland
+// Acts and code sections with no matching text in a code the state has approved,
+// are left out rather than guessed.
 const STATE_CITATIONS = require('./scenarios/state-citations.json');
 // Queensland has approved its own versions of most model codes. Their section
 // numbers were compared heading by heading with the model codes SiteReady was
@@ -12,6 +14,16 @@ const STATE_CITATIONS = require('./scenarios/state-citations.json');
 // Queensland code section where one matches; codes Queensland has not approved,
 // such as Construction work, stay cited as the model code.
 const QLD_CODES = require('./scenarios/qld-codes.json');
+// The codes of practice South Australia, Western Australia, Tasmania, the ACT and the Northern
+// Territory have approved (scenarios/state-codes.json, from each regulator's list). A Queensland,
+// NSW or model code section is cited as the section of the state's own code that holds the same
+// text: the sections were compared text to text, and so was the sentence each line rests on
+// ("notOnLine" lists the lines whose sentence the state's section does not hold). Victoria's
+// compliance codes are worded differently and are not cited for these sections. A code section
+// with no confirmed match is left off rather than guessed.
+const STATE_CODES = require('./scenarios/state-codes.json');
+const NOT_ON_LINE = Object.fromEntries(Object.entries(STATE_CODES).filter(([id]) => id !== 'lines')
+  .map(([id, { notOnLine }]) => [id, new Set(Object.entries(notOnLine).flatMap(([key, lines]) => lines.map((n) => `${key}\u0000${STATE_CODES.lines[n]}`)))]));
 
 const QLD_REG = 'Work Health and Safety Regulation 2011 (Qld) ';
 const NSW_CODE = /^SafeWork NSW Code of practice: /;
@@ -71,7 +83,27 @@ const DROP_SOURCES = {
   ],
 };
 
-function localSource(source, stateId, text = '') {
+// The state's own code sections for a Queensland, NSW or model code citation, as [code, section]
+// pairs: only sections matched by text, and not where the line's own sentence did not match.
+function stateCode(part, stateId, line) {
+  const codes = stateId !== 'lines' && STATE_CODES[stateId];
+  const match = codes && /^(.*?) ((?:s|appendix|Appendix|Table|table)\b.*)$/.exec(part);
+  if (!match) return [];
+  const [, doc, refs] = match;
+  return refs.split(', ').map((ref) => `${doc}|${ref}`)
+    .filter((key) => codes.sections[key] && !NOT_ON_LINE[stateId].has(`${key}\u0000${line}`))
+    .map((key) => codes.sections[key]);
+}
+
+// Sections in their order in the code: numbered sections by number, then appendices.
+const sectionKey = (ref) => (/^s /.test(ref) ? ref.slice(2).split(' ')[0].split('.').map(Number) : [Infinity]);
+function bySection(a, b) {
+  const [x, y] = [sectionKey(a), sectionKey(b)];
+  for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] ?? -1) !== (y[i] ?? -1)) return (x[i] ?? -1) - (y[i] ?? -1);
+  return a.localeCompare(b);
+}
+
+function localSource(source, stateId, text = '', line = text) {
   if (!source) return '';
   // A state's own sources are cited only in that state's drafts.
   if (stateId === 'qld') return source.split('; ').filter((part) => !ownState(part)).flatMap(qldCode).join('; ');
@@ -79,17 +111,29 @@ function localSource(source, stateId, text = '') {
   // National sources apply everywhere, even where the state's sections are not yet mapped.
   if (!state) return source.split('; ').filter((part) => NATIONAL.some((pattern) => pattern.test(part)) || ownState(part) === stateId).join('; ');
   const parts = [];
+  // The state's code sections, gathered by code and cited where that code is first cited.
+  const codeRefs = new Map();
   for (const part of source.split('; ')) {
     if (NATIONAL.some((pattern) => pattern.test(part)) || ownState(part) === stateId) {
       parts.push(part);
       continue;
     }
+    const own = stateId === 'nsw' ? [] : stateCode(part, stateId, line);
+    for (const [code, ref] of own) {
+      if (!codeRefs.has(code)) {
+        codeRefs.set(code, []);
+        parts.push(codeRefs.get(code));
+      }
+      if (!codeRefs.get(code).includes(ref)) codeRefs.get(code).push(ref);
+    }
+    if (own.length) continue;
     if (!part.startsWith(QLD_REG)) continue;
     const dropped = (DROP_SOURCES[stateId] || []).filter(([pattern]) => pattern.test(text)).flatMap(([, refs]) => refs);
     const references = [...new Set(part.slice(QLD_REG.length).split(', ').filter((ref) => !dropped.includes(ref)).map((ref) => mapReference(ref, state)).filter(Boolean))];
     if (references.length) parts.push(`${state.regulation} ${references.join(', ')}`);
   }
-  return parts.join('; ');
+  const titles = new Map([...codeRefs.keys()].map((code) => [codeRefs.get(code), STATE_CODES[stateId].codes[code]]));
+  return parts.map((part) => (titles.has(part) ? `${titles.get(part)} ${[...part].sort(bySection).join(', ')}` : part)).join('; ');
 }
 
 // Queensland's demolition and refurbishment rules apply to buildings built before
@@ -470,12 +514,23 @@ function localControl(text, source, stateId) {
   const figure = own && stateId !== 'qld' ? FIGURES.find(([pattern]) => pattern.test(out)) : null;
   if (figure) {
     const [, head, rest] = figure;
-    const cited = localSource(source, stateId, head);
+    const cited = localSource(source, stateId, head, text);
     return `${head}${cited ? ` (${cited})` : ''}. ${rest}`;
   }
   const cited = own ? localSource(source, stateId, text) : '';
   return cited ? `${out} (${cited})` : out;
 }
+
+// A printed line as it reads without the state's own code references, so lines are still read and
+// matched with each other by their words as before those references were added (a line said once,
+// not twice; a code's title is not the line's wording). Lines in Queensland and NSW have none.
+const escaped = (title) => title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const REF = String.raw`(?:s|appendix) [\w.]+(?: \([^()]*\))?`;
+const CODE_PART = `(?:${[...new Set(Object.entries(STATE_CODES).filter(([id]) => id !== 'lines').flatMap(([, { codes }]) => Object.values(codes)))]
+  .sort((a, b) => b.length - a.length).map(escaped).join('|')}) ${REF}(?:, ${REF})*`;
+const STATE_CODE_ONLY = new RegExp(String.raw`\s?\(${CODE_PART}\)`, 'g');
+const STATE_CODE_PART = new RegExp(String.raw`; ${CODE_PART}|${CODE_PART}; `, 'g');
+const withoutStateCodes = (line) => (typeof line === 'string' ? line.replace(STATE_CODE_PART, '').replace(STATE_CODE_ONLY, '') : line);
 
 // Short Queensland regulation references in register notes, such as "(WHS Reg s 213)",
 // given as the state's own sections, or left out where the section has not been matched.
@@ -491,4 +546,4 @@ function localNote(text, stateId) {
 
 const citedStates = () => ['qld', ...Object.keys(STATE_CITATIONS)];
 
-module.exports = { localSource, localText, localControl, localNote, citedStates };
+module.exports = { localSource, localText, localControl, localNote, citedStates, withoutStateCodes };

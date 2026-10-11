@@ -8,7 +8,7 @@
 // Regulation makes the work high risk work; otherwise the operator must be
 // competent. Electrical equipment for construction work is inspected and tested
 // to AS/NZS 3012 (Electrical Safety Regulation 2026 (Qld) s 140).
-const { localNote, localText } = require('./citations');
+const { localNote, localText, withoutStateCodes } = require('./citations');
 const { findState } = require('./legislation');
 const { controlLevel, HIGHER } = require('./control-level');
 const TEST_TAG = 'Inspected, tested and tagged to AS/NZS 3012. Checked for damage before use.';
@@ -628,7 +628,10 @@ function withoutServicedPlant(text) {
 }
 
 function registersFor(draft, input = {}) {
-  const steps = draft.jobSteps || [];
+  // The lines' words without the state's own code references (the printed lines are kept for the
+  // sources list and the rated steps).
+  const printedSteps = draft.jobSteps || [];
+  const steps = printedSteps.map((step) => ({ ...step, controls: (step.controls || []).map(withoutStateCodes) }));
   const task = draft.task || '';
   const hazardText = steps.flatMap((step) => step.hazards).join('\n');
   const allText = `${task}\n${steps.flatMap((step) => [step.step, ...step.hazards, ...step.controls]).join('\n')}`;
@@ -678,7 +681,7 @@ function registersFor(draft, input = {}) {
   const plantInferred = plant.map((item) => localPlant(item, stateId)).map((item) => ({ item: item.item, maybe: WHERE_USED.test(item.licence) }));
   const listed = confirmedPlant(plant, input.plantChoice, stateId);
   const substances = substancesFor(`${task}\n${hazardText}\n${steps.map((step) => step.step).join('\n')}`, (input.facts || {}).safetyDataSheet, steps.flatMap((step) => step.controls).join('\n'));
-  let sources = legislationFor([...steps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
+  let sources = legislationFor([...printedSteps.flatMap((step) => step.controls), ...(draft.controls || []).map((item) => item.text)]);
   if (!/Queensland/.test(draft.state || '')) sources = addStateLaw(sources, draft.state);
   const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, listed.map((item) => localPlant(item, stateId)), draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(withoutSource(line))))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
   if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant: listed, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` });
@@ -693,7 +696,7 @@ function registersFor(draft, input = {}) {
     // Codes of practice are cited only where they have been matched to the state (Queensland so far).
     emergency: emergencyFor(allText, input, draft.highRisk || [], listed, `${task}\n${hazardText}`).map((row) => (stateId !== 'qld' ? { ...row, equipment: row.equipment.replace(/\s?\([^()]*Code of Practice[^()]*\)/g, '') } : row)),
     sources,
-    jobSteps: ratedSteps(steps),
+    jobSteps: ratedSteps(printedSteps),
   };
 }
 

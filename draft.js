@@ -1,6 +1,8 @@
 const { HIERARCHY, SITE_FIELDS, findState, highRiskList } = require('./legislation');
 const { jobStepsFor, ppeFor, ACTIVITIES, CITE } = require('./activities');
-const { localControl } = require('./citations');
+// Lines are read for their words without the state's own code references, so a code's title does not
+// count as the line's wording (scenarios/state-codes.json; the line itself in Queensland and NSW).
+const { localControl, withoutStateCodes } = require('./citations');
 const { tradeIds, allowedKinds, limitToTrades } = require('./trades');
 const { readSlang } = require('./slang');
 const { fixSpelling } = require('./spelling');
@@ -2292,7 +2294,7 @@ function withStepHazards(hazards, jobSteps, task) {
   }
   // Any step with silica controls (cutting, coring, chasing, grinding) puts silica in the summary.
   // Only Queensland cites a code with "crystalline silica" in its title, so the wording every state shares is matched too.
-  if (jobSteps.some((step) => (step.controls || []).some((line) => /\b(?:crystalline silica|silica (?:assessment|dust|controls?))\b/i.test(line)))) add('Respirable crystalline silica', 'A person breathes in silica dust.');
+  if (jobSteps.some((step) => (step.controls || []).some((line) => /\b(?:crystalline silica|silica (?:assessment|dust|controls?))\b/i.test(withoutStateCodes(line))))) add('Respirable crystalline silica', 'A person breathes in silica dust.');
   if (PUBLIC_NEARBY.test(task)) add('Public near the work', 'A member of the public enters the work area or is struck.');
   return rows;
 }
@@ -2817,7 +2819,7 @@ function stepNamesPart(part, steps, verbs) {
       const named = partThings(step.step.slice(8), verbs);
       return named.length > 0 && named.every((word) => things.includes(word));
     }
-    const text = stepWords([step.step, ...step.hazards, ...step.controls].join(' '));
+    const text = stepWords([step.step, ...step.hazards, ...step.controls.map(withoutStateCodes)].join(' '));
     return step.step.split(/[^A-Za-z-]+/).some((word) => doing.has(workStem(word))) && things.some((word) => text.has(word));
   });
 }
@@ -2842,7 +2844,7 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
   const steps = allSteps.filter((step) => !['Before starting', 'Finish and clean up'].includes(step.step));
   const inDraft = new Set(kindsWithSteps(tradeFlags(task, facts, state)));
   const handled = steps.some((step) => HANDLING_STEP.test(step.step));
-  const named = stepWords(steps.map((step) => [step.step, ...step.hazards, ...step.controls].join(' ')).join(' '));
+  const named = stepWords(steps.map((step) => [step.step, ...step.hazards, ...step.controls.map(withoutStateCodes)].join(' ')).join(' '));
   const parts = Array.isArray(unmatched) ? unmatched.map((row) => cleanLine(withoutNotes(row, notOwnWork))) : taskParts(typed, SITE_WORK, notOwnWork);
   const found = dedupe(parts.filter((part) => {
     const text = readSlang(ownWork(part));
@@ -3267,7 +3269,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   // PPE the job steps call for is ticked, so the PPE section and the steps agree.
   // A list the user chose is left as they chose it.
   if (!Array.isArray(input.ppe)) {
-    const said = jobSteps.flatMap((step) => step.controls).join('\n');
+    const said = jobSteps.flatMap((step) => step.controls).map(withoutStateCodes).join('\n');
     if (/\bknee pads?\b/i.test(said)) tick('kneePads');
     if (/\bsunglasses\b/i.test(said)) tick('glassesTinted');
     if (/\buse travel restraint\b/i.test(said)) tick('harness');
@@ -3416,10 +3418,10 @@ function withPermits(jobSteps, work, alreadyRead = '', options = {}) {
     if (permit.notDomestic && options.domestic) continue;
     if (noDigging && permit.work === DIG_WORK) continue;
     if (!steps.length || !permit.work.test(work) || (alreadyRead && permit.work.test(alreadyRead))) continue;
-    const named = steps.findIndex((step) => step.controls.some((line) => permit.named.test(line)));
+    const named = steps.findIndex((step) => step.controls.some((line) => permit.named.test(withoutStateCodes(line))));
     if (named >= 0) {
       const fire = permit.fire && { ...permit, line: permit.fire.line };
-      const said = steps.flatMap((step) => step.controls).join('\n');
+      const said = steps.flatMap((step) => step.controls).map(withoutStateCodes).join('\n');
       if (fire && permit.fire.has.some((pattern) => !pattern.test(said)) && !userRemoved(options.removed, fire.line, permitLine(fire, options.stateId || 'qld'))) {
         steps = steps.map((step, index) => (index === named ? { ...step, controls: [...step.controls, permitLine(fire, options.stateId || 'qld')] } : step));
       }
@@ -3471,7 +3473,7 @@ function withCategoryLines(jobSteps, highRisk, state, removed = new Set(), suppr
   for (const [check, item] of Object.entries(CATEGORY_LINES)) {
     if (checks && !checks.includes(check)) continue;
     const category = highRiskList(state).find((entry) => entry.check === check);
-    if (!steps.length || !category || !highRisk.includes(category.label) || steps.some((step) => step.controls.some((line) => item.answers.test(line)))) continue;
+    if (!steps.length || !category || !highRisk.includes(category.label) || steps.some((step) => step.controls.some((line) => item.answers.test(withoutStateCodes(line))))) continue;
     let at = steps.findIndex((step) => !['Before starting', 'Finish and clean up'].includes(step.step) && item.at.test(step.step));
     if (at < 0) at = 0;
     const printed = item.source ? localControl(item.line, item.source, (state && state.id) || 'qld') || item.line : item.line;
