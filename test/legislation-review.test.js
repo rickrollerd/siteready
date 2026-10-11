@@ -292,7 +292,7 @@ test('confined space records: 28 days and completion, or 2 years after a notifia
   const task = 'Enter a 4 m deep sewer pump station wet well to replace a pump and valves.';
   for (const state of ['qld', 'nsw', 'sa', 'wa', 'tas', 'act', 'nt']) {
     const text = line(draft(state, task, { facts: { spaceAssessment: 'confined' } }), /^Close and sign off the entry permit/);
-    assert.match(text, /^Close and sign off the entry permit, confirming everyone has left\. Keep the risk assessment until at least 28 days after the work and the permit until the work is complete, or both for at least 2 years after a notifiable incident, available for inspection and to workers on request\. \(.*\b77\)$/, state);
+    assert.match(text, /^Close and sign off the entry permit, confirming everyone has left\. Keep the risk assessment until at least 28 days after the work and the permit until the work is complete, or both for at least 2 years after a notifiable incident, available for inspection and to workers on request\. \(.*\b77(?:; Confined spaces Code of [Pp]ractice \d{4} \((?:SA|WA|Tas|ACT|NT)\) s [\d., s]+)?\)$/, state);
   }
 });
 
@@ -367,10 +367,10 @@ test('Tasmania: a SWMS stands in for the silica risk control plan only with ever
 test('ACT: loose-fill demolition notice (s 142(1)(d)), porcelain as stone-substitute material, and the silica question', () => {
   const reg = 'Work Health and Safety Regulation 2011 (ACT)';
   const notice = line(draft('act', 'Demolish a three storey concrete commercial building, 12 m high, with excavators and a high reach demolition machine.'), /^Written notice is given to the regulator/);
-  assert.equal(notice, `Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high, where load shifting machinery is used on a suspended floor, where explosives are used, or where the structure contains or has contained loose-fill asbestos insulation. (${reg} s 142)`);
+  assert.equal(notice, `Written notice is given to the regulator at least 5 days before the work starts where the structure, or a load-bearing part of it, is at least 6 m high, where load shifting machinery is used on a suspended floor, where explosives are used, or where the structure contains or has contained loose-fill asbestos insulation. (${reg} s 142; Demolition work Code of Practice 2020 (ACT) s 3.1)`);
   // The model states and Queensland: s 142(1)(a) to (c).
   for (const state of ['qld', 'nsw', 'sa', 'tas', 'nt']) {
-    assert.match(line(draft(state, 'Demolish a three storey concrete commercial building, 12 m high, with excavators and a high reach demolition machine.'), /^Written notice is given to the regulator/), /where load shifting machinery is used on a suspended floor, or where explosives are used\. \(.*142\)$/, state);
+    assert.match(line(draft(state, 'Demolish a three storey concrete commercial building, 12 m high, with excavators and a high reach demolition machine.'), /^Written notice is given to the regulator/), /where load shifting machinery is used on a suspended floor, or where explosives are used\. \(.*142(?:; Demolition work Code of Practice \d{4} \((?:SA|Tas|NT)\) s 3\.1)?\)$/, state);
   }
   const tiles = lines(draft('act', 'Cut and grind porcelain tiles and natural stone pavers with power tools for a commercial plaza.'));
   assert.ok(tiles.some((item) => item.startsWith('Porcelain tiles and sintered stone containing crystalline silica are stone-substitute material') && item.endsWith(`(${reg} s 418A, s 418B, s 418C, s 418CAA)`)));
@@ -451,7 +451,7 @@ test('tower crane erection, climbing and dismantling need intermediate or advanc
 test('whole structures, however described, get the demolition notice or licence lines', () => {
   const tasks = ['Demolish a 20 m high post-tensioned concrete office building using a high reach excavator and explosives for the core.', 'Demolish a single storey brick warehouse with load-bearing walls.', 'Demolish an 8 m high tilt-up concrete warehouse.', 'Implode a disused chimney stack with explosives.'];
   for (const task of tasks) {
-    assert.ok(lines(draft('act', task)).some((item) => /^Written notice is given to the regulator at least 5 days before the work starts where .* loose-fill asbestos insulation\. \(Work Health and Safety Regulation 2011 \(ACT\) s 142\)$/.test(item)), task);
+    assert.ok(lines(draft('act', task)).some((item) => /^Written notice is given to the regulator at least 5 days before the work starts where .* loose-fill asbestos insulation\. \(Work Health and Safety Regulation 2011 \(ACT\) s 142(?:; Demolition work Code of Practice 2020 \(ACT\) s 3\.1)?\)$/.test(item)), task);
     assert.ok(lines(draft('wa', task)).some((item) => /^Class 1 or Class 2 demolition work is done by, or for, the holder of the demolition licence it needs\..*r 142B, r 142C, r 142F, r 142G, r 142I\)$/.test(item)), task);
     assert.ok(lines(draft('nsw', task)).some((item) => /^Written notice is given to the regulator at least 5 days before .* \(Work Health and Safety Regulation 2025 \(NSW\) s 142\)$/.test(item)), task);
   }
