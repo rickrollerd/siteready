@@ -22,6 +22,12 @@ const QLD_CODES = require('./scenarios/qld-codes.json');
 // compliance codes are worded differently and are not cited for these sections. A code section
 // with no confirmed match is left off rather than guessed.
 const STATE_CODES = require('./scenarios/state-codes.json');
+// Victoria is not a WHS state. Its Act, Regulations and compliance codes are worded and numbered
+// differently, so its references are matched line by line (scenarios/vic-lines.json): each printed
+// Victorian line listed there was read against the Victorian text, and carries only the regulations,
+// Act sections and compliance code paragraphs that state the same duty or control. They are cited
+// alongside the regulation sections matched by heading (STATE_CITATIONS).
+const VIC_LINES = require('./scenarios/vic-lines.json');
 const NOT_ON_LINE = Object.fromEntries(Object.entries(STATE_CODES).filter(([id]) => id !== 'lines')
   .map(([id, { notOnLine }]) => [id, new Set(Object.entries(notOnLine).flatMap(([key, lines]) => lines.map((n) => `${key}\u0000${STATE_CODES.lines[n]}`)))]));
 
@@ -292,6 +298,9 @@ const VIC_TEXT = [
   // Building maintenance units have a registered design (r 125, Schedule 2 item 1.5), not item registration,
   // and their inspection and maintenance records are kept (r 106).
   [/^The BMU has a current inspection and registration\.$/, `The BMU's design is registered and its inspection and maintenance records are kept${cite('vic', '106', '125', 'Schedule 2')}.`],
+  // Regulation 178(i): applying a flame to cut metal coated with paint of more than 1% lead by dry weight
+  // is a lead process; Part 4.3 (r 184) sets its controls. The WHS Regulation is not Victoria's law.
+  [/, done with the lead controls the WHS Regulation requires\.$/, `, done with the lead controls the regulations require.${cite('vic', '178', '184')}`],
   // Regulation 341 names the construction induction card.
   [/\bgeneral construction induction card\b/, 'construction induction card', KEEP],
 ];
@@ -504,6 +513,33 @@ const FIGURES = [
   [/^A scaffold over 4 m is used only after written handover, and inspected at least every 30 days\. Bricklaying and blocklaying need a heavy duty scaffold, rated up to 675 kg a bay, and bays are not overloaded\.$/, 'A scaffold over 4 m is used only after written handover, and inspected at least every 30 days', 'Bricklaying and blocklaying need a heavy duty scaffold, rated to the relevant Australian Standard for up to 675 kg a bay, and bays are not overloaded.'],
 ];
 
+// A Victorian line's references with the ones its own Victorian text was matched to added: Act
+// sections, then regulations (merged into any already cited), the line's other sources, then
+// compliance code paragraphs.
+const refOrder = (ref) => {
+  const match = /^(?:s|r|para) (\d+)([A-Z]*)/.exec(ref);
+  return match ? [0, Number(match[1]), match[2]] : [1, 0, ref];
+};
+const byRef = (a, b) => {
+  const [x, y] = [refOrder(a), refOrder(b)];
+  return x[0] - y[0] || x[1] - y[1] || String(x[2]).localeCompare(String(y[2]));
+};
+function vicCited(line, cited) {
+  const refs = VIC_LINES.lines[line];
+  if (!refs) return cited;
+  const regulation = STATE_CITATIONS.vic.regulation;
+  const parts = cited ? cited.split('; ') : [];
+  const own = (title) => {
+    const index = parts.findIndex((part) => part.startsWith(`${title} `));
+    return index < 0 ? [] : parts.splice(index, 1)[0].slice(title.length + 1).split(', ');
+  };
+  const join = (title, list) => (list.length ? [`${title} ${[...new Set(list)].sort(byRef).join(', ')}`] : []);
+  const act = join(VIC_LINES.act, [...own(VIC_LINES.act), ...refs.filter((ref) => /^s /.test(ref))]);
+  const regs = join(regulation, [...own(regulation), ...refs.filter((ref) => /^(?:r |Schedule )/.test(ref))]);
+  const codes = Object.keys(VIC_LINES.codes).flatMap((id) => join(VIC_LINES.codes[id], [...own(VIC_LINES.codes[id]), ...refs.filter((ref) => ref.startsWith(`${id} para `)).map((ref) => ref.slice(id.length + 1))]));
+  return [...act, ...regs, ...parts, ...codes].join('; ');
+}
+
 // A control line with its sources, as printed for the state. A line reworded for the state
 // keeps its own sources only where the rewording still holds for them (KEEP); otherwise it
 // carries the citation written into it, or none.
@@ -517,20 +553,48 @@ function localControl(text, source, stateId) {
     const cited = localSource(source, stateId, head, text);
     return `${head}${cited ? ` (${cited})` : ''}. ${rest}`;
   }
-  const cited = own ? localSource(source, stateId, text) : '';
+  const local = own ? localSource(source, stateId, text) : '';
+  const cited = stateId === 'vic' ? vicCited(out, local) : local;
   return cited ? `${out} (${cited})` : out;
 }
 
-// A printed line as it reads without the state's own code references, so lines are still read and
-// matched with each other by their words as before those references were added (a line said once,
-// not twice; a code's title is not the line's wording). Lines in Queensland and NSW have none.
+// A printed line as it reads without the state's own code references (Victoria's compliance codes
+// among them), so lines are still read and matched with each other by their words as before those
+// references were added (a line said once, not twice; a code's title is not the line's wording).
+// Lines in Queensland and NSW have none.
 const escaped = (title) => title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const REF = String.raw`(?:s|appendix) [\w.]+(?: \([^()]*\))?`;
-const CODE_PART = `(?:${[...new Set(Object.entries(STATE_CODES).filter(([id]) => id !== 'lines').flatMap(([, { codes }]) => Object.values(codes)))]
+const REF = String.raw`(?:s|appendix|para) [\w.]+(?: \([^()]*\))?`;
+const CODE_PART = `(?:${[...new Set([...Object.entries(STATE_CODES).filter(([id]) => id !== 'lines').flatMap(([, { codes }]) => Object.values(codes)), ...Object.values(VIC_LINES.codes)])]
   .sort((a, b) => b.length - a.length).map(escaped).join('|')}) ${REF}(?:, ${REF})*`;
 const STATE_CODE_ONLY = new RegExp(String.raw`\s?\(${CODE_PART}\)`, 'g');
 const STATE_CODE_PART = new RegExp(String.raw`; ${CODE_PART}|${CODE_PART}; `, 'g');
 const withoutStateCodes = (line) => (typeof line === 'string' ? line.replace(STATE_CODE_PART, '').replace(STATE_CODE_ONLY, '') : line);
+
+// A printed line as it printed before the state codes (#194) and Victoria's line table added their
+// references: the state code parts and the Victorian Act and regulation references matched to the
+// line are taken out, and the rest of the citation stays. The sign-on check questions read lines this
+// way, so a line does not leave the question pool because it gained a reference.
+function withoutAddedReferences(line) {
+  const plain = withoutStateCodes(line);
+  if (typeof plain !== 'string' || !plain.endsWith(')')) return plain;
+  let depth = 0;
+  let at = -1;
+  for (let i = plain.length - 1; i >= 0; i -= 1) {
+    if (plain[i] === ')') depth += 1;
+    else if (plain[i] === '(' && --depth === 0) { at = i; break; }
+  }
+  const text = at > 0 ? plain.slice(0, at).trimEnd() : '';
+  const refs = VIC_LINES.lines[text];
+  if (!refs) return plain;
+  const added = new Set(refs);
+  const parts = plain.slice(at + 1, -1).split('; ').map((part) => {
+    const title = [VIC_LINES.act, STATE_CITATIONS.vic.regulation].find((name) => part.startsWith(`${name} `));
+    if (!title) return part;
+    const kept = part.slice(title.length + 1).split(', ').filter((ref) => !added.has(ref));
+    return kept.length ? `${title} ${kept.join(', ')}` : '';
+  }).filter(Boolean);
+  return parts.length ? `${text} (${parts.join('; ')})` : text;
+}
 
 // Short Queensland regulation references in register notes, such as "(WHS Reg s 213)",
 // given as the state's own sections, or left out where the section has not been matched.
@@ -546,4 +610,4 @@ function localNote(text, stateId) {
 
 const citedStates = () => ['qld', ...Object.keys(STATE_CITATIONS)];
 
-module.exports = { localSource, localText, localControl, localNote, citedStates, withoutStateCodes };
+module.exports = { localSource, localText, localControl, localNote, citedStates, withoutStateCodes, withoutAddedReferences };

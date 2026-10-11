@@ -3,9 +3,10 @@
 // controls in, so a SiteReady draft is checked by the same rule it was written to.
 const { HIERARCHY } = require('./legislation');
 
-// A printed code or law citation, such as "(Scaffolding Code of Practice 2021 (Qld) s 4.1)", is not
-// part of the control: a section title must not move the line (goal 5 review, 7 October 2026).
-const CITATION = /\s*\((?:[^()]|\([^()]*\))*?(?:\bRegulations?\b|\b[Cc]ode of [Pp]ractice\b|\bCoP\b|\bAct\b|\bRules \d{4})(?:[^()]|\([^()]*\))*\)/g;
+// A printed code or law citation, such as "(Scaffolding Code of Practice 2021 (Qld) s 4.1)" or a
+// Victorian compliance code, is not part of the control: a section title must not move the line
+// (goal 5 review, 7 October 2026).
+const CITATION = /\s*\((?:[^()]|\([^()]*\))*?(?:\bRegulations?\b|\b[Cc]ode of [Pp]ractice\b|\bCoP\b|\bAct\b|\bRules \d{4}|\bCompliance code\b)(?:[^()]|\([^()]*\))*\)/g;
 
 // A sentence that only checks, inspects, tests or trains does not put the thing it names in place
 // ("Pre-start check of the dust extraction", "A competent person checks the EWP").

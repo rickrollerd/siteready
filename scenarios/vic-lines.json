@@ -1,0 +1,720 @@
+{
+ "act": "Occupational Health and Safety Act 2004 (Vic)",
+ "codes": {
+  "falls": "Compliance code: Prevention of falls in general construction 2019 (Vic)",
+  "plant": "Compliance code: Plant 2019 (Vic)",
+  "excavation": "Compliance code: Excavation 2019 (Vic)",
+  "demolition": "Compliance code: Demolition 2019 (Vic)",
+  "manual": "Compliance code: Hazardous manual handling 2019 (Vic)",
+  "chemicals": "Compliance code: Hazardous substances 2019 (Vic)",
+  "noise": "Compliance code: Noise 2019 (Vic)",
+  "confined": "Compliance code: Confined spaces 2019 (Vic)",
+  "facilities": "Compliance code: Facilities in construction 2018 (Vic)",
+  "workplace-facilities": "Compliance code: Workplace facilities and the working environment 2023 (Vic)"
+ },
+ "lines": {
+  "A competent person frequently checks the soil, trench walls and support for fretting, slipping, slumping or swelling, and any repair or strengthening is done from above before work below continues.": [
+   "excavation para 266"
+  ],
+  "A competent person inspects faces, batters and support often, including after rain and changes in the water table, and repairs are made from above before work below continues.": [
+   "excavation para 266"
+  ],
+  "A confined space is entered only under a confined space entry permit and a separate SWMS.": [
+   "r 63",
+   "r 322",
+   "r 327"
+  ],
+  "A forklift left unattended is parked on a firm, level surface with the handbrake applied, the motor switched off, and the key removed.": [
+   "plant para 380"
+  ],
+  "A notifiable incident is reported to the regulator immediately, and the site is left undisturbed.": [
+   "s 38",
+   "s 39"
+  ],
+  "A worker enters the trench to set a pit only where the trench is shored, benched or battered, and open pits are covered or fenced when no one is working at them.": [
+   "excavation para 123",
+   "excavation para 163",
+   "falls para 235"
+  ],
+  "Access into the excavation is by a secured ladder or ramp.": [
+   "excavation para 124"
+  ],
+  "Access is by a secured ladder, and the edge has a barrier.": [
+   "excavation para 124",
+   "falls para 235"
+  ],
+  "Air is re-tested or continuously monitored when the work, or disturbing sludge or other material, could change the conditions in the space.": [
+   "confined para 88"
+  ],
+  "Air monitoring is done where it is not certain the exposure standard is met, and health monitoring is provided where the regulations require it.": [
+   "r 166",
+   "r 169"
+  ],
+  "An exclusion zone is set up below the work.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "An up-to-date register of inspections and maintenance is kept.": [
+   "plant para 367"
+  ],
+  "Barricade and sign no go areas below.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "Barricade and sign the area below, so a falling core cannot hit anyone.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "Barricade and sign the area below.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "Barriers or an exclusion zone below the work for falling objects.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "Before digging below the footing level of a nearby building, wall or retaining wall, a competent person assesses its stability, and ground support and any bracing designed by a competent person are in place.": [
+   "excavation para 98"
+  ],
+  "Before digging swales, irrigation trenches or planting holes, get the services plans (for example through Before You Dig Australia) and locate services on site. Pothole by hand or with a vacuum near services.": [
+   "excavation para 92",
+   "excavation para 93"
+  ],
+  "Before high risk crystalline silica work starts, a hazard control statement is prepared, and workers are given the information, instruction and training the crystalline silica rules in the Occupational Health and Safety Regulations 2017 (Vic) require.": [
+   "r 319L",
+   "r 319R"
+  ],
+  "Before work starts, determine whether the work is high risk crystalline silica work.": [
+   "r 319J"
+  ],
+  "Brittle or fragile roofing and skylights are found and covered or fenced before anyone walks the roof.": [
+   "falls para 119",
+   "falls para 138"
+  ],
+  "Chainsaw and mulcher noise is hazardous: anyone near them wears personal hearing protectors throughout the period of exposure, not just part of it.": [
+   "noise para 117"
+  ],
+  "Combine alarms with flashing lights.": [
+   "plant para 234"
+  ],
+  "Combustion engines, generators and LPG forklifts are kept away from the openings, so exhaust gases such as carbon monoxide cannot build up in the space.": [
+   "confined para 62"
+  ],
+  "Compactor operators are rotated between tasks to limit hand-arm and whole-body vibration from vibrating compacting plates.": [
+   "manual para 112"
+  ],
+  "Concrete placing booms have a registered design. Check the design registration before use.": [
+   "r 125",
+   "Schedule 2"
+  ],
+  "Cool drinking water is kept at the work area, a shaded rest area is set up before work starts, and in hot weather rest breaks are taken there at the times set at the pre-start.": [
+   "manual para 86",
+   "facilities para 40"
+  ],
+  "Cool drinking water, shade and clothing to shield workers from the sun, regular short breaks out of the heat, and work scheduled for cooler times.": [
+   "manual para 86"
+  ],
+  "Cover penetrations straight away with fixed covers that can take the load and are marked, or fence them off.": [
+   "falls para 119",
+   "falls para 138"
+  ],
+  "Detectors are fixed from a platform ladder or mobile scaffold, not from a stepladder top.": [
+   "falls para 250"
+  ],
+  "Do not loosen, relocate or remove scaffold ties, planks or guardrails to get access to walls and openings. Only a competent person alters the scaffold, in line with the scaffold plan.": [
+   "falls para 125",
+   "falls para 127"
+  ],
+  "Do not over-reach: keep the centre of the torso within the ladder stiles, and face the ladder when going up, coming down or working from it.": [
+   "falls para 207",
+   "falls para 208"
+  ],
+  "Do not stand on a rung closer than 900 mm to the top of a single or extension ladder.": [
+   "falls para 208"
+  ],
+  "Do not work above other trades.": [
+   "falls para 225"
+  ],
+  "Each part of the space is tested, side to side and top to bottom, because some gases (such as hydrogen sulphide) settle low and others (such as methane) collect at the top.": [
+   "confined para 85",
+   "confined para 86"
+  ],
+  "Each product is on the register of hazardous substances, with its current safety data sheet, kept where workers can get to it.": [
+   "r 162"
+  ],
+  "Each worker has a lock, tag and key for each isolation point. There are no duplicate keys, except a master key kept secure and used only in an emergency.": [
+   "plant para 215"
+  ],
+  "Edge finishing, which involves kneeling, is rotated with other tasks.": [
+   "manual para 112"
+  ],
+  "Edge protection is erected and used in accordance with the manufacturer's, supplier's or a competent person's instructions.": [
+   "falls para 140"
+  ],
+  "Edge protection is erected and used to the manufacturer's or supplier's instructions.": [
+   "falls para 140"
+  ],
+  "Edge protection is in place at the roof edges before work starts.": [
+   "falls para 138"
+  ],
+  "Exclusion zone below the lift and below the roof edge, with barriers and signs.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "Exclusion zone below the mast during installation and climbing.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "Exclusion zone below the work, with barriers and signs.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "Exclusion zone below with keep out signs and a person controlling it while erecting and dismantling.": [
+   "falls para 221",
+   "falls para 222",
+   "falls para 223"
+  ],
+  "Exclusion zone below, with keep out signs and a person controlling it.": [
+   "falls para 221",
+   "falls para 222",
+   "falls para 223"
+  ],
+  "Existing roof safety mesh is relied on only after a competent person has inspected it and confirmed the integrity of the mesh and its supporting members.": [
+   "falls para 150"
+  ],
+  "Existing tanks and lines are drained, purged and tested free of gas and flammable vapour before they are opened.": [
+   "demolition para 240",
+   "demolition para 241"
+  ],
+  "Get the current underground services information before boring, and locate services on site, for example through Before You Dig Australia.": [
+   "excavation para 92",
+   "excavation para 93"
+  ],
+  "Get the current underground services information before digging behind the wall, and locate services on site.": [
+   "excavation para 92",
+   "excavation para 93"
+  ],
+  "Get the current underground services information before digging beside the wall, and locate services on site.": [
+   "excavation para 92",
+   "excavation para 93"
+  ],
+  "Get the current underground services information before digging or driving footings for fences, hoardings and gantries, and work to it.": [
+   "excavation para 92"
+  ],
+  "Get the current underground services information before digging, and locate services on site, for example through Before You Dig Australia.": [
+   "excavation para 92",
+   "excavation para 93"
+  ],
+  "Get the current underground services information before digging, and work to it.": [
+   "excavation para 92"
+  ],
+  "Get the current underground services information before drilling or digging, and work to it.": [
+   "excavation para 92"
+  ],
+  "Get the current underground services information before excavating the paving bed, and work to it.": [
+   "excavation para 92"
+  ],
+  "Get the current underground services information, for example through Before You Dig Australia, before digging, and work to it.": [
+   "excavation para 92"
+  ],
+  "Get the current underground services information, for example through Before You Dig Australia, locate services on site before digging, and work to it.": [
+   "excavation para 92",
+   "excavation para 93"
+  ],
+  "Get the underground services information and pothole to confirm services before digging.": [
+   "excavation para 92",
+   "excavation para 93"
+  ],
+  "Get the underground services information before digging, and locate services on site, for example through Before You Dig Australia.": [
+   "excavation para 92",
+   "excavation para 93"
+  ],
+  "Hammer drilling into concrete is likely hazardous noise (a raised voice is needed at one metre): the driller wears personal hearing protectors throughout the period of drilling.": [
+   "noise para 69",
+   "noise para 117"
+  ],
+  "Hand-held breaking is eliminated by using plant-mounted breakers or other methods unless this is not reasonably practicable; otherwise use tools that produce less vibration.": [
+   "manual para 84"
+  ],
+  "Handle large sheets in low wind, especially on balconies and at hoist landings.": [
+   "manual para 87"
+  ],
+  "Handle sheets in low wind.": [
+   "manual para 87"
+  ],
+  "Have materials delivered as close as possible to where they are used.": [
+   "manual para 90"
+  ],
+  "Hearing protection is worn near running generators, with signposted hearing protector areas.": [
+   "noise para 117",
+   "noise para 128"
+  ],
+  "Hearing protection is worn while the plate compactor runs.": [
+   "noise para 117"
+  ],
+  "Hearing protection is worn within the signposted area, and operators' exposure to vibration is managed by rotating tasks.": [
+   "noise para 128",
+   "manual para 112"
+  ],
+  "Hearing protection when breaking or grinding, and use of vibrating tools is rotated.": [
+   "noise para 117",
+   "manual para 112"
+  ],
+  "High panels are fixed from a platform ladder or mobile scaffold, not from the top of a stepladder.": [
+   "falls para 250"
+  ],
+  "Holding sheets in place while fixing is a hazardous posture: prop or support sheets rather than holding them.": [
+   "manual para 98",
+   "manual para 105"
+  ],
+  "Hydraulic shoring pressure hoses and rams are inspected for abrasion, fatigue or damage, such as bent or notched rams, and any damage is repaired before re-use.": [
+   "excavation para 251"
+  ],
+  "If a manhole or sewer must be entered, the entry is planned and done as confined space entry, with its own permit and controls.": [
+   "r 63"
+  ],
+  "If ground conditions are not as expected or change, such as different soils or heavy rain or flooding, act immediately to protect workers: suspend work until the ground is stable or provide positive ground support.": [
+   "excavation para 202"
+  ],
+  "In hot weather, roof space work is planned for the cooler part of the day, with breaks and water.": [
+   "manual para 86"
+  ],
+  "Initial atmospheric testing is done from outside the space with a correctly calibrated gas detector, by a competent person. A person's senses are never used to decide if the air is safe.": [
+   "confined para 83",
+   "confined para 84",
+   "confined para 85"
+  ],
+  "Isolate every energy source, control stored energy, then test by trying to start the plant.": [
+   "plant para 210"
+  ],
+  "Isolations (locks, tags, blanks and caps) are not removed until all work is complete and all workers have left the space.": [
+   "confined para 112"
+  ],
+  "Keep it well clear of open floor edges and penetrations, and of powerlines outdoors.": [
+   "falls para 128"
+  ],
+  "Keep spoil, materials, plant and traffic out of the excavation's zone of influence unless the support is designed for those loads.": [
+   "excavation para 110"
+  ],
+  "Keep spoil, materials, plant and traffic out of the trench's zone of influence unless the support is designed for those loads.": [
+   "excavation para 110"
+  ],
+  "Ladders in access areas, doorways or next to traffic areas have extra precautions, such as a barrier, the door locked shut or the work area barricaded.": [
+   "falls para 207"
+  ],
+  "Leave an access way around plant for maintenance (about 600 mm is suggested).": [
+   "plant para 340"
+  ],
+  "Long periods kneeling are a hazardous manual task: rotate tasks.": [
+   "manual para 112"
+  ],
+  "Mechanical ventilation is monitored so it runs continuously while the space is occupied, and its controls, including any remote power supply, are clearly identified, tagged and protected against interference.": [
+   "confined para 128"
+  ],
+  "Mesh does not protect against a fall from the edge: edge protection stays in place.": [
+   "falls para 151"
+  ],
+  "Mobile scaffolds: lock the castors before anyone gets on, never move it with anyone on it, keep it clear of open edges and penetrations, and do not alter it.": [
+   "falls para 127",
+   "falls para 128"
+  ],
+  "Move bags with trolleys or mechanical aids rather than carrying them.": [
+   "manual para 105"
+  ],
+  "Move boards on skates, trolleys or jacks.": [
+   "manual para 102"
+  ],
+  "Move plant with mechanical aids such as skates, pallet jacks or powered tugs, not by carrying.": [
+   "manual para 102",
+   "manual para 105"
+  ],
+  "Move racks and batteries with trolleys, pallet jacks or lifting aids. Team lifts are an interim control, with one person in charge.": [
+   "manual para 105",
+   "manual para 110",
+   "manual para 111"
+  ],
+  "Never stand above the second tread below the top of a stepladder, never use two-handed saws on a ladder, and plan the work so no one works from a ladder for long periods.": [
+   "falls para 207",
+   "falls para 208",
+   "falls para 225"
+  ],
+  "New sheets are held up with props or a sheet lifter while they are fixed, not by hand.": [
+   "manual para 105"
+  ],
+  "No hot work from a ladder.": [
+   "falls para 207"
+  ],
+  "No hot work is done in areas next to the confined space while it may contain a flammable atmosphere.": [
+   "confined para 98"
+  ],
+  "No hot work such as arc welding or oxy cutting from a ladder, and no tools needing high leverage force, such as stillsons or pinch bars.": [
+   "falls para 207"
+  ],
+  "No stepladder beside an open penetration or unprotected edge without extra fall protection.": [
+   "falls para 207",
+   "falls para 254"
+  ],
+  "No stepladders beside an open penetration without extra fall protection.": [
+   "falls para 207",
+   "falls para 254"
+  ],
+  "No stillsons or other high-force tools from a ladder, and no stepladder beside an open shaft or penetration without extra fall protection.": [
+   "falls para 207",
+   "falls para 254"
+  ],
+  "No welding from ladders.": [
+   "falls para 207"
+  ],
+  "Old capacitors and transformers that may contain PCBs are handled with nitrile, neoprene or polyethylene gloves, bagged in polyethylene, put in a marked sealed metal container, and stored where leaks cannot escape until disposal.": [
+   "demolition para 104",
+   "demolition para 105"
+  ],
+  "Only one person is on the ladder at a time, and no one works underneath it.": [
+   "falls para 207"
+  ],
+  "Open excavations are barricaded, with clearly defined pedestrian detours.": [
+   "falls para 235"
+  ],
+  "Open holes are covered or barricaded when no one is at them.": [
+   "excavation para 123"
+  ],
+  "Open holes are covered or fenced when no one is working at them.": [
+   "excavation para 123",
+   "falls para 235"
+  ],
+  "Open pits are covered or fenced when no one is working at them.": [
+   "excavation para 123",
+   "falls para 235"
+  ],
+  "Open set-downs and recesses are covered or barricaded so no one can fall into them.": [
+   "falls para 119",
+   "falls para 138"
+  ],
+  "Open trenches are barricaded to secure them from unauthorised and inadvertent entry.": [
+   "excavation para 122",
+   "excavation para 123"
+  ],
+  "Openings, bores and pits are covered or barricaded when not being worked on.": [
+   "excavation para 123",
+   "falls para 235"
+  ],
+  "Overhead lines are identified before work starts, and the crane and pole stay outside the network operator's approach distances.": [
+   "excavation para 90"
+  ],
+  "Painting is a repetitive task: rotate tasks.": [
+   "manual para 112"
+  ],
+  "Physical barriers separate pedestrians from plant.": [
+   "plant para 253"
+  ],
+  "Physical barriers separate people from plant. Operators and ground workers use two way acknowledgement before anyone approaches plant.": [
+   "plant para 253",
+   "plant para 265"
+  ],
+  "Plan for blind spots. Plant operators and ground workers use two way acknowledgement before anyone approaches plant.": [
+   "plant para 265",
+   "plant para 266"
+  ],
+  "Plan glass handling for low wind conditions.": [
+   "manual para 87"
+  ],
+  "Plan team pulls, with one person appointed to plan and take charge.": [
+   "manual para 111"
+  ],
+  "Plant has a warning device that warns people at risk from its movement.": [
+   "r 110",
+   "plant para 254"
+  ],
+  "Plant is lifted onto frames and brackets with mechanical aids, not by hand.": [
+   "manual para 105"
+  ],
+  "Plant, trucks and spoil stay out of the zone of influence of excavations and batters, and plant approaches trenches and embankments across the line, not parallel to it.": [
+   "excavation para 110",
+   "excavation para 132"
+  ],
+  "Plate compactor operators wear personal hearing protectors throughout the period of exposure to the compactor noise.": [
+   "noise para 117"
+  ],
+  "Pole footings are dug only after the current underground services information is obtained and services are located.": [
+   "excavation para 92"
+  ],
+  "Pothole with water pressure and a vacuum system to confirm where services are, as plans may not be accurate.": [
+   "excavation para 93"
+  ],
+  "Prevent falls first: edge protection or a travel restraint system. Fall arrest is used only where prevention is not reasonably practicable.": [
+   "r 44"
+  ],
+  "Purging and ventilation equipment designed for use in hazardous areas is used when flammable contaminants are purged.": [
+   "confined para 123"
+  ],
+  "Release stored pressure before breaking into pipework.": [
+   "plant para 210",
+   "plant para 211"
+  ],
+  "Repetitive fixing is broken up with other tasks.": [
+   "manual para 112"
+  ],
+  "Riser covers and screens stay in place, and any opened section is fenced while it is open.": [
+   "falls para 119",
+   "falls para 138"
+  ],
+  "Risers and shafts are covered, screened or fenced at each level, and any opened section is fenced while it is open.": [
+   "falls para 119",
+   "falls para 138"
+  ],
+  "Risers are covered or screened. While a riser is open, the opening has edge protection, or the worker at it uses travel restraint set so they cannot reach the opening.": [
+   "falls para 119",
+   "falls para 138",
+   "falls para 177"
+  ],
+  "Rolls and drums are delivered by crane or hoist to where they are used, ordered in smaller loads for handling, and moved with trolleys.": [
+   "manual para 90",
+   "manual para 100",
+   "manual para 103"
+  ],
+  "Schedule panel handling for periods of low wind, as wind increases the force needed and reduces control of large panels.": [
+   "manual para 87"
+  ],
+  "Sequence the work so trades are not working above or below each other at the same time.": [
+   "falls para 225"
+  ],
+  "Sequence trades so they are not working above or below each other.": [
+   "falls para 225"
+  ],
+  "Services along and across the bore path are exposed by potholing (vacuum or hand digging) to prove their location and depth before the bore passes them.": [
+   "excavation para 93"
+  ],
+  "Services are located before earth electrodes are driven or buried.": [
+   "excavation para 92"
+  ],
+  "Services are located before footings are bored or excavated, and open holes are covered.": [
+   "excavation para 92",
+   "excavation para 123"
+  ],
+  "Shaft openings have barriers.": [
+   "falls para 138"
+  ],
+  "Signs stay at each entrance until packing up on completion of the work is finished.": [
+   "r 61"
+  ],
+  "Skylights, fibreglass, brittle sheets, membrane panels and any other surface a person could fall through are covered with fixed covers that take a fall, or fenced off. Where safety mesh is used, it does not protect edges or holes, so it is used with edge protection.": [
+   "falls para 119",
+   "falls para 138",
+   "falls para 151"
+  ],
+  "Skylights, roof openings and any fragile surface are covered with fixed covers that take a fall, or fenced off, before work starts near them.": [
+   "falls para 119",
+   "falls para 138"
+  ],
+  "Spoil is stockpiled back from excavation edges and outside their zone of influence.": [
+   "excavation para 110"
+  ],
+  "Stump grinder operators and anyone near the grinder wear personal hearing protectors throughout the period of exposure to its noise.": [
+   "noise para 117"
+  ],
+  "Team lifts are an interim control only, with one person in charge and the lift rehearsed.": [
+   "manual para 110",
+   "manual para 111"
+  ],
+  "Team lifts are an interim control only, with one person in charge.": [
+   "manual para 110",
+   "manual para 111"
+  ],
+  "Team lifts are an interim control only, with one person in charge. Training in lifting technique is not the main control.": [
+   "manual para 108",
+   "manual para 110",
+   "manual para 111"
+  ],
+  "Team lifts are an interim control only. One person plans and takes charge of each team lift.": [
+   "manual para 110",
+   "manual para 111"
+  ],
+  "Team lifts are planned: the team size suits the weight and difficulty, members are matched by height and capability, there is room to move as a group, and the lift is rehearsed.": [
+   "manual para 111"
+  ],
+  "Team pulls are planned, with one person in charge.": [
+   "manual para 111"
+  ],
+  "The EWP is used only as a working platform, not to enter or exit a work area at height, unless the conditions in AS 2550.10 are met.": [
+   "falls para 159"
+  ],
+  "The area below is barricaded while the grid and tiles are installed.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "The area below is closed off as an exclusion zone.": [
+   "falls para 221",
+   "falls para 222"
+  ],
+  "The current safety data sheet for each product is at the work area, the product is on the register of hazardous substances, and anything decanted is labelled.": [
+   "r 156",
+   "r 158",
+   "r 162"
+  ],
+  "The cut face is battered back or benched.": [
+   "excavation para 220",
+   "excavation para 221"
+  ],
+  "The entry permit is displayed in a prominent place at the entry to the confined space, to make signing in and clearance easy.": [
+   "confined para 143"
+  ],
+  "The excavation is battered, benched or shored as the geotechnical advice or excavation plan sets out, and its edges are barricaded.": [
+   "excavation para 222",
+   "excavation para 227",
+   "falls para 235"
+  ],
+  "The open trench is fenced or covered when no one is working at it.": [
+   "excavation para 123",
+   "falls para 235"
+  ],
+  "The opening is covered or barricaded as soon as it is cut, until the duct or upstand is in place.": [
+   "falls para 119",
+   "falls para 138"
+  ],
+  "The refrigerant's current safety data sheet is kept near the work area and workers know how to find it.": [
+   "r 156"
+  ],
+  "The standby person understands the hazards inside the confined space and can recognise the signs and symptoms that workers inside may experience.": [
+   "confined para 150"
+  ],
+  "To reduce whole-body vibration, operators adjust their suspension seats appropriately and operate plant within the speed suggested by the manufacturer or at a speed that reduces vibration levels.": [
+   "manual para 83"
+  ],
+  "Two-way acknowledged communication between plant operators and ground workers.": [
+   "plant para 265"
+  ],
+  "Units are lifted into position with a material lift or other mechanical aid.": [
+   "manual para 105"
+  ],
+  "Use EWPs or edge protection to prevent falls first. Fall arrest only where prevention is not practicable.": [
+   "r 44"
+  ],
+  "Use a less hazardous product, such as a water-based membrane instead of a solvent or two-part epoxy system, wherever the membrane specification allows.": [
+   "chemicals para 161",
+   "chemicals para 165"
+  ],
+  "Use lifting aids such as duct lifters for overhead duct sections, rather than holding them up by hand.": [
+   "manual para 105"
+  ],
+  "Use lifting aids, straps, trolleys and props to hold units while fixing, rather than holding them up by hand for long periods.": [
+   "manual para 105"
+  ],
+  "Use low-vibration tools and rotate operators to limit hand-arm vibration.": [
+   "manual para 84",
+   "manual para 112"
+  ],
+  "Use panel lifters or trolleys for any heavy stone and large format tiles.": [
+   "manual para 105"
+  ],
+  "Use pipe lifters and mechanical aids. Team lifts are an interim control only.": [
+   "manual para 105",
+   "manual para 110"
+  ],
+  "Use pipe lifters or jacks to hold pipe overhead, rather than holding it up by hand.": [
+   "manual para 105"
+  ],
+  "Use platform ladders or a working platform, not the top steps of a stepladder.": [
+   "falls para 250"
+  ],
+  "Use sheet lifters and suction pads or hooks, with training in each aid. Have sheets delivered to the floor where they are used.": [
+   "manual para 90",
+   "manual para 100",
+   "manual para 106"
+  ],
+  "Use sheet lifters to hold ceiling sheets in place while fixing.": [
+   "manual para 105"
+  ],
+  "Use the platform only on a solid level surface, unless it is designed for rough terrain.": [
+   "falls para 154"
+  ],
+  "Use trolleys, lift trolleys, panel lifters, and hooks or suction pads for sheets. Keep trolleys maintained.": [
+   "manual para 100",
+   "manual para 105",
+   "manual para 106"
+  ],
+  "Use vacuum lifters and glass panel lifters, not hand carrying. Lifting aids suit the load, are maintained, and workers are trained in them.": [
+   "manual para 105",
+   "manual para 106"
+  ],
+  "Use vacuum lifters, glass panel lifters, suction pads and trolleys, not hand carrying.": [
+   "manual para 100",
+   "manual para 105"
+  ],
+  "Ventilation fresh air is drawn from a point where it is not contaminated by exhaust air or other pollutants, and exhaust air is vented where it causes no other risk.": [
+   "confined para 125"
+  ],
+  "Washbasins have hot and cold running water, soap and towels or dryers, and cool, clean drinking water is provided free of charge.": [
+   "facilities para 40",
+   "facilities para 56",
+   "workplace-facilities para 69"
+  ],
+  "When digging by hand, workers using picks, shovels or bars keep far enough apart that they cannot strike each other.": [
+   "excavation para 151"
+  ],
+  "Where a boom-type platform is used, the harness is attached to the platform's anchor point.": [
+   "falls para 155"
+  ],
+  "Where a catch platform is part of scaffold edge protection, it is as close as practicable to the underside of the roof and no lower than 1 m below the roof edge.": [
+   "falls para 189"
+  ],
+  "Where a person could fall from a cut face or batter crest, install barriers or bunds, and set up clear pedestrian detours.": [
+   "falls para 235"
+  ],
+  "Where a raised voice is needed to talk to someone about one metre away, personal hearing protectors are worn throughout the period of exposure to the truck and lance noise.": [
+   "noise para 69",
+   "noise para 117"
+  ],
+  "Where an entrance is on a footpath or road, workers entering or leaving are protected from vehicle traffic.": [
+   "confined para 76"
+  ],
+  "Where an opening is vertical, it is protected so people cannot fall in.": [
+   "confined para 75"
+  ],
+  "Where temporary edge protection must be opened, access to the opening is under a permit system. Workers at the opening use travel restraint so they cannot reach the edge. No one uses a fall arrest harness while working alone.": [
+   "falls para 177",
+   "falls para 195",
+   "falls para 224"
+  ],
+  "Where the dig goes below the footings of a neighbouring building or retaining wall, a competent person assesses it first, and ground support and any bracing of the structure, designed by a competent person, go in before digging below footing level.": [
+   "excavation para 98"
+  ],
+  "While a riser or large penetration is open, the opening has edge protection, or the worker at it uses travel restraint set so they cannot reach the opening.": [
+   "falls para 138",
+   "falls para 177"
+  ],
+  "Wind conditions and the weather forecast are checked before work starts, and sheet handling is scheduled for periods of low wind.": [
+   "manual para 87"
+  ],
+  "Within the clearance zone the asset owner sets, dig by hand or vacuum only, and support and protect exposed services as the owner requires.": [
+   "excavation para 89",
+   "excavation para 93"
+  ],
+  "Work is done from a platform ladder or mobile scaffold, not from a stepladder top.": [
+   "falls para 250"
+  ],
+  "Work is planned for the cooler part of the day in hot weather, with water and breaks.": [
+   "manual para 86"
+  ],
+  "Work near the roof edge is done inside the roof edge protection or with travel restraint.": [
+   "falls para 138",
+   "falls para 177"
+  ],
+  "Work only inside the trench support, with the access ladder secured to it.": [
+   "excavation para 124",
+   "excavation para 209"
+  ],
+  "Workers are trained in using the scaffold. The scaffold stays level and plumb, castors are locked before anyone gets on, it is never moved with anyone on it, and it is accessed by its internal ladder.": [
+   "falls para 128"
+  ],
+  "Workers do not enter any part of the trench that is not protected by the support, and do not work ahead of shoring while it is being installed.": [
+   "excavation para 231"
+  ],
+  "Workers sign in and out on the entry permit, or use tags, so it is always known who is in the space.": [
+   "r 66",
+   "confined para 145"
+  ],
+  "Workers using picks, shovels or bars in the trench keep far enough apart that they cannot strike each other.": [
+   "excavation para 151"
+  ]
+ }
+}
