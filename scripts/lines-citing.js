@@ -15,7 +15,8 @@
 const fs = require('fs');
 const path = require('path');
 const { ACTIVITIES } = require('../activities');
-const { localSource, localControl, citedStates } = require('../citations');
+const { localSource, localControl, localText, citedStates } = require('../citations');
+const STATE_LINES = require('../scenarios/state-lines.json');
 
 // "s 299", "r 299", "section 299", "Schedule 5" and "appendix K" all read the same way, and so do a
 // Victorian compliance code's "para 221" and "221".
@@ -69,10 +70,12 @@ function linesCiting(stateId, law, section, activities = ACTIVITIES) {
       for (const control of step.controls) {
         if (!control || typeof control === 'string' || !control.source) continue;
         // Victorian lines also cite the provisions their own text was matched to (scenarios/vic-lines.json),
+        // and electrical lines in any state their state's electrical law (scenarios/state-lines.json),
         // which only the printed line carries.
         const printed = localControl(control.text, control.source, stateId);
         const own = localSource(control.source, stateId, control.text);
-        const citation = stateId === 'vic' && printed ? [own, lineSource(printed)].filter(Boolean).join('; ') : own;
+        const tabled = stateId === 'vic' || Boolean((STATE_LINES.lines[stateId] || {})[localText(control.text, stateId)]);
+        const citation = tabled && printed ? [own, lineSource(printed)].filter(Boolean).join('; ') : own;
         if (!referencesFor(citation, law).some((reference) => covers(reference, section))) continue;
         if (printed == null) continue;
         const item = found.get(control.text) || { text: control.text, printed, citation, steps: [] };
