@@ -169,7 +169,7 @@
       "Work health and safety consultation, cooperation and coordination Code of Practice 2021 changes | /laws-and-compliance/codes-of-practice/work-health-and-safety-consultation-cooperation-and-coordination-code-of-practice-2021-changes"
     ],
     "status": "ok",
-    "readOn": "2026-10-10"
+    "readOn": "2026-10-11"
   },
   "code:nsw-codes": {
     "items": [
@@ -396,7 +396,7 @@
       "Work health and safety consultation, cooperation and coordination | /topics/laws-and-compliance/codes-of-practice/cop-folder/work-health-and-safety-consultation,-cooperation-and-coordination"
     ],
     "status": "ok",
-    "readOn": "2026-10-10"
+    "readOn": "2026-10-11"
   },
   "code:act-codes": {
     "items": [
@@ -413,7 +413,7 @@
       "Notice issued 29/07/2024: sexual and gender-based harassment code approval | -"
     ],
     "status": "ok",
-    "readOn": "2026-10-10"
+    "readOn": "2026-10-11"
   },
   "code:nt-codes": {
     "items": [
@@ -450,7 +450,7 @@
       "Work health and safety consultation, cooperation and coordination | /forms-and-resources/codes-of-practice/work-health-and-safety-consultation,-cooperation-and-coordination"
     ],
     "status": "ok",
-    "readOn": "2026-10-10"
+    "readOn": "2026-10-11"
   },
   "news:seen": [
     "f0c5d7bc8e",
@@ -482,7 +482,9 @@
     "1bb5ba3477",
     "23296da4b3",
     "dc6e1ffe82",
-    "bcd8e46fe0"
+    "bcd8e46fe0",
+    "7ed2a31e8f",
+    "b42f1119ea"
   ],
   "alerts:nsw-construction-alerts": {
     "seen": [
@@ -1010,5 +1012,570 @@
     "status": "ok"
   },
   "hand:nsw-whs-act": "2026-10",
-  "hand:nsw-whs-reg": "2026-10"
+  "hand:nsw-whs-reg": "2026-10",
+  "qld-pg-act": {
+    "version": "2026-06-29",
+    "status": "ok"
+  },
+  "qld-pd-act": {
+    "version": "2026-02-01",
+    "status": "ok"
+  },
+  "qld-pd-reg": {
+    "version": "2026-01-02",
+    "status": "ok"
+  },
+  "qld-security-act": {
+    "version": "2025-05-26",
+    "status": "ok"
+  },
+  "vic-es-act": {
+    "version": "8 Sep 2026 089",
+    "status": "ok"
+  },
+  "vic-esg-reg": {
+    "version": "1 Nov 2023 002",
+    "status": "ok"
+  },
+  "wa-elec-lic-reg": {
+    "version": "1 Jul 2026 Current 07-ai0-00",
+    "status": "ok"
+  },
+  "wa-elec-act": {
+    "version": "6 Feb 2025 Current 08-f0-00",
+    "status": "ok"
+  },
+  "wa-plumbers-reg": {
+    "version": "1 Jul 2026 Current 05-ah0-00",
+    "status": "ok"
+  },
+  "tas-ol-act": {
+    "version": "2025-07-02",
+    "status": "ok"
+  },
+  "tas-ol-elec-reg": {
+    "version": "2021-06-22",
+    "status": "ok"
+  },
+  "tas-eisa-act": {
+    "version": "20250623",
+    "status": "ok"
+  },
+  "act-es-act": {
+    "version": "R34 (current) 16 December 2025",
+    "status": "ok"
+  },
+  "act-col-act": {
+    "version": "R71 (current) 23 February 2026",
+    "status": "ok"
+  },
+  "act-utilities-act": {
+    "version": "R71 (current) 26 November 2025",
+    "status": "ok"
+  },
+  "act-utr-act": {
+    "version": "R15 (current) 5 January 2026",
+    "status": "ok"
+  },
+  "nt-es-act": {
+    "version": "Repe047",
+    "status": "ok"
+  },
+  "nt-es-reg": {
+    "version": "REPE047R1",
+    "status": "ok"
+  },
+  "nt-er-act": {
+    "version": "REPE027",
+    "status": "ok"
+  },
+  "cth-ozone-reg": {
+    "version": "F2026C00546 C48 01 July 2026",
+    "status": "ok"
+  },
+  "cth-cabling-rules": {
+    "version": "F2025L00386 21 March 2025",
+    "status": "ok"
+  },
+  "act-code-demolition": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-excavation": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-manual": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-falls": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-electrical": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-abrasive": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-welding": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-spray": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-chemicals": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-asbestos-manage": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-formwork": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-tower": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-noise": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-confined": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-plant": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "act-code-construction": {
+    "version": "Current law",
+    "status": "ok"
+  },
+  "code:sa-approved-codes": {
+    "items": [
+      "Abrasive blasting | /__data/assets/pdf_file/0018/136260/Draft-Code-of-Practice_-Abrasive-Blasting.pdf",
+      "Clothing Outworker Code of Practice (external site) (PDF) (external site) (PDF) (external site) (PDF) (external site) (PDF) | /__legislation/lz/c/r/fair%20work%20(clothing%20outworker%20code%20of%20practice)%20regulations%202022/current/2022.61.auth.pdf",
+      "Confined spaces | /__data/assets/pdf_file/0019/136261/Draft-Code-of-Practice_-Confined-spaces.pdf",
+      "Construction work (external site) | /__data/assets/pdf_file/0003/1392519/model_code_of_practice-construction_work-nov24.pdf",
+      "Demolition work | /__data/assets/pdf_file/0020/136262/Demolition_Work.pdf",
+      "Elevating work platforms | /__data/assets/pdf_file/0011/1391069/model_cop_elevatingworkplatforms-december2025.pdf",
+      "Excavation work | /__data/assets/pdf_file/0003/136263/Excavation-Work.pdf",
+      "First aid in the workplace | /__data/assets/pdf_file/0004/136264/First-aid-in-the-workplace.pdf",
+      "Hazardous manual tasks | /__data/assets/pdf_file/0005/136265/Hazardous-Manual-Tasks.pdf",
+      "Healthcare and social assistance industry | /__data/assets/pdf_file/0003/1391070/model_code_of_practice_for_the_healthcare_and_social_assistance_industry.pdf",
+      "How to manage and control asbestos in the workplace | /__data/assets/pdf_file/0006/136266/Draft-Code-of-Pracitce_-How-to-manage-and-control-asbestos-in-the-workplace.pdf",
+      "How to manage work health and safety risks | /__data/assets/pdf_file/0007/136267/How-to-manage-work-health-and-safety-risks.pdf",
+      "How to safely remove asbestos | /__data/assets/pdf_file/0008/136268/Draft-Code-of-Practice_-How-to-safely-remove-asbestos.pdf",
+      "Labelling of workplace hazardous chemicals | /__data/assets/pdf_file/0009/136269/Draft-Code-of-Practice_-Labelling-of-workplace-hazardous-chemicals.pdf",
+      "Managing electrical risks in the workplace | /__data/assets/pdf_file/0019/136270/Managing-electrical-risks-in-the-workplace.pdf",
+      "Managing noise and preventing hearing loss at work | /__data/assets/pdf_file/0020/136271/Code-of-Practice_-Managing-noise-and-preventing-hearing-loss-at-work.pdf",
+      "Managing psychosocial hazards at work | /__data/assets/pdf_file/0020/1238123/Managing-Psychosocial-Hazards-at-Work-Code-of-Practice-February-2026.pdf",
+      "Managing risks in stevedoring | /__data/assets/pdf_file/0003/136272/Managing-risks-in-stevedoring.pdf",
+      "Managing risks of hazardous chemicals in the workplace | /__data/assets/pdf_file/0005/136274/Managing-risks-of-hazardous-chemicals-in-the-workplace.pdf",
+      "Managing risks of respirable crystalline silica in the workplace (external site) (external site) | /__data/assets/pdf_file/0005/1392521/modelcop_managing-risks-respirable-crystalline-silica_nov2025.pdf",
+      "Managing the risk of falls at workplaces | /__data/assets/pdf_file/0004/136273/Managing-the-risk-of-falls-at-workplaces.pdf",
+      "Managing the risk of falls in housing construction (external site) (external site) (external site) (external site) (external site) | /__data/assets/pdf_file/0004/1392520/model-cop-preventing-falls-in-housing-construction.pdf",
+      "Managing the risk of fatigue at work M (external site) (external site) (external site) | /__data/assets/pdf_file/0003/1385463/modelcop_fatigue_sept2025.pdf",
+      "Managing the risks of biological hazards at work | /__data/assets/pdf_file/0007/1391065/modelcop_managing_risks_biological_hazards_mar2026.pdf",
+      "Managing the risks of plant in the workplace | /__data/assets/pdf_file/0006/136275/Managing-risks-of-plant-in-the-workplace.pdf",
+      "Managing the work environment and facilities | /__data/assets/pdf_file/0007/136276/Managing-the-work-environment-and-facilities.pdf",
+      "National Code of Practice for Precast, Tilt Up and Concrete Elements in Construction (external site) (PDF) (external site) (PDF) (external site) (PDF) (external site) (PDF) | /system/files/documents/1702/codeofpractice_precasttiltupandconcreteelementsbuildingconstruction_2008_pdf.pdf",
+      "Preparation of safety data sheets for hazardous chemicals | /__data/assets/pdf_file/0008/136277/Draft-Code-of-Practice_-Preparation-of-safety-data-sheets-for-hazardous-chemicals.pdf",
+      "Safe design of structures (external site) (external site) Manag (external site) (external site) (external site)M | /__data/assets/pdf_file/0007/1392523/model_code_of_practice-safe_design_of_structures-nov24.pdf",
+      "Sexual and gender-based harassment | /__data/assets/pdf_file/0005/1331168/Sexual-and-Gender-Based-Harassment-Code-of-Practice_.pdf",
+      "Spray painting and powder coating | /__data/assets/pdf_file/0009/136278/Code-of-Practice_-Spray-painting-and-powder-coating.pdf",
+      "Tuna Farm Diving | /__data/assets/pdf_file/0020/145640/Tuna-farm-diving.pdf",
+      "Welding processes | /__data/assets/pdf_file/0010/136279/Code-of-Practice_-Welding-processes.pdf",
+      "Work health and safety consultation, co-operation and co-ordination | /__data/assets/pdf_file/0020/136280/Consultation-cooperation-coordination.pdf",
+      "Working Hours (external site) (PDF) (external site) (PDF) (external site) (PDF) (external site) (PDF) | /attachments/53098/ACOP%20working%20hours.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:nsw-code-formwork": {
+    "items": [
+      "Code of Practice: Formwork (PDF 1.4MB) | /__data/assets/pdf_file/0004/845887/Formwork-code-of-practice.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:nsw-code-tower-cranes": {
+    "items": [
+      "Tower cranes | /__data/assets/pdf_file/0004/1375816/Code_of_practice_Tower_Cranes_2025.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-abrasive": {
+    "items": [
+      "Abrasive blasting: Code of practice (pdf, 2.26 MB) | /system/files/migrated/sites/default/files/atoms/files/221176_cp_abrasiveblasting.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-asbestos-manage": {
+    "items": [
+      "How to manage and control asbestos in the workplace: Code of practice (pdf, 2.08 MB) | /system/files/migrated/sites/default/files/atoms/files/221183_cp_manageasbestos.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-chemicals": {
+    "items": [
+      "Managing risks of hazardous chemicals in the workplace: Code of practice (pdf, 2.92 MB) | /system/files/migrated/sites/default/files/atoms/files/221178_cp_hazardouschemicals.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-confined": {
+    "items": [
+      "Confined spaces: Code of practice (pdf, 2.32 MB) | /system/files/migrated/sites/default/files/atoms/files/221172_cp_confinedspaces.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-construction": {
+    "items": [
+      "Construction work: Code of practice (pdf, 2.64 MB) | /system/files/migrated/sites/default/files/atoms/files/221122_cp_construction.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-demolition": {
+    "items": [
+      "Demolition work: Code of practice (pdf, 1.79 MB) | /system/files/migrated/sites/default/files/atoms/files/231164_cp_demolition.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-electrical": {
+    "items": [
+      "Managing electrical risks in the workplace: Code of practice (pdf, 1.5 MB) | /system/files/documents/2025-04/251422_CP_ElecRisks.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-falls": {
+    "items": [
+      "Managing the risk of falls at workplaces: Code of practice (pdf, 6 MB) | /system/files/migrated/sites/default/files/atoms/files/231180_cp_fallsworkplace.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-manual": {
+    "items": [
+      "Hazardous manual tasks: Code of practice (pdf, 3.15 MB) | /system/files/migrated/sites/default/files/atoms/files/221165_cp_hazardsousmanualtasks.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-noise": {
+    "items": [
+      "Managing noise and preventing hearing loss at work: Code of practice (pdf, 2.71 MB) | /system/files/migrated/sites/default/files/atoms/files/221167_cp_noise.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-plant": {
+    "items": [
+      "Managing risks of plant in the workplace: Code of practice (pdf, 4.11 MB) | /system/files/migrated/sites/default/files/atoms/files/221185_cp_manageriskplant1.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-spray": {
+    "items": [
+      "Spray painting and powder coating: Code of practice (pdf, 2.26 MB) | /system/files/migrated/sites/default/files/atoms/files/221190_cp_spraypainting_1.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-tower": {
+    "items": [
+      "Tower cranes: Code of practice (pdf, 3.94 MB) | /system/files/documents/2025-04/251435_CP_TowerCranes_1.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:wa-code-welding": {
+    "items": [
+      "Welding processes: Code of practice (pdf, 1.99 MB) | /system/files/migrated/sites/default/files/atoms/files/221194_cp_welding.pdf"
+    ],
+    "status": "ok"
+  },
+  "code:tas-code-abrasive": {
+    "items": [
+      "Download PDF Abrasive Blasting Code of Practice Dec 2018 1.4 MB | /__data/assets/pdf_file/0011/537068/Code-of-Practice-Abrasive-Blasting.pdf",
+      "Download Word Abrasive Blasting Code of Practice Dec 2018 1.1 MB | /__data/assets/word_doc/0003/537069/Code-of-Practice-Abrasive-Blasting.docx",
+      "Effective in Tasmania on and from 5 Dec 2018 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-asbestos-manage": {
+    "items": [
+      "Download PDF How to Manage and Control Asbestos in the Workplace Code of Practice Dec 2018 969.7 KB | /__data/assets/pdf_file/0009/537084/Code-of-Practice-How-to-manage-and-control-asbestos-in-the-wor....pdf",
+      "Download Word How to Manage and Control Asbestos in the Workplace Code of Practice Dec 2018 575.1 KB | /__data/assets/word_doc/0010/537085/Code-of-Practice-How-to-manage-and-control-asbestos-in-the-workplace.docx",
+      "Effective in Tasmania on and from 5 Dec 2018 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-chemicals": {
+    "items": [
+      "Download PDF Managing Risks of Hazardous Chemicals in the Workplace Code of Practice Dec 2018 1018.8 KB | /__data/assets/pdf_file/0006/537108/Code-of-Practice-Managing-risks-of-hazardous-chemicals-in-the....pdf",
+      "Download Word Managing Risks of Hazardous Chemicals in the Workplace Code of Practice Dec 2018 553.1 KB | /__data/assets/word_doc/0007/537109/Code-of-Practice-Managing-risks-of-hazardous-chemicals-in-the-workplace.docx",
+      "Effective in Tasmania on and from 5 Dec 2018 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-confined": {
+    "items": [
+      "Download PDF model Code of Practice - Confined Spaces 2.1 MB | /__data/assets/pdf_file/0009/806715/model-Code-of-Practice-Confined-Spaces.PDF",
+      "Download Word model Code of Practice - Confined Spaces 1.2 MB | /__data/assets/word_doc/0007/806713/model_code_of_practice-confined_spaces-nov24.docx",
+      "Effective in Tasmania on and from 23 April 2025 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-construction": {
+    "items": [
+      "Download PDF model Code of Practice - Construction Work 1.5 MB | /__data/assets/pdf_file/0003/806736/model-Code-of-Practice-Construction-Work.PDF",
+      "Download Word model Code of Practice - Construction Work 454.1 KB | /__data/assets/word_doc/0005/806738/model_code_of_practice-construction_work-nov24.docx",
+      "Effective in Tasmania on and from 23 April 2025 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-demolition": {
+    "items": [
+      "Download PDF Demolition Work Code of Practice Dec 2018 585.0 KB | /__data/assets/pdf_file/0008/537074/Code-of-Practice-Demolition-work.pdf",
+      "Download Word Demolition Work Code of Practice Dec 2018 206.1 KB | /__data/assets/word_doc/0009/537075/Code-of-Practice-Demolition-work.docx",
+      "Effective in Tasmania on and from 5 Dec 2018 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-electrical": {
+    "items": [
+      "Download PDF Managing Electrical Risks in the Workplace Code of Practice Dec 2018 1.5 MB | /__data/assets/pdf_file/0005/537098/Code-of-Practice-Managing-electrical-risks-in-the-workplace.pdf",
+      "Download Word Managing Electrical Risks in the Workplace Code of Practice Dec 2018 1.2 MB | /__data/assets/word_doc/0006/537099/Code-of-Practice-Managing-electrical-risks-in-the-workplace.docx",
+      "Effective in Tasmania on and from 5 Dec 2018 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-excavation": {
+    "items": [
+      "Download PDF Excavation Work Code of Practice Feb 2020 3.6 MB | /__data/assets/pdf_file/0010/537076/Excavation-Work-Code-of-practice-Feb-2020-1.pdf",
+      "Download Word Excavation Work Code of Practice Dec 2018 2.9 MB | /__data/assets/word_doc/0011/537077/Excavation-Work-Code-of-Practice-Feb-2020.docx",
+      "Effective in Tasmania on and from 26 Feb 2020 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-falls": {
+    "items": [
+      "Download PDF Managing the Risk of Falls at Workplaces Code of Practice Dec 2018 6.5 MB | /__data/assets/pdf_file/0017/537110/Code-of-Practice-Managing-the-risk-of-falls-at-workplaces.pdf",
+      "Download Word Managing the Risk of Falls at Workplaces Code of Practice Dec 2018 5.8 MB | /__data/assets/word_doc/0018/537111/Code-of-Practice-Managing-the-risk-of-falls-at-workplaces.docx",
+      "Effective in Tasmania on and from 5 Dec 2018 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-manual": {
+    "items": [
+      "Download PDF Hazardous Manual Tasks Code of Practice Dec 2018 1.8 MB | /__data/assets/pdf_file/0006/537081/model-cop-hazardous-manual-tasks.pdf",
+      "Download Word Hazardous Manual Tasks Code of Practice Dec 2018 1.4 MB | /__data/assets/word_doc/0007/537082/model-cop-hazardous-manual-tasks.docx",
+      "Effective in Tasmania on and from 5 Dec 2018 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-noise": {
+    "items": [
+      "Download PDF model Code of Practice - Managing noise and preventing hearing loss at work 2.9 MB | /__data/assets/pdf_file/0010/806698/model-Code-of-Practice-Managing-noise-and-preventing-hearing-loss-at-work.PDF",
+      "Download Word model Code of Practice - Managing noise and preventing hearing loss at work 1.7 MB | /__data/assets/word_doc/0003/806700/model_code_of_practice-managing_noise_and_preventing_hearing_loss_at_work-nov24.docx",
+      "Effective in Tasmania on and from 23 April 2025 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-plant": {
+    "items": [
+      "Download PDF model Code of Practice - Managing the risks of plant in the workplace 5.0 MB | /__data/assets/pdf_file/0010/806734/model-Code-of-Practice-Managing-the-risks-of-plant-in-the-workplace.PDF",
+      "Download Word model Code of Practice - Managing the risks of plant in the workplace 2.3 MB | /__data/assets/word_doc/0008/806732/model_code_of_practice-managing_the_risks_of_plant_in_the_workplace-nov24.docx",
+      "Effective in Tasmania on and from 23 April 2025 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-spray": {
+    "items": [
+      "Download PDF Spray Painting and Powder Coating Code of Practice Dec 2018 1.1 MB | /__data/assets/pdf_file/0008/537128/Code-of-Practice-Spray-painting-and-powder-coating.pdf",
+      "Download Word Spray Painting and Powder Coating Code of Practice Dec 2018 655.5 KB | /__data/assets/word_doc/0009/537129/Code-of-Practice-Spray-painting-and-powder-coating.docx",
+      "Effective in Tasmania on and from 5 Dec 2018 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-tower": {
+    "items": [
+      "Download PDF Tower Cranes Code of Practice June 2023 680.8 KB | /__data/assets/pdf_file/0007/749473/Tower-Cranes-Code-of-Practice-June-2023.pdf",
+      "Download Word Tower Cranes Code of Practice June 2023 1.7 MB | /__data/assets/word_doc/0006/749472/Tower-Cranes-Code-of-Practice-June-2023.docx",
+      "Effective in Tasmania on and from 14 Feb 2024 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:tas-code-welding": {
+    "items": [
+      "Download PDF Welding Processes Code of Practice Dec 2018 1.0 MB | /__data/assets/pdf_file/0020/537131/Code-of-Practice-Welding-processes.pdf",
+      "Download Word Welding Processes Code of Practice Dec 2018 613.6 KB | /__data/assets/word_doc/0003/537132/Code-of-Practice-Welding-processes.docx",
+      "Effective in Tasmania on and from 5 Dec 2018 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-abrasive": {
+    "items": [
+      "(1.3 MB) Abrasive blasting | /_resources/documents/pdf/codes-of-practice/Abrasive-blasting.pdf",
+      "(1.7 MB) Abrasive blasting | /_resources/documents/word/codes-of-practice/Abrasive-blasting.DOCX",
+      "This Code of Practice was varied on 14 September 2023 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-asbestos-manage": {
+    "items": [
+      "(1007.7 KB) How to manage and control asbestos in the workplace | /_resources/documents/word/codes-of-practice/How-to-manage-and-control-asbestos-in-the-workplace.DOCX",
+      "(993.2 KB) How to manage and control asbestos in the workplace | /_resources/documents/pdf/codes-of-practice/How-to-manage-and-control-asbestos-in-the-workplace.pdf",
+      "This Code of Practice was varied on 14 September 2023 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-chemicals": {
+    "items": [
+      "(1.2 MB) Managing risks of hazardous chemicals in the workplace | /_resources/documents/word/codes-of-practice/Managing-risks-of-hazardous-chemicals-in-the-workplace.DOCX",
+      "(2.2 MB) Managing risks of hazardous chemicals in the workplace | /_resources/documents/pdf/codes-of-practice/Managing-risks-of-hazardous-chemicals-in-the-workplace.pdf",
+      "This Code of Practice was varied on 14 September 2023 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-confined": {
+    "items": [
+      "(1.5 MB) Confined spaces | /_resources/documents/pdf/codes-of-practice/confined-spaces.pdf",
+      "(3.3 MB) Confined spaces | /_resources/documents/word/codes-of-practice/confined-spaces.docx",
+      "This Code of Practice was varied on 12 March 2026 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-construction": {
+    "items": [
+      "(436.0 KB) Construction work | /_resources/documents/word/codes-of-practice/construction-work.docx",
+      "(810.2 KB) Construction work | /_resources/documents/pdf/codes-of-practice/construction-work.pdf",
+      "This Code of Practice was varied on 12 March 2026 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-electrical": {
+    "items": [
+      "(1.5 MB) Managing electrical risks in the workplace | /_resources/documents/word/codes-of-practice/code-of-practice-managing-electrical-risks-in-the-workplace.docx",
+      "(2.0 MB) Managing electrical risks in the workplace | /_resources/documents/pdf/codes-of-practice/code-of-practice-managing-electrical-risks-in-the-workplace.pdf"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-excavation": {
+    "items": [
+      "(3.1 MB) Excavation work | /_resources/documents/pdf/codes-of-practice/code-of-practice-excavation-work.pdf",
+      "(3.6 MB) Excavation work | /_resources/documents/word/codes-of-practice/code-of-practice-excavation-work.docx"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-falls": {
+    "items": [
+      "(6.3 MB) Managing the risks of falls at workplaces | /_resources/documents/word/codes-of-practice/code-of-practice-managing-the-risk-of-falls-at-workplaces.docx",
+      "(7.0 MB) Managing the risk of falls at workplaces | /_resources/documents/pdf/codes-of-practice/code-of-practice-managing-the-risk-of-falls-at-workplaces.pdf"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-manual": {
+    "items": [
+      "(2.0 MB) Hazardous manual tasks | /_resources/documents/word/codes-of-practice/code-of-practice-hazardous-manual-tasks.docx",
+      "(2.4 MB) Hazardous manual tasks | /_resources/documents/pdf/codes-of-practice/code-of-practice-hazardous-manual-tasks.pdf"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-noise": {
+    "items": [
+      "(1.5 MB) Managing noise and preventing hearing loss at work | /_resources/documents/pdf/codes-of-practice/managing-noise-and-preventing-hearing-loss-at-work.pdf",
+      "(2.2 MB) Managing noise and preventing hearing loss at work | /_resources/documents/word/codes-of-practice/managing-noise-and-preventing-hearing-loss-at-work.docx",
+      "This Code of Practice was varied on 12 March 2026 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-plant": {
+    "items": [
+      "(1.7 MB) Managing risks of plant in the workplace | /_resources/documents/pdf/codes-of-practice/managing-the-risks-of-plant-in-the-workplace.pdf",
+      "(5.0 MB) Managing risks of plant in the workplace | /_resources/documents/word/codes-of-practice/managing-the-risks-of-plant-in-the-workplace.docx",
+      "This Code of Practice was varied on 12 March 2026 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-precast": {
+    "items": [
+      "(1.6 MB) Precast, tiltup and concrete elements in building construction | /_resources/documents/pdf/codes-of-practice/precast-tiltup-concrete-elements-in-building-construction-cop.pdf"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-silica": {
+    "items": [
+      "(1.8 MB) Managing risks of respirable crystalline silica in the workplace | /__data/assets/pdf_file/0007/1603789/managing-risks-of-respirable-crystalline-silica-in-the-workplace.pdf",
+      "(2.4 MB) Managing risks of respirable crystalline silica in the workplace | /__data/assets/word_doc/0008/1603790/managing-risks-of-respirable-crystalline-silica-in-the-workplace.docx"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-spray": {
+    "items": [
+      "(1.2 MB) Spray painting and powder coating | /_resources/documents/word/codes-of-practice/Spray-painting-and-powder-coating.DOCX",
+      "(1.9 MB) Spray painting and powder coating | /_resources/documents/pdf/codes-of-practice/Spray-painting-and-powder-coating.pdf",
+      "This Code of Practice was varied on 14 September 2023 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-tower": {
+    "items": [
+      "(2.2 MB) Tower cranes | /_resources/documents/word/codes-of-practice/Tower-cranes.docx",
+      "(2.4 MB) Tower cranes | /_resources/documents/pdf/codes-of-practice/Tower-cranes.pdf"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:nt-code-welding": {
+    "items": [
+      "(1.6 MB) Welding processes | /_resources/documents/word/codes-of-practice/Welding-processes.DOCX",
+      "(1.7 MB) Welding processes | /_resources/documents/pdf/codes-of-practice/Welding-processes.pdf",
+      "This Code of Practice was varied on 14 September 2023 | -"
+    ],
+    "status": "ok",
+    "readOn": "2026-10-11"
+  },
+  "code:arc-refrigerant-code": {
+    "items": [
+      "Part 1 – Self-Contained Low Charge Systems | /media/29166/air018-refrigerant-handling-codes-of-practice-2025_part-1_web_final_singles.pdf",
+      "Part 1- Self-Contained Low Charge Systems | /media/1034/stationary_cop_2007_1.pdf",
+      "Part 2 – Systems other than Self Contained Low Charge Systems | /media/1035/stationary_cop_2007_2.pdf",
+      "Part 2 – Systems other than Self Contained Low Charge Systems | /media/29167/air018-refrigerant-handling-codes-of-practice-2025_part-2_web_final_singles.pdf",
+      "here | /media/1033/automotive_rac_cop.pdf"
+    ],
+    "status": "ok"
+  }
 }
