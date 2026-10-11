@@ -112,10 +112,14 @@ function isPanelLift(text) {
   // Sealing the joints between panels already standing is not a panel lift.
   if (/\b(?:seal\w*|caulk\w*|re-?seal\w*)\b[^.]{0,40}\bjoints?\b/i.test(source) && !/\b(lift\w*|cranes?|erect\w*|stand\w*|install\w* (?:the )?(?:\w+ )?panels)\b/i.test(source)) return false;
   // Precast culverts, pits, tanks and pipes are lifted as units, not stood up like panels.
-  const concrete = /\b(precast|tilt-?up|concrete (?:wall )?panels?)\b/i.test(source) && !/\bprecast (?:concrete )?(?:box )?(?:culverts?|pits?|tanks?|pipes?|manholes?|units?|stairs?)\b/i.test(source);
+  // So are precast barriers and kerbs, set down along a road or edge.
+  const concrete = /\b(precast|tilt-?up|concrete (?:wall )?panels?)\b/i.test(source) && !/\bprecast (?:concrete )?(?:box )?(?:culverts?|pits?|tanks?|pipes?|manholes?|units?|stairs?|barriers?|kerbs?)\b/i.test(source);
   // Precast seating tiers sit on rakers: they are not stood up and braced like wall panels.
   if (concrete && !PRECAST_TIER.test(source) && /\b(lift\w*|erect\w*|stand\w*|stood|install\w*|plac\w*|crane\w*)\b/i.test(source)) return true;
-  // Crane ties hold a tower crane to the building; they are not a lift.
+  // Crane ties hold a tower crane to the building; they are not a lift. Panels named by a material
+  // that is not concrete (insulated panels for a freezer room, sandwich, composite or acoustic panels)
+  // are not precast panels, however they are lifted.
+  if (/\b(?:insulated|sandwich|composite|eps|pir|polystyrene|foam|cool ?room|freezer(?: room)?|cold ?room|cold store|acoustic|timber|ply(?:wood)?|plasterboard|fibre ?cement|metal|aluminium|steel|solar|pv)\s+(?:wall\s+|ceiling\s+|roof\s+)?panels?\b/i.test(source)) return false;
   return /\bpanels?\b/i.test(source) && /\b(lift\w*|crane\w*)\b/i.test(source.replace(/\bcrane ties?\b|\b(?:boom|scissor|cherry picker) lifts?\b/gi, '')) && !FACADE_WORK.test(source) && !/\b(glass balustrades?|balustrades?|shower screens?|glass panels?|membranes?|ptfe|etfe|roof\w*|access panels?|shaft wall|lightweight concrete)\b/i.test(source);
 }
 
@@ -148,7 +152,9 @@ const FLOOR_WORK = /\b(carpet\w*|vinyl|rubber floor\w*|floor coverings?|timber f
 const GLAZING_WORK = /\b(glass balustrades?|balustrades?|shower screens?|internal glazing|glass partitions?|mirrors?|mullions?|(?:install|replac|fit|glaz)\w*\b[^.]{0,30}\b(?:windows?|window panes?|glass(?! ?wool| ?fibre)))\b/i;
 // Work on engineered stone already installed: removing, repairing, modifying or disposing of it.
 const ENG_STONE_INSTALLED = /\b(remov\w*|repair\w*|modif\w*|dispos\w*|existing|already installed|installed engineered stone|demolish\w*|strip\w*)\b/i;
-const STONE_WORK = /\b(benchtops?|stone (?:slabs?|vanit\w*)|splashbacks?)\b/i;
+// A stone top by any of its names: a benchtop, splashback or stone vanity, or a counter or top named by
+// its stone ("natural marble reception counter and vanity tops", "granite vanity tops").
+const STONE_WORK = /\b(benchtops?|stone (?:slabs?|vanit\w*)|splashbacks?)\b|\b(?:granite|marble|quartzite|travertine|limestone|natural stone|sintered stone|porcelain|stone)\b(?:[\s,-]+(?!and\b)[\w-]+){0,3}?[\s,-]+(?:counter ?tops?|counters?|vanity tops?|tops?)\b/i;
 
 const FIRE_SERVICES = /\b(sprinklers?|hydrants?|fire services?|fire mains?|fire pump(?:s| ?sets?)?|fire pipework|fire hose reels?)\b/i;
 const LIFT_WORK = /\b(install\w*[^.]{0,30}\blifts?\b(?!\s+(?:pits?(?!\s+(?:ladders?|buffers?))|lobb(?:y|ies)|cores?|overruns?|charging|walls?|landings?|areas?|bays?))|lift (?:shafts?|wells?|cars?|rails?|motor rooms?|machines?|landing doors?)|car tops?|landing doors?)\b/i;
@@ -443,7 +449,18 @@ const LOAD_BEARING_REMOVAL = /\b(remov\w*|cut\w*|knock\w* out|tak\w* out|demolis
 const MASONRY_OPENING = /\b(?:cut\w*|form\w*|mak\w*|creat\w*|new|widen\w*|enlarg\w*)\b[^.]{0,20}\b(?:doorways?|openings?|window openings?)\b[^.]{0,40}\b(?:brick|block|masonry|stone|concrete)\b|\b(?:install\w*|insert\w*|fit\w*|replac\w*)\b[^.]{0,20}\b(?:rusted |steel |new |old )*lintels?\b[^.]{0,60}\b(?:existing|old|brick|block|masonry|above|over)\b/i;
 const HOUSE_JACKING = /\b(re-?stump\w*|(?:replac|chang)\w* (?:the )?(?:old |rotten |timber )*stumps|jack\w* (?:up )?(?:the |a )?(?:\w+ )?houses?|rais\w* (?:the |a )?(?:\w+ )?houses?|lift\w* (?:the |a )?(?:\w+ )?houses?|underpin\w*)\b/i;
 const SUBFLOOR_REPAIR = /\b(?:replac\w*|repair\w*|sister\w*)\b[^.]{0,30}\b(?:rotten |damaged |old )?(?:timber )?(?:floor )?(?:joists?|bearers?)\b/i;
+// Temporary barriers moved into place for a works zone: concrete, water-filled or plastic, by truck
+// crane, forklift or by hand.
+const TEMP_BARRIERS = /\btemporary (?:precast )?(?:concrete |water[- ]filled |plastic |traffic |road |safety |jersey )*barriers?\b|\bwater[- ]filled barriers?\b/i;
+const TRAFFIC_PLACE = /\b(?:traffic|roads?|road ?works?|highways?|motorways?|freeways?|streets?|lanes?|carriageways?|works? zones?|closures?|detours?)\b/i;
 const DEMOLITION = /\b(demolition|demolish\w*|implod\w*|knock(?:ing)? down|pull(?:ing)? down)\b/i;
+// Cutting out part of an existing suspended slab, beam, column or structural wall, or cutting a new
+// opening or void through one, demolishes part of a load-bearing element ("Saw cut and remove a 3 m
+// by 4 m section of the existing level 2 suspended slab for a new stair void"). Cores and small
+// penetrations are not, nor voids formed in a new slab; nor is a slab on ground, which carries no
+// other part of the structure.
+const STRUCTURE_PART_REMOVAL = /\b(?:remov\w*|cut\w* out|break\w* out|demolish\w*)\b[^.]{0,30}\b(?:sections?|parts?|portions?|bays?|strips?|panels?)\s+of\s+(?:an?\s+|the\s+)?(?:existing\s+)?(?:[\w-]+\s+){0,3}?(?:suspended\s+(?:concrete\s+)?slabs?|transfer slabs?|(?:concrete\s+)?(?:beams?|columns?)|(?:shear|core|load[- ]bearing|structural)\s+walls?)\b|\b(?:cut\w*|saw\w*|break\w* out|demolish\w*)\b[^.]{0,20}\b(?:new\s+)?(?:[\w-]+\s+)?(?:openings?|voids?|doorways?)\b[^.]{0,30}\b(?:in|through|into)\s+(?:an?\s+|the\s+)?(?:existing\s+)?(?:[\w-]+\s+){0,3}?(?:suspended\s+(?:concrete\s+)?slabs?|transfer slabs?|(?:shear|core|load[- ]bearing|structural)\s+walls?)\b/i;
+const structurePartRemoval = (text) => sentences(text).some((line) => STRUCTURE_PART_REMOVAL.test(line) && !/\b(?:slabs? on ground|ground slabs?|on-ground|cores|core (?:holes?|drill\w*)|coring|penetrations?)\b/i.test(line));
 const ROAD = /\b((?:live|busy|public|main) (?:roads?|streets?)|(?:in|on|under|across|along|beside) (?:a |the )?(?:live |busy |public |council |main |existing |rural |country |local |sealed |gravel |estate |suburban |residential )?(?:roads?|streets?|highways?)(?! (?:reserves?|verges?))|(?:road|street|traffic|signalised|busy) intersections?|at (?:a |an |the )?(?:new |busy |major |signalised )?intersections?|traffic lights|traffic signals|over the footpath|footpath protection|hoardings? (?:on|along|over|to) (?:the |a )?footpaths?|footpath closures?|highways?|road\s?works?|street loading zones?|(?:in|from|on) the street|kerbside|traffic control|traffic management|on the road|(?:adjacent to|next to|beside|alongside) (?:a |the )?(?:road|street|highway)|street frontage|open to traffic|live traffic|carriageway|railway|rail corridor|shipping lane|motorways?|freeways?|next to (?:live )?traffic|rural roads?|road pavements?|road upgrades?|on-?ramps?|roundabouts?|live buses|bypass(?:es)?(?! (?:pipework|pipes?|valves?|lines?|ducts?|dampers?|switch\w*|circuits?))|overpass(?:es)?|bridges? over (?:a |the )?(?:busy |live )?(?:roads?|motorways?|highways?)|(?:resurfac\w*|reseal\w*) (?:a |the )?(?:roads?|streets?|lanes?)|kerbs? and channel|crossovers?|reinstat\w* (?:the )?asphalt|asphalt reinstat\w*)\b/i;
 // "Any traffic control required" is a general clause: it names no road the work is on.
 // So is "a traffic management plan applies", which can be the site's own plan.
@@ -461,7 +478,8 @@ function besideRoad(raw) {
 // Ballast is track ballast only beside track words: roofs and planters have gravel ballast too.
 const RAIL_RAW = /\b(rail (?:lines?|tracks?)|live track|track possessions?|during (?:a|the) possession|road rail vehicles?|rail overhead wiring|overhead wiring with|track laying|track maintenance machines?)\b/i;
 const RAIL_IN_USE = { test: (text) => RAIL_RAW.test(String(text || '')) || /\bballast\b/i.test(String(text || '')) && /\b(rail\w*|tracks?|sleepers?|trains?|tamp\w*)\b/i.test(String(text || '')) };
-const WATER = /\b(drown(?:ing)?|in or near water|(?:maintain\w*|maintenance of|servic\w*|commission\w*)\s+(?:of\s+)?(?:the\s+)?(?:swimming\s+|lap\s+)?pools?\b(?![- ]?(?:fences?|fencing|equipment|plant\w*|rooms?|pumps?|filters?|lights?|lighting|heaters?|controllers?|switchboards?|services|cleaners?|areas?|surrounds?|decks?|pipe\w*)\b)|(?:near|adjacent to|alongside|beside|next to) (?:an? |the )?(?:filled |full |existing |operating |\d+ ?(?:m2|m²|sq ?m) )?(?:swimming |lap |public |outdoor |indoor )?(?:pools?|spas?)\b(?! (?:fences?|fencing|equipment|plant\w*|rooms?|pumps?|filters?|lights?|lighting|heaters?|controllers?|switchboards?|services))|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|diving (?:towers?|platforms?)|mov(?:e)?able pool floors?|(?:into|in) (?:a |the )?(?:swimming |competition |lap |\d+ ?m )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to|along) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|(?:river|creek|lake|harbour|canal|sea|ocean|dam|water(?:way)?)s? (?:is )?(?:directly )?(?:below|beneath|underneath)|(?:near|above|adjacent to|alongside|beside|by|over) (?:a |the )?(?:tidal |fast[- ]flowing |open )?(?:river|creek|lake|harbour|canal|ocean|dam wall|waterways?|open water|water(?! (?:meters?|tanks?|heaters?|pipes?|pipework|mains?|services?|lines?|supply|supplies|connections?|filters?|treatment|proofing|based|jets?|blast\w*|carts?|trucks?|bottles?|coolers?|outlets?|taps?|points?|fountains?|bubblers?|fixtures?))(?=\b))|(?:over|above) (?:a |the )?(?:swimming |lap |public )?pools?(?! (?:fences?|fencing|equipment|plant|rooms?|decks?|surrounds?|areas?|copings?|edges?|tiles?|houses?|pumps?|filters?))|jetty|wharf|pontoon|boat ramp|sea ?wall|breakwaters?|(?:from|on) (?:a |the )?(?:jack-?up )?barges?|jack-?up barges?|dredg\w*)\b/i;
+// The water authority, utility or company is who does the work, not water a person could fall into.
+const WATER = /\b(drown(?:ing)?|in or near water|(?:maintain\w*|maintenance of|servic\w*|commission\w*)\s+(?:of\s+)?(?:the\s+)?(?:swimming\s+|lap\s+)?pools?\b(?![- ]?(?:fences?|fencing|equipment|plant\w*|rooms?|pumps?|filters?|lights?|lighting|heaters?|controllers?|switchboards?|services|cleaners?|areas?|surrounds?|decks?|pipe\w*)\b)|(?:near|adjacent to|alongside|beside|next to) (?:an? |the )?(?:filled |full |existing |operating |\d+ ?(?:m2|m²|sq ?m) )?(?:swimming |lap |public |outdoor |indoor )?(?:pools?|spas?)\b(?! (?:fences?|fencing|equipment|plant\w*|rooms?|pumps?|filters?|lights?|lighting|heaters?|controllers?|switchboards?|services))|pool waterlines?|(?:through|in|over|across) (?:a |the )?wetlands?|(?:filled|full) (?:swimming )?pools?|pools? (?:that is |is )?(?:filled|full|holding water)|around (?:a |the )?(?:filled |full )?(?:swimming )?pool|diving (?:towers?|platforms?)|mov(?:e)?able pool floors?|(?:into|in) (?:a |the )?(?:swimming |competition |lap |\d+ ?m )?pool(?![- ]?(?:lights?|lighting|cleaners?|equipment|plant|services|pumps?|filters?|distribution|switchboards?|controllers?|fence|fencing)\b)|(?:over|into|beside|next to|along) (?:a |the )?(?:tidal )?(?:river|creek|lake|sea|harbour|dam|canal|water)|(?:river|creek|lake|harbour|canal|sea|ocean|dam|water(?:way)?)s? (?:is )?(?:directly )?(?:below|beneath|underneath)|(?:near|above|adjacent to|alongside|beside|by|over) (?:a |the )?(?:tidal |fast[- ]flowing |open )?(?:river|creek|lake|harbour|canal|ocean|dam wall|waterways?|open water|water(?! (?:meters?|tanks?|heaters?|pipes?|pipework|mains?|services?|lines?|supply|supplies|connections?|filters?|treatment|proofing|based|jets?|blast\w*|carts?|trucks?|bottles?|coolers?|outlets?|taps?|points?|fountains?|bubblers?|fixtures?|authorit\w*|utilit\w*|corporations?|compan\w*|boards?|retailers?|suppliers?))(?=\b))|(?:over|above) (?:a |the )?(?:swimming |lap |public )?pools?(?! (?:fences?|fencing|equipment|plant|rooms?|decks?|surrounds?|areas?|copings?|edges?|tiles?|houses?|pumps?|filters?))|jetty|wharf|pontoon|boat ramp|sea ?wall|breakwaters?|(?:from|on) (?:a |the )?(?:jack-?up )?barges?|jack-?up barges?|dredg\w*)\b/i;
 
 function isScaffoldErection(text) {
   return /\bscaffold\w*\b/i.test(String(text || '').replace(/\bmobile scaffold\w*/gi, '')) && (/\b(erect\w*|dismantl\w*|strik\w* (?:the )?scaffold|alter\w*)\b/i.test(text) || /\b(?:install\w*|build\w*) (?:a |the )?(?:temporary |new )?scaffold\w*|\bput\w* (?:up )?(?:a |the )?(?:full |perimeter |external )?scaffold\b/i.test(text)
@@ -892,16 +910,38 @@ function withoutConditions(sentence) {
   return String(sentence || '').replace(/\b(?:if|until|unless|when|once|before|after)\b[^,.;()]*/gi, ' ').replace(/\b(?:is|are|has|have|be|been)?\s*not (?:yet )?(?:been )?(?:installed|connected|commissioned)\b/gi, ' ');
 }
 
+// A telecommunication tower by any of its names: a tower, monopole or mast named for telecommunications,
+// mobile phones or radio, or a tower or monopole carrying antennas, a headframe or feeder cables
+// ("Climb the 45 m telecommunications monopole and install the new headframe, antennas and feeder cables").
+const TELECOM_TOWER = /\b(?:telecommunications?|mobile (?:phone )?|phone|radio|comms|communications|cellular|5g|4g) (?:base station )?(?:towers?|monopoles?|masts?|lattice towers?|guyed masts?)\b/i;
+const TOWER_STRUCTURE = /\b(?:monopoles?|lattice towers?|guyed masts?|(?<!(?:tower|water|cooling|lighting|light|scaffold|mobile|aluminium|access|bell|clock|crane|stair|lift|hoist|office|apartment|residential)\s)towers?)\b/i;
+const TOWER_EQUIPMENT = /\b(?:antennas?|aerials?|headframes?|feeder (?:cables?|lines?)|remote radio units?|rrus?|microwave dishes?|base stations?)\b/i;
+function telecomTower(text) {
+  // Antennas on a building's roof are not on a tower, though the building may be called one.
+  return TELECOM_TOWER.test(String(text || '')) || sentences(text).some((line) => TOWER_EQUIPMENT.test(line)
+    && (/\b(?:monopoles?|lattice towers?|guyed masts?)\b/i.test(line) || (TOWER_STRUCTURE.test(line.replace(/\btower (?:cranes?|riggers?)\b/gi, ' ')) && !/\broof/i.test(line))));
+}
+
+// A solvent-based coating, primer, paint or adhesive applied in a room or other enclosed space gives
+// off flammable vapour ("apply a solvent-based epoxy primer and epoxy floor coating in the food factory
+// production room, with the room ventilated and ignition sources removed").
+const SOLVENT_PRODUCT = /\bsolvent[- ](?:based|borne)\b|\bsolvent (?:epoxy|polyurethane|primers?|paints?|coatings?|adhesives?|sealers?|lacquers?)\b/i;
+const COATING_APPLIED = /\b(?:apply\w*|applied|roll\w*|brush\w*|spray\w*|coat\w*|prim(?:e|es|ed|ing)|paint\w*|seal\w*|lay\w*|glu\w*|bond\w*)\b/i;
+const ENCLOSED_PLACE = /\b(?:rooms?|inside|indoors?|internal\w*|enclosed|basements?|tanks?|ducts?|risers?|shafts?|stairwells?|corridors?|warehouses?|factor(?:y|ies)|cool ?rooms?|freezer rooms?|cold (?:stores?|rooms?)|ignition sources?)\b/i;
+function solventIndoors(text) {
+  return sentences(text).some((line) => SOLVENT_PRODUCT.test(line) && COATING_APPLIED.test(line) && ENCLOSED_PLACE.test(line) && !/\b(?:not|no|instead of|rather than)\s+(?:\w+\s+)?solvent/i.test(line));
+}
+
 function highRiskMatches(raw, answer, state) {
   // "Prior to the energisation of a building" is a point in time, not work near energised parts.
   const text = String(raw || '').replace(BUILDING_ENERGISATION, ' ');
   const checks = {
     fall: fallRiskFor(text, answer),
-    tower: mentioned(text, /\b(telecommunications? towers?|(?:mobile (?:phone )?|phone|radio|comms|communications) towers?)\b/i),
+    tower: telecomTower(text),
     // Demolishing a whole building takes down its load-bearing parts.
     // Removing a wall's bracing takes out a load-bearing element (Safe Work Australia's example).
     // Temporary bracing, props, formwork and falsework are left out of demolition work (schedule 19).
-    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || sentences(text).some((line) => /\bremov\w*[^.]{0,20}\b(?:the |a )?(?:wall |roof |structural )?bracing\b/i.test(line) && !/\b(temporary|temp|props?|falsework|formwork|tilt[- ]?up|precast)\b/i.test(line)) || mentioned(text, DEMOLITION) && !servicesOnlyDemolition(text) && (sentences(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, '')).some((line) => /\b(load-bearing|load bearing|structur\w*)\b/i.test(line) && !/\bnon[- ]structural\b/i.test(line)) || WHOLE_DEMOLITION.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
+    demolition: mentioned(text, LOAD_BEARING_REMOVAL) || structurePartRemoval(text) || sentences(text).some((line) => /\bremov\w*[^.]{0,20}\b(?:the |a )?(?:wall |roof |structural )?bracing\b/i.test(line) && !/\b(temporary|temp|props?|falsework|formwork|tilt[- ]?up|precast)\b/i.test(line)) || mentioned(text, DEMOLITION) && !servicesOnlyDemolition(text) && (sentences(String(text || '').replace(/\bnon[- ]load[- ]bearing\b/gi, '')).some((line) => /\b(load-bearing|load bearing|structur\w*)\b/i.test(line) && !/\bnon[- ]structural\b/i.test(line)) || WHOLE_DEMOLITION.test(String(text || ''))) || /\b(?:remov\w*|demolish\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
     asbestos: mentioned(withoutClearedAsbestos(text), /\basbestos\b/i),
     // Structural alterations or repairs to an existing structure that need temporary support.
     // Propping and backpropping new formwork and slabs is not an alteration or repair.
@@ -925,7 +965,7 @@ function highRiskMatches(raw, answer, state) {
       // Live or existing underground power cables are energised electrical services.
       || /\b(?:live|energised|energized)\s+(?:(?:underground|buried|electrical|electric|power|hv|high voltage|\d+(?:\.\d+)? ?kv)\s+){0,2}cables?\b|(?<!\bnew\s)\b(?:underground|buried)\s+(?:(?:live|energised|energized|electrical|electric|power|hv|high voltage|\d+(?:\.\d+)? ?kv)\s+){1,2}(?:cables?|lines?|services?|mains)\b|\b\d+(?:\.\d+)? ?kv\s+(?:underground\s+)?cables?\b/i.test(String(text || '')),
     // Hot cutting into pipework or tanks that may hold chemical or fuel residue (Safe Work Australia's example).
-    atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i) || /\b(residues?|traces?)\b[^.]{0,30}\b(?:hazardous )?(chemicals?|fuels?|flammable|hydrocarbons?|solvents?)\b|\b(?:pipework|pipes?|tanks?|drums?|vessels?)\b[^.]{0,30}\b(?:may |that |which )?(?:contain|held|hold)\w*\b[^.]{0,30}\b(chemicals?|fuels?|flammable|hydrocarbons?|solvents?)\b/i.test(String(text || '')),
+    atmosphere: mentioned(text, /\b(flammable atmosphere|contaminated atmosphere)\b/i) || solventIndoors(text) || /\b(residues?|traces?)\b[^.]{0,30}\b(?:hazardous )?(chemicals?|fuels?|flammable|hydrocarbons?|solvents?)\b|\b(?:pipework|pipes?|tanks?|drums?|vessels?)\b[^.]{0,30}\b(?:may |that |which )?(?:contain|held|hold)\w*\b[^.]{0,30}\b(chemicals?|fuels?|flammable|hydrocarbons?|solvents?)\b/i.test(String(text || '')),
     // Drilling or fixing to precast units already in place is not precast work.
     // "Tilt up", "tilt panels" and "tilt slabs" are tilt-up work as much as "tilt-up".
     precast: mentioned(withoutWorkIntoPrecast(text), /\b(tilt[- ]?up|tilt (?:panels?|slabs?|walls?)|precast)\b/i),
@@ -944,7 +984,7 @@ function highRiskMatches(raw, answer, state) {
     diving: mentioned(String(text || '').replace(/\bdiving (?:towers?|platforms?|boards?|blocks?|pools?|wells?)\b/gi, ' '), /\b(diving|divers?)\b/i),
     // Victoria, regulation 322: any demolition, trenches and shafts apart from tunnels,
     // and roads or railways without shipping lanes.
-    demolitionAny: mentioned(withoutMarkedForDemolition(text), DEMOLITION) || /\b(?:remov\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
+    demolitionAny: mentioned(withoutMarkedForDemolition(text), DEMOLITION) || structurePartRemoval(text) || /\b(?:remov\w*|lift\w* out)\b[^.]{0,30}\bbridge (?:decks?|spans?|beams?|girders?)\b/i.test(String(text || '')),
     trenchOrShaft: /\b(trench\w*|shaft)\b/i.test(text) && deepExcavation(text.replace(/\btunnel\w*\b/gi, '')) || detailedDig(text),
     tunnel: mentioned(text, /\btunnel\w*\b/i),
     roadOrRail: mentioned(String(text || '').replace(/\bshipping lanes?\b/gi, '').replace(CONDITIONAL_TRAFFIC, ' '), ROAD) || mentioned(text, RAIL_IN_USE),
@@ -1996,8 +2036,11 @@ const SERVICE_PLACE = /\s+(?:on|in|along|under|across|beside|down|up)\s+(?:the\s
 // a control near a hazard, not a denial, so it stays.
 const DENIED_PART = /\b(?:there (?:are|is) no|no|nil)\b(?![- ]go\b)[^.,;/\n]*?(?=\s+but\b|[.,;/\n]|$)/gi;
 const withoutDenials = (text) => String(text || '').replace(DENIED_PART, ' ');
+// The access answer says how the crew gets to the work: a road it comes in from ("gate off Old Main
+// Road", "from Heatherton Road") is the way in, not a road the work is on or next to.
+const ACCESS_ROUTE = /\b(?:off|from|via)\s+(?:the\s+)?(?:[\w'-]+\s+){0,3}?(?:roads?|rd|streets?|st|highways?|hwy|avenues?|ave|drives?|parades?|boulevards?|terraces?|crescents?)\b/gi;
 function siteConditions(site) {
-  const answers = Object.entries(site || {}).map(([key, value]) => (key === 'liveServices' && typeof value === 'string' ? value.replace(SERVICE_PLACE, '') : value));
+  const answers = Object.entries(site || {}).map(([key, value]) => (typeof value !== 'string' ? value : key === 'liveServices' ? value.replace(SERVICE_PLACE, '') : key === 'access' ? value.replace(ACCESS_ROUTE, ' ') : value));
   return readSlang(answers.map(supplied).filter(Boolean).map(withoutDenials).filter((answer) => /\w/.test(answer)).join('\n'));
 }
 
@@ -3152,6 +3195,13 @@ function buildDraft(input, screen) {
       const label = item.id === 'fall' && state.residential && state.residentialFallLabel ? state.residentialFallLabel : item.label;
       if (!draft.highRisk.includes(label)) draft.highRisk = [...draft.highRisk, label];
     }
+    // So is a step worked over or on the water ("Work over the water", from a barge, placing a
+    // pontoon, running a dredge): its rescue step is there for a person in the water. A pool's step
+    // does not settle whether the pool holds water, so the task's own words decide that.
+    const waterSteps = draft.jobSteps.map((step) => step.step).filter((name) => !/\bpools?\b/i.test(name));
+    for (const item of highRiskMatches(waterSteps.join('\n'), 'no', state).filter((match) => match.check === 'water')) {
+      if (!draft.highRisk.includes(item.label)) draft.highRisk = [...draft.highRisk, item.label];
+    }
     // A job step that works in a trench the crew digs makes the dig a trench, whatever the task calls
     // it ("install underground stormwater pipes and pits"), where the task's own words name pipes,
     // drains, pits or mains laid in the ground. Its depth comes from those words: one of 1.5 m or less,
@@ -3979,6 +4029,8 @@ function suggestedFlags(task, facts, state) {
   // No crane on this job: crane steps come only from a crane the task itself names.
   if (state.noCrane && !/\b(cranes?|hiabs?|frannas?|vehicle loading cranes?)\b/i.test(task)) {
     for (const id of ['craneInterface', 'crane', 'heavyLift', 'dualLift', 'craneAssembly']) flags[id] = false;
+    // Reo goes onto the deck without a crane: by hand, hoist or forklift.
+    flags.reoNoCrane = true;
   }
   // A cutting step that is not this trade's work is taken out, so drilling and
   // cutting comes back as the general step.
@@ -5874,7 +5926,9 @@ const TBM_SHAFT = new RegExp(`\\bshafts?\\b|${TBM_LAUNCH.source}`, 'i');
 // Old air conditioning plant, chillers, air handling units and cooling towers removed or taken out.
 const PLANT_REMOVAL = /\b(?:remov|decommission|strip)\w*\b[^.]{0,30}\b(?:condensers?|condensing units?|condenser units?|air ?con\w*(?! ?ducts?| ?ductwork| grilles?| diffusers?| registers?)(?: units?| plant)?|a\/?c units?|split systems?|rooftop units?|packaged? units?|chillers?|air handling units?|ahus?|cooling towers?)\b|\b(?:tak\w*|lift\w*) out (?:the |all |both |each )?(?:old |existing |redundant )*(?:condensers?|condensing units?|air ?con\w* units?|a\/?c units?|split systems?|chillers?|air handling units?|ahus?|cooling towers?)\b/i;
 // A lift's controller or control system.
-const LIFT_CONTROLLER = /\b(?:lift|elevator)s?'? (?:controllers?|control (?:systems?|panels?|gear|equipment|cabinets?))\b|\bcontrollers?\b[^.]{0,30}\b(?:lifts?|elevators?)\b/i;
+// Traffic controllers are people, and a crane's lift is not a lift car ("traffic controllers stopping
+// traffic for each lift").
+const LIFT_CONTROLLER = /\b(?:lift|elevator)s?'? (?:controllers?|control (?:systems?|panels?|gear|equipment|cabinets?))\b|\b(?<!(?:traffic|pedestrian|spotters?|site) )controllers?\b[^.]{0,30}\b(?:lifts?|elevators?)\b/i;
 // Fire protection sprayed or coated onto steel: intumescent paint, cementitious or vermiculite spray.
 const FIRE_SPRAY = /\b(?:spray\w*|appl\w*|coat\w*)\b[^.]{0,30}\bfire (?:protection|proofing|resistant coatings?|rated coatings?|retardant coatings?)\b|\bfire ?proof\w*\b[^.]{0,40}\b(?:steel\w*|beams?|columns?|members?|structure)\b|\b(?:steel\w*|beams?|columns?)\b[^.]{0,40}\bfire ?proof\w*|\bintumescent (?:paint|coating|spray)\w*|\bsprayed fire\b|\bfire spray\w*|\bfire[- ]rated spray\w*|\bspray[- ]applied fire\w*|\b(?:vermiculite|cementitious)\b[^.]{0,20}\bspray\w*|\bspray\w*\b[^.]{0,20}\b(?:vermiculite|cementitious)\b/i;
 // Rock cut with a rock saw, a rock wheel or a rock trencher.
@@ -6138,10 +6192,14 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     wallpaperStrip: /\b(strip\w*|remov\w*|steam\w*)\b[^.]{0,20}\bwall ?paper\b/i.test(task),
     underfloorHeating: /\bunderfloor heating\b|\bheating (?:cables?|mats?)\b|\bheated floors?\b/i.test(task),
     wallDrainage: /\b(drainage|ag(?:ricultural)? (?:drains?|pipes?)|subsoil (?:drains?|drainage|pipes?)|backfill\w*)\b[^.]{0,40}\bbehind (?:a |the )?(?:new |existing )?(?:\w+ )?(?:retaining )?walls?\b|\bretaining wall drainage\b/i.test(task),
-    footpathClosure: /\b(?:footpath|lane|road) closures?\b/i.test(task) && /\b(barriers?|fenc\w*|hoardings?)\b/i.test(task),
+    // Temporary barriers set out for a road works zone or closure, or temporary concrete or water-filled
+    // barriers, which are traffic barriers, are placed as the traffic management plan sets out
+    // ("Install the temporary concrete barriers ... for the road works zone").
+    footpathClosure: /\b(?:footpath|lane|road) closures?\b/i.test(task) && /\b(barriers?|fenc\w*|hoardings?)\b/i.test(task) || TEMP_BARRIERS.test(task) && (TRAFFIC_PLACE.test(task) || /\b(?:concrete|water[- ]filled|jersey)\s+barriers?\b/i.test(task)),
     bmuClean: /\b(building maintenance units?|bmus?)\b/i.test(task) && /\bclean\w*\b/i.test(task),
     officeStrip: /\bstrip\w*[- ]?out\b|\bstrip out\b/i.test(task) && /\b(offices?|fit-?outs?|tenanc\w*|shops?|bank\w*|ceilings?|partitions?|retail)\b/i.test(task) && !/\b(bathrooms?|ensuites?|kitchens?|laundr\w*|toilets?)\b/i.test(task),
-    coolroomPanels: /\b(cool ?rooms?|freezer rooms?|walk-in (?:freezers?|cool ?rooms?|fridges?)|cold rooms?)\b/i.test(task) && /\b(install\w*|erect\w*|build\w*|construct\w*)\b/i.test(task),
+    // Panels lifted, stood or fixed onto a cool room's frame are erected too.
+    coolroomPanels: /\b(cool ?rooms?|freezer rooms?|walk-in (?:freezers?|cool ?rooms?|fridges?)|cold rooms?)\b/i.test(task) && (/\b(install\w*|erect\w*|build\w*|construct\w*)\b/i.test(task) || /\b(?:lift\w*|stand\w*|stood|fix\w*|fit\w*)\b[^.]{0,40}\bpanels?\b/i.test(task)),
     roofPenetration: /\bthrough (?:the |a )?roof\b|\broof penetrations?\b|\bpenetrat\w* (?:the |a )?roof\b/i.test(task),
     workAbove: /\b(overpass\w*|traffic below|over (?:the |a )?(?:live )?(?:road|traffic|highway|railway|rail line|motorway|freeway)|above (?:the )?(?:road|traffic|railway|rail line))\b/i.test(task),
     electricHeater: !/\b(gas|heat pumps?|solar)\b/i.test(task),
@@ -6178,7 +6236,8 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     signPosts: /\b(sign ?posts?|signs? on posts|pole[- ]mounted signs?|car parks?|carparks?)\b/i.test(task),
     spigots: /\bglass (?:pool )?fenc\w*|\bspigots?\b/i.test(task),
     sprayRoad: /\b(spray seal\w*|bitumen seal\w*|chip seal\w*|bitumen spray\w*)\b/i.test(task),
-    roadBarrier: /\b(crash barriers?|guard ?rails?|safety barriers?|road barriers?|wire rope barriers?|w-?beam|concrete barriers?|jersey barriers?)\b/i.test(task) && /\b(highways?|roads?|motorways?|freeways?|bridges?|bypass\w*)\b/i.test(task),
+    // A permanent road safety barrier, its posts driven: not temporary barriers set down for a works zone.
+    roadBarrier: /\b(crash barriers?|guard ?rails?|safety barriers?|road barriers?|wire rope barriers?|w-?beam|concrete barriers?|jersey barriers?)\b/i.test(task.replace(new RegExp(TEMP_BARRIERS.source, 'gi'), ' ')) && /\b(highways?|roads?|motorways?|freeways?|bridges?|bypass\w*)\b/i.test(task),
     streetLighting: /\b(street ?light\w*|public lighting|road lighting)\b/i.test(task),
     // Covers fitted over smoke detectors to keep dust out are not detection work.
     fireAlarm: /\b(fire (?:alarm|detection|indicator) (?:systems?|panels?)|fire alarms?|(?:install\w*|supply and install)\b[^.]{0,20}\bfire detection|smoke detectors?|thermal detectors?|ewis|occupant warning)\b/i.test(task.replace(/\b(?:smoke )?detector covers?\b|\bcovers? (?:over|on|to) (?:the )?smoke detectors?\b/gi, ' ')) && !/\bsmoke alarms?\b/i.test(task),
