@@ -227,6 +227,44 @@ const DLP_SPECIFIC = /\b(paint\w*|roof\w*|gutters?|tiles?|tiling|grout\w*|membra
 // Groups the AI sometimes chooses for housekeeping wording: chemical cleaning, and painting for a washout.
 const HOUSEKEEPING_GUESSES = ['cleaning', 'cleaningHeight', 'pressureClean', 'hydroBlast', 'painting', 'paintAccess', 'paintSpray', 'paintSolvent'];
 
+// Putting up signs and screens (from an EWP, a crane or a ladder): pylons, facade and shopfront signs, LED screens.
+const SIGN_INSTALL = /\b(?:install\w*|fit\w*|fix\w*|replac\w*|erect\w*|hang\w*)\b[^.]{0,60}\b(?:signs?|signage|led screens?|billboards?|shopfront signs?|banners?)\b/i;
+const SIGN_WORD = /\b(?:signs?|signage)\b/i;
+// Signs that are not sign installation: site safety and warning signs, statutory signs and block
+// plans, signs for fire equipment, and signs put up with or fixed to barricades, hoardings or fences.
+// Road, traffic and regulatory signs on posts are sign installation.
+const SIGN_KIND = '(?:safety|warning|hazard|danger|caution|mandatory|statutory|compliance|first aid|depth|exit|evacuation|emergency|fire|ppe|site|temporary|construction)';
+// A road safety barrier is road work, so barriers are not among them.
+const SITE_BARRIER = '(?:barricad\\w*|hoardings?|fenc\\w*|bunting|flagging|traffic cones|cones|block plans)';
+const LIST_JOIN = '(?:\\s*,\\s*|\\s*\\/\\s*|\\s+(?:and|or|&)\\s+)(?:[\\w-]+\\s+){0,2}?';
+const SITE_SIGNS = new RegExp([
+  `\\b${SIGN_KIND}(?:${LIST_JOIN}${SIGN_KIND})*\\s+(?:signs?|signage)\\b`,
+  `\\b(?:signs?|signage)\\b(?=${LIST_JOIN}${SITE_BARRIER}\\b)`,
+  `(?<=\\b${SITE_BARRIER}${LIST_JOIN})(?:signs?|signage)\\b`,
+  `\\b(?:signs?|signage)\\b(?=[^.;]{0,30}\\b(?:on|to|onto)\\s+(?:the\\s+|a\\s+)?(?:[\\w-]+\\s+){0,2}?${SITE_BARRIER}\\b)`,
+  '(?<=\\b(?:extinguishers?|fire blankets?|hose reels?|hydrants?)\\b[^.]{0,60})\\b(?:signs?|signage)\\b',
+].join('|'), 'gi');
+const withoutSiteSigns = (text) => String(text || '').replace(SITE_SIGNS, ' ');
+
+// Below ground: where tanking and below ground waterproofing are done.
+const BELOW_GROUND = /\b(below (?:ground|grade)|under ?ground|in-?ground|basements?|retaining|tanking|lift pits?|pits?|sub-?floors?|footings?|backfill\w*|excavat\w*|buried|piles?|diaphragm walls?)\b/i;
+const ROOF_WORDS = /\b(roofs?|roofing|purlins?|skylights?)\b/i;
+
+// Job step groups the AI chose that the package's own words rule out, each tested against the
+// group's own words: signs that are only site safety signs, statutory signs or signs on barricades,
+// hoardings and fences are not signs put up from an EWP; a membrane named with no basement,
+// retaining wall, tanking or other below ground place is not below ground waterproofing; louvres
+// named as new work are not broken blades replaced; mesh or sarking named away from any roof (a
+// wall's vapour barrier, mesh in a floor penetration) is not roof safety mesh.
+const RULED_OUT = {
+  signageInstall: (task) => SIGN_WORD.test(task) && !SIGN_INSTALL.test(withoutSiteSigns(task)),
+  belowGroundWp: (task) => WATERPROOFING.test(task) && !BELOW_GROUND.test(task),
+  louvreReplace: (task) => /\blouv(?:re|er)s?\b/i.test(task) && !/\b(replac\w*|broken|cracked|smashed)\b[^.]{0,30}\blouv(?:re|er)s?\b/i.test(task),
+  safetyMesh: (task) => { const named = sentencesWith(task, /\b(mesh|sarking)\b/i); return named.length > 0 && !named.some((sentence) => ROOF_WORDS.test(sentence)); },
+};
+// What the words name in place of a group ruled out: the membrane steps for a membrane above ground.
+const RULED_OUT_FOR = { belowGroundWp: ['wpPrep', 'wpLiquid', 'wpTorch', 'wpEdge', 'wpRolls'] };
+
 function gapFlags(task) {
   const out = {};
   const screens = sentencesWith(task, SAFETY_SCREENS).filter((sentence) => /\b(erect\w*|install\w*|lift\w*|climb\w*|jump\w*|rais\w*|dismantl\w*|remov\w*|strip\w*|relocat\w*|provid\w*|supply\w*|hire\w*|fit\w*|fix\w*)\b/i.test(sentence));
@@ -295,6 +333,7 @@ function gapFlags(task) {
 // chemical cleaning steps unless a real clean is named; a package that is only housekeeping
 // drops the cleaning and painting groups chosen for it; defects liability wording always gets
 // the defects visit steps, and a package that is only general defects wording gets only those.
+// A group the package's own words rule out (RULED_OUT, above) is taken off.
 function packageKinds(rawTask, kinds) {
   if (!Array.isArray(kinds)) return kinds;
   const task = ownWork(readSlang(fixSpelling(cleanLine(rawTask)).text));
@@ -321,6 +360,13 @@ function packageKinds(rawTask, kinds) {
   for (const id of NAMED_KINDS) if (named[id] && !out.includes(id)) out.push(id);
   // Work inside an excavation others dug is not this crew digging a trench, whatever the AI chose.
   if (named.inExcavation) out = out.filter((id) => id !== 'trench');
+  // A group the package's own words rule out is taken off, and the work they name in its place comes in.
+  for (const id of Object.keys(RULED_OUT)) {
+    if (!out.includes(id) || !RULED_OUT[id](task)) continue;
+    out = out.filter((kind) => kind !== id);
+    const instead = (RULED_OUT_FOR[id] || []).filter((kind) => !out.includes(kind));
+    if (instead.length) for (const kind of suggestedKinds(task, {}, {})) if (instead.includes(kind)) out.push(kind);
+  }
   if (workshopOnly(task)) out = out.filter((id) => WORKSHOP_KINDS.includes(id));
   // Where the AI chose no groups at all, the work the words name on their own (a flood test, sealant
   // and caulking) still gets its steps, rather than the package being stood down.
@@ -6291,7 +6337,7 @@ function baseWorkFlags(fullTask, facts = {}, ownCrane = false) {
     edgeProtectionInstall: /\b(?:erect\w*|install\w*|remov\w*|dismantl\w*)\b[^.]{0,30}\b(?:edge protection|perimeter (?:screens?|guardrails?)|guardrails? around|roof guard ?rails?)\b/i.test(task),
     rockBreak: /\b(rock break\w*|hydraulic (?:hammer|breaker)s?|break\w* (?:up )?(?:the )?rock|rock (?:hammer\w*|breaking))\b/i.test(task) && !(/\bdriv\w*\b[^.]{0,40}\bpiles?\b|\bpile driv\w*|\bpile hammers?\b/i.test(task) && !/\brock\b/i.test(task)),
     drainClear: /\b(?:clear\w*|unblock\w*|clean\w*|jet\w*)\b[^.]{0,30}\b(?:blocked )?(?:drains?|sewers?|pipes?|downpipes?|stormwater)\b|\b(?:electric eel|drain machines?|jetters?)\b/i.test(task),
-    signageInstall: /\b(?:install\w*|fit\w*|fix\w*|replac\w*|erect\w*|hang\w*)\b[^.]{0,60}\b(?:signs?|signage|led screens?|billboards?|shopfront signs?|banners?)\b/i.test(task) && !/\b(?:exit signs?|safety signs? and barriers|block plans)\b/i.test(task),
+    signageInstall: SIGN_INSTALL.test(withoutSiteSigns(task)) && !/\b(?:exit signs?|safety signs? and barriers|block plans)\b/i.test(task),
     fuelTankRemoval: /\b(?:remov\w*|decommission\w*|excavat\w*|pull\w* out|dig\w* (?:up|out))\b[^.]{0,30}\b(?:(?:in-?ground|underground|old) )?(?:fuel|petrol|diesel|underground) tanks?\b/i.test(task),
     fuelSystems: /\b(?:install\w*|replac\w*)\b[^.]{0,40}\b(?:fuel (?:bowsers?|dispensers?|lines?|pumps?)|bowsers?)\b/i.test(task),
     accessFloor: /\b(raised (?:access )?floor\w*|access floor\w*|computer floor\w*)\b/i.test(task),
