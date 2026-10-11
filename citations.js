@@ -298,6 +298,9 @@ const VIC_TEXT = [
   // Building maintenance units have a registered design (r 125, Schedule 2 item 1.5), not item registration,
   // and their inspection and maintenance records are kept (r 106).
   [/^The BMU has a current inspection and registration\.$/, `The BMU's design is registered and its inspection and maintenance records are kept${cite('vic', '106', '125', 'Schedule 2')}.`],
+  // Regulation 178(i): applying a flame to cut metal coated with paint of more than 1% lead by dry weight
+  // is a lead process; Part 4.3 (r 184) sets its controls. The WHS Regulation is not Victoria's law.
+  [/, done with the lead controls the WHS Regulation requires\.$/, `, done with the lead controls the regulations require.${cite('vic', '178', '184')}`],
   // Regulation 341 names the construction induction card.
   [/\bgeneral construction induction card\b/, 'construction induction card', KEEP],
 ];
@@ -567,6 +570,32 @@ const STATE_CODE_ONLY = new RegExp(String.raw`\s?\(${CODE_PART}\)`, 'g');
 const STATE_CODE_PART = new RegExp(String.raw`; ${CODE_PART}|${CODE_PART}; `, 'g');
 const withoutStateCodes = (line) => (typeof line === 'string' ? line.replace(STATE_CODE_PART, '').replace(STATE_CODE_ONLY, '') : line);
 
+// A printed line as it printed before the state codes (#194) and Victoria's line table added their
+// references: the state code parts and the Victorian Act and regulation references matched to the
+// line are taken out, and the rest of the citation stays. The sign-on check questions read lines this
+// way, so a line does not leave the question pool because it gained a reference.
+function withoutAddedReferences(line) {
+  const plain = withoutStateCodes(line);
+  if (typeof plain !== 'string' || !plain.endsWith(')')) return plain;
+  let depth = 0;
+  let at = -1;
+  for (let i = plain.length - 1; i >= 0; i -= 1) {
+    if (plain[i] === ')') depth += 1;
+    else if (plain[i] === '(' && --depth === 0) { at = i; break; }
+  }
+  const text = at > 0 ? plain.slice(0, at).trimEnd() : '';
+  const refs = VIC_LINES.lines[text];
+  if (!refs) return plain;
+  const added = new Set(refs);
+  const parts = plain.slice(at + 1, -1).split('; ').map((part) => {
+    const title = [VIC_LINES.act, STATE_CITATIONS.vic.regulation].find((name) => part.startsWith(`${name} `));
+    if (!title) return part;
+    const kept = part.slice(title.length + 1).split(', ').filter((ref) => !added.has(ref));
+    return kept.length ? `${title} ${kept.join(', ')}` : '';
+  }).filter(Boolean);
+  return parts.length ? `${text} (${parts.join('; ')})` : text;
+}
+
 // Short Queensland regulation references in register notes, such as "(WHS Reg s 213)",
 // given as the state's own sections, or left out where the section has not been matched.
 function localNote(text, stateId) {
@@ -581,4 +610,4 @@ function localNote(text, stateId) {
 
 const citedStates = () => ['qld', ...Object.keys(STATE_CITATIONS)];
 
-module.exports = { localSource, localText, localControl, localNote, citedStates, withoutStateCodes };
+module.exports = { localSource, localText, localControl, localNote, citedStates, withoutStateCodes, withoutAddedReferences };

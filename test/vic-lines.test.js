@@ -91,3 +91,66 @@ test('a change to a Victorian compliance code paragraph or regulation finds the 
   assert.ok(permits.some((line) => /r 63, r 322, r 327\)$/.test(line)));
   assert.ok(linesCiting('vic', 'Occupational Health and Safety Regulations 2017', 'r 44').length >= 29);
 });
+
+test('the sign-on question pool is the same with or without the state code and Victorian references', () => {
+  const { prepareDraft, questionsFor } = require('../draft');
+  const { answersFor } = require('../presets');
+  const { questionPool } = require('../sign-read');
+  const { withoutAddedReferences } = require('../citations');
+  const CODES = require('../scenarios/state-codes.json');
+  const tasks = [
+    'Dig a trench for a stormwater pipe beside the building, lay the pipe and backfill.',
+    'Install copper pipework in the plant room and risers from ladders, drill and chase concrete walls for pipe brackets, and cut plasterboard for access panels.',
+    'Install roof sheeting and gutters on the warehouse roof, and lift the sheets to the roof with a crane.',
+  ];
+  const build = (state, task) => {
+    const input = { state, task, fallRisk: 'no', residential: 'no', workplace: 'Test site', principalContractor: 'Test builder', company: 'Test' };
+    const facts = {};
+    for (let round = 0; round < 8; round += 1) {
+      const asked = questionsFor({ ...input, facts });
+      const open = (asked.required || []).filter((item) => !facts[item.id]);
+      if (!open.length) break;
+      for (const item of open) facts[item.id] = item.choices ? item.choices[0].value : (answersFor(item.id, asked.task)[0] || {}).text || 'As set out in the site plan.';
+    }
+    return prepareDraft({ ...input, facts });
+  };
+  // The same drafts with the references #194 and the Victorian line table add switched off: as they printed before.
+  const before = (state, task) => {
+    const sections = Object.fromEntries(Object.entries(CODES).filter(([id]) => id !== 'lines').map(([id, data]) => [id, data.sections]));
+    const lines = VIC.lines;
+    try {
+      for (const [id, data] of Object.entries(CODES)) if (id !== 'lines') data.sections = {};
+      VIC.lines = {};
+      return build(state, task);
+    } finally {
+      for (const [id, saved] of Object.entries(sections)) CODES[id].sections = saved;
+      VIC.lines = lines;
+    }
+  };
+  for (const state of ['qld', 'nsw', 'vic', 'sa', 'wa', 'tas', 'act', 'nt']) {
+    let added = 0;
+    for (const [index, task] of tasks.entries()) {
+      const now = build(state, task);
+      const then = before(state, task);
+      const nowLines = now.jobSteps.flatMap((step) => step.controls);
+      const thenLines = then.jobSteps.flatMap((step) => step.controls);
+      added += nowLines.filter((line, k) => line !== thenLines[k]).length;
+      // Each line, read without the added references, is the line as it printed before.
+      assert.deepEqual(nowLines.map(withoutAddedReferences), thenLines, `${state} ${index}`);
+      const pool = questionPool(`sample-${index}`, now);
+      assert.deepEqual(pool, questionPool(`sample-${index}`, then), `${state} ${index}`);
+      assert.ok(pool.steps.some((item) => item.kind === 'control'), `${state} ${index} has control questions`);
+    }
+    // The states with their own code or line references have lines that gained one.
+    if (!['qld', 'nsw'].includes(state)) assert.ok(added > 0, state);
+  }
+});
+
+test('the lead process line names Victoria\'s regulations in Victoria and is unchanged elsewhere', () => {
+  const text = 'Painted steel is checked for lead before it is flame cut. Cutting through paint with more than 1% lead by dry weight is a lead process, done with the lead controls the WHS Regulation requires.';
+  const source = 'Welding processes Code of Practice 2021 (Qld) s 3.8; SafeWork NSW Code of practice: Welding processes (December 2022) s 3.8';
+  const vic = localControl(text, source, 'vic');
+  assert.equal(vic, `Painted steel is checked for lead before it is flame cut. Cutting through paint with more than 1% lead by dry weight is a lead process, done with the lead controls the regulations require. (${REGS} r 178, r 184)`);
+  assert.ok(!/WHS|Work Health and Safety/.test(vic));
+  for (const state of ['qld', 'nsw', 'sa', 'wa', 'tas', 'act', 'nt']) assert.ok(localControl(text, source, state).startsWith(text), state);
+});

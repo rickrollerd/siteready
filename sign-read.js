@@ -10,6 +10,9 @@ const crypto = require('crypto');
 const db = require('./db');
 const aiScope = require('./ai-scope');
 const { ACTIVITIES } = require('./activities');
+// Lines are read as they printed before the state code and Victorian references were added, so a
+// line that gained a reference stays in the question pool, and its answer reads as before.
+const { withoutAddedReferences } = require('./citations');
 
 // Languages offered on the sign-on page, as the owner chose them. Each shows its own name too.
 // rtl marks languages written right to left; lessReliable marks languages machine translation
@@ -194,7 +197,7 @@ function closeDecoys(candidates, own, { work, task }) {
 }
 
 // Every word in this SWMS's job steps, hazards and controls: what makes a decoy close to the work.
-const workTermsOf = (draft) => ({ work: terms([draft.task || '', ...(draft.jobSteps || []).flatMap((step) => [step.step, ...step.hazards, ...step.controls])].join(' ')), task: terms(draft.task || '') });
+const workTermsOf = (draft) => ({ work: terms([draft.task || '', ...(draft.jobSteps || []).flatMap((step) => [step.step, ...step.hazards, ...step.controls.map(withoutAddedReferences)])].join(' ')), task: terms(draft.task || '') });
 
 // The decoys kept for one answer: the closest to the work, half shorter than it and half longer
 // where the list allows, so a read can put the right answer anywhere from shortest to longest.
@@ -227,7 +230,7 @@ function controlPool(draft, random) {
     libraryControls = ACTIVITIES.flatMap((activity) => activity.steps.filter((step) => !ROUTINE_STEPS.includes(step.step))
       .flatMap((step) => step.controls.map((control) => ({ step: step.step.toLowerCase(), text: controlText(control) })))).filter((item) => shortControl(item.text));
   }
-  const own = draft.jobSteps || [];
+  const own = (draft.jobSteps || []).map((step) => ({ ...step, controls: (step.controls || []).map(withoutAddedReferences) }));
   const names = new Set(own.map((step) => step.step.toLowerCase()));
   const lines = own.flatMap((step) => [step.step, ...step.hazards, ...step.controls]);
   const telling = (text) => keyWords(text).filter((word) => !GENERIC_STEP_WORDS.has(word)).length >= 2;
