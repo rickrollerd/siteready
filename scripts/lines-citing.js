@@ -17,9 +17,10 @@ const path = require('path');
 const { ACTIVITIES } = require('../activities');
 const { localSource, localControl, citedStates } = require('../citations');
 
-// "s 299", "r 299", "section 299", "Schedule 5" and "appendix K" all read the same way.
+// "s 299", "r 299", "section 299", "Schedule 5" and "appendix K" all read the same way, and so do a
+// Victorian compliance code's "para 221" and "221".
 function sectionKey(value) {
-  return String(value || '').trim().replace(/^(?:s|r|reg|regulation|section|clause|cl)\.?\s+/i, '').replace(/\s+/g, ' ').toLowerCase();
+  return String(value || '').trim().replace(/^(?:s|r|reg|regulation|section|clause|cl|para|paragraph)\.?\s+/i, '').replace(/\s+/g, ' ').toLowerCase();
 }
 
 // Whether one printed reference (one of a line's comma-separated references) covers the section.
@@ -42,10 +43,22 @@ function referencesFor(citation, law) {
     const at = part.toLowerCase().indexOf(name);
     if (!name || at < 0) continue;
     const rest = part.slice(at + name.length);
-    const start = rest.search(/(?:^|\s)(?:s|r|appendix|schedule|table|part|section|clause)\s+[\dA-Z]/i);
+    const start = rest.search(/(?:^|\s)(?:s|r|appendix|schedule|table|part|section|clause|para)\s+[\dA-Z]/i);
     if (start >= 0) out.push(...rest.slice(start).trim().split(/,\s*/).filter(Boolean));
   }
   return out;
+}
+
+// The citation in brackets at the end of a printed line.
+function lineSource(line) {
+  const text = String(line).trim();
+  if (!text.endsWith(')')) return '';
+  let depth = 0;
+  for (let i = text.length - 1; i >= 0; i -= 1) {
+    if (text[i] === ')') depth += 1;
+    else if (text[i] === '(' && --depth === 0) return text.slice(i + 1, -1);
+  }
+  return '';
 }
 
 // Every library control line in a state citing the section, once each, with the jobs and steps it is in.
@@ -55,9 +68,12 @@ function linesCiting(stateId, law, section, activities = ACTIVITIES) {
     for (const step of activity.steps) {
       for (const control of step.controls) {
         if (!control || typeof control === 'string' || !control.source) continue;
-        const citation = localSource(control.source, stateId, control.text);
-        if (!referencesFor(citation, law).some((reference) => covers(reference, section))) continue;
+        // Victorian lines also cite the provisions their own text was matched to (scenarios/vic-lines.json),
+        // which only the printed line carries.
         const printed = localControl(control.text, control.source, stateId);
+        const own = localSource(control.source, stateId, control.text);
+        const citation = stateId === 'vic' && printed ? [own, lineSource(printed)].filter(Boolean).join('; ') : own;
+        if (!referencesFor(citation, law).some((reference) => covers(reference, section))) continue;
         if (printed == null) continue;
         const item = found.get(control.text) || { text: control.text, printed, citation, steps: [] };
         item.steps.push(`${activity.when}: ${step.step}`);
