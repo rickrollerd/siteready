@@ -3,7 +3,14 @@
     "id": "swa-model-codes",
     "jurisdiction": "Safe Work Australia",
     "title": "Model codes of practice",
-    "url": "https://www.safeworkaustralia.gov.au/law-and-regulation/codes-practice"
+    "url": "https://www.safeworkaustralia.gov.au/law-and-regulation/codes-practice",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Model Code: Construction work",
+        "item": "^Construction work \\|"
+      }
+    ]
   },
   {
     "id": "qld-codes",
@@ -11,13 +18,217 @@
     "title": "Codes of practice",
     "url": "https://www.worksafe.qld.gov.au/laws-and-compliance/codes-of-practice",
     "read": "browser",
-    "knownBlocked": "WorkSafe Queensland's bot check did not let the browser through today. Queensland's approved codes are still watched daily through the Work Health and Safety (Codes of Practice) Notice 2022 on the legislation site."
+    "knownBlocked": "WorkSafe Queensland's bot check did not let the browser through today. Queensland's approved codes are still watched daily through the Work Health and Safety (Codes of Practice) Notice 2022 on the legislation site.",
+    "cites": [
+      {
+        "state": "qld",
+        "name": "Concrete pumping Code of Practice 2019 (Qld)",
+        "item": "^Concrete pumping Code of Practice"
+      },
+      {
+        "state": "qld",
+        "name": "Confined spaces Code of Practice 2021 (Qld)",
+        "item": "^Confined spaces Code of Practice"
+      },
+      {
+        "state": "qld",
+        "name": "Demolition work Code of Practice 2021 (Qld)",
+        "item": "^Demolition work code of practice"
+      },
+      {
+        "state": "qld",
+        "name": "Electrical Safety Code of Practice 2020: Working near overhead and underground electric lines (Qld)",
+        "item": "^Electrical Safety Code of Practice \\d{4} - Working near overhead"
+      },
+      {
+        "state": "qld",
+        "name": "Electrical Safety Code of Practice 2021: Managing electrical risks in the workplace (Qld)",
+        "item": "^Electrical Safety Code of Practice \\d{4} - Managing electrical risks"
+      },
+      {
+        "state": "qld",
+        "name": "Excavation work Code of Practice 2021 (Qld)",
+        "item": "^Excavation work code of practice"
+      },
+      {
+        "state": "qld",
+        "name": "Hazardous manual tasks Code of Practice 2021 (Qld)",
+        "item": "^Hazardous manual tasks Code of Practice"
+      },
+      {
+        "state": "qld",
+        "name": "Managing noise and preventing hearing loss at work Code of Practice 2021 (Qld)",
+        "item": "^Managing noise and preventing hearing loss"
+      },
+      {
+        "state": "qld",
+        "name": "Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 (Qld)",
+        "item": "^Managing respirable crystalline silica dust exposure in construction"
+      },
+      {
+        "state": "qld",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of Practice 2021 (Qld)",
+        "item": "^Managing risks of hazardous chemicals"
+      },
+      {
+        "state": "qld",
+        "name": "Managing risks of plant in the workplace Code of Practice 2021 (Qld)",
+        "item": "^Managing risks of plant in the workplace"
+      },
+      {
+        "state": "qld",
+        "name": "Managing the risk of falls at workplaces Code of Practice 2021 (Qld)",
+        "item": "^Managing the risk of falls at workplaces"
+      },
+      {
+        "state": "qld",
+        "name": "Scaffolding Code of Practice 2021 (Qld)",
+        "item": "^Scaffolding code of practice"
+      },
+      {
+        "state": "qld",
+        "name": "Spray painting and powder coating Code of Practice 2021 (Qld)",
+        "item": "^Spray painting and powder coating"
+      },
+      {
+        "state": "qld",
+        "name": "Steel construction Code of Practice 2004 (Qld)",
+        "item": "^Steel construction code of practice"
+      },
+      {
+        "state": "qld",
+        "name": "Tilt-up and pre-cast construction Code of Practice 2003 (Qld)",
+        "item": "^Tilt-up and pre-cast construction"
+      },
+      {
+        "state": "qld",
+        "name": "Tower crane Code of Practice 2017 (Qld)",
+        "item": "^Tower crane code of practice"
+      },
+      {
+        "state": "qld",
+        "name": "Traffic management for construction or maintenance work Code of Practice 2008 (Qld)",
+        "item": "^Traffic management for construction"
+      },
+      {
+        "state": "qld",
+        "name": "Welding processes Code of Practice 2021 (Qld)",
+        "item": "^Welding processes code of practice"
+      }
+    ]
   },
   {
     "id": "nsw-codes",
     "jurisdiction": "New South Wales",
     "title": "Codes of practice",
-    "url": "https://www.safework.nsw.gov.au/resource-library/list-of-all-codes-of-practice"
+    "url": "https://www.safework.nsw.gov.au/resource-library/list-of-all-codes-of-practice",
+    "cites": [
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Work on roofs, commercial and industrial buildings (May 2026)",
+        "item": "^Work on roofs"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Overhead protective structures (December 2025)",
+        "item": "^Overhead protective structures"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Elevating work platforms (July 2026)",
+        "item": "^Elevating work platforms \\|"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Moving plant on construction sites (December 2025)",
+        "item": "^Moving plant on construction sites"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Tunnels and shafts in construction (August 2026)",
+        "item": "^Tunnels and shafts"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Construction work (August 2019)",
+        "item": "^Construction work \\|"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Working safely when cutting, drilling and grinding concrete and masonry products (May 2026)",
+        "item": "^Working safely when cutting"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: How to manage and control asbestos in the workplace",
+        "item": "^How to manage and control asbestos"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Abrasive blasting",
+        "item": "^Abrasive blasting \\|"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Spray painting and powder coating",
+        "item": "^Spray painting and powder coating"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Managing the risk of falls at workplaces (August 2019)",
+        "item": "^Managing (?:the )?risks? of falls at workplaces"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Excavation work (January 2020)",
+        "item": "^Excavation work \\|"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Demolition work (August 2019)",
+        "item": "^Demolition work \\|"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Confined spaces (December 2022)",
+        "item": "^Confined spaces \\|"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Managing electrical risks in the workplace (August 2019)",
+        "item": "^Managing electrical risks"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Work near overhead and underground electric lines (May 2026)",
+        "item": "^Work near overhead and underground electric lines"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Managing the risks of plant in the workplace (December 2022)",
+        "item": "^Managing the risks of plant in the workplace"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Managing risks of hazardous chemicals in the workplace (December 2022)",
+        "item": "^Managing risks of hazardous chemicals"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Welding processes (December 2022)",
+        "item": "^Welding processes"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Hazardous manual tasks (August 2019)",
+        "item": "^Hazardous manual tasks \\|"
+      },
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Managing risks of respirable crystalline silica in the workplace (February 2026)",
+        "item": "^Managing risks of respirable crystalline silica"
+      }
+    ]
   },
   {
     "id": "vic-codes",
@@ -27,19 +238,216 @@
     "read": "sitemap",
     "sitemap": "https://www.worksafe.vic.gov.au/sitemap.xml",
     "linkPattern": "^/resources/(?:archived-)?compliance-codes?-",
-    "knownBlocked": "WorkSafe Victoria's sitemap could not be read today. Its compliance code pages are listed there with the date each was last changed."
+    "knownBlocked": "WorkSafe Victoria's sitemap could not be read today. Its compliance code pages are listed there with the date each was last changed.",
+    "cites": [
+      {
+        "state": "vic",
+        "name": "Compliance code: Prevention of falls in general construction 2019 (Vic)",
+        "item": "\\| /resources/compliance-code-prevention-falls-general-construction \\|"
+      },
+      {
+        "state": "vic",
+        "name": "Compliance code: Plant 2019 (Vic)",
+        "item": "\\| /resources/compliance-code-plant \\|"
+      },
+      {
+        "state": "vic",
+        "name": "Compliance code: Excavation 2019 (Vic)",
+        "item": "\\| /resources/compliance-code-excavation \\|"
+      },
+      {
+        "state": "vic",
+        "name": "Compliance code: Demolition 2019 (Vic)",
+        "item": "\\| /resources/compliance-code-demolition \\|"
+      },
+      {
+        "state": "vic",
+        "name": "Compliance code: Hazardous manual handling 2019 (Vic)",
+        "item": "\\| /resources/compliance-code-hazardous-manual-handling \\|"
+      },
+      {
+        "state": "vic",
+        "name": "Compliance code: Hazardous substances 2019 (Vic)",
+        "item": "\\| /resources/compliance-code-hazardous-substances \\|"
+      },
+      {
+        "state": "vic",
+        "name": "Compliance code: Noise 2019 (Vic)",
+        "item": "\\| /resources/compliance-code-noise \\|"
+      },
+      {
+        "state": "vic",
+        "name": "Compliance code: Confined spaces 2019 (Vic)",
+        "item": "\\| /resources/compliance-code-confined-spaces \\|"
+      },
+      {
+        "state": "vic",
+        "name": "Compliance code: Facilities in construction 2018 (Vic)",
+        "item": "\\| /resources/compliance-code-facilities-construction \\|"
+      },
+      {
+        "state": "vic",
+        "name": "Compliance code: Workplace facilities and the working environment 2023 (Vic)",
+        "item": "\\| /resources/compliance-code-workplace-facilities-and-working-environment \\|"
+      }
+    ]
   },
   {
     "id": "wa-codes",
     "jurisdiction": "Western Australia",
     "title": "Codes of practice",
-    "url": "https://www.worksafe.wa.gov.au/work-health-and-safety-and-transitional-codes-practice"
+    "url": "https://www.worksafe.wa.gov.au/work-health-and-safety-and-transitional-codes-practice",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Abrasive blasting Code of practice 2022 (WA)",
+        "item": "^Abrasive blasting\\b"
+      },
+      {
+        "state": "wa",
+        "name": "How to manage and control asbestos in the workplace Code of practice 2022 (WA)",
+        "item": "^How to manage and control asbestos\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of practice 2022 (WA)",
+        "item": "^Managing risks of hazardous chemicals\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Confined spaces Code of practice 2022 (WA)",
+        "item": "^Confined spaces\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Construction work Code of practice 2022 (WA)",
+        "item": "^Construction work\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Demolition work Code of practice 2023 (WA)",
+        "item": "^Demolition work\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Managing electrical risks in the workplace Code of practice 2025 (WA)",
+        "item": "^Managing electrical risks\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Managing the risk of falls at workplaces Code of practice 2022 (WA)",
+        "item": "^Managing (?:the )?risks? of falls at workplaces\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Hazardous manual tasks Code of practice 2022 (WA)",
+        "item": "^Hazardous manual tasks?\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Managing noise and preventing hearing loss at work Code of practice 2022 (WA)",
+        "item": "^Managing noise\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Managing risks of plant in the workplace Code of practice 2022 (WA)",
+        "item": "^Managing (?:the )?risks of plant\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Spray painting and powder coating Code of practice 2022 (WA)",
+        "item": "^Spray painting\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Tower cranes Code of practice 2025 (WA)",
+        "item": "^Tower cranes?\\b"
+      },
+      {
+        "state": "wa",
+        "name": "Welding processes Code of practice 2022 (WA)",
+        "item": "^Welding processes\\b"
+      }
+    ]
   },
   {
-    "id": "sa-codes",
+    "id": "sa-approved-codes",
     "jurisdiction": "South Australia",
-    "title": "Codes of practice",
-    "url": "https://safework.sa.gov.au/resources/codes-of-practice"
+    "title": "Codes of practice (each code's file)",
+    "url": "https://safework.sa.gov.au/resources/codes-of-practice",
+    "linkPattern": "\\.pdf$",
+    "cites": [
+      {
+        "state": "sa",
+        "name": "Abrasive blasting Code of Practice 2024 (SA)",
+        "item": "^Abrasive blasting\\b"
+      },
+      {
+        "state": "sa",
+        "name": "How to manage and control asbestos in the workplace Code of Practice 2024 (SA)",
+        "item": "^How to manage and control asbestos\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of Practice 2024 (SA)",
+        "item": "^Managing risks of hazardous chemicals\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Confined spaces Code of Practice 2024 (SA)",
+        "item": "^Confined spaces\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Demolition work Code of Practice 2020 (SA)",
+        "item": "^Demolition work\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Managing electrical risks in the workplace Code of Practice 2020 (SA)",
+        "item": "^Managing electrical risks\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Excavation work Code of Practice 2020 (SA)",
+        "item": "^Excavation work\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Managing the risk of falls at workplaces Code of Practice 2020 (SA)",
+        "item": "^Managing (?:the )?risks? of falls at workplaces\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Hazardous manual tasks Code of Practice 2020 (SA)",
+        "item": "^Hazardous manual tasks?\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Managing noise and preventing hearing loss at work Code of Practice 2024 (SA)",
+        "item": "^Managing noise\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Managing risks of plant in the workplace Code of Practice 2020 (SA)",
+        "item": "^Managing (?:the )?risks of plant\\b"
+      },
+      {
+        "state": "sa",
+        "name": "National Code of Practice for Precast, Tilt-up and Concrete Elements in Building Construction 2008 (SA)",
+        "item": "^(?:National Code of Practice for )?Precast, tilt-? ?up\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Spray painting and powder coating Code of Practice 2024 (SA)",
+        "item": "^Spray painting\\b"
+      },
+      {
+        "state": "sa",
+        "name": "Welding processes Code of Practice 2024 (SA)",
+        "item": "^Welding processes\\b"
+      }
+    ]
   },
   {
     "id": "tas-codes",
@@ -48,7 +456,84 @@
     "url": "https://worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice",
     "read": "browser",
     "linkPattern": "/codes-of-practice/cop-folder/[^/]+$",
-    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today."
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Abrasive blasting Code of Practice 2018 (Tas)",
+        "item": "^Abrasive blasting\\b"
+      },
+      {
+        "state": "tas",
+        "name": "How to manage and control asbestos in the workplace Code of Practice 2018 (Tas)",
+        "item": "^How to manage and control asbestos\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of Practice 2018 (Tas)",
+        "item": "^Managing risks of hazardous chemicals\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Confined spaces Code of Practice 2025 (Tas)",
+        "item": "^Confined spaces\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Construction work Code of Practice 2025 (Tas)",
+        "item": "^Construction work\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Demolition work Code of Practice 2018 (Tas)",
+        "item": "^Demolition work\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Managing electrical risks in the workplace Code of Practice 2018 (Tas)",
+        "item": "^Managing electrical risks\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Excavation work Code of Practice 2020 (Tas)",
+        "item": "^Excavation work\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Managing the risk of falls at workplaces Code of Practice 2018 (Tas)",
+        "item": "^Managing (?:the )?risks? of falls at workplaces\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Hazardous manual tasks Code of Practice 2018 (Tas)",
+        "item": "^Hazardous manual tasks?\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Managing noise and preventing hearing loss at work Code of Practice 2025 (Tas)",
+        "item": "^Managing noise\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Managing the risks of plant in the workplace Code of Practice 2025 (Tas)",
+        "item": "^Managing (?:the )?risks of plant\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Spray painting and powder coating Code of Practice 2018 (Tas)",
+        "item": "^Spray painting\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Tower cranes Code of Practice 2023 (Tas)",
+        "item": "^Tower cranes?\\b"
+      },
+      {
+        "state": "tas",
+        "name": "Welding processes Code of Practice 2018 (Tas)",
+        "item": "^Welding processes\\b"
+      }
+    ]
   },
   {
     "id": "act-codes",
@@ -57,7 +542,73 @@
     "url": "https://www.act.gov.au/open/work-safety-group-public-notices",
     "read": "browser",
     "textPattern": "^Notice issued \\d",
-    "knownBlocked": "The ACT Government site's bot check did not let the browser through today."
+    "knownBlocked": "The ACT Government site's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "act",
+        "name": "Abrasive blasting Code of Practice 2022 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "How to manage and control asbestos in the workplace Code of Practice 2022 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of Practice 2022 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Confined spaces Code of Practice 2025 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Construction work Code of Practice 2025 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Demolition work Code of Practice 2020 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Managing electrical risks in the workplace Code of Practice 2020 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Excavation work Code of Practice 2020 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Managing the risk of falls at workplaces Code of Practice 2020 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Formwork Code of Practice 2024 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Hazardous manual tasks Code of Practice 2020 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Managing noise and preventing hearing loss at work Code of Practice 2025 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Managing the risks of plant in the workplace Code of Practice 2025 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Spray painting and powder coating Code of Practice 2022 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Tower crane Code of Practice 2025 (ACT)"
+      },
+      {
+        "state": "act",
+        "name": "Welding processes Code of Practice 2022 (ACT)"
+      }
+    ]
   },
   {
     "id": "nt-codes",
@@ -66,6 +617,805 @@
     "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice",
     "read": "browser",
     "linkPattern": "/forms-and-resources/codes-of-practice/[^/]+$",
-    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today."
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Abrasive blasting Code of Practice 2020 (NT)",
+        "item": "^Abrasive blasting\\b"
+      },
+      {
+        "state": "nt",
+        "name": "How to manage and control asbestos in the workplace Code of Practice 2020 (NT)",
+        "item": "^How to manage and control asbestos\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of Practice 2020 (NT)",
+        "item": "^Managing risks of hazardous chemicals\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Confined spaces Code of Practice 2026 (NT)",
+        "item": "^Confined spaces\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Construction work Code of Practice 2026 (NT)",
+        "item": "^Construction work\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Managing electrical risks in the workplace Code of Practice 2020 (NT)",
+        "item": "^Managing electrical risks\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Excavation work Code of Practice 2020 (NT)",
+        "item": "^Excavation work\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Managing the risk of falls at workplaces Code of Practice 2020 (NT)",
+        "item": "^Managing (?:the )?risks? of falls at workplaces\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Hazardous manual tasks Code of Practice 2020 (NT)",
+        "item": "^Hazardous manual tasks?\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Managing noise and preventing hearing loss at work Code of Practice 2026 (NT)",
+        "item": "^Managing noise\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Managing the risks of plant in the workplace Code of Practice 2026 (NT)",
+        "item": "^Managing (?:the )?risks of plant\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Precast, tilt-up and concrete elements in building construction Code of Practice 2008 (NT)",
+        "item": "^(?:National Code of Practice for )?Precast, tilt-? ?up\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Managing risks of respirable crystalline silica in the workplace Code of Practice 2026 (NT)",
+        "item": "^Managing risks of respirable crystalline silica\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Spray painting and powder coating Code of Practice 2020 (NT)",
+        "item": "^Spray painting\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Tower cranes Code of Practice 2023 (NT)",
+        "item": "^Tower cranes?\\b"
+      },
+      {
+        "state": "nt",
+        "name": "Welding processes Code of Practice 2020 (NT)",
+        "item": "^Welding processes\\b"
+      }
+    ]
+  },
+  {
+    "id": "nsw-code-formwork",
+    "jurisdiction": "New South Wales",
+    "title": "Code of practice: Formwork (its own page)",
+    "url": "https://www.safework.nsw.gov.au/resource-library/codes-of-practice/codes-of-practice/formwork",
+    "linkPattern": "/Formwork[^/]*\\.pdf$",
+    "cites": [
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Formwork (March 2021)"
+      }
+    ]
+  },
+  {
+    "id": "nsw-code-tower-cranes",
+    "jurisdiction": "New South Wales",
+    "title": "Code of practice: Tower cranes (its file on the list)",
+    "url": "https://www.safework.nsw.gov.au/resource-library/codes-of-practice",
+    "linkPattern": "Tower_?-?Cranes?[^/]*\\.pdf$",
+    "cites": [
+      {
+        "state": "nsw",
+        "name": "SafeWork NSW Code of practice: Tower cranes (July 2025)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-abrasive",
+    "jurisdiction": "Western Australia",
+    "title": "Abrasive blasting Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-abrasive-blasting-0",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Abrasive blasting Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-asbestos-manage",
+    "jurisdiction": "Western Australia",
+    "title": "How to manage and control asbestos in the workplace Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-how-manage-and-control-asbestos-workplace",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "How to manage and control asbestos in the workplace Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-chemicals",
+    "jurisdiction": "Western Australia",
+    "title": "Managing risks of hazardous chemicals in the workplace Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-managing-risks-hazardous-chemicals-workplace",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-confined",
+    "jurisdiction": "Western Australia",
+    "title": "Confined spaces Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/confined-spaces-code-practice",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Confined spaces Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-construction",
+    "jurisdiction": "Western Australia",
+    "title": "Construction work Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-construction-work",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Construction work Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-demolition",
+    "jurisdiction": "Western Australia",
+    "title": "Demolition work Code of practice 2023 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-demolition-work",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Demolition work Code of practice 2023 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-electrical",
+    "jurisdiction": "Western Australia",
+    "title": "Managing electrical risks in the workplace Code of practice 2025 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/managing-electrical-risks-workplace-code-practice",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Managing electrical risks in the workplace Code of practice 2025 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-falls",
+    "jurisdiction": "Western Australia",
+    "title": "Managing the risk of falls at workplaces Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/managing-risk-falls-workplaces-code-practice",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Managing the risk of falls at workplaces Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-manual",
+    "jurisdiction": "Western Australia",
+    "title": "Hazardous manual tasks Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-hazardous-manual-tasks",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Hazardous manual tasks Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-noise",
+    "jurisdiction": "Western Australia",
+    "title": "Managing noise and preventing hearing loss at work Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-managing-noise-and-preventing-hearing-loss-work",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Managing noise and preventing hearing loss at work Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-plant",
+    "jurisdiction": "Western Australia",
+    "title": "Managing risks of plant in the workplace Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/managing-risks-plant-workplace-code-practice",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Managing risks of plant in the workplace Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-spray",
+    "jurisdiction": "Western Australia",
+    "title": "Spray painting and powder coating Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-spray-painting-and-powder-coating",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Spray painting and powder coating Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-tower",
+    "jurisdiction": "Western Australia",
+    "title": "Tower cranes Code of practice 2025 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/tower-cranes-code-practice",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Tower cranes Code of practice 2025 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "wa-code-welding",
+    "jurisdiction": "Western Australia",
+    "title": "Welding processes Code of practice 2022 (its own page)",
+    "url": "https://www.worksafe.wa.gov.au/publications/code-practice-welding-processes",
+    "linkPattern": "^/system/files/.*(?:_cp_|code).*\\.pdf$",
+    "cites": [
+      {
+        "state": "wa",
+        "name": "Welding processes Code of practice 2022 (WA)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-abrasive",
+    "jurisdiction": "Tasmania",
+    "title": "Abrasive blasting Code of Practice 2018 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/abrasive-blasting",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Abrasive blasting Code of Practice 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-asbestos-manage",
+    "jurisdiction": "Tasmania",
+    "title": "How to manage and control asbestos in the workplace Code of Practice 2018 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/how-to-manage-and-control-asbestos-in-the-workplace",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "How to manage and control asbestos in the workplace Code of Practice 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-chemicals",
+    "jurisdiction": "Tasmania",
+    "title": "Managing risks of hazardous chemicals in the workplace Code of Practice 2018 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/managing-risks-of-hazardous-chemicals-in-the-workplace",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of Practice 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-confined",
+    "jurisdiction": "Tasmania",
+    "title": "Confined spaces Code of Practice 2025 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/confined-spaces",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Confined spaces Code of Practice 2025 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-construction",
+    "jurisdiction": "Tasmania",
+    "title": "Construction work Code of Practice 2025 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/construction-work-code-of-practice",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Construction work Code of Practice 2025 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-demolition",
+    "jurisdiction": "Tasmania",
+    "title": "Demolition work Code of Practice 2018 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/demolition-work",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Demolition work Code of Practice 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-electrical",
+    "jurisdiction": "Tasmania",
+    "title": "Managing electrical risks in the workplace Code of Practice 2018 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/managing-electrical-risks-in-the-workplace",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Managing electrical risks in the workplace Code of Practice 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-excavation",
+    "jurisdiction": "Tasmania",
+    "title": "Excavation work Code of Practice 2020 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/excavation-work",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Excavation work Code of Practice 2020 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-falls",
+    "jurisdiction": "Tasmania",
+    "title": "Managing the risk of falls at workplaces Code of Practice 2018 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/managing-risk-falls-workplaces",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Managing the risk of falls at workplaces Code of Practice 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-manual",
+    "jurisdiction": "Tasmania",
+    "title": "Hazardous manual tasks Code of Practice 2018 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/hazardous-manual-tasks",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Hazardous manual tasks Code of Practice 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-noise",
+    "jurisdiction": "Tasmania",
+    "title": "Managing noise and preventing hearing loss at work Code of Practice 2025 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/managing-noise-and-preventing-hearing-loss-at-work",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Managing noise and preventing hearing loss at work Code of Practice 2025 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-plant",
+    "jurisdiction": "Tasmania",
+    "title": "Managing the risks of plant in the workplace Code of Practice 2025 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/managing-the-risks-of-plant-in-the-workplace",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Managing the risks of plant in the workplace Code of Practice 2025 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-spray",
+    "jurisdiction": "Tasmania",
+    "title": "Spray painting and powder coating Code of Practice 2018 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/spray-painting-and-powder-coating",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Spray painting and powder coating Code of Practice 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-tower",
+    "jurisdiction": "Tasmania",
+    "title": "Tower cranes Code of Practice 2023 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/tower-cranes",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Tower cranes Code of Practice 2023 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "tas-code-welding",
+    "jurisdiction": "Tasmania",
+    "title": "Welding processes Code of Practice 2018 (its own page)",
+    "url": "https://www.worksafe.tas.gov.au/topics/laws-and-compliance/codes-of-practice/cop-folder/welding-processes",
+    "read": "browser",
+    "linkPattern": "/__data/assets/[^/]+/\\d+/\\d+/[^/]+\\.(?:pdf|docx?)$",
+    "pagePattern": "Effective in Tasmania on and from \\d{1,2} [A-Za-z]+ \\d{4}",
+    "knownBlocked": "WorkSafe Tasmania's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "tas",
+        "name": "Welding processes Code of Practice 2018 (Tas)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-abrasive",
+    "jurisdiction": "Northern Territory",
+    "title": "Abrasive blasting Code of Practice 2020 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/abrasive-blasting2",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Abrasive blasting Code of Practice 2020 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-asbestos-manage",
+    "jurisdiction": "Northern Territory",
+    "title": "How to manage and control asbestos in the workplace Code of Practice 2020 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/how-to-manage-and-control-asbestos-in-the-workplace",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "How to manage and control asbestos in the workplace Code of Practice 2020 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-chemicals",
+    "jurisdiction": "Northern Territory",
+    "title": "Managing risks of hazardous chemicals in the workplace Code of Practice 2020 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/managing-risks-of-hazardous-chemicals-in-the-workplace2",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Managing risks of hazardous chemicals in the workplace Code of Practice 2020 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-confined",
+    "jurisdiction": "Northern Territory",
+    "title": "Confined spaces Code of Practice 2026 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/confined-spaces",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Confined spaces Code of Practice 2026 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-construction",
+    "jurisdiction": "Northern Territory",
+    "title": "Construction work Code of Practice 2026 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/construction-work",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Construction work Code of Practice 2026 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-electrical",
+    "jurisdiction": "Northern Territory",
+    "title": "Managing electrical risks in the workplace Code of Practice 2020 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/managing-electrical-risks",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Managing electrical risks in the workplace Code of Practice 2020 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-excavation",
+    "jurisdiction": "Northern Territory",
+    "title": "Excavation work Code of Practice 2020 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/excavation-work2",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Excavation work Code of Practice 2020 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-falls",
+    "jurisdiction": "Northern Territory",
+    "title": "Managing the risk of falls at workplaces Code of Practice 2020 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/managing-the-risk-falls-at-workplaces",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Managing the risk of falls at workplaces Code of Practice 2020 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-manual",
+    "jurisdiction": "Northern Territory",
+    "title": "Hazardous manual tasks Code of Practice 2020 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/hazardous-manual-task",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Hazardous manual tasks Code of Practice 2020 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-noise",
+    "jurisdiction": "Northern Territory",
+    "title": "Managing noise and preventing hearing loss at work Code of Practice 2026 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/managing-noise-and-preventing-hearing-loss-at-work",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Managing noise and preventing hearing loss at work Code of Practice 2026 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-plant",
+    "jurisdiction": "Northern Territory",
+    "title": "Managing the risks of plant in the workplace Code of Practice 2026 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/managing-risks-of-plant-in-the-workplace2",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Managing the risks of plant in the workplace Code of Practice 2026 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-precast",
+    "jurisdiction": "Northern Territory",
+    "title": "Precast, tilt-up and concrete elements in building construction Code of Practice 2008 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/precast,-tiltup-and-concrete-elements-in-building-construction",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Precast, tilt-up and concrete elements in building construction Code of Practice 2008 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-silica",
+    "jurisdiction": "Northern Territory",
+    "title": "Managing risks of respirable crystalline silica in the workplace Code of Practice 2026 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/managing-risks-of-respirable-crystalline-silica-in-the-workplace",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Managing risks of respirable crystalline silica in the workplace Code of Practice 2026 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-spray",
+    "jurisdiction": "Northern Territory",
+    "title": "Spray painting and powder coating Code of Practice 2020 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/spray-painting-and-powder-coating2",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Spray painting and powder coating Code of Practice 2020 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-tower",
+    "jurisdiction": "Northern Territory",
+    "title": "Tower cranes Code of Practice 2023 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/test-page",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Tower cranes Code of Practice 2023 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "nt-code-welding",
+    "jurisdiction": "Northern Territory",
+    "title": "Welding processes Code of Practice 2020 (its own page)",
+    "url": "https://worksafe.nt.gov.au/forms-and-resources/codes-of-practice/welding-processes2",
+    "read": "browser",
+    "linkPattern": "/(?:_resources/documents|__data/assets)/.*\\.(?:pdf|docx?)$",
+    "pagePattern": "This Code of Practice was (?:varied|approved|made)[^.]{0,40}\\d{4}",
+    "knownBlocked": "NT WorkSafe's bot check did not let the browser through today.",
+    "cites": [
+      {
+        "state": "nt",
+        "name": "Welding processes Code of Practice 2020 (NT)"
+      }
+    ]
+  },
+  {
+    "id": "arc-refrigerant-code",
+    "jurisdiction": "National",
+    "title": "Australian Refrigeration Council, Refrigerant Handling Codes of Practice",
+    "url": "https://www.arctick.org/refrigerant-handling-licence/codes-of-practice/",
+    "linkPattern": "^/media/.*\\.pdf$",
+    "cites": [
+      {
+        "state": "all",
+        "name": "Australian Refrigeration Council, Refrigerant Handling Code of Practice 2025"
+      }
+    ]
   }
 ]

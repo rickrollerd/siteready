@@ -9,6 +9,10 @@
 //   "read": "browser": a real browser, for a site behind a bot check that a plain request fails;
 //   "read": "sitemap": the site's sitemap, for a site that builds its list in the browser (Vic);
 //   "handCheck": a person checks the page monthly and records it in hand-checks.json.
+// A code's own page (WA, Tasmania, the NT, one NSW code) is read like a list: its file links
+// ("linkPattern") and any dated wording on it ("pagePattern"), so a re-issued code shows as changed.
+// Each source names what SiteReady cites it as ("cites"; coverage.js checks every printed law and
+// code has one), so a change maps to the lines citing it in that state (scripts/lines-citing.js).
 // A page that is not read today, or is marked for a hand check, is listed under "Hand checks due"
 // once a month until a hand check is recorded, so nothing reads as watched when it is not.
 //
@@ -23,7 +27,8 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const DIR = __dirname;
+// LEGISLATION_WATCH_DIR runs the watch on a copy of its files (a local or test run), never on these.
+const DIR = process.env.LEGISLATION_WATCH_DIR || __dirname;
 const SOURCES = path.join(DIR, 'sources.json');
 const CODES = path.join(DIR, 'codes.json');
 const NEWS = path.join(DIR, 'news.json');
@@ -35,6 +40,9 @@ const HAND_CHECKS = path.join(DIR, 'hand-checks.json');
 const HAND_CHECK_DAYS = 31;
 // A list read in a browser counts as watched while it was read in the last week.
 const BROWSER_GRACE_DAYS = 7;
+// Pages read in a browser stop after this long, so the daily run ends within its time limit. Pages
+// not reached are missed for the day, like a bot check that did not let the browser through.
+const BROWSER_MINUTES = Number(process.env.BROWSER_MINUTES || 12);
 
 const MONTHS = 'January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec';
 const DATE = `(\\d{1,2}\\s+(?:${MONTHS})\\s+\\d{4}|\\d{1,2}[/.-]\\d{1,2}[/.-]\\d{4}|\\d{4}-\\d{2}-\\d{2})`;
@@ -132,6 +140,39 @@ function listItems(html, source) {
   return [...items.values()].sort();
 }
 
+// Dated wording on a code's own page, such as "Effective in Tasmania on and from 23 April 2025",
+// as "wording | -" lines, so a code re-issued under the same address shows as changed.
+function pageItems(html, source) {
+  if (!source.pagePattern) return [];
+  return [...new Set((pageText(html).match(new RegExp(source.pagePattern, 'gi')) || []).map((text) => `${text} | -`))].sort();
+}
+
+// What SiteReady cites a source as (its "cites"): for a list of codes, only the codes whose line
+// changed; for a law or a code's own page, all of them.
+function citesFor(source, changed) {
+  return (source.cites || []).filter((cite) => !cite.item || !changed || changed.some((line) => new RegExp(cite.item, 'i').test(line)));
+}
+
+const STATE_NAMES = { qld: 'Queensland', nsw: 'New South Wales', vic: 'Victoria', sa: 'South Australia', wa: 'Western Australia', tas: 'Tasmania', act: 'the ACT', nt: 'the Northern Territory', all: 'every state' };
+
+// Step 2 of the change process for each cited law or code: the control lines citing it in that state
+// (scripts/lines-citing.js, any section), and the command that lists them.
+function citedLines(cites) {
+  let lines = null;
+  try {
+    const { linesCiting } = require('../scripts/lines-citing');
+    const { citedStates } = require('../citations');
+    lines = (state, name) => (state === 'all' ? citedStates() : [state]).reduce((sum, id) => sum + linesCiting(id, name, 'all').length, 0);
+  } catch (error) {
+    // The library could not be loaded: the command alone is given.
+  }
+  return cites.map((cite) => {
+    const count = lines ? lines(cite.state, cite.name) : null;
+    const found = count == null ? '' : count ? ` ${count} control line${count === 1 ? '' : 's'} cite it.` : ' No control line cites it by section; it is listed in the SWMS that use it.';
+    return `  - SiteReady cites "${cite.name}" in ${STATE_NAMES[cite.state] || cite.state}.${found} List them: \`node scripts/lines-citing.js ${cite.state} "${cite.name}" all\``;
+  });
+}
+
 // The pages in a sitemap (or a sitemap index's sitemaps) as { link, lastmod }.
 function sitemapEntries(xml) {
   const out = [];
@@ -225,18 +266,24 @@ function playwright() {
 const BOT_CHECK = /just a moment|verif(?:y|ication)|attention required|access denied/i;
 
 // Reads pages in a real browser, one at a time, waiting out a bot check page. Each page gets
-// three tries; the bot check lets a browser through some of the time.
-async function browserPages(urls) {
+// three tries; the bot check lets a browser through some of the time. Pages left when the time
+// runs out are not read today.
+async function browserPages(urls, { minutes = BROWSER_MINUTES } = {}) {
   const lib = urls.length ? playwright() : null;
   if (!lib) return urls.map(() => ({ ok: false, error: 'no browser is installed here' }));
+  const stopAt = Date.now() + minutes * 60000;
   // Behind a proxy (a test machine), the browser goes through it too.
   const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
   const browser = await lib.chromium.launch(proxy ? { proxy: { server: proxy } } : {});
   const out = [];
   try {
     for (const url of urls) {
+      if (Date.now() > stopAt) {
+        out.push({ ok: false, error: `not reached: the browser's ${minutes} minutes ran out` });
+        continue;
+      }
       let result = { ok: false, error: 'the site\'s bot check did not let the browser through' };
-      for (let attempt = 1; attempt <= 3 && !result.ok; attempt += 1) {
+      for (let attempt = 1; attempt <= 3 && !result.ok && Date.now() <= stopAt; attempt += 1) {
         const page = await browser.newPage({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36' });
         try {
           await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -400,7 +447,7 @@ async function main() {
         recorded.push(`- ${label}: now watched through the legislation site's feed (${result.entries.length} ${result.entries.length === 1 ? 'entry' : 'entries'} naming it this week).`);
       } else {
         for (const entry of result.entries.filter((item) => !seen.has(key(item)))) {
-          changes.push(`- **${label}**: the NSW legislation site lists "${entry.title}" (${entry.updated}). Check whether it changes this law, and its version date.\n  ${entry.link}`);
+          changes.push([`- **${label}**: the NSW legislation site lists "${entry.title}" (${entry.updated}). Check whether it changes this law, and its version date.\n  ${entry.link}`, ...citedLines(citesFor(source))].join('\n'));
         }
         if (before.status === 'unreadable') recorded.push(`- ${label}: the feed can be read again.`);
       }
@@ -408,7 +455,7 @@ async function main() {
       return;
     }
     if (before.version && before.version !== result.version) {
-      changes.push(`- **${label}**: version changed from ${before.version} to ${result.version}.\n  ${source.url}`);
+      changes.push([`- **${label}**: version changed from ${before.version} to ${result.version}.\n  ${source.url}`, ...citedLines(citesFor(source))].join('\n'));
     } else if (!before.version) {
       recorded.push(`- ${label}: ${result.version}`);
     }
@@ -435,8 +482,10 @@ async function main() {
     const label = `${source.jurisdiction}: ${source.title}`;
     let items = [];
     if (page.ok && source.read === 'sitemap') items = sitemapItems(page.entries, source).map((entry) => `${titleFromLink(entry.link)} | ${new URL(entry.link).pathname} | ${entry.lastmod}`).sort();
-    else if (page.ok) items = source.linkPattern || source.textPattern ? listItems(page.html, source) : codeLinks(page.html);
+    else if (page.ok) items = [...(source.linkPattern || source.textPattern ? listItems(page.html, source) : codeLinks(page.html)), ...pageItems(page.html, source)];
     if (source.handCheck) handPages.push({ key, label, url: source.url, why: source.handCheck });
+    // A page read in a browser with nothing on it is most likely the bot check's own page: a miss.
+    if (page.ok && !items.length && source.read === 'browser') Object.assign(page, { ok: false, error: 'the page the browser got had no codes on it (most likely the bot check page)' });
     if (!page.ok && source.read === 'browser') {
       // The bot check lets a browser through some days and not others, so a miss is not reported.
       // The list counts as watched while it was read in the last week; after that a hand check is due.
@@ -467,7 +516,13 @@ async function main() {
       const added = items.filter((item) => !was.has(item));
       const removed = before.items.filter((item) => !now.has(item));
       if (added.length || removed.length) {
-        codeChanges.push(`- **${label}** (${source.url})\n${added.map((item) => `  - New or changed: ${item}`).join('\n')}${added.length && removed.length ? '\n' : ''}${removed.map((item) => `  - Gone or replaced: ${item}`).join('\n')}`);
+        const cited = citedLines(citesFor(source, [...added, ...removed]));
+        codeChanges.push([
+          `- **${label}** (${source.url})`,
+          ...added.map((item) => `  - New or changed: ${item}`),
+          ...removed.map((item) => `  - Gone or replaced: ${item}`),
+          ...(cited.length ? cited : ['  - SiteReady cites none of these.']),
+        ].join('\n'));
       }
     } else {
       recorded.push(`- ${label}: ${items.length} codes recorded.`);
@@ -566,7 +621,7 @@ async function main() {
     sections.push(`## Legislation changed\n\nThe app may be out of date. Follow handover/CHANGE-PROCESS.md: triage within 2 working days, list the affected lines with \`node scripts/lines-citing.js\`, update \`legislation.js\` and \`draft.js\`, and have the update signed off before it goes live.\n\n${changes.join('\n')}`);
   }
   if (codeChanges.length) {
-    sections.push(`## Codes of practice changed\n\nA code was added, re-issued or removed. Check whether SiteReady cites it (\`register.js\`, \`activities.js\`, \`scenarios/qld-codes.json\`; \`node scripts/lines-citing.js\` lists the lines citing a code), update the titles, years and section numbers, and have the update signed off before it goes live.\n\n${codeChanges.join('\n')}`);
+    sections.push(`## Codes of practice changed\n\nA code was added, re-issued or removed. Where SiteReady cites it, the lines citing it in that state are listed below (step 2 of handover/CHANGE-PROCESS.md; \`node scripts/lines-citing.js\` narrows them to a section). Update the titles, years and section numbers (\`scenarios/state-codes.json\`, \`scenarios/vic-lines.json\`, \`scenarios/qld-codes.json\`, \`activities.js\`), and have the update signed off before it goes live.\n\n${codeChanges.join('\n')}`);
   }
   if (alertLines.length) {
     sections.push(`## Safety alerts to review\n\nNew safety alerts and incident releases. For each one: does SiteReady's step for that work already have the control the alert calls for? If not, add it to \`scenarios/code-controls.json\` or \`activities.js\`, cited to the alert, following the licence noted, and have it signed off before it goes live.\n\n${alertLines.join('\n')}`);
@@ -595,4 +650,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { pageText, versionDate, codeLinks, newsItems, alertLinks, listItems, browserPages, readSitemap, sitemapEntries, sitemapIndex, titleFromLink, feedEntries, feedMatches, lastHandChecks, handCheckDue, HAND_CHECK_DAYS };
+module.exports = { pageText, versionDate, codeLinks, newsItems, alertLinks, listItems, pageItems, citesFor, citedLines, browserPages, readSitemap, sitemapEntries, sitemapIndex, titleFromLink, feedEntries, feedMatches, lastHandChecks, handCheckDue, HAND_CHECK_DAYS };

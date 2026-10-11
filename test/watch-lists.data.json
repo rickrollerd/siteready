@@ -1,0 +1,567 @@
+{
+ "code:qld-codes": [
+  "Abrasive blasting code of practice 2021 | /__data/assets/pdf_file/0024/72627/abrasive-blasting-cop-2021.pdf",
+  "Amusement devices Code of Practice 2023 | /laws-and-compliance/codes-of-practice/amusement-devices-code-of-practice-2023",
+  "Cane rail safety - A supplement to the Sugar mill safety Code of Practice 2024 | /__data/assets/pdf_file/0019/130906/cane-rail-safety-supplement-sugar-mill-safety-code-of-practice-2024.pdf",
+  "Cash in transit code of practice 2011 | /__data/assets/pdf_file/0020/18227/cash-in-transit-cop-2011.pdf",
+  "Children and young workers code of practice 2006 | /__data/assets/pdf_file/0016/20068/children-young-workers-cop-2006.pdf",
+  "Concrete pumping Code of Practice 2019 | /__data/assets/pdf_file/0019/18127/concrete-pumping-cop-2019.pdf",
+  "Confined spaces Code of Practice 2021 | /__data/assets/pdf_file/0025/72628/confined-spaces-cop-2021.pdf",
+  "Construction and operation of solar farms code of practice 2024 | /__data/assets/pdf_file/0016/23506/construction-and-operation-of-solar-farms-cop.pdf",
+  "Demolition work code of practice 2021 | /__data/assets/pdf_file/0026/72629/demolition-work-cop-2021.pdf",
+  "Electrical Safety Code of Practice 2020 - Electrical equipment rural industry | /__data/assets/pdf_file/0018/20952/es-code-of-practice-rural-industry.pdf",
+  "Electrical Safety Code of Practice 2020 - Working near overhead and underground electric lines | /__data/assets/pdf_file/0022/27670/es-code-of-practice-working-near-overhead-underground-electric-lines.pdf",
+  "Electrical Safety Code of Practice 2021 - Managing electrical risks in the workplace | /__data/assets/pdf_file/0025/72637/managing-electrical-risks-in-the-workplace-cop-2021.pdf",
+  "Electrical safety code of practice 2020 - Works | /__data/assets/pdf_file/0019/18343/es-code-of-practice-works.pdf",
+  "Excavation work code of practice 2021 | /__data/assets/pdf_file/0018/72630/excavation-work-cop-2021.pdf",
+  "First aid in the workplace code of practice 2021 | /__data/assets/pdf_file/0019/72631/first-aid-in-the-workplace-cop-2021.pdf",
+  "Forest harvesting code of practice 2007 | /__data/assets/pdf_file/0014/18113/forest-harvesting-cop-2007.pdf",
+  "Formwork code of practice 2016 | /__data/assets/pdf_file/0019/15823/formwork-cop-2016.pdf",
+  "Foundry code of practice 2004 | /__data/assets/pdf_file/0020/15914/foundry-cop-2004.pdf",
+  "Hazardous manual tasks Code of Practice 2021 | /__data/assets/pdf_file/0020/72632/hazardous-manual-tasks-cop-2021.pdf",
+  "Horse riding schools, trail riding establishments and horse riding establishments code of practice 2002 | /__data/assets/pdf_file/0023/17096/horse-riding-cop-2002.pdf",
+  "How to manage and control asbestos in the workplace code of practice 2021 | /__data/assets/pdf_file/0021/72633/how-to-manage-control-asbestos-in-the-workplace-cop-2021.pdf",
+  "How to manage work health and safety risks Code of Practice 2021 | /__data/assets/pdf_file/0022/72634/how-to-manage-work-health-and-safety-risks-cop-2021.pdf",
+  "How to safely remove asbestos code of practice 2021 | /__data/assets/pdf_file/0023/72635/how-to-safely-remove-asbestos-cop-2021.pdf",
+  "Important legislation and code of practice updates for the dive industry | /laws-and-compliance/codes-of-practice/important-legislation-and-code-of-practice-updates-for-the-dive-industry",
+  "Labelling of workplace hazardous chemicals code of practice 2021 | /__data/assets/pdf_file/0024/72636/labelling-workplace-hazardous-chemicals-cop-2021.pdf",
+  "Laws & compliance Learn about the Acts, Regulations and codes of practice we are responsible for and find information on workplace inspections and prosecutions. | /laws-and-compliance",
+  "Managing noise and preventing hearing loss at work Code of Practice 2021 | /__data/assets/pdf_file/0026/72638/managing-noise-hearing-loss-at-work-cop-2021.pdf",
+  "Managing respirable crystalline silica dust exposure in construction and manufacturing of construction elements Code of Practice 2022 | /laws-and-compliance/codes-of-practice/managing-respirable-crystalline-silica-dust-exposure-in-construction-and-manufacturing-of-construction-elements-code-of-practice-2022",
+  "Managing respirable dust hazards in coal-fired power stations Code of Practice 2023 | /laws-and-compliance/codes-of-practice/managing-respirable-dust-hazards-in-coal-fired-power-stations-code-of-practice-2023",
+  "Managing risks in stevedoring Code of Practice 2023 | /laws-and-compliance/codes-of-practice/managing-risks-in-stevedoring-code-of-practice-2023",
+  "Managing risks of hazardous chemicals in the workplace code of practice 2021 | /__data/assets/pdf_file/0027/72639/managing-risks-of-hazardous-chemicals-cop-2021.pdf",
+  "Managing risks of plant in the workplace Code of Practice 2021 | /__data/assets/pdf_file/0020/72641/managing-the-risks-of-plant-in-the-workplace-cop-2021-1.pdf",
+  "Managing the risk of falls at workplaces code of practice 2021 | /__data/assets/pdf_file/0019/72640/managing-the-risk-of-falls-at-workplaces-cop-2021.pdf",
+  "Managing the risk of psychosocial hazards at work Code of Practice 2022 | /laws-and-compliance/codes-of-practice/managing-the-risk-of-psychosocial-hazards-at-work-code-of-practice-2022",
+  "Managing the work environment and facilities Code of Practice 2021 | /__data/assets/pdf_file/0021/72642/managing-the-work-environment-facilities-cop-2021.pdf",
+  "Manual tasks involving the handling of people code of practice 2001 | /__data/assets/pdf_file/0015/21525/manual-tasks-people-handling-cop-2001.pdf",
+  "Mobile crane Code of Practice 2024 | /__data/assets/pdf_file/0018/130950/mobile-crane-code-of-practice-2024.pdf",
+  "Occupational diving work code of practice 2005 | /__data/assets/pdf_file/0006/21030/occupational-diving-work-cop-2005.pdf",
+  "Preparation of safety data sheets for hazardous chemicals code of practice 2021 | /__data/assets/pdf_file/0022/72643/preparation-safety-data-sheets-hazardous-chemicals-cop-2021.pdf",
+  "Recreational diving, recreational technical diving and snorkelling code of practice 2024 | /__data/assets/pdf_file/0031/129676/recreational-diving-code-of-practice-2024.pdf",
+  "Rural plant Code of Practice 2024 | /laws-and-compliance/codes-of-practice/rural-plant-of-practice-review",
+  "Safe design of structures Code of Practice 2021 | /__data/assets/pdf_file/0023/72644/safe-design-of-structures-cop-2021.pdf",
+  "Scaffolding code of practice 2021 | /laws-and-compliance/codes-of-practice/scaffolding-code-of-practice",
+  "Spray painting and powder coating code of practice 2021 | /__data/assets/pdf_file/0024/72645/spray-painting-powder-coating-cop-2021.pdf",
+  "Steel construction code of practice 2004 | /__data/assets/pdf_file/0017/19115/steel-construction-cop-2004.pdf",
+  "Sugar mill safety Code of Practice 2024 | /__data/assets/pdf_file/0018/130842/sugar-mill-safety-code-of-practice-2024.pdf",
+  "Tilt-up and pre-cast construction code of practice 2003 | /__data/assets/pdf_file/0015/18060/tilt-up-pre-cast-cop-2003.pdf",
+  "Tower crane code of practice 2017 | /__data/assets/pdf_file/0021/20991/tower-crane-code-of-practice-2017.pdf",
+  "Traffic management for construction or maintenance work code of practice 2008 | /__data/assets/pdf_file/0018/22158/traffic-management-construction-cop-2008.pdf",
+  "Welding processes code of practice 2021 | /__data/assets/pdf_file/0025/72646/welding-processes-cop-2021.pdf",
+  "Work health and safety consultation, cooperation and coordination Code of Practice 2021 changes | /laws-and-compliance/codes-of-practice/work-health-and-safety-consultation-cooperation-and-coordination-code-of-practice-2021-changes"
+ ],
+ "code:nsw-codes": [
+  "Abrasive blasting | /__data/assets/pdf_file/0017/52145/Abrasive-blasting-COP.pdf",
+  "Collection and transport of waste | /__data/assets/pdf_file/0014/1404023/Collection_and_transport_of_waste-COP.pdf",
+  "Confined spaces | /__data/assets/pdf_file/0015/50073/Confined-spaces-COP.pdf",
+  "Construction work | /__data/assets/pdf_file/0014/52151/Construction-work-COP.pdf",
+  "Demolition work | /__data/assets/pdf_file/0015/52161/Demolition-work-COP.pdf",
+  "Elevating work platforms | /__data/assets/pdf_file/0009/1416474/Elevating_work_platforms-COP.pdf",
+  "Excavation work | /__data/assets/pdf_file/0019/52147/Excavation-work-COP.pdf",
+  "First aid in the workplace | /__data/assets/pdf_file/0015/52152/First-aid-in-the-workplace-COP.pdf",
+  "Hazardous manual tasks | /__data/assets/pdf_file/0020/50078/Hazardous-manual-tasks-COP.pdf",
+  "Healthcare and social assistance industry | /__data/assets/pdf_file/0014/1400027/Healthcare-and-social-assistance-industry-COP.pdf",
+  "How to manage and control asbestos in the workplace | /__data/assets/pdf_file/0014/50081/How-to-manage-and-control-asbestos-in-the-workplace-Code-of-Practice.pdf",
+  "How to manage blood-borne virus exposure risks in the workplace | /__data/assets/pdf_file/0016/1411423/How_to_manage_BBV_exposure_risks_in_the_workplace-COP.pdf",
+  "How to manage work health and safety risks | /__data/assets/pdf_file/0012/50070/How-to-manage-work-health-and-safety-risks-COP.pdf",
+  "How to safely remove asbestos | /__data/assets/pdf_file/0015/50082/How-to-safely-remove-asbestos-Code-of-Practice.pdf",
+  "Labelling of workplace hazardous chemicals | /__data/assets/pdf_file/0016/50083/Labelling-of-workplace-hazardous-chemicals-COP.pdf",
+  "Managing electrical risks | /__data/assets/pdf_file/0010/50230/Managing-electrical-risks-in-the-workplace-COP.pdf",
+  "Managing noise and preventing hearing loss at work | /__data/assets/pdf_file/0017/50075/Managing-noise-and-preventing-hearing-loss-at-work-COP.pdf",
+  "Managing risks in stevedoring | /__data/assets/pdf_file/0006/326940/Managing-Risks-in-Stevedoring-Code-of-Practice-SW08622.pdf",
+  "Managing risks of falls at workplaces | /__data/assets/pdf_file/0018/50076/Managing-the-risk-of-falls-at-workplaces-COP.pdf",
+  "Managing risks of hazardous chemicals in the workplace | /__data/assets/pdf_file/0018/52155/Managing-risks-of-hazardous-chemicals-in-the-workplace-COP.pdf",
+  "Managing risks of respirable crystalline silica in the workplace | /__data/assets/pdf_file/0012/1400034/Managing-risks-of-RCS-COP.pdf",
+  "Managing risks when new and inexperienced persons interact with horses | /__data/assets/pdf_file/0005/79160/SW08262-Code-of-Practice-Managing-risks-when-new-or-inexperienced-riders-or-handlers-interact-with-horses-in-the-workplace.pdf",
+  "Managing the risk of falls in housing construction | /__data/assets/pdf_file/0020/52157/Managing-the-risk-of-falls-in-housing-construction-COP.pdf",
+  "Managing the risk of fatigue at work | /__data/assets/pdf_file/0015/1400028/Managing-fatigue-at-work-COP.pdf",
+  "Managing the risks of biological hazards at work | /__data/assets/pdf_file/0008/1416473/Biological_Hazards-COP.pdf",
+  "Managing the risks of plant in the workplace | /__data/assets/pdf_file/0019/52156/Code-of-practice_Managing-the-risks-of-plant-in-the-workplace_2022.pdf",
+  "Moving plant on construction sites | /__data/assets/pdf_file/0009/1394838/moving-plant-on-construction-sites-cop.pdf",
+  "Overhead protective structures | /__data/assets/pdf_file/0008/1394837/overhead-protective-structures-cop.pdf",
+  "Preparation of safety data sheets for hazardous chemicals | /__data/assets/pdf_file/0017/50084/Code-of-practice_Preparation_of_safety_data_sheets_for_hazardous_chemicals_2022.pdf",
+  "Previous codes of practice no longer in force | /resource-library/codes-of-practice/pre-whs-codes-accordion/previous-codes-of-practice-no-longer-in-force",
+  "Safe design of structures | /__data/assets/pdf_file/0003/52158/Safe-design-of-structures-COP.pdf",
+  "Safe handling of timber preservatives and recently treated timber | /__data/assets/pdf_file/0017/1404026/Safe_handling_of_timber_preservatives-COP.pdf",
+  "Safe use and design of bulk storage silos and bins | /__data/assets/pdf_file/0011/1411499/Safe_use_and_design_of_bulk_storage_silos_and_bins-COP.pdf",
+  "Safe use and storage of agricultural and veterinary chemicals | /__data/assets/pdf_file/0013/1404022/Agricultural_and_veterinary_chemicals-COP.pdf",
+  "Safety in forest harvesting | /__data/assets/pdf_file/0010/1394704/safety-in-forest-harvesting-COP.pdf",
+  "Sawmilling industry | /__data/assets/pdf_file/0017/1411424/Sawmilling_industry-COP.pdf",
+  "Sexual and gender-based harassment | /__data/assets/pdf_file/0010/1310131/Code-of-Practice-Sexual-and-gender-based-harassment.pdf",
+  "Spray painting and powder coating | /__data/assets/pdf_file/0004/52159/Code-of-practice_Spray-painting-and-powder-coating_2022.pdf",
+  "Transport and delivery of cash and valuable goods | /__data/assets/pdf_file/0018/1411425/Transport_and_delivery_of_cash_and_valuables-COP.pdf",
+  "Tree works | /__data/assets/pdf_file/0018/1404027/Tree_work-COP.pdf",
+  "Tunnels and shafts in construction | /__data/assets/pdf_file/0018/1420812/tunnels-and-shafts-in-construction-code-of-practice.pdf",
+  "WHS Codes of practice | /resource-library/codes-of-practice/pre-whs-codes-accordion/whs-codes-of-practice",
+  "Welding processes | /__data/assets/pdf_file/0014/52160/Code-of-practice_Welding-processes_2022.pdf",
+  "Work health and safety consultation, cooperation and coordination | /__data/assets/pdf_file/0013/50071/Code-of-practice_WHS-consultation-cooperation-and-coordination_February-2022.pdf",
+  "Work near overhead and underground electric lines | /__data/assets/pdf_file/0004/1411429/Work_near_electric_lines-COP.pdf",
+  "Work on roofs - commercial and industrial buildings | /__data/assets/pdf_file/0019/1411435/Work-on-roofs-COP.pdf",
+  "Worker accommodation | /__data/assets/pdf_file/0014/1411430/Worker-accommodation-COP.pdf",
+  "Working safely when cutting, drilling and grinding concrete and masonry product | /__data/assets/pdf_file/0017/1411433/Working_safely-COP.pdf"
+ ],
+ "code:vic-codes": [
+  "Archived compliance code communicating occupational health and safety across languages | /resources/archived-compliance-code-communicating-occupational-health-and-safety-across-languages | 2023-04-04",
+  "Archived compliance code excavation edition 1 | /resources/archived-compliance-code-excavation-edition-1 | 2025-06-03",
+  "Archived compliance code first aid workplace 2008 | /resources/archived-compliance-code-first-aid-workplace-2008 | 2023-04-04",
+  "Archived compliance code foundries | /resources/archived-compliance-code-foundries | 2025-04-08",
+  "Archived compliance code managing asbestos workplaces | /resources/archived-compliance-code-managing-asbestos-workplaces | 2024-05-09",
+  "Archived compliance code managing exposure crystalline silica engineered stone 2020 | /resources/archived-compliance-code-managing-exposure-crystalline-silica-engineered-stone-2020 | 2022-11-15",
+  "Archived compliance code managing exposure crystalline silica engineered stone | /resources/archived-compliance-code-managing-exposure-crystalline-silica-engineered-stone | 2024-07-01",
+  "Archived compliance code plant edition 1 | /resources/archived-compliance-code-plant-edition-1 | 2023-07-06",
+  "Archived compliance code prevention falls general construction | /resources/archived-compliance-code-prevention-falls-general-construction | 2024-05-27",
+  "Archived compliance code removing asbestos workplaces | /resources/archived-compliance-code-removing-asbestos-workplaces | 2022-08-25",
+  "Archived compliance code workplace amenities and work environment | /resources/archived-compliance-code-workplace-amenities-and-work-environment | 2024-01-19",
+  "Compliance code 1 4 providing employment planning and consultation about return work | /resources/compliance-code-1-4-providing-employment-planning-and-consultation-about-return-work | 2025-07-11",
+  "Compliance code 2 4 return work coordinators | /resources/compliance-code-2-4-return-work-coordinators | 2025-07-11",
+  "Compliance code 3 4 return work information | /resources/compliance-code-3-4-return-work-information | 2025-07-11",
+  "Compliance code 4 4 cooperating labour hire employees about return work | /resources/compliance-code-4-4-cooperating-labour-hire-employees-about-return-work | 2022-05-31",
+  "Compliance code communicating occupational health and safety across languages response | /resources/compliance-code-communicating-occupational-health-and-safety-across-languages-response | 2022-07-28",
+  "Compliance code communicating occupational health and safety across languages | /resources/compliance-code-communicating-occupational-health-and-safety-across-languages | 2026-09-24",
+  "Compliance code confined spaces response public comment | /resources/compliance-code-confined-spaces-response-public-comment | 2023-05-08",
+  "Compliance code confined spaces | /resources/compliance-code-confined-spaces | 2026-09-24",
+  "Compliance code demolition response public comment | /resources/compliance-code-demolition-response-public-comment | 2023-05-08",
+  "Compliance code demolition | /resources/compliance-code-demolition | 2026-09-24",
+  "Compliance code engineered stone | /resources/compliance-code-engineered-stone | 2025-04-17",
+  "Compliance code excavation response public comment | /resources/compliance-code-excavation-response-public-comment | 2023-05-08",
+  "Compliance code excavation | /resources/compliance-code-excavation | 2026-09-24",
+  "Compliance code facilities construction response public comment | /resources/compliance-code-facilities-construction-response-public-comment | 2023-05-08",
+  "Compliance code facilities construction | /resources/compliance-code-facilities-construction | 2026-09-24",
+  "Compliance code first aid workplace response public comment | /resources/compliance-code-first-aid-workplace-response-public-comment | 2023-05-08",
+  "Compliance code first aid workplace | /resources/compliance-code-first-aid-workplace | 2026-09-24",
+  "Compliance code hazardous manual handling response public comment | /resources/compliance-code-hazardous-manual-handling-response-public-comment | 2023-05-08",
+  "Compliance code hazardous manual handling | /resources/compliance-code-hazardous-manual-handling | 2026-09-24",
+  "Compliance code hazardous substances response public comment | /resources/compliance-code-hazardous-substances-response-public-comment | 2023-05-08",
+  "Compliance code hazardous substances | /resources/compliance-code-hazardous-substances | 2026-09-24",
+  "Compliance code lead response public comment | /resources/compliance-code-lead-response-public-comment | 2023-05-08",
+  "Compliance code lead | /resources/compliance-code-lead | 2026-09-24",
+  "Compliance code managing asbestos workplaces response public comment | /resources/compliance-code-managing-asbestos-workplaces-response-public-comment | 2023-05-08",
+  "Compliance code managing asbestos workplaces | /resources/compliance-code-managing-asbestos-workplaces | 2026-09-24",
+  "Compliance code managing exposure crystalline silica engineered stone response public | /resources/compliance-code-managing-exposure-crystalline-silica-engineered-stone-response-public | 2024-04-02",
+  "Compliance code metal casting response public comment | /resources/compliance-code-metal-casting-response-public-comment | 2025-04-08",
+  "Compliance code metal casting | /resources/compliance-code-metal-casting | 2026-09-24",
+  "Compliance code noise response public comment | /resources/compliance-code-noise-response-public-comment | 2023-05-08",
+  "Compliance code noise | /resources/compliance-code-noise | 2026-09-24",
+  "Compliance code plant response public comment | /resources/compliance-code-plant-response-public-comment | 2023-05-08",
+  "Compliance code plant | /resources/compliance-code-plant | 2026-09-24",
+  "Compliance code prevention falls general construction response public comment | /resources/compliance-code-prevention-falls-general-construction-response-public-comment | 2023-05-08",
+  "Compliance code prevention falls general construction | /resources/compliance-code-prevention-falls-general-construction | 2026-09-24",
+  "Compliance code prevention falls housing construction response public comment | /resources/compliance-code-prevention-falls-housing-construction-response-public-comment | 2023-05-08",
+  "Compliance code prevention falls housing construction | /resources/compliance-code-prevention-falls-housing-construction | 2026-09-24",
+  "Compliance code psychological health pdf | /resources/compliance-code-psychological-health-pdf | 2025-10-06",
+  "Compliance code removing asbestos workplaces response public comment | /resources/compliance-code-removing-asbestos-workplaces-response-public-comment | 2023-05-08",
+  "Compliance code removing asbestos workplaces | /resources/compliance-code-removing-asbestos-workplaces | 2026-09-24",
+  "Compliance code workplace facilities and working environment response public comment | /resources/compliance-code-workplace-facilities-and-working-environment-response-public-comment | 2023-12-07",
+  "Compliance code workplace facilities and working environment | /resources/compliance-code-workplace-facilities-and-working-environment | 2024-11-06",
+  "Compliance codes return work compliance codes explained | /resources/compliance-codes-return-work-compliance-codes-explained | 2023-05-17"
+ ],
+ "code:wa-codes": [
+  "(Opens in a new tab/window) | /work-health-and-safety-and-transitional-codes-practice",
+  "Abrasive blasting | /publications/code-practice-abrasive-blasting-0",
+  "Concrete and masonry cutting and drilling | /publications/code-practice-concrete-and-masonry-cutting-and-drilling",
+  "Confined spaces | /publications/confined-spaces-code-practice",
+  "Construction work | /publications/code-practice-construction-work",
+  "Control of Scheduled Carcinogenic Substances | /publications/national-code-practice-control-scheduled-carcinogenic-substances-nohsc2014-1995",
+  "Control of noise in the music entertainment industry | /publications/code-practice-control-noise-music-entertainment-industry",
+  "Dangerous goods safety codes of practice | /dangerous-goods-codes-practice-and-guidance",
+  "Demolition work | /publications/code-practice-demolition-work",
+  "Emergency management for Western Australian mines | /publications/emergency-management-western-australian-mines-code-practice",
+  "Excavation | /publications/code-practice-excavation",
+  "Fatigue management for commercial vehicle drivers | /publications/code-practice-fatigue-management-commercial-vehicle-drivers",
+  "Ferry and charter boat industry | /publications/code-practice-ferry-and-charter-boat-industry",
+  "First aid in the workplace | /publications/code-practice-first-aid-workplace",
+  "Ground control for Western Australian mining operations | /publications/ground-control-western-australian-mining-operations-code-practice",
+  "Hazardous manual tasks | /publications/code-practice-hazardous-manual-tasks",
+  "How to manage and control asbestos in the workplace | /publications/code-practice-how-manage-and-control-asbestos-workplace",
+  "How to manage work health and safety risks | /publications/code-practice-how-manage-work-health-and-safety-risks",
+  "How to safely remove asbestos | /publications/code-practice-how-safely-remove-asbestos",
+  "Labelling of workplace hazardous chemicals | /publications/code-practice-labelling-workplace-hazardous-chemicals",
+  "Man overboard: prevention and response | /publications/code-practice-man-overboard-prevention-and-response",
+  "Managing electrical risks in the workplace | /publications/managing-electrical-risks-workplace-code-practice",
+  "Managing noise and preventing hearing loss at work | /publications/code-practice-managing-noise-and-preventing-hearing-loss-work",
+  "Managing risks in stevedoring | /publications/code-practice-managing-risks-stevedoring",
+  "Managing risks of hazardous chemicals in the workplace | /publications/code-practice-managing-risks-hazardous-chemicals-workplace",
+  "Managing risks of plant in the workplace | /publications/managing-risks-plant-workplace-code-practice",
+  "Managing the risk of falls at workplaces | /publications/managing-risk-falls-workplaces-code-practice",
+  "Managing the risk of falls in housing construction | /publications/code-practice-managing-risk-falls-housing-construction",
+  "Managing the work environment and facilities | /publications/managing-work-environment-and-facilities-code-practice",
+  "Mine safety management system | /publications/code-practice-mine-safety-management-system",
+  "Mineral exploration drilling | /publications/mineral-exploration-drilling-code-practice",
+  "Mines survey | /publications/mines-survey-code-practice",
+  "Occupational safety and health in WA public sector | /publications/code-practice-occupational-safety-and-health-western-australian-public-sector",
+  "Occupational safety and health in call centres | /publications/code-practice-occupational-safety-and-health-call-centres",
+  "Precast, Tilt-up and Concrete Elements in Building Construction | /publications/national-code-practice-precast-tilt-and-concrete-elements-building-construction",
+  "Preparation of safety data sheets for hazardous chemicals | /publications/code-practice-preparation-safety-data-sheets-hazardous-chemicals",
+  "Prevention and control of legionnaires disease | /publications/code-practice-prevention-and-control-legionnaires-disease",
+  "Psychosocial hazards in the workplace | /publications/code-practice-psychosocial-hazards-workplace",
+  "Safe design of structures | /publications/code-practice-safe-design-structures",
+  "Safe mobile autonomous mining in Western Australia | /publications/safe-mobile-autonomous-mining-western-australia-code-practice",
+  "Spray painting and powder coating | /publications/code-practice-spray-painting-and-powder-coating",
+  "Surface rock support for underground mine | /publications/surface-rock-support-underground-mine-code-practice",
+  "Tailing storage facilities in Western Australia | /publications/tailing-storage-facilities-western-australia-code-practice",
+  "Tower cranes | /publications/tower-cranes-code-practice",
+  "Violence and aggression at work | /publications/code-practice-violence-and-aggression-work",
+  "Welding processes | /publications/code-practice-welding-processes",
+  "Work health and safety consultation, cooperation and coordination | /publications/code-practice-work-health-and-safety-consultation-cooperation-and-coordination",
+  "Working hours | /publications/code-practice-working-hours",
+  "Workplace behaviour | /publications/code-practice-workplace-behaviour"
+ ],
+ "code:tas-codes": [
+  "Abrasive blasting | /topics/laws-and-compliance/codes-of-practice/cop-folder/abrasive-blasting",
+  "Confined spaces | /topics/laws-and-compliance/codes-of-practice/cop-folder/confined-spaces",
+  "Construction work | /topics/laws-and-compliance/codes-of-practice/cop-folder/construction-work-code-of-practice",
+  "Demolition work | /topics/laws-and-compliance/codes-of-practice/cop-folder/demolition-work",
+  "Excavation work | /topics/laws-and-compliance/codes-of-practice/cop-folder/excavation-work",
+  "First aid in the workplace | /topics/laws-and-compliance/codes-of-practice/cop-folder/first-aid-in-the-workplace",
+  "Forest safety code (Tasmania) | /topics/laws-and-compliance/codes-of-practice/cop-folder/forest-safety-code-tasmania",
+  "Hazardous manual tasks | /topics/laws-and-compliance/codes-of-practice/cop-folder/hazardous-manual-tasks",
+  "Healthcare and social assistance | /topics/laws-and-compliance/codes-of-practice/cop-folder/healthcare-and-social-assistance-code-of-practice",
+  "How to manage and control asbestos in the workplace | /topics/laws-and-compliance/codes-of-practice/cop-folder/how-to-manage-and-control-asbestos-in-the-workplace",
+  "How to manage work health and safety risks | /topics/laws-and-compliance/codes-of-practice/cop-folder/how-to-manage-work-health-and-safety-risks",
+  "How to safely remove asbestos | /topics/laws-and-compliance/codes-of-practice/cop-folder/how-to-safely-remove-asbestos",
+  "Labelling of workplace hazardous chemicals | /topics/laws-and-compliance/codes-of-practice/cop-folder/labelling-of-workplace-hazardous-chemicals",
+  "Managing electrical risks in the workplace | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-electrical-risks-in-the-workplace",
+  "Managing noise and preventing hearing loss at work | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-noise-and-preventing-hearing-loss-at-work",
+  "Managing psychosocial hazards at work | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-psychosocial-hazards-at-work",
+  "Managing risks in stevedoring | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-risks-in-stevedoring",
+  "Managing risks of hazardous chemicals in the workplace | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-risks-of-hazardous-chemicals-in-the-workplace",
+  "Managing risks of respirable crystalline silica in the workplace | /topics/laws-and-compliance/codes-of-practice/cop-folder/Managing-risks-of-respirable-crystalline-silica-in-the-workplace",
+  "Managing the risk of falls in housing construction | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-the-risk-of-falls-housing-construction",
+  "Managing the risk of fatigue at work | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-the-risk-of-fatigue-at-work",
+  "Managing the risks of biological hazards at work | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-the-risks-of-biological-hazards-at-work",
+  "Managing the risks of falls at workplaces | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-risk-falls-workplaces",
+  "Managing the risks of plant in the workplace | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-the-risks-of-plant-in-the-workplace",
+  "Managing the work environment and facilities | /topics/laws-and-compliance/codes-of-practice/cop-folder/managing-the-work-environment-and-facilities",
+  "Preparation of safety data sheets for hazardous chemicals | /topics/laws-and-compliance/codes-of-practice/cop-folder/preparation-of-safety-data-sheets-for-hazardous-chemicals",
+  "Risk management of agricultural shows and carnivals | /topics/laws-and-compliance/codes-of-practice/cop-folder/risk-management-of-agricultural-shows-and-carnivals",
+  "Safe design of structures | /topics/laws-and-compliance/codes-of-practice/cop-folder/safe-design-of-structures",
+  "Safe use of reinforced plastics | /topics/laws-and-compliance/codes-of-practice/cop-folder/safe-use-of-reinforced-plastics",
+  "Sexual and gender-based harassment | /topics/laws-and-compliance/codes-of-practice/cop-folder/sexual-and-gender-based-harassment",
+  "Spray painting and powder coating | /topics/laws-and-compliance/codes-of-practice/cop-folder/spray-painting-and-powder-coating",
+  "Tasmanian abalone industry | /topics/laws-and-compliance/codes-of-practice/cop-folder/tasmanian-abalone-industry",
+  "Tower cranes | /topics/laws-and-compliance/codes-of-practice/cop-folder/tower-cranes",
+  "Welding processes | /topics/laws-and-compliance/codes-of-practice/cop-folder/welding-processes",
+  "Work health and safety consultation, cooperation and coordination | /topics/laws-and-compliance/codes-of-practice/cop-folder/work-health-and-safety-consultation,-cooperation-and-coordination"
+ ],
+ "code:act-codes": [
+  "Notice issued 01/09/2023: psychosocial hazards code approval | -",
+  "Notice issued 10/10/2023: sex work code and consultation code approval | -",
+  "Notice issued 13/11/2025: managing extreme temperatures code of practice approval | -",
+  "Notice issued 20/02/2024: formwork code approval | -",
+  "Notice issued 20/09/2023: managing risks of silica dust code approval | -",
+  "Notice issued 22/07/2022: consultation code and risks of plant code approval | -",
+  "Notice issued 22/08/2025: 7 updated codes of practice approved | -",
+  "Notice issued 23/12/2022: updated codes approved for hazardous chemicals | -",
+  "Notice issued 24/04/2025: tower crane code of practice approval | -",
+  "Notice issued 29/01/2024: risks of plant code approval | -",
+  "Notice issued 29/07/2024: sexual and gender-based harassment code approval | -"
+ ],
+ "code:nt-codes": [
+  "Abrasive blasting | /forms-and-resources/codes-of-practice/abrasive-blasting2",
+  "Confined spaces | /forms-and-resources/codes-of-practice/confined-spaces",
+  "Construction work | /forms-and-resources/codes-of-practice/construction-work",
+  "Demolition work | /forms-and-resources/codes-of-practice/demolition-work2",
+  "Excavation work | /forms-and-resources/codes-of-practice/excavation-work2",
+  "First aid in the workplace | /forms-and-resources/codes-of-practice/first-aid-in-the-workplace",
+  "Hazardous manual tasks | /forms-and-resources/codes-of-practice/hazardous-manual-task",
+  "Healthcare and Social Assistance Industry | /forms-and-resources/codes-of-practice/healthcare-and-social-assistance-industry",
+  "How to manage and control asbestos in the workplace | /forms-and-resources/codes-of-practice/how-to-manage-and-control-asbestos-in-the-workplace",
+  "How to manage work health and safety risks | /forms-and-resources/codes-of-practice/how-to-manage-work-health-and-safety-risks",
+  "How to safely remove asbestos | /forms-and-resources/codes-of-practice/how-to-safely-remove-asbestos",
+  "Labelling of workplace hazardous chemicals | /forms-and-resources/codes-of-practice/labelling-of-workplace-hazardous-chemicals",
+  "Managing electrical risks in the workplace | /forms-and-resources/codes-of-practice/managing-electrical-risks",
+  "Managing noise and preventing hearing loss at work | /forms-and-resources/codes-of-practice/managing-noise-and-preventing-hearing-loss-at-work",
+  "Managing psychosocial hazards at work | /forms-and-resources/codes-of-practice/managing-psychosocial-hazards-at-work",
+  "Managing risks in stevedoring | /forms-and-resources/codes-of-practice/managing-risks-in-stevedoring",
+  "Managing risks of hazardous chemicals in the workplace | /forms-and-resources/codes-of-practice/managing-risks-of-hazardous-chemicals-in-the-workplace2",
+  "Managing risks of respirable crystalline silica in the workplace | /forms-and-resources/codes-of-practice/managing-risks-of-respirable-crystalline-silica-in-the-workplace",
+  "Managing the risk of falls at workplaces | /forms-and-resources/codes-of-practice/managing-the-risk-falls-at-workplaces",
+  "Managing the risk of falls in housing construction | /forms-and-resources/codes-of-practice/preventing-falls-in-housing-construction",
+  "Managing the risk of fatigue at work | /forms-and-resources/codes-of-practice/managing-the-risk-of-fatigue-at-work",
+  "Managing the risks of plant in the workplace | /forms-and-resources/codes-of-practice/managing-risks-of-plant-in-the-workplace2",
+  "Managing the work environment and facilities | /forms-and-resources/codes-of-practice/managing-the-work-environment-facilities",
+  "Precast, tiltup and concrete elements in building construction | /forms-and-resources/codes-of-practice/precast,-tiltup-and-concrete-elements-in-building-construction",
+  "Preparation of safety data sheets for hazardous chemicals | /forms-and-resources/codes-of-practice/preparation-of-safety-data-sheets-for-hazardous-chemicals",
+  "Safe design of structures | /forms-and-resources/codes-of-practice/safe-design-of-structures2",
+  "Sexual and gender-based harassment | /forms-and-resources/codes-of-practice/sexual-and-gender-based-harassment",
+  "Spray painting and powder coating | /forms-and-resources/codes-of-practice/spray-painting-and-powder-coating2",
+  "Tower Cranes | /forms-and-resources/codes-of-practice/test-page",
+  "Welding processes | /forms-and-resources/codes-of-practice/welding-processes2",
+  "Work health and safety consultation, cooperation and coordination | /forms-and-resources/codes-of-practice/work-health-and-safety-consultation,-cooperation-and-coordination"
+ ],
+ "code:nsw-code-formwork": [
+  "Code of Practice: Formwork (PDF 1.4MB) | /__data/assets/pdf_file/0004/845887/Formwork-code-of-practice.pdf"
+ ],
+ "code:nsw-code-tower-cranes": [
+  "Tower cranes | /__data/assets/pdf_file/0004/1375816/Code_of_practice_Tower_Cranes_2025.pdf"
+ ],
+ "code:wa-code-abrasive": [
+  "Abrasive blasting: Code of practice (pdf, 2.26 MB) | /system/files/migrated/sites/default/files/atoms/files/221176_cp_abrasiveblasting.pdf"
+ ],
+ "code:wa-code-asbestos-manage": [
+  "How to manage and control asbestos in the workplace: Code of practice (pdf, 2.08 MB) | /system/files/migrated/sites/default/files/atoms/files/221183_cp_manageasbestos.pdf"
+ ],
+ "code:wa-code-chemicals": [
+  "Managing risks of hazardous chemicals in the workplace: Code of practice (pdf, 2.92 MB) | /system/files/migrated/sites/default/files/atoms/files/221178_cp_hazardouschemicals.pdf"
+ ],
+ "code:wa-code-confined": [
+  "Confined spaces: Code of practice (pdf, 2.32 MB) | /system/files/migrated/sites/default/files/atoms/files/221172_cp_confinedspaces.pdf"
+ ],
+ "code:wa-code-construction": [
+  "Construction work: Code of practice (pdf, 2.64 MB) | /system/files/migrated/sites/default/files/atoms/files/221122_cp_construction.pdf"
+ ],
+ "code:wa-code-demolition": [
+  "Demolition work: Code of practice (pdf, 1.79 MB) | /system/files/migrated/sites/default/files/atoms/files/231164_cp_demolition.pdf"
+ ],
+ "code:wa-code-electrical": [
+  "Managing electrical risks in the workplace: Code of practice (pdf, 1.5 MB) | /system/files/documents/2025-04/251422_CP_ElecRisks.pdf"
+ ],
+ "code:wa-code-falls": [
+  "Managing the risk of falls at workplaces: Code of practice (pdf, 6 MB) | /system/files/migrated/sites/default/files/atoms/files/231180_cp_fallsworkplace.pdf"
+ ],
+ "code:wa-code-manual": [
+  "Hazardous manual tasks: Code of practice (pdf, 3.15 MB) | /system/files/migrated/sites/default/files/atoms/files/221165_cp_hazardsousmanualtasks.pdf"
+ ],
+ "code:wa-code-noise": [
+  "Managing noise and preventing hearing loss at work: Code of practice (pdf, 2.71 MB) | /system/files/migrated/sites/default/files/atoms/files/221167_cp_noise.pdf"
+ ],
+ "code:wa-code-plant": [
+  "Managing risks of plant in the workplace: Code of practice (pdf, 4.11 MB) | /system/files/migrated/sites/default/files/atoms/files/221185_cp_manageriskplant1.pdf"
+ ],
+ "code:wa-code-spray": [
+  "Spray painting and powder coating: Code of practice (pdf, 2.26 MB) | /system/files/migrated/sites/default/files/atoms/files/221190_cp_spraypainting_1.pdf"
+ ],
+ "code:wa-code-tower": [
+  "Tower cranes: Code of practice (pdf, 3.94 MB) | /system/files/documents/2025-04/251435_CP_TowerCranes_1.pdf"
+ ],
+ "code:wa-code-welding": [
+  "Welding processes: Code of practice (pdf, 1.99 MB) | /system/files/migrated/sites/default/files/atoms/files/221194_cp_welding.pdf"
+ ],
+ "code:tas-code-abrasive": [
+  "Download PDF Abrasive Blasting Code of Practice Dec 2018 1.4 MB | /__data/assets/pdf_file/0011/537068/Code-of-Practice-Abrasive-Blasting.pdf",
+  "Download Word Abrasive Blasting Code of Practice Dec 2018 1.1 MB | /__data/assets/word_doc/0003/537069/Code-of-Practice-Abrasive-Blasting.docx",
+  "Effective in Tasmania on and from 5 Dec 2018 | -"
+ ],
+ "code:tas-code-asbestos-manage": [
+  "Download PDF How to Manage and Control Asbestos in the Workplace Code of Practice Dec 2018 969.7 KB | /__data/assets/pdf_file/0009/537084/Code-of-Practice-How-to-manage-and-control-asbestos-in-the-wor....pdf",
+  "Download Word How to Manage and Control Asbestos in the Workplace Code of Practice Dec 2018 575.1 KB | /__data/assets/word_doc/0010/537085/Code-of-Practice-How-to-manage-and-control-asbestos-in-the-workplace.docx",
+  "Effective in Tasmania on and from 5 Dec 2018 | -"
+ ],
+ "code:tas-code-chemicals": [
+  "Download PDF Managing Risks of Hazardous Chemicals in the Workplace Code of Practice Dec 2018 1018.8 KB | /__data/assets/pdf_file/0006/537108/Code-of-Practice-Managing-risks-of-hazardous-chemicals-in-the....pdf",
+  "Download Word Managing Risks of Hazardous Chemicals in the Workplace Code of Practice Dec 2018 553.1 KB | /__data/assets/word_doc/0007/537109/Code-of-Practice-Managing-risks-of-hazardous-chemicals-in-the-workplace.docx",
+  "Effective in Tasmania on and from 5 Dec 2018 | -"
+ ],
+ "code:tas-code-confined": [
+  "Download PDF model Code of Practice - Confined Spaces 2.1 MB | /__data/assets/pdf_file/0009/806715/model-Code-of-Practice-Confined-Spaces.PDF",
+  "Download Word model Code of Practice - Confined Spaces 1.2 MB | /__data/assets/word_doc/0007/806713/model_code_of_practice-confined_spaces-nov24.docx",
+  "Effective in Tasmania on and from 23 April 2025 | -"
+ ],
+ "code:tas-code-construction": [
+  "Download PDF model Code of Practice - Construction Work 1.5 MB | /__data/assets/pdf_file/0003/806736/model-Code-of-Practice-Construction-Work.PDF",
+  "Download Word model Code of Practice - Construction Work 454.1 KB | /__data/assets/word_doc/0005/806738/model_code_of_practice-construction_work-nov24.docx",
+  "Effective in Tasmania on and from 23 April 2025 | -"
+ ],
+ "code:tas-code-demolition": [
+  "Download PDF Demolition Work Code of Practice Dec 2018 585.0 KB | /__data/assets/pdf_file/0008/537074/Code-of-Practice-Demolition-work.pdf",
+  "Download Word Demolition Work Code of Practice Dec 2018 206.1 KB | /__data/assets/word_doc/0009/537075/Code-of-Practice-Demolition-work.docx",
+  "Effective in Tasmania on and from 5 Dec 2018 | -"
+ ],
+ "code:tas-code-electrical": [
+  "Download PDF Managing Electrical Risks in the Workplace Code of Practice Dec 2018 1.5 MB | /__data/assets/pdf_file/0005/537098/Code-of-Practice-Managing-electrical-risks-in-the-workplace.pdf",
+  "Download Word Managing Electrical Risks in the Workplace Code of Practice Dec 2018 1.2 MB | /__data/assets/word_doc/0006/537099/Code-of-Practice-Managing-electrical-risks-in-the-workplace.docx",
+  "Effective in Tasmania on and from 5 Dec 2018 | -"
+ ],
+ "code:tas-code-excavation": [
+  "Download PDF Excavation Work Code of Practice Feb 2020 3.6 MB | /__data/assets/pdf_file/0010/537076/Excavation-Work-Code-of-practice-Feb-2020-1.pdf",
+  "Download Word Excavation Work Code of Practice Dec 2018 2.9 MB | /__data/assets/word_doc/0011/537077/Excavation-Work-Code-of-Practice-Feb-2020.docx",
+  "Effective in Tasmania on and from 26 Feb 2020 | -"
+ ],
+ "code:tas-code-falls": [
+  "Download PDF Managing the Risk of Falls at Workplaces Code of Practice Dec 2018 6.5 MB | /__data/assets/pdf_file/0017/537110/Code-of-Practice-Managing-the-risk-of-falls-at-workplaces.pdf",
+  "Download Word Managing the Risk of Falls at Workplaces Code of Practice Dec 2018 5.8 MB | /__data/assets/word_doc/0018/537111/Code-of-Practice-Managing-the-risk-of-falls-at-workplaces.docx",
+  "Effective in Tasmania on and from 5 Dec 2018 | -"
+ ],
+ "code:tas-code-manual": [
+  "Download PDF Hazardous Manual Tasks Code of Practice Dec 2018 1.8 MB | /__data/assets/pdf_file/0006/537081/model-cop-hazardous-manual-tasks.pdf",
+  "Download Word Hazardous Manual Tasks Code of Practice Dec 2018 1.4 MB | /__data/assets/word_doc/0007/537082/model-cop-hazardous-manual-tasks.docx",
+  "Effective in Tasmania on and from 5 Dec 2018 | -"
+ ],
+ "code:tas-code-noise": [
+  "Download PDF model Code of Practice - Managing noise and preventing hearing loss at work 2.9 MB | /__data/assets/pdf_file/0010/806698/model-Code-of-Practice-Managing-noise-and-preventing-hearing-loss-at-work.PDF",
+  "Download Word model Code of Practice - Managing noise and preventing hearing loss at work 1.7 MB | /__data/assets/word_doc/0003/806700/model_code_of_practice-managing_noise_and_preventing_hearing_loss_at_work-nov24.docx",
+  "Effective in Tasmania on and from 23 April 2025 | -"
+ ],
+ "code:tas-code-plant": [
+  "Download PDF model Code of Practice - Managing the risks of plant in the workplace 5.0 MB | /__data/assets/pdf_file/0010/806734/model-Code-of-Practice-Managing-the-risks-of-plant-in-the-workplace.PDF",
+  "Download Word model Code of Practice - Managing the risks of plant in the workplace 2.3 MB | /__data/assets/word_doc/0008/806732/model_code_of_practice-managing_the_risks_of_plant_in_the_workplace-nov24.docx",
+  "Effective in Tasmania on and from 23 April 2025 | -"
+ ],
+ "code:tas-code-spray": [
+  "Download PDF Spray Painting and Powder Coating Code of Practice Dec 2018 1.1 MB | /__data/assets/pdf_file/0008/537128/Code-of-Practice-Spray-painting-and-powder-coating.pdf",
+  "Download Word Spray Painting and Powder Coating Code of Practice Dec 2018 655.5 KB | /__data/assets/word_doc/0009/537129/Code-of-Practice-Spray-painting-and-powder-coating.docx",
+  "Effective in Tasmania on and from 5 Dec 2018 | -"
+ ],
+ "code:tas-code-tower": [
+  "Download PDF Tower Cranes Code of Practice June 2023 680.8 KB | /__data/assets/pdf_file/0007/749473/Tower-Cranes-Code-of-Practice-June-2023.pdf",
+  "Download Word Tower Cranes Code of Practice June 2023 1.7 MB | /__data/assets/word_doc/0006/749472/Tower-Cranes-Code-of-Practice-June-2023.docx",
+  "Effective in Tasmania on and from 14 Feb 2024 | -"
+ ],
+ "code:tas-code-welding": [
+  "Download PDF Welding Processes Code of Practice Dec 2018 1.0 MB | /__data/assets/pdf_file/0020/537131/Code-of-Practice-Welding-processes.pdf",
+  "Download Word Welding Processes Code of Practice Dec 2018 613.6 KB | /__data/assets/word_doc/0003/537132/Code-of-Practice-Welding-processes.docx",
+  "Effective in Tasmania on and from 5 Dec 2018 | -"
+ ],
+ "code:nt-code-abrasive": [
+  "(1.3 MB) Abrasive blasting | /_resources/documents/pdf/codes-of-practice/Abrasive-blasting.pdf",
+  "(1.7 MB) Abrasive blasting | /_resources/documents/word/codes-of-practice/Abrasive-blasting.DOCX",
+  "This Code of Practice was varied on 14 September 2023 | -"
+ ],
+ "code:nt-code-asbestos-manage": [
+  "(1007.7 KB) How to manage and control asbestos in the workplace | /_resources/documents/word/codes-of-practice/How-to-manage-and-control-asbestos-in-the-workplace.DOCX",
+  "(993.2 KB) How to manage and control asbestos in the workplace | /_resources/documents/pdf/codes-of-practice/How-to-manage-and-control-asbestos-in-the-workplace.pdf",
+  "This Code of Practice was varied on 14 September 2023 | -"
+ ],
+ "code:nt-code-chemicals": [
+  "(1.2 MB) Managing risks of hazardous chemicals in the workplace | /_resources/documents/word/codes-of-practice/Managing-risks-of-hazardous-chemicals-in-the-workplace.DOCX",
+  "(2.2 MB) Managing risks of hazardous chemicals in the workplace | /_resources/documents/pdf/codes-of-practice/Managing-risks-of-hazardous-chemicals-in-the-workplace.pdf",
+  "This Code of Practice was varied on 14 September 2023 | -"
+ ],
+ "code:nt-code-confined": [
+  "(1.5 MB) Confined spaces | /_resources/documents/pdf/codes-of-practice/confined-spaces.pdf",
+  "(3.3 MB) Confined spaces | /_resources/documents/word/codes-of-practice/confined-spaces.docx",
+  "This Code of Practice was varied on 12 March 2026 | -"
+ ],
+ "code:nt-code-construction": [
+  "(436.0 KB) Construction work | /_resources/documents/word/codes-of-practice/construction-work.docx",
+  "(810.2 KB) Construction work | /_resources/documents/pdf/codes-of-practice/construction-work.pdf",
+  "This Code of Practice was varied on 12 March 2026 | -"
+ ],
+ "code:nt-code-electrical": [
+  "(1.5 MB) Managing electrical risks in the workplace | /_resources/documents/word/codes-of-practice/code-of-practice-managing-electrical-risks-in-the-workplace.docx",
+  "(2.0 MB) Managing electrical risks in the workplace | /_resources/documents/pdf/codes-of-practice/code-of-practice-managing-electrical-risks-in-the-workplace.pdf"
+ ],
+ "code:nt-code-excavation": [
+  "(3.1 MB) Excavation work | /_resources/documents/pdf/codes-of-practice/code-of-practice-excavation-work.pdf",
+  "(3.6 MB) Excavation work | /_resources/documents/word/codes-of-practice/code-of-practice-excavation-work.docx"
+ ],
+ "code:nt-code-falls": [
+  "(6.3 MB) Managing the risks of falls at workplaces | /_resources/documents/word/codes-of-practice/code-of-practice-managing-the-risk-of-falls-at-workplaces.docx",
+  "(7.0 MB) Managing the risk of falls at workplaces | /_resources/documents/pdf/codes-of-practice/code-of-practice-managing-the-risk-of-falls-at-workplaces.pdf"
+ ],
+ "code:nt-code-manual": [
+  "(2.0 MB) Hazardous manual tasks | /_resources/documents/word/codes-of-practice/code-of-practice-hazardous-manual-tasks.docx",
+  "(2.4 MB) Hazardous manual tasks | /_resources/documents/pdf/codes-of-practice/code-of-practice-hazardous-manual-tasks.pdf"
+ ],
+ "code:nt-code-noise": [
+  "(1.5 MB) Managing noise and preventing hearing loss at work | /_resources/documents/pdf/codes-of-practice/managing-noise-and-preventing-hearing-loss-at-work.pdf",
+  "(2.2 MB) Managing noise and preventing hearing loss at work | /_resources/documents/word/codes-of-practice/managing-noise-and-preventing-hearing-loss-at-work.docx",
+  "This Code of Practice was varied on 12 March 2026 | -"
+ ],
+ "code:nt-code-plant": [
+  "(1.7 MB) Managing risks of plant in the workplace | /_resources/documents/pdf/codes-of-practice/managing-the-risks-of-plant-in-the-workplace.pdf",
+  "(5.0 MB) Managing risks of plant in the workplace | /_resources/documents/word/codes-of-practice/managing-the-risks-of-plant-in-the-workplace.docx",
+  "This Code of Practice was varied on 12 March 2026 | -"
+ ],
+ "code:nt-code-precast": [
+  "(1.6 MB) Precast, tiltup and concrete elements in building construction | /_resources/documents/pdf/codes-of-practice/precast-tiltup-concrete-elements-in-building-construction-cop.pdf"
+ ],
+ "code:nt-code-spray": [
+  "(1.2 MB) Spray painting and powder coating | /_resources/documents/word/codes-of-practice/Spray-painting-and-powder-coating.DOCX",
+  "(1.9 MB) Spray painting and powder coating | /_resources/documents/pdf/codes-of-practice/Spray-painting-and-powder-coating.pdf",
+  "This Code of Practice was varied on 14 September 2023 | -"
+ ],
+ "code:nt-code-tower": [
+  "(2.2 MB) Tower cranes | /_resources/documents/word/codes-of-practice/Tower-cranes.docx",
+  "(2.4 MB) Tower cranes | /_resources/documents/pdf/codes-of-practice/Tower-cranes.pdf"
+ ],
+ "code:nt-code-welding": [
+  "(1.6 MB) Welding processes | /_resources/documents/word/codes-of-practice/Welding-processes.DOCX",
+  "(1.7 MB) Welding processes | /_resources/documents/pdf/codes-of-practice/Welding-processes.pdf",
+  "This Code of Practice was varied on 14 September 2023 | -"
+ ],
+ "code:arc-refrigerant-code": [
+  "Part 1 – Self-Contained Low Charge Systems | /media/29166/air018-refrigerant-handling-codes-of-practice-2025_part-1_web_final_singles.pdf",
+  "Part 1- Self-Contained Low Charge Systems | /media/1034/stationary_cop_2007_1.pdf",
+  "Part 2 – Systems other than Self Contained Low Charge Systems | /media/1035/stationary_cop_2007_2.pdf",
+  "Part 2 – Systems other than Self Contained Low Charge Systems | /media/29167/air018-refrigerant-handling-codes-of-practice-2025_part-2_web_final_singles.pdf",
+  "here | /media/1033/automotive_rac_cop.pdf"
+ ],
+ "code:nt-code-silica": [
+  "(1.8 MB) Managing risks of respirable crystalline silica in the workplace | /__data/assets/pdf_file/0007/1603789/managing-risks-of-respirable-crystalline-silica-in-the-workplace.pdf",
+  "(2.4 MB) Managing risks of respirable crystalline silica in the workplace | /__data/assets/word_doc/0008/1603790/managing-risks-of-respirable-crystalline-silica-in-the-workplace.docx"
+ ],
+ "code:sa-approved-codes": [
+  "Abrasive blasting | /__data/assets/pdf_file/0018/136260/Draft-Code-of-Practice_-Abrasive-Blasting.pdf",
+  "Clothing Outworker Code of Practice (external site) (PDF) (external site) (PDF) (external site) (PDF) (external site) (PDF) | /__legislation/lz/c/r/fair%20work%20(clothing%20outworker%20code%20of%20practice)%20regulations%202022/current/2022.61.auth.pdf",
+  "Confined spaces | /__data/assets/pdf_file/0019/136261/Draft-Code-of-Practice_-Confined-spaces.pdf",
+  "Construction work (external site) | /__data/assets/pdf_file/0003/1392519/model_code_of_practice-construction_work-nov24.pdf",
+  "Demolition work | /__data/assets/pdf_file/0020/136262/Demolition_Work.pdf",
+  "Elevating work platforms | /__data/assets/pdf_file/0011/1391069/model_cop_elevatingworkplatforms-december2025.pdf",
+  "Excavation work | /__data/assets/pdf_file/0003/136263/Excavation-Work.pdf",
+  "First aid in the workplace | /__data/assets/pdf_file/0004/136264/First-aid-in-the-workplace.pdf",
+  "Hazardous manual tasks | /__data/assets/pdf_file/0005/136265/Hazardous-Manual-Tasks.pdf",
+  "Healthcare and social assistance industry | /__data/assets/pdf_file/0003/1391070/model_code_of_practice_for_the_healthcare_and_social_assistance_industry.pdf",
+  "How to manage and control asbestos in the workplace | /__data/assets/pdf_file/0006/136266/Draft-Code-of-Pracitce_-How-to-manage-and-control-asbestos-in-the-workplace.pdf",
+  "How to manage work health and safety risks | /__data/assets/pdf_file/0007/136267/How-to-manage-work-health-and-safety-risks.pdf",
+  "How to safely remove asbestos | /__data/assets/pdf_file/0008/136268/Draft-Code-of-Practice_-How-to-safely-remove-asbestos.pdf",
+  "Labelling of workplace hazardous chemicals | /__data/assets/pdf_file/0009/136269/Draft-Code-of-Practice_-Labelling-of-workplace-hazardous-chemicals.pdf",
+  "Managing electrical risks in the workplace | /__data/assets/pdf_file/0019/136270/Managing-electrical-risks-in-the-workplace.pdf",
+  "Managing noise and preventing hearing loss at work | /__data/assets/pdf_file/0020/136271/Code-of-Practice_-Managing-noise-and-preventing-hearing-loss-at-work.pdf",
+  "Managing psychosocial hazards at work | /__data/assets/pdf_file/0020/1238123/Managing-Psychosocial-Hazards-at-Work-Code-of-Practice-February-2026.pdf",
+  "Managing risks in stevedoring | /__data/assets/pdf_file/0003/136272/Managing-risks-in-stevedoring.pdf",
+  "Managing risks of hazardous chemicals in the workplace | /__data/assets/pdf_file/0005/136274/Managing-risks-of-hazardous-chemicals-in-the-workplace.pdf",
+  "Managing risks of respirable crystalline silica in the workplace (external site) (external site) | /__data/assets/pdf_file/0005/1392521/modelcop_managing-risks-respirable-crystalline-silica_nov2025.pdf",
+  "Managing the risk of falls at workplaces | /__data/assets/pdf_file/0004/136273/Managing-the-risk-of-falls-at-workplaces.pdf",
+  "Managing the risk of falls in housing construction (external site) (external site) (external site) (external site) (external site) | /__data/assets/pdf_file/0004/1392520/model-cop-preventing-falls-in-housing-construction.pdf",
+  "Managing the risk of fatigue at work M (external site) (external site) (external site) | /__data/assets/pdf_file/0003/1385463/modelcop_fatigue_sept2025.pdf",
+  "Managing the risks of biological hazards at work | /__data/assets/pdf_file/0007/1391065/modelcop_managing_risks_biological_hazards_mar2026.pdf",
+  "Managing the risks of plant in the workplace | /__data/assets/pdf_file/0006/136275/Managing-risks-of-plant-in-the-workplace.pdf",
+  "Managing the work environment and facilities | /__data/assets/pdf_file/0007/136276/Managing-the-work-environment-and-facilities.pdf",
+  "National Code of Practice for Precast, Tilt Up and Concrete Elements in Construction (external site) (PDF) (external site) (PDF) (external site) (PDF) (external site) (PDF) | /system/files/documents/1702/codeofpractice_precasttiltupandconcreteelementsbuildingconstruction_2008_pdf.pdf",
+  "Preparation of safety data sheets for hazardous chemicals | /__data/assets/pdf_file/0008/136277/Draft-Code-of-Practice_-Preparation-of-safety-data-sheets-for-hazardous-chemicals.pdf",
+  "Safe design of structures (external site) (external site) Manag (external site) (external site) (external site)M | /__data/assets/pdf_file/0007/1392523/model_code_of_practice-safe_design_of_structures-nov24.pdf",
+  "Sexual and gender-based harassment | /__data/assets/pdf_file/0005/1331168/Sexual-and-Gender-Based-Harassment-Code-of-Practice_.pdf",
+  "Spray painting and powder coating | /__data/assets/pdf_file/0009/136278/Code-of-Practice_-Spray-painting-and-powder-coating.pdf",
+  "Tuna Farm Diving | /__data/assets/pdf_file/0020/145640/Tuna-farm-diving.pdf",
+  "Welding processes | /__data/assets/pdf_file/0010/136279/Code-of-Practice_-Welding-processes.pdf",
+  "Work health and safety consultation, co-operation and co-ordination | /__data/assets/pdf_file/0020/136280/Consultation-cooperation-coordination.pdf",
+  "Working Hours (external site) (PDF) (external site) (PDF) (external site) (PDF) (external site) (PDF) | /attachments/53098/ACOP%20working%20hours.pdf"
+ ],
+ "code:swa-model-codes": [
+  "Abrasive blasting | /doc/model-code-practice-abrasive-blasting",
+  "Biological hazards | /doc/model-code-practice-managing-risks-biological-hazards-work",
+  "Confined spaces | /doc/model-code-practice-confined-spaces",
+  "Construction work | /doc/model-code-practice-construction-work",
+  "Demolition work | /doc/model-code-practice-demolition-work",
+  "Elevating work platforms | /doc/model-code-practice-elevating-work-platforms",
+  "Excavation work | /doc/model-code-practice-excavation-work",
+  "First aid in the workplace | /doc/model-code-practice-first-aid-workplace",
+  "Hazardous manual tasks | /doc/model-code-practice-hazardous-manual-tasks",
+  "Healthcare and social assistance industry | /doc/model-code-practice-healthcare-and-social-assistance-industry",
+  "How to manage and control asbestos in the workplace | /doc/model-code-practice-how-manage-and-control-asbestos-workplace",
+  "How to manage work health and safety risks | /doc/model-code-practice-how-manage-work-health-and-safety-risks",
+  "How to safely remove asbestos | /doc/model-code-practice-how-safely-remove-asbestos",
+  "Labelling of workplace hazardous chemicals | /doc/model-code-practice-labelling-workplace-hazardous-chemicals",
+  "Managing electrical risks in the workplace | /doc/model-code-practice-managing-electrical-risks-workplace",
+  "Managing noise and preventing hearing loss at work | /doc/model-code-practice-managing-noise-and-preventing-hearing-loss-work",
+  "Managing psychosocial hazards at work | /doc/model-code-practice-managing-psychosocial-hazards-work",
+  "Managing risks in stevedoring | /doc/model-codes-practice/model-code-practice-managing-risks-stevedoring",
+  "Managing risks of hazardous chemicals in the workplace | /doc/model-code-practice-managing-risks-hazardous-chemicals-workplace",
+  "Managing risks of plant in the workplace | /doc/model-code-practice-managing-risks-plant-workplace",
+  "Managing risks of respirable crystalline silica in the workplace | /doc/model-code-practice-managing-risks-respirable-crystalline-silica-workplace",
+  "Managing the risk of falls at workplaces | /doc/model-code-practice-managing-risk-falls-workplaces",
+  "Managing the risk of falls in housing construction | /doc/model-code-practice-managing-risk-falls-housing-construction",
+  "Managing the risk of fatigue at work | /doc/model-code-practice-managing-risk-fatigue-work",
+  "Managing the work environment and facilities | /doc/model-code-practice-managing-work-environment-and-facilities",
+  "Preparation of safety data sheets for hazardous chemicals | /doc/model-code-practice-preparation-safety-data-sheets-hazardous-chemicals",
+  "Safe design of structures | /doc/model-code-practice-safe-design-structures",
+  "Sexual and gender-based harassment | /doc/model-code-practice-sexual-and-gender-based-harassment",
+  "Spray painting and powder coating | /doc/model-code-practice-spray-painting-and-powder-coating",
+  "Tower cranes | /doc/model-code-practice-tower-cranes",
+  "Welding processes | /doc/model-code-practice-welding-processes",
+  "Work health and safety consultation, cooperation and coordination | /doc/model-code-practice-work-health-and-safety-consultation-cooperation-and-coordination"
+ ]
+}

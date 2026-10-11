@@ -9,9 +9,13 @@
 //   node scripts/lines-citing.js nsw "SafeWork NSW Code of practice: Excavation work" "s 3"
 //   node scripts/lines-citing.js all "Model Code: Excavation work" 3.5
 //
+//   node scripts/lines-citing.js vic "Compliance code: Plant 2019 (Vic)" all
+//
 // <state> is qld, nsw, vic, sa, wa, tas, act, nt or all. The law or code is matched by any part
 // of its name as printed, ignoring case. A section matches itself, its subsections and
 // subclauses (s 3 matches s 3.4 and s 3(2)), and any range it falls in (s 291 to s 295).
+// The section "all" lists every line citing the law or code, for a new version of the whole
+// document (the daily watch gives this command for each change it finds).
 const fs = require('fs');
 const path = require('path');
 const { ACTIVITIES } = require('../activities');
@@ -20,6 +24,9 @@ const STATE_LINES = require('../scenarios/state-lines.json');
 
 // "s 299", "r 299", "section 299", "Schedule 5" and "appendix K" all read the same way, and so do a
 // Victorian compliance code's "para 221" and "221".
+// "all" stands for every section: a change to the whole law or code.
+const isAll = (section) => /^all$/i.test(String(section || '').trim());
+
 function sectionKey(value) {
   return String(value || '').trim().replace(/^(?:s|r|reg|regulation|section|clause|cl|para|paragraph)\.?\s+/i, '').replace(/\s+/g, ' ').toLowerCase();
 }
@@ -76,7 +83,8 @@ function linesCiting(stateId, law, section, activities = ACTIVITIES) {
         const own = localSource(control.source, stateId, control.text);
         const tabled = stateId === 'vic' || Boolean((STATE_LINES.lines[stateId] || {})[localText(control.text, stateId)]);
         const citation = tabled && printed ? [own, lineSource(printed)].filter(Boolean).join('; ') : own;
-        if (!referencesFor(citation, law).some((reference) => covers(reference, section))) continue;
+        const cites = isAll(section) ? citation.toLowerCase().includes(String(law).trim().toLowerCase()) : referencesFor(citation, law).some((reference) => covers(reference, section));
+        if (!cites) continue;
         if (printed == null) continue;
         const item = found.get(control.text) || { text: control.text, printed, citation, steps: [] };
         item.steps.push(`${activity.when}: ${step.step}`);
@@ -107,7 +115,15 @@ function draftLinesCiting(stateId, section, law = '') {
   const lines = fs.readFileSync(path.join(__dirname, '..', 'draft.js'), 'utf8').split('\n');
   const out = [];
   lines.forEach((line, index) => {
-    if (!/\bsource\s*:|CITE\.\w+\(/.test(line) || !named(line)) return;
+    if (!/\bsource\s*:|CITE\.\w+\(/.test(line) || (!isAll(section) && !named(line))) return;
+    // Every section: each line naming the law or code, and for a state's WHS or OHS regulation each
+    // line citing the Queensland regulation (CITE.WHS), which prints as the state's own.
+    if (isAll(section)) {
+      const title = String(law).replace(/\s*\((?:Qld|NSW|Vic|SA|WA|Tas|ACT|NT|Cth)\)\s*$/, '').toLowerCase();
+      const whs = /^(?:work health and safety|occupational health and safety)\b.*\bregulations?\b/i.test(title);
+      if ((whs && /CITE\.WHS/.test(line)) || line.toLowerCase().includes(title)) out.push({ line: index + 1, text: line.trim().slice(0, 200) });
+      return;
+    }
     const refs = [...line.matchAll(/\b(?:s|r) (\d+[A-Z]*(?:\.\d+)*(?:\([^)]*\))?)/g)].map((match) => match[1]);
     if (refs.some((ref) => [...numbers].some((number) => covers(ref, number)))) out.push({ line: index + 1, text: line.trim().slice(0, 200) });
   });
@@ -129,16 +145,16 @@ function main(argv) {
     return;
   }
   for (const { state, lines } of result) {
-    console.log(`\n${state.toUpperCase()}: ${lines.length} control line${lines.length === 1 ? '' : 's'} citing ${law} ${section}`);
+    console.log(`\n${state.toUpperCase()}: ${lines.length} control line${lines.length === 1 ? '' : 's'} citing ${law}${isAll(section) ? ' (any section)' : ` ${section}`}`);
     lines.forEach((item, index) => {
       console.log(`\n${index + 1}. ${item.printed}`);
       console.log(`   In: ${item.steps.slice(0, 6).join(' | ')}${item.steps.length > 6 ? ` and ${item.steps.length - 6} more` : ''}`);
     });
   }
-  console.log(`\nLines the drafting code adds (draft.js) naming section ${sectionKey(section)}, to check by hand: ${draftLines.length}`);
+  console.log(`\nLines the drafting code adds (draft.js) naming ${isAll(section) ? 'it' : `section ${sectionKey(section)}`}, to check by hand: ${draftLines.length}`);
   for (const item of draftLines) console.log(`   draft.js:${item.line}  ${item.text}`);
 }
 
 if (require.main === module) main(process.argv.slice(2));
 
-module.exports = { sectionKey, covers, referencesFor, linesCiting, draftLinesCiting };
+module.exports = { sectionKey, covers, referencesFor, linesCiting, draftLinesCiting, isAll };

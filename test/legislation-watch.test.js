@@ -117,3 +117,108 @@ test('a hand check is due monthly, from the last one recorded', () => {
   assert.equal(handCheckDue(last['code:tas-codes'], '2026-10-25'), true);
   assert.equal(handCheckDue(undefined, '2026-10-09'), true);
 });
+
+test('every law and code SiteReady can print is watched, and each source names what it cites', () => {
+  const { coverage, printedSources, STATES } = require('../legislation-watch/coverage');
+  const printed = printedSources();
+  // The list comes from the code: each state prints its own regulation, its codes and the national laws.
+  assert.ok(printed.vic.some((item) => item.name === 'Compliance code: Plant 2019 (Vic)'));
+  assert.ok(printed.wa.some((item) => item.name === 'Construction work Code of practice 2022 (WA)'));
+  assert.ok(printed.nt.some((item) => item.name === 'Electrical Safety Regulations 2024 (NT)'));
+  assert.ok(printed.act.some((item) => item.name === 'Utilities Act 2000'), 'a law named in a state\'s own wording');
+  for (const id of STATES) assert.ok(printed[id].some((item) => /^Ozone Protection/.test(item.name)), id);
+  const { rows, gaps } = coverage(printed);
+  assert.ok(rows.length >= 190, `${rows.length} laws and codes`);
+  assert.deepEqual(gaps.map((row) => `${row.state}: ${row.name}`), []);
+  // Each cite names a state and, on a list, the pattern its line on the list matches.
+  const lists = [...require('../legislation-watch/sources.json'), ...require('../legislation-watch/codes.json')];
+  for (const source of lists) {
+    assert.ok(source.cites && source.cites.length, `${source.id} says what SiteReady cites it as`);
+    for (const cite of source.cites) {
+      assert.ok([...STATES, 'all'].includes(cite.state) && cite.name, source.id);
+      if (cite.item) assert.doesNotThrow(() => new RegExp(cite.item, 'i'), source.id);
+    }
+  }
+  assert.equal(new Set(lists.map((source) => source.id)).size, lists.length, 'ids are unique');
+});
+
+test('each cited code is found on its regulator\'s list as read on 11 October 2026', () => {
+  // The lines each list gave on the first local run (test/watch-lists.data.json).
+  const read = require('./watch-lists.data.json');
+  for (const source of require('../legislation-watch/codes.json')) {
+    const items = read[`code:${source.id}`];
+    if (!items) continue;
+    for (const cite of source.cites.filter((item) => item.item)) {
+      const found = items.filter((line) => new RegExp(cite.item, 'i').test(line));
+      assert.ok(found.length >= 1, `${source.id}: ${cite.name}`);
+    }
+  }
+  // Every list with cited lines was read, so none of the patterns went untested.
+  for (const id of ['qld-codes', 'nsw-codes', 'vic-codes', 'wa-codes', 'sa-approved-codes', 'swa-model-codes']) assert.ok(read[`code:${id}`], id);
+});
+
+test('a code\'s own page is read for its file links and dated wording', () => {
+  const { listItems, pageItems, citesFor } = require('../legislation-watch/check');
+  const codes = require('../legislation-watch/codes.json');
+  const tas = codes.find((item) => item.id === 'tas-code-confined');
+  const html = '<p>Effective in Tasmania on and from 23 April 2025</p><a href="https://www.worksafe.tas.gov.au/__data/assets/word_doc/0007/806713/model_code_of_practice-confined_spaces-nov24.docx">Confined spaces code of practice</a><a href="/topics/laws-and-compliance">Laws</a>';
+  assert.deepEqual([...listItems(html, tas), ...pageItems(html, tas)], [
+    'Confined spaces code of practice | /__data/assets/word_doc/0007/806713/model_code_of_practice-confined_spaces-nov24.docx',
+    'Effective in Tasmania on and from 23 April 2025 | -',
+  ]);
+  const wa = codes.find((item) => item.id === 'wa-code-construction');
+  const waHtml = '<a href="/system/files/migrated/sites/default/files/atoms/files/221122_cp_construction.pdf">Construction work: Code of practice</a><a href="/system/files/migrated/sites/default/files/atoms/files/231293_br_swms-highrisk.pdf">SWMS brochure</a>';
+  assert.deepEqual(listItems(waHtml, wa), ['Construction work: Code of practice | /system/files/migrated/sites/default/files/atoms/files/221122_cp_construction.pdf']);
+  // On a list, only the codes whose line changed are mapped; a code's own page maps to its code.
+  const vic = codes.find((item) => item.id === 'vic-codes');
+  assert.deepEqual(citesFor(vic, ['Compliance code plant | /resources/compliance-code-plant | 2026-10-20']).map((item) => item.name), ['Compliance code: Plant 2019 (Vic)']);
+  assert.deepEqual(citesFor(vic, ['Compliance code plant response public comment | /resources/compliance-code-plant-response-public-comment | 2026-10-20']), []);
+  assert.deepEqual(citesFor(wa).map((item) => item.name), ['Construction work Code of practice 2022 (WA)']);
+});
+
+// A mock change run through the real watch, with its page requests answered from local copies: the
+// first run records what it reads, the second finds the change and maps it to the lines citing it.
+test('mock changes to a Victorian compliance code, a WA code and an NT electrical regulation map to the lines citing them', () => {
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+  const { execFileSync } = require('child_process');
+  const { linesCiting } = require('../scripts/lines-citing');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'watch-'));
+  const pick = (file, id) => require(`../legislation-watch/${file}`).find((item) => item.id === id);
+  const ntReg = pick('sources.json', 'nt-es-reg');
+  const vicCodes = pick('codes.json', 'vic-codes');
+  const waCode = pick('codes.json', 'wa-code-construction');
+  fs.writeFileSync(path.join(dir, 'sources.json'), JSON.stringify([ntReg]));
+  fs.writeFileSync(path.join(dir, 'codes.json'), JSON.stringify([vicCodes, waCode]));
+  fs.writeFileSync(path.join(dir, 'alerts.json'), '[]');
+  fs.writeFileSync(path.join(dir, 'news.json'), '{"searches":[]}');
+  fs.writeFileSync(path.join(dir, 'hand-checks.json'), '{"checks":[]}');
+  const ntPage = (reprint) => `<html><body>ELECTRICAL SAFETY REGULATIONS 2024 Commencement: 28/05/2026 Reprint No: ${reprint} Remarks:</body></html>`;
+  const sitemap = (plant) => `<urlset><url><loc>https://www.worksafe.vic.gov.au/resources/compliance-code-plant</loc><lastmod>${plant}T10:00:00+11:00</lastmod></url><url><loc>https://www.worksafe.vic.gov.au/resources/compliance-code-noise</loc><lastmod>2026-09-24T10:00:00+10:00</lastmod></url></urlset>`;
+  const waPage = (file) => `<a href="/system/files/${file}">Construction work: Code of practice</a>`;
+  const run = (pages) => {
+    fs.writeFileSync(path.join(dir, 'mock.json'), JSON.stringify({ [ntReg.url]: pages.nt, [vicCodes.sitemap]: pages.vic, [waCode.url]: pages.wa }));
+    execFileSync(process.execPath, ['--require', path.join(__dirname, 'watch-fetch-mock.js'), path.join(__dirname, '..', 'legislation-watch', 'check.js')], { env: { ...process.env, LEGISLATION_WATCH_DIR: dir, WATCH_MOCK: path.join(dir, 'mock.json') }, stdio: 'pipe' });
+    const report = path.join(dir, 'report.md');
+    return fs.existsSync(report) ? fs.readFileSync(report, 'utf8') : '';
+  };
+  assert.equal(run({ nt: ntPage('REPE047R1'), vic: sitemap('2026-09-24'), wa: waPage('migrated/sites/default/files/atoms/files/221122_cp_construction.pdf') }), '', 'the first run records what it reads, with no alert');
+  const report = run({ nt: ntPage('REPE048'), vic: sitemap('2026-10-20'), wa: waPage('documents/2026-10/261020_cp_construction.pdf') });
+  assert.match(report, /Northern Territory: Electrical Safety Regulations 2024\*\*: version changed from REPE047R1 to REPE048/);
+  assert.match(report, /New or changed: Compliance code plant \| \/resources\/compliance-code-plant \| 2026-10-20/);
+  assert.match(report, /New or changed: Construction work: Code of practice \| \/system\/files\/documents\/2026-10\/261020_cp_construction\.pdf/);
+  // Each change names the law or code as SiteReady prints it, the lines citing it in that state, and the command.
+  for (const [state, name, place] of [['nt', 'Electrical Safety Regulations 2024 (NT)', 'the Northern Territory'], ['vic', 'Compliance code: Plant 2019 (Vic)', 'Victoria'], ['wa', 'Construction work Code of practice 2022 (WA)', 'Western Australia']]) {
+    const count = linesCiting(state, name, 'all').length;
+    assert.ok(count >= 5, `${name}: ${count} lines`);
+    const command = `node scripts/lines-citing.js ${state} "${name}" all`;
+    assert.ok(report.includes(`SiteReady cites "${name}" in ${place}. ${count} control lines cite it. List them: \`${command}\``), `${name}\n${report}`);
+    // Step 2: the command lists those lines as that state's SWMS print them.
+    const out = execFileSync(process.execPath, [path.join(__dirname, '..', 'scripts', 'lines-citing.js'), state, name, 'all']).toString();
+    assert.ok(out.includes(`${state.toUpperCase()}: ${count} control lines citing ${name} (any section)`), out.slice(0, 300));
+    assert.ok(out.split('\n').filter((line) => /^\d+\. /.test(line)).every((line) => line.includes(name)), `${name}: every line listed cites it`);
+  }
+  // Only the code whose line changed is mapped: Victoria's noise code did not change.
+  assert.doesNotMatch(report, /Compliance code: Noise/);
+});
