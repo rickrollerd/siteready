@@ -2455,8 +2455,10 @@
       "moduleInstall"
      ],
      "leaveOut": [],
-     "gaps": [],
-     "coverage": "full",
+     "gaps": [
+      "moving pods on skates"
+     ],
+     "coverage": "partial",
      "basis": "evidence"
     }
    ]

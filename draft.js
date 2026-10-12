@@ -3097,7 +3097,8 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
   }).map((part) => part.replace(/[.,;:]+$/, '')));
   // Work only the user's own steps cover (D211), and heavy items with no step that places them.
   // A picked task's own parts with no job steps come first (D184).
-  const own = leftToUser(typed, steps);
+  // A picked task's own parts already name the work the user writes steps for, so they are not named twice.
+  const own = picked.length ? [] : leftToUser(typed, steps);
   const listed = [...picked, ...own, ...found];
   const heavy = heavyItemParts(typed, steps, inDraft, named, state).filter((item) => !listed.some((part) => sameText(part).includes(sameText(item.replace(/^\S+\s+/, '')))));
   return dedupe([...picked, ...own, ...found.filter((part) => !own.some((mine) => sameText(mine).includes(sameText(part)) || sameText(part).includes(sameText(mine)))), ...heavy, ...dataTestParts(Array.isArray(unmatched) ? parts : String(typed || '').split(/[.;:\n](?!\d)/), steps, found)]);

@@ -311,7 +311,7 @@ module.exports = {
     'columns-beams-stairs': { task: 'Precast columns, beams and stairs: stand and brace the precast columns, land the precast stairs and landings, and grout the connections. Prop the precast beams with temporary support.', fallRisk: 'yes' },
     'floor-units': { task: 'Precast floor units: land and fix the hollowcore and plank floor units on their bearings, with edge protection at open deck edges, and grout the joints.', fallRisk: 'yes' },
     'seating-units': { task: 'Precast seating units: land the precast seating tiers on the raker beams of a sloping structure, fix them to the erection design, with travel restraint on the slope.', fallRisk: 'yes' },
-    modules: { task: 'Volumetric modules and pods: lift the modules and bathroom pods off the truck with the crane company, land them on footings or floors, and move pods on skates.', fallRisk: 'yes' },
+    modules: { task: 'Volumetric modules and pods: lift the modules and bathroom pods off the truck with the crane company, land them on footings or floors, and move pods on skates.', gaps: ['moving pods on skates'], fallRisk: 'yes' },
   },
   rail: {
     protection: { task: 'Rail safeworking: plan access to the rail corridor, set up the protection, grant and hand back the work site, and provide lookouts and warnings for the crews in the corridor.', gaps: ['the protection officer\'s own work: setting up the protection, and granting and handing back the work site'] },
