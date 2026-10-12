@@ -15,7 +15,7 @@ const { issueRef, placeOf } = require('./refs');
 const hash = (text) => crypto.createHash('sha256').update(String(text)).digest('hex');
 
 // The library's version: a fingerprint of the files the SWMS wording comes from.
-const LIBRARY_FILES = ['activities.js', 'draft.js', 'citations.js', 'legislation.js', 'steps.js', 'control-level.js', 'presets.js', 'spelling.js', 'slang.js'];
+const LIBRARY_FILES = ['activities.js', 'draft.js', 'citations.js', 'legislation.js', 'steps.js', 'control-level.js', 'presets.js', 'spelling.js', 'slang.js', 'designs.js'];
 const LIBRARY_VERSION = hash(LIBRARY_FILES.map((name) => {
   try { return fs.readFileSync(path.join(__dirname, name), 'utf8'); } catch { return ''; }
 }).join('\n')).slice(0, 12);
@@ -51,8 +51,13 @@ function printedContent(draft) {
     sources: draft.sources || null,
     references: draft.references || [],
     review: draft.review || '',
+    // The designs table (designs.js), only on a SWMS that has one, so other SWMS read as before.
+    ...((draft.designs || []).length ? { designs: designText(draft) } : {}),
   };
 }
+
+// Each design as its table row prints, for comparing two prints.
+const designText = (draft) => (draft.designs || []).map((row) => [row.what, row.reference || '', row.statusText || ''].join(': '));
 
 const contentHash = (draft) => hash(stable(printedContent(draft)));
 
@@ -95,6 +100,7 @@ function changesBetween(before, after) {
   diff(emergency(before), emergency(after), 'emergency');
   const references = (draft) => (draft.references || []).map((item) => (typeof item === 'string' ? item : stable(item)));
   diff(references(before), references(after), 'reference');
+  diff(designText(before), designText(after), 'design');
   if ((before.review || '') !== (after.review || '')) out.push({ kind: 'review', change: 'changed', text: after.review || '', from: before.review || '' });
   // Anything else in the print that differs, so a change is never shown as nothing.
   if (!out.length && contentHash(before) !== contentHash(after)) out.push({ kind: 'other', change: 'changed', text: 'Other printed wording' });
@@ -103,7 +109,7 @@ function changesBetween(before, after) {
 
 const KIND_WORDS = {
   step: 'Job step', hazard: 'Hazard', control: 'Control', who: 'Who', highRisk: 'High risk construction work', ppe: 'PPE', qualification: 'Licence or training',
-  law: 'Law', source: 'Law or code listed', general: 'General control', plant: 'Plant', substance: 'Hazardous substance', emergency: 'Emergency arrangement', reference: 'Reference', review: 'Review wording', other: 'Other printed wording',
+  law: 'Law', source: 'Law or code listed', general: 'General control', plant: 'Plant', substance: 'Hazardous substance', emergency: 'Emergency arrangement', reference: 'Reference', design: 'Design', review: 'Review wording', other: 'Other printed wording',
 };
 // One line for each change, for the page.
 function changeText(item) {

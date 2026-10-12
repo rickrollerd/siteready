@@ -63,6 +63,23 @@
     return '';
   }
 
+  // What a design the SWMS relies on still needs (designs.js), or '' once answered: issued, with who
+  // prepared it, its document or drawing number and its date (the revision and the file are
+  // optional); "Not issued yet", which prints as a hold point; or "Not needed for this work", which is
+  // recorded as the user's choice. row: { what, status, by, number, revision, date }.
+  function designNeed(row) {
+    const item = row && typeof row === 'object' ? row : {};
+    const what = clean(item.what) || 'this design';
+    if (item.status === 'notIssued' || item.status === 'notNeeded') return '';
+    if (item.status !== 'given') return `Say whether ${what} is issued: give its details, choose Not issued yet, or say it is not needed for this work.`;
+    const missing = [['by', 'who prepared it'], ['number', 'its document or drawing number'], ['date', 'its date']]
+      .filter(([key]) => { const text = clean(item[key]); return !text || leftOpen(text) || NOT_YET.test(text); }).map(([, words]) => words);
+    if (!clean(item.what) || leftOpen(item.what)) missing.unshift('what the design is');
+    if (leftOpen(item.revision)) missing.push('its revision (or leave the revision empty)');
+    if (!missing.length) return '';
+    return `For ${what}, give ${missing.length > 1 ? `${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]}` : missing[0]}.`;
+  }
+
   // What the user types that the SWMS prints as given and reads for nothing else: the people and
   // place boxes, the emergency answers and the words typed in a control line's blanks. Changing one
   // of these needs no new draft: the download sends them as they are now. Any other change (a site
@@ -71,7 +88,7 @@
   const AS_GIVEN = ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'scaffoldSupervisor', 'firstAider', 'musterPoint',
     'siteManager', 'worksManager', 'worksManagerPhone', 'hospital', 'reviewDate', 'preparedBy', 'swmsRef', 'emergency', 'fills'];
 
-  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, answerNeed, AS_GIVEN };
+  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, answerNeed, designNeed, AS_GIVEN };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadyGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

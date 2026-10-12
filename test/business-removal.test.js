@@ -57,6 +57,8 @@ function abnFor(seed) {
 
 // A 1 by 1 pixel PNG, as a logo.
 const LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+// A small PDF, as a design file.
+const PDF = Buffer.from('%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [] /Count 0 >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n');
 const SIGNATURE = `data:image/png;base64,${Buffer.from('signature').toString('base64')}`;
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 
@@ -90,6 +92,9 @@ const TIED = {
   checked_swms_files: ['SELECT swms_id FROM checked_swms_files WHERE swms_id = $1', (b) => [b.checkedId]],
   checked_swms_learning: ['SELECT swms_id FROM checked_swms_learning WHERE swms_id = $1', (b) => [b.checkedId]],
   checked_swms_lines: ['SELECT id FROM checked_swms_lines WHERE swms_id = $1', (b) => [b.checkedId]],
+  design_files: ['SELECT id FROM design_files WHERE company_id = $1', ID],
+  design_file_data: ['SELECT file_id FROM design_file_data WHERE file_id = $1', (b) => [b.fileId]],
+  design_file_uses: ['SELECT file_id FROM design_file_uses WHERE swms_id = $1', (b) => [b.swmsId]],
 };
 // No business, account, site or SWMS id in them: kept when a business is deleted.
 const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'draft_translations'];
@@ -121,8 +126,12 @@ async function seedBusiness(key) {
   const userId = (await db.one('SELECT id FROM users WHERE email = $1', [admin])).id;
   await db.query('INSERT INTO passkeys (id, user_id, public_key, created_at) VALUES ($1, $2, $3, $4)', [`pk-${key}`, userId, 'key', new Date()]);
   const { data: { site } } = await json('POST', '/api/sites', { token, body: { name: `${key} site`, workplace: `9 ${key} Road, Toowong QLD 4066`, principalContractor: 'ABC Builders Pty Ltd' } });
-  // A saved SWMS, with a second revision, a download and worker sign-ons.
+  // A design file attached on the page, named by the saved SWMS (designs.js).
+  const upload = await fetch(`${base}/api/designs/files`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/pdf', 'X-File-Name': encodeURIComponent(`${key} hangers.pdf`) }, body: PDF });
+  assert.equal(upload.status, 201);
+  const { file } = await upload.json();
   const input = ready({
+    designs: [{ id: 'added-1', what: `${key} hanger design`, status: 'given', by: `${key} Engineering`, number: 'HG-101', revision: 'A', date: '2026-10-01', file }],
     ...ANSWERED, workplace: `9 ${key} Road, Toowong QLD 4066`, state: 'qld', trade: 'fire',
     task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
     fallRisk: 'yes', facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
@@ -157,7 +166,7 @@ async function seedBusiness(key) {
   assert.equal((await json('GET', `/api/admin/refs/${refs[0]}`, { token: owner })).status, 200);
   const search = `${key.toLowerCase()} removal`;
   assert.equal((await json('GET', `/api/admin/companies?q=${encodeURIComponent(search)}`, { token: owner })).status, 200);
-  return { key, domain, admin, name, abn, token, companyId, swmsId: swms.id, signKey, refs, search, checkedId };
+  return { key, domain, admin, name, abn, token, companyId, swmsId: swms.id, signKey, refs, search, checkedId, fileId: file.id };
 }
 
 // Checks a pasted SWMS naming the business's own people and site, with KEEP_CHECKED_SWMS on, so it is
@@ -238,7 +247,7 @@ test('the owner deletes a whole business: every row tied to it goes, another bus
   assert.deepEqual(await tiedCounts(b), before.b);
   // No row anywhere holds its name, ids, emails, site, workers, references or sign-on key. Its
   // ABN is kept, in trial_abns only, and its account id only in the one access log entry.
-  const markers = [a.companyId, a.swmsId, a.signKey, a.checkedId, a.name, a.domain, `${a.key} site`, `${a.key} Road`, `${a.key} Street`, `${a.key} Worker`, `${a.key} Crew`, `${a.key} Supervisor`, ...a.refs];
+  const markers = [a.companyId, a.swmsId, a.signKey, a.checkedId, a.name, a.domain, a.fileId, `${a.key} hangers`, `${a.key} Engineering`, `${a.key} site`, `${a.key} Road`, `${a.key} Street`, `${a.key} Worker`, `${a.key} Crew`, `${a.key} Supervisor`, ...a.refs];
   for (const table of SCHEMA_TABLES) {
     const rows = await db.query(`SELECT * FROM ${table}`);
     for (const row of rows) {

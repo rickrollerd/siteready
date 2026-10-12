@@ -1,6 +1,7 @@
 // The same SWMS as the Word file, as a PDF for people who only need to read,
 // print or send it. Worker signatures collected in the app are printed on it.
 const PDFDocument = require('pdfkit');
+const { tableRows, isHoldPoint, TABLE_HEAD, TABLE_TITLE, TABLE_NOTE } = require('./designs');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
 const { revisionText, sharedNote } = require('./docx-draft');
@@ -255,6 +256,13 @@ function draftToPdf(draft, options = {}) {
     if ((draft.highRisk || []).length) for (const item of draft.highRisk) text(doc, item);
     else text(doc, 'This task is not identified as high risk construction work.');
 
+    // The designs the job steps rely on (designs.js), only where there are any.
+    if ((draft.designs || []).length) {
+      heading(doc, TABLE_TITLE);
+      text(doc, TABLE_NOTE, { size: 8.5, color: MUTED });
+      table(doc, { widths: [110, 100, 100, 70, w - 380], header: TABLE_HEAD, rows: tableRows(draft).map((cells) => row(...cells.map((value) => value || ' '))) });
+    }
+
     heading(doc, 'Controls');
     table(doc, { widths: pairWidths, header: ['Hierarchy', 'Control'], rows: (draft.controls || []).map((item) => ({ cells: [[{ text: item.level }], [{ text: item.text }]] })) });
 
@@ -267,7 +275,7 @@ function draftToPdf(draft, options = {}) {
         cells: [
           [{ text: `${index + 1}. ${step.step}`, bold: true }],
           step.hazards.map((line) => ({ text: `•  ${line}` })),
-          [...step.controls, ...sharedNote(step, draft.jobSteps)].map((line) => ({ text: `•  ${line}` })),
+          [...step.controls, ...sharedNote(step, draft.jobSteps)].map((line) => ({ text: `•  ${line}`, ...(isHoldPoint(line) ? { bold: true } : {}) })),
           lines(riskLines(step.risk)),
           [{ text: step.responsible || ' ' }],
         ],

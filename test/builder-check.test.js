@@ -327,7 +327,7 @@ const item = (result, rule) => result.findings.find((finding) => finding.rule ==
 
 test('the 100 points are split as decided: W10 to W12 from the items they overlap (5 October), W13 and W14 by rebalancing (6 October 2026)', () => {
   const maxima = Object.fromEntries(checkSwms(GOOD).findings.filter((finding) => !finding.hard).map((finding) => [finding.rule, finding.max]));
-  assert.deepEqual(maxima, { W1: 10, W2: 10, W3: 10, W4: 6, W5: 8, W6: 8, W7: 8, W8: 2, W9: 6, W10: 4, W11: 4, W12: 5, W13: 12, W14: 3, W15: 4 });
+  assert.deepEqual(maxima, { W1: 10, W2: 10, W3: 10, W4: 6, W5: 8, W6: 8, W7: 8, W8: 2, W9: 6, W10: 3, W11: 4, W12: 3, W13: 12, W14: 3, W15: 4, W16: 3 });
   assert.equal(Object.values(maxima).reduce((sum, max) => sum + max, 0), 100);
   assert.match(SOURCES.W13, /s 306/);
   assert.match(SOURCES.W14, /safety data sheets/);
@@ -384,7 +384,7 @@ test('W9: a revision number is credited, as text or as a number', () => {
 });
 
 test('W10: higher order controls are listed before administrative controls and PPE within each step', () => {
-  assert.equal(item(checkSwms(GOOD), 'W10').points, 4);
+  assert.equal(item(checkSwms(GOOD), 'W10').points, 3);
   const steps = structuredClone(GOOD.steps);
   // Gloves first, then the mesh: out of order. The roof access step (the scaffold stair, then the
   // supervisor's tag check) is judged too and is in order, so one of the two judged steps is out.
@@ -394,10 +394,10 @@ test('W10: higher order controls are listed before administrative controls and P
   assert.match(result.message, /in: Remove and replace roof sheets\./);
   // With a third judged step in order, two of the three are in order.
   const ordered = { step: 'Fix the flashings', hazards: ['Falling from the roof edge.'], controls: ['Flashings are fixed from inside the guardrail.', 'Gloves are worn.'] };
-  assert.equal(item(checkSwms(variant({ steps: [...steps, ordered] })), 'W10').points, 3);
+  assert.equal(item(checkSwms(variant({ steps: [...steps, ordered] })), 'W10').points, 2);
   // A step with no higher order control is not judged here (W2 marks it).
   const admin = [{ step: 'Plan the work', hazards: ['Working at height.'], controls: ['The supervisor briefs the crew.', 'Gloves are worn.'] }];
-  assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, ...admin] })), 'W10').points, 4);
+  assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, ...admin] })), 'W10').points, 3);
 });
 
 test('W11: each step names a responsible position, not only one person for the SWMS', () => {
@@ -413,43 +413,43 @@ test('W11: each step names a responsible position, not only one person for the S
 
 test('W12: work that needs a permit names it', () => {
   const steps = (extra) => [...GOOD.steps, extra];
-  assert.equal(item(checkSwms(GOOD), 'W12').points, 5);
+  assert.equal(item(checkSwms(GOOD), 'W12').points, 3);
   // Hot work.
   const weld = { step: 'Weld the box gutter brackets', hazards: ['Sparks and fire.'], controls: ['A fire extinguisher is at the work area.'] };
   const unnamed = item(checkSwms(variant({ steps: steps(weld) })), 'W12');
   assert.equal(unnamed.points, 0);
   assert.match(unnamed.message, /a hot work permit \(hot work\)/);
-  assert.equal(item(checkSwms(variant({ steps: steps({ ...weld, controls: [...weld.controls, 'Welding starts only under a hot work permit from the principal contractor.', 'A fire watch stays for 30 minutes after welding stops.'] }) })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...weld, controls: [...weld.controls, 'Welding starts only under a hot work permit from the principal contractor.', 'A fire watch stays for 30 minutes after welding stops.'] }) })), 'W12').points, 3);
   // Heat welded vinyl, solvent welded pipe and painting welds are not hot work.
   for (const step of ['Lay the vinyl with heat-welded joins', 'Paint the site welds', 'Solvent weld the PVC pipe']) {
-    assert.equal(item(checkSwms(variant({ steps: steps({ step, hazards: ['Fumes.'], controls: ['The area is ventilated.'] }) })), 'W12').points, 5, step);
+    assert.equal(item(checkSwms(variant({ steps: steps({ step, hazards: ['Fumes.'], controls: ['The area is ventilated.'] }) })), 'W12').points, 3, step);
   }
   // Confined space entry.
   const tank = { step: 'Enter the confined space', hazards: ['Low oxygen.'], controls: ['The air is tested before entry.'] };
   assert.equal(item(checkSwms(variant({ steps: steps(tank) })), 'W12').points, 0);
-  assert.equal(item(checkSwms(variant({ steps: steps({ ...tank, controls: [...tank.controls, 'A confined space entry permit is issued for each entry.'] }) })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...tank, controls: [...tank.controls, 'A confined space entry permit is issued for each entry.'] }) })), 'W12').points, 3);
   // Digging near services.
   const dig = { step: 'Dig the footings', hazards: ['Striking underground services.'], controls: ['Services are located before digging.'] };
   assert.equal(item(checkSwms(variant({ steps: steps(dig) })), 'W12').points, 0);
-  assert.equal(item(checkSwms(variant({ steps: steps({ ...dig, controls: [...dig.controls, 'Digging starts only under the principal contractor\'s excavation permit.'] }) })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...dig, controls: [...dig.controls, 'Digging starts only under the principal contractor\'s excavation permit.'] }) })), 'W12').points, 3);
   // Overhead lines, and isolation.
   const lines = { step: 'Work near the overhead power lines', hazards: ['Contact with the lines.'], controls: ['A safety observer watches the crane.'] };
   assert.match(item(checkSwms(variant({ steps: steps(lines) })), 'W12').message, /network operator's written permission/);
-  assert.equal(item(checkSwms(variant({ steps: steps({ ...lines, controls: ['Work starts only under the network operator\'s written permission.'] }) })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ steps: steps({ ...lines, controls: ['Work starts only under the network operator\'s written permission.'] }) })), 'W12').points, 3);
   const isolate = { step: 'Isolate the switchboard', hazards: ['Electric shock.'], controls: ['The electrician tests for dead.'] };
   const shop = 'Replace the metal roof sheets on a two storey commercial building, 7 m to the eaves.';
   assert.match(item(checkSwms(variant({ task: shop, steps: steps(isolate) })), 'W12').message, /isolation permit/);
-  assert.equal(item(checkSwms(variant({ task: shop, steps: steps({ ...isolate, controls: ['An isolation permit is issued and each worker fits a personal lock.'] }) })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ task: shop, steps: steps({ ...isolate, controls: ['An isolation permit is issued and each worker fits a personal lock.'] }) })), 'W12').points, 3);
   // Domestic work (a house, or a Northern Territory "Yes" to residential work) needs no isolation permit.
-  assert.equal(item(checkSwms(variant({ steps: steps(isolate) })), 'W12').points, 5);
-  assert.equal(item(checkSwms(variant({ task: 'Replace the roof sheets on a carport.', residential: 'Yes', steps: steps(isolate) })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ steps: steps(isolate) })), 'W12').points, 3);
+  assert.equal(item(checkSwms(variant({ task: 'Replace the roof sheets on a carport.', residential: 'Yes', steps: steps(isolate) })), 'W12').points, 3);
   assert.match(item(checkSwms(variant({ task: 'Replace the roof sheets on a carport.', residential: 'No', steps: steps(isolate) })), 'W12').message, /isolation permit/);
   // Roof access: only where the SWMS says the site runs a permit system.
   const permitSite = { ...GOOD.site, conditions: [...GOOD.site.conditions, 'The site runs a permit system: permits are issued by the principal contractor.'] };
   assert.match(item(checkSwms(variant({ site: permitSite })), 'W12').message, /a roof access permit/);
-  assert.equal(item(checkSwms(variant({ site: { ...permitSite, conditions: [...permitSite.conditions, 'Roof access permit obtained each day.'] } })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ site: { ...permitSite, conditions: [...permitSite.conditions, 'Roof access permit obtained each day.'] } })), 'W12').points, 3);
   // Two kinds needed, one named: half the points, rounded.
-  assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, weld, { ...tank, controls: ['A confined space entry permit is issued for each entry.'] }] })), 'W12').points, 3);
+  assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, weld, { ...tank, controls: ['A confined space entry permit is issued for each entry.'] }] })), 'W12').points, 2);
 });
 
 test('the AI reading gives a responsible position per step; answers without it are still read', () => {
@@ -499,10 +499,10 @@ test('W12: hot work under a permit also needs a fire watch and an extinguisher',
   assert.match(neither.message, /a fire watch during and after the work and a fire extinguisher at the work/);
   assert.match(run(['A fire extinguisher is kept at the work.']).message, /add a fire watch/);
   assert.match(run(['A fire watch stays for 30 minutes after the work.']).message, /add a fire extinguisher/);
-  assert.equal(run(['A fire extinguisher is kept at the work.', 'A fire watch stays for 30 minutes after the work.']).points, 5);
-  assert.equal(run(['Fire-fighting equipment is at hand, and a fire watch checks the area afterwards.']).points, 5);
+  assert.equal(run(['A fire extinguisher is kept at the work.', 'A fire watch stays for 30 minutes after the work.']).points, 3);
+  assert.equal(run(['Fire-fighting equipment is at hand, and a fire watch checks the area afterwards.']).points, 3);
   // No hot work, nothing asked.
-  assert.equal(item(checkSwms(GOOD), 'W12').points, 5);
+  assert.equal(item(checkSwms(GOOD), 'W12').points, 3);
 });
 
 // ---- Calibration against real subcontractor SWMS (October 2026) ----
@@ -651,22 +651,22 @@ test('W12: work permit systems, fire suppression, power line permits, grinding a
   // A work permit system answers an isolation (a roof task would then need a roof access permit too);
   // charged and tagged fire suppression is an extinguisher.
   const isolate = { step: 'Isolate the switchboard', hazards: ['Electric shock.'], controls: ['Use a work permit system to control access.'] };
-  assert.equal(item(checkSwms(variant({ task: 'Replace the light fittings in a commercial building.', steps: [isolate] })), 'W12').points, 5);
-  assert.equal(w12({ step: 'Weld the gutter brackets', hazards: ['Fire.'], controls: ['Work under a hot work permit.', 'A fire watch stays for 30 minutes.', 'Fire suppression of the correct class is available, charged and tagged.'] }).points, 5);
+  assert.equal(item(checkSwms(variant({ task: 'Replace the light fittings in a commercial building.', steps: [isolate] })), 'W12').points, 3);
+  assert.equal(w12({ step: 'Weld the gutter brackets', hazards: ['Fire.'], controls: ['Work under a hot work permit.', 'A fire watch stays for 30 minutes.', 'Fire suppression of the correct class is available, charged and tagged.'] }).points, 3);
   // Power lines: an access permit or the network operator's permission names it; kept outside the approach distance, none is needed.
   const lines = { step: 'Work near the overhead power lines', hazards: ['Contact with the lines.'], controls: ['A safety observer watches the crane.'] };
-  assert.equal(w12({ ...lines, controls: ['Work starts only under an electrical access permit.'] }).points, 5);
-  assert.equal(w12({ ...lines, controls: ['Work starts only with written permission from the network operator.'] }).points, 5);
-  assert.equal(w12({ ...lines, controls: ['Keep all plant and people outside the approach distance for the lines.'] }).points, 5);
-  assert.equal(w12({ step: 'Inspect the area, in particular be aware of overhead power lines', hazards: ['Contact with the lines.'], controls: ['Look up before moving the scaffold.'] }).points, 5);
+  assert.equal(w12({ ...lines, controls: ['Work starts only under an electrical access permit.'] }).points, 3);
+  assert.equal(w12({ ...lines, controls: ['Work starts only with written permission from the network operator.'] }).points, 3);
+  assert.equal(w12({ ...lines, controls: ['Keep all plant and people outside the approach distance for the lines.'] }).points, 3);
+  assert.equal(w12({ step: 'Inspect the area, in particular be aware of overhead power lines', hazards: ['Contact with the lines.'], controls: ['Look up before moving the scaffold.'] }).points, 3);
   // Angle grinding throws sparks: hot work, wherever the SWMS says it is done.
   assert.match(w12({ step: 'Removal of bolts', hazards: ['Sparks.'], controls: ['Use an angle grinder to cut the bolts flush.', 'Keep a fire extinguisher close by.'] }).message, /a hot work permit \(hot work\)/);
-  assert.equal(w12({ step: 'Cut in the skylight', hazards: ['Cuts.'], controls: ['Roof sheet is cut with snips, not a grinder, to avoid sparks.'] }).points, 5);
+  assert.equal(w12({ step: 'Cut in the skylight', hazards: ['Cuts.'], controls: ['Roof sheet is cut with snips, not a grinder, to avoid sparks.'] }).points, 3);
   // Energised electrical work needs an authorisation for it and a risk assessment, not an isolation permit.
   const live = w12({ step: 'Test and fault find on energised low voltage equipment', hazards: ['Electric shock.'], controls: ['A safety observer trained in rescue is present.'] }, { task: shop });
   assert.match(live.message, /written authorisation for the energised work, with its risk assessment/);
   assert.doesNotMatch(live.message, /isolation permit/);
-  assert.equal(w12({ step: 'Test and fault find on energised low voltage equipment', hazards: ['Electric shock.'], controls: ['Live work starts only with a written energised work authorisation and a recorded risk assessment.'] }, { task: shop }).points, 5);
+  assert.equal(w12({ step: 'Test and fault find on energised low voltage equipment', hazards: ['Electric shock.'], controls: ['Live work starts only with a written energised work authorisation and a recorded risk assessment.'] }, { task: shop }).points, 3);
 });
 
 test('with no state given, the result says so and uses the national categories, not Queensland\'s', () => {
@@ -791,11 +791,11 @@ test('W9 and W11: template prompts left in; a position named in passing is not r
 
 test('W12: a hand auger or rural site with services located needs no dig permit; householders are domestic work', () => {
   const dig = { step: 'Bore the post holes with a hand held auger', hazards: ['Striking underground services.'], controls: ['Services are located with a cable locator before digging.'] };
-  assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, dig] })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, dig] })), 'W12').points, 3);
   assert.equal(item(checkSwms(variant({ steps: [...GOOD.steps, { ...dig, step: 'Dig the footings with the excavator' }] })), 'W12').points, 0);
   const shop = 'Replace the roof insulation in roof spaces.';
   const lock = { step: 'Lock out the power at the switchboard', hazards: ['Electric shock.'], controls: ['The householder is told before the power is locked out.'] };
-  assert.equal(item(checkSwms(variant({ task: shop, steps: [lock] })), 'W12').points, 5);
+  assert.equal(item(checkSwms(variant({ task: shop, steps: [lock] })), 'W12').points, 3);
   assert.match(item(checkSwms(variant({ task: shop, steps: [{ ...lock, controls: ['The tenant is told before the power is locked out.'] }] })), 'W12').message, /isolation permit/);
 });
 
@@ -828,7 +828,7 @@ test('spark-producing steps in a SiteReady draft name the hot work permit and th
     assert.equal(draft.kind, 'draft', task);
     const w12 = item(check(fromDraft(draft, { state: 'qld' }), { state: 'qld' }), 'W12');
     assert.match(w12.message, /hot work/, task);
-    assert.equal(w12.points, 5, `${task}: ${w12.message}`);
+    assert.equal(w12.points, 3, `${task}: ${w12.message}`);
   }
 });
 

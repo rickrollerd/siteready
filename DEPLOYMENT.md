@@ -26,6 +26,7 @@
    - `NODE_ENV=production`
    - `INDUSTRY_KEY`: a long random value (at least 32 characters) for the keyed business code in the industry data. Without it, production keeps no industry records and the log says so.
    - `CONTROL_LEARNING_KEY`: another long random value (at least 32 characters), set before `CONTROL_LEARNING=on`. Without it, control learning stays off in production and the log says so.
+   - Design files (the engineer's or temporary works designs users attach to a SWMS, owner decision D215): add a Railway **Bucket** to the project, then set these as references to the bucket's Credentials: `DESIGN_FILES_BUCKET` (BUCKET), `DESIGN_FILES_BUCKET_KEY_ID` (ACCESS_KEY_ID), `DESIGN_FILES_BUCKET_SECRET` (SECRET_ACCESS_KEY), `DESIGN_FILES_BUCKET_REGION` (REGION) and `DESIGN_FILES_BUCKET_ENDPOINT` (ENDPOINT), and `DESIGN_FILES_BUCKET_PATH_STYLE=on` if the Credentials tab says the bucket uses path-style addresses. Without them, production takes no design files (the design's reference still prints) and the log says so. Locally and in tests the files go in the database.
 3. Railway sets `PORT`. The other optional settings are in `.env.example`.
 
 ### Step 2a: Keeping SWMS checked with the builder check (optional)

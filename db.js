@@ -386,6 +386,34 @@ const SCHEMA = [
     flagged_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (swms_id, notice_id)
   )`,
+  // Files of the designs a SWMS relies on (owner, 11 October 2026; design-files.js): the business that
+  // uploaded each, its name, type (read from its content), size and fingerprint, and where it is
+  // stored (the storage bucket, or design_file_data without one).
+  `CREATE TABLE IF NOT EXISTS design_files (
+    id TEXT PRIMARY KEY,
+    company_id TEXT NOT NULL,
+    name TEXT NOT NULL DEFAULT '',
+    content_type TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    sha256 TEXT NOT NULL,
+    storage TEXT NOT NULL,
+    created_by TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS design_files_company ON design_files (company_id)',
+  // A design file's content when there is no storage bucket (tests and local runs).
+  `CREATE TABLE IF NOT EXISTS design_file_data (
+    file_id TEXT PRIMARY KEY,
+    data TEXT NOT NULL
+  )`,
+  // Each saved SWMS revision that names a design file, so the file is kept as long as one does.
+  `CREATE TABLE IF NOT EXISTS design_file_uses (
+    file_id TEXT NOT NULL,
+    swms_id TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (file_id, swms_id, revision)
+  )`,
   // When a business's subscription ended, as Stripe reports it, so the owner can see which
   // businesses stopped paying more than 12 months ago (privacy policy, "How long we keep it").
   'ALTER TABLE companies ADD COLUMN IF NOT EXISTS plan_ended_at TIMESTAMPTZ',

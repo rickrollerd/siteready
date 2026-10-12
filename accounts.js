@@ -19,6 +19,7 @@ const aiScope = require('./ai-scope');
 const revisions = require('./revisions');
 const { downloadGaps, gateMessage } = require('./download-gate');
 const libraryNotices = require('./library-notices');
+const designFiles = require('./design-files');
 
 const REVIEW_MONTHS = 3;
 const REMIND_DAYS_BEFORE = 7;
@@ -316,6 +317,11 @@ router.get('/swms/export.zip', requireUser, route(async (req, res) => {
       kept.add(parts.revision);
       zip.file(`${base} revision ${parts.revision}.docx`, Buffer.from(await draftToDocx(parts.draft, parts)));
     }
+    // The design files its revisions name, each once, in their own folder.
+    for (const item of await designFiles.filesOfSwms(req.company.id, row.id)) {
+      const revisionsNamed = item.revisions.length > 1 ? `revisions ${item.revisions.join(', ')}` : `revision ${item.revisions[0]}`;
+      zip.file(`Design files/${base} ${revisionsNamed} - ${item.row.name.replace(/[\\/:*?"<>|]+/g, ' ')}`, item.data);
+    }
     // Sign-ons to a revision with no kept copy print on no Word file, so they are listed instead.
     const signons = await db.query(`SELECT ${SIGNON_SHEET} FROM signons WHERE swms_id = $1 ORDER BY signed_at`, [row.id]);
     const earlierKept = [...kept].some((revision) => revision < (row.revision || 1));
@@ -381,6 +387,8 @@ async function learningAccount(req, swmsId, reviewedBy) {
 
 // A new saved SWMS at revision 1, kept as it prints.
 async function createSwms(req, { input, draft, name, siteId = null, title, reason = '' }) {
+  // A design file it names must still be held by the business.
+  await designFiles.needFiles(req.company.id, input);
   const id = auth.newId();
   const now = new Date();
   await db.query(
@@ -390,6 +398,8 @@ async function createSwms(req, { input, draft, name, siteId = null, title, reaso
   );
   const row = await db.one('SELECT * FROM swms WHERE id = $1', [id]);
   const kept = await revisions.keepRevision({ row, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
+  // The design files it names are kept with this revision.
+  await designFiles.recordUses(req.company.id, row.id, 1, input);
   record('swms_saved', req.company.id);
   await recordIndustry(draft, input, req.company).catch(() => {});
   // The changes in this revision, and the steps the user wrote, recorded once for it.
@@ -402,11 +412,13 @@ async function createSwms(req, { input, draft, name, siteId = null, title, reaso
 
 // Saving changes is a review: it restarts the review period and makes a new revision, kept as it prints.
 async function reviseSwms(req, row, { input, draft, name, siteId = row.site_id, title = row.title, reason = '' }) {
+  await designFiles.needFiles(req.company.id, input);
   const now = new Date();
   await db.query('UPDATE swms SET title = $1, input = $2, site_id = $3, reviewed_by = $4, updated_at = $5, last_reviewed_at = $5, review_due_at = $6, reminder_sent_at = NULL, revision = revision + 1, revised_at = $5 WHERE id = $7',
     [titleFor({ title }, input), JSON.stringify(input), siteId, name, now, addMonths(now, REVIEW_MONTHS), row.id]);
   const next = await db.one('SELECT * FROM swms WHERE id = $1', [row.id]);
   const kept = await revisions.keepRevision({ row: next, company: req.company, input, draft, userId: req.user.id, name, reason, at: now });
+  await designFiles.recordUses(req.company.id, next.id, next.revision, input);
   await learningAccount(req, next.id, name).then(async (account) => {
     await recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account }).catch(() => {});
     await recordOwnSteps(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account }).catch(() => {});
@@ -484,6 +496,33 @@ function updatedWording(row, company, kept) {
 function revisionView(item, row) {
   return { revision: item.revision, savedAt: item.createdAt, savedBy: item.editedName, reason: item.reason, ref: item.ref, current: item.revision === (row.revision || 1) };
 }
+
+// ---- Design files (designs.js, design-files.js) ----
+
+// A design file the user attaches on the page, before the SWMS is saved: the file itself as the
+// request body (PDF, PNG or JPEG, up to 10 MB), its name in X-File-Name. Kept for the business only.
+router.post('/designs/files', requireAccess, express.raw({ type: () => true, limit: designFiles.MAX_BYTES + 1024 }), route(async (req, res) => {
+  const name = (() => { try { return decodeURIComponent(String(req.get('X-File-Name') || '')); } catch { return ''; } })();
+  const file = await designFiles.saveUpload({ companyId: req.company.id, userId: req.user.id, data: Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0), name });
+  record('design_file_attached', req.company.id);
+  res.status(201).json({ file });
+}));
+
+// A design file the business uploaded, for the page that attached it.
+router.get('/designs/files/:fileId', requireUser, route(async (req, res) => {
+  const file = await designFiles.fileOfCompany(req.company.id, req.params.fileId);
+  if (!file) throw fail(404, 'That file was not found.');
+  designFiles.sendFile(res, file);
+}));
+
+// A design file a saved SWMS names, in any of its revisions, for the business's signed-in users
+// only: there is no public link. The reviewer's view of a SWMS opens it the same way.
+router.get('/swms/:id/designs/:fileId', requireUser, route(async (req, res) => {
+  const row = await ownSwms(req, req.params.id);
+  const file = await designFiles.fileForSwms(req.company.id, row.id, req.params.fileId);
+  if (!file) throw fail(404, 'That file was not found.');
+  designFiles.sendFile(res, file);
+}));
 
 router.get('/swms/:id', requireUser, route(async (req, res) => {
   const row = await ownSwms(req, req.params.id);
@@ -811,13 +850,16 @@ async function removeExpired(now = new Date()) {
   await db.query('DELETE FROM login_tokens WHERE expires_at < $1', [now]);
   await db.query('DELETE FROM sessions WHERE expires_at < $1', [now]);
   await db.query('DELETE FROM challenges WHERE expires_at < $1', [now]);
-  // A deleted SWMS is hidden at once and removed, with its sign-ons, after 30 days.
+  // A deleted SWMS is hidden at once and removed, with its sign-ons and design files, after 30 days.
   const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   await db.query('DELETE FROM signons WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM sign_translations WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms_revisions WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms_review_flags WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
+  await db.query('DELETE FROM design_file_uses WHERE swms_id IN (SELECT id FROM swms WHERE archived = TRUE AND updated_at < $1)', [cutoff]);
   await db.query('DELETE FROM swms WHERE archived = TRUE AND updated_at < $1', [cutoff]);
+  // Design files no saved SWMS names any more, and files attached but never saved after 7 days.
+  await designFiles.removeUnused(now);
   // A deleted site is removed after 30 days too. A SWMS keeps its own copy of the site's details.
   await db.query('DELETE FROM sites WHERE archived = TRUE AND updated_at < $1', [cutoff]);
   // A read session is only needed while the worker is signing on.

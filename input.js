@@ -86,6 +86,36 @@ function ownSteps(value) {
   return out.length ? out : undefined;
 }
 
+// The designs the SWMS relies on (designs.js), as the user answered them: which design (by id: one
+// SiteReady found in the steps, or "added-1" and so on for one the user added), what it is, who
+// prepared it, its document or drawing number, revision and date, whether it is issued, not issued
+// yet or not needed, and the file attached, by the id it was stored under (design-files.js).
+const DESIGN_ID = /^(?:[a-zA-Z]{2,30}|added-\d{1,2})$/;
+const FILE_ID = /^df_[A-Za-z0-9_-]{16,64}$/;
+function designs(value) {
+  if (!Array.isArray(value)) return undefined;
+  const seen = new Set();
+  const out = value.filter((item) => item && typeof item === 'object' && !Array.isArray(item) && typeof item.id === 'string' && DESIGN_ID.test(item.id)).slice(0, 30).map((item) => {
+    const file = item.file && typeof item.file === 'object' && typeof item.file.id === 'string' && FILE_ID.test(item.file.id)
+      ? { id: item.file.id, name: textField(item.file.name, 200), type: textField(item.file.type, 40), size: Math.max(0, Math.min(Number(item.file.size) || 0, 1e9)) } : undefined;
+    return {
+      id: item.id,
+      what: textField(String(item.what || '').replace(/\s+/g, ' '), 200),
+      status: ['given', 'notIssued', 'notNeeded'].includes(item.status) ? item.status : '',
+      by: textField(item.by, 200),
+      number: textField(item.number, 120),
+      revision: textField(item.revision, 40),
+      date: textField(item.date, 60),
+      ...(file ? { file } : {}),
+    };
+  }).filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+  return out.length ? out : undefined;
+}
+
 // The user's answers for the blanks (____) in control lines, by line (goal 2): a few answers a line.
 function fills(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
@@ -159,6 +189,7 @@ function draftBody(body) {
     fills: fills(body.fills),
     plantChoice: plantChoice(body.plantChoice),
     emergency: emergencyAnswers(body.emergency),
+    designs: designs(body.designs),
     ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
     date: field(body.date, 80) || longDate(),
     facts: {

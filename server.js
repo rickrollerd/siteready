@@ -7,6 +7,7 @@ const cluster = require('cluster');
 const os = require('os');
 const crypto = require('crypto');
 const { listStates, findState } = require('./legislation');
+const designFiles = require('./design-files');
 const { questionsFor, prepareDraft, legalSource, keepWarning, notCoveredLeft } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
@@ -209,6 +210,21 @@ app.get('/api/steps', (_req, res) => {
   res.json(stepLibrary());
 });
 
+// The designs a draft of this input relies on, for the page: { designs } with each design's id,
+// what it is, the steps that rely on it and the user's answers so far. Empty when there are none.
+function designsAsked(input) {
+  try {
+    const draft = prepareDraft(input);
+    return draft.kind === 'draft' && (draft.designs || []).length ? { designs: draft.designs } : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+// Attaching design files has its own limit: each is up to 10 MB.
+const designFileLimit = limiter('design-files', positiveNumber(process.env.RATE_LIMIT_DESIGN_FILE_REQUESTS, 60));
+app.use('/api/designs/files', (req, res, next) => (req.method === 'POST' ? designFileLimit(req, res, next) : next()));
+
 app.post('/api/draft/questions', (req, res) => {
   const result = questionsFor(draftBody(req.body || {}));
   if (result.kind === 'refused' || result.kind === 'error') return res.status(400).json(result);
@@ -217,7 +233,9 @@ app.post('/api/draft/questions', (req, res) => {
   const local = (list) => list.map((answer) => ({ ...answer, text: localText(answer.text, result.state.id) })).filter((answer) => answer.text);
   // The pressure test answers follow the task: the gas line test only where gas is named.
   result.required = (result.required || []).map((item) => (item.choices ? item : { ...item, suggestions: local(answersFor(item.id, result.task)) }));
-  res.json(result);
+  // The designs the job steps rely on, asked under the site questions (designs.js), as the draft
+  // would print them now. Nothing is said while the draft would be stood down.
+  res.json({ ...result, ...designsAsked(draftBody(req.body || {})) });
 });
 
 // Reading a scope takes more work than a draft, so it has a lower limit.
@@ -513,7 +531,8 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
 });
 
 app.get('/api/config', (_req, res) => {
-  res.json({ accounts: db.enabled(), trialDays: auth.TRIAL_DAYS, billing: billing.enabled(), price: process.env.PRICE_LABEL || 'A$49 a month incl. GST' });
+  // Whether a design's file can be attached (design-files.js: the storage bucket, or a local run).
+  res.json({ accounts: db.enabled(), trialDays: auth.TRIAL_DAYS, billing: billing.enabled(), price: process.env.PRICE_LABEL || 'A$49 a month incl. GST', designFiles: { enabled: db.enabled() && designFiles.enabled(), maxMb: designFiles.MAX_MB } });
 });
 
 app.get('/api/health', async (_req, res) => {
@@ -551,6 +570,7 @@ function start() {
   // Keeping checked SWMS in production without its storage bucket keeps no originals, and says so.
   const storage = require('./checked-swms').enabled() ? require('./file-store').storageProblem() : null;
   if (cluster.isPrimary && storage) console.error(storage);
+  if (cluster.isPrimary && designFiles.storageProblem()) console.error(designFiles.storageProblem());
   if (workers > 1 && cluster.isPrimary) {
     // The primary keeps the rate limit counts for every worker.
     servePrimary();

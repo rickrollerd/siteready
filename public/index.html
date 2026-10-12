@@ -285,6 +285,20 @@
     .answer-panel .check .meta { display: block; }
     .answer-panel textarea { min-height: 88px; }
     .plant-own { margin: 6px 0; }
+    /* The designs the job steps rely on, asked under the site questions (app.js, designs.js). */
+    .design-card { border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px 4px; margin: 0 0 14px; background: #fbfcfd; }
+    .design-card legend { font-size: 16px; font-weight: 700; padding: 0 4px; }
+    .design-card .design-status { margin: 6px 0 10px; display: flex; flex-wrap: wrap; gap: 8px 0; }
+    .design-card .design-status label { min-height: 44px; }
+    .design-card .design-given, .design-card .design-hold, .design-card .design-skip { display: none; }
+    .design-card[data-status="given"] .design-given, .design-card[data-status="notIssued"] .design-hold, .design-card[data-status="notNeeded"] .design-skip { display: block; }
+    .design-pair { display: grid; grid-template-columns: 1fr 9em; gap: 0 12px; }
+    .design-file-label { font-weight: 600; margin: 0 0 2px; }
+    .design-attach { display: inline-block; cursor: pointer; border: 1px solid #1f4e3d; color: #1f4e3d; background: #fff; border-radius: 6px; padding: 10px 16px; font-weight: 600; font-size: 16px; min-height: 44px; box-sizing: border-box; }
+    .design-file { margin: 6px 0; overflow-wrap: anywhere; }
+    .design-hold-line { font-weight: 700; color: #8a2b2b; }
+    .design-line .meta { display: block; font-weight: 400; color: #3d4a59; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .plant-status { font-weight: 600; margin: 8px 0 0; }
     .risk-response { display: block; margin-top: 6px; font-weight: 600; color: #8a2b2b; }
     .ctl-shared { margin: 6px 0 0; color: #3d4a59; font-style: italic; }
@@ -297,6 +311,8 @@
       .sign { grid-template-columns: 1fr; }
       .actions { flex-direction: column; }
       .qr-box { flex-direction: column; align-items: flex-start; }
+      .design-pair { grid-template-columns: 1fr; }
+      .design-card .design-status { flex-direction: column; }
       button { width: 100%; }
     }
     /* Sections printed for others to fill in start folded on a phone (app.js folded). */
@@ -670,6 +686,12 @@
       <h2 style="margin-top:18px">Site-specific</h2>
       <p class="lede" style="margin-bottom:12px">Answer each one for this site. They are needed before download. Where there truly is none, write None (Access always needs an answer).</p>
       <div id="site-block"></div>
+      <div id="designs-section" class="hidden">
+        <h2 style="margin-top:18px">Designs this work relies on</h2>
+        <p class="lede" style="margin-bottom:12px">Some job steps here are done to an engineer's or temporary works design. A reviewer checks your SWMS matches that design, so name each one. It prints in the steps that use it, and in a table near the top of the SWMS. Needed before download.</p>
+        <div id="designs-block"></div>
+        <p><button type="button" class="secondary small" id="design-add">Add another design</button> <span class="meta">For example a geotechnical report or a crane pad design.</span></p>
+      </div>
       <div class="actions">
         <button type="submit" id="prepare">Prepare the statement</button>
         <button type="button" class="secondary" id="back">Back</button>
