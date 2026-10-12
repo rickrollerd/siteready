@@ -78,7 +78,13 @@ test('asbestos removal: licensed removalist, the notices, and air monitoring as 
   const removal = picked('asbestos-removal/non-friable');
   const monitoring = removal.asked.find((fact) => fact.id === 'asbestosAirMonitoring');
   assert.equal(monitoring.default, 'no', 'offered, starting on No');
-  assert.ok(has(removal.lines, /^Licensed asbestos removal work is done by a removalist holding the licence class it needs/));
+  // The amount sets the licence the law requires (D205); it starts on more than 10 m2, the licensed case.
+  assert.ok(has(removal.lines, /^This is more than 10 m2 of non-friable asbestos: it is licensed asbestos removal work, done only by a removalist holding a Class B \(or Class A\) asbestos removal licence/));
+  assert.ok(has(removal.lines, /^Before work starts, the transport and disposal of the asbestos waste are checked against the local council's and the state environment regulator's requirements/));
+  const small = picked('asbestos-removal/non-friable', 'qld', { asbestosQuantity: 'small' });
+  assert.ok(has(small.lines, /^This is 10 m2 or less of non-friable asbestos: no asbestos removal licence is needed, but the removal is done by a competent person trained/));
+  assert.ok(!has(small.lines, /^This is more than 10 m2|local council's and the state environment regulator's/));
+  assert.ok(has(picked('asbestos-removal/friable').lines, /^This is friable asbestos: it is removed only by a removalist holding a Class A asbestos removal licence/));
   assert.ok(has(removal.lines, /^Before licensed removal starts, the removalist tells the person in control of the workplace/));
   assert.ok(has(removal.lines, /^Air monitoring is not planned for this non-friable removal\./));
   const chosen = picked('asbestos-removal/non-friable', 'qld', { asbestosAirMonitoring: 'yes' });
@@ -120,7 +126,10 @@ test('edge protection covers penetrations in floors and roofs; mast climbers dra
   assert.ok(steps.includes('Install, climb and dismantle the mast climbing work platform'));
   assert.ok(has(lines, /basic rigging or intermediate scaffolding licence/));
   assert.ok(has(lines, /to the manufacturer's instructions and the engineer's design/));
-  assert.ok(draft.notCovered.some((part) => /engineer's approval of the ground or structure/.test(part)));
+  // The owner's instruction (D209), as site rules; using the platform is still named as not covered.
+  assert.ok(has(lines, /^Where the engineer's design and the manufacturer's instructions differ, work stops and the engineer is asked/));
+  assert.ok(has(lines, /^The engineer approves the ground, slab or structure for the mast climbing work platform's base and tie loads/));
+  assert.deepEqual(draft.notCovered, ['climbing, extending and using the platform (load limits, daily checks and wind limits)']);
 });
 
 test('crane workbox: registered box, harnesses, trained and licensed people, and a warning for the rest', () => {
@@ -150,6 +159,8 @@ test('site clearing: the user chooses stockpile and cover or trucks off site; se
   assert.ok(has(lines, /^Spotters are trained and competent/));
   assert.ok(has(lines, /^Fauna spotters have the qualifications and experience/));
   assert.ok(has(lines, /^Get the current underground services information/));
+  assert.ok(has(lines, /^Before ground work starts, every in-ground service is located and marked, and the plant operators and spotters know where each one is/));
+  assert.doesNotMatch(item('civil-earthworks/site-clearing').task, /surveyor|clearing limits marked/);
   assert.ok(has(lines, /^Where the project has an environmental management plan/));
 });
 
@@ -191,4 +202,112 @@ test('a site\'s own traffic management plan (TMP) is not road work; traffic mana
   assert.ok(!suggested(item('site-establishment-traffic/traffic-on-site').task).includes('road'));
   assert.ok(suggested(item('site-establishment-traffic/traffic-public-road').task).includes('road'));
   assert.ok(suggested('Traffic control on a public road for roadworks.').includes('road'));
+});
+
+// Part 2 of the review (D204 to D213): tasks built from shared activities, the method chosen by the user.
+test('sewer manholes: cast in situ, precast by crane or precast by hand, and the steps follow the choice', () => {
+  const asked = picked('pipelines-drainage/sewer').asked.find((fact) => fact.id === 'manholeMethod');
+  assert.deepEqual(asked.choices.map((choice) => choice.value), ['insitu', 'craned', 'hand']);
+  const insitu = picked('pipelines-drainage/sewer', 'qld', { manholeMethod: 'insitu' });
+  assert.ok(insitu.steps.includes('Form, fix reo and pour concrete in the excavation') && !insitu.steps.includes('Lift and place tanks, pits or precast units'));
+  const craned = picked('pipelines-drainage/sewer', 'qld', { manholeMethod: 'craned' });
+  assert.ok(craned.steps.includes('Lift and place tanks, pits or precast units') && !craned.steps.includes('Form, fix reo and pour concrete in the excavation'));
+  assert.ok(has(craned.lines, /^No one is in the excavation while a unit is lowered/));
+  const hand = picked('pipelines-drainage/sewer', 'qld', { manholeMethod: 'hand' });
+  assert.ok(has(hand.lines, /^Team lifts are an interim control only/));
+  assert.ok(!has(hand.lines, /^No one is in the excavation while a unit is lowered/));
+  assert.deepEqual(insitu.draft.notCovered, []);
+});
+
+test('thrust blocks, box culverts and headwalls are built from the shared form, reo and pour step', () => {
+  const water = picked('pipelines-drainage/water-mains');
+  assert.ok(water.steps.includes('Form, fix reo and pour concrete in the excavation'));
+  assert.deepEqual(water.draft.notCovered, ['disinfecting (chlorinating) the main']);
+  const culverts = picked('pipelines-drainage/culverts');
+  for (const step of ['Lift and place tanks, pits or precast units', 'Mix and pump the grout', 'Apply sealant and caulking', 'Form, fix reo and pour concrete in the excavation']) assert.ok(culverts.steps.includes(step), step);
+  assert.deepEqual(culverts.draft.notCovered, []);
+});
+
+test('excavation: two ways out of a basement, benching designed past 1.5 m, shoring by competent workers, pile cropping its own task', () => {
+  assert.ok(has(picked('basement-excavation/basement-bulk').lines, /^The excavation has more than one way in and out for workers, such as a scaffold stair at each end/));
+  const storm = picked('pipelines-drainage/stormwater').lines;
+  assert.ok(has(storm, /^Where the excavation is deeper than 1\.5 m and is benched or battered, the benches and batters are designed by a competent person, such as a geotechnical engineer/));
+  assert.ok(has(storm, /^Shoring, trench shields and boxes are installed, moved and removed only by workers trained and competent in that system/));
+  const crop = picked('basement-excavation/pile-cropping');
+  assert.ok(crop.steps.includes('Trim pile heads'));
+  assert.match(item('basement-excavation/pile-cropping').task, /jackhammers/);
+  const rock = picked('basement-excavation/rock-excavation');
+  assert.ok(rock.steps.includes('Cut rock with a rock saw'));
+  assert.ok(has(rock.lines, /^Where the structural engineer requires vibration monitoring, the monitors are installed and recording/));
+  assert.deepEqual(rock.draft.notCovered, []);
+  assert.ok(has(picked('basement-excavation/contaminated-spoil').lines, /heavy metals, PFAS, hydrocarbons or asbestos/));
+  const under = picked('basement-excavation/underpinning');
+  assert.deepEqual(under.draft.notCovered, []);
+  assert.doesNotMatch(item('basement-excavation/underpinning').task, /hand excavate the underpinning pits/);
+});
+
+test('roads: plant operation steps; stabilisation is not assumed to be next to traffic; erosion controls by hand and plant', () => {
+  const stab = picked('roads-pavements/stabilisation');
+  assert.ok(!stab.steps.includes('Set up traffic management'));
+  assert.ok(!has(stab.lines, /^All plant works inside the traffic management set out for the job/));
+  assert.ok(has(picked('roads-pavements/asphalt-paving').lines, /^All plant works inside the traffic management set out for the job/));
+  assert.ok(has(picked('roads-pavements/profiling').lines, /^Operators can show they are competent on the type of plant they use\./));
+  for (const key of ['roads-pavements/subgrade-prep', 'roads-pavements/granular-pavement', 'roads-pavements/kerb-channel', 'roads-pavements/road-furniture', 'roads-pavements/noise-walls', 'civil-earthworks/ground-improvement', 'civil-earthworks/erosion-sediment']) {
+    assert.deepEqual(picked(key).draft.notCovered, [], key);
+  }
+  const kerb = picked('roads-pavements/kerb-channel').steps;
+  assert.ok(kerb.includes('Saw cut concrete') && kerb.includes('Trim and compact the base by hand'));
+  const esc = picked('civil-earthworks/erosion-sediment').lines;
+  assert.ok(has(esc, /^Pegs and stakes are driven with a hammer or post driver/));
+  assert.ok(has(esc, /^Shaker grids, rumble grids and wheel wash units are installed, used and maintained to their supplier's instructions/));
+  // Plant floating, waterway work, bypass pumping, trenchless crossings and slipform paving name what the user writes (D211).
+  for (const key of ['civil-earthworks/plant-floating', 'civil-earthworks/waterway-earthworks', 'pipelines-drainage/live-sewer', 'pipelines-drainage/trenchless', 'roads-pavements/concrete-pavement']) assert.ok(picked(key).draft.notCovered.length > 0, key);
+});
+
+test('each subcontractor\'s own scope stays its own task (D216): form, reo and pour apart; lagging and insulation of their own', () => {
+  const titles = (tradeId) => TRADES.find((trade) => trade.id === tradeId).tasks;
+  assert.ok(titles('formwork').some((task) => task.kinds.includes('formwork') && !task.kinds.includes('reo') && !task.kinds.includes('slabPour')));
+  assert.ok(titles('steel-fixing-pt').some((task) => task.kinds.includes('reo') && !task.kinds.includes('formwork') && !task.kinds.includes('concrete')));
+  assert.ok(titles('concreting').some((task) => task.kinds.includes('concrete') && !task.kinds.includes('formwork') && !task.kinds.includes('reo')));
+  assert.ok(titles('mechanical').some((task) => task.kinds.includes('mechInsulation')));
+  assert.ok(titles('plumbing-hydraulics').some((task) => task.id === 'pipe-lagging' && task.kinds.includes('mechInsulation')));
+  assert.ok(titles('insulation').some((task) => /ceiling/i.test(task.title) && task.kinds.includes('insulation')));
+  assert.deepEqual(picked('plumbing-hydraulics/pipe-lagging').draft.notCovered, []);
+});
+
+// D217: every task works alone, and words that combine tasks draft one SWMS with every part's steps.
+function typed(task) {
+  const facts = {};
+  for (let round = 0; round < 8; round += 1) {
+    const questions = questionsFor({ state: 'qld', task, fallRisk: 'no', residential: 'no', facts });
+    const open = (questions.required || []).filter((fact) => !facts[fact.id]);
+    if (!open.length) break;
+    for (const fact of open) facts[fact.id] = fact.id === 'liveElectrical' ? 'no' : fact.choices ? (fact.default || fact.choices[0].value) : ((answersFor(fact.id, questions.task)[0] || {}).text || `As set out in the site plan: ${fact.label}.`).replace(/_{3,}/g, 'as on the site plan');
+  }
+  const draft = prepareDraft(draftBody({ state: 'qld', task, fallRisk: 'no', residential: 'no', facts }));
+  assert.equal(draft.kind, 'draft', task);
+  return draft.jobSteps.map((step) => step.step);
+}
+
+test('a task alone, and the same task typed with its neighbour, both draft (D217): lagging, reo and insulation', () => {
+  const lag = 'Insulate ductwork and pipework';
+  const pipe = 'Install risers and pipework';
+  assert.ok(typed('Lag the hot water pipework').includes(lag));
+  assert.ok(!typed('Lag the hot water pipework').includes(pipe));
+  assert.ok(typed('Install and lag the hot water pipework').includes(lag));
+  assert.ok(typed('Install and lag the hot water pipework').includes(pipe));
+  const reoAlone = typed('Fix the reo for the slab');
+  assert.ok(reoAlone.includes('Place and tie reo'));
+  assert.ok(!reoAlone.includes('Pump and place concrete') && !reoAlone.includes('Lay the formwork deck'));
+  const all = typed('Form, reo and pour the slab');
+  for (const step of ['Lay the formwork deck', 'Place and tie reo', 'Pump and place concrete', 'Strip the formwork']) assert.ok(all.includes(step), step);
+  const batts = typed('Install the ceiling insulation');
+  assert.ok(batts.includes('Install insulation'));
+  assert.ok(!batts.includes('Fix ceiling sheets'));
+  const both = typed('Install ceilings and insulation');
+  assert.ok(both.includes('Install insulation') && both.includes('Fix ceiling sheets'));
+  // The picked tasks on their own.
+  assert.ok(picked('plumbing-hydraulics/pipe-lagging').steps.includes(lag));
+  assert.ok(picked('steel-fixing-pt/reo-decks').steps.includes('Place and tie reo'));
+  assert.ok(picked('insulation/batts-acoustic').steps.includes('Install insulation'));
 });

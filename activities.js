@@ -12842,7 +12842,22 @@ addTo('demolition', 'Demolish', [
 
 // Licensed asbestos removal: the licence class, the notices, and air monitoring as the user's choice.
 addTo('asbestos', 'Prepare the asbestos work area', [
-  { only: 'asbestosRemoval', ...src('Licensed asbestos removal work is done by a removalist holding the licence class it needs: Class A for friable asbestos, Class A or Class B for more than 10 m2 of non-friable asbestos. The asbestos removal supervisor is present throughout Class A work and readily available for Class B work.', WHS('s 458, s 459')) },
+  // How much asbestos, and whether it is friable, sets the licence the law requires (D205), and over
+  // 10 m2 the waste rules of the council and the environment regulator are noted (D206).
+  { only: 'friableAsbestos', ...src('This is friable asbestos: it is removed only by a removalist holding a Class A asbestos removal licence, with the asbestos removal supervisor present throughout the work.', WHS('s 458, s 459')) },
+  {
+    unless: 'friableAsbestos',
+    choice: 'asbestosQuantity',
+    options: {
+      small: [
+        src('This is 10 m2 or less of non-friable asbestos: no asbestos removal licence is needed, but the removal is done by a competent person trained in identifying and safely handling asbestos.', WHS('s 445, s 458')),
+      ],
+      large: [
+        src('This is more than 10 m2 of non-friable asbestos: it is licensed asbestos removal work, done only by a removalist holding a Class B (or Class A) asbestos removal licence, with the asbestos removal supervisor readily available.', WHS('s 458, s 459')),
+        src('Before work starts, the transport and disposal of the asbestos waste are checked against the local council\'s and the state environment regulator\'s requirements, and the waste goes only to a site licensed to take it.', REMOVE_ASBESTOS('s 3.9, s 4.8')),
+      ],
+    },
+  },
   { only: 'asbestosRemoval', ...src('Before licensed removal starts, the removalist tells the person in control of the workplace that it is to be done and when. At domestic premises, the person who commissioned it, the occupier, the owner and the neighbours are told too.', WHS('s 467')) },
   { only: 'asbestosRemoval', ...src('The principal contractor tells its workers and others at the workplace, and takes reasonable steps to tell businesses and neighbours next to it, that asbestos removal is to be done and when, before it starts.', WHS('s 468')) },
   {
@@ -13019,6 +13034,88 @@ addAfter('swingStage', {
     ],
   }],
 });
+
+// The owner's pick list review, part 2 (11 October 2026, decisions D204 to D213): tasks built from shared
+// activities (D213). Each new line is from a source held, or marked as the owner's instruction where he
+// decided it stands on its own (D209).
+// Before ground work, every in-ground service is marked and known to the operators and spotters (D210).
+const SERVICES_KNOWN = src('Before ground work starts, every in-ground service is located and marked, and the plant operators and spotters know where each one is, or it is gone through with them at the pre-start.', `${WHS('s 304')}; ${QCODE('Excavation work', 's 3.6')}`);
+addTo('vegClearing', 'Clear vegetation with the mulcher and excavator', [SERVICES_KNOWN]);
+addTo('earthworks', 'Run earthmoving plant', [SERVICES_KNOWN]);
+
+// Mast climbers: the owner's instruction (D209), worded as a site rule. No source held states it.
+addTo('mastClimber', 'Install, climb and dismantle the mast climbing work platform', [
+  'Where the engineer\'s design and the manufacturer\'s instructions differ, work stops and the engineer is asked, and it goes on only on the engineer\'s clear instruction.',
+  'The engineer approves the ground, slab or structure for the mast climbing work platform\'s base and tie loads before it is installed.',
+]);
+
+// Silt fences are manual work with hammers and pegs; shaker grids go in to their supplier's instructions.
+addTo('erosionControl', 'Install and maintain erosion and sediment controls', [
+  src('Pegs and stakes are driven with a hammer or post driver suited to the job and the worker, and hammering is rotated with other tasks and broken with rest.', QCODE('Hazardous manual tasks', 's 4.4, s 4.7')),
+  src('Shaker grids, rumble grids and wheel wash units are installed, used and maintained to their supplier\'s instructions.', WHS('s 202')),
+]);
+
+// Basement excavation: more than one way out (excavation code s 4.4).
+addTo('bulkDig', 'Bulk excavate and load trucks', [
+  src('The excavation has more than one way in and out for workers, such as a scaffold stair at each end, so they can get out quickly in an emergency.', QCODE('Excavation work', 's 4.4')),
+]);
+
+// Trenches and pits: benching or battering designed by a geotechnical engineer past 1.5 m (s 6.2), and
+// shoring and shields used only by workers competent in that system (s 6.5; WHS Regulation s 39).
+addTo('trench', 'Excavate', [
+  src('Where the excavation is deeper than 1.5 m and is benched or battered, the benches and batters are designed by a competent person, such as a geotechnical engineer, for the soil, its moisture, the face height and the loads near the edge, and are no steeper than 45 degrees unless designed and certified in writing.', QCODE('Excavation work', 's 6.2')),
+  src('Shoring, trench shields and boxes are installed, moved and removed only by workers trained and competent in that system, to its manufacturer\'s or designer\'s instructions.', `${QCODE('Excavation work', 's 6.5')}; ${WHS('s 39')}`),
+]);
+
+// Vibration monitoring is one step before work, where the engineer requires it (EPA Victoria s 4.2.1).
+addTo('neighbours', 'Protect neighbouring buildings and the street', [
+  { only: 'vibrationMonitoring', ...src('Where the structural engineer requires vibration monitoring, the monitors are installed and recording, and the crew knows the limits, before work that causes vibration starts. Work stops if a limit is reached.', EPA_VIC('s 4.2.1, s 4.3.4')) },
+]);
+
+// Contaminated fill: the plan, the consultants, and unexpected contamination (EPA Victoria s 6.2.1, s 6.6).
+addTo('contaminatedSpoil', 'Handle contaminated or unknown material in the spoil', [
+  src('Contaminated or unknown fill, which can hold heavy metals, PFAS, hydrocarbons or asbestos, is dug, stockpiled, sampled and disposed of only as the environmental management plan, the environmental consultant and the geotechnical engineer set out.', EPA_VIC('s 6.2.1, s 6.3')),
+  src('Where unexpected contamination is found, work there stops, the supervisor is told at once, the area is fenced off and temporary controls go in, and work resumes only on a suitably qualified person\'s advice.', EPA_VIC('s 6.6')),
+]);
+
+// Road plant: competent operators of the profiler; stabilisation is not assumed to be next to traffic.
+addTo('roadPlant', 'Run the road plant inside the work zone', [
+  { only: 'profiler', ...reuse('Operators can show they are competent on the type of plant they use.') },
+]);
+for (const line of stepOf('roadPlant', 'Run the road plant inside the work zone').controls) {
+  if (line && typeof line === 'object' && /^All plant works inside the traffic management set out for the job/.test(line.text || '')) line.unless = 'awayFromTraffic';
+}
+
+// Concrete formed, reinforced and poured in an excavation: in situ manholes, thrust blocks, headwalls (D213).
+addAfter('handTrim', {
+  when: 'castInGround',
+  steps: [{
+    step: 'Form, fix reo and pour concrete in the excavation',
+    unless: 'manholePrecast',
+    hazards: ['The excavation side collapses onto workers between the forms and the face.', 'Forms fall or burst during the pour.', 'Impalement on exposed starter bars.', 'Cement burns to the skin and eyes.', 'A reversing agitator truck or the pump hose strikes a worker.'],
+    controls: [
+      reuse('Wall forms are built and braced to their design, with a work platform and edge protection along the top for fixing reo and placing concrete.'),
+      reuse('No one works between the wall forms and an unsupported excavation face. The face is battered, benched or shored as the excavation plan sets out.'),
+      reuse('Exposed starter bars are capped or covered.'),
+      reuse('Concrete is placed at the rate the form design allows, and a person watches the forms during the pour.'),
+      src('The agitator truck stands back from the excavation edge, and people keep clear of the chute while it is swung or extended.', QCODE('Concrete pumping', 's 4.2.2.2, s 4.3.1')),
+      reuse('Keep people clear of the end hose at start-up. Clear blockages only after the pressure is released.'),
+      reuse('Wear gloves and eye protection.'),
+      reuse('Wash wet concrete off the skin straight away.'),
+      reuse('Forms are stripped only when the engineer\'s strength or time is reached.'),
+    ],
+  }],
+});
+
+// Precast manholes and pits placed by hand: team lifts, and workers in the excavation only once it is safe.
+addTo('tankPlace', 'Lift and place tanks, pits or precast units', [
+  { only: 'manholeByHand', ...reuse('Team lifts are an interim control only. One person plans and takes charge of each team lift.') },
+  { only: 'manholeByHand', ...reuse('No one works between the wall forms and an unsupported excavation face. The face is battered, benched or shored as the excavation plan sets out.') },
+]);
+stepOf('tankPlace', 'Lift and place tanks, pits or precast units').unless = 'manholeInSitu';
+for (const line of stepOf('tankPlace', 'Lift and place tanks, pits or precast units').controls) {
+  if (line && typeof line === 'object' && /^(?:No one is in the excavation while a unit is lowered|Workers guide the unit with tag lines from outside the excavation)/.test(line.text || '')) line.unless = 'manholeByHand';
+}
 
 // The citation helpers, for lines other modules add with their sources (draft.js permits).
 const CITE = { WHS, MODEL, QCODE, NSWC, LINES };

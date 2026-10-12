@@ -53,7 +53,7 @@ const COMMON = new Set([
   // Gap job steps (10 October 2026), each only where the task's words name the work.
   'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate',
   // The owner's pick list review, part 1 (11 October 2026), each only where the words name the work.
-  'erosionControl', 'handTrim', 'mastClimber',
+  'erosionControl', 'handTrim', 'mastClimber', 'castInGround',
   // Any trade can work inside a deep excavation, station box or shaft that others dug, and lay pipes in it.
   'inExcavation', 'inTrench', 'layInExcavation',
 ]);

@@ -260,7 +260,7 @@
     {
      "id": "hung-suspended",
      "title": "Hung, cantilevered and suspended scaffolds, including swing stages",
-     "task": "Hung, cantilevered and suspended scaffolds, including swing stages, by advanced scaffolders to the engineer's design: confirm the ground or structure can take the loads with the geotechnical or structural engineer, erect the hung or cantilevered scaffold from the structure, and rig, inspect and dismantle the swing stage for other trades.",
+     "task": "Hung, cantilevered and suspended scaffolds, including swing stages, by scaffolders holding the licence class each needs, to the engineer's design where the code requires one: confirm the ground or structure can take the loads with the geotechnical or structural engineer, erect the hung or cantilevered scaffold from the structure, and rig, inspect and dismantle the swing stage for other trades.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
@@ -356,7 +356,6 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "the engineer's approval of the ground or structure for the base and tie loads, and what to do where the engineer's design and the manufacturer's instructions differ",
       "climbing, extending and using the platform (load limits, daily checks and wind limits)"
      ],
      "coverage": "partial",
@@ -501,7 +500,7 @@
     {
      "id": "site-clearing",
      "title": "Site clearing, grubbing and topsoil stripping",
-     "task": "Site clearing once the services are located and the clearing limits marked: install the erosion and sediment controls, pothole to expose services before grubbing, remove trees and stumps with trained fauna spotters, clear and grub the vegetation, strip the topsoil, and stockpile and cover it or truck it off site, as the environmental management plan requires.",
+     "task": "Site clearing once the in-ground services are marked and known to the operators and spotters: install the erosion and sediment controls, pothole to expose services before grubbing, remove trees and stumps with trained fauna spotters, clear and grub the vegetation, strip the topsoil, and stockpile and cover it or truck it off site, as the environmental management plan requires.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -521,7 +520,7 @@
     {
      "id": "bulk-earthworks",
      "title": "Bulk earthworks: cut, fill and compaction",
-     "task": "Bulk earthworks once the services are located and the set-out marked: install the erosion and sediment controls, cut and fill with excavators, dozers, scrapers and trucks, compact the fill with rollers and a rolling impact compactor, trim the batters and hand trim the base, hand compact with plate compactors, rammers or remote-controlled rollers, place the blinding, and stockpile and cart away spoil, as the environmental management plan requires.",
+     "task": "Bulk earthworks once the in-ground services are marked and known to the operators and spotters: install the erosion and sediment controls, cut and fill with excavators, dozers, scrapers and trucks, compact the fill with rollers and a rolling impact compactor, trim the batters and hand trim the base, hand compact with plate compactors, rammers or remote-controlled rollers, place the blinding, and stockpile and cart away spoil, as the environmental management plan requires.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -616,7 +615,7 @@
     {
      "id": "ground-improvement",
      "title": "Ground improvement: soft spot replacement, impact rolling and lime or cement treatment",
-     "task": "Ground improvement: compact the fill with a rolling impact compactor, and spread and mix lime or cement into the subgrade with road plant.",
+     "task": "Ground improvement: dig out the soft spots with excavators and refill them with suitable fill compacted in layers, compact the ground with a rolling impact compactor, and spread and mix lime or cement into the subgrade with road plant.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -625,26 +624,23 @@
       "earthworks"
      ],
      "leaveOut": [],
-     "gaps": [
-      "digging out and replacing soft spots"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "erosion-sediment",
      "title": "Erosion and sediment controls",
-     "task": "Install, maintain and remove erosion and sediment controls: silt fences, sediment basins, diversion drains, check dams and shake down grids at the site exit.",
+     "task": "Install, maintain and remove erosion and sediment controls: drive the pegs and fix the silt fence cloth by hand, replace damaged sections, excavate the sediment basins and diversion drains with plant, and install the shake down grids at the site exit to the supplier's instructions.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
-      "erosionControl"
+      "erosionControl",
+      "earthworks"
      ],
      "leaveOut": [],
-     "gaps": [
-      "building sediment basins and diversion drains with plant (excavation and embankments)"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -690,7 +686,7 @@
     {
      "id": "basement-bulk",
      "title": "Basement bulk excavation and truck loading",
-     "task": "Basement bulk excavation: dig out the basement in stages inside the retention wall, build and keep the haul ramp, load trucks with a spotter, protect the basement edge and the access into the basement, protect neighbouring buildings and the footpath, and stockpile and cart away spoil.",
+     "task": "Basement bulk excavation: dig out the basement in stages inside the retention wall, keep at least two ways in and out of the excavation, such as a scaffold stair at each end, build and keep the haul ramp, load trucks with a spotter, protect the basement edge, protect neighbouring buildings and the footpath, and stockpile and cart away spoil.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -707,7 +703,7 @@
     {
      "id": "staged-anchors-props",
      "title": "Staged excavation with ground anchors, props and shoring",
-     "task": "Staged basement excavation: excavate in front of the retention wall to each design stage level, stop until the ground anchors are stressed or the props are installed, never dig out soil above the anchors without approval, monitor the wall, and remove the props in the reverse sequence.",
+     "task": "Staged basement excavation, always to the engineer's design: excavate in front of the retention wall to each design stage level, stop until the ground anchors are stressed or the props are installed, never dig out soil above the anchors without approval, monitor the wall, and remove the props in the reverse sequence.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -737,6 +733,20 @@
      "basis": "evidence"
     },
     {
+     "id": "pile-cropping",
+     "title": "Pile cropping for pile caps, capping beams and crane or lift bases",
+     "task": "Pile cropping: expose the pile heads and break the piles down to level for the pile caps, capping beam and crane or lift bases, most often with jackhammers or with hydraulic croppers, cut the reo, and lift out the broken pile heads.",
+     "fallRisk": "no",
+     "crane": "company",
+     "kinds": [
+      "pileTrim"
+     ],
+     "leaveOut": [],
+     "gaps": [],
+     "coverage": "full",
+     "basis": "inferred"
+    },
+    {
      "id": "dewatering",
      "title": "Dewatering the excavation",
      "task": "Dewater the basement excavation: install and run spear points, wells and sump pumps, treat and discharge the water under the permit, watch for boiling and piping in sandy ground, and keep a flooding emergency plan.",
@@ -753,7 +763,7 @@
     {
      "id": "contaminated-spoil",
      "title": "Contaminated fill, acid sulfate soils and spoil classification",
-     "task": "Contaminated fill and acid sulfate soils: dig and stockpile contaminated or unknown fill under the management plan, sample and classify the spoil before disposal, monitor gas in the excavation, stop and report suspect material found in the fill, and wash down the trucks.",
+     "task": "Contaminated fill and acid sulfate soils: dig and stockpile contaminated or unknown fill, which can hold heavy metals, PFAS or hydrocarbons, under the environmental management plan and the directions of the environmental consultant and geotechnical engineer, sample and classify the spoil before disposal, monitor gas in the excavation, stop and report suspect material found in the fill, and wash down the trucks.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -769,37 +779,35 @@
     {
      "id": "rock-excavation",
      "title": "Rock excavation in basements: hammering, rock sawing and ripping next to neighbours",
-     "task": "Rock excavation in the basement: break rock with hydraulic hammers, saw and rip the rock next to neighbouring buildings, with vibration monitoring, silica dust controls and checks on the rock faces.",
+     "task": "Rock excavation in the basement: break rock with hydraulic hammers, cut it with a rock saw on the excavator, and rip it next to neighbouring buildings, with vibration monitoring set up first where the structural engineer requires it, silica dust controls and checks on the rock faces.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "rockBreak",
-      "neighbours"
+      "neighbours",
+      "rockSaw"
      ],
      "leaveOut": [],
-     "gaps": [
-      "rock sawing",
-      "vibration monitoring at neighbouring buildings"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
      "id": "underpinning",
      "title": "Underpinning neighbouring footings",
-     "task": "Underpinning: hand excavate the underpinning pits one at a time under the neighbouring footing, install temporary support in each pit, place mass concrete, and protect and monitor the neighbouring building.",
+     "task": "Underpinning to the engineer's design: excavate under the existing footings in the sequence the design sets, with plant where it can reach and by hand where it cannot, with long spells of repetitive hand digging and hand trimming, support the excavation, place the reinforcement and concrete, and monitor the neighbouring building.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "detailDig",
       "neighbours",
-      "propping"
+      "propping",
+      "underpinning",
+      "handTrim"
      ],
      "leaveOut": [],
-     "gaps": [
-      "excavating and shoring underpinning pits under a neighbouring footing"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     }
    ]
@@ -812,12 +820,13 @@
     {
      "id": "stormwater",
      "title": "Stormwater drainage: pipes, pits and subsoil drains",
-     "task": "Stormwater drainage: excavate trenches, including trenches deeper than 1.5 m with shoring or shields, lay and joint the pipes and subsoil drain pipes, place the precast pits and gully pits, and backfill and compact.",
+     "task": "Stormwater drainage: excavate trenches, including trenches deeper than 1.5 m with shoring or shields installed by workers competent in that system, or with benches the geotechnical engineer designs, lay and joint the pipes and subsoil drain pipes, place the precast pits and gully pits, and backfill and compact.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "trench",
-      "tankPlace"
+      "tankPlace",
+      "wallDrainage"
      ],
      "leaveOut": [],
      "gaps": [],
@@ -827,19 +836,18 @@
     {
      "id": "sewer",
      "title": "Gravity sewer mains and manholes",
-     "task": "Gravity sewer mains: excavate deep trenches with shoring or shields, lay sewer pipe to grade, place precast manholes, fusion weld PE pipe, and backfill.",
+     "task": "Gravity sewer mains and manholes: excavate deep trenches with shoring or shields, lay sewer pipe to grade, fusion weld PE pipe, form and pour the manholes in place or place precast manholes by crane or by hand, and backfill.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "trench",
       "tankPlace",
-      "peFusion"
+      "peFusion",
+      "castInGround"
      ],
      "leaveOut": [],
-     "gaps": [
-      "building a manhole in place (formwork, benching and a cast in situ shaft)"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -862,18 +870,19 @@
     {
      "id": "water-mains",
      "title": "Water mains: lay, test, disinfect and connect",
-     "task": "Water mains: excavate the trench, lay PE and PVC mains, butt and electrofusion weld the pipe, and pressure test the main.",
+     "task": "Water mains: excavate the trench, lay PE and PVC mains, butt and electrofusion weld the pipe, form and pour the concrete thrust blocks in the trench, lower the valve chambers into place, and pressure test the main.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "trench",
       "peFusion",
-      "pressureTest"
+      "pressureTest",
+      "castInGround",
+      "tankPlace"
      ],
      "leaveOut": [],
      "gaps": [
-      "disinfecting (chlorinating) the main",
-      "thrust blocks and valve chambers"
+      "disinfecting (chlorinating) the main"
      ],
      "coverage": "partial",
      "basis": "evidence"
@@ -914,21 +923,20 @@
     {
      "id": "culverts",
      "title": "Culverts and headwalls",
-     "task": "Culverts and headwalls in a creek with a risk of drowning: place the precast culvert units by crane, form the headwalls and wingwalls, place rock scour protection, and backfill.",
+     "task": "Box culverts and headwalls in a creek with a risk of drowning: place the precast box culvert units in line by crane, grout and caulk the joints, form and pour the headwalls and wingwalls, place rock scour protection, and backfill.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "tankPlace",
-      "concreteWall",
+      "castInGround",
       "rockLining",
-      "water"
+      "water",
+      "caulking",
+      "groutPump"
      ],
      "leaveOut": [],
-     "gaps": [
-      "placing box culvert units in line and their joints",
-      "headwall forming"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -990,50 +998,46 @@
     {
      "id": "subgrade-prep",
      "title": "Subgrade preparation and proof rolling",
-     "task": "Subgrade preparation: trim and compact the subgrade with graders, rollers and water carts, proof roll, and spread and compact gravel.",
+     "task": "Subgrade preparation: trim the subgrade with a grader or a posi-track, compact it with rollers and water carts, proof roll it with a drum roller, and spread and compact gravel.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "earthworks",
-      "gravelLay"
+      "gravelLay",
+      "smallPlant"
      ],
      "leaveOut": [],
-     "gaps": [
-      "trimming to level and proof rolling"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "granular-pavement",
      "title": "Granular pavement layers: sub-base and base",
-     "task": "Granular pavement: deliver, spread and compact the sub-base and base gravel in layers with road plant.",
+     "task": "Granular pavement: deliver, spread and trim the sub-base and base gravel with a grader or posi-track, and compact the layers with rollers and water carts.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "gravelLay",
-      "roadPlant"
+      "roadPlant",
+      "smallPlant"
      ],
      "leaveOut": [],
-     "gaps": [
-      "grader trimming to level and layer testing"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "stabilisation",
      "title": "Pavement stabilisation (lime, cement or foamed bitumen)",
-     "task": "Pavement stabilisation next to live traffic: spread lime or cement and mix it in place with the stabiliser and road plant, then roll it.",
+     "task": "Pavement stabilisation: spread lime or cement with the spreader, mix it in place with the stabiliser, then roll it.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
-      "roadPlant",
-      "road"
+      "roadPlant"
      ],
      "leaveOut": [],
      "gaps": [
-      "the spreader and stabiliser run",
       "foamed bitumen stabilisation"
      ],
      "coverage": "partial",
@@ -1057,7 +1061,7 @@
     {
      "id": "profiling",
      "title": "Asphalt profiling (milling)",
-     "task": "Asphalt profiling next to live traffic: mill the existing road surface with a profiler loading trucks, and sweep.",
+     "task": "Asphalt profiling: mill the existing road surface with a profiler run by a competent operator, loading trucks, and sweep, under the traffic management plan (TMP) where the road stays open.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -1065,10 +1069,8 @@
       "road"
      ],
      "leaveOut": [],
-     "gaps": [
-      "running the profiler (milling machine)"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -1106,18 +1108,19 @@
     {
      "id": "kerb-channel",
      "title": "Concrete kerb and channel",
-     "task": "Kerb and channel: prepare the base, form and pour the kerb and channel with a kerb machine, and finish the concrete.",
+     "task": "Kerb and channel: prepare the base and hand compact it with a plate compactor for small areas or with plant for longer runs, form and pour the kerb and channel with a kerb machine, finish the concrete, and saw cut the joints.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "kerbInstall",
-      "road"
+      "road",
+      "sawCut",
+      "smallPlant",
+      "handTrim"
      ],
      "leaveOut": [],
-     "gaps": [
-      "preparing the kerb base and saw cutting the kerb joints"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -1169,25 +1172,25 @@
     {
      "id": "road-furniture",
      "title": "Road safety barrier, signs and guide posts",
-     "task": "Road furniture: install the road safety barrier, sign posts and signs, guide posts and bollards, after locating services.",
+     "task": "Road safety barrier, signs and guide posts: locate the services, dig or auger the post holes with an excavator, move the spoil with a posi-track, pour the concrete post footings, and install the barrier, sign posts and signs, guide posts and bollards.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "roadBarrier",
       "signageInstall",
-      "bollards"
+      "bollards",
+      "footingHoles",
+      "smallPlant"
      ],
      "leaveOut": [],
-     "gaps": [
-      "driving barrier and sign posts"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "noise-walls",
      "title": "Noise walls",
-     "task": "Noise walls: bore the footings, stand the posts, and lift in the noise wall panels with a crane, next to traffic.",
+     "task": "Noise walls: auger the post footings and pour them, stand the posts, and lift in the noise wall panels with a crane, next to traffic.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -1196,10 +1199,8 @@
       "road"
      ],
      "leaveOut": [],
-     "gaps": [
-      "large diameter bored footings for noise wall posts"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     }
    ]
@@ -2016,7 +2017,7 @@
     {
      "id": "pile-trimming",
      "title": "Pile trimming and pile head breakdown",
-     "task": "Pile trimming: expose the pile heads, crop or break down the piles, and cut the reo, with silica dust and vibration controls.",
+     "task": "Pile trimming: expose the pile heads, crop or break down the piles, most often with jackhammers or with hydraulic croppers, and cut the reo, with silica dust and vibration controls.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
@@ -3596,6 +3597,20 @@
       "temporary water reticulation"
      ],
      "coverage": "partial",
+     "basis": "inferred"
+    },
+    {
+     "id": "pipe-lagging",
+     "title": "Lagging hydraulic pipework",
+     "task": "Lag the hydraulic pipework: thermal and acoustic lagging of the hot and cold water pipework with adhesives and tape.",
+     "fallRisk": "no",
+     "crane": "company",
+     "kinds": [
+      "mechInsulation"
+     ],
+     "leaveOut": [],
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     }
    ]

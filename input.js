@@ -240,6 +240,8 @@ function draftBody(body) {
       clearingSpoil: field(facts.clearingSpoil, 100),
       blindingMethod: field(facts.blindingMethod, 100),
       asbestosAirMonitoring: field(facts.asbestosAirMonitoring, 100),
+      asbestosQuantity: field(facts.asbestosQuantity, 100),
+      manholeMethod: field(facts.manholeMethod, 100),
       poleTransformer: field(facts.poleTransformer, 20),
       transformerOil: field(facts.transformerOil, 100),
       groundBearing: field(facts.groundBearing, 2000),

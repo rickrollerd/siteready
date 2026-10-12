@@ -386,7 +386,7 @@ function packageKinds(rawTask, kinds) {
 // Work inside a deep excavation others dug comes only where the words put the work there.
 const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation', 'inTrench', 'layInExcavation',
   'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate',
-  'erosionControl', 'handTrim', 'mastClimber'];
+  'erosionControl', 'handTrim', 'mastClimber', 'castInGround'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -1108,7 +1108,7 @@ function choiceAnswer(id, value) {
     if (/\b(none|no|de-energised)\b/.test(text)) return 'none';
   }
   // The choices added for the owner's pick list review: the stored value, or the start of its label.
-  if (['clearingSpoil', 'blindingMethod', 'asbestosAirMonitoring'].includes(id)) {
+  if (['clearingSpoil', 'blindingMethod', 'asbestosAirMonitoring', 'asbestosQuantity', 'manholeMethod'].includes(id)) {
     const item = CATEGORY_FACTS.find((fact) => fact.id === id);
     const found = item.choices.find((choice) => choice.value.toLowerCase() === text.trim() || (text.trim() && choice.label.toLowerCase().startsWith(text.trim())));
     return found ? found.value : '';
@@ -1378,6 +1378,34 @@ const CATEGORY_FACTS = [
     level: 'Administrative',
     applies: (text) => /\basbestos\b/i.test(String(text || '')) && /\bremov\w*/i.test(String(text || ''))
       && !/(?<!\bnon[- ]?)\bfriable\b|\b(class a\b|lagging|loose[- ]fill|limpet|sprayed asbestos|asbestos[- ]contaminated dust)/i.test(String(text || '')),
+  },
+  {
+    // How much asbestos sets the licence the law requires (D205). It starts on the licensed case, so a
+    // draft never says less than the law asks until the user says the amount.
+    id: 'asbestosQuantity',
+    label: 'How much non-friable asbestos is removed',
+    prompt: 'How much non-friable asbestos is removed? It sets the licence the law requires.',
+    choices: [
+      { value: 'small', label: '10 m2 or less: no licence, a trained competent person' },
+      { value: 'large', label: 'More than 10 m2: a Class B (or Class A) licensed removalist' },
+    ],
+    default: 'large',
+    level: 'Administrative',
+    applies: (text) => /\basbestos\b/i.test(String(text || '')) && /\bremov\w*/i.test(String(text || ''))
+      && !/(?<!\bnon[- ]?)\bfriable\b|\b(class a\b|lagging|loose[- ]fill|limpet|sprayed asbestos|asbestos[- ]contaminated dust)/i.test(String(text || '')),
+  },
+  {
+    // A manhole is cast in situ or precast, placed by crane or by hand: the user says which (D213).
+    id: 'manholeMethod',
+    label: 'How the manholes are built',
+    prompt: 'How are the manholes built?',
+    choices: [
+      { value: 'insitu', label: 'Cast in situ: formed, reinforced and poured in the excavation' },
+      { value: 'craned', label: 'Precast, placed by crane or excavator' },
+      { value: 'hand', label: 'Precast sections placed by hand' },
+    ],
+    level: 'Administrative',
+    applies: (text) => /\b(?:build\w*|construct\w*|install\w*|plac\w*|new)\b[^.]{0,40}\bmanholes?\b|\bmanholes?\b[^.]{0,30}\b(?:cast in situ|precast)\b/i.test(String(text || '')),
   },
   {
     // Removing high voltage poles: a pole with no transformer has no transformer lift or lines.
@@ -4459,7 +4487,7 @@ function writtenWordings(task) {
   // A new roof built.
   on(/\b(?:install|construct|build)\w* (?:a |the )?new roof\b(?! (?:plant|spaces?|access|vents?|fans?|anchors?|top))/i.test(task), 'roof');
   // Ceilings installed, with no grid, tile or other trade's word.
-  on(/\b(?:install|fix|hang|sheet|line)\w* (?:the |all |new )*(?:[\w-]+ )?ceilings?\b(?! (?:fans?|lights?|lighting|grids?|tiles?|speakers?|hatch\w*|access|mounted|spaces?|voids?|cavit\w*|plenums?|insulation|batts|pipework|cables?|cabling))/i.test(task) && !/\b(?:grids?|tiles?|suspended|acoustic|sprinklers?|lights?|lighting|speakers?|fans?|insulation|batts)\b/i.test(task), 'plasterCeiling', 'plasterHeight');
+  on(/\b(?:install|fix|hang|sheet|line)\w* (?:the |all |new )*(?:[\w-]+ )?ceilings?\b(?! (?:fans?|lights?|lighting|grids?|tiles?|speakers?|hatch\w*|access|mounted|spaces?|voids?|cavit\w*|plenums?|insulation|batts|pipework|cables?|cabling))/i.test(task) && !/\b(?:grids?|tiles?|suspended|acoustic|sprinklers?|lights?|lighting|speakers?|fans?)\b/i.test(task) && !/\b(?:insulat\w*|batts)\b[^.]{0,25}\b(?:in|into|to|above|over|on|for) (?:the )?ceilings?\b/i.test(task), 'plasterCeiling', 'plasterHeight');
   // Floor wastes and sleeves set in the formwork before the pour.
   on(/\b(?:set|install|fix|place|cast)\w* (?:the )?(?:floor wastes?|puddle flanges?|(?:penetration )?sleeves?)\b[^.]{0,30}\b(?:formwork|deck|before (?:the )?pour)\b/i.test(task), 'castInPlumbing');
   // Water pumped out of an excavation.
@@ -4774,7 +4802,7 @@ function plainWordings(t, short, plain, on) {
   on(P(/\bconnect\w*\b[^.]{0,20}\b(?:to|into) (?:the )?(?:council |live |water |town )?mains?\b/i) && P(/\bwater\b/i), 'waterConnection');
   on(P(/\bpuddle flanges?\b/i), 'castInPlumbing', 'plumbingWork');
   on(P(/\bunder ?slab (?:plumbing|drainage|drains?|pipes?|pipework|sewer)\b/i), 'underslabDrainage', 'plumbingWork');
-  on(P(/\bhydraulic (?:services )?(?:pipework|pipes?|piping|risers?|stacks?|reticulation)\b|\b(?:plumbing|hydraulic|sanitary|soil|waste|pvc|copper) (?:risers?|stacks?)\b|\b(?:stacks?|pipework|pipes?)\b[^.]{0,20}\b(?:in|up) (?:the )?risers?\b/i) && fixing && !/\b(?:in-ground|underground|under ?slab|trench\w*|fire|sprinklers?|hydrants?|refrigerant|chilled|mechanical|vrf|air conditioning|gas|sewer\w*|drainage|collect\w*)\b/i.test(t), 'hydraulicRisers', 'plumbingWork');
+  on(P(/\bhydraulic (?:services )?(?:pipework|pipes?|piping|risers?|stacks?|reticulation)\b|\b(?<!heating |condenser |chilled )(?:hot|cold|hot and cold|domestic (?:hot |cold )?) water (?:pipework|pipes?|piping|reticulation)\b|\b(?:plumbing|hydraulic|sanitary|soil|waste|pvc|copper) (?:risers?|stacks?)\b|\b(?:stacks?|pipework|pipes?)\b[^.]{0,20}\b(?:in|up) (?:the )?risers?\b/i) && fixing && !/\b(?:in-ground|underground|under ?slab|trench\w*|fire|sprinklers?|hydrants?|refrigerant|chilled|mechanical|vrf|air conditioning|gas|sewer\w*|drainage|collect\w*)\b/i.test(t) && !(/\b(?:lag\w*|insulat\w*)\b/i.test(t) && !/\b(?:install\w*|run|runs|running|fix\w*|lay\w*|rough\w*|brazing|braze)\b/i.test(t)), 'hydraulicRisers', 'plumbingWork');
   on(P(/\b(?:plumbing|hydraulic|hydraulic services) (?:rough[- ]in|fit[- ]off)\b|\b(?:rough[- ]in|fit[- ]off)\b[^.]{0,30}\b(?:toilets?|basins?|sinks?|tapware|fixtures?)\b/i), 'plumbingFitOff', 'plumbingWork');
   on(P(/\bhot water (?:units?|plant|systems?|heaters?|cylinders?)\b/i) && fixing && !/\b(?:solar|heat pumps?)\b/i.test(t), 'pumpInstall', 'hotWater');
   on(P(/\b(?:water |booster )?pumps? and (?:water )?tanks?\b|\bbooster pumps?\b/i) && fixing, 'pumpInstall', 'tankPlace');
@@ -5544,7 +5572,10 @@ function settleFlags(flags, task, facts = {}) {
   const HAUL_ROUTE = /\b(?:on|along|via|across|over|using|from)\s+(?:the\s+|a\s+)?(?:shared\s+|site\s+|existing\s+|common\s+|main\s+)?haul roads?\b/gi;
   if (EARTH_PLANT.test(task.replace(HAUL_ROUTE, ' ')) && !T(/\b(skid ?steers?|bobcats?)\b/i)) { out.earthworks = true; out.sitePlant = true; } else if (T(new RegExp(HAUL_ROUTE.source, 'i'))) out.sitePlant = true;
   out.roadPlant = T(/\b(road profilers?|profiling|cold planers?|asphalt pavers?|resurfac\w* (?:a |the )?(?:road|lanes?|carriageway|street|highway|motorway)|asphalt resurfac\w*|resheet\w*|stabilis\w*|lime spreaders?|line marking trucks?|truck mounted attenuators?|tmas?)\b/i);
-  if (out.roadPlant) { out.road = true; if (T(/\b(profil\w*|resurfac\w*|asphalt)\b/i)) out.asphalt = false; }
+  // Lime or cement stabilisation is road plant, but not assumed to be next to traffic (owner's review,
+  // part 2): only words naming a road or traffic bring the traffic management steps.
+  const stabilisationOnly = T(/\b(?:stabilis\w*|lime|cement treat\w*)\b/i) && !T(/\b(?:traffic|roads?|streets?|lanes?|highways?|carriageways?|motorways?|intersections?|profil\w*|resurfac\w*|asphalt)\b/i);
+  if (out.roadPlant) { if (!stabilisationOnly) out.road = true; if (T(/\b(profil\w*|resurfac\w*|asphalt)\b/i)) out.asphalt = false; }
   out.heavyLift = T(/\b(\d{3,} ?t|\d{3,} tonnes?)\b[^.]{0,30}\bcranes?\b|\bcranes?\b[^.]{0,40}\b\d{3,} ?(?:t|tonnes?)\b|\b(crawler cranes?|tandem lifts?|two cranes|dual lift|heavy lift)\b/i) && !T(/\b(assembl\w*|dismantl\w*) (?:a |the )?crawler crane\b/i);
   if (out.heavyLift) out.craneInterface = true;
   if (out.dualLift) out.heavyLift = false;
@@ -6076,6 +6107,11 @@ function settleFlags(flags, task, facts = {}) {
   const clearing = choiceAnswer('clearingSpoil', (facts || {}).clearingSpoil);
   if (clearing === 'stockpile') out.spoilStaysOnSite = Boolean(out.spoilManage);
   out.spoilGoesOffSite = Boolean(out.spoilManage) && clearing === 'offsite';
+  // How the manhole is built, as the user says (D213): cast in situ, or precast placed by crane or by hand.
+  const manhole = choiceAnswer('manholeMethod', (facts || {}).manholeMethod);
+  out.manholeInSitu = manhole === 'insitu';
+  out.manholePrecast = manhole === 'craned' || manhole === 'hand';
+  out.manholeByHand = manhole === 'hand';
   // Landscaping: moving soil and mulch, and planting, are separate steps, each when named and both when neither is.
   const plantsNamed = /\b(plants|planting|planted|trees?|shrubs?|seedlings?|tubestock|hedges?|reveg\w*|seed(?:s|ed|ing)?)\b|\b(?:and|then|to) plant\b|\bplant (?:them|it|out|up|the (?:beds?|planters?|gardens?|trees|shrubs))\b/i.test(task.replace(/\bplant\w* rooms?\b/gi, ''));
   const soilNamed = /\b(soils?|topsoil|mulch\w*|compost|potting mix|growing media|garden beds?|planter boxes?|landscap\w*)\b/i.test(task);
@@ -6198,6 +6234,13 @@ function namedWorkFlags(task, flags = {}) {
   out.penetrationCovers = /\bpenetrations?\b/i.test(task);
   out.craneWorkbox = /\b(?:work ?box\w*|man ?box\w*|personnel box\w*)\b/i.test(task);
   out.bulkEarthworks = /\bbulk (?:earthworks|excavation)\b|\bcut and fill\b/i.test(task);
+  // Part 2 of the review (D213): concrete formed and poured in an excavation (thrust blocks, in situ
+  // manholes and pits, headwalls), vibration monitoring where the engineer requires it, the profiler's
+  // operator, and stabilisation that is not assumed to be next to traffic.
+  out.castInGround = /\bthrust blocks?\b|\b(?:form|pour)\w*\b[^.]{0,30}\b(?:manholes?|chambers?)\b[^.]{0,15}\bin (?:place|situ)\b|\bcast (?:in situ|in place)\b[^.]{0,40}\b(?:manholes?|pits?|chambers?|headwalls?)\b|\b(?:manholes?|pits?|chambers?)\b[^.]{0,30}\bcast (?:in situ|in place)\b|\b(?:head ?walls?|wing ?walls?)\b/i.test(task);
+  out.vibrationMonitoring = /\bvibration monitor\w*|\bmonitor\w* (?:the )?vibration\b/i.test(task);
+  out.profiler = /\b(?:profil(?:er|ing|e the)|milling machines?|cold mill\w*|mill\w* the (?:road|asphalt|surface|pavement))\b/i.test(task);
+  out.awayFromTraffic = /\b(?:stabilis\w*|lime|cement treat\w*)\b/i.test(task) && !/\b(?:traffic|roads?|streets?|lanes?|highways?|carriageways?|motorways?|intersections?)\b/i.test(task);
   return out;
 }
 
@@ -6825,10 +6868,11 @@ function transformerFlags(facts = {}) {
 function jobStepsForTask(task, facts, hazards, controls, state, extra = {}, setting = {}) {
   const source = acceptedText(combinedFacts(task, facts));
   const factText = (id) => {
-    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass', 'scaffoldType', 'clearingSpoil', 'blindingMethod'].includes(id)) return choiceAnswer(id, facts[id]);
+    if (['deckMethod', 'energisedWork', 'spaceAssessment', 'refrigerantClass', 'scaffoldType', 'clearingSpoil', 'blindingMethod', 'manholeMethod'].includes(id)) return choiceAnswer(id, facts[id]);
     // Unanswered, the gantry is designed for construction or demolition work above it (10 kPa).
     if (id === 'gantryLoad') return choiceAnswer(id, facts[id]) || 'construction';
     if (id === 'asbestosAirMonitoring') return choiceAnswer(id, facts[id]) || 'no';
+    if (id === 'asbestosQuantity') return choiceAnswer(id, facts[id]) || 'large';
     const given = keptFact(facts[id]);
     if (given) return asSentence(given);
     if (id === 'fallControl') return asSentence(fallControlText(source));

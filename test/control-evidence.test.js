@@ -26,7 +26,10 @@
 // underpinning sequence lines from one training unit, so not yet evidenced: 3,573 of 4,846, 73.7%;
 // the owner's pick list review, part 1 (11 October 2026): 48 new lines, 46 cited to code, regulation or
 // two organisations (EPA Victoria and the NSW Blue Book), two from EPA Victoria's guidance alone, so not yet
-// evidenced, and one line reworded (the site traffic management plan): 3,619 of 4,892, 73.98%).
+// evidenced, and one line reworded (the site traffic management plan): 3,619 of 4,892, 73.98%;
+// part 2 (D204 to D213): 13 new lines, 8 cited to code or regulation sections read, 3 from EPA Victoria's
+// guidance alone and 2 the owner's own instruction (D209, mast climbers), so not yet evidenced, and one
+// asbestos licence line replaced by the amount the user gives (D205): 3,626 of 4,904, 73.94%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
