@@ -41,6 +41,11 @@
     .pass .rule { color: #1f4e3d; }
     .source { color: #5c6773; font-size: 13px; }
     .hidden { display: none; }
+    .keeping { margin-top: 10px; padding: 10px 12px; border: 1px solid #c9d6cf; border-radius: 8px; background: #f3f8f5; }
+    .keeping p { margin: 0 0 8px; }
+    .keeping p.meta { margin-bottom: 6px; }
+    label.tick { display: flex; align-items: center; gap: 10px; font-weight: 600; margin: 0; min-height: 44px; cursor: pointer; }
+    label.tick input { width: 22px; height: 22px; margin: 0; flex: none; }
     #progress p { margin: 0 0 8px; }
     #progress p:last-child { margin: 0; }
     /* Phones (goal 7): controls at least 44 px and text at least 16 px. */
@@ -71,7 +76,12 @@
         <input id="file" type="file" accept=".docx,.pdf,.txt">
         <label for="text">Or paste the SWMS</label>
         <textarea id="text" placeholder="Paste the whole SWMS here"></textarea>
-        <p class="meta">The AI copies the SWMS into the check form and quotes it; the rules do the scoring. The file is not kept.</p>
+        <p class="meta" id="notKept">The AI copies the SWMS into the check form and quotes it; the rules do the scoring. The file is not kept.</p>
+        <div id="keeping" class="keeping hidden">
+          <p class="meta">The AI copies the SWMS into the check form and quotes it; the rules do the scoring.</p>
+          <p id="keepNotice"></p>
+          <label class="tick"><input type="checkbox" id="noKeep"> <span id="noKeepLabel">Do not keep this document</span></label>
+        </div>
       </div>
 
       <div id="draftPart" class="hidden">
@@ -103,6 +113,7 @@
       <div class="panel">
         <div class="score"><strong id="score"></strong><span>out of 100</span><span id="band" class="band"></span></div>
         <p class="meta" id="taskLine"></p>
+        <p class="meta hidden" id="keptLine"></p>
         <div id="notFound" class="bad hidden"></div>
       </div>
       <div class="panel">

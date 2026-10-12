@@ -28,6 +28,22 @@
    - `CONTROL_LEARNING_KEY`: another long random value (at least 32 characters), set before `CONTROL_LEARNING=on`. Without it, control learning stays off in production and the log says so.
 3. Railway sets `PORT`. The other optional settings are in `.env.example`.
 
+### Step 2a: Keeping SWMS checked with the builder check (optional)
+
+Off unless `KEEP_CHECKED_SWMS=on`. When on, each SWMS uploaded or pasted into the builder check is kept (the original, its text, the result), the check page tells the user and offers "Do not keep this document", and the owner sees them on `/admin.html`. The originals go in a Railway storage bucket in production:
+
+1. In the Railway project, click **Create** → **Bucket**, choose its region and name it (for example `siteready-checks`).
+2. In the app's **Variables**, add these as references to the bucket's Credentials (the bucket's own name for each is in brackets):
+   - `CHECKED_SWMS_BUCKET` (`BUCKET`)
+   - `CHECKED_SWMS_BUCKET_KEY_ID` (`ACCESS_KEY_ID`)
+   - `CHECKED_SWMS_BUCKET_SECRET` (`SECRET_ACCESS_KEY`)
+   - `CHECKED_SWMS_BUCKET_REGION` (`REGION`)
+   - `CHECKED_SWMS_BUCKET_ENDPOINT` (`ENDPOINT`)
+   - `CHECKED_SWMS_BUCKET_PATH_STYLE=on` only if the Credentials tab says the bucket uses path-style URLs.
+3. Set `KEEP_CHECKED_SWMS=on`. It uses `CHECKED_SWMS_KEY` (a long random value, at least 32 characters) for the keyed business fingerprint in the learning copy, or `CONTROL_LEARNING_KEY` when that is set and `CHECKED_SWMS_KEY` is not.
+
+Optional: `KEEP_CHECKED_SWMS_YEARS` (default 3) and, for local copies without a bucket, `KEEP_CHECKED_SWMS_DB_MAX_MB` (default 5). Without the bucket, production keeps the text and result but not the original, and the log says so at start.
+
 Without `DATABASE_URL` the app still drafts and previews, but signing in, downloads and saving are switched off.
 
 Face ID works in Safari and Chrome on the web address. In the iOS app wrapper it also needs the domain added as an associated domain (webcredentials), which is set up when the app is signed for the App Store.

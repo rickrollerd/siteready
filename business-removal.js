@@ -6,8 +6,9 @@
 // Every row tied to the business goes: the company and its logo, its people and their sign-ins,
 // sessions, Face ID keys and sign-in links, sites, saved SWMS with every revision, worker sign-ons,
 // reads and translations, review flags, references (so the public check says the reference is
-// not found), AI readings, action counts, its industry records, and the owner's access log entries
-// about it. Two things stay: the ABN in trial_abns, with no link to the account, so a deleted
+// not found), AI readings, action counts, its industry records, the SWMS it checked with the builder
+// check and kept (checked-swms.js: each document no other business also checked, with its original,
+// learning copy and lines), and the owner's access log entries about it. Two things stay: the ABN in trial_abns, with no link to the account, so a deleted
 // business cannot start a second free trial; and the control learning rows, which hold no
 // business, account, site or SWMS id. One access log entry records that a business was deleted,
 // with its account id and the date, and no name.
@@ -15,6 +16,7 @@ const crypto = require('crypto');
 const db = require('./db');
 const { businessCode } = require('./industry');
 const { liveSubscription } = require('./billing');
+const checkedSwms = require('./checked-swms');
 
 const RETENTION_MONTHS = 12;
 
@@ -82,6 +84,8 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   await run('sites', 'DELETE FROM sites WHERE company_id = $1');
   await run('ai_readings', 'DELETE FROM ai_readings WHERE company_id = $1');
   await run('events', 'DELETE FROM events WHERE company_id = $1');
+  // Builder checks it kept: its uploads, and each document no other business uploaded too.
+  removed.checked_swms = (removed.checked_swms || 0) + await checkedSwms.removeForCompany(id);
   const code = businessCode(id);
   if (code) await run('industry_records', 'DELETE FROM industry_records WHERE business = $1', [code]);
 

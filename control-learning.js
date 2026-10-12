@@ -681,7 +681,11 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
 
   const recording = enabled();
   const shown = months.find((item) => item.month === chosen);
+  // Real SWMS kept from builder checks (checked-swms.js), shown only when keeping is on or something
+  // was kept, so the report is otherwise as before.
+  const checkedSwms = await require('./checked-swms').monthSection(chosen);
   return {
+    ...(checkedSwms ? { checkedSwms } : {}),
     month: chosen,
     whole: chosen < monthOf(now),
     recording,
@@ -757,6 +761,7 @@ function reportMarkdown(report) {
   out.push(`The library's gaps users fill themselves, by the different saved SWMS a step was written in, most first: ${report.ownSteps.total} piece${report.ownSteps.total === 1 ? '' : 's'} of work in all. A step becomes library steps only with a source we hold (D181), the goal 5 evidence test and a person's sign-off.`, '');
   out.push(table(['Work SiteReady does not cover', 'Step users wrote', 'SWMS', 'This month', 'Different steps written', 'Goal 5 check needed'],
     report.ownSteps.items.map((item) => [item.part, item.step, item.swms, item.swmsThisMonth, item.versions, 'Yes']), 'No steps written by users recorded.'));
+  if (report.checkedSwms) out.push(require('./checked-swms').sectionMarkdown(report.checkedSwms));
   out.push('## Candidate library changes', '');
   out.push(`${report.candidates.thresholdNote} ${report.candidates.rule}`, '');
   for (const group of CANDIDATE_GROUPS) {
@@ -779,4 +784,4 @@ function reportMarkdown(report) {
   return out.join('\n');
 }
 
-module.exports = { enabled, recordControlEdits, recordOwnSteps, gapKey, OWN_STEPS_TITLE, recordFailedQuestions, summary, monthlyReport, reportMarkdown, lastWholeMonth, isMonth, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS, CANDIDATE_THRESHOLD };
+module.exports = { enabled, recordControlEdits, recordOwnSteps, gapKey, deidentify: takeOut, OWN_STEPS_TITLE, recordFailedQuestions, summary, monthlyReport, reportMarkdown, lastWholeMonth, isMonth, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS, CANDIDATE_THRESHOLD };

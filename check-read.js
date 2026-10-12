@@ -3,7 +3,9 @@
 // every line it gives is quoted from the document. The scoring is done by builder-check.js,
 // never by the AI.
 //
-// Nothing is kept: the document and the reading are used for the one check and dropped.
+// Nothing is kept: the document and the reading are used for the one check and dropped, unless
+// KEEP_CHECKED_SWMS is on (checked-swms.js), when the document, its text and the result are kept to
+// improve the library, the user is told at upload, and may choose not to have it kept.
 // Switched off with the AI scope reading (aiScope.enabled()). A long SWMS takes minutes to read,
 // so the server runs the check as a job held in memory only (check-jobs.js) and the page asks
 // for the result; the result is dropped once it is read.
@@ -16,6 +18,7 @@ const { prepareDraft } = require('./draft');
 const { draftBody } = require('./input');
 const { swmsWithoutSignOns } = require('./signon-strip');
 const { record } = require('./events');
+const checkedSwms = require('./checked-swms');
 
 const CHECK_BRIEF_VERSION = 'check-v3';
 
@@ -158,7 +161,8 @@ function readyToRead(body) {
 
 // POST /api/check: a SiteReady draft (no AI), a SWMS already in the structured form, or an
 // uploaded or pasted document read by the AI. Returns the score, the findings and the email.
-async function runCheck(body, company) {
+// user: the person checking, kept with an uploaded document when KEEP_CHECKED_SWMS is on.
+async function runCheck(body, company, { user = null } = {}) {
   const line = (value) => (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, 120) : '');
   const email = { to: line(body.to), from: line(body.from) || line(company && company.name) };
   // Review stage unless the builder says the SWMS is in use on site (owner decision on H7).
@@ -166,6 +170,7 @@ async function runCheck(body, company) {
   let result;
   let source;
   let notFound = [];
+  let kept = null;
   if (body.draft && typeof body.draft === 'object') {
     const input = draftBody(body.draft);
     const draft = prepareDraft(input);
@@ -189,8 +194,10 @@ async function runCheck(body, company) {
     result = checkSwms(swms, { state: line(body.state) || swms.state, stage });
     notFound = read.notFound;
     source = 'document';
+    kept = await checkedSwms.keepChecked({ body, text: stripped.text, swms, result: { ...result, notFound }, company, user });
   }
-  return { ...result, source, notFound, email: emailDraft(result, email) };
+  // Whether the document was kept is said only while keeping is on; otherwise the answer is as before.
+  return { ...result, source, notFound, email: emailDraft(result, email), ...(kept ? { kept: kept.kept, keptNote: kept.note } : {}) };
 }
 
 module.exports = { readSwms, runCheck, readsDocument, readyToRead, validSwms, quotesNotFound, useStripLog, CHECK_BRIEF, CHECK_SCHEMA, CHECK_BRIEF_VERSION };
