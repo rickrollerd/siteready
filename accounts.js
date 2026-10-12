@@ -825,6 +825,8 @@ async function removeExpired(now = new Date()) {
   await db.query('DELETE FROM signins WHERE created_at < $1', [new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)]);
   // Changes kept to improve the controls are deleted after 3 years.
   await removeOldEdits(now);
+  // Builder checks kept (KEEP_CHECKED_SWMS) go 3 years after they were last checked, unless set otherwise.
+  await require('./checked-swms').removeOld(now);
 }
 
 module.exports = { validAbn, router, sendReviewReminders, removeExpired, withCompany, updatedWording, saveForDownload, documentParts, sendDocument, REVIEW_MONTHS };

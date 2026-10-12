@@ -389,6 +389,73 @@ const SCHEMA = [
   // When a business's subscription ended, as Stripe reports it, so the owner can see which
   // businesses stopped paying more than 12 months ago (privacy policy, "How long we keep it").
   'ALTER TABLE companies ADD COLUMN IF NOT EXISTS plan_ended_at TIMESTAMPTZ',
+  // SWMS checked with the builder check, kept to improve the library (owner, 11 October 2026;
+  // checked-swms.js). Written only when KEEP_CHECKED_SWMS is on. One row for each document, found
+  // again by its content fingerprint: its file name and type, where its original is stored, the text
+  // read from it with worker sign-ons taken out, the check result and score, state, trade and month.
+  // The original keeps its names and is for the owner only. Kept 3 years unless set otherwise.
+  `CREATE TABLE IF NOT EXISTS checked_swms (
+    id TEXT PRIMARY KEY,
+    content_hash TEXT NOT NULL UNIQUE,
+    source TEXT NOT NULL,
+    file_name TEXT NOT NULL DEFAULT '',
+    file_type TEXT NOT NULL DEFAULT '',
+    file_bytes INTEGER NOT NULL DEFAULT 0,
+    storage TEXT NOT NULL,
+    storage_note TEXT NOT NULL DEFAULT '',
+    text TEXT NOT NULL DEFAULT '',
+    result TEXT NOT NULL DEFAULT '{}',
+    score INTEGER,
+    band TEXT NOT NULL DEFAULT '',
+    state TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    month TEXT NOT NULL,
+    checks INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMPTZ NOT NULL,
+    last_checked_at TIMESTAMPTZ NOT NULL
+  )`,
+  // Who uploaded each kept SWMS (the account and the person), apart from the document, so a
+  // business's documents go when the business is deleted. One document checked by two businesses
+  // has two rows and goes when neither is left.
+  `CREATE TABLE IF NOT EXISTS checked_swms_uploaders (
+    swms_id TEXT NOT NULL,
+    company_id TEXT NOT NULL,
+    user_id TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (swms_id, company_id)
+  )`,
+  // The original file of a kept SWMS (or the pasted text), when there is no storage bucket.
+  `CREATE TABLE IF NOT EXISTS checked_swms_files (
+    swms_id TEXT PRIMARY KEY,
+    data TEXT NOT NULL
+  )`,
+  // The learning copy of a kept SWMS: its text with names, phone numbers, emails, ABNs and addresses
+  // taken out, and its organisation only as a keyed fingerprint (never a name).
+  `CREATE TABLE IF NOT EXISTS checked_swms_learning (
+    swms_id TEXT PRIMARY KEY,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    org_key TEXT NOT NULL DEFAULT '',
+    text TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  // Each job step, hazard and control of a kept SWMS as a line, de-identified as above, with the
+  // library step it is most like and whether the library already has the line.
+  `CREATE TABLE IF NOT EXISTS checked_swms_lines (
+    id TEXT PRIMARY KEY,
+    swms_id TEXT NOT NULL,
+    month TEXT NOT NULL,
+    org_key TEXT NOT NULL DEFAULT '',
+    kind TEXT NOT NULL,
+    step TEXT NOT NULL DEFAULT '',
+    line TEXT NOT NULL DEFAULT '',
+    line_key TEXT NOT NULL DEFAULT '',
+    library_step TEXT NOT NULL DEFAULT '',
+    likeness REAL NOT NULL DEFAULT 0,
+    in_library BOOLEAN NOT NULL DEFAULT FALSE
+  )`,
+  'CREATE INDEX IF NOT EXISTS checked_swms_lines_swms ON checked_swms_lines (swms_id)',
 ];
 
 async function migrate() {

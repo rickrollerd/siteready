@@ -1,5 +1,5 @@
-// Secret keys for the keyed fingerprints in the industry data (INDUSTRY_KEY) and the control
-// learning store (CONTROL_LEARNING_KEY). The repository is public, so a built-in key is known to
+// Secret keys for the keyed fingerprints in the industry data (INDUSTRY_KEY), the control
+// learning store (CONTROL_LEARNING_KEY) and the learning copy of kept builder checks (CHECKED_SWMS_KEY). The repository is public, so a built-in key is known to
 // anyone and would let the records be linked back. In production a missing or short key switches
 // its feature off, and the log names the variable, never its value. Staging and local copies keep
 // the built-in key, so they work without setup.
@@ -26,8 +26,11 @@ function secretKey(names, builtIn) {
 
 const INDUSTRY = { names: ['INDUSTRY_KEY', 'SESSION_SECRET'], builtIn: 'siteready-industry' };
 const CONTROL_LEARNING = { names: ['CONTROL_LEARNING_KEY'], builtIn: 'siteready-control-learning' };
+// Keeping checked SWMS can share the control learning key, so switching it on needs one setting.
+const CHECKED_SWMS = { names: ['CHECKED_SWMS_KEY', 'CONTROL_LEARNING_KEY'], builtIn: 'siteready-checked-swms' };
 const industryKey = () => secretKey(INDUSTRY.names, INDUSTRY.builtIn);
 const controlLearningKey = () => secretKey(CONTROL_LEARNING.names, CONTROL_LEARNING.builtIn);
+const checkedSwmsKey = () => secretKey(CHECKED_SWMS.names, CHECKED_SWMS.builtIn);
 
 // The lines the server logs at start for each feature switched off for want of its key.
 function keyProblems() {
@@ -36,7 +39,9 @@ function keyProblems() {
   if (!industryKey()) lines.push(`INDUSTRY_KEY is not set, or is shorter than ${MIN_LENGTH} characters: industry records are off in production until it is set.`);
   const learningOn = String(process.env.CONTROL_LEARNING || '').trim().toLowerCase() === 'on';
   if (learningOn && !controlLearningKey()) lines.push(`CONTROL_LEARNING_KEY is not set, or is shorter than ${MIN_LENGTH} characters: control learning is off in production until it is set.`);
+  const keepOn = String(process.env.KEEP_CHECKED_SWMS || '').trim().toLowerCase() === 'on';
+  if (keepOn && !checkedSwmsKey()) lines.push(`CHECKED_SWMS_KEY (or CONTROL_LEARNING_KEY) is not set, or is shorter than ${MIN_LENGTH} characters: keeping checked SWMS is off in production until it is set.`);
   return lines;
 }
 
-module.exports = { isProduction, secretKey, industryKey, controlLearningKey, keyProblems, MIN_LENGTH };
+module.exports = { isProduction, secretKey, industryKey, controlLearningKey, checkedSwmsKey, keyProblems, MIN_LENGTH };

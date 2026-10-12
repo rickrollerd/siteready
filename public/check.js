@@ -25,6 +25,18 @@
     $('state').innerHTML = `<option value="">As stated in the SWMS</option>${data.states.filter((state) => state.loaded).map((state) => `<option value="${esc(state.id)}">${esc(state.name)}</option>`).join('')}`;
   }).catch(() => {});
 
+  // While SiteReady keeps checked SWMS (KEEP_CHECKED_SWMS), the user is told at upload and can choose
+  // not to have this one kept. Otherwise the page says the file is not kept, as before.
+  let keeping = false;
+  fetch('/api/check/keeping').then((response) => response.json()).then((data) => {
+    if (!data || !data.keeping) return;
+    keeping = true;
+    $('notKept').classList.add('hidden');
+    $('keepNotice').textContent = data.notice;
+    if (data.choice) $('noKeepLabel').textContent = data.choice;
+    $('keeping').classList.remove('hidden');
+  }).catch(() => {});
+
   function readFile(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -41,7 +53,8 @@
       return { ...common, draft: { state: $('state').value, task: $('task').value, fallRisk: $('fallRisk').value, workplace: $('workplace').value, principalContractor: $('principalContractor').value, complianceResponsible: $('responsible').value } };
     }
     const file = $('file').files[0];
-    return file ? { ...common, file: { name: file.name, data: await readFile(file) } } : { ...common, text: $('text').value };
+    const choice = keeping && $('noKeep').checked ? { keep: false } : {};
+    return file ? { ...common, ...choice, file: { name: file.name, data: await readFile(file) } } : { ...common, ...choice, text: $('text').value };
   }
 
   function show(data) {
@@ -52,6 +65,8 @@
     const option = [...$('state').options].find((item) => item.value && item.value === data.state);
     const stateLine = option ? `Checked under ${option.textContent} law.` : 'No state was found in the SWMS, so the national model WHS Regulations were used. Choose the state above and check again.';
     $('taskLine').textContent = `${data.task ? `Task: ${String(data.task).replace(/\.$/, '')}. ` : ''}${stateLine}`;
+    $('keptLine').classList.toggle('hidden', !data.keptNote);
+    $('keptLine').textContent = data.keptNote || '';
     const notFound = $('notFound');
     notFound.classList.toggle('hidden', !(data.notFound && data.notFound.length));
     notFound.innerHTML = data.notFound && data.notFound.length ? `<strong>Check these lines against the SWMS.</strong> The AI gave them, but they are not word for word in the document:<ul>${data.notFound.slice(0, 10).map((line) => `<li>${esc(line)}</li>`).join('')}</ul>` : '';

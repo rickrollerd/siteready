@@ -39,6 +39,8 @@
     .danger h3 { margin-top: 0; color: #8a2b2b; }
     button.danger-button { background: #8a2b2b; border-color: #8a2b2b; }
     .done { color: #1f5f3a; font-weight: 600; }
+    .hidden { display: none; }
+    pre.text { white-space: pre-wrap; font-size: 13px; max-height: 360px; overflow: auto; background: #f6f8fa; border: 1px solid #e1e6ec; border-radius: 6px; padding: 8px; }
     button, input[type="text"], input[type="search"] { min-height: 44px; box-sizing: border-box; }
   </style>
 </head>
@@ -66,6 +68,14 @@
       <p class="note">What users changed and which check questions workers got wrong, for one month and the months before it (goal 11). Counts only: no names, businesses or sites. Candidate library changes are for a person to check; this report never changes the library. For you only: nothing here is shown to customers.</p>
       <form id="learning-form"><input type="month" id="learning-month" aria-label="Month" placeholder="YYYY-MM"><button type="submit">Show</button><button type="button" class="secondary" id="learning-download">Download as text</button></form>
       <div id="learning"></div>
+    </div>
+    <div class="panel hidden" id="checked-panel">
+      <h2>SWMS kept from builder checks</h2>
+      <p class="note" id="checked-status"></p>
+      <p class="note">The originals keep their names: they are the evidence, for you only. Listing, opening, downloading and deleting are each kept in the access log. Delete one when its business asks.</p>
+      <form id="checked-form"><button type="submit">Show kept SWMS</button></form>
+      <table id="checked"></table>
+      <div id="checked-detail"></div>
     </div>
     <div class="panel">
       <h2>Due for removal</h2>

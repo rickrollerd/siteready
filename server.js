@@ -293,7 +293,7 @@ app.post('/api/check', auth.requireUser, async (req, res, next) => {
     if (checkRead.readsDocument(body)) {
       checkRead.readyToRead(body);
       const started = checkJobs.startJob(user.id, async () => {
-        const result = await checkRead.runCheck(body, company);
+        const result = await checkRead.runCheck(body, company, { user });
         record('builder_check', company && company.id);
         return result;
       }, (error) => recordError('POST /api/check (reading)', error));
@@ -305,6 +305,11 @@ app.post('/api/check', auth.requireUser, async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+// Whether an uploaded SWMS is kept (KEEP_CHECKED_SWMS), and the notice the check page shows at
+// upload while it is. Before /api/check/:id, which would otherwise take "keeping" for a check's id.
+app.get('/api/check/keeping', (req, res) => {
+  res.json(require('./checked-swms').uploadNotice());
 });
 // The check's result once ready, for the account that started it. It is dropped as it is read.
 app.get('/api/check/:id', auth.requireUser, async (req, res, next) => {
@@ -543,6 +548,9 @@ function start() {
   const workers = Math.floor(positiveNumber(process.env.WEB_CONCURRENCY, os.availableParallelism()));
   // In production, a feature whose secret key is missing stays off, and the log names the variable.
   if (cluster.isPrimary) for (const line of keyProblems()) console.error(line);
+  // Keeping checked SWMS in production without its storage bucket keeps no originals, and says so.
+  const storage = require('./checked-swms').enabled() ? require('./file-store').storageProblem() : null;
+  if (cluster.isPrimary && storage) console.error(storage);
   if (workers > 1 && cluster.isPrimary) {
     // The primary keeps the rate limit counts for every worker.
     servePrimary();

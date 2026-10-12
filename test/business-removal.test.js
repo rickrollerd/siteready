@@ -12,6 +12,7 @@ const db = require('../db');
 const { validAbn } = require('../accounts');
 const { businessCode } = require('../industry');
 const { dueForRemoval } = require('../business-removal');
+const aiScope = require('../ai-scope');
 const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 
 let server;
@@ -26,7 +27,11 @@ test.before(async () => {
   owner = await signIn('owner@removal.example');
 });
 
-test.after(() => server.close());
+test.after(() => {
+  server.close();
+  delete process.env.ANTHROPIC_API_KEY;
+  aiScope.useClient(null);
+});
 
 const call = (method, route, { body, token } = {}) => fetch(`${base}${route}`, {
   method,
@@ -79,6 +84,12 @@ const TIED = {
   industry_records: ['SELECT id FROM industry_records WHERE business = $1', (b) => [businessCode(b.companyId)]],
   admin_access_log: ["SELECT id FROM admin_access_log WHERE action <> 'business_deleted' AND (target = $1 OR target = $2 OR target = $3)", (b) => [b.companyId, b.refs[0], b.search]],
   trial_abns: ['SELECT abn FROM trial_abns WHERE company_id = $1', ID],
+  // A SWMS it checked with the builder check, kept while KEEP_CHECKED_SWMS is on (checked-swms.js).
+  checked_swms: ['SELECT id FROM checked_swms WHERE id = $1', (b) => [b.checkedId]],
+  checked_swms_uploaders: ['SELECT swms_id FROM checked_swms_uploaders WHERE company_id = $1', ID],
+  checked_swms_files: ['SELECT swms_id FROM checked_swms_files WHERE swms_id = $1', (b) => [b.checkedId]],
+  checked_swms_learning: ['SELECT swms_id FROM checked_swms_learning WHERE swms_id = $1', (b) => [b.checkedId]],
+  checked_swms_lines: ['SELECT id FROM checked_swms_lines WHERE swms_id = $1', (b) => [b.checkedId]],
 };
 // No business, account, site or SWMS id in them: kept when a business is deleted.
 const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'draft_translations'];
@@ -138,13 +149,47 @@ async function seedBusiness(key) {
   await db.query('INSERT INTO sign_translations (id, swms_id, content_hash, language, translation, created_at) VALUES ($1, $2, $3, $4, $5, $6)', [`tr-${key}`, swms.id, 'h', 'vi', '{}', now]);
   await db.query('INSERT INTO swms_review_flags (swms_id, notice_id, revision, reason, flagged_at) VALUES ($1, $2, $3, $4, $5)', [swms.id, 'notice-1', 2, 'A code changed.', now]);
   await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, status, created_at) VALUES ($1, $2, $3, $4, $5, $6)', [`ai-${key}`, companyId, 'doc', 'v1', 'done', now]);
+  // A subcontractor's SWMS checked with the builder check and kept, read by the stand-in model.
+  const checkedId = await keepACheck(key, token, companyId);
   // The owner looks at the account, a reference and searches for it: all in the access log.
   const refs = (await db.query('SELECT ref FROM swms_refs WHERE company_id = $1', [companyId])).map((row) => row.ref);
   assert.equal((await json('GET', `/api/admin/companies/${companyId}`, { token: owner })).status, 200);
   assert.equal((await json('GET', `/api/admin/refs/${refs[0]}`, { token: owner })).status, 200);
   const search = `${key.toLowerCase()} removal`;
   assert.equal((await json('GET', `/api/admin/companies?q=${encodeURIComponent(search)}`, { token: owner })).status, 200);
-  return { key, domain, admin, name, abn, token, companyId, swmsId: swms.id, signKey, refs, search };
+  return { key, domain, admin, name, abn, token, companyId, swmsId: swms.id, signKey, refs, search, checkedId };
+}
+
+// Checks a pasted SWMS naming the business's own people and site, with KEEP_CHECKED_SWMS on, so it is
+// kept; the owner opens it, so the access log holds a look at it. Returns the kept document's id.
+async function keepACheck(key, token, companyId) {
+  const reading = {
+    state: 'qld', task: 'Install sprinkler pipework.', fallRisk: 'no', siteAddress: `9 ${key} Road, Toowong QLD 4066`, siteConditions: [], highRisk: [],
+    steps: [{ step: 'Install pipework', hazards: ['Falling objects.'], controls: [`${key} Supervisor checks the exclusion zone before each lift.`], responsible: `${key} Supervisor` }],
+    ppe: [], responsiblePerson: `${key} Supervisor`, consultation: '', signatures: [], revision: '1', date: '', reviewDate: '', principalContractor: 'ABC Builders Pty Ltd',
+    licences: [], plant: [], emergency: [], review: '', legislation: [], riskMatrix: false,
+  };
+  process.env.ANTHROPIC_API_KEY = 'test-key-not-used';
+  aiScope.useClient({ beta: { messages: { stream: () => ({ finalMessage: async () => ({ stop_reason: 'end_turn', usage: {}, content: [{ type: 'text', text: JSON.stringify(reading) }] }) }) } } });
+  process.env.KEEP_CHECKED_SWMS = 'on';
+  try {
+    const text = `${key} Removal Test Pty Ltd\nSafe work method statement\nSite: 9 ${key} Road, Toowong QLD 4066\nInstall pipework. Falling objects. ${key} Supervisor checks the exclusion zone before each lift.`;
+    const started = await json('POST', '/api/check', { token, body: { text } });
+    assert.equal(started.status, 202);
+    let done = { status: 'checking' };
+    for (let i = 0; i < 200 && done.status === 'checking'; i += 1) {
+      await new Promise((resolve) => { setTimeout(resolve, 20); });
+      done = (await json('GET', `/api/check/${started.data.id}`, { token })).data;
+    }
+    assert.equal(done.kept, true);
+  } finally {
+    delete process.env.KEEP_CHECKED_SWMS;
+    delete process.env.ANTHROPIC_API_KEY;
+    aiScope.useClient(null);
+  }
+  const { swms_id: checkedId } = await db.one('SELECT swms_id FROM checked_swms_uploaders WHERE company_id = $1', [companyId]);
+  assert.equal((await json('GET', `/api/admin/checked-swms/${checkedId}`, { token: owner })).status, 200);
+  return checkedId;
 }
 
 // Every table named in db.js.
@@ -193,7 +238,7 @@ test('the owner deletes a whole business: every row tied to it goes, another bus
   assert.deepEqual(await tiedCounts(b), before.b);
   // No row anywhere holds its name, ids, emails, site, workers, references or sign-on key. Its
   // ABN is kept, in trial_abns only, and its account id only in the one access log entry.
-  const markers = [a.companyId, a.swmsId, a.signKey, a.name, a.domain, `${a.key} site`, `${a.key} Road`, `${a.key} Street`, `${a.key} Worker`, `${a.key} Crew`, `${a.key} Supervisor`, ...a.refs];
+  const markers = [a.companyId, a.swmsId, a.signKey, a.checkedId, a.name, a.domain, `${a.key} site`, `${a.key} Road`, `${a.key} Street`, `${a.key} Worker`, `${a.key} Crew`, `${a.key} Supervisor`, ...a.refs];
   for (const table of SCHEMA_TABLES) {
     const rows = await db.query(`SELECT * FROM ${table}`);
     for (const row of rows) {

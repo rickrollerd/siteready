@@ -473,6 +473,58 @@ router.get('/admin/control-learning/report.md', auth.requireUser, route(async (r
   res.send(reportMarkdown(report));
 }));
 
+// ---- Builder checks kept (KEEP_CHECKED_SWMS) ----
+
+// The owner's only view of the SWMS kept from builder checks (checked-swms.js). The originals keep
+// their names, so every list, look, download and delete is logged before anything is shown.
+// Whether keeping is on and how many are kept: counts only, so not logged. The page shows the panel
+// only while keeping is on or something is kept.
+router.get('/admin/checked-swms/status', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  const { enabled, retentionYears } = require('./checked-swms');
+  const total = await db.one('SELECT COUNT(*) AS n FROM checked_swms');
+  res.json({ keeping: enabled(), years: retentionYears(), bucket: require('./file-store').bucketConfigured(), total: Number(total.n) });
+}));
+
+router.get('/admin/checked-swms', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  await logAccess(req, 'checked_swms_list', '');
+  res.json(await require('./checked-swms').list());
+}));
+
+router.get('/admin/checked-swms/:id', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  const id = String(req.params.id || '').slice(0, 64);
+  await logAccess(req, 'checked_swms_view', id);
+  const item = await require('./checked-swms').view(id);
+  if (!item) throw auth.fail(404, 'No kept SWMS with that id.');
+  res.json(item);
+}));
+
+// The original as uploaded (or the pasted text), to download.
+router.get('/admin/checked-swms/:id/original', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  const id = String(req.params.id || '').slice(0, 64);
+  await logAccess(req, 'checked_swms_original', id);
+  const item = await require('./checked-swms').original(id);
+  if (!item) throw auth.fail(404, 'No kept SWMS with that id.');
+  if (!item.data) throw auth.fail(404, 'The original of this SWMS was not kept: only its text and result are.');
+  res.setHeader('Content-Type', item.type || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename="${String(item.name || 'swms').replace(/[^\w .()-]+/g, '_')}"`);
+  res.setHeader('Cache-Control', 'no-store');
+  res.send(item.data);
+}));
+
+// Deletes one kept SWMS, on request or by the owner's choice: the original, the text and result,
+// who uploaded it, its learning copy and lines.
+router.post('/admin/checked-swms/:id/delete', auth.requireUser, route(async (req, res) => {
+  requireOwner(req);
+  const id = String(req.params.id || '').slice(0, 64);
+  await logAccess(req, 'checked_swms_deleted', id);
+  if (!await require('./checked-swms').removeDocument(id)) throw auth.fail(404, 'No kept SWMS with that id.');
+  res.json({ ok: true, id });
+}));
+
 // ---- Access log ----
 
 router.get('/admin/access-log', auth.requireUser, route(async (req, res) => {

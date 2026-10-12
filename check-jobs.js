@@ -3,8 +3,9 @@
 // request failed" at about 30 seconds, twice), so the check is started here, the request returns
 // at once with the check's id, and the page asks for the result, as the AI scope reading does.
 //
-// Nothing is kept (check-read.js): a check lives in this server process's memory only, never in the
-// database or a file. The document is let go as soon as the check finishes; the result waits to be
+// Nothing is kept here (check-read.js): a check lives in this server process's memory only, never in
+// the database or a file. (With KEEP_CHECKED_SWMS on, the document and its result are kept by
+// checked-swms.js, not by the job.) The document is let go as soon as the check finishes; the result waits to be
 // read, and is dropped as soon as it is read, or 10 minutes after the check finished if it never is.
 //
 // The server runs one process per core and a request can reach any of them, so a check's id names

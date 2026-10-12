@@ -52,7 +52,10 @@
     (data.errors.map((item) => `<tr><td>${esc(when(item.created_at))}</td><td>${esc(item.route)}</td><td>${esc(item.message)}</td></tr>`).join('') || '<tr><td colspan="3">No errors.</td></tr>');
 
   // Every look at a reference or account is logged, so the log is shown again after each one.
-  const ACTIONS = { ref_lookup: 'Reference lookup', account_view: 'Opened account', account_search: 'Searched accounts', business_deleted: 'Deleted a business', removal_list: 'Listed businesses due for removal' };
+  const ACTIONS = {
+    ref_lookup: 'Reference lookup', account_view: 'Opened account', account_search: 'Searched accounts', business_deleted: 'Deleted a business', removal_list: 'Listed businesses due for removal',
+    checked_swms_list: 'Listed kept SWMS', checked_swms_view: 'Opened a kept SWMS', checked_swms_original: 'Downloaded a kept SWMS original', checked_swms_deleted: 'Deleted a kept SWMS',
+  };
   async function loadAccessLog() {
     const result = await api('/api/admin/access-log');
     if (!result.ok) { $('access-log').innerHTML = `<tr><td class="error">${esc(result.data.message || 'Not available.')}</td></tr>`; return; }
@@ -166,6 +169,88 @@
       result.data.companies.map((item) => `<tr><td><a href="${esc(accountHref(item.id))}">${esc(item.name || '(no name)')}</a></td><td>${esc(item.reason)} ${esc(item.endedAt ? day(item.endedAt) : '(date not recorded: check Stripe)')}</td><td>${esc(day(item.lastSeenAt) || 'Never')}</td></tr>`),
       `No business stopped paying, or ended its trial, more than ${result.data.months} months ago.`);
   });
+  // SWMS kept from builder checks (KEEP_CHECKED_SWMS). The panel shows only while keeping is on or
+  // something is kept. Listing, opening, downloading and deleting are each logged.
+  const size = (bytes) => (bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
+  const STORED = { bucket: 'Storage bucket', database: 'Database', none: 'Text only' };
+  const checkedStatus = await api('/api/admin/checked-swms/status');
+  if (checkedStatus.ok && (checkedStatus.data.keeping || checkedStatus.data.total)) {
+    const s = checkedStatus.data;
+    $('checked-panel').classList.remove('hidden');
+    $('checked-status').textContent = `${s.keeping ? 'Keeping is on' : 'Keeping is off: nothing new is kept'}. ${s.total} kept, each for ${s.years} years after it was last checked. Originals are stored in ${s.bucket ? 'the storage bucket' : 'the database (no storage bucket is set up)'}.`;
+  }
+  async function listChecked() {
+    const result = await api('/api/admin/checked-swms');
+    loadAccessLog();
+    if (!result.ok) { $('checked').innerHTML = `<tr><td class="error">${esc(result.data.message || 'Not available.')}</td></tr>`; return; }
+    $('checked').innerHTML = rows('<tr><th>Kept</th><th>Document</th><th>Place and trade</th><th>Score</th><th class="n">Checks</th><th class="n">Businesses</th><th>Stored</th></tr>',
+      result.data.documents.map((item) => `<tr><td class="nowrap">${esc(day(item.keptAt))}</td><td><a href="#" data-checked="${esc(item.id)}">${esc(item.fileName)}</a><br><span class="note">${esc(size(item.bytes))}</span></td><td>${esc([STATES[item.state] || item.state, item.trade].filter(Boolean).join(', ') || 'Not known')}</td><td>${esc(item.score ?? '')} ${esc(item.band)}</td><td class="n">${esc(item.checks)}</td><td class="n">${esc(item.businesses)}</td><td>${esc(STORED[item.storage] || item.storage)}</td></tr>`),
+      'Nothing kept yet.');
+  }
+  async function downloadOriginal(id) {
+    const response = await fetch(`/api/admin/checked-swms/${encodeURIComponent(id)}/original`, { headers: token ? { Authorization: `Bearer ${token}`, 'X-Session-Token': token } : {} });
+    loadAccessLog();
+    if (!response.ok) { $('checked-result').innerHTML = `<span class="error">${esc((await response.json().catch(() => ({}))).message || 'Not available.')}</span>`; return; }
+    const name = (/filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '') || [])[1] || 'swms';
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(await response.blob());
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+  async function openChecked(id) {
+    const box = $('checked-detail');
+    const result = await api(`/api/admin/checked-swms/${encodeURIComponent(id)}`);
+    loadAccessLog();
+    if (!result.ok) { box.innerHTML = `<p class="error">${esc(result.data.message || 'Not available.')}</p>`; return; }
+    const item = result.data;
+    const fails = (item.result.findings || []).filter((finding) => !finding.pass);
+    const missing = item.lines.filter((line) => !line.inLibrary);
+    box.innerHTML = `<h3>${esc(item.fileName)}</h3>
+      <dl>
+        <dt>Kept</dt><dd>${esc(when(item.keptAt))}, last checked ${esc(when(item.lastCheckedAt))}, ${esc(item.checks)} check${item.checks === 1 ? '' : 's'}</dd>
+        <dt>Score</dt><dd>${esc(item.score ?? '')} ${esc(item.band)}</dd>
+        <dt>Place and trade</dt><dd>${esc([STATES[item.state] || item.state, item.trade].filter(Boolean).join(', ') || 'Not known')}</dd>
+        <dt>Stored</dt><dd>${esc(STORED[item.storage] || item.storage)}, ${esc(size(item.bytes))}${item.storageNote ? ` <span class="note">${esc(item.storageNote)}</span>` : ''}</dd>
+        <dt>Uploaded by</dt><dd>${item.uploaders.map((up) => `<a href="${esc(accountHref(up.companyId))}">${esc(up.companyName)}</a> ${esc(up.email)} ${esc(day(up.uploadedAt))}`).join('<br>') || 'No account left'}</dd>
+        <dt>Organisation</dt><dd>${item.learning.organisationKnown ? 'Read from the document (kept as a fingerprint for learning)' : 'Not found in the document'}</dd>
+      </dl>
+      <p><button type="button" id="checked-original">Download the original</button></p>
+      <p id="checked-result"></p>
+      <h3>Not passed in the check</h3>
+      <ul class="plain">${fails.map((finding) => `<li>${esc(finding.rule)} ${esc(finding.title)}: ${esc(finding.message)}</li>`).join('') || '<li>Everything passed.</li>'}</ul>
+      <h3>Lines the library does not have (${esc(missing.length)} of ${esc(item.lines.length)}), de-identified</h3>
+      <table>${rows('<tr><th>Kind</th><th>Line</th><th>Most like the library step</th></tr>', missing.map((line) => `<tr><td>${esc(line.kind)}</td><td>${esc(line.line)}</td><td>${esc(line.libraryStep || 'None close')}</td></tr>`), 'None.')}</table>
+      <details><summary>The text as read (names kept)</summary><pre class="text">${esc(item.text)}</pre></details>
+      <details><summary>The de-identified learning copy</summary><pre class="text">${esc(item.learning.text)}</pre></details>
+      <div class="danger">
+        <h3>Delete this SWMS</h3>
+        <p class="note">When its business asks, or by your choice. The original, its text and result, who uploaded it and its learning copy all go. This cannot be undone.</p>
+        <form id="checked-delete"><button type="submit" class="danger-button">Delete this SWMS</button></form>
+      </div>`;
+    $('checked-original').addEventListener('click', () => downloadOriginal(item.id));
+    $('checked-delete').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!window.confirm('Delete this kept SWMS and everything kept for it?')) return;
+      const done = await api(`/api/admin/checked-swms/${encodeURIComponent(item.id)}/delete`, {});
+      loadAccessLog();
+      box.innerHTML = done.ok ? '<p class="done">The kept SWMS was deleted.</p>' : `<p class="error">${esc(done.data.message || 'Not deleted.')}</p>`;
+      if (done.ok) listChecked();
+    });
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  $('checked-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    listChecked();
+  });
+  $('checked').addEventListener('click', (event) => {
+    const link = event.target.closest('a[data-checked]');
+    if (!link) return;
+    event.preventDefault();
+    openChecked(link.dataset.checked);
+  });
+
   const fromHash = () => {
     const match = /^#account=(.+)$/.exec(location.hash);
     if (!match) return;
@@ -200,6 +285,16 @@
     ['reverted', 'Changes undone in the next revision', 'Change'],
   ];
   const KINDS = { removed: 'Removed', changed: 'Changed', added: 'Added', hazardChanged: 'Hazard changed', hazardAdded: 'Hazard added', hazardNotApplicable: 'Hazard does not apply', whoChanged: 'Who changed' };
+  // Real SWMS kept from builder checks: how many this month, and the lines the library does not have,
+  // by the library step each is most like, with how many organisations' documents each is in.
+  const checkedSection = (section) => `<h3>Real SWMS checked</h3>
+      <p class="learning-status${section.recording ? '' : ' off'}">${esc(section.recordingNote)}</p>
+      <p>Real SWMS checked this month: <strong>${esc(section.checkedThisMonth)}</strong> (from ${esc(section.organisationsThisMonth)} organisation${section.organisationsThisMonth === 1 ? '' : 's'}). Lines that SiteReady's library does not have: <strong>${esc(section.newLines)}</strong>, ${esc(section.twoOrganisationLines)} of them in two or more organisations' documents.</p>
+      ${section.groups.map((group) => `<h3>${esc(group.step)} <span class="note">(${esc(group.total)})</span></h3>
+        <table>${rows('<tr><th>Kind</th><th>Line</th><th class="n">Documents</th><th class="n">Organisations</th></tr>',
+    group.lines.map((line) => `<tr><td>${esc(line.kind)}</td><td>${esc(line.line)}${line.twoOrganisations ? ' <span class="note">(two organisations)</span>' : ''}</td><td class="n">${esc(line.documents)}</td><td class="n">${esc(line.organisations)}</td></tr>`), 'None.')}</table>
+        ${group.total > group.lines.length ? `<p class="note">${esc(group.total - group.lines.length)} more not shown.</p>` : ''}`).join('')}
+      <details><summary>How the real SWMS lines are worked out</summary><ul class="plain">${section.method.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>`;
   async function loadLearning(month) {
     const box = $('learning');
     const result = await api(`/api/admin/control-learning/report${month ? `?month=${encodeURIComponent(month)}` : ''}`);
@@ -236,6 +331,7 @@
       <p class="note">The library's gaps users fill themselves, by the different saved SWMS a step was written in, most first: ${esc(report.ownSteps.total)} piece${report.ownSteps.total === 1 ? '' : 's'} of work in all. A step becomes library steps only with a source we hold, the goal 5 evidence test and a person's sign-off.</p>
       <table>${rows('<tr><th>Work SiteReady does not cover</th><th>Step users wrote</th><th class="n">SWMS</th><th class="n">This month</th><th class="n">Different steps</th><th>Before the library</th></tr>',
         report.ownSteps.items.map((item) => `<tr><td>${esc(item.part)}</td><td>${esc(item.step)}</td><td class="n">${esc(item.swms)}</td><td class="n">${esc(item.swmsThisMonth)}</td><td class="n">${esc(item.versions)}</td><td>Goal 5 check needed</td></tr>`), 'No steps written by users recorded.')}</table>
+      ${report.checkedSwms ? checkedSection(report.checkedSwms) : ''}
       <h3>Candidate library changes</h3>
       <p class="note">${esc(report.candidates.thresholdNote)} ${esc(report.candidates.rule)}</p>
       ${candidates}
