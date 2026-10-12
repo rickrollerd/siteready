@@ -1150,7 +1150,10 @@ const draftStale = () => Boolean(shownSent && shownDraft && shownDraft.kind === 
 function outstanding(data) {
   if (!data || data.kind !== 'draft') return [];
   const gaps = shownChecks.filter((check) => check.kind !== 'cover').map((check) => ({ ...check, need: liveNeed(check) })).filter((check) => check.need);
-  // A part the user wrote a step for needs no tick.
+  // A part the user wrote a step for needs no tick. Work that is all the task's work (D211) needs the
+  // user's own step: a tick does not cover it.
+  const unwritten = coverUnwritten(data);
+  if (unwritten.length) gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Your own step for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.` });
   const parts = coverLeft(data);
   if (parts.length && !coverDone(parts)) {
     gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${parts.join('; ')}. Write a step for it, or cover it in a separate SWMS, then tick the box above the draft.` });
@@ -1544,9 +1547,16 @@ let shownSent = null;
 // Each part has a button to write a step for it (owner, 11 October 2026): the step prints in the
 // SWMS marked as the user's own, and a part with a step written for it needs no tick.
 const coverParts = (data) => (data && data.kind === 'draft' && Array.isArray(data.notCovered) ? data.notCovered : []);
+// The parts the tick can cover: not those the user wrote a step for, nor those that are all the task's
+// work (D211), which need the user's own step.
 function coverLeft(data) {
   const written = new Set(Array.isArray(data.notCoveredWritten) ? data.notCoveredWritten : []);
-  return coverParts(data).filter((part) => !written.has(part));
+  const main = new Set(Array.isArray(data.notCoveredMain) ? data.notCoveredMain : []);
+  return coverParts(data).filter((part) => !written.has(part) && !main.has(part));
+}
+function coverUnwritten(data) {
+  const written = new Set(Array.isArray(data.notCoveredWritten) ? data.notCoveredWritten : []);
+  return (Array.isArray(data.notCoveredMain) ? data.notCoveredMain : []).filter((part) => !written.has(part));
 }
 // The tick covers the parts it was given for: a part added since needs ticking again.
 function coverDone(parts) {
@@ -1569,15 +1579,19 @@ function notCoveredBlock(data) {
     return `<li data-cover-part="${index}"><strong>${esc(part)}</strong><span class="cover-tools">${tools}</span></li>`;
   }).join('');
   const many = left.length > 1;
-  return `<div class="warning not-covered"><p>SiteReady has no job steps for: ${esc(parts.join('; '))}. ${one ? 'Add your own step and controls for it, or cover it in a separate SWMS.' : 'Add your own steps and controls for each, or cover them in a separate SWMS.'}</p>
+  const unwritten = coverUnwritten(data);
+  const mainOnly = !left.length && Array.isArray(data.notCoveredMain) && data.notCoveredMain.length === parts.length;
+  return `<div class="warning not-covered"><p>SiteReady has no job steps for: ${esc(parts.join('; '))}. ${mainOnly ? (one ? 'Add your own step and controls for it.' : 'Add your own steps and controls for each.') : one ? 'Add your own step and controls for it, or cover it in a separate SWMS.' : 'Add your own steps and controls for each, or cover them in a separate SWMS.'}</p>
     <p>You must enter the specific steps for this work yourself: SiteReady cannot write them for you.</p>
+    ${unwritten.length ? `<p>${esc(unwritten.length === 1 ? `"${unwritten[0]}" is` : `${unwritten.map((part) => `"${part}"`).join(' and ')} are`)} the work of this task, so the SWMS needs your own step for ${unwritten.length === 1 ? 'it' : 'each'} before you save or download. A tick is not enough.</p>` : ''}
     <ul class="cover-parts">${rows}</ul>
     ${left.length ? `<label class="check"><input type="checkbox" id="not-covered-confirm" data-parts="${esc(JSON.stringify(left))}"${coverDone(left) ? ' checked' : ''}><span>${left.length < parts.length ? `For ${many ? 'the rest' : `"${esc(left[0])}"`}: ` : ''}${many ? 'I have added my own steps and controls for these, or they are covered in a separate SWMS.' : 'I have added my own step and controls for this, or it is covered in a separate SWMS.'}</span></label>` : ''}</div>`;
 }
 // "Go to the box", beside the buttons that wait for it: the box is brought into view and focused.
 document.addEventListener('click', (event) => {
   if (!event.target.closest('[data-cover-jump]')) return;
-  const box = document.getElementById('not-covered-confirm');
+  // With no box (work that needs the user's own step), the first "Write a step for this" button.
+  const box = document.getElementById('not-covered-confirm') || document.querySelector('.not-covered [data-own-write]');
   if (!box) return;
   box.closest('.not-covered').scrollIntoView({ behavior: 'smooth', block: 'center' });
   box.focus({ preventScroll: true });

@@ -31,7 +31,7 @@
 //   filled in their boxes, and in SiteReady's control lines, which are filled where they show.
 //   In a job step the user wrote for work SiteReady does not cover, the user changes the step.
 const { SITE_FIELDS } = require('./legislation');
-const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft } = require('./draft');
+const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
 const { clean, answerNeed } = require('./public/gate-rules');
@@ -130,7 +130,10 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   const judged = (check, rule, value) => add({ ...check, need: answerNeed(rule, value), rule });
   // Parts of the task with no job steps, not ticked as dealt with above the draft (D184).
   const uncovered = options.cover === false ? '' : notCoveredRefusal(draft, input);
-  if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-confirm', label: 'Tick for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${notCoveredLeft(draft).join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.`, message: uncovered });
+  // Work that is all the task's work (D211) needs the user's own step, not the tick.
+  const unwritten = uncovered ? notCoveredUnwritten(draft) : [];
+  if (unwritten.length) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Your own step for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.`, message: uncovered });
+  else if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-confirm', label: 'Tick for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${notCoveredLeft(draft).join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.`, message: uncovered });
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
     judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { ask: item.need, name: item.label, none: Boolean(item.none) }, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));

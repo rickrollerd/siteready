@@ -2872,6 +2872,105 @@ function stepNamesPart(part, steps, verbs) {
 const HANDLING = /\b(?:deliver|unload|preload|load|handle|hoist|lift|move|store|stack|distribute|position|carry|transport|receive|accept)\w*|\b(?:dogging|rigging)\b/gi;
 const HANDLING_STEP = new RegExp(`^(?:${HANDLING.source}|Rig|Land|Operate (?:forklifts|the hoist)|Work with the crane)`, 'i');
 
+// ---- Work the user writes the steps for (owner decision D211, 11 October 2026) ----
+// "Provide a warning that the specific steps will need to be inputted by the user (we need to gather
+// this data for our own learning)." Jacking and skating heavy plant, winching loads, chain blocks and
+// lifting beams, floating plant on or off floats, low loaders or barges, earthworks in waterways and
+// creek crossings, bypass pumping and flow control, trenchless crossings other than directional
+// drilling, and slipform paving have no job steps of their own. Wherever the task names them they are
+// listed above the draft, even where the same words found another kind's steps, unless the draft has a
+// library step that does cover them (the last of each rule): a bridge deck or house jacked on its
+// jacking procedure, a load jacked and skidded on a skidding system or moved with transporters, the jumpform
+// climbed on its jacks, lift parts hoisted from lifting beams and chain blocks, and a temporary bridge
+// for a creek crossing. Moving plant into position with a forklift, crane or pallet jack is the plant
+// moving step's work; jacking, skating and winching it is not. A cable pulled with a winch is the cable
+// pulling steps' work. Climbing or jumping a tower crane is in the tower crane erection step, and
+// directional drilling and kerbs from a kerb extruding machine have their own steps, so none is here.
+const PLANT_NOUN = '(?:mobile plant|plant|excavators?|diggers?|dozers?|bulldozers?|rollers?|graders?|(?:front[- ]end |wheel |track |skid steer )?loaders?|scrapers?|machines?|machinery|(?:piling |drill(?:ing)? )?rigs?|cranes?|ewps?|elevating work platforms?|boom lifts?|scissor lifts?|compactors?|pavers?|tractors?|trenchers?|forklifts?|telehandlers?|bobcats?|skid ?steers?|posi-?tracks?)';
+const FLOAT_CARRIER = /\b(?:floats?|float trailers?|low[- ]?loaders?|tilt[- ]?trays?|barges?|punts?|pontoons?)\b/gi;
+// Plant floated in, or driven, loaded or unloaded on or off a float, low loader, tilt tray or barge;
+// not concrete floated to a finish, and not plant named only as what does the loading.
+function floatsPlant(text) {
+  if (new RegExp(`\\bfloat(?:s|ed|ing)?\\s+(?:(?:in|out|off|on|onto|over)\\s+)?(?:(?!(?:with|using|by|and)\\b)[\\w-]+\\s+){0,3}?${PLANT_NOUN}\\b`, 'i').test(text)) return true;
+  if (!/\b(?:on|onto|on to|off|from|aboard)\s+(?:the |a |an )?(?:[\w-]+ )?(?:floats?|float trailers?|low[- ]?loaders?|tilt[- ]?trays?|barges?|punts?|pontoons?)\b/i.test(text)) return false;
+  if (!/\b(?:load|unload|driv|walk|track|revers|mov|ship|transport|deliver|float|winch|mobilis|demobilis)\w*/i.test(text)) return false;
+  const moved = text.replace(new RegExp(`\\b(?:with|using|by)\\s+(?:the |a |an )?(?:[\\w-]+\\s+){0,2}?${PLANT_NOUN}`, 'gi'), ' ').replace(FLOAT_CARRIER, ' ');
+  return new RegExp(`\\b${PLANT_NOUN}\\b`, 'i').test(moved);
+}
+const OWN_STEP_WORK = [
+  // Jacking: a load jacked up or down, or jacked and skated, not a pallet, base, screw or stressing jack, a
+  // jack hammer or a jack-up barge.
+  [/(?<!\b(?:pallet|base|screw|stressing|hydraulic|bottle|trolley|floor|car)[- ])\bjack(?:s)?\b(?=\s+(?:and\s+(?:skat|pack|slid|roll)|up\b(?!\s+(?:barges?|rigs?|platforms?))|down\b|(?:the|it|them|each|all|a|an|into|onto|off|in|out|clear|over|across)\b))|\bjack(?:ed|ing)\b(?!\s+(?:points?|frames?|beams?|stands?|plates?)\b)/i,
+    /^(?:Jack the deck and replace the bearings|Jack the house and replace stumps|Jack and raise the house|Move the load with (?:the )?transporters(?: or a launching system)?|Jack and skid the load into place|Launch the girders|(?:Prepare to )?[Cc]limb the jumpform|Stress the tendons|Stress the ground anchors|Take down the old fence)$/],
+  // Skating, not a skate park.
+  [/\bskat(?:e|es|ed|ing)\b(?!\s*(?:parks?|bowls?|boards?|ramps?|rinks?|plazas?|facilit\w*)\b)/i, /^(?:Move the load with (?:the )?transporters(?: or a launching system)?|Jack and skid the load into place)$/],
+  // Winching a load, not a cable pulled with a winch or a rescue winch.
+  [(text) => /\bwinch(?:es)?\b(?=\s+(?:the|it|them|each|all|a|an|in|into|onto|up|down|across|along|out|off|over)\b)|\bwinch(?:ed|ing)\b|\b(?:with|using|by)\s+(?:a |an |the )?(?!(?:retrieval|rescue|tripod|davit)\b)(?:[\w-]+ )?winch(?:es)?\b/i.test(text)
+    && !/\b(?:cables?|cabling|conductors?|fibres?|fibers?|sub-?mains|consumer mains|feeders?|draw ?ropes?|retrieval|rescue)\b/i.test(text), /^$/],
+  [/\bchain[- ]?blocks?\b|\blifting beams?\b/i, /^(?:Lift machines, rails and equipment into the shaft|Install the lift rails, car and machine|Replace the lift motor in the machine room|Install the dumbwaiter|Set the wall forms from the platforms|Lift and move out the plant being removed)$/],
+  [floatsPlant, /^$/],
+  // Earthworks in a waterway, and a creek crossing or causeway.
+  [/\bcauseways?\b|\b(?:earthworks?|excavat\w*|dig(?:s|ging)?|fill(?:s|ing)?|cut and fill|trim\w*|reshap\w*|dredg\w*)\b[^.;]{0,40}\b(?:in|within|next to|beside|along|across|near|on|through)\s+(?:or (?:next to|near|beside)\s+)?(?:the |a )?(?:beds? of the |banks? of the )?(?:waterways?|creeks?|rivers?|streams?)\b(?!\s+(?:bridges?|crossings?))/i, /^$/],
+  [/\b(?:(?:temporary|creek|river|stream|waterway)\s+)+crossings?\b|\bcrossings? (?:of|over|across|through) (?:the |a )?(?:creeks?|rivers?|streams?|waterways?)\b/i, /^Build the temporary bridge$/],
+  // Bypass pumping and flow control, not a flow control valve.
+  [/\bby-?pass(?:es|ed|ing)?\s+(?:pump\w*|flows?|the (?:sewer|main|flows?|pump station|station|line))\b|\bover-?pump\w*|\bflow (?:control|diversion|management)\b(?!\s+(?:valves?|devices?|units?))|\b(?:divert|control|manag)\w* (?:the |all )?(?:live |existing )?(?:sewer(?:age)?|sewage|stormwater|creek|stream|river) flows?\b/i, /^$/],
+  // Trenchless crossings other than directional drilling.
+  [/\b(?:thrust|auger|percussive|guided)\s+bor(?:e|es|ed|ing)\b|\b(?:pipe|box)[- ]?jack\w*|\bmicro-?tunnel\w*|\bpipe ram\w*|\bimpact mol\w*/i, /^$/],
+  // Slipform paving of a road or pavement, not a slipformed kerb.
+  [/\bslip-?form(?:ed|ing)?\s+(?:concrete\s+)?(?:pav\w*|roads?|pavements?|carriageways?|runways?|aprons?|slabs?)\b|\b(?:pav\w*|roads?|pavements?)\b[^.;]{0,30}\bslip-?form\w*|\bslip-?form pavers?\b/i, /^$/],
+];
+// Where a new piece of work starts, for naming these parts: their own verbs, and the verbs of moving
+// and placing things ("then move them into position on skates").
+const OWN_STEP_VERB = /\b(?:jack(?:s|ed|ing)?|skat(?:e|es|ed|ing)|winch(?:es|ed|ing)?|float(?:s|ed|ing)?|by-?pass(?:es|ed|ing)?|over-?pump\w*|thrust bor\w*|pipe jack\w*|slip-?form\w*|mov(?:e|es|ed|ing)|receiv\w*|deliver\w*|set(?:s|ting)?|position\w*|load\w*|transport\w*|haul\w*|driv(?:e|es|ing))\b/i;
+const ownStepTest = (test, text) => (typeof test === 'function' ? test(text) : test.test(text));
+
+// The parts of the task (D211 above) that only the user's own steps can cover, in the user's words.
+function leftToUser(typed, steps) {
+  const { SITE_WORK, notOwnWork } = require('./scope');
+  const names = (steps || []).map((step) => step.step);
+  const text = othersAndDenials(String(typed || '')).others;
+  if (!OWN_STEP_WORK.some(([test]) => ownStepTest(test, readSlang(text)))) return [];
+  const verbs = new RegExp(`${SITE_WORK.source}|${OWN_STEP_VERB.source}`, 'i');
+  return dedupe(taskParts(text, verbs, notOwnWork).filter((part) => {
+    // The work a part is for is not its work ("the launch shaft for the microtunnel").
+    const words = readSlang(ownWork(part)).replace(/\bfor (?:the |a |an )?[\w-]+(?: [\w-]+){0,2}/gi, ' ');
+    if (notOwnWork(words)) return false;
+    return OWN_STEP_WORK.some(([test, covered]) => ownStepTest(test, words) && !names.some((name) => covered.test(name)));
+  }).map((part) => part.replace(/[.,;:]+$/, '')));
+}
+
+// Heavy items named as installed by their weight ("Install the cable tray and the 2 tonne transformer")
+// with no step that places them: none named for the item, none found from its words, and no crane,
+// forklift or plant moving step. The item is named with the verb it is installed with. Plant used for
+// the work ("with a 5 tonne excavator") is not an item installed.
+const PLACING_STEP = /^(?:Rig and lift the load|Land and release the load|Work with the crane crew during lifts|Rig, lift and land loads with the tower crane|Receive plant and move it into position|Operate (?:forklifts|the telehandler)|Move the load with (?:the )?transporters(?: or a launching system)?|Jack and skid the load into place|Unload with the truck loading crane \(hiab\))$/;
+const PLACING_VERB = /\b(?:supply and install|install\w*|plac(?:e|es|ed|ing)|set(?:s|ting)?|position\w*|land\w*|lift\w*|deliver\w*|mov(?:e|es|ed|ing)|fit(?:s|ted|ting)?|mount\w*|erect\w*|replac\w*)\b/gi;
+function heavyItemParts(typed, steps, inDraft, named, state) {
+  const out = [];
+  if (steps.some((step) => PLACING_STEP.test(step.step))) return out;
+  const text = othersAndDenials(String(typed || '')).others;
+  const weight = /\b(?:(the|a|an|two|three|four|\d+ ?x)\s+)?(\d+(?:\.\d+)?)\s?(tonnes?|tons?|t|kg)\b\s+((?:(?!(?:and|or|with|using|by|into|onto|on|in|to|from|at|for|then|of)\b)[a-z][\w-]*\s+){0,2}?(?!(?:and|or|with|using|by|into|onto|on|in|to|from|at|for|then|of)\b)[a-z][\w-]{2,})\b/gi;
+  for (const sentence of text.split(/[.;:\n](?!\d)/)) {
+    for (const match of sentence.matchAll(weight)) {
+      const [, det, amount, unit, item] = match;
+      const kg = Number(amount) * (/^k/i.test(unit) ? 1 : 1000);
+      if (kg < 500 || new RegExp(`\\b${PLANT_NOUN}$`, 'i').test(item)) continue;
+      const before = sentence.slice(0, match.index);
+      if (/\b(?:with|using|by|from|of|for)\s*$/i.test(before)) continue;
+      const verbs = before.match(PLACING_VERB);
+      if (!verbs) continue;
+      const verb = verbs[verbs.length - 1].toLowerCase();
+      const thing = `${verb} the ${item}`;
+      const kinds = suggestedKinds(readSlang(thing), {}, { ...state, allWords: true });
+      if (kinds.some((id) => inDraft.has(id) && !SUPPORT_KINDS.has(id))) continue;
+      if (partThings(item, SITE_WORK_ONLY()).some((word) => named.has(word))) continue;
+      out.push(cleanLine(`${verb} ${det ? `${det} ` : ''}${amount} ${unit} ${item}`));
+    }
+  }
+  return out;
+}
+const SITE_WORK_ONLY = () => require('./scope').SITE_WORK;
+
 // The parts of the task that are site work but get no job steps, in the user's words. A part whose
 // words find a kind of work with steps is covered, even where the user took those steps off or
 // left the work to others. Access, lifting or cutting steps cover a part only where the draft's
@@ -2905,7 +3004,11 @@ function notCoveredParts({ typed, task, facts, steps: allSteps, state, unmatched
     if (handled && !doing.length) return false;
     return !stepNamesPart(work, steps, SITE_WORK);
   }).map((part) => part.replace(/[.,;:]+$/, '')));
-  return dedupe([...found, ...dataTestParts(Array.isArray(unmatched) ? parts : String(typed || '').split(/[.;:\n](?!\d)/), steps, found)]);
+  // Work only the user's own steps cover (D211), and heavy items with no step that places them.
+  const own = leftToUser(typed, steps);
+  const listed = [...own, ...found];
+  const heavy = heavyItemParts(typed, steps, inDraft, named, state).filter((item) => !listed.some((part) => sameText(part).includes(sameText(item.replace(/^\S+\s+/, '')))));
+  return dedupe([...own, ...found.filter((part) => !own.some((mine) => sameText(mine).includes(sameText(part)) || sameText(part).includes(sameText(mine)))), ...heavy, ...dataTestParts(Array.isArray(unmatched) ? parts : String(typed || '').split(/[.;:\n](?!\d)/), steps, found)]);
 }
 
 // Testing and certifying data cabling has no job steps (no source held for it, GAP-STEPS.md section 10),
@@ -2930,6 +3033,9 @@ function dataTestParts(parts, steps, found) {
 // lists the parts ticked, so a tick given for one list does not pass a changed one. A part the
 // user has written a step for needs no tick. The message that refuses, or ''.
 function notCoveredRefusal(draft, input) {
+  // Work that is all the task's work (D211) needs the user's own step: a tick does not cover it.
+  const unwritten = notCoveredUnwritten(draft);
+  if (unwritten.length) return `SiteReady has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it ("Write a step for this" above the draft) before saving or downloading.`;
   const parts = notCoveredLeft(draft);
   const ticked = input && Array.isArray(input.notCoveredConfirmed) ? input.notCoveredConfirmed : [];
   if (parts.every((part) => ticked.includes(part))) return '';
@@ -3175,8 +3281,13 @@ function buildDraft(input, screen) {
   // Picks that leave no step of the user's own (only the required ones) are no picks at all.
   const nothingPicked = Boolean(state.kinds) && !state.kinds.length;
   const fallback = (draft.jobSteps || []).some((step) => step.fallback);
-  if (screen === 'steps') return { noSteps: fallback || mainMissing || nothingPicked ? { fallback, mainMissing, nothingPicked } : null };
-  if ((fallback || mainMissing || nothingPicked) && !screen) {
+  // Work the user writes the steps for (D211) is not stood down for want of job steps: the draft names
+  // it above the steps, and the user's own step for it is needed before download (notCoveredMain).
+  // Other work named by the main work check ("lift installation") is stood down as before.
+  const userMain = (fallback || mainMissing || nothingPicked) && (!mainMissing || mainMissing === 'the main work in this task') ? leftToUser(typed, draft.jobSteps || []) : [];
+  if (userMain.length) draft.jobSteps = draft.jobSteps.filter((step) => !step.fallback);
+  if (screen === 'steps') return { noSteps: (fallback || mainMissing || nothingPicked) && !userMain.length ? { fallback, mainMissing, nothingPicked } : null };
+  if ((fallback || mainMissing || nothingPicked) && !screen && !userMain.length) {
     return {
       kind: 'stand-down',
       ...header,
@@ -3264,6 +3375,8 @@ function buildDraft(input, screen) {
   // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
   // Parts of the task with no job steps, shown above the draft (owner decision D184).
   const notCovered = notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched });
+  // Where that work is all the task's work, a tick is not enough: the user writes the step for it.
+  if (userMain.length) draft.notCoveredMain = notCovered.filter((part) => userMain.includes(part));
   // The steps the user wrote for work SiteReady does not cover go in once the registers and ratings
   // are worked out from SiteReady's own steps.
   const finished = applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input), input);
@@ -3996,6 +4109,13 @@ function notCoveredLeft(draft) {
   const parts = draft && draft.kind === 'draft' && Array.isArray(draft.notCovered) ? draft.notCovered : [];
   const written = new Set(draft && Array.isArray(draft.notCoveredWritten) ? draft.notCoveredWritten : []);
   return parts.filter((part) => !written.has(part));
+}
+
+// The parts that are all the task's work (D211) with no printed step of the user's own yet: a tick
+// does not cover them.
+function notCoveredUnwritten(draft) {
+  const main = draft && Array.isArray(draft.notCoveredMain) ? draft.notCoveredMain : [];
+  return notCoveredLeft(draft).filter((part) => main.includes(part));
 }
 
 // The job steps in the order the user chose. A step not in that order, such as one added
@@ -6857,6 +6977,7 @@ module.exports = {
   prepareDraft,
   notCoveredRefusal,
   notCoveredLeft,
+  notCoveredUnwritten,
   ownStepNotes,
   OWN_STEP_MARK,
   screenHighRisk,

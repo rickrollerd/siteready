@@ -445,15 +445,16 @@
     const now = $('project-now');
     if (!project) { panel.classList.add('hidden'); now.classList.add('hidden'); return; }
     const ready = project.items.filter((item) => item.status === 'ready').length;
-    const label = { ready: 'Ready', needs: 'Needs answers', tick: 'Needs a tick', todo: 'To do' };
+    const label = { ready: 'Ready', needs: 'Needs answers', tick: 'Needs a tick', write: 'Needs your step', todo: 'To do' };
     const current = project.items[project.current];
     // The SWMS being prepared is named right above its task, at the top of the task box.
     now.innerHTML = current ? `Now preparing SWMS ${project.current + 1} of ${project.items.length}: <strong>${esc(current.title)}</strong>. Check the task below and press Continue. When it is ready, a button under it opens the next one.` : '';
     now.classList.toggle('hidden', !current);
     panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
       <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next. You can also open any SWMS in the list.</p>
-      <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : ['needs', 'tick'].includes(item.status) ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
+      <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : ['needs', 'tick', 'write'].includes(item.status) ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
       ${project.items.map((item, index) => (item.status === 'needs' && (item.needs || []).length ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, still needs before download: ${esc(item.needs.join('; '))}. ${index === project.current ? '<button type="button" class="link" data-gate-list>See what is needed</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
+      ${project.items.map((item, index) => (item.status === 'write' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for your own step for the work SiteReady has no job steps for. Write it with "Write a step for this" above its draft to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       ${project.items.map((item, index) => (item.status === 'tick' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for the box above its draft about work SiteReady has no job steps for. Tick it to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to the box</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
@@ -467,6 +468,8 @@
   // One with site questions or blanks still to answer (goal 2) needs answers first.
   const statusOf = (item) => {
     if (item.kind !== 'draft' || (item.needs || []).length) return 'needs';
+    // Work that is all the task's work (D211) needs the user's own step, not the tick.
+    if ((item.notCoveredMain || []).some((part) => !(item.notCoveredWritten || []).includes(part))) return 'write';
     const ticked = [...(item.body.notCoveredConfirmed || []), ...(item.notCoveredWritten || [])];
     return (item.notCovered || []).every((part) => ticked.includes(part)) ? 'ready' : 'tick';
   };
@@ -504,6 +507,7 @@
     item.kind = draft.kind;
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
+    item.notCoveredMain = draft.notCoveredMain || [];
     // What is left to answer before download (goal 2): the site questions and blanks.
     item.needs = [...new Set((draft.gate || []).filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))];
     item.status = statusOf(item);
