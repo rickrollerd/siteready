@@ -68,7 +68,7 @@ test('soft strip leaves the structure untouched; building demolition follows the
 
 test('partial demolition: the user describes the extent, the engineer\'s design comes first, and services go to their own trade', () => {
   const { draft, lines, steps } = picked('demolition-stripout/partial-demolition');
-  assert.ok(draft.notCovered.some((part) => /parts of the structure being demolished \(describe/.test(part)));
+  assert.ok(draft.notCovered.some((part) => /^demolishing the parts of the structure that come out \(what they are, where they are and how/.test(part)));
   assert.ok(!steps.includes('Remove the wall') && !steps.includes('Cut an opening in a load-bearing wall'));
   assert.ok(has(lines, /^No part of the structure is demolished until the structural engineer has given the demolition design or clear written instructions/));
   assert.ok(has(lines, /^Electrical services in the part being demolished are disconnected or made safe by a licensed electrician, and water, sewer and drainage by a licensed plumber/));
@@ -139,12 +139,14 @@ test('crane workbox: registered box, harnesses, trained and licensed people, and
   assert.ok(has(lines, /^Everyone in the workbox wears a full body harness/));
   assert.ok(has(lines, /^Everyone using a harness is trained/));
   assert.ok(has(lines, /holds a dogging or rigging licence/));
-  // The rescue procedure is in the workbox step (full pass); the site permit stays a warning.
+  // The rescue procedure is in the workbox step (full pass); the site permit is a note above the draft,
+  // as a check is not work with no job steps.
   assert.ok(has(lines, /^Rescue procedures are set up and tested/));
-  assert.deepEqual(draft.notCovered, ['the site permit for lifting people in the workbox']);
+  assert.deepEqual(draft.notCovered, []);
+  assert.ok(draft.warnings.some((note) => /^Lifting people in a crane workbox usually needs the principal contractor's permit/.test(note)));
   // Tower crane climbing, chain blocks and jacking and skating stay named for the user to add.
   assert.ok(picked('cranes-rigging/tower-crane-erection').draft.notCovered.length > 0);
-  assert.deepEqual(picked('cranes-rigging/rigging').draft.notCovered, ['chain blocks and lifting beams', 'jacking and skating heavy plant']);
+  assert.deepEqual(picked('cranes-rigging/rigging').draft.notCovered, ['rigging with chain blocks and lifting beams', 'jacking and skating heavy plant']);
 });
 
 test('site clearing: the user chooses stockpile and cover or trucks off site; services, potholing, spotters, plan and erosion controls', () => {
@@ -361,7 +363,10 @@ test('part 3: casing and support fluid, the robot\'s floor, the jump lift method
   assert.ok(has(robot.lines, /the engineer or a competent person checks the installation and signs it off/));
   assert.deepEqual(robot.draft.notCovered, ['running a remote-controlled demolition robot']);
   // The jump lift: the lift company's method, attached by the user.
-  assert.match(picked('lifts/construction-use').draft.notCovered[0], /^Attach the lift company's method for raising the jump lift's machine platform/);
+  // The jump lift: the work is named; getting and keeping the lift company's method is a note.
+  const jump = picked('lifts/construction-use').draft;
+  assert.deepEqual(jump.notCovered, ['raising the jump lift\'s machine platform']);
+  assert.ok(jump.warnings.some((note) => /^Raising a jump lift's machine platform follows the lift company's method/.test(note)));
   // An empty pool shell: ladder access and the open edge; fully covered.
   const pool = picked('tiling/pool-tiling');
   assert.ok(pool.steps.includes('Work from ladders') && pool.steps.includes('Lay tiles near open edges'));
@@ -370,5 +375,26 @@ test('part 3: casing and support fluid, the robot\'s floor, the jump lift method
   const jacks = picked('shared-access-and-handling/pallet-jacks');
   assert.ok(jacks.steps.includes('Move loads with a pallet jack or walkie stacker'));
   assert.ok(has(jacks.lines, /no forklift licence is needed, but each operator is trained/));
-  assert.deepEqual(jacks.draft.notCovered, ['Check these steps against the maker\'s instructions for your pallet jack or stacker']);
+  // The check against the maker's instructions is a note above the draft (as the D219 jack and skid
+  // note): shown, not a part with no job steps, and the download is not held for it.
+  assert.deepEqual(jacks.draft.notCovered, []);
+  assert.ok(jacks.draft.warnings.includes("SiteReady's pallet jack and stacker steps are general. Check each line against the maker's instructions for your pallet jack or stacker, and change or add lines where it does not fit."));
+  const jackItem = item('shared-access-and-handling/pallet-jacks');
+  assert.deepEqual(jackItem.gaps, []);
+  assert.equal(jackItem.coverage, 'full');
+  const { downloadGaps } = require('../download-gate');
+  assert.deepEqual(downloadGaps({ state: 'qld', task: jackItem.task, kinds: jackItem.kinds }, jacks.draft).filter((gap) => gap.kind === 'cover'), []);
+});
+
+// Every part a picked task names as having no job steps reads as work after "SiteReady has no job
+// steps for:"; an instruction or a check is a note above the draft instead.
+test('pick list parts with no job steps are work, not instructions or checks', () => {
+  for (const trade of TRADES) {
+    for (const task of trade.tasks) {
+      for (const gap of task.gaps) {
+        assert.doesNotMatch(gap, /^(?:Check|Attach|Get|Ask|Make sure|Ensure|Use|See|Note)\b/, `${trade.id}/${task.id}: ${gap}`);
+        assert.doesNotMatch(gap, /^(?:the )?(?:site )?permit\b|\bdescribe\b/i, `${trade.id}/${task.id}: ${gap}`);
+      }
+    }
+  }
 });

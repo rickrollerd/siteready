@@ -2987,6 +2987,11 @@ function jackAndSkid(text) {
   return String(text || '').split(/[.;\n]/).some((sentence) => JACKING.test(sentence) && JACK_SKID.test(sentence.replace(/\bskate ?(?:parks?|bowls?|boards?|ramps?|rinks?)\b/gi, ' ')) && !HOUSE_MOVE.test(sentence));
 }
 const JACK_SKID_NOTE = "SiteReady's jack and skid steps are for engineered heavy moves. Check each line fits your task, and change or add lines where it does not.";
+// Notes above the draft for steps that are general and must be checked against the task (owner's
+// review, part 3): shown on the page, not printed, no tick, and the download is not held.
+const PALLET_JACK_NOTE = "SiteReady's pallet jack and stacker steps are general. Check each line against the maker's instructions for your pallet jack or stacker, and change or add lines where it does not fit.";
+const JUMP_LIFT_NOTE = "Raising a jump lift's machine platform follows the lift company's method. Get their method, write your step for this work from it, and keep the method with this SWMS.";
+const WORKBOX_PERMIT_NOTE = "Lifting people in a crane workbox usually needs the principal contractor's permit. Check the site's permit system before the first lift.";
 const OWN_STEP_WORK = [
   [JACKING,
     /^(?:Jack the deck and replace the bearings|Jack the house and replace stumps|Jack and raise the house|Move the load with (?:the )?transporters(?: or a launching system)?|Jack and skid the load into place|Launch the girders|(?:Prepare to )?[Cc]limb the jumpform|Stress the tendons|Stress the ground anchors|Take down the old fence)$/],
@@ -3465,7 +3470,10 @@ function buildDraft(input, screen) {
   // Answers that contradict the task's own words, shown above the draft. The answer stands.
   // The engineered jack and skid step kept for a heavy load jacked and skated (D219): the user checks it.
   const jackSkidNote = draft.jobSteps.some((step) => step.step === 'Jack and skid the load into place') && jackAndSkid(riskTask) ? JACK_SKID_NOTE : '';
-  const warnings = [energisedWarning(riskTask, facts), jackSkidNote].filter(Boolean);
+  const palletJackNote = draft.jobSteps.some((step) => step.step === 'Move loads with a pallet jack or walkie stacker') ? PALLET_JACK_NOTE : '';
+  const jumpLiftNote = /\bjump lifts?\b/i.test(riskTask) ? JUMP_LIFT_NOTE : '';
+  const workboxNote = draft.jobSteps.some((step) => step.step === 'Lift people in the crane workbox') ? WORKBOX_PERMIT_NOTE : '';
+  const warnings = [energisedWarning(riskTask, facts), jackSkidNote, palletJackNote, jumpLiftNote, workboxNote].filter(Boolean);
   // The user's own hazards and Who go in last, so the registers and risk ratings are worked out
   // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
   // Parts of the task with no job steps, shown above the draft (owner decision D184).

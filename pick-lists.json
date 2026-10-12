@@ -142,7 +142,7 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "the parts of the structure being demolished (describe what comes out, where it is and how it is taken down)"
+      "demolishing the parts of the structure that come out (what they are, where they are and how they are taken down)"
      ],
      "coverage": "partial",
      "basis": "evidence"
@@ -462,7 +462,7 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "chain blocks and lifting beams",
+      "rigging with chain blocks and lifting beams",
       "jacking and skating heavy plant"
      ],
      "coverage": "partial",
@@ -478,10 +478,8 @@
       "crane"
      ],
      "leaveOut": [],
-     "gaps": [
-      "the site permit for lifting people in the workbox"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     }
    ]
@@ -1929,7 +1927,7 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "the pull needed to free a stuck casing, and a crane or rig rated for it",
+      "freeing a stuck casing (the pull needed, and a crane or rig rated for it)",
       "keeping the support fluid level in the bore above the groundwater"
      ],
      "coverage": "partial",
@@ -2023,7 +2021,7 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "the load test set-up and test loads (kentledge or reaction piles and jacks)"
+      "setting up the load test and its test loads (kentledge or reaction piles and jacks)"
      ],
      "coverage": "partial",
      "basis": "inferred"
@@ -2968,7 +2966,7 @@
       "Install comms equipment"
      ],
      "gaps": [
-      "central UPS battery strings (weight, acid and DC isolation)"
+      "installing central UPS battery strings (weight, acid and DC isolation)"
      ],
      "coverage": "partial",
      "basis": "evidence"
@@ -4370,7 +4368,7 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "Attach the lift company's method for raising the jump lift's machine platform (use Add another design)"
+      "raising the jump lift's machine platform"
      ],
      "coverage": "partial",
      "basis": "inferred"
@@ -5619,10 +5617,8 @@
      "leaveOut": [
       "Fix plant on its supports"
      ],
-     "gaps": [
-      "Check these steps against the maker's instructions for your pallet jack or stacker"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
