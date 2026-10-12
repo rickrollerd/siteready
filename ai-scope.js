@@ -66,19 +66,24 @@ function normalise(value) {
 // The reading checked against the brief. A quote that is not in the document, or has "..."
 // in it, breaks rule 4; a package name that is neither on the list nor "Trade installation:"
 // is allowed by rule 4 but counted, as a sign the packages are drifting.
-function checkReading(reading, text) {
+// Whether a quote is in the document word for word. A quote counts as found when only its closing
+// punctuation differs (a list item ending ";" not "."). Also used for written methodologies (method-read.js).
+function quoteFinder(text) {
   const documentText = normalise(text).toLowerCase();
+  return (quote) => {
+    const words = normalise(quote).toLowerCase();
+    return documentText.includes(words) || documentText.includes(words.replace(/[.;:,]+$/, ''));
+  };
+}
+
+function checkReading(reading, text) {
   const allQuotes = [
     ...reading.activities.flatMap((row) => row.quotes.map((quote) => ({ quote, where: `Activity: ${row.activity}` }))),
     ...reading.byOthers.flatMap((row) => row.quotes.map((quote) => ({ quote, where: `By others: ${row.work}` }))),
     ...reading.conflicts.flatMap((row) => [{ quote: row.quoteA, where: `Conflict: ${row.clauseA}` }, { quote: row.quoteB, where: `Conflict: ${row.clauseB}` }]),
   ].filter((item) => normalise(item.quote));
-  // A quote counts as found when only its closing punctuation differs (a list item ending ";" not ".").
   // An ellipsis is a shortened quote unless the document itself has it ("etc…").
-  const found = (quote) => {
-    const words = normalise(quote).toLowerCase();
-    return documentText.includes(words) || documentText.includes(words.replace(/[.;:,]+$/, ''));
-  };
+  const found = quoteFinder(text);
   const shortened = allQuotes.filter((item) => /\.\.\.|…/.test(item.quote) && !found(item.quote));
   const notFound = allQuotes.filter((item) => !/\.\.\.|…/.test(item.quote) && !found(item.quote));
   const packages = [...new Set(reading.activities.map((row) => row.package))];
@@ -462,4 +467,4 @@ async function getReading(company, id, stateName) {
   return withHighRisk(rowOut(row), stateName);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, checkReading, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };
+module.exports = { enabled, useClient, startReading, getReading, checkReading, quoteFinder, errorMessage, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };

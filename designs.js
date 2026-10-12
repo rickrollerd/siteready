@@ -20,9 +20,9 @@
 // work follows, such as the lift company's method for raising a jump lift's machine platform. It is
 // kept with the designs ("method-1" and so on, kind "method"), with the same details and file, and
 // prints in the same table once what it is, who prepared it, its number and its date are given.
-// SiteReady does not read it and cannot know which steps follow it, so no line goes into the steps,
-// the download never waits for it and the builder check does not count it. The user makes the steps
-// match it.
+// Nothing from it goes into the steps on its own: a typed one can be read to suggest job steps, which go
+// in only as the user accepts them (method-read.js, D230). The download never waits for it and the
+// builder check does not count it. The user makes the steps match it.
 const { withoutCitation, controlLevel } = require('./control-level');
 
 // The designs a step can rely on. lines: what a printed control says when the step is done to the
