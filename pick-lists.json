@@ -1916,19 +1916,21 @@
     {
      "id": "bored",
      "title": "Bored piles with temporary casing or support fluid",
-     "task": "Bored piles: drill the bore with the piling rig, protect the open bore, lift and lower the pile cages, and pour the pile concrete by tremie.",
+     "task": "Bored piles: drill the bore with the piling rig, install and extract temporary casing, mix and handle the bentonite or polymer support fluid, protect the open bore, lift and lower the pile cages, and pour the pile concrete by tremie.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "pilingRig",
       "pileCage",
       "openBore",
-      "pileConcrete"
+      "pileConcrete",
+      "tempCasing",
+      "supportFluid"
      ],
      "leaveOut": [],
      "gaps": [
-      "installing and extracting temporary casing",
-      "mixing and handling bentonite or polymer support fluid"
+      "the pull needed to free a stuck casing, and a crane or rig rated for it",
+      "keeping the support fluid level in the bore above the groundwater"
      ],
      "coverage": "partial",
      "basis": "inferred"
@@ -4366,7 +4368,7 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "raising a jump lift's machine platform"
+      "Attach the lift company's method for raising the jump lift's machine platform (use Add another design)"
      ],
      "coverage": "partial",
      "basis": "inferred"
@@ -5215,19 +5217,19 @@
     {
      "id": "pool-tiling",
      "title": "Pool, wet deck and coping tiling",
-     "task": "Pool tiling: cut and lay tiles to the pool waterline, wet decks and copings next to the water, with drowning and slip controls when the pool holds water.",
+     "task": "Pool tiling: cut and lay tiles to the pool waterline, wet decks and copings next to the water, with drowning and slip controls when the pool holds water. Where the pool is empty, climb in and out by a secured ladder, and lay tiles near the open pool edge.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "tileLay",
       "tileCut",
-      "water"
+      "water",
+      "ladderUse",
+      "tileEdge"
      ],
      "leaveOut": [],
-     "gaps": [
-      "tiling inside an empty pool shell (getting in and out, and falls from the pool edge)"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     }
    ]
@@ -5610,15 +5612,13 @@
      "crane": "company",
      "kinds": [
       "plantLift",
-      "commsRoom"
+      "palletJack"
      ],
      "leaveOut": [
-      "Fix plant on its supports",
-      "Install comms racks and cabinets",
-      "Install comms equipment"
+      "Fix plant on its supports"
      ],
      "gaps": [
-      "using pallet jacks and walkie stackers"
+      "Check these steps against the maker's instructions for your pallet jack or stacker"
      ],
      "coverage": "partial",
      "basis": "evidence"

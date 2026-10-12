@@ -31,7 +31,10 @@
 // guidance alone and 2 the owner's own instruction (D209, mast climbers), so not yet evidenced, and one
 // asbestos licence line replaced by the amount the user gives (D205): 3,626 of 4,904, 73.94%;
 // the full pass over the pick lists (12 October 2026): 5 new wall and column form lines cited to the
-// SafeWork NSW Formwork code s 7.3, and the harness step's lines reused word for word: 3,631 of 4,909, 73.97%).
+// SafeWork NSW Formwork code s 7.3, and the harness step's lines reused word for word: 3,631 of 4,909, 73.97%;
+// part 3 of the owner's review (12 October 2026): 17 new lines, 12 cited to code or regulation sections read
+// (demolition code s 4.12, manual tasks code s 4.4 and s 4.6, WHS Regulation s 39, s 351), 5 from the Transport
+// for NSW pile specification and EPA Victoria's guidance alone, so not yet evidenced: 3,643 of 4,926, 73.95%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');

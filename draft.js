@@ -386,7 +386,7 @@ function packageKinds(rawTask, kinds) {
 // Work inside a deep excavation others dug comes only where the words put the work there.
 const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation', 'inTrench', 'layInExcavation',
   'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate',
-  'erosionControl', 'handTrim', 'mastClimber', 'castInGround', 'formVertical', 'harnessUse'];
+  'erosionControl', 'handTrim', 'mastClimber', 'castInGround', 'formVertical', 'harnessUse', 'tempCasing', 'supportFluid', 'palletJack'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -6227,6 +6227,12 @@ function namedWorkFlags(task, flags = {}) {
   out.formVertical = /\b(?:column|headstock|pier|wall and column|column and wall|column and headstock)s? (?:forms?|formwork|boxes)\b/i.test(task) && !/\b(?:jump ?forms?|slip ?forms?|retaining walls?)\b/i.test(task);
   // Working in a harness named as the work: harness checks, fall clearance and the rescue plan.
   out.harnessUse = /\b(?:work\w*|tied off|clipped on) (?:in|with|on) (?:a |the )?(?:full body )?harness(?:es)?\b|\bharness(?:es)?,? (?:and )?(?:lanyards?|fall clearance|rescue)\b|\bfall clearance\b/i.test(task);
+  // The owner's review, part 3: temporary casing, support fluid, pallet jacks and walkie stackers.
+  out.tempCasing = /\b(?:temporary|temp) (?:steel )?casings?\b|\bcasings? (?:is |are )?(?:installed|extracted|pulled|withdrawn)\b|\b(?:install\w*|extract\w*|pull\w*) (?:and (?:extract\w*|remov\w*) )?(?:the )?(?:temporary )?casings?\b/i.test(task) && !/\b(?:door|window|cable|well|pipe) casings?\b/i.test(task);
+  out.supportFluid = /\b(?:bentonite|polymer (?:support )?fluid|support fluid|drilling (?:fluid|mud)|slurry wall|polymer slurry)\b/i.test(task) && !/\bgeosynthetic clay|\bgcl\b|\bclay liner/i.test(task);
+  out.palletJack = /\b(?:pallet (?:jacks?|trucks?)|walkie stackers?|pedestrian(?:-operated)? stackers?|hand stackers?|electric pallet)\b/i.test(task);
+  // Robotic or remote-controlled demolition, including a hydro demolition robot: the floor it works on.
+  out.robotDemo = /\b(?:robot\w*|remote[- ]controlled|brokk)\b/i.test(task) && /\b(?:demoli\w*|removal|remove|break\w*|hydro)\b/i.test(task);
   out.blinding = /\bblinding\b/i.test(task);
   out.mastClimber = /\bmast[- ]climb\w*|\bmcwps?\b/i.test(task) && /\b(?:install\w*|erect\w*|dismantl\w*|assembl\w*)\b/i.test(task);
   out.softStrip = /\b(?:soft[- ]strip\w*|strip[- ]?outs?|strip(?:ping)? out)\b/i.test(task) && !/\bdemoli(?:sh|tion)\w*/i.test(task.replace(/\bsoft[- ]strip\w*/gi, ' '));

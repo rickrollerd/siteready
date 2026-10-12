@@ -207,7 +207,7 @@ module.exports = {
     escalators: { task: 'Install escalators and moving walks with the area closed.' },
     modernisation: { task: 'Lift modernisation: strip out the old lift services, replace the lift motor, and work on the car top beside lifts still running in an occupied building. Work at the open lift shaft.', add: ['asbestosCheck'], fallRisk: 'yes' },
     'small-lifts': { task: 'Install platform lifts, stair lifts and dumbwaiters with their shafts or enclosures, isolation and commissioning.' },
-    'construction-use': { task: 'Operate the builders hoist and the jump lift for the builder while the building rises, and work inside the lift cars.', gaps: ['raising a jump lift\'s machine platform'], fallRisk: 'yes' },
+    'construction-use': { task: 'Operate the builders hoist and the jump lift for the builder while the building rises, and work inside the lift cars.', gaps: ['Attach the lift company\'s method for raising the jump lift\'s machine platform (use Add another design)'], fallRisk: 'yes' },
   },
   'line-marking': {
     'road-marking': { task: 'Road line marking: set out and paint lines from the line marking truck or by hand on the road, lay thermoplastic with a gas torch, and fix raised pavement markers, under the traffic management plan (TMP).' },
@@ -258,7 +258,7 @@ module.exports = {
   piling: {
     'rig-mobilisation': { task: 'Piling rig delivery and assembly: deliver the piling rig, assemble and dismantle the mast, check the piling platform certificate, and move the rig around the site.' },
     cfa: { task: 'CFA piling: drill with the continuous flight auger, pump concrete through the auger, handle the spoil, and plunge the cage into the fresh pile.' },
-    bored: { task: 'Bored piles: drill the bore with the piling rig, protect the open bore, lift and lower the pile cages, and pour the pile concrete by tremie.', gaps: ['installing and extracting temporary casing', 'mixing and handling bentonite or polymer support fluid'] },
+    bored: { task: 'Bored piles: drill the bore with the piling rig, install and extract temporary casing, mix and handle the bentonite or polymer support fluid, protect the open bore, lift and lower the pile cages, and pour the pile concrete by tremie.', gaps: ['the pull needed to free a stuck casing, and a crane or rig rated for it', 'keeping the support fluid level in the bore above the groundwater'] },
     driven: { task: 'Driven piles: pitch precast concrete and steel piles, drive them with an impact or hydraulic hammer, splice and cut them, with noise and vibration monitoring.' },
     'sheet-piling': { task: 'Sheet piling: pitch and drive the sheet piles, install walers and props, and extract the sheet piles at the end.' },
     'screw-piles': { task: 'Screw piles: install screw piles with a drive head on an excavator or small rig, monitor the torque, cut the pile tops to level with oxy-acetylene, and weld on the cap plates. Prepare the piling platform.' },
@@ -381,7 +381,7 @@ module.exports = {
     ladders: { task: 'Using ladders (step, platform and extension): choose and inspect the ladder, set it up, keep three points of contact, use platform ladders for work and extension ladders for access only, and non-conductive ladders near electricity.' },
     'manual-handling': { task: 'Manual handling: plan heavy and awkward lifts, use mechanical aids first, team lifts with one person in charge, move materials into place at the work face, and move plant into position.', omit: ['Fix plant on its supports', 'Load panels onto the floors and move them to the work face'] },
     forklifts: { task: 'Operate forklifts and telehandlers: licensed operators, pre-start checks, separate people from forklift routes, check slab loads, and telehandler load charts and attachments.' },
-    'pallet-jacks': { task: 'Pallet jacks and walkie stackers: move plant and materials with pallet jacks, check load limits, slab edges and ramps, and keep feet clear.', gaps: ['using pallet jacks and walkie stackers'], omit: ['Fix plant on its supports', 'Install comms racks and cabinets', 'Install comms equipment'] },
+    'pallet-jacks': { task: 'Pallet jacks and walkie stackers: move plant and materials with pallet jacks, check load limits, slab edges and ramps, and keep feet clear.', gaps: ['Check these steps against the maker\'s instructions for your pallet jack or stacker'], omit: ['Fix plant on its supports'], drop: ['commsRoom'] },
     'power-tools': { task: 'Use power tools: inspect and tag tools, guards in place, grinders and cut-off saws, drills, nail guns, and explosive powered tools with spotters and signs, with noise and silica dust controls.' },
     'working-at-heights': { task: 'Working at heights: install the anchors and static lines and the edge protection, safety nets, harness checks, fall clearance and the rescue plan.', fallRisk: 'yes' },
   },
@@ -420,7 +420,7 @@ module.exports = {
     screeds: { task: 'Floor screeds: mix and place sand cement screeds and toppings to falls in wet areas, moving bags and materials into place.' },
     'balcony-tiling': { task: 'Balcony tiling: cut and lay tiles on balconies and terraces next to open edges, with edge protection kept in place.', fallRisk: 'yes' },
     'stone-large-format': { task: 'Stone and large format tiles: cut stone wet, lay natural stone and large format porcelain tiles, and move and set the heavy stone slabs.', drop: ['stoneHandle'] },
-    'pool-tiling': { task: 'Pool tiling: cut and lay tiles to the pool waterline, wet decks and copings next to the water, with drowning and slip controls when the pool holds water.', gaps: ['tiling inside an empty pool shell (getting in and out, and falls from the pool edge)'] },
+    'pool-tiling': { task: 'Pool tiling: cut and lay tiles to the pool waterline, wet decks and copings next to the water, with drowning and slip controls when the pool holds water. Where the pool is empty, climb in and out by a secured ladder, and lay tiles near the open pool edge.' },
   },
   waterproofing: {
     'wet-areas': { task: 'Wet area waterproofing: prepare the substrate, lay screeds to falls, apply liquid membranes to floors and walls, and flood test.' },

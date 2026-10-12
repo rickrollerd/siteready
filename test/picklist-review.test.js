@@ -341,3 +341,34 @@ test('full pass: shared steps cover what they can, and the rest stays named for 
   // Truly specific work stays a warning (D211): tower crane climbing, jacking and skating, slipform paving.
   for (const key of ['cranes-rigging/tower-crane-erection', 'cranes-rigging/rigging', 'roads-pavements/concrete-pavement', 'bridges/barriers-joints']) assert.ok(picked(key).draft.notCovered.length > 0, key);
 });
+
+// The owner's review, part 3 (12 October 2026).
+test('part 3: casing and support fluid, the robot\'s floor, the jump lift method, empty pools, pallet jacks', () => {
+  const bored = picked('piling/bored');
+  assert.ok(bored.steps.includes('Install and extract temporary casing'));
+  assert.ok(bored.steps.includes('Mix and handle bentonite or polymer support fluid'));
+  assert.ok(has(bored.lines, /^The temporary casing stays in place until the concrete is placed/));
+  assert.ok(has(bored.lines, /^Bags of bentonite or polymer are moved with a trolley/));
+  // What no source we hold covers stays named.
+  assert.equal(bored.draft.notCovered.length, 2);
+  // The Transport for NSW and EPA Victoria references print only in their own states.
+  const boredNsw = picked('piling/bored', 'nsw');
+  assert.ok(has(boredNsw.lines, /Transport for NSW QA Specification B58/));
+  assert.ok(!has(bored.lines, /Transport for NSW QA Specification B58/));
+  // The robot's floor is loaded as any slab: engineer's verification, propping signed off.
+  const robot = picked('concrete-cutting/controlled-removal');
+  assert.ok(has(robot.lines, /^Before the demolition robot or other powered plant goes onto a suspended floor, a structural engineer/));
+  assert.ok(has(robot.lines, /the engineer or a competent person checks the installation and signs it off/));
+  assert.deepEqual(robot.draft.notCovered, ['running a remote-controlled demolition robot']);
+  // The jump lift: the lift company's method, attached by the user.
+  assert.match(picked('lifts/construction-use').draft.notCovered[0], /^Attach the lift company's method for raising the jump lift's machine platform/);
+  // An empty pool shell: ladder access and the open edge; fully covered.
+  const pool = picked('tiling/pool-tiling');
+  assert.ok(pool.steps.includes('Work from ladders') && pool.steps.includes('Lay tiles near open edges'));
+  assert.deepEqual(pool.draft.notCovered, []);
+  // Pallet jacks and walkie stackers: inferred steps, with the maker's instructions as the check.
+  const jacks = picked('shared-access-and-handling/pallet-jacks');
+  assert.ok(jacks.steps.includes('Move loads with a pallet jack or walkie stacker'));
+  assert.ok(has(jacks.lines, /no forklift licence is needed, but each operator is trained/));
+  assert.deepEqual(jacks.draft.notCovered, ['Check these steps against the maker\'s instructions for your pallet jack or stacker']);
+});

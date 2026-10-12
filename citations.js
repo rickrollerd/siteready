@@ -45,7 +45,7 @@ const NATIONAL = [/^Ozone Protection/, /^Telecommunications \(Cabling Provider\)
 // of practice and the NSW Blue Book (soils and construction), Victoria's piling and structural steel
 // industry standards, lift work handbook and EPA Victoria's construction guide, and
 // Western Australia's plumbing licensing regulations.
-const STATE_ONLY = { nsw: new RegExp(`${NSW_CODE.source}|^Managing Urban Stormwater: Soils and Construction`), vic: /^(?:Piling industry standard|Safe erection of structural steel industry standard|Lift work on construction projects: a handbook|EPA Victoria, )/, wa: /^Plumbers Licensing and Plumbing Standards Regulations 2000 \(WA\)/ };
+const STATE_ONLY = { nsw: new RegExp(`${NSW_CODE.source}|^Managing Urban Stormwater: Soils and Construction|^Transport for NSW QA Specification`), vic: /^(?:Piling industry standard|Safe erection of structural steel industry standard|Lift work on construction projects: a handbook|EPA Victoria, )/, wa: /^Plumbers Licensing and Plumbing Standards Regulations 2000 \(WA\)/ };
 const ownState = (part) => Object.keys(STATE_ONLY).find((id) => STATE_ONLY[id].test(part));
 
 function mapReference(reference, state) {

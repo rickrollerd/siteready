@@ -13159,6 +13159,76 @@ addAfter('anchorInstall', {
   }],
 });
 
+// The owner's pick list review, part 3 (12 October 2026).
+// Temporary casing and support fluid for bored piles. The casing lines are from the Transport for NSW
+// bored pile specification's guide notes (NSW only); the drilling mud lines from EPA Victoria's guide
+// (Victoria only); the rest reused from the library or the WHS Regulation and the manual tasks code.
+const TFNSW_B58 = (section) => `Transport for NSW QA Specification B58 Bored cast-in-place reinforced concrete piles (December 2020) ${section}`;
+addAfter('openBore', {
+  when: 'tempCasing',
+  steps: [{
+    step: 'Install and extract temporary casing',
+    hazards: ['The casing or the vibro hammer falls or swings while it is pitched or extracted.', 'The crane or rig is overloaded pulling a stuck casing.', 'The bore collapses when the casing is pulled too early.', 'Noise from the vibro hammer.'],
+    controls: [
+      src('The type and depth of the temporary casing follow the designer\'s decision from the site investigation, and any change is reviewed by the designer and the geotechnical engineer before it is made.', TFNSW_B58('guide notes')),
+      src('The temporary casing stays in place until the concrete is placed to a level that can withstand the earth and groundwater pressures, and is extracted only then.', TFNSW_B58('guide notes')),
+      reuse('When handling maximum or near maximum loads, after lifting the load a few centimetres test the hoist brakes, check the load weight indicator and recheck the load chart.'),
+      reuse('The hammer is run by a competent operator and stopped before anyone approaches the pile head.'),
+      reuse('Hearing protection is worn near the hammer.'),
+    ],
+  }],
+});
+addAfter('tempCasing', {
+  when: 'supportFluid',
+  steps: [{
+    step: 'Mix and handle bentonite or polymer support fluid',
+    hazards: ['Dust from bentonite or polymer powder.', 'Strain from lifting and tipping bags.', 'Support fluid or drilling mud escaping to drains and waterways.'],
+    controls: [
+      reuse('The current safety data sheet for each product is at the work area before first use, and every container, including anything decanted, is labelled.'),
+      src('The dust controls and PPE that the safety data sheet sets for the bentonite or polymer powder are used while it is mixed.', WHS('s 351')),
+      src('Bags of bentonite or polymer are moved with a trolley or lifting aid, and bought in smaller bags where the supplier offers them.', QCODE('Hazardous manual tasks', 's 4.4')),
+      src('Slurry used to prime the tremie is discharged away from the pile hole.', TFNSW_B58('s 6.6.2')),
+      src('Used support fluid and drilling mud are kept in pits, sumps, tanks or clearly labelled drums on site, and do not reach drains or waterways.', EPA_VIC('Guidance Sheet 9')),
+      src('Drilling mud leaves site only in a leak-free vehicle, to a site lawfully able to receive it, and the storage areas are checked for leaks and run-off.', EPA_VIC('Guidance Sheet 9')),
+    ],
+  }],
+});
+
+// Robotic and hydro demolition on a suspended floor: the floor loading is checked as for any plant on
+// a slab, to the engineer's design, and the propping is signed off (demolition code s 4.12; part 3).
+const ROBOT_FLOOR = [
+  { only: 'robotDemo', ...src('Before the demolition robot or other powered plant goes onto a suspended floor, a structural engineer or other competent person verifies and documents the plant\'s type, size, weight and use, and that the floor can carry its static and live loads, with its attachments and the demolished material, either as it is or with the propping the engineer specifies below.', DEMOLITION_CODES('s 4.12')) },
+  { only: 'robotDemo', ...src('Propping the engineer specifies is installed before the plant goes onto the floor, and the engineer or a competent person checks the installation and signs it off.', DEMOLITION_CODES('s 4.12')) },
+];
+addTo('propping', 'Install temporary support', ROBOT_FLOOR);
+addTo('demolition', 'Demolish', [
+  { only: 'robotDemo', ...src('Debris is removed from each floor as the work goes, so the floor is not overloaded, allowing for the extra weight of wet debris where water is used.', DEMOLITION_CODES('s 4.12')) },
+  { only: 'robotDemo', ...src('The plant is moved between floors by a hoist or a purpose-made ramp, and the operator and the demolition supervisor keep in contact while it runs.', DEMOLITION_CODES('s 4.12')) },
+  { only: 'robotDemo', ...src('Where load-shifting plant is used on a suspended floor for demolition, the regulator is notified before the work starts.', DEMOLITION_CODES('s 3.1, s 4.12')) },
+]);
+addTo('hydroDemo', 'Hydro demolish the concrete', [...ROBOT_FLOOR.map((line) => ({ ...line, unless: 'propping' }))]);
+
+// Pallet jacks and pedestrian-operated walkie stackers (part 3): not forklift trucks, so no licence,
+// but trained operators; the manual tasks code on pushing, pulling and floors; powered mobile plant.
+addAfter('forklift', {
+  when: 'palletJack',
+  steps: [{
+    step: 'Move loads with a pallet jack or walkie stacker',
+    hazards: ['Feet or hands crushed under the forks, the load or the wheels.', 'The load or the stacker tips over.', 'Strain from pushing, pulling or stopping a heavy load.', 'A person is struck by the stacker or its load.'],
+    controls: [
+      src('A pallet jack or a pedestrian-operated walkie stacker is not a forklift truck under the regulation, so no forklift licence is needed, but each operator is trained and instructed in the one they use before using it.', WHS('s 39, schedule 3')),
+      src('Loads that are hard to start, keep moving or stop by hand are moved with an electric pallet jack or walkie stacker, and loads are pushed rather than pulled.', QCODE('Hazardous manual tasks', 's 4.4')),
+      src('The pallet jack or stacker suits the load and is kept maintained, with its wheels and brakes working.', QCODE('Hazardous manual tasks', 's 4.4')),
+      reuse('Carry loads as low as possible and within the rated capacity.'),
+      src('Loads are taken to a marked place along a planned route, moved at walking pace and slowed gradually, with the brake or speed limiter used where other traffic is near.', QCODE('Hazardous manual tasks', 's 4.4')),
+      src('Routes are kept clean, smooth and free of clutter, so loads can be moved and stopped without slips or trips.', QCODE('Hazardous manual tasks', 's 4.6')),
+      { fact: 'loadLimits' },
+      reuse('Manage the risk of plant overturning and colliding with people or things. Plant that could hit people has a warning device.'),
+      reuse('Never lift people on the forks.'),
+    ],
+  }],
+});
+
 // The citation helpers, for lines other modules add with their sources (draft.js permits).
 const CITE = { WHS, MODEL, QCODE, NSWC, LINES };
 

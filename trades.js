@@ -56,6 +56,8 @@ const COMMON = new Set([
   'erosionControl', 'handTrim', 'mastClimber', 'castInGround',
   // The full pass over the pick lists (12 October 2026): wall and column forms, and work in a harness.
   'formVertical', 'harnessUse',
+  // The owner's pick list review, part 3 (12 October 2026).
+  'tempCasing', 'supportFluid', 'palletJack',
   // Any trade can work inside a deep excavation, station box or shaft that others dug, and lay pipes in it.
   'inExcavation', 'inTrench', 'layInExcavation',
 ]);
