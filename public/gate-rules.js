@@ -80,6 +80,21 @@
     return `For ${what}, give ${missing.length > 1 ? `${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]}` : missing[0]}.`;
   }
 
+  // A written method or sequence of works the work follows (designs.js, owner, D224, 12 October 2026),
+  // which the user may add to any SWMS: kept with the designs as "method-1" and so on.
+  const isMethod = (row) => Boolean(row && typeof row.id === 'string' && /^method-\d+$/.test(row.id));
+  // What a written method still needs before it prints, or '' once it can: what it is, who prepared
+  // it, its document number and its date (the revision and the file are optional). It is optional, so
+  // it never holds the download: until then it does not print, and its card says so.
+  function methodNeed(row) {
+    const item = row && typeof row === 'object' ? row : {};
+    const missing = [['what', 'what it is'], ['by', 'who prepared it'], ['number', 'its document number'], ['date', 'its date']]
+      .filter(([key]) => { const text = clean(item[key]); return !text || leftOpen(text) || NOT_YET.test(text); }).map(([, words]) => words);
+    if (leftOpen(item.revision)) missing.push('its revision (or leave the revision empty)');
+    if (!missing.length) return '';
+    return `Not in the SWMS yet. Give ${missing.length > 1 ? `${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]}` : missing[0]}.`;
+  }
+
   // Two or more designs on one SWMS, each answered "I have it", that give the same document or drawing
   // number (owner, D223, 12 October 2026). Advice on the page only: one drawing can cover two designs
   // (one temporary works drawing for the shoring and the propping), so it never holds the download,
@@ -105,8 +120,12 @@
   }
   // "Shoring design and Propping design both give drawing ABC-S-101 rev C. ..." The same revision may
   // be one drawing that covers both; different revisions of one drawing are most likely a mistake.
+  // With a written method among them, the number is a document's, not a drawing's (D225 holds alike).
   function sameNumberText(list) {
-    const names = list.map((row) => clean(row.what) || 'Another design');
+    const method = list.some(isMethod);
+    const thing = method ? 'document' : 'drawing';
+    const against = method ? 'its document' : 'the design\'s title block';
+    const names = list.map((row) => clean(row.what) || (isMethod(row) ? 'A written methodology' : 'Another design'));
     const revisions = list.map((row) => revisionOf(row.revision));
     const both = list.length === 2 ? 'both' : 'all';
     // The number as a title block shows it: the first given in capitals, else the first given.
@@ -114,10 +133,10 @@
     const keys = new Set(revisions.map(numberKey));
     if (keys.size === 1) {
       const revision = revisions[0] ? ` rev ${revisions[0]}` : '';
-      return `${listed(names)} ${both} give drawing ${number}${revision}. Check each number against the design's title block. If the one drawing covers ${list.length === 2 ? 'both' : 'them all'}, nothing needs changing.`;
+      return `${listed(names)} ${both} give ${thing} ${number}${revision}. Check each number against ${against}. If the one ${thing} covers ${list.length === 2 ? 'both' : 'them all'}, nothing needs changing.`;
     }
     const given = new Set(revisions.filter(Boolean).map(numberKey));
-    return `${listed(names.map((name, i) => `${name} (${revisions[i] ? `rev ${revisions[i]}` : 'no revision'})`))} ${both} give drawing ${number}.${given.size > 1 ? ' Two revisions of one drawing is most likely a mistake.' : ''} Check each number and revision against the design's title block.`;
+    return `${listed(names.map((name, i) => `${name} (${revisions[i] ? `rev ${revisions[i]}` : 'no revision'})`))} ${both} give ${thing} ${number}.${given.size > 1 ? ` Two revisions of one ${thing} is most likely a mistake.` : ''} Check each number and revision against ${against}.`;
   }
 
   // What the user types that the SWMS prints as given and reads for nothing else: the people and
@@ -128,7 +147,7 @@
   const AS_GIVEN = ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'scaffoldSupervisor', 'firstAider', 'musterPoint',
     'siteManager', 'worksManager', 'worksManagerPhone', 'hospital', 'reviewDate', 'preparedBy', 'swmsRef', 'emergency', 'fills'];
 
-  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, answerNeed, designNeed, sameDesignNumbers, AS_GIVEN };
+  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, answerNeed, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadyGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

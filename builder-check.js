@@ -1326,8 +1326,9 @@ function fromDraft(draft, extra = {}) {
     review: draft.review || '',
     legislation: (draft.sources && draft.sources.legislation) || [],
     riskMatrix: steps.length > 0 && (draft.jobSteps || []).some((step) => step.risk),
-    // The designs table as printed (designs.js); a draft with none prints none.
-    designs: (draft.designs || []).map((row) => ({ id: row.id, what: row.what, status: row.status })),
+    // The designs table as printed (designs.js); a draft with none prints none. A written method the
+    // user listed (D224) is not a design a step relies on and is not counted.
+    designs: (draft.designs || []).filter((row) => row.kind !== 'method').map((row) => ({ id: row.id, what: row.what, status: row.status })),
     ...extra.swms,
   };
 }

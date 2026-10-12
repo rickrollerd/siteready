@@ -151,7 +151,8 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // Each design the steps rely on (designs.js, owner, 11 October 2026): issued with who prepared it,
   // its number and date; "Not issued yet", which prints as a hold point; or "Not needed for this
   // work", recorded as the user's choice. A design the user added is asked about only once named.
-  for (const row of draft.designs || []) {
+  // A written method the user chose to list (D224) is optional and never asked about here.
+  for (const row of (draft.designs || []).filter((item) => item.kind !== 'method')) {
     add({ id: `design.${row.id}`, kind: 'design', field: `design-${row.id}`, label: `Design: ${row.what}`, design: row.id, need: designNeed(row) });
   }
   // The user's own answers with a blank still in them where the SWMS prints them, filled in their own

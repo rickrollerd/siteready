@@ -93,7 +93,7 @@ const TIED = {
   checked_swms_learning: ['SELECT swms_id FROM checked_swms_learning WHERE swms_id = $1', (b) => [b.checkedId]],
   checked_swms_lines: ['SELECT id FROM checked_swms_lines WHERE swms_id = $1', (b) => [b.checkedId]],
   design_files: ['SELECT id FROM design_files WHERE company_id = $1', ID],
-  design_file_data: ['SELECT file_id FROM design_file_data WHERE file_id = $1', (b) => [b.fileId]],
+  design_file_data: ['SELECT file_id FROM design_file_data WHERE file_id IN ($1, $2)', (b) => [b.fileId, b.methodFileId]],
   design_file_uses: ['SELECT file_id FROM design_file_uses WHERE swms_id = $1', (b) => [b.swmsId]],
 };
 // No business, account, site or SWMS id in them: kept when a business is deleted.
@@ -130,8 +130,13 @@ async function seedBusiness(key) {
   const upload = await fetch(`${base}/api/designs/files`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/pdf', 'X-File-Name': encodeURIComponent(`${key} hangers.pdf`) }, body: PDF });
   assert.equal(upload.status, 201);
   const { file } = await upload.json();
+  // A written method's file (D224), kept the same way.
+  const methodUpload = await fetch(`${base}/api/designs/files`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/pdf', 'X-File-Name': encodeURIComponent(`${key} lift method.pdf`) }, body: PDF });
+  assert.equal(methodUpload.status, 201);
+  const { file: methodFile } = await methodUpload.json();
   const input = ready({
-    designs: [{ id: 'added-1', what: `${key} hanger design`, status: 'given', by: `${key} Engineering`, number: 'HG-101', revision: 'A', date: '2026-10-01', file }],
+    designs: [{ id: 'added-1', what: `${key} hanger design`, status: 'given', by: `${key} Engineering`, number: 'HG-101', revision: 'A', date: '2026-10-01', file },
+      { id: 'method-1', what: `${key} lift method`, status: 'given', by: `${key} Lifts`, number: 'LM-014', revision: '', date: '2026-09-30', file: methodFile }],
     ...ANSWERED, workplace: `9 ${key} Road, Toowong QLD 4066`, state: 'qld', trade: 'fire',
     task: 'Install sprinkler pipework in the ward ceilings from scissor lifts more than 2 m above the floor.',
     fallRisk: 'yes', facts: { fallControl: 'Scissor lifts with guardrails are used for all work above 2 m.' },
@@ -166,7 +171,7 @@ async function seedBusiness(key) {
   assert.equal((await json('GET', `/api/admin/refs/${refs[0]}`, { token: owner })).status, 200);
   const search = `${key.toLowerCase()} removal`;
   assert.equal((await json('GET', `/api/admin/companies?q=${encodeURIComponent(search)}`, { token: owner })).status, 200);
-  return { key, domain, admin, name, abn, token, companyId, swmsId: swms.id, signKey, refs, search, checkedId, fileId: file.id };
+  return { key, domain, admin, name, abn, token, companyId, swmsId: swms.id, signKey, refs, search, checkedId, fileId: file.id, methodFileId: methodFile.id };
 }
 
 // Checks a pasted SWMS naming the business's own people and site, with KEEP_CHECKED_SWMS on, so it is
@@ -247,7 +252,7 @@ test('the owner deletes a whole business: every row tied to it goes, another bus
   assert.deepEqual(await tiedCounts(b), before.b);
   // No row anywhere holds its name, ids, emails, site, workers, references or sign-on key. Its
   // ABN is kept, in trial_abns only, and its account id only in the one access log entry.
-  const markers = [a.companyId, a.swmsId, a.signKey, a.checkedId, a.name, a.domain, a.fileId, `${a.key} hangers`, `${a.key} Engineering`, `${a.key} site`, `${a.key} Road`, `${a.key} Street`, `${a.key} Worker`, `${a.key} Crew`, `${a.key} Supervisor`, ...a.refs];
+  const markers = [a.companyId, a.swmsId, a.signKey, a.checkedId, a.name, a.domain, a.fileId, a.methodFileId, `${a.key} hangers`, `${a.key} lift method`, `${a.key} Lifts`, `${a.key} Engineering`, `${a.key} site`, `${a.key} Road`, `${a.key} Street`, `${a.key} Worker`, `${a.key} Crew`, `${a.key} Supervisor`, ...a.refs];
   for (const table of SCHEMA_TABLES) {
     const rows = await db.query(`SELECT * FROM ${table}`);
     for (const row of rows) {

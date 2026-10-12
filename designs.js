@@ -13,6 +13,16 @@
 // A SWMS with no step that relies on a design, and no design the user added, prints as before.
 //
 // No AI reads the design itself in this build (a later option).
+//
+// A written method or sequence of works (owner, D224, 12 October 2026: "Need to be cautious with the
+// add a design. You cannot read drawings, only words and good chance we could muck this up. If its a
+// written methodology, or sequence of works. Yes, it should be an option."): any SWMS may list one the
+// work follows, such as the lift company's method for raising a jump lift's machine platform. It is
+// kept with the designs ("method-1" and so on, kind "method"), with the same details and file, and
+// prints in the same table once what it is, who prepared it, its number and its date are given.
+// SiteReady does not read it and cannot know which steps follow it, so no line goes into the steps,
+// the download never waits for it and the builder check does not count it. The user makes the steps
+// match it.
 const { withoutCitation, controlLevel } = require('./control-level');
 
 // The designs a step can rely on. lines: what a printed control says when the step is done to the
@@ -242,6 +252,7 @@ const holdLine = (row) => `${HOLD} the ${inSentence(clean(row.what))} is not iss
 // status is 'given', 'notIssued' or 'notNeeded'; '' while unanswered.
 const answersOf = (input) => new Map((Array.isArray(input && input.designs) ? input.designs : []).filter((row) => row && row.id).map((row) => [row.id, row]));
 const ADDED = /^added-\d+$/;
+const METHOD = /^method-\d+$/;
 
 // What a design still needs before download: '' once it is answered (download-gate.js, and the page
 // through gate-rules.js designNeed).
@@ -251,7 +262,8 @@ function designNeed(row) {
 }
 
 // The rows of the "Designs this SWMS relies on" table: each design needed, then each the user added,
-// with the user's answers and the steps that rely on it.
+// with the user's answers and the steps that rely on it, then each written method with its details
+// given (kind "method"). A method not yet given in full does not print.
 function designRows(draft, input) {
   const answers = answersOf(input);
   const needed = designsNeeded(draft).map((item) => {
@@ -259,7 +271,10 @@ function designRows(draft, input) {
     return { ...answerFields(answer), id: item.id, what: clean(answer.what) || item.label, label: item.label, steps: item.steps.map((entry) => entry.step), needed: true };
   });
   const added = [...answers.values()].filter((row) => ADDED.test(row.id) && clean(row.what)).map((row) => ({ ...answerFields(row), id: row.id, what: clean(row.what), label: '', steps: [], needed: false }));
-  return [...needed, ...added];
+  const { methodNeed } = require('./public/gate-rules');
+  const methods = [...answers.values()].filter((row) => METHOD.test(row.id) && methodNeed(row) === '')
+    .map((row) => ({ ...answerFields({ ...row, status: 'given' }), id: row.id, what: clean(row.what), label: '', steps: [], needed: false, kind: 'method' }));
+  return [...needed, ...added, ...methods];
 }
 function answerFields(row) {
   const status = ['given', 'notIssued', 'notNeeded'].includes(row.status) ? row.status : '';
@@ -306,6 +321,7 @@ function withDesigns(draft, input) {
 
 // What the table says of a design's status.
 function statusText(row) {
+  if (row.kind === 'method') return `The work follows this methodology.${row.file ? ` A copy is attached to this SWMS in SiteReady (${row.file.name || 'file'}).` : ''}`;
   if (row.status === 'notIssued') return 'Not issued yet. Hold point: the steps that rely on it do not start until it is issued and this SWMS is updated.';
   if (row.status === 'notNeeded') return 'Not needed for this work (the business\'s choice when preparing this SWMS).';
   if (row.status === 'given' && designNeed(row) === '') return row.file ? `Issued. A copy is attached to this SWMS in SiteReady (${row.file.name || 'file'}).` : 'Issued.';
@@ -326,10 +342,33 @@ function tableRows(draft) {
 }
 const TABLE_TITLE = 'Designs this SWMS relies on';
 const TABLE_NOTE = 'Each step that relies on a design names it. Work to the revision listed here. If a new revision is issued, check this SWMS against it and update it before work continues.';
-
-// The file ids a SWMS input refers to (its designs' attached files).
-function fileIds(input) {
-  return [...new Set((Array.isArray(input && input.designs) ? input.designs : []).filter((row) => row && row.status === 'given' && row.file && typeof row.file.id === 'string').map((row) => row.file.id))];
+// With a written method in the table, its title, first column and note say so. A table of designs
+// only prints as before.
+const METHOD_TITLE = 'Written methodologies this SWMS relies on';
+const BOTH_TITLE = 'Designs and methodologies this SWMS relies on';
+const METHOD_NOTE = 'The work follows each methodology listed here. Work to the revision listed here. If a new revision is issued, check this SWMS against it and update it before work continues.';
+const BOTH_NOTE = 'Each step that relies on a design names it. The work follows each methodology listed here. Work to the revision listed here. If a new revision is issued, check this SWMS against it and update it before work continues.';
+function tableKinds(draft) {
+  const rows = (draft && draft.designs) || [];
+  const methods = rows.filter((row) => row.kind === 'method').length;
+  return { methods, designs: rows.length - methods };
+}
+function tableTitle(draft) {
+  const { methods, designs } = tableKinds(draft);
+  return !methods ? TABLE_TITLE : designs ? BOTH_TITLE : METHOD_TITLE;
+}
+function tableHead(draft) {
+  const { methods, designs } = tableKinds(draft);
+  return !methods ? TABLE_HEAD : [designs ? 'Design or methodology' : 'Methodology', ...TABLE_HEAD.slice(1)];
+}
+function tableNote(draft) {
+  const { methods, designs } = tableKinds(draft);
+  return !methods ? TABLE_NOTE : designs ? BOTH_NOTE : METHOD_NOTE;
 }
 
-module.exports = { KINDS, KIND_BY_ID, WHY, designsNeeded, designRows, withDesigns, designNeed, referenceText, workLine, holdLine, dateText, isHoldPoint, tableRows, statusText, fileIds, TABLE_HEAD, TABLE_TITLE, TABLE_NOTE, HOLD };
+// The file ids a SWMS input refers to (its designs' and written methods' attached files).
+function fileIds(input) {
+  return [...new Set((Array.isArray(input && input.designs) ? input.designs : []).filter((row) => row && (row.status === 'given' || METHOD.test(row.id || '')) && row.file && typeof row.file.id === 'string').map((row) => row.file.id))];
+}
+
+module.exports = { KINDS, KIND_BY_ID, WHY, designsNeeded, designRows, withDesigns, designNeed, referenceText, workLine, holdLine, dateText, isHoldPoint, tableRows, statusText, fileIds, tableTitle, tableHead, tableNote, TABLE_HEAD, TABLE_TITLE, TABLE_NOTE, HOLD };

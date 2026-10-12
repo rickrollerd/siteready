@@ -2,7 +2,7 @@ const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, BorderStyle, VerticalAlign, Footer, Header, AlignmentType, ImageRun, CheckBox, PageOrientation,
 } = require('docx');
-const { tableRows, isHoldPoint, TABLE_HEAD, TABLE_TITLE, TABLE_NOTE } = require('./designs');
+const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./designs');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
 
@@ -435,11 +435,12 @@ function childrenFor(draft, options = {}) {
     blocks.push(para('This task is not identified as high risk construction work.', { before: 0, after: 40 }));
   }
 
-  // The designs the job steps rely on (designs.js), only where there are any.
+  // The designs the job steps rely on and the written methods the work follows (designs.js), only
+  // where there are any.
   if ((draft.designs || []).length) {
-    blocks.push(sectionHeading(TABLE_TITLE));
-    blocks.push(para(TABLE_NOTE, { size: 19, color: MUTED, before: 0, after: 80 }));
-    blocks.push(gridTable(TABLE_HEAD, [3000, 2800, 2800, 1900, CONTENT_WIDTH - 10500], tableRows(draft)));
+    blocks.push(sectionHeading(tableTitle(draft)));
+    blocks.push(para(tableNote(draft), { size: 19, color: MUTED, before: 0, after: 80 }));
+    blocks.push(gridTable(tableHead(draft), [3000, 2800, 2800, 1900, CONTENT_WIDTH - 10500], tableRows(draft)));
   }
 
   blocks.push(sectionHeading('Controls'));

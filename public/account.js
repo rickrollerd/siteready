@@ -530,7 +530,11 @@
     const rules = window.SiteReadyGate;
     const groups = rules && rules.sameDesignNumbers && draft ? rules.sameDesignNumbers(draft.designs || []) : [];
     if (!groups.length) return '';
-    return `<div class="warning" id="saved-design-same">${groups.map((group) => `<p>${esc(group.text)}</p>`).join('')}<p>To correct a number, choose Change, fix it under "Designs this work relies on" and save a new revision.</p></div>`;
+    // A written method (D224) is corrected under its own heading.
+    const ids = groups.flatMap((group) => group.ids);
+    const methods = ids.filter((id) => /^method-\d+$/.test(id)).length;
+    const where = !methods ? '"Designs this work relies on"' : methods === ids.length ? '"Written methodologies and sequences of works"' : '"Designs this work relies on" or "Written methodologies and sequences of works"';
+    return `<div class="warning" id="saved-design-same">${groups.map((group) => `<p>${esc(group.text)}</p>`).join('')}<p>To correct a number, choose Change, fix it under ${where} and save a new revision.</p></div>`;
   }
 
   async function openSwms(id) {
