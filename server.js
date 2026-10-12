@@ -85,7 +85,7 @@ const smallJson = express.json({ limit: '100kb' });
 const wordJson = express.json({ limit: '1mb' });
 const scopeJson = express.json({ limit: '15mb' });
 const projectJson = express.json({ limit: '5mb' });
-app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
+app.use((req, res, next) => ([SCOPE_ROUTE, '/api/scope/ai', '/api/check', '/api/methodology/read'].includes(req.path) ? scopeJson : req.path === '/api/project.zip' ? projectJson : LARGE_BODY.has(req.path) ? wordJson : smallJson)(req, res, next));
 // The page's text files are sent compressed and kept by the phone until they change (goal 7).
 app.use(delivery.staticFiles(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public'), delivery.staticOptions));
@@ -297,6 +297,32 @@ app.get('/api/scope/ai/:id/report.docx', auth.requireUser, async (req, res, next
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', 'attachment; filename="Scope-review-report.docx"');
     res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Reading a written methodology or sequence of works and suggesting job steps (method-read.js;
+// owner, D230). Typed words only: drawings and scans are refused with a plain message. Signed-in
+// accounts only, with its own limit; only starting a reading counts against it.
+const methodRead = require('./method-read');
+const methodReadLimit = limiter('methodology-read', positiveNumber(process.env.RATE_LIMIT_METHOD_READ_REQUESTS, 20));
+app.use('/api/methodology/read', (req, res, next) => (req.method === 'POST' ? methodReadLimit(req, res, next) : next()));
+app.get('/api/methodology/read', (req, res) => res.json({ enabled: aiScope.enabled() }));
+app.post('/api/methodology/read', auth.requireAccess, async (req, res, next) => {
+  try {
+    const text = await methodRead.methodText(req.body || {}, req.company);
+    const started = await methodRead.startReading(req.company, text);
+    record(started.kept ? 'method_read_kept' : 'method_read', req.company && req.company.id);
+    const { done, ...out } = started;
+    res.status(started.status === 'reading' ? 202 : 200).json(out);
+  } catch (error) {
+    next(error);
+  }
+});
+app.get('/api/methodology/read/:id', auth.requireUser, async (req, res, next) => {
+  try {
+    res.json(await methodRead.getReading(req.company, req.params.id));
   } catch (error) {
     next(error);
   }

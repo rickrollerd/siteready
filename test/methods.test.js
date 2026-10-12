@@ -3,8 +3,9 @@
 // this up. If its a written methodology, or sequence of works. Yes, it should be an option."). Any
 // SWMS may list one: what it is, who prepared it, its document number and revision, its date and the
 // file. It is kept with the designs (kind "method") and prints in their table once given in full.
-// SiteReady does not read it: no line goes into the steps, the download never waits for it and the
-// builder check does not count it. A SWMS that lists none is unchanged.
+// Nothing from it goes into the steps on its own (a typed one can be read to suggest job steps the user
+// accepts, method-read.test.js): the download never waits for it and the builder check does not count
+// it. A SWMS that lists none is unchanged.
 process.env.RATE_LIMIT_EMAIL_REQUESTS = '1000';
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -155,7 +156,7 @@ function type(p, id, field, value) {
   p.document.getElementById('methods-block').dispatchEvent(event);
 }
 
-test('the page: the option is on every draft, small and optional; its card says SiteReady does not read it', async () => {
+test('the page: the option is on every draft, small and optional; its card says SiteReady reads typed words only', async () => {
   const p = loadPage(['gate-rules.js', 'app.js'], () => ({ body: {} }));
   await settle();
   // A draft with no design step: the designs section stays hidden, the option shows, nothing is sent.
@@ -169,8 +170,8 @@ test('the page: the option is on every draft, small and optional; its card says 
   p.document.getElementById('method-add').click();
   const html = p.document.getElementById('methods-block').innerHTML;
   assert.match(html, /<legend>Written methodology or sequence of works<\/legend>/);
-  assert.ok(html.includes('SiteReady does not read this file or check the methodology. It is up to you to make sure the job steps match it. Where they differ, change the steps on the draft with &quot;Change this step&quot;, or write your own with &quot;Write a step for this&quot; or &quot;Write a step of your own&quot;.'), html);
-  assert.ok(html.includes('Prints in the table near the top of the SWMS. Nothing is added to the job steps.'));
+  assert.ok(html.includes('SiteReady reads only the typed words of a methodology, never drawings or scanned pages, and its suggestions can be wrong: check every one against the methodology. It is up to you to make sure the job steps match it. Where they differ, change the steps on the draft with &quot;Change this step&quot;, or write your own with &quot;Write a step for this&quot; or &quot;Write a step of your own&quot;.'), html);
+  assert.ok(html.includes('Prints in the table near the top of the SWMS. Nothing is added to the job steps unless you accept a suggested step.'));
   for (const label of ['What it is', 'Who prepared it', 'Document number', 'Revision', 'Date on the document', 'Attach the file', 'Remove this methodology']) assert.ok(html.includes(label), label);
   assert.match(html, /accept="\.pdf,\.png,\.jpg,\.jpeg,application\/pdf,image\/png,image\/jpeg"/);
   assert.ok(!/data-design-field="status"/.test(html), 'no status to choose');

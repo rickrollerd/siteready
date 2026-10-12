@@ -562,6 +562,7 @@ function newSwms() {
   designAnswers = null;
   designsFound = [];
   designsKept = new Map();
+  if (window.SiteReadyMethodRead) window.SiteReadyMethodRead.clear();
   drawDesigns([]);
   choicesTask = null;
   ppeTouched.clear();
@@ -701,6 +702,34 @@ document.getElementById('steps-reset').addEventListener('click', () => {
 });
 
 loadStepLibrary();
+
+// Job steps suggested from a written methodology (method-read.js) change the SWMS only through
+// these, when the user accepts one: library job steps added as the step picker adds them, and the
+// user's own steps as "Write a step for this" adds them.
+const methodSteps = {
+  methodRow: (id) => designRow(id),
+  libraryGroups: () => stepLibrary.groups,
+  libraryKind: (id) => stepById.get(id) || null,
+  addKinds(ids) {
+    const current = stepPicks || [...document.querySelectorAll('[data-step]:checked')].map((el) => el.value).concat(stepsAround);
+    const added = ids.filter((id) => !current.includes(id));
+    if (!added.length) return [];
+    stepPicks = [...new Set([...current, ...added])];
+    refreshSteps();
+    return added;
+  },
+  removeKinds(ids) {
+    if (!stepPicks) return;
+    stepPicks = stepPicks.filter((id) => !ids.includes(id));
+    refreshSteps();
+  },
+  ownNames: () => (ownSteps || []).map((item) => item.name),
+  addOwnStep(item) { ownSteps = [...(ownSteps || []), item]; },
+  removeOwnStep(name) {
+    ownSteps = (ownSteps || []).filter((item) => item.name !== name);
+    if (!ownSteps.length) ownSteps = null;
+  },
+};
 
 // The answers given for this SWMS, by question, so a question asked again (after Continue, a change
 // of steps, or an answer that brings in another question) keeps its answer, and one that goes and
@@ -1317,7 +1346,8 @@ resultEl.addEventListener('click', (event) => {
 const designRow = (id) => (designAnswers || []).find((row) => row.id === id) || null;
 const designShown = (id) => Boolean(document.getElementById(`design-${id}`));
 // A written method or sequence of works the work follows (owner, D224): optional, on every draft,
-// kept with the designs as "method-1" and so on. SiteReady does not read it.
+// kept with the designs as "method-1" and so on. SiteReady can read a typed one and suggest job steps
+// for the user to accept (method-read.js, D230).
 const isMethodRow = (row) => Boolean(row && /^method-\d+$/.test(row.id || ''));
 const ownRow = (row) => Boolean(row && /^(?:added|method)-\d+$/.test(row.id || ''));
 const methodTyped = (row) => ['what', 'by', 'number', 'revision', 'date'].some((key) => String(row[key] || '').trim()) || Boolean(row.file);
@@ -1369,8 +1399,9 @@ function designFileBox(row, what) {
         ${file}<p class="meta design-file-msg" data-design-msg="${id}" role="status"></p></div>`;
 }
 // A written method's card: the same details and file as a design, with no status to choose (the
-// user adds one only when they have it), and plainly said, SiteReady does not read it.
-const METHOD_CAUTION = 'SiteReady does not read this file or check the methodology. It is up to you to make sure the job steps match it. Where they differ, change the steps on the draft with "Change this step", or write your own with "Write a step for this" or "Write a step of your own".';
+// user adds one only when they have it), and plainly said: SiteReady reads typed words only, and the
+// user makes the job steps match it. The reading and its suggestions are drawn by method-read.js.
+const METHOD_CAUTION = 'SiteReady reads only the typed words of a methodology, never drawings or scanned pages, and its suggestions can be wrong: check every one against the methodology. It is up to you to make sure the job steps match it. Where they differ, change the steps on the draft with "Change this step", or write your own with "Write a step for this" or "Write a step of your own".';
 function methodCard(row) {
   const id = esc(row.id);
   const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
@@ -1379,7 +1410,7 @@ function methodCard(row) {
   return `<fieldset class="field design-card method-card" id="design-${id}" data-design="${id}" data-status="given" tabindex="-1">
     <legend>${esc(String(row.what || '').trim() || 'Written methodology or sequence of works')}</legend>
     <p class="warning method-caution">${esc(METHOD_CAUTION)}</p>
-    <p class="meta">Prints in the table near the top of the SWMS. Nothing is added to the job steps.</p>
+    <p class="meta">Prints in the table near the top of the SWMS. Nothing is added to the job steps unless you accept a suggested step.</p>
     <div class="design-given">
       ${box('what', 'What it is', 'As the document is titled, for example Jump lift machine platform raising methodology.', 'text', 200)}
       ${box('by', 'Who prepared it', 'The company or person, for example the lift company.', 'text', 200)}
@@ -1389,6 +1420,7 @@ function methodCard(row) {
       ${designFileBox(row, 'document')}
     </div>
     <p class="method-need" id="design-${id}-need" role="status"${need ? '' : ' hidden'}>${esc(need)}</p>
+    ${window.SiteReadyMethodRead ? window.SiteReadyMethodRead.boxHtml(row) : ''}
     <p><button type="button" class="link" data-design-remove="${id}">Remove this methodology</button></p>
   </fieldset>`;
 }
@@ -2718,7 +2750,7 @@ function redrawActions() {
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
   keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers,
-  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals,
+  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });
