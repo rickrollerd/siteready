@@ -1781,7 +1781,7 @@
   "op": "add",
   "group": "road",
   "step": "Set up traffic management",
-  "text": "Warning lamps are lit on every hazard left on or beside the road overnight, as the traffic management plan shows."
+  "text": "Warning lamps are lit on every hazard left on or beside the road overnight, as the traffic management plan (TMP) shows."
  },
  {
   "op": "add",
@@ -1803,7 +1803,7 @@
   "op": "add",
   "group": "road",
   "step": "Set up traffic management",
-  "text": "The traffic guidance scheme is designed by a person trained in traffic management design and set up by workers trained to implement it, and everyone working next to the road has done Working in Proximity to Traffic training.",
+  "text": "The traffic management plan (TMP) and its traffic guidance scheme (TGS) are designed by a person trained in traffic management design and set up by workers trained to implement them, and everyone working next to the road has done Working in Proximity to Traffic training.",
   "code": "Traffic management",
   "section": "s 6.3"
  },
@@ -1853,7 +1853,7 @@
  },
  {
   "op": "cite",
-  "find": "Set up traffic control to the approved traffic management plan before work starts",
+  "find": "Set up traffic control to the approved traffic management plan (TMP) and its traffic guidance scheme (TGS) before work starts",
   "code": "Traffic management",
   "section": "s 4.1, s 4.4"
  },
@@ -4835,7 +4835,7 @@
  },
  {
   "op": "cite",
-  "find": "A traffic management plan is in place before plant starts. Ramps and haul roads are built and maintained.",
+  "find": "A traffic management plan (TMP) is in place before plant starts. Ramps and haul roads are built and maintained.",
   "code": "NSW Excavation",
   "section": "s 4.3"
  },
@@ -9793,7 +9793,7 @@
   "op": "add",
   "group": "ewp",
   "step": "Use an elevating work platform",
-  "text": "Near traffic, the boom's pivot point and reach are set so it cannot extend into live lanes, under a traffic management plan with barricaded exclusion zones.",
+  "text": "Near traffic, the boom's pivot point and reach are set so it cannot extend into live lanes, under a traffic management plan (TMP) with barricaded exclusion zones.",
   "code": "NSW Elevating work platforms",
   "section": "s 3.1"
  },

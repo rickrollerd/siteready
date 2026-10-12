@@ -23,13 +23,24 @@
 // 3,519 of 4,789, 73.5%; gap job steps of 10 October 2026 (TBM shafts, plant removal, lift controllers,
 // underpinning, sprayed fire protection, rock sawing, data outlet terminations): 50 new lines, 47 cited to
 // code or regulation sections read, the lift worker check-in line from regulator guidance and the two
-// underpinning sequence lines from one training unit, so not yet evidenced: 3,573 of 4,846, 73.7%).
+// underpinning sequence lines from one training unit, so not yet evidenced: 3,573 of 4,846, 73.7%;
+// the owner's pick list review, part 1 (11 October 2026): 48 new lines, 46 cited to code, regulation or
+// two organisations (EPA Victoria and the NSW Blue Book), two from EPA Victoria's guidance alone, so not yet
+// evidenced, and one line reworded (the site traffic management plan): 3,619 of 4,892, 73.98%;
+// part 2 (D204 to D213): 13 new lines, 8 cited to code or regulation sections read, 3 from EPA Victoria's
+// guidance alone and 2 the owner's own instruction (D209, mast climbers), so not yet evidenced, and one
+// asbestos licence line replaced by the amount the user gives (D205): 3,626 of 4,904, 73.94%;
+// the full pass over the pick lists (12 October 2026): 5 new wall and column form lines cited to the
+// SafeWork NSW Formwork code s 7.3, and the harness step's lines reused word for word: 3,631 of 4,909, 73.97%;
+// part 3 of the owner's review (12 October 2026): 17 new lines, 12 cited to code or regulation sections read
+// (demolition code s 4.12, manual tasks code s 4.4 and s 4.6, WHS Regulation s 39, s 351), 5 from the Transport
+// for NSW pile specification and EPA Victoria's guidance alone, so not yet evidenced: 3,643 of 4,926, 73.95%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');
 const RECORD = require('../scenarios/control-evidence.json');
 
-const MEASURED = 0.737;
+const MEASURED = 0.739;
 
 test('every library control line is in the evidence record, and every record entry is a library line', () => {
   const lines = libraryLines();

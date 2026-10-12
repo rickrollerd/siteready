@@ -57,6 +57,16 @@
       },
       {
         "state": "qld",
+        "name": "How to manage and control asbestos in the workplace Code of Practice 2021 (Qld)",
+        "item": "^How to manage and control asbestos"
+      },
+      {
+        "state": "qld",
+        "name": "How to safely remove asbestos Code of Practice 2021 (Qld)",
+        "item": "^How to safely remove asbestos"
+      },
+      {
+        "state": "qld",
         "name": "Managing noise and preventing hearing loss at work Code of Practice 2021 (Qld)",
         "item": "^Managing noise and preventing hearing loss"
       },
@@ -79,6 +89,11 @@
         "state": "qld",
         "name": "Managing the risk of falls at workplaces Code of Practice 2021 (Qld)",
         "item": "^Managing the risk of falls at workplaces"
+      },
+      {
+        "state": "qld",
+        "name": "Mobile crane Code of Practice 2024 (Qld)",
+        "item": "^Mobile crane code of practice"
       },
       {
         "state": "qld",

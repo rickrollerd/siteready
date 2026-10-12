@@ -286,6 +286,8 @@ function payload() {
     // The rows of a scope reading that the reader matched to no job steps, for the task as read,
     // and the parts with no job steps the user ticked as dealt with (owner decision D184).
     unmatched: scopeUnmatched || undefined,
+    // The parts of a task picked from the pick list that SiteReady has no job steps for (goal 1).
+    pickGaps: pickGaps || undefined,
     notCoveredConfirmed: coverTicked ? JSON.parse(coverTicked) : undefined,
     controlEdits: controlEdits || undefined,
     hazardEdits: hazardEdits || undefined,
@@ -484,6 +486,14 @@ document.getElementById('start').addEventListener('submit', (event) => {
     stepPicks = scope && scope.task === task && Array.isArray(scope.kinds) ? [...scope.kinds] : null;
     leaveOut = scope && scope.task === task && Array.isArray(scope.leaveOut) ? [...scope.leaveOut] : null;
     scopeUnmatched = scope && scope.task === task && Array.isArray(scope.unmatched) ? [...scope.unmatched] : null;
+    // A task picked from the pick list, still as picked, starts from its own job steps and names
+    // the parts SiteReady has no job steps for. Changed words start from the steps found in them.
+    const picked = !(scope && scope.task === task) && pickedTask && pickedTask.task === task ? pickedTask : null;
+    if (picked) {
+      stepPicks = [...picked.kinds];
+      leaveOut = picked.leaveOut && picked.leaveOut.length ? [...picked.leaveOut] : null;
+    }
+    pickGaps = picked && picked.gaps && picked.gaps.length ? [...picked.gaps] : null;
     choicesTask = task;
   }
   // With no signal the plain message shows here, not nothing (goal 7).
@@ -496,6 +506,9 @@ let stepPicks = null;
 let leaveOut = null;
 // Rows of the scope reading with no job steps, while the task is the one read from the scope.
 let scopeUnmatched = null;
+// The task last picked from the pick list, and the parts of it with no job steps while it is as picked.
+let pickedTask = null;
+let pickGaps = null;
 // The parts with no job steps the user ticked as dealt with, as shown above the draft (D184).
 let coverTicked = null;
 // The job steps in the order the user put them in the preview, by name.
@@ -531,6 +544,7 @@ function newSwms() {
   stepPicks = null;
   leaveOut = null;
   scopeUnmatched = null;
+  pickGaps = null;
   coverTicked = null;
   stepOrder = null;
   controlEdits = null;
@@ -633,7 +647,7 @@ function renderSteps(steps) {
 
 // Shown when a step the task's words call for is taken off.
 const REMOVED_WARNINGS = {
-  road: 'The task mentions a road or street. Make sure traffic is managed before work starts, for example under the principal contractor\'s traffic management plan.',
+  road: 'The task mentions a road or street. Make sure traffic is managed before work starts, for example under the principal contractor\'s traffic management plan (TMP).',
   asbestosCheck: 'The work could disturb asbestos. Make sure asbestos is identified before work starts.',
   asbestos: 'The task involves asbestos. It must be removed under the asbestos rules, by a licensed removalist where required.',
   isolation: 'The work needs power or plant isolated. Make sure it is isolated and proved before work starts.',
@@ -914,6 +928,7 @@ function fillStart(input) {
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   scopeUnmatched = Array.isArray(input.unmatched) ? [...input.unmatched] : null;
+  pickGaps = Array.isArray(input.pickGaps) ? [...input.pickGaps] : null;
   coverTicked = Array.isArray(input.notCoveredConfirmed) ? JSON.stringify(input.notCoveredConfirmed) : null;
   choicesTask = String(input.task || '').trim();
   stepOrder = Array.isArray(input.stepOrder) ? [...input.stepOrder] : null;
@@ -1025,26 +1040,45 @@ document.getElementById('required-block').addEventListener('change', (event) => 
   if (event.target.dataset && event.target.dataset.fact) askAgain();
 });
 
-// Trade and task pick lists fill in the task, the fall question and who runs the crane.
+// Trade and task pick lists fill in the task, its job steps, the fall question and who runs the
+// crane. The trades are shown in groups (site and plant, civil, structure, services, finishes),
+// with access, handling and tools for any trade as a pick of its own.
 let trades = [];
 const tradeEl = document.getElementById('trade');
 const presetEl = document.getElementById('preset');
+const presetNote = document.getElementById('preset-note');
 
 async function loadPresets() {
   try {
     const response = await fetch(api('/api/presets'));
     if (!response.ok) return;
     trades = (await response.json()).trades || [];
-    tradeEl.innerHTML = '<option value="">Choose a trade</option>' + trades.map((trade, index) => `<option value="${index}">${esc(trade.name)}</option>`).join('');
+    const groups = [...new Set(trades.map((trade) => trade.group || ''))];
+    const option = (trade) => `<option value="${trades.indexOf(trade)}">${esc(trade.name)}</option>`;
+    tradeEl.innerHTML = '<option value="">Choose a trade</option>' + groups.map((group) => {
+      const list = trades.filter((trade) => (trade.group || '') === group).map(option).join('');
+      return group ? `<optgroup label="${esc(group)}">${list}</optgroup>` : list;
+    }).join('');
   } catch {
     // The pick lists are a convenience. Without them the task is written by hand.
   }
+}
+
+// What SiteReady cannot draft for a picked task, said before Continue, so it is no surprise.
+function showPresetNote(item) {
+  const gaps = (item && item.gaps) || [];
+  let text = '';
+  if (item && item.coverage === 'none' && !(item.kinds || []).length) text = 'SiteReady has no job steps for this task yet. Pick the job steps that cover it under Job steps, or write this SWMS yourself.';
+  else if (gaps.length) text = `SiteReady has no job steps yet for: ${gaps.join('; ')}. You will be asked to add your own steps for this, or cover it in a separate SWMS.`;
+  presetNote.textContent = text;
+  presetNote.classList.toggle('hidden', !text);
 }
 
 tradeEl.addEventListener('change', () => {
   const trade = trades[Number(tradeEl.value)];
   presetEl.innerHTML = '<option value="">Choose a task</option>' + (trade ? trade.tasks.map((item, index) => `<option value="${index}">${esc(item.title)}</option>`).join('') : '');
   presetEl.disabled = !trade;
+  showPresetNote(null);
 });
 
 presetEl.addEventListener('change', () => {
@@ -1056,6 +1090,8 @@ presetEl.addEventListener('change', () => {
   newSwms();
   taskEl.value = item.task;
   taskEl.dataset.preset = item.task;
+  pickedTask = { task: item.task, kinds: item.kinds || [], leaveOut: item.leaveOut || [], gaps: item.gaps || [] };
+  showPresetNote(item);
   document.getElementById('task-trade').value = '';
   const fall = document.querySelector(`input[name="fallRisk"][value="${item.fallRisk}"]`);
   if (fall) { fall.checked = true; fall.dispatchEvent(new Event('change', { bubbles: true })); }
