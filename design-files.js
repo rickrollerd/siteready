@@ -176,7 +176,7 @@ async function missingFiles(companyId, input) {
 async function needFiles(companyId, input) {
   const missing = await missingFiles(companyId, input);
   if (!missing.length) return;
-  const rows = (input.designs || []).filter((row) => row.file && missing.includes(row.file.id)).map((row) => row.what || 'a design');
+  const rows = (input.designs || []).filter((row) => row.file && missing.includes(row.file.id)).map((row) => row.what || (/^method-/.test(row.id) ? 'a written methodology' : 'a design'));
   throw fail(400, `The file attached to ${rows.join('; ')} is no longer held. Attach it again, or save without the file.`);
 }
 

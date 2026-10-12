@@ -56,8 +56,11 @@ function printedContent(draft) {
   };
 }
 
-// Each design as its table row prints, for comparing two prints.
-const designText = (draft) => (draft.designs || []).map((row) => [row.what, row.reference || '', row.statusText || ''].join(': '));
+// Each design as its table row prints, for comparing two prints. A written method (D224) is listed
+// as one in the changes.
+const rowText = (row) => [row.what, row.reference || '', row.statusText || ''].join(': ');
+const designText = (draft) => (draft.designs || []).map(rowText);
+const tableText = (draft, method) => (draft.designs || []).filter((row) => (row.kind === 'method') === method).map(rowText);
 
 const contentHash = (draft) => hash(stable(printedContent(draft)));
 
@@ -100,7 +103,8 @@ function changesBetween(before, after) {
   diff(emergency(before), emergency(after), 'emergency');
   const references = (draft) => (draft.references || []).map((item) => (typeof item === 'string' ? item : stable(item)));
   diff(references(before), references(after), 'reference');
-  diff(designText(before), designText(after), 'design');
+  diff(tableText(before, false), tableText(after, false), 'design');
+  diff(tableText(before, true), tableText(after, true), 'method');
   if ((before.review || '') !== (after.review || '')) out.push({ kind: 'review', change: 'changed', text: after.review || '', from: before.review || '' });
   // Anything else in the print that differs, so a change is never shown as nothing.
   if (!out.length && contentHash(before) !== contentHash(after)) out.push({ kind: 'other', change: 'changed', text: 'Other printed wording' });
@@ -109,7 +113,7 @@ function changesBetween(before, after) {
 
 const KIND_WORDS = {
   step: 'Job step', hazard: 'Hazard', control: 'Control', who: 'Who', highRisk: 'High risk construction work', ppe: 'PPE', qualification: 'Licence or training',
-  law: 'Law', source: 'Law or code listed', general: 'General control', plant: 'Plant', substance: 'Hazardous substance', emergency: 'Emergency arrangement', reference: 'Reference', design: 'Design', review: 'Review wording', other: 'Other printed wording',
+  law: 'Law', source: 'Law or code listed', general: 'General control', plant: 'Plant', substance: 'Hazardous substance', emergency: 'Emergency arrangement', reference: 'Reference', design: 'Design', method: 'Written methodology', review: 'Review wording', other: 'Other printed wording',
 };
 // One line for each change, for the page.
 function changeText(item) {

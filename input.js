@@ -89,8 +89,9 @@ function ownSteps(value) {
 // The designs the SWMS relies on (designs.js), as the user answered them: which design (by id: one
 // SiteReady found in the steps, or "added-1" and so on for one the user added), what it is, who
 // prepared it, its document or drawing number, revision and date, whether it is issued, not issued
-// yet or not needed, and the file attached, by the id it was stored under (design-files.js).
-const DESIGN_ID = /^(?:[a-zA-Z]{2,30}|added-\d{1,2})$/;
+// yet or not needed, and the file attached, by the id it was stored under (design-files.js). A
+// written method or sequence of works the work follows is kept the same way, as "method-1" and so on.
+const DESIGN_ID = /^(?:[a-zA-Z]{2,30}|added-\d{1,2}|method-\d{1,2})$/;
 const FILE_ID = /^df_[A-Za-z0-9_-]{16,64}$/;
 function designs(value) {
   if (!Array.isArray(value)) return undefined;

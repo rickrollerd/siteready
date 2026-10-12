@@ -2990,7 +2990,8 @@ const JACK_SKID_NOTE = "SiteReady's jack and skid steps are for engineered heavy
 // Notes above the draft for steps that are general and must be checked against the task (owner's
 // review, part 3): shown on the page, not printed, no tick, and the download is not held.
 const PALLET_JACK_NOTE = "SiteReady's pallet jack and stacker steps are general. Check each line against the maker's instructions for your pallet jack or stacker, and change or add lines where it does not fit.";
-const JUMP_LIFT_NOTE = "Raising a jump lift's machine platform follows the lift company's method. Get their method, write your step for this work from it, and keep the method with this SWMS.";
+// It points to the written method the user can list with the SWMS (D224).
+const JUMP_LIFT_NOTE = "Raising a jump lift's machine platform follows the lift company's methodology. Get their methodology, write your step for this work from it, and add it under \"Add a written methodology or sequence of works\".";
 const WORKBOX_PERMIT_NOTE = "Lifting people in a crane workbox usually needs the principal contractor's permit. Check the site's permit system before the first lift.";
 const OWN_STEP_WORK = [
   [JACKING,

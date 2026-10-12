@@ -298,6 +298,10 @@
     .design-file { margin: 6px 0; overflow-wrap: anywhere; }
     .design-hold-line { font-weight: 700; color: #8a2b2b; }
     .design-line .meta { display: block; font-weight: 400; color: #3d4a59; }
+    /* A written methodology or sequence of works (D224): optional, on every draft. */
+    .method-add-row { margin: 14px 0 6px; }
+    .design-card .method-caution { margin: 6px 0 10px; }
+    .design-card .method-need { color: #8a2b2b; font-weight: 600; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .plant-status { font-weight: 600; margin: 8px 0 0; }
     .risk-response { display: block; margin-top: 6px; font-weight: 600; color: #8a2b2b; }
@@ -692,6 +696,14 @@
         <p class="lede" style="margin-bottom:12px">Some job steps here are done to an engineer's or temporary works design. A reviewer checks your SWMS matches that design, so name each one. It prints in the steps that use it, and in a table near the top of the SWMS. Needed before download.</p>
         <div id="designs-block"></div>
         <p><button type="button" class="secondary small" id="design-add">Add another design</button> <span class="meta">For example a geotechnical report or a crane pad design.</span></p>
+      </div>
+      <div id="methods-section">
+        <div id="methods-head" class="hidden">
+          <h2 style="margin-top:18px">Written methodologies and sequences of works</h2>
+          <p class="lede" style="margin-bottom:12px">Optional. Each prints in a table near the top of the SWMS. SiteReady does not read them.</p>
+        </div>
+        <div id="methods-block"></div>
+        <p class="method-add-row"><button type="button" class="secondary small" id="method-add">Add a written methodology or sequence of works (optional)</button> <span class="meta">For example the lift company's methodology for raising a jump lift's machine platform.</span></p>
       </div>
       <div class="actions">
         <button type="submit" id="prepare">Prepare the statement</button>

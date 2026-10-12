@@ -1316,8 +1316,13 @@ resultEl.addEventListener('click', (event) => {
 // download waits until each one is answered (download-gate.js).
 const designRow = (id) => (designAnswers || []).find((row) => row.id === id) || null;
 const designShown = (id) => Boolean(document.getElementById(`design-${id}`));
+// A written method or sequence of works the work follows (owner, D224): optional, on every draft,
+// kept with the designs as "method-1" and so on. SiteReady does not read it.
+const isMethodRow = (row) => Boolean(row && /^method-\d+$/.test(row.id || ''));
+const ownRow = (row) => Boolean(row && /^(?:added|method)-\d+$/.test(row.id || ''));
+const methodTyped = (row) => ['what', 'by', 'number', 'revision', 'date'].some((key) => String(row[key] || '').trim()) || Boolean(row.file);
 function designsPayload() {
-  const rows = (designAnswers || []).filter((row) => row.id && (!/^added-/.test(row.id) || String(row.what || '').trim()));
+  const rows = (designAnswers || []).filter((row) => row.id && (isMethodRow(row) ? methodTyped(row) : (!/^added-/.test(row.id) || String(row.what || '').trim())));
   return rows.length ? rows.map((row) => ({ ...row })) : undefined;
 }
 // Whether files can be attached here (the storage bucket, or a local run), and the size limit.
@@ -1336,9 +1341,6 @@ function designCard(row, found) {
   const status = row.status || '';
   const radio = (value, label) => `<label><input type="radio" name="design-status-${id}" value="${value}" data-design-field="status"${status === value ? ' checked' : ''}> ${label}</label>`;
   const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
-  const file = row.file
-    ? `<p class="design-file">Attached: <strong>${esc(row.file.name)}</strong> <span class="meta">(${esc(fileSize(row.file.size || 0))})</span> <button type="button" class="link" data-design-open="${id}">Open</button> <button type="button" class="link" data-design-unfile="${id}">Remove the file</button></p>`
-    : `<label class="secondary small design-attach" for="design-${id}-file">Attach the file</label><input id="design-${id}-file" class="visually-hidden" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" data-design-file="${id}">`;
   return `<fieldset class="field design-card" id="design-${id}" data-design="${id}" data-status="${esc(status)}" tabindex="-1">
     <legend>${esc(row.what || (added ? 'Another design' : (found && found.label) || 'Design'))}</legend>
     ${found && found.steps.length ? `<p class="meta">Used in: ${esc(found.steps.join('; '))}.</p>` : '<p class="meta">Prints in the designs table near the top of the SWMS.</p>'}
@@ -1349,34 +1351,85 @@ function designCard(row, found) {
       <div class="design-pair">${box('number', 'Document or drawing number', 'From the title block, for example ABC-S-101.')}${box('revision', 'Revision', 'For example C. Leave it empty if it has none.', 'text', 40)}</div>
       <p class="warning design-same" id="design-${id}-same" hidden></p>
       ${box('date', 'Date on the design', '', 'date', 60)}
-      <div class="field design-file-box"><p class="design-file-label">The file <span class="meta">(optional)</span></p>
-        <p class="meta">A PDF, or a photo of the drawing, up to 10 MB. It stays with this SWMS in SiteReady, for you and your reviewer to open. It does not print.</p>
-        ${file}<p class="meta design-file-msg" data-design-msg="${id}" role="status"></p></div>
+      ${designFileBox(row, 'drawing')}
     </div>
     <p class="note design-hold">The steps that use it print a hold point: "Do not start this step until the design is issued and this SWMS is updated." When the design arrives, add its details here and save a new revision.</p>
     <p class="note design-skip">Choose this only if the work in these steps is not done to a design on this job. The SWMS records it as your business's choice, and a reviewer may ask why.</p>
     ${added ? `<p><button type="button" class="link" data-design-remove="${id}">Remove this design</button></p>` : ''}
   </fieldset>`;
 }
+// The file box of a card: attached, with Open and Remove, or the button to attach one.
+function designFileBox(row, what) {
+  const id = esc(row.id);
+  const file = row.file
+    ? `<p class="design-file">Attached: <strong>${esc(row.file.name)}</strong> <span class="meta">(${esc(fileSize(row.file.size || 0))})</span> <button type="button" class="link" data-design-open="${id}">Open</button> <button type="button" class="link" data-design-unfile="${id}">Remove the file</button></p>`
+    : `<label class="secondary small design-attach" for="design-${id}-file">Attach the file</label><input id="design-${id}-file" class="visually-hidden" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" data-design-file="${id}">`;
+  return `<div class="field design-file-box"><p class="design-file-label">The file <span class="meta">(optional)</span></p>
+        <p class="meta">A PDF, or a photo of the ${what}, up to 10 MB. It stays with this SWMS in SiteReady, for you and your reviewer to open. It does not print.</p>
+        ${file}<p class="meta design-file-msg" data-design-msg="${id}" role="status"></p></div>`;
+}
+// A written method's card: the same details and file as a design, with no status to choose (the
+// user adds one only when they have it), and plainly said, SiteReady does not read it.
+const METHOD_CAUTION = 'SiteReady does not read this file or check the methodology. It is up to you to make sure the job steps match it. Where they differ, change the steps on the draft with "Change this step", or write your own with "Write a step for this" or "Write a step of your own".';
+function methodCard(row) {
+  const id = esc(row.id);
+  const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
+  const rules = window.SiteReadyGate;
+  const need = rules && rules.methodNeed ? rules.methodNeed(row) : '';
+  return `<fieldset class="field design-card method-card" id="design-${id}" data-design="${id}" data-status="given" tabindex="-1">
+    <legend>${esc(String(row.what || '').trim() || 'Written methodology or sequence of works')}</legend>
+    <p class="warning method-caution">${esc(METHOD_CAUTION)}</p>
+    <p class="meta">Prints in the table near the top of the SWMS. Nothing is added to the job steps.</p>
+    <div class="design-given">
+      ${box('what', 'What it is', 'As the document is titled, for example Jump lift machine platform raising methodology.', 'text', 200)}
+      ${box('by', 'Who prepared it', 'The company or person, for example the lift company.', 'text', 200)}
+      <div class="design-pair">${box('number', 'Document number', 'From the document, for example LC-MS-014.')}${box('revision', 'Revision', 'For example C. Leave it empty if it has none.', 'text', 40)}</div>
+      <p class="warning design-same" id="design-${id}-same" hidden></p>
+      ${box('date', 'Date on the document', '', 'date', 60)}
+      ${designFileBox(row, 'document')}
+    </div>
+    <p class="method-need" id="design-${id}-need" role="status"${need ? '' : ' hidden'}>${esc(need)}</p>
+    <p><button type="button" class="link" data-design-remove="${id}">Remove this methodology</button></p>
+  </fieldset>`;
+}
+// What a method still needs before it prints, said on its card as the user types.
+function showMethodNeed(row) {
+  const note = document.getElementById(`design-${row.id}-need`);
+  const rules = window.SiteReadyGate;
+  if (!note || !rules || !rules.methodNeed) return;
+  const text = rules.methodNeed(row);
+  if (note.textContent !== text) note.textContent = text;
+  note.hidden = !text;
+}
 // Draws the cards for the designs the server found, keeping what the user has typed. Drawn again only
 // when the designs or their steps change, so a phone does not jump while the user types.
 function drawDesigns(list) {
   designsFound = (list || []).filter((row) => row.needed);
   const answers = designAnswers || [];
-  for (const row of answers) if (row && row.id && !/^added-/.test(row.id)) designsKept.set(row.id, row);
+  for (const row of answers) if (row && row.id && !ownRow(row)) designsKept.set(row.id, row);
   const rows = designsFound.map((found) => {
     const mine = designsKept.get(found.id);
     return mine || { id: found.id, what: found.what, status: found.status || '', by: found.by || '', number: found.number || '', revision: found.revision || '', date: found.date || '', ...(found.file ? { file: found.file } : {}) };
   });
-  const added = answers.filter((row) => /^added-/.test(row.id));
+  // The designs the user added, then the written methods, each kept as typed.
+  const added = [...answers.filter((row) => /^added-/.test(row.id)), ...answers.filter(isMethodRow)];
   designAnswers = rows.length || added.length ? [...rows, ...added] : null;
   const section = document.getElementById('designs-section');
   if (!section) return;
   const shape = JSON.stringify([designsFound.map((row) => [row.id, row.label, row.steps]), added.map((row) => row.id)]);
-  section.classList.toggle('hidden', !designAnswers);
+  const designs = (designAnswers || []).filter((row) => !isMethodRow(row));
+  const methods = (designAnswers || []).filter(isMethodRow);
+  section.classList.toggle('hidden', !designs.length);
+  // The written methods: optional, on every draft, under the designs (D224).
+  const methodsHead = document.getElementById('methods-head');
+  if (methodsHead) methodsHead.classList.toggle('hidden', !methods.length);
+  const methodAdd = document.getElementById('method-add');
+  if (methodAdd) methodAdd.textContent = methods.length ? 'Add another written methodology or sequence of works (optional)' : 'Add a written methodology or sequence of works (optional)';
   if (shape === designsDrawn) { showSameNumbers(); return; }
   designsDrawn = shape;
-  document.getElementById('designs-block').innerHTML = (designAnswers || []).map((row) => designCard(row, designsFound.find((found) => found.id === row.id))).join('');
+  document.getElementById('designs-block').innerHTML = designs.map((row) => designCard(row, designsFound.find((found) => found.id === row.id))).join('');
+  const methodsBlock = document.getElementById('methods-block');
+  if (methodsBlock) methodsBlock.innerHTML = methods.map((row) => methodCard(row)).join('');
   showSameNumbers();
   designFilesOn().then((config) => { if (!config.enabled) document.querySelectorAll('.design-file-box').forEach((el) => { el.innerHTML = '<p class="meta">Attaching the file is not switched on yet. The reference is what prints.</p>'; }); });
 }
@@ -1403,8 +1456,10 @@ function redrawDesigns() {
   drawDesigns(designsFound);
 }
 const designsBlock = document.getElementById('designs-block');
+// The written methods' cards work as the designs' do.
+const designBlocks = [designsBlock, document.getElementById('methods-block')].filter(Boolean);
 // What the user types or picks in a card is kept as they go.
-['input', 'change'].forEach((type) => designsBlock && designsBlock.addEventListener(type, (event) => {
+['input', 'change'].forEach((type) => designBlocks.forEach((block) => block.addEventListener(type, (event) => {
   const field = event.target.dataset && event.target.dataset.designField;
   const card = event.target.closest && event.target.closest('[data-design]');
   if (!field || !card) return;
@@ -1413,9 +1468,10 @@ const designsBlock = document.getElementById('designs-block');
   if (field === 'status' && !event.target.checked) return;
   row[field] = event.target.value;
   if (field === 'status') card.dataset.status = event.target.value;
-  if (field === 'what') card.querySelector('legend').textContent = event.target.value.trim() || 'Another design';
+  if (field === 'what') card.querySelector('legend').textContent = event.target.value.trim() || (isMethodRow(row) ? 'Written methodology or sequence of works' : 'Another design');
   if (['what', 'status', 'number', 'revision'].includes(field)) showSameNumbers();
-}));
+  if (isMethodRow(row)) showMethodNeed(row);
+})));
 document.getElementById('design-add') && document.getElementById('design-add').addEventListener('click', () => {
   const used = new Set((designAnswers || []).map((row) => row.id));
   let n = 1;
@@ -1425,7 +1481,17 @@ document.getElementById('design-add') && document.getElementById('design-add').a
   const box = document.getElementById(`design-added-${n}-what`);
   if (box) box.focus();
 });
-designsBlock && designsBlock.addEventListener('click', async (event) => {
+// A written method added to any draft: its card, with the caution, ready to fill in.
+document.getElementById('method-add') && document.getElementById('method-add').addEventListener('click', () => {
+  const used = new Set((designAnswers || []).map((row) => row.id));
+  let n = 1;
+  while (used.has(`method-${n}`)) n += 1;
+  designAnswers = [...(designAnswers || []), { id: `method-${n}`, what: '', status: 'given', by: '', number: '', revision: '', date: '' }];
+  redrawDesigns();
+  const box = document.getElementById(`design-method-${n}-what`);
+  if (box) box.focus();
+});
+designBlocks.forEach((block) => block.addEventListener('click', async (event) => {
   const remove = event.target.closest('[data-design-remove]');
   if (remove) {
     designAnswers = (designAnswers || []).filter((row) => row.id !== remove.dataset.designRemove);
@@ -1446,22 +1512,22 @@ designsBlock && designsBlock.addEventListener('click', async (event) => {
   if (open) {
     const row = designRow(open.dataset.designOpen);
     const S = window.SiteReady || {};
-    if (row && row.file && S.openFile) S.openFile(`/api/designs/files/${encodeURIComponent(row.file.id)}`, row.file.name).catch((error) => { const msg = designsBlock.querySelector(`[data-design-msg="${row.id}"]`); if (msg) msg.textContent = error.message; });
+    if (row && row.file && S.openFile) S.openFile(`/api/designs/files/${encodeURIComponent(row.file.id)}`, row.file.name).catch((error) => { const msg = block.querySelector(`[data-design-msg="${row.id}"]`); if (msg) msg.textContent = error.message; });
   }
-});
+}));
 // A file is checked here for its type and size, then sent; the server checks its content again.
-designsBlock && designsBlock.addEventListener('change', async (event) => {
+designBlocks.forEach((block) => block.addEventListener('change', async (event) => {
   const input = event.target.closest && event.target.closest('[data-design-file]');
   if (!input || !input.files || !input.files[0]) return;
   const id = input.dataset.designFile;
   const file = input.files[0];
-  const msg = designsBlock.querySelector(`[data-design-msg="${id}"]`);
+  const msg = block.querySelector(`[data-design-msg="${id}"]`);
   const say = (text) => { if (msg) msg.textContent = text; };
   const config = await designFilesOn();
   const S = window.SiteReady || {};
   if (!S.isSignedIn || !S.isSignedIn()) { say('Sign in to attach the file. You can give the reference now and attach the file later.'); input.value = ''; return; }
   if (!/\.(pdf|png|jpe?g)$/i.test(file.name) && !/^(application\/pdf|image\/png|image\/jpeg)$/.test(file.type)) { say('Attach a PDF, PNG or JPEG.'); input.value = ''; return; }
-  if (file.size > config.maxMb * 1024 * 1024) { say(`The file is larger than ${config.maxMb} MB. Attach a smaller copy, such as the drawing sheets only.`); input.value = ''; return; }
+  if (file.size > config.maxMb * 1024 * 1024) { say(`The file is larger than ${config.maxMb} MB. Attach a smaller copy${isMethodRow(designRow(id)) ? '' : ', such as the drawing sheets only'}.`); input.value = ''; return; }
   say('Attaching...');
   try {
     const data = await S.sendFile('/api/designs/files', file);
@@ -1474,7 +1540,7 @@ designsBlock && designsBlock.addEventListener('change', async (event) => {
     say(error.message);
     input.value = '';
   }
-});
+}));
 
 // ---- The plant and the emergency response, asked in the draft (goal 2) ----
 
@@ -1547,8 +1613,14 @@ function designsTable(draft, swmsId) {
   const opener = (row) => (row.file && row.status === 'given'
     ? `<br><button type="button" class="link" data-design-file-open="${esc(swmsId ? `/api/swms/${encodeURIComponent(swmsId)}/designs/${encodeURIComponent(row.file.id)}` : `/api/designs/files/${encodeURIComponent(row.file.id)}`)}" data-design-file-name="${esc(row.file.name)}">Open the file</button>` : '');
   const cells = (row) => [row.what, row.status === 'given' ? row.by : '', row.status === 'given' ? [row.number, rev(row.revision) ? `rev ${rev(row.revision)}` : ''].filter(Boolean).join(' ') : '', row.status === 'given' ? designDate(row.date) : ''];
-  const labels = ['Design', 'Prepared by', 'Document or drawing, revision', 'Date', 'Status'];
-  return `<h4>Designs this SWMS relies on</h4><p class="meta">Each step that relies on a design names it. Work to the revision listed here. If a new revision is issued, check this SWMS against it and update it before work continues.</p>
+  // With a written method listed (D224), the title, first column and note say so (designs.js).
+  const methods = rows.filter((row) => row.kind === 'method').length;
+  const designs = rows.length - methods;
+  const first = !methods ? 'Design' : designs ? 'Design or methodology' : 'Methodology';
+  const title = !methods ? 'Designs this SWMS relies on' : designs ? 'Designs and methodologies this SWMS relies on' : 'Written methodologies this SWMS relies on';
+  const note = `${designs ? 'Each step that relies on a design names it. ' : ''}${methods ? 'The work follows each methodology listed here. ' : ''}Work to the revision listed here. If a new revision is issued, check this SWMS against it and update it before work continues.`;
+  const labels = [first, 'Prepared by', 'Document or drawing, revision', 'Date', 'Status'];
+  return `<h4>${title}</h4><p class="meta">${note}</p>
     <table class="stack"><thead><tr>${labels.map((label) => `<th>${label}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${cells(row).map((value, i) => `<td data-label="${labels[i]}">${esc(value)}</td>`).join('')}<td data-label="Status">${esc(`${row.statusText}${row.steps.length ? ` Used in: ${row.steps.join('; ')}.` : ''}`)}${opener(row)}</td></tr>`).join('')}</tbody></table>`;
 }
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
