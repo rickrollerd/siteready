@@ -524,6 +524,15 @@
     </li>`).join('')}</ul></details>`;
   }
 
+  // Two designs answered "I have it" with the same document or drawing number (D223), as the cards
+  // say while the SWMS is prepared. Advice on the page only: it does not print or hold a download.
+  function sameNumbersNote(draft) {
+    const rules = window.SiteReadyGate;
+    const groups = rules && rules.sameDesignNumbers && draft ? rules.sameDesignNumbers(draft.designs || []) : [];
+    if (!groups.length) return '';
+    return `<div class="warning" id="saved-design-same">${groups.map((group) => `<p>${esc(group.text)}</p>`).join('')}<p>To correct a number, choose Change, fix it under "Designs this work relies on" and save a new revision.</p></div>`;
+  }
+
   async function openSwms(id) {
     const data = await call('GET', `/api/swms/${id}`);
     const { swms, draft, signons } = data;
@@ -543,6 +552,7 @@
           <details><summary>What would change (${update.changes.length})</summary><ul>${update.changes.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>
           <div class="actions"><button type="button" class="secondary" id="saved-update-go">Make a new revision with the updated wording</button></div>
           <p class="meta">Uses the name and tick under Mark as reviewed below.</p></div>` : ''}
+        ${sameNumbersNote(draft)}
         ${historyBlock(history)}
         <div class="actions wrap-actions">
           <button type="button" id="saved-docx">Download Word</button>
