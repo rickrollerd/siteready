@@ -31,11 +31,12 @@ function answered(input) {
 }
 const draft = (task, extra = {}) => prepareDraft(draftBody({ ...BASE, task, ...extra, facts: answered({ ...BASE, task, ...extra }) }));
 const names = (d) => d.jobSteps.map((step) => step.step);
-const TRANSFORMER = 'Jack and skate the transformer into the plant room';
-const MINE = { part: TRANSFORMER, name: 'Jack and skate the transformer', hazards: ['The transformer tips off the skates and crushes a worker.'], controls: ['The transformer is jacked only at its marked jacking points and packed with timber cribbing as it rises.', 'No one puts a hand or foot under the transformer while it is on the jacks or skates.'], who: 'Rigger' };
+// Skating without jacking is named as not covered (D220); jacking and skating takes the jack and skid step (D219).
+const TRANSFORMER = 'Skate the transformer into the plant room';
+const MINE = { part: TRANSFORMER, name: 'Skate the transformer', hazards: ['The transformer tips off the skates and crushes a worker.'], controls: ['The transformer is lifted onto the skates only at its marked lifting points and packed with timber cribbing.', 'No one puts a hand or foot under the transformer while it is on the skates.'], who: 'Rigger' };
 
 test('jacking, skating and winching read as work: the task drafts with the work named above it, not stood down', () => {
-  for (const task of [TRANSFORMER, 'Winch the switchboard into the substation', 'Skate the generator into the plant room']) {
+  for (const task of [TRANSFORMER, 'Winch the switchboard into the substation', 'Jack up the generator to remove its transport frame']) {
     const q = questionsFor(draftBody({ ...BASE, task }));
     assert.equal(q.standDown, undefined, task);
     const d = draft(task);
@@ -68,12 +69,12 @@ test('each D211 kind of work is named, even where its words found another kind\'
 });
 
 test('within a task with other work, the part is named and the tick still covers it', () => {
-  const d = draft('Install the cable tray, then jack and skate the transformer');
+  const d = draft('Install the cable tray, then skate the transformer');
   assert.ok(names(d).includes('Install cable tray and containment'));
-  assert.deepEqual(d.notCovered, ['jack and skate the transformer']);
+  assert.deepEqual(d.notCovered, ['skate the transformer']);
   assert.deepEqual(d.notCoveredMain, undefined, 'the cable tray is the work SiteReady has steps for');
   assert.match(notCoveredRefusal(d, {}), /Tick the box above the draft/);
-  assert.equal(notCoveredRefusal(d, { notCoveredConfirmed: ['jack and skate the transformer'] }), '');
+  assert.equal(notCoveredRefusal(d, { notCoveredConfirmed: ['skate the transformer'] }), '');
   // Plant moved into position on skates: the plant steps stay, and the skating is named.
   const plant = draft('Receive air handling units lifted by the tower crane to the roof, then move them into position on skates and pallet jacks and set them on their plinths.');
   assert.ok(names(plant).includes('Receive plant and move it into position'));
@@ -149,7 +150,49 @@ test('work that is all the task\'s work needs the user\'s own step: the tick doe
   const written = draft(TRANSFORMER, { ownSteps: [MINE] });
   assert.deepEqual(notCoveredUnwritten(written), []);
   assert.equal(notCoveredRefusal(written, {}), '');
-  assert.deepEqual(names(written), ['Before starting', 'Jack and skate the transformer (Our own step)', 'Finish and clean up']);
+  assert.deepEqual(names(written), ['Before starting', 'Skate the transformer (Our own step)', 'Finish and clean up']);
+});
+
+// ---- Jacking and skating a heavy load: the engineered jack and skid step, checked by the user (D219) ----
+
+const JACK_SKID_NOTE = "SiteReady's jack and skid steps are for engineered heavy moves. Check each line fits your task, and change or add lines where it does not.";
+
+test('a heavy load jacked and skated takes the jack and skid step, with a note to check it, and nothing is named', () => {
+  for (const task of ['Jack and skate the transformer into the plant room', 'Install the cable tray, then jack and skate the transformer', 'Jacking and skating the switchboards into the substation', 'Jack the generator onto skates and skate it into the plant room', 'Jack and skid the bridge span onto the piers on the skidding system']) {
+    const d = draft(task);
+    assert.equal(d.kind, 'draft', task);
+    const step = d.jobSteps.find((item) => item.step === 'Jack and skid the load into place');
+    assert.ok(step, `${task}: ${names(d).join(' / ')}`);
+    assert.ok(step.controls.includes('Skid tracks are set level on supports designed for the load, the load is jacked only at its designed jacking points, and it is packed as it is raised or lowered so it cannot drop.'));
+    assert.deepEqual(d.notCovered, [], task);
+    assert.equal(d.notCoveredMain, undefined, task);
+    assert.ok(d.warnings.includes(JACK_SKID_NOTE), task);
+    assert.equal(notCoveredRefusal(d, {}), '', 'the note needs no tick');
+  }
+});
+
+test('where the jack and skid step does not fit, the work is named as before and no note is shown', () => {
+  const cases = [
+    // Plant moved on skates, with no jacking (D220), and pallet jacks are not jacking.
+    ['Receive air handling units lifted by the tower crane, then move them into position on skates and pallet jacks', 'move them into position on skates and pallet jacks'],
+    ['Skate the generator into the plant room', 'Skate the generator into the plant room'],
+    // Jacked but not moved, and skated with chain blocks.
+    ['Jack up the switchboard to remove its transport frame', 'Jack up the switchboard to remove its transport frame'],
+    ['Rig and skate the new chiller across the plant room floor with chain blocks and skates', 'Rig and skate the new chiller across the plant room floor with chain blocks and skates'],
+  ];
+  for (const [task, part] of cases) {
+    const d = draft(task, { crane: 'company' });
+    assert.ok(!names(d).includes('Jack and skid the load into place'), task);
+    assert.ok(d.notCovered.includes(part), `${task}: ${JSON.stringify(d.notCovered)}`);
+    assert.ok(!d.warnings.includes(JACK_SKID_NOTE), task);
+  }
+  // A house jacked on its stumps keeps its own step; a skid steer is not skidding.
+  assert.ok(names(draft('Jack and raise the house and replace the stumps')).includes('Jack and raise the house'));
+  assert.ok(!names(draft('Load the skid steer onto the trailer and jack up the trailer ramps')).includes('Jack and skid the load into place'));
+  // Taken off by the user, the step and its note go.
+  const off = draft('Install the cable tray, then jack and skate the transformer', { kinds: ['containment'] });
+  assert.ok(!names(off).includes('Jack and skid the load into place'));
+  assert.ok(!off.warnings.includes(JACK_SKID_NOTE));
 });
 
 // ---- The routes ----
@@ -223,7 +266,7 @@ test('the page offers "Write a step for this" with no tick box, and lists the st
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
   await settle();
   const result = p.document.getElementById('result').innerHTML;
-  assert.match(result, /SiteReady has no job steps for: Jack and skate the transformer into the plant room\. Add your own step and controls for it\./);
+  assert.match(result, /SiteReady has no job steps for: Skate the transformer into the plant room\. Add your own step and controls for it\./);
   assert.match(result, /is the work of this task, so the SWMS needs your own step for it before you save or download\. A tick is not enough\./);
   assert.match(result, /data-own-write="0">Write a step for this</);
   assert.doesNotMatch(result, /not-covered-confirm/, 'no tick box');

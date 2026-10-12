@@ -2897,10 +2897,20 @@ function floatsPlant(text) {
   const moved = text.replace(new RegExp(`\\b(?:with|using|by)\\s+(?:the |a |an )?(?:[\\w-]+\\s+){0,2}?${PLANT_NOUN}`, 'gi'), ' ').replace(FLOAT_CARRIER, ' ');
   return new RegExp(`\\b${PLANT_NOUN}\\b`, 'i').test(moved);
 }
+// Jacking: a load jacked up or down, or jacked and skated, not a pallet, base, screw or stressing jack, a
+// jack hammer or a jack-up barge.
+const JACKING = /(?<!\b(?:pallet|base|screw|stressing|hydraulic|bottle|trolley|floor|car)[- ])\bjack(?:s)?\b(?=\s+(?:and\s+(?:skat|skid|pack|slid|roll)|up\b(?!\s+(?:barges?|rigs?|platforms?))|down\b|(?:the|it|them|each|all|a|an|into|onto|off|in|out|clear|over|across)\b))|\bjack(?:ed|ing)\b(?!\s+(?:points?|frames?|beams?|stands?|plates?)\b)/i;
+// A heavy load jacked and skated or skidded into place (owner decision D219, 12 October 2026): the
+// library's engineered jack and skid step fits, kept with a note that the user checks each line. Skating
+// without jacking (plant moved on skates, D220), and a house jacked on its stumps, do not fit.
+const JACK_SKID = /\b(?:skat(?:e|es|ed|ing)|skid(?:s|ded|ding)?(?![- ]?steers?)|skid tracks?)\b/i;
+const HOUSE_MOVE = /\b(?:houses?|homes?|cottages?|queenslanders?|dwellings?|buildings?)\b/i;
+function jackAndSkid(text) {
+  return String(text || '').split(/[.;\n]/).some((sentence) => JACKING.test(sentence) && JACK_SKID.test(sentence.replace(/\bskate ?(?:parks?|bowls?|boards?|ramps?|rinks?)\b/gi, ' ')) && !HOUSE_MOVE.test(sentence));
+}
+const JACK_SKID_NOTE = "SiteReady's jack and skid steps are for engineered heavy moves. Check each line fits your task, and change or add lines where it does not.";
 const OWN_STEP_WORK = [
-  // Jacking: a load jacked up or down, or jacked and skated, not a pallet, base, screw or stressing jack, a
-  // jack hammer or a jack-up barge.
-  [/(?<!\b(?:pallet|base|screw|stressing|hydraulic|bottle|trolley|floor|car)[- ])\bjack(?:s)?\b(?=\s+(?:and\s+(?:skat|pack|slid|roll)|up\b(?!\s+(?:barges?|rigs?|platforms?))|down\b|(?:the|it|them|each|all|a|an|into|onto|off|in|out|clear|over|across)\b))|\bjack(?:ed|ing)\b(?!\s+(?:points?|frames?|beams?|stands?|plates?)\b)/i,
+  [JACKING,
     /^(?:Jack the deck and replace the bearings|Jack the house and replace stumps|Jack and raise the house|Move the load with (?:the )?transporters(?: or a launching system)?|Jack and skid the load into place|Launch the girders|(?:Prepare to )?[Cc]limb the jumpform|Stress the tendons|Stress the ground anchors|Take down the old fence)$/],
   // Skating, not a skate park.
   [/\bskat(?:e|es|ed|ing)\b(?!\s*(?:parks?|bowls?|boards?|ramps?|rinks?|plazas?|facilit\w*)\b)/i, /^(?:Move the load with (?:the )?transporters(?: or a launching system)?|Jack and skid the load into place)$/],
@@ -3370,7 +3380,9 @@ function buildDraft(input, screen) {
   if (workshopOnly(riskTask)) draft.highRisk = [];
   if (screen) return { ...draft, missing: missing.map((item) => item.id) };
   // Answers that contradict the task's own words, shown above the draft. The answer stands.
-  const warnings = [energisedWarning(riskTask, facts)].filter(Boolean);
+  // The engineered jack and skid step kept for a heavy load jacked and skated (D219): the user checks it.
+  const jackSkidNote = draft.jobSteps.some((step) => step.step === 'Jack and skid the load into place') && jackAndSkid(riskTask) ? JACK_SKID_NOTE : '';
+  const warnings = [energisedWarning(riskTask, facts), jackSkidNote].filter(Boolean);
   // The user's own hazards and Who go in last, so the registers and risk ratings are worked out
   // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
   // Parts of the task with no job steps, shown above the draft (owner decision D184).
@@ -5481,7 +5493,7 @@ function settleFlags(flags, task) {
   if (out.heavyLift) out.craneInterface = true;
   if (out.dualLift) out.heavyLift = false;
   out.craneAssembly = T(/\b(assembl\w*|dismantl\w*|rig\w* up)\b[^.]{0,20}\b(?:a |the )?crawler cranes?\b/i);
-  out.transportMove = T(/\b(self-?propelled modular transporters?|spmts?|launching gantr(?:y|ies)|launch\w* (?:bridge )?girders?|skidding systems?|incremental launch\w*)\b/i);
+  out.transportMove = T(/\b(self-?propelled modular transporters?|spmts?|launching gantr(?:y|ies)|launch\w* (?:bridge )?girders?|skidding systems?|incremental launch\w*)\b/i) || jackAndSkid(task);
   out.drivenPiles = T(/\b(impact hammers?|vibratory hammers?|vibro hammers?|driv\w* (?:the )?(?:(?:steel|h|sheet|timber|concrete|precast|prestressed|octagonal|square|tubular) ){0,2}piles?|pile driv\w*|sheet piles?)\b/i);
   if (out.drivenPiles) { out.pilingRig = false; out.openBore = false; }
   out.groundImprove = T(/\b(wick drains?|stone columns?|vibro (?:rigs?|compaction|replacement)|rolling impact compact\w*|dynamic compaction|deep soil mixing|ground improvement)\b/i);
@@ -5635,7 +5647,7 @@ function settleFlags(flags, task) {
   // Plant set up and then run keeps the running step.
   out.plantErectOnly = Boolean(out.plantErect) && !T(/\b(run|runs|running|operat\w*)\b/i);
   out.batchOnly = T(/\bbatch(?:ing)? plants?\b/i) && !T(/\b(crush\w*|screen\w*|quarr\w*)\b/i);
-  out.skidMove = T(/\b(skid\w*|jack\w* and skid\w*)\b/i);
+  out.skidMove = T(/\b(skid(?![- ]?steer)\w*|jack\w* and skid\w*)\b/i) || jackAndSkid(task);
   out.launchOnly = T(/\blaunch\w*\b/i) && !out.skidMove && !T(/\b(spmts?|self-?propelled)\b/i);
   out.spmtMove = T(/\b(spmts?|self-?propelled modular transporters?)\b/i);
   out.pullback = Boolean(out.hddBore) && T(/\b(pull\w* back|pullback|pipe strings?)\b/i);
