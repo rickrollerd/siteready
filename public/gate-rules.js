@@ -80,6 +80,46 @@
     return `For ${what}, give ${missing.length > 1 ? `${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]}` : missing[0]}.`;
   }
 
+  // Two or more designs on one SWMS, each answered "I have it", that give the same document or drawing
+  // number (owner, D223, 12 October 2026). Advice on the page only: one drawing can cover two designs
+  // (one temporary works drawing for the shoring and the propping), so it never holds the download,
+  // changes the builder check or prints in the SWMS. Numbers are compared without case, spaces,
+  // hyphens (or the dashes a copied title block may hold) or dots, so "ABC-S-101" is the same as
+  // "abc s 101". A number that is not an answer yet ("TBC") is left to the gate.
+  // rows: [{ id, what, status, number, revision }]. Returns each group: { ids, text }, in the order
+  // the designs are listed.
+  const numberKey = (value) => clean(value).toLowerCase().replace(/[\s.\-\u2010-\u2015\u2212]+/g, '');
+  const revisionOf = (value) => clean(value).replace(/^(?:rev(?:ision)?\.?\s*)/i, '');
+  const listed = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]);
+  function sameDesignNumbers(rows) {
+    const groups = new Map();
+    for (const row of Array.isArray(rows) ? rows : []) {
+      if (!row || row.status !== 'given') continue;
+      const number = clean(row.number);
+      const key = numberKey(number);
+      if (!key || leftOpen(number) || NOT_YET.test(number)) continue;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(row);
+    }
+    return [...groups.values()].filter((list) => list.length > 1).map((list) => ({ ids: list.map((row) => row.id), text: sameNumberText(list) }));
+  }
+  // "Shoring design and Propping design both give drawing ABC-S-101 rev C. ..." The same revision may
+  // be one drawing that covers both; different revisions of one drawing are most likely a mistake.
+  function sameNumberText(list) {
+    const names = list.map((row) => clean(row.what) || 'Another design');
+    const revisions = list.map((row) => revisionOf(row.revision));
+    const both = list.length === 2 ? 'both' : 'all';
+    // The number as a title block shows it: the first given in capitals, else the first given.
+    const number = clean((list.find((row) => clean(row.number) === clean(row.number).toUpperCase()) || list[0]).number);
+    const keys = new Set(revisions.map(numberKey));
+    if (keys.size === 1) {
+      const revision = revisions[0] ? ` rev ${revisions[0]}` : '';
+      return `${listed(names)} ${both} give drawing ${number}${revision}. Check each number against the design's title block. If the one drawing covers ${list.length === 2 ? 'both' : 'them all'}, nothing needs changing.`;
+    }
+    const given = new Set(revisions.filter(Boolean).map(numberKey));
+    return `${listed(names.map((name, i) => `${name} (${revisions[i] ? `rev ${revisions[i]}` : 'no revision'})`))} ${both} give drawing ${number}.${given.size > 1 ? ' Two revisions of one drawing is most likely a mistake.' : ''} Check each number and revision against the design's title block.`;
+  }
+
   // What the user types that the SWMS prints as given and reads for nothing else: the people and
   // place boxes, the emergency answers and the words typed in a control line's blanks. Changing one
   // of these needs no new draft: the download sends them as they are now. Any other change (a site
@@ -88,7 +128,7 @@
   const AS_GIVEN = ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'scaffoldSupervisor', 'firstAider', 'musterPoint',
     'siteManager', 'worksManager', 'worksManagerPhone', 'hospital', 'reviewDate', 'preparedBy', 'swmsRef', 'emergency', 'fills'];
 
-  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, answerNeed, designNeed, AS_GIVEN };
+  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, answerNeed, designNeed, sameDesignNumbers, AS_GIVEN };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadyGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

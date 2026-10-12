@@ -535,6 +535,10 @@ let emergencyAnswers = null;
 // The designs SiteReady found, as the server last said, with the steps that rely on each.
 let designAnswers = null;
 let designsFound = [];
+// Each design's answer by id, kept while the server does not list that design, so it comes back
+// when the design does: a reopened SWMS is first asked before its answers to the questions are on
+// the page, when the steps that rely on a design may not be listed yet.
+let designsKept = new Map();
 // The task the step picks and steps left out were made for.
 let choicesTask = null;
 
@@ -557,6 +561,7 @@ function newSwms() {
   emergencyAnswers = null;
   designAnswers = null;
   designsFound = [];
+  designsKept = new Map();
   drawDesigns([]);
   choicesTask = null;
   ppeTouched.clear();
@@ -942,6 +947,7 @@ function fillStart(input) {
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
   designAnswers = Array.isArray(input.designs) && input.designs.length ? JSON.parse(JSON.stringify(input.designs)) : null;
   designsFound = [];
+  designsKept = new Map();
   // This SWMS's own answers are drawn fresh, even for the same designs as the last one shown.
   designsDrawn = '';
   // The answers are this SWMS's own, shown once its questions are asked (on Continue).
@@ -1341,6 +1347,7 @@ function designCard(row, found) {
       ${box('what', 'What it is', 'As the design is titled, for example Shoring design or Formwork design.', 'text', 200)}
       ${box('by', 'Who prepared it', 'The engineer or firm, for example Smith Engineering.', 'text', 200)}
       <div class="design-pair">${box('number', 'Document or drawing number', 'From the title block, for example ABC-S-101.')}${box('revision', 'Revision', 'For example C. Leave it empty if it has none.', 'text', 40)}</div>
+      <p class="warning design-same" id="design-${id}-same" hidden></p>
       ${box('date', 'Date on the design', '', 'date', 60)}
       <div class="field design-file-box"><p class="design-file-label">The file <span class="meta">(optional)</span></p>
         <p class="meta">A PDF, or a photo of the drawing, up to 10 MB. It stays with this SWMS in SiteReady, for you and your reviewer to open. It does not print.</p>
@@ -1356,8 +1363,9 @@ function designCard(row, found) {
 function drawDesigns(list) {
   designsFound = (list || []).filter((row) => row.needed);
   const answers = designAnswers || [];
+  for (const row of answers) if (row && row.id && !/^added-/.test(row.id)) designsKept.set(row.id, row);
   const rows = designsFound.map((found) => {
-    const mine = answers.find((row) => row.id === found.id);
+    const mine = designsKept.get(found.id);
     return mine || { id: found.id, what: found.what, status: found.status || '', by: found.by || '', number: found.number || '', revision: found.revision || '', date: found.date || '', ...(found.file ? { file: found.file } : {}) };
   });
   const added = answers.filter((row) => /^added-/.test(row.id));
@@ -1366,10 +1374,29 @@ function drawDesigns(list) {
   if (!section) return;
   const shape = JSON.stringify([designsFound.map((row) => [row.id, row.label, row.steps]), added.map((row) => row.id)]);
   section.classList.toggle('hidden', !designAnswers);
-  if (shape === designsDrawn) return;
+  if (shape === designsDrawn) { showSameNumbers(); return; }
   designsDrawn = shape;
   document.getElementById('designs-block').innerHTML = (designAnswers || []).map((row) => designCard(row, designsFound.find((found) => found.id === row.id))).join('');
+  showSameNumbers();
   designFilesOn().then((config) => { if (!config.enabled) document.querySelectorAll('.design-file-box').forEach((el) => { el.innerHTML = '<p class="meta">Attaching the file is not switched on yet. The reference is what prints.</p>'; }); });
+}
+// Two designs answered "I have it" with the same document or drawing number (D223): a note on each
+// card, as the user types. Advice only: one drawing can cover two designs, so the download and the
+// printed SWMS do not change (gate-rules.js sameDesignNumbers).
+function showSameNumbers() {
+  const rules = window.SiteReadyGate;
+  const groups = rules && rules.sameDesignNumbers ? rules.sameDesignNumbers(designAnswers || []) : [];
+  const said = new Map();
+  for (const group of groups) for (const id of group.ids) said.set(id, [...(said.get(id) || []), group.text]);
+  for (const row of designAnswers || []) {
+    const note = document.getElementById(`design-${row.id}-same`);
+    if (!note) continue;
+    const text = (said.get(row.id) || []).join(' ');
+    if (note.textContent !== text) note.textContent = text;
+    note.hidden = !text;
+    const box = document.getElementById(`design-${row.id}-number`);
+    if (box) { if (text) box.setAttribute('aria-describedby', note.id); else box.removeAttribute('aria-describedby'); }
+  }
 }
 function redrawDesigns() {
   designsDrawn = '';
@@ -1387,6 +1414,7 @@ const designsBlock = document.getElementById('designs-block');
   row[field] = event.target.value;
   if (field === 'status') card.dataset.status = event.target.value;
   if (field === 'what') card.querySelector('legend').textContent = event.target.value.trim() || 'Another design';
+  if (['what', 'status', 'number', 'revision'].includes(field)) showSameNumbers();
 }));
 document.getElementById('design-add') && document.getElementById('design-add').addEventListener('click', () => {
   const used = new Set((designAnswers || []).map((row) => row.id));
