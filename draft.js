@@ -3395,7 +3395,9 @@ function buildDraft(input, screen) {
   // The user's answers in the blanks (____) of control lines, and the scaffold supervisor only
   // where the SWMS involves a scaffold.
   // The answers to the emergency questions for the work print in the emergency arrangements (goal 2).
-  return withEmergencyAnswers(withFills(withRiskResponse({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency);
+  // The designs the steps rely on, named in each step and in a table near the top (owner,
+  // 11 October 2026). A SWMS with no such step is unchanged.
+  return require('./designs').withDesigns(withEmergencyAnswers(withFills(withRiskResponse({ ...finished, scaffoldSupervisor: scaffoldRow(finished, input), review: reviewFor(finished, facts) }), input.fills), input.emergency), input);
 }
 
 // Gloves for the substances listed, and hearing protection where a step names noise,

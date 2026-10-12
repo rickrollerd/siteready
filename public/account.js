@@ -36,6 +36,41 @@
 
   // The page's own calls that need the session, such as the translation of a draft.
   S.call = call;
+  // A design's file sent as it is, with the session (design-files.js), and a file the business holds
+  // opened in a new tab from its bytes: there is no public link to it.
+  S.sendFile = async (route, file) => {
+    const response = await fetch(api(route), {
+      method: 'POST',
+      headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name || 'Design'), ...(session ? { Authorization: `Bearer ${session}`, 'X-Session-Token': session } : {}) },
+      body: file,
+    });
+    if (response.status === 401 && session) signedOut();
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(response.status === 413 && !data.message ? 'The file is too large. Attach a copy of 10 MB or less.' : data.message || 'The file could not be attached. Try again.');
+    return data;
+  };
+  S.openFile = async (route, name) => {
+    // The tab opens on the tap, before the file arrives, so a phone does not block it.
+    const tab = window.open('', '_blank');
+    try {
+      const response = await call('GET', route);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      // A phone with no PDF viewer (Android) saves the PDF under its own name instead.
+      const viewer = !(blob.type === 'application/pdf' && navigator.pdfViewerEnabled === false);
+      if (tab && viewer) tab.location.href = url;
+      else { if (tab) tab.close(); const link = document.createElement('a'); link.href = url; link.download = name || 'Design'; link.click(); }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      if (tab) tab.close();
+      throw error;
+    }
+  };
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest && event.target.closest('[data-design-file-open]');
+    if (!button) return;
+    S.openFile(button.dataset.designFileOpen, button.dataset.designFileName).catch((error) => { button.insertAdjacentHTML('afterend', `<span class="meta"> ${esc(error.message)}</span>`); });
+  });
   S.isSignedIn = () => Boolean(me);
 
   // Returns the saved SWMS and revision the download was saved as, where it was saved.
@@ -543,7 +578,7 @@
         </tbody></table>` : ''}
       </div>
       ${draft.controlEdits && S.editNotes ? S.editNotes(draft.controlEdits) : ''}
-      <div class="sheet">${S.render(draft)}</div>`;
+      <div class="sheet">${S.render(draft, { swmsId: id })}</div>`;
     resultEl.classList.remove('hidden');
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const run = async (fn) => {

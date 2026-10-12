@@ -45,6 +45,16 @@
 // controls and no named person who accepts it before work starts. A missing rating is never a fail.
 // Now: W1 10, W2 10, W3 10, W4 6, W5 8, W6 8, W7 8, W8 2, W9 6, W10 4, W11 4, W12 5, W13 12, W14 3, W15 4 = 100.
 //
+// Designs the work relies on (owner, 11 October 2026; designs.js; the split of points is for the owner
+// to confirm): W16 (3) takes 2 points from W12 (named permits, 5 to 3), as a design reference is a named
+// document like a permit, and 1 from W10 (hierarchy order, 4 to 3). A step done to an engineer's or
+// temporary works design that does not say which design (its number, revision or who prepared it)
+// loses its share; so does a step on hold because its design is not issued yet. A design the SWMS
+// records as not needed for this work is not counted. The line SiteReady prints for a design (its
+// reference or a hold point) is not a control: it is not judged for the hierarchy (W2, W10) or
+// counted as length (W8), and it is checkable (W3).
+// Now: W1 10, W2 10, W3 10, W4 6, W5 8, W6 8, W7 8, W8 2, W9 6, W10 3, W11 4, W12 3, W13 12, W14 3, W15 4, W16 3 = 100.
+//
 // Goal 2 (owner, 7 October 2026): H8, a blank (____) or a "To be completed" placeholder left anywhere
 // the SWMS prints (a control, a hazard, the plant, the emergency arrangements or a field) is a
 // must-fix item, as a reviewer would fail it. Such a line no longer reads as a pass.
@@ -57,6 +67,7 @@
 const { findState, highRiskList } = require('./legislation');
 const { highRiskMatches, domesticWork } = require('./draft');
 const { leftOpen } = require('./blanks');
+const { isHoldPoint } = require('./designs');
 
 const BANDS = { accepted: 'Accepted', changes: 'Accepted with changes', rejected: 'Not accepted' };
 
@@ -84,6 +95,7 @@ const SOURCES = {
   W12: 'WHS Regulations s 67 (confined space entry permit), s 166 (overhead and underground electric lines) and s 304 (underground essential services); Model Code of Practice: Construction Work; a tier 1 builder\'s published SWMS review checklist (evidence that tier 1 builders check named permits)',
   W13: 'WHS Regulations part 6.4 (s 304 underground essential services, s 305 managing excavation risks, s 306 trenches 1.5 m or deeper), s 78 to s 80 (falls), s 166 (electric lines), s 69 and s 74 (confined spaces) and chapter 8 (asbestos); the codes of practice SiteReady cites for falls, excavation, electric lines, electrical risks, confined spaces, asbestos, demolition, moving plant, tilt-up and precast, traffic management, silica, cranes and telecommunication towers. A lift plan for each crane lift (owner decision, 6 October 2026)',
   W15: 'Contractor SWMS review checklist items 6 and 10 (each step rated before and after the controls; a High after the controls has a stated response); tier 1 SWMS standard and builder SWMS procedure risk assessment guides (likelihood and consequence, inherent and residual). The law does not require a rating, so a missing one costs points and never fails (goal 3, owner, 7 October 2026)',
+  W16: 'Contractor SWMS review checklists (the SWMS identifies the engineer\'s or temporary works design it relies on, so the reviewer can check it matches); Model Code of Practice: Construction Work (temporary works designed by a competent person); owner decision, 11 October 2026',
   W14: 'WHS Regulations s 344 and s 346 (safety data sheets at hand, the hazardous chemicals register); Managing risks of hazardous chemicals code of practice (labelling, following the safety data sheet) (owner decision, 6 October 2026)',
 };
 
@@ -123,6 +135,9 @@ function normaliseSwms(input = {}) {
     siteWritten: list(site.conditions || input.siteConditions),
     // Other printed fields the check does not judge, read only for blanks and placeholders (H8).
     otherFields: list(input.otherFields),
+    // The designs table a SiteReady draft prints (designs.js); null for a SWMS from elsewhere, whose
+    // steps are read for design wording in general.
+    designs: Array.isArray(input.designs) ? input.designs.filter((item) => item && typeof item === 'object').map((item) => ({ id: text(item.id), what: text(item.what), status: text(item.status) })) : null,
     highRisk: list(input.highRisk),
     steps: (Array.isArray(input.steps) ? input.steps : []).filter((item) => item && typeof item === 'object')
       .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls), responsible: text(item.responsible), rating: ratingOf(item) })),
@@ -842,6 +857,42 @@ function hardFails(swms, state, stage = 'review') {
   return { out, implied, named, preStart: signed ? [] : ['Workers must sign on before work starts.'] };
 }
 
+// ---- Designs the work relies on (W16) ----
+
+// A design named in a line: a document or drawing number ("ABC-S-101", "TW-02"), a revision ("rev C"),
+// or SiteReady's own line ("Work to the shoring design ... (Smith Engineering, 3 October 2026).").
+const DESIGN_REFERENCE = /\b(?=[A-Z0-9-]*\d)[A-Z]{1,8}[A-Z0-9]*(?:-[A-Z0-9]+)+\b|\brev(?:ision)?\.? ?[A-Z0-9]{1,3}\b|\b(?:drawing|dwg|document|report)\s*(?:no\.?|number|#)\s*\S*\d|^Work to the .+ \([^()]+\)\.$/;
+// In a SWMS from elsewhere: a line that has the work done to an engineer's or temporary works design,
+// not one that applies only where something is so.
+const DESIGN_WORDS = /\b(?:to|as|per|in|follows?) (?:the |an? )?(?:engineer'?s'?|structural engineer'?s|geotechnical engineer'?s|temporary works|formwork|falsework|shoring|scaffold|erection|propping|underpinning|demolition|crane base|excavation|bracing)\s+(?:design|drawings?|plan|procedure|sequence)\b|\b(?:is|are) designed by (?:an? |the )?(?:structural |geotechnical )?engineer\b/i;
+const CONDITIONAL = /^\s*(?:where|if|when|unless)\b/i;
+// The line SiteReady prints for a design (designs.js): its reference, or a hold point.
+const OWN_DESIGN_LINE = /^Work to the .+ \([^()]+\)\.$/;
+const isDesignLine = (line) => isHoldPoint(line) || (OWN_DESIGN_LINE.test(String(line || '').trim()) && withoutCitation(line) === line);
+
+// Each step that relies on a design, with the design and whether the step names it ('named'), is on
+// hold until it is issued ('hold'), or does not say ('missing'). A SiteReady draft is read by its own
+// list of design lines (designs.js); a design its table records as not needed is left out.
+function designUses(swms) {
+  const { designsNeeded } = require('./designs');
+  const state = (step) => (step.controls.some(isHoldPoint) ? 'hold' : step.controls.some((line) => DESIGN_REFERENCE.test(withoutCitation(line).trim())) ? 'named' : 'missing');
+  const byName = new Map(swms.steps.map((step) => [step.step, step]));
+  const uses = [];
+  for (const item of designsNeeded({ task: swms.task, jobSteps: swms.steps })) {
+    const row = (swms.designs || []).find((entry) => entry.id === item.id);
+    if (row && row.status === 'notNeeded') continue;
+    for (const entry of item.steps) uses.push({ step: entry.step, what: row && row.what ? row.what : item.label, state: state(byName.get(entry.step)) });
+  }
+  if (!swms.designs) {
+    const counted = new Set(uses.map((use) => use.step));
+    for (const step of swms.steps) {
+      if (counted.has(step.step) || !step.controls.some((line) => DESIGN_WORDS.test(withoutCitation(line)) && !CONDITIONAL.test(line))) continue;
+      uses.push({ step: step.step, what: 'the design it is done to', state: state(step) });
+    }
+  }
+  return uses;
+}
+
 function weighted(swms, state, context) {
   const out = [];
   // Pass is judged on the points shown, so 4.86 shows and passes as 5 of 5.
@@ -884,12 +935,13 @@ function weighted(swms, state, context) {
   {
     const fixes = [];
     let points = 0;
-    const levels = allControls.map(controlLevel);
+    const levels = allControls.filter((line) => !isDesignLine(line)).map(controlLevel);
     // Judged across every step, so a step with no controls counts against the score: a SWMS
     // that controls 2 of its 21 steps does not get full marks for those 2.
     const risky = steps.filter((step) => highRiskMatches(stepText(step, swms.task), swms.fallRisk, state).length);
     const judged = risky.length ? risky : steps;
-    const strong = judged.filter((step) => step.controls.some((line) => HIGHER.has(controlLevel(line))));
+    // A design's reference names the design; it is not itself a higher order control.
+    const strong = judged.filter((step) => step.controls.some((line) => !isDesignLine(line) && HIGHER.has(controlLevel(line))));
     if (judged.length) points += 7 * (strong.length / judged.length);
     if (judged.length && strong.length < judged.length) fixes.push(`Add an elimination, substitution, isolation or engineering control to: ${judged.filter((step) => !strong.includes(step)).slice(0, 4).map((step) => step.step).join('; ')}.`);
     const ppeShare = levels.length ? levels.filter((level) => level === 'PPE').length / levels.length : 1;
@@ -901,7 +953,8 @@ function weighted(swms, state, context) {
   // W3 Controls are specific and checkable (10; was 15, 2 went to W11 and 3 to W12).
   {
     const fixes = [];
-    const share = allControls.length ? allControls.filter(checkable).length / allControls.length : 0;
+    // A design's reference or hold point (designs.js) names a document or a stop: it is checkable.
+    const share = allControls.length ? allControls.filter((line) => checkable(line) || isDesignLine(line)).length / allControls.length : 0;
     let points = 10 * Math.min(1, share / 0.4);
     // Vague wording costs in proportion to how much of the SWMS it is, so one phrase does not zero it,
     // but each vague line costs at least 1 point (owner decision, 6 October 2026: a vague line that
@@ -1010,7 +1063,8 @@ function weighted(swms, state, context) {
   {
     const fixes = [];
     let points = 2;
-    if (allControls.length > 120 || steps.length > 25) { points -= 2; fixes.push('Shorten the SWMS to the high risk hazards and their controls.'); }
+    // A design's reference or hold point is not counted as length: it names the document the step is done to.
+    if (allControls.filter((line) => !isDesignLine(line)).length > 120 || steps.length > 25) { points -= 2; fixes.push('Shorten the SWMS to the high risk hazards and their controls.'); }
     add('W8', 'Readable and short', 2, points, fixes, 'Short and to the point.');
   }
 
@@ -1045,14 +1099,16 @@ function weighted(swms, state, context) {
   // engineering controls come before administrative controls and PPE. Judged on steps that have both.
   {
     const fixes = [];
-    const judged = steps.filter((step) => step.controls.some((line) => HIGHER.has(controlLevel(line))) && step.controls.some((line) => !HIGHER.has(controlLevel(line))));
+    // A design's reference or hold point (designs.js) is not a control in the hierarchy.
+    const ordered = steps.map((step) => ({ ...step, controls: step.controls.filter((line) => !isDesignLine(line)) }));
+    const judged = ordered.filter((step) => step.controls.some((line) => HIGHER.has(controlLevel(line))) && step.controls.some((line) => !HIGHER.has(controlLevel(line))));
     const outOfOrder = judged.filter((step) => {
       const higher = step.controls.map((line) => HIGHER.has(controlLevel(line)));
       return higher.lastIndexOf(true) > higher.indexOf(false);
     });
-    const points = judged.length ? 4 * ((judged.length - outOfOrder.length) / judged.length) : 4;
+    const points = judged.length ? 3 * ((judged.length - outOfOrder.length) / judged.length) : 3;
     if (outOfOrder.length) fixes.push(`List the controls in hierarchy order, with elimination, isolation and engineering controls before administrative controls and PPE, in: ${outOfOrder.slice(0, 4).map((step) => step.step || 'step').join('; ')}.`);
-    add('W10', 'Controls in hierarchy order within each step', 4, points, fixes, 'Within each step, higher order controls come before administrative controls and PPE.');
+    add('W10', 'Controls in hierarchy order within each step', 3, points, fixes, 'Within each step, higher order controls come before administrative controls and PPE.');
   }
 
   // W11 A responsible position per step (4; was 5): named against the step, or in its controls
@@ -1096,10 +1152,10 @@ function weighted(swms, state, context) {
     const hotWork = needed.find((item) => item.label === 'hot work');
     const fireGaps = hotWork ? HOT_WORK_FIRE.filter((item) => !item.pattern.test(permitText)) : [];
     const fireLost = hotWork && !unnamed.includes(hotWork) ? fireGaps.length / 4 : 0;
-    const points = needed.length ? 5 * ((needed.length - unnamed.length - fireLost) / needed.length) : 5;
+    const points = needed.length ? 3 * ((needed.length - unnamed.length - fireLost) / needed.length) : 3;
     if (unnamed.length) fixes.push(`Name the permit the work needs: ${unnamed.map((item) => `${item.name} (${item.label})`).join('; ')}.`);
     if (fireGaps.length) fixes.push(`For the hot work, add ${fireGaps.map((item) => item.name).join(' and ')}.`);
-    add('W12', 'Named permits where the work needs one', 5, points, fixes, needed.length ? `The permits are named: ${needed.map((item) => item.label).join('; ')}.` : 'No work needing a permit was found.');
+    add('W12', 'Named permits where the work needs one', 3, points, fixes, needed.length ? `The permits are named: ${needed.map((item) => item.label).join('; ')}.` : 'No work needing a permit was found.');
   }
 
   // W13 The minimum control set for each high risk category (12): 2 points for each must-have
@@ -1170,6 +1226,25 @@ function weighted(swms, state, context) {
       if (open.length) fixes.push(`For each step still rated High after the controls, add controls that lower the rating or name who accepts the risk before work starts: ${open.slice(0, 4).map((step) => step.step || 'step').join('; ')}.`);
     }
     add('W15', 'Hazards rated, residual risk shown', 4, points, fixes, 'Each step is rated before and after its controls, and no High rating is left without a response.');
+  }
+
+  // W16 The designs the work relies on are named (3): each step done to an engineer's or temporary
+  // works design names the design (its number or revision, as a reviewer checks it matches), shared
+  // equally. A step on hold because its design is not issued yet loses its share too. A design the
+  // SWMS records as not needed for this work is not counted.
+  {
+    const fixes = [];
+    const uses = designUses(swms);
+    const named = uses.filter((use) => use.state === 'named');
+    const held = uses.filter((use) => use.state === 'hold');
+    const missing = uses.filter((use) => use.state === 'missing');
+    const points = uses.length ? 3 * (named.length / uses.length) : 3;
+    const notNeeded = (swms.designs || []).filter((row) => row.status === 'notNeeded').map((row) => row.what);
+    const where = (list) => list.slice(0, 4).map((use) => `${use.step} (${use.what})`).join('; ');
+    if (missing.length) fixes.push(`Name the design each step is done to, with its document or drawing number, revision and who prepared it: ${where(missing)}${missing.length > 4 ? `; and ${missing.length - 4} more` : ''}.`);
+    if (held.length) fixes.push(`These steps are on hold until their design is issued: ${where(held)}. Send the updated SWMS, naming the design, before they start.`);
+    add('W16', 'Designs the work relies on are named', 3, points, fixes, uses.length ? `Each step done to a design names it: ${[...new Set(named.map((use) => use.what))].join('; ')}.`
+      : notNeeded.length ? `The SWMS records ${notNeeded.join('; ')} as not needed for this work.` : 'No step relies on an engineer\'s or temporary works design.');
   }
   return out;
 }
@@ -1251,6 +1326,8 @@ function fromDraft(draft, extra = {}) {
     review: draft.review || '',
     legislation: (draft.sources && draft.sources.legislation) || [],
     riskMatrix: steps.length > 0 && (draft.jobSteps || []).some((step) => step.risk),
+    // The designs table as printed (designs.js); a draft with none prints none.
+    designs: (draft.designs || []).map((row) => ({ id: row.id, what: row.what, status: row.status })),
     ...extra.swms,
   };
 }

@@ -175,7 +175,7 @@ test('hot work, isolating plant or services, and confined space work each name t
   for (const draft of [braze, commission, pumps]) {
     const result = checked('qld', draft);
     assert.deepEqual(result.hardFails, [], draft.task);
-    assert.equal(points(result, 'W12'), 5, draft.task);
+    assert.equal(points(result, 'W12'), 3, draft.task);
     // "Permit system" would make the check ask for a roof access permit too.
     assert.doesNotMatch(lines(draft), /permit (?:to work )?system/i);
   }

@@ -294,6 +294,7 @@ function payload() {
     fills: fills || undefined,
     plantChoice: plantChoice || undefined,
     emergency: emergencyAnswers || undefined,
+    designs: designsPayload(),
     facts,
     site,
   };
@@ -516,6 +517,11 @@ let plantChoice = null;
 let plantPending = null;
 // The answers to the emergency questions for the work (goal 2), by question.
 let emergencyAnswers = null;
+// The designs the job steps rely on (designs.js), as the user answered them, in the order shown:
+// [{ id, what, status: 'given' | 'notIssued' | 'notNeeded' | '', by, number, revision, date, file }].
+// The designs SiteReady found, as the server last said, with the steps that rely on each.
+let designAnswers = null;
+let designsFound = [];
 // The task the step picks and steps left out were made for.
 let choicesTask = null;
 
@@ -535,6 +541,9 @@ function newSwms() {
   plantChoice = null;
   plantPending = null;
   emergencyAnswers = null;
+  designAnswers = null;
+  designsFound = [];
+  drawDesigns([]);
   choicesTask = null;
   ppeTouched.clear();
   // Its questions start blank.
@@ -785,6 +794,7 @@ async function askOnce() {
     if (seq !== askSeq || !Array.isArray(data.required)) return;
     questions = { ...questions, required: data.required };
     drawRequired(data.required);
+    drawDesigns(data.designs || []);
   } catch {
     // With no signal the questions stay as they are; Prepare the statement says what is missing.
   }
@@ -860,6 +870,7 @@ async function loadQuestions(options = {}) {
     </div>
   `).join('');
   document.querySelectorAll('[data-site]').forEach((el) => { if (siteMemory[el.dataset.site] !== undefined) el.value = siteMemory[el.dataset.site]; });
+  drawDesigns(data.designs || []);
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
   factsForm.classList.remove('hidden');
   if (!options.stay) factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -914,6 +925,10 @@ function fillStart(input) {
   plantChoice = input.plantChoice && typeof input.plantChoice === 'object' ? JSON.parse(JSON.stringify(input.plantChoice)) : null;
   plantPending = null;
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
+  designAnswers = Array.isArray(input.designs) && input.designs.length ? JSON.parse(JSON.stringify(input.designs)) : null;
+  designsFound = [];
+  // This SWMS's own answers are drawn fresh, even for the same designs as the last one shown.
+  designsDrawn = '';
   // The answers are this SWMS's own, shown once its questions are asked (on Continue).
   factMemory = input.facts && typeof input.facts === 'object' ? { ...input.facts } : {};
   siteMemory = input.site && typeof input.site === 'object' ? { ...input.site } : {};
@@ -1121,6 +1136,8 @@ function markGaps(gaps) {
 let shownChecks = [];
 function liveNeed(check) {
   const rules = window.SiteReadyGate;
+  // A design is judged from its card as it is now.
+  if (check.kind === 'design' && rules && rules.designNeed) return designShown(check.design) ? rules.designNeed(designRow(check.design)) : check.need;
   if (!check.rule || !rules) return check.need;
   if (check.kind === 'line') return rules.answerNeed(check.rule, (fills || {})[check.key] || []);
   const el = check.field ? document.getElementById(check.field) : null;
@@ -1167,7 +1184,7 @@ function gateBlock(gaps) {
   const answers = gaps.some((gap) => gap.kind !== 'cover');
   return `<div class="panel gate" id="gate-panel" role="region" aria-labelledby="gate-title">
     <h3 id="gate-title">Before you can download this SWMS</h3>
-    <p>SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given, no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}. Each one comes off this list as soon as it is answered:</p>
+    <p>SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given,${gaps.some((gap) => gap.kind === 'design') ? ' the designs it relies on are named,' : ''} no blank is left in it, and any work it has no job steps for is dealt with. You can keep looking at the draft. Deal with ${gaps.length === 1 ? 'this' : `these ${gaps.length}`}. Each one comes off this list as soon as it is answered:</p>
     <ul class="gate-list">${gaps.map((gap, i) => `<li><button type="button" class="link" ${gap.kind === 'cover' ? 'data-cover-jump' : `data-gate-go="${i}"`}>${esc(gap.label)}</button><span class="meta">${esc(gap.need)}</span></li>`).join('')}</ul>
     ${answers ? '<div class="actions"><button type="button" id="gate-update">Update the draft</button></div>' : ''}
   </div>`;
@@ -1249,6 +1266,152 @@ resultEl.addEventListener('click', (event) => {
   edit.textContent = on ? 'Done changing this step' : 'Change this step';
 });
 
+// ---- The designs the job steps rely on (designs.js, owner, 11 October 2026) ----
+
+// Asked once, under the site questions: for each design a step is done to, what it is, who prepared
+// it, its number, revision and date, and the file if the user has it. "Not issued yet" prints a hold
+// point in the steps that use it; "Not needed for this work" is recorded as the user's choice. The
+// download waits until each one is answered (download-gate.js).
+const designRow = (id) => (designAnswers || []).find((row) => row.id === id) || null;
+const designShown = (id) => Boolean(document.getElementById(`design-${id}`));
+function designsPayload() {
+  const rows = (designAnswers || []).filter((row) => row.id && (!/^added-/.test(row.id) || String(row.what || '').trim()));
+  return rows.length ? rows.map((row) => ({ ...row })) : undefined;
+}
+// Whether files can be attached here (the storage bucket, or a local run), and the size limit.
+let designFileConfig = null;
+async function designFilesOn() {
+  if (!designFileConfig) {
+    designFileConfig = fetch(api('/api/config')).then((response) => response.json()).then((data) => data.designFiles || { enabled: false, maxMb: 10 }).catch(() => ({ enabled: false, maxMb: 10 }));
+  }
+  return designFileConfig;
+}
+const fileSize = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
+let designsDrawn = '';
+function designCard(row, found) {
+  const id = esc(row.id);
+  const added = /^added-/.test(row.id);
+  const status = row.status || '';
+  const radio = (value, label) => `<label><input type="radio" name="design-status-${id}" value="${value}" data-design-field="status"${status === value ? ' checked' : ''}> ${label}</label>`;
+  const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
+  const file = row.file
+    ? `<p class="design-file">Attached: <strong>${esc(row.file.name)}</strong> <span class="meta">(${esc(fileSize(row.file.size || 0))})</span> <button type="button" class="link" data-design-open="${id}">Open</button> <button type="button" class="link" data-design-unfile="${id}">Remove the file</button></p>`
+    : `<label class="secondary small design-attach" for="design-${id}-file">Attach the file</label><input id="design-${id}-file" class="visually-hidden" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" data-design-file="${id}">`;
+  return `<fieldset class="field design-card" id="design-${id}" data-design="${id}" data-status="${esc(status)}" tabindex="-1">
+    <legend>${esc(row.what || (added ? 'Another design' : (found && found.label) || 'Design'))}</legend>
+    ${found && found.steps.length ? `<p class="meta">Used in: ${esc(found.steps.join('; '))}.</p>` : '<p class="meta">Prints in the designs table near the top of the SWMS.</p>'}
+    <div class="choice design-status">${radio('given', 'I have it')}${radio('notIssued', 'Not issued yet')}${radio('notNeeded', 'Not needed for this work')}</div>
+    <div class="design-given">
+      ${box('what', 'What it is', 'As the design is titled, for example Shoring design or Formwork design.', 'text', 200)}
+      ${box('by', 'Who prepared it', 'The engineer or firm, for example Smith Engineering.', 'text', 200)}
+      <div class="design-pair">${box('number', 'Document or drawing number', 'From the title block, for example ABC-S-101.')}${box('revision', 'Revision', 'For example C. Leave it empty if it has none.', 'text', 40)}</div>
+      ${box('date', 'Date on the design', '', 'date', 60)}
+      <div class="field design-file-box"><p class="design-file-label">The file <span class="meta">(optional)</span></p>
+        <p class="meta">A PDF, or a photo of the drawing, up to 10 MB. It stays with this SWMS in SiteReady, for you and your reviewer to open. It does not print.</p>
+        ${file}<p class="meta design-file-msg" data-design-msg="${id}" role="status"></p></div>
+    </div>
+    <p class="note design-hold">The steps that use it print a hold point: "Do not start this step until the design is issued and this SWMS is updated." When the design arrives, add its details here and save a new revision.</p>
+    <p class="note design-skip">Choose this only if the work in these steps is not done to a design on this job. The SWMS records it as your business's choice, and a reviewer may ask why.</p>
+    ${added ? `<p><button type="button" class="link" data-design-remove="${id}">Remove this design</button></p>` : ''}
+  </fieldset>`;
+}
+// Draws the cards for the designs the server found, keeping what the user has typed. Drawn again only
+// when the designs or their steps change, so a phone does not jump while the user types.
+function drawDesigns(list) {
+  designsFound = (list || []).filter((row) => row.needed);
+  const answers = designAnswers || [];
+  const rows = designsFound.map((found) => {
+    const mine = answers.find((row) => row.id === found.id);
+    return mine || { id: found.id, what: found.what, status: found.status || '', by: found.by || '', number: found.number || '', revision: found.revision || '', date: found.date || '', ...(found.file ? { file: found.file } : {}) };
+  });
+  const added = answers.filter((row) => /^added-/.test(row.id));
+  designAnswers = rows.length || added.length ? [...rows, ...added] : null;
+  const section = document.getElementById('designs-section');
+  if (!section) return;
+  const shape = JSON.stringify([designsFound.map((row) => [row.id, row.label, row.steps]), added.map((row) => row.id)]);
+  section.classList.toggle('hidden', !designAnswers);
+  if (shape === designsDrawn) return;
+  designsDrawn = shape;
+  document.getElementById('designs-block').innerHTML = (designAnswers || []).map((row) => designCard(row, designsFound.find((found) => found.id === row.id))).join('');
+  designFilesOn().then((config) => { if (!config.enabled) document.querySelectorAll('.design-file-box').forEach((el) => { el.innerHTML = '<p class="meta">Attaching the file is not switched on yet. The reference is what prints.</p>'; }); });
+}
+function redrawDesigns() {
+  designsDrawn = '';
+  drawDesigns(designsFound);
+}
+const designsBlock = document.getElementById('designs-block');
+// What the user types or picks in a card is kept as they go.
+['input', 'change'].forEach((type) => designsBlock && designsBlock.addEventListener(type, (event) => {
+  const field = event.target.dataset && event.target.dataset.designField;
+  const card = event.target.closest && event.target.closest('[data-design]');
+  if (!field || !card) return;
+  const row = designRow(card.dataset.design);
+  if (!row) return;
+  if (field === 'status' && !event.target.checked) return;
+  row[field] = event.target.value;
+  if (field === 'status') card.dataset.status = event.target.value;
+  if (field === 'what') card.querySelector('legend').textContent = event.target.value.trim() || 'Another design';
+}));
+document.getElementById('design-add') && document.getElementById('design-add').addEventListener('click', () => {
+  const used = new Set((designAnswers || []).map((row) => row.id));
+  let n = 1;
+  while (used.has(`added-${n}`)) n += 1;
+  designAnswers = [...(designAnswers || []), { id: `added-${n}`, what: '', status: 'given', by: '', number: '', revision: '', date: '' }];
+  redrawDesigns();
+  const box = document.getElementById(`design-added-${n}-what`);
+  if (box) box.focus();
+});
+designsBlock && designsBlock.addEventListener('click', async (event) => {
+  const remove = event.target.closest('[data-design-remove]');
+  if (remove) {
+    designAnswers = (designAnswers || []).filter((row) => row.id !== remove.dataset.designRemove);
+    if (!designAnswers.length) designAnswers = null;
+    redrawDesigns();
+    keepUnsaved();
+    return;
+  }
+  const unfile = event.target.closest('[data-design-unfile]');
+  if (unfile) {
+    const row = designRow(unfile.dataset.designUnfile);
+    if (row) delete row.file;
+    redrawDesigns();
+    keepUnsaved();
+    return;
+  }
+  const open = event.target.closest('[data-design-open]');
+  if (open) {
+    const row = designRow(open.dataset.designOpen);
+    const S = window.SiteReady || {};
+    if (row && row.file && S.openFile) S.openFile(`/api/designs/files/${encodeURIComponent(row.file.id)}`, row.file.name).catch((error) => { const msg = designsBlock.querySelector(`[data-design-msg="${row.id}"]`); if (msg) msg.textContent = error.message; });
+  }
+});
+// A file is checked here for its type and size, then sent; the server checks its content again.
+designsBlock && designsBlock.addEventListener('change', async (event) => {
+  const input = event.target.closest && event.target.closest('[data-design-file]');
+  if (!input || !input.files || !input.files[0]) return;
+  const id = input.dataset.designFile;
+  const file = input.files[0];
+  const msg = designsBlock.querySelector(`[data-design-msg="${id}"]`);
+  const say = (text) => { if (msg) msg.textContent = text; };
+  const config = await designFilesOn();
+  const S = window.SiteReady || {};
+  if (!S.isSignedIn || !S.isSignedIn()) { say('Sign in to attach the file. You can give the reference now and attach the file later.'); input.value = ''; return; }
+  if (!/\.(pdf|png|jpe?g)$/i.test(file.name) && !/^(application\/pdf|image\/png|image\/jpeg)$/.test(file.type)) { say('Attach a PDF, PNG or JPEG.'); input.value = ''; return; }
+  if (file.size > config.maxMb * 1024 * 1024) { say(`The file is larger than ${config.maxMb} MB. Attach a smaller copy, such as the drawing sheets only.`); input.value = ''; return; }
+  say('Attaching...');
+  try {
+    const data = await S.sendFile('/api/designs/files', file);
+    const row = designRow(id);
+    if (row) row.file = data.file;
+    redrawDesigns();
+    keepUnsaved();
+    if (typeof showGate === 'function' && shownDraft) showGate();
+  } catch (error) {
+    say(error.message);
+    input.value = '';
+  }
+});
+
 // ---- The plant and the emergency response, asked in the draft (goal 2) ----
 
 // The plant SiteReady lists, as a tick list the user confirms before download: what the crew uses
@@ -1310,7 +1473,27 @@ if (typeof window.addEventListener === 'function') {
   window.addEventListener('beforeprint', () => document.querySelectorAll('details.sheet-fold').forEach((el) => { el.open = true; }));
 }
 
-function render(draft, { movable = false } = {}) {
+// The designs the job steps rely on, as the SWMS prints them (designs.js tableRows), with a button
+// to open an attached file: on the page from the business's own upload, on a saved SWMS from the
+// SWMS itself. Only signed-in users of the business can open it.
+function designsTable(draft, swmsId) {
+  const rows = draft.designs || [];
+  if (!rows.length) return '';
+  const rev = (value) => String(value || '').replace(/^(?:rev(?:ision)?\.?\s*)/i, '');
+  const opener = (row) => (row.file && row.status === 'given'
+    ? `<br><button type="button" class="link" data-design-file-open="${esc(swmsId ? `/api/swms/${encodeURIComponent(swmsId)}/designs/${encodeURIComponent(row.file.id)}` : `/api/designs/files/${encodeURIComponent(row.file.id)}`)}" data-design-file-name="${esc(row.file.name)}">Open the file</button>` : '');
+  const cells = (row) => [row.what, row.status === 'given' ? row.by : '', row.status === 'given' ? [row.number, rev(row.revision) ? `rev ${rev(row.revision)}` : ''].filter(Boolean).join(' ') : '', row.status === 'given' ? designDate(row.date) : ''];
+  const labels = ['Design', 'Prepared by', 'Document or drawing, revision', 'Date', 'Status'];
+  return `<h4>Designs this SWMS relies on</h4><p class="meta">Each step that relies on a design names it. Work to the revision listed here. If a new revision is issued, check this SWMS against it and update it before work continues.</p>
+    <table class="stack"><thead><tr>${labels.map((label) => `<th>${label}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${cells(row).map((value, i) => `<td data-label="${labels[i]}">${esc(value)}</td>`).join('')}<td data-label="Status">${esc(`${row.statusText}${row.steps.length ? ` Used in: ${row.steps.join('; ')}.` : ''}`)}${opener(row)}</td></tr>`).join('')}</tbody></table>`;
+}
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function designDate(value) {
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim());
+  return iso && Number(iso[2]) >= 1 && Number(iso[2]) <= 12 ? `${Number(iso[3])} ${MONTH_NAMES[Number(iso[2]) - 1]} ${iso[1]}` : String(value || '');
+}
+
+function render(draft, { movable = false, swmsId = '' } = {}) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
   const logo = profile.logo ? `<img class="sheet-logo" src="${esc(profile.logo)}" alt="">` : '';
   const company = draft.companyDetails ? `<p class="meta">${esc(draft.companyDetails)}</p>` : '';
@@ -1363,7 +1546,7 @@ function render(draft, { movable = false } = {}) {
   const report = draft.controlEdits || {};
   const shared = (step) => sharedNote(step, draft.jobSteps || []);
   const controlCell = (step, index) => {
-    if (!movable) return `${list(step.controls)}${shared(step) ? `<p class="ctl-shared">${esc(shared(step))}</p>` : ''}`;
+    if (!movable) return `<ul>${step.controls.map((line) => `<li${/^Hold point:/.test(line) ? ' class="design-hold-line"' : ''}>${esc(line)}</li>`).join('')}</ul>${shared(step) ? `<p class="ctl-shared">${esc(shared(step))}</p>` : ''}`;
     const legal = (draft.controlLegal || [])[index] || [];
     const warn = (draft.controlWarn || [])[index] || [];
     const removed = ((controlEdits || {})[step.step] || {}).removed || [];
@@ -1372,7 +1555,10 @@ function render(draft, { movable = false } = {}) {
     // On a phone, a long list shows its first lines; a line with a blank to fill in always shows.
     const folds = (i) => step.controls.length > MANY_CONTROLS && i >= FEW_CONTROLS && !(blankKeys.steps[index] || [])[i];
     const hidden = step.controls.filter((_line, i) => folds(i)).length;
-    return `<ul>${step.controls.map((line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+    // A design's reference or hold point is changed under Designs this work relies on, not here.
+    const fromDesign = new Set(step.designLines || []);
+    const designItem = (line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}" class="design-line${/^Hold point:/.test(line) ? ' design-hold-line' : ''}">${esc(line)}<span class="meta"> From the designs this work relies on. Change it there.</span></li>`;
+    return `<ul>${step.controls.map((line, i) => (fromDesign.has(line) ? designItem(line, i) : `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`)).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
       ${shared(step) ? `<p class="ctl-shared">${esc(shared(step))}</p>` : ''}
       ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
       ${hidden ? `<button type="button" class="secondary ctl-show" data-ctl-more="${index}">Show all ${step.controls.length} controls</button>` : ''}
@@ -1436,6 +1622,7 @@ function render(draft, { movable = false } = {}) {
   return `${head}
     <h4>Responsibilities</h4>${people}
     <h4>High risk construction work</h4>${risks}
+    ${designsTable(draft, swmsId)}
     <h4>Controls</h4>${controls}
     <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change it. Lines you write or change are marked as your own. A hazard that does not apply is marked so, not deleted. SiteReady warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why.<span class="phone-only"> On a phone, tap Change this step to move a step or change its lines.</span></p>' : ''}${steps}
     ${movable ? '<p class="own-new"><button type="button" class="secondary small" data-own-new>Write a step of your own</button> <span class="meta">For work SiteReady has no job step for. It prints marked as your own.</span></p>' : ''}
@@ -1632,6 +1819,7 @@ async function prepareDraft({ scroll = true } = {}) {
     shownReport = report;
     const warnings = [...(data.warnings || []).map((text) => `<p class="warning">${esc(text)}</p>`), notCoveredBlock(data), editNotes(report, { discard: true })].join('');
     shownDraft = data;
+    if (data.kind === 'draft') drawDesigns(data.designs || []);
     shownChecks = data.gateChecks || data.gate || [];
     gateDrawn = '';
     resultEl.innerHTML = `${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;

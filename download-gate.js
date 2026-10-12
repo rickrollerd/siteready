@@ -30,12 +30,15 @@
 // - Any blank (____) or "To be completed" left in what prints: in the user's own answers, which are
 //   filled in their boxes, and in SiteReady's control lines, which are filled where they show.
 //   In a job step the user wrote for work SiteReady does not cover, the user changes the step.
+// - Each design a job step relies on (designs.js): its details, "Not issued yet" (a hold point), or
+//   "Not needed for this work", recorded as the user's choice.
 const { SITE_FIELDS } = require('./legislation');
 const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
 const { clean, answerNeed } = require('./public/gate-rules');
 const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
+const { designNeed } = require('./designs');
 
 // Each field: the input key, the page box it is answered in, its label and what is needed.
 const FIELDS = [
@@ -115,7 +118,7 @@ function printedTexts(draft) {
 }
 
 // Every check the gate makes on this SWMS, answered or not: a list of
-// { id, kind: 'cover' | 'field' | 'site' | 'plant' | 'emergency' | 'fact' | 'line' | 'own' | 'other', field, label,
+// { id, kind: 'cover' | 'field' | 'site' | 'plant' | 'emergency' | 'design' | 'fact' | 'line' | 'own' | 'other', field, label,
 // need, rule?, key?, parts?, step? }. need is '' where the answer passes. rule, where given, is how the
 // answer is judged (public/gate-rules.js answerNeed), so the page can judge it again as the user types
 // and show the item again if the answer is taken out. Items without a rule (the plant, anything else
@@ -144,6 +147,12 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   const said = input.emergency && typeof input.emergency === 'object' ? input.emergency : {};
   for (const item of emergencyQuestions(draft, said)) {
     judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category] }, item.answer);
+  }
+  // Each design the steps rely on (designs.js, owner, 11 October 2026): issued with who prepared it,
+  // its number and date; "Not issued yet", which prints as a hold point; or "Not needed for this
+  // work", recorded as the user's choice. A design the user added is asked about only once named.
+  for (const row of draft.designs || []) {
+    add({ id: `design.${row.id}`, kind: 'design', field: `design-${row.id}`, label: `Design: ${row.what}`, design: row.id, need: designNeed(row) });
   }
   // The user's own answers with a blank still in them where the SWMS prints them, filled in their own
   // boxes. An answer the SWMS does not print leaves no blank in it.
@@ -210,7 +219,7 @@ function gateMessage(gaps) {
   const names = [...new Set(gaps.filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))];
   const cover = gaps.find((gap) => gap.kind === 'cover');
   return [
-    names.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it. Still to answer: ${names.join('; ')}.` : '',
+    names.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given${gaps.some((gap) => gap.kind === 'design') ? ', the designs it relies on are named' : ''} and no blank is left in it. Still to answer: ${names.join('; ')}.` : '',
     cover ? cover.message : '',
   ].filter(Boolean).join(' ');
 }

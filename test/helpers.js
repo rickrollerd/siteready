@@ -47,7 +47,9 @@ function ready(input) {
     const draft = prepareDraft(draftBody(out));
     if (draft.kind !== 'draft') return out;
     const emergency = Object.fromEntries((draft.emergencyQuestions || []).map((item) => [item.id, `${item.short} answer for this site`]));
-    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) } };
+    // Each design the steps rely on is named (designs.js), unless the test gives its own answers.
+    const designs = input.designs || ((draft.designs || []).length ? draft.designs.map((row) => ({ id: row.id, what: row.what, status: 'given', by: 'Smith Engineering', number: `SE-${row.id.toUpperCase()}-101`, revision: 'C', date: '2026-10-03' })) : undefined);
+    out = { ...out, plantChoice: { used: (draft.plantInferred || []).map((item) => item.item), notUsed: [], added: [] }, emergency: { ...emergency, ...(input.emergency || {}) }, ...(designs ? { designs } : {}) };
   }
   return out;
 }

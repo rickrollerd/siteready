@@ -4,7 +4,8 @@
 // paying"). Only the owner deletes, from the admin page; nothing is deleted on a timer.
 //
 // Every row tied to the business goes: the company and its logo, its people and their sign-ins,
-// sessions, Face ID keys and sign-in links, sites, saved SWMS with every revision, worker sign-ons,
+// sessions, Face ID keys and sign-in links, sites, saved SWMS with every revision and the design
+// files attached to them (in the storage bucket or the database), worker sign-ons,
 // reads and translations, review flags, references (so the public check says the reference is
 // not found), AI readings, action counts, its industry records, the SWMS it checked with the builder
 // check and kept (checked-swms.js: each document no other business also checked, with its original,
@@ -17,6 +18,7 @@ const db = require('./db');
 const { businessCode } = require('./industry');
 const { liveSubscription } = require('./billing');
 const checkedSwms = require('./checked-swms');
+const { removeForCompany: removeDesignFiles } = require('./design-files');
 
 const RETENTION_MONTHS = 12;
 
@@ -78,6 +80,8 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   await run('sign_reads', `DELETE FROM sign_reads WHERE swms_id IN (${SWMS})`);
   await run('sign_translations', `DELETE FROM sign_translations WHERE swms_id IN (${SWMS})`);
   await run('swms_review_flags', `DELETE FROM swms_review_flags WHERE swms_id IN (${SWMS})`);
+  // The design files the business attached, from the storage bucket or the database, then their rows.
+  for (const [table, n] of Object.entries(await removeDesignFiles(id))) removed[table] = (removed[table] || 0) + n;
   await run('swms_revisions', `DELETE FROM swms_revisions WHERE swms_id IN (${SWMS})`);
   await run('swms_refs', `DELETE FROM swms_refs WHERE company_id = $1 OR swms_id IN (${SWMS})`);
   await run('swms', 'DELETE FROM swms WHERE company_id = $1');

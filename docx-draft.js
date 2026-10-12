@@ -2,6 +2,7 @@ const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, BorderStyle, VerticalAlign, Footer, Header, AlignmentType, ImageRun, CheckBox, PageOrientation,
 } = require('docx');
+const { tableRows, isHoldPoint, TABLE_HEAD, TABLE_TITLE, TABLE_NOTE } = require('./designs');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
 
@@ -275,7 +276,7 @@ function linesCell(lines, width, options = {}) {
     verticalAlign: VerticalAlign.TOP,
     children: items.map((line, index) => new Paragraph({
       spacing: { before: 0, after: index === items.length - 1 ? 0 : 60, line: 240 },
-      children: [run(options.bullet && lines.length ? `\u2022  ${line}` : line, { size: 19, bold: options.bold })],
+      children: [run(options.bullet && lines.length ? `\u2022  ${line}` : line, { size: 19, bold: options.bold || (options.holds && isHoldPoint(line)) })],
     })),
   });
 }
@@ -298,7 +299,7 @@ function jobStepsTable(steps) {
         children: [
           linesCell([`${index + 1}. ${step.step}`], widths[0], { bold: true }),
           linesCell(step.hazards, widths[1], { bullet: true }),
-          linesCell([...step.controls, ...sharedNote(step, steps)], widths[2], { bullet: true }),
+          linesCell([...step.controls, ...sharedNote(step, steps)], widths[2], { bullet: true, holds: true }),
           linesCell(step.risk ? riskText(step.risk).split('\n') : [], widths[3]),
           linesCell(step.responsible ? [step.responsible] : [], widths[4]),
         ],
@@ -432,6 +433,13 @@ function childrenFor(draft, options = {}) {
     for (const item of draft.highRisk) blocks.push(para(item, { before: 0, after: 40 }));
   } else {
     blocks.push(para('This task is not identified as high risk construction work.', { before: 0, after: 40 }));
+  }
+
+  // The designs the job steps rely on (designs.js), only where there are any.
+  if ((draft.designs || []).length) {
+    blocks.push(sectionHeading(TABLE_TITLE));
+    blocks.push(para(TABLE_NOTE, { size: 19, color: MUTED, before: 0, after: 80 }));
+    blocks.push(gridTable(TABLE_HEAD, [3000, 2800, 2800, 1900, CONTENT_WIDTH - 10500], tableRows(draft)));
   }
 
   blocks.push(sectionHeading('Controls'));
