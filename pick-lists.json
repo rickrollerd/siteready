@@ -194,13 +194,12 @@
      "kinds": [
       "asbestosPits",
       "contaminatedSpoil",
-      "asbestos"
+      "asbestos",
+      "smallPlant"
      ],
      "leaveOut": [],
-     "gaps": [
-      "removing asbestos contaminated soil in sections with wetting and dust monitoring"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -268,11 +267,8 @@
       "scaffold"
      ],
      "leaveOut": [],
-     "gaps": [
-      "rigging needles, counterweights and suspension ropes",
-      "hung scaffold from the structure"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -295,10 +291,8 @@
       "Strip the formwork",
       "Install backprops"
      ],
-     "gaps": [
-      "a birdcage scaffold and the loading hold point for a support scaffold"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -485,7 +479,7 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "the site permit and the rescue procedure for people stranded in the workbox"
+      "the site permit for lifting people in the workbox"
      ],
      "coverage": "partial",
      "basis": "evidence"
@@ -774,7 +768,7 @@
      "leaveOut": [],
      "gaps": [],
      "coverage": "full",
-     "basis": "inferred"
+     "basis": "evidence"
     },
     {
      "id": "rock-excavation",
@@ -898,10 +892,10 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "authority shutdowns, under pressure tapping and recharging the main"
+      "under pressure tapping of the live main"
      ],
      "coverage": "partial",
-     "basis": "inferred"
+     "basis": "evidence"
     },
     {
      "id": "pump-stations",
@@ -937,7 +931,7 @@
      "leaveOut": [],
      "gaps": [],
      "coverage": "full",
-     "basis": "inferred"
+     "basis": "evidence"
     },
     {
      "id": "trenchless",
@@ -1056,7 +1050,7 @@
      "leaveOut": [],
      "gaps": [],
      "coverage": "full",
-     "basis": "inferred"
+     "basis": "evidence"
     },
     {
      "id": "profiling",
@@ -1252,7 +1246,7 @@
      "leaveOut": [],
      "gaps": [],
      "coverage": "full",
-     "basis": "inferred"
+     "basis": "evidence"
     },
     {
      "id": "tactile-indicators",
@@ -1294,18 +1288,18 @@
     {
      "id": "block-sleeper",
      "title": "Segmental block, concrete sleeper and reinforced soil walls",
-     "task": "Segmental block and concrete sleeper retaining walls: excavate the cut, build the block retaining wall or concrete sleeper wall, install wall drainage, and backfill and compact.",
+     "task": "Segmental block and concrete sleeper retaining walls: excavate the cut, build the block retaining wall or concrete sleeper wall, install wall drainage, and backfill and compact. Place and compact the fill in layers with a bobcat.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "retainingWall",
-      "wallDrainage"
+      "wallDrainage",
+      "smallPlant",
+      "carpLoad"
      ],
      "leaveOut": [],
-     "gaps": [
-      "geogrid reinforcement layers for reinforced soil walls"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -1332,13 +1326,13 @@
      "crane": "company",
      "kinds": [
       "precast",
-      "craneInterface"
+      "craneInterface",
+      "smallPlant",
+      "carpLoad"
      ],
      "leaveOut": [],
-     "gaps": [
-      "reinforced earth straps and fill layers"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -1354,7 +1348,7 @@
      ],
      "leaveOut": [],
      "gaps": [],
-     "coverage": "partial",
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -1378,13 +1372,13 @@
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
-      "retainingWall"
+      "retainingWall",
+      "smallPlant",
+      "carpLoad"
      ],
      "leaveOut": [],
-     "gaps": [
-      "laying concrete crib units and filling and compacting inside the cribs"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -1426,7 +1420,7 @@
       "Lay pipes"
      ],
      "gaps": [],
-     "coverage": "partial",
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -1439,13 +1433,12 @@
       "formwork",
       "reo",
       "concrete",
-      "scaffold"
+      "scaffold",
+      "formVertical"
      ],
      "leaveOut": [],
-     "gaps": [
-      "standing and bracing column and headstock formwork"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -1460,59 +1453,56 @@
       "craneInterface"
      ],
      "leaveOut": [],
-     "gaps": [
-      "landing girders on bearings with temporary restraint"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "deck",
      "title": "Bridge deck: deck units or formwork, reo and pour",
-     "task": "Bridge deck: land and fix the precast deck planks or erect the deck formwork, fix the reinforcement, and pump and place the deck concrete.",
+     "task": "Bridge deck: land and fix the precast deck planks or erect the deck formwork, fix the reinforcement, and pump and place the deck concrete. Work above traffic.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "precastFloor",
       "formwork",
       "reo",
-      "concrete"
+      "concrete",
+      "workAbove"
      ],
      "leaveOut": [],
-     "gaps": [
-      "deck forms and edge protection on girders over traffic or water"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "bearings",
      "title": "Bridge bearings: install and replace",
-     "task": "Bridge bearings: jack the bridge superstructure, replace the bearings and lower it.",
+     "task": "Bridge bearings: jack the bridge superstructure, replace the bearings and lower it. Grout the new bearings with a grout pump.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
-      "bridgeBearings"
+      "bridgeBearings",
+      "groutPump"
      ],
      "leaveOut": [],
-     "gaps": [
-      "setting and grouting new bearings"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
      "id": "barriers-joints",
      "title": "Bridge barriers, parapets and expansion joints",
-     "task": "Bridge barriers and expansion joints: install the barrier and parapet units at the deck edge and replace the expansion joints on the bridge.",
+     "task": "Bridge barriers and expansion joints: install the barrier and parapet units at the deck edge and replace the expansion joints on the bridge. Install edge protection at the open deck edge, and lift the barrier units with the crane.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
-      "roadBarrier"
+      "roadBarrier",
+      "edgeProtectionInstall",
+      "craneInterface"
      ],
      "leaveOut": [],
      "gaps": [
-      "barrier and parapet installation at an open bridge deck edge",
       "installing and replacing expansion joints"
      ],
      "coverage": "partial",
@@ -1535,29 +1525,31 @@
     {
      "id": "over-water",
      "title": "Bridge work over or next to water",
-     "task": "Bridge work over and next to water, from barges, pontoons and work boats, with rescue boats and life jackets, a flood watch, and concrete, fuel and sediment kept out of the water.",
-     "fallRisk": "no",
+     "task": "Bridge work over and next to water, from barges, pontoons and work boats, with rescue boats and life jackets, a flood watch, and concrete, fuel and sediment kept out of the water. Drive the sheet piles for the cofferdams, dewater the excavation, and erect a scaffold for the work platforms.",
+     "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "water",
-      "marinePlant"
+      "marinePlant",
+      "drivenPiles",
+      "dewatering",
+      "scaffold"
      ],
      "leaveOut": [],
-     "gaps": [
-      "temporary work platforms and cofferdams over water"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "temp-works",
      "title": "Temporary bridges, falsework towers and working platforms",
-     "task": "Build and remove the temporary bridge and erect falsework towers to the temporary works design, with inspections and hold points before loading.",
+     "task": "Build and remove the temporary bridge and erect falsework towers to the temporary works design, with inspections and hold points before loading. Erect a scaffold for the falsework towers.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "tempBridge",
-      "formwork"
+      "formwork",
+      "scaffold"
      ],
      "leaveOut": [
       "Lay the formwork deck",
@@ -1568,16 +1560,14 @@
       "Strip the formwork",
       "Install backprops"
      ],
-     "gaps": [
-      "falsework towers for bridges"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
      "id": "bridge-maintenance",
      "title": "Bridge maintenance and repair over traffic or rail",
-     "task": "Bridge maintenance over a road open to traffic: concrete repairs, abrasive blasting and painting of the bridge, working above traffic.",
+     "task": "Bridge maintenance over a road open to traffic: concrete repairs, abrasive blasting and painting of the bridge, working above traffic. Work from EWPs and under bridge units, and erect hung scaffolds.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
@@ -1585,14 +1575,14 @@
       "concreteRepair",
       "abrasiveBlast",
       "painting",
+      "ewp",
+      "scaffold",
       "road"
      ],
      "leaveOut": [],
-     "gaps": [
-      "access by an under bridge inspection unit or hanging scaffold"
-     ],
-     "coverage": "partial",
-     "basis": "inferred"
+     "gaps": [],
+     "coverage": "full",
+     "basis": "evidence"
     }
    ]
   },
@@ -1676,10 +1666,8 @@
       "railCorridor"
      ],
      "leaveOut": [],
-     "gaps": [
-      "lifting in and installing turnout panels"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -1708,47 +1696,43 @@
       "fenceBuild"
      ],
      "leaveOut": [],
-     "gaps": [
-      "digging next to the track tied to the danger zone and the protection arrangements"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
      "id": "level-crossings",
      "title": "Level crossing renewal",
-     "task": "Level crossing renewal: close and divert the road traffic, remove the crossing panels, renew the track and ballast in the rail corridor, and lay asphalt.",
+     "task": "Level crossing renewal: close and divert the road traffic, remove the crossing panels, renew the track and ballast in the rail corridor, and lay asphalt. Lift the crossing panels with the crane.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "road",
       "trackWork",
       "asphaltLay",
-      "railCorridor"
+      "railCorridor",
+      "craneInterface"
      ],
      "leaveOut": [],
-     "gaps": [
-      "removing and replacing level crossing panels"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
      "id": "platforms",
      "title": "Station platform works next to live track",
-     "task": "Station platform works next to live track in the rail corridor: place the precast platform units and pour concrete for the platform extension.",
+     "task": "Station platform works next to live track in the rail corridor: place the precast platform units and pour concrete for the platform extension. Widen the station platform.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "railCorridor",
       "precast",
-      "concrete"
+      "concrete",
+      "platformWiden"
      ],
      "leaveOut": [],
-     "gaps": [
-      "work at the platform edge next to live track"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     }
    ]
@@ -1802,10 +1786,8 @@
       "shallowTrench"
      ],
      "leaveOut": [],
-     "gaps": [
-      "laying irrigation pipe and fitting controllers and valves"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -1823,25 +1805,23 @@
      "leaveOut": [
       "Install pits"
      ],
-     "gaps": [
-      "lifting and setting large root ball trees"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "revegetation",
      "title": "Revegetation and batter planting",
-     "task": "Revegetation: plant tubestock on batters and creek lines, brush cut the weeds with a brushcutter, and work on slopes near plant and traffic.",
+     "task": "Revegetation: plant tubestock on batters and creek lines, brush cut the weeds with a brushcutter, and work on slopes near plant and traffic. Dig planting holes with a hand held auger.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "landscape",
-      "brushcutter"
+      "brushcutter",
+      "footingHoles"
      ],
      "leaveOut": [],
      "gaps": [
-      "hand held petrol augers",
       "laying jute matting on steep batters"
      ],
      "coverage": "partial",
@@ -1978,24 +1958,25 @@
       "anchorsProps"
      ],
      "leaveOut": [],
-     "gaps": [
-      "vibrating sheet piles in and extracting them"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
      "id": "screw-piles",
      "title": "Screw piles",
-     "task": "Screw piles: install screw piles with a drive head on an excavator or small rig, monitor the torque, and cut and cap the piles.",
+     "task": "Screw piles: install screw piles with a drive head on an excavator or small rig, monitor the torque, cut the pile tops to level with oxy-acetylene, and weld on the cap plates. Prepare the piling platform.",
      "fallRisk": "no",
      "crane": "company",
-     "kinds": [],
-     "leaveOut": [],
-     "gaps": [
-      "installing screw piles"
+     "kinds": [
+      "pilingPlatform",
+      "pilingRig",
+      "oxyCutting",
+      "steelWeld"
      ],
-     "coverage": "none",
+     "leaveOut": [],
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -2031,31 +2012,33 @@
     {
      "id": "pile-testing",
      "title": "Pile load and integrity testing",
-     "task": "Pile testing: static load tests with kentledge or reaction piles and jacks, dynamic testing with a drop weight, and integrity testing.",
+     "task": "Prepare the pile heads for testing, and lift the test weights and kentledge with the crane. Run static load tests with kentledge or reaction piles and jacks, dynamic tests with a drop weight, and integrity tests.",
      "fallRisk": "no",
      "crane": "company",
-     "kinds": [],
+     "kinds": [
+      "pileTrim",
+      "craneInterface"
+     ],
      "leaveOut": [],
      "gaps": [
-      "pile load and integrity testing"
+      "the load test set-up and test loads (kentledge or reaction piles and jacks)"
      ],
-     "coverage": "none",
+     "coverage": "partial",
      "basis": "inferred"
     },
     {
      "id": "ground-improvement-rig",
      "title": "Ground improvement with a rig: stone columns, rigid inclusions and wick drains",
-     "task": "Ground improvement with a rig: vibro stone columns, rigid inclusions and deep soil mixing columns, and wick drains.",
+     "task": "Ground improvement with a rig: vibro stone columns, rigid inclusions and deep soil mixing columns, and wick drains. Prepare the piling platform.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
+      "pilingPlatform",
       "groundImprove"
      ],
      "leaveOut": [],
-     "gaps": [
-      "installing wick drains with a stitcher rig"
-     ],
-     "coverage": "none",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -2105,20 +2088,16 @@
      "crane": "company",
      "kinds": [
       "formwork",
-      "concreteWall"
+      "formVertical"
      ],
      "leaveOut": [
       "Lay the formwork deck",
       "Load ply onto the deck while it is being laid",
       "Form penetrations and voids",
-      "Install backprops",
-      "Fix the retaining wall reo",
-      "Pour the retaining wall"
+      "Install backprops"
      ],
-     "gaps": [
-      "standing and bracing column and wall forms, and working platforms on wall forms"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -2165,10 +2144,8 @@
       "Form penetrations and voids",
       "Install backprops"
      ],
-     "gaps": [
-      "a load-bearing support scaffold to a temporary works design, with its hold point before loading"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -2228,18 +2205,17 @@
     {
      "id": "reo-vertical",
      "title": "Reinforcement to walls, columns and cores, and prefabricated cages",
-     "task": "Reinforcement to walls, columns and cores: fix the vertical reo and starter bars to walls, columns and cores, working from platforms.",
+     "task": "Reinforcement to walls, columns and cores: fix the vertical reo and starter bars to walls, columns and cores, working from platforms. Lift the cages with the crane.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
-      "reo"
+      "reo",
+      "craneInterface",
+      "scaffoldUse"
      ],
      "leaveOut": [],
-     "gaps": [
-      "standing and bracing prefabricated reo cages",
-      "fixing vertical reo at height outside a jumpform"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -2329,20 +2305,19 @@
     {
      "id": "pumping",
      "title": "Concrete pumping: boom pumps, line pumps and placing booms",
-     "task": "Concrete pumping: set up the concrete pump and placing boom, check the outrigger ground and overhead power lines, pump and place the concrete, clear blockages and wash out.",
+     "task": "Concrete pumping: set up the concrete pump and placing boom, check the outrigger ground and overhead power lines, pump and place the concrete, clear blockages and wash out. Move the satellite boom between floors with the crane.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "concrete",
+      "craneInterface",
       "power"
      ],
      "leaveOut": [
       "Finish concrete"
      ],
-     "gaps": [
-      "climbing or moving a satellite placing boom between floors"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -2354,19 +2329,21 @@
      "kinds": [
       "concrete",
       "wasteRemoval",
-      "sitePlant"
+      "sitePlant",
+      "slabPour"
      ],
      "leaveOut": [
       "Set up the concrete pump and placing boom",
       "Pump and place concrete",
       "Finish concrete",
       "Cart rubbish to the site bins",
-      "Clean up the work area"
+      "Clean up the work area",
+      "Finish the concrete",
+      "Saw cut the joints",
+      "Cure the concrete"
      ],
-     "gaps": [
-      "the agitator driver's own work: reversing to the pump and discharging by chute"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -2377,13 +2354,12 @@
      "crane": "company",
      "kinds": [
       "concreteRepair",
-      "floorGrind"
+      "floorGrind",
+      "mobileScaffold"
      ],
      "leaveOut": [],
-     "gaps": [
-      "grinding fins and edges at height straight after stripping"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -2426,18 +2402,17 @@
     {
      "id": "columns-beams-stairs",
      "title": "Precast columns, beams, stairs and landings",
-     "task": "Precast columns, beams and stairs: stand and brace the precast columns, land the precast stairs and landings, and grout the connections.",
+     "task": "Precast columns, beams and stairs: stand and brace the precast columns, land the precast stairs and landings, and grout the connections. Prop the precast beams with temporary support.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "precast",
-      "precastStair"
+      "precastStair",
+      "propping"
      ],
      "leaveOut": [],
-     "gaps": [
-      "landing precast beams on corbels and propping them"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -2566,10 +2541,8 @@
       "oxyCutting"
      ],
      "leaveOut": [],
-     "gaps": [
-      "cutting or welding existing steel that carries load"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     }
    ]
@@ -2661,11 +2634,12 @@
      "crane": "company",
      "kinds": [
       "hydroDemo",
-      "demolition"
+      "demolition",
+      "propping"
      ],
      "leaveOut": [],
      "gaps": [
-      "running a remote-controlled demolition robot on a suspended slab (floor loading and tethered control)"
+      "running a remote-controlled demolition robot"
      ],
      "coverage": "partial",
      "basis": "inferred"
@@ -2944,19 +2918,18 @@
     {
      "id": "cable-jointing",
      "title": "Cable jointing and terminations, LV and HV",
-     "task": "Cable jointing and terminations: prepare cables, crimp lugs, make heat shrink and resin joints, connect and commission LV cables, and terminate and test HV cables.",
+     "task": "Cable jointing and terminations: prepare cables, crimp lugs, make heat shrink and resin joints, connect and commission LV cables, and terminate and test HV cables. Make joints in pits under a confined space permit.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "commissioning",
       "hvTermination",
+      "confined",
       "isolation"
      ],
      "leaveOut": [],
-     "gaps": [
-      "LV heat shrink and resin joints made in a pit"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -3087,7 +3060,7 @@
      "leaveOut": [],
      "gaps": [],
      "coverage": "full",
-     "basis": "inferred"
+     "basis": "evidence"
     }
    ]
   },
@@ -3151,17 +3124,17 @@
     {
      "id": "outlets-testing",
      "title": "Data outlets, patch panels, termination and certification testing",
-     "task": "Data outlets and patch panels: rough-in the outlet brackets and faceplates, check wall cavities for other services and keep clear of low voltage cabling, terminate the cabling in the outlets and patch panels, and certification test it.",
+     "task": "Data outlets and patch panels: rough-in the outlet brackets and faceplates, check wall cavities for other services and keep clear of low voltage cabling, and terminate the cabling in the outlets and patch panels. Certification test the data cabling.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
-      "fitOff"
+      "fitOff",
+      "ictTerminate"
      ],
      "leaveOut": [
       "Fit off"
      ],
      "gaps": [
-      "terminating data outlets and patch panels",
       "certification testing the data cabling"
      ],
      "coverage": "partial",
@@ -3184,20 +3157,19 @@
     {
      "id": "wifi-av-pa",
      "title": "Wi-Fi access points, AV, TV, PA and phone handsets",
-     "task": "Wi-Fi, AV and PA: mount the Wi-Fi access points, speakers, displays and TV brackets on walls and ceilings from platform ladders and EWPs, and install the AV head end, PA speakers, phone handsets and door stations.",
+     "task": "Wi-Fi, AV and PA: mount the Wi-Fi access points, speakers, displays and TV brackets on walls and ceilings from platform ladders and EWPs, and install the AV head end, PA speakers, phone handsets and door stations. Fix the TV brackets and displays to the walls.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "ictCabling",
-      "speakerHang"
+      "speakerHang",
+      "fixtures"
      ],
      "leaveOut": [
       "Install communications containment"
      ],
-     "gaps": [
-      "mounting displays and TV brackets on walls"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -3323,22 +3295,21 @@
     {
      "id": "gates-barriers",
      "title": "Turnstiles, boom gates and vehicle barriers",
-     "task": "Turnstiles, boom gates and vehicle barriers: move and anchor the turnstiles, boom gates, gate operators and rising vehicle barriers and their conduits, next to vehicle movements.",
+     "task": "Turnstiles, boom gates and vehicle barriers: move and anchor the turnstiles, boom gates, gate operators and rising vehicle barriers and their conduits, next to vehicle movements. Install the boom gates.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "securityDevices",
-      "bollards"
+      "bollards",
+      "gateInstall"
      ],
      "leaveOut": [
       "Install bollards",
       "Install wheel stops",
       "Install speed humps"
      ],
-     "gaps": [
-      "commissioning moving barriers and rising steps (hydraulic power units and crush zones)"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -3537,14 +3508,13 @@
      "kinds": [
       "gutters",
       "boxGutter",
-      "roofAccess"
+      "roofAccess",
+      "ewp",
+      "roofPenetration"
      ],
      "leaveOut": [],
-     "gaps": [
-      "siphonic roof outlets",
-      "downpipes fixed down a facade at height"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -3580,23 +3550,22 @@
     {
      "id": "temporary-plumbing",
      "title": "Temporary site plumbing and drainage",
-     "task": "Temporary site plumbing: install temporary water and drainage to the site amenities, and connect them to the water supply and sewer.",
+     "task": "Temporary site plumbing: install temporary water and drainage to the site amenities, and connect them to the water supply and sewer. Install the pump and tanks.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "waterConnection",
       "sewerConnection",
       "siteSheds",
+      "pumpInstall",
+      "tankPlace",
       "trench"
      ],
      "leaveOut": [
       "Set up site sheds"
      ],
-     "gaps": [
-      "temporary sewer pump stations and rising mains",
-      "temporary water reticulation"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -3654,16 +3623,17 @@
     {
      "id": "hydronic-pipework",
      "title": "Chilled water, heating water and condenser water pipework",
-     "task": "Install chilled water and heating water mechanical pipework and valves in plant rooms, risers and ceilings.",
+     "task": "Install chilled water and heating water mechanical pipework and valves in plant rooms, risers and ceilings. Pressure test the system.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
-      "mechPipework"
+      "mechPipework",
+      "steelWeld",
+      "pressureTest"
      ],
      "leaveOut": [],
      "gaps": [
-      "welding pipe on site",
-      "flushing and chemical dosing"
+      "chemical dosing of the system"
      ],
      "coverage": "partial",
      "basis": "evidence"
@@ -3766,13 +3736,14 @@
      "crane": "company",
      "kinds": [
       "controlPanelInstall",
-      "isolation"
+      "isolation",
+      "mechCommissioning"
      ],
-     "leaveOut": [],
-     "gaps": [
-      "fitting sensors and actuators in running plant or live ductwork"
+     "leaveOut": [
+      "Commission and balance the system"
      ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -3924,18 +3895,18 @@
     {
      "id": "detection-alarms",
      "title": "Fire detection, alarm and occupant warning systems",
-     "task": "Fire detection and alarm system: install smoke detectors, manual call points, sounders and strobes, and the fire indicator panel.",
+     "task": "Fire detection and alarm system: install smoke detectors, manual call points, sounders and strobes, and the fire indicator panel. Work from EWPs and ladders.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "fireAlarm",
-      "smokeAlarms"
+      "smokeAlarms",
+      "ewp",
+      "ladderUse"
      ],
      "leaveOut": [],
-     "gaps": [
-      "detection cabling, aspirating pipework and EWIS speakers at height"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4041,10 +4012,8 @@
       "defectsVisit"
      ],
      "leaveOut": [],
-     "gaps": [
-      "routine AS 1851 tests (valve set drain tests, pump runs and detector tests)"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     }
    ]
@@ -4097,10 +4066,8 @@
       "carpEdge"
      ],
      "leaveOut": [],
-     "gaps": [
-      "sealing slab edge gaps at an open facade edge"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4116,11 +4083,8 @@
       "passiveFire"
      ],
      "leaveOut": [],
-     "gaps": [
-      "building a shaft wall from the floor side at an open shaft",
-      "board enclosures around ducts, cable trays and steel"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4132,14 +4096,12 @@
      "kinds": [
       "paintSpray",
       "paintSolvent",
-      "ewp"
+      "ewp",
+      "fireSpray"
      ],
      "leaveOut": [],
-     "gaps": [
-      "sprayed cementitious fire protection to steel at height",
-      "intumescent coatings to steel at height"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -4160,7 +4122,7 @@
     {
      "id": "inspection-remediation",
      "title": "Passive fire inspection, certification and remediation in existing buildings",
-     "task": "Passive fire inspection and remediation in an occupied building: open ceilings and access panels to survey, photograph and tag the penetrations and fire doors, work in the roof space and at the ceiling line, and fire stop the defects, near live services.",
+     "task": "Passive fire inspection and remediation in an occupied building: open ceilings and access panels to survey, photograph and tag the penetrations and fire doors, work in the roof space and at the ceiling line, and fire stop the defects, near live services. Work from ladders.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
@@ -4168,13 +4130,12 @@
       "ceilingHatch",
       "roofSpace",
       "asbestosCheck",
-      "plasterHeight"
+      "plasterHeight",
+      "ladderUse"
      ],
      "leaveOut": [],
-     "gaps": [
-      "surveying and tagging existing penetrations above occupied ceilings"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     }
    ]
@@ -4223,14 +4184,12 @@
      "crane": "company",
      "kinds": [
       "gasCylinders",
-      "plantLift"
+      "plantLift",
+      "medicalGasLive"
      ],
      "leaveOut": [],
-     "gaps": [
-      "connecting the bulk oxygen tank",
-      "connecting and starting medical air and vacuum plant"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -4240,14 +4199,15 @@
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
-      "pneumaticTube"
+      "pneumaticTube",
+      "fixtures",
+      "mechCommissioning"
      ],
-     "leaveOut": [],
-     "gaps": [
-      "fixing stations, diverters and blowers",
-      "commissioning the pneumatic tube system while it runs"
+     "leaveOut": [
+      "Commission and balance the system"
      ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -4258,13 +4218,12 @@
      "crane": "company",
      "kinds": [
       "ictCabling",
-      "liveHospital"
+      "liveHospital",
+      "fixtures"
      ],
      "leaveOut": [],
-     "gaps": [
-      "fitting call points and bedhead units in occupied patient areas"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4357,29 +4316,26 @@
       "escalatorInstall"
      ],
      "leaveOut": [],
-     "gaps": [
-      "setting the escalator truss and installing the step band"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
      "id": "modernisation",
      "title": "Lift modernisation and replacement in occupied buildings",
-     "task": "Lift modernisation: strip out the old lift services, replace the lift motor, and work on the car top beside lifts still running in an occupied building.",
+     "task": "Lift modernisation: strip out the old lift services, replace the lift motor, and work on the car top beside lifts still running in an occupied building. Work at the open lift shaft.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "liftMotor",
       "servicesStrip",
       "liftCar",
+      "liftShaft",
       "asbestosCheck"
      ],
      "leaveOut": [],
-     "gaps": [
-      "stripping out an old car and machine beside lifts still in service"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -4468,10 +4424,8 @@
       "ewp"
      ],
      "leaveOut": [],
-     "gaps": [
-      "long metal wall sheets handled at height in wind"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -4493,19 +4447,18 @@
     {
      "id": "roof-safety-systems",
      "title": "Permanent roof safety systems: guardrail, walkways, anchors and static lines",
-     "task": "Permanent roof safety systems: install permanent roof anchors and static lines, roof guardrail and edge protection, and walkways and platforms on the roof.",
+     "task": "Permanent roof safety systems: install permanent roof anchors and static lines, roof guardrail and edge protection, and walkways and platforms on the roof. Install roof walkways and platforms.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "anchorInstall",
       "roofFittings",
-      "edgeProtectionInstall"
+      "edgeProtectionInstall",
+      "accessSteel"
      ],
      "leaveOut": [],
-     "gaps": [
-      "permanent roof walkways and platforms"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     }
    ]
@@ -4537,21 +4490,21 @@
     {
      "id": "stick-curtain-wall",
      "title": "Stick curtain wall, glazed walls and shopfront framing",
-     "task": "Stick curtain wall and shopfront framing: install window frames, mullions and transoms, glaze the large glass panes with vacuum lifters, and seal the glazing, with glass handled in wind.",
+     "task": "Stick curtain wall and shopfront framing: install window frames, mullions and transoms, glaze the large glass panes with vacuum lifters, and seal the glazing, with glass handled in wind. Work from EWPs and the scaffold, and lift the units with the crane.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "windowInstall",
       "glassHandle",
       "glassWind",
-      "glazingSeal"
+      "glazingSeal",
+      "ewp",
+      "scaffoldUse",
+      "craneInterface"
      ],
      "leaveOut": [],
-     "gaps": [
-      "erecting mullions and transoms from outside on an EWP or scaffold",
-      "glazing large lites with a glazing robot or crane"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4605,19 +4558,18 @@
     {
      "id": "cladding-panels",
      "title": "Facade cladding panels: aluminium composite, metal and fibre cement",
-     "task": "Facade cladding panels: install aluminium composite, metal or fibre cement cladding panels from an EWP or scaffold, cutting panels to fit.",
+     "task": "Facade cladding panels: install aluminium composite, metal or fibre cement cladding panels from an EWP or scaffold, cutting panels to fit. Lift the panels with the crane.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "claddingInstall",
-      "ewp"
+      "ewp",
+      "edgeBracket",
+      "craneInterface"
      ],
      "leaveOut": [],
-     "gaps": [
-      "subframe rails and brackets",
-      "lifting large cladding panels at height"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4707,11 +4659,8 @@
       "confined"
      ],
      "leaveOut": [],
-     "gaps": [
-      "blindside sheet membranes fixed to retention walls before the pour",
-      "working inside lift pits and sumps"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     },
     {
@@ -4726,10 +4675,8 @@
       "confined"
      ],
      "leaveOut": [],
-     "gaps": [
-      "applying membranes inside a tank or enclosed pit (ventilation for solvent vapours, entry and rescue)"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4807,18 +4754,17 @@
     {
      "id": "spray-insulation",
      "title": "Sprayed insulation: polyurethane foam and sprayed fire or thermal coatings",
-     "task": "Spray polyurethane foam insulation to soffits and walls from an EWP, with isocyanate controls, ventilation and respirators.",
+     "task": "Spray polyurethane foam insulation to soffits and walls from an EWP, with isocyanate controls, ventilation and respirators. Spray cementitious and fibre coatings to the soffits.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "sprayFoam",
-      "ewp"
+      "ewp",
+      "fireSpray"
      ],
      "leaveOut": [],
-     "gaps": [
-      "sprayed cementitious or fibre insulation to soffits"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     }
    ]
@@ -4831,20 +4777,19 @@
     {
      "id": "steel-framing",
      "title": "Steel stud framing to walls, bulkheads and ceilings",
-     "task": "Steel stud framing: set out, cut and fix steel track and studs, bulkheads and casings, drill anchors with dust extraction, fix with powder-actuated tools, and move materials into place.",
+     "task": "Steel stud framing: set out, cut and fix steel track and studs, bulkheads and casings, drill anchors with dust extraction, fix with powder-actuated tools, and move materials into place. Fix the ceiling framing overhead.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "carpFraming",
       "carpLoad",
       "silicaDrill",
-      "pdtFixing"
+      "pdtFixing",
+      "plasterHeight"
      ],
      "leaveOut": [],
-     "gaps": [
-      "flush ceiling framing: drilling hanger anchors into the slab and fixing furring channel overhead"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4860,13 +4805,12 @@
       "plasterSanding",
       "wetAreaSheets",
       "carpLoad",
-      "trestleUse"
+      "trestleUse",
+      "silicaDrill"
      ],
      "leaveOut": [],
-     "gaps": [
-      "cutting fibre cement sheet with on-tool dust extraction"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4914,10 +4858,8 @@
       "cleanRoom"
      ],
      "leaveOut": [],
-     "gaps": [
-      "storing insulated panels, standing tall panels with a panel lifter, and cutting panels and channels on site"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -4932,29 +4874,26 @@
       "carpEdge"
      ],
      "leaveOut": [],
-     "gaps": [
-      "building a shaft wall from the floor side at an open shaft (screen removal, one panel at a time)"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "external-framing",
      "title": "External wall framing, soffits and fibre cement facade sheeting",
-     "task": "External framing: steel stud framing to the perimeter and parapets, line the eaves and soffits, and fix fibre cement cladding, working near the open slab edges.",
+     "task": "External framing: steel stud framing to the perimeter and parapets, line the eaves and soffits, and fix fibre cement cladding, working near the open slab edges. Install edge protection.",
      "fallRisk": "yes",
      "crane": "company",
      "kinds": [
       "carpFraming",
       "claddingInstall",
       "eaveLining",
-      "carpEdge"
+      "carpEdge",
+      "edgeProtectionInstall"
      ],
      "leaveOut": [],
-     "gaps": [
-      "perimeter framing at an open slab edge before the facade closes it in (edge protection taken down one bay at a time)"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -5023,34 +4962,31 @@
      "kinds": [
       "carpJoinery",
       "wallPanels",
-      "carpentryWork"
+      "carpentryWork",
+      "plasterHeight"
      ],
      "leaveOut": [
       "Hang the doors"
      ],
-     "gaps": [
-      "timber ceiling linings and battens fixed overhead"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
      "id": "partitions-accessories",
      "title": "Toilet partitions, lockers, operable walls and bathroom accessories",
-     "task": "Install toilet partitions, lockers and bathroom accessories (grab rails, dispensers and mirrors), moving materials into place and drilling tiled walls for fixings.",
+     "task": "Install toilet partitions, lockers and bathroom accessories (grab rails, dispensers and mirrors), moving materials into place and drilling tiled walls for fixings. Work from EWPs.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "fixtures",
       "glazingDrill",
-      "carpLoad"
+      "carpLoad",
+      "ewp"
      ],
      "leaveOut": [],
-     "gaps": [
-      "heavy operable wall panels hung from an overhead track",
-      "standing tall partition panels"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -5068,7 +5004,7 @@
      ],
      "leaveOut": [],
      "gaps": [],
-     "coverage": "partial",
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -5190,20 +5126,19 @@
     {
      "id": "shopfront-signage",
      "title": "Shopfronts, signage and display lighting",
-     "task": "Install glazed shopfronts and doors, move the glass panels into place, and install illuminated signs and bulkhead signage.",
+     "task": "Install glazed shopfronts and doors, move the glass panels into place, and install illuminated signs and bulkhead signage. Work from EWPs.",
      "fallRisk": "no",
      "crane": "company",
      "kinds": [
       "glassHandle",
       "signageInstall",
-      "windowInstall"
+      "windowInstall",
+      "footpathClosure",
+      "ewp"
      ],
      "leaveOut": [],
-     "gaps": [
-      "a glazed shopfront in a public mall (night install, public kept back)",
-      "heavy signs lifted onto bulkheads"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     }
    ]
@@ -5273,10 +5208,8 @@
       "tileCut"
      ],
      "leaveOut": [],
-     "gaps": [
-      "handling and placing large stone slabs with a vacuum lifter"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -5292,7 +5225,7 @@
      ],
      "leaveOut": [],
      "gaps": [
-      "tiling inside an empty pool shell or beside a filled pool"
+      "tiling inside an empty pool shell (getting in and out, and falls from the pool edge)"
      ],
      "coverage": "partial",
      "basis": "evidence"
@@ -5477,14 +5410,13 @@
       "painting",
       "paintSolvent",
       "paintSpray",
-      "abrasiveBlast"
+      "abrasiveBlast",
+      "ewp",
+      "confined"
      ],
      "leaveOut": [],
-     "gaps": [
-      "intumescent or two pack coatings on steel at height",
-      "coating inside tanks and confined spaces"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "inferred"
     }
    ]
@@ -5553,10 +5485,8 @@
       "Lay blocks and bricks",
       "Set up and use the brick elevator"
      ],
-     "gaps": [
-      "acid washing of surfaces other than brickwork"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -5607,7 +5537,7 @@
      ],
      "leaveOut": [],
      "gaps": [],
-     "coverage": "partial",
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -5654,10 +5584,8 @@
       "Fix plant on its supports",
       "Load panels onto the floors and move them to the work face"
      ],
-     "gaps": [
-      "planning heavy and awkward lifts and team lifts"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -5708,7 +5636,7 @@
      ],
      "leaveOut": [],
      "gaps": [],
-     "coverage": "partial",
+     "coverage": "full",
      "basis": "evidence"
     },
     {
@@ -5720,13 +5648,12 @@
      "kinds": [
       "anchorInstall",
       "edgeProtectionInstall",
-      "safetyNet"
+      "safetyNet",
+      "harnessUse"
      ],
      "leaveOut": [],
-     "gaps": [
-      "choosing and checking harnesses, fall clearance and the rescue plan"
-     ],
-     "coverage": "partial",
+     "gaps": [],
+     "coverage": "full",
      "basis": "evidence"
     }
    ]

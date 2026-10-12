@@ -126,7 +126,10 @@ test('the words of a picked task, typed alone, find most of its job steps', () =
   // task carries. Measured when built (10 October 2026): 198 of 320 tasks with steps tick every one,
   // and all but three tick at least one: manual handling and pallet jacks, which have no job steps of
   // their own (their steps sit inside other trades' work), and data outlets, whose only step is the
-  // electrician's rough-in (terminating and testing data outlets has no job step yet). May rise,
+  // electrician's rough-in (terminating and testing data outlets has no job step yet). The full pass
+  // over the pick lists (12 October 2026, D213) gave 81 tasks shared steps their catalogue left out; the
+  // words were extended to name most of them, but ten tasks carry a shared access, handling or isolation
+  // step their words do not name (the pick list sends it): 192 of 326 then tick every one. May rise,
   // never fall.
   let all = 0;
   const none = [];
@@ -137,7 +140,7 @@ test('the words of a picked task, typed alone, find most of its job steps', () =
     if (item.kinds.every((kind) => chosen.includes(kind))) all += 1;
     if (!item.kinds.some((kind) => chosen.includes(kind))) none.push(item.id);
   }
-  assert.ok(all >= 198, `${all} of ${withSteps.length} tick every step`);
+  assert.ok(all >= 192, `${all} of ${withSteps.length} tick every step`);
   assert.ok(none.every((id) => ['manual-handling', 'pallet-jacks', 'outlets-testing'].includes(id)), `no step ticked: ${none.join(', ')}`);
 });
 

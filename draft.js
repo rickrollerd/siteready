@@ -386,7 +386,7 @@ function packageKinds(rawTask, kinds) {
 // Work inside a deep excavation others dug comes only where the words put the work there.
 const NAMED_KINDS = ['generatorConnect', 'blowerTruck', 'slingerTruck', 'brushcutter', 'asbestosPits', 'privateProperty', 'conveyorClean', 'frpWrap', 'basinLining', 'liveLines', 'inExcavation', 'inTrench', 'layInExcavation',
   'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate',
-  'erosionControl', 'handTrim', 'mastClimber', 'castInGround'];
+  'erosionControl', 'handTrim', 'mastClimber', 'castInGround', 'formVertical', 'harnessUse'];
 
 // The sentences that are only one of these kinds of work. A flood test of the tiling, matting
 // laid under the tiles, a drainage cell over the membrane, rubbish removal or workshop
@@ -6223,6 +6223,10 @@ function namedWorkFlags(task, flags = {}) {
   out.erosionControl = /\b(?:erosion and sediment|sediment (?:fences?|basins?|traps?|controls?)|silt (?:fences?|controls?|curtains?|socks?)|erosion controls?|shake ?down grids?|rumble grids?)\b/i.test(task)
     && /\b(?:install\w*|maintain\w*|erect\w*|remov\w*|construct\w*|build\w*|plac\w*|controls? (?:are|is) )\b/i.test(task);
   out.handTrim = /\bhand[- ]?trim\w*|\btrim\w* (?:the )?(?:base|floor|batters?|formation)? ?by hand\b|\bhand[- ]compact\w*|\bblinding\b/i.test(task);
+  // Wall and column forms stood and braced as their own work, not a retaining wall or a jumpform (full pass, D213).
+  out.formVertical = /\b(?:column|headstock|pier|wall and column|column and wall|column and headstock)s? (?:forms?|formwork|boxes)\b/i.test(task) && !/\b(?:jump ?forms?|slip ?forms?|retaining walls?)\b/i.test(task);
+  // Working in a harness named as the work: harness checks, fall clearance and the rescue plan.
+  out.harnessUse = /\b(?:work\w*|tied off|clipped on) (?:in|with|on) (?:a |the )?(?:full body )?harness(?:es)?\b|\bharness(?:es)?,? (?:and )?(?:lanyards?|fall clearance|rescue)\b|\bfall clearance\b/i.test(task);
   out.blinding = /\bblinding\b/i.test(task);
   out.mastClimber = /\bmast[- ]climb\w*|\bmcwps?\b/i.test(task) && /\b(?:install\w*|erect\w*|dismantl\w*|assembl\w*)\b/i.test(task);
   out.softStrip = /\b(?:soft[- ]strip\w*|strip[- ]?outs?|strip(?:ping)? out)\b/i.test(task) && !/\bdemoli(?:sh|tion)\w*/i.test(task.replace(/\bsoft[- ]strip\w*/gi, ' '));

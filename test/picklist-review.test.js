@@ -139,7 +139,9 @@ test('crane workbox: registered box, harnesses, trained and licensed people, and
   assert.ok(has(lines, /^Everyone in the workbox wears a full body harness/));
   assert.ok(has(lines, /^Everyone using a harness is trained/));
   assert.ok(has(lines, /holds a dogging or rigging licence/));
-  assert.deepEqual(draft.notCovered, ['the site permit and the rescue procedure for people stranded in the workbox']);
+  // The rescue procedure is in the workbox step (full pass); the site permit stays a warning.
+  assert.ok(has(lines, /^Rescue procedures are set up and tested/));
+  assert.deepEqual(draft.notCovered, ['the site permit for lifting people in the workbox']);
   // Tower crane climbing, chain blocks and jacking and skating stay named for the user to add.
   assert.ok(picked('cranes-rigging/tower-crane-erection').draft.notCovered.length > 0);
   assert.deepEqual(picked('cranes-rigging/rigging').draft.notCovered, ['chain blocks and lifting beams', 'jacking and skating heavy plant']);
@@ -310,4 +312,32 @@ test('a task alone, and the same task typed with its neighbour, both draft (D217
   assert.ok(picked('plumbing-hydraulics/pipe-lagging').steps.includes(lag));
   assert.ok(picked('steel-fixing-pt/reo-decks').steps.includes('Place and tie reo'));
   assert.ok(picked('insulation/batts-acoustic').steps.includes('Install insulation'));
+});
+
+// The full pass over every pick list task (12 October 2026, D213, D217): parts with no steps mapped to
+// the shared steps; only work no shared step covers stays named for the user.
+test('full pass: shared steps cover what they can, and the rest stays named for the user', () => {
+  const tasks = TRADES.flatMap((trade) => trade.tasks.map((task) => ({ ...task, key: `${trade.id}/${task.id}` })));
+  assert.ok(tasks.filter((task) => task.coverage === 'none').length <= 3);
+  assert.ok(tasks.filter((task) => task.coverage === 'partial').length <= 34);
+  // Two new shared steps: wall and column forms (NSW Formwork code s 7.3), and work in a harness.
+  const forms = picked('formwork/columns-walls-stairs');
+  assert.ok(forms.steps.includes('Stand and brace wall and column forms'));
+  assert.ok(!forms.steps.includes('Form the retaining wall'));
+  assert.deepEqual(forms.draft.notCovered, []);
+  assert.ok(picked('bridges/piers-headstocks').steps.includes('Stand and brace wall and column forms'));
+  const heights = picked('shared-access-and-handling/working-at-heights');
+  assert.ok(heights.steps.includes('Work in a harness'));
+  assert.ok(has(heights.lines, /enough clearance below/));
+  assert.deepEqual(heights.draft.notCovered, []);
+  // Tasks that stood down now draft from shared steps.
+  assert.deepEqual(picked('piling/screw-piles').draft.notCovered, []);
+  assert.deepEqual(picked('piling/ground-improvement-rig').draft.notCovered, []);
+  assert.ok(picked('piling/pile-testing').draft.notCovered.length > 0);
+  // Shared access and handling steps on tasks that named the gap.
+  assert.ok(picked('bridges/bearings').steps.includes('Mix and pump the grout'));
+  assert.ok(picked('passive-fire/steel-fire-protection').steps.includes('Spray the fire protection coating'));
+  assert.ok(picked('rail/platforms').steps.includes('Widen the station platform'));
+  // Truly specific work stays a warning (D211): tower crane climbing, jacking and skating, slipform paving.
+  for (const key of ['cranes-rigging/tower-crane-erection', 'cranes-rigging/rigging', 'roads-pavements/concrete-pavement', 'bridges/barriers-joints']) assert.ok(picked(key).draft.notCovered.length > 0, key);
 });

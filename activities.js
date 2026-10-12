@@ -13117,6 +13117,48 @@ for (const line of stepOf('tankPlace', 'Lift and place tanks, pits or precast un
   if (line && typeof line === 'object' && /^(?:No one is in the excavation while a unit is lowered|Workers guide the unit with tag lines from outside the excavation)/.test(line.text || '')) line.unless = 'manholeByHand';
 }
 
+// Full pass over the pick lists (12 October 2026, D213, D217): two shared steps any trade's task can use.
+// Wall and column forms stood and braced by any crew (formwork, bridge piers and headstocks), from the
+// SafeWork NSW Formwork code s 7.3; the retaining wall's own lines are reused word for word.
+const WALL_FORMS = (section) => NSWC('NSW Formwork', section);
+addAfter('concreteWall', {
+  when: 'formVertical',
+  steps: [{
+    step: 'Stand and brace wall and column forms',
+    hazards: ['A fall from the form access platform.', 'Wall or column forms topple in the wind or burst during the pour.', 'A form falls while it is lifted.'],
+    controls: [
+      { fact: 'fallControl' },
+      src('Wall and column forms are braced to their design to withstand wind before, during and after the pour, and the braces and forms stay until the concrete can safely take impact and wind loads.', WALL_FORMS('s 7.3')),
+      src('Brace anchors are cast-in anchors or through-bolts, or drill-in anchors of a type the code allows, installed to the manufacturer\'s instructions with the setting torque checked, and the torque records are kept on site.', WALL_FORMS('s 7.3')),
+      src('Wall and column forms are reached from mobile scaffolds, purpose-built access platforms or EWPs with edge protection, entered by stairs or secured industrial ladders, and mobile platforms have their castors locked except when moved.', WALL_FORMS('s 7.3')),
+      src('Access platforms on the forms are designed for the loads of the pour, and are tied in or counterweighted so they cannot collapse or overturn.', WALL_FORMS('s 7.3')),
+      src('Wall and column forms are lifted only by their designed lifting points, or with the slings around the form so it cannot slip out, never by holes cut in the form on site.', WALL_FORMS('s 7.3')),
+      reuse('Concrete is placed at the rate the form design allows, and a person watches the forms during the pour from outside the area they could fall into.'),
+      reuse('Forms are stripped only when the engineer\'s strength or time is reached.'),
+    ],
+  }],
+});
+
+// Working in a harness (travel restraint or fall arrest), for any trade: the falls code's lines,
+// reused word for word from the roof edge step.
+addAfter('anchorInstall', {
+  when: 'harnessUse',
+  steps: [{
+    step: 'Work in a harness',
+    hazards: ['A fall where the harness, lanyard or anchor fails.', 'Striking the ground or a lower surface before the fall is arrested.', 'Suspension trauma while waiting for rescue.'],
+    controls: [
+      reuse('Where fall arrest is used, anchors are tested and approved by a competent person before first use and meet the anchor strength in AS/NZS 1891.4, there is enough clearance below that the user cannot hit the ground or another surface, no one uses it alone, at least one other person on site can rescue them, and the rescue procedure is tested.'),
+      reuse('Anchors are rated for at least 15 kN for one person who could free fall (12 kN where only a limited free fall is possible, 21 kN for two people).'),
+      reuse('Where harnesses are used for travel restraint or fall arrest, the area is entered only under a permit or written authorisation from the supervisor naming the workers, the anchors and the rescue arrangements.'),
+      reuse('The harness system is set up so free fall is no more than 2 m before it takes effect, with the anchorage as high as the equipment permits and no work above the anchor point.'),
+      reuse('Everyone using a harness is trained in its selection, fitting, use, inspection and care, and in the rescue procedure, and checks it before each use.'),
+      reuse('Each worker inspects their harness, lanyard and connectors for wear and damage before and after use, and after storage or transport.'),
+      reuse('Rescue equipment is kept close to the work area so it can be used immediately to rescue a worker suspended in a harness.'),
+      reuse('Where rescue may take more than five minutes, the harness lets the suspended worker raise their legs to near horizontal, or the worker carries straps to provide footholds.'),
+    ],
+  }],
+});
+
 // The citation helpers, for lines other modules add with their sources (draft.js permits).
 const CITE = { WHS, MODEL, QCODE, NSWC, LINES };
 

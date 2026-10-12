@@ -29,7 +29,9 @@
 // evidenced, and one line reworded (the site traffic management plan): 3,619 of 4,892, 73.98%;
 // part 2 (D204 to D213): 13 new lines, 8 cited to code or regulation sections read, 3 from EPA Victoria's
 // guidance alone and 2 the owner's own instruction (D209, mast climbers), so not yet evidenced, and one
-// asbestos licence line replaced by the amount the user gives (D205): 3,626 of 4,904, 73.94%).
+// asbestos licence line replaced by the amount the user gives (D205): 3,626 of 4,904, 73.94%;
+// the full pass over the pick lists (12 October 2026): 5 new wall and column form lines cited to the
+// SafeWork NSW Formwork code s 7.3, and the harness step's lines reused word for word: 3,631 of 4,909, 73.97%).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { libraryLines, measure, evidenced } = require('../scripts/control-evidence');

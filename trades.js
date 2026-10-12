@@ -54,6 +54,8 @@ const COMMON = new Set([
   'tbmShaft', 'plantRemoval', 'liftController', 'underpinning', 'fireSpray', 'rockSaw', 'ictTerminate',
   // The owner's pick list review, part 1 (11 October 2026), each only where the words name the work.
   'erosionControl', 'handTrim', 'mastClimber', 'castInGround',
+  // The full pass over the pick lists (12 October 2026): wall and column forms, and work in a harness.
+  'formVertical', 'harnessUse',
   // Any trade can work inside a deep excavation, station box or shaft that others dug, and lay pipes in it.
   'inExcavation', 'inTrench', 'layInExcavation',
 ]);
