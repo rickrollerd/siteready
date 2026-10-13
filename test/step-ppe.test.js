@@ -166,6 +166,19 @@ test('a PPE item for one step still counts in the builder check\'s PPE list', ()
   assert.equal(points(check, 'W2'), points(without, 'W2'), 'not counted as PPE controls: the PPE table is not either');
 });
 
+test('a step\'s own PPE line is judged as PPE for hierarchy order, though it names insulated gloves', () => {
+  // "Insulated" alone reads as an engineering control; at the end of the step it is the step's PPE.
+  const draft = draftOf({ ...SITE, task: CONCRETE });
+  const swms = bc.fromDraft(draft, { state: 'qld' });
+  const line = 'Wear insulated electrical gloves.';
+  const steps = swms.steps.map((item) => ({ ...item, controls: [...item.controls, line] }));
+  const points = (result) => result.findings.find((item) => item.rule === 'W10').points;
+  const asPpe = bc.checkSwms({ ...swms, steps, stepPpeLines: [...swms.stepPpeLines, line] }, { state: 'qld' });
+  assert.equal(points(asPpe), points(bc.checkSwms(swms, { state: 'qld' })));
+  // Written by the user as an ordinary line, it is judged by its words as before.
+  assert.ok(points(bc.checkSwms({ ...swms, steps }, { state: 'qld' })) < points(asPpe));
+});
+
 test('the step line does not repeat PPE a line of the step already states', () => {
   const stepWith = { step: 'Cut blocks and bricks', hazards: ['Silica dust.'], controls: ['Use a brick saw with its blade guarded, isolate the cutting area and wear a face shield.', 'Wear hearing protection.'] };
   assert.equal(stepPpeLine(stepWith, ['faceShield', 'earMuffs']), null);

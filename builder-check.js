@@ -1109,9 +1109,12 @@ function weighted(swms, state, context) {
     const fixes = [];
     // A design's reference or hold point (designs.js) is not a control in the hierarchy.
     const ordered = steps.map((step) => ({ ...step, controls: step.controls.filter((line) => !isDesignLine(line)) }));
-    const judged = ordered.filter((step) => step.controls.some((line) => HIGHER.has(controlLevel(line))) && step.controls.some((line) => !HIGHER.has(controlLevel(line))));
+    // A step's own PPE line (step-ppe.js, D246) is PPE, though it names insulated gloves.
+    const stepPpe = new Set(swms.stepPpeLines || []);
+    const higherLevel = (line) => !stepPpe.has(line) && HIGHER.has(controlLevel(line));
+    const judged = ordered.filter((step) => step.controls.some((line) => higherLevel(line)) && step.controls.some((line) => !higherLevel(line)));
     const outOfOrder = judged.filter((step) => {
-      const higher = step.controls.map((line) => HIGHER.has(controlLevel(line)));
+      const higher = step.controls.map((line) => higherLevel(line));
       return higher.lastIndexOf(true) > higher.indexOf(false);
     });
     const points = judged.length ? 3 * ((judged.length - outOfOrder.length) / judged.length) : 3;

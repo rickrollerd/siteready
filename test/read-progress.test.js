@@ -149,7 +149,7 @@ function server({ asks = [], end = 'done', start = 'reading', me = { hasAccess: 
   };
 }
 
-const SCRIPTS = ['app.js', 'account.js', 'read-progress.js', 'scope-task.js', 'scope-hrcw.js', 'scope-conflicts.js', 'scope.js'];
+const SCRIPTS = ['app.js', 'account.js', 'read-progress.js', 'scope-task.js', 'scope-hrcw.js', 'scope-choice.js', 'scope-conflicts.js', 'scope.js'];
 
 // Signed in with a session kept in this browser, as after the email link.
 function signedInPage(respond, stored = {}) {
