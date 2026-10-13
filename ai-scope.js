@@ -242,8 +242,8 @@ function errorMessage(error) {
 // After that, packages that are one SWMS are made one (owner decisions of 7 October 2026, below).
 function settlePackages(reading) {
   if (!reading || !Array.isArray(reading.packages)) return reading;
-  const settled = settleGroups(reading, () => true);
-  const merged = oneForTheProject(oneJumpform(settled));
+  const settled = settleGroups(dutiesAsDuties(reading), () => true);
+  const merged = penetrationsByWork(oneForTheProject(oneJumpform(settled)));
   if (merged === settled) return settled;
   const out = settleGroups(merged, (item) => item.merged);
   return { ...out, packages: out.packages.map(({ merged: _merged, ...item }) => item) };
@@ -385,6 +385,96 @@ function oneForTheProject(reading) {
       byOthers: item.byOthers.filter((entry) => from.every((part) => !(part.groups || []).includes(entry.group) || (part.byOthers || []).some((other) => other.group === entry.group && other.step === entry.step))),
     } : item)),
   };
+}
+
+// Holding tickets, licences or a verification of competency, and showing the evidence, is a duty,
+// not work in a package's SWMS (owner testing, 13 October 2026: "Hold and evidence tickets and VOC
+// for cranes, dogging, rigging and plant operation" sat in the cranage package).
+const TICKET_DUTY = /^(?:hold|have|carry|keep|provide|show|submit|maintain|evidence)\b[^.]*\b(?:tickets?|licen[cs]es?|vocs?|verifications? of competenc\w*|qualifications?|certifications?)\b/i;
+const TICKET_WORK = /\b(?:install\w*|erect\w*|lift\w*|sling\w*|operat\w* (?:the|a|an)\b|dismantl\w*|pour\w*|fix\w*|cut\w*|drill\w*|dig\w*|excavat\w*)\b/i;
+
+function dutiesAsDuties(reading) {
+  const duty = (row) => row.type !== 'Duty' && TICKET_DUTY.test(String(row.activity || '').trim()) && !TICKET_WORK.test(String(row.activity || '').replace(/\bfor\b.*$/i, ''));
+  if (!(reading.activities || []).some(duty)) return reading;
+  return { ...reading, activities: reading.activities.map((row) => (duty(row) ? { ...row, type: 'Duty' } : row)) };
+}
+
+// Penetrations are not all core drilling (owner testing, 13 October 2026: "Incorrect, this is for
+// forming up penetrations, not drilling them"). The brief's "Penetrations and core drilling" package
+// is for cutting or drilling through built elements. Forming penetrations, openings and recesses
+// in the formwork goes with the formwork work, whose steps form them; covering penetrations goes
+// with edge protection, whose steps cover them. Cutting, drilling and sealing stay where they are.
+const PENETRATION_PACKAGE = /\b(?:penetrations?|core[- ]?drill\w*|coring)\b/i;
+// Work through a built element ("openings through the precast walls") is cutting, not forming.
+const CUT_OR_DRILL = /\b(?:core[- ]?drill\w*|coring|core holes?|drill\w*|cut\w*|saw\w*|chas\w*|break\w* out|demoli\w*|scabbl\w*|jackhammer\w*|grind\w*|seal\w*|fire[- ]?stop\w*|collars?|through)\b/i;
+const FORMED = /\b(?:form(?:s|ed|ing)?(?: up)?|box(?:es|ed|ing)? out|block[- ]?outs?|void formers?|recess formers?)\b/i;
+const OPENING = /\b(?:penetrations?|openings?|recess\w*|voids?|block[- ]?outs?|set[- ]?downs?|holes?)\b/i;
+const COVERED = /\b(?:cover\w*|barricad\w*|guard\w*|protect\w*|handrails?|mesh)\b/i;
+const EDGE_PACKAGE = /\b(?:edge protection|fall (?:prevention|protection)|handrails?|guardrails?)\b/i;
+const FORMWORK_PACKAGE = /\b(?:form ?work|falsework)\b/i;
+const COVERS_PACKAGE = 'Edge protection and penetration covers';
+const FORMING_PACKAGE = 'Forming penetrations, openings and recesses';
+
+function penetrationsByWork(reading) {
+  const sources = reading.packages.filter((item) => PENETRATION_PACKAGE.test(item.package) && !FORMWORK_PACKAGE.test(item.package) && !EDGE_PACKAGE.test(item.package));
+  const whereTo = new Map();
+  for (const source of sources) {
+    for (const row of siteRows(reading, source.package)) {
+      const words = `${row.activity} ${row.plant || ''}`;
+      if (CUT_OR_DRILL.test(words) || !OPENING.test(row.activity)) continue;
+      if (FORMED.test(row.activity)) whereTo.set(row, 'form');
+      else if (COVERED.test(row.activity)) whereTo.set(row, 'cover');
+    }
+  }
+  if (!whereTo.size) return reading;
+  const others = reading.packages.filter((item) => !sources.includes(item) && item.package !== JUMPFORM_PACKAGE && siteRows(reading, item.package).length);
+  const formwork = others.find((item) => FORMWORK_PACKAGE.test(item.package)) || others.find((item) => (item.groups || []).includes('formwork') && mainGroup(siteRows(reading, item.package), item.groups).main === 'formwork');
+  const edge = others.find((item) => EDGE_PACKAGE.test(item.package)) || others.find((item) => (item.groups || []).includes('edgeProtectionInstall') && !/\bscreens?\b/i.test(item.package));
+  const target = { form: formwork ? formwork.package : FORMING_PACKAGE, cover: edge ? edge.package : COVERS_PACKAGE };
+  // With no formwork or edge protection package to go to, forming or covering stays with drilling
+  // work in the same package (a services trade's penetrations SWMS); only a package with nothing
+  // else in it becomes a package of its own.
+  for (const source of sources) {
+    const rows = siteRows(reading, source.package);
+    if (rows.every((row) => whereTo.has(row))) continue;
+    for (const row of rows) if ((whereTo.get(row) === 'form' && !formwork) || (whereTo.get(row) === 'cover' && !edge)) whereTo.delete(row);
+  }
+  if (!whereTo.size) return reading;
+  const activities = reading.activities.map((row) => (whereTo.has(row) ? { ...row, package: target[whereTo.get(row)] } : row));
+  const movedOut = (item) => [...whereTo.keys()].filter((row) => row.package === item.package);
+  const packages = reading.packages.map((item) => {
+    if (!sources.includes(item)) return item;
+    const moved = movedOut(item);
+    if (!moved.length) return item;
+    const own = item.groups || [];
+    const left = groupVotes(siteRows(reading, item.package).filter((row) => !whereTo.has(row)), own);
+    const gone = groupVotes(moved, own);
+    // A group only the moved activities named goes with them; the rest stays for the drilling.
+    return { ...item, groups: own.filter((id) => !(gone.has(id) && !left.has(id))), unmatched: (item.unmatched || []).filter((text) => !moved.some((row) => row.activity === text)), merged: true };
+  });
+  let inserted = 0;
+  for (const kind of ['form', 'cover']) {
+    const rows = [...whereTo].filter(([, to]) => to === kind).map(([row]) => row);
+    if (!rows.length) continue;
+    // The formwork steps form penetrations and the edge protection steps cover them, so an activity
+    // the AI found no steps for in the drilling package is covered once it is there.
+    const covering = kind === 'form' ? 'formwork' : 'edgeProtectionInstall';
+    const unmatched = sources.flatMap((item) => (item.unmatched || []).filter((text) => rows.some((row) => row.activity === text)));
+    const at = packages.findIndex((item) => item.package === target[kind]);
+    if (at >= 0) {
+      const into = packages[at];
+      const carried = (into.groups || []).includes(covering) ? [] : unmatched;
+      packages[at] = { ...into, unmatched: [...new Set([...(into.unmatched || []), ...carried])], merged: true };
+      continue;
+    }
+    // No formwork or edge protection package in this scope: the work becomes its own, with the groups its own words name.
+    const groups = kind === 'cover' ? ['edgeProtectionInstall'] : [...new Set(sources.flatMap((item) => [...groupVotes(rows.filter((row) => row.package === item.package), item.groups || []).keys()]))];
+    const first = packages.findIndex((item) => sources.includes(item));
+    packages.splice(first + 1 + inserted, 0, { package: target[kind], groups, byOthers: [], unknown: [], unmatched: groups.includes(covering) ? [] : unmatched, merged: true });
+    inserted += 1;
+  }
+  // A package left with no activities at all goes.
+  return { ...reading, activities, packages: packages.filter((item) => activities.some((row) => row.package === item.package)) };
 }
 
 // Goal 4: each work package with site work is flagged with the high risk construction work its

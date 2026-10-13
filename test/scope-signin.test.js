@@ -51,7 +51,7 @@ const results = (p) => p.document.getElementById('scope-results').innerHTML;
 const quickReads = (p) => p.calls.filter((call) => call.route === '/api/scope');
 
 test('signed out, a pasted scope asks the user to sign in, and the AI reads it once they have', async () => {
-  const p = loadPage(['app.js', 'account.js', 'scope.js'], server());
+  const p = loadPage(['app.js', 'account.js', 'scope-task.js', 'scope-choice.js', 'scope.js'], server());
   await settle();
   await readScope(p);
   assert.match(results(p), /Sign in, or start the free trial, to have the AI read this scope/);
@@ -67,7 +67,7 @@ test('signed out, a pasted scope asks the user to sign in, and the AI reads it o
 });
 
 test('signed in with the AI reading off, the page says so and does not fall back to the quick read', async () => {
-  const p = loadPage(['app.js', 'account.js', 'scope.js'], server({ aiEnabled: false }));
+  const p = loadPage(['app.js', 'account.js', 'scope-task.js', 'scope-choice.js', 'scope.js'], server({ aiEnabled: false }));
   await settle();
   faceId(p);
   await settle(40);

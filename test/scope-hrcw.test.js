@@ -142,7 +142,7 @@ test('the page loads the shared wording, and the cards no longer promise marks t
   const html = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
   assert.match(html, /<script src="\/scope-task.js"><\/script>\s*<script src="\/scope-hrcw.js"><\/script>/);
   const page = fs.readFileSync(path.join(__dirname, '../public/scope.js'), 'utf8');
-  assert.match(page, /hrcw: flags\.get\(pack\.name\)/);
+  assert.match(page, /hrcwOf\(flags\.get\(pack\.name\)\)/);
   assert.doesNotMatch(page, /needsSwms: false/);
   assert.match(page, /\?state=\$\{encodeURIComponent\(body\.state/);
   assert.match(page, /report\.docx\?state=/);

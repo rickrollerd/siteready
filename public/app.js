@@ -1109,12 +1109,28 @@ function showPresetNote(item) {
   presetNote.classList.toggle('hidden', !text);
 }
 
-tradeEl.addEventListener('change', () => {
-  const trade = trades[Number(tradeEl.value)];
+function listTasks(trade) {
   presetEl.innerHTML = '<option value="">Choose a task</option>' + (trade ? trade.tasks.map((item, index) => `<option value="${index}">${esc(item.title)}</option>`).join('') : '');
   presetEl.disabled = !trade;
+}
+
+tradeEl.addEventListener('change', () => {
+  listTasks(trades[Number(tradeEl.value)]);
   showPresetNote(null);
 });
+
+// A SWMS from a scope shows the pick list trade, and the task where one fits, that match its work
+// (owner testing, 13 October 2026: "No Trade comes up and its clear it formwork"). The task box keeps
+// the scope's own words and the scope's job steps; picking another task from the list replaces them.
+async function showPick(pick) {
+  await presetsLoaded;
+  const at = pick ? trades.findIndex((trade) => trade.id === pick.trade) : -1;
+  tradeEl.value = at >= 0 ? String(at) : '';
+  listTasks(trades[at]);
+  const task = at >= 0 && pick.task ? trades[at].tasks.findIndex((item) => item.id === pick.task) : -1;
+  presetEl.value = task >= 0 ? String(task) : '';
+  showPresetNote(null);
+}
 
 presetEl.addEventListener('change', () => {
   const trade = trades[Number(tradeEl.value)];
@@ -1134,7 +1150,7 @@ presetEl.addEventListener('change', () => {
   if (crane) crane.checked = true;
 });
 
-loadPresets();
+const presetsLoaded = loadPresets();
 
 document.querySelectorAll('input[name="fallRisk"], input[name="residential"]').forEach((input) => {
   input.addEventListener('change', showFallExplanation);
@@ -2788,7 +2804,7 @@ function redrawActions() {
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
   keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers,
-  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
+  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });
