@@ -1989,6 +1989,9 @@ async function prepareDraft({ scroll = true } = {}) {
     shownDraft = data;
     if (data.kind === 'draft') drawDesigns(data.designs || []);
     shownChecks = data.gateChecks || data.gate || [];
+    // The scaffold supervisor is asked for only where this SWMS involves a scaffold.
+    const scaffoldField = document.getElementById('scaffold-supervisor-field');
+    if (scaffoldField) scaffoldField.classList.toggle('hidden', !shownChecks.some((check) => check.id === 'scaffoldSupervisor'));
     gateDrawn = '';
     resultEl.innerHTML = `${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
