@@ -34,18 +34,63 @@ const EWP = /elevating work platform|^Scissor lift/i;
 // Each question: its id, the category it belongs to, what is asked, a hint, the short label the
 // answer prints under, and the emergency row it prints in.
 const QUESTIONS = [
-  { id: 'ewpLower', category: 'ewp', ask: 'Who on the ground lowers the platform in an emergency?', hint: 'Name the person and their role. They must be trained on this EWP\'s ground or emergency lowering controls.', short: 'Lowered in an emergency by', source: 'SafeWork NSW Elevating work platforms Code s 2.6' },
-  { id: 'ewpControls', category: 'ewp', ask: 'Where are the ground or emergency lowering controls, and the key for them?', hint: 'For example: ground control panel at the rear of the base, key kept on the machine; emergency lowering valve under the platform at the front.', short: 'Ground controls and key', source: 'SafeWork NSW Elevating work platforms Code s 2.6, s 5.3' },
-  { id: 'fallRescue', category: 'fall', ask: 'How is a person who falls, or is left hanging in a harness, rescued straight away, and by whom?', hint: 'The rescue cannot wait for emergency services. Say who does it and how, for example with the rescue kit kept at the work.', short: 'Rescue', source: 'Managing the risk of falls Code s 7.3, s 10, s 10.1; WHS Reg s 80' },
-  { id: 'fallKit', category: 'fall', ask: 'What rescue equipment is on site, and where is it kept?', hint: 'Kept close to the work so it can be used at once.', short: 'Rescue equipment', source: 'Managing the risk of falls Code s 10, Table 1' },
-  { id: 'elecIsolate', category: 'electrical', ask: 'Who isolates the supply if someone gets a shock, and who does the rescue?', hint: 'Name them. The safety observer must have been assessed in rescue and resuscitation in the last 12 months.', short: 'Isolated and rescued by', source: 'Managing electrical risks in the workplace Code s 6.3' },
+  { id: 'ewpLower', category: 'ewp', ask: 'Who on the ground lowers the platform in an emergency?', hint: 'Name the role, not the person: on a big site the person changes. They must be trained on this EWP\'s ground or emergency lowering controls.', short: 'Lowered in an emergency by', source: 'SafeWork NSW Elevating work platforms Code s 2.6' },
+  { id: 'ewpControls', category: 'ewp', ask: 'Where are the ground or emergency lowering controls, and the key for them?', hint: 'For example: ground control panel at the rear of the base, key kept on the machine; emergency lowering valve under the platform at the front. Check it on this machine.', short: 'Ground controls and key', source: 'SafeWork NSW Elevating work platforms Code s 2.6, s 5.3' },
+  { id: 'fallRescue', rescue: true, category: 'fall', ask: 'How is a person who falls, or is left hanging in a harness, rescued straight away, and by whom?', hint: 'The rescue cannot wait for emergency services. Say which role does it and how, for example with the rescue kit kept at the work.', short: 'Rescue', source: 'Managing the risk of falls Code s 7.3, s 10, s 10.1; WHS Reg s 80' },
+  { id: 'fallKit', kit: true, category: 'fall', ask: 'What rescue equipment is on site, and where is it kept?', hint: 'Kept close to the work so it can be used at once.', short: 'Rescue equipment', source: 'Managing the risk of falls Code s 10, Table 1' },
+  { id: 'elecIsolate', rescue: true, category: 'electrical', ask: 'Who isolates the supply if someone gets a shock, and who does the rescue?', hint: 'Name the roles. The safety observer must have been assessed in rescue and resuscitation in the last 12 months.', short: 'Isolated and rescued by', source: 'Managing electrical risks in the workplace Code s 6.3' },
   { id: 'elecIsolator', category: 'electrical', ask: 'Where is the isolator or switchboard that cuts the supply to this work?', hint: 'For example: main switchboard in the level 3 riser cupboard, circuits labelled.', short: 'Isolation point', source: 'Managing electrical risks in the workplace Code s 5, s 6.3' },
-  { id: 'trenchRescue', category: 'trench', ask: 'How is a person got out of the excavation without anyone going in unprotected, and by whom?', hint: 'For example: lifted out with the harness and line from the top, or reached from inside the shield.', short: 'Rescue', source: 'Excavation work Code s 3.8, s 4.4' },
-  { id: 'trenchKit', category: 'trench', ask: 'What rescue equipment is on site, and where is it kept?', hint: 'For example: ladder, harness and line at the trench box; first aid kit in the site ute.', short: 'Rescue equipment', source: 'Excavation work Code s 3.8' },
-  { id: 'confinedRescue', category: 'confined', ask: 'Who is the stand-by person, and how is a person rescued from outside the space?', hint: 'The stand-by person stays outside and never goes in to rescue.', short: 'Stand-by person and rescue', source: 'Confined spaces Code s 4.6, s 5; WHS Reg s 74' },
-  { id: 'confinedKit', category: 'confined', ask: 'What rescue equipment is kept at the entry?', hint: 'For example: tripod and winch, harness and lifeline, gas detector.', short: 'Rescue equipment at the entry', source: 'Confined spaces Code s 4.6, s 5' },
-  { id: 'plantStop', category: 'plant', ask: 'How is the plant stopped in an emergency, and by whom?', hint: 'Say where its emergency stop or key is, and who stops it.', short: 'Stopped by', source: 'Managing risks of plant Code s 1.4, s 4.3; WHS Reg s 211' },
+  { id: 'trenchRescue', rescue: true, category: 'trench', ask: 'How is a person got out of the excavation without anyone going in unprotected, and by whom?', hint: 'For example: lifted out with the harness and line from the top, or reached from inside the shield. Name the roles, not the people.', short: 'Rescue', source: 'Excavation work Code s 3.8, s 4.4' },
+  { id: 'trenchKit', kit: true, category: 'trench', ask: 'What rescue equipment is on site, and where is it kept?', hint: 'For example: ladder, harness and line at the trench box; first aid kit in the site ute.', short: 'Rescue equipment', source: 'Excavation work Code s 3.8' },
+  { id: 'confinedRescue', rescue: true, category: 'confined', ask: 'Who is the stand-by person, and how is a person rescued from outside the space?', hint: 'The stand-by person stays outside and never goes in to rescue. Name the role, not the person.', short: 'Stand-by person and rescue', source: 'Confined spaces Code s 4.6, s 5; WHS Reg s 74' },
+  { id: 'confinedKit', kit: true, category: 'confined', ask: 'What rescue equipment is kept at the entry?', hint: 'For example: tripod and winch, harness and lifeline, gas detector.', short: 'Rescue equipment at the entry', source: 'Confined spaces Code s 4.6, s 5' },
+  { id: 'plantStop', category: 'plant', ask: 'How is the plant stopped in an emergency, and by whom?', hint: 'Say where its emergency stop or key is, and which role stops it.', short: 'Stopped by', source: 'Managing risks of plant Code s 1.4, s 4.3; WHS Reg s 211' },
 ];
+
+// Standard answers for each question (D259, owner, 13 October 2026): roles, not people, as "it could be
+// 1 of 100 people on a big site and that person could change all the time", and "prior to use operator
+// and spotter agree on clear roles". Each says only what the question's code asks (the sources above).
+// An answer that names a place is an example to check against the machine or the site and change.
+const ROLES = 'Before use, the operator and spotter agree clear roles: who lowers the platform, who stops the plant and who calls for help.';
+const ANSWERS = {
+  ewpLower: [
+    ['The spotter', `The spotter on the ground. ${ROLES}`],
+    ['A trained ground person', `A person on the ground trained on this EWP's ground controls, who stays at the base while anyone is raised. ${ROLES.replace('the operator and spotter', 'the operator and the ground person')}`],
+  ],
+  ewpControls: [
+    ['Example: at the base', 'Ground control panel at the base of the EWP, with the key kept in the machine while anyone is raised; emergency lowering control where this model\'s operator manual shows it. Checked on the machine at the pre-start.'],
+  ],
+  fallRescue: [
+    ['Rescue team on site', 'Two workers on site trained in the rescue procedure bring the person down straight away with the rescue kit kept at the work, without waiting for emergency services. Before work starts, the crew agrees clear roles: who does the rescue, who calls 000 and who meets the ambulance.'],
+    ['By EWP', 'The trained EWP operator on site reaches the person with the EWP kept at the work and brings them down straight away, without waiting for emergency services. Before work starts, the crew agrees clear roles: who does the rescue, who calls 000 and who meets the ambulance.'],
+  ],
+  fallKit: [
+    ['Example: at the work', 'The rescue kit named in the rescue plan, kept at the work area within reach of the rescuers; first aid kit in the site office.'],
+  ],
+  elecIsolate: [
+    ['The safety observer', 'The safety observer isolates the supply, then does the rescue with the low voltage rescue kit; they are assessed in rescue and resuscitation in the last 12 months. Before work starts, the electrician and safety observer agree clear roles: who isolates, who rescues and who calls 000.'],
+  ],
+  elecIsolator: [
+    ['Example: the switchboard', 'The switchboard supplying this work, its circuits labelled; the isolation point is shown to the safety observer before work starts.'],
+  ],
+  trenchRescue: [
+    ['From the top', 'Lifted out from the top with a harness and line by the crew at the trench; no one enters an unsupported trench to rescue. Before work starts, the crew agrees clear roles: who does the rescue, who stops the plant and who calls 000.'],
+    ['From inside the shield', 'Reached from inside the trench shield by the crew, never from an unsupported part of the trench. Before work starts, the crew agrees clear roles: who does the rescue, who stops the plant and who calls 000.'],
+  ],
+  trenchKit: [
+    ['Example: at the trench', 'Ladder in the trench, harness and line at the trench; first aid kit in the site vehicle.'],
+  ],
+  confinedRescue: [
+    ['The stand-by person', 'The stand-by person at the entry, who stays outside and never goes in to rescue; the rescue is started from outside with the rescue equipment at the entry. Before entry, the entrant and the stand-by person agree how they keep in contact and who calls for help.'],
+  ],
+  confinedKit: [
+    ['Example: at the entry', 'Tripod and winch, harness and lifeline, and the gas detector at the entry.'],
+  ],
+  plantStop: [
+    ['Operator and spotter', 'The operator stops the plant at its emergency stop or turns the key off; the spotter signals the stop and calls for help. Before use, the operator and spotter agree clear roles and the stop signal.'],
+  ],
+};
+for (const item of QUESTIONS) item.suggestions = (ANSWERS[item.id] || []).map(([label, text]) => ({ label, text }));
 
 // Each category's short name, for the list of what is still needed.
 const SHORT = { ewp: 'EWP', fall: 'work at height', electrical: 'electrical', trench: 'trench', confined: 'confined space', plant: 'mobile plant' };

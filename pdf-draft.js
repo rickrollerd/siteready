@@ -19,8 +19,10 @@ const PAD = 4;
 // with a near equivalent so it prints instead of disappearing.
 const WIN_ANSI_EXTRA = '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ';
 const SWAPS = { '≥': '>=', '≤': '<=', '≈': '~', '×': 'x', '→': '->', ' ': ' ', ' ': ' ', '‑': '-', '☐': '[ ]', '☑': '[x]' };
+// A load rating in kPa or kN prints with its mass (D263, public/mass.js).
+const { withMass } = require('./public/mass');
 function printable(text) {
-  return Array.from(String(text ?? '')).map((ch) => {
+  return Array.from(withMass(String(text ?? ''))).map((ch) => {
     if (SWAPS[ch]) return SWAPS[ch];
     const code = ch.codePointAt(0);
     if (code === 10 || (code >= 32 && code <= 126) || (code >= 160 && code <= 255) || WIN_ANSI_EXTRA.includes(ch)) return ch;

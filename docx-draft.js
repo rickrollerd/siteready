@@ -27,7 +27,9 @@ const open = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder 
 
 // Characters a Word file cannot hold are replaced, so the file always opens.
 const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
-const safe = (text) => String(text || '').toWellFormed().replace(CONTROL, ' ');
+// A load rating in kPa or kN prints with its mass (D263, public/mass.js).
+const { withMass } = require('./public/mass');
+const safe = (text) => withMass(String(text || '').toWellFormed().replace(CONTROL, ' '));
 
 function run(text, options = {}) {
   return new TextRun({

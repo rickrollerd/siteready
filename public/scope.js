@@ -262,8 +262,12 @@
   const C = () => window.SiteReadyScopeChoice;
   // Each package's high risk construction work, worked out on the server by the SWMS's own rules.
   const flagsOf = (reading) => new Map((reading.highRisk || []).map((item) => [item.package, item]));
-  const craneNow = () => (document.querySelector('input[name="crane"]:checked') || {}).value || 'company';
+  // Unanswered until the user answers: no crane company is assumed (messy-user test, 14 October 2026).
+  const craneNow = () => (document.querySelector('input[name="crane"]:checked') || {}).value || '';
+  const slingingNow = () => (document.querySelector('input[name="slinging"]:checked') || {}).value || '';
   const CRANE_CHOICES = [['none', 'No crane'], ['company', 'A crane company'], ['own', 'Our company']];
+  // D258: with a crane company, who slings the loads and directs the crane.
+  const SLINGING_CHOICES = [['crane', 'Crane company\'s dogman'], ['ours', 'Our crew']];
 
   function packageCard(pack, index) {
     const flags = flagsOf(aiReading.reading);
@@ -276,7 +280,8 @@
     const count = `${pack.rows.length} ${pack.rows.length === 1 ? 'activity' : 'activities'}`;
     // Asked once, on the first cranage package.
     const first = cranage && C().packagesOf(aiReading.reading).work.findIndex((item) => C().isCranage(item.name)) === index;
-    const question = first ? `<fieldset class="scope-others scope-crane"><legend>Is a crane used, and who operates it?</legend>${CRANE_CHOICES.map(([value, label]) => `<label><input type="radio" name="scope-crane" value="${value}" ${choice.crane === value ? 'checked' : ''}> ${label}</label>`).join(' ')}</fieldset>` : '';
+    const slinging = first && choice.crane === 'company' ? `<fieldset class="scope-others scope-slinging"><legend>Who slings the loads and directs the crane?</legend>${SLINGING_CHOICES.map(([value, label]) => `<label><input type="radio" name="scope-slinging" value="${value}" ${choice.slinging === value ? 'checked' : ''}> ${label}</label>`).join(' ')}</fieldset>` : '';
+    const question = first ? `<fieldset class="scope-others scope-crane"><legend>Is a crane used, and who operates it?</legend>${CRANE_CHOICES.map(([value, label]) => `<label><input type="radio" name="scope-crane" value="${value}" ${choice.crane === value ? 'checked' : ''}> ${label}</label>`).join(' ')}</fieldset>${slinging}` : '';
     const name = offer && !offer.full ? `${esc(C().CRANAGE_TICK)}</strong> <span class="meta">(${esc(pack.name)}: ${count})</span>` : `${esc(pack.name)}</strong> <span class="meta">(${count})</span>`;
     const others = full ? ((mapped && mapped.byOthers) || []).map((entry, j) => {
       const yes = (choice.answers[pack.name] || {})[entry.step] === 'yes';
@@ -311,6 +316,7 @@
     const offer = C().cranageOffer(crane, clause);
     choice = {
       crane,
+      slinging: kept ? kept.slinging || '' : slingingNow(),
       clause,
       answers: kept ? { ...kept.answers } : {},
       ticked: new Set(kept ? kept.chosen : work.filter((pack) => !C().isCranage(pack.name) || offer.ticked).map((pack) => pack.name)),
@@ -337,7 +343,7 @@
     const any = packages.length > 0;
     window.SiteReadyProgress.announce({
       heading: 'The scope has been read',
-      text: any ? 'The AI has finished reading the scope. You can now choose the SWMS you want to start on.' : 'The AI has finished reading the scope. It found no work packages in it.',
+      text: any ? 'The AI has finished reading the scope. Choose the SWMS you need.' : 'The AI has finished reading the scope. It found no work packages in it.',
       button: any ? 'Choose the SWMS' : 'Show the result',
       tab: 'scope read',
       go: () => {
@@ -356,7 +362,9 @@
     if (!choice || !aiReading) return;
     const { work } = C().packagesOf(aiReading.reading);
     const target = event.target;
-    if (target.name === 'scope-crane') {
+    if (target.name === 'scope-slinging') {
+      choice.slinging = target.value;
+    } else if (target.name === 'scope-crane') {
       choice.crane = target.value;
       const ticked = C().cranageOffer(choice.crane, choice.clause).ticked;
       work.forEach((pack, index) => {
@@ -424,8 +432,9 @@
     $('scope-choice-error').textContent = '';
     // Who runs the crane is asked on the list only where there is cranage; it then holds for every SWMS.
     const crane = work.some((pack) => C().isCranage(pack.name)) ? choice.crane : '';
-    const items = C().projectItems(aiReading.reading, chosen, { answers: choice.answers, crane });
-    startProject(items, { readingId: aiReading.id, state: aiReading.state || '', chosen, answers: choice.answers, crane });
+    const slinging = crane === 'company' ? choice.slinging || '' : '';
+    const items = C().projectItems(aiReading.reading, chosen, { answers: choice.answers, crane, slinging });
+    startProject(items, { readingId: aiReading.id, state: aiReading.state || '', chosen, answers: choice.answers, crane, slinging });
   }
 
   $('scope-results').addEventListener('click', (event) => {
@@ -463,8 +472,13 @@
     // The pick list shows the trade and task that match a SWMS from the scope; the task keeps the scope's words.
     if (S.showPick) S.showPick(item.pick || null);
     // Who runs the crane, as answered on the scope's list of work packages.
+    // Unanswered there, the start form asks it where the task names a crane.
+    document.querySelectorAll('input[name="crane"], input[name="slinging"]').forEach((input) => { input.checked = false; });
     const crane = item.crane && document.querySelector(`input[name="crane"][value="${item.crane}"]`);
     if (crane) crane.checked = true;
+    const slinging = item.slinging && document.querySelector(`input[name="slinging"][value="${item.slinging}"]`);
+    if (slinging) slinging.checked = true;
+    if (crane) crane.dispatchEvent(new Event('change', { bubbles: true }));
     // The scope reader's steps for this task are ticked when the task is used as it stands.
     window.siteReadyScopeTask = { task: text, kinds: item.kinds || null, leaveOut: item.leaveOut || null, unmatched: item.unmatched || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });

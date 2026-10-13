@@ -39,6 +39,16 @@
   const NO_ANSWER = /^(?:none|nil|nobody|no ?one|n\/?a|not applicable|not required|not needed|no|does not apply|not used)\.?$/i;
   // Not an answer yet: unknown, a question mark, a dash, or a placeholder.
   const NOT_YET = /^(?:unknown|not (?:yet )?known|not provided|to be advised|if not known yet\b.*|\?+|-+|\.+|x+)$/i;
+  // Not an answer either (messy-user test on staging, 14 October 2026): "dont know", a word that only
+  // points at a person ("me", "us"), and "as per site" or "as per the engineer" with nothing else.
+  const DONT_KNOW = /^(?:i\s+)?(?:dont|don't|don’t|do not|dunno|not sure|unsure|no idea)(?:\s+know)?\b[\s\w']{0,20}\.?$/i;
+  const PRONOUN = /^(?:me|us|them|him|her|we|i|myself|ourselves|you|they|someone|somebody|anyone)\.?$/i;
+  const AS_PER = /^as per (?:the )?(?:site|eng|engineer\w*|supplier\w*|builder\w*|pc|principal contractor|plans?|spec\w*|drawings?|manufacturer\w*|maker\w*|instructions?|swms|procedures?|normal|usual|standard)(?:'s)?(?: (?:rules?|requirements?|instructions?|plans?|procedures?|specs?|drawings?))?\.?$/i;
+  // A rescue answer that only calls for help: the rescue cannot wait for emergency services.
+  const CALLS = /\b(?:000|triple zero|112|emergency services|ambulance|paramedics|fire brigade|fire service|fire and rescue|qfes|frnsw|ses)\b/i;
+  const RESCUES = /\b(?:rescu\w*|lift\w*|lower\w*|bring\w*|brought|pull\w*|retriev\w*|reach\w*|winch\w*|harness\w*|ewps?|ladders?|lines?|poles?|isolat\w*|stand-?by|spotters?|crew|workers?|supervisors?|operators?|first aiders?|trained|observers?|tripods?|descend\w*|get\w* (?:them|the person) out)\b/i;
+  const onlyCalls = (text) => CALLS.test(text) && !RESCUES.test(text);
+  const RESCUE_KIT = /\b(?:harness\w*|lines?|ropes?|tripods?|winch\w*|ladders?|ewps?|elevating work platforms?|poles?|descenders?|stretchers?|spinal boards?|rescue kits?|lifelines?|davits?|hoists?|retrieval|hooks?|mats?|insulated|lv rescue|low voltage rescue)\b/i;
 
   // Why an answer is not enough, or '' when it passes. rule is what the gate asks of it:
   // { ask, name?, none?, optional?, emergency?, involves?, blank?, line? }
@@ -54,11 +64,17 @@
     const quoted = `"${text.slice(0, 60)}"`;
     if (rule.optional) return text && leftOpen(text) ? `${quoted} is not an answer. Fill it in, or leave the box empty.` : '';
     if (!text) return rule.ask;
+    if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text)) return `${quoted} is not an answer yet. ${rule.ask}`;
+    if (PRONOUN.test(text)) return `${quoted} does not say who. Name the role, for example "The site supervisor". ${rule.ask}`;
+    if (AS_PER.test(text)) return `${quoted} does not say what is done. Write it here in a few words. ${rule.ask}`;
     if (rule.emergency) {
       if (NO_ANSWER.test(text)) return `${quoted} is not an answer here: this SWMS involves ${rule.involves}. ${rule.ask}`;
-      return leftOpen(text) || NOT_YET.test(text) ? `${quoted} is not an answer yet. ${rule.ask}` : '';
+      if (rule.rescue && onlyCalls(text)) return `${quoted} only calls for help. Say who rescues the person and how, before emergency services arrive.`;
+      if (rule.kit && /\bfirst aid\b/i.test(text) && !RESCUE_KIT.test(text)) return `${quoted} is first aid, not rescue equipment. Say what is used to get the person out, and where it is kept.`;
+      // One word ("builder", "gate", "spotter") does not tell the crew what to do.
+      if (!/\s/.test(text)) return `${quoted} is too short to act on. ${rule.ask}`;
+      return '';
     }
-    if (leftOpen(text) || NOT_YET.test(text)) return `${quoted} is not an answer yet. ${rule.ask}`;
     if (NONE.test(text) && !rule.none) return `${rule.name} cannot be ${quoted}: every SWMS names it. ${rule.ask}`;
     return '';
   }

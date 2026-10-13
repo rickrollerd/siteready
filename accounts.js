@@ -5,7 +5,7 @@ const QRCode = require('qrcode');
 const db = require('./db');
 const JSZip = require('jszip');
 const { recordIndustry } = require('./industry');
-const { recordControlEdits, recordOwnSteps, recordFailedQuestions, enabled: learningEnabled, removeOld: removeOldEdits } = require('./control-learning');
+const { recordControlEdits, recordOwnSteps, recordAnswers, recordFailedQuestions, enabled: learningEnabled, removeOld: removeOldEdits } = require('./control-learning');
 const auth = require('./auth');
 const { sendMail } = require('./mailer');
 const { draftBody, textField } = require('./input');
@@ -406,6 +406,7 @@ async function createSwms(req, { input, draft, name, siteId = null, title, reaso
   await learningAccount(req, row.id, name).then(async (account) => {
     await recordControlEdits(draft, input, { company: req.company, swmsId: row.id, revision: 1, now, account }).catch(() => {});
     await recordOwnSteps(draft, input, { company: req.company, swmsId: row.id, revision: 1, now, account }).catch(() => {});
+    await recordAnswers(draft, input, { company: req.company, swmsId: row.id, revision: 1, now, account }).catch(() => {});
   }).catch(() => {});
   return { row, kept };
 }
@@ -422,6 +423,7 @@ async function reviseSwms(req, row, { input, draft, name, siteId = row.site_id, 
   await learningAccount(req, next.id, name).then(async (account) => {
     await recordControlEdits(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account }).catch(() => {});
     await recordOwnSteps(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account }).catch(() => {});
+    await recordAnswers(draft, input, { company: req.company, swmsId: next.id, revision: next.revision, now, account }).catch(() => {});
   }).catch(() => {});
   return { row: next, kept };
 }

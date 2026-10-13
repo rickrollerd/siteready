@@ -477,3 +477,31 @@ test('a saved SWMS records the user\'s words without the account\'s business, si
     delete process.env.CONTROL_LEARNING;
   }
 });
+
+// D262: answers with blanks are learned with their wording and ratings, without names, businesses or
+// document numbers, once for each saved revision.
+test('with CONTROL_LEARNING on, answers to questions with blanks are kept, de-identified', async () => {
+  process.env.CONTROL_LEARNING = 'on';
+  try {
+    const { recordAnswers } = require('../control-learning');
+    const formwork = 'Formwork and falsework are to the engineer\'s design FW-S-201 (revision C), checked and signed off by Dave Smith before the pour.';
+    const loads = 'Loads are placed only in the areas marked on the structural engineer\'s drawing S-101 (5 kPa), checked by the leading hand before loading starts.';
+    const input = draftBody({ ...ANSWERED, state: 'qld', fallRisk: 'yes', task: 'Supply and install formwork and propping to suspended slabs, and stack materials on the deck', facts: { formworkDesign: formwork, loadLimits: loads } });
+    const d = prepareDraft(input);
+    assert.equal(await recordAnswers(d, input, { company: { id: 'c-answers', name: 'Acme Formwork Pty Ltd' }, swmsId: 's-answers', revision: 1 }), 2);
+    const rows = await db.query('SELECT question, standard, answer FROM answer_events ORDER BY question');
+    assert.deepEqual(rows.map((row) => [row.question, row.standard]), [['formworkDesign', 'Engineer\'s design'], ['loadLimits', 'Engineer\'s drawing']]);
+    assert.match(rows[0].answer, /design \[number\] \(revision \[number\]\), checked and signed off by \[name\] before the pour\./);
+    assert.match(rows[1].answer, /drawing \[number\] \(5 kPa\)/);
+    assert.doesNotMatch(JSON.stringify(rows), /FW-S-201|S-101|Dave|Smith/);
+    // Once for each saved revision; the next revision marks them kept or not.
+    await recordAnswers(d, input, { company: { id: 'c-answers' }, swmsId: 's-answers', revision: 1 });
+    assert.equal((await db.query('SELECT id FROM answer_events')).length, 2);
+    const next = draftBody({ ...input, facts: { formworkDesign: formwork } });
+    await recordAnswers(prepareDraft(next), next, { company: { id: 'c-answers' }, swmsId: 's-answers', revision: 2 });
+    const first = await db.query('SELECT question, kept FROM answer_events WHERE revision = 1 ORDER BY question');
+    assert.deepEqual(first.map((row) => [row.question, row.kept]), [['formworkDesign', true], ['loadLimits', false]]);
+  } finally {
+    delete process.env.CONTROL_LEARNING;
+  }
+});

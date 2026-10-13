@@ -148,6 +148,33 @@ const needs = (id, step) => Boolean(NEEDS[id]) && (stepLines(step).some((line) =
   || (['faceShield', 'earPlugs', 'earMuffs'].includes(id) && abrasiveWork(step).length > 0));
 const says = (id, step) => Boolean(SAYS[id]) && stepLines(step).slice(1).some((line) => SAYS[id].test(lineText(line)));
 
+// A harness goes only with steps that work at height (D266, owner, 13 October 2026): from an EWP,
+// at an edge, on a roof and the like, read from the step's name and hazards. A step whose only height
+// is a dropped object is below the work, not at height.
+const AT_HEIGHT = /\b(?:EWPs?|elevating work platforms?|boom(?:-type)? (?:lifts?|EWPs?|platforms?)|scissor ?lifts?|swing stages?|rope access|work ?box(?:es)?|at height|from height|fall of more|falls? (?:from|off|through|down|between|into)|falling (?:from|off|through|down|between|into)|(?:open|leading|slab|roof|unprotected|floor|deck) edges?|edges? of (?:the |a )?(?:slab|roof|floor|deck|building)|roofs?(?! spaces?| cavit)|towers?(?! crane)|masts?|parapets?|eaves)\b/i;
+const DROPPED = /\b(?:objects?|tools?|materials?|loads?|debris|items?|equipment|parts?|sheets?|offcuts?)\b[^.]{0,30}\b(?:fall|dropp|drop)\w*|\bdropped\b|\bfalling objects?\b/i;
+const PERSON_FALLS = /\b(?:a person|people|workers?|someone|anyone|the worker|operators?)\b[^.]{0,30}\bfall|\bfalls? (?:from|off|through|down|between|into)\b(?![^.]{0,20}\b(?:on|onto|into) (?:people|workers|someone))/i;
+const atHeight = (step) => AT_HEIGHT.test(lineText(step.step))
+  || (step.hazards || []).map(lineText).some((line) => AT_HEIGHT.test(line) && (!DROPPED.test(line) || PERSON_FALLS.test(line.replace(DROPPED, ''))));
+
+// The library's own sourced anchor line, added with the harness line to a step that has no rated
+// anchor of its own (D266), so the harness the step names is clipped to something: the platform's
+// anchor point in a boom EWP, otherwise the anchor ratings of WHS Regulation s 306I. Each is a line
+// the library already holds with its source (D181).
+const ANCHOR_SAID = /\b(anchor\w*|static lines?|lifelines?|tie[- ]off points?)\b[^.]{0,80}\b(rated|certif\w*|tested|inspected|engineer\w*|\d+(?:\.\d+)?\s?kn|as\/?nzs\s?(?:1891|5532)|load[- ]rated|manufacturer\w*|basket|platform|ewp|boom lift)\b|\b(rated|certif\w*|engineer\w*|\d+(?:\.\d+)?\s?kn|as\/?nzs\s?(?:1891|5532)|basket|platform|ewp)\b[^.]{0,80}\b(anchor\w*|static lines?|lifelines?|tie[- ]off points?)\b/i;
+const BOOM_ANCHOR = 'Where a boom-type platform is used, the harness is attached to the platform\'s anchor point.';
+const RATED_ANCHOR = 'Anchors are rated for at least 15 kN for one person who could free fall (12 kN where only a limited free fall is possible, 21 kN for two people).';
+const libraryLine = (text) => {
+  for (const activity of ACTIVITIES) for (const step of activity.steps || []) for (const line of step.controls || []) if (line && typeof line === 'object' && line.text === text && line.source) return line;
+  return null;
+};
+function anchorLine(step, stateId) {
+  if (stepLines(step).slice(1).some((line) => ANCHOR_SAID.test(lineText(line)))) return null;
+  const boom = /\bboom(?:-type)? (?:lifts?|EWPs?|platforms?)\b|\bEWPs?\b|\belevating work platforms?\b/i.test([step.step, ...(step.hazards || [])].join(' '));
+  const found = libraryLine(boom ? BOOM_ANCHOR : RATED_ANCHOR);
+  return found ? localControl(found.text, found.source, stateId) : null;
+}
+
 // The PPE each library step's own kind of work ticks (each activity's ppe in activities.js), by the
 // step's name. A step the draft renames, or one the user wrote, is read from its words alone.
 const LIBRARY = new Map();
@@ -162,6 +189,7 @@ for (const activity of ACTIVITIES) {
 // steps of that work (those whose words call for it, where any do); otherwise the steps whose words
 // call for it. A step whose own line already says the item is worn needs it too.
 function stepsNeeding(id, work) {
+  if (id === 'harness') work = work.filter(atHeight);
   const own = work.filter((step) => LIBRARY.has(step.step) && LIBRARY.get(step.step).has(id));
   const worded = (own.length ? own : work).filter((step) => needs(id, step));
   const found = own.length && !worded.length ? own : worded;
@@ -260,8 +288,11 @@ function withStepPpeLines(jobSteps, ppe, stateId) {
   return jobSteps.map((step) => {
     const mine = items.filter((item) => item.steps.includes(step.step)).map((item) => item.id);
     const line = mine.length ? stepPpeLine(step, mine, { glasses, stateId }) : null;
-    // The line is marked (ppeLines), as design lines are, so the page sends the user to the PPE section to change it.
-    return line ? { ...step, controls: [...step.controls, line], ppeLines: [line] } : step;
+    // A harness comes with the library's anchor line where the step has no rated anchor (D266).
+    const anchor = mine.includes('harness') ? anchorLine(step, stateId) : null;
+    const added = [line, anchor].filter((text) => text && !step.controls.includes(text));
+    // The lines are marked (ppeLines), as design lines are, so the page sends the user to the PPE section to change them.
+    return added.length ? { ...step, controls: [...step.controls, ...added], ppeLines: added } : step;
   });
 }
 
@@ -315,4 +346,4 @@ function stepPpeRows(ppe) {
   return (ppe || []).flatMap((group) => group.items.filter((item) => item.ticked && Array.isArray(item.steps) && item.steps.length).map((item) => ({ id: item.id, label: item.label, steps: item.steps })));
 }
 
-module.exports = { splitPpe, withStepPpeLines, stepPpeLine, ppeChanges, stepPpeRows, abrasiveWork, ALL_WORK_ONLY, GENERAL_STEPS };
+module.exports = { splitPpe, withStepPpeLines, stepPpeLine, ppeChanges, stepPpeRows, abrasiveWork, atHeight, anchorLine, ALL_WORK_ONLY, GENERAL_STEPS };

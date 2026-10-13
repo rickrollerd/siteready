@@ -404,6 +404,77 @@ async function recordOwnSteps(draft, input, { company, swmsId, revision = 1, now
   return count;
 }
 
+// ---- Answers with blanks (D261, D262, owner, 13 October 2026) ----
+
+// "This is also a very good learning section for siteready ... we need to keep the numbers as there is a
+// consistency across projects on deck, slab, ground conditions kpa rating." The wording and the ratings
+// are kept; names, businesses and document or drawing numbers are taken out.
+// A rating: a figure with its unit (kPa, kN, kg, tonnes, m, mm, %, degrees, months and the like).
+const RATING = /\b\d+(?:[.,]\d+)?\s?(?:kPa|MPa|Pa|kN(?:\/m2?)?|kg|tonnes?|t|m2|m3|m|mm|metres?|%|per ?cent|degrees?|°|months?|weeks?|days?|hours?|minutes?|V|kV|A|L|litres?|dB(?:\(A\))?)(?![\w])/g;
+// A document's or drawing's number or revision, after the word that names it.
+const NUMBERED = /\b(drawings?|designs?|reports?|letters?|documents?|doc|permits?|certificates?|plans?|TMP|TGS|revisions?|rev\.?|job|order|reference|ref\.?|no\.?|number|sheet|specification|spec)(\s*(?:no\.?|number|#)?\s*)([A-Z0-9][A-Za-z0-9./_-]*(?:\s+(?:rev(?:ision)?\.?\s*)?[A-Z0-9][A-Za-z0-9./_-]*)?)/gi;
+// A code that is a number of some kind: letters and figures mixed ("FW-S-201", "S101", "12345").
+const CODE = /(?<![\w[])(?=[A-Za-z0-9./-]*\d)[A-Za-z0-9]+(?:[./-][A-Za-z0-9]+)+(?![\w\]])|(?<![\w[.,])(?=[A-Za-z]*\d)(?=\d*[A-Za-z])[A-Za-z0-9]{2,}(?![\w\]])|(?<![\w[.,])\d{4,}(?![\w\],.])/g;
+function deidentifyAnswer(text, terms = null) {
+  const kept = [];
+  let out = String(text || '').replace(RATING, (rating) => { kept.push(rating); return `\u0000${kept.length - 1}\u0000`; });
+  out = out.replace(NUMBERED, (whole, word, gap, code) => (/^(?:the|a|an|is|are|and|or|of|on|for|as|by|to|with|shows?|that|this)$/i.test(code) ? whole : `${word}${gap}[number]`));
+  out = out.replace(CODE, '[number]');
+  out = takeOut(out, '', terms);
+  return out.replace(/\u0000(\d+)\u0000/g, (whole, n) => kept[Number(n)]).replace(/\[number\](?:\s*\[number\])+/g, '[number]').slice(0, 1500);
+}
+
+// The answers a saved revision gives to questions whose standard answers have blanks: each with the
+// standard answer its wording follows, or '' where the user wrote their own.
+function blankAnswers(input) {
+  const { answersFor } = require('./presets');
+  const facts = input && input.facts && typeof input.facts === 'object' ? input.facts : {};
+  const pattern = (text) => new RegExp(`^${String(text).split(/_{3,}/).map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')).join('[^]*?')}$`);
+  // Only the questions this SWMS asks: an answer kept from a question no longer asked is not learned.
+  let asked = null;
+  try { asked = new Set(((require('./draft').questionsFor(input) || {}).required || []).map((item) => item.id)); } catch { asked = null; }
+  const out = [];
+  for (const [id, value] of Object.entries(facts)) {
+    if (typeof value !== 'string' || !value.trim() || (asked && asked.size && !asked.has(id))) continue;
+    let standards = [];
+    try { standards = (answersFor(id, input.task || '') || []).filter((item) => /_{3,}/.test(item.text)); } catch { standards = []; }
+    if (!standards.length) continue;
+    const used = standards.find((item) => pattern(item.text).test(value.replace(/\s+/g, ' ').trim()));
+    out.push({ question: id, standard: used ? used.label : '', answer: value });
+  }
+  return out;
+}
+
+// Records the answers with blanks in a saved revision, once, as recordControlEdits does. When the next
+// revision is saved, each answer of the revision before is marked kept or not. Returns how many were recorded.
+async function recordAnswers(draft, input, { company, swmsId, revision = 1, now = new Date(), account = {} } = {}) {
+  if (!enabled() || !db.enabled() || !draft || !swmsId) return 0;
+  if (!company || company.industry_opt_out) return 0;
+  const answers = blankAnswers(input);
+  const key = swmsKey(swmsId);
+  if (!answers.length && Number(revision) <= 1) return 0;
+  const state = findState(input && input.state);
+  const terms = accountTerms(accountValues(company, input || {}, account || {}));
+  const keys = new Set();
+  let count = 0;
+  for (const item of answers) {
+    const answer = deidentifyAnswer(item.answer, terms);
+    const answerKey = hash(JSON.stringify([item.question, answer]));
+    keys.add(answerKey);
+    const inserted = await db.query(
+      `INSERT INTO answer_events (id, swms_key, revision, month, state, trade, question, standard, answer, answer_key, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (id) DO NOTHING RETURNING id`,
+      [hash(`${key}:${revision}:${answerKey}`), key, Number(revision), monthOf(now), state ? state.id : '', knownTrade(input), String(item.question).slice(0, 60), String(item.standard).slice(0, 200), answer, answerKey, now],
+    );
+    count += inserted.length;
+  }
+  if (Number(revision) > 1) {
+    const earlier = await db.query('SELECT id, answer_key FROM answer_events WHERE swms_key = $1 AND revision = $2', [key, Number(revision) - 1]);
+    for (const row of earlier) await db.query('UPDATE answer_events SET kept = $1 WHERE id = $2', [keys.has(row.answer_key), row.id]);
+  }
+  return count;
+}
+
 // ---- Failed check questions at worker sign-on ----
 
 // The step or PPE item a question tested, and the option the worker chose, are SiteReady's own
@@ -449,6 +520,7 @@ async function removeOld(now = new Date()) {
   await db.query('DELETE FROM control_edits WHERE month < $1', [monthOf(cutoff)]);
   await db.query('DELETE FROM check_question_misses WHERE month < $1', [monthOf(cutoff)]);
   await db.query('DELETE FROM own_step_events WHERE created_at < $1', [cutoff]);
+  await db.query('DELETE FROM answer_events WHERE created_at < $1', [cutoff]);
 }
 
 // Counts for the owner: changes by kind and outcome, the steps changed most, and how many changes
@@ -751,7 +823,7 @@ const GROUP_TITLES = {
   ppe: 'PPE users change for particular steps',
 };
 const PPE_KINDS = new Set(['ppeStepRemoved', 'ppeStepAdded', 'ppeToAllWork', 'ppeAllRemoved', 'ppeAllAdded']);
-const KIND_WORDS = { removed: 'removed', changed: 'changed', added: 'added', hazardChanged: 'hazard changed', hazardAdded: 'hazard added', hazardNotApplicable: 'hazard does not apply', whoChanged: 'Who changed',
+const KIND_WORDS = { removed: 'removed', changed: 'changed', added: 'added', hazardChanged: 'hazard changed', hazardAdded: 'hazard added', hazardNotApplicable: 'hazard does not apply', whoChanged: 'Who changed', hazardControl: 'control for the user\'s own hazard', hazardRated: 'the user\'s own hazard rated',
   ppeStepRemoved: 'PPE unticked for the step', ppeStepAdded: 'PPE added to the step', ppeToAllWork: 'PPE moved to all work', ppeAllRemoved: 'PPE unticked for all work', ppeAllAdded: 'PPE added for all work' };
 
 function table(head, rows, empty) {
@@ -806,4 +878,4 @@ function reportMarkdown(report) {
   return out.join('\n');
 }
 
-module.exports = { enabled, recordControlEdits, recordOwnSteps, gapKey, deidentify: takeOut, OWN_STEPS_TITLE, recordFailedQuestions, summary, monthlyReport, reportMarkdown, lastWholeMonth, isMonth, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS, CANDIDATE_THRESHOLD };
+module.exports = { enabled, recordControlEdits, recordOwnSteps, recordAnswers, deidentifyAnswer, blankAnswers, gapKey, deidentify: takeOut, OWN_STEPS_TITLE, recordFailedQuestions, summary, monthlyReport, reportMarkdown, lastWholeMonth, isMonth, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS, CANDIDATE_THRESHOLD };

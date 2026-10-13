@@ -685,6 +685,14 @@ function registersFor(draft, input = {}) {
   if (!/Queensland/.test(draft.state || '')) sources = addStateLaw(sources, draft.state);
   const qualifications = withoutNetworkPlumbing(task, withoutElectricalLicence(task, localLicences(draft.state, input.trade, qualificationsFor(task, hazardText, allText, listed.map((item) => localPlant(item, stateId)), draft.highRisk || [], steps.filter((step) => step.hazards.some((line) => /\bsilica\b/i.test(line)) || (step.hazards.some((line) => /\bdust\b/i.test(line)) && step.controls.some((line) => /\bcrystalline silica\b/i.test(withoutSource(line))))).map(() => 'silica dust').join(' ')), [...steps.filter((step) => step.step !== 'Before starting' && step.step !== 'Finish and clean up').map((step) => step.step), ...((steps.find((step) => step.step === 'Before starting') || { controls: [] }).controls.filter((line) => /^Electrical work is done or supervised only by licensed electric/.test(line)))].join('\n'))));
   if (/Queensland/.test(draft.state || '')) sources = addQldSources(sources, { highRisk: draft.highRisk || [], plant: listed, substances, hazardText, text: allText, workText: `${task}\n${steps.map((step) => step.step).join('\n')}` });
+  // D258: with a crane company's crane, the dogging or rigging licence prints only where our crew slings
+  // the loads and directs the crane; where the crane company's dogman does, the licence is theirs.
+  const crane = String(input.crane || '').trim().toLowerCase();
+  const craneCompany = crane === 'company' ? /\bcranes?\b/i.test(allText) : !crane && /\bcrane (?:company|crew)\b/i.test(allText);
+  const ourSlinging = /^(ours?|our crew|us|we)$/i.test(String(input.slinging || '').trim());
+  const DOGGING = 'High risk work licence: dogging or rigging (DG, RB, RI or RA)';
+  if (craneCompany && !ourSlinging) qualifications.splice(0, qualifications.length, ...qualifications.filter((name) => name !== DOGGING));
+  if (craneCompany && ourSlinging && !qualifications.some((name) => /^High risk work licence: (?:dogging|basic rigging|intermediate rigging)/.test(name))) qualifications.push(DOGGING);
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Plumbing and drainage licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Plumbing and Drainage Act 2018 (Qld)'])].sort() };
   if (/Queensland/.test(draft.state || '') && qualifications.some((name) => /^Gas work licence/.test(name))) sources = { ...sources, legislation: [...new Set([...sources.legislation, 'Petroleum and Gas (Production and Safety) Act 2004 (Qld)'])].sort() };
   return {
