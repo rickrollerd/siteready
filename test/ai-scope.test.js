@@ -63,7 +63,7 @@ test.after(() => {
 });
 
 test('the brief is v3 and the answer schema is strict', () => {
-  assert.equal(BRIEF_VERSION, 'v3.4');
+  assert.equal(BRIEF_VERSION, 'v3.5');
   assert.match(BRIEF, /Access equipment and methods this subcontractor must use/);
   assert.match(BRIEF, /Clauses about locating, protecting or not damaging existing services are site conditions, not activities/);
   assert.match(BRIEF, /the exclusion wins/);

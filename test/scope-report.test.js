@@ -42,7 +42,7 @@ test('the report has every section, from a stand-in reading', async () => {
     'No job steps in SiteReady\'s library for: Commissioning',
     '2. Work the scope gives to others', 'Roof penetrations', 'Roofing contractor', '"Roof penetrations by the roofer."', 'Set out (in Mechanical installation)', 'Builder',
     '3. Clauses that conflict', 'Clause A (C-1.10) says', '"Make all roof penetrations."', 'Clause B (4.9) says', 'Why this matters', 'Both say who makes the roof penetrations.', 'Confidence', 'High',
-    '4. Unknowns that change the risk', 'Working height', 'Ceiling access', 'Chiller weights',
+    '4. Points to confirm with the builder', 'Working height', 'Ceiling access', 'Chiller weights', 'To confirm',
     '5. Duties', 'Attend weekly site meetings', '"Attend weekly site coordination meetings."',
   ]) assert.ok(text.includes(words), `missing: ${words}`);
   // Duties are listed once, under duties, not as work.
@@ -52,7 +52,7 @@ test('the report has every section, from a stand-in reading', async () => {
 
 test('an empty reading still gives a report that says so in each section', async () => {
   const text = await textOf(await reportToDocx({ activities: [], byOthers: [], conflicts: [], packages: [] }, { checks: { passed: false, quotesNotFound: [{}], quotesShortened: [] } }));
-  for (const words of ['no site or off-site work', 'no work the scope gives to others', 'no clauses that conflict', 'no unknowns', 'no duties', 'could not be matched word for word to the document (1)']) {
+  for (const words of ['no site or off-site work', 'no work the scope gives to others', 'no clauses that conflict', 'no points to confirm', 'no duties', 'could not be matched word for word to the document (1)']) {
     assert.ok(text.includes(words), `missing: ${words}`);
   }
 });
