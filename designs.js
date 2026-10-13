@@ -191,6 +191,10 @@ const KINDS = [
     id: 'blast', label: 'Blast design',
     lines: [/\bagainst the design minimum\b/, /^The blast is designed, and explosives are handled, charged and fired, only by a shotfirer\b/],
   },
+  // Designs asked for only at their question (D243, public/design-fill.js): no library line names
+  // them, so they print only once given there.
+  { id: 'loadDrawing', label: 'Structural engineer\'s drawing for the load limits', lines: [] },
+  { id: 'excavation', label: 'Geotechnical design for the excavation', lines: [] },
   {
     id: 'cutApproval', label: 'Engineer\'s approval for the cuts and core holes',
     lines: [/^Each core hole has the structural engineer's written approval\b/, /^Every opening has the structural engineer's written approval before cutting\b/],
@@ -270,11 +274,19 @@ function designRows(draft, input) {
     const answer = answers.get(item.id) || {};
     return { ...answerFields(answer), id: item.id, what: clean(answer.what) || item.label, label: item.label, steps: item.steps.map((entry) => entry.step), needed: true };
   });
+  // A design given at the question that asks for it (D243), where no step relies on it: it prints
+  // once given in full, or as not issued yet.
+  const { QUESTION_DESIGNS } = require('./public/design-fill');
+  const listed = new Set(needed.map((row) => row.id));
+  const asked = Object.values(QUESTION_DESIGNS).filter((item) => !listed.has(item.id) && answers.has(item.id)).map((item) => {
+    const answer = answers.get(item.id);
+    return { ...answerFields(answer), id: item.id, what: clean(answer.what) || item.label, label: item.label, steps: [], needed: false };
+  }).filter((row) => row.status === 'notIssued' || (row.status === 'given' && designNeed(row) === ''));
   const added = [...answers.values()].filter((row) => ADDED.test(row.id) && clean(row.what)).map((row) => ({ ...answerFields(row), id: row.id, what: clean(row.what), label: '', steps: [], needed: false }));
   const { methodNeed } = require('./public/gate-rules');
   const methods = [...answers.values()].filter((row) => METHOD.test(row.id) && methodNeed(row) === '')
     .map((row) => ({ ...answerFields({ ...row, status: 'given' }), id: row.id, what: clean(row.what), label: '', steps: [], needed: false, kind: 'method' }));
-  return [...needed, ...added, ...methods];
+  return [...needed, ...asked, ...added, ...methods];
 }
 function answerFields(row) {
   const status = ['given', 'notIssued', 'notNeeded'].includes(row.status) ? row.status : '';

@@ -382,6 +382,13 @@
     .method-done { font-weight: 600; margin: 8px 0 0; }
     .method-change { margin-top: 8px; }
     .method-change select, .method-change input[type="text"], .method-change textarea { width: 100%; box-sizing: border-box; }
+    /* A blank (____) left in an answer: the box outlined red and a bold red warning naming what to fill (D241, D245). */
+    textarea.has-blank, textarea.has-blank[aria-invalid="true"], textarea.has-blank:focus { border: 2px solid #b00020 !important; box-shadow: 0 0 0 1px #b00020; }
+    textarea.has-blank:focus { outline-color: #b00020; }
+    .blank-warning { color: #b00020; font-weight: 700; margin: 6px 0 0; }
+    /* A design given at the question that asks for it (D243). */
+    .question-design { margin-top: 10px; }
+    .question-design .design-card { margin-bottom: 4px; }
     /* Sections printed for others to fill in start folded on a phone (app.js folded). */
     details.sheet-fold > summary { cursor: pointer; margin: 20px 0 8px; }
     details.sheet-fold > summary h4 { display: inline; margin: 0; }
@@ -781,6 +788,7 @@
   <script src="/net.js"></script>
   <script src="/address.js"></script>
   <script src="/gate-rules.js"></script>
+  <script src="/design-fill.js"></script>
   <script src="/app.js"></script>
   <script src="/account.js"></script>
   <script src="/read-progress.js"></script>

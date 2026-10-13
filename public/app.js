@@ -765,8 +765,87 @@ function factHtml(item) {
         <label for="fact-${esc(item.id)}">${esc(item.label)}${extra}</label>
         ${picks}
         <textarea id="fact-${esc(item.id)}" data-fact="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
+        ${questionDesign(item.id) ? `<div class="question-design" data-question-design="${esc(item.id)}"></div>` : ''}
       </div>`;
 }
+
+// ---- Designs given at their question, and blanks made plain (design-fill.js, D243, D241, D245) ----
+
+const fillRules = () => window.SiteReadyDesignFill || null;
+// The design a question's answer refers to: { id, label }, or null.
+const questionDesign = (questionId) => { const rules = fillRules(); return (rules && rules.QUESTION_DESIGNS[questionId]) || null; };
+// The questions on the page with a design, by the design's id.
+function questionsWithDesigns() {
+  const out = new Map();
+  document.querySelectorAll('#required-block [data-question-design]').forEach((el) => {
+    const design = questionDesign(el.dataset.questionDesign);
+    if (design) out.set(design.id, el.dataset.questionDesign);
+  });
+  return out;
+}
+// What each answer has filled from its design, so a change of the design replaces it.
+const designFilled = new Map();
+// Draws the design's card at each question that asks for it: the same design row as the designs
+// table, entered once. A card already drawn stays as it is while the user types.
+function drawQuestionDesigns(force = false) {
+  const rules = fillRules();
+  if (!rules) return;
+  document.querySelectorAll('#required-block [data-question-design]').forEach((holder) => {
+    const questionId = holder.dataset.questionDesign;
+    const design = questionDesign(questionId);
+    if (!design) return;
+    let row = designRow(design.id);
+    if (!row) {
+      row = designsKept.get(design.id) || { id: design.id, what: design.label, status: '', by: '', number: '', revision: '', date: '' };
+      designAnswers = [...(designAnswers || []), row];
+    }
+    if (!force && holder.querySelector(`#design-${design.id}`)) return;
+    holder.innerHTML = designCard(row, designsFound.find((found) => found.id === design.id), { question: true });
+    const box = document.getElementById(`fact-${questionId}`);
+    if (box && !designFilled.has(questionId)) designFilled.set(questionId, rules.filledFrom(box.value, row));
+  });
+  showSameNumbers();
+}
+// Fills the design blanks in a question's answer from its design, as the design is given or changed.
+function fillFromDesign(questionId) {
+  const rules = fillRules();
+  const design = questionDesign(questionId);
+  const box = document.getElementById(`fact-${questionId}`);
+  const row = design && designRow(design.id);
+  if (!rules || !box || !row) return;
+  const result = rules.fillDesign(box.value, row, designFilled.get(questionId) || []);
+  designFilled.set(questionId, result.applied);
+  if (result.text !== box.value) {
+    box.value = result.text;
+    markPicks(questionId);
+    showBlanks(box);
+  }
+}
+// A blank (____) left in an answer box: the box outlined red and a bold red warning under it naming
+// what to fill, as the user types. The download still waits for every blank (download-gate.js).
+function showBlanks(box) {
+  const rules = fillRules();
+  if (!rules || !box || !box.id) return;
+  const text = rules.blankWarning(box.value);
+  let note = document.getElementById(`${box.id}-blanks`);
+  if (!note && text) {
+    note = document.createElement('p');
+    note.id = `${box.id}-blanks`;
+    note.className = 'blank-warning';
+    note.setAttribute('role', 'status');
+    box.after(note);
+  }
+  if (note && note.textContent !== text) note.textContent = text;
+  if (note) note.hidden = !text;
+  box.classList.toggle('has-blank', Boolean(text));
+  if (text) { box.setAttribute('aria-invalid', 'true'); box.setAttribute('aria-describedby', note.id); } else { box.removeAttribute('aria-invalid'); if (note) box.removeAttribute('aria-describedby'); }
+}
+function showAllBlanks() {
+  document.querySelectorAll('#required-block textarea[data-fact], #site-block textarea[data-site]').forEach(showBlanks);
+}
+['required-block', 'site-block'].forEach((id) => document.getElementById(id).addEventListener('input', (event) => {
+  if (event.target.matches && event.target.matches('textarea[data-fact], textarea[data-site]')) showBlanks(event.target);
+}));
 
 // Draws the questions. A question already on the page stays as it is, with its answer, the cursor
 // and the scroll where they were; a new one is put in its place with any answer it had before; one
@@ -814,6 +893,8 @@ function drawRequired(required) {
   shown.forEach((el) => el.remove());
   applyShowIf();
   required.forEach((item) => markPicks(item.id));
+  drawQuestionDesigns();
+  showAllBlanks();
 }
 
 // Asks the questions again with the answers given so far, so a question an answer brings in (a
@@ -918,6 +999,7 @@ async function loadQuestions(options = {}) {
     </div>
   `).join('');
   document.querySelectorAll('[data-site]').forEach((el) => { if (siteMemory[el.dataset.site] !== undefined) el.value = siteMemory[el.dataset.site]; });
+  showAllBlanks();
   drawDesigns(data.designs || []);
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
   factsForm.classList.remove('hidden');
@@ -1041,12 +1123,15 @@ document.getElementById('required-block').addEventListener('click', (event) => {
   const pattern = pickPattern(pick.text);
   if (pattern.test(box.value)) {
     box.value = box.value.replace(pattern, '').replace(/\s{2,}/g, ' ').trim();
+    showBlanks(box);
     markPicks(item.id);
     askAgain();
     box.focus();
     return;
   }
   box.value = box.value.trim() ? `${box.value.trim()} ${pick.text}` : pick.text;
+  if (questionDesign(item.id)) fillFromDesign(item.id);
+  showBlanks(box);
   markPicks(item.id);
   // A standard answer can bring in another question (a harness named in the fall control).
   askAgain();
@@ -1368,7 +1453,10 @@ const isMethodRow = (row) => Boolean(row && /^method-\d+$/.test(row.id || ''));
 const ownRow = (row) => Boolean(row && /^(?:added|method)-\d+$/.test(row.id || ''));
 const methodTyped = (row) => ['what', 'by', 'number', 'revision', 'date'].some((key) => String(row[key] || '').trim()) || Boolean(row.file);
 function designsPayload() {
-  const rows = (designAnswers || []).filter((row) => row.id && (isMethodRow(row) ? methodTyped(row) : (!/^added-/.test(row.id) || String(row.what || '').trim())));
+  // A design shown only at its question (D243) and not answered there is not sent.
+  const askedIds = Object.values((fillRules() || {}).QUESTION_DESIGNS || {}).map((item) => item.id);
+  const onlyAsked = (row) => !row.status && askedIds.includes(row.id) && !designsFound.some((found) => found.id === row.id);
+  const rows = (designAnswers || []).filter((row) => row.id && !onlyAsked(row) && (isMethodRow(row) ? methodTyped(row) : (!/^added-/.test(row.id) || String(row.what || '').trim())));
   return rows.length ? rows.map((row) => ({ ...row })) : undefined;
 }
 // Whether files can be attached here (the storage bucket, or a local run), and the size limit.
@@ -1381,7 +1469,7 @@ async function designFilesOn() {
 }
 const fileSize = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
 let designsDrawn = '';
-function designCard(row, found) {
+function designCard(row, found, { question = false } = {}) {
   const id = esc(row.id);
   const added = /^added-/.test(row.id);
   const status = row.status || '';
@@ -1389,7 +1477,8 @@ function designCard(row, found) {
   const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
   return `<fieldset class="field design-card" id="design-${id}" data-design="${id}" data-status="${esc(status)}" tabindex="-1">
     <legend>${esc(row.what || (added ? 'Another design' : (found && found.label) || 'Design'))}</legend>
-    ${found && found.steps.length ? `<p class="meta">Used in: ${esc(found.steps.join('; '))}.</p>` : '<p class="meta">Prints in the designs table near the top of the SWMS.</p>'}
+    ${question ? '<p class="meta">Give the design once here. Its number and revision fill the answer above, and it prints in the designs table near the top of the SWMS. SiteReady does not read the drawing.</p>' : ''}
+    ${found && found.steps.length ? `<p class="meta">Used in: ${esc(found.steps.join('; '))}.</p>` : question ? '' : '<p class="meta">Prints in the designs table near the top of the SWMS.</p>'}
     <div class="choice design-status">${radio('given', 'I have it')}${radio('notIssued', 'Not issued yet')}${radio('notNeeded', 'Not needed for this work')}</div>
     <div class="design-given">
       ${box('what', 'What it is', 'As the design is titled, for example Shoring design or Formwork design.', 'text', 200)}
@@ -1459,13 +1548,16 @@ function drawDesigns(list) {
     const mine = designsKept.get(found.id);
     return mine || { id: found.id, what: found.what, status: found.status || '', by: found.by || '', number: found.number || '', revision: found.revision || '', date: found.date || '', ...(found.file ? { file: found.file } : {}) };
   });
+  // A design given at its question (D243) and not in the steps, kept as typed.
+  const atQuestions = questionsWithDesigns();
+  const asked = [...atQuestions.keys()].filter((id) => !rows.some((row) => row.id === id)).map((id) => designsKept.get(id) || answers.find((row) => row.id === id)).filter(Boolean);
   // The designs the user added, then the written methods, each kept as typed.
-  const added = [...answers.filter((row) => /^added-/.test(row.id)), ...answers.filter(isMethodRow)];
+  const added = [...asked, ...answers.filter((row) => /^added-/.test(row.id)), ...answers.filter(isMethodRow)];
   designAnswers = rows.length || added.length ? [...rows, ...added] : null;
   const section = document.getElementById('designs-section');
   if (!section) return;
-  const shape = JSON.stringify([designsFound.map((row) => [row.id, row.label, row.steps]), added.map((row) => row.id)]);
-  const designs = (designAnswers || []).filter((row) => !isMethodRow(row));
+  const shape = JSON.stringify([designsFound.map((row) => [row.id, row.label, row.steps]), added.map((row) => row.id), [...atQuestions.keys()]]);
+  const designs = (designAnswers || []).filter((row) => !isMethodRow(row) && !atQuestions.has(row.id));
   const methods = (designAnswers || []).filter(isMethodRow);
   section.classList.toggle('hidden', !designs.length);
   // The written methods: optional, on every draft, under the designs (D224).
@@ -1475,6 +1567,7 @@ function drawDesigns(list) {
   if (methodAdd) methodAdd.textContent = methods.length ? 'Add another written methodology or sequence of works (optional)' : 'Add a written methodology or sequence of works (optional)';
   if (shape === designsDrawn) { showSameNumbers(); return; }
   designsDrawn = shape;
+  drawQuestionDesigns(true);
   document.getElementById('designs-block').innerHTML = designs.map((row) => designCard(row, designsFound.find((found) => found.id === row.id))).join('');
   const methodsBlock = document.getElementById('methods-block');
   if (methodsBlock) methodsBlock.innerHTML = methods.map((row) => methodCard(row)).join('');
@@ -1502,10 +1595,11 @@ function showSameNumbers() {
 function redrawDesigns() {
   designsDrawn = '';
   drawDesigns(designsFound);
+  drawQuestionDesigns(true);
 }
 const designsBlock = document.getElementById('designs-block');
 // The written methods' cards work as the designs' do.
-const designBlocks = [designsBlock, document.getElementById('methods-block')].filter(Boolean);
+const designBlocks = [designsBlock, document.getElementById('methods-block'), document.getElementById('required-block')].filter(Boolean);
 // What the user types or picks in a card is kept as they go.
 ['input', 'change'].forEach((type) => designBlocks.forEach((block) => block.addEventListener(type, (event) => {
   const field = event.target.dataset && event.target.dataset.designField;
@@ -1519,6 +1613,11 @@ const designBlocks = [designsBlock, document.getElementById('methods-block')].fi
   if (field === 'what') card.querySelector('legend').textContent = event.target.value.trim() || (isMethodRow(row) ? 'Written methodology or sequence of works' : 'Another design');
   if (['what', 'status', 'number', 'revision'].includes(field)) showSameNumbers();
   if (isMethodRow(row)) showMethodNeed(row);
+  // The answer at the design's question follows it (D243).
+  if (['status', 'number', 'revision'].includes(field)) {
+    const questionId = questionsWithDesigns().get(row.id);
+    if (questionId) fillFromDesign(questionId);
+  }
 })));
 document.getElementById('design-add') && document.getElementById('design-add').addEventListener('click', () => {
   const used = new Set((designAnswers || []).map((row) => row.id));
