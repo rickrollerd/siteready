@@ -202,10 +202,10 @@ function dutyBlocks(sections) {
 function highRiskCount(work) {
   const of = (status) => work.filter((pack) => pack.highRisk && pack.highRisk.status === status).length;
   const parts = [
-    [of('yes'), 'high risk: a SWMS is required by law'],
-    [of('likely'), 'likely high risk'],
-    [of('depends'), 'may be high risk'],
-    [of('none'), 'none found'],
+    [of('yes'), 'need a SWMS by law'],
+    [of('likely'), 'probably need one'],
+    [of('depends'), 'may need one'],
+    [of('none'), 'no high risk work found'],
   ].filter(([n]) => n).map(([n, text]) => `${n} ${text}`);
   return `${parts.join('; ')} (of ${work.length} work ${work.length === 1 ? 'package' : 'packages'})`;
 }

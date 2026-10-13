@@ -100,7 +100,7 @@ test('every package with site work is flagged, from the task its card sends; dut
   assert.deepEqual(formwork.categories, screenHighRisk({ state: 'qld', task: packageTask(rows), kinds: ['formwork', 'craneInterface'], leaveOut: [] }, rows.flatMap((row) => row.quotes).join('\n')).categories);
   assert.deepEqual(hrcwSummary(formwork).status, 'yes');
   assert.ok(flags[2].offSite);
-  assert.equal(hrcwSummary(flags[2]).heading, 'Off-site work: not high risk construction work');
+  assert.equal(hrcwSummary(flags[2]).heading, 'Off-site work does not need a SWMS by law');
 });
 
 test('steps the scope gives to others are left out of the flag, as the card leaves them out', async () => {
@@ -120,18 +120,21 @@ test('the wording: high risk, likely, may be, none found, in plain words', () =>
   const yes = hrcwSummary({ categories: [{ short: 'Tilt-up or precast concrete', likely: false }, { short: 'Fall of more than 2 m', likely: true, dependsOn: 'the working height' }], dependsOn: [] });
   assert.equal(yes.status, 'yes');
   assert.equal(yes.tag, 'High risk');
-  assert.equal(yes.heading, 'High risk construction work: a SWMS is required by law');
-  assert.deepEqual(yes.lines, ['Tilt-up or precast concrete', 'Fall of more than 2 m: likely, depends on the working height']);
+  assert.equal(yes.heading, 'This work needs a SWMS by law');
+  assert.deepEqual(yes.lines, ['It is high risk construction work (Tilt-up or precast concrete; Fall of more than 2 m, depending on the working height)']);
   const likely = hrcwSummary({ categories: [{ short: 'Fall of more than 2 m', likely: true, dependsOn: 'the working height' }], dependsOn: [] });
   assert.equal(likely.status, 'likely');
-  assert.match(likely.heading, /^Likely high risk construction work: if it is, a SWMS is required by law\. The SWMS questions settle it$/);
+  assert.equal(likely.heading, 'This work probably needs a SWMS by law');
+  assert.deepEqual(likely.lines, ['It is likely to be high risk construction work (Fall of more than 2 m, depending on the working height)', 'The SWMS questions will confirm it']);
   const maybe = hrcwSummary({ categories: [], dependsOn: [{ short: 'Confined space', on: 'whether a pit, tank or manhole entered is a confined space' }] });
   assert.equal(maybe.status, 'depends');
-  assert.deepEqual(maybe.lines, ['Confined space: depends on whether a pit, tank or manhole entered is a confined space']);
+  assert.equal(maybe.heading, 'This work may need a SWMS by law');
+  assert.deepEqual(maybe.lines, ['It could be high risk construction work (Confined space, depending on whether a pit, tank or manhole entered is a confined space)', 'The SWMS questions will confirm it']);
   const none = hrcwSummary({ categories: [], dependsOn: [] });
   assert.equal(none.status, 'none');
   assert.equal(none.tag, '');
-  assert.ok(none.lines.includes('A SWMS may still be required by the principal contractor.'));
+  assert.equal(none.heading, 'This work may not need a SWMS by law');
+  assert.ok(none.lines.includes('The builder may still ask for a SWMS, and its SWMS still asks about falls from height'));
   for (const text of [HRCW_NOTE, ...[yes, likely, maybe, none].flatMap((item) => [item.heading, ...item.lines])]) assert.doesNotMatch(text, /—|–/);
 });
 
