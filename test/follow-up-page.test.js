@@ -179,7 +179,8 @@ test('when changing the steps ticks a harness in the PPE, Harness and anchors is
   assert.equal(await page.isChecked('[data-ppe][value="harness"]'), false);
   assert.equal(await asked(page, 'harnessSystem'), false);
   await addStep(page, 'power tools', 'Use power tools');
-  await page.waitForFunction(() => document.querySelector('[data-ppe][value="harness"]:checked'));
+  // Ticked for all work, or for the steps that need it (D247).
+  await page.waitForFunction(() => document.querySelector('[data-ppe][value="harness"]:checked, [data-ppe-step][value="harness"]:checked'));
   await page.waitForSelector('#fact-harnessSystem');
   assert.equal(await page.inputValue('#fact-fallControl'), 'Work is done from an EWP with guardrails.');
   assert.deepEqual(errors, []);

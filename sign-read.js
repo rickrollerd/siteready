@@ -102,7 +102,7 @@ const MAX_CONTROL_LENGTH = 120;
 // step: the job step a step or control question tests, kept with a failed answer (control-learning.js).
 const poolItem = (kind, text, correct, decoys, step = '') => ({ kind, question: text, correct, decoys: decoys.slice(0, DECOYS_KEPT), step });
 
-const EVERYDAY_PPE = /\b(sleeves?|pants|trousers|clothing|shirts?|hi-?vis|glasses|goggles|gloves?|boots?|hard hats?|hats?|helmets?|sunscreen|sun|brim|neck flaps?|chin straps?|ear|hearing|dust masks?|knee)\b/i;
+const EVERYDAY_PPE = /\b(sleeves?|pants|shorts|trousers|clothing|shirts?|hi-?vis|glasses|goggles|gloves?|boots?|hard hats?|hats?|helmets?|sunscreen|sun|brim|neck flaps?|chin straps?|ear|hearing|dust masks?|knee)\b/i;
 
 // Each ticked PPE item, with unticked items as decoys: from its own group first, then the others.
 function ppePool(draft, random) {

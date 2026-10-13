@@ -92,7 +92,9 @@ test('removed, changed and added lines are applied to the step, with the user\'s
   // The removed line shifts the changed line up one place only when it came before it.
   const at = excavate.controls.indexOf(CODE_LINE) - (excavate.controls.indexOf(PLAIN_LINE) < excavate.controls.indexOf(CODE_LINE) ? 1 : 0);
   assert.equal(controls[at], `Spoil is kept 2 m back from the trench edge. ${OWN_MARK}`, 'the changed line takes the old line\'s place, without the code citation');
-  assert.equal(controls[controls.length - 1], `A toolbox talk on trench safety is held each morning. ${OWN_MARK}`);
+  // The user's line goes last, before only the step's own PPE line (D246), which stays last.
+  const own = draft.jobSteps.find((step) => step.step === 'Excavate');
+  assert.equal(controls.filter((line) => !(own.ppeLines || []).includes(line)).pop(), `A toolbox talk on trench safety is held each morning. ${OWN_MARK}`);
   assert.equal(controls.length, excavate.controls.length);
   assert.deepEqual(draft.controlEdits.applied.map((item) => item.kind).sort(), ['added', 'changed', 'removed']);
   assert.deepEqual(draft.controlEdits.refused, []);

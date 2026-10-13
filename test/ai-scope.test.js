@@ -244,7 +244,9 @@ test('formwork read by location becomes one formwork SWMS for the project, false
   assert.deepEqual(rowsOf(reading, name), [
     'Erect and strip suspended slab and beam formwork in the basements', 'Form kerbs, upstands and hobs',
     'Erect and strip suspended slab and beam formwork in the Commercial tower', 'Form in situ columns',
-    'Erect and strip formwork decks on Contractor-supplied high propping', 'Strip formwork and backprop slabs', 'Inspect and certify formwork before each pour',
+    'Erect and strip formwork decks on Contractor-supplied high propping', 'Strip formwork and backprop slabs',
+    // Forming penetrations is formwork, not core drilling (owner testing, 13 October 2026).
+    'Form and strip rectangular penetrations in slabs', 'Inspect and certify formwork before each pour',
   ]);
   // Each activity keeps its location.
   const where = (activity) => reading.activities.find((item) => item.activity === activity).where;
@@ -257,8 +259,8 @@ test('formwork read by location becomes one formwork SWMS for the project, false
   // High propping by others in two voids does not take falsework out where the crew erects it everywhere else.
   assert.deepEqual(formwork.byOthers.map((entry) => entry.step), ['Erect the scaffold']);
   // Different work stays its own SWMS.
-  for (const other of ['Perimeter safety screens', 'Penetrations and core drilling', 'Materials handling', 'Hot works']) assert.equal(rowsOf(reading, other).length, 1, other);
-  for (const gone of ['Trade installation: basement', 'Trade installation: commercial tower', 'Trade installation: columns', 'Falsework and propping']) assert.equal(packageOf(reading, gone), undefined, gone);
+  for (const other of ['Perimeter safety screens', 'Materials handling', 'Hot works']) assert.equal(rowsOf(reading, other).length, 1, other);
+  for (const gone of ['Trade installation: basement', 'Trade installation: commercial tower', 'Trade installation: columns', 'Falsework and propping', 'Penetrations and core drilling']) assert.equal(packageOf(reading, gone), undefined, gone);
 });
 
 test('a jumpform is one SWMS: its platform and hoists come out of access equipment and cranage', () => {

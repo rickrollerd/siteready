@@ -4,7 +4,6 @@
   const S = window.SiteReady;
   const { api, esc } = S;
   const $ = (id) => document.getElementById(id);
-  let found = [];
 
   function readFile(file) {
     return new Promise((resolve, reject) => {
@@ -15,41 +14,9 @@
     });
   }
 
-  // Tasks the user has added. With none added, the project takes every task.
-  let added = new Set();
-
-  function projectButton() {
-    const count = added.size || found.length;
-    return `Prepare a SWMS for ${added.size ? `the ${count} added ${count === 1 ? 'task' : 'tasks'}` : `every task (${count})`}`;
-  }
-
-  // A package's high risk construction work, in the words the list, the cards and the report share.
+  // A package's high risk construction work, in the words the list and the report share.
   const hrcwOf = (flag) => (flag && window.SiteReadyHrcw ? window.SiteReadyHrcw.hrcwSummary(flag) : null);
   const hrcwText = (summary) => `<strong>${esc(summary.heading)}.</strong> ${summary.lines.map((line) => esc(/[.]$/.test(line) ? line : `${line}.`)).join(' ')}`;
-
-  function show(data) {
-    found = data.tasks || [];
-    added = new Set();
-    const note = data.note ? `<p class="note">${esc(data.note)}</p>` : '';
-    const flagged = found.some((item) => item.hrcw);
-    $('scope-results').innerHTML = note + (found.length
-      ? `<p class="meta" style="margin-top:10px">${found.length} ${found.length === 1 ? 'task' : 'tasks'} found. ${flagged ? 'Each task shows the high risk construction work its work involves, worked out by the same rules its SWMS uses. That work needs a SWMS by law. Where a task says likely or depends on, its SWMS questions settle it. A principal contractor may still ask for a SWMS for every task.' : 'Tasks marked high risk construction work need a SWMS by law; most builders ask for one for every task.'} Check each one against the scope before you rely on it. Add the tasks you need, then press the button at the bottom.</p>` + found.map((item, index) => {
-        const summary = hrcwOf(item.hrcw);
-        const tag = summary ? summary.tag : item.needsSwms ? 'High risk' : '';
-        return `
-        <div class="scope-task" data-card="${index}">
-          <h3>${esc(item.title)}${tag ? ` <span class="tag-risk">${esc(tag)}</span>` : ''}</h3>
-          ${summary ? `<p class="meta scope-hrcw">${hrcwText(summary)}</p>` : ''}
-          <p>${esc(item.task)}</p>
-          ${!summary && (item.highRisk || []).length ? `<p class="meta">High risk construction work: ${esc(item.highRisk.join('; '))}</p>` : ''}
-          ${(item.byOthers || []).map((entry, j) => `<fieldset class="scope-others"><legend>Scope review: ${esc(entry.step.toLowerCase())} by others</legend><p class="meta">${esc(entry.says)}${entry.clause ? ` (${esc(entry.clause)})` : ''} Do you need this in your SWMS?</p><label><input type="radio" name="others-${index}-${j}" value="no" checked> No, leave it out</label> <label><input type="radio" name="others-${index}-${j}" value="yes"> Yes, our crew does some of it</label></fieldset>`).join('')}
-          ${(item.unmatched || []).length ? `<p class="meta">No job steps in the library for: ${esc(item.unmatched.join('; '))}. Pick the steps for these under Job steps, or describe them in the task.</p>` : ''}
-          ${item.clauses ? `<button type="button" class="small secondary" data-scope-clauses="${index}" aria-expanded="false">Show scope clauses</button><div class="scope-clauses hidden" id="scope-clauses-${index}">${item.clauses.map((row) => `<p><strong>${esc(row.activity)}</strong>${row.clause ? ` <span class="meta">${esc(row.clause)}${row.matrixColumn ? `, ${esc(row.matrixColumn)}` : ''}</span>` : ''}</p>${row.quotes.map((quote) => `<blockquote>${esc(quote)}</blockquote>`).join('')}`).join('')}</div>` : `<details><summary>From the scope (${item.lines.length} ${item.lines.length === 1 ? 'line' : 'lines'})</summary><ul>${item.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>`}
-          <button type="button" class="small" data-scope-task="${index}" aria-pressed="false">Add this task</button>
-        </div>`;
-      }).join('') + `<div class="actions scope-go"><button type="button" id="project-start">${projectButton()}</button></div><p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>`
-      : (note ? '' : '<p class="note">No site work that needs a SWMS was found. If the scope does include site work, paste the part that describes it.</p>'));
-  }
 
   // A file can also be dragged onto the panel. Dropping it anywhere on the panel is caught,
   // so the browser does not open the file in place of SiteReady.
@@ -93,7 +60,6 @@
     $('scope-file-clear').classList.add('hidden');
     $('scope-error').textContent = '';
     $('scope-results').innerHTML = '';
-    found = [];
   });
 
   $('scope-read').addEventListener('click', async () => {
@@ -111,6 +77,8 @@
     }
     // A new scope starts a new project: the one in progress is closed first, with the user's OK.
     if (project && !closeProject(`You have a project in progress (${project.items.filter((item) => item.status === 'ready').length} of ${project.items.length} SWMS ready). Reading a new scope closes it, and SWMS you have not downloaded or saved will need preparing again. Read the new scope?`)) return;
+    // The chime when the reading is finished may only play after a press on the page: set it up now.
+    if (window.SiteReadyProgress) window.SiteReadyProgress.unlockAudio();
     button.disabled = true;
     try {
       const state = (document.querySelector('input[name="state"]:checked') || {}).value || '';
@@ -178,10 +146,11 @@
       <div class="actions"><button type="button" data-open="signin">Sign in or start free trial</button></div>`;
   }
 
-  // Called by account.js once the user is signed in: a scope given while signed out is read now.
+  // Called by account.js once the user is signed in: a scope given while signed out is read now, and a
+  // reading still running when the page was left or reloaded is picked up again.
   S.onSignedIn = async () => {
     const body = await takeScope();
-    if (!body) return;
+    if (!body) { await resumeReading(); return; }
     $('scope-panel').open = true;
     $('scope-error').textContent = '';
     $('scope-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -204,54 +173,215 @@
     return aiStatus;
   }
   const wait = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
-  async function readWithAi(body) {
-    $('scope-results').innerHTML = '<p class="note" aria-live="polite">The AI is reading every word of the scope, including tables and appendices. This usually takes a few minutes. You can leave this page open and come back.</p>';
-    let reading = await S.call('POST', '/api/scope/ai', body);
-    const started = Date.now();
-    while (reading.status === 'reading') {
-      if (Date.now() - started > 20 * 60 * 1000) throw new Error(`The AI reading is taking too long. Try again later. ${TYPE_TASKS}`);
-      await wait(10000);
-      // The state picked on the form names the high risk construction work in each package.
-      reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}?state=${encodeURIComponent(body.state || '')}`);
+
+  // A reading still running is kept in this browser by its id, so the page picks it up again when the
+  // user comes back after it was closed or reloaded (a phone often reloads a page left in the background).
+  const READING_KEY = 'siteready-scope-reading';
+  const keepReading = (value) => { try { if (value) localStorage.setItem(READING_KEY, JSON.stringify(value)); else localStorage.removeItem(READING_KEY); } catch { /* not kept */ } };
+  const keptReading = () => { try { return JSON.parse(localStorage.getItem(READING_KEY) || 'null'); } catch { return null; } };
+  let running = false;
+  async function resumeReading() {
+    const kept = keptReading();
+    if (!kept || !kept.id || running || !S.signedIn || !S.signedIn() || !S.call) return;
+    $('scope-panel').open = true;
+    $('scope-error').textContent = '';
+    $('scope-read').disabled = true;
+    try {
+      await readWithAi({ state: kept.state || '' }, kept.id);
+    } catch (error) {
+      keepReading(null);
+      // A reading that is gone (or another account's) is forgotten without a word; its bar goes too.
+      if (error.status === 404) $('scope-results').innerHTML = '';
+      else $('scope-error').textContent = error.message;
+    } finally {
+      $('scope-read').disabled = false;
     }
-    if (reading.status !== 'done') {
-      $('scope-results').innerHTML = `<p class="note">${esc(reading.error || 'The AI reading failed. Try again later.')} ${TYPE_TASKS}</p>`;
-      return;
-    }
-    showPackages(reading);
   }
 
-  // The AI's work packages, for the user to confirm before any task is listed. A package of
-  // duties only (supervision, records, meetings) needs no SWMS, so it starts unticked.
-  let aiReading = null;
-  function packagesOf(reading) {
-    const groups = new Map();
-    for (const row of reading.activities) {
-      const name = row.package || 'Other work';
-      if (!groups.has(name)) groups.set(name, []);
-      groups.get(name).push(row);
-    }
-    return [...groups.entries()].map(([name, rows]) => ({ name, rows, work: rows.some((row) => row.type !== 'Duty') }));
+  // The bar shown while the AI reads (read-progress.js): its stage and time from the server.
+  const LEAD = 'The AI is reading every word of the scope, including tables and appendices.';
+  function progressBar(reading) {
+    const RP = window.SiteReadyProgress;
+    if (!RP) return null;
+    const tracker = RP.track({ what: 'scope', lead: LEAD, steps: ['reading every word of the scope', 'matching each work package to SiteReady\'s job steps'] });
+    tracker.update(reading.progress);
+    $('scope-results').innerHTML = tracker.html();
+    return tracker;
   }
+
+  async function readWithAi(body, resumeId) {
+    running = true;
+    let tracker = null;
+    try {
+      let reading;
+      if (resumeId) {
+        reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(resumeId)}?state=${encodeURIComponent(body.state || '')}`);
+      } else {
+        $('scope-results').innerHTML = `<p class="note" aria-live="polite">${LEAD} This usually takes a few minutes. You can leave this page open and come back.</p>`;
+        reading = await S.call('POST', '/api/scope/ai', body);
+      }
+      // Kept from before and already read: shown at once, with no bar and no message.
+      const waited = Boolean(resumeId) || reading.status === 'reading';
+      if (reading.status === 'reading') {
+        keepReading({ id: reading.id, state: body.state || '' });
+        tracker = progressBar(reading);
+      }
+      const started = Date.now();
+      while (reading.status === 'reading') {
+        if (Date.now() - started > 20 * 60 * 1000) throw new Error(`The AI reading is taking too long. Try again later. ${TYPE_TASKS}`);
+        await wait(10000);
+        // The state picked on the form names the high risk construction work in each package.
+        reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}?state=${encodeURIComponent(body.state || '')}`);
+        if (tracker && reading.status === 'reading') tracker.update(reading.progress);
+      }
+      keepReading(null);
+      if (reading.status !== 'done') {
+        if (tracker) tracker.fail();
+        $('scope-results').innerHTML = `${tracker ? tracker.html() : ''}<p class="note">${esc(reading.error || 'The AI reading failed. Try again later.')} ${TYPE_TASKS}</p>`;
+        return;
+      }
+      if (tracker) tracker.finish();
+      showPackages(reading, null, waited);
+    } catch (error) {
+      // The bar stops where it was; the error shows as before. Refused at the start (a trial ended),
+      // the "reading" note goes.
+      if (tracker) { tracker.fail(); $('scope-results').innerHTML = tracker.html(); } else $('scope-results').innerHTML = '';
+      throw error;
+    } finally {
+      running = false;
+    }
+  }
+
+  // The AI's work packages, chosen once (owner testing, 13 October 2026: "I selected the swms I
+  // wanted form the ai read, then this page pops up and ask me to select again"). Each ticked package
+  // becomes one SWMS in the project straight away, with its scope review answers. Duties (supervision,
+  // records, tickets) are listed apart, as they need no SWMS. Cranage is ticked only where our company
+  // runs the crane or the scope gives us the cranage (item 9).
+  let aiReading = null;
+  let choice = null;
+  const C = () => window.SiteReadyScopeChoice;
   // Each package's high risk construction work, worked out on the server by the SWMS's own rules.
   const flagsOf = (reading) => new Map((reading.highRisk || []).map((item) => [item.package, item]));
-  function showPackages(reading) {
+  const craneNow = () => (document.querySelector('input[name="crane"]:checked') || {}).value || 'company';
+  const CRANE_CHOICES = [['none', 'No crane'], ['company', 'A crane company'], ['own', 'Our company']];
+
+  function packageCard(pack, index) {
+    const flags = flagsOf(aiReading.reading);
+    const cranage = C().isCranage(pack.name);
+    const offer = cranage ? C().cranageOffer(choice.crane, choice.clause) : null;
+    const on = choice.ticked.has(pack.name);
+    const full = !offer || offer.full || on;
+    const summary = full ? hrcwOf(flags.get(pack.name)) : null;
+    const mapped = (aiReading.reading.packages || []).find((item) => item.package === pack.name);
+    const count = `${pack.rows.length} ${pack.rows.length === 1 ? 'activity' : 'activities'}`;
+    // Asked once, on the first cranage package.
+    const first = cranage && C().packagesOf(aiReading.reading).work.findIndex((item) => C().isCranage(item.name)) === index;
+    const question = first ? `<fieldset class="scope-others scope-crane"><legend>Is a crane used, and who operates it?</legend>${CRANE_CHOICES.map(([value, label]) => `<label><input type="radio" name="scope-crane" value="${value}" ${choice.crane === value ? 'checked' : ''}> ${label}</label>`).join(' ')}</fieldset>` : '';
+    const name = offer && !offer.full ? `${esc(C().CRANAGE_TICK)}</strong> <span class="meta">(${esc(pack.name)}: ${count})</span>` : `${esc(pack.name)}</strong> <span class="meta">(${count})</span>`;
+    const others = full ? ((mapped && mapped.byOthers) || []).map((entry, j) => {
+      const yes = (choice.answers[pack.name] || {})[entry.step] === 'yes';
+      return `<fieldset class="scope-others"><legend>Scope review: ${esc(entry.step.toLowerCase())} by others</legend><p class="meta">${esc(entry.says)}${entry.clause ? ` (${esc(entry.clause)})` : ''} Do you need this in your SWMS?</p><label><input type="radio" name="others-${index}-${j}" data-others="${index}" data-step="${esc(entry.step)}" value="no" ${yes ? '' : 'checked'}> No, leave it out</label> <label><input type="radio" name="others-${index}-${j}" data-others="${index}" data-step="${esc(entry.step)}" value="yes" ${yes ? 'checked' : ''}> Yes, our crew does some of it</label></fieldset>`;
+    }).join('') : '';
+    const clauses = full ? `<button type="button" class="small secondary" data-scope-clauses="${index}" aria-expanded="false">Show scope clauses</button><div class="scope-clauses hidden" id="scope-clauses-${index}">${pack.rows.map((row) => `<p><strong>${esc(row.activity)}</strong>${row.clause ? ` <span class="meta">${esc(row.clause)}${row.matrixColumn ? `, ${esc(row.matrixColumn)}` : ''}</span>` : ''}</p>${(row.quotes || []).map((quote) => `<blockquote>${esc(quote)}</blockquote>`).join('')}`).join('')}</div>` : '';
+    return `<div class="scope-package${on ? '' : ' off'}" id="scope-package-${index}">${question}
+      <label class="scope-package-tick"><input type="checkbox" data-package="${index}" ${on ? 'checked' : ''}> <strong>${name}</label>
+      ${offer && offer.note ? `<p class="meta scope-crane-note">${esc(offer.note)}</p>` : ''}
+      ${summary ? `<span class="scope-hrcw scope-hrcw-${summary.status}">${hrcwText(summary)}</span>` : ''}
+      ${full ? `<span class="meta scope-package-list">${pack.rows.map((row) => esc(row.activity)).join('; ')}</span>` : ''}
+      ${others}${clauses}</div>`;
+  }
+
+  function prepareButton() {
+    const count = choice.ticked.size;
+    return count === 1 ? 'Prepare this SWMS' : `Prepare these ${count} SWMS`;
+  }
+
+  // kept: the choice made before, when the user comes back to change it. waited: the user waited for
+  // the reading, so a message says it is finished.
+  function showPackages(reading, kept = null, waited = false) {
     aiReading = reading;
-    const packages = packagesOf(reading.reading);
+    const { work, duties } = C().packagesOf(reading.reading);
     const checks = reading.checks || {};
     const warn = checks.passed === false ? `<p class="note">Some of the AI's quotes could not be matched word for word to the document (${(checks.quotesNotFound || []).length + (checks.quotesShortened || []).length}). Check those tasks against the scope.</p>` : '';
     const conflicts = reading.reading.conflicts || [];
     const flags = flagsOf(reading.reading);
     const note = flags.size && window.SiteReadyHrcw ? ` ${esc(window.SiteReadyHrcw.HRCW_NOTE)}` : '';
-    $('scope-results').innerHTML = `${warn}<p class="meta" style="margin-top:10px">The AI found ${reading.reading.activities.length} activities in ${packages.length} work packages. Each package you confirm becomes one SWMS. Untick any package that is not yours, then confirm.${note}</p>
-      <div class="scope-packages">${packages.map((pack, index) => {
-        const summary = pack.work ? hrcwOf(flags.get(pack.name)) : null;
-        return `<label class="scope-package"><input type="checkbox" data-package="${index}" ${pack.work ? 'checked' : ''}> <strong>${esc(pack.name)}</strong> <span class="meta">(${pack.rows.length} ${pack.rows.length === 1 ? 'activity' : 'activities'}${pack.work ? '' : ', duties only: no SWMS needed'})</span>${summary ? `<span class="scope-hrcw scope-hrcw-${summary.status}">${hrcwText(summary)}</span>` : ''}<span class="meta scope-package-list">${pack.rows.map((row) => esc(row.activity)).join('; ')}</span></label>`;
-      }).join('')}</div>
+    const clause = C().craneClause(reading.reading);
+    const crane = kept ? kept.crane : craneNow();
+    const offer = C().cranageOffer(crane, clause);
+    choice = {
+      crane,
+      clause,
+      answers: kept ? { ...kept.answers } : {},
+      ticked: new Set(kept ? kept.chosen : work.filter((pack) => !C().isCranage(pack.name) || offer.ticked).map((pack) => pack.name)),
+    };
+    $('scope-results').innerHTML = `${warn}<p class="meta" style="margin-top:10px">The AI found ${work.reduce((sum, pack) => sum + pack.rows.length, 0)} activities in ${work.length} work packages${duties.length ? `, and ${duties.length} ${duties.length === 1 ? 'duty' : 'duties'}` : ''}. Each ticked package becomes one SWMS. Untick any you do not need, then press the Prepare button at the bottom.${note}</p>
+      <div class="scope-packages">${work.map((pack, index) => packageCard(pack, index)).join('')}</div>
+      ${duties.length ? `<details class="scope-duties"><summary>${duties.length} ${duties.length === 1 ? 'duty' : 'duties'} in the scope: no SWMS needed</summary><ul>${duties.map((row) => `<li>${esc(row.activity)}</li>`).join('')}</ul></details>` : ''}
       ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul><button type="button" class="small secondary" id="conflict-open">Show the conflicts in full</button></details>` : ''}
-      <div class="actions"><button type="button" id="scope-confirm">Confirm these work packages</button> <button type="button" class="secondary" data-scope-report>Scope review report (Word)</button></div>
+      <div class="actions scope-go"><button type="button" id="scope-confirm">${prepareButton()}</button></div>
+      <p class="error" id="scope-choice-error" role="alert"></p>
+      <p class="meta">Fill in the site details once. SiteReady then takes you through each SWMS in turn, and you can download them all together.</p>
+      <div class="actions"><button type="button" class="secondary" data-scope-report>Scope review report (Word)</button></div>
       <p class="error" id="scope-report-error"></p>`;
-    showConflicts(conflicts);
+    // After a wait, a message says the reading is finished (with a chime), then any conflicts show.
+    // Coming back to change the choice shows neither again.
+    if (kept) return;
+    if (waited && window.SiteReadyProgress) announceRead(work, () => showConflicts(conflicts));
+    else showConflicts(conflicts);
+  }
+
+  // Owner, 13 October 2026: a message pops up with a chime when the AI has finished, and its button
+  // takes the user to the work packages to choose from.
+  function announceRead(packages, after) {
+    const any = packages.length > 0;
+    window.SiteReadyProgress.announce({
+      heading: 'The scope has been read',
+      text: any ? 'The AI has finished reading the scope. You can now choose the SWMS you want to start on.' : 'The AI has finished reading the scope. It found no work packages in it.',
+      button: any ? 'Choose the SWMS' : 'Show the result',
+      tab: 'scope read',
+      go: () => {
+        const list = document.querySelector('.scope-packages') || $('scope-results');
+        if (list && list.scrollIntoView) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const first = document.querySelector('[data-package]');
+        if (first && first.focus) first.focus({ preventScroll: true });
+      },
+      after,
+    });
+  }
+
+  // Ticks, the crane answer and the scope review answers are kept as they change. A new crane
+  // answer redraws the cranage package, ticked or not as that answer offers it.
+  $('scope-results').addEventListener('change', (event) => {
+    if (!choice || !aiReading) return;
+    const { work } = C().packagesOf(aiReading.reading);
+    const target = event.target;
+    if (target.name === 'scope-crane') {
+      choice.crane = target.value;
+      const ticked = C().cranageOffer(choice.crane, choice.clause).ticked;
+      work.forEach((pack, index) => {
+        if (!C().isCranage(pack.name)) return;
+        if (ticked) choice.ticked.add(pack.name); else choice.ticked.delete(pack.name);
+        redrawCard(work, index, 'input[name="scope-crane"]:checked');
+      });
+    } else if (target.dataset && target.dataset.package !== undefined) {
+      const index = Number(target.dataset.package);
+      const pack = work[index];
+      if (target.checked) choice.ticked.add(pack.name); else choice.ticked.delete(pack.name);
+      // The cranage tick opens the package in full once it is wanted.
+      if (C().isCranage(pack.name)) redrawCard(work, index, `[data-package="${index}"]`); else $(`scope-package-${index}`).classList.toggle('off', !target.checked);
+    } else if (target.dataset && target.dataset.others !== undefined) {
+      const pack = work[Number(target.dataset.others)];
+      choice.answers[pack.name] = { ...(choice.answers[pack.name] || {}), [target.dataset.step]: target.value };
+    } else return;
+    $('scope-choice-error').textContent = '';
+    $('scope-confirm').textContent = prepareButton();
+  });
+  function redrawCard(work, index, focus) {
+    const card = $(`scope-package-${index}`);
+    card.outerHTML = packageCard(work[index], index);
+    const back = document.querySelector(`#scope-package-${index} ${focus}`);
+    if (back) back.focus();
   }
 
   // Conflicts in the scope open a pop-up. It is not modal, so the tasks can still be used.
@@ -286,38 +416,19 @@
       button.disabled = false;
     }
   }
+  // The packages ticked go straight into the project as its SWMS, one each.
   function confirmPackages() {
-    const packages = packagesOf(aiReading.reading);
-    const ticked = [...document.querySelectorAll('[data-package]')].filter((box) => box.checked).map((box) => packages[Number(box.dataset.package)]);
-    if (!ticked.length) { $('scope-error').textContent = 'Tick at least one work package.'; return; }
-    $('scope-error').textContent = '';
-    // The job steps the AI chose from the library for each package; the rule engine still adds high risk work.
-    const steps = new Map((aiReading.reading.packages || []).map((item) => [item.package, item]));
-    const flags = flagsOf(aiReading.reading);
-    show({
-      tasks: ticked.map((pack) => {
-        const rows = pack.rows.filter((row) => row.type !== 'Duty');
-        const use = rows.length ? rows : pack.rows;
-        const chosen = steps.get(pack.name);
-        return {
-          kinds: chosen ? chosen.groups : null,
-          unmatched: chosen ? chosen.unmatched : [],
-          byOthers: chosen ? (chosen.byOthers || []) : [],
-          title: pack.name,
-          // Conditions and plant stay in the task, so "near roads" or "energised switchboards" reach the high risk check.
-          task: window.SiteReadyScopeTask.packageTask(use),
-          lines: [],
-          clauses: use.map((row) => ({ activity: row.activity, clause: row.clause, quotes: row.quotes, matrixColumn: row.matrixColumn })),
-          // The same flag the package list showed; the SWMS itself settles it once its questions are answered.
-          hrcw: flags.get(pack.name) || null,
-          needsSwms: Boolean(flags.get(pack.name)) && hrcwOf(flags.get(pack.name)).status === 'yes',
-        };
-      }),
-    });
+    const { work } = C().packagesOf(aiReading.reading);
+    const chosen = work.filter((pack) => choice.ticked.has(pack.name)).map((pack) => pack.name);
+    if (!chosen.length) { $('scope-choice-error').textContent = 'Tick at least one work package.'; return; }
+    $('scope-choice-error').textContent = '';
+    // Who runs the crane is asked on the list only where there is cranage; it then holds for every SWMS.
+    const crane = work.some((pack) => C().isCranage(pack.name)) ? choice.crane : '';
+    const items = C().projectItems(aiReading.reading, chosen, { answers: choice.answers, crane });
+    startProject(items, { readingId: aiReading.id, state: aiReading.state || '', chosen, answers: choice.answers, crane });
   }
 
   $('scope-results').addEventListener('click', (event) => {
-    if (event.target.closest('#project-start')) { startProject(); return; }
     if (event.target.closest('#scope-confirm')) { confirmPackages(); return; }
     const clauses = event.target.closest('[data-scope-clauses]');
     if (clauses) {
@@ -325,20 +436,7 @@
       const open = box.classList.toggle('hidden') === false;
       clauses.textContent = open ? 'Hide scope clauses' : 'Show scope clauses';
       clauses.setAttribute('aria-expanded', String(open));
-      return;
     }
-    // Adding a task marks it and stays on the list, so the next one can be added.
-    const button = event.target.closest('[data-scope-task]');
-    if (!button) return;
-    const index = Number(button.dataset.scopeTask);
-    if (!found[index]) return;
-    if (added.has(index)) added.delete(index); else added.add(index);
-    const on = added.has(index);
-    button.textContent = on ? 'Added ✓' : 'Add this task';
-    button.classList.toggle('added', on);
-    button.setAttribute('aria-pressed', String(on));
-    button.closest('.scope-task').classList.toggle('added', on);
-    $('project-start').textContent = projectButton();
   });
 
   // The scope task's name goes once the task is replaced with the user's own.
@@ -346,18 +444,6 @@
     const taskEl = $('task');
     if (taskEl.dataset.preset && !taskEl.value.trim()) $('task-from').classList.add('hidden');
   });
-
-  // The user's answers on work the scope gives to others: Yes adds that step's group, No leaves the step out.
-  function withAnswers(item, index) {
-    if (!(item.byOthers || []).length) return item;
-    const kinds = [...(item.kinds || [])];
-    const leaveOut = [];
-    item.byOthers.forEach((entry, j) => {
-      const picked = document.querySelector(`input[name="others-${index}-${j}"]:checked`);
-      if (picked && picked.value === 'yes') { if (!kinds.includes(entry.group)) kinds.push(entry.group); } else leaveOut.push(entry.step);
-    });
-    return { ...item, kinds, leaveOut };
-  }
 
   function useTask(item, label = '') {
     const taskEl = $('task');
@@ -374,6 +460,11 @@
     taskEl.dispatchEvent(new Event('input', { bubbles: true }));
     taskEl.dataset.preset = text;
     $('task-trade').value = item.trade || '';
+    // The pick list shows the trade and task that match a SWMS from the scope; the task keeps the scope's words.
+    if (S.showPick) S.showPick(item.pick || null);
+    // Who runs the crane, as answered on the scope's list of work packages.
+    const crane = item.crane && document.querySelector(`input[name="crane"][value="${item.crane}"]`);
+    if (crane) crane.checked = true;
     // The scope reader's steps for this task are ticked when the task is used as it stands.
     window.siteReadyScopeTask = { task: text, kinds: item.kinds || null, leaveOut: item.leaveOut || null, unmatched: item.unmatched || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });
@@ -389,14 +480,40 @@
   const saveProject = () => { try { localStorage.setItem(PROJECT_KEY, JSON.stringify(project)); } catch { /* not kept */ } };
   try { project = JSON.parse(localStorage.getItem(PROJECT_KEY) || 'null'); } catch { project = null; }
 
-  function startProject() {
-    if (project && project.items.some((item) => item.body) && !confirm('Start a new project? The SWMS prepared in the current project will be cleared.')) return;
-    const chosen = found.map((item, index) => withAnswers(item, index)).filter((_item, index) => !added.size || added.has(index));
-    project = { current: 0, items: chosen.map((item) => ({ title: item.title, task: item.task, trade: item.trade || '', kinds: item.kinds || null, leaveOut: item.leaveOut || null, unmatched: item.unmatched || null, fallRisk: item.fallRisk || '', body: null, status: 'todo' })) };
+  // from: the reading and the choice the project was made from, so the choice can be changed.
+  // Changed, the SWMS already started for packages still chosen are kept as they are.
+  function startProject(items, from) {
+    const same = project && project.from && project.from.readingId === from.readingId;
+    if (same) {
+      const dropped = project.items.filter((item) => item.body && !from.chosen.includes(item.title));
+      if (dropped.length && !confirm(`Take out ${dropped.map((item) => item.title).join(', ')}? What you prepared for ${dropped.length === 1 ? 'it' : 'them'} will be lost.`)) return;
+      items = items.map((item) => project.items.find((old) => old.title === item.title && old.body) || item);
+    } else if (project && project.items.some((item) => item.body) && !confirm('Start a new project? The SWMS prepared in the current project will be cleared.')) return;
+    project = { current: 0, items, from };
     saveProject();
-    // The task list has done its job; closing it keeps the page short.
+    // The list has done its job; closing it keeps the page short.
     $('scope-panel').open = false;
-    openItem(0);
+    const next = items.findIndex((item) => item.status !== 'ready');
+    openItem(next >= 0 ? next : 0);
+  }
+
+  // Back to the list of work packages, with the choice as it was made.
+  async function changeChoice() {
+    const from = project && project.from;
+    if (!from) return;
+    $('project-error').textContent = '';
+    try {
+      const reading = aiReading && aiReading.id === from.readingId ? aiReading
+        : await S.call('GET', `/api/scope/ai/${encodeURIComponent(from.readingId)}?state=${encodeURIComponent(from.state || '')}`);
+      if (!reading || reading.status !== 'done') throw new Error('The scope reading could not be opened again. Read the scope again to change the SWMS chosen.');
+      $('scope-panel').open = true;
+      showPackages(reading, from);
+      $('scope-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const first = document.querySelector('[data-package]');
+      if (first) first.focus({ preventScroll: true });
+    } catch (error) {
+      $('project-error').textContent = error.message;
+    }
   }
 
   function openItem(index) {
@@ -452,6 +569,7 @@
     now.classList.toggle('hidden', !current);
     panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
       <p class="meta">${ready} of ${project.items.length} ready. Site details stay filled in from one SWMS to the next. You can also open any SWMS in the list.</p>
+      ${project.from ? '<div class="actions" style="margin-top:0"><button type="button" class="small secondary" id="project-change">Change the SWMS chosen</button></div>' : ''}
       <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : ['needs', 'tick', 'write'].includes(item.status) ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
       ${project.items.map((item, index) => (item.status === 'needs' && (item.needs || []).length ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, still needs before download: ${esc(item.needs.join('; '))}. ${index === project.current ? '<button type="button" class="link" data-gate-list>See what is needed</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       ${project.items.map((item, index) => (item.status === 'write' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for your own step for the work SiteReady has no job steps for. Write it with "Write a step for this" above its draft to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
@@ -523,6 +641,7 @@
     if (report) { downloadReport(report); return; }
     if (event.target.closest('[data-conflict-close]')) { closeConflicts(); return; }
     if (event.target.closest('#conflict-open')) { showConflicts(aiReading.reading.conflicts || []); return; }
+    if (event.target.closest('#project-change')) { changeChoice(); return; }
     const open = event.target.closest('[data-project-open]');
     if (open) { openItem(Number(open.dataset.projectOpen)); return; }
     if (event.target.closest('#project-close, #project-fresh')) {

@@ -28,6 +28,7 @@ const { findState } = require('./legislation');
 const { controlLearningKey } = require('./secret-keys');
 const { tradeIds } = require('./trades');
 const { ACTIVITIES } = require('./activities');
+const { ppeChanges } = require('./step-ppe');
 
 // In production, CONTROL_LEARNING_KEY must be set too, or nothing is kept (secret-keys.js).
 const enabled = () => String(process.env.CONTROL_LEARNING || '').trim().toLowerCase() === 'on' && Boolean(controlLearningKey());
@@ -291,12 +292,27 @@ function changesOf(report) {
   return out;
 }
 
+// PPE the user moved, unticked or added (D247), measured against SiteReady's suggestion for the same
+// SWMS: the item's label is SiteReady's own words, the step its step ('' for all work). Kinds:
+// ppeStepRemoved, ppeStepAdded, ppeToAllWork, ppeAllRemoved and ppeAllAdded.
+function ppeEditsOf(draft, input) {
+  if (!draft || !Array.isArray(draft.ppe) || !input) return [];
+  let before = null;
+  try { before = require('./draft').suggestedPpe(input); } catch { before = null; }
+  if (!before) return [];
+  return ppeChanges(before, draft.ppe, input).map((change) => ({ step: change.step, kind: change.kind, outcome: 'applied', original: change.item, newLine: '', warning: '', legal: '', reason: '', note: '' }));
+}
+
 // Records the changes in a saved revision, once. options: the company (its industry data choice
 // applies), the saved SWMS's id and the revision, and account: the users, sites, sign-ons and
 // reviewer's name read for it, whose names are taken out too. Returns how many were recorded.
 async function recordControlEdits(draft, input, { company, swmsId, revision = 1, now = new Date(), account = {} } = {}) {
-  if (!enabled() || !db.enabled() || !draft || !draft.controlEdits || !swmsId) return 0;
+  if (!enabled() || !db.enabled() || !draft || !swmsId) return 0;
   if (!company || company.industry_opt_out) return 0;
+  // Lines changed, and PPE the user unticked, moved to all work or added to a step (D247).
+  const ppeEdits = ppeEditsOf(draft, input);
+  if (!draft.controlEdits && !ppeEdits.length) return 0;
+  const changes = [...(draft.controlEdits ? changesOf(draft.controlEdits) : []), ...ppeEdits];
   const state = findState(input && input.state);
   const key = swmsKey(swmsId);
   const fields = {
@@ -306,7 +322,6 @@ async function recordControlEdits(draft, input, { company, swmsId, revision = 1,
     kinds: JSON.stringify(knownKinds(input)),
     highRisk: JSON.stringify((draft.highRisk || []).slice(0, 40)),
   };
-  const changes = changesOf(draft.controlEdits);
   const terms = accountTerms(accountValues(company, input || {}, account || {}));
   const keys = new Set();
   let count = 0;
@@ -487,7 +502,7 @@ const MONTHS_SHOWN = 12;
 // Changes that went into the SWMS. A refused change is not in it, and an unmatched one was made on
 // a line SiteReady no longer prints, so neither is a pattern in the library as it is.
 const MADE = new Set(['applied', 'warned']);
-const CANDIDATE_GROUPS = ['removed', 'added', 'notApplicable', 'reverted'];
+const CANDIDATE_GROUPS = ['removed', 'added', 'notApplicable', 'reverted', 'ppe'];
 // The pieces of work users wrote steps for most, listed in the report.
 const OWN_STEPS_SHOWN = 20;
 const OWN_STEPS_TITLE = 'Steps users wrote for work SiteReady does not cover';
@@ -658,6 +673,8 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
     added: patternsOf(made.filter((row) => row.kind === 'added'), (row) => sameWording(row.new_line) && at(row) + sameWording(row.new_line), chosen, threshold),
     notApplicable: patternsOf(made.filter((row) => row.kind === 'hazardNotApplicable'), (row) => at(row) + row.original, chosen, threshold),
     reverted: patternsOf(made.filter((row) => row.kept === false), (row) => `${at(row)}${row.kind}\n${row.original}\n${sameWording(row.new_line)}`, chosen, threshold),
+    // PPE users untick, move to all work or add to a step (D247), by step and item.
+    ppe: patternsOf(made.filter((row) => PPE_KINDS.has(row.kind)), (row) => `${at(row)}${row.kind}\n${row.original}`, chosen, threshold),
   };
 
   // Steps users wrote for work SiteReady does not cover, from every saved revision up to the end of
@@ -695,7 +712,7 @@ async function monthlyReport({ month, threshold = CANDIDATE_THRESHOLD, now = new
       'Months are calendar months in Queensland time (no daylight saving), as the learning tables count them. Saves and sign-ons are counted from their recorded time on the same basis.',
       'The edit rate is the changes recorded on new SWMS (their first revision) divided by the SWMS saved events of the same month. SWMS saved is counted once when a new SWMS is saved, a copy included, and not when a revision is saved, so first revisions are its like for like.',
       'Changes per saved revision covers every revision: changes new in a revision (not in the revision before of the same SWMS) divided by the revisions saved that month (the revision history). A change kept from the revision before is recorded again on each revision, so all changes recorded would count it twice.',
-      'A change is any change the user made: a line removed, changed or added, a hazard changed, added or marked "does not apply", or the Who column changed, whatever came of it (applied, warned, refused, or no longer matching a line).',
+      'A change is any change the user made: a line removed, changed or added, a hazard changed, added or marked "does not apply", the Who column changed, or a PPE item unticked, moved to all work or added to a step (measured against SiteReady\'s suggestion for the same SWMS), whatever came of it (applied, warned, refused, or no longer matching a line).',
       'Wrong answers per sign-on is the wrong check answers recorded divided by the worker sign-on events. A worker who gives up still leaves wrong answers but no sign-on, and a sign-on where a supervisor explained the SWMS has no questions.',
       'Businesses that opted out of industry data are left out of every count, by their choice today. Learning rows from before an opt out stay until deleted; saves and sign-ons from them do not count.',
       'Months before the first recorded row show no rate. The report cannot tell when learning was switched off: a month while it was off reads as no changes.',
@@ -731,8 +748,11 @@ const GROUP_TITLES = {
   added: 'Lines users keep adding',
   notApplicable: 'Hazards marked "does not apply"',
   reverted: 'Changes undone in the next revision',
+  ppe: 'PPE users change for particular steps',
 };
-const KIND_WORDS = { removed: 'removed', changed: 'changed', added: 'added', hazardChanged: 'hazard changed', hazardAdded: 'hazard added', hazardNotApplicable: 'hazard does not apply', whoChanged: 'Who changed' };
+const PPE_KINDS = new Set(['ppeStepRemoved', 'ppeStepAdded', 'ppeToAllWork', 'ppeAllRemoved', 'ppeAllAdded']);
+const KIND_WORDS = { removed: 'removed', changed: 'changed', added: 'added', hazardChanged: 'hazard changed', hazardAdded: 'hazard added', hazardNotApplicable: 'hazard does not apply', whoChanged: 'Who changed',
+  ppeStepRemoved: 'PPE unticked for the step', ppeStepAdded: 'PPE added to the step', ppeToAllWork: 'PPE moved to all work', ppeAllRemoved: 'PPE unticked for all work', ppeAllAdded: 'PPE added for all work' };
 
 function table(head, rows, empty) {
   if (!rows.length) return `${empty}\n`;
@@ -767,10 +787,12 @@ function reportMarkdown(report) {
   for (const group of CANDIDATE_GROUPS) {
     const { shown, below } = report.candidates[group];
     out.push(`### ${GROUP_TITLES[group]}`, '');
-    const head = group === 'added' ? ['Step', 'Line added', 'SWMS', 'This month', 'Goal 5 check needed']
+    const head = group === 'ppe' ? ['Step', 'Change', 'PPE item', 'SWMS', 'This month', 'Goal 5 check needed']
+      : group === 'added' ? ['Step', 'Line added', 'SWMS', 'This month', 'Goal 5 check needed']
       : group === 'reverted' ? ['Step', 'Change', 'SiteReady line', 'User line', 'SWMS', 'This month', 'Goal 5 check needed']
         : ['Step', group === 'notApplicable' ? 'Hazard' : 'Line', 'SWMS', 'This month', 'Legal requirement', 'Goal 5 check needed'];
     const rows = shown.map((item) => {
+      if (group === 'ppe') return [item.step || 'All work', KIND_WORDS[item.kind] || item.kind, item.line, item.swms, item.swmsThisMonth, 'Yes'];
       if (group === 'added') return [item.step, item.newLine, item.swms, item.swmsThisMonth, 'Yes'];
       if (group === 'reverted') return [item.step, KIND_WORDS[item.kind] || item.kind, item.line, item.newLine, item.swms, item.swmsThisMonth, 'Yes'];
       return [item.step, item.line, item.swms, item.swmsThisMonth, item.legalRequirement || 'No', 'Yes'];

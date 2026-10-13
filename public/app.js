@@ -278,7 +278,9 @@ function payload() {
     date: longDate(value('draft-date')),
     preparedBy: value('prepared-by'),
     swmsRef: value('swms-ref'),
-    ppe: document.querySelector('[data-ppe]') ? [...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value) : undefined,
+    // The PPE ticked for all work and for particular steps, and where the user put items (D247).
+    ppe: document.querySelector('[data-ppe]') ? ppeTicked() : undefined,
+    ppeSteps: Object.keys(ppePlaced).length ? ppePlaced : undefined,
     // The job steps picked, or none to use the ones SiteReady finds in the task.
     kinds: stepPicks || undefined,
     stepOrder: stepOrder || undefined,
@@ -566,6 +568,7 @@ function newSwms() {
   drawDesigns([]);
   choicesTask = null;
   ppeTouched.clear();
+  ppePlaced = {};
   // Its questions start blank.
   freshFacts = true;
   if (window.SiteReady) window.SiteReady.editing = null;
@@ -670,11 +673,96 @@ async function refreshSteps() {
   await loadQuestions({ stay: true, keepTicked: true }).catch((error) => { document.getElementById('facts-error').textContent = error.message; return false; });
 }
 
-// Ticking a harness or life jacket asks about it; unticking one takes the question away.
+// PPE for all work and PPE for particular steps (D246, D247). ppePlaced holds where the user put
+// items: an item id to 'all' (moved to all work) or to the steps it is worn in. It is sent with the
+// SWMS, which prints it and learns from it.
+let ppePlaced = {};
+let ppeShown = { groups: [], steps: [] };
 const ppeTouched = new Set();
+// Every item ticked, for all work or for a step.
+function ppeTicked() {
+  return [...new Set([...document.querySelectorAll('[data-ppe]:checked, [data-ppe-step]:checked')].map((el) => el.value))];
+}
+// The items for particular steps as shown, with their steps.
+function ppeStepItems() {
+  return ppeShown.groups.flatMap((group) => group.items).filter((item) => Array.isArray(item.steps) && item.steps.length);
+}
+function setPpe(id, on) {
+  const row = document.querySelector(`[data-ppe-step][value="${CSS.escape(id)}"]`);
+  const box = row || document.querySelector(`[data-ppe][value="${CSS.escape(id)}"]`);
+  if (box) box.checked = on;
+}
+function drawPpe(groups, steps) {
+  ppeShown = { groups: groups || [], steps: steps || [] };
+  const stepItems = ppeStepItems();
+  const forSteps = new Set(stepItems.map((item) => item.id));
+  const choices = ppeShown.groups.flatMap((group) => group.items).filter((item) => item.forSteps);
+  document.getElementById('ppe-block').innerHTML = `
+    <h3 class="ppe-head">For all work</h3>
+    ${ppeShown.groups.map((group) => `
+    <fieldset class="ppe-group">
+      <legend>${esc(group.area)}</legend>
+      ${group.items.map((item) => `<label><input type="checkbox" data-ppe value="${esc(item.id)}"${item.ticked && !forSteps.has(item.id) ? ' checked' : ''}> ${esc(item.label)}${forSteps.has(item.id) ? ' <span class="meta">(steps below)</span>' : ''}</label>`).join('')}
+    </fieldset>`).join('')}
+    <h3 class="ppe-head">For particular steps</h3>
+    <p class="meta ppe-note">Extra items only some steps need. Each one prints in its steps and in the PPE table.</p>
+    ${stepItems.length ? `<ul class="ppe-steps">${stepItems.map((item) => `
+      <li>
+        <label><input type="checkbox" data-ppe-step value="${esc(item.id)}"${item.ticked ? ' checked' : ''}> ${esc(item.label)}</label>
+        <span class="step-names">${esc(item.steps.join('; '))}</span>
+        <button type="button" class="secondary small" data-ppe-all="${esc(item.id)}">Move to all work</button>
+      </li>`).join('')}</ul>` : '<p class="meta">None. Every item ticked is for all work.</p>'}
+    ${choices.length && ppeShown.steps.length ? `<div class="field ppe-add">
+      <label for="ppe-add-item">Add an item to a step</label>
+      <select id="ppe-add-item"><option value="">Choose an item</option>${choices.map((item) => `<option value="${esc(item.id)}">${esc(item.label)}</option>`).join('')}</select>
+      <select id="ppe-add-step"><option value="">Choose a step</option>${ppeShown.steps.map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join('')}</select>
+      <button type="button" class="secondary" id="ppe-add">Add to the step</button>
+    </div>` : ''}`;
+}
+// Redraws the PPE as the user has it now: their ticks stay as they are.
+function redrawPpe() {
+  const ticked = new Set(ppeTicked());
+  drawPpe(ppeShown.groups, ppeShown.steps);
+  for (const group of ppeShown.groups) for (const item of group.items) setPpe(item.id, ticked.has(item.id));
+}
+// Ticking a harness or life jacket asks about it; unticking one takes the question away.
 document.getElementById('ppe-block').addEventListener('change', (event) => {
-  if (event.target.matches('[data-ppe]')) ppeTouched.add(event.target.value);
-  if (event.target.matches('[data-ppe][value="harness"], [data-ppe][value="lifeJacket"]')) refreshSteps();
+  const id = event.target.value;
+  if (event.target.matches('[data-ppe], [data-ppe-step]')) ppeTouched.add(id);
+  // An item for particular steps ticked for all work is moved there.
+  if (event.target.matches('[data-ppe]') && event.target.checked && ppeStepItems().some((item) => item.id === id)) {
+    ppePlaced[id] = 'all';
+    for (const group of ppeShown.groups) for (const item of group.items) if (item.id === id) { delete item.steps; item.ticked = true; }
+    redrawPpe();
+  }
+  if (['harness', 'lifeJacket'].includes(id) && event.target.matches('[data-ppe], [data-ppe-step]')) refreshSteps();
+});
+document.getElementById('ppe-block').addEventListener('click', (event) => {
+  const move = event.target.closest('[data-ppe-all]');
+  if (move) {
+    const id = move.dataset.ppeAll;
+    ppePlaced[id] = 'all';
+    ppeTouched.add(id);
+    for (const group of ppeShown.groups) for (const item of group.items) if (item.id === id) { delete item.steps; item.ticked = true; }
+    const ticked = new Set([...ppeTicked(), id]);
+    drawPpe(ppeShown.groups, ppeShown.steps);
+    for (const group of ppeShown.groups) for (const item of group.items) setPpe(item.id, ticked.has(item.id));
+    return;
+  }
+  if (event.target.id !== 'ppe-add') return;
+  const id = document.getElementById('ppe-add-item').value;
+  const step = document.getElementById('ppe-add-step').value;
+  if (!id || !step) return;
+  const item = ppeShown.groups.flatMap((group) => group.items).find((other) => other.id === id);
+  if (!item) return;
+  const ticked = new Set([...ppeTicked(), id]);
+  item.steps = [...new Set([...(Array.isArray(item.steps) ? item.steps : []), step])].sort((a, b) => ppeShown.steps.indexOf(a) - ppeShown.steps.indexOf(b));
+  item.ticked = true;
+  ppePlaced[id] = item.steps;
+  ppeTouched.add(id);
+  drawPpe(ppeShown.groups, ppeShown.steps);
+  for (const group of ppeShown.groups) for (const other of group.items) setPpe(other.id, ticked.has(other.id));
+  if (['harness', 'lifeJacket'].includes(id)) refreshSteps();
 });
 
 document.getElementById('steps-block').addEventListener('change', (event) => {
@@ -765,8 +853,87 @@ function factHtml(item) {
         <label for="fact-${esc(item.id)}">${esc(item.label)}${extra}</label>
         ${picks}
         <textarea id="fact-${esc(item.id)}" data-fact="${esc(item.id)}" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea>
+        ${questionDesign(item.id) ? `<div class="question-design" data-question-design="${esc(item.id)}"></div>` : ''}
       </div>`;
 }
+
+// ---- Designs given at their question, and blanks made plain (design-fill.js, D243, D241, D245) ----
+
+const fillRules = () => window.SiteReadyDesignFill || null;
+// The design a question's answer refers to: { id, label }, or null.
+const questionDesign = (questionId) => { const rules = fillRules(); return (rules && rules.QUESTION_DESIGNS[questionId]) || null; };
+// The questions on the page with a design, by the design's id.
+function questionsWithDesigns() {
+  const out = new Map();
+  document.querySelectorAll('#required-block [data-question-design]').forEach((el) => {
+    const design = questionDesign(el.dataset.questionDesign);
+    if (design) out.set(design.id, el.dataset.questionDesign);
+  });
+  return out;
+}
+// What each answer has filled from its design, so a change of the design replaces it.
+const designFilled = new Map();
+// Draws the design's card at each question that asks for it: the same design row as the designs
+// table, entered once. A card already drawn stays as it is while the user types.
+function drawQuestionDesigns(force = false) {
+  const rules = fillRules();
+  if (!rules) return;
+  document.querySelectorAll('#required-block [data-question-design]').forEach((holder) => {
+    const questionId = holder.dataset.questionDesign;
+    const design = questionDesign(questionId);
+    if (!design) return;
+    let row = designRow(design.id);
+    if (!row) {
+      row = designsKept.get(design.id) || { id: design.id, what: design.label, status: '', by: '', number: '', revision: '', date: '' };
+      designAnswers = [...(designAnswers || []), row];
+    }
+    if (!force && holder.querySelector(`#design-${design.id}`)) return;
+    holder.innerHTML = designCard(row, designsFound.find((found) => found.id === design.id), { question: true });
+    const box = document.getElementById(`fact-${questionId}`);
+    if (box && !designFilled.has(questionId)) designFilled.set(questionId, rules.filledFrom(box.value, row));
+  });
+  showSameNumbers();
+}
+// Fills the design blanks in a question's answer from its design, as the design is given or changed.
+function fillFromDesign(questionId) {
+  const rules = fillRules();
+  const design = questionDesign(questionId);
+  const box = document.getElementById(`fact-${questionId}`);
+  const row = design && designRow(design.id);
+  if (!rules || !box || !row) return;
+  const result = rules.fillDesign(box.value, row, designFilled.get(questionId) || []);
+  designFilled.set(questionId, result.applied);
+  if (result.text !== box.value) {
+    box.value = result.text;
+    markPicks(questionId);
+    showBlanks(box);
+  }
+}
+// A blank (____) left in an answer box: the box outlined red and a bold red warning under it naming
+// what to fill, as the user types. The download still waits for every blank (download-gate.js).
+function showBlanks(box) {
+  const rules = fillRules();
+  if (!rules || !box || !box.id) return;
+  const text = rules.blankWarning(box.value);
+  let note = document.getElementById(`${box.id}-blanks`);
+  if (!note && text) {
+    note = document.createElement('p');
+    note.id = `${box.id}-blanks`;
+    note.className = 'blank-warning';
+    note.setAttribute('role', 'status');
+    box.after(note);
+  }
+  if (note && note.textContent !== text) note.textContent = text;
+  if (note) note.hidden = !text;
+  box.classList.toggle('has-blank', Boolean(text));
+  if (text) { box.setAttribute('aria-invalid', 'true'); box.setAttribute('aria-describedby', note.id); } else { box.removeAttribute('aria-invalid'); if (note) box.removeAttribute('aria-describedby'); }
+}
+function showAllBlanks() {
+  document.querySelectorAll('#required-block textarea[data-fact], #site-block textarea[data-site]').forEach(showBlanks);
+}
+['required-block', 'site-block'].forEach((id) => document.getElementById(id).addEventListener('input', (event) => {
+  if (event.target.matches && event.target.matches('textarea[data-fact], textarea[data-site]')) showBlanks(event.target);
+}));
 
 // Draws the questions. A question already on the page stays as it is, with its answer, the cursor
 // and the scroll where they were; a new one is put in its place with any answer it had before; one
@@ -814,6 +981,8 @@ function drawRequired(required) {
   shown.forEach((el) => el.remove());
   applyShowIf();
   required.forEach((item) => markPicks(item.id));
+  drawQuestionDesigns();
+  showAllBlanks();
 }
 
 // Asks the questions again with the answers given so far, so a question an answer brings in (a
@@ -895,17 +1064,16 @@ async function loadQuestions(options = {}) {
   }
   drawRequired(data.required || []);
   // PPE the user ticked or unticked stays as they set it. The rest follows the new suggestion, and
-  // when only the steps changed, what was ticked stays ticked.
-  const ppeShown = !fresh && document.querySelector('[data-ppe]');
+  // when only the steps changed, what was ticked stays ticked. The server has already put each item
+  // where the user put it (ppeSteps).
+  const ppeWasShown = !fresh && document.querySelector('[data-ppe]');
   const ticked = new Set(Array.isArray(sent.ppe) ? sent.ppe : []);
-  document.getElementById('ppe-block').innerHTML = (data.ppe || []).map((group) => `
-    <fieldset class="ppe-group">
-      <legend>${esc(group.area)}</legend>
-      ${group.items.map((item) => `<label><input type="checkbox" data-ppe value="${esc(item.id)}"${item.ticked ? ' checked' : ''}> ${esc(item.label)}</label>`).join('')}
-    </fieldset>
-  `).join('');
-  if (ppeShown) {
-    document.querySelectorAll('[data-ppe]').forEach((el) => {
+  drawPpe(data.ppe || [], data.ppeSteps || []);
+  if (ppeWasShown) {
+    const rows = new Set([...document.querySelectorAll('[data-ppe-step]')].map((el) => el.value));
+    document.querySelectorAll('[data-ppe], [data-ppe-step]').forEach((el) => {
+      // An item for particular steps is ticked in its row, not in the all work list.
+      if (el.matches('[data-ppe]') && rows.has(el.value)) return;
       if (ppeTouched.has(el.value)) el.checked = ticked.has(el.value);
       else if (options.keepTicked && ticked.has(el.value)) el.checked = true;
     });
@@ -918,13 +1086,14 @@ async function loadQuestions(options = {}) {
     </div>
   `).join('');
   document.querySelectorAll('[data-site]').forEach((el) => { if (siteMemory[el.dataset.site] !== undefined) el.value = siteMemory[el.dataset.site]; });
+  showAllBlanks();
   drawDesigns(data.designs || []);
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
   factsForm.classList.remove('hidden');
   if (!options.stay) factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
   // The questions were asked with the PPE ticked before; if the new suggestion ticks a harness or a
   // life jacket, its questions are asked for too.
-  const now = [...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value);
+  const now = ppeTicked();
   if (Array.isArray(sent.ppe) && (now.length !== ticked.size || now.some((id) => !ticked.has(id)))) await askAgain();
   return true;
 }
@@ -974,6 +1143,7 @@ function fillStart(input) {
   plantChoice = input.plantChoice && typeof input.plantChoice === 'object' ? JSON.parse(JSON.stringify(input.plantChoice)) : null;
   plantPending = null;
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
+  ppePlaced = input.ppeSteps && typeof input.ppeSteps === 'object' ? JSON.parse(JSON.stringify(input.ppeSteps)) : {};
   designAnswers = Array.isArray(input.designs) && input.designs.length ? JSON.parse(JSON.stringify(input.designs)) : null;
   designsFound = [];
   designsKept = new Map();
@@ -999,7 +1169,11 @@ async function fillForm(input, options = {}) {
   document.querySelectorAll('[data-site]').forEach((el) => { el.value = (input.site || {})[el.dataset.site] || ''; });
   (questions && questions.required || []).forEach((item) => markPicks(item.id));
   if (Array.isArray(input.ppe)) {
-    document.querySelectorAll('[data-ppe]').forEach((el) => { el.checked = input.ppe.includes(el.value); });
+    // Clothing ticked before one garment went to each tick box (D248) is read as the new items.
+    const OLD = { siteClothing: ['sleevesLong', 'pantsLong'], longs: ['sleevesLong', 'pantsLong'], sleevesShorts: ['sleevesLong', 'shorts'] };
+    const saved = input.ppe.flatMap((id) => OLD[id] || [id]);
+    const rows = new Set([...document.querySelectorAll('[data-ppe-step]')].map((el) => el.value));
+    document.querySelectorAll('[data-ppe], [data-ppe-step]').forEach((el) => { el.checked = saved.includes(el.value) && !(el.matches('[data-ppe]') && rows.has(el.value)); });
     // The questions follow the SWMS's own PPE (a harness or life jacket brings its questions).
     await askAgain();
   }
@@ -1009,7 +1183,7 @@ async function fillForm(input, options = {}) {
 // Testing live equipment needs arc-rated clothing and insulated gloves (Model Code s 9.5).
 factsForm.addEventListener('change', (event) => {
   if (event.target.dataset.fact !== 'energisedWork' || event.target.value !== 'testing') return;
-  document.querySelectorAll('[data-ppe]').forEach((el) => { if (['arcRated', 'gloveInsulated'].includes(el.value)) el.checked = true; });
+  ['arcRated', 'gloveInsulated'].forEach((id) => setPpe(id, true));
 });
 
 // A standard answer's wording as a pattern: blanks (____) match whatever was filled in.
@@ -1041,12 +1215,15 @@ document.getElementById('required-block').addEventListener('click', (event) => {
   const pattern = pickPattern(pick.text);
   if (pattern.test(box.value)) {
     box.value = box.value.replace(pattern, '').replace(/\s{2,}/g, ' ').trim();
+    showBlanks(box);
     markPicks(item.id);
     askAgain();
     box.focus();
     return;
   }
   box.value = box.value.trim() ? `${box.value.trim()} ${pick.text}` : pick.text;
+  if (questionDesign(item.id)) fillFromDesign(item.id);
+  showBlanks(box);
   markPicks(item.id);
   // A standard answer can bring in another question (a harness named in the fall control).
   askAgain();
@@ -1109,12 +1286,28 @@ function showPresetNote(item) {
   presetNote.classList.toggle('hidden', !text);
 }
 
-tradeEl.addEventListener('change', () => {
-  const trade = trades[Number(tradeEl.value)];
+function listTasks(trade) {
   presetEl.innerHTML = '<option value="">Choose a task</option>' + (trade ? trade.tasks.map((item, index) => `<option value="${index}">${esc(item.title)}</option>`).join('') : '');
   presetEl.disabled = !trade;
+}
+
+tradeEl.addEventListener('change', () => {
+  listTasks(trades[Number(tradeEl.value)]);
   showPresetNote(null);
 });
+
+// A SWMS from a scope shows the pick list trade, and the task where one fits, that match its work
+// (owner testing, 13 October 2026: "No Trade comes up and its clear it formwork"). The task box keeps
+// the scope's own words and the scope's job steps; picking another task from the list replaces them.
+async function showPick(pick) {
+  await presetsLoaded;
+  const at = pick ? trades.findIndex((trade) => trade.id === pick.trade) : -1;
+  tradeEl.value = at >= 0 ? String(at) : '';
+  listTasks(trades[at]);
+  const task = at >= 0 && pick.task ? trades[at].tasks.findIndex((item) => item.id === pick.task) : -1;
+  presetEl.value = task >= 0 ? String(task) : '';
+  showPresetNote(null);
+}
 
 presetEl.addEventListener('change', () => {
   const trade = trades[Number(tradeEl.value)];
@@ -1134,7 +1327,7 @@ presetEl.addEventListener('change', () => {
   if (crane) crane.checked = true;
 });
 
-loadPresets();
+const presetsLoaded = loadPresets();
 
 document.querySelectorAll('input[name="fallRisk"], input[name="residential"]').forEach((input) => {
   input.addEventListener('change', showFallExplanation);
@@ -1352,7 +1545,10 @@ const isMethodRow = (row) => Boolean(row && /^method-\d+$/.test(row.id || ''));
 const ownRow = (row) => Boolean(row && /^(?:added|method)-\d+$/.test(row.id || ''));
 const methodTyped = (row) => ['what', 'by', 'number', 'revision', 'date'].some((key) => String(row[key] || '').trim()) || Boolean(row.file);
 function designsPayload() {
-  const rows = (designAnswers || []).filter((row) => row.id && (isMethodRow(row) ? methodTyped(row) : (!/^added-/.test(row.id) || String(row.what || '').trim())));
+  // A design shown only at its question (D243) and not answered there is not sent.
+  const askedIds = Object.values((fillRules() || {}).QUESTION_DESIGNS || {}).map((item) => item.id);
+  const onlyAsked = (row) => !row.status && askedIds.includes(row.id) && !designsFound.some((found) => found.id === row.id);
+  const rows = (designAnswers || []).filter((row) => row.id && !onlyAsked(row) && (isMethodRow(row) ? methodTyped(row) : (!/^added-/.test(row.id) || String(row.what || '').trim())));
   return rows.length ? rows.map((row) => ({ ...row })) : undefined;
 }
 // Whether files can be attached here (the storage bucket, or a local run), and the size limit.
@@ -1365,17 +1561,29 @@ async function designFilesOn() {
 }
 const fileSize = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
 let designsDrawn = '';
-function designCard(row, found) {
+// Details read from the drawing's typed words (D249, D250): an amber note until the user ticks that
+// they match the title block, which the download waits for (gate-rules.js designNeed).
+const readFields = (row) => (row && row.read && Array.isArray(row.read.fields) ? row.read.fields : []);
+function readNote(row) {
+  if (!readFields(row).length) return '';
+  const checked = row.read.checked === true;
+  return `<div class="design-read${checked ? ' checked' : ''}">${checked ? '' : '<p class="warning design-read-note">Read from the drawing: check it matches the title block.</p>'}
+    <label class="check"><input type="checkbox" data-design-read-check="${esc(row.id)}"${checked ? ' checked' : ''}> These match the drawing</label></div>`;
+}
+function designCard(row, found, { question = false } = {}) {
   const id = esc(row.id);
   const added = /^added-/.test(row.id);
   const status = row.status || '';
   const radio = (value, label) => `<label><input type="radio" name="design-status-${id}" value="${value}" data-design-field="status"${status === value ? ' checked' : ''}> ${label}</label>`;
-  const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
+  const read = (key) => (readFields(row).includes(key) && row.read.checked !== true ? ' class="design-read-field"' : '');
+  const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"${read(key)}></div>`;
   return `<fieldset class="field design-card" id="design-${id}" data-design="${id}" data-status="${esc(status)}" tabindex="-1">
     <legend>${esc(row.what || (added ? 'Another design' : (found && found.label) || 'Design'))}</legend>
-    ${found && found.steps.length ? `<p class="meta">Used in: ${esc(found.steps.join('; '))}.</p>` : '<p class="meta">Prints in the designs table near the top of the SWMS.</p>'}
+    ${question ? '<p class="meta">Give the design once here. Its number and revision fill the answer above, and it prints in the designs table near the top of the SWMS.</p>' : ''}
+    ${found && found.steps.length ? `<p class="meta">Used in: ${esc(found.steps.join('; '))}.</p>` : question ? '' : '<p class="meta">Prints in the designs table near the top of the SWMS.</p>'}
     <div class="choice design-status">${radio('given', 'I have it')}${radio('notIssued', 'Not issued yet')}${radio('notNeeded', 'Not needed for this work')}</div>
     <div class="design-given">
+      ${readNote(row)}
       ${box('what', 'What it is', 'As the design is titled, for example Shoring design or Formwork design.', 'text', 200)}
       ${box('by', 'Who prepared it', 'The engineer or firm, for example Smith Engineering.', 'text', 200)}
       <div class="design-pair">${box('number', 'Document or drawing number', 'From the title block, for example ABC-S-101.')}${box('revision', 'Revision', 'For example C. Leave it empty if it has none.', 'text', 40)}</div>
@@ -1395,7 +1603,7 @@ function designFileBox(row, what) {
     ? `<p class="design-file">Attached: <strong>${esc(row.file.name)}</strong> <span class="meta">(${esc(fileSize(row.file.size || 0))})</span> <button type="button" class="link" data-design-open="${id}">Open</button> <button type="button" class="link" data-design-unfile="${id}">Remove the file</button></p>`
     : `<label class="secondary small design-attach" for="design-${id}-file">Attach the file</label><input id="design-${id}-file" class="visually-hidden" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" data-design-file="${id}">`;
   return `<div class="field design-file-box"><p class="design-file-label">The file <span class="meta">(optional)</span></p>
-        <p class="meta">A PDF, or a photo of the ${what}, up to 10 MB. It stays with this SWMS in SiteReady, for you and your reviewer to open. It does not print.</p>
+        <p class="meta">A PDF, or a photo of the ${what}, up to 10 MB. It stays with this SWMS in SiteReady, for you and your reviewer to open. It does not print.${what === 'drawing' ? ' SiteReady reads the typed words of a PDF\'s title block to fill in the details above for you to check. It does not read the drawing itself, a scan or a photo.' : ''}</p>
         ${file}<p class="meta design-file-msg" data-design-msg="${id}" role="status"></p></div>`;
 }
 // A written method's card: the same details and file as a design, with no status to choose (the
@@ -1443,13 +1651,16 @@ function drawDesigns(list) {
     const mine = designsKept.get(found.id);
     return mine || { id: found.id, what: found.what, status: found.status || '', by: found.by || '', number: found.number || '', revision: found.revision || '', date: found.date || '', ...(found.file ? { file: found.file } : {}) };
   });
+  // A design given at its question (D243) and not in the steps, kept as typed.
+  const atQuestions = questionsWithDesigns();
+  const asked = [...atQuestions.keys()].filter((id) => !rows.some((row) => row.id === id)).map((id) => designsKept.get(id) || answers.find((row) => row.id === id)).filter(Boolean);
   // The designs the user added, then the written methods, each kept as typed.
-  const added = [...answers.filter((row) => /^added-/.test(row.id)), ...answers.filter(isMethodRow)];
+  const added = [...asked, ...answers.filter((row) => /^added-/.test(row.id)), ...answers.filter(isMethodRow)];
   designAnswers = rows.length || added.length ? [...rows, ...added] : null;
   const section = document.getElementById('designs-section');
   if (!section) return;
-  const shape = JSON.stringify([designsFound.map((row) => [row.id, row.label, row.steps]), added.map((row) => row.id)]);
-  const designs = (designAnswers || []).filter((row) => !isMethodRow(row));
+  const shape = JSON.stringify([designsFound.map((row) => [row.id, row.label, row.steps]), added.map((row) => row.id), [...atQuestions.keys()]]);
+  const designs = (designAnswers || []).filter((row) => !isMethodRow(row) && !atQuestions.has(row.id));
   const methods = (designAnswers || []).filter(isMethodRow);
   section.classList.toggle('hidden', !designs.length);
   // The written methods: optional, on every draft, under the designs (D224).
@@ -1459,6 +1670,7 @@ function drawDesigns(list) {
   if (methodAdd) methodAdd.textContent = methods.length ? 'Add another written methodology or sequence of works (optional)' : 'Add a written methodology or sequence of works (optional)';
   if (shape === designsDrawn) { showSameNumbers(); return; }
   designsDrawn = shape;
+  drawQuestionDesigns(true);
   document.getElementById('designs-block').innerHTML = designs.map((row) => designCard(row, designsFound.find((found) => found.id === row.id))).join('');
   const methodsBlock = document.getElementById('methods-block');
   if (methodsBlock) methodsBlock.innerHTML = methods.map((row) => methodCard(row)).join('');
@@ -1486,10 +1698,11 @@ function showSameNumbers() {
 function redrawDesigns() {
   designsDrawn = '';
   drawDesigns(designsFound);
+  drawQuestionDesigns(true);
 }
 const designsBlock = document.getElementById('designs-block');
 // The written methods' cards work as the designs' do.
-const designBlocks = [designsBlock, document.getElementById('methods-block')].filter(Boolean);
+const designBlocks = [designsBlock, document.getElementById('methods-block'), document.getElementById('required-block')].filter(Boolean);
 // What the user types or picks in a card is kept as they go.
 ['input', 'change'].forEach((type) => designBlocks.forEach((block) => block.addEventListener(type, (event) => {
   const field = event.target.dataset && event.target.dataset.designField;
@@ -1503,6 +1716,11 @@ const designBlocks = [designsBlock, document.getElementById('methods-block')].fi
   if (field === 'what') card.querySelector('legend').textContent = event.target.value.trim() || (isMethodRow(row) ? 'Written methodology or sequence of works' : 'Another design');
   if (['what', 'status', 'number', 'revision'].includes(field)) showSameNumbers();
   if (isMethodRow(row)) showMethodNeed(row);
+  // The answer at the design's question follows it (D243).
+  if (['status', 'number', 'revision'].includes(field)) {
+    const questionId = questionsWithDesigns().get(row.id);
+    if (questionId) fillFromDesign(questionId);
+  }
 })));
 document.getElementById('design-add') && document.getElementById('design-add').addEventListener('click', () => {
   const used = new Set((designAnswers || []).map((row) => row.id));
@@ -1568,10 +1786,58 @@ designBlocks.forEach((block) => block.addEventListener('change', async (event) =
     redrawDesigns();
     keepUnsaved();
     if (typeof showGate === 'function' && shownDraft) showGate();
+    if (row && !isMethodRow(row)) await readDrawing(id);
   } catch (error) {
     say(error.message);
     input.value = '';
   }
+}));
+
+// The drawing just attached is read for its title block (D249): its typed words only. What is found
+// fills the card, marked as read until the user ticks that it matches; a scan or a photo is typed.
+async function readDrawing(id) {
+  const S = window.SiteReady || {};
+  const row = designRow(id);
+  if (!row || !row.file || !S.call) return;
+  const fileId = row.file.id;
+  const say = (text) => { const msg = document.querySelector(`[data-design-msg="${id}"]`); if (msg) msg.textContent = text; };
+  say('Reading the typed words on the drawing...');
+  let data;
+  try {
+    data = await S.call('POST', '/api/designs/read', { fileId });
+  } catch (error) {
+    say(error.message);
+    return;
+  }
+  const now = designRow(id);
+  if (!now || !now.file || now.file.id !== fileId) return;
+  // What it is is filled only when empty: a design SiteReady named keeps its name.
+  const fields = (data.read || []).filter((key) => key !== 'what' || !String(now.what || '').trim());
+  for (const key of fields) now[key] = data.details[key];
+  if (fields.length) {
+    now.status = 'given';
+    now.read = { fields, checked: false };
+  }
+  redrawDesigns();
+  const questionId = questionsWithDesigns().get(id);
+  if (questionId) fillFromDesign(questionId);
+  keepUnsaved();
+  if (typeof showGate === 'function' && shownDraft) showGate();
+  const msg = document.querySelector(`[data-design-msg="${id}"]`);
+  if (msg) msg.textContent = fields.length ? '' : 'SiteReady found none of the details in the drawing\'s typed words. Type them.';
+}
+// Ticking that the details read match the drawing; untick to check again.
+designBlocks.forEach((block) => block.addEventListener('change', (event) => {
+  const tick = event.target.closest && event.target.closest('[data-design-read-check]');
+  if (!tick) return;
+  const row = designRow(tick.dataset.designReadCheck);
+  if (!row || !row.read) return;
+  row.read.checked = tick.checked;
+  redrawDesigns();
+  const questionId = questionsWithDesigns().get(row.id);
+  if (questionId) fillFromDesign(questionId);
+  keepUnsaved();
+  if (typeof showGate === 'function' && shownDraft) showGate();
 }));
 
 // ---- The plant and the emergency response, asked in the draft (goal 2) ----
@@ -1729,7 +1995,10 @@ function render(draft, { movable = false, swmsId = '' } = {}) {
     // A design's reference or hold point is changed under Designs this work relies on, not here.
     const fromDesign = new Set(step.designLines || []);
     const designItem = (line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}" class="design-line${/^Hold point:/.test(line) ? ' design-hold-line' : ''}">${esc(line)}<span class="meta"> From the designs this work relies on. Change it there.</span></li>`;
-    return `<ul>${step.controls.map((line, i) => (fromDesign.has(line) ? designItem(line, i) : `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`)).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+    // The step's PPE line (D246) is changed under Personal protective equipment, as design lines are under Designs.
+    const fromPpe = new Set(step.ppeLines || []);
+    const ppeItem = (line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}" class="ppe-line">${esc(line)}<span class="meta"> PPE for this step. Change it under Personal protective equipment.</span></li>`;
+    return `<ul>${step.controls.map((line, i) => (fromDesign.has(line) ? designItem(line, i) : fromPpe.has(line) ? ppeItem(line, i) : `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`)).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
       ${shared(step) ? `<p class="ctl-shared">${esc(shared(step))}</p>` : ''}
       ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
       ${hidden ? `<button type="button" class="secondary ctl-show" data-ctl-more="${index}">Show all ${step.controls.length} controls</button>` : ''}
@@ -1782,7 +2051,10 @@ function render(draft, { movable = false, swmsId = '' } = {}) {
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
     ${(draft.emergency || []).length ? `<h4>Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}${movable ? emergencyBlock(draft) : ''}` : ''}
     ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? folded('Legislation and codes of practice', grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]), `${draft.sources.legislation.length + draft.sources.codes.length} listed`) : ''}`;
-  const ppe = `<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.map((item) => `${item.ticked ? '&#9745;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}</td></tr>`).join('')}</tbody></table>`;
+  // PPE for all work, then the extra items for particular steps with their steps (D246).
+  const forSteps = (draft.ppe || []).flatMap((group) => group.items.filter((item) => item.ticked && Array.isArray(item.steps) && item.steps.length));
+  const ppe = `${forSteps.length ? '<p class="ppe-sub"><strong>For all work</strong></p>' : ''}<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.filter((item) => !(item.ticked && Array.isArray(item.steps))).map((item) => `${item.ticked ? '&#9745;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}${group.items.some((item) => item.ticked && Array.isArray(item.steps)) ? ` <em class="meta">For particular steps (below): ${esc(group.items.filter((item) => item.ticked && Array.isArray(item.steps)).map((item) => item.label).join(', '))}</em>` : ''}</td></tr>`).join('')}</tbody></table>`
+    + (forSteps.length ? `<p class="ppe-sub"><strong>For particular steps</strong> <span class="meta">Worn as well as the PPE for all work, in the steps listed. Each step says so.</span></p><table><tbody>${forSteps.map((item) => `<tr><th>&#9745; ${esc(item.label)}</th><td>${esc(item.steps.join('; '))}</td></tr>`).join('')}</tbody></table>` : '');
   const people = `<table><tbody>
       ${row('Works manager', draft.worksManager) || '<tr><th>Works manager</th><td></td></tr>'}
       ${row('Contact phone', draft.worksManagerPhone) || '<tr><th>Contact phone</th><td></td></tr>'}
@@ -2788,7 +3060,7 @@ function redrawActions() {
 
 window.SiteReady = Object.assign(window.SiteReady || {}, {
   keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers,
-  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
+  api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });

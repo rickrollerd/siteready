@@ -142,6 +142,7 @@ function normaliseSwms(input = {}) {
     steps: (Array.isArray(input.steps) ? input.steps : []).filter((item) => item && typeof item === 'object')
       .map((item) => ({ step: text(item.step), hazards: list(item.hazards), controls: list(item.controls), responsible: text(item.responsible), rating: ratingOf(item) })),
     ppe: list(input.ppe),
+    stepPpeLines: list(input.stepPpeLines),
     responsiblePerson: text(input.responsiblePerson),
     consultation: text(input.consultation),
     signatures,
@@ -935,7 +936,10 @@ function weighted(swms, state, context) {
   {
     const fixes = [];
     let points = 0;
-    const levels = allControls.filter((line) => !isDesignLine(line)).map(controlLevel);
+    // A step's own PPE line (D246) says in the step what the PPE table lists, which is not counted
+    // either, so it does not count as a PPE control here.
+    const stepPpe = new Set(swms.stepPpeLines || []);
+    const levels = allControls.filter((line) => !isDesignLine(line) && !stepPpe.has(line)).map(controlLevel);
     // Judged across every step, so a step with no controls counts against the score: a SWMS
     // that controls 2 of its 21 steps does not get full marks for those 2.
     const risky = steps.filter((step) => highRiskMatches(stepText(step, swms.task), swms.fallRisk, state).length);
@@ -954,7 +958,9 @@ function weighted(swms, state, context) {
   {
     const fixes = [];
     // A design's reference or hold point (designs.js) names a document or a stop: it is checkable.
-    const share = allControls.length ? allControls.filter((line) => checkable(line) || isDesignLine(line)).length / allControls.length : 0;
+    // So does a step's own PPE line (D246): the PPE it names is worn or it is not.
+    const stepPpe = new Set(swms.stepPpeLines || []);
+    const share = allControls.length ? allControls.filter((line) => checkable(line) || isDesignLine(line) || stepPpe.has(line)).length / allControls.length : 0;
     let points = 10 * Math.min(1, share / 0.4);
     // Vague wording costs in proportion to how much of the SWMS it is, so one phrase does not zero it,
     // but each vague line costs at least 1 point (owner decision, 6 October 2026: a vague line that
@@ -1064,7 +1070,9 @@ function weighted(swms, state, context) {
     const fixes = [];
     let points = 2;
     // A design's reference or hold point is not counted as length: it names the document the step is done to.
-    if (allControls.filter((line) => !isDesignLine(line)).length > 120 || steps.length > 25) { points -= 2; fixes.push('Shorten the SWMS to the high risk hazards and their controls.'); }
+    // Nor is a step's own PPE line (D246): it says in the step what the PPE table already lists.
+    const stepPpe = new Set(swms.stepPpeLines || []);
+    if (allControls.filter((line) => !isDesignLine(line) && !stepPpe.has(line)).length > 120 || steps.length > 25) { points -= 2; fixes.push('Shorten the SWMS to the high risk hazards and their controls.'); }
     add('W8', 'Readable and short', 2, points, fixes, 'Short and to the point.');
   }
 
@@ -1101,9 +1109,12 @@ function weighted(swms, state, context) {
     const fixes = [];
     // A design's reference or hold point (designs.js) is not a control in the hierarchy.
     const ordered = steps.map((step) => ({ ...step, controls: step.controls.filter((line) => !isDesignLine(line)) }));
-    const judged = ordered.filter((step) => step.controls.some((line) => HIGHER.has(controlLevel(line))) && step.controls.some((line) => !HIGHER.has(controlLevel(line))));
+    // A step's own PPE line (step-ppe.js, D246) is PPE, though it names insulated gloves.
+    const stepPpe = new Set(swms.stepPpeLines || []);
+    const higherLevel = (line) => !stepPpe.has(line) && HIGHER.has(controlLevel(line));
+    const judged = ordered.filter((step) => step.controls.some((line) => higherLevel(line)) && step.controls.some((line) => !higherLevel(line)));
     const outOfOrder = judged.filter((step) => {
-      const higher = step.controls.map((line) => HIGHER.has(controlLevel(line)));
+      const higher = step.controls.map((line) => higherLevel(line));
       return higher.lastIndexOf(true) > higher.indexOf(false);
     });
     const points = judged.length ? 3 * ((judged.length - outOfOrder.length) / judged.length) : 3;
@@ -1310,7 +1321,11 @@ function fromDraft(draft, extra = {}) {
     site: { address: draft.workplace, conditions },
     highRisk: draft.highRisk || [],
     steps,
+    // Every PPE item ticked, for all work or for particular steps (D246): one a single step needs is
+    // still in the SWMS's PPE.
     ppe: (draft.ppe || []).flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.label)),
+    // Each step's own PPE line (D246): it names the PPE, so it is checkable, and it is not length.
+    stepPpeLines: (draft.jobSteps || []).flatMap((step) => step.ppeLines || []),
     responsiblePerson: draft.complianceResponsible || draft.siteManager || draft.worksManager || '',
     consultation: '',
     signatures: (draft.workers || []).filter((row) => filled(row.name)),

@@ -205,7 +205,7 @@ function asPackages(steps) {
 
 // The steps left out are not matched to the library. Returns the reading as used, the AI's answer as
 // given (for the check against the brief) and what was left out.
-async function readMethod(text) {
+async function readMethod(text, id) {
   const { value, usage, model } = await aiScope.callModel({ system: METHOD_BRIEF, content: `<document>\n${text}\n</document>`, schema: METHOD_SCHEMA, effort: 'high' });
   if (!validMethodReading(value)) throw fail(502, 'The AI\'s answer was not in the expected form. Try again.');
   const given = value.isMethodology ? value.steps : [];
@@ -214,6 +214,7 @@ async function readMethod(text) {
   const out = { answer: value, dropped, given: given.length, model };
   if (!steps.length) return { ...out, reading: { ...value, steps, groups: [], dropped: counts }, usage };
   // The first call's cost is kept with the error when the second fails.
+  if (id) await aiScope.markStage(id, 'steps');
   const mapped = await aiScope.mapSteps(asPackages(steps)).catch((error) => { throw Object.assign(error, { usage }); });
   const byName = new Map(mapped.packages.map((item) => [item.package, item]));
   const groups = steps.map((row, index) => (byName.get(stepPackage(row, index)) || { groups: [] }).groups);
@@ -256,6 +257,7 @@ function rowOut(row) {
   return {
     id: row.id,
     status: row.status,
+    progress: aiScope.progressOf(row),
     error: row.error || '',
     isMethodology: reading ? reading.isMethodology : null,
     notMethodology: reading ? reading.notMethodology : '',
@@ -288,9 +290,10 @@ async function startReading(company, { text, pagesNotRead = [] }) {
     [company.id, hash, METHOD_BRIEF_VERSION]);
   if (kept) return { ...rowOut(kept), kept: true };
   const id = crypto.randomUUID();
-  await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-    [id, company.id, hash, METHOD_BRIEF_VERSION, aiScope.MODEL, 'reading', content.length, new Date()]);
-  const work = readMethod(content)
+  const now = new Date();
+  await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at, stage, stage_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $8)',
+    [id, company.id, hash, METHOD_BRIEF_VERSION, aiScope.MODEL, 'reading', content.length, now, 'reading']);
+  const work = readMethod(content, id)
     .then(async ({ reading, answer, dropped, given, usage, model }) => {
       // The check is of the AI's answer as given, with what was left out of it, for the owner's AI
       // readings page. Only when every step it gave was left out is the reading not used.
@@ -305,7 +308,7 @@ async function startReading(company, { text, pagesNotRead = [] }) {
       await db.query('UPDATE ai_readings SET status = $2, error = $3, usage = $4, cost_usd = $5, finished_at = $6 WHERE id = $1',
         [id, 'failed', aiScope.errorMessage(error), JSON.stringify(spent), aiScope.costOf(spent), new Date()]).catch(() => {});
     });
-  return { id, status: 'reading', kept: false, pagesNotRead, done: work };
+  return { id, status: 'reading', kept: false, pagesNotRead, progress: aiScope.progressOf({ status: 'reading', stage: 'reading', created_at: now, characters: content.length }), done: work };
 }
 
 async function getReading(company, id) {

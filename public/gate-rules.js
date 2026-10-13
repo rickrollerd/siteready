@@ -76,7 +76,10 @@
       .filter(([key]) => { const text = clean(item[key]); return !text || leftOpen(text) || NOT_YET.test(text); }).map(([, words]) => words);
     if (!clean(item.what) || leftOpen(item.what)) missing.unshift('what the design is');
     if (leftOpen(item.revision)) missing.push('its revision (or leave the revision empty)');
-    if (!missing.length) return '';
+    // Details read from the drawing (D249, D250): the user ticks that they match its title block.
+    const read = item.read && Array.isArray(item.read.fields) && item.read.fields.length && item.read.checked !== true;
+    if (!missing.length) return read ? `For ${what}, check the details read from the drawing against its title block and tick "These match the drawing".` : '';
+    if (read) missing.push('tick "These match the drawing" once checked');
     return `For ${what}, give ${missing.length > 1 ? `${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]}` : missing[0]}.`;
   }
 

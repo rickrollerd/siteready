@@ -248,10 +248,15 @@ test('ducting connected on the roof is ductwork, and fire dampeners are fire dam
   assert.ok(flags.ductwork && flags.fireDampers);
 });
 
-test('sleeves and pants follow the site rules unless the work needs long clothing', () => {
-  const ticked = (task) => prepareDraft({ state: 'qld', task, fallRisk: 'no', residential: 'no' }).ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
-  assert.ok(ticked('Install ductwork in the ceiling.').includes('siteClothing'));
-  assert.ok(!ticked('Install ductwork in the ceiling.').includes('longs'));
+test('long sleeves and long pants are ticked for every SWMS, one garment to a box (D248)', () => {
+  // As the questions page suggests them, and as the draft prints them.
+  const ticked = (task) => questionsFor({ state: 'qld', task, fallRisk: 'no', residential: 'no' }).ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
+  const printed = prepareDraft({ state: 'qld', task: 'Install ductwork in the ceiling.', fallRisk: 'no', residential: 'no' }).ppe.flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
+  assert.ok(printed.includes('sleevesLong') && printed.includes('pantsLong'));
+  for (const task of ['Install ductwork in the ceiling.', 'Weld steel brackets to the columns.']) {
+    assert.ok(ticked(task).includes('sleevesLong') && ticked(task).includes('pantsLong'), task);
+    assert.ok(!ticked(task).includes('sleevesShort') && !ticked(task).includes('shorts'), task);
+  }
 });
 
 test('mechanical work has one step per activity: hangers, ductwork, pipework and units are separate', () => {

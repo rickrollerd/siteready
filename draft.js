@@ -1,5 +1,6 @@
 const { HIERARCHY, SITE_FIELDS, findState, highRiskList } = require('./legislation');
 const { jobStepsFor, ppeFor, ACTIVITIES, CITE } = require('./activities');
+const { splitPpe, withStepPpeLines, ALL_WORK_ONLY } = require('./step-ppe');
 // Lines are read for their words without the state's own code references, so a code's title does not
 // count as the line's wording (scenarios/state-codes.json; the line itself in Queensland and NSW).
 const { localControl, withoutStateCodes } = require('./citations');
@@ -182,8 +183,11 @@ const withoutNewMaterial = (text) => String(text || '').replace(/\b(?:install\w*
 // Demolition or strip-out in an existing building needs asbestos identified first (WHS Reg s 450 to s 452).
 const asbestosLikely = (text) => (/\b(?:paint\w*|clean\w*|pressure wash\w*|re-?coat\w*)\b[^.]{0,20}\b(?:a |the )?(?:house |existing |old )?roofs?\b/i.test(String(text || '')) && !/\b(colorbond|metal|iron|steel|new|tiled?|tiles)\b/i.test(String(text || '')) && !/\bbuilt (?:in )?(?:200[4-9]|20[1-9]\d)\b/i.test(String(text || ''))) || /\b(replac|remov|chang|upgrad)\w* (?:a |the )?(?:old |existing |residential )?(?:main )?(?:switchboards?|meter (?:box|board|panel)s?)\b/i.test(String(text || '')) || (/\brewir\w*\b/i.test(String(text || '')) && OLDER_BUILDING.test(String(text || ''))) || (/\b(strip[- ]?outs?|demolish\w*|demolition)\b/i.test(String(text || '')) && !servicesOnlyDemolition(text) && !/\b(temporary|formwork|falsework|scaffold\w*)\b/i.test(String(text || '')) && !/\bbuilt (?:in )?(?:200[4-9]|20[1-9]\d)\b/i.test(String(text || ''))) || DISTURB.test(String(text || '')) && (ASBESTOS_MATERIAL.test(withoutNewMaterial(text)) || (OLDER_BUILDING.test(String(text || '')) && /\b(walls?|ceilings?|floors?|eaves|roofs?|bathroom|kitchen|laundry|sheets?|linings?)\b/i.test(String(text || '')) && !(/\b(sandstone|stone|bricks?|brickwork|masonry|blockwork|bluestone|granite)\b/i.test(String(text || '')) && /\b(re-?point\w*|rak\w* out|mortar|clean\w*|repair\w*)\b/i.test(String(text || '')) && !/\b(ceilings?|eaves|sheets?|linings?|fibro|vinyl)\b/i.test(String(text || '')))));
 // Cleaning that is part of another trade's work (cleaning steel free from scale, trade
-// cleaning of glazing, cleaning out forms before a pour) is not a cleaning task.
-const INCIDENTAL_CLEANING = /\b(?:trade cleaning|cleaning (?:up )?free (?:of|from)|(?:for )?cleaning (?:the )?glass|clean(?:ing)? out\b|cleaning (?:of )?(?:forms|formwork|joints|rebates|surfaces? (?:before|prior))|clean(?:ing)? (?:and|&) prim\w*|initial cleaning)\b[^.,;]*/gi;
+// cleaning of glazing, cleaning out forms before a pour) is not a cleaning task. Nor is the
+// cleaning in formwork, reinforcement and pour work (owner testing, 13 October 2026: "Why did clean
+// with chemicals come up?"): cleaning the decks, reinforcement or forms before a pour, cleaning,
+// de-nailing and stacking stripped formwork, and the vacuum cleaners used to blow out the forms.
+const INCIDENTAL_CLEANING = /\b(?:trade cleaning|cleaning (?:up )?free (?:of|from)|(?:for )?cleaning (?:the )?glass|clean(?:ing)? out\b|cleaning (?:of )?(?:forms|formwork|joints|rebates|surfaces? (?:before|prior))|clean(?:ing)? (?:and|&) prim\w*|initial cleaning|vacuum cleaners?|clean\w*,? (?:and )?de-?nail\w*|clean\w* (?:of )?(?:all )?(?:the )?(?:stripped )?(?:reinforcement|reo|(?:formwork |form |slab )?decks?|(?:stripped )?(?:formwork|forms)|formed (?:structural )?members)\b|clean\w* (?:[\w-]+ ){1,5}(?:before|prior to) (?:the )?(?:commencement of )?(?:the )?(?:concrete )?pours?)\b[^.,;]*/gi;
 const incidentalCleaning = (text) => String(text || '').replace(INCIDENTAL_CLEANING, '');
 const CLEANING = /\b(clean\w* (?:the |all )?(?:windows?|glass|glazing|facades?)|strip\w* and (?:re-?)?seal\w* (?:the )?(?:[\w-]+ ){0,2}floors?|floor scrubbers?|scrub\w* (?:the )?(?:[\w-]+ )?floors?|builders'? clean|final clean|cleaning|cleaners?|clean (?:a |the )?(?:building )?site|clean\w* [^.]{0,30}practical completion)\b/i;
 
@@ -2632,8 +2636,14 @@ function stepPicks(task, facts, state) {
 // The questions for a task, and, before any are answered, whether the SWMS will be stood down for
 // want of job steps for the work, so the user hears it here and not only at the draft.
 function questionsFor(input) {
-  const asked = askQuestions(input);
-  if (asked.kind !== 'questions') return asked;
+  const found = askQuestions(input);
+  if (found.kind !== 'questions') return found;
+  // The PPE suggested for all work and for particular steps, read from the steps the SWMS would print.
+  // Should the steps fail to build, the page still gets the PPE list as before.
+  let suggested = null;
+  try { suggested = buildDraft({ ...input, ppe: undefined }, 'ppe'); } catch { suggested = null; }
+  // Items that can go with a step are marked so the page offers them for adding to one.
+  const asked = suggested && Array.isArray(suggested.ppe) ? { ...found, ppe: suggested.ppe.map((group) => ({ ...group, items: group.items.map((item) => ({ ...item, forSteps: !ALL_WORK_ONLY.has(item.id) })) })), ppeSteps: suggested.steps } : found;
   const reason = buildDraft(input, 'steps');
   if (!reason || !reason.noSteps) return asked;
   // Steps for where the work is done (the rail corridor, the road, work above traffic) are not ticked
@@ -3467,6 +3477,9 @@ function buildDraft(input, screen) {
     }
   }
   if (workshopOnly(riskTask)) draft.highRisk = [];
+  // The PPE the questions page suggests: for all work, and for particular steps (D246, D247), with
+  // the names of the steps an item can be added to.
+  if (screen === 'ppe') return { ppe: splitPpe(ppeFromRegisters(draft.ppe, registers), registers.jobSteps, { suggest: true, placed: input.ppeSteps }), steps: [...new Set(registers.jobSteps.map((step) => step.step))] };
   if (screen) return { ...draft, missing: missing.map((item) => item.id) };
   // Answers that contradict the task's own words, shown above the draft. The answer stands.
   // The engineered jack and skid step kept for a heavy load jacked and skated (D219): the user checks it.
@@ -3483,7 +3496,12 @@ function buildDraft(input, screen) {
   if (userMain.length) draft.notCoveredMain = notCovered.filter((part) => userMain.includes(part));
   // The steps the user wrote for work SiteReady does not cover go in once the registers and ratings
   // are worked out from SiteReady's own steps.
-  const finished = applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: Array.isArray(input.ppe) && input.ppe.length ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input), input);
+  const chosenPpe = Array.isArray(input.ppe) && input.ppe.length > 0;
+  const edited = applyStepEdits(withOwnSteps({ ...draft, ...registers, task: typed, warnings, notCovered, ppe: chosenPpe ? draft.ppe : ppeFromRegisters(draft.ppe, registers) }, input), input);
+  // PPE for all work and PPE for particular steps (D246, D247): each extra item goes with the steps
+  // that need it, and each such step says what to wear in one line of its own.
+  const ppe = splitPpe(edited.ppe, edited.jobSteps, { suggest: !chosenPpe, placed: input.ppeSteps });
+  const finished = { ...edited, ppe, jobSteps: withStepPpeLines(edited.jobSteps, ppe, state.id) };
   // The user's answers in the blanks (____) of control lines, and the scaffold supervisor only
   // where the SWMS involves a scaffold.
   // The answers to the emergency questions for the work print in the emergency arrangements (goal 2).
@@ -7110,7 +7128,15 @@ function stripLiftBleedText(text) {
   return kept.join('\n');
 }
 
+// The PPE SiteReady would suggest for a SWMS, before any change of the user's: what the user's PPE
+// changes are measured against for the learning store (D212).
+function suggestedPpe(input) {
+  const out = buildDraft({ ...input, ppe: undefined, ppeSteps: undefined }, 'ppe');
+  return out && Array.isArray(out.ppe) ? out.ppe : null;
+}
+
 module.exports = {
+  suggestedPpe,
   domesticWork,
   applyControlEdits,
   applyStepEdits,

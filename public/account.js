@@ -203,12 +203,13 @@
 
   function renderBar() {
     const bar = $('account-bar');
-    if (!config.accounts) { bar.classList.add('hidden'); return; }
+    if (!config.accounts) { bar.classList.add('hidden'); signInNotes(); return; }
     bar.classList.remove('hidden');
     if (!me) {
       bar.innerHTML = `<span class="bar-note">Try it free: preview any SWMS. Sign in to read a scope, download, save and share.</span>
         <button type="button" class="small" data-open="signin">Sign in or start free trial</button>`;
       document.querySelectorAll('.signed-in-only').forEach((el) => el.classList.add('hidden'));
+      signInNotes();
       return;
     }
     const paying = ['active', 'trialing', 'past_due'].includes(me.company.planStatus);
@@ -224,6 +225,16 @@
         <button type="button" class="link" id="sign-out">Sign out</button>
       </span>`;
     document.querySelectorAll('.signed-in-only').forEach((el) => el.classList.remove('hidden'));
+    signInNotes();
+  }
+
+  // Wording only for someone signed out (the scope panel's "Sign in, or start the free trial"), or
+  // signed in with the trial ended. Hidden until the account is known, and when accounts are off.
+  function signInNotes() {
+    const out = Boolean(config.accounts) && !me;
+    const noAccess = Boolean(config.accounts && me && !me.company.hasAccess);
+    document.querySelectorAll('.signed-out-only').forEach((el) => el.classList.toggle('hidden', !out));
+    document.querySelectorAll('.no-access-only').forEach((el) => el.classList.toggle('hidden', !noAccess));
   }
 
   function showPanel(id) {

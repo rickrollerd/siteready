@@ -214,7 +214,9 @@ test('in a trench others dug, the trench work step and its shoring lines stay; t
   // Station boxes, shafts, pits and basement digs have the whole excavation step and no trench step.
   for (const task of ['Fix reo and pour the base slab in the station box, 20m deep.', 'Strip the formwork inside the shaft, 10 m deep.', 'Lay blockwork at the bottom of the pit 2.5 m deep.', 'Fix reo in the basement excavation 6 m deep.']) {
     const d = draft(task);
-    assert.equal(d.jobSteps.find((step) => step.step === INSIDE).controls.length, 7, task);
+    // Its own lines, less the step's PPE line (D246) where it has one.
+    const inside = d.jobSteps.find((step) => step.step === INSIDE);
+    assert.equal(inside.controls.filter((line) => !(inside.ppeLines || []).includes(line)).length, 7, task);
     assert.ok(!d.jobSteps.some((step) => step.step === 'Work in the trench'), task);
   }
 });
