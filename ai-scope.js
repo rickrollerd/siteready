@@ -204,7 +204,29 @@ function addUsage(a = {}, b = {}) {
   return out;
 }
 
+// One server log line for each failed reading (scope or methodology), so a failure on a server can
+// be diagnosed from its log: the error's class, HTTP status, the API's error type and message, the
+// request id and the model. Never the key or any header: the key, if it ever appeared in the text, is
+// taken out, and the line is cut short.
+function failureLine(error) {
+  const body = error && error.error && typeof error.error === 'object' ? (error.error.error || error.error) : {};
+  const type = typeof body.type === 'string' && body.type !== 'error' ? body.type : '';
+  const message = typeof body.message === 'string' ? body.message : String((error && error.message) || error || '');
+  let line = ['AI reading failed:', (error && error.constructor && error.constructor.name) || 'Error', error && error.status, type, message,
+    error && error.requestID ? `request ${error.requestID}` : '', `(model ${MODEL})`].filter(Boolean).join(' ').replace(/\s+/g, ' ');
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (key) line = line.split(key).join('[key]');
+  return line.replace(/\bsk-ant-[A-Za-z0-9_-]+/g, '[key]').slice(0, 600);
+}
+let logFailure = (line) => console.error(line);
+// Tests read the line here instead of the log.
+function useFailureLog(next) {
+  logFailure = next || ((line) => console.error(line));
+}
+
+// What the user is told when a reading fails, unchanged; the details go to the server log only.
 function errorMessage(error) {
+  try { logFailure(failureLine(error)); } catch { /* logging never stops the reading being marked failed */ }
   if (error.publicMessage) return error.message;
   if (error instanceof Anthropic.RateLimitError) return 'The AI is busy. Try again in a few minutes.';
   if (error instanceof Anthropic.AuthenticationError || error instanceof Anthropic.PermissionDeniedError) return 'The AI reading is not set up on this server.';
@@ -467,4 +489,4 @@ async function getReading(company, id, stateName) {
   return withHighRisk(rowOut(row), stateName);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, checkReading, quoteFinder, errorMessage, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };
+module.exports = { enabled, useClient, startReading, getReading, checkReading, quoteFinder, errorMessage, failureLine, useFailureLog, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };

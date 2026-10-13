@@ -1,7 +1,7 @@
 // The scope review report: the AI's reading of a scope of works set out plainly, for the
 // subcontractor to check and take to the builder. Five parts: the work this subcontractor
-// does by work package, work the scope gives to others, clauses that conflict, unknowns that
-// change the risk, and duties. The Word file follows the SWMS file's style (docx-draft.js).
+// does by work package, work the scope gives to others, clauses that conflict, points to confirm
+// with the builder, and duties. The Word file follows the SWMS file's style (docx-draft.js).
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, BorderStyle, VerticalAlign, Footer, AlignmentType,
@@ -28,7 +28,7 @@ const clean = (text) => String(text || '').replace(/\s+/g, ' ').trim();
 
 const { hrcwSummary, HRCW_NOTE } = require('./public/scope-hrcw');
 
-const NOTE = 'This report is the AI\'s reading of the scope of works. Check every item against the scope before you rely on it. Raise the conflicts and unknowns with the builder before you price or start the work.';
+const NOTE = 'This report is the AI\'s reading of the scope of works. Check every item against the scope before you rely on it. Raise the conflicts and the points to confirm with the builder.';
 const CONFLICT_ADVICE = 'Raise each of these with the builder before you price or start the work. Ask which clause applies, and get the answer in writing.';
 
 // The report's content, worked out from the reading. Kept apart from the Word file so the
@@ -179,10 +179,10 @@ function conflictBlocks(sections) {
 }
 
 function unknownBlocks(sections) {
-  const out = [heading('4. Unknowns that change the risk')];
-  if (!sections.unknowns.length) return [...out, none('The AI found no unknowns.')];
-  out.push(para('Find these out from the builder or on site before the SWMS is finished. Each one can change the hazards and the controls.', { color: MUTED }));
-  out.push(table(['Activity', 'Clause', 'Not yet known'], WIDTHS, sections.unknowns.map((item) => [
+  const out = [heading('4. Points to confirm with the builder')];
+  if (!sections.unknowns.length) return [...out, none('The AI found no points to confirm.')];
+  out.push(para('Points the scope leaves open about who does the work or what the builder provides. Job details such as heights, sizes and plant are not listed: you have them from the drawings and specifications, and the SWMS questions ask for them.', { color: MUTED }));
+  out.push(table(['Activity', 'Clause', 'To confirm'], WIDTHS, sections.unknowns.map((item) => [
     [item.activity, ...(item.duty ? [{ text: 'Duty', color: MUTED }] : [])],
     item.clause || 'Not given',
     item.unknowns.split(/\s*;\s*/).filter(Boolean).map((part) => part[0].toUpperCase() + part.slice(1)),
@@ -202,10 +202,10 @@ function dutyBlocks(sections) {
 function highRiskCount(work) {
   const of = (status) => work.filter((pack) => pack.highRisk && pack.highRisk.status === status).length;
   const parts = [
-    [of('yes'), 'high risk: a SWMS is required by law'],
-    [of('likely'), 'likely high risk'],
-    [of('depends'), 'may be high risk'],
-    [of('none'), 'none found'],
+    [of('yes'), 'need a SWMS by law'],
+    [of('likely'), 'probably need one'],
+    [of('depends'), 'may need one'],
+    [of('none'), 'no high risk work found'],
   ].filter(([n]) => n).map(([n, text]) => `${n} ${text}`);
   return `${parts.join('; ')} (of ${work.length} work ${work.length === 1 ? 'package' : 'packages'})`;
 }
@@ -220,7 +220,7 @@ function summaryRows(sections, options) {
     ...(sections.work.some((pack) => pack.highRisk) ? [['High risk construction work', highRiskCount(sections.work)]] : []),
     ['Work by others', count(sections.byOthers.length, 'item', 'items')],
     ['Conflicts', count(sections.conflicts.length, 'conflict', 'conflicts')],
-    ['Unknowns', `${count(sections.unknowns.length, 'activity', 'activities')} with something not yet known`],
+    ['Points to confirm', `${count(sections.unknowns.length, 'activity', 'activities')} with a point to confirm`],
     ['Duties', count(sections.duties.length, 'duty', 'duties')],
   ];
 }

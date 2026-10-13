@@ -11,9 +11,11 @@
 // damaging existing services are site conditions, not activities, unless this subcontractor installs,
 // diverts or repairs services (v3.3 made a general clause in the owner's formwork subcontract an
 // In-ground civil package with trench steps).
+// v3.5 (owner approved 13 October 2026, D244): "Unknowns" list only contract and interface points to
+// confirm with the builder, never job details the subcontractor has from the drawings and specifications.
 // Change the brief only with the owner's approval, and raise BRIEF_VERSION when it changes,
 // so stored readings made with an older brief are read again.
-const BRIEF_VERSION = 'v3.4';
+const BRIEF_VERSION = 'v3.5';
 
 const PACKAGES = [
   'In-ground civil',
@@ -62,7 +64,7 @@ Rules:
    - Where: location or building, if stated.
    - Plant and equipment named.
    - Conditions stated (live or operating facility, energised building, confined space named in the document, out of hours, security escort, near roads or other trades).
-   - Unknowns: details that change the risk but are not stated (depth, working height, weights, existing hazardous materials, whether a space meets the confined space definition).
+   - Unknowns (points to confirm): only contract or interface points the scope leaves open that change who does this work or how it is done safely, and that the drawings, specifications and management plans would not answer. For example: work whose timing or extent is "to be determined" by the builder; an excluded item this work depends on (who provides it); an approval or hold point the builder controls; what the builder provides under a facilities schedule; two clauses that set different requirements. The subcontractor priced the work from the full drawings, specifications and management plans, so never list job details: heights, depths, dimensions, sizes, weights, loads, quantities, products or chemicals, plant or equipment types, or methods the subcontractor chooses. Leave it empty when there is none.
 5. Where a table or matrix assigns work by columns, state which column holds the X for each row you list (for example "X under Mechanical").
 6. List separately the work the document gives to a specialist or another party that this subcontractor must coordinate with but not do.
 7. List separately any conflicts in the document: where two clauses give the same work to different parties, or contradict each other. Before listing one:

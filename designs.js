@@ -315,7 +315,7 @@ function withDesigns(draft, input) {
   return {
     ...draft,
     jobSteps,
-    designs: rows.map((row) => ({ ...row, reference: row.status === 'given' && designNeed(row) === '' ? referenceText(row) : '', statusText: statusText(row) })),
+    designs: rows.map((row) => ({ ...row, reference: row.status === 'given' && (row.kind === 'method' || designNeed(row) === '') ? referenceText(row) : '', statusText: statusText(row) })),
   };
 }
 

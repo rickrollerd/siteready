@@ -23,7 +23,7 @@ const { draftToPdf } = require('../pdf-draft');
 const { validAbn, removeExpired } = require('../accounts');
 const designs = require('../designs');
 const { changesBetween, changeText, contentHash } = require('../revisions');
-const { methodNeed, sameDesignNumbers } = require('../public/gate-rules');
+const { methodNeed, sameDesignNumbers, designNeed } = require('../public/gate-rules');
 const { loadPage, settle, FakeEvent } = require('./fake-dom');
 const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
 
@@ -75,9 +75,18 @@ test('a method prints in the table once given in full; the steps, the gate and t
   assert.deepEqual(gaps(withMethod, { designs: [METHOD] }), gaps(plain, {}));
   assert.deepEqual(check(withMethod), check(plain));
   // Not given in full: it does not print, and the draft is the same as without it.
-  for (const missing of ['what', 'by', 'number', 'date']) {
+  for (const missing of ['what', 'by', 'date']) {
     assert.deepEqual(draft(PLAIN, { designs: [{ ...METHOD, [missing]: '' }] }), plain, missing);
   }
+  // D236: with no document number it prints, without a number.
+  const noNumber = draft(PLAIN, { designs: [{ ...METHOD, number: '' }] });
+  assert.equal(noNumber.designs[0].reference, 'rev B (Acme Lifts Pty Ltd, 30 September 2026)');
+  assert.deepEqual(without(noNumber, 'designs'), plain);
+  assert.deepEqual(check(noNumber), check(plain));
+  assert.deepEqual(gaps(noNumber, { designs: [{ ...METHOD, number: '' }] }), gaps(plain, {}));
+  // The same-number warning leaves out a methodology with no number (D236), and a design unchanged.
+  assert.deepEqual(sameDesignNumbers([{ ...METHOD, number: '' }, { ...METHOD, id: 'method-2', number: '' }]), []);
+  assert.deepEqual(designNeed({ id: 'shoring', what: 'Shoring design', status: 'given', by: 'Smith Engineering', number: '', date: '2026-10-03' }), 'For Shoring design, give its document or drawing number.');
   assert.deepEqual(draft(PLAIN, { designs: [{ ...METHOD, number: 'TBC' }] }), plain);
   assert.deepEqual(draft(PLAIN, { designs: [{ ...METHOD, revision: '' }] }).designs[0].reference, 'AL-MS-014 (Acme Lifts Pty Ltd, 30 September 2026)');
   assert.equal(draft(PLAIN, { designs: [METHOD] }).designs[0].statusText, 'The work follows this methodology.');
@@ -116,9 +125,11 @@ test('with designs and a method, the table reads "Designs and methodologies"; wi
 });
 
 test('what a method still needs is said on its card; the same number warns across designs and methods (D225)', () => {
-  assert.equal(methodNeed({ id: 'method-1' }), 'Not in the SWMS yet. Give what it is, who prepared it, its document number and its date.');
+  assert.equal(methodNeed({ id: 'method-1' }), 'Not in the SWMS yet. Give what it is, who prepared it and its date.');
   assert.equal(methodNeed({ ...METHOD, by: '', date: '' }), 'Not in the SWMS yet. Give who prepared it and its date.');
-  assert.equal(methodNeed({ ...METHOD, number: 'TBC' }), 'Not in the SWMS yet. Give its document number.');
+  assert.equal(methodNeed({ ...METHOD, number: 'TBC' }), 'Not in the SWMS yet. Give its document number (or leave the number empty).');
+  // D236: the document number is optional for a methodology.
+  assert.equal(methodNeed({ ...METHOD, number: '' }), '');
   assert.equal(methodNeed({ ...METHOD, revision: '____' }), 'Not in the SWMS yet. Give its revision (or leave the revision empty).');
   assert.equal(methodNeed(METHOD), '');
   // A design and a method with the same number and revision: one document may cover both.
@@ -181,7 +192,7 @@ test('the page: the option is on every draft, small and optional; its card says 
   // Empty, it is not sent; as it is typed, its card says what it still needs.
   assert.equal(p.run('payload().designs'), undefined);
   const need = () => p.document.getElementById('design-method-1-need');
-  assert.match(html, /<p class="method-need" id="design-method-1-need" role="status">Not in the SWMS yet\. Give what it is, who prepared it, its document number and its date\.<\/p>/);
+  assert.match(html, /<p class="method-need" id="design-method-1-need" role="status">Not in the SWMS yet\. Give what it is, who prepared it and its date\.<\/p>/);
   type(p, 'method-1', 'what', METHOD.what);
   type(p, 'method-1', 'by', METHOD.by);
   type(p, 'method-1', 'number', METHOD.number);

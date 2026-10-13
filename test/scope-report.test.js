@@ -42,7 +42,7 @@ test('the report has every section, from a stand-in reading', async () => {
     'No job steps in SiteReady\'s library for: Commissioning',
     '2. Work the scope gives to others', 'Roof penetrations', 'Roofing contractor', '"Roof penetrations by the roofer."', 'Set out (in Mechanical installation)', 'Builder',
     '3. Clauses that conflict', 'Clause A (C-1.10) says', '"Make all roof penetrations."', 'Clause B (4.9) says', 'Why this matters', 'Both say who makes the roof penetrations.', 'Confidence', 'High',
-    '4. Unknowns that change the risk', 'Working height', 'Ceiling access', 'Chiller weights',
+    '4. Points to confirm with the builder', 'Working height', 'Ceiling access', 'Chiller weights', 'To confirm',
     '5. Duties', 'Attend weekly site meetings', '"Attend weekly site coordination meetings."',
   ]) assert.ok(text.includes(words), `missing: ${words}`);
   // Duties are listed once, under duties, not as work.
@@ -52,7 +52,7 @@ test('the report has every section, from a stand-in reading', async () => {
 
 test('an empty reading still gives a report that says so in each section', async () => {
   const text = await textOf(await reportToDocx({ activities: [], byOthers: [], conflicts: [], packages: [] }, { checks: { passed: false, quotesNotFound: [{}], quotesShortened: [] } }));
-  for (const words of ['no site or off-site work', 'no work the scope gives to others', 'no clauses that conflict', 'no unknowns', 'no duties', 'could not be matched word for word to the document (1)']) {
+  for (const words of ['no site or off-site work', 'no work the scope gives to others', 'no clauses that conflict', 'no points to confirm', 'no duties', 'could not be matched word for word to the document (1)']) {
     assert.ok(text.includes(words), `missing: ${words}`);
   }
 });
@@ -137,12 +137,12 @@ test('the reading and the report show each package\'s high risk construction wor
   const text = await textOf(Buffer.from(await (await fetch(`${base}/api/scope/ai/hrcw-reading-1/report.docx?state=nsw`, { headers })).arrayBuffer()));
   for (const words of [
     'High risk construction work', 'of 2 work packages',
-    'Each work package shows the high risk construction work its work involves', 'The categories are those of the Work Health and Safety Regulation 2025 (NSW).',
-    'High risk construction work: a SWMS is required by law.', 'Moving powered mobile plant.',
+    'Each work package says whether its work is high risk construction work', 'The categories are those of the Work Health and Safety Regulation 2025 (NSW).',
+    'This work needs a SWMS by law.', 'It is high risk construction work (Moving powered mobile plant).',
   ]) assert.ok(text.includes(words), `missing: ${words}`);
   // Each package's flag sits under its own heading.
   const work = text.slice(text.indexOf('Plant lifting and cranage (1 activity)'), text.indexOf('2. Work the scope'));
-  assert.ok(work.includes('Moving powered mobile plant.'));
+  assert.ok(work.includes('It is high risk construction work (Moving powered mobile plant).'));
 });
 
 test('a package with no high risk construction work says so, and that the principal contractor may still want a SWMS', async () => {
@@ -154,10 +154,11 @@ test('a package with no high risk construction work says so, and that the princi
     ],
   };
   const text = await textOf(await reportToDocx(reading, { date: '7 October 2026' }));
-  assert.ok(text.includes('1 high risk: a SWMS is required by law; 1 none found (of 2 work packages)'));
+  assert.ok(text.includes('1 need a SWMS by law; 1 no high risk work found (of 2 work packages)'));
   const pack = text.slice(text.indexOf('Mechanical installation (2 activities)'), text.indexOf('Plant lifting and cranage (1 activity)'));
-  assert.ok(pack.includes('No high risk construction work found in this work.'));
-  assert.ok(pack.includes('A SWMS may still be required by the principal contractor.'));
+  assert.ok(pack.includes('This work may not need a SWMS by law.'));
+  assert.ok(pack.includes('No high risk construction work was found in it.'));
+  assert.ok(pack.includes('The builder may still ask for a SWMS, and its SWMS still asks about falls from height.'));
   // A reading without flags gives the report as before.
   assert.ok(!(await textOf(await reportToDocx(READING))).includes('high risk construction work'));
 });
