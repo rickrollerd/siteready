@@ -449,6 +449,31 @@
     .blank-slot-input { width: 11em; max-width: 100%; border: 1px solid #c5cdd6; border-radius: 4px; padding: 4px 6px; font-size: 15px; }
     .blank-slot-input.empty { border: 2px solid #b00020; background: #fff5f6; }
     .blank-form-tools { margin: 8px 0 0; font-size: 14px; line-height: 1.5; }
+    /* An answer too thin to print, or still needed after Prepare: what would do, under the box. */
+    textarea.answer-thin { border: 2px solid #c77700; }
+    .answer-note { color: #7a3e00; background: #fff4e0; border-left: 4px solid #c77700; padding: 6px 10px; margin: 6px 0 0; font-size: 15px; }
+    .not-finished h3 { margin-top: 0; }
+    .project-leave { margin-top: 14px; }
+    .go-block { border-top: 1px solid #d7dde4; margin-top: 18px; padding-top: 6px; }
+    .go-block h3 { margin: 10px 0 8px; }
+    .go-people { margin: 4px 0 0; padding-left: 20px; }
+    .go-people li { margin: 4px 0; }
+    .go-item { border: 1px solid #d7dde4; border-radius: 8px; padding: 10px 12px; margin: 12px 0; background: #fbfcfd; }
+    .go-item > summary { cursor: pointer; padding: 4px 0; }
+    .go-across { color: #1d5c3f; margin: 4px 0 0; }
+    .go-sub { margin: 14px 0 6px; }
+    .go-site-own { margin-top: 12px; }
+    .go-review { padding-left: 22px; }
+    .go-review li { border-top: 1px solid #e3e7ec; padding: 10px 0; }
+    .go-review li > div { margin-bottom: 6px; }
+    .go-review li .meta { display: block; }
+    .go-review li.ready strong::after { content: " \2713"; color: #1d5c3f; }
+    .check-bar { border-color: #9cc3ad; background: #f1f8f4; }
+    .check-bar p { margin: 0 0 8px; }
+    .cover-where { margin: 8px 0 4px; }
+    .cover-where label { display: block; font-size: 15px; margin: 0 0 4px; }
+    .cover-where select, .cover-where input { width: 100%; box-sizing: border-box; }
+    .cover-where .cover-done { display: block; margin-top: 4px; }
     /* Design details read from the drawing (D249, D250): amber until ticked as matching. */
     .design-read { margin: 4px 0 10px; }
     .design-read .warning { margin: 0 0 6px; }
@@ -870,6 +895,7 @@
       <p class="error" id="facts-error"></p>
     </form>
 
+    <div id="check-bar" class="panel check-bar hidden" role="region" aria-label="SWMS being checked"></div>
     <section id="result" class="hidden"></section>
     <p class="site-footer">SiteReady prepares draft SWMS. Your business reviews, approves and is responsible for every SWMS it uses. <a href="/terms.html">Terms of use</a> · <a href="/privacy.html">Privacy</a></p>
   </div>
@@ -887,5 +913,6 @@
   <script src="/scope-choice.js"></script>
   <script src="/scope-conflicts.js"></script>
   <script src="/scope.js"></script>
+  <script src="/project-go.js"></script>
 </body>
 </html>

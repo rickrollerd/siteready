@@ -480,7 +480,7 @@
     if (slinging) slinging.checked = true;
     if (crane) crane.dispatchEvent(new Event('change', { bubbles: true }));
     // The scope reader's steps for this task are ticked when the task is used as it stands.
-    window.siteReadyScopeTask = { task: text, kinds: item.kinds || null, leaveOut: item.leaveOut || null, unmatched: item.unmatched || null };
+    window.siteReadyScopeTask = { task: text, kinds: item.kinds || null, leaveOut: item.leaveOut || null, unmatched: item.unmatched || null, scope: item.scopeTask || null };
     document.querySelectorAll('input[name="fallRisk"]').forEach((input) => { input.checked = input.value === item.fallRisk; });
     document.querySelector('input[name="fallRisk"]').dispatchEvent(new Event('change', { bubbles: true }));
     // In a project, openItem moves the page once the project box is drawn.
@@ -503,12 +503,23 @@
       if (dropped.length && !confirm(`Take out ${dropped.map((item) => item.title).join(', ')}? What you prepared for ${dropped.length === 1 ? 'it' : 'them'} will be lost.`)) return;
       items = items.map((item) => project.items.find((old) => old.title === item.title && old.body) || item);
     } else if (project && project.items.some((item) => item.body) && !confirm('Start a new project? The SWMS prepared in the current project will be cleared.')) return;
-    project = { current: 0, items, from };
+    // Owner, 13 October 2026 (D239): the SWMS chosen are prepared in one go. The site details are
+    // asked once, then one page holds each SWMS's own questions (project-go.js), and one button
+    // prepares them all. Answers kept from before stay.
+    const before = same ? project : null;
+    project = { current: 0, items, from, stage: items.every((item) => item.body) ? 'review' : 'questions', shared: (before && before.shared) || { crane: from.crane || '', site: null, designs: {}, emergency: {} } };
     saveProject();
     // The list has done its job; closing it keeps the page short.
     $('scope-panel').open = false;
-    const next = items.findIndex((item) => item.status !== 'ready');
-    openItem(next >= 0 ? next : 0);
+    renderProject();
+    requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
+  }
+
+  // The SWMS form (task, questions and draft) shows only while one SWMS is open to check. On the
+  // one-go page and the review list it is out of the way.
+  function showSingle(on) {
+    ['start', 'facts', 'result', 'check-bar'].forEach((id) => { const el = $(id); if (el && !on) el.classList.add('hidden'); });
+    if (on) $('start').classList.remove('hidden');
   }
 
   // Back to the list of work packages, with the choice as it was made.
@@ -533,6 +544,13 @@
   function openItem(index) {
     if (!project || !project.items[index]) return;
     project.current = index;
+    // From the one-go page or the review list, a SWMS opens to be checked (D240).
+    if (project.stage) project.stage = 'check';
+    project.items[index].checked = true;
+    showSingle(true);
+    // Answers to the emergency questions given in another SWMS of the project fill the same questions here.
+    const shared = (project.shared && project.shared.emergency) || {};
+    if (project.items[index].body && Object.keys(shared).length) project.items[index].body = { ...project.items[index].body, emergency: { ...shared, ...(project.items[index].body.emergency || {}) } };
     saveProject();
     // The last SWMS's preview goes, so it is not mistaken for this one.
     const result = document.getElementById('result');
@@ -549,7 +567,17 @@
     // A SWMS prepared before comes back as it was left: its answers, steps and the user's changes.
     // Once saved, its changes save as its next revision.
     if (item.body) {
-      S.fillForm(item.body).then(() => { if (item.swmsId) S.editing = { id: item.swmsId, title: item.title }; });
+      // To check it, the draft is shown as it will print, with Change this step on each step.
+      S.fillForm(item.body).then((ok) => {
+        if (item.swmsId) S.editing = { id: item.swmsId, title: item.title };
+        if (ok && project.stage === 'check' && S.prepare) {
+          S.prepare({ scroll: false }).then(() => {
+            const bar = $('check-bar');
+            if (bar && !bar.classList.contains('hidden')) bar.scrollIntoView({ block: 'start' });
+            if (S.markStage) S.markStage('draft');
+          });
+        }
+      });
       return;
     }
     // With the site details already filled in, go straight to this SWMS's questions.
@@ -563,6 +591,7 @@
     project = null;
     try { localStorage.removeItem(PROJECT_KEY); } catch { /* nothing kept */ }
     window.siteReadyScopeTask = null;
+    showSingle(true);
     const taskEl = $('task');
     taskEl.value = '';
     delete taskEl.dataset.preset;
@@ -574,9 +603,37 @@
   function renderProject() {
     const panel = $('project-panel');
     const now = $('project-now');
-    if (!project) { panel.classList.add('hidden'); now.classList.add('hidden'); return; }
+    const bar = $('check-bar');
+    if (!project) { panel.classList.add('hidden'); now.classList.add('hidden'); if (bar) bar.classList.add('hidden'); return; }
+    // The one-go page and the review list (project-go.js).
+    if ((project.stage === 'questions' || project.stage === 'review') && window.SiteReadyProjectGo) {
+      now.classList.add('hidden');
+      showSingle(false);
+      window.SiteReadyProjectGo.render(panel, project, projectHooks);
+      panel.classList.remove('hidden');
+      return;
+    }
+    // A SWMS open to check: a bar above its draft says which one, and goes back to the list.
+    if (bar) {
+      const checking = project.stage === 'check' && project.items[project.current];
+      const nextToCheck = checking ? project.items.findIndex((other, index) => index > project.current && !other.checked) : -1;
+      bar.innerHTML = checking ? `<p><strong>Checking SWMS ${project.current + 1} of ${project.items.length}: ${esc(project.items[project.current].title)}.</strong> Read each step as it will print. To change a step's wording, press Change this step on it. When it is right, go back to the list.</p>
+        <div class="actions"><button type="button" class="secondary" data-project-review>Back to the list of SWMS</button>${nextToCheck >= 0 ? `<button type="button" class="secondary" data-project-open="${nextToCheck}">Check SWMS ${nextToCheck + 1}: ${esc(project.items[nextToCheck].title)}</button>` : ''}</div>` : '';
+      bar.classList.toggle('hidden', !checking);
+    }
+    // While one SWMS is checked, the project box is short: the list is one press away.
+    if (project.stage === 'check') {
+      const ready = project.items.filter((item) => item.status === 'ready').length;
+      now.classList.add('hidden');
+      panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2></div>
+        <p class="meta">Checking SWMS ${project.current + 1} of ${project.items.length}. ${ready} of ${project.items.length} ready to download.</p>
+        <div class="actions"><button type="button" class="secondary" data-project-review>Back to the list of SWMS</button></div>
+        <p class="error" id="project-error"></p>`;
+      panel.classList.remove('hidden');
+      return;
+    }
     const ready = project.items.filter((item) => item.status === 'ready').length;
-    const label = { ready: 'Ready', needs: 'Needs answers', tick: 'Needs a tick', write: 'Needs your step', todo: 'To do' };
+    const label = { ready: 'Ready', needs: 'Needs answers', tick: 'Needs your step or a SWMS named', write: 'Needs your step', todo: 'To do' };
     const current = project.items[project.current];
     // The SWMS being prepared is named right above its task, at the top of the task box.
     now.innerHTML = current ? `Now preparing SWMS ${project.current + 1} of ${project.items.length}: <strong>${esc(current.title)}</strong>. Check the task below and press Continue. When it is ready, a button under it opens the next one.` : '';
@@ -587,8 +644,8 @@
       <ul class="project-list">${project.items.map((item, index) => `<li class="${index === project.current ? 'current' : ''}"><span>${index + 1}. ${esc(item.title)}</span><span><span class="project-status ${item.status === 'ready' ? 'ready' : ['needs', 'tick', 'write'].includes(item.status) ? 'needs' : ''}">${label[item.status]}</span> ${index === project.current ? '<span class="project-status">(open below)</span>' : `<button type="button" class="small secondary" data-project-open="${index}">Open</button>`}</span></li>`).join('')}</ul>
       ${project.items.map((item, index) => (item.status === 'needs' && (item.needs || []).length ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, still needs before download: ${esc(item.needs.join('; '))}. ${index === project.current ? '<button type="button" class="link" data-gate-list>See what is needed</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       ${project.items.map((item, index) => (item.status === 'write' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for your own step for the work SiteReady has no job steps for. Write it with "Write a step for this" above its draft to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
-      ${project.items.map((item, index) => (item.status === 'tick' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for the box above its draft about work SiteReady has no job steps for. Tick it to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to the box</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
-      <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
+      ${project.items.map((item, index) => (item.status === 'tick' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, has work SiteReady has no job steps for. Above its draft, write your own step for it, or say which SWMS covers it, to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
+      <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word and PDF, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
       <p class="meta" id="project-status" role="status"></p>
       <div class="actions"><button type="button" class="small secondary" id="project-close">Close project</button></div>`;
@@ -605,6 +662,8 @@
     const ticked = [...(item.body.notCoveredConfirmed || []), ...(item.notCoveredWritten || [])];
     return (item.notCovered || []).every((part) => ticked.includes(part)) ? 'ready' : 'tick';
   };
+  // The project's other SWMS, by title, for saying which one covers work this SWMS has no steps for.
+  S.projectOthers = () => (project ? project.items.filter((_item, index) => index !== project.current).map((item) => item.title) : []);
   S.onCoverTick = (confirmed) => {
     const item = project && project.items[project.current];
     if (!item || !item.body || $('task').value.trim() !== item.body.task.trim()) return;
@@ -614,6 +673,14 @@
     renderProject();
   };
 
+  // An answer to an emergency question fills the same question in the project's other SWMS (D239).
+  function shareEmergency(answers) {
+    if (!project || !answers || typeof answers !== 'object') return;
+    project.shared = project.shared || { site: null, designs: {}, emergency: {} };
+    const given = Object.fromEntries(Object.entries(answers).filter(([, value]) => typeof value === 'string' && value.trim()));
+    project.shared.emergency = { ...(project.shared.emergency || {}), ...given };
+  }
+
   // As the user answers under the draft (app.js), the SWMS in the project takes the answers that print
   // as given, and what it still needs. A change that needs the draft prepared again waits for it.
   S.onAnswers = ({ task, needs, answers, stale }) => {
@@ -622,6 +689,7 @@
     if (stale || !item || !item.body || item.kind !== 'draft' || same(task) !== same(item.body.task)) return;
     const before = JSON.stringify([item.needs, item.status]);
     item.body = { ...item.body, ...answers };
+    shareEmergency(answers.emergency);
     item.needs = needs;
     item.status = statusOf(item);
     saveProject();
@@ -637,17 +705,32 @@
     if (!item || same(body.task) !== same(item.task)) return;
     item.body = body;
     item.kind = draft.kind;
+    shareEmergency(body.emergency);
+    // The one-go page shows the answers as last given here (project-go.js).
+    if (project.stage) { item.facts = { ...(body.facts || {}) }; item.goTask = body.task; }
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
     item.notCoveredMain = draft.notCoveredMain || [];
-    // What is left to answer before download (goal 2): the site questions and blanks.
-    item.needs = [...new Set((draft.gate || []).filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))];
+    // What is left to answer before download (goal 2): the site questions and blanks, or, for a SWMS
+    // not finished, the answers it still needs.
+    item.needs = draft.kind === 'stand-down'
+      ? ((draft.missingHelp || []).map((gap) => gap.label).length ? (draft.missingHelp || []).map((gap) => gap.label) : (draft.missing || []))
+      : [...new Set((draft.gate || []).filter((gap) => gap.kind !== 'cover').map((gap) => gap.label))];
     item.status = statusOf(item);
     saveProject();
     renderProject();
-    const next = project.items.findIndex((other, index) => index > project.current && other.status !== 'ready');
     const box = document.getElementById('result-actions');
-    if (box && next >= 0) box.insertAdjacentHTML('afterbegin', `<div class="actions" style="margin-bottom:12px"><button type="button" data-project-open="${next}">Next SWMS: ${esc(project.items[next].title)}</button></div>`);
+    // Checking a SWMS from the review list: under its draft, back to the list (D240).
+    if (project.stage === 'check') {
+      if (box) box.insertAdjacentHTML('afterbegin', `<div class="actions" style="margin-bottom:12px"><button type="button" data-project-review>Back to the list of SWMS</button></div>${draft.kind !== 'draft' ? '<p class="meta">This SWMS is not finished. Fix the answers listed above, then press Prepare the statement again.</p>' : ''}`);
+      return;
+    }
+    const next = project.items.findIndex((other, index) => index > project.current && other.status !== 'ready');
+    if (!box || next < 0) return;
+    // A SWMS not finished keeps the user on it: the next one is a small link under its list, never
+    // the big button (messy-user testing, 13 October 2026).
+    if (draft.kind !== 'draft') box.insertAdjacentHTML('beforeend', `<p class="meta project-leave">This SWMS is not finished. <button type="button" class="link" data-project-open="${next}">Leave it unfinished for now and open SWMS ${next + 1}</button></p>`);
+    else box.insertAdjacentHTML('afterbegin', `<div class="actions" style="margin-bottom:12px"><button type="button" data-project-open="${next}">Next SWMS: ${esc(project.items[next].title)}</button></div>`);
   };
 
   document.addEventListener('click', async (event) => {
@@ -658,6 +741,7 @@
     if (event.target.closest('#project-change')) { changeChoice(); return; }
     const open = event.target.closest('[data-project-open]');
     if (open) { openItem(Number(open.dataset.projectOpen)); return; }
+    if (event.target.closest('[data-project-review]')) { backToReview(); return; }
     if (event.target.closest('#project-close, #project-fresh')) {
       closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.');
       return;
@@ -676,11 +760,17 @@
         const ready = project.items.filter((item) => item.status === 'ready' && item.body);
         const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsId: item.swmsId || undefined }));
         const site = S.siteId ? S.siteId() : '';
-        const result = await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, siteId: site || undefined, reviewConfirmed: true, reviewedBy: name });
+        // Word and PDF of each, in one zip (D240).
+        const result = await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, siteId: site || undefined, reviewConfirmed: true, reviewedBy: name, pdf: true });
         // Each SWMS is saved as a record when the project is downloaded; later changes save as its next revision.
         for (const saved of (result && result.items) || []) if (ready[saved.index]) ready[saved.index].swmsId = saved.id;
         saveProject();
-        if (result && result.items && result.items.length) $('project-status').textContent = `Saved ${result.items.length} SWMS under My SWMS and downloaded them. Changes you make to one now save as its next revision.`;
+        if (result && result.items && result.items.length) {
+          project.downloaded = new Date().toISOString();
+          saveProject();
+          renderProject();
+          $('project-status').textContent = `Saved ${result.items.length} SWMS under My SWMS, each as its own revision, and downloaded them as Word and PDF in one zip. Changes you make to one now save as its next revision.`;
+        }
       } catch (error) {
         $('project-error').textContent = error.message;
       } finally {
@@ -688,6 +778,30 @@
       }
     }
   });
+
+  // Back to the review list from a SWMS being checked: the list shows what each still needs.
+  function backToReview() {
+    if (!project) return;
+    project.stage = 'review';
+    saveProject();
+    renderProject();
+    requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
+    if (S.markStage) S.markStage('review');
+  }
+
+  S.renderProject = () => renderProject();
+  // The phone's Back button from a SWMS being checked goes back to the list (app.js).
+  S.projectReview = () => { if (project && project.stage === 'check') backToReview(); else if (project && project.stage) requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' })); };
+  // What the one-go page and the review list (project-go.js) use of the project.
+  const projectHooks = {
+    save: saveProject,
+    render: renderProject,
+    open: openItem,
+    statusOf,
+    useTask,
+    close: () => closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.'),
+    changeChoice: () => changeChoice(),
+  };
 
   renderProject();
 })();
