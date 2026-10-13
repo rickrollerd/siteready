@@ -148,7 +148,7 @@ test('the whole methodology is sent with the brief, its steps matched with the s
   await assert.rejects(methodRead.getReading(company, 'scope-1'), /not found/);
 });
 
-test('a reading with any quote, control or hazard not word for word in the methodology is not used', () => {
+test('the check against the brief finds every quote, control or hazard not word for word in the methodology', () => {
   const text = EXCAVATION.join('\n');
   assert.equal(methodRead.checkMethodReading(EXCAVATION_READING, text).passed, true);
   const change = (fn) => { const copy = JSON.parse(JSON.stringify(EXCAVATION_READING)); fn(copy.steps); return methodRead.checkMethodReading(copy, text); };
@@ -170,18 +170,101 @@ test('a reading with any quote, control or hazard not word for word in the metho
   assert.equal(change((steps) => { steps[2].controls[1] = 'The spotter controls truck movements and no person enters the excavator’s  swing radius.'; }).passed, true);
 });
 
-test('through the stand-in, an invented control fails the reading with a plain message and its cost kept', async () => {
+// D234 (owner, 13 October 2026): a misquoted suggestion is dropped on its own; the rest is used.
+test('a step whose own words are not word for word is left out; a misquoted control or hazard line is left out of its step', () => {
+  const text = EXCAVATION.join('\n');
+  const copy = JSON.parse(JSON.stringify(EXCAVATION_READING));
+  copy.steps[1].quotes = ['Install the perimeter fence and the truck wash-down bay at the site exit.'];
+  copy.steps[3].quotes = [];
+  copy.steps[2].controls.push('Install the fencing to AS 4687.');
+  copy.steps[6].hazards = ['Drowning in the sump'];
+  copy.steps[4].quotes[0] = 'Remove the berm ... second row of anchors.';
+  const { steps, dropped } = methodRead.keptSteps(copy, text);
+  assert.deepEqual(steps.map((row) => row.step), ['Locate and pothole the in-ground services', 'Bulk excavate to the first anchor level', 'Detail excavate pile caps, lift pits and trenches', 'Dewater the excavation']);
+  assert.deepEqual(dropped.steps.map((row) => row.step), ['Install the perimeter fencing and wash-down bay', 'Hold until the first row of anchors is released', 'Excavate to the second anchor level and bulk excavation level']);
+  assert.deepEqual(dropped.lines, [
+    { step: 'Bulk excavate to the first anchor level', kind: 'control', quote: 'Install the fencing to AS 4687.' },
+    { step: 'Dewater the excavation', kind: 'hazard', quote: 'Drowning in the sump' },
+  ]);
+  // The good lines of a step with a misquoted line stay.
+  assert.deepEqual(steps[1].controls, EXCAVATION_READING.steps[2].controls);
+  assert.deepEqual(steps[3].hazards, []);
+});
+
+test('through the stand-in, one misquoted step among good ones: the rest is used and the user is told; the check keeps what was left out', async () => {
+  const made = JSON.parse(JSON.stringify(JUMP_LIFT_READING));
+  made.steps[3].quotes = ['Inspect the climbing beams and lifting chains before every raise.'];
+  made.steps[5].hazards.push('Crush injuries between the platform and the shaft wall');
+  const model = standIn(made, { packages: [
+    { package: 'Step 3: Barricade the landing entrances', groups: ['liftShaft'], unmatched: [], byOthers: [] },
+    { package: 'Step 7: Extend the guide rails and travelling cable', groups: ['liftInstall'], unmatched: [], byOthers: [] },
+  ] });
+  aiScope.useClient(model);
+  const started = await methodRead.startReading(company, { text: `${JUMP_LIFT.join('\n')}\nIssued for construction.` });
+  await started.done;
+  // The step left out is not sent for matching to the library.
+  assert.doesNotMatch(model.stepCalls[0].messages[0].content, /Inspect the climbing beams/);
+  const reading = await methodRead.getReading(company, started.id);
+  assert.equal(reading.status, 'done');
+  assert.equal(reading.suggestions.length, 8);
+  assert.ok(!reading.suggestions.some((item) => item.step === 'Inspect the climbing beams and lifting chains'));
+  assert.deepEqual(reading.suggestions.find((item) => item.step === 'Raise the machine platform with the chain blocks').hazards, ['the platform could fall if a chain block fails']);
+  assert.deepEqual(reading.suggestions.filter((item) => item.kind === 'library').map((item) => [item.n, item.groups[0].id]), [[3, 'liftShaft'], [7, 'liftInstall']]);
+  assert.deepEqual(reading.dropped, { steps: 1, lines: 1 });
+  // The owner's AI readings page: the check of the AI's answer as given, and what was left out.
+  assert.equal(reading.checks.passed, false);
+  assert.equal(reading.checks.quotesNotFound.length, 2);
+  assert.deepEqual(reading.checks.dropped.steps.map((row) => row.step), ['Inspect the climbing beams and lifting chains']);
+  assert.deepEqual(reading.checks.dropped.lines.map((row) => row.quote), ['Crush injuries between the platform and the shaft wall']);
+  const row = await db.one('SELECT status, cost_usd FROM ai_readings WHERE id = $1', [started.id]);
+  assert.equal(row.status, 'done');
+  assert.ok(Number(row.cost_usd) > 0);
+});
+
+test('when every step is misquoted, the reading is not used, with the plain message and its cost kept', async () => {
   const made = JSON.parse(JSON.stringify(EXCAVATION_READING));
-  made.steps[1].controls = ['Install the fencing to AS 4687.'];
-  aiScope.useClient(standIn(made, EXCAVATION_STEPS));
-  const started = await methodRead.startReading(company, { text: `${EXCAVATION.join('\n')}\nIssued for construction.` });
+  for (const row of made.steps) row.quotes = [`${row.quotes[0].replace(/\.$/, '')} as directed.`];
+  const model = standIn(made, EXCAVATION_STEPS);
+  aiScope.useClient(model);
+  const started = await methodRead.startReading(company, { text: `${EXCAVATION.join('\n')}\nRevision A.` });
   await started.done;
   const reading = await methodRead.getReading(company, started.id);
   assert.equal(reading.status, 'failed');
   assert.match(reading.error, /quoted words that are not in the methodology, so its reading was not used/);
   assert.deepEqual(reading.suggestions, []);
+  assert.equal(model.stepCalls.length, 0);
+  assert.equal(reading.checks.dropped.steps.length, 7);
   const row = await db.one('SELECT cost_usd FROM ai_readings WHERE id = $1', [started.id]);
   assert.ok(Number(row.cost_usd) > 0);
+});
+
+test('a failed reading logs one diagnosis line, never the key; the user is told as before', async () => {
+  const Anthropic = require('@anthropic-ai/sdk');
+  const key = process.env.ANTHROPIC_API_KEY;
+  process.env.ANTHROPIC_API_KEY = 'sk-ant-api03-test-key-value-not-real';
+  const lines = [];
+  aiScope.useFailureLog((line) => lines.push(line));
+  try {
+    const denied = new Anthropic.PermissionDeniedError(403, { type: 'error', error: { type: 'permission_error', message: `Key ${process.env.ANTHROPIC_API_KEY} cannot use this model.` } }, undefined,
+      new Headers({ 'request-id': 'req_test_1', 'x-api-key': process.env.ANTHROPIC_API_KEY }));
+    aiScope.useClient({ beta: { messages: { stream: () => ({ finalMessage: async () => { throw denied; } }) } } });
+    const started = await methodRead.startReading(company, { text: `${JUMP_LIFT.join('\n')}\nDenied.` });
+    await started.done;
+    const reading = await methodRead.getReading(company, started.id);
+    assert.equal(reading.error, 'The AI reading is not set up on this server.');
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0], 'AI reading failed: PermissionDeniedError 403 permission_error Key [key] cannot use this model. request req_test_1 (model claude-opus-5-5)');
+    // A scope reading logs the same way.
+    const scope = await aiScope.startReading(company, 'Supply and install all ductwork, including straight and curved sections.');
+    await scope.done;
+    assert.equal((await aiScope.getReading(company, scope.id)).error, 'The AI reading is not set up on this server.');
+    assert.equal(lines.length, 2);
+    assert.match(lines[1], /^AI reading failed: PermissionDeniedError 403 permission_error/);
+    for (const line of lines) assert.ok(!line.includes(process.env.ANTHROPIC_API_KEY) && !line.includes('sk-ant-'), line);
+  } finally {
+    process.env.ANTHROPIC_API_KEY = key;
+    aiScope.useFailureLog(null);
+  }
 });
 
 test('a document that is not a methodology gets no suggestions and no step matching', async () => {

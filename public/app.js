@@ -1414,7 +1414,7 @@ function methodCard(row) {
     <div class="design-given">
       ${box('what', 'What it is', 'As the document is titled, for example Jump lift machine platform raising methodology.', 'text', 200)}
       ${box('by', 'Who prepared it', 'The company or person, for example the lift company.', 'text', 200)}
-      <div class="design-pair">${box('number', 'Document number', 'From the document, for example LC-MS-014.')}${box('revision', 'Revision', 'For example C. Leave it empty if it has none.', 'text', 40)}</div>
+      <div class="design-pair">${box('number', 'Document number', 'Optional. From the document, for example LC-MS-014.')}${box('revision', 'Revision', 'For example C. Leave it empty if it has none.', 'text', 40)}</div>
       <p class="warning design-same" id="design-${id}-same" hidden></p>
       ${box('date', 'Date on the document', '', 'date', 60)}
       ${designFileBox(row, 'document')}

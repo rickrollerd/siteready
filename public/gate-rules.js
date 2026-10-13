@@ -84,12 +84,15 @@
   // which the user may add to any SWMS: kept with the designs as "method-1" and so on.
   const isMethod = (row) => Boolean(row && typeof row.id === 'string' && /^method-\d+$/.test(row.id));
   // What a written method still needs before it prints, or '' once it can: what it is, who prepared
-  // it, its document number and its date (the revision and the file are optional). It is optional, so
+  // it and its date (the document number, the revision and the file are optional). It is optional, so
   // it never holds the download: until then it does not print, and its card says so.
   function methodNeed(row) {
     const item = row && typeof row === 'object' ? row : {};
-    const missing = [['what', 'what it is'], ['by', 'who prepared it'], ['number', 'its document number'], ['date', 'its date']]
-      .filter(([key]) => { const text = clean(item[key]); return !text || leftOpen(text) || NOT_YET.test(text); }).map(([, words]) => words);
+    // Its document number is optional (owner, D236, 13 October 2026), as its revision is: only one
+    // typed and left open ("TBC", "____") is asked for.
+    const open = (text) => leftOpen(text) || NOT_YET.test(text);
+    const missing = [['what', 'what it is'], ['by', 'who prepared it'], ['number', 'its document number (or leave the number empty)'], ['date', 'its date']]
+      .filter(([key]) => { const text = clean(item[key]); return key === 'number' ? Boolean(text) && open(text) : !text || open(text); }).map(([, words]) => words);
     if (leftOpen(item.revision)) missing.push('its revision (or leave the revision empty)');
     if (!missing.length) return '';
     return `Not in the SWMS yet. Give ${missing.length > 1 ? `${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]}` : missing[0]}.`;

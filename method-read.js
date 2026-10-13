@@ -8,8 +8,9 @@
 // Two calls: the methodology brief (method-brief.js) lists the methodology's own steps in order, each
 // with its words quoted; then the scope reading's step matching (STEPS_BRIEF) chooses the library's
 // job step groups for each step. Every quote is checked word for word against the text before the
-// reading is used, and a reading with any quote not in the text is not used at all. Ids not in the
-// library are dropped, as for a scope.
+// reading is used: a step whose own words are not in the text is left out, and so is a control or
+// hazard line that is not, and the user is told how many (owner, D234). Only when every step is left
+// out is the reading not used. Ids not in the library are dropped, as for a scope.
 //
 // The suggestions change nothing on their own. The user accepts, changes or skips each one on the
 // page: an accepted library match adds those job steps, with the library's own sourced lines (D181:
@@ -120,12 +121,17 @@ async function methodText(body, company) {
 
 // ---- The reading checked against the brief ----
 
+// Whether a quote is word for word in the text. A word broken over two lines of a PDF ("pre-" then
+// "raise") counts as written either way.
+function quoteFound(text) {
+  const finders = [text, text.replace(/-\n\s*/g, '-'), text.replace(/(\w)-\n\s*(\w)/g, '$1$2')].map(aiScope.quoteFinder);
+  return (quote) => finders.some((finder) => finder(quote));
+}
+
 // Every quote word for word in the text (steps, controls and hazards), none shortened with "...",
 // and every step with a quote. The counts are in the shape the owner's AI readings page shows.
-// A word broken over two lines of a PDF ("pre-" then "raise") counts as written either way.
 function checkMethodReading(reading, text) {
-  const finders = [text, text.replace(/-\n\s*/g, '-'), text.replace(/(\w)-\n\s*(\w)/g, '$1$2')].map(aiScope.quoteFinder);
-  const found = (quote) => finders.some((finder) => finder(quote));
+  const found = quoteFound(text);
   const steps = Array.isArray(reading && reading.steps) ? reading.steps : [];
   const all = steps.flatMap((row) => [
     ...row.quotes.map((quote) => ({ quote, where: `Step: ${row.step}` })),
@@ -151,6 +157,31 @@ function checkMethodReading(reading, text) {
   };
 }
 
+// What is used of a reading (owner, D234, 13 October 2026: a misquoted suggestion is dropped on its
+// own, and the rest of the reading is used). A step goes when any of its own quotes is not word for word
+// in the methodology (or it has no quote, or no name); a control or hazard line not word for word goes
+// on its own, and its step stays. Returns the steps kept and what was left out.
+function keptSteps(reading, text) {
+  const found = quoteFound(text);
+  const words = (list) => list.filter((quote) => aiScope.normalise(quote));
+  const dropped = { steps: [], lines: [] };
+  const steps = [];
+  for (const row of Array.isArray(reading && reading.steps) ? reading.steps : []) {
+    const quotes = words(row.quotes);
+    if (!aiScope.normalise(row.step) || !quotes.length || !quotes.every(found)) {
+      dropped.steps.push({ step: row.step, quotes: quotes.filter((quote) => !found(quote)).map((quote) => quote.slice(0, 300)) });
+      continue;
+    }
+    const lines = (kind, list) => words(list).filter((quote) => {
+      if (found(quote)) return true;
+      dropped.lines.push({ step: row.step, kind, quote: quote.slice(0, 300) });
+      return false;
+    });
+    steps.push({ ...row, quotes, controls: lines('control', row.controls), hazards: lines('hazard', row.hazards) });
+  }
+  return { steps, dropped };
+}
+
 // The answer must have the brief's shape.
 function validMethodReading(value) {
   const strings = (items) => Array.isArray(items) && items.every((item) => typeof item === 'string');
@@ -172,17 +203,22 @@ function asPackages(steps) {
   };
 }
 
+// The steps left out are not matched to the library. Returns the reading as used, the AI's answer as
+// given (for the check against the brief) and what was left out.
 async function readMethod(text) {
   const { value, usage, model } = await aiScope.callModel({ system: METHOD_BRIEF, content: `<document>\n${text}\n</document>`, schema: METHOD_SCHEMA, effort: 'high' });
   if (!validMethodReading(value)) throw fail(502, 'The AI\'s answer was not in the expected form. Try again.');
-  const steps = value.isMethodology ? value.steps : [];
-  if (!steps.length) return { reading: { ...value, steps, groups: [] }, usage, model };
+  const given = value.isMethodology ? value.steps : [];
+  const { steps, dropped } = keptSteps({ steps: given }, text);
+  const counts = { steps: dropped.steps.length, lines: dropped.lines.length };
+  const out = { answer: value, dropped, given: given.length, model };
+  if (!steps.length) return { ...out, reading: { ...value, steps, groups: [], dropped: counts }, usage };
   // The first call's cost is kept with the error when the second fails.
   const mapped = await aiScope.mapSteps(asPackages(steps)).catch((error) => { throw Object.assign(error, { usage }); });
   const byName = new Map(mapped.packages.map((item) => [item.package, item]));
   const groups = steps.map((row, index) => (byName.get(stepPackage(row, index)) || { groups: [] }).groups);
   const unknown = mapped.packages.flatMap((item) => item.unknown);
-  return { reading: { ...value, steps, groups, unknownStepIds: unknown }, usage: aiScope.addUsage(usage, mapped.usage), model };
+  return { ...out, reading: { ...value, steps, groups, unknownStepIds: unknown, dropped: counts }, usage: aiScope.addUsage(usage, mapped.usage) };
 }
 
 // ---- Kept readings ----
@@ -223,8 +259,10 @@ function rowOut(row) {
     error: row.error || '',
     isMethodology: reading ? reading.isMethodology : null,
     notMethodology: reading ? reading.notMethodology : '',
-    // A reading not used (its quotes not word for word) suggests nothing.
+    // A reading not used (no step quoted word for word) suggests nothing.
     suggestions: row.status === 'done' ? suggestionsOf(reading) : [],
+    // The steps, and the control or hazard lines, left out for not being word for word (D234).
+    dropped: row.status === 'done' && reading && reading.dropped ? reading.dropped : { steps: 0, lines: 0 },
     pagesNotRead: (checks && checks.pagesNotRead) || [],
     checks,
     briefVersion: row.brief_version,
@@ -253,11 +291,11 @@ async function startReading(company, { text, pagesNotRead = [] }) {
   await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
     [id, company.id, hash, METHOD_BRIEF_VERSION, aiScope.MODEL, 'reading', content.length, new Date()]);
   const work = readMethod(content)
-    .then(async ({ reading, usage, model }) => {
-      const checks = { ...checkMethodReading(reading, content), pagesNotRead, unknownStepIds: reading.unknownStepIds || [] };
-      // A reading whose quotes are not word for word in the methodology is not used (kept as failed,
-      // with its check and cost, for the owner's AI readings page).
-      const used = checks.passed;
+    .then(async ({ reading, answer, dropped, given, usage, model }) => {
+      // The check is of the AI's answer as given, with what was left out of it, for the owner's AI
+      // readings page. Only when every step it gave was left out is the reading not used.
+      const checks = { ...checkMethodReading(answer, content), dropped, pagesNotRead, unknownStepIds: reading.unknownStepIds || [] };
+      const used = !given || reading.steps.length > 0;
       await db.query('UPDATE ai_readings SET status = $2, reading = $3, checks = $4, usage = $5, cost_usd = $6, model = $7, error = $8, finished_at = $9 WHERE id = $1',
         [id, used ? 'done' : 'failed', JSON.stringify(reading), JSON.stringify(checks), JSON.stringify(usage), aiScope.costOf(usage), model,
           used ? '' : 'The AI quoted words that are not in the methodology, so its reading was not used. Try again, or make the job steps match the methodology yourself.', new Date()]);
@@ -278,4 +316,4 @@ async function getReading(company, id) {
   return rowOut(row);
 }
 
-module.exports = { methodText, typedPage, checkMethodReading, validMethodReading, startReading, getReading, suggestionsOf, NOT_TYPED, NOT_TYPED_ATTACHED, OFF };
+module.exports = { methodText, typedPage, checkMethodReading, keptSteps, validMethodReading, startReading, getReading, suggestionsOf, NOT_TYPED, NOT_TYPED_ATTACHED, OFF };

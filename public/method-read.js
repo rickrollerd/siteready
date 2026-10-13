@@ -75,6 +75,23 @@
     </div>`;
   }
 
+  // What was left out of the suggestions for not being word for word in the methodology (D234).
+  function droppedText(dropped) {
+    const steps = (dropped && dropped.steps) || 0;
+    const lines = (dropped && dropped.lines) || 0;
+    if (!steps && !lines) return '';
+    const said = [];
+    if (steps) said.push(steps === 1 ? '1 suggested step was left out because its wording was not found word for word in the methodology.' : `${steps} suggested steps were left out because their wording was not found word for word in the methodology.`);
+    if (lines) {
+      const what = lines === 1 ? '1 control or hazard line was' : `${lines} control or hazard lines were`;
+      said.push(steps ? `${what} left out of the other suggestions for the same reason.`
+        : `${what} left out of the suggestions because ${lines === 1 ? 'its' : 'their'} wording was not found word for word in the methodology.`);
+    }
+    said.push(steps && lines ? 'Check the methodology for any step, control or hazard that is missing.' : steps ? 'Check the methodology for any step that is missing.' : 'Check the methodology for any control or hazard that is missing.');
+    return said.join(' ');
+  }
+  const droppedNote = (dropped) => { const text = droppedText(dropped); return text ? `<p class="warning method-dropped" role="status">${esc(text)}</p>` : ''; };
+
   function panelHtml(row) {
     const id = row.id;
     const state = readings.get(id) || {};
@@ -104,7 +121,7 @@
     const pageNote = pages.length ? `<p class="meta">${pages.length === 1 ? `Page ${pages[0]} looks` : `Pages ${pages.join(', ')} look`} like a drawing or a scan. Only typed words are read, so check ${pages.length === 1 ? 'that page' : 'those pages'} against the job steps yourself.</p>` : '';
     const open = items.filter((item) => !item.state).length;
     return `<h3 class="method-head">Suggested job steps from the methodology</h3>
-      <p class="warning">${esc(CHECK)}</p>${pageNote}
+      <p class="warning">${esc(CHECK)}</p>${droppedNote(state.reading.dropped)}${pageNote}
       <p class="meta">${items.length} step${items.length === 1 ? '' : 's'}, in the methodology's order. ${open ? `${open} still to accept, change or skip.` : 'All done.'} ${esc(ORDER)}</p>
       <ol class="method-suggestions">${items.map((item, index) => itemHtml(id, item, index)).join('')}</ol>
       <p><button type="button" class="link" data-mr-open="${esc(id)}">Read another file</button></p>`;
@@ -260,5 +277,5 @@
     }
   });
 
-  window.SiteReadyMethodRead = { boxHtml, forget: (id) => readings.delete(id), clear: () => readings.clear() };
+  window.SiteReadyMethodRead = { boxHtml, droppedText, forget: (id) => readings.delete(id), clear: () => readings.clear() };
 })();
