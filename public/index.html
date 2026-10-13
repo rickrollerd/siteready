@@ -575,11 +575,11 @@
         </label>
         <input id="review-date" type="date" autocomplete="off">
       </div>
-      <div class="field">
+      <div class="field hidden" id="scaffold-supervisor-field">
         <label for="scaffold-supervisor">Scaffold supervisor
-          <span class="hint">The scaffolding company's supervisor who hands over and tags the scaffold. Needed before download only where the SWMS involves a scaffold; printed only then.</span>
+          <span class="hint">The scaffolding company's supervisor who hands over and tags the scaffold. Asked for only when this SWMS involves a scaffold.</span>
         </label>
-        <input id="scaffold-supervisor" type="text" autocomplete="off">
+        <input id="scaffold-supervisor" type="text" autocomplete="off" placeholder="If not known yet, find out before download">
       </div>
       <div class="field">
         <label for="hospital">Hospital
@@ -599,7 +599,7 @@
         <label for="muster-point">Muster point
           <span class="hint">Where everyone meets in an emergency. Ask the main contractor. Needed before download.</span>
         </label>
-        <input id="muster-point" type="text" autocomplete="off">
+        <input id="muster-point" type="text" autocomplete="off" placeholder="If not known yet, find out before download">
       </div>
       <div class="field">
         <label for="draft-date">Date of the draft</label>
