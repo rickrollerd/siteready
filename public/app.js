@@ -1585,6 +1585,7 @@ function plantTicked(item) {
   if (plantChoice && (plantChoice.notUsed || []).includes(item.item)) return false;
   return !item.maybe;
 }
+const NOTHING_TO_ADD = /^(?:no|none|no other|nothing|nothing else|nil|n\/?a|not applicable)[.!]?$/i;
 const plantOwn = () => (plantPending && plantPending.own) || (plantChoice && plantChoice.added) || [];
 function plantBlock(draft) {
   const listed = draft.plantInferred || [];
@@ -1596,7 +1597,9 @@ function plantBlock(draft) {
   const ticks = listed.length
     ? listed.map((item) => `<label class="check"><input type="checkbox" data-plant-item="${esc(item.item)}"${plantTicked(item) ? ' checked' : ''}><span>${esc(item.item)}${item.maybe ? ' <span class="meta">SiteReady is not sure this is used. Tick it only if it is.</span>' : ''}</span></label>`).join('')
     : '<p class="meta">SiteReady found no plant in this task. Add the plant and equipment your crew uses, if any.</p>';
-  const own = plantOwn().map((item, i) => `<p class="plant-own"><strong>${esc(item.item)}</strong>: ${item.licence ? esc(item.licence) : 'licence or ticket not given'} <button type="button" class="link" data-plant-remove="${i}">Remove</button></p>`).join('');
+  const own = plantOwn().map((item, i) => (item.licence
+    ? `<p class="plant-own"><strong>${esc(item.item)}</strong>: ${esc(item.licence)} <button type="button" class="link" data-plant-remove="${i}">Remove</button></p>`
+    : `<div class="plant-own"><label for="plant-own-licence-${i}"><strong>${esc(item.item)}</strong>: licence or ticket to operate it <span class="hint">Write No if none is needed.</span></label><input id="plant-own-licence-${i}" type="text" maxlength="300" data-plant-own-licence="${i}"> <button type="button" class="link" data-plant-remove="${i}">Remove</button></div>`)).join('');
   return `<div class="panel answer-panel${done ? ' done' : ''}" id="plant-panel">
     <fieldset class="field" id="plant-ticks" tabindex="-1"><legend>Confirm the plant and equipment for this job</legend>
       <p class="meta">SiteReady listed these from the task and the job steps. Tick what your crew will use, untick what it will not, and add anything missing. Only the plant you confirm prints on the SWMS. The job steps stay as they are: change them under Job steps if the method changes.</p>
@@ -1963,6 +1966,13 @@ document.addEventListener('change', (event) => {
   showGate();
 });
 async function prepareDraft({ scroll = true } = {}) {
+  // Plant ticks or removals not yet confirmed are used, so "Update the draft" does not undo them.
+  if (plantPending && document.getElementById('plant-panel')) {
+    const ticks = plantTicksNow();
+    const names = Object.keys(ticks);
+    plantChoice = { used: names.filter((name) => ticks[name]), notUsed: names.filter((name) => !ticks[name]), added: plantOwn().map((item) => ({ ...item, licence: String(item.licence || '').trim() })) };
+    plantPending = null;
+  }
   const button = document.getElementById('prepare');
   button.disabled = true;
   document.getElementById('facts-error').textContent = '';
@@ -2058,6 +2068,18 @@ function plantChanged(own) {
   const panel = document.getElementById('plant-panel');
   if (panel && shownDraft) panel.outerHTML = plantBlock(shownDraft);
 }
+// A licence typed for an item the user added is kept with it, and used when the plant is confirmed.
+resultEl.addEventListener('input', (event) => {
+  const box = event.target.closest && event.target.closest('[data-plant-own-licence]');
+  if (!box) return;
+  const own = plantOwn().map((item) => ({ ...item }));
+  const i = Number(box.dataset.plantOwnLicence);
+  if (!own[i]) return;
+  own[i].licence = box.value;
+  plantPending = { ticks: plantTicksNow(), own };
+  const status = document.getElementById('plant-status');
+  if (status) status.textContent = 'You have changes. Press Confirm the plant to use them.';
+});
 resultEl.addEventListener('change', (event) => {
   const box = event.target.closest && event.target.closest('[data-plant-item]');
   if (!box) return;
@@ -2069,8 +2091,14 @@ resultEl.addEventListener('click', async (event) => {
   const status = document.getElementById('plant-status');
   const itemBox = document.getElementById('plant-own-item');
   const licenceBox = document.getElementById('plant-own-licence');
-  const typed = () => (itemBox && itemBox.value.trim() ? [{ item: itemBox.value.trim(), licence: licenceBox ? licenceBox.value.trim() : '' }] : []);
+  // "No", "None", "No other", "Nil", "N/A" typed in the box mean nothing to add.
+  const typed = () => (itemBox && itemBox.value.trim() && !NOTHING_TO_ADD.test(itemBox.value.trim()) ? [{ item: itemBox.value.trim(), licence: licenceBox ? licenceBox.value.trim() : '' }] : []);
   if (event.target.closest('#plant-add')) {
+    if (itemBox && NOTHING_TO_ADD.test(itemBox.value.trim())) {
+      itemBox.value = '';
+      if (status) status.textContent = 'Nothing to add. Press Confirm the plant when the ticks are right.';
+      return;
+    }
     if (!typed().length) {
       if (status) status.textContent = 'Type the plant or equipment first.';
       if (itemBox) itemBox.focus();
@@ -2083,16 +2111,23 @@ resultEl.addEventListener('click', async (event) => {
   }
   const remove = event.target.closest('[data-plant-remove]');
   if (remove) {
+    // Removing an item the user added applies at once: the draft is prepared again without it.
     const own = [...plantOwn()];
     own.splice(Number(remove.dataset.plantRemove), 1);
-    plantChanged(own);
+    const ticks = plantTicksNow();
+    const names = Object.keys(ticks);
+    plantChoice = { used: names.filter((name) => ticks[name]), notUsed: names.filter((name) => !ticks[name]), added: own };
+    plantPending = null;
+    await prepareDraft({ scroll: false });
+    const panel = document.getElementById('plant-panel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
   if (event.target.closest('#plant-confirm')) {
     // An item typed but not added yet is added with the rest.
     const ticks = plantTicksNow();
     const names = Object.keys(ticks);
-    plantChoice = { used: names.filter((name) => ticks[name]), notUsed: names.filter((name) => !ticks[name]), added: [...plantOwn(), ...typed()] };
+    plantChoice = { used: names.filter((name) => ticks[name]), notUsed: names.filter((name) => !ticks[name]), added: [...plantOwn().map((item) => ({ ...item, licence: String(item.licence || '').trim() })), ...typed()] };
     plantPending = null;
     await prepareDraft({ scroll: false });
     const panel = document.getElementById('plant-panel');
