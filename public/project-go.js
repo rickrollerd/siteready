@@ -243,13 +243,13 @@
     const row = designRow(designId, label);
     const name = `go-design-${index}-${designId}`;
     const radio = (value, text) => `<label><input type="radio" name="${name}" data-go-design="${esc(designId)}" data-field="status" value="${value}"${row.status === value ? ' checked' : ''}> ${text}</label>`;
-    const box = (key, text, hint) => `<div class="field"><label for="${name}-${key}">${text}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="${name}-${key}" type="text" data-go-design="${esc(designId)}" data-field="${key}" maxlength="200" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
+    const box = (key, text, hint, type = 'text') => `<div class="field"><label for="${name}-${key}">${text}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="${name}-${key}" type="${type}" data-go-design="${esc(designId)}" data-field="${key}" maxlength="200" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
     const usedElsewhere = project.items.some((_item, other) => other !== index && designIds(other).includes(designId));
     return `<fieldset class="field design-card go-design" data-status="${esc(row.status || '')}" data-design-id="${esc(designId)}"${questionId ? ` data-for-q="${esc(questionId)}"` : ''}><legend>${esc(row.what || label)}</legend>
       ${steps && steps.length ? `<p class="meta">Used in: ${esc(steps.join('; '))}.</p>` : ''}
       ${usedElsewhere ? '<p class="meta">Given once, used in every SWMS of this project that relies on it.</p>' : ''}
       <div class="choice design-status">${radio('given', 'I have it')}${radio('notIssued', 'Not issued yet')}${radio('notNeeded', 'Not needed for this work')}</div>
-      <div class="design-given">${box('by', 'Who prepared it', 'The engineer or firm.')}<div class="design-pair">${box('number', 'Document or drawing number', 'From the title block.')}${box('revision', 'Revision', 'Leave it empty if it has none.')}</div></div>
+      <div class="design-given">${box('by', 'Who prepared it', 'The engineer or firm.')}<div class="design-pair">${box('number', 'Document or drawing number', 'From the title block.')}${box('revision', 'Revision', 'Leave it empty if it has none.')}</div>${box('date', 'Date on the design', '', 'date')}</div>
       <p class="note design-hold">${questionId ? 'The answer above prints as a hold point: the work it covers does not start until the design is issued and the SWMS is updated. You can leave the answer empty.' : 'The steps that use it print a hold point until the design is issued and the SWMS is updated.'}</p>
     </fieldset>`;
   }
@@ -405,6 +405,11 @@
       setFact(index, target.dataset.q, target.value);
       save();
       askSoon(index);
+      return;
+    }
+    if (target.dataset.goDesign !== undefined && target.type !== 'radio') {
+      designRow(target.dataset.goDesign)[target.dataset.field] = target.value;
+      save();
       return;
     }
     if (target.dataset.goDesign !== undefined && target.type === 'radio') {
@@ -616,7 +621,7 @@
     const firstToCheck = project.items.findIndex((item, index) => !states[index].ready || !item.checked);
     const can = S.canDownload && S.canDownload();
     return `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
-      <p class="lede">${n} SWMS prepared. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change this step</strong>. Each must clear its checks before the download.</p>
+      <p class="lede">${n} SWMS prepared. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change</strong> beside the line (on a phone, <strong>Change this step</strong> first). Each must clear its checks before the download.</p>
       <p class="error" id="project-error"></p>
       ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button></li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
       <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}"><div><strong>${esc(item.title)}</strong><span class="meta">${esc(states[index].text)}${item.checked ? ' Checked.' : ' Not checked yet.'}</span></div><button type="button" class="${index === firstToCheck ? '' : 'secondary '}small" data-project-open="${index}">${item.checked ? 'Check it again' : 'Check this SWMS'}</button></li>`).join('')}</ol>

@@ -509,8 +509,9 @@
     const before = same ? project : null;
     project = { current: 0, items, from, stage: items.every((item) => item.body) ? 'review' : 'questions', shared: (before && before.shared) || { crane: from.crane || '', site: null, designs: {}, emergency: {} } };
     saveProject();
-    // The list has done its job; closing it keeps the page short.
+    // The list has done its job; closing it keeps the page short. The SWMS form waits until a SWMS is opened to check.
     $('scope-panel').open = false;
+    showSingle(false);
     renderProject();
     requestAnimationFrame(() => $('project-panel').scrollIntoView({ block: 'start' }));
   }
@@ -617,7 +618,7 @@
     if (bar) {
       const checking = project.stage === 'check' && project.items[project.current];
       const nextToCheck = checking ? project.items.findIndex((other, index) => index > project.current && !other.checked) : -1;
-      bar.innerHTML = checking ? `<p><strong>Checking SWMS ${project.current + 1} of ${project.items.length}: ${esc(project.items[project.current].title)}.</strong> Read each step as it will print. To change a step's wording, press Change this step on it. When it is right, go back to the list.</p>
+      bar.innerHTML = checking ? `<p><strong>Checking SWMS ${project.current + 1} of ${project.items.length}: ${esc(project.items[project.current].title)}.</strong> Read each step as it will print. To change a step's wording, press Change beside its line (on a phone, press Change this step first). Your changes are kept, and SiteReady learns from them. When it is right, go back to the list.</p>
         <div class="actions"><button type="button" class="secondary" data-project-review>Back to the list of SWMS</button>${nextToCheck >= 0 ? `<button type="button" class="secondary" data-project-open="${nextToCheck}">Check SWMS ${nextToCheck + 1}: ${esc(project.items[nextToCheck].title)}</button>` : ''}</div>` : '';
       bar.classList.toggle('hidden', !checking);
     }

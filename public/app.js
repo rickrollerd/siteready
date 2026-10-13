@@ -150,7 +150,16 @@ async function saveProfile({ auto = false } = {}) {
       window.SiteReady.lastCompanyNotice = '';
       const saved = await window.SiteReady.saveCompany(next);
       forgetProfileTyping();
+      // Saved as it is filled in, the profile stays open where the user is typing, and what was typed
+      // while it saved stays in its box, to be saved in turn.
+      const open = document.getElementById('profile').open;
+      const typedSince = profileTyped();
       setProfile(saved);
+      if (auto) {
+        document.getElementById('profile').open = open;
+        Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { if (typedSince[key] !== String(next[key] || '')) document.getElementById(id).value = typedSince[key]; });
+        keepProfileTyping();
+      }
       profileStatus(window.SiteReady.lastCompanyNotice || (auto ? 'Saved for your company as you filled it in.' : 'Saved for your company.'));
     } catch (error) {
       profileStatus(auto ? `Not saved yet: ${error.message} Fix it, then press Save profile.` : error.message);
@@ -168,7 +177,14 @@ async function saveProfile({ auto = false } = {}) {
   const company = document.getElementById('company');
   if (!company.value || company.value === profile.name) company.value = next.name;
   profile = next;
+  const open = document.getElementById('profile').open;
+  const typedSince = profileTyped();
   showProfile();
+  if (auto) {
+    document.getElementById('profile').open = open;
+    Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { if (typedSince[key] !== String(next[key] || '')) document.getElementById(id).value = typedSince[key]; });
+    keepProfileTyping();
+  }
   profileStatus(auto ? 'Saved on this device as you filled it in.' : 'Saved on this device.');
   if (shownDraft) showGate();
 }

@@ -255,15 +255,18 @@ test('the work packages are chosen once and go straight to the SWMS to prepare, 
   fire(p, 'change', input(p, { type: 'radio', name: 'scope-slinging', value: 'crane' }));
   fire(p, 'click', p.document.getElementById('scope-confirm'));
   await settle(40);
-  // Straight to SWMS 1 of 3, with nothing to choose again.
+  // Straight to the project, prepared in one go (D239), with nothing to choose again.
   const project = projectOf(p);
+  assert.equal(project.stage, 'questions');
   assert.deepEqual(project.items.map((item) => item.title), ['Trade installation: formwork', 'Edge protection', 'Plant lifting and cranage']);
   assert.ok(project.items[0].kinds.includes('castIn'));
   assert.deepEqual(project.items[0].pick, { trade: 'formwork', task: 'slab-formwork' });
   assert.equal(project.items[0].crane, 'company');
   assert.equal(project.items[0].slinging, 'crane');
-  assert.equal(p.document.getElementById('task-from').textContent, 'SWMS 1 of 3: Trade installation: formwork');
-  assert.match(p.document.getElementById('task').value, /^Supply and install formwork/);
+  // Each SWMS's task is a plain list of the work (D251); the SWMS form waits until one is opened to check.
+  assert.match(project.items[0].task, /^Supply and install formwork and propping to suspended slabs, stairs and beams\. Strip formwork/);
+  assert.doesNotMatch(project.items[0].task, /[()]/);
+  assert.equal(p.document.getElementById('start').classList.contains('hidden'), true);
   assert.match(p.document.getElementById('project-panel').innerHTML, /Change the SWMS chosen/);
   // Back to the list with the choice as it was made.
   fire(p, 'click', p.document.getElementById('project-change'), 'project-panel');
