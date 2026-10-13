@@ -110,6 +110,8 @@
     if (!item) return;
     const fall = item.fallRisk || item.goFall;
     if (!fall) { asked.set(index, { needsFall: true }); drawItem(index); return; }
+    // As the page opens, the states are still loading: the questions are asked once they are in.
+    if (!document.querySelector('input[name="state"]:checked')) { setTimeout(() => askItem(index), 400); return; }
     const mine = (askSeq.get(index) || 0) + 1;
     askSeq.set(index, mine);
     try {
@@ -151,11 +153,17 @@
     return SITE.map(([id, label, hint]) => `<div class="field"><label for="${prefix}-${id}">${esc(label)}<span class="hint">${esc(hint)}</span></label><textarea id="${prefix}-${id}" ${attr} data-site-id="${id}">${esc(values[id] || '')}</textarea></div>`).join('');
   }
 
+  // A project brought back after a reload or the phone's Back button says so, until the user carries on.
+  let broughtBack = true;
+  const backNote = () => (broughtBack && project && (project.stage === 'review' || project.items.some((item) => item.facts || item.goFall)) ? '<p class="note" id="go-back-note" role="status">Your work is back as you left it.</p>' : '');
+  document.addEventListener('click', () => { broughtBack = false; }, true);
+  document.addEventListener('input', () => { broughtBack = false; }, true);
+
   function render(panel, current, given) {
     project = current;
     hooks = given;
     if (project.stage === 'review') {
-      panel.innerHTML = reviewHtml();
+      panel.innerHTML = reviewHtml().replace('<p class="error" id="project-error"></p>', `${backNote()}<p class="error" id="project-error"></p>`);
       // Details given since the SWMS were prepared (brought back after a reload) are put into them.
       const now = JSON.stringify(pageBase());
       // So are emergency answers given in another SWMS of the project (D239: filled across).
@@ -172,7 +180,7 @@
     panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
       <p class="lede">${n} SWMS from the scope. Answer the questions once on this page, then press <strong>Prepare all ${n} SWMS</strong>. You then check each one before they download together.</p>
       ${project.from ? '<div class="actions" style="margin-top:0"><button type="button" class="small secondary" id="project-change">Change the SWMS chosen</button></div>' : ''}
-      <p class="error" id="project-error"></p>
+      ${backNote()}<p class="error" id="project-error"></p>
       <section class="go-block">
         <h3>1. Site details, for every SWMS</h3>
         ${peopleBlock()}
