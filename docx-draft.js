@@ -2,6 +2,7 @@ const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, BorderStyle, VerticalAlign, Footer, Header, AlignmentType, ImageRun, CheckBox, PageOrientation,
 } = require('docx');
+const { stepPpeRows } = require('./step-ppe');
 const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./designs');
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
@@ -359,8 +360,35 @@ function riskMatrix() {
   return gridTable(['Likelihood', 'Negligible (1)', 'Minor (2)', 'Moderate (3)', 'Major (4)', 'Catastrophic (5)'], widths, levels);
 }
 
+// PPE for all work, as tick boxes by area, and the extra items for particular steps with the steps
+// that need them (D246): "Face shield: Saw cut concrete; Cut the reo".
 function ppeTable(groups) {
-  return signTable(groups.map((group) => [group.area, group.items, 360]));
+  const forSteps = (item) => item.ticked && Array.isArray(item.steps);
+  return new Table({
+    width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+    columnWidths: [LABEL_WIDTH, VALUE_WIDTH],
+    rows: groups.map((group) => {
+      const steps = group.items.filter(forSteps).map((item) => item.label);
+      const children = [...tickBoxes(group.items.filter((item) => !forSteps(item))), ...(steps.length ? [run(`     For particular steps (below): ${steps.join(', ')}`, { size: 20, italics: true })] : [])];
+      return new TableRow({
+        cantSplit: true,
+        height: { value: 360 },
+        children: [
+          cell(group.area, LABEL_WIDTH, { bold: true, fill: HEAD, size: 20 }),
+          new TableCell({ width: { size: VALUE_WIDTH, type: WidthType.DXA }, borders, margins: { top: 60, bottom: 60, left: 80, right: 80 }, verticalAlign: VerticalAlign.TOP, children: [new Paragraph({ spacing: { before: 0, after: 0, line: 276 }, children })] }),
+        ],
+      });
+    }),
+  });
+}
+function stepPpeBlocks(groups) {
+  const rows = stepPpeRows(groups);
+  if (!rows.length) return [];
+  return [
+    para('For particular steps', { bold: true, size: 21, before: 140, after: 40 }),
+    para('Worn as well as the PPE for all work, in the steps listed. Each step says so.', { size: 19, color: MUTED, before: 0, after: 80 }),
+    signTable(rows.map((item) => [item.label, item.steps.join('; ')])),
+  ];
 }
 
 const COMPLIANCE_CHECK = 'The supervisor checks the controls are in place before work starts and during the work, and stops the work if they are not.';
@@ -455,7 +483,9 @@ function childrenFor(draft, options = {}) {
 
   blocks.push(sectionHeading('Personal protective equipment'));
   blocks.push(para('Ticked items must be worn. Change the ticks to suit the site.', { size: 19, color: MUTED, before: 0, after: 80 }));
+  if (stepPpeRows(draft.ppe).length) blocks.push(para('For all work', { bold: true, size: 21, before: 40, after: 40 }));
   blocks.push(ppeTable(draft.ppe || []));
+  blocks.push(...stepPpeBlocks(draft.ppe || []));
 
   blocks.push(...registerBlocks(draft));
 

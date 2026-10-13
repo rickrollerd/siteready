@@ -1,4 +1,5 @@
 // Cleans what the browser sends before it is drafted or saved.
+const { currentPpeIds } = require('./activities');
 // Control characters, often pasted in from Word or email, are not allowed in a
 // Word file and would make it fail to open.
 const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
@@ -127,6 +128,19 @@ function designs(value) {
 }
 
 // The user's answers for the blanks (____) in control lines, by line (goal 2): a few answers a line.
+// Where the user put each PPE item (D247): an item id to 'all' (moved to all work) or to the names
+// of the steps it is worn in. Items not listed follow SiteReady's suggestion.
+function ppeSteps(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const out = {};
+  for (const [id, where] of Object.entries(value).slice(0, 40)) {
+    if (!/^[A-Za-z0-9]{1,40}$/.test(id)) continue;
+    if (where === 'all') out[id] = 'all';
+    else if (Array.isArray(where)) out[id] = [...new Set(where.filter((name) => typeof name === 'string').slice(0, 60).map((name) => textField(name, 300)).filter(Boolean))];
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 function fills(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const entries = Object.entries(value).slice(0, 60)
@@ -202,7 +216,9 @@ function draftBody(body) {
     plantChoice: plantChoice(body.plantChoice),
     emergency: emergencyAnswers(body.emergency),
     designs: designs(body.designs),
-    ppe: Array.isArray(body.ppe) ? body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40)) : undefined,
+    // Clothing ids saved before one garment went to each tick box (D248) are read as the new ones.
+    ppe: Array.isArray(body.ppe) ? currentPpeIds(body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40))) : undefined,
+    ppeSteps: ppeSteps(body.ppeSteps),
     date: field(body.date, 80) || longDate(),
     facts: {
       craneChart: field(facts.craneChart, 2000),

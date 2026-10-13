@@ -159,7 +159,8 @@ test('lines that differ only in the state code references are still said once in
     }
     const done = prepareDraft({ ...input, facts });
     assert.equal(done.kind, 'draft', state);
-    const lines = done.jobSteps.flatMap((step) => step.controls).map(split);
+    // A step's own PPE line (D246) is said in each step that needs it.
+    const lines = done.jobSteps.flatMap((step) => step.controls.filter((line) => !(step.ppeLines || []).includes(line))).map(split);
     assert.equal(lines.length, new Set(lines).size, state);
   }
 });

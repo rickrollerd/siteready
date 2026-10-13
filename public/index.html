@@ -81,6 +81,15 @@
     .step-add input, .step-add select { flex: 1 1 220px; min-width: 0; }
     .ppe-group legend { font-size: 14px; font-weight: 600; margin-bottom: 4px; padding: 0; }
     .ppe-group label { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; margin: 0 16px 6px 0; }
+    .ppe-head { font-size: 15px; font-weight: 600; margin: 14px 0 8px; }
+    .ppe-note { margin: 0 0 8px; }
+    .ppe-steps { list-style: none; margin: 0 0 12px; padding: 0; }
+    .ppe-steps li { border: 1px solid #e1e6ec; border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+    .ppe-steps label { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; margin: 0; }
+    .ppe-steps .step-names { flex: 1 1 200px; font-size: 13px; color: #5c6773; }
+    .ppe-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .ppe-add label { flex-basis: 100%; }
+    .ppe-add select { flex: 1 1 200px; min-width: 0; border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; padding: 9px 11px; }
     .pick select {
       width: 100%;
       border: 1px solid #c5cdd6;
@@ -301,7 +310,7 @@
     .design-attach { display: inline-block; cursor: pointer; border: 1px solid #1f4e3d; color: #1f4e3d; background: #fff; border-radius: 6px; padding: 10px 16px; font-weight: 600; font-size: 16px; min-height: 44px; box-sizing: border-box; }
     .design-file { margin: 6px 0; overflow-wrap: anywhere; }
     .design-hold-line { font-weight: 700; color: #8a2b2b; }
-    .design-line .meta { display: block; font-weight: 400; color: #3d4a59; }
+    .design-line .meta, .ppe-line .meta { display: block; font-weight: 400; color: #3d4a59; }
     /* A written methodology or sequence of works (D224): optional, on every draft. */
     .method-add-row { margin: 14px 0 6px; }
     .design-card .method-caution { margin: 6px 0 10px; }
@@ -421,6 +430,8 @@
       .answer-panel .check { min-height: 44px; align-items: center; }
       .confirm .check input, .not-covered .check input { margin-top: 0; }
       .ppe-group label { margin-bottom: 0; }
+      .ppe-steps label { min-height: 44px; }
+      .ppe-steps .step-names, .ppe-head { font-size: 16px; }
       .address-list li { min-height: 44px; }
       details.panel > summary, .site-item > summary, details.revisions > summary, details.revisions details > summary, .scope-task details > summary, .note details > summary, details.sheet-fold > summary { padding: 11px 0; }
       .site-footer a { display: inline-block; padding: 11px 0; }
@@ -760,7 +771,7 @@
       <h2 style="margin-top:18px">Facts</h2>
       <div id="required-block"></div>
       <h2 style="margin-top:18px">Personal protective equipment</h2>
-      <p class="lede" style="margin-bottom:12px">Ticked items are suggested for this task. Change them to suit the job and the site rules.</p>
+      <p class="lede" style="margin-bottom:12px">Ticked items are suggested for this task. Some are worn for all work; others only in the steps that need them, such as a face shield while grinding. Change them to suit the job and the site rules.</p>
       <div id="ppe-block"></div>
       <h2 style="margin-top:18px">Site-specific</h2>
       <p class="lede" style="margin-bottom:12px">Answer each one for this site. They are needed before download. Where there truly is none, write None (Access always needs an answer).</p>

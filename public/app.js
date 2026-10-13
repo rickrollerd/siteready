@@ -278,7 +278,9 @@ function payload() {
     date: longDate(value('draft-date')),
     preparedBy: value('prepared-by'),
     swmsRef: value('swms-ref'),
-    ppe: document.querySelector('[data-ppe]') ? [...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value) : undefined,
+    // The PPE ticked for all work and for particular steps, and where the user put items (D247).
+    ppe: document.querySelector('[data-ppe]') ? ppeTicked() : undefined,
+    ppeSteps: Object.keys(ppePlaced).length ? ppePlaced : undefined,
     // The job steps picked, or none to use the ones SiteReady finds in the task.
     kinds: stepPicks || undefined,
     stepOrder: stepOrder || undefined,
@@ -566,6 +568,7 @@ function newSwms() {
   drawDesigns([]);
   choicesTask = null;
   ppeTouched.clear();
+  ppePlaced = {};
   // Its questions start blank.
   freshFacts = true;
   if (window.SiteReady) window.SiteReady.editing = null;
@@ -670,11 +673,96 @@ async function refreshSteps() {
   await loadQuestions({ stay: true, keepTicked: true }).catch((error) => { document.getElementById('facts-error').textContent = error.message; return false; });
 }
 
-// Ticking a harness or life jacket asks about it; unticking one takes the question away.
+// PPE for all work and PPE for particular steps (D246, D247). ppePlaced holds where the user put
+// items: an item id to 'all' (moved to all work) or to the steps it is worn in. It is sent with the
+// SWMS, which prints it and learns from it.
+let ppePlaced = {};
+let ppeShown = { groups: [], steps: [] };
 const ppeTouched = new Set();
+// Every item ticked, for all work or for a step.
+function ppeTicked() {
+  return [...new Set([...document.querySelectorAll('[data-ppe]:checked, [data-ppe-step]:checked')].map((el) => el.value))];
+}
+// The items for particular steps as shown, with their steps.
+function ppeStepItems() {
+  return ppeShown.groups.flatMap((group) => group.items).filter((item) => Array.isArray(item.steps) && item.steps.length);
+}
+function setPpe(id, on) {
+  const row = document.querySelector(`[data-ppe-step][value="${CSS.escape(id)}"]`);
+  const box = row || document.querySelector(`[data-ppe][value="${CSS.escape(id)}"]`);
+  if (box) box.checked = on;
+}
+function drawPpe(groups, steps) {
+  ppeShown = { groups: groups || [], steps: steps || [] };
+  const stepItems = ppeStepItems();
+  const forSteps = new Set(stepItems.map((item) => item.id));
+  const choices = ppeShown.groups.flatMap((group) => group.items).filter((item) => item.forSteps);
+  document.getElementById('ppe-block').innerHTML = `
+    <h3 class="ppe-head">For all work</h3>
+    ${ppeShown.groups.map((group) => `
+    <fieldset class="ppe-group">
+      <legend>${esc(group.area)}</legend>
+      ${group.items.map((item) => `<label><input type="checkbox" data-ppe value="${esc(item.id)}"${item.ticked && !forSteps.has(item.id) ? ' checked' : ''}> ${esc(item.label)}${forSteps.has(item.id) ? ' <span class="meta">(steps below)</span>' : ''}</label>`).join('')}
+    </fieldset>`).join('')}
+    <h3 class="ppe-head">For particular steps</h3>
+    <p class="meta ppe-note">Extra items only some steps need. Each one prints in its steps and in the PPE table.</p>
+    ${stepItems.length ? `<ul class="ppe-steps">${stepItems.map((item) => `
+      <li>
+        <label><input type="checkbox" data-ppe-step value="${esc(item.id)}"${item.ticked ? ' checked' : ''}> ${esc(item.label)}</label>
+        <span class="step-names">${esc(item.steps.join('; '))}</span>
+        <button type="button" class="secondary small" data-ppe-all="${esc(item.id)}">Move to all work</button>
+      </li>`).join('')}</ul>` : '<p class="meta">None. Every item ticked is for all work.</p>'}
+    ${choices.length && ppeShown.steps.length ? `<div class="field ppe-add">
+      <label for="ppe-add-item">Add an item to a step</label>
+      <select id="ppe-add-item"><option value="">Choose an item</option>${choices.map((item) => `<option value="${esc(item.id)}">${esc(item.label)}</option>`).join('')}</select>
+      <select id="ppe-add-step"><option value="">Choose a step</option>${ppeShown.steps.map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join('')}</select>
+      <button type="button" class="secondary" id="ppe-add">Add to the step</button>
+    </div>` : ''}`;
+}
+// Redraws the PPE as the user has it now: their ticks stay as they are.
+function redrawPpe() {
+  const ticked = new Set(ppeTicked());
+  drawPpe(ppeShown.groups, ppeShown.steps);
+  for (const group of ppeShown.groups) for (const item of group.items) setPpe(item.id, ticked.has(item.id));
+}
+// Ticking a harness or life jacket asks about it; unticking one takes the question away.
 document.getElementById('ppe-block').addEventListener('change', (event) => {
-  if (event.target.matches('[data-ppe]')) ppeTouched.add(event.target.value);
-  if (event.target.matches('[data-ppe][value="harness"], [data-ppe][value="lifeJacket"]')) refreshSteps();
+  const id = event.target.value;
+  if (event.target.matches('[data-ppe], [data-ppe-step]')) ppeTouched.add(id);
+  // An item for particular steps ticked for all work is moved there.
+  if (event.target.matches('[data-ppe]') && event.target.checked && ppeStepItems().some((item) => item.id === id)) {
+    ppePlaced[id] = 'all';
+    for (const group of ppeShown.groups) for (const item of group.items) if (item.id === id) { delete item.steps; item.ticked = true; }
+    redrawPpe();
+  }
+  if (['harness', 'lifeJacket'].includes(id) && event.target.matches('[data-ppe], [data-ppe-step]')) refreshSteps();
+});
+document.getElementById('ppe-block').addEventListener('click', (event) => {
+  const move = event.target.closest('[data-ppe-all]');
+  if (move) {
+    const id = move.dataset.ppeAll;
+    ppePlaced[id] = 'all';
+    ppeTouched.add(id);
+    for (const group of ppeShown.groups) for (const item of group.items) if (item.id === id) { delete item.steps; item.ticked = true; }
+    const ticked = new Set([...ppeTicked(), id]);
+    drawPpe(ppeShown.groups, ppeShown.steps);
+    for (const group of ppeShown.groups) for (const item of group.items) setPpe(item.id, ticked.has(item.id));
+    return;
+  }
+  if (event.target.id !== 'ppe-add') return;
+  const id = document.getElementById('ppe-add-item').value;
+  const step = document.getElementById('ppe-add-step').value;
+  if (!id || !step) return;
+  const item = ppeShown.groups.flatMap((group) => group.items).find((other) => other.id === id);
+  if (!item) return;
+  const ticked = new Set([...ppeTicked(), id]);
+  item.steps = [...new Set([...(Array.isArray(item.steps) ? item.steps : []), step])].sort((a, b) => ppeShown.steps.indexOf(a) - ppeShown.steps.indexOf(b));
+  item.ticked = true;
+  ppePlaced[id] = item.steps;
+  ppeTouched.add(id);
+  drawPpe(ppeShown.groups, ppeShown.steps);
+  for (const group of ppeShown.groups) for (const other of group.items) setPpe(other.id, ticked.has(other.id));
+  if (['harness', 'lifeJacket'].includes(id)) refreshSteps();
 });
 
 document.getElementById('steps-block').addEventListener('change', (event) => {
@@ -976,17 +1064,16 @@ async function loadQuestions(options = {}) {
   }
   drawRequired(data.required || []);
   // PPE the user ticked or unticked stays as they set it. The rest follows the new suggestion, and
-  // when only the steps changed, what was ticked stays ticked.
-  const ppeShown = !fresh && document.querySelector('[data-ppe]');
+  // when only the steps changed, what was ticked stays ticked. The server has already put each item
+  // where the user put it (ppeSteps).
+  const ppeWasShown = !fresh && document.querySelector('[data-ppe]');
   const ticked = new Set(Array.isArray(sent.ppe) ? sent.ppe : []);
-  document.getElementById('ppe-block').innerHTML = (data.ppe || []).map((group) => `
-    <fieldset class="ppe-group">
-      <legend>${esc(group.area)}</legend>
-      ${group.items.map((item) => `<label><input type="checkbox" data-ppe value="${esc(item.id)}"${item.ticked ? ' checked' : ''}> ${esc(item.label)}</label>`).join('')}
-    </fieldset>
-  `).join('');
-  if (ppeShown) {
-    document.querySelectorAll('[data-ppe]').forEach((el) => {
+  drawPpe(data.ppe || [], data.ppeSteps || []);
+  if (ppeWasShown) {
+    const rows = new Set([...document.querySelectorAll('[data-ppe-step]')].map((el) => el.value));
+    document.querySelectorAll('[data-ppe], [data-ppe-step]').forEach((el) => {
+      // An item for particular steps is ticked in its row, not in the all work list.
+      if (el.matches('[data-ppe]') && rows.has(el.value)) return;
       if (ppeTouched.has(el.value)) el.checked = ticked.has(el.value);
       else if (options.keepTicked && ticked.has(el.value)) el.checked = true;
     });
@@ -1006,7 +1093,7 @@ async function loadQuestions(options = {}) {
   if (!options.stay) factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
   // The questions were asked with the PPE ticked before; if the new suggestion ticks a harness or a
   // life jacket, its questions are asked for too.
-  const now = [...document.querySelectorAll('[data-ppe]:checked')].map((el) => el.value);
+  const now = ppeTicked();
   if (Array.isArray(sent.ppe) && (now.length !== ticked.size || now.some((id) => !ticked.has(id)))) await askAgain();
   return true;
 }
@@ -1056,6 +1143,7 @@ function fillStart(input) {
   plantChoice = input.plantChoice && typeof input.plantChoice === 'object' ? JSON.parse(JSON.stringify(input.plantChoice)) : null;
   plantPending = null;
   emergencyAnswers = input.emergency && typeof input.emergency === 'object' ? { ...input.emergency } : null;
+  ppePlaced = input.ppeSteps && typeof input.ppeSteps === 'object' ? JSON.parse(JSON.stringify(input.ppeSteps)) : {};
   designAnswers = Array.isArray(input.designs) && input.designs.length ? JSON.parse(JSON.stringify(input.designs)) : null;
   designsFound = [];
   designsKept = new Map();
@@ -1081,7 +1169,11 @@ async function fillForm(input, options = {}) {
   document.querySelectorAll('[data-site]').forEach((el) => { el.value = (input.site || {})[el.dataset.site] || ''; });
   (questions && questions.required || []).forEach((item) => markPicks(item.id));
   if (Array.isArray(input.ppe)) {
-    document.querySelectorAll('[data-ppe]').forEach((el) => { el.checked = input.ppe.includes(el.value); });
+    // Clothing ticked before one garment went to each tick box (D248) is read as the new items.
+    const OLD = { siteClothing: ['sleevesLong', 'pantsLong'], longs: ['sleevesLong', 'pantsLong'], sleevesShorts: ['sleevesLong', 'shorts'] };
+    const saved = input.ppe.flatMap((id) => OLD[id] || [id]);
+    const rows = new Set([...document.querySelectorAll('[data-ppe-step]')].map((el) => el.value));
+    document.querySelectorAll('[data-ppe], [data-ppe-step]').forEach((el) => { el.checked = saved.includes(el.value) && !(el.matches('[data-ppe]') && rows.has(el.value)); });
     // The questions follow the SWMS's own PPE (a harness or life jacket brings its questions).
     await askAgain();
   }
@@ -1091,7 +1183,7 @@ async function fillForm(input, options = {}) {
 // Testing live equipment needs arc-rated clothing and insulated gloves (Model Code s 9.5).
 factsForm.addEventListener('change', (event) => {
   if (event.target.dataset.fact !== 'energisedWork' || event.target.value !== 'testing') return;
-  document.querySelectorAll('[data-ppe]').forEach((el) => { if (['arcRated', 'gloveInsulated'].includes(el.value)) el.checked = true; });
+  ['arcRated', 'gloveInsulated'].forEach((id) => setPpe(id, true));
 });
 
 // A standard answer's wording as a pattern: blanks (____) match whatever was filled in.
@@ -1903,7 +1995,10 @@ function render(draft, { movable = false, swmsId = '' } = {}) {
     // A design's reference or hold point is changed under Designs this work relies on, not here.
     const fromDesign = new Set(step.designLines || []);
     const designItem = (line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}" class="design-line${/^Hold point:/.test(line) ? ' design-hold-line' : ''}">${esc(line)}<span class="meta"> From the designs this work relies on. Change it there.</span></li>`;
-    return `<ul>${step.controls.map((line, i) => (fromDesign.has(line) ? designItem(line, i) : `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`)).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+    // The step's PPE line (D246) is changed under Personal protective equipment, as design lines are under Designs.
+    const fromPpe = new Set(step.ppeLines || []);
+    const ppeItem = (line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}" class="ppe-line">${esc(line)}<span class="meta"> PPE for this step. Change it under Personal protective equipment.</span></li>`;
+    return `<ul>${step.controls.map((line, i) => (fromDesign.has(line) ? designItem(line, i) : fromPpe.has(line) ? ppeItem(line, i) : `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`)).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
       ${shared(step) ? `<p class="ctl-shared">${esc(shared(step))}</p>` : ''}
       ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
       ${hidden ? `<button type="button" class="secondary ctl-show" data-ctl-more="${index}">Show all ${step.controls.length} controls</button>` : ''}
@@ -1956,7 +2051,10 @@ function render(draft, { movable = false, swmsId = '' } = {}) {
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
     ${(draft.emergency || []).length ? `<h4>Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}${movable ? emergencyBlock(draft) : ''}` : ''}
     ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? folded('Legislation and codes of practice', grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]), `${draft.sources.legislation.length + draft.sources.codes.length} listed`) : ''}`;
-  const ppe = `<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.map((item) => `${item.ticked ? '&#9745;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}</td></tr>`).join('')}</tbody></table>`;
+  // PPE for all work, then the extra items for particular steps with their steps (D246).
+  const forSteps = (draft.ppe || []).flatMap((group) => group.items.filter((item) => item.ticked && Array.isArray(item.steps) && item.steps.length));
+  const ppe = `${forSteps.length ? '<p class="ppe-sub"><strong>For all work</strong></p>' : ''}<table><tbody>${(draft.ppe || []).map((group) => `<tr><th>${esc(group.area)}</th><td>${group.items.filter((item) => !(item.ticked && Array.isArray(item.steps))).map((item) => `${item.ticked ? '&#9745;' : '&#9744;'} ${esc(item.label)}`).join(' &nbsp; ')}${group.items.some((item) => item.ticked && Array.isArray(item.steps)) ? ` <em class="meta">For particular steps (below): ${esc(group.items.filter((item) => item.ticked && Array.isArray(item.steps)).map((item) => item.label).join(', '))}</em>` : ''}</td></tr>`).join('')}</tbody></table>`
+    + (forSteps.length ? `<p class="ppe-sub"><strong>For particular steps</strong> <span class="meta">Worn as well as the PPE for all work, in the steps listed. Each step says so.</span></p><table><tbody>${forSteps.map((item) => `<tr><th>&#9745; ${esc(item.label)}</th><td>${esc(item.steps.join('; '))}</td></tr>`).join('')}</tbody></table>` : '');
   const people = `<table><tbody>
       ${row('Works manager', draft.worksManager) || '<tr><th>Works manager</th><td></td></tr>'}
       ${row('Contact phone', draft.worksManagerPhone) || '<tr><th>Contact phone</th><td></td></tr>'}

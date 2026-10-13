@@ -3227,7 +3227,7 @@ const ACTIVITIES = [
         'Before corded tools are used each day, the RCD protecting them is tested with its test button. A failed RCD is tagged out and not used.',
       ],
     }],
-    ppe: ['gloveWelding', 'filterEye', 'longs'],
+    ppe: ['gloveWelding', 'filterEye', 'sleevesLong', 'pantsLong'],
   },
   {
     when: 'masonryCut',
@@ -8465,7 +8465,7 @@ const ACTIVITIES = [
         src('Keep dust and fibres below the exposure standard, monitor where unsure, and wear respiratory protection where fibres remain.', `${WHS('s 49, s 50')}; ${QCODE('Managing risks of hazardous chemicals', 's 1.5, s 3.3, s 4.1')}`),
       ],
     }],
-    ppe: ['p2', 'gloveChemical', 'longs'],
+    ppe: ['p2', 'gloveChemical', 'sleevesLong', 'pantsLong'],
   },
   {
     when: 'siteEstablish',
@@ -9289,7 +9289,7 @@ const ACTIVITIES = [
         src('Portable lighting is set up in the roof or ceiling space before work starts, so joists, cables and openings can be seen.', WHS('s 40')),
       ],
     }],
-    ppe: ['p2', 'longs'],
+    ppe: ['p2', 'sleevesLong', 'pantsLong'],
   },
   {
     when: 'cleaning',
@@ -9502,7 +9502,7 @@ const ACTIVITIES = [
         'A fire watch stays after torching ends, for the time set in the principal contractor\'s hot work permit.',
       ],
     }],
-    ppe: ['gloveWelding', 'longs'],
+    ppe: ['gloveWelding', 'sleevesLong', 'pantsLong'],
   },
   {
     when: 'wpEdge',
@@ -10160,16 +10160,21 @@ const PPE = [
   { area: 'Hearing', items: [['earPlugs', 'Ear plugs'], ['earMuffs', 'Ear muffs']] },
   { area: 'Breathing', items: [['p2', 'P2 respirator (fit tested)'], ['halfFace', 'Half-face respirator with filters (fit tested)']] },
   { area: 'Hands', items: [['gloveGeneral', 'General purpose gloves'], ['gloveCut', 'Cut resistant gloves'], ['gloveChemical', 'Chemical resistant gloves'], ['gloveInsulated', 'Insulated electrical gloves'], ['gloveWelding', 'Welding or heat resistant gloves'], ['gloveCold', 'Cold resistant gloves (refrigerant)']] },
-  { area: 'Body', items: [['siteClothing', 'Clothing to the site rules (sleeves and pants as the principal contractor requires)'], ['longs', 'Long sleeves and long pants'], ['sleevesShorts', 'Long sleeves, shorts allowed'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls'], ['chaps', 'Chainsaw chaps or trousers'], ['arcRated', 'Arc-rated face shield and flame-resistant clothing']] },
+  // One garment to a tick box (owner, D248): the old site rules, long clothing and shorts items are read as these (OLD_PPE).
+  { area: 'Body', items: [['sleevesLong', 'Long sleeves'], ['sleevesShort', 'Short sleeves'], ['pantsLong', 'Long pants'], ['shorts', 'Shorts'], ['hivis', 'Hi-vis, day'], ['hivisNight', 'Hi-vis, day and night'], ['coveralls', 'Disposable coveralls'], ['chaps', 'Chainsaw chaps or trousers'], ['arcRated', 'Arc-rated face shield and flame-resistant clothing']] },
   { area: 'Knees', items: [['kneePads', 'Knee pads']] },
   { area: 'Feet', items: [['boots', 'Safety boots'], ['gumboots', 'Safety gumboots']] },
   { area: 'Sun', items: [['sunscreen', 'Sunscreen']] },
   { area: 'Falls and water', items: [['harness', 'Full body harness'], ['lifeJacket', 'Life jacket']] },
 ];
 
-// Sleeves and pants follow the site's rules unless the work needs long clothing (hot work, chemicals, silica).
-const SITE_MINIMUM = ['hardHat', 'glassesClear', 'gloveGeneral', 'siteClothing', 'hivis', 'boots'];
+// Long sleeves and long pants are ticked for every SWMS (owner, D248); the user changes them to suit the site.
+const SITE_MINIMUM = ['hardHat', 'glassesClear', 'gloveGeneral', 'sleevesLong', 'pantsLong', 'hivis', 'boots'];
 const PPE_IDS = new Set(PPE.flatMap((group) => group.items.map(([id]) => id)));
+// Clothing items of SWMS saved before one garment went to each tick box (D248): clothing to the site
+// rules and long clothing are long sleeves and long pants; long sleeves with shorts allowed is long sleeves and shorts.
+const OLD_PPE = { siteClothing: ['sleevesLong', 'pantsLong'], longs: ['sleevesLong', 'pantsLong'], sleevesShorts: ['sleevesLong', 'shorts'] };
+const currentPpeIds = (ids) => [...new Set((Array.isArray(ids) ? ids : []).flatMap((id) => OLD_PPE[id] || [id]))];
 
 // A fact control may carry `otherwise`, a line used only when the fact is not given.
 // A choice control gives the lines for the option the user chose.
@@ -11022,7 +11027,7 @@ ACTIVITIES.push(
         ],
       },
     ],
-    ppe: ['gloveCut', 'earMuffs', 'faceShield', 'gloveWelding', 'filterEye', 'longs'],
+    ppe: ['gloveCut', 'earMuffs', 'faceShield', 'gloveWelding', 'filterEye', 'sleevesLong', 'pantsLong'],
   },
   {
     // Water (flood) testing and holiday (spark) testing of waterproofing membranes and wet areas.
@@ -11468,7 +11473,7 @@ ACTIVITIES.push(
         ],
       },
     ],
-    ppe: ['p2', 'gloveChemical', 'faceShield', 'gloveWelding', 'longs'],
+    ppe: ['p2', 'gloveChemical', 'faceShield', 'gloveWelding', 'sleevesLong', 'pantsLong'],
   },
   {
     // Cast-in items and ferrules fixed into precast elements in the precaster's yard,
@@ -12435,8 +12440,8 @@ const SAID_ONCE = [
 // The PPE list with each item ticked or not. A chosen list replaces the defaults.
 function ppeFor(flags, chosen, mentionsHarness, indoors) {
   let ticked;
-  if (Array.isArray(chosen) && chosen.some((id) => PPE_IDS.has(id))) {
-    ticked = new Set(chosen.filter((id) => PPE_IDS.has(id)));
+  if (Array.isArray(chosen) && currentPpeIds(chosen).some((id) => PPE_IDS.has(id))) {
+    ticked = new Set(currentPpeIds(chosen).filter((id) => PPE_IDS.has(id)));
   } else {
     ticked = new Set(SITE_MINIMUM);
     const active = ACTIVITIES.filter((activity) => flags[activity.when]);
@@ -13232,4 +13237,4 @@ addAfter('forklift', {
 // The citation helpers, for lines other modules add with their sources (draft.js permits).
 const CITE = { WHS, MODEL, QCODE, NSWC, LINES };
 
-module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM, ACTIVITIES, CITE };
+module.exports = { jobStepsFor, ppeFor, PPE, SITE_MINIMUM, OLD_PPE, currentPpeIds, ACTIVITIES, CITE };

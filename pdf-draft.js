@@ -5,6 +5,7 @@ const { tableRows, isHoldPoint, tableHead, tableTitle, tableNote } = require('./
 const { fitLogo } = require('./logo');
 const { MATRIX, LIKELIHOOD } = require('./register');
 const { revisionText, sharedNote } = require('./docx-draft');
+const { stepPpeRows } = require('./step-ppe');
 
 const INK = '#1C2430';
 const MUTED = '#5C6773';
@@ -287,13 +288,23 @@ function draftToPdf(draft, options = {}) {
     riskMatrix(doc, w);
 
     heading(doc, 'Personal protective equipment');
+    // For all work, by area, then the extra items for particular steps with their steps (D246).
+    const forSteps = stepPpeRows(draft.ppe);
+    if (forSteps.length) text(doc, 'For all work', { bold: true });
     table(doc, {
       widths: pairWidths,
       rows: (draft.ppe || []).map((group) => {
-        const worn = group.items.filter((item) => item.ticked).map((item) => item.label);
-        return pair(group.area, worn.length ? `Wear: ${worn.join(', ')}` : 'None required for this area.');
+        const worn = group.items.filter((item) => item.ticked && !Array.isArray(item.steps)).map((item) => item.label);
+        const steps = group.items.filter((item) => item.ticked && Array.isArray(item.steps)).map((item) => item.label);
+        const also = steps.length ? `For particular steps (below): ${steps.join(', ')}` : '';
+        return pair(group.area, worn.length ? `Wear: ${worn.join(', ')}${also ? `. ${also}` : ''}` : also || 'None required for this area.');
       }),
     });
+    if (forSteps.length) {
+      text(doc, 'For particular steps', { bold: true });
+      text(doc, 'Worn as well as the PPE for all work, in the steps listed. Each step says so.', { size: 8.5, color: MUTED });
+      table(doc, { widths: pairWidths, rows: forSteps.map((item) => pair(item.label, item.steps.join('; '))) });
+    }
 
     registers(doc, draft, w);
 
