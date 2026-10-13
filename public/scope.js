@@ -111,6 +111,8 @@
     }
     // A new scope starts a new project: the one in progress is closed first, with the user's OK.
     if (project && !closeProject(`You have a project in progress (${project.items.filter((item) => item.status === 'ready').length} of ${project.items.length} SWMS ready). Reading a new scope closes it, and SWMS you have not downloaded or saved will need preparing again. Read the new scope?`)) return;
+    // The chime when the reading is finished may only play after a press on the page: set it up now.
+    if (window.SiteReadyProgress) window.SiteReadyProgress.unlockAudio();
     button.disabled = true;
     try {
       const state = (document.querySelector('input[name="state"]:checked') || {}).value || '';
@@ -178,10 +180,11 @@
       <div class="actions"><button type="button" data-open="signin">Sign in or start free trial</button></div>`;
   }
 
-  // Called by account.js once the user is signed in: a scope given while signed out is read now.
+  // Called by account.js once the user is signed in: a scope given while signed out is read now, and a
+  // reading still running when the page was left or reloaded is picked up again.
   S.onSignedIn = async () => {
     const body = await takeScope();
-    if (!body) return;
+    if (!body) { await resumeReading(); return; }
     $('scope-panel').open = true;
     $('scope-error').textContent = '';
     $('scope-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -204,21 +207,83 @@
     return aiStatus;
   }
   const wait = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
-  async function readWithAi(body) {
-    $('scope-results').innerHTML = '<p class="note" aria-live="polite">The AI is reading every word of the scope, including tables and appendices. This usually takes a few minutes. You can leave this page open and come back.</p>';
-    let reading = await S.call('POST', '/api/scope/ai', body);
-    const started = Date.now();
-    while (reading.status === 'reading') {
-      if (Date.now() - started > 20 * 60 * 1000) throw new Error(`The AI reading is taking too long. Try again later. ${TYPE_TASKS}`);
-      await wait(10000);
-      // The state picked on the form names the high risk construction work in each package.
-      reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}?state=${encodeURIComponent(body.state || '')}`);
+
+  // A reading still running is kept in this browser by its id, so the page picks it up again when the
+  // user comes back after it was closed or reloaded (a phone often reloads a page left in the background).
+  const READING_KEY = 'siteready-scope-reading';
+  const keepReading = (value) => { try { if (value) localStorage.setItem(READING_KEY, JSON.stringify(value)); else localStorage.removeItem(READING_KEY); } catch { /* not kept */ } };
+  const keptReading = () => { try { return JSON.parse(localStorage.getItem(READING_KEY) || 'null'); } catch { return null; } };
+  let running = false;
+  async function resumeReading() {
+    const kept = keptReading();
+    if (!kept || !kept.id || running || !S.signedIn || !S.signedIn() || !S.call) return;
+    $('scope-panel').open = true;
+    $('scope-error').textContent = '';
+    $('scope-read').disabled = true;
+    try {
+      await readWithAi({ state: kept.state || '' }, kept.id);
+    } catch (error) {
+      keepReading(null);
+      // A reading that is gone (or another account's) is forgotten without a word; its bar goes too.
+      if (error.status === 404) $('scope-results').innerHTML = '';
+      else $('scope-error').textContent = error.message;
+    } finally {
+      $('scope-read').disabled = false;
     }
-    if (reading.status !== 'done') {
-      $('scope-results').innerHTML = `<p class="note">${esc(reading.error || 'The AI reading failed. Try again later.')} ${TYPE_TASKS}</p>`;
-      return;
+  }
+
+  // The bar shown while the AI reads (read-progress.js): its stage and time from the server.
+  const LEAD = 'The AI is reading every word of the scope, including tables and appendices.';
+  function progressBar(reading) {
+    const RP = window.SiteReadyProgress;
+    if (!RP) return null;
+    const tracker = RP.track({ what: 'scope', lead: LEAD, steps: ['reading every word of the scope', 'matching each work package to SiteReady\'s job steps'] });
+    tracker.update(reading.progress);
+    $('scope-results').innerHTML = tracker.html();
+    return tracker;
+  }
+
+  async function readWithAi(body, resumeId) {
+    running = true;
+    let tracker = null;
+    try {
+      let reading;
+      if (resumeId) {
+        reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(resumeId)}?state=${encodeURIComponent(body.state || '')}`);
+      } else {
+        $('scope-results').innerHTML = `<p class="note" aria-live="polite">${LEAD} This usually takes a few minutes. You can leave this page open and come back.</p>`;
+        reading = await S.call('POST', '/api/scope/ai', body);
+      }
+      // Kept from before and already read: shown at once, with no bar and no message.
+      const waited = Boolean(resumeId) || reading.status === 'reading';
+      if (reading.status === 'reading') {
+        keepReading({ id: reading.id, state: body.state || '' });
+        tracker = progressBar(reading);
+      }
+      const started = Date.now();
+      while (reading.status === 'reading') {
+        if (Date.now() - started > 20 * 60 * 1000) throw new Error(`The AI reading is taking too long. Try again later. ${TYPE_TASKS}`);
+        await wait(10000);
+        // The state picked on the form names the high risk construction work in each package.
+        reading = await S.call('GET', `/api/scope/ai/${encodeURIComponent(reading.id)}?state=${encodeURIComponent(body.state || '')}`);
+        if (tracker && reading.status === 'reading') tracker.update(reading.progress);
+      }
+      keepReading(null);
+      if (reading.status !== 'done') {
+        if (tracker) tracker.fail();
+        $('scope-results').innerHTML = `${tracker ? tracker.html() : ''}<p class="note">${esc(reading.error || 'The AI reading failed. Try again later.')} ${TYPE_TASKS}</p>`;
+        return;
+      }
+      if (tracker) tracker.finish();
+      showPackages(reading, waited);
+    } catch (error) {
+      // The bar stops where it was; the error shows as before. Refused at the start (a trial ended),
+      // the "reading" note goes.
+      if (tracker) { tracker.fail(); $('scope-results').innerHTML = tracker.html(); } else $('scope-results').innerHTML = '';
+      throw error;
+    } finally {
+      running = false;
     }
-    showPackages(reading);
   }
 
   // The AI's work packages, for the user to confirm before any task is listed. A package of
@@ -235,7 +300,7 @@
   }
   // Each package's high risk construction work, worked out on the server by the SWMS's own rules.
   const flagsOf = (reading) => new Map((reading.highRisk || []).map((item) => [item.package, item]));
-  function showPackages(reading) {
+  function showPackages(reading, waited) {
     aiReading = reading;
     const packages = packagesOf(reading.reading);
     const checks = reading.checks || {};
@@ -251,7 +316,28 @@
       ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul><button type="button" class="small secondary" id="conflict-open">Show the conflicts in full</button></details>` : ''}
       <div class="actions"><button type="button" id="scope-confirm">Confirm these work packages</button> <button type="button" class="secondary" data-scope-report>Scope review report (Word)</button></div>
       <p class="error" id="scope-report-error"></p>`;
-    showConflicts(conflicts);
+    // After a wait, a message says the reading is finished (with a chime), then any conflicts show.
+    if (waited && window.SiteReadyProgress) announceRead(packages, () => showConflicts(conflicts));
+    else showConflicts(conflicts);
+  }
+
+  // Owner, 13 October 2026: a message pops up with a chime when the AI has finished, and its button
+  // takes the user to the work packages to choose from.
+  function announceRead(packages, after) {
+    const any = packages.length > 0;
+    window.SiteReadyProgress.announce({
+      heading: 'The scope has been read',
+      text: any ? 'The AI has finished reading the scope. You can now choose the SWMS you want to start on.' : 'The AI has finished reading the scope. It found no work packages in it.',
+      button: any ? 'Choose the SWMS' : 'Show the result',
+      tab: 'scope read',
+      go: () => {
+        const list = document.querySelector('.scope-packages') || $('scope-results');
+        if (list && list.scrollIntoView) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const first = document.querySelector('[data-package]');
+        if (first && first.focus) first.focus({ preventScroll: true });
+      },
+      after,
+    });
   }
 
   // Conflicts in the scope open a pop-up. It is not modal, so the tasks can still be used.

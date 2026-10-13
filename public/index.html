@@ -319,6 +319,49 @@
       .design-card .design-status { flex-direction: column; }
       button { width: 100%; }
     }
+    /* The bar while the AI reads a scope or a methodology, with a small worker digging along it
+       (read-progress.js), and the message when the reading is finished. */
+    .read-progress { margin: 12px 0 4px; }
+    .read-progress .rp-lead { font-size: 14px; margin: 0 0 6px; color: #3d4a59; }
+    .rp-bar { position: relative; padding-top: 40px; }
+    .rp-worker { position: absolute; top: 0; left: calc((100% - 40px) * var(--p, 0) / 100); width: 40px; height: 40px; transition: left 0.6s ease-out; }
+    .rp-worker-svg { display: block; width: 40px; height: 40px; overflow: visible; }
+    .rp-track { height: 14px; border-radius: 999px; background: #e1e6ec; border: 1px solid #d5dbe3; overflow: hidden; }
+    .rp-fill { height: 100%; width: calc(var(--p, 0) * 1%); background: repeating-linear-gradient(45deg, #1f4e3d 0 10px, #2a6a52 10px 20px); border-radius: 999px; transition: width 0.6s ease-out; }
+    .rp-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; font-size: 14px; margin: 6px 0 0; }
+    .rp-stage { color: #3d4a59; }
+    .rp-pc { font-size: 18px; color: #1f4e3d; font-variant-numeric: tabular-nums; }
+    .rp-slow { margin-top: 4px; color: #9a3b00; }
+    .read-progress[data-state="failed"] .rp-fill { background: #9aa5b1; }
+    .read-progress[data-state="failed"] .rp-pc { color: #5c6773; }
+    .rp-legs, .rp-arm, .rp-handle, .rp-stripe { fill: none; stroke-linecap: round; }
+    .rp-legs { stroke: #2d3a48; stroke-width: 2.4; }
+    .rp-arm { stroke: #e0ac85; stroke-width: 2; }
+    .rp-handle { stroke: #8a5a2b; stroke-width: 1.6; }
+    .rp-stripe { stroke: #fff; stroke-width: 1.2; }
+    .rp-vest { fill: #f26b1d; }
+    .rp-head { fill: #e0ac85; }
+    .rp-hat { fill: #f2b705; stroke: #c99400; stroke-width: 0.8; stroke-linejoin: round; }
+    .rp-blade { fill: #7b8794; }
+    .rp-mound { fill: #8a6a45; }
+    .rp-dirt { fill: #8a6a45; opacity: 0; }
+    .rp-dig { transform-box: view-box; transform-origin: 14px 13.5px; animation: rp-dig 0.9s ease-in-out infinite; }
+    .rp-body { transform-box: view-box; transform-origin: 13px 30px; animation: rp-bob 0.9s ease-in-out infinite; }
+    .rp-dirt { animation: rp-dirt 0.9s ease-out infinite; }
+    .read-progress:not([data-state="running"]) .rp-dig, .read-progress:not([data-state="running"]) .rp-body, .read-progress:not([data-state="running"]) .rp-dirt { animation: none; }
+    @keyframes rp-dig { 0%, 100% { transform: rotate(-14deg); } 55% { transform: rotate(16deg); } }
+    @keyframes rp-bob { 0%, 100% { transform: translateY(0); } 55% { transform: translateY(1px) rotate(3deg); } }
+    @keyframes rp-dirt { 0%, 50% { opacity: 0; transform: translate(0, 0); } 60% { opacity: 1; } 100% { opacity: 0; transform: translate(4px, -8px); } }
+    @media (prefers-reduced-motion: reduce) {
+      .rp-dig, .rp-body, .rp-dirt { animation: none; }
+      .rp-worker, .rp-fill { transition: none; }
+    }
+    .read-done { border: 1px solid #c9d1d9; border-top: 5px solid #1f4e3d; border-radius: 10px; padding: 20px 22px 18px; width: min(440px, calc(100% - 32px)); background: #fff; color: #1c2430; box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25); text-align: center; }
+    .read-done::backdrop { background: rgba(28, 36, 48, 0.45); }
+    .read-done h2 { font-size: 20px; text-transform: none; letter-spacing: -0.01em; color: #1c2430; margin: 0 0 8px; }
+    .read-done p { margin: 0 0 14px; }
+    .read-done .actions { justify-content: center; flex-wrap: wrap; }
+    .read-done .read-done-mark { width: 44px; height: 44px; margin: 0 auto 10px; border-radius: 50%; background: #e3f3e8; color: #1e7e34; font-size: 26px; line-height: 44px; font-weight: 700; }
     /* Job steps suggested from a written methodology (method-read.js, D230). */
     .method-read { margin: 12px 0 4px; padding-top: 10px; border-top: 1px solid #d5dbe3; }
     .method-head { font-size: 16px; margin: 4px 0 8px; }
@@ -348,7 +391,7 @@
       h2, details.panel > summary, .saved-name, .step-warning, .step-note, .project-status, .step-list .step-names, .step-list .tag,
       .ppe-group legend, .choice legend, .picks-label, .pick-button, th, td, .sheet p, .sheet li, .sign div, input[type="file"],
       button.small, .scope-task h3, .scope-task p, .scope-task details, .scope-clauses, .scope-hrcw, .scope-conflicts,
-      .conflict-dialog, .scope-others, .ctl-tools, .ctl-why, .ctl-why select, .ctl-why input, .ctl-warn, .translate .en,
+      .conflict-dialog, .read-progress .rp-lead, .rp-row, .read-done, .scope-others, .ctl-tools, .ctl-why, .ctl-why select, .ctl-why input, .ctl-warn, .translate .en,
       .gate p, .answer-panel legend, .answer-panel .check, .ctl-shared, .own-tools, .cover-tools, .risk-response, .gate-list .meta, .gate-need, .blank-input, details.sheet-fold .fold-note, .method-kind { font-size: 16px; }
       table.stack td::before { font-size: 16px; }
       button, select, .pick select, select.plain, input[type="text"], input[type="search"], input[type="date"], .blank-input { min-height: 44px; }
@@ -621,7 +664,7 @@
 
     <details class="panel" id="scope-panel">
       <summary>Start from a scope of works or a quote<span class="saved-name">· or write the work in the Task box below</span></summary>
-      <p class="lede" style="margin-bottom:12px">Attach the scope of works or your quote, or copy and paste the wording in the below box. The AI reads every word and lists the work packages in it that need a SWMS, for you to confirm. Sign in, or start the free trial, to have a scope read. For one task, write the work in the Task box below instead.</p>
+      <p class="lede" style="margin-bottom:12px">Attach the scope of works or your quote, or copy and paste the wording in the below box. The AI reads every word and lists the work packages in it that need a SWMS, and then you decide which ones you need.<span class="signed-out-only hidden"> Sign in, or start the free trial, to have a scope read.</span><span class="no-access-only hidden"> Your free trial has ended. Subscribe to have a scope read.</span> For one task, write the work in the Task box below instead.</p>
       <div class="field">
         <label for="scope-file">Scope of works or quote file
           <span class="hint">Word (.docx), PDF or text. Attach the scope or quote only, not the whole contract. Prices are ignored.</span>
@@ -736,6 +779,7 @@
   <script src="/gate-rules.js"></script>
   <script src="/app.js"></script>
   <script src="/account.js"></script>
+  <script src="/read-progress.js"></script>
   <script src="/method-read.js"></script>
   <script src="/scope-task.js"></script>
   <script src="/scope-hrcw.js"></script>

@@ -272,6 +272,10 @@ const SCHEMA = [
     finished_at TIMESTAMPTZ
   )`,
   'CREATE INDEX IF NOT EXISTS ai_readings_doc ON ai_readings (company_id, doc_hash, brief_version)',
+  // Added later: which of the reading's two calls is running, and since when, for the progress bar
+  // (public/read-progress.js): 'reading' (the document) then 'steps' (matching the job steps).
+  "ALTER TABLE ai_readings ADD COLUMN IF NOT EXISTS stage TEXT NOT NULL DEFAULT ''",
+  'ALTER TABLE ai_readings ADD COLUMN IF NOT EXISTS stage_at TIMESTAMPTZ',
   // Each saved revision of a SWMS as it printed (owner decision, 6 October 2026): its input, the
   // finished draft, a fingerprint of its content, the library version, its reference, and who
   // saved it and why. Downloads and sign-on of a revision read this, never today's library.

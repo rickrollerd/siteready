@@ -332,7 +332,7 @@ test('the page has the reading script and words "methodology", never "method", o
   const fs = require('fs');
   const path = require('path');
   const page = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
-  assert.match(page, /<script src="\/account.js"><\/script>\s*<script src="\/method-read.js"><\/script>/);
+  assert.match(page, /<script src="\/account.js"><\/script>\s*<script src="\/read-progress.js"><\/script>\s*<script src="\/method-read.js"><\/script>/);
   const script = fs.readFileSync(path.join(__dirname, '../public/method-read.js'), 'utf8');
   const shown = [...script.matchAll(/'([^'\n]*)'|`([^`]*)`/g)].map((match) => match[1] || match[2] || '').join('\n').replace(/<[^>]*>/g, ' ').replace(/data-[a-z-]+|\$\{[^}]*\}/g, ' ');
   assert.doesNotMatch(shown, /\bmethods?\b/i);

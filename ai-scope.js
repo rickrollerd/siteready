@@ -18,6 +18,7 @@ const { packageKinds, suggestedKinds, screenHighRisk } = require('./draft');
 const { findState } = require('./legislation');
 const { TITLES } = require('./scope');
 const { packageTask } = require('./public/scope-task');
+const { expectedSeconds } = require('./public/read-progress');
 
 const MODEL = 'claude-opus-5-5';
 // US dollars per million tokens for Claude Opus 5.5, to show what each reading cost.
@@ -429,10 +430,30 @@ async function withHighRisk(out, stateName) {
   return { ...out, reading: { ...out.reading, highRisk: flagsKept.get(key) }, state };
 }
 
+// Where a reading still running is, for the page's progress bar: which call is running, the seconds
+// since it started and since that call started, and the seconds a document this long usually takes.
+// The AI does not report its own progress. Also used for written methodologies (method-read.js).
+function progressOf(row) {
+  if (row.status !== 'reading') return null;
+  const seconds = (from) => (from ? Math.max(0, Math.round((Date.now() - new Date(from).getTime()) / 1000)) : 0);
+  return {
+    stage: row.stage || '',
+    elapsedSeconds: seconds(row.created_at),
+    stageSeconds: seconds(row.stage_at || row.created_at),
+    expectedSeconds: expectedSeconds(row.characters),
+  };
+}
+
+// Marks the start of the reading's second call (matching the job steps), for the progress bar.
+async function markStage(id, stage) {
+  await db.query('UPDATE ai_readings SET stage = $2, stage_at = $3 WHERE id = $1', [id, stage, new Date()]).catch(() => {});
+}
+
 function rowOut(row) {
   return {
     id: row.id,
     status: row.status,
+    progress: progressOf(row),
     reading: row.reading ? settlePackages(JSON.parse(row.reading)) : null,
     checks: row.checks ? JSON.parse(row.checks) : null,
     error: row.error || '',
@@ -455,10 +476,12 @@ async function startReading(company, text, stateName) {
     [company.id, hash, BRIEF_VERSION]);
   if (kept) return { ...(await withHighRisk(rowOut(kept), stateName)), kept: true };
   const id = crypto.randomUUID();
-  await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-    [id, company.id, hash, BRIEF_VERSION, MODEL, 'reading', content.length, new Date()]);
+  const now = new Date();
+  await db.query('INSERT INTO ai_readings (id, company_id, doc_hash, brief_version, model, status, characters, created_at, stage, stage_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $8)',
+    [id, company.id, hash, BRIEF_VERSION, MODEL, 'reading', content.length, now, 'reading']);
   const work = askModel(content)
     .then(async ({ reading: read, usage: readUsage, model }) => {
+      await markStage(id, 'steps');
       const steps = await mapSteps(read);
       const reading = { ...read, packages: steps.packages };
       const usage = addUsage(readUsage, steps.usage);
@@ -473,7 +496,7 @@ async function startReading(company, text, stateName) {
     .catch(async (error) => {
       await db.query('UPDATE ai_readings SET status = $2, error = $3, finished_at = $4 WHERE id = $1', [id, 'failed', errorMessage(error), new Date()]).catch(() => {});
     });
-  return { id, status: 'reading', kept: false, done: work };
+  return { id, status: 'reading', kept: false, progress: progressOf({ status: 'reading', stage: 'reading', created_at: now, characters: content.length }), done: work };
 }
 
 async function markStale() {
@@ -489,4 +512,4 @@ async function getReading(company, id, stateName) {
   return withHighRisk(rowOut(row), stateName);
 }
 
-module.exports = { enabled, useClient, startReading, getReading, checkReading, quoteFinder, errorMessage, failureLine, useFailureLog, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };
+module.exports = { enabled, useClient, startReading, getReading, progressOf, markStage, checkReading, quoteFinder, errorMessage, failureLine, useFailureLog, addUsage, validReading, costOf, fingerprint, normalise, mapSteps, settlePackages, packageHighRisk, stepCatalogue, callModel, MODEL };

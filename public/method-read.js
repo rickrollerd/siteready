@@ -25,6 +25,8 @@
   const CHECK = 'These are suggestions. Check each one against the methodology before you accept it. Nothing goes into the SWMS until you accept it.';
   const ORDER = 'SiteReady keeps its usual order for the job steps. On the draft, move them to follow the methodology\'s order where it matters.';
 
+  const LEAD = 'SiteReady is reading every word of the methodology.';
+
   const quoteList = (label, list) => (list.length ? `<p class="meta method-quote-label">${label}</p><ul class="method-quotes">${list.map((quote) => `<li>"${esc(quote)}"</li>`).join('')}</ul>` : '');
 
   // One suggestion: what the methodology says, what SiteReady suggests, and Accept, Change and Skip.
@@ -106,9 +108,10 @@
         <div class="field"><label for="mr-paste-${esc(id)}">Or paste the methodology's text</label><textarea id="mr-paste-${esc(id)}" rows="4" data-mr-paste="${esc(id)}"></textarea></div>
         <p><button type="button" class="secondary small" data-mr-pasted="${esc(id)}">Read the pasted text</button> <button type="button" class="link" data-mr-close="${esc(id)}">Cancel</button></p>
         <p class="meta">The methodology's text is sent to SiteReady's AI provider to be read, as a scope is.</p>
-        ${state.error ? `<p class="error" role="alert">${esc(state.error)}</p>` : ''}`;
+        ${state.stopped ? state.stopped.html() : ''}${state.error ? `<p class="error" role="alert">${esc(state.error)}</p>` : ''}`;
     }
-    if (state.stage === 'reading') return '<p class="note" aria-live="polite">SiteReady is reading every word of the methodology. This usually takes a minute or two.</p>';
+    // The progress bar (read-progress.js), drawn again where it is if the card is redrawn.
+    if (state.stage === 'reading') return state.tracker ? state.tracker.html() : `<p class="note" aria-live="polite">${esc(LEAD)} This usually takes a minute or two.</p>`;
     // Done.
     const items = state.items || [];
     if (!items.length) {
@@ -120,7 +123,7 @@
     const pages = (state.reading.pagesNotRead || []);
     const pageNote = pages.length ? `<p class="meta">${pages.length === 1 ? `Page ${pages[0]} looks` : `Pages ${pages.join(', ')} look`} like a drawing or a scan. Only typed words are read, so check ${pages.length === 1 ? 'that page' : 'those pages'} against the job steps yourself.</p>` : '';
     const open = items.filter((item) => !item.state).length;
-    return `<h3 class="method-head">Suggested job steps from the methodology</h3>
+    return `<h3 class="method-head" tabindex="-1">Suggested job steps from the methodology</h3>
       <p class="warning">${esc(CHECK)}</p>${droppedNote(state.reading.dropped)}${pageNote}
       <p class="meta">${items.length} step${items.length === 1 ? '' : 's'}, in the methodology's order. ${open ? `${open} still to accept, change or skip.` : 'All done.'} ${esc(ORDER)}</p>
       <ol class="method-suggestions">${items.map((item, index) => itemHtml(id, item, index)).join('')}</ol>
@@ -150,20 +153,54 @@
     if (!(await readingOn())) { readings.set(id, { ...state, stage: 'choose', error: 'Reading a methodology is not switched on here. The methodology can still be attached. Make the job steps match it yourself.' }); redraw(id); return; }
     readings.set(id, { stage: 'reading' });
     redraw(id);
+    let tracker = null;
     try {
       let reading = await S.call('POST', '/api/methodology/read', body);
+      // Kept from before and already read: shown at once, with no bar and no message.
+      if (reading.status === 'reading' && window.SiteReadyProgress) {
+        tracker = window.SiteReadyProgress.track({ what: 'methodology', lead: LEAD, steps: ['reading every word of the methodology', 'matching each step to SiteReady\'s job steps'] });
+        tracker.update(reading.progress);
+        readings.set(id, { stage: 'reading', tracker });
+        redraw(id);
+      }
       const started = Date.now();
       while (reading.status === 'reading') {
         if (Date.now() - started > 15 * 60 * 1000) throw new Error('The reading is taking too long. Try again later.');
         await wait(5000);
         reading = await S.call('GET', `/api/methodology/read/${encodeURIComponent(reading.id)}`);
+        if (tracker && reading.status === 'reading') tracker.update(reading.progress);
       }
       if (reading.status !== 'done') throw new Error(reading.error || 'The reading failed. Try again later.');
+      if (tracker) tracker.finish();
       readings.set(id, { stage: 'done', reading, items: reading.suggestions.map((item) => ({ ...item, state: '' })) });
     } catch (error) {
-      readings.set(id, { stage: 'choose', error: error.message });
+      // The bar stops where it was, above the error.
+      if (tracker) tracker.fail();
+      readings.set(id, { stage: 'choose', error: error.message, stopped: tracker });
+      tracker = null;
     }
     redraw(id);
+    if (tracker) announceRead(id);
+  }
+
+  // Owner, 13 October 2026: a message pops up with a chime when the reading is finished, and its
+  // button takes the user to the suggested steps.
+  function announceRead(id) {
+    const state = readings.get(id) || {};
+    const any = (state.items || []).length > 0;
+    window.SiteReadyProgress.announce({
+      heading: 'The methodology has been read',
+      text: any ? 'SiteReady has finished reading the methodology. The suggested job steps are ready to check.' : 'SiteReady has finished reading the methodology. It suggested no job steps.',
+      button: any ? 'Check the suggested steps' : 'Show the result',
+      tab: 'methodology read',
+      go: () => {
+        const el = box(id);
+        if (!el) return;
+        if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const head = el.querySelector('h3');
+        if (head && head.focus) head.focus({ preventScroll: true });
+      },
+    });
   }
 
   // What the user's own step will be: the step as suggested, or as changed.
@@ -239,6 +276,8 @@
     const data = target.dataset;
     if (data.mrOpen !== undefined) { readings.set(id, { stage: 'choose' }); redraw(id); return; }
     if (data.mrClose !== undefined) { readings.delete(id); redraw(id); return; }
+    // The chime when the reading is finished may only play after a press on the page: set it up now.
+    if ((data.mrFile !== undefined || data.mrPasted !== undefined) && window.SiteReadyProgress) window.SiteReadyProgress.unlockAudio();
     if (data.mrFile !== undefined) {
       const row = steps().methodRow(id);
       if (row && row.file) await read(id, { fileId: row.file.id });
@@ -267,6 +306,7 @@
     if (!input || !input.files || !input.files[0]) return;
     const id = input.dataset.mrPick;
     const file = input.files[0];
+    if (window.SiteReadyProgress) window.SiteReadyProgress.unlockAudio();
     if (!/\.(docx|pdf)$/i.test(file.name)) { readings.set(id, { stage: 'choose', error: 'Choose a Word file (.docx) or a PDF. A drawing or a photo cannot be read.' }); redraw(id); return; }
     if (file.size > 10 * 1024 * 1024) { readings.set(id, { stage: 'choose', error: 'The file is larger than 10 MB. Paste the methodology\'s text instead.' }); redraw(id); return; }
     try {
