@@ -50,6 +50,9 @@ test('the design fills the number and revision; a new revision or "Not issued ye
   // Words the user changed are left alone; a design with no number fills nothing.
   assert.equal(fill.fillDesign('Formwork to drawing set FW-1 as issued.', FORMWORK).text, 'Formwork to drawing set FW-1 as issued.');
   assert.equal(fill.fillDesign(text, { ...FORMWORK, number: '' }).text, text);
+  // Details read from the drawing fill the answer only once ticked as matching it (D250).
+  assert.equal(fill.fillDesign(text, { ...FORMWORK, read: { fields: ['number'], checked: false } }).text, text);
+  assert.equal(fill.fillDesign(text, { ...FORMWORK, read: { fields: ['number'], checked: true } }).text, first.text);
   // A reopened SWMS: what was filled before is found again, so the next change replaces it.
   const kept = fill.filledFrom(first.text, FORMWORK);
   assert.equal(fill.fillDesign(first.text, { ...FORMWORK, number: 'ABC-S-102' }, kept).text, first.text.replace('ABC-S-101', 'ABC-S-102'));
@@ -125,7 +128,8 @@ test('the page: the question holds its design card, which says what it does ther
   assert.match(html, /<textarea id="fact-formworkDesign"[^>]*><\/textarea>\s*<div class="question-design" data-question-design="formworkDesign"><\/div>/);
   assert.doesNotMatch(p.run(`factHtml(${JSON.stringify({ ...item, id: 'fallControl' })})`), /question-design/);
   const card = p.run(`designCard({ id: 'formwork', what: 'Formwork design', status: '' }, null, { question: true })`);
-  assert.match(card, /Give the design once here\. Its number and revision fill the answer above, and it prints in the designs table near the top of the SWMS\. SiteReady does not read the drawing\./);
+  assert.match(card, /Give the design once here\. Its number and revision fill the answer above, and it prints in the designs table near the top of the SWMS\.<\/p>/);
+  assert.match(card, /SiteReady reads the typed words of a PDF's title block to fill in the details above for you to check\. It does not read the drawing itself, a scan or a photo\./);
   assert.match(card, /I have it[^]*Not issued yet[^]*Not needed for this work/);
   assert.doesNotMatch(card, /Prints in the designs table near the top of the SWMS\.<\/p>/);
   // A question's design not answered is not sent; answered, it is.

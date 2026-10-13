@@ -328,6 +328,20 @@ app.get('/api/methodology/read/:id', auth.requireUser, async (req, res, next) =>
   }
 });
 
+// Reading an attached design drawing's title block to fill its card (design-read.js; owner, D249):
+// typed words only, never the drawing image. Signed-in accounts only, with its own limit.
+const designRead = require('./design-read');
+const designReadLimit = limiter('design-read', positiveNumber(process.env.RATE_LIMIT_DESIGN_READ_REQUESTS, 60));
+app.post('/api/designs/read', designReadLimit, auth.requireAccess, async (req, res, next) => {
+  try {
+    const result = await designRead.readDesign(req.company, req.body && req.body.fileId);
+    record(result.kept ? 'design_read_kept' : 'design_read', req.company && req.company.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // The builder SWMS check (task #106): score a subcontractor's SWMS and draft the email back.
 // Signed-in accounts only, with its own limit, as an uploaded SWMS is read by the AI.
 // Reading a long SWMS takes minutes, longer than a proxy waits for one answer, so an uploaded or

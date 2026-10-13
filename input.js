@@ -93,6 +93,12 @@ function ownSteps(value) {
 // written method or sequence of works the work follows is kept the same way, as "method-1" and so on.
 const DESIGN_ID = /^(?:[a-zA-Z]{2,30}|added-\d{1,2}|method-\d{1,2})$/;
 const FILE_ID = /^df_[A-Za-z0-9_-]{16,64}$/;
+const READ_FIELDS = ['what', 'by', 'number', 'revision', 'date'];
+function read(value) {
+  if (!value || typeof value !== 'object' || !Array.isArray(value.fields)) return null;
+  const fields = READ_FIELDS.filter((key) => value.fields.includes(key));
+  return fields.length ? { fields, checked: value.checked === true } : null;
+}
 function designs(value) {
   if (!Array.isArray(value)) return undefined;
   const seen = new Set();
@@ -108,6 +114,9 @@ function designs(value) {
       revision: textField(item.revision, 40),
       date: textField(item.date, 60),
       ...(file ? { file } : {}),
+      // Details read from the drawing's typed words (D249), and whether the user ticked that they match
+      // its title block (D250).
+      ...(read(item.read) ? { read: read(item.read) } : {}),
     };
   }).filter((item) => {
     if (seen.has(item.id)) return false;

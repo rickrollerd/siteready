@@ -1469,18 +1469,29 @@ async function designFilesOn() {
 }
 const fileSize = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
 let designsDrawn = '';
+// Details read from the drawing's typed words (D249, D250): an amber note until the user ticks that
+// they match the title block, which the download waits for (gate-rules.js designNeed).
+const readFields = (row) => (row && row.read && Array.isArray(row.read.fields) ? row.read.fields : []);
+function readNote(row) {
+  if (!readFields(row).length) return '';
+  const checked = row.read.checked === true;
+  return `<div class="design-read${checked ? ' checked' : ''}">${checked ? '' : '<p class="warning design-read-note">Read from the drawing: check it matches the title block.</p>'}
+    <label class="check"><input type="checkbox" data-design-read-check="${esc(row.id)}"${checked ? ' checked' : ''}> These match the drawing</label></div>`;
+}
 function designCard(row, found, { question = false } = {}) {
   const id = esc(row.id);
   const added = /^added-/.test(row.id);
   const status = row.status || '';
   const radio = (value, label) => `<label><input type="radio" name="design-status-${id}" value="${value}" data-design-field="status"${status === value ? ' checked' : ''}> ${label}</label>`;
-  const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"></div>`;
+  const read = (key) => (readFields(row).includes(key) && row.read.checked !== true ? ' class="design-read-field"' : '');
+  const box = (key, label, hint, type = 'text', max = 120) => `<div class="field"><label for="design-${id}-${key}">${label}${hint ? `<span class="hint">${hint}</span>` : ''}</label><input id="design-${id}-${key}" type="${type}" data-design-field="${key}" maxlength="${max}" autocomplete="off" value="${esc(row[key] || '')}"${read(key)}></div>`;
   return `<fieldset class="field design-card" id="design-${id}" data-design="${id}" data-status="${esc(status)}" tabindex="-1">
     <legend>${esc(row.what || (added ? 'Another design' : (found && found.label) || 'Design'))}</legend>
-    ${question ? '<p class="meta">Give the design once here. Its number and revision fill the answer above, and it prints in the designs table near the top of the SWMS. SiteReady does not read the drawing.</p>' : ''}
+    ${question ? '<p class="meta">Give the design once here. Its number and revision fill the answer above, and it prints in the designs table near the top of the SWMS.</p>' : ''}
     ${found && found.steps.length ? `<p class="meta">Used in: ${esc(found.steps.join('; '))}.</p>` : question ? '' : '<p class="meta">Prints in the designs table near the top of the SWMS.</p>'}
     <div class="choice design-status">${radio('given', 'I have it')}${radio('notIssued', 'Not issued yet')}${radio('notNeeded', 'Not needed for this work')}</div>
     <div class="design-given">
+      ${readNote(row)}
       ${box('what', 'What it is', 'As the design is titled, for example Shoring design or Formwork design.', 'text', 200)}
       ${box('by', 'Who prepared it', 'The engineer or firm, for example Smith Engineering.', 'text', 200)}
       <div class="design-pair">${box('number', 'Document or drawing number', 'From the title block, for example ABC-S-101.')}${box('revision', 'Revision', 'For example C. Leave it empty if it has none.', 'text', 40)}</div>
@@ -1500,7 +1511,7 @@ function designFileBox(row, what) {
     ? `<p class="design-file">Attached: <strong>${esc(row.file.name)}</strong> <span class="meta">(${esc(fileSize(row.file.size || 0))})</span> <button type="button" class="link" data-design-open="${id}">Open</button> <button type="button" class="link" data-design-unfile="${id}">Remove the file</button></p>`
     : `<label class="secondary small design-attach" for="design-${id}-file">Attach the file</label><input id="design-${id}-file" class="visually-hidden" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" data-design-file="${id}">`;
   return `<div class="field design-file-box"><p class="design-file-label">The file <span class="meta">(optional)</span></p>
-        <p class="meta">A PDF, or a photo of the ${what}, up to 10 MB. It stays with this SWMS in SiteReady, for you and your reviewer to open. It does not print.</p>
+        <p class="meta">A PDF, or a photo of the ${what}, up to 10 MB. It stays with this SWMS in SiteReady, for you and your reviewer to open. It does not print.${what === 'drawing' ? ' SiteReady reads the typed words of a PDF\'s title block to fill in the details above for you to check. It does not read the drawing itself, a scan or a photo.' : ''}</p>
         ${file}<p class="meta design-file-msg" data-design-msg="${id}" role="status"></p></div>`;
 }
 // A written method's card: the same details and file as a design, with no status to choose (the
@@ -1683,10 +1694,58 @@ designBlocks.forEach((block) => block.addEventListener('change', async (event) =
     redrawDesigns();
     keepUnsaved();
     if (typeof showGate === 'function' && shownDraft) showGate();
+    if (row && !isMethodRow(row)) await readDrawing(id);
   } catch (error) {
     say(error.message);
     input.value = '';
   }
+}));
+
+// The drawing just attached is read for its title block (D249): its typed words only. What is found
+// fills the card, marked as read until the user ticks that it matches; a scan or a photo is typed.
+async function readDrawing(id) {
+  const S = window.SiteReady || {};
+  const row = designRow(id);
+  if (!row || !row.file || !S.call) return;
+  const fileId = row.file.id;
+  const say = (text) => { const msg = document.querySelector(`[data-design-msg="${id}"]`); if (msg) msg.textContent = text; };
+  say('Reading the typed words on the drawing...');
+  let data;
+  try {
+    data = await S.call('POST', '/api/designs/read', { fileId });
+  } catch (error) {
+    say(error.message);
+    return;
+  }
+  const now = designRow(id);
+  if (!now || !now.file || now.file.id !== fileId) return;
+  // What it is is filled only when empty: a design SiteReady named keeps its name.
+  const fields = (data.read || []).filter((key) => key !== 'what' || !String(now.what || '').trim());
+  for (const key of fields) now[key] = data.details[key];
+  if (fields.length) {
+    now.status = 'given';
+    now.read = { fields, checked: false };
+  }
+  redrawDesigns();
+  const questionId = questionsWithDesigns().get(id);
+  if (questionId) fillFromDesign(questionId);
+  keepUnsaved();
+  if (typeof showGate === 'function' && shownDraft) showGate();
+  const msg = document.querySelector(`[data-design-msg="${id}"]`);
+  if (msg) msg.textContent = fields.length ? '' : 'SiteReady found none of the details in the drawing\'s typed words. Type them.';
+}
+// Ticking that the details read match the drawing; untick to check again.
+designBlocks.forEach((block) => block.addEventListener('change', (event) => {
+  const tick = event.target.closest && event.target.closest('[data-design-read-check]');
+  if (!tick) return;
+  const row = designRow(tick.dataset.designReadCheck);
+  if (!row || !row.read) return;
+  row.read.checked = tick.checked;
+  redrawDesigns();
+  const questionId = questionsWithDesigns().get(row.id);
+  if (questionId) fillFromDesign(questionId);
+  keepUnsaved();
+  if (typeof showGate === 'function' && shownDraft) showGate();
 }));
 
 // ---- The plant and the emergency response, asked in the draft (goal 2) ----

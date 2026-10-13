@@ -35,6 +35,8 @@
     if (item.status === 'notIssued') return `${word} (${NOT_ISSUED})`;
     const number = clean(item.number);
     if (item.status !== 'given' || !number || /_{3,}/.test(number)) return null;
+    // Details read from the drawing fill the answer once the user ticks that they match it (D250).
+    if (item.read && Array.isArray(item.read.fields) && item.read.fields.length && item.read.checked !== true) return null;
     const revision = revisionOf(item.revision);
     if (/_{3,}/.test(revision)) return null;
     if (withRevision) return `${word} ${number}${revision ? ` (revision ${revision})` : ''}`;

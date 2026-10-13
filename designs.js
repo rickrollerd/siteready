@@ -291,7 +291,8 @@ function designRows(draft, input) {
 function answerFields(row) {
   const status = ['given', 'notIssued', 'notNeeded'].includes(row.status) ? row.status : '';
   const file = row.file && typeof row.file === 'object' && row.file.id ? { id: row.file.id, name: clean(row.file.name), type: clean(row.file.type), size: Number(row.file.size) || 0 } : null;
-  return { status, by: clean(row.by), number: clean(row.number), revision: clean(row.revision), date: clean(row.date), file: status === 'given' ? file : null };
+  const read = row.read && Array.isArray(row.read.fields) && row.read.fields.length ? { read: { fields: [...row.read.fields], checked: row.read.checked === true } } : {};
+  return { status, by: clean(row.by), number: clean(row.number), revision: clean(row.revision), date: clean(row.date), file: status === 'given' ? file : null, ...read };
 }
 
 // The draft with its designs: the table rows, and the reference or hold point in each step that
