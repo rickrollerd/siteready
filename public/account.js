@@ -506,7 +506,7 @@
         <div class="swms-row">
           <div>
             <strong>${esc(item.title)}</strong>
-            <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Review due</span>' : `Review by ${shortDate(item.reviewDueAt)}`}</span>
+            <span class="meta">${esc(siteName(item.siteId) || 'No site')} · ${signedText(item)} · ${item.reviewDue ? '<span class="due">Check due</span>' : `Check by ${shortDate(item.reviewDueAt)}`}</span>
             ${(item.changeReview || []).length ? `<span class="meta"><span class="due">Review: the law or SiteReady changed</span> ${esc(item.changeReview[item.changeReview.length - 1])}</span>` : ''}
             ${item.review ? `<span class="meta">Principal contractor: <span class="${PC_CLASS[item.review.response] || 'due'}">${esc(item.review.label)}</span>, ${esc(item.review.date)}</span>` : ''}
           </div>
@@ -557,6 +557,9 @@
   // gave it, their company and email, the date and any conditions or changes needed, and the way to
   // fix it in SiteReady. Without one, the reference and link to send the principal contractor.
   const PC_CLASS = { approved: 'pc-ok', conditions: 'pc-cond', changes: 'due' };
+  // The business's own check of a saved SWMS (D290) is named for the business, held with its ABN, so it
+  // is not mistaken for the principal contractor's review.
+  const ownName = () => (me && me.company && me.company.name) || 'your business';
   function pcReviewBlock(swms, reviews) {
     const current = (reviews || []).filter((item) => item.revision === Number(swms.revision));
     const earlier = (reviews || []).filter((item) => item.revision !== Number(swms.revision));
@@ -586,12 +589,12 @@
       <div class="panel">
         <h2>${esc(swms.title)}</h2>
         <p class="meta">Revision ${esc(swms.revision)}, saved ${shortDate(swms.revisedAt)}${swms.ref ? ` · SiteReady reference ${esc(swms.ref)}` : ''}</p>
-        <p class="meta">Last reviewed ${shortDate(swms.lastReviewedAt)} by ${esc(swms.reviewedBy)} · ${swms.reviewDue ? '<span class="due">Review due now</span>' : `next review by ${shortDate(swms.reviewDueAt)}`}</p>
+        <p class="meta">Last checked by ${esc(ownName())} on ${shortDate(swms.lastReviewedAt)} (${esc(swms.reviewedBy)}) · ${swms.reviewDue ? '<span class="due">Check due now</span>' : `next check by ${shortDate(swms.reviewDueAt)}`}</p>
         ${update.available ? `<div class="note" id="saved-update"><p><strong>Updated wording is available.</strong> SiteReady's library or the law has changed since this revision was saved. This revision prints as it was saved. To use the updated wording, check the changes and make a new revision.</p>
           ${(update.reasons || []).map((reason) => `<p><strong>Why:</strong> ${esc(reason)}</p>`).join('')}
           <details><summary>What would change (${update.changes.length})</summary><ul>${update.changes.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>
           <div class="actions"><button type="button" class="secondary" id="saved-update-go">Make a new revision with the updated wording</button></div>
-          <p class="meta">Uses the name and tick under Mark as reviewed below.</p></div>` : ''}
+          <p class="meta">Uses the name and tick under Mark as checked by ${esc(ownName())} below.</p></div>` : ''}
         ${sameNumbersNote(draft)}
         ${pcReviewBlock(swms, data.reviews)}
         ${historyBlock(history)}
@@ -603,9 +606,9 @@
           <button type="button" class="secondary" id="saved-delete">Delete</button>
         </div>
         <div class="review-box">
-          <h2 style="margin-top:16px">Mark as reviewed</h2>
+          <h2 style="margin-top:16px">Mark as checked by ${esc(ownName())}</h2>
           ${confirmBlock('saved')}
-          <div class="actions"><button type="button" class="secondary" id="saved-reviewed">Mark reviewed</button></div>
+          <div class="actions"><button type="button" class="secondary" id="saved-reviewed">Mark as checked by ${esc(ownName())}</button></div>
         </div>
         <p class="note hidden" id="saved-status"></p>
         <h2 style="margin-top:18px">Worker sign-on</h2>
@@ -651,7 +654,7 @@
     }
     $('saved-reviewed').addEventListener('click', () => run(async () => {
       await call('POST', `/api/swms/${id}/reviewed`, confirmed('saved'));
-      status('saved-status', 'Marked as reviewed. The next review is due in 3 months.');
+      status('saved-status', `Marked as checked by ${ownName()}. The next check is due in 3 months.`);
       loadSwms();
     }));
     $('saved-copy').addEventListener('click', () => run(async () => {

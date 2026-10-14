@@ -343,6 +343,9 @@ test('approved with conditions is recorded against the revision, the business is
   // "Fix this in SiteReady" is on the page, not in the email.
   const page = await (await call('GET', '/account.js')).text();
   assert.ok(page.includes('Fix this in SiteReady'));
+  // The business's own check is named for the business, apart from the principal contractor's review (D290).
+  assert.ok(page.includes('Mark as checked by ${esc(ownName())}'));
+  assert.ok(!page.includes('Mark reviewed') && !page.includes('Mark as reviewed'));
   // The verify page shows the response and its date only: no names and no conditions (D286).
   const verified = await (await call('GET', `/api/verify/${ref}`)).json();
   assert.deepEqual(verified.review, { label: 'Approved with conditions', response: 'conditions', date: review.date });
