@@ -40,15 +40,31 @@ function toCache(query, suggestions) {
   cache.set(query, { at: Date.now(), suggestions });
 }
 
-// Suggestions as { text, state }, Australian addresses only.
-async function suggest(rawQuery, { fetchImpl = fetch, timeoutMs = 4000 } = {}) {
-  const query = cleanQuery(rawQuery);
-  if (!enabled()) return { enabled: false, suggestions: [] };
-  if (query.length < 3) return { enabled: true, suggestions: [] };
-  const key = query.toLowerCase();
-  const cached = fromCache(key);
-  if (cached) return { enabled: true, suggestions: cached };
-  if (!underCap()) return { enabled: true, suggestions: [], error: 'Address suggestions are paused for today. Type the full address.' };
+// A street in the address part of a suggestion: a business is offered only with one (messy-user
+// testing, 13 October 2026: a business name alone printed as the workplace).
+const STREET = /\b\d+[a-z]?(?:[-/]\d+[a-z]?)?\s+\w|\b(?:street|st|road|rd|avenue|ave|parade|pde|terrace|tce|drive|dr|lane|ln|highway|hwy|boulevard|blvd|place|pl|court|ct|crescent|cres|way|close|cl|circuit|cct|esplanade|esp|square|sq|grove|gr)\b/i;
+const ADDRESS_TYPES = new Set(['street_address', 'premise', 'subpremise', 'route', 'street_number', 'intersection', 'locality', 'sublocality', 'postal_code', 'administrative_area_level_1', 'administrative_area_level_2', 'geocode']);
+const STATE_SHORT = { act: 'ACT', nsw: 'NSW', vic: 'VIC', qld: 'QLD', sa: 'SA', wa: 'WA', tas: 'TAS', nt: 'NT' };
+
+// One suggestion as { text, state }, with business set for a business or place named with its street
+// address; null for a business named with no street.
+function toSuggestion(prediction) {
+  const full = prediction && prediction.text && prediction.text.text;
+  if (!full) return null;
+  const types = Array.isArray(prediction.types) ? prediction.types : [];
+  const main = prediction.structuredFormat && prediction.structuredFormat.mainText && prediction.structuredFormat.mainText.text;
+  const rest = prediction.structuredFormat && prediction.structuredFormat.secondaryText && prediction.structuredFormat.secondaryText.text;
+  const business = types.length > 0 && types.some((type) => type === 'establishment' || type === 'point_of_interest') && !types.some((type) => ['street_address', 'premise', 'subpremise', 'route'].includes(type))
+    || (types.length > 0 && !types.some((type) => ADDRESS_TYPES.has(type)));
+  const text = String(full).replace(/,\s*Australia$/i, '');
+  if (!business) return { text, state: stateFromAddress(text).state };
+  const address = String(rest || text.slice(String(main || '').length)).replace(/^[,\s]+/, '').replace(/,\s*Australia$/i, '');
+  if (!STREET.test(address)) return null;
+  const named = main ? `${main}, ${address}` : text;
+  return { text: named, state: stateFromAddress(named).state, business: true };
+}
+
+async function lookUp(query, fetchImpl, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -58,20 +74,42 @@ async function suggest(rawQuery, { fetchImpl = fetch, timeoutMs = 4000 } = {}) {
       body: JSON.stringify({ input: query, includedRegionCodes: ['au'], languageCode: 'en-AU' }),
       signal: controller.signal,
     });
-    if (!response.ok) return { enabled: true, suggestions: [], error: `Address lookup failed (${response.status}).` };
+    if (!response.ok) return { error: `Address lookup failed (${response.status}).`, suggestions: [] };
     const data = await response.json();
-    const suggestions = (data.suggestions || [])
-      .map((item) => item.placePrediction && item.placePrediction.text && item.placePrediction.text.text)
-      .filter(Boolean)
-      .map((text) => text.replace(/,\s*Australia$/i, ''))
-      .map((text) => ({ text, state: stateFromAddress(text).state }))
-      .slice(0, 6);
+    return { suggestions: (data.suggestions || []).map((item) => toSuggestion(item.placePrediction)).filter(Boolean) };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Suggestions as { text, state }, Australian addresses only. near is the state the user's earlier
+// answers or profile point to: its addresses come first, and where the lookup finds none there and the
+// typing names no state or postcode, it is asked once more with that state added (messy-user testing:
+// "10 Example St Woolloongabba" first offered an address in Brighton, Victoria).
+async function suggest(rawQuery, { fetchImpl = fetch, timeoutMs = 4000, near = '' } = {}) {
+  const query = cleanQuery(rawQuery);
+  const home = STATE_SHORT[String(near || '').toLowerCase()] ? String(near).toLowerCase() : '';
+  if (!enabled()) return { enabled: false, suggestions: [] };
+  if (query.length < 3) return { enabled: true, suggestions: [] };
+  const key = `${query.toLowerCase()}|${home}`;
+  const cached = fromCache(key);
+  if (cached) return { enabled: true, suggestions: cached };
+  if (!underCap()) return { enabled: true, suggestions: [], error: 'Address suggestions are paused for today. Type the full address.' };
+  try {
+    let found = await lookUp(query, fetchImpl, timeoutMs);
+    if (found.error) return { enabled: true, suggestions: [], error: found.error };
+    let list = found.suggestions;
+    if (home && !list.some((item) => item.state === home && !item.business) && !stateFromAddress(query).state && underCap()) {
+      const again = await lookUp(`${query} ${STATE_SHORT[home]}`, fetchImpl, timeoutMs).catch(() => ({ suggestions: [] }));
+      const seen = new Set(list.map((item) => item.text.toLowerCase()));
+      list = [...(again.suggestions || []).filter((item) => !seen.has(item.text.toLowerCase())), ...list];
+    }
+    if (home) list = [...list.filter((item) => item.state === home), ...list.filter((item) => item.state !== home)];
+    const suggestions = list.slice(0, 6);
     toCache(key, suggestions);
     return { enabled: true, suggestions };
   } catch (error) {
     return { enabled: true, suggestions: [], error: 'Address lookup is not available right now.' };
-  } finally {
-    clearTimeout(timer);
   }
 }
 

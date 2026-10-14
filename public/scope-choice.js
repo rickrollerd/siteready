@@ -106,8 +106,14 @@
       }
       return {
         title: pack.name,
-        // Conditions and plant stay in the task, so "near roads" or "energised switchboards" reach the high risk check.
-        task: scopeTask.packageTask(pack.rows),
+        // The task prints as a plain list of the work (D251). SiteReady reads the work from the scope's
+        // full words, with its places, conditions and plant, so "near roads" or "energised switchboards"
+        // still reach the high risk check; the conditions go to the matching site questions and the
+        // plant to the plant list, for the user to check (D252).
+        task: scopeTask.plainTask(pack.rows),
+        scopeTask: scopeTask.scopeWords(pack.rows),
+        site: scopeTask.scopeSite(pack.rows),
+        plant: scopeTask.scopePlant(pack.rows),
         trade: '',
         pick: pickFor(pack.name, pack.rows),
         kinds,

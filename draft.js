@@ -2168,6 +2168,13 @@ function hasSubstance(id, text) {
   const value = acceptedText(text);
   if (!value) return false;
   if (id === 'craneChart') return statesChartValues(value);
+  // "dont know", "me" or "as per eng" says nothing, judged by the same words as the download check
+  // (public/gate-rules.js notAnswer). A blank (____) left to fill is the download check's to ask.
+  const gate = require('./public/gate-rules');
+  if (!gate.hasBlank(value) && gate.notAnswer(value)) return false;
+  // A load limit given as a figure ("3kpa", "5 kN point load") says what is needed (messy-user testing:
+  // "3kpa" was refused and "3 kPa max on deck" accepted).
+  if (id === 'loadLimits' && /\b\d+(?:\.\d+)?\s*(?:kpa|kn|t|tonnes?|kg)\b/i.test(value)) return true;
   return meaningfulWords(value).length >= 2;
 }
 
@@ -2223,6 +2230,51 @@ function missingFacts(task, facts, answer, state, ppeIds = []) {
   return withHarness(requiredFactsFor(task, answer, state), facts, ppeIds)
     .map((item) => ({ ...item, state: factState(item, task, facts, state) }))
     .filter((item) => item.state !== 'supplied');
+}
+
+// A design asked for at its question (public/design-fill.js QUESTION_DESIGNS) that the user says is
+// not issued yet is a hold point, as a design the job steps rely on is (designs.js): the answer prints
+// that the work waits for it, so the SWMS is not stood down for want of the design's details. An
+// answer that already says enough is kept as typed; an empty or thin one ("as per eng") is replaced.
+function designHoldLine(label) {
+  return `Hold point: the ${label.charAt(0).toLowerCase()}${label.slice(1)} is not issued yet, so the work it covers does not start until it is issued and this SWMS is updated.`;
+}
+function withDesignHolds(given, designs) {
+  const facts = { ...(given || {}) };
+  if (!Array.isArray(designs) || !designs.length) return facts;
+  const { QUESTION_DESIGNS } = require('./public/design-fill');
+  for (const [id, design] of Object.entries(QUESTION_DESIGNS)) {
+    const row = designs.find((item) => item && item.id === design.id);
+    if (!row || row.status !== 'notIssued') continue;
+    if (keptFact(facts[id]) && hasSubstance(id, keptFact(facts[id]))) continue;
+    facts[id] = designHoldLine(design.label);
+  }
+  return facts;
+}
+
+// The answers given that are too thin to print, each with what it still needs (answer-help.js), for
+// the page to say under its box as the user types. An empty answer is not listed: it is asked for.
+function weakAnswers(input) {
+  const asked = askQuestions(input);
+  if (asked.kind !== 'questions') return [];
+  const state = stateFor(input);
+  const task = readSlang(fixSpelling(cleanLine(input.task || input.jobDescription)).text);
+  const facts = withDesignHolds(input.facts, input.designs);
+  const { helpText } = require('./answer-help');
+  return (asked.required || [])
+    .filter((item) => !item.choices && keptFact(facts[item.id]))
+    .filter((item) => factState(item, task, facts, state) === 'vague')
+    .map((item) => {
+      // Said as the download check says it ("dont know" is not an answer yet), with what would do.
+      const why = require('./public/gate-rules').notAnswer(keptFact(facts[item.id]));
+      return { id: item.id, label: item.label, help: helpText(item), ...(why ? { why } : {}) };
+    });
+}
+
+// How SiteReady judges one answer on its own: 'supplied', 'vague' or 'missing' (for the tests of the
+// examples answer-help.js gives).
+function answerState(id, text, stateId = 'qld') {
+  return factState({ id }, '', { [id]: text }, stateFor({ state: stateId }));
 }
 
 function missingLabel(item) {
@@ -2664,8 +2716,14 @@ function stepPicks(task, facts, state) {
 }
 
 // The questions for a task, and, before any are answered, whether the SWMS will be stood down for
-// want of job steps for the work, so the user hears it here and not only at the draft.
+// want of job steps for the work, so the user hears it here and not only at the draft. A task from a
+// scope is read from the scope's full words (scopeWords).
 function questionsFor(input) {
+  const read = scopeWords(input);
+  const out = questionsForWords(read);
+  return read === input ? out : printedTask(out, input);
+}
+function questionsForWords(input) {
   const found = askQuestions(input);
   if (found.kind !== 'questions') return found;
   // The PPE suggested for all work and for particular steps, read from the steps the SWMS would print.
@@ -2673,7 +2731,11 @@ function questionsFor(input) {
   let suggested = null;
   try { suggested = buildDraft({ ...input, ppe: undefined }, 'ppe'); } catch { suggested = null; }
   // Items that can go with a step are marked so the page offers them for adding to one.
-  const asked = suggested && Array.isArray(suggested.ppe) ? { ...found, ppe: suggested.ppe.map((group) => ({ ...group, items: group.items.map((item) => ({ ...item, forSteps: !ALL_WORK_ONLY.has(item.id) })) })), ppeSteps: suggested.steps } : found;
+  const shown = suggested && Array.isArray(suggested.ppe) ? { ...found, ppe: suggested.ppe.map((group) => ({ ...group, items: group.items.map((item) => ({ ...item, forSteps: !ALL_WORK_ONLY.has(item.id) })) })), ppeSteps: suggested.steps } : found;
+  // Answers given that are too thin to print, with what each needs, said under its box.
+  let weak = [];
+  try { weak = weakAnswers(input); } catch { weak = []; }
+  const asked = { ...shown, weak };
   const reason = buildDraft(input, 'steps');
   if (!reason || !reason.noSteps) return asked;
   // Steps for where the work is done (the rail corridor, the road, work above traffic) are not ticked
@@ -3178,11 +3240,31 @@ function notCoveredRefusal(draft, input) {
   const parts = notCoveredLeft(draft);
   const ticked = input && Array.isArray(input.notCoveredConfirmed) ? input.notCoveredConfirmed : [];
   if (parts.every((part) => ticked.includes(part))) return '';
-  return `SiteReady has no job steps for: ${parts.join('; ')}. Tick the box above the draft to say you have added your own steps and controls, or covered this work in a separate SWMS, before saving or downloading.`;
+  return `SiteReady has no job steps for: ${parts.join('; ')}. Above the draft, write your own step for it, or say which SWMS covers it, before saving or downloading.`;
+}
+
+// A SWMS from a scope prints a plain list of the work (D251), but SiteReady reads the work from the
+// scope's full words, with where each activity is done, its conditions and its plant, so the high risk
+// work, hazards and plant are found as before (D252). input.scopeTask is { plain, full, notes }
+// (public/scope-task.js scopeWords): with the task as given, the full words are read; with the task
+// changed by the user, the task and the notes are. The task printed is the user's own.
+function scopeWords(input) {
+  const scope = input && input.scopeTask;
+  if (!scope || typeof scope !== 'object' || !cleanLine(input.task)) return input;
+  const same = cleanLine(input.task) === cleanLine(scope.plain);
+  const words = same && cleanLine(scope.full) ? scope.full : [input.task, scope.notes].map(cleanLine).filter(Boolean).join('\n');
+  return words && cleanLine(words) !== cleanLine(input.task) ? { ...input, task: words } : input;
+}
+function printedTask(out, input) {
+  if (!out || typeof out !== 'object' || typeof out.task !== 'string') return out;
+  const spelling = fixSpelling(cleanLine(input.task || input.jobDescription));
+  return { ...out, task: readSlang(spelling.text), ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
 }
 
 function prepareDraft(input) {
-  return buildDraft(input, false);
+  const read = scopeWords(input);
+  const out = buildDraft(read, false);
+  return read === input ? out : printedTask(out, input);
 }
 
 // Short names for the high risk construction work categories, for a list of work packages,
@@ -3302,7 +3384,7 @@ function buildDraft(input, screen) {
   const typed = fixSpelling(cleanLine(input.task || input.jobDescription)).text;
   const task = readSlang(typed);
   // A space the user has assessed as not a confined space drops any confined space arrangement.
-  const facts = { ...(input.facts || {}), siteConditions: siteConditions(input.site) };
+  const facts = { ...withDesignHolds(input.facts, input.designs), siteConditions: siteConditions(input.site) };
   if (choiceAnswer('spaceAssessment', facts.spaceAssessment) === 'notConfined' && !/\bconfined space\b/i.test(task)) delete facts.confinedSpace;
   const site = siteFromPack(task, input.site || {});
   const pack = {
@@ -3364,6 +3446,12 @@ function buildDraft(input, screen) {
       kind: 'stand-down',
       ...header,
       missing: missing.map(missingLabel),
+      // What each answer still needs, in plain words with an accepted example, so the page can say
+      // it beside the question (answer-help.js).
+      missingHelp: missing.map((item) => {
+        const why = item.state === 'vague' ? require('./public/gate-rules').notAnswer(keptFact(facts[item.id])) : '';
+        return { id: item.id, label: item.label, state: item.state, help: require('./answer-help').helpText(item), ...(why ? { why } : {}) };
+      }),
       statement: 'This task is stood down. It does not start.',
       method: [],
       hazards: [],
@@ -7249,4 +7337,7 @@ module.exports = {
   involvesScaffold,
   HIERARCHY,
   REVIEW,
+  weakAnswers,
+  withDesignHolds,
+  answerState,
 };

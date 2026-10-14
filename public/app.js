@@ -26,6 +26,12 @@ function loadProfile() {
 
 function showProfile() {
   Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { document.getElementById(id).value = profile[key] || ''; });
+  // Details typed in the profile but not saved come back after a reload, said so (messy-user testing).
+  const typed = keptProfileTyping();
+  if (typed && profileDiffers(typed)) {
+    Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { if (typeof typed[key] === 'string') document.getElementById(id).value = typed[key]; });
+    profileStatus('Your company details are back as you typed them. Press Save profile to keep them.');
+  }
   const preview = document.getElementById('profile-logo-preview');
   preview.src = pendingLogo || '';
   preview.classList.toggle('hidden', !pendingLogo);
@@ -34,6 +40,22 @@ function showProfile() {
   const company = document.getElementById('company');
   if (!company.value && profile.name) company.value = profile.name;
 }
+
+// What is typed in the profile, kept on this device until it is saved, so a reload does not lose it.
+const PROFILE_TYPING_KEY = 'siteready.profileTyping';
+const profileTyped = () => Object.fromEntries(Object.entries(PROFILE_FIELDS).map(([key, id]) => [key, document.getElementById(id).value.trim()]));
+const profileDiffers = (typed) => Object.keys(PROFILE_FIELDS).some((key) => String(typed[key] || '').trim() !== String(profile[key] || '').trim());
+function keptProfileTyping() {
+  try { const kept = JSON.parse(localStorage.getItem(PROFILE_TYPING_KEY) || 'null'); return kept && typeof kept === 'object' ? kept : null; } catch { return null; }
+}
+function keepProfileTyping() {
+  const typed = profileTyped();
+  try {
+    if (profileDiffers(typed)) localStorage.setItem(PROFILE_TYPING_KEY, JSON.stringify(typed));
+    else localStorage.removeItem(PROFILE_TYPING_KEY);
+  } catch { /* not kept */ }
+}
+const forgetProfileTyping = () => { try { localStorage.removeItem(PROFILE_TYPING_KEY); } catch { /* nothing kept */ } };
 
 function profileStatus(text) {
   const el = document.getElementById('profile-status');
@@ -99,7 +121,12 @@ async function lookUpAbn() {
     if (!data.found) { box.textContent = data.error || 'ABN not found.'; box.classList.remove('hidden'); return; }
     const names = [...new Set([...(data.businessNames || []), data.entityName].filter(Boolean))];
     const nameBox = document.getElementById('profile-company');
-    if (!nameBox.value.trim() && names.length) nameBox.value = names[0];
+    if (!nameBox.value.trim() && names.length) {
+      nameBox.value = names[0];
+      // The name found for the ABN completes the profile, which then saves itself.
+      keepProfileTyping();
+      autoSaveProfile();
+    }
     box.innerHTML = `<strong>${esc(data.entityName)}</strong>${data.active ? '' : ` <span class="warn">ABN ${esc(data.status || 'not active').toLowerCase()}</span>`}${data.state ? ` · ${esc(data.state)} ${esc(data.postcode)}` : ''}${names.length > 1 ? `<br>Use name: ${names.map((name) => `<button type="button" class="link" data-abn-name="${esc(name)}">${esc(name)}</button>`).join(' · ')}` : ''}`;
     box.classList.remove('hidden');
   } catch {
@@ -113,7 +140,7 @@ document.getElementById('abn-found').addEventListener('click', (event) => {
   if (button) document.getElementById('profile-company').value = button.dataset.abnName;
 });
 
-document.getElementById('profile-save').addEventListener('click', async () => {
+async function saveProfile({ auto = false } = {}) {
   const next = {};
   Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { next[key] = document.getElementById(id).value.trim(); });
   if (pendingLogo) next.logo = pendingLogo;
@@ -121,11 +148,23 @@ document.getElementById('profile-save').addEventListener('click', async () => {
   if (window.SiteReady && window.SiteReady.saveCompany && window.SiteReady.signedIn()) {
     try {
       window.SiteReady.lastCompanyNotice = '';
-      setProfile(await window.SiteReady.saveCompany(next));
-      profileStatus(window.SiteReady.lastCompanyNotice || 'Saved for your company.');
+      const saved = await window.SiteReady.saveCompany(next);
+      forgetProfileTyping();
+      // Saved as it is filled in, the profile stays open where the user is typing, and what was typed
+      // while it saved stays in its box, to be saved in turn.
+      const open = document.getElementById('profile').open;
+      const typedSince = profileTyped();
+      setProfile(saved);
+      if (auto) {
+        document.getElementById('profile').open = open;
+        Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { if (typedSince[key] !== String(next[key] || '')) document.getElementById(id).value = typedSince[key]; });
+        keepProfileTyping();
+      }
+      profileStatus(window.SiteReady.lastCompanyNotice || (auto ? 'Saved for your company as you filled it in.' : 'Saved for your company.'));
     } catch (error) {
-      profileStatus(error.message);
+      profileStatus(auto ? `Not saved yet: ${error.message} Fix it, then press Save profile.` : error.message);
     }
+    if (shownDraft) showGate();
     return;
   }
   try {
@@ -134,15 +173,48 @@ document.getElementById('profile-save').addEventListener('click', async () => {
     profileStatus('The profile could not be saved on this device. Private browsing can stop this.');
     return;
   }
+  forgetProfileTyping();
   const company = document.getElementById('company');
   if (!company.value || company.value === profile.name) company.value = next.name;
   profile = next;
+  const open = document.getElementById('profile').open;
+  const typedSince = profileTyped();
   showProfile();
-  profileStatus('Saved on this device.');
+  if (auto) {
+    document.getElementById('profile').open = open;
+    Object.entries(PROFILE_FIELDS).forEach(([key, id]) => { if (typedSince[key] !== String(next[key] || '')) document.getElementById(id).value = typedSince[key]; });
+    keepProfileTyping();
+  }
+  profileStatus(auto ? 'Saved on this device as you filled it in.' : 'Saved on this device.');
+  if (shownDraft) showGate();
+}
+document.getElementById('profile-save').addEventListener('click', () => saveProfile());
+
+// The profile saves itself once its company name and an 11 digit ABN are filled in and the user
+// moves on from the box (messy-user testing, 13 October 2026: the download failed far below, with the
+// details typed but never saved). Until then, what is typed is kept on this device, and leaving the
+// profile with changes not saved says to press Save profile.
+const profileBox = document.getElementById('profile');
+profileBox.addEventListener('input', (event) => { if (event.target.closest('#profile-company, #profile-abn, #profile-address, #profile-phone, #profile-email')) keepProfileTyping(); });
+function autoSaveProfile() {
+  const typed = profileTyped();
+  if (typed.name && typed.abn.replace(/\D/g, '').length === 11 && profileDiffers(typed)) saveProfile({ auto: true });
+}
+profileBox.addEventListener('change', (event) => {
+  if (event.target.closest('#profile-company, #profile-abn, #profile-address, #profile-phone, #profile-email')) autoSaveProfile();
+});
+profileBox.addEventListener('focusout', (event) => {
+  if (event.relatedTarget && profileBox.contains(event.relatedTarget)) return;
+  setTimeout(() => {
+    if (profileBox.contains(document.activeElement)) return;
+    const typed = profileTyped();
+    if (profileDiffers(typed) && !(typed.name && typed.abn.replace(/\D/g, '').length === 11)) profileStatus('Your company details are not saved yet. Fill in the company name and ABN, then press Save profile.');
+  }, 0);
 });
 
 document.getElementById('profile-clear').addEventListener('click', () => {
   try { localStorage.removeItem(PROFILE_KEY); } catch { /* nothing saved */ }
+  forgetProfileTyping();
   const company = document.getElementById('company');
   if (company.value === profile.name) company.value = '';
   profile = {};
@@ -291,9 +363,12 @@ function payload() {
     // The rows of a scope reading that the reader matched to no job steps, for the task as read,
     // and the parts with no job steps the user ticked as dealt with (owner decision D184).
     unmatched: scopeUnmatched || undefined,
+    scopeTask: scopeWordsNow || undefined,
     // The parts of a task picked from the pick list that SiteReady has no job steps for (goal 1).
     pickGaps: pickGaps || undefined,
     notCoveredConfirmed: coverTicked ? JSON.parse(coverTicked) : undefined,
+    // The SWMS the user named for each part another SWMS covers, kept with the record.
+    notCoveredElsewhere: coverElsewhereSent(),
     controlEdits: controlEdits || undefined,
     hazardEdits: hazardEdits || undefined,
     whoEdits: whoEdits || undefined,
@@ -338,7 +413,23 @@ function stateName(id) {
   return state ? state.name : '';
 }
 
+// The state the user's earlier answers or profile point to (messy-user testing, 13 October 2026: an
+// address suggestion in Victoria silently switched a Brisbane job to Victorian law). The state of a job
+// address given before on this page, else the company profile's address, else the last job address.
+let addressStateBefore = '';
+const STATE_LAW = { act: 'ACT law', nsw: 'New South Wales law', vic: 'Victorian law', qld: 'Queensland law', sa: 'South Australian law', wa: 'Western Australian law', tas: 'Tasmanian law', nt: 'Northern Territory law' };
+function expectedState() {
+  const A = window.SiteReadyAddress;
+  if (!A) return '';
+  const ticked = document.querySelector('input[name="state"]:checked');
+  return addressStateBefore || A.stateFromAddress(profile.address || '').state || A.stateFromAddress(((readMemory().workplace || [])[0]) || '').state || (ticked ? ticked.value : '');
+}
+// A state the user said to keep for this address, so it is not asked again.
+let stateKept = '';
+
 // Ticks the state the address is in, and says so. A state picked by hand that differs is flagged.
+// A state other than the one expected is never set without a word: the note says so plainly, with a
+// button to change the address.
 function applyAddressState() {
   const found = window.SiteReadyAddress ? window.SiteReadyAddress.stateFromAddress(workplaceEl.value) : { state: '' };
   workplaceState.classList.remove('state-warning');
@@ -346,15 +437,37 @@ function applyAddressState() {
     workplaceState.textContent = workplaceEl.value.trim() ? 'Include the state or postcode in the job address, so the right state law is used.' : '';
     return;
   }
+  const expected = expectedState();
   const radio = document.querySelector(`input[name="state"][value="${found.state}"]`);
   if (radio && !radio.disabled && !radio.checked) {
     radio.checked = true;
     radio.dispatchEvent(new Event('change'));
   }
+  if (expected && expected !== found.state && stateKept !== `${found.state}|${workplaceEl.value.trim()}`) {
+    // The state expected holds until the user keeps the new one or changes the address.
+    addressStateBefore = expected;
+    workplaceState.innerHTML = `<strong>This address is in ${esc(stateName(found.state))}, so the SWMS uses ${esc(STATE_LAW[found.state] || `${stateName(found.state)} law`)}. Change it?</strong> <button type="button" class="link" data-state-change>Change the address</button> <button type="button" class="link" data-state-keep>Keep ${esc(stateName(found.state))}</button>`;
+    workplaceState.classList.add('state-warning');
+    return;
+  }
+  addressStateBefore = found.state;
   workplaceState.textContent = found.from === 'postcode'
     ? `State set to ${stateName(found.state)} from the postcode. Check it is right.`
     : `State set to ${stateName(found.state)} from the job address.`;
 }
+workplaceState.addEventListener('click', (event) => {
+  if (event.target.closest('[data-state-change]')) {
+    workplaceEl.focus();
+    if (workplaceEl.select) workplaceEl.select();
+    return;
+  }
+  if (event.target.closest('[data-state-keep]')) {
+    const found = window.SiteReadyAddress.stateFromAddress(workplaceEl.value);
+    stateKept = `${found.state}|${workplaceEl.value.trim()}`;
+    addressStateBefore = found.state;
+    applyAddressState();
+  }
+});
 
 function checkStateMatchesAddress() {
   const found = window.SiteReadyAddress ? window.SiteReadyAddress.stateFromAddress(workplaceEl.value) : { state: '' };
@@ -371,7 +484,7 @@ function checkStateMatchesAddress() {
 // onPick runs after the box changes, by typing or by picking a suggestion.
 // recent() gives addresses used before on this device: they are offered when the box
 // is empty or matches them, ahead of the lookup's suggestions.
-function addressLookup(input, list, onPick = () => {}, recent = () => []) {
+function addressLookup(input, list, onPick = () => {}, recent = () => [], near = () => '') {
   let picks = [];
   let active = -1;
   let timer = null;
@@ -408,7 +521,8 @@ function addressLookup(input, list, onPick = () => {}, recent = () => []) {
   const lookUp = async (text) => {
     const mine = ++seq;
     try {
-      const response = await fetch(api(`/api/address?q=${encodeURIComponent(text)}`));
+      const home = near();
+      const response = await fetch(api(`/api/address?q=${encodeURIComponent(text)}${home ? `&near=${encodeURIComponent(home)}` : ''}`));
       if (!response.ok) return;
       const data = await response.json();
       // Only the latest lookup is shown.
@@ -456,7 +570,7 @@ function addressLookup(input, list, onPick = () => {}, recent = () => []) {
   input.addEventListener('blur', () => setTimeout(close, 150));
 }
 
-addressLookup(workplaceEl, workplaceList, applyAddressState, () => readMemory().workplace || []);
+addressLookup(workplaceEl, workplaceList, applyAddressState, () => readMemory().workplace || [], expectedState);
 const profileAddressEl = document.getElementById('profile-address');
 if (profileAddressEl) addressLookup(profileAddressEl, document.getElementById('profile-address-list'));
 statesEl.addEventListener('change', checkStateMatchesAddress);
@@ -541,6 +655,9 @@ document.getElementById('start').addEventListener('submit', (event) => {
     pickGaps = picked && picked.gaps && picked.gaps.length ? [...picked.gaps] : null;
     choicesTask = task;
   }
+  // The scope's words go with a task from a scope, changed by the user or not.
+  if (scope && scope.scope) scopeWordsNow = scope.scope;
+  else if (!scope) scopeWordsNow = null;
   // With no signal the plain message shows here, not nothing (goal 7).
   loadQuestions().catch((error) => { document.getElementById('start-error').textContent = error.message; });
 });
@@ -551,6 +668,8 @@ let stepPicks = null;
 let leaveOut = null;
 // Rows of the scope reading with no job steps, while the task is the one read from the scope.
 let scopeUnmatched = null;
+// A task from a scope: the scope's words it is read from, kept while its SWMS is open (D251, D252).
+let scopeWordsNow = null;
 // The task last picked from the pick list, and the parts of it with no job steps while it is as picked.
 let pickedTask = null;
 let pickGaps = null;
@@ -593,8 +712,11 @@ function newSwms() {
   stepPicks = null;
   leaveOut = null;
   scopeUnmatched = null;
+  scopeWordsNow = null;
   pickGaps = null;
   coverTicked = null;
+  coverElsewhere = {};
+  coverTyping.clear();
   stepOrder = null;
   controlEdits = null;
   hazardEdits = null;
@@ -612,6 +734,8 @@ function newSwms() {
   choicesTask = null;
   ppeTouched.clear();
   ppePlaced = {};
+  weakNotes = new Map();
+  missingNotes = new Map();
   // Its questions start blank.
   freshFacts = true;
   if (window.SiteReady) window.SiteReady.editing = null;
@@ -1080,7 +1204,7 @@ function drawRequired(required) {
     lede = document.createElement('p');
     lede.className = 'lede required-lede';
     lede.style.marginBottom = '12px';
-    lede.textContent = 'If a required fact is blank, the task is stood down. A method is not written.';
+    lede.textContent = 'Answer each question for this job. SiteReady says under a box if an answer is too thin to print, and what would do.';
     block.appendChild(lede);
   }
   const shown = new Map([...block.querySelectorAll('[data-q]')].map((el) => [el.dataset.q, el]));
@@ -1112,7 +1236,70 @@ function drawRequired(required) {
   required.forEach((item) => markPicks(item.id));
   drawQuestionDesigns();
   showAllBlanks();
+  showAnswerNotes();
 }
+
+// ---- Answers too thin to print, said on the spot (messy-user testing, 13 October 2026) ----
+
+// The server names each answer given that is too thin to print (draft.js weakAnswers), and a
+// stood-down draft names each answer still needed (missingHelp), each with what would do and an
+// accepted example (answer-help.js). The note sits under the box, so the user sees it where they type.
+let weakNotes = new Map();
+// What each thin answer's note says: why, as the download check says it ("dont know" is not an
+// answer yet), or that it is too thin to print, then what would do (answer-help.js).
+const weakText = (item) => `${item.why || 'Too thin to print.'} ${item.help}`;
+const weakMap = (list) => new Map((Array.isArray(list) ? list : []).map((item) => [item.id, weakText(item)]));
+let missingNotes = new Map();
+function showAnswerNotes() {
+  document.querySelectorAll('#required-block [data-q]').forEach((holder) => {
+    const id = holder.dataset.q;
+    const box = document.getElementById(`fact-${id}`);
+    const anchor = box || holder.querySelector('legend') || holder.firstElementChild;
+    if (!anchor) return;
+    const weak = weakNotes.get(id);
+    const missing = !weak && missingNotes.get(id);
+    // One message per answer: a blank left in it is said by the red warning, or the download check, alone.
+    const need = box && document.getElementById(`need-${box.id}`);
+    const blanked = box && (box.classList.contains('has-blank') || (need && !need.hidden));
+    const text = blanked ? '' : weak || missing || '';
+    let note = document.getElementById(`answer-note-${id}`);
+    if (!note && text) {
+      note = document.createElement('p');
+      note.id = `answer-note-${id}`;
+      note.className = 'answer-note';
+      note.setAttribute('role', 'status');
+      if (box) box.after(note); else holder.appendChild(note);
+    }
+    if (note && note.textContent !== text) note.textContent = text;
+    if (note) note.hidden = !text;
+    if (box) {
+      if (text) { box.classList.add('answer-thin'); box.setAttribute('aria-describedby', note.id); } else { box.classList.remove('answer-thin'); if (note && box.getAttribute('aria-describedby') === note.id) box.removeAttribute('aria-describedby'); }
+    }
+  });
+}
+function setWeak(list) {
+  weakNotes = weakMap(list);
+  showAnswerNotes();
+}
+// Typing in a box named as still needed takes its note off; the server says again if it is too thin.
+document.getElementById('required-block').addEventListener('input', (event) => {
+  const id = event.target.id && event.target.id.startsWith('fact-') ? event.target.id.slice(5) : '';
+  if (id && missingNotes.has(id)) { missingNotes.delete(id); showAnswerNotes(); }
+});
+// "Go to" beside an answer a stood-down draft still needs: the box is brought into view and focused.
+function goToAnswer(id) {
+  const box = document.getElementById(`fact-${id}`) || document.querySelector(`#required-block [data-q="${id}"] input, #required-block [data-q="${id}"]`);
+  if (!box) return;
+  factsForm.classList.remove('hidden');
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (box.focus) box.focus({ preventScroll: true });
+}
+document.addEventListener('click', (event) => {
+  const go = event.target.closest('[data-answer-go]');
+  if (!go) return;
+  const id = go.dataset.answerGo === 'first' ? [...missingNotes.keys()][0] : go.dataset.answerGo;
+  if (id) goToAnswer(id);
+});
 
 // Asks the questions again with the answers given so far, so a question an answer brings in (a
 // harness named in the fall control, a harness or life jacket ticked) shows straight away. Only the
@@ -1138,7 +1325,8 @@ async function askOnce() {
     if (!response.ok || seq !== askSeq) return;
     const data = await response.json();
     if (seq !== askSeq || !Array.isArray(data.required)) return;
-    questions = { ...questions, required: data.required };
+    questions = { ...questions, required: data.required, weak: data.weak || [] };
+    weakNotes = weakMap(data.weak);
     drawRequired(data.required);
     drawDesigns(data.designs || []);
   } catch {
@@ -1184,9 +1372,11 @@ async function loadQuestions(options = {}) {
   const notice = document.getElementById('steps-notice');
   notice.textContent = (data.standDown && data.standDown.message) || '';
   notice.classList.toggle('hidden', !notice.textContent);
+  weakNotes = weakMap(data.weak);
   if (fresh) {
     factMemory = {};
     siteMemory = {};
+    missingNotes = new Map();
     document.getElementById('required-block').innerHTML = '';
   } else {
     Object.assign(siteMemory, shownAnswers('[data-site]', 'site'));
@@ -1219,7 +1409,7 @@ async function loadQuestions(options = {}) {
   drawDesigns(data.designs || []);
   renderSteps(data.steps || { suggested: [], chosen: [], locked: [] });
   factsForm.classList.remove('hidden');
-  if (!options.stay) factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!options.stay) { factsForm.scrollIntoView({ behavior: 'smooth', block: 'start' }); markStage('questions'); }
   // The questions were asked with the PPE ticked before; if the new suggestion ticks a harness or a
   // life jacket, its questions are asked for too.
   const now = ppeTicked();
@@ -1263,8 +1453,11 @@ function fillStart(input) {
   stepPicks = Array.isArray(input.kinds) ? [...input.kinds] : null;
   leaveOut = Array.isArray(input.leaveOut) ? [...input.leaveOut] : null;
   scopeUnmatched = Array.isArray(input.unmatched) ? [...input.unmatched] : null;
+  scopeWordsNow = input.scopeTask && typeof input.scopeTask === 'object' ? { ...input.scopeTask } : null;
   pickGaps = Array.isArray(input.pickGaps) ? [...input.pickGaps] : null;
   coverTicked = Array.isArray(input.notCoveredConfirmed) ? JSON.stringify(input.notCoveredConfirmed) : null;
+  coverElsewhere = input.notCoveredElsewhere && typeof input.notCoveredElsewhere === 'object' ? { ...input.notCoveredElsewhere } : {};
+  coverTyping.clear();
   choicesTask = String(input.task || '').trim();
   stepOrder = Array.isArray(input.stepOrder) ? [...input.stepOrder] : null;
   controlEdits = input.controlEdits && typeof input.controlEdits === 'object' ? JSON.parse(JSON.stringify(input.controlEdits)) : null;
@@ -1523,9 +1716,12 @@ function markGaps(gaps) {
     }
     const text = `Needed before download: ${gap.need}`;
     if (note.textContent !== text) note.textContent = text;
+    // An answer's blank is said once, by the red warning under it (D241); the list above still has it.
+    note.hidden = gap.kind === 'fact' && el.classList.contains('has-blank') && Boolean(document.getElementById(`${el.id}-blanks`));
     el.setAttribute('aria-invalid', 'true');
-    el.setAttribute('aria-describedby', note.id);
+    if (!note.hidden) el.setAttribute('aria-describedby', note.id);
   }
+  showAnswerNotes();
   // A control line's note shows while any of its blanks is still empty.
   const lines = new Set(gaps.filter((gap) => gap.kind === 'line').map((gap) => gap.key));
   document.querySelectorAll('.gate-need[data-gate-line]').forEach((note) => { note.hidden = !lines.has(note.dataset.gateLine); });
@@ -1551,7 +1747,7 @@ function liveNeed(check) {
 const asGiven = () => (window.SiteReadyGate ? window.SiteReadyGate.AS_GIVEN : []);
 // What the user changes in their own flows, which prepare the draft again or update what is saved,
 // and the business details, which a download takes from the account's company profile.
-const OWN_FLOWS = ['controlEdits', 'hazardEdits', 'whoEdits', 'ownSteps', 'notCoveredConfirmed', 'company', 'companyAbn', 'companyAddress', 'companyPhone', 'companyEmail'];
+const OWN_FLOWS = ['controlEdits', 'hazardEdits', 'whoEdits', 'ownSteps', 'notCoveredConfirmed', 'notCoveredElsewhere', 'company', 'companyAbn', 'companyAddress', 'companyPhone', 'companyEmail'];
 function redrawKey(input) {
   const rest = { ...input };
   for (const key of [...asGiven(), ...OWN_FLOWS]) delete rest[key];
@@ -1566,16 +1762,33 @@ const draftStale = () => Boolean(shownSent && shownDraft && shownDraft.kind === 
 // Everything still outstanding before download, in one list: the site questions and blanks the
 // server found (goal 2), judged again as the user answers, and the tick for work SiteReady has no
 // job steps for (D184), counted from the box above the draft as the user ticks it.
+// Signed in, every download prints the company's own name and ABN from the saved Company profile, so
+// they are on the list before download, with a button that opens the profile at the empty box
+// (messy-user testing, 13 October 2026: they were checked only at the final press, far from the profile).
+function companyGap() {
+  const S = window.SiteReady || {};
+  if (!S.signedIn || !S.signedIn()) return null;
+  const name = String(profile.name || '').trim();
+  const abn = String(profile.abn || '').replace(/\D/g, '');
+  if (name && abn) return null;
+  const typed = profileTyped();
+  const field = !name ? 'profile-company' : 'profile-abn';
+  const missing = !name && !abn ? 'company name and ABN' : !name ? 'company name' : 'ABN';
+  return { id: 'company', kind: 'company', field, label: `Company ${missing}`, need: `Add your ${missing} under Company profile${profileDiffers(typed) ? ' and press Save profile' : ''}. They print on every SWMS.` };
+}
+
 function outstanding(data) {
   if (!data || data.kind !== 'draft') return [];
   const gaps = shownChecks.filter((check) => check.kind !== 'cover').map((check) => ({ ...check, need: liveNeed(check) })).filter((check) => check.need);
+  const company = companyGap();
+  if (company) gaps.unshift(company);
   // A part the user wrote a step for needs no tick. Work that is all the task's work (D211) needs the
   // user's own step: a tick does not cover it.
   const unwritten = coverUnwritten(data);
   if (unwritten.length) gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Your own step for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.` });
   const parts = coverLeft(data);
   if (parts.length && !coverDone(parts)) {
-    gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${parts.join('; ')}. Write a step for it, or cover it in a separate SWMS, then tick the box above the draft.` });
+    gaps.unshift({ id: 'notCovered', kind: 'cover', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${parts.join('; ')}. Above the draft, write a step for it, or say which SWMS covers it.` });
   }
   return gaps;
 }
@@ -1729,7 +1942,7 @@ function designCard(row, found, { question = false } = {}) {
       ${box('date', 'Date on the design', '', 'date', 60)}
       ${designFileBox(row, 'drawing')}
     </div>
-    <p class="note design-hold">The steps that use it print a hold point: "Do not start this step until the design is issued and this SWMS is updated." When the design arrives, add its details here and save a new revision.</p>
+    <p class="note design-hold">${question ? 'The answer above prints as a hold point: the work it covers does not start until the design is issued and this SWMS is updated. You can leave the answer empty.' : 'The steps that use it print a hold point: "Do not start this step until the design is issued and this SWMS is updated."'} When the design arrives, add its details here and save a new revision.</p>
     <p class="note design-skip">Choose this only if the work in these steps is not done to a design on this job. The SWMS records it as your business's choice, and a reviewer may ask why.</p>
     ${added ? `<p><button type="button" class="link" data-design-remove="${id}">Remove this design</button></p>` : ''}
   </fieldset>`;
@@ -2113,6 +2326,18 @@ function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
         <tr><th>Date</th><td>${esc(draft.date)}</td></tr>
       </tbody>
     </table>`;
+  // Answers missing or too thin to print: the SWMS is not finished. What each needs is said first, in
+  // plain words with an accepted example, with a button to each question (answer-help.js).
+  if (draft.kind === 'stand-down' && (draft.missingHelp || []).length) {
+    const items = draft.missingHelp;
+    return `<div class="panel gate not-finished" id="not-finished" role="region" aria-labelledby="not-finished-title">
+      <h3 id="not-finished-title">This SWMS is not finished</h3>
+      <p>SiteReady cannot prepare it until ${items.length === 1 ? 'this answer says' : `these ${items.length} answers say`} enough to print. Fix ${items.length === 1 ? 'it' : 'each one'} in the questions above, then press Prepare the statement again.</p>
+      <ul class="gate-list">${items.map((item) => `<li><button type="button" class="link" data-answer-go="${esc(item.id)}">${esc(item.label)}</button><span class="meta">${esc(item.state === 'vague' ? weakText(item) : `Not answered yet. ${item.help}`)}</span></li>`).join('')}</ul>
+      <div class="actions"><button type="button" data-answer-go="first">Go to the first answer</button></div>
+    </div>
+    ${head}`;
+  }
   if (draft.kind === 'stand-down') {
     return `${head}
       <h4>Stood down</h4>
@@ -2356,46 +2581,104 @@ function coverDone(parts) {
 }
 const sameWords = (text) => String(text || '').replace(/\s+/g, ' ').trim().toLowerCase();
 const ownFor = (part) => (ownSteps || []).find((item) => sameWords(item.part) === sameWords(part));
+// Each part SiteReady has no job steps for is dealt with on its own line (messy-user testing, 13 October
+// 2026: one tick "or it is covered in a separate SWMS" was the easy way out). Saving your own step for a
+// part clears it by itself. Otherwise the user says which SWMS covers it: one of the project's other
+// SWMS, or one they name. Work that is all the task's work (D211) needs the user's own step.
+let coverElsewhere = {};
+const coverTyping = new Set();
+const COVER_TYPED = '__typed';
+const namedElsewhere = (part) => String((coverElsewhere || {})[part] || '').replace(/\s+/g, ' ').trim();
+const coverNamed = (part) => namedElsewhere(part).length >= 3;
+// The other SWMS in the project, by title, to choose from (scope.js).
+const otherSwms = () => {
+  const S = window.SiteReady || {};
+  return S.projectOthers ? S.projectOthers().filter(Boolean) : [];
+};
+// The parts named as covered elsewhere count as dealt with, as the tick did (notCoveredConfirmed).
+function syncCoverTicked() {
+  const named = Object.keys(coverElsewhere || {}).filter(coverNamed);
+  coverTicked = named.length ? JSON.stringify(named) : null;
+  const confirmed = coverTicked ? JSON.parse(coverTicked) : undefined;
+  const S = window.SiteReady || {};
+  if (S.actionInput) S.actionInput = { ...S.actionInput, notCoveredConfirmed: confirmed, notCoveredElsewhere: coverElsewhereSent() };
+  if (S.onCoverTick) S.onCoverTick(confirmed);
+}
+function coverElsewhereSent() {
+  const named = Object.entries(coverElsewhere || {}).filter(([part]) => coverNamed(part)).map(([part]) => [part, namedElsewhere(part)]);
+  return named.length ? Object.fromEntries(named) : undefined;
+}
+function coverWhere(part, index) {
+  const others = otherSwms();
+  const named = namedElsewhere(part);
+  const listed = Boolean(named) && others.includes(named);
+  const typing = !others.length || coverTyping.has(part) || (named && !listed);
+  const box = typing ? `<input type="text" id="cover-name-${index}" data-cover-name="${index}" maxlength="200" autocomplete="off" placeholder="Name of the SWMS that covers it" value="${esc(listed ? '' : named)}"${others.length ? '' : ` aria-labelledby="cover-where-label-${index}"`}>` : '';
+  const pick = others.length
+    ? `<select id="cover-where-${index}" data-cover-where="${index}" class="plain"><option value="">Not covered in another SWMS</option>${others.map((title) => `<option value="${esc(title)}"${listed && named === title ? ' selected' : ''}>${esc(title)}</option>`).join('')}<option value="${COVER_TYPED}"${typing ? ' selected' : ''}>Another SWMS: I will type its name</option></select>`
+    : '';
+  return `<div class="cover-where"><label id="cover-where-label-${index}" for="${others.length ? `cover-where-${index}` : `cover-name-${index}`}">Or, if another SWMS covers it, say which one</label>${pick}${box}${coverNamed(part) ? `<span class="cover-done">Covered in: ${esc(named)}</span>` : ''}</div>`;
+}
 function notCoveredBlock(data) {
   const parts = coverParts(data);
   if (!parts.length) return '';
   const one = parts.length === 1;
   const written = new Set(Array.isArray(data.notCoveredWritten) ? data.notCoveredWritten : []);
-  const left = coverLeft(data);
+  const main = new Set(Array.isArray(data.notCoveredMain) ? data.notCoveredMain : []);
   const rows = parts.map((part, index) => {
     const mine = ownFor(part);
-    const tools = mine && written.has(part)
-      ? `<span class="cover-done">Your step "${esc(mine.name)}" is in the job steps below.</span> <button type="button" class="link" data-own-change="${esc(mine.name)}">Change your step</button>`
-      : `<button type="button" class="small" data-own-write="${index}">${mine ? 'Finish your step for this' : 'Write a step for this'}</button>`;
-    return `<li data-cover-part="${index}"><strong>${esc(part)}</strong><span class="cover-tools">${tools}</span></li>`;
+    if (mine && written.has(part)) return `<li data-cover-part="${index}"><strong>${esc(part)}</strong><span class="cover-tools"><span class="cover-done">Done: your step "${esc(mine.name)}" is in the job steps below.</span> <button type="button" class="link" data-own-change="${esc(mine.name)}">Change your step</button></span></li>`;
+    const write = `<button type="button" class="small" data-own-write="${index}">${mine ? 'Finish your step for this' : 'Write a step for this'}</button>`;
+    return `<li data-cover-part="${index}"><strong>${esc(part)}</strong><span class="cover-tools">${write}</span>${main.has(part) ? '' : coverWhere(part, index)}</li>`;
   }).join('');
-  const many = left.length > 1;
   const unwritten = coverUnwritten(data);
-  const mainOnly = !left.length && Array.isArray(data.notCoveredMain) && data.notCoveredMain.length === parts.length;
-  return `<div class="warning not-covered"><p>SiteReady has no job steps for: ${esc(parts.join('; '))}. ${mainOnly ? (one ? 'Add your own step and controls for it.' : 'Add your own steps and controls for each.') : one ? 'Add your own step and controls for it, or cover it in a separate SWMS.' : 'Add your own steps and controls for each, or cover them in a separate SWMS.'}</p>
-    <p>You must enter the specific steps for this work yourself: SiteReady cannot write them for you.</p>
-    ${unwritten.length ? `<p>${esc(unwritten.length === 1 ? `"${unwritten[0]}" is` : `${unwritten.map((part) => `"${part}"`).join(' and ')} are`)} the work of this task, so the SWMS needs your own step for ${unwritten.length === 1 ? 'it' : 'each'} before you save or download. A tick is not enough.</p>` : ''}
-    <ul class="cover-parts">${rows}</ul>
-    ${left.length ? `<label class="check"><input type="checkbox" id="not-covered-confirm" data-parts="${esc(JSON.stringify(left))}"${coverDone(left) ? ' checked' : ''}><span>${left.length < parts.length ? `For ${many ? 'the rest' : `"${esc(left[0])}"`}: ` : ''}${many ? 'I have added my own steps and controls for these, or they are covered in a separate SWMS.' : 'I have added my own step and controls for this, or it is covered in a separate SWMS.'}</span></label>` : ''}</div>`;
+  const mainOnly = !coverLeft(data).length && Array.isArray(data.notCoveredMain) && data.notCoveredMain.length === parts.length;
+  return `<div class="warning not-covered"><p>SiteReady has no job steps for: ${esc(parts.join('; '))}. ${mainOnly ? (one ? 'Add your own step and controls for it.' : 'Add your own steps and controls for each.') : one ? 'Write your own step for it, or say which SWMS covers it.' : 'For each one, write your own step, or say which SWMS covers it.'}</p>
+    <p>You must enter the specific steps for this work yourself: SiteReady cannot write them for you. Saving your step deals with it.</p>
+    ${unwritten.length ? `<p>${esc(unwritten.length === 1 ? `"${unwritten[0]}" is` : `${unwritten.map((part) => `"${part}"`).join(' and ')} are`)} the work of this task, so the SWMS needs your own step for ${unwritten.length === 1 ? 'it' : 'each'} before you save or download. Another SWMS does not cover it.</p>` : ''}
+    <ul class="cover-parts">${rows}</ul></div>`;
 }
-// "Go to the box", beside the buttons that wait for it: the box is brought into view and focused.
+function redrawCover(focusId) {
+  const block = resultEl.querySelector('.not-covered');
+  if (!block || !shownDraft) return;
+  block.outerHTML = notCoveredBlock(shownDraft);
+  const back = focusId && document.getElementById(focusId);
+  if (back) back.focus();
+}
+// "Go to the box", beside the buttons that wait for it: the first part still to deal with.
 document.addEventListener('click', (event) => {
   if (!event.target.closest('[data-cover-jump]')) return;
-  // With no box (work that needs the user's own step), the first "Write a step for this" button.
-  const box = document.getElementById('not-covered-confirm') || document.querySelector('.not-covered [data-own-write]');
+  const box = document.querySelector('.not-covered [data-own-write]') || document.querySelector('.not-covered [data-cover-where], .not-covered [data-cover-name]');
   if (!box) return;
   box.closest('.not-covered').scrollIntoView({ behavior: 'smooth', block: 'center' });
   box.focus({ preventScroll: true });
 });
 document.addEventListener('change', (event) => {
-  if (event.target.id !== 'not-covered-confirm') return;
-  coverTicked = event.target.checked ? event.target.dataset.parts : null;
-  const confirmed = coverTicked ? JSON.parse(coverTicked) : undefined;
-  const S = window.SiteReady;
-  if (S.actionInput) S.actionInput = { ...S.actionInput, notCoveredConfirmed: confirmed };
-  // A SWMS in a project is ready once ticked.
-  if (S.onCoverTick) S.onCoverTick(confirmed);
-  // The list above the buttons drops the tick, or puts it back.
+  const pick = event.target.closest && event.target.closest('[data-cover-where]');
+  if (!pick || !shownDraft) return;
+  const part = coverParts(shownDraft)[Number(pick.dataset.coverWhere)];
+  if (!part) return;
+  coverElsewhere = { ...(coverElsewhere || {}) };
+  if (pick.value === COVER_TYPED) {
+    coverTyping.add(part);
+    if (otherSwms().includes(namedElsewhere(part))) delete coverElsewhere[part];
+  } else {
+    coverTyping.delete(part);
+    if (pick.value) coverElsewhere[part] = pick.value; else delete coverElsewhere[part];
+  }
+  syncCoverTicked();
+  redrawCover(pick.value === COVER_TYPED ? `cover-name-${pick.dataset.coverWhere}` : pick.id);
+  showGate();
+  keepUnsaved();
+});
+document.addEventListener('input', (event) => {
+  const box = event.target.closest && event.target.closest('[data-cover-name]');
+  if (!box || !shownDraft) return;
+  const part = coverParts(shownDraft)[Number(box.dataset.coverName)];
+  if (!part) return;
+  coverElsewhere = { ...(coverElsewhere || {}), [part]: box.value };
+  if (!box.value.trim()) delete coverElsewhere[part];
+  syncCoverTicked();
   showGate();
 });
 // A part of the draft kept where it was on the screen while the draft is drawn again, so a button
@@ -2451,8 +2734,10 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     gateDrawn = '';
     resultEl.innerHTML = `${warnings}<div id="result-gate-top"></div><div id="result-translate"></div><div class="sheet">${render(data, { movable: true })}</div><div id="result-gate"></div><div id="result-actions"></div>`;
     resultEl.classList.remove('hidden');
-    // A stood down draft names the facts still needed; each is asked for on the page.
-    if (data.kind === 'stand-down') askAgain();
+    // A stood down draft names the facts still needed; each is asked for on the page, with what it
+    // needs said under its box.
+    missingNotes = new Map(data.kind === 'stand-down' ? (data.missingHelp || []).map((item) => [item.id, item.state === 'vague' ? weakText(item) : `Still needed. ${item.help}`]) : []);
+    if (data.kind === 'stand-down') askAgain(); else showAnswerNotes();
     // What is saved: the input sent, with changes moved onto any line SiteReady has reworded.
     const sent = { ...JSON.parse(body), controlEdits: controlEdits || undefined, hazardEdits: hazardEdits || undefined };
     shownSent = sent;
@@ -2467,6 +2752,7 @@ async function prepareDraft({ scroll = true, keep = '' } = {}) {
     keepUnsaved();
     backToSpot(spot);
     if (scroll && !spot) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scroll) markStage('draft');
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;
   } finally {
@@ -3384,11 +3670,14 @@ async function restoreUnsaved() {
   try { kept = JSON.parse(localStorage.getItem(UNSAVED_KEY) || 'null'); } catch { kept = null; }
   if (!kept || typeof kept !== 'object' || !kept.input || typeof kept.input !== 'object') return false;
   if (!(Date.now() - Number(kept.at) < UNSAVED_DAYS * 24 * 60 * 60 * 1000)) { clearUnsaved(); return false; }
-  // Something typed or opened since the page loaded is not overwritten.
-  if (document.getElementById('task').value.trim()) return false;
+  // Something typed or opened since the page loaded is not overwritten. A phone's browser puts the
+  // last task back in its box on a reload or Back: that is the same work, so it is brought back in full
+  // (messy-user testing, 13 October 2026: the answers and the draft were lost on a reload).
+  const sameTask = () => { const now = document.getElementById('task').value.trim(); return !now || now === String(kept.input.task || '').trim(); };
+  if (!sameTask()) return false;
   // The download and save buttons depend on whether the user is signed in.
   if (window.SiteReady && window.SiteReady.accountReady) await window.SiteReady.accountReady;
-  if (typedHere || document.getElementById('task').value.trim()) return false;
+  if (typedHere || !sameTask()) return false;
   const input = { ...kept.input };
   // Signed in, the company is the account's own.
   if (document.getElementById('company').value.trim()) delete input.company;
@@ -3407,12 +3696,46 @@ async function restoreUnsaved() {
   const note = document.createElement('p');
   note.className = 'note';
   note.id = 'unsaved-note';
-  note.innerHTML = `Your unsaved work from ${esc(when.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }))}${today ? ' today' : `, ${esc(when.toLocaleDateString('en-AU', { day: 'numeric', month: 'long' }))}`} is back, as you left it on this phone. <button type="button" class="link" id="unsaved-clear">Start again</button>`;
-  const stage = kept.stage === 'draft' && !resultEl.classList.contains('hidden') ? resultEl : kept.stage !== 'start' && !factsForm.classList.contains('hidden') ? factsForm : document.getElementById('start');
+  note.setAttribute('role', 'status');
+  note.innerHTML = `Your work is back as you left it (not saved yet, from ${esc(when.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }))}${today ? ' today' : `, ${esc(when.toLocaleDateString('en-AU', { day: 'numeric', month: 'long' }))}`}). <button type="button" class="link" id="unsaved-clear">Start again</button>`;
+  // A project being prepared in one go hides the SWMS form: the note goes above the details it brought back.
+  const start = document.getElementById('start');
+  const stage = kept.stage === 'draft' && !resultEl.classList.contains('hidden') ? resultEl : kept.stage !== 'start' && !factsForm.classList.contains('hidden') ? factsForm : start.classList.contains('hidden') ? document.getElementById('job-details') : start;
   stage.before(note);
   note.scrollIntoView({ block: 'start' });
+  // The project list follows the details brought back.
+  if (window.SiteReady && window.SiteReady.renderProject) window.SiteReady.renderProject();
   return true;
 }
+
+// ---- The phone's Back button (messy-user testing, 13 October 2026) ----
+
+// Moving on to the questions or the draft is a step in the browser's history, so Back goes to the
+// last step on this page, with everything as it was, instead of leaving SiteReady. Should Back leave
+// the page anyway, the work kept on this device comes back when it is opened again (restoreUnsaved).
+const STAGE_HASH = { start: '', questions: '#questions', draft: '#draft', review: '#review' };
+function markStage(stage) {
+  if (restoring || typeof history === 'undefined' || !history.pushState || !window.location) return;
+  const hash = STAGE_HASH[stage] || '';
+  if ((window.location.hash || '') === hash) return;
+  try { history.pushState({ siteready: stage }, '', hash || `${window.location.pathname}${window.location.search}`); } catch { /* not kept */ }
+}
+function showStage(stage) {
+  const S = window.SiteReady || {};
+  if (stage === 'review' && S.projectReview) { S.projectReview(); return; }
+  const target = stage === 'draft' && !resultEl.classList.contains('hidden') ? resultEl
+    : (stage === 'questions' || stage === 'draft') && !factsForm.classList.contains('hidden') ? factsForm
+      : stage === 'review' && document.getElementById('project-panel') ? document.getElementById('project-panel')
+        : document.getElementById('start');
+  target.scrollIntoView({ block: 'start' });
+}
+if (typeof window.addEventListener === 'function') {
+  window.addEventListener('popstate', (event) => {
+    const stage = (event.state && event.state.siteready) || Object.keys(STAGE_HASH).find((key) => STAGE_HASH[key] && STAGE_HASH[key] === (window.location.hash || '')) || 'start';
+    showStage(stage);
+  });
+}
+window.SiteReady = Object.assign(window.SiteReady || {}, { markStage });
 
 document.addEventListener('click', (event) => {
   if (!event.target.closest('#unsaved-clear')) return;
@@ -3432,6 +3755,8 @@ function redrawActions() {
 window.SiteReady = Object.assign(window.SiteReady || {}, {
   keepUnsaved, clearUnsaved, restoreUnsaved, redrawActions, liveGate, currentAnswers,
   api, esc, payload, render, fillForm, fillFields, setProfile, newSwms, showPick, editNotes, prepare: prepareDraft, getProfile: () => profile, resultEl, addPrincipals, methodSteps,
+  // The labelled boxes for an answer's blanks (D261), for the project page's answers too.
+  drawBlankForm, answerTarget, pickedAgain: (id) => { if ((blankForms.get(id) || {}).own) blankForms.delete(id); },
   // Signed in, the account name fills Prepared by when it is empty.
   setPreparedBy: (name) => { if (name && !preparedEl.value.trim()) preparedEl.value = name; },
 });

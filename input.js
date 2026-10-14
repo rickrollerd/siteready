@@ -145,6 +145,13 @@ function designs(value) {
 // The user's answers for the blanks (____) in control lines, by line (goal 2): a few answers a line.
 // Where the user put each PPE item (D247): an item id to 'all' (moved to all work) or to the names
 // of the steps it is worn in. Items not listed follow SiteReady's suggestion.
+// The SWMS named for each part with no job steps that another SWMS covers ({ part: SWMS name }).
+function elsewhere(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const out = Object.entries(value).filter(([part, name]) => part && typeof name === 'string' && name.trim()).slice(0, 60).map(([part, name]) => [textField(part, 5000), textField(name, 200)]);
+  return out.length ? Object.fromEntries(out) : undefined;
+}
+
 function ppeSteps(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const out = {};
@@ -224,6 +231,12 @@ function draftBody(body) {
     pickGaps: Array.isArray(body.pickGaps) ? body.pickGaps.filter((part) => typeof part === 'string').slice(0, 10).map((part) => textField(part, 300)).filter(Boolean) : undefined,
     // The parts with no job steps the user ticked as dealt with, above the draft (D184).
     notCoveredConfirmed: Array.isArray(body.notCoveredConfirmed) ? body.notCoveredConfirmed.filter((part) => typeof part === 'string').slice(0, 60).map((part) => textField(part, 5000)) : undefined,
+    // A task from a scope: the plain task first given, the scope's full words and its notes (D251, D252).
+    scopeTask: body.scopeTask && typeof body.scopeTask === 'object' && !Array.isArray(body.scopeTask)
+      ? { plain: textField(body.scopeTask.plain, 5000), full: textField(body.scopeTask.full, 12000), notes: textField(body.scopeTask.notes, 6000) }
+      : undefined,
+    // The SWMS the user named for each part another SWMS covers ({ part: SWMS name }), kept with the record.
+    notCoveredElsewhere: elsewhere(body.notCoveredElsewhere),
     stepOrder: Array.isArray(body.stepOrder) ? body.stepOrder.filter((name) => typeof name === 'string').slice(0, 150).map((name) => textField(name, 300)) : undefined,
     controlEdits: controlEdits(body.controlEdits),
     hazardEdits: hazardEdits(body.hazardEdits),

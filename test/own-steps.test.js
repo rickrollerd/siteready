@@ -142,7 +142,7 @@ test('a part with a printed step needs no tick; a part without one still does; a
   const both = prepareDraft(draftBody(two));
   assert.deepEqual(both.notCovered, [PART, 'hang the artwork from the scissor lift']);
   const one = prepareDraft(draftBody({ ...two, ownSteps: [STEP] }));
-  assert.equal(notCoveredRefusal(one, { ownSteps: [STEP] }), 'SiteReady has no job steps for: hang the artwork from the scissor lift. Tick the box above the draft to say you have added your own steps and controls, or covered this work in a separate SWMS, before saving or downloading.');
+  assert.equal(notCoveredRefusal(one, { ownSteps: [STEP] }), 'SiteReady has no job steps for: hang the artwork from the scissor lift. Above the draft, write your own step for it, or say which SWMS covers it, before saving or downloading.');
   assert.equal(notCoveredRefusal(one, { notCoveredConfirmed: ['hang the artwork from the scissor lift'] }), '', 'the tick for the rest is enough');
   const cover = downloadGaps(draftBody({ ...two, ownSteps: [STEP] }), one).find((gap) => gap.kind === 'cover');
   assert.match(cover.need, /^SiteReady has no job steps for: hang the artwork from the scissor lift\./);
@@ -443,22 +443,21 @@ const PAGE_DRAFT = {
   ownStepNotes: [{ name: STEP.name, part: PART, prints: true, notes: ['The wording is vague: "Take care.".'] }],
 };
 
-test('the page offers a step for each part, lists only the rest for the tick, and shows the step with its own tools', async () => {
+test('the page offers a step for each part, asks which SWMS covers only the rest, and shows the step with its own tools', async () => {
   const p = loadPage(['app.js'], () => ({ body: {} }));
   await settle();
   p.run(`ownSteps = ${JSON.stringify([STEP])}`);
   const block = p.run(`notCoveredBlock(${JSON.stringify(PAGE_DRAFT)})`);
-  assert.match(block, /SiteReady has no job steps for: leak test the fuel line; hang the artwork\. Add your own steps and controls for each, or cover them in a separate SWMS\./);
+  assert.match(block, /SiteReady has no job steps for: leak test the fuel line; hang the artwork\. For each one, write your own step, or say which SWMS covers it\./);
   assert.match(block, /You must enter the specific steps for this work yourself: SiteReady cannot write them for you\./);
-  assert.match(block, /Your step "Leak test the fuel line" is in the job steps below\.<\/span> <button type="button" class="link" data-own-change="Leak test the fuel line">Change your step<\/button>/);
+  assert.match(block, /Done: your step "Leak test the fuel line" is in the job steps below\.<\/span> <button type="button" class="link" data-own-change="Leak test the fuel line">Change your step<\/button>/);
   assert.match(block, /<button type="button" class="small" data-own-write="1">Write a step for this<\/button>/);
-  assert.match(block, /data-parts="\[&quot;hang the artwork&quot;\]"/, 'the tick is for the part with no step');
-  assert.match(block, /For "hang the artwork": I have added my own step and controls for this/);
-  // Ticked for the rest, nothing is outstanding.
+  assert.ok(!block.includes('data-cover-name="0"') && block.includes('data-cover-name="1"'), 'only the part with no step asks which SWMS covers it');
+  // Named as covered by another SWMS, nothing is outstanding.
   assert.equal(p.run(`shownChecks = []; outstanding(${JSON.stringify(PAGE_DRAFT)}).length`), 1);
-  assert.equal(p.run(`coverTicked = '["hang the artwork"]'; outstanding(${JSON.stringify(PAGE_DRAFT)}).length`), 0);
-  // With every part written, there is no tick at all.
-  assert.doesNotMatch(p.run(`notCoveredBlock(${JSON.stringify({ ...PAGE_DRAFT, notCovered: [PART] })})`), /not-covered-confirm/);
+  assert.equal(p.run(`coverElsewhere = { 'hang the artwork': 'Artwork hanging SWMS' }; syncCoverTicked(); outstanding(${JSON.stringify(PAGE_DRAFT)}).length`), 0);
+  // With every part written, nothing asks which SWMS covers it.
+  assert.doesNotMatch(p.run(`notCoveredBlock(${JSON.stringify({ ...PAGE_DRAFT, notCovered: [PART] })})`), /data-cover-name|data-cover-where/);
   const html = p.window.SiteReady.render(PAGE_DRAFT, { movable: true });
   const row = html.split('data-step-row=')[2];
   assert.match(row, /^"1" data-own-row="Leak test the fuel line" class="own-step">/);

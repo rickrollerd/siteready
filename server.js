@@ -151,7 +151,7 @@ app.get('/api/nearby-care', async (req, res, next) => {
 app.get('/api/address', async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
-    res.json(await places.suggest(req.query.q));
+    res.json(await places.suggest(req.query.q, { near: typeof req.query.near === 'string' ? req.query.near : '' }));
   } catch (error) {
     next(error);
   }
@@ -535,39 +535,49 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
   // SWMS with site questions unanswered or blanks left are not in the zip (goal 2).
   const gated = [];
   for (const [index, item] of items.entries()) {
+    // Numbered as in the project's list, so a SWMS has the same number in every zip of the project.
+    const number = item && Number.isInteger(item.swmsNumber) && item.swmsNumber > 0 && item.swmsNumber < 1000 ? item.swmsNumber : index + 1;
     const result = prepareDraft(signedInBody({ ...req, body: item || {} }));
-    if (result.kind !== 'draft') { skipped.push(`${index + 1}. ${String((item && item.task) || '').slice(0, 80)}`); continue; }
+    if (result.kind !== 'draft') { skipped.push(`${number}. ${String((item && item.task) || '').slice(0, 80)}`); continue; }
     // The site answers and blanks (goal 2) and the D184 tick: a SWMS missing site answers is listed
     // with all it needs; one missing only the tick is listed with its parts with no job steps.
     const gaps = downloadGaps(signedInBody({ ...req, body: item || {} }), result);
     const named = String((item && (item.swmsTitle || item.task)) || result.task || '').slice(0, 80);
-    if (gaps.some((gap) => gap.kind !== 'cover')) { gated.push(`${index + 1}. ${named}: still to answer: ${[...new Set(gaps.map((gap) => gap.label))].join('; ')}`); continue; }
-    if (gaps.length) { unticked.push(`${index + 1}. ${named}: ${notCoveredLeft(result).join('; ')}`); continue; }
+    if (gaps.some((gap) => gap.kind !== 'cover')) { gated.push(`${number}. ${named}: still to answer: ${[...new Set(gaps.map((gap) => gap.label))].join('; ')}`); continue; }
+    if (gaps.length) { unticked.push(`${number}. ${named}: ${notCoveredLeft(result).join('; ')}`); continue; }
     let buffer;
+    // With pdf set (the project page, D240), each SWMS goes in the zip as Word and as PDF.
+    let pdf = null;
     const saved = req.company ? await accounts.saveForDownload(req, { ...item, siteId: body.siteId, reviewConfirmed: true, reviewedBy: confirmation.name }, { title: item && typeof item.swmsTitle === 'string' ? item.swmsTitle : '' }) : null;
     if (saved) {
       savedItems.push({ index, id: saved.row.id, revision: saved.row.revision || 1 });
       const parts = await accounts.documentParts(req.company, saved.row);
       buffer = await draftToDocx(parts.draft, parts);
+      if (body.pdf === true) pdf = await draftToPdf(parts.draft, { ...parts, note: draftedNote(parts.confirmation), prepared: preparedFor(req.company, parts.ref, parts.revision) });
     } else {
       const ref = await issueRef(req.company, (item && item.swmsTitle) || result.task, placeOf(signedInBody({ ...req, body: item || {} })));
       buffer = await draftToDocx(result, { logo, confirmation, ref, company: req.company });
+      if (body.pdf === true) pdf = await draftToPdf(result, { logo, note: draftedNote(confirmation), prepared: preparedFor(req.company, ref) });
     }
     // Named by the task's title from the scope where there is one.
     const title = typeof item.swmsTitle === 'string' && item.swmsTitle.trim() ? item.swmsTitle : result.task;
-    const base = `${String(index + 1).padStart(2, '0')} ${String(title || 'SWMS').replace(/[^A-Za-z0-9 ,()-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)}`;
-    let name = `${base}.docx`;
-    for (let n = 2; used.has(name); n += 1) name = `${base} ${n}.docx`;
-    used.add(name);
-    zip.file(name, Buffer.from(buffer));
+    const base = `${String(number).padStart(2, '0')} ${String(title || 'SWMS').replace(/[^A-Za-z0-9 ,()-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)}`;
+    let stem = base;
+    for (let n = 2; used.has(`${stem}.docx`); n += 1) stem = `${base} ${n}`;
+    used.add(`${stem}.docx`);
+    zip.file(`${stem}.docx`, Buffer.from(buffer));
     record('download_word', req.company && req.company.id);
+    if (pdf) {
+      zip.file(`${stem}.pdf`, Buffer.from(pdf));
+      record('download_pdf', req.company && req.company.id);
+    }
     await recordIndustry(result, signedInBody({ ...req, body: item || {} }), req.company).catch(() => {});
   }
-  if (!used.size) return res.status(400).json({ kind: 'error', message: `None of the SWMS is ready to download. ${gated.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it. ${gated.join(' ')}${unticked.length ? ' ' : ''}` : ''}${unticked.length ? `Tick the box above the draft that lists work SiteReady has no job steps for: ${unticked.join(' ')}` : ''}${!gated.length && !unticked.length ? 'Answer the questions for each one first.' : ''}` });
+  if (!used.size) return res.status(400).json({ kind: 'error', message: `None of the SWMS is ready to download. ${gated.length ? `SiteReady does not produce a SWMS until the site questions are answered, the plant is confirmed, the emergency response is given and no blank is left in it. ${gated.join(' ')}${unticked.length ? ' ' : ''}` : ''}${unticked.length ? `Above each draft, write your own step for the work SiteReady has no job steps for, or say which SWMS covers it: ${unticked.join(' ')}` : ''}${!gated.length && !unticked.length ? 'Answer the questions for each one first.' : ''}` });
   const notes = [
     skipped.length ? `These tasks still have questions to answer, so their SWMS are not in this download:\n${skipped.join('\n')}\n` : '',
     gated.length ? `These SWMS still have site questions or blanks to answer, so they are not in this download:\n${gated.join('\n')}\n` : '',
-    unticked.length ? `SiteReady has no job steps for part of these SWMS, and the box above the draft was not ticked, so they are not in this download:\n${unticked.join('\n')}\n` : '',
+    unticked.length ? `SiteReady has no job steps for part of these SWMS, and it was not dealt with above the draft, so they are not in this download:\n${unticked.join('\n')}\n` : '',
   ].filter(Boolean);
   if (notes.length) zip.file('Not included.txt', notes.join('\n'));
   const out = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });

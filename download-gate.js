@@ -136,7 +136,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   // Work that is all the task's work (D211) needs the user's own step, not the tick.
   const unwritten = uncovered ? notCoveredUnwritten(draft) : [];
   if (unwritten.length) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Your own step for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${unwritten.join('; ')}. This is the work of the task, so write your own step for it with "Write a step for this" above the draft.`, message: uncovered });
-  else if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-confirm', label: 'Tick for work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${notCoveredLeft(draft).join('; ')}. Add your own steps and controls, or cover it in a separate SWMS, then tick the box above the draft.`, message: uncovered });
+  else if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${notCoveredLeft(draft).join('; ')}. Above the draft, write your own step for it, or say which SWMS covers it.`, message: uncovered });
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
     judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { ask: item.need, name: item.label, none: Boolean(item.none) }, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));

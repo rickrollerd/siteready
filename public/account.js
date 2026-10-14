@@ -340,12 +340,12 @@
   // box (a site question can change the hazards), so the draft is prepared again before it prints.
   const redrawNote = 'Press Update the draft to put your answers in the SWMS. <button type="button" class="link" data-gate-update>Update the draft</button>';
 
-  // cover is the box above the draft for work SiteReady has no job steps for (app.js, D184).
-  function confirmed(prefix, cover = null) {
+  // Work SiteReady has no job steps for (app.js, D184) is dealt with above the draft, part by part; the
+  // list above the buttons holds them until it is.
+  function confirmed(prefix) {
     const tick = $(`${prefix}-confirm`).checked;
     const name = $(`${prefix}-name`).value.trim();
     if (!tick || !name) throw new Error('Tick the box and enter your name first.');
-    if (cover && !cover.checked) throw new Error('Tick the box above the draft for the work SiteReady has no job steps for first.');
     write(REVIEWER_KEY, name);
     return { reviewConfirmed: true, reviewedBy: name };
   }
@@ -358,6 +358,12 @@
     let input = original;
     const box = $('result-actions');
     S.onGateChange = null;
+    // A SWMS with answers still to give is not finished: nothing to download or save yet, and the
+    // list above the draft says what each answer needs (app.js).
+    if (draft.kind === 'stand-down' && (draft.missingHelp || []).length) {
+      box.innerHTML = '';
+      return;
+    }
     if (config.accounts && !me) {
       box.innerHTML = `<div class="panel confirm"><p><strong>Like it?</strong> Sign in, or start a free ${config.trialDays} day trial, to download this SWMS as Word or PDF, save it, and get workers to sign on by QR code.</p>
         <div class="actions"><button type="button" data-open="signin">Sign in or start free trial</button></div></div>`;
@@ -381,9 +387,8 @@
     const siteOptions = ['<option value="">No site</option>', ...sites.map((site) => `<option value="${esc(site.id)}">${esc(site.name)}</option>`)].join('');
     // A saved SWMS being changed: its changes save as its next revision until a new SWMS is started.
     const editing = !local && S.editing;
-    // Goal 2: nothing downloads or saves until the site questions are answered (the list above, which
-    // drops each item as it is answered, app.js), and the D184 tick above the draft is ticked.
-    const covering = kind === 'draft' && (draft.notCovered || []).length > 0;
+    // Goal 2: nothing downloads or saves until the site questions are answered and each part with no
+    // job steps is dealt with (the list above, which drops each item as it is answered, app.js).
     // What the buttons wait for now, and the line beside them saying why.
     const holdNow = () => {
       const live = kind === 'draft' && S.liveGate ? S.liveGate() : { waiting: 0, stale: false };
@@ -405,10 +410,8 @@
       </div>
       <p class="note hidden" id="new-status"></p>
     </div>`;
-    // The buttons work once the box is ticked and a name is given, and, where SiteReady has no job
-    // steps for part of the task, once the tick above the draft is ticked too.
+    // The buttons work once the box is ticked, a name is given and nothing is left on the list above.
     const buttons = ['new-save', 'new-docx', 'new-pdf'].map($).filter(Boolean);
-    const uncovered = covering ? $('not-covered-confirm') : null;
     const ready = () => {
       if (!$('new-confirm')) return;
       const held = holdNow();
@@ -434,7 +437,7 @@
     // Signed in, a download saves the SWMS first (or its next revision, when it has changed), so
     // every print has a record. Later changes save as its next revision.
     const saveAndDownload = async (route, fallbackName) => {
-      const body = { ...S.actionInput, ...answersNow(kind), ...confirmed('new', uncovered), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
+      const body = { ...S.actionInput, ...answersNow(kind), ...confirmed('new'), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
       const { saved } = await download(route, fallbackName, body);
       if (!saved) return;
       // A new revision was saved when the number moved on from the one being changed.
@@ -449,7 +452,7 @@
     $('new-pdf').addEventListener('click', () => run(() => saveAndDownload('/api/draft.pdf', 'SiteReady.pdf')));
     if ($('new-save')) {
       $('new-save').addEventListener('click', () => run(async () => {
-        const body = { input: { ...S.actionInput, ...answersNow(kind) }, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new', uncovered) };
+        const body = { input: { ...S.actionInput, ...answersNow(kind) }, siteId: $('new-site').value || null, reason: $('new-reason') ? $('new-reason').value.trim() : '', ...confirmed('new') };
         const data = S.editing ? await call('PUT', `/api/swms/${S.editing.id}`, body) : await call('POST', '/api/swms', body);
         // Later changes to this SWMS save as its revisions.
         S.editing = { id: data.swms.id, title: data.swms.title, revision: data.swms.revision || 1 };
@@ -797,6 +800,8 @@
   S.canDownload = () => !config.accounts || Boolean(me && me.company.hasAccess);
   S.accountsOn = () => Boolean(config.accounts);
   S.confirmBlock = (prefix) => confirmBlock(prefix);
+  // The name given for a project download fills the box next time, as it does for one SWMS.
+  S.rememberReviewer = (name) => write(REVIEWER_KEY, name);
   S.download = (route, fallbackName, body) => download(route, fallbackName, body);
   // A signed-in request, for the AI reading of a scope.
   S.call = (method, route, body) => call(method, route, body);
