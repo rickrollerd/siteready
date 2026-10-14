@@ -251,21 +251,24 @@ test('after a new revision, the owner sees no one has signed it, and who signed 
   }
 });
 
-test('a reference can be checked: business, title, revision and whether it is current, nothing else', async () => {
+test('a reference can be checked: business, title, revision, whether it is current and the principal contractor\'s response, nothing else', async () => {
   const token = await signIn('verify@history.example', 'Verify History Pty Ltd');
   const first = await call('POST', '/api/draft.docx', { token, body: { ...INPUT, ...CONFIRM } });
   const id = first.headers.get('x-siteready-swms');
   const ref = ((await wordParts(first)).footer.match(REF) || [])[0];
   const check = async () => (await call('GET', `/api/verify/${ref}`)).json();
   const now = await check();
-  assert.deepEqual(Object.keys(now).sort(), ['business', 'current', 'found', 'ref', 'revision', 'title']);
+  assert.deepEqual(Object.keys(now).sort(), ['business', 'current', 'found', 'ref', 'review', 'reviewable', 'revision', 'title']);
   assert.equal(now.business, 'Verify History Pty Ltd');
   assert.equal(now.revision, 1);
   assert.equal(now.current, true);
+  assert.equal(now.reviewable, true);
+  assert.equal(now.review, null, 'not reviewed yet');
   await call('POST', '/api/draft.docx', { token, body: { ...INPUT, task: 'Replace a 9m length of timber fence.', ...CONFIRM, swmsId: id } });
   const later = await check();
   assert.equal(later.revision, 1);
   assert.equal(later.current, false, 'revision 2 is now the current one');
+  assert.equal(later.reviewable, false, 'only the current revision can be reviewed');
   await call('DELETE', `/api/swms/${id}`, { token });
   const ref2 = (await db.one('SELECT ref FROM swms_refs WHERE swms_id = $1 AND revision = 2', [id])).ref;
   assert.equal((await (await call('GET', `/api/verify/${ref2}`)).json()).current, false, 'a deleted SWMS is not current');

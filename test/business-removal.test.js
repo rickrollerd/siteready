@@ -13,7 +13,7 @@ const { validAbn } = require('../accounts');
 const { businessCode } = require('../industry');
 const { dueForRemoval } = require('../business-removal');
 const aiScope = require('../ai-scope');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready } = require('./helpers');
 
 let server;
 let base;
@@ -95,11 +95,15 @@ const TIED = {
   design_files: ['SELECT id FROM design_files WHERE company_id = $1', ID],
   design_file_data: ['SELECT file_id FROM design_file_data WHERE file_id IN ($1, $2)', (b) => [b.fileId, b.methodFileId]],
   design_file_uses: ['SELECT file_id FROM design_file_uses WHERE swms_id = $1', (b) => [b.swmsId]],
+  // The principal contractor's response to its SWMS, and the reviewer's looks at its reference (goal 3).
+  swms_reviews: ['SELECT id FROM swms_reviews WHERE swms_id = $1', (b) => [b.swmsId]],
+  review_access_log: ['SELECT id FROM review_access_log WHERE ref = $1', (b) => [b.reviewRef]],
 };
 // No business, account, site or SWMS id in them: kept when a business is deleted.
-const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'answer_events', 'draft_translations'];
-// Not about any one business: the server's error log and the record of library notices sent.
-const NOT_BUSINESS = ['errors', 'library_notices'];
+const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'answer_events', 'draft_translations', 'review_learning'];
+// Not about any one business: the server's error log, the record of library notices sent, and the
+// principal contractors' reviewers, who are not the business's people.
+const NOT_BUSINESS = ['errors', 'library_notices', 'reviewers', 'reviewer_sessions'];
 
 async function tiedCounts(business) {
   const out = {};
@@ -154,6 +158,13 @@ async function seedBusiness(key) {
     delete process.env.CONTROL_LEARNING;
   }
   assert.equal((await call('GET', `/api/swms/${swms.id}/docx`, { token })).status, 200);
+  // The principal contractor's reviewer opens the current revision by its reference and responds (goal 3).
+  const reviewRef = (await db.one('SELECT ref FROM swms_refs WHERE swms_id = $1 AND revision = 2', [swms.id])).ref;
+  await call('POST', '/api/review/email', { body: { email: `hse@${key.toLowerCase()}-builder.example`, ref: reviewRef } });
+  const reviewLogin = /&login=([A-Za-z0-9_-]+)/.exec([...mailbox].reverse().find((item) => item.to === `hse@${key.toLowerCase()}-builder.example`).text)[1];
+  const reviewer = (await json('POST', '/api/review/verify', { body: { token: reviewLogin } })).data.token;
+  const reviewed = await fetch(`${base}/api/review/swms/${reviewRef}/response`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Reviewer-Token': reviewer }, body: JSON.stringify({ response: 'conditions', text: 'Barricade below the lift.', name: 'Pat Reviewer', company: 'ABC Builders Pty Ltd' }) });
+  assert.equal(reviewed.status, 201);
   const signKey = swms.signonPath.split('t=')[1];
   await call('GET', `/api/sign/${signKey}`);
   const signed = await json('POST', `/api/sign/${signKey}`, { body: { name: `${key} Worker`, company: `${key} Crew`, signature: SIGNATURE, confirmed: true, explained: true, supervisor: `${key} Supervisor` } });
@@ -171,7 +182,7 @@ async function seedBusiness(key) {
   assert.equal((await json('GET', `/api/admin/refs/${refs[0]}`, { token: owner })).status, 200);
   const search = `${key.toLowerCase()} removal`;
   assert.equal((await json('GET', `/api/admin/companies?q=${encodeURIComponent(search)}`, { token: owner })).status, 200);
-  return { key, domain, admin, name, abn, token, companyId, swmsId: swms.id, signKey, refs, search, checkedId, fileId: file.id, methodFileId: methodFile.id };
+  return { key, domain, admin, name, abn, token, companyId, swmsId: swms.id, signKey, refs, search, checkedId, fileId: file.id, methodFileId: methodFile.id, reviewRef };
 }
 
 // Checks a pasted SWMS naming the business's own people and site, with KEEP_CHECKED_SWMS on, so it is

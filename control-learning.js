@@ -511,6 +511,35 @@ async function recordFailedQuestions(questions, answers, { draft, input, company
   return count;
 }
 
+// A reviewer's response (goal 3), kept for goal 11 the same way: the response, the conditions or
+// changes needed with personal details taken out (the business's and the reviewer's names among
+// them), the builder check's result, the state, trade, kinds of work, high risk work and month. No
+// reviewer, business, site or SWMS id is kept. Learning from these rows is not built yet. account:
+// the business's users and the reviewer's name, company and email. Returns whether a row was written.
+async function recordReviewResponse(review, { draft, input, company, swmsId, revision, now = new Date(), account = {} } = {}) {
+  if (!enabled() || !db.enabled() || !review || !swmsId) return false;
+  if (!company || company.industry_opt_out) return false;
+  const values = accountValues(company, input || {}, { users: account.users || [], reviewedBy: account.reviewerName || '' });
+  if (account.reviewerCompany) values.businesses.push(String(account.reviewerCompany));
+  if (account.reviewerEmail) {
+    const [local, host] = String(account.reviewerEmail).toLowerCase().split('@');
+    values.people.push(local.replace(/[._+-]+/g, ' '));
+    if (host && !MAIL_HOSTS.has(host.split('.')[0])) values.businesses.push(host.split('.')[0]);
+  }
+  const terms = accountTerms(values);
+  const state = findState(input && input.state);
+  const key = swmsKey(swmsId);
+  const id = hash(`${key}:${revision}:${review.id}`);
+  const text = String(review.text || '').split('\n').map((line) => scrub(line, '', terms)).join('\n').slice(0, 2000);
+  await db.query(
+    `INSERT INTO review_learning (id, swms_key, revision, month, state, trade, kinds, high_risk, response, text, check_score, check_band, check_failed, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT (id) DO NOTHING`,
+    [id, key, Number(revision), monthOf(now), state ? state.id : '', knownTrade(input), JSON.stringify(knownKinds(input)), JSON.stringify(((draft && draft.highRisk) || []).slice(0, 40)),
+      review.response, text, review.checkScore ?? null, review.checkBand || '', JSON.stringify(review.checkFailed || []), now],
+  );
+  return true;
+}
+
 // Rows older than 3 years are deleted, as are rows of the first, counted store.
 async function removeOld(now = new Date()) {
   if (!db.enabled()) return;
@@ -521,6 +550,7 @@ async function removeOld(now = new Date()) {
   await db.query('DELETE FROM check_question_misses WHERE month < $1', [monthOf(cutoff)]);
   await db.query('DELETE FROM own_step_events WHERE created_at < $1', [cutoff]);
   await db.query('DELETE FROM answer_events WHERE created_at < $1', [cutoff]);
+  await db.query('DELETE FROM review_learning WHERE created_at < $1', [cutoff]);
 }
 
 // Counts for the owner: changes by kind and outcome, the steps changed most, and how many changes
@@ -878,4 +908,4 @@ function reportMarkdown(report) {
   return out.join('\n');
 }
 
-module.exports = { enabled, recordControlEdits, recordOwnSteps, recordAnswers, deidentifyAnswer, blankAnswers, gapKey, deidentify: takeOut, OWN_STEPS_TITLE, recordFailedQuestions, summary, monthlyReport, reportMarkdown, lastWholeMonth, isMonth, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS, CANDIDATE_THRESHOLD };
+module.exports = { enabled, recordControlEdits, recordReviewResponse, recordOwnSteps, recordAnswers, deidentifyAnswer, blankAnswers, gapKey, deidentify: takeOut, OWN_STEPS_TITLE, recordFailedQuestions, summary, monthlyReport, reportMarkdown, lastWholeMonth, isMonth, removeOld, scrub, accountValues, accountTerms, RETENTION_YEARS, CANDIDATE_THRESHOLD };

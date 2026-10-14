@@ -80,6 +80,9 @@ async function deleteBusiness(companyId, { confirm, adminEmail, now = new Date()
   await run('sign_reads', `DELETE FROM sign_reads WHERE swms_id IN (${SWMS})`);
   await run('sign_translations', `DELETE FROM sign_translations WHERE swms_id IN (${SWMS})`);
   await run('swms_review_flags', `DELETE FROM swms_review_flags WHERE swms_id IN (${SWMS})`);
+  // The principal contractor's responses to its SWMS, and reviewers' looks at its references.
+  await run('swms_reviews', `DELETE FROM swms_reviews WHERE swms_id IN (${SWMS})`);
+  await run('review_access_log', `DELETE FROM review_access_log WHERE ref IN (SELECT ref FROM swms_refs WHERE company_id = $1 OR swms_id IN (${SWMS}))`);
   // The design files the business attached, from the storage bucket or the database, then their rows.
   for (const [table, n] of Object.entries(await removeDesignFiles(id))) removed[table] = (removed[table] || 0) + n;
   await run('swms_revisions', `DELETE FROM swms_revisions WHERE swms_id IN (${SWMS})`);

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Review a SWMS</title>
+  <link rel="icon" href="/icon-48.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.45; color: #1c2430; background: #eef1f4; overflow-wrap: anywhere; }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 18px 14px 48px; }
+    h1 { font-size: 24px; margin: 0 0 4px; }
+    h2 { font-size: 19px; margin: 0 0 8px; }
+    h3 { font-size: 16px; margin: 18px 0 6px; }
+    .meta { color: #5c6773; font-size: 14px; margin: 0 0 4px; }
+    .panel { background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 16px; margin-top: 14px; }
+    label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 6px; }
+    input[type="text"], input[type="email"], textarea { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; padding: 10px 11px; font: inherit; background: #fff; }
+    #ref { text-transform: uppercase; }
+    textarea { min-height: 120px; resize: vertical; }
+    .short { max-width: 640px; }
+    button { border: 1px solid #1f4e3d; background: #1f4e3d; color: #fff; border-radius: 6px; padding: 12px 14px; min-height: 44px; font: inherit; font-weight: 600; width: 100%; cursor: pointer; margin-top: 12px; }
+    button.light { background: #fff; color: #1f4e3d; }
+    button.link { background: none; border: 0; color: #1f4e3d; text-decoration: underline; padding: 0; width: auto; min-width: 0 !important; min-height: 0; margin: 0; font-weight: 400; text-align: left; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    @media (min-width: 700px) { button { width: auto; min-width: 240px; } }
+    .ok { background: #e8f3ee; border: 1px solid #9cc9b3; border-radius: 8px; padding: 14px; margin-top: 14px; }
+    .bad { background: #fbeaea; border: 1px solid #e3a3a3; border-radius: 8px; padding: 14px; margin-top: 14px; }
+    .warn { background: #fff4dc; border: 1px solid #e6c77a; border-radius: 8px; padding: 14px; margin-top: 14px; }
+    .ok p, .bad p, .warn p { margin: 6px 0 0; }
+    dl { margin: 6px 0 0; }
+    dt { font-weight: 600; font-size: 14px; margin-top: 8px; }
+    dd { margin: 0; }
+    .choice { display: flex; gap: 10px; align-items: flex-start; border: 1px solid #c5cdd6; border-radius: 6px; padding: 12px; margin-top: 8px; cursor: pointer; }
+    .choice input { margin-top: 3px; width: 20px; height: 20px; flex: none; }
+    .choice strong { display: block; }
+    .choice .meta { margin: 2px 0 0; font-weight: 400; }
+    .choice:has(input:checked) { border-color: #1f4e3d; background: #e8f3ee; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; max-width: 760px; }
+    @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+    .field-error { color: #a01818; font-weight: 700; margin: 6px 0 0; }
+    .has-error { border-color: #c02020 !important; border-width: 2px !important; outline-color: #c02020; }
+    fieldset.has-error { border: 2px solid #c02020 !important; border-radius: 8px; padding: 4px 8px !important; }
+    .score { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .score strong { font-size: 32px; }
+    .band { font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+    .band.accepted { background: #e8f3ee; color: #1f4e3d; }
+    .band.changes { background: #fff4dc; color: #7a5300; }
+    .band.rejected { background: #fbeaea; color: #8a1f1f; }
+    ul.findings { list-style: none; margin: 0; padding: 0; }
+    ul.findings li { border-top: 1px solid #e3e7ec; padding: 10px 0; }
+    .rule { font-weight: 700; }
+    .fail .rule { color: #8a1f1f; }
+    .pass .rule { color: #1f4e3d; }
+    .source { color: #5c6773; font-size: 13px; }
+    details.sheet > summary { cursor: pointer; font-weight: 700; font-size: 17px; min-height: 44px; display: flex; align-items: center; }
+    .sheet table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 14px; overflow-wrap: normal; }
+    .sheet td { overflow-wrap: break-word; }
+    .sheet th, .sheet td { border: 1px solid #d5dbe3; padding: 6px 8px; text-align: left; vertical-align: top; }
+    .sheet thead th { background: #f4f6f8; }
+    .sheet table.pairs th { background: #f4f6f8; width: 36%; font-weight: 600; }
+    .sheet ul { margin: 4px 0; padding-left: 20px; }
+    .sheet .lines { white-space: pre-wrap; }
+    .sheet .note { color: #5c6773; font-size: 14px; margin: 0 0 6px; }
+    .sheet .hold { font-weight: 700; }
+    .sheet .mark { color: #5c6773; font-style: italic; }
+    .sheet .off { color: #5c6773; }
+    .table-wrap { overflow-x: auto; }
+    /* Job steps: a table on a computer (controls widest, D260), a card for each step on a phone. */
+    table.steps th:nth-child(1) { width: 13%; }
+    table.steps th:nth-child(2) { width: 25%; }
+    table.steps th:nth-child(3) { width: 40%; }
+    table.steps th:nth-child(4) { width: 12%; }
+    table.steps th:nth-child(5) { width: 10%; }
+    /* The other tables of several columns are a card for each row on a phone too. */
+    @media (max-width: 760px) {
+      table.steps thead, table.stack thead { display: none; }
+      table.steps, table.steps tbody, table.steps tr, table.steps td, table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+      table.steps tr, table.stack tr { border: 1px solid #d5dbe3; border-radius: 6px; margin-top: 10px; padding: 8px 10px; }
+      table.steps td, table.stack td { border: 0; padding: 4px 0; }
+      table.steps td::before, table.stack td::before { content: attr(data-label); display: block; font-size: 13px; font-weight: 700; color: #5c6773; }
+      table.steps td:first-child::before { content: none; }
+    }
+    .response-list { list-style: none; margin: 0; padding: 0; }
+    .response-list li { border-top: 1px solid #e3e7ec; padding: 8px 0; }
+    .response-list li:first-child { border-top: 0; }
+    .pre { white-space: pre-wrap; }
+    .hidden { display: none; }
+    /* Phones (goal 7): text at least 16 px. */
+    @media (max-width: 640px) {
+      .meta, label, dt, .sheet table, .source, .sheet .note { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Review a SWMS</h1>
+    <p class="meta short">For the principal contractor's reviewer. Open a SWMS made in SiteReady by the reference in its footer, read it, run Builder check, and send your response to the business through SiteReady. You need no SiteReady account and you pay nothing: you sign in with your work email.</p>
+    <form class="panel short" id="find" novalidate>
+      <label for="ref" style="margin-top:0">SiteReady reference</label>
+      <input id="ref" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SR-ABCD-2345">
+      <button type="submit">Open the SWMS</button>
+    </form>
+    <div id="summary" class="short" aria-live="polite"></div>
+
+    <form class="panel short hidden" id="signin" novalidate>
+      <h2>Sign in to review</h2>
+      <div id="signin-note" role="alert"></div>
+      <p class="meta">Enter your work email. We email you a link that signs you in on the device you open it on. Your name, company and email are recorded with your response and shown to the business.</p>
+      <label for="email">Your work email</label>
+      <input id="email" type="email" autocomplete="email" inputmode="email">
+      <button type="submit" id="send-link">Email me a sign-in link</button>
+      <div id="signin-status" role="status"></div>
+    </form>
+
+    <div id="review" class="hidden">
+      <p class="meta" style="margin-top:14px">Signed in as <strong id="who"></strong> · <button type="button" class="link" id="sign-out">Sign out</button></p>
+      <div id="responses"></div>
+      <div class="panel">
+        <details class="sheet" id="sheet-box">
+          <summary id="sheet-title">1. Read the SWMS</summary>
+          <p class="meta">Read only. This is the revision exactly as it was saved and printed. Worker sign-ons are not shown.</p>
+          <div id="sheet"></div>
+        </details>
+      </div>
+      <div class="panel">
+        <h2>2. Builder check</h2>
+        <p class="meta short">Checks this revision against the builder check rules: must-fix items first, then a score out of 100. Accepted is 90 to 100 with no must-fix item. Accepted with changes is 60 to 89. Below 60, or any must-fix item, is not accepted. The check picks the matching response below. You decide.</p>
+        <button type="button" id="run-check">Run Builder check</button>
+        <div id="check" class="hidden" aria-live="polite">
+          <div class="score" style="margin-top:12px"><strong id="score"></strong><span>out of 100</span><span id="band" class="band"></span></div>
+          <p class="meta" id="check-line"></p>
+          <details><summary>Findings</summary><ul class="findings" id="findings"></ul></details>
+        </div>
+      </div>
+      <form class="panel" id="respond" novalidate>
+        <h2>3. Your response</h2>
+        <div id="respond-closed" class="warn hidden"></div>
+        <div id="respond-sent" class="hidden"></div>
+        <div id="respond-open" class="short">
+          <fieldset style="border:0;padding:0;margin:0" id="choices">
+            <legend class="meta">Choose one.</legend>
+            <label class="choice"><input type="radio" name="response" value="approved"><span><strong>Approved</strong><span class="meta">Work can start under this SWMS.</span></span></label>
+            <label class="choice"><input type="radio" name="response" value="conditions"><span><strong>Approved with conditions</strong><span class="meta">Work can start once your conditions are met. Write them below.</span></span></label>
+            <label class="choice"><input type="radio" name="response" value="changes"><span><strong>Not approved</strong><span class="meta">Work cannot start. Write the changes needed below.</span></span></label>
+          </fieldset>
+          <p class="field-error hidden" id="response-error"></p>
+          <label for="text" id="text-label">Comments (optional)</label>
+          <textarea id="text" maxlength="2000"></textarea>
+          <p class="meta" id="text-hint">One per line is easiest to read.</p>
+          <p class="field-error hidden" id="text-error"></p>
+          <div class="row">
+            <div><label for="name">Your name</label><input id="name" type="text" autocomplete="name" maxlength="120"><p class="field-error hidden" id="name-error"></p></div>
+            <div><label for="company">Your company</label><input id="company" type="text" autocomplete="organization" maxlength="200"><p class="field-error hidden" id="company-error"></p></div>
+          </div>
+          <p class="meta">Recorded against this revision with today's date. The business sees your response in SiteReady and is emailed that its review is back. A later revision starts unreviewed.</p>
+          <button type="submit" id="send">Send the response</button>
+        </div>
+        <div id="respond-status" aria-live="polite"></div>
+      </form>
+    </div>
+  </div>
+  <script src="/net.js" data-message="No signal. What you have typed stays on this page. Try again when you have signal."></script>
+  <script src="/mass.js"></script>
+  <script src="/review.js"></script>
+</body>
+</html>
