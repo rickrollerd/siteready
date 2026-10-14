@@ -364,3 +364,17 @@ test('a SWMS keeps its number from the project list in every zip', async () => {
   assert.deepEqual(Object.keys(zip.files).sort(), ['03 Gates.docx', 'Not included.txt']);
   assert.match(await zip.file('Not included.txt').async('string'), /^These SWMS still have site questions or blanks to answer[^]*\n2\. Fencing: still to answer/);
 });
+
+test('a SWMS keeps only the emergency answers its draft asks, so one not changed keeps its revision (D278)', async () => {
+  const p = page();
+  await settle();
+  const S = p.window.SiteReady;
+  const draft = { kind: 'draft', gateChecks: [{ id: 'emergency.fallRescue', kind: 'emergency' }, { id: 'emergency.fallKit', kind: 'emergency' }, { id: 'workplace', kind: 'field' }] };
+  assert.equal(JSON.stringify(S.askedEmergency(draft)), JSON.stringify(['fallRescue', 'fallKit']));
+  // An answer given for another SWMS of the project (the plant stop) is not kept with this one.
+  const body = { task: 'Fix reo.', emergency: { fallRescue: 'Rescue team.', fallKit: 'Kit at the work.', plantStop: 'Operator stops it.' } };
+  assert.equal(JSON.stringify(S.keptEmergency(body, S.askedEmergency(draft)).emergency), JSON.stringify({ fallRescue: 'Rescue team.', fallKit: 'Kit at the work.' }));
+  // A SWMS not finished is not drafted yet: it keeps every answer until it is.
+  assert.equal(S.askedEmergency({ kind: 'stand-down' }), null);
+  assert.equal(S.keptEmergency(body, null), body);
+});

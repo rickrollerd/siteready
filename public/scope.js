@@ -698,13 +698,27 @@
   };
 
   // Each prepared draft is kept against its task; the result gets a Next SWMS button.
+  // The emergency answers a SWMS keeps: only those its draft asks (download-gate.js gateChecks). An
+  // answer given for another SWMS of the project then does not change this one's saved input, so a
+  // SWMS not changed keeps its revision when the project is downloaded again (D278).
+  const askedEmergency = (draft) => (draft && draft.kind === 'draft' && Array.isArray(draft.gateChecks)
+    ? draft.gateChecks.filter((check) => check.kind === 'emergency' && typeof check.id === 'string').map((check) => check.id.replace(/^emergency\./, ''))
+    : null);
+  const keptEmergency = (body, asked) => {
+    if (!asked || !body || !body.emergency) return body;
+    const kept = Object.fromEntries(Object.entries(body.emergency).filter(([id]) => asked.includes(id)));
+    return { ...body, emergency: Object.keys(kept).length ? kept : undefined };
+  };
+  S.askedEmergency = askedEmergency;
+  S.keptEmergency = keptEmergency;
   S.onDraft = (draft, body) => {
     if (!project) return;
     const item = project.items[project.current];
     // The task box has one sentence to a line (useTask), so spacing is not compared.
     const same = (text) => String(text || '').replace(/\s+/g, ' ').trim();
     if (!item || same(body.task) !== same(item.task)) return;
-    item.body = body;
+    item.emergencyAsked = askedEmergency(draft) || item.emergencyAsked;
+    item.body = keptEmergency(body, item.emergencyAsked);
     item.kind = draft.kind;
     shareEmergency(body.emergency);
     // The one-go page shows the answers as last given here (project-go.js).
@@ -751,10 +765,11 @@
       $('project-error').textContent = '';
       const confirmed = $('project-confirm') && $('project-confirm').checked;
       const name = $('project-name') && $('project-name').value.trim();
-      // Said beside the button too: on a phone the top of the list is far away.
+      // Said once, beside the button where there is one: on a phone the top of the list is far away.
       const near = $('project-zip-error');
       if (near) near.textContent = '';
-      if (!confirmed || !name) { $('project-error').textContent = 'Tick the box and enter your name first.'; if (near) near.textContent = 'Tick the box and enter your name first.'; return; }
+      const say = (text) => { (near || $('project-error')).textContent = text; };
+      if (!confirmed || !name) { say('Tick the box and enter your name first.'); return; }
       if (S.rememberReviewer) S.rememberReviewer(name);
       const button = event.target.closest('#project-zip');
       button.disabled = true;
@@ -782,8 +797,7 @@
           if (said && said.scrollIntoView) said.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       } catch (error) {
-        $('project-error').textContent = error.message;
-        if ($('project-zip-error')) $('project-zip-error').textContent = error.message;
+        say(error.message);
       } finally {
         button.disabled = false;
       }
@@ -791,8 +805,13 @@
   });
 
   // Back to the review list from a SWMS being checked: the list shows what each still needs.
-  function backToReview() {
+  async function backToReview() {
     if (!project) return;
+    // An answer changed in the SWMS being checked but not yet put into its draft goes in first, so
+    // going back to the list (or the phone's Back) keeps it.
+    if (project.stage === 'check' && S.liveGate && S.liveGate().stale && S.prepare) {
+      try { await S.prepare({ scroll: false }); } catch { /* the draft says what went wrong */ }
+    }
     project.stage = 'review';
     saveProject();
     renderProject();

@@ -161,6 +161,12 @@ test('a SWMS whose answers are too thin keeps the user on the questions page, wi
   await settle();
   assert.equal(project.stage, 'questions');
   assert.match(p.element('go-status').innerHTML, /One SWMS is not finished\. The others are prepared\.<\/strong> These answers need more\. Each one says under its box what would do\.<\/p><ul><li>SWMS 1, Formwork: Load limits\. <button type="button" class="link" data-go-to-item="0">Go to it<\/button><\/li><\/ul>/);
+  // The prepared one can be checked and downloaded now, and this one finished later (D278).
+  assert.match(p.element('go-status').innerHTML, /Or check the 1 prepared now and download them, and finish this one later\. <button type="button" class="secondary small" id="go-check-prepared">Check the 1 prepared SWMS<\/button>/);
+  p.fire('click', { id: 'go-check-prepared', attrs: [] });
+  assert.equal(project.stage, 'review');
+  p.go.render(panel, project, p.hooks);
+  assert.match(panel.innerHTML, /1 of 2 SWMS prepared\./);
 });
 
 test('once every SWMS is downloaded, the note says so and asks for nothing more', () => {

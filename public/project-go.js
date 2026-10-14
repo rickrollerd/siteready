@@ -177,7 +177,7 @@
       // So are emergency answers given in another SWMS of the project (D239: filled across).
       const across = Object.keys(shared().emergency);
       const stale = project.items.some((item) => item.body && (JSON.stringify(Object.fromEntries(PAGE_KEYS.map((key) => [key, item.body[key]]))) !== now
-        || across.some((id) => !((item.body.emergency || {})[id] || '').trim())));
+        || across.some((id) => (!item.emergencyAsked || item.emergencyAsked.includes(id)) && !((item.body.emergency || {})[id] || '').trim())));
       if (stale && !refreshing) { clearTimeout(refreshTimer); refreshTimer = setTimeout(refreshAll, 300); }
       return;
     }
@@ -523,6 +523,7 @@
       if (where) where.focus({ preventScroll: true });
       return;
     }
+    if (event.target.closest('#go-check-prepared')) { toReview(); return; }
     if (event.target.closest('#go-prepare')) { prepareAll(event.target.closest('#go-prepare')); return; }
     if (event.target.closest('#go-back-questions')) {
       project.stage = 'questions';
@@ -572,7 +573,9 @@
     const draft = await response.json();
     if (!response.ok) throw new Error(draft.message || `SWMS ${index + 1} could not be prepared.`);
     const item = project.items[index];
-    item.body = body;
+    // Only the emergency answers this SWMS's draft asks are kept with it (scope.js keptEmergency).
+    item.emergencyAsked = (S.askedEmergency && S.askedEmergency(draft)) || item.emergencyAsked;
+    item.body = S.keptEmergency ? S.keptEmergency(body, item.emergencyAsked) : body;
     item.kind = draft.kind;
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
@@ -590,12 +593,15 @@
     if (unfinished.length) {
       // A SWMS whose answers are too thin stays on this page, with each answer's note under its box.
       const all = unfinished.length === project.items.length;
-      status.innerHTML = `<div class="warning go-unfinished"><p><strong>${all ? 'None of the SWMS can be prepared yet.' : `${unfinished.length === 1 ? 'One SWMS is' : `${unfinished.length} SWMS are`} not finished. The others are prepared.`}</strong> These answers need more. Each one says under its box what would do.</p><ul>${unfinished.map((index) => `<li>SWMS ${index + 1}, ${esc(project.items[index].title)}: ${esc((project.items[index].needs || []).join('; '))}. <button type="button" class="link" data-go-to-item="${index}">Go to it</button></li>`).join('')}</ul></div>`;
+      status.innerHTML = `<div class="warning go-unfinished"><p><strong>${all ? 'None of the SWMS can be prepared yet.' : `${unfinished.length === 1 ? 'One SWMS is' : `${unfinished.length} SWMS are`} not finished. The others are prepared.`}</strong> These answers need more. Each one says under its box what would do.</p><ul>${unfinished.map((index) => `<li>SWMS ${index + 1}, ${esc(project.items[index].title)}: ${esc((project.items[index].needs || []).join('; '))}. <button type="button" class="link" data-go-to-item="${index}">Go to it</button></li>`).join('')}</ul>${all ? '' : `<p>Or check the ${project.items.length - unfinished.length} prepared now and download them, and finish ${unfinished.length === 1 ? 'this one' : 'these'} later. <button type="button" class="secondary small" id="go-check-prepared">Check the ${project.items.length - unfinished.length} prepared SWMS</button></p>`}</div>`;
       save();
       unfinished.forEach((index) => notesFor(index));
       status.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
+    toReview();
+  }
+  function toReview() {
     project.stage = 'review';
     save();
     hooks.render();
@@ -686,10 +692,11 @@
     const n = project.items.length;
     const states = project.items.map(itemState);
     const ready = states.filter((state) => state.ready).length;
+    const prepared = project.items.filter((item) => item.kind === 'draft').length;
     const firstToCheck = project.items.findIndex((item, index) => !states[index].ready || !item.checked);
     const can = S.canDownload && S.canDownload();
     return `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
-      <p class="lede">${n} SWMS prepared. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change</strong> beside the line (on a phone, <strong>Change this step</strong> first). Each must clear its checks before the download.</p>
+      <p class="lede">${prepared === n ? `${n} SWMS prepared` : `${prepared} of ${n} SWMS prepared`}. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change</strong> beside the line (on a phone, <strong>Change this step</strong> first). Each must clear its checks before the download.</p>
       <p class="error" id="project-error"></p>
       ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button></li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
       <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}"><div><strong>${esc(item.title)}</strong><span class="meta">${esc(states[index].text)}${item.checked ? ' Checked.' : ' Not checked yet.'}</span></div><button type="button" class="${index === firstToCheck ? '' : 'secondary '}small" data-project-open="${index}">${item.checked ? 'Check it again' : 'Check this SWMS'}</button></li>`).join('')}</ol>
