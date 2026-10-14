@@ -11,7 +11,7 @@ const { draftBody } = require('../input');
 const { draftToDocx } = require('../docx-draft');
 const { draftToPdf } = require('../pdf-draft');
 const { fromDraft, checkSwms } = require('../builder-check');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -72,19 +72,19 @@ function pdfText(buffer) {
 
 test('a new SWMS is revision 1, each saved change adds one, and a copy starts at 1', async () => {
   const token = await signIn('revisions@example.com');
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   assert.equal(swms.revision, 1);
 
-  const first = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const first = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   assert.equal(first.swms.revision, 2);
-  const second = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: { title: 'Sprinklers', ...CONFIRM } })).json();
+  const second = await (await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ title: 'Sprinklers', ...CONFIRM }, INPUT) })).json();
   assert.equal(second.swms.revision, 3);
 
   // Marking it reviewed with no change is not a new revision.
-  const reviewed = await (await call('POST', `/api/swms/${swms.id}/reviewed`, { token, body: CONFIRM })).json();
+  const reviewed = await (await call('POST', `/api/swms/${swms.id}/reviewed`, { token, body: checked(CONFIRM, INPUT) })).json();
   assert.equal(reviewed.swms.revision, 3);
 
-  const copy = await (await call('POST', `/api/swms/${swms.id}/copy`, { token, body: CONFIRM })).json();
+  const copy = await (await call('POST', `/api/swms/${swms.id}/copy`, { token, body: checked(CONFIRM, INPUT) })).json();
   assert.equal(copy.swms.revision, 1);
   const list = await (await call('GET', '/api/swms', { token })).json();
   assert.deepEqual(list.swms.map((item) => item.revision).sort(), [1, 3]);
@@ -115,7 +115,7 @@ test('an unsaved draft prints Revision 1 in Word and PDF, and the builder check 
 test('a SWMS saved before revisions reads as revision 1, dated when it was made', async () => {
   const db = require('../db');
   const token = await signIn('revisions@example.com');
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   const row = await db.one('SELECT * FROM swms WHERE id = $1', [swms.id]);
   // Saved the old way: no revision columns given.
   await db.query(
@@ -135,16 +135,16 @@ test('the worker sign-on page and the on-screen preview show the revision', asyn
   const path = require('node:path');
   const vm = require('node:vm');
   const token = await signIn('revisions@example.com');
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, ...CONFIRM } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, ...CONFIRM }) })).json();
   const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
   const first = await (await call('GET', `/api/sign/${key}`)).json();
   assert.match(first.revision, /^Revision 1, \d{1,2} [A-Z][a-z]+ \d{4}$/);
-  await call('PUT', `/api/swms/${swms.id}`, { token, body: { title: 'Sprinklers', ...CONFIRM } });
+  await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ title: 'Sprinklers', ...CONFIRM }, INPUT) });
   const second = await (await call('GET', `/api/sign/${key}`)).json();
   assert.match(second.revision, /^Revision 2, \d{1,2} [A-Z][a-z]+ \d{4}$/);
   // The sign-on page prints it under the title, with the company and workplace.
   const sign = fs.readFileSync(path.join(__dirname, '../public/sign.js'), 'utf8');
-  assert.match(sign, /\[data\.company, data\.workplace, data\.revision\]/);
+  assert.match(sign, /\[data\.company, data\.workplace, data\.revision, data\.checkedBy\]/);
 
   // The preview prints a Revision row, worded as the Word and PDF files word it.
   const app = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');

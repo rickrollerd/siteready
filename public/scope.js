@@ -620,6 +620,9 @@
             // "Go to it" goes straight to the work with no job steps, or the first thing still needed (owner, D287).
             if (toCover && S.goToCover && S.goToCover()) { if (S.markStage) S.markStage('draft'); return; }
             if (toNeed && S.goToFirstNeed && S.goToFirstNeed()) { if (S.markStage) S.markStage('draft'); return; }
+            // With nothing left to answer, what it needs is its check, under the draft (D286).
+            const check = toNeed && $('new-check');
+            if (check) { check.scrollIntoView({ block: 'start' }); if (S.markStage) S.markStage('draft'); return; }
             const bar = $('check-bar');
             if (bar && !bar.classList.contains('hidden')) bar.scrollIntoView({ block: 'start' });
             if (S.markStage) S.markStage('draft');
@@ -681,6 +684,8 @@
       return;
     }
     const ready = project.items.filter((item) => item.status === 'ready').length;
+    // Each SWMS is checked on its own (D240, D286): only those checked download.
+    const checked = project.items.filter((item) => item.status === 'ready' && checkOf(item)).length;
     const label = { ready: 'Ready', needs: 'Needs answers', tick: 'Needs your step or a SWMS named', write: 'Needs your step', todo: 'To do' };
     const current = project.items[project.current];
     // The SWMS being prepared is named right above its task, at the top of the task box.
@@ -693,7 +698,7 @@
       ${project.items.map((item, index) => (item.status === 'needs' && (item.needs || []).length ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, still needs before download: ${esc(item.needs.join('; '))}. ${index === project.current ? '<button type="button" class="link" data-gate-list>See what is needed</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       ${project.items.map((item, index) => (item.status === 'write' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, waits for your own step for the work SiteReady has no job steps for. Write it with "Write a step for this" above its draft to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
       ${project.items.map((item, index) => (item.status === 'tick' ? `<p class="note">SWMS ${index + 1}, ${esc(item.title)}, has work SiteReady has no job steps for. Above its draft, write your own step for it, or say which SWMS covers it, to add this SWMS to the download. ${index === project.current ? '<button type="button" class="link" data-cover-jump>Go to it</button>' : `<button type="button" class="link" data-project-open="${index}">Open it</button>`}</p>` : '')).join('')}
-      <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? `${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip">Download ${ready} SWMS (Word and PDF, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
+      <div id="project-download">${ready ? (S.canDownload && S.canDownload() ? (checked ? `<div class="actions"><button type="button" id="project-zip">Download ${checked} checked SWMS (Word and PDF, one zip)</button></div>${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS, so every copy printed has a record and a revision.</p>' : ''}` : '') + (checked < ready ? `<p class="note">${ready - checked === 1 ? 'One SWMS is' : `${ready - checked} SWMS are`} ready but not checked yet. Open each, tick each part as checked under its draft, and give your name and role.</p>` : '') : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>') : ''}</div>
       <p class="error" id="project-error"></p>
       <p class="meta" id="project-status" role="status"></p>
       <div class="actions"><button type="button" class="small secondary" id="project-close">Close project</button></div>`;
@@ -710,6 +715,27 @@
     const ticked = [...(item.body.notCoveredConfirmed || []), ...(item.notCoveredWritten || [])];
     return (item.notCovered || []).every((part) => ticked.includes(part)) ? 'ready' : 'tick';
   };
+  // The check each SWMS of the project is given under its draft (D286): kept with it, and cleared when a
+  // part it ticked changes. checkOf gives a SWMS's check only while it is complete.
+  // One that needs preparing again is not checked (messy round 3, D286).
+  const checkOf = (item) => (item && !item.stale && item.check && item.check.partHashes && item.check.name && item.check.role ? item.check : null);
+  const sameTask = (a, b) => String(a || '').replace(/\s+/g, ' ').trim() === String(b || '').replace(/\s+/g, ' ').trim();
+  const itemShown = (input) => {
+    const item = project && project.items[project.current];
+    return item && item.body && input && sameTask(input.task, item.body.task) ? item : null;
+  };
+  S.projectCheck = (input) => checkOf(itemShown(input));
+  S.onCheckDone = (input, check, note) => {
+    const item = itemShown(input);
+    if (!item) return;
+    const before = JSON.stringify([item.check || null, item.checkNote || '']);
+    if (check) { item.check = check; delete item.checkNote; } else if (item.check) { delete item.check; if (note) item.checkNote = note; }
+    if (JSON.stringify([item.check || null, item.checkNote || '']) === before) return;
+    saveProject();
+    renderProject();
+  };
+  S.projectCheckOf = checkOf;
+
   // The project's other SWMS, by title, for saying which one covers work this SWMS has no steps for.
   S.projectOthers = () => (project ? project.items.filter((_item, index) => index !== project.current).map((item) => item.title) : []);
   // Owner, D289: in a project, work named as "covered in" another SWMS of the project moves into it, and
@@ -735,6 +761,8 @@
     // A SWMS that now has work moved into it, or moved out again, is prepared again with it.
     const changed = project.items.map((_other, at) => at).filter((at) => at !== project.current && JSON.stringify(movedInto(at) || []) !== before[at]);
     for (const at of changed) if (project.items[at].kind) project.items[at].stale = `Work was moved here from SWMS ${project.current + 1}: write its steps in this SWMS.`;
+    // Its ticks go with it: it is checked again once prepared (D286).
+    for (const at of changed) if (project.items[at].stale && window.SiteReadyProjectGo && window.SiteReadyProjectGo.uncheck) window.SiteReadyProjectGo.uncheck(project.items[at]);
     saveProject();
     renderProject();
   };
@@ -837,26 +865,24 @@
     }
     if (event.target.closest('#project-zip')) {
       $('project-error').textContent = '';
-      const confirmed = $('project-confirm') && $('project-confirm').checked;
-      const name = $('project-name') && $('project-name').value.trim();
       // Said once, beside the button where there is one: on a phone the top of the list is far away.
       const near = $('project-zip-error');
       if (near) near.textContent = '';
       const say = (text) => { (near || $('project-error')).textContent = text; };
-      if (!confirmed || !name) { say('Tick the box and enter your name first.'); return; }
-      if (S.rememberReviewer) S.rememberReviewer(name);
+      // Each SWMS carries its own check (D240 "Review each, download all", D286): only those checked go.
+      // One that needs preparing again after an answer changed waits until it is (messy round 3).
+      const ready = project.items.filter((item) => item.status === 'ready' && item.body && !item.stale && checkOf(item));
+      if (!ready.length) { say('Check each SWMS first: open it, tick each part as checked under its draft, and give your name and role.'); return; }
       const button = event.target.closest('#project-zip');
       button.disabled = true;
       try {
         // The SWMS open now, if it was saved or downloaded on its own, is that saved SWMS.
         const open = project.items[project.current];
         if (open && !open.swmsId && S.editing && S.editing.id) open.swmsId = S.editing.id;
-        // One that needs preparing again after an answer changed waits until it is (messy round 3).
-        const ready = project.items.filter((item) => item.status === 'ready' && item.body && !item.stale);
-        const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsNumber: project.items.indexOf(item) + 1, swmsId: item.swmsId || undefined }));
+        const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsNumber: project.items.indexOf(item) + 1, swmsId: item.swmsId || undefined, check: checkOf(item) }));
         const site = S.siteId ? S.siteId() : '';
         // Word and PDF of each, in one zip (D240).
-        const result = await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, siteId: site || undefined, reviewConfirmed: true, reviewedBy: name, pdf: true });
+        const result = await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, siteId: site || undefined, pdf: true });
         // Each SWMS is saved as a record when the project is downloaded; later changes save as its next revision.
         for (const saved of (result && result.items) || []) if (ready[saved.index]) ready[saved.index].swmsId = saved.id;
         saveProject();

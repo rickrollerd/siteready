@@ -35,7 +35,8 @@
     if (response.status === 401 && session) signedOut();
     if (!response.ok) {
       const data = await response.json().catch(() => null);
-      throw Object.assign(new Error((data && data.message) || (!data || response.status >= 500 ? SERVER_DOWN : 'Something went wrong. Try again.')), { status: response.status });
+      // The box a refusal is about, and the parts of the check to tick again (D286).
+      throw Object.assign(new Error((data && data.message) || (!data || response.status >= 500 ? SERVER_DOWN : 'Something went wrong. Try again.')), { status: response.status, field: data && data.field, stale: data && data.stale });
     }
     const type = response.headers.get('content-type') || '';
     return type.includes('application/json') ? response.json() : response;
@@ -324,20 +325,12 @@
 
   // ---- After a draft is prepared: downloads, saving ----
 
-  // A name typed in the box is kept when the box is drawn again with a new draft.
-  const typedNames = {};
-  document.addEventListener('input', (event) => {
-    const box = /^(new|saved|project)-name$/.exec((event.target && event.target.id) || '');
-    if (box) typedNames[box[1]] = event.target.value.trim();
-  });
-  function confirmBlock(prefix) {
-    const typed = typedNames[prefix] || '';
-    return `
-      <label class="check"><input type="checkbox" id="${prefix}-confirm"><span>I understand this is a draft. My business will check it against the site, change it where needed, and approve it before it is used. <a href="/terms.html" target="_blank" rel="noopener">Terms of use</a></span></label>
-      <div class="field">
-        <label for="${prefix}-name">Your name (printed on the SWMS)</label>
-        <input id="${prefix}-name" type="text" autocomplete="name" maxlength="120" value="${esc(typed || read(REVIEWER_KEY) || (me && me.user.name) || '')}">
-      </div>`;
+  // The check before download or save (human-check.js, D286): SiteReady's check, each part ticked, then
+  // the name and role, kept on this device as they are typed. The account's name fills an empty name.
+  const checkBlock = (prefix, verb) => S.humanCheck.html(prefix, { verb });
+  function restoreTyped(prefix) {
+    const box = $(`${prefix}-name`);
+    if (box && !box.value && me && me.user.name) box.value = me.user.name;
   }
 
   // Said beside the Save and download buttons while anything is outstanding: the site questions and
@@ -348,15 +341,10 @@
   // box (a site question can change the hazards), so the draft is prepared again before it prints.
   const redrawNote = 'Press Update the draft to put your answers in the SWMS. <button type="button" class="link" data-gate-update>Update the draft</button>';
 
-  // Work SiteReady has no job steps for (app.js, D184) is dealt with above the draft, part by part; the
-  // list above the buttons holds them until it is.
-  function confirmed(prefix) {
-    const tick = $(`${prefix}-confirm`).checked;
-    const name = $(`${prefix}-name`).value.trim();
-    if (!tick || !name) throw new Error('Tick the box and enter your name first.');
-    write(REVIEWER_KEY, name);
-    return { reviewConfirmed: true, reviewedBy: name };
-  }
+  // What the buttons send: the check made in the panel. Throws with what it still needs.
+  const confirmed = (prefix) => S.humanCheck.value(prefix);
+  // A refusal that names parts changed since they were ticked unticks them (D286).
+  const checkRefused = (prefix, error) => { if (error && (error.stale || error.field)) S.humanCheck.refused(prefix, error); };
 
   // The answers the SWMS prints as given, as they are on the page now: typed since the draft was
   // prepared, they print without preparing it again (app.js currentAnswers).
@@ -407,9 +395,9 @@
     box.innerHTML = `<div class="panel confirm">
       ${editing ? `<p class="meta" id="new-editing">Saving changes to "${esc(editing.title)}" as its next revision, in SiteReady's current wording. Earlier revisions stay as they were saved. <button type="button" class="link" id="new-separate">Save as a new SWMS instead</button></p>` : ''}
       ${editing && editing.review ? `<div class="pc-review pc-back" id="new-pc-review"><strong>${esc(editing.review.label)}</strong>, ${esc(editing.review.name)}, ${esc(editing.review.company)}, ${esc(editing.review.date)}<div class="pc-text"><strong>${editing.review.response === 'changes' ? 'Changes needed' : 'Conditions'}:</strong>\n${esc(editing.review.text)}</div><p class="meta">Save the changes, then send the principal contractor the new revision's reference.</p></div>` : ''}
-      ${confirmBlock('new')}
       ${kind === 'draft' && !local ? `<div class="field"><label for="new-site">Save to a site</label><select id="new-site" class="plain">${siteOptions}</select></div>` : ''}
-      ${kind === 'draft' && editing ? `<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"${editing.review ? ` value="${esc(`For the principal contractor's review of revision ${editing.review.revision}`)}"` : ''}></div>` : ''}
+      ${kind === 'draft' && editing ? `<div class="field"><label for="new-reason">What changed and why (optional)</label><input id="new-reason" type="text" maxlength="300"${editing.review ? ` value="${esc(`For the principal contractor's review of revision ${editing.review.revision}`)}"` : editing.reason ? ` value="${esc(editing.reason)}"` : ''}></div>` : ''}
+      ${kind === 'draft' ? checkBlock('new', 'download or save') : ''}
       ${kind === 'draft' && !local ? '<p class="meta">Downloading saves the SWMS under My SWMS, so every copy printed has a record and a revision. The PDF and the QR sign-on are the copies workers sign; the Word file is a working copy.</p>' : ''}
       ${kind === 'draft' ? `<p class="note gate-hold${held.html ? '' : ' hidden'}" id="new-gate-note" role="status">${held.html}</p>` : ''}
       <div class="actions">
@@ -419,34 +407,47 @@
       </div>
       <p class="note hidden" id="new-status"></p>
     </div>`;
-    // The buttons work once the box is ticked, a name is given and nothing is left on the list above.
+    // The buttons work once nothing is left on the list above, SiteReady's check has found nothing that
+    // must be fixed, and each part is ticked with a name and role (D286). A stood-down draft has no check.
     const buttons = ['new-save', 'new-docx', 'new-pdf'].map($).filter(Boolean);
     const ready = () => {
-      if (!$('new-confirm')) return;
       const held = holdNow();
-      const reviewed = $('new-confirm').checked && $('new-name').value.trim();
-      buttons.forEach((button) => { if (button.textContent !== 'Saved') button.disabled = held.hold || !reviewed; });
+      const check = kind === 'draft' ? S.humanCheck.status('new') : { ready: true, why: '' };
+      buttons.forEach((button) => { if (button.textContent !== 'Saved') button.disabled = held.hold || !check.ready; });
       // Why the buttons wait, said beside them: the list can be pages above on a phone. Once nothing
-      // else is outstanding, the review tick and the name are all they wait for.
-      const html = held.html || (reviewed ? '' : 'To download or save, tick the box above and enter your name.');
+      // else is outstanding, the check is all they wait for.
+      const html = held.html || esc(check.why);
       const note = $('new-gate-note');
       if (note && note.innerHTML !== html) note.innerHTML = html;
       if (note) note.classList.toggle('hidden', !html);
     };
-    $('new-confirm').addEventListener('change', ready);
-    $('new-name').addEventListener('input', ready);
-    // The list above changes as the user answers, and with the tick above the draft (app.js).
-    S.onGateChange = ready;
+    if (kind === 'draft') {
+      restoreTyped('new');
+      const task = String((input && input.task) || '').replace(/\s+/g, ' ').trim().toLowerCase().slice(0, 200);
+      S.humanCheck.bind('new', {
+        // The ticks kept on this device are for this SWMS: a saved one by its id, a new one by its task.
+        key: `draft:${editing ? editing.id : ''}:${task}`,
+        // A SWMS of a project brings back the check it was given (scope.js).
+        seed: S.projectCheck ? S.projectCheck(input) : null,
+        body: () => ({ ...S.actionInput, ...answersNow(kind) }),
+        lockedBy: () => { const held = holdNow(); return held.hold ? (held.html === redrawNote ? 'SiteReady checks the draft once it is updated with your answers.' : 'SiteReady checks the draft once everything listed above is answered.') : ''; },
+        onChange: ready,
+        onDone: (check, note) => { if (S.onCheckDone) S.onCheckDone(input, check, note); },
+      });
+    }
+    // The list above changes as the user answers, and with the tick above the draft (app.js); SiteReady
+    // checks the draft again a moment later.
+    S.onGateChange = () => { ready(); if (kind === 'draft') S.humanCheck.refresh('new'); };
     ready();
     const selected = S.siteId();
     if (selected && $('new-site')) $('new-site').value = selected;
     const run = async (fn) => {
-      try { await fn(); } catch (error) { status('new-status', error.message, true); }
+      try { await fn(); } catch (error) { checkRefused('new', error); status('new-status', error.message, true); }
     };
     // Signed in, a download saves the SWMS first (or its next revision, when it has changed), so
     // every print has a record. Later changes save as its next revision.
     const saveAndDownload = async (route, fallbackName) => {
-      const body = { ...S.actionInput, ...answersNow(kind), ...confirmed('new'), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
+      const body = { ...S.actionInput, ...answersNow(kind), ...(kind === 'draft' ? confirmed('new') : {}), ...(!local ? { swmsId: S.editing ? S.editing.id : undefined, siteId: ($('new-site') && $('new-site').value) || undefined } : {}) };
       const { saved } = await download(route, fallbackName, body);
       if (!saved) return;
       // A new revision was saved when the number moved on from the one being changed.
@@ -606,7 +607,7 @@
           ${(update.reasons || []).map((reason) => `<p><strong>Why:</strong> ${esc(reason)}</p>`).join('')}
           <details><summary>What would change (${update.changes.length})</summary><ul>${update.changes.map((line) => `<li>${esc(line)}</li>`).join('')}</ul></details>
           <div class="actions"><button type="button" class="secondary" id="saved-update-go">Make a new revision with the updated wording</button></div>
-          <p class="meta">Uses the name and tick under Mark as checked by ${esc(ownName())} below.</p></div>` : ''}
+          <p class="meta">It opens with the updated wording, for you to check each part and save it as a new revision.</p></div>` : ''}
         ${sameNumbersNote(draft)}
         ${pcReviewBlock(swms, data.reviews)}
         ${historyBlock(history)}
@@ -619,8 +620,10 @@
         </div>
         <div class="review-box">
           <h2 style="margin-top:16px">Mark as checked by ${esc(ownName())}</h2>
-          ${confirmBlock('saved')}
+          ${data.lastCheck ? `<p class="meta">Revision ${esc(swms.revision)} was checked by ${esc(data.lastCheck.name)}, ${esc(data.lastCheck.role)}, ${esc(data.lastCheck.date)}.</p>` : ''}
+          ${checkBlock('saved', 'mark it as checked')}
           <div class="actions"><button type="button" class="secondary" id="saved-reviewed">Mark as checked by ${esc(ownName())}</button></div>
+          <p class="meta">Copy for another job uses this check too.</p>
         </div>
         <p class="note hidden" id="saved-status"></p>
         <h2 style="margin-top:18px">Worker sign-on</h2>
@@ -648,22 +651,21 @@
     resultEl.classList.remove('hidden');
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const run = async (fn) => {
-      try { await fn(); } catch (error) { status('saved-status', error.message, true); }
+      try { await fn(); } catch (error) { checkRefused('saved', error); status('saved-status', error.message, true); }
     };
+    // The business's own check of the revision as it prints (D290, D286): SiteReady's check was made
+    // when the SWMS was opened.
+    restoreTyped('saved');
+    S.humanCheck.bind('saved', { key: `saved:${id}:${swms.revision}`, initial: data.selfCheck || { partHashes: {} } });
     $('saved-docx').addEventListener('click', () => run(() => download(`/api/swms/${id}/docx`, 'SWMS.docx')));
     $('saved-pdf').addEventListener('click', () => run(() => download(`/api/swms/${id}/pdf`, 'SWMS.pdf')));
     resultEl.querySelectorAll('[data-revision-docx], [data-revision-pdf]').forEach((button) => button.addEventListener('click', () => run(() => {
       const docx = button.dataset.revisionDocx;
       return download(`/api/swms/${id}/${docx ? 'docx' : 'pdf'}?revision=${encodeURIComponent(docx || button.dataset.revisionPdf)}`, docx ? 'SWMS.docx' : 'SWMS.pdf');
     })));
-    if ($('saved-update-go')) {
-      $('saved-update-go').addEventListener('click', () => run(async () => {
-        const next = await call('PUT', `/api/swms/${id}`, { reason: 'Updated to SiteReady\'s current wording', ...confirmed('saved') });
-        await openSwms(id);
-        status('saved-status', `Saved revision ${next.swms.revision} with the updated wording.${resignLine(next.swms.revision, next.swms.signedEarlier)}`);
-        loadSwms();
-      }));
-    }
+    // The updated wording changes what prints, so it opens as a draft to check part by part (D286) and
+    // save as the next revision.
+    if ($('saved-update-go')) $('saved-update-go').addEventListener('click', () => change(null, 'Updated to SiteReady\'s current wording'));
     $('saved-reviewed').addEventListener('click', () => run(async () => {
       await call('POST', `/api/swms/${id}/reviewed`, confirmed('saved'));
       status('saved-status', `Marked as checked by ${ownName()}. The next check is due in 3 months.`);
@@ -682,9 +684,9 @@
     }));
     // Change opens the SWMS ready to edit: its controls, hazards and Who can be changed straight
     // away, and the form above holds its answers. Saving makes the next revision.
-    const change = (review = null) => run(async () => {
+    const change = (review = null, reason = '') => run(async () => {
       await S.fillForm(data.input);
-      S.editing = { id, title: swms.title, revision: swms.revision, ...(review ? { review } : {}) };
+      S.editing = { id, title: swms.title, revision: swms.revision, ...(review ? { review } : {}), ...(reason ? { reason } : {}) };
       S.showSite(swms.siteId || '');
       if (S.prepare) await S.prepare();
     });
@@ -842,9 +844,6 @@
   // For the project download: whether downloads are open, the review box, and the download itself.
   S.canDownload = () => !config.accounts || Boolean(me && me.company.hasAccess);
   S.accountsOn = () => Boolean(config.accounts);
-  S.confirmBlock = (prefix) => confirmBlock(prefix);
-  // The name given for a project download fills the box next time, as it does for one SWMS.
-  S.rememberReviewer = (name) => write(REVIEWER_KEY, name);
   S.download = (route, fallbackName, body) => download(route, fallbackName, body);
   // A signed-in request, for the AI reading of a scope.
   S.call = (method, route, body) => call(method, route, body);

@@ -14,7 +14,7 @@ const { app } = require('../server');
 const { prepareDraft, questionsFor, notCoveredRefusal, notCoveredUnwritten } = require('../draft');
 const { draftBody } = require('../input');
 const { downloadGaps } = require('../download-gate');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 const { loadPage, settle, FakeEvent } = require('./fake-dom');
 
 const BASE = { state: 'qld', fallRisk: 'no', residential: 'no', date: '11 October 2026' };
@@ -234,10 +234,10 @@ test('the Word download waits for the user\'s step, then prints it', async () =>
   const body = ready({ ...BASE, task: TRANSFORMER, ...ANSWERED, reviewConfirmed: true, reviewedBy: 'Sam Lee' });
   const preview = await (await call('POST', '/api/draft', { body })).json();
   assert.deepEqual(preview.notCoveredMain, [TRANSFORMER]);
-  const refused = await call('POST', '/api/draft.docx', { token, body: { ...body, notCoveredConfirmed: [TRANSFORMER] } });
+  const refused = await call('POST', '/api/draft.docx', { token, body: checked({ ...body, notCoveredConfirmed: [TRANSFORMER] }) });
   assert.equal(refused.status, 400);
   assert.match((await refused.json()).message, /write your own step for it/);
-  const word = await call('POST', '/api/draft.docx', { token, body: { ...body, ownSteps: [MINE] } });
+  const word = await call('POST', '/api/draft.docx', { token, body: checked({ ...body, ownSteps: [MINE] }) });
   assert.equal(word.status, 200);
   assert.match(word.headers.get('content-type'), /wordprocessingml/);
 });

@@ -15,7 +15,7 @@ const { draftBody } = require('../input');
 const { downloadGaps } = require('../download-gate');
 const { sharedNote } = require('../docx-draft');
 const { QUESTIONS, emergencyQuestions } = require('../emergency');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 const { loadPage, settle } = require('./fake-dom');
 // The types of hazardous substance are ticked "Not required" (D277): these tests are about the plant and the emergency.
 const { TYPES } = require('../public/substance-rules');
@@ -203,12 +203,12 @@ const wordText = async (buffer) => (await (await JSZip.loadAsync(buffer)).file('
 test('Word and PDF wait for the plant and the emergency facts, then print them, and a saved SWMS keeps them', async () => {
   const token = await signIn('plant-gate@example.com', '51 824 753 556');
   for (const route of ['/api/draft.docx', '/api/draft.pdf']) {
-    const refused = await call('POST', route, { token, body: { ...EWP, ...CONFIRM } });
+    const refused = await call('POST', route, { token, body: checked({ ...EWP, ...CONFIRM }) });
     assert.equal(refused.status, 400, route);
     const data = await refused.json();
     assert.match(data.message, /Still to answer: Plant and equipment; Emergency, EWP: Lowered in an emergency by; Emergency, EWP: Ground controls and key; Emergency, mobile plant: Stopped by\./);
   }
-  const body = { ...EWP, plantChoice: { used: ['Scissor lift', 'Cable winch or puller'], notUsed: ['Ladders', 'Forklift'], added: [{ item: 'Battery cable drum trailer', licence: 'No. Operator trained in its use' }] }, emergency: EWP_ANSWERS, ...CONFIRM };
+  const body = checked({ ...EWP, plantChoice: { used: ['Scissor lift', 'Cable winch or puller'], notUsed: ['Ladders', 'Forklift'], added: [{ item: 'Battery cable drum trailer', licence: 'No. Operator trained in its use' }] }, emergency: EWP_ANSWERS, ...CONFIRM });
   const docx = await call('POST', '/api/draft.docx', { token, body });
   assert.equal(docx.status, 200, await docx.clone().text());
   const text = await wordText(Buffer.from(await docx.arrayBuffer()));

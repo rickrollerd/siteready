@@ -150,11 +150,13 @@ function view(record) {
 
 // Keeps a revision as it prints. row is the saved SWMS as it now stands; draft is the draft
 // prepared from its input with the company's details. A reference is issued for the revision.
-async function keepRevision({ row, company, input, draft, userId = '', name = '', reason = '', at = new Date() }) {
+// confirmation is the check it was saved with (human-check.js: name, role, date, the parts ticked,
+// their fingerprints and SiteReady's score); without one, the name given and the date.
+async function keepRevision({ row, company, input, draft, userId = '', name = '', reason = '', at = new Date(), confirmation: given = null }) {
   const printed = { ...draft, revision: String(row.revision || 1), revisionDate: longDate(at) };
   const fingerprint = contentHash(printed);
   const ref = await issueRef(company, row.title, placeOf(input), { swmsId: row.id, revision: Number(row.revision || 1), contentHash: fingerprint });
-  const confirmation = name ? { name, date: longDate(at) } : null;
+  const confirmation = given || (name ? { name, date: longDate(at) } : null);
   await db.query(
     `INSERT INTO swms_revisions (id, swms_id, revision, title, input, draft, content_hash, library_version, ref, edited_by, edited_name, reason, confirmation, created_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT (id) DO NOTHING`,
@@ -162,6 +164,17 @@ async function keepRevision({ row, company, input, draft, userId = '', name = ''
       String(userId || ''), String(name || '').slice(0, 120), String(reason || '').slice(0, 300), confirmation ? JSON.stringify(confirmation) : null, at],
   );
   return getRevision(row.id, row.revision || 1);
+}
+
+// A later check of a revision already kept (the business's own check, or the same revision downloaded
+// again with a new check): it is printed from now on, and the earlier ones are kept with it.
+async function recordCheck(swmsId, revision, confirmation) {
+  const kept = await getRevision(swmsId, revision);
+  if (!kept || !confirmation) return null;
+  const { earlier = [], ...before } = kept.confirmation || {};
+  const next = { ...confirmation, earlier: [...earlier, ...(kept.confirmation ? [before] : [])].slice(-10) };
+  await db.query('UPDATE swms_revisions SET confirmation = $1 WHERE swms_id = $2 AND revision = $3', [JSON.stringify(next), String(swmsId), Number(revision)]);
+  return next;
 }
 
 async function getRevision(swmsId, revision) {
@@ -184,4 +197,4 @@ async function listRevisions(swmsId) {
   return (await db.query('SELECT * FROM swms_revisions WHERE swms_id = $1 ORDER BY revision', [String(swmsId)])).map(view);
 }
 
-module.exports = { LIBRARY_VERSION, stable, printedContent, contentHash, changesBetween, changeText, keepRevision, getRevision, revisionOf, listRevisions };
+module.exports = { LIBRARY_VERSION, stable, printedContent, contentHash, changesBetween, changeText, keepRevision, recordCheck, getRevision, revisionOf, listRevisions };

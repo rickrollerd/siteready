@@ -9,7 +9,7 @@ const { app } = require('../server');
 const db = require('../db');
 const revisions = require('../revisions');
 const notices = require('../library-notices');
-const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -56,7 +56,7 @@ const FENCE = { ...ANSWERED, task: 'Replace a 3m length of timber fence.', fallR
 const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 
 async function save(token, input, title) {
-  const response = await call('POST', '/api/swms', { token, body: { input: ready(input), title, ...CONFIRM } });
+  const response = await call('POST', '/api/swms', { token, body: checked({ input: ready(input), title, ...CONFIRM }) });
   assert.equal(response.status, 201);
   return (await response.json()).swms;
 }
@@ -158,8 +158,8 @@ test('a released change marks each affected SWMS and emails each administrator o
   assert.equal(mailbox.length, sent + 2);
 
   // A new revision with the updated wording clears the mark; so does marking the SWMS reviewed.
-  await call('PUT', `/api/swms/${fenceA.id}`, { token: tokenA, body: { reason: 'Updated wording', ...CONFIRM } });
-  await call('POST', `/api/swms/${paintA.id}/reviewed`, { token: tokenA, body: CONFIRM });
+  await call('PUT', `/api/swms/${fenceA.id}`, { token: tokenA, body: checked({ reason: 'Updated wording', ...CONFIRM }, ready({ ...FENCE, state: 'nsw' })) });
+  await call('POST', `/api/swms/${paintA.id}/reviewed`, { token: tokenA, body: checked(CONFIRM, ready({ ...FENCE, state: 'nsw', task: 'Replace a 5m length of timber fence.' })) });
   const after = (await (await call('GET', '/api/swms', { token: tokenA })).json()).swms;
   assert.deepEqual(after.map((item) => item.changeReview), [[], [], []]);
   assert.equal((await (await call('GET', `/api/swms/${fenceA.id}`, { token: tokenA })).json()).update.available, false);

@@ -23,7 +23,7 @@ const { draftToPdf } = require('../pdf-draft');
 const { recordFor } = require('../industry');
 const { questionPool } = require('../sign-read');
 const { recordFailedQuestions, monthlyReport, reportMarkdown, gapKey } = require('../control-learning');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 const { loadPage, settle } = require('./fake-dom');
 
 const FACTS = { safetyDataSheet: 'The diesel safety data sheet is kept at the work area.' };
@@ -261,12 +261,12 @@ const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Sam Lee' };
 
 test('downloads and saving need no tick for a part with a printed step, and the files carry it', async () => {
   const token = await signIn('download@ownsteps.example', 'Fuel Line Testing Pty Ltd');
-  assert.equal((await call('POST', '/api/draft.docx', { token, body: { ...READY, ...CONFIRM } })).status, 400, 'without a step or a tick');
-  assert.equal((await call('POST', '/api/draft.docx', { token, body: { ...READY, ...CONFIRM, ownSteps: [{ ...STEP, hazards: [] }] } })).status, 400, 'a step that does not print does not count');
-  const word = await call('POST', '/api/draft.docx', { token, body: { ...READY, ...CONFIRM, ownSteps: [STEP] } });
+  assert.equal((await call('POST', '/api/draft.docx', { token, body: checked({ ...READY, ...CONFIRM }) })).status, 400, 'without a step or a tick');
+  assert.equal((await call('POST', '/api/draft.docx', { token, body: checked({ ...READY, ...CONFIRM, ownSteps: [{ ...STEP, hazards: [] }] }) })).status, 400, 'a step that does not print does not count');
+  const word = await call('POST', '/api/draft.docx', { token, body: checked({ ...READY, ...CONFIRM, ownSteps: [STEP] }) });
   assert.equal(word.status, 200);
   assert.ok((await wordText(Buffer.from(await word.arrayBuffer()))).includes(MARKED));
-  const pdf = await call('POST', '/api/draft.pdf', { token, body: { ...READY, ...CONFIRM, ownSteps: [STEP] } });
+  const pdf = await call('POST', '/api/draft.pdf', { token, body: checked({ ...READY, ...CONFIRM, ownSteps: [STEP] }) });
   assert.equal(pdf.status, 200);
   assert.ok(pdfText(Buffer.from(await pdf.arrayBuffer())).includes('(Our own step)'));
   // The preview carries the step, what is said beside it and the part it covers.
@@ -278,7 +278,7 @@ test('downloads and saving need no tick for a part with a printed step, and the 
 
 test('the step is saved with the SWMS and its revisions, changed and removed like any step', async () => {
   const token = await signIn('revise@ownsteps.example', 'Revision Test Pty Ltd');
-  const saved = await call('POST', '/api/swms', { token, body: { input: { ...READY, ownSteps: [STEP] }, ...CONFIRM } });
+  const saved = await call('POST', '/api/swms', { token, body: checked({ input: { ...READY, ownSteps: [STEP] }, ...CONFIRM }) });
   assert.equal(saved.status, 201);
   const { swms } = await saved.json();
   const first = await (await call('GET', `/api/swms/${swms.id}`, { token })).json();
@@ -286,10 +286,10 @@ test('the step is saved with the SWMS and its revisions, changed and removed lik
   assert.ok(first.draft.jobSteps.some((step) => step.step === MARKED && step.own));
   // Changed: a new revision, and what changed is listed like any step's change.
   const changed = { ...STEP, controls: [...STEP.controls, 'A dry powder extinguisher is kept at the test point.'] };
-  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: { ...READY, ownSteps: [changed] }, ...CONFIRM } })).status, 200);
+  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: { ...READY, ownSteps: [changed] }, ...CONFIRM }) })).status, 200);
   // Removed: the part needs its tick again, so the change without it is refused.
-  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: READY, ...CONFIRM } })).status, 400);
-  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: { ...READY, notCoveredConfirmed: [PART] }, ...CONFIRM } })).status, 200);
+  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: READY, ...CONFIRM }) })).status, 400);
+  assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: { ...READY, notCoveredConfirmed: [PART] }, ...CONFIRM }) })).status, 200);
   const { revisions } = await (await call('GET', `/api/swms/${swms.id}/revisions`, { token })).json();
   assert.deepEqual(revisions.map((item) => item.revision), [3, 2, 1]);
   assert.deepEqual(revisions[1].changes, [`${MARKED}: Control added: A dry powder extinguisher is kept at the test point.`]);
@@ -336,8 +336,8 @@ test('with CONTROL_LEARNING off, nothing is recorded', async () => {
   delete process.env.CONTROL_LEARNING;
   const before = (await ownRows()).length;
   const token = await signIn('off@ownsteps.example', 'Learning Off Pty Ltd');
-  assert.equal((await call('POST', '/api/swms', { token, body: { input: { ...READY, ownSteps: [STEP] }, ...CONFIRM } })).status, 201);
-  assert.equal((await call('POST', '/api/draft.docx', { token, body: { ...READY, ...CONFIRM, ownSteps: [STEP] } })).status, 200);
+  assert.equal((await call('POST', '/api/swms', { token, body: checked({ input: { ...READY, ownSteps: [STEP] }, ...CONFIRM }) })).status, 201);
+  assert.equal((await call('POST', '/api/draft.docx', { token, body: checked({ ...READY, ...CONFIRM, ownSteps: [STEP] }) })).status, 200);
   assert.equal((await ownRows()).length, before);
 });
 
@@ -354,11 +354,11 @@ test('with CONTROL_LEARNING on, each saved revision\'s steps are recorded once, 
       who: 'Dave Okafor (Harbourline)',
     };
     const input = { ...READY, workplace: '18 Wattlebird Lane, Toowong QLD 4066', principalContractor: 'Brookvale Building Group', ownSteps: [named] };
-    const saved = await call('POST', '/api/swms', { token, body: { input, siteId: site.site.id, ...CONFIRM } });
+    const saved = await call('POST', '/api/swms', { token, body: checked({ input, siteId: site.site.id, ...CONFIRM }) });
     assert.equal(saved.status, 201);
     const { swms } = await saved.json();
     // A download of the same revision records nothing more.
-    assert.equal((await call('POST', '/api/draft.docx', { token, body: { ...input, ...CONFIRM, swmsId: swms.id } })).status, 200);
+    assert.equal((await call('POST', '/api/draft.docx', { token, body: checked({ ...input, ...CONFIRM, swmsId: swms.id }) })).status, 200);
     const [row, ...more] = await db.query("SELECT * FROM own_step_events WHERE part = 'leak test the fuel line' AND step LIKE '%[site]%'");
     assert.equal(more.length, 0, 'once for the revision');
     assert.deepEqual([row.revision, row.state, row.trade, row.month.length], [1, 'qld', 'electrical', 7]);
@@ -370,7 +370,7 @@ test('with CONTROL_LEARNING on, each saved revision\'s steps are recorded once, 
     assert.doesNotMatch(row.swms_key, new RegExp(swms.id), 'the SWMS is known only by a keyed fingerprint');
     // The next revision marks the step kept when a step is still written for the same work.
     const next = { ...input, ownSteps: [{ ...named, controls: [...named.controls, 'Drip trays sit under every joint.'] }] };
-    assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: { input: next, ...CONFIRM } })).status, 200);
+    assert.equal((await call('PUT', `/api/swms/${swms.id}`, { token, body: checked({ input: next, ...CONFIRM }) })).status, 200);
     const rows = await ownRows(row.swms_key);
     assert.deepEqual(rows.map((item) => [item.revision, item.kept]), [[1, true], [2, null]]);
     // An opted-out business is left out.
@@ -378,7 +378,7 @@ test('with CONTROL_LEARNING on, each saved revision\'s steps are recorded once, 
     const user = await db.one('SELECT company_id FROM users WHERE email = $1', ['optout@ownsteps.example']);
     await db.query('UPDATE companies SET industry_opt_out = TRUE WHERE id = $1', [user.company_id]);
     const count = (await ownRows()).length;
-    assert.equal((await call('POST', '/api/swms', { token: other, body: { input: { ...READY, ownSteps: [STEP] }, ...CONFIRM } })).status, 201);
+    assert.equal((await call('POST', '/api/swms', { token: other, body: checked({ input: { ...READY, ownSteps: [STEP] }, ...CONFIRM }) })).status, 201);
     assert.equal((await ownRows()).length, count);
   } finally {
     delete process.env.CONTROL_LEARNING;

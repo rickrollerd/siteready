@@ -12,7 +12,7 @@ const aiScope = require('../ai-scope');
 const signRead = require('../sign-read');
 const { prepareDraft } = require('../draft');
 const { withCompany } = require('../accounts');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -74,7 +74,7 @@ async function savedSwms(email, input = INPUT) {
   await call('POST', '/api/auth/email', { body: { email } });
   const { token } = await (await call('POST', '/api/auth/verify', { body: { token: lastLinkToken(email) } })).json();
   await call('PUT', '/api/company', { token, body: { name: `Test business ${email}`, abn: abnFor(email) } });
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input, reviewConfirmed: true, reviewedBy: 'Alex Chen' } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input, reviewConfirmed: true, reviewedBy: 'Alex Chen' }) })).json();
   const key = new URLSearchParams(swms.signonPath.split('?')[1]).get('t');
   return { token, swms, key };
 }
@@ -567,7 +567,8 @@ test('a SWMS is translated once per language, with the stand-in model, and kept'
 
 const controlLearning = require('../control-learning');
 const missCount = async () => Number((await db.one('SELECT COUNT(*) AS n FROM check_question_misses')).n);
-const MISS_INPUT = { ...INPUT, trade: 'fire', workplace: 'Ward block, 9 Example Street, Woolloongabba QLD 4102' };
+// An address SiteReady's check reads as a real one ("Example Street" reads as a sample, a must-fix item, D286).
+const MISS_INPUT = { ...INPUT, trade: 'fire', workplace: 'Ward block, 9 Stanley Street, Woolloongabba QLD 4102' };
 
 test('with CONTROL_LEARNING off, a wrong answer is not kept', async () => {
   delete process.env.CONTROL_LEARNING;

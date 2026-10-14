@@ -211,7 +211,7 @@
       key = (saved && saved.key) || newKey();
       if (saved) restore(saved, body.resumed);
       $('title').textContent = data.title;
-      $('where').textContent = [data.company, data.workplace, data.revision].filter(Boolean).join(' · ');
+      $('where').textContent = [data.company, data.workplace, data.revision, data.checkedBy].filter(Boolean).join(' · ');
       if (data.languages.length) {
         $('language').innerHTML += data.languages.map((item) => `<option value="${esc(item.code)}">${esc(item.label)}</option>`).join('');
         $('language-panel').classList.remove('hidden');

@@ -18,7 +18,7 @@ const { answersFor } = require('../presets');
 const { checkSwms, fromDraft } = require('../builder-check');
 const { removeExpired, validAbn } = require('../accounts');
 const reviews = require('../reviews');
-const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, mailbox, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -67,7 +67,7 @@ const CONFIRM = { reviewConfirmed: true, reviewedBy: 'Alex Chen' };
 // A business with a saved SWMS: its session, the SWMS and the reference printed on revision 1.
 async function savedSwms(email, input = INPUT) {
   const token = await signIn(email);
-  const saved = await call('POST', '/api/swms', { token, body: { input, ...CONFIRM } });
+  const saved = await call('POST', '/api/swms', { token, body: checked({ input, ...CONFIRM }) });
   assert.equal(saved.status, 201, JSON.stringify(await saved.clone().json()));
   const { swms } = await saved.json();
   const opened = await (await call('GET', `/api/swms/${swms.id}`, { token })).json();
@@ -175,7 +175,10 @@ test('the reviewer sees the revision exactly as saved, never who signed on or ho
   assert.deepEqual(data.draft.workers, []);
   assert.equal(data.draft.controlEdits, undefined);
   assert.equal(data.input, undefined, 'the answers as typed are not sent');
-  for (const word of ['Wiremu', 'Crew Co', 'Sam Supervisor', 'signons', 'signature', 'read_seconds', 'sections_viewed', 'Alex Chen']) assert.ok(!text.includes(word), `the reviewer does not see ${word}`);
+  for (const word of ['Wiremu', 'Crew Co', 'Sam Supervisor', 'signons', 'signature', 'read_seconds', 'sections_viewed']) assert.ok(!text.includes(word), `the reviewer does not see ${word}`);
+  // Who checked it part by part prints on the SWMS (D286), so the reviewer sees it as printed.
+  assert.deepEqual(data.checked.map(([label]) => label), ['Name', 'Role', 'Date', 'Parts checked']);
+  assert.equal(data.checked[0][1], 'Alex Chen');
   assert.deepEqual(data.responses, []);
   // Each look is logged.
   const log = await db.query('SELECT action, ref FROM review_access_log WHERE reviewer_email = $1', ['reader@tierone.example']);
@@ -226,7 +229,7 @@ test('the read-only sheet carries today\'s content: designs, products from their
   const designFile = await upload(token, pdf('/Title (rev C)'), 'ABC-S-101 rev C.pdf');
   const sdsFile = await upload(token, pdf('/Title (SDS)'), 'FuelMax SDS.pdf');
   const { input, step, removed } = richInput(designFile, sdsFile);
-  const saved = await call('POST', '/api/swms', { token, body: { input, ...CONFIRM } });
+  const saved = await call('POST', '/api/swms', { token, body: checked({ input, ...CONFIRM }) });
   assert.equal(saved.status, 201, JSON.stringify(await saved.clone().json()));
   const { swms } = await saved.json();
   const { ref } = (await (await call('GET', `/api/swms/${swms.id}`, { token })).json()).swms;
@@ -386,7 +389,7 @@ test('a later revision starts unreviewed, and a response on the old revision is 
   const reviewer = await reviewerSignIn('pc2@tierone.example', ref);
   const body = { response: 'approved', name: 'Lee Park', company: 'Tier One Builders' };
   assert.equal((await call('POST', `/api/review/swms/${ref}/response`, { reviewer, body })).status, 201);
-  const changed = await call('PUT', `/api/swms/${id}`, { token, body: { input: { ...INPUT, task: `${INPUT.task} Replace the gate too.` }, ...CONFIRM } });
+  const changed = await call('PUT', `/api/swms/${id}`, { token, body: checked({ input: { ...INPUT, task: `${INPUT.task} Replace the gate too.` }, ...CONFIRM }) });
   assert.equal(changed.status, 200);
   const opened = await (await call('GET', `/api/swms/${id}`, { token })).json();
   assert.equal(opened.swms.revision, 2);

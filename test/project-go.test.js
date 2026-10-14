@@ -11,6 +11,7 @@ const vm = require('node:vm');
 const SOURCE = fs.readFileSync(path.join(__dirname, '..', 'public', 'project-go.js'), 'utf8');
 const FILL = fs.readFileSync(path.join(__dirname, '..', 'public', 'design-fill.js'), 'utf8');
 const RULES = fs.readFileSync(path.join(__dirname, '..', 'public', 'substance-rules.js'), 'utf8');
+const PARTS = fs.readFileSync(path.join(__dirname, '..', 'public', 'check-parts.js'), 'utf8');
 const settle = () => new Promise((resolve) => { setTimeout(resolve, 30); });
 
 function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answer = () => ({}) } = {}) {
@@ -32,7 +33,8 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
     api: (route) => route,
     esc: (value) => String(value || '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]),
     payload: () => ({ state: 'qld', workplace: people.workplace || '', principalContractor: people.principal || '', company: 'Co' }),
-    confirmBlock: () => '<input id="project-confirm">',
+    // Each SWMS's own check, given under its draft (scope.js, D286).
+    projectCheckOf: (entry) => (entry && entry.check && entry.check.name ? entry.check : null),
     canDownload: () => true,
     signedIn: () => true,
     getProfile: () => profile,
@@ -49,6 +51,7 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
   vm.runInContext(FILL, context);
   window.SiteReadyDesignFill = context.SiteReadyDesignFill;
   vm.runInContext(RULES, context);
+  vm.runInContext(PARTS, context);
   vm.runInContext(SOURCE, context);
   const hooks = { saved: 0, rendered: 0, save() { this.saved += 1; }, render() { this.rendered += 1; }, statusOf: (item) => (item.kind !== 'draft' || (item.needs || []).length ? 'needs' : 'ready') };
   // A stand-in event: its target answers closest() for the attributes the page looks for.
@@ -60,7 +63,9 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
   return { window, document, els, element, calls, hooks, fire, go: window.SiteReadyProjectGo };
 }
 
-const item = (title, extra = {}) => ({ title, task: `${title} work.`, fallRisk: 'yes', kind: 'draft', status: 'ready', needs: [], checked: true, body: { task: `${title} work.`, state: 'qld', workplace: '1 A St, Brisbane QLD 4000', principalContractor: 'B', company: 'Co' }, ...extra });
+// A SWMS checked part by part under its draft (D286), unless the test says otherwise.
+const CHECK = { parts: { steps: true, hazards: true, plant: true, emergency: true, site: true }, partHashes: { steps: 'a', hazards: 'b', plant: 'c', emergency: 'd', site: 'e' }, name: 'Sam Lee', role: 'Supervisor', ack: true };
+const item = (title, extra = {}) => ({ title, task: `${title} work.`, fallRisk: 'yes', kind: 'draft', status: 'ready', needs: [], check: CHECK, body: { task: `${title} work.`, state: 'qld', workplace: '1 A St, Brisbane QLD 4000', principalContractor: 'B', company: 'Co' }, ...extra });
 const PEOPLE = { workplace: '1 A St, Brisbane QLD 4000', principal: 'B', 'compliance-responsible': 'S', reviewer: 'S', 'works-manager': 'W', 'works-manager-phone': '0412 345 678', 'first-aider': 'J', 'muster-point': 'Gate' };
 
 test('with some SWMS not ready, the ready ones download, and each one not ready is named with what it needs (D278)', () => {
@@ -69,8 +74,8 @@ test('with some SWMS not ready, the ready ones download, and each one not ready 
   const panel = p.element('project-panel');
   p.go.render(panel, project, p.hooks);
   const html = panel.innerHTML;
-  assert.match(html, /<button type="button" id="project-zip">Download the 2 ready SWMS \(Word and PDF, one zip\)<\/button>/);
-  assert.match(html, /<div class="note" id="go-not-ready"><p>2 of 3 SWMS are ready\. You can download them now, and the rest once they are ready\. Not ready yet:<\/p><ul>/);
+  assert.match(html, /<button type="button" id="project-zip">Download the 2 checked SWMS \(Word and PDF, one zip\)<\/button>/);
+  assert.match(html, /<div class="note" id="go-not-ready"><p>2 of 3 SWMS are ready and checked\. You can download them now, and the rest once they are ready and checked\. Not ready yet:<\/p><ul>/);
   assert.match(html, /<li>SWMS 2 \(Reinforcement\): give plant and equipment; emergency, work at height: Rescue\. <button type="button" class="link" data-project-open="1" data-project-need>Go to it<\/button><\/li>/);
   // Downloaded: the note says how many, and still names the one not ready.
   project.lastDownload = { at: '2026-10-14T00:00:00Z', count: 2, total: 3 };
@@ -275,4 +280,64 @@ test('with a crane company, who slings the loads is asked once for every SWMS, a
   p.fire('change', { name: 'go-crane', value: 'none', attrs: [] });
   assert.equal(p.element('go-slinging').hidden, true);
   assert.deepEqual(project.items.map((entry) => [entry.crane, entry.slinging]), [['none', ''], ['none', '']]);
+});
+
+// ---- One check per SWMS (D240 "Review each, download all", D286) ----
+
+test('a SWMS ready but not checked is not in the download, and the list says it needs its check', () => {
+  const p = page({ people: PEOPLE });
+  const project = { stage: 'review', shared: { emergency: {}, designs: {} }, items: [item('Formwork'), item('Reinforcement'), item('Edge protection', { check: undefined })] };
+  const panel = p.element('project-panel');
+  p.go.render(panel, project, p.hooks);
+  const html = panel.innerHTML;
+  assert.match(html, /<strong>Formwork<\/strong><span class="meta">Ready to download\. Checked by Sam Lee, Supervisor\.<\/span>/);
+  assert.match(html, /<strong>Edge protection<\/strong><span class="meta">Ready for your check: open it, tick each part as checked, and give your name and role\.<\/span><\/div><button type="button" class="small" data-project-open="2">Check this SWMS<\/button>/);
+  assert.match(html, /<button type="button" id="project-zip">Download the 2 checked SWMS \(Word and PDF, one zip\)<\/button>/);
+  assert.match(html, /<li>SWMS 3 \(Edge protection\): open it, tick each part as checked, and give your name and role\. <button type="button" class="link" data-project-open="2" data-project-need>Go to it<\/button><\/li>/);
+  assert.doesNotMatch(html, /project-confirm/, 'no one tick for the set');
+});
+
+test('a detail every SWMS shares, changed after a SWMS was checked, clears the parts it prints in', async () => {
+  const p = page({
+    people: PEOPLE,
+    // The draft of each SWMS again, with the emergency arrangements now printing differently.
+    answer: (route) => (route === '/api/draft' ? { body: { kind: 'draft', gate: [], checkParts: { ...CHECK.partHashes, emergency: 'changed' } } } : {}),
+  });
+  const project = { stage: 'review', shared: { emergency: {}, designs: {} }, items: [item('Formwork'), item('Reinforcement')] };
+  const panel = p.element('project-panel');
+  p.go.render(panel, project, p.hooks);
+  p.fire('input', { id: 'job-details' });
+  await new Promise((resolve) => { setTimeout(resolve, 1100); });
+  assert.equal(project.items[0].check, undefined);
+  assert.equal(project.items[0].checkNote, 'You changed the emergency arrangements after ticking them. Tick them again.');
+  p.go.render(panel, project, p.hooks);
+  assert.match(panel.innerHTML, /<strong>Formwork<\/strong><span class="meta">You changed the emergency arrangements after ticking them\. Tick them again\. Ready for your check: open it/);
+  assert.match(panel.innerHTML, /<button type="button" id="project-zip" disabled>/);
+});
+
+test('a SWMS that needs preparing again after an answer changed is not checked either, and the list says its ticks are cleared', async () => {
+  const p = page({
+    people: PEOPLE,
+    answer: (route) => (route === '/api/draft/questions' ? { body: { required: [], weak: [] } } : route === '/api/draft' ? { body: { kind: 'draft', gate: [], checkParts: CHECK.partHashes } } : {}),
+  });
+  const project = { stage: 'questions', shared: { crane: 'none', emergency: {}, designs: {}, site: {} }, items: [item('Formwork'), item('Reinforcement'), item('Edge protection', { check: undefined })] };
+  const panel = p.element('project-panel');
+  p.go.render(panel, project, p.hooks);
+  // A site answer every SWMS shares changes after two were checked.
+  p.fire('input', { dataset: { goSharedSite: '', siteId: 'access' }, value: 'Through gate 2 on Smith Street.', attrs: ['go-shared-site'] });
+  assert.deepEqual(project.items.map((entry) => [Boolean(entry.stale), Boolean(entry.check)]), [[true, false], [true, false], [true, false]]);
+  assert.match(p.element('go-kept-box').innerHTML, /so they need preparing again: SWMS 1 \(Formwork\); SWMS 2 \(Reinforcement\); SWMS 3 \(Edge protection\)\. Their ticks are cleared, so check them again once prepared\./);
+  project.stage = 'review';
+  p.go.render(panel, project, p.hooks);
+  assert.match(panel.innerHTML, /<strong>Formwork<\/strong><span class="meta">Needs preparing again: a site answer every SWMS shares changed\. Its ticks are cleared\.<\/span>/);
+  assert.match(panel.innerHTML, /<strong>Edge protection<\/strong><span class="meta">Needs preparing again: a site answer every SWMS shares changed\. Not checked yet\.<\/span>/);
+  assert.match(panel.innerHTML, /They stay on the list and download once prepared again and checked\./);
+  assert.match(panel.innerHTML, /<button type="button" id="project-zip" disabled>/);
+  // Prepared again, each waits for its check, with the reason.
+  p.fire('click', { id: 'go-prepare-stale', attrs: [] });
+  await settle();
+  assert.deepEqual(project.items.map((entry) => [Boolean(entry.stale), Boolean(entry.check)]), [[false, false], [false, false], [false, false]]);
+  p.go.render(panel, project, p.hooks);
+  assert.match(panel.innerHTML, /<strong>Formwork<\/strong><span class="meta">Its ticks were cleared because an answer it uses changed\. Ready for your check: open it, tick each part as checked, and give your name and role\.<\/span>/);
+  assert.match(panel.innerHTML, /<button type="button" id="project-zip" disabled>/);
 });

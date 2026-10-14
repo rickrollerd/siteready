@@ -401,6 +401,8 @@ function payload() {
     notCoveredConfirmed: coverTicked ? JSON.parse(coverTicked) : undefined,
     // The SWMS the user named for each part another SWMS covers, kept with the record.
     notCoveredElsewhere: coverElsewhereSent(),
+    // Of those, the work moved into another SWMS of the project: it comes off this Task line (D291).
+    movedOut: coverMovedSent(),
     // Work another SWMS of the project named this one as covering (D289, scope.js).
     movedIn: (window.SiteReady && window.SiteReady.projectMovedIn && window.SiteReady.projectMovedIn()) || undefined,
     controlEdits: controlEdits || undefined,
@@ -765,6 +767,7 @@ function newSwms() {
   pickGaps = null;
   coverTicked = null;
   coverElsewhere = {};
+  coverMovedKept = new Set();
   coverTyping.clear();
   stepOrder = null;
   controlEdits = null;
@@ -1497,6 +1500,7 @@ function fillStart(input) {
   pickGaps = Array.isArray(input.pickGaps) ? [...input.pickGaps] : null;
   coverTicked = Array.isArray(input.notCoveredConfirmed) ? JSON.stringify(input.notCoveredConfirmed) : null;
   coverElsewhere = input.notCoveredElsewhere && typeof input.notCoveredElsewhere === 'object' ? { ...input.notCoveredElsewhere } : {};
+  coverMovedKept = new Set(Array.isArray(input.movedOut) ? input.movedOut : []);
   coverTyping.clear();
   choicesTask = String(input.task || '').trim();
   stepOrder = Array.isArray(input.stepOrder) ? [...input.stepOrder] : null;
@@ -2658,6 +2662,14 @@ function syncCoverTicked() {
   if (S.actionInput) S.actionInput = { ...S.actionInput, notCoveredConfirmed: confirmed, notCoveredElsewhere: coverElsewhereSent() };
   if (S.onCoverTick) S.onCoverTick(confirmed, coverElsewhereSent());
 }
+// The work moved into another SWMS of the project (D289): named as covered in one of the project's
+// other SWMS, or moved when this SWMS was saved and not changed since (opened again from My SWMS).
+let coverMovedKept = new Set();
+function coverMovedSent() {
+  const others = otherSwms();
+  const moved = Object.keys(coverElsewhere || {}).filter((part) => coverNamed(part) && (others.includes(namedElsewhere(part)) || coverMovedKept.has(part)));
+  return moved.length ? moved : undefined;
+}
 function coverElsewhereSent() {
   const named = Object.entries(coverElsewhere || {}).filter(([part]) => coverNamed(part)).map(([part]) => [part, namedElsewhere(part)]);
   return named.length ? Object.fromEntries(named) : undefined;
@@ -2731,7 +2743,9 @@ document.addEventListener('change', (event) => {
   if (!pick || !shownDraft) return;
   const part = coverParts(shownDraft)[Number(pick.dataset.coverWhere)];
   if (!part) return;
+  const movedBefore = JSON.stringify(coverMovedSent() || []);
   coverElsewhere = { ...(coverElsewhere || {}) };
+  coverMovedKept.delete(part);
   if (pick.value === COVER_TYPED) {
     coverTyping.add(part);
     if (otherSwms().includes(namedElsewhere(part))) delete coverElsewhere[part];
@@ -2743,6 +2757,14 @@ document.addEventListener('change', (event) => {
   redrawCover(pick.value === COVER_TYPED ? `cover-name-${pick.dataset.coverWhere}` : pick.id);
   showGate();
   keepUnsaved();
+  // Work moved into another SWMS of the project, or moved back, changes this SWMS's Task line (D291):
+  // the draft is prepared again where it is on the screen, so it shows as it will print.
+  if (JSON.stringify(coverMovedSent() || []) !== movedBefore) {
+    prepareDraft({ scroll: false, keep: '.not-covered' }).then(() => {
+      const back = document.getElementById(pick.id);
+      if (back) back.focus({ preventScroll: true });
+    });
+  }
 });
 document.addEventListener('input', (event) => {
   const box = event.target.closest && event.target.closest('[data-cover-name]');
@@ -2750,6 +2772,7 @@ document.addEventListener('input', (event) => {
   const part = coverParts(shownDraft)[Number(box.dataset.coverName)];
   if (!part) return;
   coverElsewhere = { ...(coverElsewhere || {}), [part]: box.value };
+  coverMovedKept.delete(part);
   if (!box.value.trim()) delete coverElsewhere[part];
   syncCoverTicked();
   showGate();

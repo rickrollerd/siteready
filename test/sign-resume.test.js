@@ -10,7 +10,7 @@ const db = require('../db');
 const signRead = require('../sign-read');
 const { prepareDraft } = require('../draft');
 const { withCompany } = require('../accounts');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -61,7 +61,7 @@ async function savedSwms(email) {
   await call('POST', '/api/auth/email', { body: { email } });
   const { token } = await (await call('POST', '/api/auth/verify', { body: { token: lastLinkToken(email) } })).json();
   await call('PUT', '/api/company', { token, body: { name: `Test business ${email}`, abn: abnFor(email) } });
-  const { swms } = await (await call('POST', '/api/swms', { token, body: { input: INPUT, reviewConfirmed: true, reviewedBy: 'Alex Chen' } })).json();
+  const { swms } = await (await call('POST', '/api/swms', { token, body: checked({ input: INPUT, reviewConfirmed: true, reviewedBy: 'Alex Chen' }) })).json();
   return { swms, key: new URLSearchParams(swms.signonPath.split('?')[1]).get('t') };
 }
 

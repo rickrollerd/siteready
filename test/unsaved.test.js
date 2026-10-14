@@ -4,7 +4,7 @@
 // sign out and after 14 days. The page scripts run in a small stand-in for the browser (fake-dom.js).
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { loadPage, settle, FakeEvent } = require('./fake-dom');
+const { loadPage, settle, FakeEvent, checkAll } = require('./fake-dom');
 
 const KEY = 'siteready.unsaved';
 const DRAFT = {
@@ -98,8 +98,7 @@ test('saving the SWMS clears the copy kept on the phone', async () => {
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
   await settle();
   assert.equal(stored(p).stage, 'draft', 'kept once the draft is shown');
-  p.document.getElementById('new-confirm').checked = true;
-  p.document.getElementById('new-name').value = 'Sam Lee';
+  checkAll(p);
   p.document.getElementById('new-save').click();
   await settle();
   assert.ok(p.calls.some((call) => call.route === '/api/swms' && call.method === 'POST'));

@@ -10,7 +10,7 @@ const { draftBody } = require('../input');
 const { gateChecks, downloadGaps } = require('../download-gate');
 const { answerNeed, AS_GIVEN } = require('../public/gate-rules');
 const { ANSWERED, ready } = require('./helpers');
-const { loadPage, settle, FakeEvent } = require('./fake-dom');
+const { loadPage, settle, FakeEvent, checkAll, selfCheck } = require('./fake-dom');
 
 const FENCE = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no' };
 // Live testing in a switchboard: two library lines with blanks, and emergency questions.
@@ -109,9 +109,10 @@ test('the answers that need no new draft change nothing in the SWMS but where th
 // questions answered and the plant confirmed before the draft, and the people, emergency answers and
 // blanks as typed on the page.
 const LIVE_READY = ready({ ...LIVE, site: ANSWERED.site });
+// The substance types the test ticks "Not required" stand: this page loads no substances card.
+const inputFor = (body) => ({ ...LIVE_READY, ...Object.fromEntries(AS_GIVEN.map((key) => [key, body[key]])), substancesNotUsed: body.substancesNotUsed || LIVE_READY.substancesNotUsed });
 function server(body) {
-  // The substance types the test ticks "Not required" stand: this page loads no substances card.
-  const input = { ...LIVE_READY, ...Object.fromEntries(AS_GIVEN.map((key) => [key, body[key]])), substancesNotUsed: body.substancesNotUsed || LIVE_READY.substancesNotUsed };
+  const input = inputFor(body);
   const draft = prepareDraft(draftBody(input));
   const checks = gateChecks(draftBody(input), draft);
   return { ...draft, controlLegal: draft.jobSteps.map((step) => step.controls.map(() => '')), gate: checks.filter((check) => check.need).map(({ rule: _rule, ...gap }) => gap), gateChecks: checks };
@@ -123,6 +124,8 @@ function respond(method, route, body) {
   if (route === '/api/sites') return { body: { sites: [] } };
   if (route === '/api/steps') return { body: { groups: [] } };
   if (route === '/api/draft') return { body: server(body) };
+  // SiteReady's check (D286) of the same input.
+  if (route === '/api/draft/check') return { body: selfCheck(inputFor(body)) };
   if (route === '/api/draft/questions') return { body: { required: [], steps: { chosen: [] } } };
   if (route === '/api/draft.docx') return { headers: { 'content-type': 'application/octet-stream', 'x-siteready-swms': 's1', 'x-siteready-revision': '1', 'x-siteready-title': 'Switchboard' } };
   return { body: {} };
@@ -156,10 +159,9 @@ test('on the page, the list and its count drop each item as it is answered, and 
   assert.ok(draft.gate.some((gap) => gap.kind === 'emergency') && draft.gate.some((gap) => gap.kind === 'line') && draft.gate.some((gap) => gap.id === 'principalContractor'), 'people, emergency questions and blanks are asked');
   assert.equal(listCount(p), first);
   assert.match(topLine(p), new RegExp(`${first} items need dealing with`));
-  p.document.getElementById('new-confirm').checked = true;
-  p.document.getElementById('new-confirm').dispatchEvent(new FakeEvent('change'));
-  p.document.getElementById('new-name').value = 'Sam Lee';
-  p.document.getElementById('new-name').dispatchEvent(new FakeEvent('input'));
+  // SiteReady's check and the parts wait for the list (D286).
+  assert.match(p.document.getElementById('new-check-self').innerHTML, /SiteReady checks the draft once everything listed above is answered\./);
+  assert.equal(p.document.getElementById('new-part-steps').disabled, true);
   assert.equal(p.document.getElementById('new-docx').disabled, true);
 
   // One answer: the item comes off the list and the count drops at once, with no new draft.
@@ -187,6 +189,12 @@ test('on the page, the list and its count drop each item as it is answered, and 
   assert.equal(listCount(p), 0);
   assert.equal(p.document.getElementById('result-gate').innerHTML, '');
   assert.equal(topLine(p), '');
+  // The list is clear: SiteReady's check runs, then the parts are ticked with a name and role.
+  await settle();
+  assert.match(p.document.getElementById('new-check-self').innerHTML, /out of 100/);
+  assert.equal(p.document.getElementById('new-docx').disabled, true);
+  assert.match(p.document.getElementById('new-gate-note').innerHTML, /^To download or save, tick each part as checked, give your role and tick the last box\.$/);
+  checkAll(p);
   assert.equal(p.document.getElementById('new-docx').disabled, false);
   assert.equal(p.document.getElementById('new-gate-note').classList.contains('hidden'), true);
   assert.equal(drafts(), before, 'no new draft was needed');
@@ -204,19 +212,28 @@ test('on the page, the list and its count drop each item as it is answered, and 
 });
 
 test('on the page, a change that needs a new draft says so beside the buttons, which wait for it', async () => {
-  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], (method, route, body) => (route === '/api/draft' ? { body: { ...server({ ...ANSWERED, ...body }), gate: [], gateChecks: [] } } : respond(method, route, body)), { stored: { 'siteready.session': 'token' } });
+  const p = loadPage(['gate-rules.js', 'app.js', 'account.js'], (method, route, body) => (route === '/api/draft' ? { body: { ...server({ ...ANSWERED, ...body }), gate: [], gateChecks: [] } }
+    : route === '/api/draft/check' ? { body: selfCheck(inputFor({ ...ANSWERED, ...body }), { gate: false, clean: true }) } : respond(method, route, body)), { stored: { 'siteready.session': 'token' } });
   await settle();
   p.document.getElementById('task').value = LIVE.task;
   p.document.getElementById('facts').dispatchEvent(new FakeEvent('submit'));
   await settle();
-  p.document.getElementById('new-confirm').checked = true;
-  p.document.getElementById('new-confirm').dispatchEvent(new FakeEvent('change'));
-  p.document.getElementById('new-name').value = 'Sam Lee';
-  p.document.getElementById('new-name').dispatchEvent(new FakeEvent('input'));
-  assert.equal(p.document.getElementById('new-docx').disabled, false);
-  // A person's name prints as given: nothing more is needed.
+  checkAll(p);
+  assert.equal(p.document.getElementById('new-docx').disabled, false, p.document.getElementById('new-gate-note').innerHTML + p.document.getElementById('new-check-self').innerHTML);
+  // A person's name prints as given: no new draft is needed, but the emergency arrangements print it,
+  // so their tick is cleared once SiteReady checks the draft again (D286), and ticked again.
   type(p, 'first-aider', 'Fiona Aid');
+  await settle();
+  assert.equal(p.document.getElementById('new-part-emergency').checked, false);
+  assert.equal(p.document.getElementById('new-part-steps').checked, true);
+  assert.equal(p.document.getElementById('new-check-stale').textContent, 'You changed the emergency arrangements after ticking them. Tick them again.');
+  assert.equal(p.document.getElementById('new-docx').disabled, true);
+  assert.match(p.document.getElementById('new-gate-note').innerHTML, /^To download or save, tick Emergency as checked\.$/);
+  p.document.getElementById('new-part-emergency').checked = true;
+  p.document.getElementById('new-part-emergency').dispatchEvent(new FakeEvent('change'));
+  assert.equal(p.document.getElementById('new-check-stale').textContent, '');
   assert.equal(p.document.getElementById('new-docx').disabled, false);
+  assert.equal(p.calls.filter((call) => call.route === '/api/draft').length, 1, 'no new draft');
   // The work itself changed: the draft is prepared again before it prints.
   type(p, 'task', `${LIVE.task} Replace the main switch.`);
   assert.equal(p.document.getElementById('new-docx').disabled, true);
@@ -229,9 +246,8 @@ test('on the page, a change that needs a new draft says so beside the buttons, w
   update.click();
   await settle();
   assert.equal(p.calls.filter((call) => call.route === '/api/draft').length, 2);
-  p.document.getElementById('new-confirm').checked = true;
-  p.document.getElementById('new-confirm').dispatchEvent(new FakeEvent('change'));
-  p.document.getElementById('new-name').value = 'Sam Lee';
-  p.document.getElementById('new-name').dispatchEvent(new FakeEvent('input'));
+  // The ticks were kept with the part they were for: only a part the new task changed is ticked again.
+  await settle();
+  checkAll(p);
   assert.equal(p.document.getElementById('new-docx').disabled, false);
 });

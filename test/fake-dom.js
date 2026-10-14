@@ -144,7 +144,10 @@ function makeDocument() {
 // Loads the page scripts into one shared global scope, as script tags do.
 // respond(method, route, body) answers each server call with { status, body }. stored is
 // what the browser's storage holds before the page loads.
-function loadPage(scripts, respond, { stored = {} } = {}) {
+function loadPage(given, respond, { stored = {} } = {}) {
+  // The check before download (D286) loads before the account script, as on the page.
+  const scripts = given.includes('account.js') && !given.includes('human-check.js')
+    ? given.flatMap((name) => (name === 'account.js' ? ['check-parts.js', 'human-check.js', name] : [name])) : given;
   const document = makeDocument();
   const calls = [];
   const storage = new Map(Object.entries(stored));
@@ -157,7 +160,10 @@ function loadPage(scripts, respond, { stored = {} } = {}) {
     const method = options.method || 'GET';
     const body = options.body ? JSON.parse(options.body) : undefined;
     calls.push({ method, route: String(url), body });
-    const answer = (await respond(method, String(url), body)) || {};
+    let answer = (await respond(method, String(url), body)) || {};
+    // SiteReady's check (D286), unless the test answers it: nothing to fix, and each part's fingerprint
+    // as the draft of what the page sent prints. A test about the check answers it itself (selfCheck).
+    if (String(url).endsWith('/api/draft/check') && !answer.status && !Object.keys(answer.body || {}).length) answer = { body: cleanCheck(body) };
     const status = answer.status || 200;
     const data = answer.body === undefined ? {} : answer.body;
     const headers = new Map(Object.entries(answer.headers || { 'content-type': 'application/json' }));
@@ -207,7 +213,44 @@ function loadPage(scripts, respond, { stored = {} } = {}) {
   return { window, document, calls, context, run: (code) => vm.runInContext(code, context) };
 }
 
+// SiteReady's own check of a draft, as the server's /api/draft/check answers it. gate false: as if
+// everything the gate asks were answered, for a page whose draft says so.
+function selfCheck(body, { gate: withGate = true, clean = false } = {}) {
+  const { prepareDraft } = require('../draft');
+  const { draftBody } = require('../input');
+  const { downloadGaps } = require('../download-gate');
+  const humanCheck = require('../human-check');
+  const input = draftBody(body || {});
+  const draft = prepareDraft(input);
+  if (draft.kind !== 'draft') return { kind: 'error', message: 'This SWMS is stood down until the missing facts are added.' };
+  const gate = withGate ? downloadGaps(input, draft).map(({ rule: _rule, ...gap }) => gap) : [];
+  return { kind: 'self-check', gate, ...(gate.length ? { partHashes: require('../public/check-parts').partHashes(draft) } : humanCheck.selfCheck(draft, input.state)), ...(clean ? { builder: CLEAN } : {}) };
+}
+
+const CLEAN = { score: 95, band: 'Accepted', mustFix: [], findings: [] };
+function cleanCheck(body) {
+  const { prepareDraft } = require('../draft');
+  const { draftBody } = require('../input');
+  return { kind: 'self-check', gate: [], builder: CLEAN, partHashes: require('../public/check-parts').partHashes(prepareDraft(draftBody(body || {}))) };
+}
+
+// Ticks each part of the check under the draft (prefix 'new') or a saved SWMS ('saved'), and gives a
+// name, a role and the last tick, as a person does (D286).
+function checkAll(p, prefix = 'new', { name = 'Sam Lee', role = 'Supervisor' } = {}) {
+  const box = (id) => p.document.getElementById(id);
+  for (const id of ['steps', 'hazards', 'plant', 'emergency', 'site']) {
+    box(`${prefix}-part-${id}`).checked = true;
+    box(`${prefix}-part-${id}`).dispatchEvent(new FakeEvent('change'));
+  }
+  for (const [what, value] of [['name', name], ['role', role]]) {
+    box(`${prefix}-${what}`).value = value;
+    box(`${prefix}-${what}`).dispatchEvent(new FakeEvent('input'));
+  }
+  box(`${prefix}-confirm`).checked = true;
+  box(`${prefix}-confirm`).dispatchEvent(new FakeEvent('change'));
+}
+
 // Lets the page's pending server calls finish.
 const settle = async (rounds = 20) => { for (let i = 0; i < rounds; i += 1) await new Promise((resolve) => { setImmediate(resolve); }); };
 
-module.exports = { loadPage, settle, FakeEvent };
+module.exports = { loadPage, settle, FakeEvent, checkAll, selfCheck };

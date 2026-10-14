@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { app } = require('../server');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 let server;
 let base;
@@ -64,10 +64,10 @@ test('a draft and its Word file are prepared', async () => {
   const draft = await post('/api/draft', body);
   assert.equal(draft.status, 200);
   assert.equal((await draft.json()).kind, 'draft');
-  const anonymous = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' });
+  const anonymous = await post('/api/draft.docx', checked({ ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' }));
   assert.equal(anonymous.status, 401, 'without an account the SWMS is preview only');
   session = await signIn('sam@example.com');
-  const noCompany = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
+  const noCompany = await post('/api/draft.docx', checked({ ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' }), null, session);
   assert.equal(noCompany.status, 400, 'no download until the company name and ABN are added');
   // The message names the section as the page heads it.
   const heading = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'index.html'), 'utf8').match(/<summary>([^<]+)<span class="saved-name" id="profile-summary">/)[1];
@@ -76,8 +76,8 @@ test('a draft and its Word file are prepared', async () => {
   assert.equal((await put('/api/company', { name: 'Lee Fencing', abn: '51 824 753 556' }, session)).status, 200);
   const refused = await post('/api/draft.docx', body, null, session);
   assert.equal(refused.status, 400);
-  assert.match((await refused.json()).message, /review and approve/);
-  const docx = await post('/api/draft.docx', { ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
+  assert.match((await refused.json()).message, /^Tick each part as checked, and give your name and role, before downloading\.$/);
+  const docx = await post('/api/draft.docx', checked({ ...body, reviewConfirmed: true, reviewedBy: 'Sam Lee' }), null, session);
   assert.equal(docx.status, 200);
   assert.match(docx.headers.get('content-type'), /wordprocessingml/);
   const zip = Buffer.from(await docx.arrayBuffer()).toString('latin1');
@@ -91,9 +91,11 @@ test('the company name and ABN are fixed once a SWMS is downloaded', async () =>
   assert.equal((await put('/api/company', { name: 'Lee Fencing', abn: '51824753556', phone: '0400 000 000' }, session)).status, 200, 'other details can still change');
 });
 
-test('the Word file is refused without a name, even when confirmed', async () => {
-  const body = { state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no', reviewConfirmed: true, reviewedBy: '   ' };
-  assert.equal((await post('/api/draft.docx', body, null, session)).status, 400);
+test('the Word file is refused without a name, even when each part is ticked', async () => {
+  const body = checked(ready({ ...ANSWERED, state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no' }), null, { name: '   ' });
+  const response = await post('/api/draft.docx', body, null, session);
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).message, 'Enter your name.');
 });
 
 test('trade and task pick lists come from the trade catalogue, in groups', async () => {
@@ -139,7 +141,7 @@ test('a project downloads as one zip with a Word file for each ready SWMS', asyn
   const unready = { state: 'qld', task: 'Lift steel beams with a crane.', fallRisk: 'no', crane: 'own' };
   const refused = await post('/api/project.zip', { swms: [fence] }, null, session);
   assert.equal(refused.status, 400, 'needs the review confirmation');
-  const response = await post('/api/project.zip', { swms: [fence, paint, unready], reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
+  const response = await post('/api/project.zip', { swms: [fence, paint, unready].map((item) => checked(item)) }, null, session);
   assert.equal(response.status, 200);
   assert.match(response.headers.get('content-type'), /zip/);
   const JSZip = require('jszip');
@@ -152,7 +154,7 @@ test('a project downloads as one zip with a Word file for each ready SWMS', asyn
 
 test('project zip files are named by the task titles from the scope', async () => {
   const fence = ready({ state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing', ...ANSWERED });
-  const response = await post('/api/project.zip', { swms: [fence], reviewConfirmed: true, reviewedBy: 'Sam Lee' }, null, session);
+  const response = await post('/api/project.zip', { swms: [fence].map((item) => checked(item)) }, null, session);
   const zip = await require('jszip').loadAsync(Buffer.from(await response.arrayBuffer()));
   assert.deepEqual(Object.keys(zip.files), ['01 Fencing.docx']);
 });
@@ -189,7 +191,7 @@ test('every downloaded SWMS carries a SiteReady reference that traces to the acc
   const token = await signIn('refs@siteready.test');
   await put('/api/company', { name: 'Ref Test Pty Ltd', abn: '33 102 417 000' }, token);
   const body = ready({ state: 'qld', task: 'Replace a 3m length of fence.', fallRisk: 'no', reviewConfirmed: true, reviewedBy: 'Sam Lee', ...ANSWERED });
-  const response = await post('/api/draft.docx', body, null, token);
+  const response = await post('/api/draft.docx', checked(body), null, token);
   assert.equal(response.status, 200, await response.clone().text());
   const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
   const footer = Object.keys(zip.files).filter((name) => /footer/.test(name));

@@ -25,7 +25,7 @@ const designs = require('../designs');
 const designFiles = require('../design-files');
 const { contentHash, changesBetween, changeText } = require('../revisions');
 const { designNeed } = require('../public/gate-rules');
-const { setupAccounts, lastLinkToken, ANSWERED, ready } = require('./helpers');
+const { setupAccounts, lastLinkToken, ANSWERED, ready, checked } = require('./helpers');
 
 const SHORING = 'Staged basement excavation with ground anchors, shoring wall and temporary props, excavated by 20 t excavator.';
 const SCAFFOLD = 'Erect a perimeter scaffold to a three storey building.';
@@ -316,7 +316,7 @@ test('a saved SWMS keeps its file with each revision; only the business\'s signe
   const token = await business('Alpha');
   const other = await business('Bravo');
   const first = (await upload(token, pdf('/Title (rev C)'), 'ABC-S-101 rev C.pdf')).data.file;
-  const saved = await json('POST', '/api/swms', { token, body: { input: saveInput([{ ...GIVEN, file: first }]), ...CONFIRM } });
+  const saved = await json('POST', '/api/swms', { token, body: checked({ input: saveInput([{ ...GIVEN, file: first }]), ...CONFIRM }) });
   assert.equal(saved.status, 201);
   const id = saved.data.swms.id;
   const view = (await json('GET', `/api/swms/${id}`, { token })).data;
@@ -335,12 +335,12 @@ test('a saved SWMS keeps its file with each revision; only the business\'s signe
   assert.equal((await call('GET', route, { token: other })).status, 404);
   assert.equal((await call('GET', `/api/designs/files/${first.id}`, { token: other })).status, 404);
   // Another business's SWMS cannot be used to reach it, nor can its own SWMS name a file it does not hold.
-  const theirs = await json('POST', '/api/swms', { token: other, body: { input: saveInput([{ ...GIVEN, file: first }]), ...CONFIRM } });
+  const theirs = await json('POST', '/api/swms', { token: other, body: checked({ input: saveInput([{ ...GIVEN, file: first }]), ...CONFIRM }) });
   assert.equal(theirs.status, 400);
   assert.match(theirs.data.message, /The file attached to Shoring design is no longer held/);
   // Revision 2 with a new revision of the design: both files stay, each with its revision.
   const second = (await upload(token, pdf('/Title (rev D)'), 'ABC-S-101 rev D.pdf')).data.file;
-  const revised = await json('PUT', `/api/swms/${id}`, { token, body: { input: saveInput([{ ...GIVEN, revision: 'D', file: second }]), ...CONFIRM, reason: 'Shoring design revision D' } });
+  const revised = await json('PUT', `/api/swms/${id}`, { token, body: checked({ input: saveInput([{ ...GIVEN, revision: 'D', file: second }]), ...CONFIRM, reason: 'Shoring design revision D' }) });
   assert.equal(revised.status, 200);
   assert.equal(revised.data.swms.revision, 2);
   assert.equal((await call('GET', route, { token })).status, 200, 'revision 1\'s file is kept');
@@ -366,8 +366,8 @@ test('a saved SWMS keeps its file with each revision; only the business\'s signe
 test('files go with the SWMS: 30 days after it is deleted, and unsaved uploads after 7 days; a copy keeps its own', async () => {
   const token = await business('Charlie');
   const file = (await upload(token, pdf('/Title (C)'), 'C.pdf')).data.file;
-  const saved = (await json('POST', '/api/swms', { token, body: { input: saveInput([{ ...GIVEN, file }]), ...CONFIRM } })).data.swms;
-  const copied = await json('POST', `/api/swms/${saved.id}/copy`, { token, body: { ...CONFIRM } });
+  const saved = (await json('POST', '/api/swms', { token, body: checked({ input: saveInput([{ ...GIVEN, file }]), ...CONFIRM }) })).data.swms;
+  const copied = await json('POST', `/api/swms/${saved.id}/copy`, { token, body: checked(CONFIRM, saveInput([{ ...GIVEN, file }])) });
   assert.equal(copied.status, 201, JSON.stringify(copied.data));
   const copy = copied.data.swms;
   const lone = (await upload(token, pdf('/Title (lone)'), 'lone.pdf')).data.file;
@@ -400,14 +400,14 @@ test('files go with the SWMS: 30 days after it is deleted, and unsaved uploads a
 test('the gate refuses a download with a design unanswered, and the download prints the reference', async () => {
   const token = await business('Delta');
   const input = ready(base(SHORING, { designs: [{ id: 'shoring', what: 'Shoring design', status: '' }] }));
-  const refused = await json('POST', '/api/draft.docx', { token, body: { ...input, ...CONFIRM } });
+  const refused = await json('POST', '/api/draft.docx', { token, body: checked({ ...input, ...CONFIRM }) });
   assert.equal(refused.status, 400);
   assert.match(refused.data.message, /the designs it relies on are named and no blank is left in it\. Still to answer: Design: Shoring design/);
-  const word = await call('POST', '/api/draft.docx', { token, body: { ...ready(base(SHORING, { designs: [GIVEN] })), ...CONFIRM } });
+  const word = await call('POST', '/api/draft.docx', { token, body: checked({ ...ready(base(SHORING, { designs: [GIVEN] })), ...CONFIRM }) });
   assert.equal(word.status, 200);
   const zip = await JSZip.loadAsync(Buffer.from(await word.arrayBuffer()));
   assert.ok((await zip.file('word/document.xml').async('string')).includes(LINE));
-  const sheet = await call('POST', '/api/draft.pdf', { token, body: { ...ready(base(SCAFFOLD, { designs: [{ id: 'scaffold', what: 'Scaffold design', status: 'notIssued' }] })), ...CONFIRM } });
+  const sheet = await call('POST', '/api/draft.pdf', { token, body: checked({ ...ready(base(SCAFFOLD, { designs: [{ id: 'scaffold', what: 'Scaffold design', status: 'notIssued' }] })), ...CONFIRM }) });
   assert.equal(sheet.status, 200);
   // The questions page hears the designs as the draft would print them.
   const asked = await json('POST', '/api/draft/questions', { body: base(SHORING) });
