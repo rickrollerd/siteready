@@ -42,7 +42,8 @@ test('a grinding and saw cutting step gets a face shield over safety glasses, in
   const draft = draftOf({ ...SITE, task: CONCRETE });
   assert.equal(draft.kind, 'draft');
   assert.ok(!allWork(draft).includes('faceShield'), 'not for all work');
-  assert.ok(allWork(draft).includes('glassesClear'), 'safety glasses for all work');
+  // One pair of safety glasses for all work (messy-user test, 14 October 2026).
+  assert.equal(allWork(draft).filter((id) => /^glasses/.test(id)).length, 1, 'safety glasses for all work');
   const shield = forSteps(draft, 'faceShield');
   for (const name of ['Saw cut concrete', 'Prepare and grind floors']) {
     assert.ok(shield.includes(name), name);
@@ -68,7 +69,7 @@ test('a reo placing SWMS has only safety glasses for all work; a face shield is 
   assert.equal(draft.kind, 'draft');
   const eyes = draft.ppe.find((group) => group.area === 'Eyes and face').items.filter((item) => item.ticked && !item.steps).map((item) => item.id);
   assert.deepEqual(eyes.filter((id) => !['glassesClear', 'glassesTinted'].includes(id)), [], `all work eyes: ${eyes}`);
-  assert.ok(eyes.includes('glassesClear'));
+  assert.equal(eyes.length, 1, 'one pair of safety glasses');
   assert.deepEqual(forSteps(draft, 'faceShield'), ['Place and tie reo']);
   assert.deepEqual(wearLine(draft, 'Place and tie reo').map((line) => line.replace(/ \(.*\)$/, '')), ['Wear a face shield over safety glasses while grinding or cutting.']);
 });

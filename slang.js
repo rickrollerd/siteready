@@ -146,7 +146,11 @@ const SLANG = [
   [/\bglaze (?=(?:the|all|each|both)\b)/gi, 'fit the glass to '],
   [/\bplant(?: out)? (?=(?:the|all|each|both)\b)(?!the (?:room|deck|rooms|equipment)\b)/gi, 'planting '],
   [/\bframe (?=(?:the|all|each|both)\b)(?!the (?:door|window)s?\b)/gi, 'build framing to '],
-  [/(^|[.;:]\s*)form(?=,\s*(?:reo|reinforce)\b)/gi, '$1formwork'],
+  [/(^|[.;:]\s*)form(?: up)?(?=,\s*(?:(?:fix|place|tie|lay)\s+)?(?:reo|reinforc\w*)\b)/gi, '$1formwork'],
+  // "Form up and pour the L2 slab", "form up the deck": formwork to a slab, deck, beam, stair, column,
+  // wall or footing. Forming up penetrations, openings or recesses is left as it is.
+  [/(^|[.;:]\s*|\band\s+|\bthen\s+)form(?:ing)? up (?=(?:and|then|&) [^.]*\b(?:slabs?|decks?|beams?|stairs?|columns?|walls?|footings?)\b)/gi, '$1erect formwork '],
+  [/(^|[.;:]\s*|\band\s+|\bthen\s+)form(?:ing)? up (?=(?:the |all |each |both )?(?:[\w-]+ ){0,2}(?:slabs?|decks?|beams?|stairs?|columns?|walls?|footings?)\b)/gi, '$1erect formwork to '],
   [/(^|[.;:]\s*|\band\s+|\bthen\s+)form (?=(?:the|all|each|both)\b)(?![^.]*\bwith (?:blocks?|bricks?|masonry|pavers?|stone|sleepers?)\b)/gi, '$1erect formwork to '],
   [/(^|[.;:]\s*|\band\s+|\bthen\s+)concrete (?=(?:the|all|each|both)\b)/gi, '$1pour concrete to '],
   [/\bmark out (?=(?:the|all|each|both)\b)/gi, 'line mark '],

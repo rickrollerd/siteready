@@ -69,7 +69,8 @@ test('cutting, drilling and sealing penetrations stay in the drilling package', 
     ],
     packages: [{ package: 'Penetrations and core drilling', groups: ['coreDrill'], unmatched: [], byOthers: [] }, { package: 'Formwork', groups: ['formwork'], unmatched: [], byOthers: [] }],
   });
-  assert.deepEqual(settled.activities.map((item) => item.package), ['Penetrations and core drilling', 'Penetrations and core drilling', 'Formwork', 'Penetrations and core drilling', 'Formwork']);
+  // The formwork package is named for its work, as every reading names it (messy-user test, 14 October 2026).
+  assert.deepEqual(settled.activities.map((item) => item.package), ['Penetrations and core drilling', 'Penetrations and core drilling', 'Formwork and falsework', 'Penetrations and core drilling', 'Formwork and falsework']);
   assert.deepEqual(settled.packages.find((item) => item.package === 'Penetrations and core drilling').groups, ['coreDrill']);
 });
 
