@@ -298,7 +298,7 @@
 
   function prepareButton() {
     const count = choice.ticked.size;
-    return count === 1 ? 'Prepare this SWMS' : `Prepare these ${count} SWMS`;
+    return !count ? 'Prepare the SWMS ticked' : count === 1 ? 'Prepare this SWMS' : `Prepare these ${count} SWMS`;
   }
 
   // kept: the choice made before, when the user comes back to change it. waited: the user waited for
@@ -313,15 +313,17 @@
     const note = flags.size && window.SiteReadyHrcw ? ` ${esc(window.SiteReadyHrcw.HRCW_NOTE)}` : '';
     const clause = C().craneClause(reading.reading);
     const crane = kept ? kept.crane : craneNow();
-    const offer = C().cranageOffer(crane, clause);
     choice = {
       crane,
       slinging: kept ? kept.slinging || '' : slingingNow(),
       clause,
       answers: kept ? { ...kept.answers } : {},
-      ticked: new Set(kept ? kept.chosen : work.filter((pack) => !C().isCranage(pack.name) || offer.ticked).map((pack) => pack.name)),
+      // None is ticked to start (messy round 3: 21 of 22 were ticked and had to be unticked one by
+      // one). The user ticks what they need, or presses Tick all.
+      ticked: new Set(kept ? kept.chosen : []),
     };
-    $('scope-results').innerHTML = `${warn}<p class="meta" style="margin-top:10px">The AI found ${work.reduce((sum, pack) => sum + pack.rows.length, 0)} activities in ${work.length} work packages${duties.length ? `, and ${duties.length} ${duties.length === 1 ? 'duty' : 'duties'}` : ''}. Each ticked package becomes one SWMS. Untick any you do not need, then press the Prepare button at the bottom.${note}</p>
+    $('scope-results').innerHTML = `${warn}<p class="meta" style="margin-top:10px">The AI found ${work.reduce((sum, pack) => sum + pack.rows.length, 0)} activities in ${work.length} work packages${duties.length ? `, and ${duties.length} ${duties.length === 1 ? 'duty' : 'duties'}` : ''}. Tick each package you need a SWMS for: each one ticked becomes one SWMS. Then press the Prepare button at the bottom.${note}</p>
+      <div class="actions scope-tick-all"><button type="button" class="small secondary" data-scope-tick="all">Tick all</button><button type="button" class="small secondary" data-scope-tick="none">Untick all</button></div>
       <div class="scope-packages">${work.map((pack, index) => packageCard(pack, index)).join('')}</div>
       ${duties.length ? `<details class="scope-duties"><summary>${duties.length} ${duties.length === 1 ? 'duty' : 'duties'} in the scope: no SWMS needed</summary><ul>${duties.map((row) => `<li>${esc(row.activity)}</li>`).join('')}</ul></details>` : ''}
       ${conflicts.length ? `<details class="scope-conflicts"><summary>${conflicts.length} possible ${conflicts.length === 1 ? 'conflict' : 'conflicts'} in the scope</summary><ul>${conflicts.map((item) => `<li><strong>${esc(item.clauseA)} and ${esc(item.clauseB)}</strong> (${esc(item.confidence)} confidence): ${esc(item.why)}</li>`).join('')}</ul><button type="button" class="small secondary" id="conflict-open">Show the conflicts in full</button></details>` : ''}
@@ -388,7 +390,7 @@
   function redrawCard(work, index, focus) {
     const card = $(`scope-package-${index}`);
     card.outerHTML = packageCard(work[index], index);
-    const back = document.querySelector(`#scope-package-${index} ${focus}`);
+    const back = focus && document.querySelector(`#scope-package-${index} ${focus}`);
     if (back) back.focus();
   }
 
@@ -398,10 +400,12 @@
     if (old) old.remove();
     const html = window.SiteReadyConflicts ? window.SiteReadyConflicts.conflictDialog(conflicts) : '';
     if (!html) return;
-    document.body.insertAdjacentHTML('beforeend', html);
+    // In the page above the work packages, so it never covers the form (messy round 3).
+    const list = document.querySelector('#scope-results .scope-packages');
+    if (list) list.insertAdjacentHTML('beforebegin', html); else document.body.insertAdjacentHTML('beforeend', html);
     const dialog = $('conflict-dialog');
     if (typeof dialog.show === 'function') dialog.show(); else dialog.setAttribute('open', '');
-    $('conflict-dialog-title').focus();
+    $('conflict-dialog-title').focus({ preventScroll: true });
     dialog.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeConflicts(); });
   }
   function closeConflicts() {
@@ -431,7 +435,9 @@
     if (!chosen.length) { $('scope-choice-error').textContent = 'Tick at least one work package.'; return; }
     $('scope-choice-error').textContent = '';
     // Who runs the crane is asked on the list only where there is cranage; it then holds for every SWMS.
-    const crane = work.some((pack) => C().isCranage(pack.name)) ? choice.crane : '';
+    // Otherwise it is left unanswered, unless the scope clearly says cranes are used by others for this
+    // work (messy round 3: "A crane company" was ticked for scopes that never mention a crane).
+    const crane = (work.some((pack) => C().isCranage(pack.name)) ? choice.crane : '') || C().craneFromReading(aiReading.reading);
     const slinging = crane === 'company' ? choice.slinging || '' : '';
     const items = C().projectItems(aiReading.reading, chosen, { answers: choice.answers, crane, slinging });
     startProject(items, { readingId: aiReading.id, state: aiReading.state || '', chosen, answers: choice.answers, crane, slinging });
@@ -439,6 +445,22 @@
 
   $('scope-results').addEventListener('click', (event) => {
     if (event.target.closest('#scope-confirm')) { confirmPackages(); return; }
+    // Tick all or Untick all, in one press. The list stays open.
+    const all = event.target.closest('[data-scope-tick]');
+    if (all && choice && aiReading) {
+      const { work } = C().packagesOf(aiReading.reading);
+      choice.ticked = new Set(all.dataset.scopeTick === 'all' ? work.map((pack) => pack.name) : []);
+      work.forEach((pack, index) => {
+        if (C().isCranage(pack.name)) { redrawCard(work, index, ''); return; }
+        const box = document.querySelector(`[data-package="${index}"]`);
+        if (box) box.checked = choice.ticked.has(pack.name);
+        const card = $(`scope-package-${index}`);
+        if (card) card.classList.toggle('off', !choice.ticked.has(pack.name));
+      });
+      $('scope-choice-error').textContent = '';
+      $('scope-confirm').textContent = prepareButton();
+      return;
+    }
     const clauses = event.target.closest('[data-scope-clauses]');
     if (clauses) {
       const box = $(`scope-clauses-${clauses.dataset.scopeClauses}`);
@@ -542,8 +564,22 @@
     }
   }
 
-  function openItem(index, { toNeed = false } = {}) {
+  // The details every SWMS of the project shares, given once on the page above. Opening a SWMS to check
+  // never empties them with what it was prepared with before they were given (messy round 3, run 3: the
+  // scaffold supervisor went empty after SWMS 4 was ready).
+  const SHARED_KEYS = ['workplace', 'principalContractor', 'siteManager', 'scaffoldSupervisor', 'hospital', 'firstAider', 'musterPoint', 'worksManager', 'worksManagerPhone', 'complianceResponsible', 'reviewer', 'reviewDate', 'preparedBy'];
+  function withPageDetails(body) {
+    const now = S.payload ? S.payload() : {};
+    const out = { ...body };
+    for (const key of SHARED_KEYS) if (String(now[key] || '').trim()) out[key] = now[key];
+    return out;
+  }
+  // Answers given (not empty) only: an empty answer kept with one SWMS does not hide one given since.
+  const given = (answers) => Object.fromEntries(Object.entries(answers || {}).filter(([, value]) => typeof value === 'string' && value.trim()));
+
+  function openItem(index, { toNeed = false, toCover = false } = {}) {
     if (!project || !project.items[index]) return;
+    if (window.SiteReadyProjectGo && window.SiteReadyProjectGo.clearNotes) window.SiteReadyProjectGo.clearNotes();
     project.current = index;
     // From the one-go page or the review list, a SWMS opens to be checked (D240).
     if (project.stage) project.stage = 'check';
@@ -551,7 +587,15 @@
     showSingle(true);
     // Answers to the emergency questions given in another SWMS of the project fill the same questions here.
     const shared = (project.shared && project.shared.emergency) || {};
-    if (project.items[index].body && Object.keys(shared).length) project.items[index].body = { ...project.items[index].body, emergency: { ...shared, ...(project.items[index].body.emergency || {}) } };
+    if (project.items[index].body && Object.keys(shared).length) project.items[index].body = { ...project.items[index].body, emergency: { ...shared, ...given(project.items[index].body.emergency) } };
+    if (project.items[index].body) project.items[index].body = withPageDetails(project.items[index].body);
+    // Answers given on the one-go page since it was prepared (it is marked as needing preparing again)
+    // go with it, so checking it does not bring back the old ones.
+    const opened = project.items[index];
+    if (opened.body && opened.stale && window.SiteReadyProjectGo && window.SiteReadyProjectGo.payloadFor) {
+      const now = window.SiteReadyProjectGo.payloadFor(index);
+      opened.body = { ...opened.body, task: now.task, site: now.site, facts: { ...(opened.body.facts || {}), ...now.facts }, crane: now.crane, slinging: now.slinging, designs: now.designs, movedIn: now.movedIn };
+    }
     saveProject();
     // The last SWMS's preview goes, so it is not mistaken for this one.
     const result = document.getElementById('result');
@@ -573,7 +617,8 @@
         if (item.swmsId) S.editing = { id: item.swmsId, title: item.title };
         if (ok && project.stage === 'check' && S.prepare) {
           S.prepare({ scroll: false }).then(() => {
-            // "Go to it" goes straight to the first thing still needed (owner, D287).
+            // "Go to it" goes straight to the work with no job steps, or the first thing still needed (owner, D287).
+            if (toCover && S.goToCover && S.goToCover()) { if (S.markStage) S.markStage('draft'); return; }
             if (toNeed && S.goToFirstNeed && S.goToFirstNeed()) { if (S.markStage) S.markStage('draft'); return; }
             const bar = $('check-bar');
             if (bar && !bar.classList.contains('hidden')) bar.scrollIntoView({ block: 'start' });
@@ -667,11 +712,29 @@
   };
   // The project's other SWMS, by title, for saying which one covers work this SWMS has no steps for.
   S.projectOthers = () => (project ? project.items.filter((_item, index) => index !== project.current).map((item) => item.title) : []);
-  S.onCoverTick = (confirmed) => {
+  // Owner, D289: in a project, work named as "covered in" another SWMS of the project moves into it, and
+  // that SWMS must then give its steps. The work each SWMS has had moved into it: [{ part, from }].
+  function movedInto(index) {
+    const me = project && project.items[index];
+    if (!me) return undefined;
+    const out = [];
+    project.items.forEach((other, at) => {
+      if (at === index) return;
+      const named = (other.body && other.body.notCoveredElsewhere) || {};
+      for (const [part, title] of Object.entries(named)) if (title === me.title) out.push({ part, from: `SWMS ${at + 1} (${other.title})` });
+    });
+    return out.length ? out : undefined;
+  }
+  S.projectMovedIn = () => (project && project.stage === 'check' ? movedInto(project.current) : undefined);
+  S.onCoverTick = (confirmed, elsewhere) => {
     const item = project && project.items[project.current];
     if (!item || !item.body || $('task').value.trim() !== item.body.task.trim()) return;
-    item.body = { ...item.body, notCoveredConfirmed: confirmed };
+    const before = project.items.map((_other, at) => JSON.stringify(movedInto(at) || []));
+    item.body = { ...item.body, notCoveredConfirmed: confirmed, notCoveredElsewhere: elsewhere };
     item.status = statusOf(item);
+    // A SWMS that now has work moved into it, or moved out again, is prepared again with it.
+    const changed = project.items.map((_other, at) => at).filter((at) => at !== project.current && JSON.stringify(movedInto(at) || []) !== before[at]);
+    for (const at of changed) if (project.items[at].kind) project.items[at].stale = `Work was moved here from SWMS ${project.current + 1}: write its steps in this SWMS.`;
     saveProject();
     renderProject();
   };
@@ -718,13 +781,22 @@
     const item = project.items[project.current];
     // The task box has one sentence to a line (useTask), so spacing is not compared.
     const same = (text) => String(text || '').replace(/\s+/g, ' ').trim();
-    if (!item || same(body.task) !== same(item.task)) return;
+    // The task as given on the one-go page (goTask) counts as the same SWMS.
+    if (!item || (same(body.task) !== same(item.task) && same(body.task) !== same(item.goTask))) return;
     item.emergencyAsked = askedEmergency(draft) || item.emergencyAsked;
     item.body = keptEmergency(body, item.emergencyAsked);
     item.kind = draft.kind;
     shareEmergency(body.emergency);
-    // The one-go page shows the answers as last given here (project-go.js).
-    if (project.stage) { item.facts = { ...(body.facts || {}) }; item.goTask = body.task; }
+    // The one-go page shows the answers as last given here (project-go.js). Site answers changed while
+    // checking this SWMS become its own, so Prepare all does not put the shared ones back over them.
+    if (project.stage) {
+      item.facts = { ...(body.facts || {}) };
+      item.goTask = body.task;
+      const sharedSite = (project.shared && project.shared.site) || {};
+      const site = body.site && typeof body.site === 'object' ? body.site : null;
+      const same = (a, b) => ['liveServices', 'publicInterface', 'otherTrades', 'ground', 'access'].every((id) => String((a || {})[id] || '').trim() === String((b || {})[id] || '').trim());
+      if (project.stage === 'check' && site && !same(site, item.siteOwn || sharedSite)) item.siteOwn = { ...site };
+    }
     item.notCovered = draft.notCovered || [];
     item.notCoveredWritten = draft.notCoveredWritten || [];
     item.notCoveredMain = draft.notCoveredMain || [];
@@ -757,7 +829,7 @@
     if (event.target.closest('#conflict-open')) { showConflicts(aiReading.reading.conflicts || []); return; }
     if (event.target.closest('#project-change')) { changeChoice(); return; }
     const open = event.target.closest('[data-project-open]');
-    if (open) { openItem(Number(open.dataset.projectOpen), { toNeed: open.dataset.projectNeed !== undefined }); return; }
+    if (open) { openItem(Number(open.dataset.projectOpen), { toNeed: open.dataset.projectNeed !== undefined, toCover: open.dataset.projectCover !== undefined }); return; }
     if (event.target.closest('[data-project-review]')) { backToReview(); return; }
     if (event.target.closest('#project-close, #project-fresh')) {
       closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.');
@@ -779,7 +851,8 @@
         // The SWMS open now, if it was saved or downloaded on its own, is that saved SWMS.
         const open = project.items[project.current];
         if (open && !open.swmsId && S.editing && S.editing.id) open.swmsId = S.editing.id;
-        const ready = project.items.filter((item) => item.status === 'ready' && item.body);
+        // One that needs preparing again after an answer changed waits until it is (messy round 3).
+        const ready = project.items.filter((item) => item.status === 'ready' && item.body && !item.stale);
         const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsNumber: project.items.indexOf(item) + 1, swmsId: item.swmsId || undefined }));
         const site = S.siteId ? S.siteId() : '';
         // Word and PDF of each, in one zip (D240).
@@ -831,6 +904,7 @@
     open: openItem,
     statusOf,
     useTask,
+    movedInto: (index) => movedInto(index),
     close: () => closeProject('Close this project and start fresh? SWMS you have not downloaded or saved will need preparing again.'),
     changeChoice: () => changeChoice(),
   };

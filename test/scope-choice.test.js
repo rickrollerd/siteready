@@ -244,14 +244,20 @@ test('the work packages are chosen once and go straight to the SWMS to prepare, 
   assert.doesNotMatch(list, /Penetrations and core drilling/);
   // The scope review question is on the list now.
   assert.match(list, /Scope review: install cast-in conduits on the deck before the pour by others/);
-  assert.match(list, /Prepare these 4 SWMS/);
+  // None is ticked to start, with Tick all and Untick all (messy round 3: 21 of 22 were ticked).
+  assert.match(list, /Prepare the SWMS ticked/);
+  assert.match(list, /data-scope-tick="all">Tick all<\/button><button type="button" class="small secondary" data-scope-tick="none">Untick all/);
+  assert.doesNotMatch(list, /data-package="\d+" checked/);
   assert.doesNotMatch(list, /Add this task|Prepare a SWMS for every task/);
-  // Untick reinforcement and answer Yes to the cast-in conduits.
-  fire(p, 'change', input(p, { checked: false, dataset: { package: '1' } }));
+  // Tick formwork and edge protection, and answer Yes to the cast-in conduits.
+  fire(p, 'change', input(p, { checked: true, dataset: { package: '0' } }));
+  fire(p, 'change', input(p, { checked: true, dataset: { package: '2' } }));
   fire(p, 'change', input(p, { type: 'radio', name: 'others-0-0', value: 'yes', dataset: { others: '0', step: 'Install cast-in conduits on the deck before the pour' } }));
-  assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare these 3 SWMS');
+  assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare these 2 SWMS');
   // A crane company runs the crane; the crane company's dogman slings (D258): both go to every SWMS.
+  // The scope gives us the cranage, so its SWMS is chosen with the answer.
   fire(p, 'change', input(p, { type: 'radio', name: 'scope-crane', value: 'company' }));
+  assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare these 3 SWMS');
   fire(p, 'change', input(p, { type: 'radio', name: 'scope-slinging', value: 'crane' }));
   fire(p, 'click', p.document.getElementById('scope-confirm'));
   await settle(40);
@@ -291,14 +297,15 @@ test('with a crane company and no cranage clause, cranage is not chosen but can 
   // Unanswered, it asks for the answer, and says nothing was answered.
   assert.match(list, /Answer the crane question above\. Tick the box if you need a cranage SWMS\./);
   assert.doesNotMatch(list, /You answered/);
-  assert.match(list, /Prepare these 3 SWMS/);
+  assert.match(list, /Prepare the SWMS ticked/);
   // Answered "A crane company", the note says so (public/scope-choice.js, and the browser test).
   assert.match(cranageNote('company'), /You answered that a crane company operates the crane\. The crane company normally provides the lift plan and its own SWMS for the lifts/);
+  fire(p, 'change', input(p, { checked: true, dataset: { package: '0' } }));
   fire(p, 'change', input(p, { type: 'radio', name: 'scope-crane', value: 'company' }));
-  assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare these 3 SWMS');
+  assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare this SWMS');
   // Our company runs the crane: the cranage SWMS is chosen, and the answer goes to every SWMS.
   fire(p, 'change', input(p, { type: 'radio', name: 'scope-crane', value: 'own' }));
-  assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare these 4 SWMS');
+  assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare these 2 SWMS');
   fire(p, 'click', p.document.getElementById('scope-confirm'));
   await settle(40);
   const project = projectOf(p);

@@ -194,10 +194,14 @@ const KINDS = [
   // Designs asked for only at their question (D243, public/design-fill.js): no library line names
   // them, so they print only once given there.
   { id: 'loadDrawing', label: 'Structural engineer\'s drawing for the load limits', lines: [] },
-  { id: 'excavation', label: 'Geotechnical design for the excavation', lines: [] },
+  // holdSteps: the steps that do the work the design covers, which carry its hold point while it is not
+  // issued even where no line in them names it (messy round 3: the geotechnical design was tied to no
+  // step, and the core hole approval held "Plan core holes" but not the coring itself).
+  { id: 'excavation', label: 'Geotechnical design for the excavation', lines: [], holdSteps: /^(Excavate|Dig the trench|Work in the trench|Work inside a deep excavation|Bulk excavate and load trucks|Excavate pile caps, lift pits and trenches|Excavate in front of the retention wall)$/ },
   {
     id: 'cutApproval', label: 'Engineer\'s approval for the cuts and core holes',
     lines: [/^Each core hole has the structural engineer's written approval\b/, /^Every opening has the structural engineer's written approval before cutting\b/],
+    holdSteps: /^(Plan core holes|Core drill through the slab or wall|Saw cut concrete|Cut an opening in a load-bearing wall)$/,
   },
 ];
 const KIND_BY_ID = new Map(KINDS.map((kind) => [kind.id, kind]));
@@ -325,6 +329,22 @@ function withDesigns(draft, input) {
     // The lines added here, so the page shows them as coming from the designs, not as controls to change.
     return { ...step, controls: [...holds, ...controls], designLines: [...holds, ...controls.filter((line) => !step.controls.includes(line))] };
   });
+  // A design tied to the steps that do its work (holdSteps): those steps are listed against it, and
+  // carry its hold point while it is not issued.
+  for (const row of rows) {
+    const kind = KIND_BY_ID.get(row.id);
+    if (!kind || !kind.holdSteps || row.status === 'notNeeded') continue;
+    const doing = jobSteps.filter((step) => !step.own && kind.holdSteps.test(step.step || ''));
+    if (!doing.length) continue;
+    row.steps = [...new Set([...row.steps, ...doing.map((step) => step.step)])];
+    if (row.status !== 'notIssued' || designNeed(row) !== '') continue;
+    const hold = holdLine(row);
+    for (const step of doing) {
+      const at = jobSteps.indexOf(step);
+      if (step.controls.includes(hold)) continue;
+      jobSteps[at] = { ...step, controls: [hold, ...step.controls], designLines: [hold, ...(step.designLines || [])] };
+    }
+  }
   return {
     ...draft,
     jobSteps,

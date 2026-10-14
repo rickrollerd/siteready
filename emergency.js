@@ -44,7 +44,7 @@ const QUESTIONS = [
   { id: 'trenchKit', kit: true, category: 'trench', ask: 'What rescue equipment is on site, and where is it kept?', hint: 'For example: ladder, harness and line at the trench box; first aid kit in the site ute.', short: 'Rescue equipment', source: 'Excavation work Code s 3.8' },
   { id: 'confinedRescue', rescue: true, category: 'confined', ask: 'Who is the stand-by person, and how is a person rescued from outside the space?', hint: 'The stand-by person stays outside and never goes in to rescue. Name the role, not the person.', short: 'Stand-by person and rescue', source: 'Confined spaces Code s 4.6, s 5; WHS Reg s 74' },
   { id: 'confinedKit', kit: true, category: 'confined', ask: 'What rescue equipment is kept at the entry?', hint: 'For example: tripod and winch, harness and lifeline, gas detector.', short: 'Rescue equipment at the entry', source: 'Confined spaces Code s 4.6, s 5' },
-  { id: 'plantStop', category: 'plant', ask: 'How is the plant stopped in an emergency, and by whom?', hint: 'Say where its emergency stop or key is, and which role stops it.', short: 'Stopped by', source: 'Managing risks of plant Code s 1.4, s 4.3; WHS Reg s 211' },
+  { id: 'plantStop', stop: true, category: 'plant', ask: 'How is the plant stopped in an emergency, and by whom?', hint: 'Say where its emergency stop or key is, and which role stops it.', short: 'Stopped by', source: 'Managing risks of plant Code s 1.4, s 4.3; WHS Reg s 211' },
 ];
 
 // Standard answers for each question (D259, owner, 13 October 2026): roles, not people, as "it could be

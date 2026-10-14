@@ -34,6 +34,9 @@ const ANSWERED = {
   firstAider: 'Jo Smith',
   musterPoint: 'Front gate on Smith Street',
   scaffoldSupervisor: 'Pat Doyle, Doyle Scaffolding',
+  // Needed before download (D289).
+  worksManager: 'Sam Lee',
+  worksManagerPhone: '0412 345 678',
   site: { liveServices: 'None', publicInterface: 'None', otherTrades: 'None', ground: 'None', access: 'Through the main site gate.' },
 };
 

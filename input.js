@@ -274,6 +274,8 @@ function draftBody(body) {
     scopeTask: body.scopeTask && typeof body.scopeTask === 'object' && !Array.isArray(body.scopeTask)
       ? { plain: textField(body.scopeTask.plain, 5000), full: textField(body.scopeTask.full, 12000), notes: textField(body.scopeTask.notes, 6000) }
       : undefined,
+    // Work another SWMS of the project named this one as covering (D289): [{ part, from }].
+    movedIn: Array.isArray(body.movedIn) ? body.movedIn.filter((item) => item && typeof item === 'object' && typeof item.part === 'string').slice(0, 30).map((item) => ({ part: textField(item.part, 400), from: textField(item.from, 300) })).filter((item) => item.part) : undefined,
     // The SWMS the user named for each part another SWMS covers ({ part: SWMS name }), kept with the record.
     notCoveredElsewhere: elsewhere(body.notCoveredElsewhere),
     stepOrder: Array.isArray(body.stepOrder) ? body.stepOrder.filter((name) => typeof name === 'string').slice(0, 150).map((name) => textField(name, 300)) : undefined,

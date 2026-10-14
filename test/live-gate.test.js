@@ -179,7 +179,7 @@ test('on the page, the list and its count drop each item as it is answered, and 
 
   // Everything answered: the list goes and the buttons work, still with no new draft.
   type(p, 'principal', 'Corbel Build Pty Ltd');
-  for (const [id, value] of [['workplace', '14 Ferndale Street, Herston QLD 4006'], ['compliance-responsible', 'Larry Lead, supervisor'], ['reviewer', 'Wendy Works'], ['first-aider', 'Fiona Aid'], ['muster-point', 'Gate 2 car park']]) type(p, id, value);
+  for (const [id, value] of [['workplace', '14 Ferndale Street, Herston QLD 4006'], ['compliance-responsible', 'Larry Lead, supervisor'], ['reviewer', 'Wendy Works'], ['first-aider', 'Fiona Aid'], ['muster-point', 'Gate 2 car park'], ['works-manager', 'Wendy Works'], ['works-manager-phone', '0412 345 678']]) type(p, id, value);
   for (const gap of draft.gate.filter((item) => item.kind === 'emergency')) type(p, gap.field, `${gap.label} answer for this site.`, { selector: '[data-emergency]', dataset: { emergency: gap.id.slice(10) } });
   for (const gap of draft.gate.filter((item) => item.kind === 'line')) {
     for (let n = 0; n < gap.parts.length - 1; n += 1) type(p, `fill-${gap.id}-${n}`, 'Electrical supervisor', { selector: '.blank-input', dataset: { fillKey: gap.key, fillN: String(n) } });

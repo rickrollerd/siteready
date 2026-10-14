@@ -27,11 +27,20 @@
   const askSeq = new Map();
   const askTimers = new Map();
 
-  // The details above the page every SWMS shares, and what the download needs of them (download-gate.js).
-  const PEOPLE = [
-    ['workplace', 'Job address'], ['principal', 'Principal contractor'], ['compliance-responsible', 'Person who makes sure the SWMS is followed'],
-    ['reviewer', 'Person who reviews the controls'], ['first-aider', 'First aider'], ['muster-point', 'Muster point'],
-  ];
+  // The details above the page every SWMS shares, and what the download needs of them (download-gate.js,
+  // public/gate-rules.js PEOPLE_FIELDS): the works manager and contact phone too (D289). The scaffold
+  // supervisor is asked only where a SWMS involves a scaffold.
+  const PEOPLE = gate() && gate().PEOPLE_FIELDS
+    ? gate().PEOPLE_FIELDS.filter((item) => !item.scaffold).map((item) => [item.field, item.label])
+    : [['workplace', 'Job address'], ['principal', 'Principal contractor'], ['works-manager', 'Works manager'], ['works-manager-phone', 'Works manager phone'], ['compliance-responsible', 'Person who makes sure the SWMS is followed'],
+      ['reviewer', 'Person who reviews the controls'], ['first-aider', 'First aider'], ['muster-point', 'Muster point']];
+  const SCAFFOLD = ['scaffold-supervisor', 'Scaffold supervisor'];
+  // How a person's box is judged, as the download gate judges it, so its reason shows at the box.
+  const peopleRule = (field) => {
+    const rules = gate();
+    const item = rules && rules.PEOPLE_FIELDS ? rules.PEOPLE_FIELDS.find((entry) => entry.field === field) : null;
+    return item ? rules.fieldRule(item) : null;
+  };
   const SITE = [
     ['liveServices', 'Live services', 'Power, gas, water, data or other live services in or near the work, including overhead power lines. Write None if there are none.'],
     ['publicInterface', 'Public interface', 'Where the public, traffic or neighbours are close to the work. Write None if they are not.'],
@@ -57,16 +66,27 @@
   };
   const save = () => hooks.save();
 
-  // The site answers for every SWMS start from the scope's conditions (D252), for the user to check.
+  // The site answers for every SWMS start empty. The scope's conditions (D252) are offered under each
+  // box, cleaned and each once, for the user to accept (messy round 3: fragments and run-on repeats
+  // were filled in as finished answers and printed in every SWMS).
   function sharedSite() {
     const site = shared();
     if (!site.site) {
-      const start = {};
-      for (const item of project.items) for (const [id, text] of Object.entries(item.site || {})) start[id] = start[id] ? `${start[id]} ${text}` : text;
-      site.site = start;
-      site.siteFromScope = Object.keys(start);
+      site.site = {};
+      site.siteSuggest = siteSuggestFrom(project.items);
     }
+    if (!site.siteSuggest) site.siteSuggest = siteSuggestFrom(project.items);
     return site.site;
+  }
+  function siteSuggestFrom(items) {
+    const T = window.SiteReadyScopeTask;
+    const out = {};
+    for (const [id] of SITE) {
+      const texts = items.map((item) => (item.site || {})[id]).filter(Boolean);
+      const list = T && T.siteSuggestions ? T.siteSuggestions(texts) : texts;
+      if (list.length) out[id] = list;
+    }
+    return out;
   }
 
   // The page's own details (the job address, the people, the state), as the SWMS form sends them.
@@ -95,8 +115,10 @@
     const emergency = shared().emergency;
     return {
       ...pageBase(),
-      crane: shared().crane || item.crane || 'company',
-      slinging: (shared().crane || item.crane || 'company') === 'company' ? slingingNow() || item.slinging || '' : '',
+      // Unanswered until the user answers, or the scope clearly says (messy round 3); Prepare all
+      // answers "No crane" where no task names one.
+      crane: shared().crane || item.crane || '',
+      slinging: (shared().crane || item.crane || '') === 'company' ? slingingNow() || item.slinging || '' : '',
       task: (item.goTask !== undefined ? item.goTask : item.task) || '',
       scopeTask: item.scopeTask || undefined,
       trade: item.trade || '',
@@ -109,6 +131,8 @@
       designs: designs.length ? designs.map((row) => ({ ...row })) : undefined,
       emergency: Object.keys(emergency).length ? { ...emergency } : undefined,
       substancesNotUsed: notUsedOf(item).length ? notUsedOf(item) : undefined,
+      // Work another SWMS of the project named this one as covering (D289).
+      movedIn: hooks.movedInto ? hooks.movedInto(index) : undefined,
     };
   }
 
@@ -156,7 +180,7 @@
     const item = project.items[index];
     if (!item) return;
     const fall = item.fallRisk || item.goFall;
-    if (!fall) { asked.set(index, { needsFall: true }); drawItem(index); return; }
+    if (!fall) { asked.set(index, { needsFall: true }); drawItem(index); coverEarly(index); return; }
     // As the page opens, the states are still loading: the questions are asked once they are in.
     if (!document.querySelector('input[name="state"]:checked')) { setTimeout(() => askItem(index), 400); return; }
     const mine = (askSeq.get(index) || 0) + 1;
@@ -174,6 +198,21 @@
       else notesFor(index);
     } catch {
       if (askSeq.get(index) === mine && !asked.get(index)) { asked.set(index, { error: 'No signal. The questions show once SiteReady can be reached.' }); drawItem(index); }
+    }
+  }
+  // Before the fall question is answered, the work with no job steps is still found and listed: it
+  // does not rest on the fall answer (messy round 3: found only by opening each SWMS).
+  async function coverEarly(index) {
+    if (!document.querySelector('input[name="state"]:checked')) { setTimeout(() => coverEarly(index), 400); return; }
+    try {
+      const response = await fetch(api('/api/draft/questions'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payloadFor(index), fallRisk: 'no', residential: payloadFor(index).residential || 'no' }) });
+      const data = await response.json();
+      const now = asked.get(index);
+      if (!response.ok || !now || !now.needsFall) return;
+      asked.set(index, { ...now, notCovered: data.notCovered || [], notCoveredLeft: data.notCoveredLeft || [], notCoveredMain: data.notCoveredMain || [] });
+      drawItem(index);
+    } catch {
+      // Listed once the fall question is answered.
     }
   }
   function askSoon(index) {
@@ -197,7 +236,14 @@
   }
 
   function siteBoxes(prefix, values, attr) {
-    return SITE.map(([id, label, hint]) => `<div class="field"><label for="${prefix}-${id}">${esc(label)}<span class="hint">${esc(hint)}</span></label><textarea id="${prefix}-${id}" ${attr} data-site-id="${id}">${esc(values[id] || '')}</textarea></div>`).join('');
+    return SITE.map(([id, label, hint]) => `<div class="field"><label for="${prefix}-${id}">${esc(label)}<span class="hint">${esc(hint)}</span></label>${prefix === 'go-site' ? suggestHtml(id, values[id] || '') : ''}<textarea id="${prefix}-${id}" ${attr} data-site-id="${id}">${esc(values[id] || '')}</textarea></div>`).join('');
+  }
+  // What the scope says for a site question, offered to accept: each press puts that line in the box.
+  function suggestHtml(id, value) {
+    const list = (shared().siteSuggest || {})[id] || [];
+    if (!list.length) return '';
+    const has = (line) => String(value).toLowerCase().includes(line.replace(/\.$/, '').toLowerCase());
+    return `<div class="picks go-suggest"><span class="picks-label">From the scope. Press one to use it, then check it for this site:</span>${list.map((line, n) => `<button type="button" class="pick-button" data-go-suggest="${id}" data-n="${n}" aria-pressed="${has(line)}">${esc(line)}</button>`).join('')}</div>`;
   }
 
   // A project brought back after a reload or the phone's Back button says so, until the user carries on.
@@ -211,6 +257,10 @@
     hooks = given;
     if (project.stage === 'review') {
       panel.innerHTML = reviewHtml().replace('<p class="error" id="project-error"></p>', `${backNote()}<p class="error" id="project-error"></p>`);
+      // The scaffold supervisor's box shows where a SWMS involves a scaffold, so it can be given once.
+      const scaffold = $('scaffold-supervisor-field');
+      if (scaffold && scaffoldNeeded()) scaffold.classList.remove('hidden');
+      sharedNotes();
       // Details given since the SWMS were prepared (brought back after a reload) are put into them.
       const now = JSON.stringify(pageBase());
       // So are emergency answers given in another SWMS of the project (D239: filled across).
@@ -221,19 +271,22 @@
       return;
     }
     const site = sharedSite();
-    const crane = shared().crane || (project.items.find((item) => item.crane) || {}).crane || 'company';
+    // Unanswered unless answered on the list of work packages, or the scope clearly says (messy round 3).
+    const crane = shared().crane || (project.items.find((item) => item.crane) || {}).crane || '';
     shared().crane = crane;
     const n = project.items.length;
     panel.innerHTML = `<div class="project-head"><h2>Project SWMS</h2><button type="button" class="small secondary" id="project-fresh">Start fresh</button></div>
       <p class="lede">${n} SWMS from the scope. Answer the questions once on this page, then press <strong>Prepare all ${n} SWMS</strong>. You then check each one before they download together.</p>
       ${project.from ? '<div class="actions" style="margin-top:0"><button type="button" class="small secondary" id="project-change">Change the SWMS chosen</button></div>' : ''}
       ${backNote()}<p class="error" id="project-error"></p>
+      <div id="go-kept-box">${keptHtml()}</div>
       <section class="go-block">
         <h3>1. Site details, for every SWMS</h3>
         ${peopleBlock()}
-        <fieldset class="field choice"><legend>Is a crane used, and who operates it?</legend>${CRANE.map(([value, label]) => `<label><input type="radio" name="go-crane" value="${value}"${crane === value ? ' checked' : ''}> ${label}</label>`).join(' ')}</fieldset>
+        ${residentialHtml()}
+        <fieldset class="field choice" id="go-crane"><legend>Is a crane used, and who operates it?</legend>${CRANE.map(([value, label]) => `<label><input type="radio" name="go-crane" value="${value}"${crane === value ? ' checked' : ''}> ${label}</label>`).join(' ')}<p class="error" id="go-crane-error" role="alert"></p></fieldset>
         <fieldset class="field choice" id="go-slinging"${crane === 'company' ? '' : ' hidden'}><legend>Who slings the loads and directs the crane?</legend>${SLINGING.map(([value, label]) => `<label><input type="radio" name="go-slinging" value="${value}"${slingingNow() === value ? ' checked' : ''}> ${label}</label>`).join(' ')}<p class="error" id="go-slinging-error" role="alert"></p></fieldset>
-        <p class="meta">The site questions below are answered once for every SWMS. ${(shared().siteFromScope || []).length ? 'Some are filled from the scope\'s conditions: check they are right for this site. ' : ''}A SWMS that differs can have its own in its section.</p>
+        <p class="meta">The site questions below are answered once for every SWMS. ${(shared().siteFromScope || []).length ? 'Some are filled from the scope\'s conditions: check they are right for this site. ' : Object.keys(shared().siteSuggest || {}).length ? 'Where the scope names a condition, it is offered under the box: press it to use it, and check it is right for this site. ' : ''}A SWMS that differs can have its own in its section.</p>
         ${siteBoxes('go-site', site, 'data-go-shared-site')}
       </section>
       <section class="go-block">
@@ -241,10 +294,12 @@
         <p class="meta">An answer that suits more than one SWMS is filled across, marked so, and can be changed in each. A design given once is used wherever the same design applies.</p>
         ${project.items.map((item, index) => `<details class="go-item" id="go-item-${index}" open><summary><strong>SWMS ${index + 1} of ${n}: ${esc(item.title)}</strong></summary><div class="go-body" id="go-body-${index}">${itemBody(index)}</div></details>`).join('')}
       </section>
+      <div id="go-cover-sum">${coverSumHtml()}</div>
       <div class="actions go-prepare"><button type="button" id="go-prepare">Prepare all ${n} SWMS</button></div>
-      <p class="meta" id="go-status" role="status"></p>
+      <div class="meta" id="go-status" role="status"></div>
       <div class="actions"><button type="button" class="small secondary" id="project-close">Close project</button></div>`;
     project.items.forEach((_item, index) => notesFor(index));
+    sharedNotes();
     if (!project.items.every((_item, index) => asked.has(index))) askAll();
   }
 
@@ -253,6 +308,7 @@
     if (!body) return;
     body.innerHTML = itemBody(index);
     notesFor(index);
+    drawCoverSum();
   }
 
   function itemBody(index) {
@@ -262,13 +318,14 @@
     const parts = [`<div class="field"><label for="go-task-${index}">Task<span class="hint">A plain list of the work, as it prints on the SWMS. Change it if it is not right.</span></label><textarea id="go-task-${index}" data-go-task="${index}">${esc(task)}</textarea></div>`];
     if (!item.fallRisk) {
       const from = item.fallFrom;
-      parts.push(`<fieldset class="field choice"><legend>Could a person fall more than 2 metres during this work?</legend>${['yes', 'no'].map((value) => `<label><input type="radio" name="go-fall-${index}" data-go-fall="${index}" value="${value}"${item.goFall === value ? ' checked' : ''}> ${value === 'yes' ? 'Yes' : 'No'}</label>`).join(' ')}${from !== undefined ? `<p class="meta go-across">Filled from SWMS ${from + 1}. Change it here if this SWMS differs.</p>` : ''}</fieldset>`);
+      parts.push(`<fieldset class="field choice"><legend>Could a person fall more than 2 metres during this work?</legend>${['yes', 'no'].map((value) => `<label><input type="radio" name="go-fall-${index}" data-go-fall="${index}" value="${value}"${item.goFall === value ? ' checked' : ''}> ${value === 'yes' ? 'Yes' : 'No'}</label>`).join(' ')}${from !== undefined ? `<p class="meta go-across">Filled from SWMS ${from + 1}. Change it here if this SWMS differs.</p>` : item.fallHint && !item.goFall ? `<p class="meta">Not filled from another SWMS: this SWMS's own work suggests ${item.fallHint === 'yes' ? 'work at height' : 'no work at height'}. Answer it for this SWMS.</p>` : ''}</fieldset>`);
     }
     if (!got) parts.push('<p class="meta">Finding the questions for this SWMS...</p>');
-    else if (got.needsFall) parts.push('<p class="note">Answer the fall question to see this SWMS\'s questions.</p>');
+    else if (got.needsFall) parts.push('<p class="note">Answer the fall question to see this SWMS\'s questions.</p>', coverHtml(index));
     else if (got.error) parts.push(`<p class="error">${esc(got.error)}</p>`);
     else {
       if (got.standDown) parts.push(`<p class="warning">${esc(got.standDown.message)}</p>`);
+      parts.push(coverHtml(index));
       const required = got.required || [];
       parts.push(required.length ? required.map((question) => questionHtml(index, question)).join('') : '<p class="meta">No further question for this SWMS.</p>');
       const found = (got.designs || []).filter((row) => row.needed && !required.some((question) => (questionDesign(question.id) || {}).id === row.id));
@@ -324,7 +381,9 @@
       if (!box) continue;
       const across = $(`${id}-across`);
       const from = (item.filledFrom || {})[question.id];
-      if (across) { across.hidden = from === undefined; across.textContent = from === undefined ? '' : `Filled from SWMS ${from + 1}. Change it here if this SWMS differs.`; }
+      // Filled across, marked, and easy to change or clear for this SWMS alone (messy round 3).
+      const acrossHtml = from === undefined ? '' : `Filled from SWMS ${from + 1}. Change it here if this SWMS differs, or <button type="button" class="link" data-go-across-clear="${index}" data-q="${esc(question.id)}">clear it for this SWMS</button>.`;
+      if (across) { across.hidden = from === undefined; if (across.innerHTML !== acrossHtml) across.innerHTML = acrossHtml; }
       const note = $(`${id}-note`);
       const blanks = $(`${id}-blanks`);
       const warning = fill() ? fill().blankWarning(box.value) : '';
@@ -338,6 +397,159 @@
       if (S.drawBlankForm) S.drawBlankForm(box);
     }
   }
+
+  // The Northern Territory asks whether the work is residential (the fall height rests on it): asked
+  // here for every SWMS, as the SWMS form asks it, which the one-go page hides (messy round 3).
+  const residentialAsked = () => { const question = $('residential-question'); const legend = $('residential-legend'); return Boolean(question && question.classList && !question.classList.contains('hidden') && legend && String(legend.textContent || '').trim()); };
+  const residentialNow = () => (document.querySelector('input[name="residential"]:checked') || {}).value || '';
+  function residentialHtml() {
+    if (!residentialAsked()) return '';
+    const legend = $('residential-legend').textContent;
+    const now = residentialNow();
+    return `<fieldset class="field choice" id="go-residential"><legend>${esc(legend)}</legend>${[['yes', 'Yes'], ['no', 'No']].map(([value, label]) => `<label><input type="radio" name="go-residential" value="${value}"${now === value ? ' checked' : ''}> ${label}</label>`).join(' ')}<p class="error" id="go-residential-error" role="alert"></p></fieldset>`;
+  }
+
+  // ---- Work with no job steps, named before Prepare all (messy round 3) ----
+
+  // The work in a SWMS SiteReady has no job steps for and not yet dealt with: as the server found it
+  // for the questions (before Prepare all), or from the prepared draft.
+  function coverLeftOf(index) {
+    const item = project.items[index];
+    if (item.kind === 'draft' && Array.isArray(item.notCovered)) {
+      const written = new Set(item.notCoveredWritten || []);
+      const main = new Set(item.notCoveredMain || []);
+      const named = new Set((item.body && item.body.notCoveredConfirmed) || []);
+      return item.notCovered.filter((part) => !written.has(part) && (main.has(part) || !named.has(part)));
+    }
+    const got = asked.get(index);
+    return got && Array.isArray(got.notCoveredLeft) ? got.notCoveredLeft : [];
+  }
+  const coverMainOf = (index) => {
+    const item = project.items[index];
+    const got = asked.get(index) || {};
+    return new Set(item.kind === 'draft' ? (item.notCoveredMain || []) : (got.notCoveredMain || []));
+  };
+  function coverHtml(index) {
+    const left = coverLeftOf(index);
+    if (!left.length) return '';
+    const main = coverMainOf(index);
+    const moved = ((hooks.movedInto && hooks.movedInto(index)) || []).filter((entry) => left.includes(entry.part));
+    const all = left.every((part) => main.has(part));
+    return `<div class="warning go-cover" id="go-cover-${index}"><p><strong>SiteReady has no job steps for:</strong> ${esc(left.join('; '))}.</p>
+      ${moved.length ? `<p>${moved.map((entry) => `"${esc(entry.part)}" was moved here from ${esc(entry.from)}`).join('; ')}: write its steps in this SWMS.</p>` : ''}
+      <p class="meta">${all ? 'Write your own step for each' : 'Write your own step for each, or say which SWMS of this project covers it'}, when you check this SWMS after Prepare all. A step of a word or two is not enough: say what is done, the hazard and how it is controlled.</p></div>`;
+  }
+  function coverSumHtml() {
+    if (!project) return '';
+    const rows = project.items.map((item, index) => ({ item, index, left: coverLeftOf(index) })).filter((row) => row.left.length);
+    if (!rows.length) return '';
+    return `<div class="note go-cover-sum"><p><strong>Work SiteReady has no job steps for, in ${rows.length === 1 ? 'one SWMS' : `${rows.length} SWMS`}.</strong> You write a step for each when you check that SWMS, or say which SWMS covers it:</p>
+      <ul>${rows.map((row) => `<li>SWMS ${row.index + 1} (${esc(row.item.title)}): ${esc(row.left.join('; '))}. <button type="button" class="link" data-go-cover="${row.index}">Go to it</button></li>`).join('')}</ul></div>`;
+  }
+  function drawCoverSum() {
+    const box = $('go-cover-sum');
+    if (box && project && project.stage === 'questions') { const html = coverSumHtml(); if (box.innerHTML !== html) box.innerHTML = html; }
+  }
+
+  // ---- The reason at each shared box (messy round 3: a refused answer showed no reason at its field) ----
+
+  const scaffoldNeeded = () => project.items.some((item) => (item.needs || []).includes(SCAFFOLD[1]));
+  function setNote(el, id, text) {
+    let note = $(id);
+    if (!note && text) {
+      note = document.createElement('p');
+      note.id = id;
+      note.className = 'gate-need go-need';
+      note.setAttribute('role', 'status');
+      const holder = (el.closest && el.closest('.field')) || el.parentElement;
+      if (!holder) return;
+      holder.appendChild(note);
+    }
+    if (note) { if (note.textContent !== text) note.textContent = text; note.hidden = !text; }
+    if (el.classList) el.classList.toggle('answer-thin', Boolean(text));
+  }
+  // Each person's box above, and each site question for every SWMS: why its answer is refused, as the
+  // download check says it, once something is typed or Prepare all has been pressed.
+  function sharedNotes() {
+    const rules = gate();
+    if (!rules || !rules.answerNeed || !project || project.stage === 'check') return;
+    const tried = Boolean(project.tried);
+    const people = [...PEOPLE, ...(scaffoldNeeded() ? [SCAFFOLD] : [])];
+    for (const [field] of people) {
+      const el = $(field);
+      const rule = peopleRule(field);
+      if (!el || !rule) continue;
+      const value = String(el.value || '').trim();
+      const need = value || tried ? rules.answerNeed(rule, value) : '';
+      setNote(el, `go-need-${field}`, need ? `Needed before download: ${need}` : '');
+    }
+    if (project.stage !== 'questions' || !rules.SITE_NEED) return;
+    const site = sharedSite();
+    for (const [id, label] of SITE) {
+      const el = $(`go-site-${id}`);
+      if (!el) continue;
+      const value = String(site[id] || '').trim();
+      const need = value || tried ? rules.answerNeed({ ask: rules.SITE_NEED[id], name: label, none: rules.SITE_NONE.includes(id) }, value) : '';
+      setNote(el, `go-need-go-site-${id}`, need ? `Needed before download: ${need}` : '');
+    }
+  }
+  function clearNotes() {
+    document.querySelectorAll('.go-need').forEach((note) => { note.hidden = true; });
+  }
+
+  // ---- Prepared SWMS kept when an answer changes (messy round 3: the list vanished with no word) ----
+
+  // A SWMS prepared before a shared answer it uses changed needs preparing again: it stays on the list,
+  // marked, and does not download until it is prepared again.
+  function markStale(indexes, why) {
+    let changed = false;
+    for (const index of indexes) {
+      const item = project.items[index];
+      if (!item || !item.kind || item.stale) continue;
+      item.stale = why || 'An answer it uses has changed.';
+      changed = true;
+    }
+    if (changed) { save(); drawKept(); }
+  }
+  const staleItems = () => project.items.map((item, index) => ({ item, index })).filter((entry) => entry.item.stale);
+  const prepared = () => project.items.filter((item) => item.kind);
+  function keptHtml() {
+    if (!project || project.stage !== 'questions') return '';
+    const kept = prepared();
+    if (!kept.length) return '';
+    const stale = staleItems();
+    return `<div class="note go-kept" id="go-kept" role="status"><p><strong>Your ${kept.length === 1 ? 'prepared SWMS is' : `${kept.length} prepared SWMS are`} kept.</strong> ${stale.length
+      ? `You changed an answer ${stale.length === 1 ? 'one of them uses, so it needs' : `${stale.length} of them use, so they need`} preparing again: ${esc(stale.map((entry) => `SWMS ${entry.index + 1} (${entry.item.title})`).join('; '))}.`
+      : 'Change what you need here, then go back to the list.'}</p>
+      <div class="actions"><button type="button" class="small" id="go-to-review">Back to the list of prepared SWMS</button>${stale.length ? `<button type="button" class="small secondary" id="go-prepare-stale">Prepare ${stale.length === 1 ? 'it' : 'them'} again</button>` : ''}</div></div>`;
+  }
+  function drawKept() {
+    const box = $('go-kept-box');
+    if (box) { const html = keptHtml(); if (box.innerHTML !== html) box.innerHTML = html; }
+    if (project.stage === 'review') hooks.render();
+  }
+  async function prepareStale(button) {
+    const list = staleItems();
+    if (!list.length) return;
+    if (button) button.disabled = true;
+    const status = $('go-status') || $('project-error');
+    try {
+      for (const { index } of list) {
+        if (status) status.textContent = `Preparing SWMS ${index + 1} again...`;
+        await askItem(index);
+        await prepareOne(index, { ...(project.items[index].body || {}), ...payloadFor(index) });
+      }
+      if (status) status.textContent = '';
+      afterPrepare();
+    } catch (error) {
+      if (status) status.textContent = error.message;
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+  // The SWMS that use an answer given in one SWMS and filled across.
+  const usingFact = (index, questionId) => project.items.map((_item, at) => at).filter((at) => at === index || ((project.items[at].filledFrom || {})[questionId] === index));
+  const usingShared = () => project.items.map((item, at) => (item.siteOwn ? -1 : at)).filter((at) => at >= 0);
 
   // ---- What the user does on the page ----
 
@@ -363,6 +575,7 @@
       notesFor(at);
       askSoon(at);
     });
+    markStale(usingFact(index, questionId), 'An answer it uses changed.');
   }
 
   // A design's status, number or revision fills the design blanks in the answers that refer to it.
@@ -401,6 +614,7 @@
     if (target.dataset.goTask !== undefined) {
       const index = Number(target.dataset.goTask);
       project.items[index].goTask = target.value;
+      markStale([index], 'Its task changed.');
       save();
       askSoon(index);
       return;
@@ -417,12 +631,17 @@
     }
     if (target.dataset.goSharedSite !== undefined) {
       sharedSite()[target.dataset.siteId] = target.value;
+      markStale(usingShared(), 'A site answer every SWMS shares changed.');
+      markSuggest(target.dataset.siteId);
+      sharedNotes();
       save();
       return;
     }
     if (target.dataset.goOwnSite !== undefined) {
-      const item = project.items[Number(target.dataset.goOwnSite)];
+      const index = Number(target.dataset.goOwnSite);
+      const item = project.items[index];
       item.siteOwn = { ...(item.siteOwn || {}), [target.dataset.siteId]: target.value };
+      markStale([index], 'Its site answers changed.');
       save();
       return;
     }
@@ -430,8 +649,19 @@
       const row = designRow(target.dataset.goDesign);
       row[target.dataset.field] = target.value;
       if (['number', 'revision'].includes(target.dataset.field)) fillDesigns(row.id);
+      markStale(usingDesign(row.id), 'A design it relies on changed.');
       save();
     }
+  }
+  const usingDesign = (designId) => project.items.map((_item, at) => at).filter((at) => designIds(at).includes(designId));
+  // A suggestion from the scope shows as used once its words are in the box.
+  function markSuggest(id) {
+    const value = String(sharedSite()[id] || '').toLowerCase();
+    const list = (shared().siteSuggest || {})[id] || [];
+    document.querySelectorAll(`[data-go-suggest="${id}"]`).forEach((button) => {
+      const line = String(list[Number(button.dataset.n)] || '').replace(/\.$/, '').toLowerCase();
+      button.setAttribute('aria-pressed', String(Boolean(line) && value.includes(line)));
+    });
   }
 
   function onChange(event) {
@@ -442,14 +672,26 @@
       // Each SWMS opened on its own page then shows the same answer.
       project.items.forEach((item) => { item.crane = target.value; item.slinging = target.value === 'company' ? slingingNow() : ''; });
       if ($('go-slinging')) $('go-slinging').hidden = target.value !== 'company';
+      if ($('go-crane-error')) $('go-crane-error').textContent = '';
+      markStale(project.items.map((_item, at) => at), 'The crane answer changed.');
       save();
       project.items.forEach((_item, index) => askSoon(index));
+      return;
+    }
+    if (target.name === 'go-residential') {
+      const radio = document.querySelector(`input[name="residential"][value="${target.value}"]`);
+      if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change', { bubbles: true })); }
+      if ($('go-residential-error')) $('go-residential-error').textContent = '';
+      markStale(project.items.map((_item, at) => at), 'The residential answer changed.');
+      project.items.forEach((_item, index) => askSoon(index));
+      save();
       return;
     }
     if (target.name === 'go-slinging') {
       shared().slinging = target.value;
       project.items.forEach((item) => { item.slinging = target.value; });
       if ($('go-slinging-error')) $('go-slinging-error').textContent = '';
+      markStale(project.items.map((_item, at) => at), 'Who slings the loads changed.');
       save();
       project.items.forEach((_item, index) => askSoon(index));
       return;
@@ -462,14 +704,22 @@
       const index = Number(target.dataset.goFall);
       project.items[index].goFall = target.value;
       delete project.items[index].fallFrom;
-      // The same answer fills the fall question of the SWMS not answered yet, or filled from this one.
+      const changed = [index];
+      // The same answer fills the fall question of the SWMS not answered yet, or filled from this one,
+      // but not one whose own task says otherwise (messy round 3: "Yes" filled into a ground floor SWMS).
       project.items.forEach((other, at) => {
         if (at === index || other.fallRisk || (other.goFall && other.fallFrom !== index)) return;
+        if (other.fallHint && other.fallHint !== target.value) {
+          if (other.fallFrom === index) { delete other.goFall; delete other.fallFrom; drawItem(at); askItem(at); }
+          return;
+        }
         other.goFall = target.value;
         other.fallFrom = index;
+        changed.push(at);
         drawItem(at);
         askItem(at);
       });
+      markStale(changed, 'Its fall answer changed.');
       save();
       drawItem(index);
       askItem(index);
@@ -491,6 +741,7 @@
       const row = designRow(target.dataset.goDesign);
       row.status = target.value;
       fillDesigns(row.id);
+      markStale(usingDesign(row.id), 'A design it relies on changed.');
       save();
       project.items.forEach((_item, index) => { if (designIds(index).includes(row.id)) askSoon(index); });
     }
@@ -523,7 +774,8 @@
       const answer = question && (question.suggestions || [])[Number(pick.dataset.n)];
       const box = $(`go-${index}-${pick.dataset.q}`);
       if (!answer || !box) return;
-      box.value = box.value.trim() ? `${box.value.trim()} ${answer.text}` : answer.text;
+      // A refused or thin answer is replaced, not added to (messy round 3: "as per supplier The ____ system").
+      box.value = !box.value.trim() || weakAnswer(box) ? answer.text : `${box.value.trim()} ${answer.text}`;
       if (S.pickedAgain) S.pickedAgain(box.id);
       setFact(index, pick.dataset.q, box.value);
       const design = questionDesign(pick.dataset.q);
@@ -537,6 +789,47 @@
       if (target === box && blank >= 0 && box.setSelectionRange) box.setSelectionRange(blank, blank + 4);
       return;
     }
+    const suggest = event.target.closest('[data-go-suggest]');
+    if (suggest) {
+      const id = suggest.dataset.goSuggest;
+      const line = ((shared().siteSuggest || {})[id] || [])[Number(suggest.dataset.n)];
+      const box = $(`go-site-${id}`);
+      if (!line || !box) return;
+      const now = String(box.value || '').trim();
+      const plain = line.replace(/\.$/, '');
+      // Pressed again, the line comes out.
+      box.value = now.toLowerCase().includes(plain.toLowerCase())
+        ? now.replace(new RegExp(`\\s*${plain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.?`, 'i'), '').trim()
+        : `${now}${now && !/[.!?]$/.test(now) ? '.' : ''}${now ? ' ' : ''}${line}`;
+      box.dispatchEvent(new Event('input', { bubbles: true }));
+      box.focus();
+      return;
+    }
+    const across = event.target.closest('[data-go-across-clear]');
+    if (across) {
+      const index = Number(across.dataset.goAcrossClear);
+      const questionId = across.dataset.q;
+      const item = project.items[index];
+      item.facts = { ...(item.facts || {}), [questionId]: '' };
+      if (item.filledFrom) delete item.filledFrom[questionId];
+      const box = $(`go-${index}-${questionId}`);
+      if (box) { box.value = ''; box.focus(); }
+      markStale([index], 'An answer it uses changed.');
+      notesFor(index);
+      save();
+      askSoon(index);
+      return;
+    }
+    if (event.target.closest('#go-to-review')) { toReview(); return; }
+    if (event.target.closest('#go-prepare-stale')) { prepareStale(event.target.closest('#go-prepare-stale')); return; }
+    const cover = event.target.closest('[data-go-cover]');
+    if (cover) {
+      const box = $(`go-cover-${cover.dataset.goCover}`) || $(`go-item-${cover.dataset.goCover}`);
+      if (box) { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); if (box.focus) { box.setAttribute('tabindex', '-1'); box.focus({ preventScroll: true }); } }
+      return;
+    }
+    const jump = event.target.closest('[data-go-missing]');
+    if (jump) { goToMissing(Number(jump.dataset.goMissing)); return; }
     const own = event.target.closest('[data-go-site-own]');
     if (own) {
       const index = Number(own.dataset.goSiteOwn);
@@ -569,6 +862,8 @@
     }
     if (event.target.closest('#go-check-prepared')) { toReview(); return; }
     if (event.target.closest('#go-prepare')) { prepareAll(event.target.closest('#go-prepare')); return; }
+    if (event.target.closest('[data-go-prepare-stale]')) { prepareStale(null); return; }
+    if (event.target.closest('#go-prepare-again')) { const again = $('go-prepare'); if (again) prepareAll(again); return; }
     if (event.target.closest('#go-back-questions')) {
       project.stage = 'questions';
       save();
@@ -579,22 +874,69 @@
 
   // ---- Prepare all ----
 
+  // What Prepare all waits for, each said at its question and in one list by the button (messy round 3:
+  // pressing it early moved the page to the first Yes with no word).
+  const NAMES_CRANE = /\b(?:cranes?|cranage|craneage|franna|hiabs?|crane trucks?)\b/i;
+  let missing = [];
+  function prepareMissing() {
+    const out = [];
+    project.items.forEach((item, index) => {
+      if (!item.fallRisk && !item.goFall) out.push({ text: `SWMS ${index + 1} (${item.title}): could a person fall more than 2 metres? Answer Yes or No.`, at: `[data-go-fall="${index}"]`, note: `go-fall-error-${index}`, say: 'Answer Yes or No before Prepare all.' });
+    });
+    if (residentialAsked() && !residentialNow()) out.push({ text: 'Say whether this is residential construction work.', at: 'input[name="go-residential"]', note: 'go-residential-error', say: 'Answer Yes or No: it sets the fall height for every SWMS.' });
+    if (!shared().crane) {
+      const named = project.items.some((item) => NAMES_CRANE.test(`${item.goTask !== undefined ? item.goTask : item.task} ${(item.scopeTask && item.scopeTask.full) || ''}`));
+      if (named) out.push({ text: 'A task names a crane: say whether a crane is used, and who operates it.', at: 'input[name="go-crane"]', note: 'go-crane-error', say: 'A task names a crane. Say whether a crane is used, and who operates it.' });
+    }
+    if (shared().crane === 'company' && !slingingNow()) out.push({ text: SLINGING_ASK, at: 'input[name="go-slinging"]', note: 'go-slinging-error', say: SLINGING_ASK });
+    return out;
+  }
+  // The details that are still to give before download, but do not stop Prepare all.
+  function laterMissing() {
+    const rules = gate();
+    const out = PEOPLE.filter(([id]) => { const el = $(id); const rule = peopleRule(id); return el && (!String(el.value || '').trim() || (rules && rule && rules.answerNeed(rule, el.value))); }).map(([, label]) => label);
+    const site = sharedSite();
+    for (const [id, label] of SITE) if (!String(site[id] || '').trim() && project.items.some((item) => !item.siteOwn)) out.push(`Site question: ${label}`);
+    return out;
+  }
+  function goToMissing(at) {
+    const entry = missing[at];
+    const el = entry && document.querySelector(entry.at);
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus({ preventScroll: true }); }
+  }
+  function showMissing(list) {
+    const status = $('go-status');
+    document.querySelectorAll('.go-fall-error').forEach((note) => { note.textContent = ''; });
+    for (const entry of list) {
+      let note = $(entry.note);
+      if (!note && /^go-fall-error-/.test(entry.note)) {
+        const radio = document.querySelector(entry.at);
+        const holder = radio && radio.closest && radio.closest('fieldset');
+        if (holder) { note = document.createElement('p'); note.id = entry.note; note.className = 'error go-fall-error'; note.setAttribute('role', 'alert'); holder.appendChild(note); }
+      }
+      if (note) note.textContent = entry.say;
+    }
+    const later = laterMissing();
+    if (status) status.innerHTML = `<div class="warning go-missing" role="alert"><p><strong>Before Prepare all, answer ${list.length === 1 ? 'this' : `these ${list.length}`}:</strong></p><ul>${list.map((entry, i) => `<li>${esc(entry.text)} <button type="button" class="link" data-go-missing="${i}">Go to it</button></li>`).join('')}</ul>${later.length ? `<p class="meta">Also still to give before download (you can prepare without them): ${esc(later.join('; '))}.</p>` : ''}</div>`;
+  }
+
   async function prepareAll(button) {
     const status = $('go-status');
-    const fallMissing = project.items.findIndex((item) => !item.fallRisk && !item.goFall);
-    if (fallMissing >= 0) {
-      status.textContent = `Answer the fall question for SWMS ${fallMissing + 1} first.`;
-      const radio = document.querySelector(`[data-go-fall="${fallMissing}"]`);
-      if (radio) { radio.scrollIntoView({ behavior: 'smooth', block: 'center' }); radio.focus({ preventScroll: true }); }
+    project.tried = true;
+    sharedNotes();
+    // No crane named in any task, and no answer: "No crane" (D279).
+    if (!shared().crane && !project.items.some((item) => NAMES_CRANE.test(`${item.goTask !== undefined ? item.goTask : item.task} ${(item.scopeTask && item.scopeTask.full) || ''}`))) {
+      shared().crane = 'none';
+      project.items.forEach((item) => { item.crane = 'none'; item.slinging = ''; });
+      document.querySelectorAll('input[name="go-crane"]').forEach((radio) => { radio.checked = radio.value === 'none'; });
+    }
+    missing = prepareMissing();
+    if (missing.length) {
+      showMissing(missing);
+      if (status && status.scrollIntoView) status.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    if ((shared().crane || 'company') === 'company' && !slingingNow()) {
-      status.textContent = SLINGING_ASK;
-      if ($('go-slinging-error')) $('go-slinging-error').textContent = SLINGING_ASK;
-      const radio = document.querySelector('input[name="go-slinging"]');
-      if (radio) { radio.scrollIntoView({ behavior: 'smooth', block: 'center' }); radio.focus({ preventScroll: true }); }
-      return;
-    }
+    if ($('go-slinging-error')) $('go-slinging-error').textContent = '';
     button.disabled = true;
     try {
       for (let index = 0; index < project.items.length; index += 1) {
@@ -606,17 +948,18 @@
       }
       afterPrepare();
     } catch (error) {
-      status.textContent = error.message;
+      status.innerHTML = `${esc(error.message)}${error.serverDown ? ' <button type="button" class="link" id="go-prepare-again">Try again</button>' : ''}`;
     } finally {
       button.disabled = false;
     }
   }
 
   async function prepareOne(index, body) {
-    const response = await fetch(api('/api/draft'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    const draft = await response.json();
+    // A host's error page (a 502) or no signal says so plainly (messy round 3).
+    const { response, data: draft } = S.postJson ? await S.postJson('/api/draft', body) : await fetch(api('/api/draft'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async (got) => ({ response: got, data: await got.json() }));
     if (!response.ok) throw new Error(draft.message || `SWMS ${index + 1} could not be prepared.`);
     const item = project.items[index];
+    delete item.stale;
     // Only the emergency answers this SWMS's draft asks are kept with it (scope.js keptEmergency).
     item.emergencyAsked = (S.askedEmergency && S.askedEmergency(draft)) || item.emergencyAsked;
     item.body = S.keptEmergency ? S.keptEmergency(body, item.emergencyAsked) : body;
@@ -634,7 +977,9 @@
   function afterPrepare() {
     const status = $('go-status');
     const unfinished = project.items.map((item, index) => (item.kind !== 'draft' ? index : -1)).filter((index) => index >= 0);
-    if (unfinished.length) {
+    if (unfinished.length && !status) { project.stage = 'questions'; save(); hooks.render(); }
+    if (unfinished.length && $('go-status')) {
+      const status = $('go-status');
       // A SWMS whose answers are too thin stays on this page, with each answer's note under its box.
       const all = unfinished.length === project.items.length;
       status.innerHTML = `<div class="warning go-unfinished"><p><strong>${all ? 'None of the SWMS can be prepared yet.' : `${unfinished.length === 1 ? 'One SWMS is' : `${unfinished.length} SWMS are`} not finished. The others are prepared.`}</strong> These answers need more. Each one says under its box what would do.</p><ul>${unfinished.map((index) => `<li>SWMS ${index + 1}, ${esc(project.items[index].title)}: ${esc((project.items[index].needs || []).join('; '))}. <button type="button" class="link" data-go-to-item="${index}">Go to it</button></li>`).join('')}</ul>${all ? '' : `<p>Or check the ${project.items.length - unfinished.length} prepared now and download them, and finish ${unfinished.length === 1 ? 'this one' : 'these'} later. <button type="button" class="secondary small" id="go-check-prepared">Check the ${project.items.length - unfinished.length} prepared SWMS</button></p>`}</div>`;
@@ -645,6 +990,11 @@
     }
     toReview();
   }
+  const weakAnswer = (box) => {
+    const rules = gate();
+    const text = String(box.value || '').trim();
+    return Boolean((rules && rules.notAnswer && rules.notAnswer(text)) || text.split(/\s+/).length < 3 || (box.classList && box.classList.contains('answer-thin')));
+  };
   function toReview() {
     project.stage = 'review';
     save();
@@ -663,7 +1013,8 @@
     try {
       for (let index = 0; index < project.items.length; index += 1) {
         const item = project.items[index];
-        if (item.body) await prepareOne(index, { ...item.body, ...pageBase(), emergency: { ...shared().emergency, ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
+        // One marked as needing preparing again takes this page's answers too.
+        if (item.body) await prepareOne(index, { ...item.body, ...(item.stale ? payloadFor(index) : {}), ...pageBase(), emergency: { ...shared().emergency, ...Object.fromEntries(Object.entries(item.body.emergency || {}).filter(([, value]) => String(value || '').trim())) } });
       }
       save();
       if (project.stage === 'review') hooks.render();
@@ -677,7 +1028,7 @@
   // ---- The review list (D240) ----
 
   // What every SWMS shares is said once, above the list; each SWMS lists only its own.
-  const SHARED_LABELS = new Set(PEOPLE.map(([, label]) => label));
+  const SHARED_LABELS = new Set([...PEOPLE.map(([, label]) => label), SCAFFOLD[1]]);
   const SITE_LABEL = /^Site: /;
   // A site answer every SWMS shares (none has its own) is asked for once, on the questions page.
   const sharedSiteNeeds = () => {
@@ -704,9 +1055,15 @@
   }
   function itemState(item) {
     const own = (item.needs || []).filter((label) => !SHARED_LABELS.has(label) && !(SITE_LABEL.test(label) && !item.siteOwn));
+    // Prepared before an answer it uses changed: kept, but prepared again before download.
+    if (item.stale) return { ready: false, stale: true, text: `Needs preparing again: ${String(item.stale).replace(/\.$/, '').replace(/^[A-Z]/, (letter) => letter.toLowerCase())}.` };
     if (item.status === 'ready') return { ready: true, text: 'Ready to download.' };
     if (item.kind && item.kind !== 'draft') return { ready: false, text: `Not finished: ${own.join('; ')} need more.` };
-    if (item.status === 'write' || item.status === 'tick') return { ready: false, text: 'Needs your own step, or the SWMS that covers it named, for work SiteReady has no job steps for.' };
+    if (item.status === 'write' || item.status === 'tick') {
+      const index = project.items.indexOf(item);
+      const left = index >= 0 ? coverLeftOf(index) : [];
+      return { ready: false, cover: true, text: `No job steps yet for: ${left.join('; ') || 'part of its work'}. Write your own step for each${item.status === 'write' ? '' : ', or say which SWMS covers it'}.` };
+    }
     const { give, types } = splitTypes(own);
     const typesText = types.length ? `${TYPE_DO}: ${types.join('; ')}` : '';
     const text = give.length ? `Before download, open it to give: ${give.join('; ')}.${typesText ? ` Then, ${typesText}.` : ''}`
@@ -715,7 +1072,9 @@
   }
   function sharedNeeds() {
     // A person's box left empty, or given an answer a SWMS does not accept ("TBA").
-    const people = PEOPLE.filter(([id, label]) => { const el = $(id); return (el && !el.value.trim()) || project.items.some((item) => (item.needs || []).includes(label)); }).map(([id, label]) => ({ id, label }));
+    // The scaffold supervisor too, where a SWMS involves a scaffold: it is given once above, and "Go to"
+    // goes to its box, not into a SWMS (messy round 3, run 3).
+    const people = [...PEOPLE, ...(scaffoldNeeded() ? [SCAFFOLD] : [])].filter(([id, label]) => { const el = $(id); return (el && !el.value.trim() && label !== SCAFFOLD[1]) || project.items.some((item) => (item.needs || []).includes(label)); }).map(([id, label]) => ({ id, label }));
     const company = companyMissing();
     return company ? [{ id: !String(((S.getProfile && S.getProfile()) || {}).name || '').trim() ? 'profile-company' : 'profile-abn', label: company }, ...people] : people;
   }
@@ -729,7 +1088,7 @@
     const give = /^Before download, open it to give: (.*)$/.exec(text);
     return give ? `give ${give[1].split('; ').map(lowerFirst).join('; ')}` : lowerFirst(text);
   };
-  const notReadyLine = (item, index, state) => `<li>SWMS ${index + 1} (${esc(item.title)}): ${esc(needsText(state))}. <button type="button" class="link" data-project-open="${index}" data-project-need>Go to it</button></li>`;
+  const notReadyLine = (item, index, state) => `<li>SWMS ${index + 1} (${esc(item.title)}): ${esc(needsText(state))}. ${state.stale ? '<button type="button" class="link" data-go-prepare-stale>Prepare it again</button>' : `<button type="button" class="link" data-project-open="${index}" data-project-need${state.cover ? ' data-project-cover' : ''}>Go to it</button>`}</li>`;
   function downloadHtml(states, ready, n) {
     const waiting = project.items.map((item, index) => ({ item, index, state: states[index] })).filter((entry) => !entry.state.ready);
     const last = project.lastDownload;
@@ -758,7 +1117,8 @@
       <p class="lede">${prepared === n ? `${n} SWMS prepared` : `${prepared} of ${n} SWMS prepared`}. Check each one: open it, read its steps as they will print, and change any step's wording with <strong>Change</strong> beside the line (on a phone, <strong>Change this step</strong> first). Each must clear its checks before the download.</p>
       <p class="error" id="project-error"></p>
       ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button></li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
-      <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}"><div><strong>${esc(item.title)}</strong><span class="meta">${esc(states[index].text)}${item.checked ? ' Checked.' : ' Not checked yet.'}</span></div><button type="button" class="${index === firstToCheck ? '' : 'secondary '}small" data-project-open="${index}">${item.checked ? 'Check it again' : 'Check this SWMS'}</button></li>`).join('')}</ol>
+      ${staleItems().length ? `<div class="warning go-stale" role="status"><p><strong>${staleItems().length === 1 ? 'One SWMS needs' : `${staleItems().length} SWMS need`} preparing again</strong>, because an answer ${staleItems().length === 1 ? 'it uses' : 'they use'} changed. ${staleItems().length === 1 ? 'It stays on the list and downloads' : 'They stay on the list and download'} once prepared again.</p><div class="actions"><button type="button" class="small" id="go-prepare-stale">Prepare ${staleItems().length === 1 ? 'it' : 'them'} again</button></div></div>` : ''}
+      <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}"><div><strong>${esc(item.title)}</strong><span class="meta">${esc(states[index].text)}${item.checked ? ' Checked.' : ' Not checked yet.'}</span>${!states[index].cover && coverLeftOf(index).length ? `<span class="meta go-review-cover">No job steps yet for: ${esc(coverLeftOf(index).join('; '))}. <button type="button" class="link" data-project-open="${index}" data-project-need data-project-cover>Go to it</button></span>` : ''}</div><button type="button" class="${index === firstToCheck ? '' : 'secondary '}small" data-project-open="${index}">${item.checked ? 'Check it again' : 'Check this SWMS'}</button></li>`).join('')}</ol>
       <div id="project-download">${can ? downloadHtml(states, ready, n) : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>'}</div>
       <div class="actions"><button type="button" class="small secondary" id="go-back-questions">Back to the questions</button><button type="button" class="small secondary" id="project-close">Close project</button></div>`;
   }
@@ -780,7 +1140,12 @@
   document.addEventListener('change', (event) => { if (event.target.closest && event.target.closest('#project-panel')) onChange(event); });
   document.addEventListener('click', (event) => { if (event.target.closest && event.target.closest('#project-panel')) onClick(event); });
 
-  window.SiteReadyProjectGo = { render, payloadFor: (index) => payloadFor(index) };
+  // The shared boxes say why an answer is refused as the user types (messy round 3).
+  document.addEventListener('input', (event) => {
+    if (project && event.target && PEOPLE.concat([SCAFFOLD]).some(([id]) => event.target.id === id)) sharedNotes();
+  });
+
+  window.SiteReadyProjectGo = { render, payloadFor: (index) => payloadFor(index), clearNotes, markStale: (indexes, why) => { if (project) markStale(indexes, why); } };
   // A project kept from before opens on its page (scope.js drew it before this script was loaded),
   // and again once the account is known, which the download and the company details depend on.
   if (S.renderProject) S.renderProject();

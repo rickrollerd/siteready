@@ -43,6 +43,9 @@
     .address-list li { padding: 10px 12px; cursor: pointer; }
     .address-list li[aria-selected="true"], .address-list li:hover { background: #fff4d1; }
     .state-warning { color: #9a3b00; }
+    .state-said { color: #1c2430; background: #eef6f1; border-left: 3px solid #1f4d3a; padding: 6px 8px; }
+    .state-warning strong, .state-said strong { font-weight: 600; }
+    input.address-change { outline: 3px solid #d97706; outline-offset: 1px; }
     .step-warning { display: block; color: #9a3b00; font-size: 0.95em; margin-top: 4px; }
     .step-note { display: block; color: #5c6773; font-size: 0.95em; font-weight: 400; margin-top: 4px; }
     .project-list { list-style: none; margin: 8px 0; padding: 0; }
@@ -272,7 +275,9 @@
     .scope-hrcw { display: block; margin-top: 4px; font-size: 14px; }
     .scope-hrcw-yes { color: #8a2b2b; }
     .scope-conflicts { margin-top: 12px; font-size: 14px; }
-    .conflict-dialog { position: fixed; inset: auto 16px 16px auto; margin: 0; width: min(560px, calc(100% - 32px)); max-height: 70vh; overflow: auto; border: 1px solid #c9d1d9; border-radius: 8px; padding: 14px 16px; background: #fff; color: #1c2430; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); z-index: 50; font-size: 14px; }
+    /* In the page, above the work packages, never floating over the form (messy round 3). */
+    .conflict-dialog { position: static; inset: auto; display: block; margin: 12px 0; width: auto; max-width: none; border: 1px solid #c9d1d9; border-left: 4px solid #d97706; border-radius: 8px; padding: 14px 16px; background: #fffaf0; color: #1c2430; font-size: 14px; }
+    .conflict-dialog:not([open]) { display: none; }
     .conflict-dialog h2 { font-size: 17px; margin: 0 0 6px; }
     .conflict-dialog ol { padding-left: 1.2em; margin: 8px 0; }
     .conflict-dialog li { margin-bottom: 10px; }
@@ -281,7 +286,9 @@
     .scope-others legend { font-weight: 600; margin-bottom: 4px; }
     button.added { background: #e3f3e8; color: #1f6b3f; border: 2px solid #2e7d4f; }
     .project-now { background: #eef6f1; border: 1px solid #2e7d4f; border-radius: 6px; padding: 10px 12px; }
-    .scope-go { position: sticky; bottom: 0; background: #fff; padding: 10px 0; margin-top: 12px; }
+    /* Not stuck to the foot of the screen: a tap on the last box in view landed on Prepare (messy round 3). */
+    .scope-go { background: #fff; padding: 10px 0; margin-top: 12px; }
+    .scope-tick-all { margin: 8px 0 0; }
     .ctl-tools { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; margin-left: 8px; font-size: 13px; }
     .ctl-removed { color: #5c6773; }
     .ctl-msg { color: #8a2b2b; }
@@ -290,6 +297,7 @@
     .ctl-warn { font-size: 13px; margin: 6px 0 0; }
     .ctl-edit textarea { width: 100%; min-height: 60px; border: 1px solid #c5cdd6; border-radius: 6px; padding: 6px 8px; }
     .ctl-edit .ctl-tools { margin-left: 0; }
+    .ctl-edit-label { display: block; font-size: 16px; font-weight: 600; margin: 2px 0 2px; }
     .translate .tr { display: block; }
     .translate .en { display: block; color: #5c6773; font-size: 13px; }
     .translate ul { padding-inline-start: 1.2em; }
@@ -719,13 +727,13 @@
       </div>
       <div class="field">
         <label for="works-manager">Works manager
-          <span class="hint">Your own person in charge of this work, such as your supervisor or foreman.</span>
+          <span class="hint">Your own person in charge of this work, such as your supervisor or foreman. Needed before download.</span>
         </label>
         <input id="works-manager" type="text" autocomplete="name">
       </div>
       <div class="field">
         <label for="works-manager-phone">Works manager phone
-          <span class="hint">Their mobile, so the site can reach them.</span>
+          <span class="hint">Their mobile, so the site can reach them. It prints as the contact phone. Needed before download.</span>
         </label>
         <input id="works-manager-phone" type="text" inputmode="tel" autocomplete="tel">
       </div>
@@ -743,7 +751,7 @@
       </div>
       <div class="field">
         <label for="review-date">Review date
-          <span class="hint">When this SWMS is next checked. Often the end of the job, or sooner if the work changes.</span>
+          <span class="hint">When this SWMS is next checked. Filled in for three months from today, as My SWMS shows it. Change it if the job ends sooner, and check it again if the work changes.</span>
         </label>
         <input id="review-date" type="date" autocomplete="off">
       </div>
@@ -785,7 +793,7 @@
       </div>
       <div class="field">
         <label for="swms-ref">SWMS reference number
-          <span class="hint">Optional. Your own number for this SWMS.</span>
+          <span class="hint">Optional. Your own number for this SWMS. Left empty, its SiteReady reference prints here when you download it.</span>
         </label>
         <input id="swms-ref" type="text" autocomplete="off">
       </div>

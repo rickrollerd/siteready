@@ -152,8 +152,14 @@ test('the company name and ABN are on the list before download, with a button to
   p.document.getElementById('task').value = DRAFT.task;
   await prepare(p);
   const gate = p.document.getElementById('result-gate').innerHTML;
-  assert.match(gate, /data-gate-go="0">Company ABN<\/button><span class="meta">Add your ABN under Company profile\. They print on every SWMS\.<\/span>/);
+  assert.match(gate, /data-gate-go="0">ABN<\/button><span class="meta">Add your ABN under Company profile\. They print on every SWMS\.<\/span>/);
   assert.equal(p.run('outstanding(shownDraft)[0].field'), 'profile-abn');
+  // Both missing: "Company name and ABN", not "Company company name and ABN" (messy round 3).
+  const both = page({ company: { name: '', abn: '' }, draft: { ...DRAFT, notCovered: [] } });
+  await settle();
+  both.document.getElementById('task').value = DRAFT.task;
+  await prepare(both);
+  assert.match(both.document.getElementById('result-gate').innerHTML, /data-gate-go="0">Company name and ABN<\/button>/);
 });
 
 test('the profile saves itself once the name and ABN are in, and what is typed comes back after a reload', async () => {
@@ -289,7 +295,8 @@ test('an address in another state is never switched to silently', async () => {
   const box = p.document.getElementById('workplace');
   box.value = '22 Logan Road, Woolloongabba QLD 4102';
   p.run('applyAddressState()');
-  assert.equal(p.document.getElementById('workplace-state').textContent, 'State set to Queensland from the job address.');
+  // Said plainly, with a button to change the address, even with no state expected (messy round 3).
+  assert.equal(p.document.getElementById('workplace-state').innerHTML, '<strong>This address is in Queensland, so the SWMS uses Queensland law.</strong> <button type="button" class="link" data-state-change>Change the address</button>');
   box.value = '10 Were Street, Brighton VIC';
   p.run('applyAddressState()');
   assert.match(p.document.getElementById('workplace-state').innerHTML, /^<strong>This address is in Victoria, so the SWMS uses Victorian law\. Change it\?<\/strong> <button type="button" class="link" data-state-change>Change the address<\/button> <button type="button" class="link" data-state-keep>Keep Victoria<\/button>$/);
@@ -298,7 +305,7 @@ test('an address in another state is never switched to silently', async () => {
   assert.match(p.document.getElementById('workplace-state').innerHTML, /This address is in Victoria/);
   box.value = '22 Logan Road, Woolloongabba QLD 4102';
   p.run('applyAddressState()');
-  assert.equal(p.document.getElementById('workplace-state').textContent, 'State set to Queensland from the job address.');
+  assert.match(p.document.getElementById('workplace-state').innerHTML, /^<strong>This address is in Queensland, so the SWMS uses Queensland law\.<\/strong> <button[^>]*data-state-change>Change the address<\/button>$/);
 });
 
 // ---- 5. The project zip holds Word and PDF (D240) ----

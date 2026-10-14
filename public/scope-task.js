@@ -91,6 +91,24 @@
     return Object.fromEntries(Object.entries(out).map(([id, list]) => [id, `${list.join('. ')}.`]));
   }
 
+  // The scope's conditions for one site question, cleaned to offer as suggestions the user accepts, not
+  // as a finished answer (messy round 3: "Energised buildings. Energised HV. ... Energised buildings."
+  // and "Access: Security guards." printed in every SWMS). Each condition once, without a leading label
+  // ("Access:"), with its first letter a capital and a full stop. texts: the condition text from each SWMS.
+  function siteSuggestions(texts) {
+    const out = [];
+    const key = (line) => line.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    for (const text of texts || []) {
+      for (const part of String(text || '').split(/(?<=[.;])\s+|\s*;\s*/)) {
+        let line = part.replace(/^\s*[A-Z][A-Za-z ]{0,24}:\s*/, '').replace(/\s+/g, ' ').replace(/[\s.;,]+$/, '').trim();
+        if (line.split(' ').length < 2 && !/\d/.test(line)) continue;
+        line = `${line.charAt(0).toUpperCase()}${line.slice(1)}.`;
+        if (!out.some((other) => key(other) === key(line))) out.push(line);
+      }
+    }
+    return out.slice(0, 12);
+  }
+
   // The plant the scope names for the work, for the plant list to check.
   function scopePlant(rows) {
     const out = [];
@@ -102,7 +120,7 @@
   // words, and the notes to read with a task the user has changed (draft.js scopeWords).
   const scopeWords = (rows) => ({ plain: plainTask(rows), full: packageTask(rows), notes: scopeNotes(rows) });
 
-  const api = { packageTask, plainTask, scopeNotes, scopeSite, scopePlant, scopeWords };
+  const api = { packageTask, plainTask, scopeNotes, scopeSite, scopePlant, scopeWords, siteSuggestions };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadyScopeTask = api;
 })(typeof window !== 'undefined' ? window : globalThis);

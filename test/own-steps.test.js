@@ -448,7 +448,8 @@ test('the page offers a step for each part, asks which SWMS covers only the rest
   await settle();
   p.run(`ownSteps = ${JSON.stringify([STEP])}`);
   const block = p.run(`notCoveredBlock(${JSON.stringify(PAGE_DRAFT)})`);
-  assert.match(block, /SiteReady has no job steps for: leak test the fuel line; hang the artwork\. For each one, write your own step, or say which SWMS covers it\./);
+  // The top line names only the work still to deal with: the part with your own step is done (messy round 3).
+  assert.match(block, /SiteReady has no job steps for: hang the artwork\. Write your own step for it, or say which SWMS covers it\./);
   assert.match(block, /You must enter the specific steps for this work yourself: SiteReady cannot write them for you\./);
   assert.match(block, /Done: your step "Leak test the fuel line" is in the job steps below\.<\/span> <button type="button" class="link" data-own-change="Leak test the fuel line">Change your step<\/button>/);
   assert.match(block, /<button type="button" class="small" data-own-write="1">Write a step for this<\/button>/);
@@ -456,8 +457,10 @@ test('the page offers a step for each part, asks which SWMS covers only the rest
   // Named as covered by another SWMS, nothing is outstanding.
   assert.equal(p.run(`shownChecks = []; outstanding(${JSON.stringify(PAGE_DRAFT)}).length`), 1);
   assert.equal(p.run(`coverElsewhere = { 'hang the artwork': 'Artwork hanging SWMS' }; syncCoverTicked(); outstanding(${JSON.stringify(PAGE_DRAFT)}).length`), 0);
-  // With every part written, nothing asks which SWMS covers it.
-  assert.doesNotMatch(p.run(`notCoveredBlock(${JSON.stringify({ ...PAGE_DRAFT, notCovered: [PART] })})`), /data-cover-name|data-cover-where/);
+  // With every part written, nothing asks which SWMS covers it, and the box says each one is dealt with.
+  const done = p.run(`notCoveredBlock(${JSON.stringify({ ...PAGE_DRAFT, notCovered: [PART] })})`);
+  assert.doesNotMatch(done, /data-cover-name|data-cover-where/);
+  assert.match(done, /^<div class="note not-covered"><p>Each piece of work SiteReady has no job steps for is dealt with\.<\/p>/);
   const html = p.window.SiteReady.render(PAGE_DRAFT, { movable: true });
   const row = html.split('data-step-row=')[2];
   assert.match(row, /^"1" data-own-row="Leak test the fuel line" class="own-step">/);

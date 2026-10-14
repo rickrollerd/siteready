@@ -32,10 +32,11 @@ const ids = (input) => gaps(input).gaps.map((gap) => gap.id);
 
 test('a SWMS with every site question and key person blank lists each one as needed before download', () => {
   const list = gaps(FENCE).gaps;
-  assert.deepEqual(list.map((gap) => gap.id), ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'firstAider', 'musterPoint',
+  // The works manager and contact phone too (D289).
+  assert.deepEqual(list.map((gap) => gap.id), ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'worksManager', 'worksManagerPhone', 'firstAider', 'musterPoint',
     'site.liveServices', 'site.publicInterface', 'site.otherTrades', 'site.ground', 'site.access']);
   // Each says where it is answered on the page and what is needed, in plain words.
-  assert.deepEqual(list.map((gap) => gap.field), ['workplace', 'principal', 'compliance-responsible', 'reviewer', 'first-aider', 'muster-point',
+  assert.deepEqual(list.map((gap) => gap.field), ['workplace', 'principal', 'compliance-responsible', 'reviewer', 'works-manager', 'works-manager-phone', 'first-aider', 'muster-point',
     'site-liveServices', 'site-publicInterface', 'site-otherTrades', 'site-ground', 'site-access']);
   for (const gap of list) assert.ok(gap.need.length > 20 && !/\u2014/.test(gap.need), gap.id);
   assert.match(gateMessage(list), /^SiteReady does not produce a SWMS until the site questions are answered/);
@@ -85,10 +86,20 @@ test('the scaffold supervisor is asked for and printed only where the SWMS invol
   const named = gaps({ ...paint, ...ANSWERED });
   assert.equal(named.draft.scaffoldSupervisor, 'Pat Doyle, Doyle Scaffolding');
   assert.deepEqual(named.gaps, []);
-  // "Not applicable" is accepted, so a scaffold named only in passing never forces a false answer.
-  const none = gaps({ ...paint, ...ANSWERED, scaffoldSupervisor: 'Not applicable' });
+  // "Not applicable" is accepted, so a scaffold named only in passing never forces a false answer...
+  const notTicked = (input) => {
+    const body = draftBody(ready(input));
+    const plantChoice = { ...body.plantChoice, used: body.plantChoice.used.filter((item) => !/scaffold/i.test(item)), notUsed: body.plantChoice.used.filter((item) => /scaffold/i.test(item)) };
+    const draft = prepareDraft({ ...body, plantChoice });
+    return { draft, gaps: downloadGaps({ ...body, plantChoice }, draft) };
+  };
+  const none = notTicked({ ...paint, ...ANSWERED, scaffoldSupervisor: 'Not applicable' });
   assert.equal(none.draft.scaffoldSupervisor, '');
   assert.deepEqual(none.gaps, []);
+  // ...but not where the scaffold is ticked in the plant for this job (messy round 3, run 6).
+  const ticked = gaps({ ...paint, ...ANSWERED, scaffoldSupervisor: 'Not applicable' });
+  assert.deepEqual(ticked.gaps.map((gap) => gap.id), ['scaffoldSupervisor']);
+  assert.match(ticked.gaps[0].need, /^Scaffold is ticked in the plant for this job/);
   // A mobile scaffold the crew sets up is not a scaffold handed over by a scaffolder.
   const mobile = gaps({ state: 'qld', task: 'Plaster the ceiling from a mobile scaffold.', fallRisk: 'yes', facts: { fallControl: 'Guardrails on the mobile scaffold platform.' }, ...ANSWERED, scaffoldSupervisor: '' });
   assert.equal(mobile.draft.scaffoldSupervisor, '');

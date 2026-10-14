@@ -8,7 +8,7 @@ const os = require('os');
 const crypto = require('crypto');
 const { listStates, findState } = require('./legislation');
 const designFiles = require('./design-files');
-const { questionsFor, prepareDraft, legalSource, keepWarning, notCoveredLeft } = require('./draft');
+const { questionsFor, prepareDraft, legalSource, keepWarning, notCoveredLeft, coverCheck } = require('./draft');
 const { stepLibrary, searchSteps } = require('./steps');
 const { draftToDocx, draftedNote, preparedFor } = require('./docx-draft');
 const { issueRef, placeOf } = require('./refs');
@@ -232,11 +232,14 @@ app.get('/api/steps', (_req, res) => {
 function designsAsked(input) {
   try {
     const draft = prepareDraft(input);
-    if (draft.kind !== 'draft') return {};
+    // The work with no job steps, named on the one-go project page before Prepare all (messy round 3).
+    const cover = coverCheck(input);
+    const said = cover.notCovered.length ? { notCovered: cover.notCovered, notCoveredMain: cover.notCoveredMain, notCoveredLeft: cover.left } : {};
+    if (draft.kind !== 'draft') return said;
     // The types of hazardous substance the work usually uses (substances.js, D277), for the one-go
     // project page's "Not required" ticks (owner, D287).
     const types = ((draft.substances && draft.substances.items) || []).map((item) => item.product);
-    return { ...((draft.designs || []).length ? { designs: draft.designs } : {}), ...(types.length ? { substanceTypes: types } : {}) };
+    return { ...said, ...((draft.designs || []).length ? { designs: draft.designs } : {}), ...(types.length ? { substanceTypes: types } : {}) };
   } catch (error) {
     return {};
   }
@@ -481,6 +484,12 @@ function gateRefusal(input, result) {
 }
 
 // Downloads print the company's own name and ABN, so they must be saved first.
+// With no reference number of the business's own, the SWMS prints its SiteReady reference (D289).
+function withRef(draft, ref) {
+  if (draft && ref && !String(draft.swmsRef || '').trim()) draft.swmsRef = ref;
+  return draft;
+}
+
 function needsCompanyDetails(req) {
   return req.company && (!String(req.company.name || '').trim() || !String(req.company.abn || '').trim());
 }
@@ -502,6 +511,7 @@ app.post('/api/draft.pdf', auth.requireAccess, async (req, res, next) => {
       return await accounts.sendDocument(req, res, saved.row, 'pdf');
     }
     const ref = await issueRef(req.company, result.task, placeOf(signedInBody(req)));
+    withRef(result, ref);
     const buffer = await draftToPdf(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), note: draftedNote(confirmation), prepared: preparedFor(req.company, ref) });
     record('download_pdf', req.company && req.company.id);
     await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
@@ -531,6 +541,7 @@ app.post('/api/draft.docx', auth.requireAccess, async (req, res) => {
   }
   // A stood-down draft cannot be saved; without accounts nothing is saved.
   const ref = await issueRef(req.company, result.task, placeOf(signedInBody(req)));
+  withRef(result, ref);
   const buffer = await draftToDocx(result, { logo: readLogo(req.company ? req.company.logo : (req.body && req.body.logo)), confirmation, ref, company: req.company });
   record('download_word', req.company && req.company.id);
   await recordIndustry(result, signedInBody(req), req.company).catch(() => {});
@@ -584,12 +595,14 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
       if (body.pdf === true) pdf = await draftToPdf(parts.draft, { ...parts, note: draftedNote(parts.confirmation), prepared: preparedFor(req.company, parts.ref, parts.revision) });
     } else {
       const ref = await issueRef(req.company, (item && item.swmsTitle) || result.task, placeOf(signedInBody({ ...req, body: item || {} })));
+      withRef(result, ref);
       buffer = await draftToDocx(result, { logo, confirmation, ref, company: req.company });
       if (body.pdf === true) pdf = await draftToPdf(result, { logo, note: draftedNote(confirmation), prepared: preparedFor(req.company, ref) });
     }
     // Named by the task's title from the scope where there is one.
     const title = typeof item.swmsTitle === 'string' && item.swmsTitle.trim() ? item.swmsTitle : result.task;
-    const base = `${String(number).padStart(2, '0')} ${String(title || 'SWMS').replace(/[^A-Za-z0-9 ,()-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)}`;
+    // A point between numbers stays ("deeper than 1.5 m", messy round 3).
+    const base = `${String(number).padStart(2, '0')} ${String(title || 'SWMS').replace(/(?<!\d)\.|\.(?!\d)/g, ' ').replace(/[^A-Za-z0-9 .,()-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)}`;
     let stem = base;
     for (let n = 2; used.has(`${stem}.docx`); n += 1) stem = `${base} ${n}`;
     used.add(`${stem}.docx`);

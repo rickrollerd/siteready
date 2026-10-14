@@ -1937,7 +1937,7 @@ function pickedStepFacts(fullTask, answer, state) {
   for (const item of CATEGORY_FACTS) {
     if (!asked.has(item.id) && uses(item.id)) extra.push({ id: item.id, label: item.label, prompt: factPrompt(item, state), ...(item.choices ? { choices: item.choices } : {}), ...(item.default ? { default: item.default } : {}), ...(item.showIf ? { showIf: item.showIf } : {}) });
   }
-  if (!asked.has('safetyDataSheet') && uses('safetyDataSheet')) extra.push({ id: 'safetyDataSheet', label: 'Safety data sheet', prompt: 'Safety data sheet.' });
+  if (!asked.has('safetyDataSheet') && uses('safetyDataSheet')) extra.push({ id: 'safetyDataSheet', label: 'Safety data sheet', prompt: SDS_PROMPT });
   if (!asked.has('trenchSupport') && uses('trenchSupport')) extra.push({ id: 'trenchSupport', label: 'Trench support', prompt: 'How the sides are secured: shoring, benching or battering, and who designed it.' });
   if (!asked.has('fallControl') && uses('fallControl') && fallRiskFor(fullTask, answer)) extra.push({ id: 'fallControl', label: 'Fall control', prompt: 'How a fall is prevented.' });
   return extra;
@@ -2055,7 +2055,7 @@ function allRequiredFacts(fullTask, answer, state) {
     facts.push({
       id: 'safetyDataSheet',
       label: 'Safety data sheet',
-      prompt: 'Safety data sheet.',
+      prompt: SDS_PROMPT,
     });
   }
   if (fallRiskFor(task, answer) && !fallControlText(task)) {
@@ -3229,6 +3229,20 @@ function dataTestParts(parts, steps, found) {
   });
 }
 
+// Work another SWMS of the project named this one as covering (owner, D289: "In a project, choosing
+// 'covered in another SWMS' for work with no job steps moves that work into the named SWMS, which must
+// then give its steps"). input.movedIn is [{ part, from }]: the work, and the SWMS it came from. It is
+// listed with this SWMS's own work with no job steps, and needs the user's own step here: it cannot be
+// passed on again.
+function movedInParts(input) {
+  const list = Array.isArray(input && input.movedIn) ? input.movedIn : [];
+  return dedupe(list.map((item) => cleanLine(typeof item === 'string' ? item : item && item.part).replace(/[.,;:]+$/, '')).filter(Boolean).slice(0, 30));
+}
+function withMovedIn(parts, input) {
+  const moved = movedInParts(input).filter((part) => !parts.some((other) => sameText(other) === sameText(part)));
+  return [...parts, ...moved];
+}
+
 // Saving or downloading a draft with parts that have no job steps needs the user's tick above
 // the draft that they have dealt with them (owner decision D184): the input's notCoveredConfirmed
 // lists the parts ticked, so a tick given for one list does not pass a changed one. A part the
@@ -3260,6 +3274,39 @@ function printedTask(out, input) {
   const spelling = fixSpelling(cleanLine(input.task || input.jobDescription));
   return { ...out, task: readSlang(spelling.text), ...(Array.isArray(out.spellingFixes) ? { spellingFixes: spelling.fixes } : {}) };
 }
+
+// The work with no job steps a SWMS for this input would name, worked out before its questions are
+// answered (the one-go project page, messy round 3): { notCovered, notCoveredMain, left }. left is the
+// work not yet dealt with: no step of the user's own written for it, and not named as covered in another
+// SWMS (work that is all the task's work, or moved here, needs the user's own step).
+function coverCheck(input) {
+  let out = null;
+  try { out = buildDraft(scopeWords(input), 'cover'); } catch { out = null; }
+  const notCovered = out && Array.isArray(out.notCovered) ? out.notCovered : [];
+  const main = out && Array.isArray(out.notCoveredMain) ? out.notCoveredMain : [];
+  const written = new Set(ownStepsOf(input).map((item) => sameText(item.part)).filter(Boolean));
+  const confirmed = Array.isArray(input && input.notCoveredConfirmed) ? input.notCoveredConfirmed : [];
+  const left = notCovered.filter((part) => !written.has(sameText(part)) && (main.includes(part) || !confirmed.includes(part)));
+  return { notCovered, notCoveredMain: main, left };
+}
+
+// The date three months after a SWMS's date ("14 October 2026" gives "14 January 2027"), as a saved
+// SWMS is next due for review (accounts.js REVIEW_MONTHS). Today's date where the SWMS has none.
+const REVIEW_MONTHS = 3;
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function reviewDateAfter(dateText) {
+  const match = /^(\d{1,2}) ([A-Za-z]+) (\d{4})$/.exec(cleanLine(dateText));
+  const month = match ? MONTH_NAMES.findIndex((name) => name.toLowerCase() === match[2].toLowerCase()) : -1;
+  const from = month >= 0 ? new Date(Date.UTC(Number(match[3]), month, Number(match[1]))) : new Date();
+  const day = from.getUTCDate();
+  const next = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + REVIEW_MONTHS, 1));
+  // The 31st of a shorter month is its last day.
+  const last = new Date(Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 0)).getUTCDate();
+  return `${Math.min(day, last)} ${MONTH_NAMES[next.getUTCMonth()]} ${next.getUTCFullYear()}`;
+}
+
+// The "Safety data sheet" question, said in one line (messy round 3: it had no explanation).
+const SDS_PROMPT = 'Name the hazardous products this work uses, such as sealant, primer, adhesive or fuel, and how they are handled. Each one\'s safety data sheet is kept on site.';
 
 function prepareDraft(input) {
   const read = scopeWords(input);
@@ -3450,7 +3497,8 @@ function buildDraft(input, screen) {
     worksManagerPhone: keptFact(input.worksManagerPhone),
     complianceResponsible: keptFact(input.complianceResponsible),
     reviewer: keptFact(input.reviewer),
-    reviewDate: keptFact(input.reviewDate),
+    // Left empty, the review date is three months after the SWMS's date, as My SWMS shows it (D289).
+    reviewDate: keptFact(input.reviewDate) || reviewDateAfter(input.date),
     preparedBy: keptFact(input.preparedBy),
     swmsRef: keptFact(input.swmsRef),
     // A draft not yet saved is revision 1. A saved SWMS carries its own revision and date.
@@ -3621,6 +3669,13 @@ function buildDraft(input, screen) {
   // The PPE the questions page suggests: for all work, and for particular steps (D246, D247), with
   // the names of the steps an item can be added to.
   if (screen === 'ppe') return { ppe: splitPpe(ppeFromRegisters(draft.ppe, registers), registers.jobSteps, { suggest: true, placed: input.ppeSteps }), steps: [...new Set(registers.jobSteps.map((step) => step.step))] };
+  // The work with no job steps, for the one-go project page before its SWMS are prepared (messy
+  // round 3: it was found only by opening each SWMS). The answers need not be given yet.
+  if (screen === 'cover') {
+    const parts = withMovedIn(notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched, pickGaps: input.pickGaps }), input);
+    const main = [...(userMain.length ? parts.filter((part) => userMain.includes(part)) : []), ...movedInParts(input)];
+    return { notCovered: parts, notCoveredMain: [...new Set(main)] };
+  }
   if (screen) return { ...draft, missing: missing.map((item) => item.id) };
   // Answers that contradict the task's own words, shown above the draft. The answer stands.
   // The engineered jack and skid step kept for a heavy load jacked and skated (D219): the user checks it.
@@ -3632,9 +3687,11 @@ function buildDraft(input, screen) {
   // The user's own hazards and Who go in last, so the registers and risk ratings are worked out
   // from SiteReady's hazards and nothing they bring is lost by a reworded hazard.
   // Parts of the task with no job steps, shown above the draft (owner decision D184).
-  const notCovered = notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched, pickGaps: input.pickGaps });
-  // Where that work is all the task's work, a tick is not enough: the user writes the step for it.
-  if (userMain.length) draft.notCoveredMain = notCovered.filter((part) => userMain.includes(part));
+  const notCovered = withMovedIn(notCoveredParts({ typed, task, facts, steps: draft.jobSteps, state, unmatched: input.unmatched, pickGaps: input.pickGaps }), input);
+  // Where that work is all the task's work, a tick is not enough: the user writes the step for it. So
+  // is work moved here from another SWMS of the project (D289).
+  const mainParts = [...new Set([...(userMain.length ? notCovered.filter((part) => userMain.includes(part)) : []), ...movedInParts(input)])];
+  if (mainParts.length) draft.notCoveredMain = mainParts;
   // The steps the user wrote for work SiteReady does not cover go in once the registers and ratings
   // are worked out from SiteReady's own steps.
   const chosenPpe = Array.isArray(input.ppe) && input.ppe.length > 0;
@@ -7328,7 +7385,7 @@ function suggestedPpe(input) {
   return out && Array.isArray(out.ppe) ? out.ppe : null;
 }
 
-module.exports = { sdsAnswerLines,
+module.exports = { sdsAnswerLines, coverCheck, movedInParts, reviewDateAfter,
   suggestedPpe,
   domesticWork,
   applyControlEdits,
