@@ -38,6 +38,35 @@
     return null;
   }
 
+  // Who runs the crane, read from the scope only where it clearly says cranes are used by others for
+  // this subcontract (messy round 3: "A crane company" was ticked for scopes that mention a crane in
+  // passing, or never mention one). 'company' then, else '' (unanswered: the user answers it).
+  // "The contractor's cranes may be used" is not clear: a crane that may be used, if required or
+  // subject to something, leaves it unanswered.
+  const CRANE_WORD = /\b(?:cranage|craneage|cranes?|crane hire|mobile cranes?|tower cranes?)\b/i;
+  const BY_OTHERS_CRANE = /\b(?:by others|by the (?:builder|head contractor|principal contractor|main contractor|client)|(?:provided|supplied|operated|arranged|organised|organized) by (?:the )?(?:builder|head contractor|principal contractor|main contractor|others|client)|(?:the )?(?:builder|head contractor|principal contractor|main contractor) (?:will )?(?:provides?|supplies|supply|operates?|arranges?)\b)/i;
+  const HEDGED = /\b(?:may|might|could|if required|where required|as required|if needed|subject to|if available|where available|by arrangement|tbc|to be confirmed)\b/i;
+  function craneFromReading(reading) {
+    for (const row of ((reading && reading.activities) || []).filter((item) => item.type !== 'Duty')) {
+      const words = [...(row.quotes || []), row.conditions || '', row.plant || ''].map(String);
+      for (const text of words) {
+        const sentence = text.split(/(?<=[.;])\s+/).find((part) => CRANE_WORD.test(part) && BY_OTHERS_CRANE.test(part) && !HEDGED.test(part) && !CRANAGE_SUPPLY.test(part));
+        if (sentence) return 'company';
+      }
+    }
+    return '';
+  }
+
+  // Whether a package's own words point to a fall of more than 2 m ('yes'), to none ('no'), or say
+  // nothing either way (''), so a fall answer given in one SWMS is not filled into another its own
+  // task contradicts (messy round 3: "Yes" was filled into the ground floor SWMS).
+  const GROUND_ONLY = /\b(?:ground (?:floor|level)|at grade|on grade|slab on ground|ground slabs?|footpaths?|kerbs?|car ?parks?|landscap\w*|in-ground|below ground)\b/i;
+  function fallHint(flag, task) {
+    if (((flag && flag.categories) || []).some((item) => item.id === 'fall')) return 'yes';
+    if (GROUND_ONLY.test(String(task || '')) && !/\b(?:roofs?|ceilings?|levels? [2-9]|upper|suspended|scaffold\w*|ewps?|ladders?|heights?|voids?|risers?|shafts?|facade|fa\u00e7ade|external walls?)\b/i.test(String(task || ''))) return 'no';
+    return '';
+  }
+
   // How the cranage package is offered for the crane answer: own, company or none.
   function cranageOffer(crane, clause) {
     if (crane === 'own') return { full: true, ticked: true, note: '' };
@@ -120,6 +149,7 @@
         leaveOut: mapped ? leaveOut : null,
         unmatched: mapped ? (mapped.unmatched || []) : null,
         fallRisk: fallFrom(flags.get(pack.name)),
+        fallHint: fallHint(flags.get(pack.name), scopeTask.plainTask(pack.rows)),
         crane: crane || '',
         slinging: slinging || '',
         body: null,
@@ -128,7 +158,7 @@
     });
   }
 
-  const api = { packagesOf, isCranage, craneClause, cranageOffer, CRANAGE_TICK, pickFor, fallFrom, projectItems, TRADE_RULES };
+  const api = { packagesOf, isCranage, craneClause, craneFromReading, fallHint, cranageOffer, CRANAGE_TICK, pickFor, fallFrom, projectItems, TRADE_RULES };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadyScopeChoice = api;
 })(typeof window !== 'undefined' ? window : globalThis);

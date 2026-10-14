@@ -50,6 +50,11 @@
   const onlyCalls = (text) => CALLS.test(text) && !RESCUES.test(text);
   const RESCUE_KIT = /\b(?:harness\w*|lines?|ropes?|tripods?|winch\w*|ladders?|ewps?|elevating work platforms?|poles?|descenders?|stretchers?|spinal boards?|rescue kits?|lifelines?|davits?|hoists?|retrieval|hooks?|mats?|insulated|lv rescue|low voltage rescue)\b/i;
 
+  // "dont know", "TBC" or "to be confirmed" inside a longer answer, such as a standard answer's blank
+  // filled with it ("The products used are dont know.", "document dont no, revision TBC"): messy round 3,
+  // 14 October 2026. "Unknown services" is a real hazard, so "unknown" alone is not counted.
+  const HELD_OPEN = /\b(?:tb[acd]|to be (?:confirmed|advised|determined|completed|decided)|(?:i )?(?:dont|don't|don’t|do not) (?:know|no)|dunno|not sure|no idea)\b/i;
+
   // Why a typed answer is no answer at all ("dont know", "me", "as per eng"), or '' when it says
   // something. The answers to the questions about the work are judged by the same words (draft.js
   // hasSubstance), so one answer gets one message wherever it is typed.
@@ -60,6 +65,23 @@
     if (leftOpen(text) || NOT_YET.test(text) || DONT_KNOW.test(text)) return `${quoted} is not an answer yet.`;
     if (PRONOUN.test(text)) return `${quoted} does not say who. Name the role, for example "The site supervisor".`;
     if (AS_PER.test(text)) return `${quoted} does not say what is done. Write it here in a few words.`;
+    const open = HELD_OPEN.exec(text);
+    if (open) return `${quoted} still has "${open[0]}" in it. Put in what applies on this job.`;
+    return '';
+  }
+
+  // Answers to the people and place boxes that say too little to act on (messy round 3, 14 October
+  // 2026): a muster point of "gate" or "out the front", a first aider of "builder" or "supervisor", a
+  // principal contractor of "the builder". Each kind of box says what would do.
+  const VAGUE_PLACE = /^(?:(?:out|outside)(?: (?:the|of the))? (?:front|back|site|gate|office|shed)|out ?front|out ?back|outside|(?:the |at the )?(?:front|back|street|road|gate|footpath|car ?park|entrance|exit)|here|there|on ?site|the site|site|usual(?: place| spot)?|normal (?:place|spot)|assembly area|muster point|emergency assembly area)\.?$/i;
+  const NOT_A_FIRST_AIDER = /^(?:the |a |our |site )?(?:builder|builders|supervisor|foreman|leading hand|boss|pc|mc|principal contractor|main contractor|head contractor|site manager|manager|crew|anyone|everyone|all|anybody|whoever|staff|site staff|workers?)\.?$/i;
+  const NOT_A_COMPANY = /^(?:the |a |our )?(?:builder|builders|main contractor|head contractor|principal contractor|principal|pc|mc|client|contractor|owner|developer|company)\.?$/i;
+  function fieldWeak(kind, text) {
+    const quoted = `"${text.slice(0, 60)}"`;
+    if (kind === 'place' && (VAGUE_PLACE.test(text) || !/\s/.test(text))) return `${quoted} does not say where. Name the place so a new worker can find it, for example "Main gate on Smith Street, beside the site office".`;
+    if (kind === 'firstAider' && NOT_A_FIRST_AIDER.test(text)) return `${quoted} does not name a first aider. Name the trained first aider, or say whose they are, for example "Main contractor's site first aider".`;
+    if (kind === 'company' && NOT_A_COMPANY.test(text)) return `${quoted} does not name the company. Give the principal contractor's name, for example "ABC Builders Pty Ltd".`;
+    if (kind === 'phone' && text.replace(/\D/g, '').length < 8) return `${quoted} is not a phone number. Give a number the site can ring, for example 0412 345 678.`;
     return '';
   }
 
@@ -71,7 +93,12 @@
   // - blank: an answer that must have no blank (____) left in it.
   // - line: a control line with blanks; value is the answers typed in its blanks, in order.
   function answerNeed(rule, value) {
-    if (rule.line) return hasBlank(fillLine(rule.line, Array.isArray(value) ? value : [])) ? rule.ask : '';
+    if (rule.line) {
+      if (hasBlank(fillLine(rule.line, Array.isArray(value) ? value : []))) return rule.ask;
+      // A blank filled with "dont know" or "TBC" is still open.
+      const typed = (Array.isArray(value) ? value : []).map(clean).find((answer) => answer && notAnswer(answer));
+      return typed ? `${notAnswer(typed)} Fill in the blank with what applies on this job.` : '';
+    }
     if (rule.blank) return hasBlank(value) ? rule.ask : '';
     const text = clean(value);
     const quoted = `"${text.slice(0, 60)}"`;
@@ -85,11 +112,24 @@
       if (rule.kit && /\bfirst aid\b/i.test(text) && !RESCUE_KIT.test(text)) return `${quoted} is first aid, not rescue equipment. Say what is used to get the person out, and where it is kept.`;
       // One word ("builder", "gate", "spotter") does not tell the crew what to do.
       if (!/\s/.test(text)) return `${quoted} is too short to act on. ${rule.ask}`;
+      // "pull them out" does not say who does it or with what (messy round 3).
+      if (rule.rescue && words(text) < 5) return `${quoted} does not say who rescues the person or how. ${rule.ask}`;
+      // Rescue gear left in a vehicle is not at the work: "rope in the ute".
+      if (rule.kit && IN_VEHICLE.test(text) && !AT_WORK.test(text)) return `${quoted} keeps the rescue equipment away from the work. Say what is used to get the person out, and that it is kept at the work area.`;
+      // "turn it off" does not say where the stop is or who uses it.
+      if (rule.stop && (words(text) < 4 || BARE_COMMAND.test(text))) return `${quoted} does not say where the stop is or who uses it. ${rule.ask}`;
       return '';
     }
     if (NONE.test(text) && !rule.none) return `${rule.name} cannot be ${quoted}: every SWMS names it. ${rule.ask}`;
+    // Not applicable is refused where the SWMS itself says the thing is there (a scaffold in the plant).
+    if (rule.noneRefused && NONE.test(text)) return `${rule.noneRefused} ${rule.ask}`;
+    if (rule.kind) { const weak = fieldWeak(rule.kind, text); if (weak) return `${weak}`; }
     return '';
   }
+  const words = (text) => clean(text).split(/\s+/).filter(Boolean).length;
+  const IN_VEHICLE = /\b(?:in|on) (?:the |my |our |a |his |their )?(?:site )?(?:ute|truck|van|car|vehicle|wagon|trailer)\b/i;
+  const AT_WORK = /\b(?:at|beside|next to|by|near) (?:the |each )?(?:work|trench|entry|edge|box|shield|pit|platform|lift|level|area|access|ladder|ewp|scaffold)\b|\bkept (?:at|on) (?:the )?(?:work|level|deck|site office)\b/i;
+  const BARE_COMMAND = /^(?:just )?(?:turn|switch|shut|press|hit|kill|stop|cut|push|pull)\b[\w\s'-]{0,16}\.?$/i;
 
   // What a design the SWMS relies on still needs (designs.js), or '' once answered: issued, with who
   // prepared it, its document or drawing number and its date (the revision and the file are
@@ -173,6 +213,33 @@
     return `${listed(names.map((name, i) => `${name} (${revisions[i] ? `rev ${revisions[i]}` : 'no revision'})`))} ${both} give ${thing} ${number}.${given.size > 1 ? ` Two revisions of one ${thing} is most likely a mistake.` : ''} Check each number and revision against ${against}.`;
   }
 
+  // The people and place boxes every SWMS names, as the download gate judges them (download-gate.js),
+  // shared with the page so the project page can say under each box why an answer is refused, as the
+  // single SWMS page does (messy round 3). kind: how a short answer is judged (fieldWeak). The works
+  // manager and contact phone print in every SWMS and are needed before download (D289).
+  const PEOPLE_FIELDS = [
+    { id: 'workplace', field: 'workplace', label: 'Job address', need: 'Give the address where the work is done.' },
+    { id: 'principalContractor', field: 'principal', label: 'Principal contractor', none: true, kind: 'company', need: 'Name the principal contractor running the site. If no principal contractor is appointed for this work, write Not applicable.' },
+    { id: 'complianceResponsible', field: 'compliance-responsible', label: 'Person who makes sure the SWMS is followed', need: 'Name the person who checks the controls are in place on site, usually your supervisor or leading hand.' },
+    { id: 'reviewer', field: 'reviewer', label: 'Person who reviews the controls', need: 'Name the person who checks the controls are working and updates this SWMS if the job changes.' },
+    { id: 'worksManager', field: 'works-manager', label: 'Works manager', need: 'Name your own person in charge of this work, such as your supervisor or foreman. It prints at the top of the SWMS.' },
+    { id: 'worksManagerPhone', field: 'works-manager-phone', label: 'Works manager phone', kind: 'phone', need: 'Give the works manager\'s mobile, so the site can reach them. It prints as the contact phone.' },
+    { id: 'scaffoldSupervisor', field: 'scaffold-supervisor', label: 'Scaffold supervisor', none: true, scaffold: true, need: 'This SWMS involves a scaffold. Name the scaffolding company\'s supervisor who hands it over and tags it, or write Not applicable if no scaffold is used for this work.' },
+    { id: 'firstAider', field: 'first-aider', label: 'First aider', kind: 'firstAider', need: 'Name a trained first aider on site, yours or the main contractor\'s.' },
+    { id: 'musterPoint', field: 'muster-point', label: 'Muster point', kind: 'place', need: 'Say where everyone meets in an emergency. Ask the main contractor.' },
+  ];
+  // The rule a person or place box is judged by (answerNeed).
+  const fieldRule = (item) => ({ ask: item.need, name: item.label, none: Boolean(item.none), ...(item.kind ? { kind: item.kind } : {}) });
+  // The five site questions, and which take "None".
+  const SITE_NEED = {
+    liveServices: 'Say what power, gas, water, data or other live services are in or near the work, or write None.',
+    publicInterface: 'Say where the public, traffic or neighbours are close to the work, or write None.',
+    otherTrades: 'Say which other trades work nearby, or above or below you, or write None.',
+    ground: 'Say what the ground or deck is like where you work (soft or sloping ground, excavations, slab or deck loads), or write None.',
+    access: 'Say how the crew gets to the work area, and how plant and materials get there.',
+  };
+  const SITE_NONE = ['liveServices', 'publicInterface', 'otherTrades', 'ground'];
+
   // What the user types that the SWMS prints as given and reads for nothing else: the people and
   // place boxes, the emergency answers and the words typed in a control line's blanks. Changing one
   // of these needs no new draft: the download sends them as they are now. Any other change (a site
@@ -183,7 +250,7 @@
     // The types of hazardous substance ticked "Not required" (D277): read by the gate only.
     'substancesNotUsed'];
 
-  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, answerNeed, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };
+  const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, fieldWeak, answerNeed, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadyGate = api;
 })(typeof window !== 'undefined' ? window : globalThis);

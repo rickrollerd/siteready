@@ -18,6 +18,7 @@ const { packageKinds, suggestedKinds, screenHighRisk } = require('./draft');
 const { findState } = require('./legislation');
 const { TITLES } = require('./scope');
 const { packageTask } = require('./public/scope-task');
+const { readSlang } = require('./slang');
 const { expectedSeconds } = require('./public/read-progress');
 
 const MODEL = 'claude-opus-5-5';
@@ -243,7 +244,7 @@ function errorMessage(error) {
 function settlePackages(reading) {
   if (!reading || !Array.isArray(reading.packages)) return reading;
   const settled = settleGroups(dutiesAsDuties(reading), () => true);
-  const merged = penetrationsByWork(oneForTheProject(oneJumpform(settled)));
+  const merged = namedByWork(finishingWithThePour(ownTradeOutOfFormwork(edgeProtectionByWork(penetrationsByWork(oneForTheProject(oneJumpform(settled)))))));
   if (merged === settled) return settled;
   const out = settleGroups(merged, (item) => item.merged);
   return { ...out, packages: out.packages.map(({ merged: _merged, ...item }) => item) };
@@ -263,11 +264,13 @@ const siteRows = (reading, name) => (reading.activities || []).filter((row) => r
 
 // The groups each activity's own words name, among the groups the package has, counted. Every word
 // counts here, as when packages were first grouped; the job steps leave out words for others' work.
+// An activity's conditions ("washout bay only", "night pours") are not its work, so they name no group.
 function groupVotes(rows, groups) {
   const votes = new Map();
-  for (const row of rows) for (const id of suggestedKinds(packageTask([row]), {}, { allWords: true })) if (groups.includes(id)) votes.set(id, (votes.get(id) || 0) + 1);
+  for (const row of rows) for (const id of ownGroups(row)) if (groups.includes(id)) votes.set(id, (votes.get(id) || 0) + 1);
   return votes;
 }
+const ownGroups = (row) => suggestedKinds(readSlang(packageTask([{ ...row, conditions: '' }])), {}, { allWords: true });
 
 // A package's main work: the group most of its activities name, with the AI's order breaking a tie,
 // and whether its own words name it at all (named) or only the AI chose it.
@@ -475,6 +478,153 @@ function penetrationsByWork(reading) {
   }
   // A package left with no activities at all goes.
   return { ...reading, activities, packages: packages.filter((item) => activities.some((row) => row.package === item.package)) };
+}
+
+// ---- The same work in the same package, under the same name, whichever way the AI read it ----
+// (messy-user test, 14 October 2026: one scope read twice came back as 8 packages and as 6; edge
+// protection was once "Access equipment", which maps to no task; reinforcement was once read into the
+// formwork package and once named "Trade installation: suspended slabs and stairs", with no trade.)
+
+// Moves the activities to the package named into, made with the groups given when there is none, and
+// takes from each package they leave a group only they named. A package left with nothing goes.
+function moveActivities(reading, moving, into, groups) {
+  if (!moving.size) return reading;
+  const from = new Set([...moving].map((row) => row.package));
+  const packages = reading.packages.map((item) => {
+    if (!from.has(item.package) || item.package === into) return item;
+    const own = item.groups || [];
+    const rows = siteRows(reading, item.package);
+    const left = groupVotes(rows.filter((row) => !moving.has(row)), own);
+    const gone = groupVotes(rows.filter((row) => moving.has(row)), own);
+    // Activities left with no group at all keep the package's groups, so they still get job steps.
+    const kept = own.filter((id) => !(gone.has(id) && !left.has(id)));
+    return { ...item, groups: kept.length ? kept : own, unmatched: (item.unmatched || []).filter((text) => ![...moving].some((row) => row.activity === text)), merged: true };
+  });
+  const at = packages.findIndex((item) => item.package === into);
+  if (at >= 0) packages[at] = { ...packages[at], groups: [...new Set([...(packages[at].groups || []), ...groups])], merged: true };
+  else {
+    const first = packages.findIndex((item) => from.has(item.package));
+    packages.splice(first + 1, 0, { package: into, groups, byOthers: [], unknown: [], unmatched: [], merged: true });
+  }
+  const activities = reading.activities.map((row) => (moving.has(row) ? { ...row, package: into } : row));
+  return { ...reading, activities, packages: packages.filter((item) => activities.some((row) => row.package === item.package)) };
+}
+
+// The package for one kind of work: the one named for it, or the one whose activities name it most.
+function packageFor(reading, pattern, group, not = []) {
+  const others = reading.packages.filter((item) => !not.includes(item.package) && item.package !== JUMPFORM_PACKAGE && siteRows(reading, item.package).length);
+  return others.find((item) => pattern.test(item.package))
+    || others.find((item) => (item.groups || []).includes(group) && mainGroup(siteRows(reading, item.package), item.groups).main === group);
+}
+
+// Edge protection is not access equipment. Installing, keeping and removing edge protection, guardrails
+// and penetration covers, read into the brief's "Access equipment" package, goes to the edge protection
+// package (made where there is none), whose steps install it. Ladders, EWPs and scaffolds stay.
+const ACCESS_PACKAGE = /^access equipment$/i;
+const EDGE_WORK = /\b(?:edge protection|guard ?rails?|handrails?|penetration covers?|void protection|cover\w*\b[^.]{0,40}\b(?:penetrations?|openings?|voids?))\b/i;
+const ACCESS_WORK = /\b(?:ewps?|elevat\w* work platforms?|scissor lifts?|boom lifts?|ladders?|a-frames?|trestles?|scaffold\w*|stair towers?|temporary stairs?|stair ?masters?|access (?:platforms?|stairs?)|working platforms?|hoists?|mast climb\w*|swing stages?|harness\w*)\b/i;
+const EDGE_NAME = 'Edge protection';
+
+function edgeProtectionByWork(reading) {
+  const moving = new Set(reading.packages.filter((item) => ACCESS_PACKAGE.test(item.package))
+    .flatMap((item) => siteRows(reading, item.package)).filter((row) => EDGE_WORK.test(row.activity) && !ACCESS_WORK.test(`${row.activity} ${row.plant || ''}`)));
+  if (!moving.size) return reading;
+  const edge = reading.packages.find((item) => !ACCESS_PACKAGE.test(item.package) && EDGE_PACKAGE.test(item.package) && !/\bscreens?\b/i.test(item.package) && siteRows(reading, item.package).length);
+  return moveActivities(reading, moving, edge ? edge.package : EDGE_NAME, ['edgeProtectionInstall']);
+}
+
+// Reinforcement and concrete placing are trades of their own (D216; the pick lists have a trade for
+// each). An activity that is only reinforcement work, or only placing concrete, read into the formwork
+// package goes to the package for that work (made where there is none). An activity that names more
+// than one of them ("form, fix reo and pour") stays where the AI put it.
+const STRUCTURE_GROUPS = ['formwork', 'propping', 'reo', 'concrete', 'slabPour', 'slabGround', 'jumpform'];
+const OWN_TRADES = [
+  { group: 'reo', name: 'Reinforcement', pattern: /\breinforc\w*|\breo\b|\bsteel fix\w*/i },
+  { group: 'concrete', name: 'Concrete placing and finishing', pattern: /\bconcret\w*|\bpours?\b|\bplace and finish\b/i },
+];
+
+function ownTradeOutOfFormwork(reading) {
+  let out = reading;
+  for (const trade of OWN_TRADES) {
+    const formwork = out.packages.filter((item) => item.package !== JUMPFORM_PACKAGE && (item.groups || []).includes('formwork') && siteRows(out, item.package).length
+      && mainGroup(siteRows(out, item.package), item.groups).main === 'formwork');
+    const moving = new Set(formwork.flatMap((item) => siteRows(out, item.package)).filter((row) => {
+      const named = ownGroups(row).filter((id) => STRUCTURE_GROUPS.includes(id));
+      return named.length > 0 && named.every((id) => id === trade.group || (trade.group === 'concrete' && id === 'slabPour'));
+    }));
+    if (!moving.size) continue;
+    const target = packageFor(out, trade.pattern, trade.group, formwork.map((item) => item.package));
+    out = moveActivities(out, moving, target ? target.package : trade.name, [trade.group]);
+  }
+  return out;
+}
+
+// Finishing the pour (sawing the control joints, grinding slab edges, nibs and surface defects, power
+// trowelling, curing) is the concreter's finishing work, which the concrete steps cover. A package that
+// is only that work joins the concrete placing package, where the reading has one.
+const POUR_FINISHING = /\b(?:saw ?cut\w*|cut\w*)\b[^.]{0,30}\b(?:control|contraction|expansion|construction) joints?\b|\bgrind\w*\b[^.]{0,40}\b(?:slab edges?|edges|nibs?|surface defects?|defects|fins)\b|\bcur(?:e|ing)\b[^.]{0,20}\bconcrete\b|\bcuring compounds?\b|\bpower trowel\w*|\btrowel\w* finish\w*/i;
+
+function finishingWithThePour(reading) {
+  const pour = reading.packages.find((item) => siteRows(reading, item.package).length && ['concrete', 'slabPour'].includes(mainGroup(siteRows(reading, item.package), item.groups || []).main) && (item.groups || []).some((id) => ['concrete', 'slabPour'].includes(id)));
+  if (!pour) return reading;
+  const moving = new Set(reading.packages.filter((item) => item.package !== pour.package && !PACKAGES.includes(item.package) && siteRows(reading, item.package).length && siteRows(reading, item.package).every((row) => POUR_FINISHING.test(row.activity)))
+    .flatMap((item) => siteRows(reading, item.package)));
+  return moveActivities(reading, moving, pour.package, []);
+}
+
+// A package is named for its work where SiteReady has a name for it, so the same work has the same
+// name and the same pick list trade: "Trade installation: suspended slabs and stairs" that is only
+// reinforcement work is "Reinforcement". Only a package whose every activity names that work, and one
+// the AI named itself (not from the brief's list, and not one made for the whole project), is renamed;
+// each activity keeps its area in its where-note. Two packages that come out with the same name are one.
+const WORK_NAMES = { reo: 'Reinforcement', formwork: 'Formwork and falsework', concrete: 'Concrete placing and finishing', slabPour: 'Concrete placing and finishing', edgeProtectionInstall: EDGE_NAME, wasteRemoval: 'Rubbish removal and site clean-ups' };
+// A brief-list name the AI gave work it does not fit: a daily clean-up read as "Demolition and removal".
+const LIST_MISREAD = { 'Demolition and removal': ['wasteRemoval'] };
+
+function namedByWork(reading) {
+  const renamed = new Map();
+  const mains = new Map();
+  for (const item of reading.packages) {
+    if (item.package === JUMPFORM_PACKAGE || /:\s*whole project$/i.test(item.package)) continue;
+    const rows = siteRows(reading, item.package);
+    if (!rows.length || !(item.groups || []).length) continue;
+    const { main } = mainGroup(rows, item.groups);
+    if (PACKAGES.includes(item.package) && !(LIST_MISREAD[item.package] || []).includes(main)) continue;
+    const name = WORK_NAMES[main];
+    // A clean-up is renamed only from a misread list name ("Demolition and removal"). A name in the AI's
+    // own words ("Housekeeping and waste", "Silica dust control", "protection") says what the clean-up
+    // is for, so it is kept.
+    if (main === 'wasteRemoval' && !PACKAGES.includes(item.package)) continue;
+    // Finishing the pour counts as concrete placing work (finishingWithThePour). An activity that also
+    // names another of formwork, reo and concrete ("form, fix reo and pour") keeps the package's own name.
+    const same = { formwork: ['formwork', 'propping'], reo: ['reo'], concrete: ['concrete', 'slabPour'], slabPour: ['concrete', 'slabPour'] }[main];
+    const named = (row) => (ownGroups(row).includes(main) || (['concrete', 'slabPour'].includes(main) && POUR_FINISHING.test(row.activity)))
+      && (!same || ownGroups(row).filter((id) => STRUCTURE_GROUPS.includes(id)).every((id) => same.includes(id)));
+    if (!name || name === item.package || !rows.every(named)) continue;
+    renamed.set(item.package, name);
+    mains.set(item.package, main);
+  }
+  if (!renamed.size) return reading;
+  const activities = reading.activities.map((row) => {
+    const name = renamed.get(row.package);
+    if (!name) return row;
+    // An "area" that only names the work ("Trade installation: concrete") is not kept as a place.
+    const named = TRADE_INSTALLATION.test(row.package) ? row.package.replace(TRADE_INSTALLATION, '').trim() : '';
+    const area = named && !suggestedKinds(readSlang(named), {}, { allWords: true }).includes(mains.get(row.package)) && !name.toLowerCase().includes(named.toLowerCase()) ? named : '';
+    const where = String(row.where || '').trim();
+    return { ...row, package: name, where: !area || where.toLowerCase().includes(area.toLowerCase()) ? where : where ? `${area}: ${where}` : area };
+  });
+  const packages = [];
+  for (const item of reading.packages) {
+    const name = renamed.get(item.package) || item.package;
+    const into = packages.find((other) => other.package === name);
+    if (!into) { packages.push(renamed.has(item.package) ? { ...item, package: name, merged: true } : item); continue; }
+    into.groups = [...new Set([...(into.groups || []), ...(item.groups || [])])];
+    into.unmatched = [...new Set([...(into.unmatched || []), ...(item.unmatched || [])])];
+    into.byOthers = [...(into.byOthers || []), ...(item.byOthers || []).filter((entry) => !(into.byOthers || []).some((other) => other.group === entry.group && other.step === entry.step))];
+    into.merged = true;
+  }
+  return { ...reading, activities, packages };
 }
 
 // Goal 4: each work package with site work is flagged with the high risk construction work its

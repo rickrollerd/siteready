@@ -263,7 +263,10 @@ async function ownSwms(req, id) {
 function titleFor(body, input) {
   const given = textField(body.title, 200);
   if (given) return given;
-  const sentence = textField(input.task, 5000).split(/(?<=[.!?])\s/)[0].replace(/[.,;:]+$/, '');
+  // The task's words as the SWMS prints them, with the typing errors fixed (messy round 3: the file
+  // was named "dismantel ... scafold" though the SWMS said "dismantle ... scaffold").
+  const task = require('./spelling').fixSpelling(textField(input.task, 5000)).text;
+  const sentence = task.split(/(?<=[.!?])\s/)[0].replace(/[.,;:]+$/, '');
   if (sentence.length <= 100) return sentence || 'Untitled SWMS';
   return `${sentence.slice(0, 100).replace(/[\s,;:]+\S*$/, '')}…`;
 }
@@ -647,7 +650,9 @@ async function documentParts(company, row, revision = row.revision || 1, base = 
       signedDate: longDate(item.signed_at), note: signRead.signOnNote(item),
     }));
   const confirmation = current || !kept.confirmation ? { name: row.reviewed_by, date: longDate(row.last_reviewed_at) } : kept.confirmation;
-  return { draft: kept.draft, input: kept.input, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company, reviewLink: reviews.reviewLink(base, kept.ref) };
+  // With no reference number of the business's own, the SWMS prints its SiteReady reference (D289).
+  const draft = kept.draft && !String(kept.draft.swmsRef || '').trim() && kept.ref ? { ...kept.draft, swmsRef: kept.ref } : kept.draft;
+  return { draft, input: kept.input, signons, confirmation, logo: readLogo(company.logo), ref: kept.ref, revision: kept.revision, company, reviewLink: reviews.reviewLink(base, kept.ref) };
 }
 
 // Sends a saved SWMS's revision as Word or PDF. The headers say which saved SWMS and revision
@@ -676,9 +681,17 @@ async function sendDocument(req, res, row, format, revision) {
   res.send(Buffer.from(buffer));
 }
 
+// A file name from the title: letters, numbers, spaces and hyphens, with a point between numbers
+// kept ("deeper than 1.5 m", messy round 3).
 function fileName(row, extension) {
-  const base = row.title.replace(/[^A-Za-z0-9 -]+/g, '').trim().replace(/\s+/g, ' ').slice(0, 60) || 'SWMS';
-  return `${base}.${extension}`;
+  return `${fileStem(row.title)}.${extension}`;
+}
+function fileStem(title, keep = ' -') {
+  const allowed = new RegExp(`[^A-Za-z0-9.${keep.replace(/-/g, '\\-')}]+`, 'g');
+  const words = String(title || '').replace(/(?<!\d)\.|\.(?!\d)/g, ' ').replace(allowed, '').trim().replace(/\s+/g, ' ');
+  // Cut at a word, not part way through one ("3 lifts aro").
+  const cut = words.length > 60 ? words.slice(0, 61).replace(/\s+\S*$/, '') : words;
+  return cut.trim() || 'SWMS';
 }
 
 router.get('/swms/:id/docx', requireAccess, route(async (req, res) => {
@@ -889,4 +902,4 @@ async function removeExpired(now = new Date()) {
   await require('./checked-swms').removeOld(now);
 }
 
-module.exports = { validAbn, router, sendReviewReminders, removeExpired, withCompany, updatedWording, saveForDownload, documentParts, sendDocument, REVIEW_MONTHS };
+module.exports = { validAbn, fileStem, titleFor, router, sendReviewReminders, removeExpired, withCompany, updatedWording, saveForDownload, documentParts, sendDocument, REVIEW_MONTHS };

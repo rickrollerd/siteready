@@ -111,6 +111,18 @@ const KINDS = [
       /\bWall forms are built and braced to their design\b/,
       /\bConcrete is placed at the rate the form design allows\b/,
     ],
+    // Lines that only keep a load or the pour rate within the design. A step with only these uses the
+    // design but does not build to it, so a design not issued yet holds the steps that build the
+    // formwork, not the pour or the loading (messy-user test, 14 October 2026: the pour crew's SWMS
+    // printed the formwork hold point on the pour itself).
+    limits: [
+      /\bwithin the load the formwork design allows\b/,
+      /\bpacks are placed only where the formwork design allows\b/,
+      /\bthe formwork designer confirms the formwork can take\b/,
+      /\bConcrete is placed no faster than the calculated pour rate\b/,
+      /\bDo not heap it on the deck beyond what the formwork design allows\b/,
+      /\bConcrete is placed at the rate the form design allows\b/,
+    ],
   },
   {
     id: 'jumpform', label: 'Jumpform design and climbing procedure',
@@ -194,10 +206,14 @@ const KINDS = [
   // Designs asked for only at their question (D243, public/design-fill.js): no library line names
   // them, so they print only once given there.
   { id: 'loadDrawing', label: 'Structural engineer\'s drawing for the load limits', lines: [] },
-  { id: 'excavation', label: 'Geotechnical design for the excavation', lines: [] },
+  // holdSteps: the steps that do the work the design covers, which carry its hold point while it is not
+  // issued even where no line in them names it (messy round 3: the geotechnical design was tied to no
+  // step, and the core hole approval held "Plan core holes" but not the coring itself).
+  { id: 'excavation', label: 'Geotechnical design for the excavation', lines: [], holdSteps: /^(Excavate|Dig the trench|Work in the trench|Work inside a deep excavation|Bulk excavate and load trucks|Excavate pile caps, lift pits and trenches|Excavate in front of the retention wall)$/ },
   {
     id: 'cutApproval', label: 'Engineer\'s approval for the cuts and core holes',
     lines: [/^Each core hole has the structural engineer's written approval\b/, /^Every opening has the structural engineer's written approval before cutting\b/],
+    holdSteps: /^(Plan core holes|Core drill through the slab or wall|Saw cut concrete|Cut an opening in a load-bearing wall)$/,
   },
 ];
 const KIND_BY_ID = new Map(KINDS.map((kind) => [kind.id, kind]));
@@ -221,7 +237,12 @@ function designsNeeded(draft) {
       const at = (step.controls || []).findIndex((line) => typeof line === 'string' && !isHoldPoint(line) && kind.lines.some((pattern) => pattern.test(withoutCitation(line))));
       if (at < 0) continue;
       if (!found.has(kind.id)) found.set(kind.id, { id: kind.id, label: kind.mast && /\bmast[- ]climb\w*|\bmcwps?\b/i.test(task) ? kind.mast : kind.label, steps: [] });
-      found.get(kind.id).steps.push({ step: step.step, line: step.controls[at] });
+      // holds: the step builds or installs to the design, so a design not issued yet holds it. A step
+      // whose only lines keep a load or a rate within the design (kind.limits) is not held.
+      const relies = (line) => typeof line === 'string' && !isHoldPoint(line) && kind.lines.some((pattern) => pattern.test(withoutCitation(line)));
+      // A step that erects, stands, forms or builds the work is held even where its only line is a limit.
+      const holds = /^(?:Erect|Stand|Form|Build)\b/.test(step.step || '') || (step.controls || []).some((line) => relies(line) && !(kind.limits || []).some((pattern) => pattern.test(withoutCitation(line))));
+      found.get(kind.id).steps.push({ step: step.step, line: step.controls[at], holds });
     }
   }
   return [...found.values()];
@@ -272,7 +293,7 @@ function designRows(draft, input) {
   const answers = answersOf(input);
   const needed = designsNeeded(draft).map((item) => {
     const answer = answers.get(item.id) || {};
-    return { ...answerFields(answer), id: item.id, what: clean(answer.what) || item.label, label: item.label, steps: item.steps.map((entry) => entry.step), needed: true };
+    return { ...answerFields(answer), id: item.id, what: clean(answer.what) || item.label, label: item.label, steps: item.steps.map((entry) => entry.step), held: item.steps.filter((entry) => entry.holds).map((entry) => entry.step), needed: true };
   });
   // A design given at the question that asks for it (D243), where no step relies on it: it prints
   // once given in full, or as not issued yet.
@@ -314,9 +335,10 @@ function withDesigns(draft, input) {
     const holds = [];
     for (const item of uses) {
       const row = ready.get(item.id);
-      if (row.status === 'notIssued') { holds.push(holdLine(row)); continue; }
+      const entry = item.steps.find((other) => other.step === step.step);
+      if (row.status === 'notIssued') { if (entry.holds) holds.push(holdLine(row)); continue; }
       const line = workLine(row);
-      const anchor = controls.indexOf(item.steps.find((entry) => entry.step === step.step).line);
+      const anchor = controls.indexOf(entry.line);
       const level = rank(line);
       const fits = anchor >= 0 && rank(controls[anchor]) <= level && (anchor + 1 >= controls.length || level <= rank(controls[anchor + 1]));
       const at = fits ? anchor + 1 : Math.max(0, controls.findIndex((other) => rank(other) >= level));
@@ -325,6 +347,22 @@ function withDesigns(draft, input) {
     // The lines added here, so the page shows them as coming from the designs, not as controls to change.
     return { ...step, controls: [...holds, ...controls], designLines: [...holds, ...controls.filter((line) => !step.controls.includes(line))] };
   });
+  // A design tied to the steps that do its work (holdSteps): those steps are listed against it, and
+  // carry its hold point while it is not issued.
+  for (const row of rows) {
+    const kind = KIND_BY_ID.get(row.id);
+    if (!kind || !kind.holdSteps || row.status === 'notNeeded') continue;
+    const doing = jobSteps.filter((step) => !step.own && kind.holdSteps.test(step.step || ''));
+    if (!doing.length) continue;
+    row.steps = [...new Set([...row.steps, ...doing.map((step) => step.step)])];
+    if (row.status !== 'notIssued' || designNeed(row) !== '') continue;
+    const hold = holdLine(row);
+    for (const step of doing) {
+      const at = jobSteps.indexOf(step);
+      if (step.controls.includes(hold)) continue;
+      jobSteps[at] = { ...step, controls: [hold, ...step.controls], designLines: [hold, ...(step.designLines || [])] };
+    }
+  }
   return {
     ...draft,
     jobSteps,
@@ -335,6 +373,8 @@ function withDesigns(draft, input) {
 // What the table says of a design's status.
 function statusText(row) {
   if (row.kind === 'method') return `The work follows this methodology.${row.file ? ` A copy is attached to this SWMS in SiteReady (${row.file.name || 'file'}).` : ''}`;
+  // A design whose steps only keep loads within it (the pour crew's formwork design) holds no step.
+  if (row.status === 'notIssued' && Array.isArray(row.held) && !row.held.length) return 'Not issued yet. Update this SWMS when it is issued.';
   if (row.status === 'notIssued') return 'Not issued yet. Hold point: the steps that rely on it do not start until it is issued and this SWMS is updated.';
   if (row.status === 'notNeeded') return 'Not needed for this work (the business\'s choice when preparing this SWMS).';
   if (row.status === 'given' && designNeed(row) === '') return row.file ? `Issued. A copy is attached to this SWMS in SiteReady (${row.file.name || 'file'}).` : 'Issued.';

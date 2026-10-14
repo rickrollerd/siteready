@@ -425,7 +425,11 @@ function actSilica(text) {
     // Cutting concrete or paving is processing crystalline silica material, so the ACT controls replace wet or extraction alone.
     .replace(/, it is cut wet or with on-tool extraction, anyone still at risk wears a fit tested P2 respirator, and the written silica assessment covers the cutting\./, `, cutting it is processing crystalline silica material: ${ACT_MATERIAL}.${cite('act', '418A', '418CAA')}`)
     .replace(/ with a saw fitted with water suppression or on-tool extraction, and the written silica assessment covers the reglet cutting\./, ` with a saw, and cutting them is processing crystalline silica material: ${ACT_MATERIAL}.${cite('act', '418A', '418CAA')}`)
-    .replace(/,? and the written silica assessment covers the [^.]*\./g, '.');
+    .replace(/,? and the written silica assessment covers the [^.]*\./g, '.')
+    // The standard answers for silica controls (presets.js): the ACT has no written assessment duty, and
+    // its own controls replace water or extraction alone (messy round 3, run 7).
+    .replace(/^(Cutting and coring|Drilling and cutting) are done (?:wet with a water-fed tool|with on-tool dust extraction)\. Fit tested P2 respirators are worn while (?:drilling or )?cutting\./, (all, what) => `${what} are processing crystalline silica material: ${ACT_MATERIAL}.`)
+    .replace(/ ?The written silica assessment is done before work starts and attached to this SWMS\./g, '');
 }
 // The ACT names concrete, masonry, tiles and stone "crystalline silica material", with no 1%
 // test, and sets its controls in s 418BAA and s 418CAA: a line's own "wet or extraction" is

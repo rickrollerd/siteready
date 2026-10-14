@@ -61,7 +61,7 @@ function page({ people = {}, profile = { name: 'Co', abn: '33102417000' }, answe
 }
 
 const item = (title, extra = {}) => ({ title, task: `${title} work.`, fallRisk: 'yes', kind: 'draft', status: 'ready', needs: [], checked: true, body: { task: `${title} work.`, state: 'qld', workplace: '1 A St, Brisbane QLD 4000', principalContractor: 'B', company: 'Co' }, ...extra });
-const PEOPLE = { workplace: '1 A St, Brisbane QLD 4000', principal: 'B', 'compliance-responsible': 'S', reviewer: 'S', 'first-aider': 'J', 'muster-point': 'Gate' };
+const PEOPLE = { workplace: '1 A St, Brisbane QLD 4000', principal: 'B', 'compliance-responsible': 'S', reviewer: 'S', 'works-manager': 'W', 'works-manager-phone': '0412 345 678', 'first-aider': 'J', 'muster-point': 'Gate' };
 
 test('with some SWMS not ready, the ready ones download, and each one not ready is named with what it needs (D278)', () => {
   const p = page({ people: PEOPLE });
@@ -149,7 +149,8 @@ test('the questions page asks each SWMS its questions, fills an answer across, a
   assert.equal(project.items[1].facts.loadLimits, '3 kPa on the deck');
   assert.equal(project.items[1].filledFrom.loadLimits, 0);
   assert.equal(p.element('go-1-loadLimits').value, '3 kPa on the deck');
-  assert.equal(p.element('go-1-loadLimits-across').textContent, 'Filled from SWMS 1. Change it here if this SWMS differs.');
+  // Marked, with a button to clear it for this SWMS alone (messy round 3).
+  assert.equal(p.element('go-1-loadLimits-across').innerHTML, 'Filled from SWMS 1. Change it here if this SWMS differs, or <button type="button" class="link" data-go-across-clear="1" data-q="loadLimits">clear it for this SWMS</button>.');
   // Changed in SWMS 2, it is its own and no longer follows SWMS 1.
   p.fire('input', { dataset: { goFact: '1', q: 'loadLimits' }, value: '2 kPa', attrs: ['go-fact'] });
   p.fire('input', { dataset: { goFact: '0', q: 'loadLimits' }, value: '4 kPa', attrs: ['go-fact'] });
@@ -259,7 +260,9 @@ test('with a crane company, who slings the loads is asked once for every SWMS, a
   p.fire('click', { id: 'go-prepare', attrs: [] });
   await settle();
   assert.equal(p.calls.filter((call) => call.route === '/api/draft').length, 0, 'nothing is prepared until it is answered');
-  assert.equal(p.element('go-status').textContent, 'Say who slings the loads and directs the crane: the crane company\'s dogman, or our crew.');
+  // Said at the question and in a list by the button (messy round 3: pressing early said nothing).
+  assert.equal(p.element('go-slinging-error').textContent, 'Say who slings the loads and directs the crane: the crane company\'s dogman, or our crew.');
+  assert.match(p.element('go-status').innerHTML, /<strong>Before Prepare all, answer this:<\/strong><\/p><ul><li>Say who slings the loads and directs the crane: the crane company&#39;s dogman, or our crew\. <button type="button" class="link" data-go-missing="0">Go to it<\/button><\/li><\/ul>/);
   // Answered once, every SWMS gets it, on this page and when opened on its own.
   p.fire('change', { name: 'go-slinging', value: 'ours', attrs: [] });
   assert.deepEqual(project.items.map((entry) => entry.slinging), ['ours', 'ours']);

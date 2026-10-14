@@ -57,6 +57,38 @@ const NEEDS = {
   lifeJacket: re(String.raw`\bwater\w*|\bdrown\w*|\blife jackets?\b|\bPFDs?\b|\bbarges?\b|\bboats?\b|\brivers?\b|\bcreeks?\b|\bwaterways?\b|\bpontoons?\b|\bwharf\b|\bjett(?:y|ies)\b|\bbasins?\b|\bponds?\b|\bpools?\b|\btanks?\b|\bdams?\b`),
 };
 
+// Items read sentence by sentence from the step's own lines (messy-user test, 14 October 2026: a P2
+// respirator was listed for placing concrete, chemical gloves for erecting falsework, gumboots for
+// fixing reo). A sentence counts only where it says the step does the work that needs the item, or that
+// the item is worn, and not where it says the work is not done ("never on concrete dust").
+//   p2, halfFace: dust, fibres or fumes the step makes or is exposed to (cutting, grinding, drilling,
+//     scabbling, sanding, breaking, sweeping, spraying, welding), not dust named in passing.
+//   gloveChemical, goggles: cement, wet concrete or a chemical the step handles or gets on skin or eyes.
+//   gumboots: wet concrete work (placing, pumping, screeding, washing out, slurry) or wet ground work
+//     (sewage, wet wells, standing water, water blasting).
+// "Never on concrete dust", "no one is under the deck while it is poured", "not reasonably practicable".
+const NOT_DONE = /\b(?:never|rather than|instead of|avoid\w*|no one|nobody|no faster|not reasonably practicable|(?:do|does|is|are|must|should|can) not|cannot|don't)\b/i;
+// A P2 respirator filters dust, fibres and fume, not vapours or gases: those need a respirator with filters.
+const AIRBORNE = /\bsilica\b|\bdust\w*|\bfibres?\b|\basbestos\b|\bmould\w*|\blead (?:paint|dust|fume)|\bfumes?\b|\bisocyanate\w*|\bspray mist\b|\bcontaminat\w*/i;
+const VAPOUR = /\bvapours?\b|\bsewer gas\b|\bisocyanate\w*|\bsolvents?\b/i;
+const MAKES_DUST = /\b(?:cut\w*|saw\w*|grind\w*|ground|drill\w*|cor(?:e|es|ing)\b|chas(?:e|es|ing)\b|scabbl\w*|sand(?:s|ed|ing)?\b|sanders?\b|break\w*|jackhammer\w*|demoli\w*|blast\w*|sweep\w*|rak\w* out|scrap\w*|strip\w*|spray\w*|weld\w*|braz\w*|mix\w*|disturb\w*|remov\w*|from|breath\w*|inhal\w*|expos\w*|airborne|raised|made|generat\w*)\b/i;
+const WEARS = (item) => new RegExp(String.raw`\b(?:wear\w*|worn|use|used|with)\b[^.;]*\b(?:${item})`, 'i');
+const SUBSTANCE = /\bwet concrete\b|\b(?<!fibre[- ])cement\w*|\bmortar\b|\bgrout\w*|\brender\w*|\bepoxy\b|\bresins?\b|\bsolvents?\b|\badhesives?\b|\bglues?\b|\bprimers?\b|\bsealants?\b|\bsilicone\b|\bcuring\b|\b\w+ing compounds?\b|\bdegreas\w*|\bbitumen\b|\bpaints?\b|\bcoatings?\b|\bmembranes?\b|\bacids?\b|\bsafety data sheets?\b|\bSDS\b|\bherbicides?\b|\bpesticides?\b|\bsewage\b|\bslurry\b|\bchlorine\b|\bchemicals?\b|\brelease agents?\b|\bform oil\b|\bfillers?\b|\brefrigerant\w*|\bcorrosive\w*|\bliquid nitrogen\b|\b(?:fuel|diesel|petrol)\b(?![- ](?:driven|powered|plant|engines?))/i;
+const HANDLES = /\b(?:skin|eyes?|burns?|splash\w*|contact|gloves?|goggles|wash\w*|handl\w*|mix\w*|appl\w*|spread\w*|bed(?:s|ded|ding)?|spray\w*|brush\w*|roll\w*|pour\w*|plac\w*|pump\w*|trowel\w*|screed\w*|finish\w*|grout\w*|render\w*|seal\w*|coat\w*|paint\w*|clean\w*|decant\w*|refuel\w*|exposure|corrosive|charg\w*|recover\w*)\b|\bchemicals in\b/i;
+// Wet concrete handled: placed, pumped, poured, screeded, trowelled or washed out, slurry, cement burns.
+const WET_CONCRETE = /\b(?:plac|pump|pour|screed|trowel|finish|vibrat|spread)(?:e|es|ed|ing|s)? (?:the |wet )?concrete\b|\bconcrete (?:is|are|being) (?:plac|pump|pour)\w*|\bscreed\w*|\bslurry\b|\bcement burns?\b|\bwashout\b|\bwash(?:es|ed|ing)? out (?:the )?(?:concrete|tools|equipment|trucks?|agitators?|pumps?|hoppers?|lines?|barrows?|chutes?)\b/i;
+const WET_GROUND = /\bsewage\b|\bsewers?\b|\bwet wells?\b|\bstanding water\b|\bflooded\b|\bwater ?blast\w*|\bhydro ?blast\w*|\bpressure clean\w*|\bdewater\w*/i;
+const BY_SENTENCE = {
+  // Engine exhaust is not stopped by a P2 respirator: ventilation controls it.
+  p2: (sentence) => (AIRBORNE.test(sentence) && MAKES_DUST.test(sentence) && !/\bexhaust\b|\bcarbon monoxide\b/i.test(sentence)) || WEARS(String.raw`P2\b|respirators?\b|RPE\b`).test(sentence),
+  gloveChemical: (sentence) => (SUBSTANCE.test(sentence) && HANDLES.test(sentence)) || WET_CONCRETE.test(sentence) || WEARS(String.raw`chemical(?:[- ]resistant)? gloves|gloves resistant to the product|nitrile gloves`).test(sentence),
+  goggles: (sentence) => (SUBSTANCE.test(sentence) && HANDLES.test(sentence)) || WET_CONCRETE.test(sentence) || /\bgoggles\b|\bcorrosive\w*|\bliquid nitrogen\b|\bcryogenic\b/i.test(sentence),
+  gumboots: (sentence) => WET_CONCRETE.test(sentence) || (/\bwet concrete\b/i.test(sentence) && HANDLES.test(sentence)) || WET_GROUND.test(sentence) || /\bgumboots\b/i.test(sentence),
+};
+BY_SENTENCE.halfFace = (sentence) => BY_SENTENCE.p2(sentence) || (VAPOUR.test(sentence) && MAKES_DUST.test(sentence)) || WEARS(String.raw`half[- ]face|respirators? with (?:\w+ )?filters`).test(sentence);
+// A step's sentences, from its name, hazards and controls, with the ones that say the work is not done left out.
+const doneSentences = (step) => stepLines(step).flatMap(sentencesOf).filter((sentence) => !NOT_DONE.test(sentence));
+
 // A line of the step that already says the item is worn: the step line does not say it again.
 const SAYS = {
   faceShield: /\bface shields?\b/i,
@@ -144,9 +176,12 @@ function abrasiveWork(step) {
   return ['grinding', 'cutting', 'chasing', 'scabbling'].filter((word) => words.has(word));
 }
 
-const needs = (id, step) => Boolean(NEEDS[id]) && (stepLines(step).some((line) => NEEDS[id].test(lineText(line)))
-  || (['faceShield', 'earPlugs', 'earMuffs'].includes(id) && abrasiveWork(step).length > 0));
-const says = (id, step) => Boolean(SAYS[id]) && stepLines(step).slice(1).some((line) => SAYS[id].test(lineText(line)));
+const needs = (id, step) => (BY_SENTENCE[id] ? doneSentences(step).some(BY_SENTENCE[id]) : Boolean(NEEDS[id]) && stepLines(step).some((line) => NEEDS[id].test(lineText(line))))
+  || (['faceShield', 'earPlugs', 'earMuffs'].includes(id) && abrasiveWork(step).length > 0);
+// For the items read sentence by sentence, a line that says the item is worn counts only where the work is done.
+const says = (id, step) => Boolean(SAYS[id]) && (BY_SENTENCE[id]
+  ? [...(step.hazards || []), ...(step.controls || [])].flatMap(sentencesOf).filter((sentence) => !NOT_DONE.test(sentence)).some((sentence) => SAYS[id].test(sentence))
+  : stepLines(step).slice(1).some((line) => SAYS[id].test(lineText(line))));
 
 // A harness goes only with steps that work at height (D266, owner, 13 October 2026): from an EWP,
 // at an edge, on a roof and the like, read from the step's name and hazards. A step whose only height
@@ -192,7 +227,8 @@ function stepsNeeding(id, work) {
   if (id === 'harness') work = work.filter(atHeight);
   const own = work.filter((step) => LIBRARY.has(step.step) && LIBRARY.get(step.step).has(id));
   const worded = (own.length ? own : work).filter((step) => needs(id, step));
-  const found = own.length && !worded.length ? own : worded;
+  // An item read sentence by sentence goes only to the steps whose own lines call for it.
+  const found = own.length && !worded.length && !BY_SENTENCE[id] ? own : worded;
   return work.filter((step) => found.includes(step) || says(id, step)).map((step) => step.step);
 }
 const ids = (ppe) => (ppe || []).flatMap((group) => group.items.filter((item) => item.ticked).map((item) => item.id));
@@ -208,13 +244,19 @@ function splitPpe(ppe, steps, { suggest = false, placed = null } = {}) {
   const work = (steps || []).filter(isWorkStep);
   const names = new Set((steps || []).map((step) => step.step));
   const ticked = new Set(ids(ppe));
+  const gloves = ['gloveGeneral', 'gloveCut', 'gloveChemical', 'gloveInsulated', 'gloveWelding', 'gloveCold'];
+  const hadGloves = gloves.some((id) => ticked.has(id));
   const forSteps = new Map();
   for (const id of ticked) {
     if (ALL_WORK_ONLY.has(id) || !NEEDS[id]) continue;
     const need = stepsNeeding(id, work);
     // An item no step names stays for all work, and so does one every step of the work needs, except
     // a face shield, which is worn only while grinding or cutting.
-    if (need.length && (need.length < work.length || id === 'faceShield')) forSteps.set(id, need);
+    // Goggles too are worn only for the steps that splash, over or instead of the safety glasses for all work.
+    if (need.length && (need.length < work.length || id === 'faceShield' || id === 'goggles')) forSteps.set(id, need);
+    // An item read sentence by sentence that no step's own lines call for is not suggested at all
+    // (a P2 respirator for a pour with no cutting or grinding in it).
+    else if (suggest && !need.length && BY_SENTENCE[id] && work.length) ticked.delete(id);
   }
   if (suggest) {
     const cutting = work.filter((step) => abrasiveWork(step).length).map((step) => step.step);
@@ -233,10 +275,18 @@ function splitPpe(ppe, steps, { suggest = false, placed = null } = {}) {
     ticked.add(id);
   }
   for (const id of forSteps.keys()) if (!ticked.has(id)) forSteps.delete(id);
+  // Ear plugs and ear muffs are one choice of hearing protection: one item, ear muffs, for the steps of both.
+  if (suggest && ticked.has('earPlugs') && ticked.has('earMuffs')) {
+    const both = !forSteps.has('earPlugs') || !forSteps.has('earMuffs') ? null : [...new Set([...forSteps.get('earMuffs'), ...forSteps.get('earPlugs')])];
+    ticked.delete('earPlugs');
+    forSteps.delete('earPlugs');
+    if (both) forSteps.set('earMuffs', both); else forSteps.delete('earMuffs');
+  }
+  // Safety gumboots worn for all the work are its safety footwear: safety boots are not listed beside them.
+  if (suggest && ticked.has('gumboots') && !forSteps.has('gumboots')) ticked.delete('boots');
   // Hands are always covered for all work: where every glove ticked is for particular steps, general
   // purpose gloves are worn for the rest.
-  const gloves = ['gloveGeneral', 'gloveCut', 'gloveChemical', 'gloveInsulated', 'gloveWelding', 'gloveCold'];
-  if (suggest && gloves.some((id) => ticked.has(id)) && !gloves.some((id) => ticked.has(id) && !forSteps.has(id))) ticked.add('gloveGeneral');
+  if (suggest && hadGloves && !gloves.some((id) => ticked.has(id) && !forSteps.has(id))) ticked.add('gloveGeneral');
   return (ppe || []).map((group) => ({
     ...group,
     items: group.items.map(({ steps: _, ...item }) => ({ ...item, ticked: ticked.has(item.id), ...(ticked.has(item.id) && forSteps.has(item.id) ? { steps: [...names].filter((name) => forSteps.get(item.id).includes(name)) } : {}) })),

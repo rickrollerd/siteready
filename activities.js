@@ -1242,10 +1242,11 @@ const ACTIVITIES = [
           'Lay walkways over the reo where people need to cross it.',
           src('Team lift long or heavy bars, and rotate tying tasks.', QCODE('Hazardous manual tasks', 's 4.7')),
           'Cut and trim bars with a bar cutter, or with a grinder or cut-off saw with its guards in place. Wear eye and hearing protection, and keep sparks away from combustible materials and other workers.',
-          src('Work in or near a footing, thickening or pit deeper than 1.5 m is high risk construction work: secure it from unauthorised access, and do not enter until its sides are shored, benched or battered.', WHS('s 291, s 306')),
-          'Footings, thickenings and pits are entered by a secured ladder, with water pumped out and a barrier at the edge.',
-          'Before entering a footing, thickening or pit, check the depth: one deeper than 1.5 m is not covered by this SWMS, so stop, have the SWMS reviewed, and do not enter until its sides are shored, benched or battered and checked.',
-          'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.',
+          // A footing or pit is not in a reo SWMS for suspended slabs only (messy-user test, 14 October 2026).
+          { unless: 'aboveGroundOnly', ...src('Work in or near a footing, thickening or pit deeper than 1.5 m is high risk construction work: secure it from unauthorised access, and do not enter until its sides are shored, benched or battered.', WHS('s 291, s 306')) },
+          { unless: 'aboveGroundOnly', text: 'Footings, thickenings and pits are entered by a secured ladder, with water pumped out and a barrier at the edge.' },
+          { unless: 'aboveGroundOnly', text: 'Before entering a footing, thickening or pit, check the depth: one deeper than 1.5 m is not covered by this SWMS, so stop, have the SWMS reviewed, and do not enter until its sides are shored, benched or battered and checked.' },
+          { unless: 'aboveGroundOnly', text: 'A trench, pit or shaft goes deeper than 1.5 m only once a geotechnical engineer has approved the deeper excavation in writing.' },
           'Where walls, lift shafts or stairwells are reinforced, fix the reo from working platforms or scaffolds, never by climbing the cage, and brace tall wall cages so they cannot topple.',
           src('Edge protection is in place at the deck perimeter, openings and voids.', NSWC('NSW Formwork', 's 6.1')),
           'Work inside the edge protection at all times.',
@@ -1824,7 +1825,8 @@ const ACTIVITIES = [
           src('Work from the floor or a solid platform. Where these cannot reach the work, use fall prevention: covers, guardrails or working platforms, before work positioning or fall arrest.', WHS('s 78, s 79')),
           src('Shaft openings have barriers.', QCODE('Managing the risk of falls', 's 4.2')),
           'Open only the section of shaft being worked on.',
-          src('A harness user never works alone. Anchors are rated for 12 kN with limited free fall or 15 kN with free fall, with enough clear distance to arrest a fall, and rescue procedures are set and practised.', `${WHS('s 80, s 306I')}; ${QCODE('Managing the risk of falls', 's 10.1')}`),
+          // Only where a harness is used (messy-user test, 14 October 2026: printed with no harness in the SWMS).
+          { only: 'harnessUsed', ...src('A harness user never works alone. Anchors are rated for 12 kN with limited free fall or 15 kN with free fall, with enough clear distance to arrest a fall, and rescue procedures are set and practised.', `${WHS('s 80, s 306I')}; ${QCODE('Managing the risk of falls', 's 10.1')}`) },
           src('Single or extension ladders are used for access, with 3 points of contact, or for permitted work only: nothing carried that restricts movement or balance, the body centred between the stiles, and tools used with one hand. Where a person could fall 2 m or more (3 m in housing construction), the worker keeps 3 limbs on the ladder or uses a pole strap or a harness not attached to the ladder, and the ladder is secured at the top or bottom. Ladders are industrial and rated for at least 120 kg.', WHS('s 306A, s 306K, s 306L, s 306M')),
           src('No stillsons or other high-force tools from a ladder, and no stepladder beside an open shaft or penetration without extra fall protection.', MODEL('Managing the risk of falls', 's 9.1')),
           src('Raise and lower pipe by a safe means such as a hoist or rope, with an exclusion zone below.', WHS('s 55')),
@@ -6511,10 +6513,12 @@ const ACTIVITIES = [
     when: 'fireDampers',
     steps: [{
       step: 'Fit the fire dampers',
-      hazards: ['A fall from a ladder or platform.', 'Dust from cutting into the ceiling and duct in a hospital.', 'Cuts from duct edges.', 'Hidden services in the ceiling.'],
+      // The hospital lines only where the work is in a hospital or other health care building (messy-user
+      // test, 14 October 2026: a resort SWMS printed the hospital's infection control permit).
+      hazards: ['A fall from a ladder or platform.', { only: 'healthcare', text: 'Dust from cutting into the ceiling and duct in a hospital.' }, 'Cuts from duct edges.', 'Hidden services in the ceiling.'],
       controls: [
         src('The air handling unit serving the duct is shut down and isolated by the mechanical services contractor before the duct is cut.', QCODE('Managing the risks of plant in the workplace', 's 4.5')),
-        'Ceiling work follows the hospital\'s infection control permit, with a dust barrier or enclosure and an H class vacuum where it requires them.',
+        { only: 'healthcare', text: 'Ceiling work follows the hospital\'s infection control permit, with a dust barrier or enclosure and an H class vacuum where it requires them.' },
         'Dampers are installed in the fire-rated wall or floor to AS 1682.2 and the manufacturer\'s tested installation method, and the penetration is sealed with the tested system.',
         src('Ceiling work is done from a platform ladder or mobile scaffold.', QCODE('Managing the risk of falls', 's 5.1, s 9.1')),
         'The area below is closed off.',
@@ -11228,7 +11232,8 @@ ACTIVITIES.push(
         'The operator stays out of the fumes from the heater plate and the joint.',
         // The Queensland code has no s 4.9; team handling is s 4.7 there (goal 5 citation check).
         src('Pipe is lifted into the machine with roller stands or mechanical aids. Team lifts are an interim control only.', QCODE('Hazardous manual tasks', 's 4.1, s 4.7')),
-        'Joints are made at the surface and lowered in, or in a trench only where it is supported or battered and the machine is set back from the edge.',
+        // Only where the pipe goes into a trench: butt fusion in a riser has no trench (messy-user test, 14 October 2026).
+        { only: 'trenchWork', text: 'Joints are made at the surface and lowered in, or in a trench only where it is supported or battered and the machine is set back from the edge.' },
       ],
     }],
     ppe: ['gloveWelding'],
@@ -11299,13 +11304,15 @@ ACTIVITIES.push(
       {
         only: 'washOut',
         step: 'Wash out tools at the washout bay',
-        hazards: ['Skin and eye burns from cement and alkaline wash water.', 'Contact with paint, adhesive or membrane residues.'],
+        // The paint, adhesive and solvent lines only where the SWMS's work uses them: a concrete washout has no
+        // solvent rags (messy-user test, 14 October 2026).
+        hazards: ['Skin and eye burns from cement and alkaline wash water.', { only: 'solventWork', text: 'Contact with paint, adhesive or membrane residues.' }],
         controls: [
           'Tools and equipment are washed only at the washout bay the builder sets, never into stormwater drains.',
           src('Cement-based compounds have a very high pH and are corrosive to skin and eyes: gloves and eye protection, and wash skin straight away.', QCODE('Managing risks of hazardous chemicals', 's 3.3, s 4.1, appendix J')),
-          src('Solvent-based products are cleaned off with ventilation and no ignition sources nearby, and solvent-soaked rags are kept wet in a closed container.', NSWC('NSW Spray painting', 's 3.4')),
-          'The cleaner used is the one the product\'s safety data sheet sets.',
-          'The rag container is a closed metal bin.',
+          { only: 'solventWork', ...src('Solvent-based products are cleaned off with ventilation and no ignition sources nearby, and solvent-soaked rags are kept wet in a closed container.', NSWC('NSW Spray painting', 's 3.4')) },
+          { only: 'solventWork', text: 'The cleaner used is the one the product\'s safety data sheet sets.' },
+          { only: 'solventWork', text: 'The rag container is a closed metal bin.' },
         ],
       },
       {
@@ -11897,7 +11904,14 @@ ACTIVITIES.find((item) => item.when === 'antennaInstall').steps.unshift({
 // An "unless" can name one flag or a list of them: the line is left out when any is set.
 const anyFlag = (flags, ids) => Boolean(ids) && [].concat(ids).some((id) => flags[id]);
 
-function jobStepsFor(flags, factText, fallback) {
+function jobStepsFor(rawFlags, factText, fallback) {
+  // Work in or next to a trench, for the lines that apply only there.
+  const flags = {
+    ...rawFlags,
+    trenchWork: anyFlag(rawFlags, ['trench', 'shallowTrench', 'layInExcavation', 'inTrench', 'inExcavation', 'deepTrench', 'trenchSupport']),
+    // Paints, adhesives, sealants, membranes or solvents in the work, for the washout lines that apply only then.
+    solventWork: anyFlag(rawFlags, ['painting', 'paintSpray', 'paintSolvent', 'paintExternal', 'paintAccess', 'floorAdhesive', 'floorCoating', 'floorLevel', 'wpLiquid', 'wpTorch', 'wpPrep', 'wpEdge', 'solventCement', 'caulking', 'glazingSeal', 'facadeSeal', 'jointSealing', 'tileMix', 'lineMarking', 'sprayFoam', 'graffitiRemoval']),
+  };
   let found = ACTIVITIES.filter((activity) => flags[activity.when]);
   const replaced = new Set(found.flatMap((activity) => activity.replaces || []));
   found = found.filter((activity) => !replaced.has(activity.when));
@@ -11948,6 +11962,17 @@ function jobStepsFor(flags, factText, fallback) {
     const fresh = (items) => items.filter((item) => !said.has(typeof item === 'string' ? item : item.text || JSON.stringify(item)));
     middle = middle.filter((step) => step !== hangDoors).map((step) => (step === frameDoors ? { ...frameDoors, hazards: [...frameDoors.hazards, ...fresh(hangDoors.hazards)], controls: [...frameDoors.controls, ...fresh(hangDoors.controls)] } : step));
   }
+  // A shallow trench dug as part of a deeper trenching job is one dig and one lay (messy-user test, 14
+  // October 2026: "Dig the trench" printed after "Reinstate the surface"): the shallow trench lines join
+  // the trench steps, and nothing is lost.
+  for (const [shallow, deep] of [['Dig the trench', 'Excavate'], ['Lay the pipe or cable', ['Lay pipes', 'Lay conduits']]]) {
+    const from = middle.find((step) => step.step === shallow);
+    const into = middle.find((step) => [].concat(deep).includes(step.step));
+    if (!from || !into) continue;
+    const said = new Set([...into.hazards, ...into.controls].map((item) => (typeof item === 'string' ? item : item.text || JSON.stringify(item))));
+    const fresh = (items) => items.filter((item) => !said.has(typeof item === 'string' ? item : item.text || JSON.stringify(item)));
+    middle = middle.filter((step) => step !== from).map((step) => (step === into ? { ...into, hazards: [...into.hazards, ...fresh(from.hazards)], controls: [...into.controls, ...fresh(from.controls)] } : step));
+  }
   // Formwork edge protection named in the task is one step: the general edge protection lines join it.
   const formEdge = middle.find((step) => step.step === 'Install edge protection' && !anyFlag(flags, step.unless));
   const anyEdge = middle.find((step) => step.step === 'Install or remove edge protection');
@@ -11985,6 +12010,8 @@ function jobStepsFor(flags, factText, fallback) {
   };
   moveBefore('Lift and place tanks, pits or precast units', 'Backfill the trench');
   moveBefore('Set up the concrete pump and placing boom', 'Monitor the formwork during the pour');
+  // The pump is set up before any concrete is placed, on the ground or on a deck.
+  moveBefore('Set up the concrete pump and placing boom', 'Place concrete');
   moveBefore('Install the battery system', 'Test the new work');
   moveBefore('Dig footing holes', 'Cut blocks and bricks');
   moveBefore('Dig footing holes', 'Mix mortar');

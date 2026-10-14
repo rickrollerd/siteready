@@ -40,42 +40,34 @@ const { SITE_FIELDS } = require('./legislation');
 const { askQuestions, involvesScaffold, notCoveredRefusal, notCoveredLeft, notCoveredUnwritten } = require('./draft');
 const { hasBlank, isPlaceholder, leftOpen, blankKey, blankParts } = require('./blanks');
 // How each answer is judged, shared with the page so a box's note clears as soon as it is answered.
-const { clean, answerNeed } = require('./public/gate-rules');
+const { clean, answerNeed, notAnswer, PEOPLE_FIELDS, fieldRule, SITE_NEED, SITE_NONE: SITE_NONE_LIST } = require('./public/gate-rules');
 const { emergencyQuestions, INVOLVES, SHORT } = require('./emergency');
 const { designNeed } = require('./designs');
 const substances = require('./substances');
 const rules = require('./public/substance-rules');
 
-// Each field: the input key, the page box it is answered in, its label and what is needed.
-const FIELDS = [
-  { id: 'workplace', field: 'workplace', label: 'Job address', need: 'Give the address where the work is done.' },
-  { id: 'principalContractor', field: 'principal', label: 'Principal contractor', none: true, need: 'Name the principal contractor running the site. If no principal contractor is appointed for this work, write Not applicable.' },
-  { id: 'complianceResponsible', field: 'compliance-responsible', label: 'Person who makes sure the SWMS is followed', need: 'Name the person who checks the controls are in place on site, usually your supervisor or leading hand.' },
-  { id: 'reviewer', field: 'reviewer', label: 'Person who reviews the controls', need: 'Name the person who checks the controls are working and updates this SWMS if the job changes.' },
-  { id: 'scaffoldSupervisor', field: 'scaffold-supervisor', label: 'Scaffold supervisor', none: true, when: (draft) => involvesScaffold(draft), need: 'This SWMS involves a scaffold. Name the scaffolding company\'s supervisor who hands it over and tags it, or write Not applicable if no scaffold is used for this work.' },
-  { id: 'firstAider', field: 'first-aider', label: 'First aider', need: 'Name a trained first aider on site, yours or the main contractor\'s.' },
-  { id: 'musterPoint', field: 'muster-point', label: 'Muster point', need: 'Say where everyone meets in an emergency. Ask the main contractor.' },
-];
+// Each field: the input key, the page box it is answered in, its label and what is needed
+// (public/gate-rules.js PEOPLE_FIELDS, shared with the page). The scaffold supervisor only where the
+// SWMS involves a scaffold.
+const FIELDS = PEOPLE_FIELDS.map((item) => (item.scaffold ? { ...item, when: (draft) => involvesScaffold(draft) } : item));
 
 // Boxes that may be left empty, but not with a placeholder in them: it would print.
 const OPTIONAL = [
   { id: 'siteManager', field: 'site-manager', label: 'Site manager' },
-  { id: 'worksManager', field: 'works-manager', label: 'Works manager' },
-  { id: 'worksManagerPhone', field: 'works-manager-phone', label: 'Works manager phone' },
   { id: 'hospital', field: 'hospital', label: 'Hospital' },
   { id: 'reviewDate', field: 'review-date', label: 'Review date' },
   { id: 'preparedBy', field: 'prepared-by', label: 'Prepared by' },
   { id: 'swmsRef', field: 'swms-ref', label: 'SWMS reference number' },
 ];
 
-const SITE_NEED = {
-  liveServices: 'Say what power, gas, water, data or other live services are in or near the work, or write None.',
-  publicInterface: 'Say where the public, traffic or neighbours are close to the work, or write None.',
-  otherTrades: 'Say which other trades work nearby, or above or below you, or write None.',
-  ground: 'Say what the ground or deck is like where you work (soft or sloping ground, excavations, slab or deck loads), or write None.',
-  access: 'Say how the crew gets to the work area, and how plant and materials get there.',
-};
-const SITE_NONE = new Set(['liveServices', 'publicInterface', 'otherTrades', 'ground']);
+const SITE_NONE = new Set(SITE_NONE_LIST);
+
+// A scaffold the user confirmed in the plant for this job.
+function scaffoldInPlant(input, draft) {
+  const used = input.plantChoice && Array.isArray(input.plantChoice.used) ? input.plantChoice.used : [];
+  const added = input.plantChoice && Array.isArray(input.plantChoice.added) ? input.plantChoice.added.map((item) => item && item.item) : [];
+  return [...used, ...added].some((name) => /\bscaffold/i.test(String(name || ''))) && (draft.plant || []).some((row) => /\bscaffold/i.test(String(row.item || '')));
+}
 
 // What the plant still needs: confirming, plant listed since it was confirmed, or the licence for an
 // item of the user's own. '' when it is confirmed.
@@ -145,14 +137,21 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   else if (uncovered) add({ id: 'notCovered', kind: 'cover', field: 'not-covered-write', label: 'Work SiteReady has no job steps for', need: `SiteReady has no job steps for: ${notCoveredLeft(draft).join('; ')}. Above the draft, write your own step for it, or say which SWMS covers it.`, message: uncovered });
   for (const item of FIELDS) {
     if (item.when && !item.when(draft)) continue;
-    judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { ask: item.need, name: item.label, none: Boolean(item.none) }, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));
+    const rule = fieldRule(item);
+    // A scaffold ticked in the plant is a scaffold used for this work: "Not applicable" is refused
+    // (messy round 3, run 6).
+    if (item.scaffold && scaffoldInPlant(input, draft)) {
+      rule.noneRefused = 'Scaffold is ticked in the plant for this job, so the scaffold supervisor is needed. If no scaffold is used, untick it under Plant and equipment.';
+      rule.ask = 'Name the scaffolding company\'s supervisor who hands the scaffold over and tags it.';
+    }
+    judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, rule, input[item.id] || (item.id === 'workplace' ? input.siteAddress : ''));
   }
   for (const item of OPTIONAL) judged({ id: item.id, kind: 'field', field: item.field, label: item.label }, { optional: true }, input[item.id]);
   // The plant to be used, confirmed by the user, and the emergency response for the work (goal 2).
   add({ id: 'plant', kind: 'plant', field: 'plant-ticks', label: 'Plant and equipment', need: plantNeed(input, draft) });
   const said = input.emergency && typeof input.emergency === 'object' ? input.emergency : {};
   for (const item of emergencyQuestions(draft, said)) {
-    judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category], ...(item.rescue ? { rescue: true } : {}), ...(item.kit ? { kit: true } : {}) }, item.answer);
+    judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category], ...(item.rescue ? { rescue: true } : {}), ...(item.kit ? { kit: true } : {}), ...(item.stop ? { stop: true } : {}) }, item.answer);
   }
   // Each design the steps rely on (designs.js, owner, 11 October 2026): issued with who prepared it,
   // its number and date; "Not issued yet", which prints as a hold point; or "Not needed for this
@@ -193,10 +192,14 @@ function gateChecks(input = {}, draft = {}, options = {}) {
     judged({ id: `line.${seen.size}`, kind: 'line', key, parts: blankParts(text), step: step || '', label: step ? `Job step: ${step}` : 'Controls' }, { ask: 'This control has a blank (____). Fill it in with what applies on this job.', line: key }, []);
   };
   for (const step of (draft.jobSteps || []).filter((item) => !item.own)) for (const text of [...(step.hazards || []), ...(step.controls || [])]) line(text, step.step);
-  // A step the user wrote with a blank or "To be completed" left in it: the user changes the step.
+  // A step the user wrote with a blank or "To be completed" left in it: the user changes the step. So is
+  // one with a line too short to act on ("Gloves") or that is no answer ("TBC"), as the page says when
+  // it is saved (messy round 3).
   (draft.jobSteps || []).filter((step) => step.own).forEach((step, n) => {
     const open = [step.step, ...(step.hazards || []), ...(step.controls || []), step.responsible].find((text) => typeof text === 'string' && leftOpen(text));
+    const short = (step.hazards || []).find((text) => clean(text).split(' ').length < 2 || notAnswer(text)) || (step.controls || []).find((text) => clean(text).split(' ').length < 3 || notAnswer(text));
     if (open) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `Your step has a blank (____) or "To be completed" left in: "${clean(open).slice(0, 160)}". Change your step to say what applies.` });
+    else if (short) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `${notAnswer(short) || `"${clean(short).slice(0, 80)}" is too short to act on.`} Change your step to say what is done and how.` });
   });
   // A hazard the user added needs at least one control (D254): ticked from SiteReady's offers or written.
   (draft.ownHazards || []).forEach((item, n) => {

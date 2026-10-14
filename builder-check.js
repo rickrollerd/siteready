@@ -886,7 +886,8 @@ function designUses(swms) {
   for (const item of designsNeeded({ task: swms.task, jobSteps: swms.steps })) {
     const row = (swms.designs || []).find((entry) => entry.id === item.id);
     if (row && row.status === 'notNeeded') continue;
-    for (const entry of item.steps) uses.push({ step: entry.step, what: row && row.what ? row.what : item.label, state: state(byName.get(entry.step)) });
+    // A step that only keeps loads within a design not issued yet is not held (designs.js limits): it waits for the design.
+    for (const entry of item.steps) uses.push({ step: entry.step, what: row && row.what ? row.what : item.label, state: row && row.status === 'notIssued' && !entry.holds && state(byName.get(entry.step)) === 'missing' ? 'waiting' : state(byName.get(entry.step)) });
   }
   if (!swms.designs) {
     const counted = new Set(uses.map((use) => use.step));
@@ -1264,11 +1265,13 @@ function weighted(swms, state, context) {
     const named = uses.filter((use) => use.state === 'named');
     const held = uses.filter((use) => use.state === 'hold');
     const missing = uses.filter((use) => use.state === 'missing');
+    const waiting = uses.filter((use) => use.state === 'waiting');
     const points = uses.length ? 3 * (named.length / uses.length) : 3;
     const notNeeded = (swms.designs || []).filter((row) => row.status === 'notNeeded').map((row) => row.what);
     const where = (list) => list.slice(0, 4).map((use) => `${use.step} (${use.what})`).join('; ');
     if (missing.length) fixes.push(`Name the design each step is done to, with its document or drawing number, revision and who prepared it: ${where(missing)}${missing.length > 4 ? `; and ${missing.length - 4} more` : ''}.`);
     if (held.length) fixes.push(`These steps are on hold until their design is issued: ${where(held)}. Send the updated SWMS, naming the design, before they start.`);
+    if (waiting.length) fixes.push(`These steps work to a design not issued yet: ${where(waiting)}. Send the updated SWMS, naming the design, once it is issued.`);
     add('W16', 'Designs the work relies on are named', 3, points, fixes, uses.length ? `Each step done to a design names it: ${[...new Set(named.map((use) => use.what))].join('; ')}.`
       : notNeeded.length ? `The SWMS records ${notNeeded.join('; ')} as not needed for this work.` : 'No step relies on an engineer\'s or temporary works design.');
   }

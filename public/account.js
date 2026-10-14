@@ -19,16 +19,23 @@
     try { if (value) localStorage.setItem(key, value); else localStorage.removeItem(key); } catch { /* not kept */ }
   }
 
+  // A server that cannot be reached, or answers with a host's error page (a 502), says so plainly.
+  const SERVER_DOWN = 'SiteReady could not reach the server. Try again.';
   async function call(method, route, body) {
-    const response = await fetch(api(route), {
-      method,
-      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(session ? { Authorization: `Bearer ${session}`, 'X-Session-Token': session } : {}) },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    let response;
+    try {
+      response = await fetch(api(route), {
+        method,
+        headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(session ? { Authorization: `Bearer ${session}`, 'X-Session-Token': session } : {}) },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch {
+      throw Object.assign(new Error(SERVER_DOWN), { status: 0 });
+    }
     if (response.status === 401 && session) signedOut();
     if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw Object.assign(new Error(data.message || 'Something went wrong. Try again.'), { status: response.status });
+      const data = await response.json().catch(() => null);
+      throw Object.assign(new Error((data && data.message) || (!data || response.status >= 500 ? SERVER_DOWN : 'Something went wrong. Try again.')), { status: response.status });
     }
     const type = response.headers.get('content-type') || '';
     return type.includes('application/json') ? response.json() : response;
@@ -81,6 +88,7 @@
       ? { id: header('x-siteready-swms'), revision: Number(header('x-siteready-revision')) || 1, title: decodeURIComponent(header('x-siteready-title')) }
       : null;
     const items = header('x-siteready-saved') ? JSON.parse(decodeURIComponent(header('x-siteready-saved'))) : [];
+    if ((saved || items.length) && S.refreshMine) S.refreshMine();
     const blob = await response.blob();
     const match = /filename="([^"]+)"/.exec(response.headers.get('content-disposition') || '');
     const url = URL.createObjectURL(blob);
@@ -495,6 +503,10 @@
       : `<p>Tell your supervisor: every worker must read and sign revision ${esc(swms.revision)}, by scanning the QR code, before starting work.</p>`;
     return `<div class="warning resign" id="resign-note">${head}${who}</div>`;
   }
+
+  // My SWMS, open on the page, shows a SWMS as soon as a download saves it (messy round 3: it said
+  // "No saved SWMS yet" until pressed again).
+  S.refreshMine = () => { if ($('my-swms') && !$('my-swms').classList.contains('hidden')) loadSwms(); };
 
   async function loadSwms() {
     const list = $('swms-list');

@@ -1,7 +1,7 @@
 // Job address suggestions from Google Places API (New) Autocomplete.
 // The key stays on the server (GOOGLE_PLACES_API_KEY). Without a key, no suggestions
 // are given and the address is typed in full.
-const { stateFromAddress } = require('./public/address');
+const { stateFromAddress, stateFromTyped, placeWords } = require('./public/address');
 
 const ENDPOINT = 'https://places.googleapis.com/v1/places:autocomplete';
 const CACHE_LIMIT = 500;
@@ -45,9 +45,12 @@ function toCache(query, suggestions) {
 const STREET = /\b\d+[a-z]?(?:[-/]\d+[a-z]?)?\s+\w|\b(?:street|st|road|rd|avenue|ave|parade|pde|terrace|tce|drive|dr|lane|ln|highway|hwy|boulevard|blvd|place|pl|court|ct|crescent|cres|way|close|cl|circuit|cct|esplanade|esp|square|sq|grove|gr)\b/i;
 const ADDRESS_TYPES = new Set(['street_address', 'premise', 'subpremise', 'route', 'street_number', 'intersection', 'locality', 'sublocality', 'postal_code', 'administrative_area_level_1', 'administrative_area_level_2', 'geocode']);
 const STATE_SHORT = { act: 'ACT', nsw: 'NSW', vic: 'VIC', qld: 'QLD', sa: 'SA', wa: 'WA', tas: 'TAS', nt: 'NT' };
+const STATE_NAME = { act: 'Australian Capital Territory', nsw: 'New South Wales', vic: 'Victoria', qld: 'Queensland', sa: 'South Australia', wa: 'Western Australia', tas: 'Tasmania', nt: 'Northern Territory' };
 
 // One suggestion as { text, state }, with business set for a business or place named with its street
-// address; null for a business named with no street.
+// address; null for a business named with no street. A business is offered only with its street
+// number and street (D278): "Qld transport, St Georges Terrace" does not say where the work is.
+const STREET_NUMBER = /\b\d+[a-z]?(?:[-/]\d+[a-z]?)?\s+[A-Za-z]/;
 function toSuggestion(prediction) {
   const full = prediction && prediction.text && prediction.text.text;
   if (!full) return null;
@@ -59,7 +62,7 @@ function toSuggestion(prediction) {
   const text = String(full).replace(/,\s*Australia$/i, '');
   if (!business) return { text, state: stateFromAddress(text).state };
   const address = String(rest || text.slice(String(main || '').length)).replace(/^[,\s]+/, '').replace(/,\s*Australia$/i, '');
-  if (!STREET.test(address)) return null;
+  if (!STREET.test(address) || !STREET_NUMBER.test(address)) return null;
   const named = main ? `${main}, ${address}` : text;
   return { text: named, state: stateFromAddress(named).state, business: true };
 }
@@ -82,30 +85,50 @@ async function lookUp(query, fetchImpl, timeoutMs) {
   }
 }
 
-// Suggestions as { text, state }, Australian addresses only. near is the state the user's earlier
-// answers or profile point to: its addresses come first, and where the lookup finds none there and the
-// typing names no state or postcode, it is asked once more with that state added (messy-user testing:
-// "10 Example St Woolloongabba" first offered an address in Brighton, Victoria).
+// Whether a suggestion names the suburb or town typed after the street ("parramatta").
+const namesPlace = (item, words) => words.length > 0 && words.every((word) => new RegExp(`\\b${word.replace(/[^a-z0-9'-]/g, '')}\\b`, 'i').test(item.text));
+
+// Suggestions as { text, state }, Australian addresses only, best fit first (messy round 3, 14 October
+// 2026: "12 smith st darwin" offered four Queensland addresses first, because a state nobody chose
+// was used to rank them and the lookup was asked again with "QLD" added).
+// - The state the user typed comes first: a state or its abbreviation ("nt"), a postcode, or a capital
+//   city or large town ("darwin", "perth", "hobart", "parramatta"); public/address.js stateFromTyped.
+// - Then a suggestion that names the suburb or town typed after the street.
+// - near is the state the user's own earlier answers point to (an address given before, the company
+//   profile's address). It is used only when the typing names no state or place. No state is assumed
+//   when nothing is known.
+// - Where no suggestion is in the state wanted (or names the place typed), the lookup is asked once
+//   more with that state added.
+// - A business is offered only with its street number and street, and not when a street address is typed.
 async function suggest(rawQuery, { fetchImpl = fetch, timeoutMs = 4000, near = '' } = {}) {
   const query = cleanQuery(rawQuery);
   const home = STATE_SHORT[String(near || '').toLowerCase()] ? String(near).toLowerCase() : '';
   if (!enabled()) return { enabled: false, suggestions: [] };
   if (query.length < 3) return { enabled: true, suggestions: [] };
-  const key = `${query.toLowerCase()}|${home}`;
+  const typed = stateFromTyped(query);
+  const words = placeWords(query);
+  const want = typed.state || (words.length ? '' : home);
+  const key = `${query.toLowerCase()}|${want}|${home}`;
   const cached = fromCache(key);
   if (cached) return { enabled: true, suggestions: cached };
   if (!underCap()) return { enabled: true, suggestions: [], error: 'Address suggestions are paused for today. Type the full address.' };
   try {
-    let found = await lookUp(query, fetchImpl, timeoutMs);
+    const found = await lookUp(query, fetchImpl, timeoutMs);
     if (found.error) return { enabled: true, suggestions: [], error: found.error };
     let list = found.suggestions;
-    if (home && !list.some((item) => item.state === home && !item.business) && !stateFromAddress(query).state && underCap()) {
-      const again = await lookUp(`${query} ${STATE_SHORT[home]}`, fetchImpl, timeoutMs).catch(() => ({ suggestions: [] }));
+    // The typed place with no state named: the near state is used only where nothing fits the place.
+    const ask = want || (home && words.length && !list.some((item) => namesPlace(item, words)) ? home : '');
+    const fits = (item) => item.state === ask && !item.business && (!words.length || namesPlace(item, words) || typed.from === 'place');
+    if (ask && !list.some(fits) && underCap()) {
+      // A state typed by name or abbreviation is asked for by its full name; otherwise by its abbreviation.
+      const again = await lookUp(`${query} ${typed.from === 'name' ? STATE_NAME[ask] : STATE_SHORT[ask]}`, fetchImpl, timeoutMs).catch(() => ({ suggestions: [] }));
       const seen = new Set(list.map((item) => item.text.toLowerCase()));
-      list = [...(again.suggestions || []).filter((item) => !seen.has(item.text.toLowerCase())), ...list];
+      list = [...list, ...(again.suggestions || []).filter((item) => !seen.has(item.text.toLowerCase()))];
     }
-    if (home) list = [...list.filter((item) => item.state === home), ...list.filter((item) => item.state !== home)];
-    const suggestions = list.slice(0, 6);
+    // Lower is better: in another state than the one typed, not naming the place typed, not in the
+    // state wanted, a business rather than an address.
+    const rank = (item) => (typed.state && item.state !== typed.state ? 8 : 0) + (namesPlace(item, words) ? 0 : 4) + (ask && item.state !== ask ? 2 : 0) + (item.business ? 1 : 0);
+    const suggestions = list.map((item, at) => ({ item, at })).sort((a, b) => rank(a.item) - rank(b.item) || a.at - b.at).map(({ item }) => item).slice(0, 6);
     toCache(key, suggestions);
     return { enabled: true, suggestions };
   } catch (error) {
