@@ -637,15 +637,15 @@
     const last = project.lastDownload;
     const label = ready === n ? `Download all ${n} SWMS (Word and PDF, one zip)` : ready ? `Download the ${ready} ready SWMS (Word and PDF, one zip)` : `Download all ${n} SWMS (Word and PDF, one zip)`;
     const said = last
-      ? `<div class="note" id="go-downloaded" role="status"><p><strong>Downloaded ${last.count} of ${last.total} SWMS</strong>, each saved under My SWMS as its own SWMS and revision.${waiting.length ? ' Not ready yet:' : ' Every SWMS is now ready: download again to get them all.'}</p>${waiting.length ? `<ul>${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul><p class="meta">Download again once ${waiting.length === 1 ? 'it is' : 'they are'} ready: the zip then has every ready SWMS. One you have not changed keeps its revision.</p>` : ''}</div>`
+      ? `<div class="note" id="go-downloaded" role="status"><p><strong>${last.count === last.total ? `Downloaded all ${last.total} SWMS` : `Downloaded ${last.count} of ${last.total} SWMS`}</strong>, each saved under My SWMS as its own SWMS and revision.${waiting.length ? ' Not ready yet:' : last.count < last.total ? ' Every SWMS is now ready: download again to get them all.' : ''}</p>${waiting.length ? `<ul>${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul><p class="meta">Download again once ${waiting.length === 1 ? 'it is' : 'they are'} ready: the zip then has every ready SWMS. One you have not changed keeps its revision.</p>` : ''}</div>`
       : '';
     const before = !last && ready < n
       ? (ready
-        ? `<p class="note">${ready} of ${n} SWMS ${ready === 1 ? 'is' : 'are'} ready. You can download ${ready === 1 ? 'it' : 'them'} now, and the rest once they are ready. Not ready yet:</p><ul class="go-not-ready">${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul>`
+        ? `<div class="note" id="go-not-ready"><p>${ready} of ${n} SWMS ${ready === 1 ? 'is' : 'are'} ready. You can download ${ready === 1 ? 'it' : 'them'} now, and the rest once they are ready. Not ready yet:</p><ul>${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul></div>`
         : '<p class="note">None of the SWMS is ready to download yet. Each one in the list above says what it still needs.</p>')
       : !last ? '<p class="meta">Every SWMS has cleared its checks.</p>' : '';
     return `${said}${before}
-      ${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip"${ready ? '' : ' disabled'}>${label}</button></div>
+      ${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip"${ready ? '' : ' disabled'}>${label}</button></div><p class="error" id="project-zip-error" role="alert"></p>
       ${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS as its own SWMS and revision, so every copy printed has a record.</p>' : ''}`;
   }
 

@@ -800,6 +800,8 @@
   S.canDownload = () => !config.accounts || Boolean(me && me.company.hasAccess);
   S.accountsOn = () => Boolean(config.accounts);
   S.confirmBlock = (prefix) => confirmBlock(prefix);
+  // The name given for a project download fills the box next time, as it does for one SWMS.
+  S.rememberReviewer = (name) => write(REVIEWER_KEY, name);
   S.download = (route, fallbackName, body) => download(route, fallbackName, body);
   // A signed-in request, for the AI reading of a scope.
   S.call = (method, route, body) => call(method, route, body);

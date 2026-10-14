@@ -751,7 +751,11 @@
       $('project-error').textContent = '';
       const confirmed = $('project-confirm') && $('project-confirm').checked;
       const name = $('project-name') && $('project-name').value.trim();
-      if (!confirmed || !name) { $('project-error').textContent = 'Tick the box and enter your name first.'; return; }
+      // Said beside the button too: on a phone the top of the list is far away.
+      const near = $('project-zip-error');
+      if (near) near.textContent = '';
+      if (!confirmed || !name) { $('project-error').textContent = 'Tick the box and enter your name first.'; if (near) near.textContent = 'Tick the box and enter your name first.'; return; }
+      if (S.rememberReviewer) S.rememberReviewer(name);
       const button = event.target.closest('#project-zip');
       button.disabled = true;
       try {
@@ -759,7 +763,7 @@
         const open = project.items[project.current];
         if (open && !open.swmsId && S.editing && S.editing.id) open.swmsId = S.editing.id;
         const ready = project.items.filter((item) => item.status === 'ready' && item.body);
-        const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsId: item.swmsId || undefined }));
+        const swms = ready.map((item) => ({ ...item.body, swmsTitle: item.title, swmsNumber: project.items.indexOf(item) + 1, swmsId: item.swmsId || undefined }));
         const site = S.siteId ? S.siteId() : '';
         // Word and PDF of each, in one zip (D240).
         const result = await S.download('/api/project.zip', 'SiteReady-project-SWMS.zip', { swms, siteId: site || undefined, reviewConfirmed: true, reviewedBy: name, pdf: true });
@@ -777,6 +781,7 @@
         }
       } catch (error) {
         $('project-error').textContent = error.message;
+        if ($('project-zip-error')) $('project-zip-error').textContent = error.message;
       } finally {
         button.disabled = false;
       }

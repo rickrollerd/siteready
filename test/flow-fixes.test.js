@@ -335,3 +335,16 @@ test('a load limit given as a figure is enough ("3kpa" was refused on staging)',
   for (const text of ['3kpa', '3 kPa', '5 kN point load']) assert.equal(answerState('loadLimits', text), 'supplied', text);
   assert.equal(answerState('loadLimits', 'as per eng'), 'vague');
 });
+
+test('a SWMS keeps its number from the project list in every zip', async () => {
+  const email = 'numbers@flowfixes.example';
+  await call('POST', '/api/auth/email', { body: { email } });
+  const { token } = await (await call('POST', '/api/auth/verify', { body: { token: lastLinkToken(email) } })).json();
+  await call('PUT', '/api/company', { token, body: { name: 'Numbers Pty Ltd', abn: '51824753556' } });
+  const fence = ready({ state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Gates', swmsNumber: 3, ...ANSWERED });
+  const blank = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing', swmsNumber: 2 };
+  const response = await call('POST', '/api/project.zip', { token, body: { swms: [blank, fence], reviewConfirmed: true, reviewedBy: 'Sam Lee' } });
+  const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
+  assert.deepEqual(Object.keys(zip.files).sort(), ['03 Gates.docx', 'Not included.txt']);
+  assert.match(await zip.file('Not included.txt').async('string'), /^These SWMS still have site questions or blanks to answer[^]*\n2\. Fencing: still to answer/);
+});

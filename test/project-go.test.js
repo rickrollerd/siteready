@@ -68,7 +68,7 @@ test('with some SWMS not ready, the ready ones download, and each one not ready 
   p.go.render(panel, project, p.hooks);
   const html = panel.innerHTML;
   assert.match(html, /<button type="button" id="project-zip">Download the 2 ready SWMS \(Word and PDF, one zip\)<\/button>/);
-  assert.match(html, /2 of 3 SWMS are ready\. You can download them now, and the rest once they are ready\. Not ready yet:/);
+  assert.match(html, /<div class="note" id="go-not-ready"><p>2 of 3 SWMS are ready\. You can download them now, and the rest once they are ready\. Not ready yet:<\/p><ul>/);
   assert.match(html, /<li>SWMS 2 \(Reinforcement\): give plant and equipment; emergency, work at height: Rescue\. <button type="button" class="link" data-project-open="1">Go to it<\/button><\/li>/);
   // Downloaded: the note says how many, and still names the one not ready.
   project.lastDownload = { at: '2026-10-14T00:00:00Z', count: 2, total: 3 };
@@ -161,4 +161,13 @@ test('a SWMS whose answers are too thin keeps the user on the questions page, wi
   await settle();
   assert.equal(project.stage, 'questions');
   assert.match(p.element('go-status').innerHTML, /One SWMS is not finished\. The others are prepared\.<\/strong> These answers need more\. Each one says under its box what would do\.<\/p><ul><li>SWMS 1, Formwork: Load limits\. <button type="button" class="link" data-go-to-item="0">Go to it<\/button><\/li><\/ul>/);
+});
+
+test('once every SWMS is downloaded, the note says so and asks for nothing more', () => {
+  const p = page({ people: PEOPLE });
+  const project = { stage: 'review', shared: { emergency: {}, designs: {} }, items: [item('Formwork'), item('Edge protection')], lastDownload: { at: '2026-10-14T00:00:00Z', count: 2, total: 2 } };
+  const panel = p.element('project-panel');
+  p.go.render(panel, project, p.hooks);
+  assert.match(panel.innerHTML, /<strong>Downloaded all 2 SWMS<\/strong>, each saved under My SWMS as its own SWMS and revision\.<\/p>/);
+  assert.doesNotMatch(panel.innerHTML, /download again/);
 });

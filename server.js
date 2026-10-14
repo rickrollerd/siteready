@@ -535,14 +535,16 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
   // SWMS with site questions unanswered or blanks left are not in the zip (goal 2).
   const gated = [];
   for (const [index, item] of items.entries()) {
+    // Numbered as in the project's list, so a SWMS has the same number in every zip of the project.
+    const number = item && Number.isInteger(item.swmsNumber) && item.swmsNumber > 0 && item.swmsNumber < 1000 ? item.swmsNumber : index + 1;
     const result = prepareDraft(signedInBody({ ...req, body: item || {} }));
-    if (result.kind !== 'draft') { skipped.push(`${index + 1}. ${String((item && item.task) || '').slice(0, 80)}`); continue; }
+    if (result.kind !== 'draft') { skipped.push(`${number}. ${String((item && item.task) || '').slice(0, 80)}`); continue; }
     // The site answers and blanks (goal 2) and the D184 tick: a SWMS missing site answers is listed
     // with all it needs; one missing only the tick is listed with its parts with no job steps.
     const gaps = downloadGaps(signedInBody({ ...req, body: item || {} }), result);
     const named = String((item && (item.swmsTitle || item.task)) || result.task || '').slice(0, 80);
-    if (gaps.some((gap) => gap.kind !== 'cover')) { gated.push(`${index + 1}. ${named}: still to answer: ${[...new Set(gaps.map((gap) => gap.label))].join('; ')}`); continue; }
-    if (gaps.length) { unticked.push(`${index + 1}. ${named}: ${notCoveredLeft(result).join('; ')}`); continue; }
+    if (gaps.some((gap) => gap.kind !== 'cover')) { gated.push(`${number}. ${named}: still to answer: ${[...new Set(gaps.map((gap) => gap.label))].join('; ')}`); continue; }
+    if (gaps.length) { unticked.push(`${number}. ${named}: ${notCoveredLeft(result).join('; ')}`); continue; }
     let buffer;
     // With pdf set (the project page, D240), each SWMS goes in the zip as Word and as PDF.
     let pdf = null;
@@ -559,7 +561,7 @@ app.post('/api/project.zip', auth.requireAccess, async (req, res) => {
     }
     // Named by the task's title from the scope where there is one.
     const title = typeof item.swmsTitle === 'string' && item.swmsTitle.trim() ? item.swmsTitle : result.task;
-    const base = `${String(index + 1).padStart(2, '0')} ${String(title || 'SWMS').replace(/[^A-Za-z0-9 ,()-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)}`;
+    const base = `${String(number).padStart(2, '0')} ${String(title || 'SWMS').replace(/[^A-Za-z0-9 ,()-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)}`;
     let stem = base;
     for (let n = 2; used.has(`${stem}.docx`); n += 1) stem = `${base} ${n}`;
     used.add(`${stem}.docx`);
