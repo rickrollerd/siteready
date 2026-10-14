@@ -204,7 +204,7 @@ test('while the AI reads, the bar shows a percentage and the steps; when done, a
   assert.match(results(p), /The AI found 1 activities in 1 work packages/);
   assert.match(body(p), /<dialog class="read-done" id="read-done" role="alertdialog" aria-modal="true" aria-labelledby="read-done-title" aria-describedby="read-done-text">/);
   assert.match(body(p), /<h2 id="read-done-title">The scope has been read<\/h2>/);
-  assert.match(body(p), /The AI has finished reading the scope\. You can now choose the SWMS you want to start on\./);
+  assert.match(body(p), /The AI has finished reading the scope\. Choose the SWMS you need\./);
   assert.match(body(p), /<button type="button" data-read-done-go>Choose the SWMS<\/button>/);
   // While the page is not seen, the tab's title says it is ready; it is restored once seen.
   assert.equal(p.document.title, 'Ready: scope read | SiteReady');

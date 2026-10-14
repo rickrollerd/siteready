@@ -71,6 +71,11 @@
     #task { min-height: 192px; }
     input[type="date"] { width: 100%; border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; padding: 9px 11px; line-height: 1.4; }
     input::placeholder, textarea::placeholder { color: #9aa5b1; }
+    /* A box's heading sits inside the box, never on its border or on the ring a box gets when the page
+       takes the user to it (owner feedback, 13 October 2026: "The box border cuts straight through the
+       heading"). */
+    fieldset > legend { float: left; width: 100%; padding: 0; }
+    fieldset > legend + * { clear: both; }
     .ppe-group { border: 0; padding: 0; margin: 0 0 10px; }
     .step-list { list-style: none; margin: 0 0 12px; padding: 0; }
     .step-list li { border: 1px solid #e1e6ec; border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; }
@@ -262,7 +267,7 @@
     .conflict-dialog li { margin-bottom: 10px; }
     .conflict-dialog li p { margin: 2px 0; }
     .scope-others { border: 1px solid #e1e6ec; border-radius: 6px; padding: 6px 10px; margin: 8px 0; font-size: 14px; }
-    .scope-others legend { font-weight: 600; padding: 0 4px; }
+    .scope-others legend { font-weight: 600; margin-bottom: 4px; }
     button.added { background: #e3f3e8; color: #1f6b3f; border: 2px solid #2e7d4f; }
     .project-now { background: #eef6f1; border: 1px solid #2e7d4f; border-radius: 6px; padding: 10px 12px; }
     .scope-go { position: sticky; bottom: 0; background: #fff; padding: 10px 0; margin-top: 12px; }
@@ -296,11 +301,11 @@
     .answer-panel .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin: 8px 0; }
     .answer-panel .check input { margin-top: 3px; flex: none; }
     .answer-panel .check .meta { display: block; }
-    .answer-panel textarea { min-height: 88px; }
+    .answer-panel textarea { min-height: 88px; field-sizing: content; }
     .plant-own { margin: 6px 0; }
     /* The designs the job steps rely on, asked under the site questions (app.js, designs.js). */
     .design-card { border: 1px solid #d5dbe3; border-radius: 8px; padding: 12px 14px 4px; margin: 0 0 14px; background: #fbfcfd; }
-    .design-card legend { font-size: 16px; font-weight: 700; padding: 0 4px; }
+    .design-card legend { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
     .design-card .design-status { margin: 6px 0 10px; display: flex; flex-wrap: wrap; gap: 8px 0; }
     .design-card .design-status label { min-height: 44px; }
     .design-card .design-given, .design-card .design-hold, .design-card .design-skip { display: none; }
@@ -318,6 +323,47 @@
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .plant-status { font-weight: 600; margin: 8px 0 0; }
     .risk-response { display: block; margin-top: 6px; font-weight: 600; color: #8a2b2b; }
+    /* The job steps on screen (D260): Controls widest, as it has the most words. Word and PDF keep their own widths. */
+    table.steps-table { table-layout: fixed; }
+    table.steps-table > thead th:nth-child(1) { width: 13%; }
+    table.steps-table > thead th:nth-child(2) { width: 25%; }
+    table.steps-table > thead th:nth-child(3) { width: 40%; }
+    table.steps-table > thead th:nth-child(4) { width: 12%; }
+    table.steps-table > thead th:nth-child(5) { width: 10%; }
+    table.steps-table td { overflow-wrap: break-word; hyphens: auto; }
+    /* On a computer the draft uses more of the screen, so the job steps read across, not down (owner
+       feedback item 26: "very hard to read or very tall"). */
+    @media (min-width: 1000px) {
+      #result { width: min(1180px, calc(100vw - 64px)); margin-left: calc(50% - min(590px, 50vw - 32px)); }
+    }
+    .risk-line { display: block; }
+    /* "Remove this line?" under the line (D253). */
+    .line-confirm { margin: 6px 0 4px; padding: 8px 10px; border: 1px solid #e3b76b; border-radius: 6px; background: #fffaf0; font-size: 14px; }
+    .line-confirm-title { margin: 0 0 4px; }
+    .line-confirm .ctl-why { margin: 4px 0; }
+    .line-confirm .ctl-why select, .line-confirm .ctl-why input { display: block; width: 100%; margin: 4px 0 0; }
+    .line-confirm-tools { margin: 4px 0 0; gap: 8px; }
+    .line-confirm-tools button { width: auto; }
+    .hazard-line .meta, .ppe-line .meta, .design-line .meta { font-size: 13px; }
+    /* A hazard the user added: its controls and rating, under the step (D254, D255). */
+    tr.own-hazard-row > td { background: #fbfcfd; }
+    .own-hazard { padding: 4px 2px; }
+    .own-hazard:focus { outline: 2px solid #1f4e3d; outline-offset: 2px; }
+    .own-hazard p { margin: 0 0 6px; }
+    .oh-head { margin-top: 10px !important; }
+    .oh-offers .check { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; margin: 4px 0; }
+    .oh-offers .check input { margin-top: 3px; flex: none; }
+    .oh-written { margin: 4px 0 6px; padding-left: 1.2em; }
+    .oh-write label { font-weight: 600; font-size: 14px; }
+    .oh-write-row { display: flex; gap: 8px; align-items: center; }
+    .oh-write-row input { flex: 1 1 auto; min-width: 0; }
+    .oh-write-row button { flex: none; width: auto; }
+    .oh-rate select { border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; padding: 4px 6px; }
+    .oh-when { display: inline-block; min-width: 8.5em; font-weight: 600; }
+    /* A plain note that something worked, with a link to it (owner feedback item 25). */
+    .done-note { color: #1f6b3f; background: #eef6f1; border: 1px solid #2e7d4f; border-radius: 6px; padding: 8px 12px; margin: 10px 0 0; font-size: 14px; font-weight: 600; }
+    .done-note[hidden] { display: none; }
+    .flash { outline: 3px solid #2e7d4f; outline-offset: 4px; transition: outline-color 0.4s; }
     .ctl-shared { margin: 6px 0 0; color: #3d4a59; font-style: italic; }
     [aria-invalid="true"] { border-color: #c77700 !important; box-shadow: 0 0 0 2px #fde3b8; }
     .blank-input { display: inline-block; width: 12em; max-width: 100%; border: 1px solid #c77700; border-radius: 4px; padding: 2px 6px; margin: 2px 4px; font-size: 14px; background: #fffaf0; }
@@ -395,6 +441,14 @@
     textarea.has-blank, textarea.has-blank[aria-invalid="true"], textarea.has-blank:focus { border: 2px solid #b00020 !important; box-shadow: 0 0 0 1px #b00020; }
     textarea.has-blank:focus { outline-color: #b00020; }
     .blank-warning { color: #b00020; font-weight: 700; margin: 6px 0 0; }
+    /* An answer with blanks as its sentence, a labelled box in each blank, red while empty (D261). */
+    .blank-form { border: 1px solid #c5cdd6; border-radius: 6px; background: #fff; padding: 10px 12px; }
+    .blank-sentence { margin: 0; line-height: 2.2; font-size: 15px; }
+    .blank-slot { display: inline-flex; flex-direction: column; vertical-align: bottom; margin: 0 4px; font-weight: 400; line-height: 1.2; }
+    .blank-label { font-size: 12px; color: #5c6773; margin: 0 0 2px; }
+    .blank-slot-input { width: 11em; max-width: 100%; border: 1px solid #c5cdd6; border-radius: 4px; padding: 4px 6px; font-size: 15px; }
+    .blank-slot-input.empty { border: 2px solid #b00020; background: #fff5f6; }
+    .blank-form-tools { margin: 8px 0 0; font-size: 14px; line-height: 1.5; }
     /* Design details read from the drawing (D249, D250): amber until ticked as matching. */
     .design-read { margin: 4px 0 10px; }
     .design-read .warning { margin: 0 0 6px; }
@@ -418,6 +472,16 @@
       .conflict-dialog, .read-progress .rp-lead, .rp-row, .read-done, .scope-others, .ctl-tools, .ctl-why, .ctl-why select, .ctl-why input, .ctl-warn, .translate .en,
       .gate p, .answer-panel legend, .answer-panel .check, .ctl-shared, .own-tools, .cover-tools, .risk-response, .gate-list .meta, .gate-need, .blank-input, details.sheet-fold .fold-note, .method-kind { font-size: 16px; }
       table.stack td::before { font-size: 16px; }
+      /* On a phone each job step is a card of its own (D260). */
+      table.steps-table, table.steps-table > tbody { border: 0; }
+      table.steps-table > tbody > tr { border: 1px solid #c9d1da; border-radius: 8px; margin: 0 0 12px; padding: 4px 0; background: #fff; }
+      table.steps-table > tbody > tr.own-hazard-row { margin-top: -8px; border-top: 0; border-radius: 0 0 8px 8px; }
+      table.steps-table > tbody > tr > td { border: 0; border-bottom: 1px solid #eef1f4; }
+      table.steps-table > tbody > tr > td:last-child { border-bottom: 0; }
+      .line-confirm, .oh-write label, .hazard-line .meta, .ppe-line .meta, .design-line .meta, .done-note { font-size: 16px; }
+      .oh-rate select { min-height: 44px; font-size: 16px; }
+      .oh-when { display: block; }
+      .oh-offers .check { min-height: 44px; }
       button, select, .pick select, select.plain, input[type="text"], input[type="search"], input[type="date"], .blank-input { min-height: 44px; }
       button { min-width: 44px; }
       button.link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; text-align: left; }
@@ -436,6 +500,9 @@
       details.panel > summary, .site-item > summary, details.revisions > summary, details.revisions details > summary, .scope-task details > summary, .note details > summary, details.sheet-fold > summary { padding: 11px 0; }
       .site-footer a { display: inline-block; padding: 11px 0; }
       .ctl-why select, .ctl-why input { min-height: 44px; padding: 6px 8px; }
+      .blank-sentence, .blank-form-tools { font-size: 16px; }
+      .blank-slot-input { font-size: 16px; min-height: 44px; }
+      .blank-label { font-size: 14px; }
       /* The draft: each step's tools show after Change this step, and a long list of controls shows
          its first lines until Show all (app.js). Removed lines and the reasons asked stay in view. */
       .phone-only { display: inline; }
@@ -738,11 +805,17 @@
         <label><input type="radio" name="residential" value="yes"> Yes</label>
         <label><input type="radio" name="residential" value="no"> No</label>
       </fieldset>
-      <fieldset class="field choice">
+      <fieldset class="field choice" id="crane-question" tabindex="-1">
         <legend>Is a crane used, and who operates it?</legend>
         <label><input type="radio" name="crane" value="none"> No crane</label>
-        <label><input type="radio" name="crane" value="company" checked> A crane company</label>
+        <label><input type="radio" name="crane" value="company"> A crane company</label>
         <label><input type="radio" name="crane" value="own"> Our company</label>
+      </fieldset>
+      <fieldset class="field choice hidden" id="slinging-question" tabindex="-1">
+        <legend>Who slings the loads and directs the crane?</legend>
+        <label><input type="radio" name="slinging" value="crane"> Crane company's dogman</label>
+        <label><input type="radio" name="slinging" value="ours"> Our crew</label>
+        <p class="hint">Our crew needs a dogging or rigging licence to do it.</p>
       </fieldset>
       <fieldset class="field choice" id="fall-question">
         <legend>Could a person fall more than <span id="fall-metres">2</span> metres during this task?</legend>
@@ -804,6 +877,7 @@
   <script src="/address.js"></script>
   <script src="/gate-rules.js"></script>
   <script src="/design-fill.js"></script>
+  <script src="/mass.js"></script>
   <script src="/app.js"></script>
   <script src="/account.js"></script>
   <script src="/read-progress.js"></script>

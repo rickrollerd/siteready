@@ -254,7 +254,10 @@ function payload() {
     state: state ? state.value : '',
     fallRisk: (document.querySelector('input[name="fallRisk"]:checked') || {}).value || '',
     residential: (document.querySelector('input[name="residential"]:checked') || {}).value || '',
-    crane: (document.querySelector('input[name="crane"]:checked') || {}).value || 'company',
+    // Unanswered until the user answers (messy-user test, 14 October 2026): no crane company is assumed.
+    crane: (document.querySelector('input[name="crane"]:checked') || {}).value || '',
+    // D258: with a crane company, who slings the loads and directs the crane.
+    slinging: (document.querySelector('input[name="crane"]:checked') || {}).value === 'company' ? (document.querySelector('input[name="slinging"]:checked') || {}).value || '' : '',
     task: value('task'),
     // Set when the task comes from a scope of works: its SWMS uses only that trade's job steps.
     trade: value('task-trade'),
@@ -475,8 +478,48 @@ function showFallExplanation() {
   el.classList.toggle('hidden', !no || !el.textContent);
 }
 
+// The crane question starts unanswered. Left unanswered, a task that names no crane is "No crane";
+// one that names a crane is asked. With "A crane company", who slings the loads is asked too (D258).
+const NAMES_CRANE = /\b(?:cranes?|cranage|craneage|franna|hiabs?|crane trucks?)\b/i;
+function showSlinging() {
+  const company = (document.querySelector('input[name="crane"]:checked') || {}).value === 'company';
+  const question = document.getElementById('slinging-question');
+  if (question) question.classList.toggle('hidden', !company);
+}
+document.querySelectorAll('input[name="crane"]').forEach((input) => input.addEventListener('change', showSlinging));
+// The message shows under the question it is about, as well as by Continue.
+function askAt(id, message) {
+  document.getElementById('start-error').textContent = message;
+  const question = document.getElementById(id);
+  if (!question) return;
+  let note = question.querySelector('.error');
+  if (!note) { note = document.createElement('p'); note.className = 'error'; note.setAttribute('role', 'alert'); question.appendChild(note); }
+  note.textContent = message;
+  question.focus();
+}
+function craneAnswered() {
+  document.querySelectorAll('#crane-question .error, #slinging-question .error').forEach((note) => { note.textContent = ''; });
+  const crane = document.querySelector('input[name="crane"]:checked');
+  if (!crane) {
+    if (!NAMES_CRANE.test(document.getElementById('task').value)) {
+      document.querySelector('input[name="crane"][value="none"]').checked = true;
+      showSlinging();
+      return true;
+    }
+    askAt('crane-question', 'The task names a crane. Say whether a crane is used, and who operates it.');
+    return false;
+  }
+  if (crane.value === 'company' && !document.querySelector('input[name="slinging"]:checked')) {
+    askAt('slinging-question', 'Say who slings the loads and directs the crane: the crane company\'s dogman, or our crew.');
+    return false;
+  }
+  return true;
+}
+
 document.getElementById('start').addEventListener('submit', (event) => {
   event.preventDefault();
+  document.getElementById('start-error').textContent = '';
+  if (!craneAnswered()) return;
   // The state always follows the job address.
   applyAddressState();
   // A new task starts from the steps found in it, or the steps the scope reader found for it.
@@ -927,6 +970,92 @@ function showBlanks(box) {
   if (note) note.hidden = !text;
   box.classList.toggle('has-blank', Boolean(text));
   if (text) { box.setAttribute('aria-invalid', 'true'); box.setAttribute('aria-describedby', note.id); } else { box.removeAttribute('aria-invalid'); if (note) box.removeAttribute('aria-describedby'); }
+  drawBlankForm(box);
+}
+
+// D261 (owner, 13 October 2026): "where the blanks are are boxes that need to be filled or a button
+// that says something like write your own description and then the box goes blank and the user does
+// the input." An answer with blanks (____) shows as its sentence with a labelled box in each blank,
+// red while empty; what is typed goes into the answer in its place, as if typed there. "Write your own"
+// clears the answer to a plain box. The answer box itself stays the record (the gate, the draft and
+// the design fill read it): the form follows it, so a design given at the question (D243) fills its
+// boxes, and the bold red warning under it (D241, D245) still names each blank left.
+const blankForms = new Map();
+const BLANK_SPLIT = /_{3,}/;
+const escapeRe = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// What fills each blank of the sentence in the answer, or null where the answer is no longer that sentence.
+function blankValues(template, text) {
+  const parts = template.split(BLANK_SPLIT);
+  const found = new RegExp(`^${parts.map((part) => escapeRe(part.replace(/\s+/g, ' '))).join('([^]*?)')}$`).exec(String(text).replace(/\s+/g, ' ').trim());
+  return found ? found.slice(1).map((value) => (/^_{3,}$/.test(value.trim()) ? '' : value)) : null;
+}
+const blankText = (template, values) => template.split(BLANK_SPLIT).map((part, i, all) => `${part}${i < all.length - 1 ? (String(values[i] || '').trim() ? values[i] : '____') : ''}`).join('');
+function drawBlankForm(box) {
+  const rules = fillRules();
+  if (!rules || !box || !box.id || !rules.blankLabels) return;
+  let kept = blankForms.get(box.id);
+  // "Write your own": a plain box until a standard answer is chosen again.
+  if (kept && kept.own) { if (!/_{3,}/.test(box.value)) return; kept = null; }
+  let values = kept ? blankValues(kept.template, box.value) : null;
+  if (!values && /_{3,}/.test(box.value)) {
+    kept = { template: box.value.replace(/\s+/g, ' ').trim() };
+    values = blankValues(kept.template, box.value) || [];
+  }
+  let form = document.getElementById(`${box.id}-form`);
+  if (!values) {
+    blankForms.delete(box.id);
+    if (form) { form.remove(); box.classList.remove('hidden'); }
+    return;
+  }
+  blankForms.set(box.id, kept);
+  if (!form || form.dataset.template !== kept.template) {
+    const parts = kept.template.split(BLANK_SPLIT);
+    const labels = rules.blankLabels(kept.template);
+    const slots = parts.map((part, n) => `${esc(part)}${n < parts.length - 1 ? `<label class="blank-slot"><span class="blank-label">${esc(labels[n] || 'fill in')}</span><input type="text" maxlength="200" class="blank-slot-input" data-blank-for="${esc(box.id)}" data-blank-n="${n}" aria-label="${esc(labels[n] || 'fill in')}"></label>` : ''}`).join('');
+    const made = document.createElement('div');
+    made.className = 'blank-form';
+    made.id = `${box.id}-form`;
+    made.dataset.template = kept.template;
+    made.innerHTML = `<p class="blank-sentence">${slots}</p><p class="blank-form-tools"><button type="button" class="link" data-blank-own="${esc(box.id)}">Write your own</button><span class="meta"> Clears this answer so you can write it in your own words.</span></p>`;
+    if (form) form.replaceWith(made); else box.before(made);
+    form = made;
+  }
+  box.classList.add('hidden');
+  form.querySelectorAll('[data-blank-n]').forEach((input) => {
+    const value = values[Number(input.dataset.blankN)] || '';
+    if (document.activeElement !== input && input.value !== value) input.value = value;
+    input.classList.toggle('empty', !input.value.trim());
+  });
+}
+// A box in the sentence: the answer gets what is typed in that blank's place.
+document.addEventListener('input', (event) => {
+  const input = event.target.closest && event.target.closest('[data-blank-for]');
+  if (!input) return;
+  const box = document.getElementById(input.dataset.blankFor);
+  const kept = box && blankForms.get(box.id);
+  if (!kept || kept.own) return;
+  const values = [...input.closest('.blank-form').querySelectorAll('[data-blank-n]')].map((el) => el.value.replace(/_{3,}/g, ''));
+  box.value = blankText(kept.template, values);
+  box.dispatchEvent(new Event('input', { bubbles: true }));
+});
+document.addEventListener('click', (event) => {
+  const own = event.target.closest('[data-blank-own]');
+  if (!own) return;
+  const box = document.getElementById(own.dataset.blankOwn);
+  if (!box) return;
+  blankForms.set(box.id, { own: true });
+  const form = document.getElementById(`${box.id}-form`);
+  if (form) form.remove();
+  box.value = '';
+  box.classList.remove('hidden');
+  box.dispatchEvent(new Event('input', { bubbles: true }));
+  box.focus();
+});
+// A box shown as its sentence is reached at its first empty blank.
+function answerTarget(el) {
+  const form = el && el.id ? document.getElementById(`${el.id}-form`) : null;
+  if (!form || !el.classList.contains('hidden')) return el;
+  return form.querySelector('.blank-slot-input.empty') || form.querySelector('.blank-slot-input') || el;
 }
 function showAllBlanks() {
   document.querySelectorAll('#required-block textarea[data-fact], #site-block textarea[data-site]').forEach(showBlanks);
@@ -1124,7 +1253,10 @@ function fillStart(input) {
   };
   pick('state', input.state);
   pick('residential', input.residential);
-  pick('crane', input.crane || 'company');
+  document.querySelectorAll('input[name="crane"], input[name="slinging"]').forEach((el) => { el.checked = false; });
+  pick('crane', input.crane);
+  pick('slinging', input.slinging);
+  showSlinging();
   pick('fallRisk', input.fallRisk);
   fillFields(input);
   document.getElementById('task-trade').value = input.trade || '';
@@ -1218,18 +1350,21 @@ document.getElementById('required-block').addEventListener('click', (event) => {
     showBlanks(box);
     markPicks(item.id);
     askAgain();
-    box.focus();
+    answerTarget(box).focus();
     return;
   }
   box.value = box.value.trim() ? `${box.value.trim()} ${pick.text}` : pick.text;
+  // A standard answer chosen after "Write your own" shows as its sentence again (D261).
+  if ((blankForms.get(box.id) || {}).own) blankForms.delete(box.id);
   if (questionDesign(item.id)) fillFromDesign(item.id);
   showBlanks(box);
   markPicks(item.id);
   // A standard answer can bring in another question (a harness named in the fall control).
   askAgain();
-  box.focus();
+  const target = answerTarget(box);
+  target.focus();
   const blank = box.value.indexOf('____');
-  if (blank >= 0) box.setSelectionRange(blank, blank + 4);
+  if (target === box && blank >= 0) box.setSelectionRange(blank, blank + 4);
 });
 
 document.getElementById('required-block').addEventListener('input', (event) => {
@@ -1323,8 +1458,11 @@ presetEl.addEventListener('change', () => {
   document.getElementById('task-trade').value = '';
   const fall = document.querySelector(`input[name="fallRisk"][value="${item.fallRisk}"]`);
   if (fall) { fall.checked = true; fall.dispatchEvent(new Event('change', { bubbles: true })); }
-  const crane = document.querySelector(`input[name="crane"][value="${item.crane}"]`);
+  // A task that names no crane leaves the crane question unanswered (Continue makes it "No crane").
+  document.querySelectorAll('input[name="crane"], input[name="slinging"]').forEach((el) => { el.checked = false; });
+  const crane = (item.crane === 'own' || NAMES_CRANE.test(item.task)) && document.querySelector(`input[name="crane"][value="${item.crane}"]`);
   if (crane) crane.checked = true;
+  showSlinging();
 });
 
 const presetsLoaded = loadPresets();
@@ -1887,10 +2025,19 @@ function emergencyBlock(draft) {
   return `<div class="panel answer-panel" id="emergency-panel">
     <p><strong>Emergency response for this work</strong></p>
     <p class="meta">A reviewer looks for how your crew responds to an emergency in this work, not only the heading. Answer each question for this site. The answers print in the emergency arrangements above. Not applicable is not an answer here: SiteReady asks only about work this SWMS involves.</p>
-    ${asked.map((item) => `<div class="field"><label for="emg-${esc(item.id)}">${esc(item.ask)}<span class="hint">${esc(item.hint)}</span></label><textarea id="emg-${esc(item.id)}" data-emergency="${esc(item.id)}" maxlength="600">${esc(answer(item))}</textarea></div>`).join('')}
+    ${asked.map((item) => `<div class="field"><label for="emg-${esc(item.id)}">${esc(item.ask)}<span class="hint">${esc(item.hint)}</span></label>${emergencyPicks(item, answer(item))}<textarea id="emg-${esc(item.id)}" data-emergency="${esc(item.id)}" maxlength="600">${esc(answer(item))}</textarea></div>`).join('')}
     <div class="actions"><button type="button" id="emergency-update">Update the draft</button></div>
+    <p class="done-note" id="emergency-done" role="status"${emergencyDone ? '' : ' hidden'}>Draft updated. Your answers are in the Emergency arrangements table above. <button type="button" class="link" data-emergency-show>Show me</button></p>
   </div>`;
 }
+// Standard answers for an emergency question, naming roles, not people (D259, emergency.js).
+function emergencyPicks(item, given) {
+  const picks = item.suggestions || [];
+  if (!picks.length) return '';
+  return `<div class="picks"><span class="picks-label">Standard answers:</span>${picks.map((pick, index) => `<button type="button" class="pick-button" data-emg-pick="${esc(item.id)}" data-pick="${index}" aria-pressed="${String(String(given || '').includes(pick.text))}">${esc(pick.label)}</button>`).join('')}</div>`;
+}
+// Set once Update the draft has drawn the answers into the table, until an answer changes (item 25).
+let emergencyDone = false;
 
 // The note printed under a step's controls where its rating counts controls in an earlier step
 // (docx-draft.js sharedNote).
@@ -1930,7 +2077,14 @@ function designDate(value) {
   return iso && Number(iso[2]) >= 1 && Number(iso[2]) <= 12 ? `${Number(iso[3])} ${MONTH_NAMES[Number(iso[2]) - 1]} ${iso[1]}` : String(value || '');
 }
 
-function render(draft, { movable = false, swmsId = '' } = {}) {
+// The SWMS as the page shows it, with each load rating's mass after it (D263, public/mass.js), as the
+// Word file and the PDF print it.
+function render(draft, options = {}) {
+  const html = renderSheet(draft, options);
+  const mass = window.SiteReadyMass;
+  return mass ? mass.withMassHtml(html) : html;
+}
+function renderSheet(draft, { movable = false, swmsId = '' } = {}) {
   const row = (label, value) => (value ? `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>` : '');
   const logo = profile.logo ? `<img class="sheet-logo" src="${esc(profile.logo)}" alt="">` : '';
   const company = draft.companyDetails ? `<p class="meta">${esc(draft.companyDetails)}</p>` : '';
@@ -1988,7 +2142,10 @@ function render(draft, { movable = false, swmsId = '' } = {}) {
     const warn = (draft.controlWarn || [])[index] || [];
     const removed = ((controlEdits || {})[step.step] || {}).removed || [];
     const warned = (report.warned || []).filter((item) => item.step === step.step);
-    const asks = (report.applied || []).filter((item) => item.step === step.step && (item.kind === 'removed' || warned.some((other) => other.text === item.from)));
+    // A changed line SiteReady warned about asks why, under the line itself; a removed line was asked
+    // why when it was removed (D253).
+    const asks = (report.applied || []).filter((item) => item.step === step.step && item.kind === 'changed' && warned.some((other) => other.text === item.from));
+    const askFor = (line) => asks.filter((item) => `${item.to}${OWN_MARK}` === line).map((item) => whyBox(index, item)).join('');
     // On a phone, a long list shows its first lines; a line with a blank to fill in always shows.
     const folds = (i) => step.controls.length > MANY_CONTROLS && i >= FEW_CONTROLS && !(blankKeys.steps[index] || [])[i];
     const hidden = step.controls.filter((_line, i) => folds(i)).length;
@@ -1998,26 +2155,28 @@ function render(draft, { movable = false, swmsId = '' } = {}) {
     // The step's PPE line (D246) is changed under Personal protective equipment, as design lines are under Designs.
     const fromPpe = new Set(step.ppeLines || []);
     const ppeItem = (line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}" class="ppe-line">${esc(line)}<span class="meta"> PPE for this step. Change it under Personal protective equipment.</span></li>`;
-    return `<ul>${step.controls.map((line, i) => (fromDesign.has(line) ? designItem(line, i) : fromPpe.has(line) ? ppeItem(line, i) : `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span></li>`)).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
+    // A control for a hazard the user added (D254) is changed under that hazard, below the step.
+    const fromHazard = new Set(step.hazardLines || []);
+    const hazardItem = (line, i) => `<li data-ctl-step="${index}" data-ctl-line="${i}" class="hazard-line">${esc(line)}<span class="meta"> For your own hazard. Change it under the hazard, below this step.</span></li>`;
+    return `<ul>${step.controls.map((line, i) => (fromDesign.has(line) ? designItem(line, i) : fromPpe.has(line) ? ppeItem(line, i) : fromHazard.has(line) ? hazardItem(line, i) : `<li data-ctl-step="${index}" data-ctl-line="${i}"${folds(i) ? ' class="ctl-more"' : ''}${legal[i] ? ` data-legal="${esc(legal[i])}"` : ''}${warn[i] ? ` data-warn="${esc(warn[i])}"` : ''}>${lineText(line, (blankKeys.steps[index] || [])[i])}<span class="ctl-tools"><button type="button" class="link" data-ctl="change">Change</button><button type="button" class="link" data-ctl="remove">Remove</button></span>${askFor(line)}</li>`)).join('')}${removed.map((line, r) => `<li class="ctl-removed" data-ctl-step="${index}" data-removed-line="${r}"><s>${esc(line)}</s><span class="ctl-tools"><button type="button" class="link" data-ctl="restore" data-removed="${r}">Put back</button></span></li>`).join('')}</ul>
       ${shared(step) ? `<p class="ctl-shared">${esc(shared(step))}</p>` : ''}
       ${warned.map((item) => `<p class="warning ctl-warn">${esc(`${item.kind === 'removed' ? 'Removed' : item.kind === 'changed' ? 'Changed' : 'Added'}: ${item.kind === 'added' ? item.to : item.text}. ${item.warnings.join(' ')}`)}</p>`).join('')}
       ${hidden ? `<button type="button" class="secondary ctl-show" data-ctl-more="${index}">Show all ${step.controls.length} controls</button>` : ''}
-      ${asks.map((item) => whyBox(index, item)).join('')}
       <button type="button" class="link" data-ctl="add" data-ctl-step="${index}">Add your own control</button><p class="meta ctl-msg" data-ctl-msg="${index}" role="status"></p>`;
   };
   // Hazards can be reworded and added; SiteReady's own are marked "does not apply", never deleted.
+  // Hazard and control lines both have Change and Remove (D253). SiteReady's own hazard, removed,
+  // stays on the SWMS marked "Does not apply to this job", so a reviewer sees it was considered.
   const hazardCell = (step, index) => {
     if (!movable) return list(step.hazards);
-    const asks = (report.applied || []).filter((item) => item.step === step.step && item.kind === 'hazardNotApplicable');
     return `<ul>${step.hazards.map((line, i) => {
       const own = line.endsWith(HAZARD_MARK);
       const off = line.endsWith(NOT_APPLICABLE);
-      const tools = off
-        ? '<button type="button" class="link" data-hz="applies">It applies</button>'
-        : `<button type="button" class="link" data-hz="change">Change</button>${own ? '<button type="button" class="link" data-hz="remove">Remove</button>' : '<button type="button" class="link" data-hz="na">Does not apply</button>'}`;
-      return `<li data-hz-step="${index}" data-hz-line="${i}"${off ? ' class="ctl-removed"' : ''}>${esc(line)}<span class="ctl-tools">${tools}</span></li>`;
+      if (off) return `<li data-hz-step="${index}" data-hz-line="${i}" class="ctl-removed"><s>${esc(hazardText(line))}</s><span class="meta"> Removed. It prints marked "Does not apply to this job".</span><span class="ctl-tools"><button type="button" class="link" data-hz="applies">Put back</button></span></li>`;
+      const mine = own && (draft.ownHazards || []).findIndex((item) => item.stepIndex === index && `${item.hazard} ${HAZARD_MARK}` === line);
+      const note = own && mine >= 0 ? `<span class="meta"> Its controls and rating are <a href="#own-hazard-${mine + 1}" data-oh-jump="${mine + 1}">below this step</a>.</span>` : '';
+      return `<li data-hz-step="${index}" data-hz-line="${i}">${esc(line)}<span class="ctl-tools"><button type="button" class="link" data-hz="change">Change</button><button type="button" class="link" data-hz="remove">Remove</button></span>${note}</li>`;
     }).join('')}</ul>
-      ${asks.map((item) => whyBox(index, item, 'hazard')).join('')}
       <button type="button" class="link" data-hz="add" data-hz-step="${index}">Add a hazard</button>`;
   };
   const whoCell = (step, index) => (movable
@@ -2028,7 +2187,8 @@ function render(draft, { movable = false, swmsId = '' } = {}) {
     return names.length ? ` class="${names.join(' ')}"` : '';
   };
   // A rating still High after the controls says what happens before the step starts, as printed.
-  const riskCell = (risk) => (risk ? `Before: <strong>${esc(risk.before.level)}</strong><br>${esc(risk.before.label)}<br>After: <strong>${esc(risk.after.level)}</strong><br>${esc(risk.after.label)}${risk.response ? `<span class="risk-response">${esc(risk.response)}</span>` : ''}` : '');
+  // One line each on screen (D260): "Before: Moderate (Likely x Moderate)".
+  const riskCell = (risk) => (risk ? `<span class="risk-line">Before: <strong>${esc(risk.before.level)}</strong> (${esc(risk.before.label)})</span><span class="risk-line">After: <strong>${esc(risk.after.level)}</strong> (${esc(risk.after.label)})</span>${risk.response ? `<span class="risk-response">${esc(risk.response)}</span>` : ''}` : '');
   const libraryRow = (step, index, all) => `<tr${movable ? ` draggable="true" data-step-row="${index}"${stepRowClass(step)}` : ''}><td data-label="Job step"><strong>${index + 1}. ${esc(step.step)}</strong>${movable ? `<button type="button" class="secondary step-edit" data-step-edit="${index}" aria-expanded="${stepsEditing.has(step.step)}">${stepsEditing.has(step.step) ? 'Done changing this step' : 'Change this step'}</button><span class="step-move"><button type="button" data-move="-1" data-index="${index}" aria-label="Move ${esc(step.step)} up"${index === 0 ? ' disabled' : ''}>&#9650;</button><button type="button" data-move="1" data-index="${index}" aria-label="Move ${esc(step.step)} down"${index === all.length - 1 ? ' disabled' : ''}>&#9660;</button></span>` : ''}</td><td data-label="Hazards and risks">${hazardCell(step, index)}</td><td data-label="Controls">${controlCell(step, index)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${whoCell(step, index)}</td></tr>`;
   // A step the user wrote (owner, 11 October 2026): its lines as written, with what a reviewer would
   // mark down said beside it, changed or removed in the form it was written in, and moved like any step.
@@ -2042,14 +2202,15 @@ function render(draft, { movable = false, swmsId = '' } = {}) {
       <span class="own-tools" data-own-tools="${esc(name)}"><button type="button" class="link" id="own-step-${ownSeen}" data-own-change="${esc(name)}">Change your step</button><button type="button" class="link" data-own-remove="${esc(name)}">Remove your step</button></span>${moves}
       ${notes.map((note) => `<p class="warning ctl-warn">${esc(note)}</p>`).join('')}</td><td data-label="Hazards and risks">${list(step.hazards)}</td><td data-label="Controls">${list(step.controls)}</td><td data-label="Risk rating">${riskCell(step.risk)}</td><td data-label="Who">${esc(step.responsible || '')}</td></tr>`;
   };
-  const steps = `<table class="stack"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => (movable && step.own ? ownRow(step, index, all) : libraryRow(step, index, all))).join('')}</tbody></table>
+  const ownHazardRows = (index) => (draft.ownHazards || []).map((item, n) => (item.stepIndex === index ? ownHazardRow(item, n) : '')).join('');
+  const steps = `<table class="stack steps-table"><thead><tr><th>Job step</th><th>Hazards and risks</th><th>Controls</th><th>Risk rating</th><th>Who</th></tr></thead><tbody>${(draft.jobSteps || []).map((step, index, all) => (movable && step.own ? ownRow(step, index, all) : `${libraryRow(step, index, all)}${movable ? ownHazardRows(index) : ''}`)).join('')}</tbody></table>
     <p class="meta">Suggested ratings, before and after the controls. The supervisor checks them and changes them to suit the site. Where a rating after the controls is still High, add controls or have the supervisor accept the risk before work starts.</p>`;
   const grid = (labels, rows) => `<table class="stack"><thead><tr>${labels.map((label) => `<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${rows.map((cells) => `<tr>${cells.map((value, index) => `<td data-label="${esc(labels[index] || '')}">${esc(value).replace(/\n/g, '<br>')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   const plantTable = (draft.plant || []).length ? grid(['Item', 'Inspection and maintenance', 'Licence or ticket to operate'], draft.plant.map((item) => [item.item, item.inspection, item.licence])) : '';
   const registers = `${plantTable || movable ? `<h4>Plant and equipment</h4>${movable ? plantBlock(draft) : ''}${plantTable || '<p class="meta">No plant prints on this SWMS.</p>'}` : ''}
     ${draft.substances && draft.substances.items.length ? `<h4>Hazardous substances</h4>${grid(['Type of product', 'Product name', 'Safety data sheet attached', 'Quantity'], draft.substances.items.map((item) => [item.product, '', 'Yes / No', '']))}` : ''}
     ${(draft.qualifications || []).length ? `<h4>Licences, tickets and training</h4>${list(draft.qualifications)}` : ''}
-    ${(draft.emergency || []).length ? `<h4>Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}${movable ? emergencyBlock(draft) : ''}` : ''}
+    ${(draft.emergency || []).length ? `<h4 id="emergency-table" tabindex="-1">Emergency arrangements</h4>${grid(['Emergency', 'Equipment and arrangements', 'Location, contact or detail'], draft.emergency.map((item) => [item.type, item.equipment, item.detail]))}${movable ? emergencyBlock(draft) : ''}` : ''}
     ${draft.sources && (draft.sources.legislation.length || draft.sources.codes.length) ? folded('Legislation and codes of practice', grid(['Legislation', 'Codes of practice and guidance'], [[draft.sources.legislation.join('\n'), draft.sources.codes.join('\n')]]), `${draft.sources.legislation.length + draft.sources.codes.length} listed`) : ''}`;
   // PPE for all work, then the extra items for particular steps with their steps (D246).
   const forSteps = (draft.ppe || []).flatMap((group) => group.items.filter((item) => item.ticked && Array.isArray(item.steps) && item.steps.length));
@@ -2067,7 +2228,7 @@ function render(draft, { movable = false, swmsId = '' } = {}) {
     <h4>High risk construction work</h4>${risks}
     ${designsTable(draft, swmsId)}
     <h4>Controls</h4>${controls}
-    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change it. Lines you write or change are marked as your own. A hazard that does not apply is marked so, not deleted. SiteReady warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why.<span class="phone-only"> On a phone, tap Change this step to move a step or change its lines.</span></p>' : ''}${steps}
+    <h4>Job steps</h4>${movable ? '<p class="meta">Use the arrows, or drag a row, to put the job steps in the order the work is done. Every control and hazard is kept unless you change or remove it. Lines you write or change are marked as your own. A hazard of SiteReady&#39;s that you remove still prints, marked &quot;Does not apply to this job&quot;. SiteReady warns you before you remove or weaken a legal requirement or a line it recommends keeping, and you can say why. A hazard you add needs at least one control.<span class="phone-only"> On a phone, tap Change this step to move a step or change its lines.</span></p>' : ''}${steps}
     ${movable ? '<p class="own-new"><button type="button" class="secondary small" data-own-new>Write a step of your own</button> <span class="meta">For work SiteReady has no job step for. It prints marked as your own.</span></p>' : ''}
     <h4>Personal protective equipment</h4>${ppe}
     ${registers}
@@ -2237,7 +2398,20 @@ document.addEventListener('change', (event) => {
   // The list above the buttons drops the tick, or puts it back.
   showGate();
 });
-async function prepareDraft({ scroll = true } = {}) {
+// A part of the draft kept where it was on the screen while the draft is drawn again, so a button
+// pressed in a job step does not jump the page (owner feedback item 19). keep: a selector in the draft.
+function screenSpot(keep) {
+  const el = keep && resultEl.querySelector(keep);
+  return el ? { keep, top: el.getBoundingClientRect().top } : null;
+}
+function backToSpot(spot) {
+  const el = spot && resultEl.querySelector(spot.keep);
+  if (!el) return;
+  const moved = el.getBoundingClientRect().top - spot.top;
+  if (Math.abs(moved) >= 1) window.scrollTo(0, window.scrollY + moved);
+}
+async function prepareDraft({ scroll = true, keep = '' } = {}) {
+  const spot = screenSpot(keep);
   // Plant ticks or removals not yet confirmed are used, so "Update the draft" does not undo them.
   if (plantPending && document.getElementById('plant-panel')) {
     const ticks = plantTicksNow();
@@ -2285,11 +2459,14 @@ async function prepareDraft({ scroll = true } = {}) {
     showGate();
     // Downloading and saving need an account; the account script adds those buttons.
     window.SiteReady.showActions(data, sent);
-    if (data.kind === 'draft') showTranslate(sent);
+    backToSpot(spot);
+    // The translation box above the draft can arrive a moment later: the part kept stays where it was.
+    if (data.kind === 'draft') Promise.resolve(showTranslate(sent)).then(() => backToSpot(spot), () => {});
     // A SWMS in a project is recorded against its task.
     if (window.SiteReady.onDraft) window.SiteReady.onDraft(data, sent);
     keepUnsaved();
-    if (scroll) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    backToSpot(spot);
+    if (scroll && !spot) resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     document.getElementById('facts-error').textContent = error.message;
   } finally {
@@ -2312,7 +2489,7 @@ document.addEventListener('click', async (event) => {
   const go = event.target.closest('[data-gate-go]');
   if (go && shownDraft) {
     const gap = shownGaps[Number(go.dataset.gateGo)];
-    const el = gap && gateTarget(gap);
+    const el = gap && answerTarget(gateTarget(gap));
     if (!el) return;
     // A box in a closed section is opened first.
     const closed = el.closest('details:not([open])');
@@ -2407,9 +2584,42 @@ resultEl.addEventListener('click', async (event) => {
     return;
   }
   if (event.target.closest('#emergency-update')) {
-    await prepareDraft({ scroll: false });
-    const panel = document.getElementById('emergency-panel');
-    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // The draft is prepared again with the answers, the button stays where it was on the screen, and
+    // a note under it says where the answers went, with a link to them (owner feedback item 25).
+    emergencyDone = true;
+    await prepareDraft({ scroll: false, keep: '#emergency-update' });
+    const button = document.getElementById('emergency-update');
+    if (button) button.focus({ preventScroll: true });
+    return;
+  }
+  if (event.target.closest('[data-emergency-show]')) {
+    const table = document.getElementById('emergency-table');
+    if (table) {
+      table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      table.classList.add('flash');
+      setTimeout(() => table.classList.remove('flash'), 2000);
+    }
+    return;
+  }
+  const pick = event.target.closest('[data-emg-pick]');
+  if (pick && shownDraft) {
+    // A standard answer goes in the box, where it can be changed; pressed again, it comes out.
+    const item = (shownDraft.emergencyQuestions || []).find((entry) => entry.id === pick.dataset.emgPick);
+    const chosen = item && (item.suggestions || [])[Number(pick.dataset.pick)];
+    const box = item && document.getElementById(`emg-${item.id}`);
+    if (!chosen || !box) return;
+    const now = box.value.trim();
+    const others = (item.suggestions || []).map((entry) => entry.text);
+    // An answer the gate refused, or a word or two ("call 000"), is replaced, not added to.
+    const weak = now.split(/\s+/).length < 4 || Boolean(document.getElementById(`need-emg-${item.id}`));
+    box.value = now.includes(chosen.text) ? now.replace(chosen.text, '').replace(/\s{2,}/g, ' ').trim()
+      : !now || others.includes(now) || weak ? chosen.text : `${now} ${chosen.text}`;
+    box.dispatchEvent(new Event('input', { bubbles: true }));
+    pick.closest('.picks').querySelectorAll('[data-emg-pick]').forEach((button) => {
+      const text = ((item.suggestions || [])[Number(button.dataset.pick)] || {}).text || '';
+      button.setAttribute('aria-pressed', String(Boolean(text) && box.value.includes(text)));
+    });
+    box.focus();
   }
 });
 // An emergency answer is kept for the next draft as it is typed.
@@ -2417,6 +2627,10 @@ resultEl.addEventListener('input', (event) => {
   const box = event.target.closest && event.target.closest('[data-emergency]');
   if (!box) return;
   emergencyAnswers = { ...(emergencyAnswers || {}), [box.dataset.emergency]: box.value };
+  // The note that the draft has the answers goes until the draft is updated again.
+  emergencyDone = false;
+  const done = document.getElementById('emergency-done');
+  if (done) done.hidden = true;
 });
 
 // An answer typed in a blank is kept for the next draft, and shown in the same blank wherever the line prints.
@@ -2514,12 +2728,17 @@ function tidyHazards() {
   for (const [name, edit] of Object.entries(hazardEdits)) {
     if (edit.reasons) edit.reasons = edit.reasons.filter((entry) => edit.notApplicable.includes(entry.line));
     if (edit.reasons && !edit.reasons.length) delete edit.reasons;
+    // An added hazard's controls and rating go with it.
+    if (edit.own) for (const hazard of Object.keys(edit.own)) if (!edit.added.includes(hazard)) delete edit.own[hazard];
+    if (edit.own && !Object.keys(edit.own).length) delete edit.own;
     if (!edit.changed.length && !edit.added.length && !edit.notApplicable.length) delete hazardEdits[name];
   }
   if (!Object.keys(hazardEdits).length) hazardEdits = null;
 }
 // A hazard line as shown: SiteReady's, one the user reworded or added, or one marked as not applying.
-function applyHazardEdit(step, line, action, next = '') {
+// why: the reason picked and the note, for a hazard of SiteReady's the user removed (kept as before
+// for "Does not apply"). keep: the part of the draft kept where it is on the screen.
+function applyHazardEdit(step, line, action, next = '', { why = null, keep = '' } = {}) {
   const edit = hazardEditFor(step.step);
   const text = hazardText(line);
   if (action === 'na') edit.notApplicable.push(line);
@@ -2529,21 +2748,28 @@ function applyHazardEdit(step, line, action, next = '') {
     const added = edit.added.indexOf(text);
     const change = edit.changed.find((item) => item.to === text);
     if (added >= 0) {
-      if (action === 'remove') edit.added.splice(added, 1); else if (next) edit.added[added] = next;
+      if (action === 'remove') edit.added.splice(added, 1);
+      else if (next) {
+        edit.added[added] = next;
+        // Its controls and rating stay with it under its new words.
+        if (edit.own && edit.own[text]) { edit.own[next] = edit.own[text]; delete edit.own[text]; }
+      }
     } else if (change) {
       if (action === 'remove') edit.changed.splice(edit.changed.indexOf(change), 1); else if (next) change.to = next;
     }
   } else if (action === 'change' && next) {
     edit.changed = [...edit.changed.filter((item) => item.from !== line), { from: line, to: next }];
   }
+  if (action === 'na' && why && (why.reason || why.note)) edit.reasons = [...(edit.reasons || []).filter((entry) => entry.line !== line), { line, reason: why.reason || '', note: why.note || '' }];
   tidyHazards();
-  prepareDraft({ scroll: false });
+  prepareDraft({ scroll: false, keep });
 }
 function setWho(step, text) {
   whoEdits = whoEdits || {};
   if (text) whoEdits[step.step] = text; else delete whoEdits[step.step];
   if (!Object.keys(whoEdits).length) whoEdits = null;
-  prepareDraft({ scroll: false });
+  const index = (shownDraft.jobSteps || []).indexOf(step);
+  prepareDraft({ scroll: false, keep: index >= 0 ? `[data-step-row="${index}"]` : '' });
 }
 resultEl.addEventListener('click', (event) => {
   const button = event.target.closest('[data-hz], [data-who]');
@@ -2555,16 +2781,172 @@ resultEl.addEventListener('click', (event) => {
     return;
   }
   const holder = button.closest('[data-hz-step]');
-  const step = (shownDraft.jobSteps || [])[Number(holder.dataset.hzStep)];
+  const index = Number(holder.dataset.hzStep);
+  const step = (shownDraft.jobSteps || [])[index];
   if (!step) return;
+  const keep = `[data-step-row="${index}"]`;
   const action = button.dataset.hz;
   if (action === 'add') {
-    lineEditor(button, '', (text) => { hazardEditFor(step.step).added.push(text); tidyHazards(); prepareDraft({ scroll: false }); });
+    lineEditor(button, '', (text) => {
+      hazardEditFor(step.step).added.push(text);
+      tidyHazards();
+      // The new hazard's controls and rating show under the step: the page goes there.
+      prepareDraft({ scroll: false, keep }).then(() => {
+        const n = (shownDraft.ownHazards || []).findIndex((item) => item.stepIndex === index && item.hazard === text);
+        const box = n >= 0 && document.getElementById(`own-hazard-${n + 1}`);
+        if (box) { box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); box.focus({ preventScroll: true }); }
+      });
+    });
     return;
   }
   const line = step.hazards[Number(holder.dataset.hzLine)];
-  if (action === 'change') lineEditor(holder, hazardText(line), (text) => applyHazardEdit(step, line, 'change', text));
-  else applyHazardEdit(step, line, action);
+  if (action === 'change') { lineEditor(holder, hazardText(line), (text) => applyHazardEdit(step, line, 'change', text, { keep })); return; }
+  // Remove asks once, under the line (D253). SiteReady's own hazard asks why, as "Does not apply" did.
+  if (action === 'remove') {
+    const own = line.endsWith(HAZARD_MARK);
+    confirmLine(holder, { reasons: !own }, (why) => applyHazardEdit(step, line, own ? 'remove' : 'na', '', { why, keep }));
+    return;
+  }
+  applyHazardEdit(step, line, action, '', { keep });
+});
+
+// "Remove this line?" with Remove and Keep, under the line itself (D253, owner feedback items 18 and
+// 19): nothing moves on the page. A line SiteReady recommends keeping says why first, and a line of
+// SiteReady's asks why it goes, as before; both are optional.
+let pendingConfirm = null;
+function confirmLine(holder, { reasons = false, warning = '', title = 'Remove this line?', yes = 'Remove' } = {}, onYes) {
+  resultEl.querySelectorAll('.line-confirm').forEach((box) => box.remove());
+  const box = document.createElement('div');
+  box.className = 'line-confirm';
+  box.setAttribute('role', 'group');
+  box.setAttribute('aria-label', title);
+  box.innerHTML = `<p class="line-confirm-title"><strong>${esc(title)}</strong></p>${warning ? `<p class="warning ctl-warn">${esc(warning)}</p>` : ''}
+    ${reasons ? `<div class="ctl-why"><select data-confirm-reason aria-label="Why? (optional)"><option value="">Why? (optional)</option>${WHY.map(([id, text]) => `<option value="${id}">${esc(text)}</option>`).join('')}</select><input type="text" maxlength="300" data-confirm-note placeholder="Note (optional)" aria-label="Note (optional)"></div>` : ''}
+    <span class="ctl-tools line-confirm-tools"><button type="button" class="small" data-confirm-yes>${esc(yes)}</button><button type="button" class="small secondary" data-confirm-keep>Keep</button></span>`;
+  holder.appendChild(box);
+  pendingConfirm = { box, holder, onYes };
+  const keep = box.querySelector('[data-confirm-keep]');
+  if (keep) keep.focus({ preventScroll: true });
+}
+resultEl.addEventListener('click', (event) => {
+  const yes = event.target.closest('[data-confirm-yes]');
+  const keep = event.target.closest('[data-confirm-keep]');
+  if ((!yes && !keep) || !pendingConfirm) return;
+  const { box, holder, onYes } = pendingConfirm;
+  pendingConfirm = null;
+  if (keep) {
+    box.remove();
+    const again = holder.querySelector && holder.querySelector('.ctl-tools button');
+    if (again) again.focus({ preventScroll: true });
+    return;
+  }
+  const reason = box.querySelector('[data-confirm-reason]');
+  const note = box.querySelector('[data-confirm-note]');
+  box.remove();
+  onYes({ reason: reason ? reason.value : '', note: note ? note.value.trim() : '' });
+});
+
+// ---- A hazard the user adds: its controls and its rating (D254, D255, own-hazards.js) ----
+
+// Under the step, the full width of the table: the library lines that may fit, to tick; the user's
+// own controls, with a box to write one; and the likelihood and consequence before and after the
+// controls, suggested until chosen. At least one control is needed before download.
+const LIKELIHOODS = [[5, 'Almost certain'], [4, 'Likely'], [3, 'Possible'], [2, 'Unlikely'], [1, 'Rare']];
+const CONSEQUENCES = [[1, 'Negligible'], [2, 'Minor'], [3, 'Moderate'], [4, 'Major'], [5, 'Catastrophic']];
+function ownHazardRow(item, n) {
+  const id = `own-hazard-${n + 1}`;
+  const ticked = new Set(item.controls || []);
+  const offers = (item.offers || []).map((offer, i) => `<label class="check"><input type="checkbox" data-oh-offer="${n}" data-oh-key="${i}"${ticked.has(offer.key) ? ' checked' : ''}><span>${esc(offer.text)}</span></label>`).join('');
+  const written = (item.written || []).map((line, i) => `<li>${esc(line)} <span class="meta">(Our own control)</span> <button type="button" class="link" data-oh-unwrite="${n}" data-oh-i="${i}">Remove</button></li>`).join('');
+  const select = (when, part, value) => {
+    const options = part === 'likelihood' ? LIKELIHOODS : CONSEQUENCES;
+    return `<select data-oh-rate="${n}" data-oh-when="${when}" data-oh-part="${part}" aria-label="${when === 'before' ? 'Before' : 'After'} controls: ${part}">${options.map(([v, label]) => `<option value="${v}"${Number(value) === v ? ' selected' : ''}>${esc(label)}</option>`).join('')}</select>`;
+  };
+  const rating = (when) => {
+    const value = (item.rating || {})[when] || {};
+    return `<p class="oh-rate"><span class="oh-when">${when === 'before' ? 'Before controls' : 'After controls'}:</span> ${select(when, 'likelihood', value.likelihood)} x ${select(when, 'consequence', value.consequence)} = <strong>${esc(value.level || '')}</strong></p>`;
+  };
+  return `<tr class="own-hazard-row"><td colspan="5" data-label="Your own hazard"><div class="own-hazard" id="${id}" tabindex="-1" data-oh="${n}">
+    <p><strong>Your hazard:</strong> ${esc(item.hazard)}</p>
+    <p class="oh-head"><strong>Controls for it</strong> <span class="meta">At least one is needed before download.</span></p>
+    ${offers ? `<p class="meta">Lines from SiteReady's library that may fit. Tick only those that do.</p><div class="oh-offers">${offers}</div>` : '<p class="meta">SiteReady has no line that fits this hazard. Write your own below.</p>'}
+    ${written ? `<ul class="oh-written">${written}</ul>` : ''}
+    <div class="oh-write"><label for="${id}-write">Write your own control</label><div class="oh-write-row"><input type="text" id="${id}-write" maxlength="600" data-oh-write="${n}" placeholder="For example: walkways of duckboards over the wet areas"><button type="button" class="secondary small" data-oh-add="${n}">Add</button></div></div>
+    <p class="oh-head"><strong>Risk rating for this hazard</strong> <span class="meta">${item.rated ? 'As you chose it.' : 'Suggested. Change it to suit the site.'} The step shows the higher of its rating and this one.</span></p>
+    ${rating('before')}${rating('after')}
+  </div></td></tr>`;
+}
+// The user's choices for each hazard they added, kept with the hazard (hazardEdits[step].own).
+function ownDetail(item) {
+  const edit = hazardEditFor(item.step);
+  edit.own = edit.own || {};
+  edit.own[item.hazard] = edit.own[item.hazard] || { controls: [...(item.controls || [])], written: [...(item.written || [])] };
+  return edit.own[item.hazard];
+}
+function ownHazardChanged(n) {
+  tidyHazards();
+  prepareDraft({ scroll: false, keep: `#own-hazard-${n + 1}` }).then(() => {
+    const box = document.getElementById(`own-hazard-${n + 1}`);
+    if (box) box.focus({ preventScroll: true });
+  });
+}
+resultEl.addEventListener('change', (event) => {
+  if (!shownDraft) return;
+  const offer = event.target.closest && event.target.closest('[data-oh-offer]');
+  const rate = event.target.closest && event.target.closest('[data-oh-rate]');
+  if (!offer && !rate) return;
+  const n = Number((offer || rate).dataset[offer ? 'ohOffer' : 'ohRate']);
+  const item = (shownDraft.ownHazards || [])[n];
+  if (!item) return;
+  const detail = ownDetail(item);
+  if (offer) {
+    const key = ((item.offers || [])[Number(offer.dataset.ohKey)] || {}).key;
+    if (!key) return;
+    detail.controls = offer.checked ? [...new Set([...(detail.controls || []), key])] : (detail.controls || []).filter((other) => other !== key);
+  } else {
+    const when = rate.dataset.ohWhen;
+    const pair = [...resultEl.querySelectorAll(`[data-oh-rate="${n}"][data-oh-when="${when}"]`)];
+    const value = Object.fromEntries(pair.map((el) => [el.dataset.ohPart, Number(el.value)]));
+    detail[when] = { likelihood: value.likelihood, consequence: value.consequence };
+    // The other half of the rating is kept as shown, so both are the user's from now on.
+    const other = when === 'before' ? 'after' : 'before';
+    if (!detail[other]) detail[other] = { likelihood: item.rating[other].likelihood, consequence: item.rating[other].consequence };
+  }
+  ownHazardChanged(n);
+});
+resultEl.addEventListener('click', (event) => {
+  if (!shownDraft) return;
+  const jump = event.target.closest('[data-oh-jump]');
+  if (jump) {
+    event.preventDefault();
+    const box = document.getElementById(`own-hazard-${jump.dataset.ohJump}`);
+    if (box) { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); box.focus({ preventScroll: true }); }
+    return;
+  }
+  const add = event.target.closest('[data-oh-add]');
+  const unwrite = event.target.closest('[data-oh-unwrite]');
+  if (!add && !unwrite) return;
+  const n = Number((add || unwrite).dataset[add ? 'ohAdd' : 'ohUnwrite']);
+  const item = (shownDraft.ownHazards || [])[n];
+  if (!item) return;
+  const detail = ownDetail(item);
+  if (add) {
+    const box = resultEl.querySelector(`[data-oh-write="${n}"]`);
+    const text = box ? box.value.replace(/\s+/g, ' ').trim() : '';
+    if (!text) { if (box) box.focus(); return; }
+    detail.written = [...new Set([...(detail.written || []), text])];
+  } else {
+    detail.written = (detail.written || []).filter((_line, i) => i !== Number(unwrite.dataset.ohI));
+  }
+  ownHazardChanged(n);
+});
+// Enter in the box adds the control.
+resultEl.addEventListener('keydown', (event) => {
+  const box = event.target.closest && event.target.closest('[data-oh-write]');
+  if (!box || event.key !== 'Enter') return;
+  event.preventDefault();
+  const button = resultEl.querySelector(`[data-oh-add="${box.dataset.ohWrite}"]`);
+  if (button) button.click();
 });
 
 // ---- Steps the user writes for work SiteReady does not cover (owner, 11 October 2026) ----
@@ -2797,18 +3179,9 @@ function tidyEdits() {
   }
   if (!Object.keys(controlEdits).length) controlEdits = null;
 }
-function controlMessage(index, text) {
-  const el = resultEl.querySelector(`[data-ctl-msg="${index}"]`);
-  if (el) el.textContent = text;
-}
-// A warning before removing or changing a line SiteReady recommends keeping, with a way to go ahead.
-let pendingLine = null;
-function warnFirst(index, warning, label) {
-  const el = resultEl.querySelector(`[data-ctl-msg="${index}"]`);
-  if (!el) return;
-  el.innerHTML = `${esc(warning)} <span class="ctl-tools" data-ctl-step="${index}"><button type="button" class="link" data-ctl="go">${esc(label)}</button><button type="button" class="link" data-ctl="keep">Keep the line</button></span>`;
-}
-function applyLineEdit(step, line, next) {
+// why: the reason picked and the note for a line removed or weakened. keep: the part of the draft kept
+// where it is on the screen.
+function applyLineEdit(step, line, next, { why = null, keep = '' } = {}) {
   const edit = editsFor(step.step);
   if (isOwn(line)) {
     // The user's own line: an added one, or a library line they reworded.
@@ -2826,8 +3199,12 @@ function applyLineEdit(step, line, next) {
   } else if (!edit.removed.includes(line)) {
     edit.removed.push(line);
   }
+  if (why && (why.reason || why.note)) {
+    const from = isOwn(line) ? line.slice(0, -OWN_MARK.length) : line;
+    edit.reasons = [...(edit.reasons || []).filter((entry) => entry.line !== from), { line: from, reason: why.reason || '', note: why.note || '' }];
+  }
   tidyEdits();
-  prepareDraft({ scroll: false });
+  prepareDraft({ scroll: false, keep });
 }
 // A box to write a line in, in place of the line or under the step's controls.
 function lineEditor(holder, value, onSave) {
@@ -2837,7 +3214,8 @@ function lineEditor(holder, value, onSave) {
   holder.after(box);
   holder.classList.add('hidden');
   const area = box.querySelector('textarea');
-  area.focus();
+  // The box opens where the line was: the page does not move (owner feedback item 19).
+  area.focus({ preventScroll: true });
   box.querySelector('[data-cancel]').addEventListener('click', () => { box.remove(); holder.classList.remove('hidden'); });
   box.querySelector('[data-save]').addEventListener('click', () => {
     const text = area.value.replace(/\s+/g, ' ').trim();
@@ -2859,37 +3237,30 @@ resultEl.addEventListener('click', (event) => {
   const step = (shownDraft.jobSteps || [])[index];
   if (!step) return;
   const action = button.dataset.ctl;
+  const keep = `[data-step-row="${index}"]`;
   if (action === 'add') {
-    lineEditor(button, '', (text) => { editsFor(step.step).added.push(text); tidyEdits(); prepareDraft({ scroll: false }); });
+    lineEditor(button, '', (text) => { editsFor(step.step).added.push(text); tidyEdits(); prepareDraft({ scroll: false, keep }); });
     return;
   }
   if (action === 'restore') {
     editsFor(step.step).removed.splice(Number(button.dataset.removed), 1);
     tidyEdits();
-    prepareDraft({ scroll: false });
+    prepareDraft({ scroll: false, keep });
     return;
   }
   const line = step.controls[Number(holder.dataset.ctlLine)];
-  if (action === 'go') {
-    // The user has read the warning and goes ahead.
-    const next = pendingLine;
-    pendingLine = null;
-    if (next && next.index === index) {
-      if (next.action === 'remove') applyLineEdit(next.step, next.line, '');
-      else lineEditor(next.holder, plainLine(next.line), (text) => applyLineEdit(next.step, next.line, text));
-    }
+  // Remove asks once, under the line (D253): "Remove this line?" with Remove and Keep. A line that is a
+  // legal requirement, or that SiteReady recommends keeping, says why in the same box, and SiteReady's
+  // own line asks why it goes (both optional, owner decision, 6 October 2026).
+  const warning = holder.dataset.warn && !isOwn(line) ? holder.dataset.warn : '';
+  if (action === 'remove') {
+    confirmLine(holder, { reasons: !isOwn(line), warning }, (why) => applyLineEdit(step, line, '', { why, keep }));
     return;
   }
-  if (action === 'keep') { pendingLine = null; controlMessage(index, ''); return; }
-  // A line that is a legal requirement, or that SiteReady recommends keeping, says why first.
-  // The user can still go ahead (owner decision, 6 October 2026).
-  if (holder.dataset.warn && !isOwn(line)) {
-    pendingLine = { index, action, step, line, holder };
-    warnFirst(index, holder.dataset.warn, action === 'remove' ? 'Remove anyway' : 'Change anyway');
-    return;
+  if (action === 'change') {
+    const edit = () => lineEditor(holder, plainLine(line), (text) => applyLineEdit(step, line, text, { keep }));
+    if (warning) confirmLine(holder, { warning, title: 'Change this line?', yes: 'Change' }, edit); else edit();
   }
-  if (action === 'remove') applyLineEdit(step, line, '');
-  if (action === 'change') lineEditor(holder, plainLine(line), (text) => applyLineEdit(step, line, text));
 });
 // The reason for a removed or weakened line is kept as it is picked or typed.
 resultEl.addEventListener('change', (event) => {

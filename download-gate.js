@@ -146,7 +146,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   add({ id: 'plant', kind: 'plant', field: 'plant-ticks', label: 'Plant and equipment', need: plantNeed(input, draft) });
   const said = input.emergency && typeof input.emergency === 'object' ? input.emergency : {};
   for (const item of emergencyQuestions(draft, said)) {
-    judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category] }, item.answer);
+    judged({ id: `emergency.${item.id}`, kind: 'emergency', field: `emg-${item.id}`, label: `Emergency, ${SHORT[item.category]}: ${item.short}` }, { ask: `${item.ask} ${item.hint}`, emergency: true, involves: INVOLVES[item.category], ...(item.rescue ? { rescue: true } : {}), ...(item.kit ? { kit: true } : {}) }, item.answer);
   }
   // Each design the steps rely on (designs.js, owner, 11 October 2026): issued with who prepared it,
   // its number and date; "Not issued yet", which prints as a hold point; or "Not needed for this
@@ -183,6 +183,10 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   (draft.jobSteps || []).filter((step) => step.own).forEach((step, n) => {
     const open = [step.step, ...(step.hazards || []), ...(step.controls || []), step.responsible].find((text) => typeof text === 'string' && leftOpen(text));
     if (open) add({ id: `own.${n + 1}`, kind: 'own', field: `own-step-${n + 1}`, label: `Your step: ${step.step}`, need: `Your step has a blank (____) or "To be completed" left in: "${clean(open).slice(0, 160)}". Change your step to say what applies.` });
+  });
+  // A hazard the user added needs at least one control (D254): ticked from SiteReady's offers or written.
+  (draft.ownHazards || []).forEach((item, n) => {
+    if (item.need) add({ id: `ownHazard.${n + 1}`, kind: 'own', field: `own-hazard-${n + 1}`, label: `Your hazard: ${clean(item.hazard).slice(0, 80)}`, need: `Add at least one control for your hazard "${clean(item.hazard).slice(0, 120)}": tick a line SiteReady offers under it, or write your own.` });
   });
   for (const item of draft.controls || []) line(item && item.text);
   // Anything else left open in what prints, not already asked for above: the emergency rows print

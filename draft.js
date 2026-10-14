@@ -2276,7 +2276,9 @@ function controlsFor(task, facts, pack) {
       // A steel erector's own riggers sling and direct the steel.
       push('Administrative', (STEEL_WORK.test(source) || /\bbridge spans?\b/i.test(source)) && /\b(erect\w*|spans?|girders?|portal frames?|columns?|beams?|rafters?|steel frames?|structural steel)\b/i.test(source)
         ? 'The crane company operates the crane under its own lift plan. Our licensed riggers sling and direct the steel.'
-        : 'The crane company plans and does the lifts under its own lift plan. Our workers follow the crane crew\'s directions.');
+        : pack && pack.state && pack.state.slinging === 'ours'
+          ? 'The crane company operates the crane under its own lift plan. Our licensed doggers or riggers sling the loads and direct the crane.'
+          : 'The crane company plans and does the lifts under its own lift plan. Our workers follow the crane crew\'s directions.');
     }
     push('Administrative', `Only the people doing the lift are inside the exclusion zone. Stop the lift if anyone else enters. Do not pass a load over a person. ${under}`);
     // Free-fall lowering is a mobile crane feature, and the operator's business.
@@ -2610,6 +2612,34 @@ function residentialAnswer(value) {
 }
 
 // The state, with the fall height that applies to this task.
+// Who slings the loads and directs a crane company's crane (D258, owner, 13 October 2026): the crane
+// company's dogman, or our own crew. A dogging or rigging licence prints only for our crew, or where
+// our company runs the crane (register.js).
+function slingingAnswer(value) {
+  const answer = String(value || '').trim().toLowerCase();
+  if (/^(ours?|our crew|us|we)$/.test(answer)) return 'ours';
+  return /^(crane|crane company|dogman|theirs)$/.test(answer) ? 'crane' : '';
+}
+// The library's lines that say the crane crew slings and directs the loads, said of our licensed crew
+// where the user answered that our crew does it. Nothing else in the lines changes, their sources included.
+const CRANE_CREW_SLINGS = [
+  [/\bIts licensed crew slings, directs and releases loads\./, 'Our licensed doggers or riggers sling, direct and release the loads.'],
+  [/\bslung and directed by the licensed crane crew\b/, 'slung and directed by our licensed doggers or riggers'],
+  [/\bslung by the crane crew\b/, 'slung by our licensed doggers or riggers'],
+  [/\bBefore the crane crew slings them,/, 'Before they are slung,'],
+  [/\bbefore the crane crew slings them\b/, 'before they are slung'],
+  [/\bPrepare loads as the crane crew directs\b/, 'Prepare loads as our dogger directs'],
+];
+function withOurSlinging(jobSteps, state) {
+  if (!state || state.slinging !== 'ours' || state.ownCrane || state.noCrane) return jobSteps;
+  return jobSteps.map((step) => ({ ...step, controls: step.controls.map((line) => {
+    if (typeof line !== 'string') return line;
+    let out = line;
+    for (const [pattern, words] of CRANE_CREW_SLINGS) out = out.replace(pattern, words);
+    return out;
+  }) }));
+}
+
 // Who runs the crane: a crane company unless the subcontractor says it runs its own.
 function craneAnswer(value) {
   const answer = String(value || '').trim();
@@ -2621,7 +2651,7 @@ function stateFor(input) {
   const found = findState(input.state);
   if (!found) return found;
   // The task's trade, when it is known (from a scope of works), limits its job steps to that trade's work.
-  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds) };
+  const state = { ...found, ownCrane: craneAnswer(input.crane) === 'own', noCrane: craneAnswer(input.crane) === 'none', slinging: slingingAnswer(input.slinging), trades: tradeIds(input.trade), kinds: chosenKinds(input.kinds) };
   if (!state.residentialFallMetres) return state;
   const residential = residentialAnswer(input.residential) === 'yes';
   return { ...state, residential, fallMetres: residential ? state.residentialFallMetres : 2 };
@@ -3590,6 +3620,7 @@ function stepsAndPpe(task, facts, hazards, controls, state, input) {
   // Permits and hierarchy order come before the user's own changes, so a line the user changes keeps its place.
   // A permit line the user removed goes in here, so their change removes it and is reported.
   jobSteps = finishSteps(jobSteps, combinedFacts(task, facts), permitOptions(task, state));
+  jobSteps = withOurSlinging(jobSteps, state);
   const edited = applyControlEdits(inOrder(jobSteps, input.stepOrder), input.controlEdits);
   return { jobSteps: edited.jobSteps, ...(edited.report ? { controlEdits: edited.report } : {}), ppe };
 }
@@ -4110,6 +4141,7 @@ function applyStepEdits(draft, input) {
     for (const text of mine.added || []) report.unmatched.push({ step: name, kind: 'hazardAdded', text: '', to: text, reason: 'step' });
   }
   for (const name of Object.keys(whoEdits || {}).filter((item) => ![...whoKeys.values()].includes(item))) report.unmatched.push({ step: name, kind: 'whoChanged', text: '', to: whoEdits[name], reason: 'step' });
+  const ownHazards = [];
   const jobSteps = draft.jobSteps.map((step, index) => {
     let next = step;
     const key = hazardKeys.get(index);
@@ -4149,13 +4181,18 @@ function applyStepEdits(draft, input) {
         }
         return line;
       });
+      const ownAdded = [];
       for (const text of (mine.added || []).map(withoutHazardMark)) {
         const line = `${text} ${HAZARD_MARK}`;
         if (!text || hazards.includes(line)) continue;
         hazards.push(line);
+        ownAdded.push(text);
         report.applied.push({ step: step.step, kind: 'hazardAdded', from: '', to: text });
       }
       next = { ...next, hazards };
+      // Each hazard the user added: its controls, ticked from the library's offers or written, and its
+      // own rating (D254, D255).
+      if (ownAdded.length) next = withOwnHazardControls(next, index, ownAdded, mine.own, draft, report, ownHazards);
     }
     const whoKey = whoKeys.get(index);
     const who = whoKey === undefined ? '' : String(whoEdits[whoKey] || '').trim();
@@ -4165,7 +4202,50 @@ function applyStepEdits(draft, input) {
     }
     return next;
   });
-  return { ...draft, jobSteps, controlEdits: report };
+  return { ...draft, jobSteps, controlEdits: report, ...(ownHazards.length ? { ownHazards } : {}) };
+}
+
+// A hazard the user added (D254, D255, own-hazards.js): the library lines they ticked (only sourced
+// library lines print, with their citation), the controls they wrote (marked as their own), and the
+// hazard's own rating before and after its controls, as chosen, or suggested as SiteReady rates any
+// step. The step's rating is the higher of its own and each such hazard's. The lines are marked
+// (hazardLines), so the page sends the user to the hazard to change them. own: the user's choices,
+// by the hazard's words: { controls: [library words], written: [lines], before, after }.
+const RATING_RANK = { Low: 1, Moderate: 2, High: 3, Extreme: 4 };
+function withOwnHazardControls(step, index, added, own, draft, report, out) {
+  const { offersFor, libraryLine, OWN_CONTROL } = require('./own-hazards');
+  const { riskFor, MATRIX, LIKELIHOOD, CONSEQUENCE } = require('./register');
+  const stateId = (findState(draft.state) || {}).id || 'qld';
+  const rated = (likelihood, consequence) => ({ likelihood, consequence, level: MATRIX[likelihood][consequence - 1], label: `${LIKELIHOOD[likelihood]} x ${CONSEQUENCE[consequence]}` });
+  const given = (value) => {
+    const likelihood = Number(value && value.likelihood);
+    const consequence = Number(value && value.consequence);
+    return Number.isInteger(likelihood) && likelihood >= 1 && likelihood <= 5 && Number.isInteger(consequence) && consequence >= 1 && consequence <= 5 ? rated(likelihood, consequence) : null;
+  };
+  // The hazard's rating shows where its level is higher; at the same level the step's own stays.
+  const higher = (a, b) => (!a ? b : !b ? a : RATING_RANK[b.level] > RATING_RANK[a.level] ? b : a);
+  const controls = [...step.controls];
+  const hazardLines = [...(step.hazardLines || [])];
+  let risk = step.risk;
+  for (const hazard of added) {
+    const mine = own && typeof own === 'object' && own[hazard] && typeof own[hazard] === 'object' ? own[hazard] : {};
+    const offers = offersFor(hazard, stateId, step.controls);
+    const ticked = (Array.isArray(mine.controls) ? mine.controls : []).filter((key) => typeof key === 'string').slice(0, 10)
+      .map((key) => ({ key, text: libraryLine(key, stateId) })).filter((item) => item.text);
+    for (const item of ticked) if (!offers.some((offer) => offer.key === item.key)) offers.push(item);
+    const written = [...new Set((Array.isArray(mine.written) ? mine.written : []).filter((line) => typeof line === 'string').map((line) => line.replace(/\s+/g, ' ').trim().replace(/\s*\(Our own control\)$/, '')).filter(Boolean))].slice(0, 10).map((line) => line.slice(0, 600));
+    const lines = [...ticked.map((item) => item.text), ...written.map((line) => `${line}${OWN_CONTROL}`)];
+    for (const line of lines) if (!controls.includes(line)) { controls.push(line); hazardLines.push(line); }
+    for (const item of ticked) report.applied.push({ step: step.step, kind: 'hazardControl', from: item.key, to: '', note: `Own hazard: ${hazard}` });
+    for (const line of written) report.applied.push({ step: step.step, kind: 'hazardControl', from: '', to: line, note: `Own hazard: ${hazard}` });
+    const suggested = riskFor({ hazards: [hazard], controls: lines });
+    const before = given(mine.before) || suggested.before;
+    const after = given(mine.after) || suggested.after;
+    if (mine.before || mine.after) report.applied.push({ step: step.step, kind: 'hazardRated', from: '', to: `Before: ${before.level} (${before.label}). After: ${after.level} (${after.label}).`, note: `Own hazard: ${hazard}` });
+    risk = risk ? { ...risk, before: higher(risk.before, before), after: higher(risk.after, after) } : { before, after };
+    out.push({ step: step.step, stepIndex: index, hazard, offers, controls: ticked.map((item) => item.key), written, rating: { before, after }, rated: Boolean(mine.before || mine.after), need: !lines.length });
+  }
+  return { ...step, controls, hazardLines, risk };
 }
 
 // ---- Steps the user writes for work SiteReady does not cover (owner, 11 October 2026) ----

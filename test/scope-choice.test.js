@@ -227,14 +227,17 @@ function fire(p, type, target, on = 'scope-results') {
   p.document.getElementById(on).dispatchEvent(event);
 }
 const input = (p, props) => Object.assign(p.document.createElement('input'), { dataset: {}, ...props });
+const cranageNote = (crane) => require('../public/scope-choice').cranageOffer(crane, null).note;
 const projectOf = (p) => JSON.parse(p.window.localStorage.getItem('siteready.project'));
 
 test('the work packages are chosen once and go straight to the SWMS to prepare, and the choice can be changed', async () => {
   const p = await readPage();
   const list = p.document.getElementById('scope-results').innerHTML;
-  // A crane company runs the crane (the form's default), but the scope gives us the cranage: offered, with the clause.
+  // The crane question starts unanswered (messy-user test, 14 October 2026); the scope gives us the
+  // cranage: offered, with the clause, and no "You answered" until it is answered.
   assert.match(list, /Is a crane used, and who operates it\?/);
   assert.match(list, /The scope says you supply the cranage \(Vertical lifting\)/);
+  assert.doesNotMatch(list, /You answered/);
   // Duties are listed apart; no package lists the ticket duty.
   assert.match(list, /2 duties in the scope: no SWMS needed/);
   assert.doesNotMatch(list.split('scope-duties')[0], /Hold and evidence tickets/);
@@ -247,6 +250,9 @@ test('the work packages are chosen once and go straight to the SWMS to prepare, 
   fire(p, 'change', input(p, { checked: false, dataset: { package: '1' } }));
   fire(p, 'change', input(p, { type: 'radio', name: 'others-0-0', value: 'yes', dataset: { others: '0', step: 'Install cast-in conduits on the deck before the pour' } }));
   assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare these 3 SWMS');
+  // A crane company runs the crane; the crane company's dogman slings (D258): both go to every SWMS.
+  fire(p, 'change', input(p, { type: 'radio', name: 'scope-crane', value: 'company' }));
+  fire(p, 'change', input(p, { type: 'radio', name: 'scope-slinging', value: 'crane' }));
   fire(p, 'click', p.document.getElementById('scope-confirm'));
   await settle(40);
   // Straight to SWMS 1 of 3, with nothing to choose again.
@@ -255,6 +261,7 @@ test('the work packages are chosen once and go straight to the SWMS to prepare, 
   assert.ok(project.items[0].kinds.includes('castIn'));
   assert.deepEqual(project.items[0].pick, { trade: 'formwork', task: 'slab-formwork' });
   assert.equal(project.items[0].crane, 'company');
+  assert.equal(project.items[0].slinging, 'crane');
   assert.equal(p.document.getElementById('task-from').textContent, 'SWMS 1 of 3: Trade installation: formwork');
   assert.match(p.document.getElementById('task').value, /^Supply and install formwork/);
   assert.match(p.document.getElementById('project-panel').innerHTML, /Change the SWMS chosen/);
@@ -278,8 +285,14 @@ test('with a crane company and no cranage clause, cranage is not chosen but can 
   await settle(40);
   const list = p.document.getElementById('scope-results').innerHTML;
   assert.match(list, /Yes, we need a cranage SWMS<\/strong> <span class="meta">\(Plant lifting and cranage: 2 activities\)/);
-  assert.match(list, /The crane company normally provides the lift plan and its own SWMS for the lifts/);
+  // Unanswered, it asks for the answer, and says nothing was answered.
+  assert.match(list, /Answer the crane question above\. Tick the box if you need a cranage SWMS\./);
+  assert.doesNotMatch(list, /You answered/);
   assert.match(list, /Prepare these 3 SWMS/);
+  // Answered "A crane company", the note says so (public/scope-choice.js, and the browser test).
+  assert.match(cranageNote('company'), /You answered that a crane company operates the crane\. The crane company normally provides the lift plan and its own SWMS for the lifts/);
+  fire(p, 'change', input(p, { type: 'radio', name: 'scope-crane', value: 'company' }));
+  assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare these 3 SWMS');
   // Our company runs the crane: the cranage SWMS is chosen, and the answer goes to every SWMS.
   fire(p, 'change', input(p, { type: 'radio', name: 'scope-crane', value: 'own' }));
   assert.equal(p.document.getElementById('scope-confirm').textContent, 'Prepare these 4 SWMS');

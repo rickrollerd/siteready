@@ -76,21 +76,21 @@
 
   // What each blank in the standard answers is for: the words before and after it, and what to fill.
   const NAMED = [
-    ['signed off by ____ before the pour', 'who checks and signs off the formwork before the pour'],
-    ['installed and checked by ____ before loads are applied', 'who installs and checks the temporary supports before loads are applied'],
-    ['checked by ____ before loading starts', 'who checks the loads before loading starts'],
-    ['drawing ____ (', 'the drawing number'],
-    ['(____ kPa)', 'the load limit in kPa'],
-    ['rated for ____ t', 'the landing platform\'s rated load in tonnes'],
-    ['load limits on drawing ____', 'the drawing number'],
-    ['and ____ checks the structure is stable', 'who checks the structure is stable before each member is released'],
-    ['checked by ____ before the hook is released', 'who checks each unit before the hook is released'],
-    ['no steeper than ____,', 'the steepest batter angle'],
-    ['traffic management plan (TMP) ____', 'the traffic management plan (TMP) number'],
-    ['(revision ____)', 'its revision'],
-    ['design ____', 'the design number'],
-    ['drawing ____', 'the drawing number'],
-  ].map(([words, what]) => { const [before, after] = words.split('____'); return { before, after, what }; })
+    ['signed off by ____ before the pour', 'who checks and signs off the formwork before the pour', 'who signs off'],
+    ['installed and checked by ____ before loads are applied', 'who installs and checks the temporary supports before loads are applied', 'who installs and checks'],
+    ['checked by ____ before loading starts', 'who checks the loads before loading starts', 'who checks'],
+    ['drawing ____ (', 'the drawing number', 'drawing number'],
+    ['(____ kPa)', 'the load limit in kPa', 'load limit (kPa)'],
+    ['rated for ____ t', 'the landing platform\'s rated load in tonnes', 'rated load (tonnes)'],
+    ['load limits on drawing ____', 'the drawing number', 'drawing number'],
+    ['and ____ checks the structure is stable', 'who checks the structure is stable before each member is released', 'who checks'],
+    ['checked by ____ before the hook is released', 'who checks each unit before the hook is released', 'who checks'],
+    ['no steeper than ____,', 'the steepest batter angle', 'batter angle'],
+    ['traffic management plan (TMP) ____', 'the traffic management plan (TMP) number', 'TMP number'],
+    ['(revision ____)', 'its revision', 'revision'],
+    ['design ____', 'the design number', 'design number'],
+    ['drawing ____', 'the drawing number', 'drawing number'],
+  ].map(([words, what, label]) => { const [before, after] = words.split('____'); return { before, after, what, label }; })
     .sort((a, b) => (b.before.length + b.after.length) - (a.before.length + a.after.length));
 
   // Each blank left in an answer, named: from the list above, or by the words around it.
@@ -110,6 +110,48 @@
     }
     return names;
   }
+  // A short label for each blank in an answer, for its fill-in box (D261): "drawing number",
+  // "revision", "who checks". From the words around it, so any standard answer gets one.
+  const UNIT_LABELS = [[/^\s?kPa\b/, 'kPa'], [/^\s?Pa\b/, 'Pa'], [/^\s?kN\b/, 'kN'], [/^\s?(?:t|tonnes?)\b/, 'tonnes'], [/^\s?mm\b/, 'mm'], [/^\s?(?:m|metres?)\b/, 'metres'], [/^\s?months?\b/, 'months'], [/^\s?(?:%|per ?cent)/, 'per cent'], [/^\s?degrees?\b/, 'degrees']];
+  const NUMBERED = /\b(revision|rev|permit|report|letter|document|drawing|design|certificate|plan(?: \(TMP\))?|TMP|TGS|job|order|reference)\s*$/i;
+  const WHO = { checked: 'who checks', approved: 'who approves', installed: 'who installs', tested: 'who tests', trained: 'who trains', serviced: 'who services', designed: 'who designs', inspected: 'who inspects', rated: 'who rates', erected: 'who erects', supervised: 'who supervises', issued: 'who issues', prepared: 'who prepares', signed: 'who signs off', off: 'who signs off', made: 'who makes', done: 'who does', lowered: 'who lowers', given: 'who gives' };
+  const PLACE_WORDS = [[/\bbecause\s*$|\bbut\s*$/i, 'reason'], [/\bwindow of\s*$/i, 'time window'], [/\bclassified as\s*$/i, 'classification'], [/\btaken (?:only )?to\s*$/i, 'where it goes'], [/\b(?:kept|stored)(?: only)? at\s*$|\bfixed at\s*$|\bat\s*$/i, 'where'], [/\bcovered with\s*$/i, 'cover'], [/\bmats of\s*$/i, 'mat size'], [/\bno steeper than\s*$/i, 'batter angle'], [/\bunder\s*$/i, 'plan'], [/\bRescue:\s*$/i, 'rescue method'], [/\bproducts used are\s*$/i, 'product names'], [/\bengineer\s*$/i, 'engineer\'s name'], [/\banchors\s*$/i, 'anchor type and location'], [/\bpropping\s*$/i, 'how many levels']];
+  function blankLabel(before, after) {
+    const named = NAMED.find((item) => item.label && before.endsWith(item.before) && after.startsWith(item.after));
+    if (named) return named.label;
+    const lead = before.replace(/[^\w\s'-]/g, ' ').split(/\s+/).filter((word) => word && !/^(?:the|a|an|of|to|is|are|and|or|for|with|on|in|at|least|than)$/i.test(word)).slice(-2).join(' ').toLowerCase();
+    for (const [pattern, label] of UNIT_LABELS) {
+      if (!pattern.test(after)) continue;
+      // A pressure or load: "test pressure (kPa)", "bearing pressure (kPa)".
+      if (/^(?:kPa|Pa|kN)$/.test(label)) return /\btest\w*\b/i.test(before) ? `test pressure (${label})` : lead ? `${lead} (${label})` : label;
+      return label;
+    }
+    // "by ____ (licensed electrician)": the words in brackets say who, or what.
+    const said = /^\s?\(([^()_]{3,60})\)/.exec(after);
+    const brackets = said ? said[1].split(/,| such as /)[0].trim() : '';
+    const numbered = NUMBERED.exec(before);
+    if (numbered) return /^rev/i.test(numbered[1]) ? 'revision' : `${numbered[1].replace(/^plan \(TMP\)$/i, 'TMP')} number`.replace(/^(\w)/, (letter) => letter.toLowerCase()).replace(/^tmp/, 'TMP').replace(/^tgs/, 'TGS');
+    const by = /\b(\w+)(?: off)? by\s*$/i.exec(before);
+    if (by) {
+      const who = WHO[by[1].toLowerCase()] || (/\boff by\s*$/i.test(before) ? 'who signs off' : 'who');
+      return brackets && brackets.length <= 30 ? `${who} (${brackets})` : who;
+    }
+    if (brackets && brackets.length <= 30) return brackets;
+    for (const [pattern, label] of PLACE_WORDS) if (pattern.test(before)) return label;
+    // "The ____ system": the word after it.
+    if (/\b(?:the|a|an)\s*$/i.test(before)) { const next = /^\s*([A-Za-z][\w-]*)/.exec(after); if (next) return next[1].toLowerCase(); }
+    const words = before.replace(/[^\w\s'-]/g, ' ').split(/\s+/).filter((word) => word && !/^(?:the|a|an|of|to|is|are|and|or|for|with|on|in)$/i.test(word));
+    return words.slice(-2).join(' ').toLowerCase() || 'fill in';
+  }
+  function blankLabels(text) {
+    const value = String(text || '');
+    const out = [];
+    const pattern = /_{3,}/g;
+    let match;
+    while ((match = pattern.exec(value))) out.push(blankLabel(value.slice(0, match.index), value.slice(match.index + match[0].length)));
+    return out;
+  }
+
   // The warning under the box, or '' when no blank is left.
   function blankWarning(text) {
     const names = blankNames(text);
@@ -117,7 +159,7 @@
     return `${names.length === 1 ? 'Fill in the blank' : 'Fill in the blanks'}: ${names.join('; ')}.`;
   }
 
-  const api = { QUESTION_DESIGNS, designIds, fillDesign, filledFrom, blankNames, blankWarning, NOT_ISSUED };
+  const api = { QUESTION_DESIGNS, designIds, fillDesign, filledFrom, blankNames, blankLabels, blankWarning, NOT_ISSUED };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SiteReadyDesignFill = api;
 })(typeof window !== 'undefined' ? window : globalThis);

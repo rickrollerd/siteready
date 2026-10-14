@@ -22,8 +22,8 @@ const out = [
 ];
 for (const category of [...new Set(QUESTIONS.map((item) => item.category))]) {
   out.push(`## ${INVOLVES[category][0].toUpperCase()}${INVOLVES[category].slice(1)}`, '', `Asked when: ${WHEN[category]}`, '', `Prints in the row: ${ROW[category]}`, '');
-  out.push('| Question | Hint shown | Printed as | Drawn from |', '|---|---|---|---|');
-  for (const item of QUESTIONS.filter((question) => question.category === category)) out.push(`| ${item.ask} | ${item.hint} | ${item.short} | ${item.source} |`);
+  out.push('| Question | Hint shown | Standard answers (D259) | Printed as | Drawn from |', '|---|---|---|---|---|');
+  for (const item of QUESTIONS.filter((question) => question.category === category)) out.push(`| ${item.ask} | ${item.hint} | ${(item.suggestions || []).map((pick) => `${pick.label}: "${pick.text}"`).join('<br>')} | ${item.short} | ${item.source} |`);
   out.push('');
 }
 out.push('## Not asked yet', '', 'Categories with no question: demolition, asbestos, temporary support, explosives, pressurised gas mains, chemical, fuel or refrigerant lines, contaminated or flammable atmosphere, tilt-up or precast, road or rail traffic, extremes of temperature, water (drowning), diving and telecommunication towers. Where SiteReady prints an emergency row for one of them (a person in the water, a gas leak), it prints as before, with no question asked.', '');

@@ -97,7 +97,7 @@ const TIED = {
   design_file_uses: ['SELECT file_id FROM design_file_uses WHERE swms_id = $1', (b) => [b.swmsId]],
 };
 // No business, account, site or SWMS id in them: kept when a business is deleted.
-const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'draft_translations'];
+const DE_IDENTIFIED = ['control_edit_events', 'control_edits', 'check_question_misses', 'own_step_events', 'answer_events', 'draft_translations'];
 // Not about any one business: the server's error log and the record of library notices sent.
 const NOT_BUSINESS = ['errors', 'library_notices'];
 

@@ -366,6 +366,26 @@ const SCHEMA = [
     created_at TIMESTAMPTZ NOT NULL
   )`,
   'CREATE INDEX IF NOT EXISTS own_step_events_swms ON own_step_events (swms_key, revision)',
+  // D262: answers to the questions whose standard answers have blanks (designs, systems, supplier's
+  // instructions), as each saved revision gives them: the question, the standard answer used (or ''
+  // where the user wrote their own), and the answer with names, businesses and document or drawing
+  // numbers taken out, the ratings (kPa, kN, masses, heights) kept. The SWMS is known only by a keyed
+  // fingerprint. Written only when CONTROL_LEARNING is on; kept 3 years.
+  `CREATE TABLE IF NOT EXISTS answer_events (
+    id TEXT PRIMARY KEY,
+    swms_key TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    month TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT '',
+    trade TEXT NOT NULL DEFAULT '',
+    question TEXT NOT NULL,
+    standard TEXT NOT NULL DEFAULT '',
+    answer TEXT NOT NULL DEFAULT '',
+    answer_key TEXT NOT NULL,
+    kept BOOLEAN,
+    created_at TIMESTAMPTZ NOT NULL
+  )`,
+  'CREATE INDEX IF NOT EXISTS answer_events_swms ON answer_events (swms_key, revision)',
   // Goal 10: each change to the library or the law released to customers (library-notices.json),
   // run once: when, how many saved SWMS it changed, and how many emails went out.
   `CREATE TABLE IF NOT EXISTS library_notices (

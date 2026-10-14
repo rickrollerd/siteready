@@ -41,13 +41,16 @@
   // How the cranage package is offered for the crane answer: own, company or none.
   function cranageOffer(crane, clause) {
     if (crane === 'own') return { full: true, ticked: true, note: '' };
+    // "You answered" only after a real answer: the crane question starts unanswered.
+    const answered = crane === 'none' ? ' You answered that no crane is used.' : crane === 'company' ? ' You answered that a crane company operates the crane.' : '';
     if (clause) {
       return {
         full: true,
         ticked: true,
-        note: `The scope says you supply the cranage${clause.clause ? ` (${clause.clause})` : ''}: "${clause.quote}" You answered that ${crane === 'none' ? 'no crane is used' : 'a crane company operates the crane'}. Untick this if the crane company's lift plan and SWMS cover the lifts.`,
+        note: `The scope says you supply the cranage${clause.clause ? ` (${clause.clause})` : ''}: "${clause.quote}"${answered} Untick this if the crane company's lift plan and SWMS cover the lifts.`,
       };
     }
+    if (!crane) return { full: false, ticked: false, note: 'Answer the crane question above. Tick the box if you need a cranage SWMS.' };
     return {
       full: false,
       ticked: false,
@@ -90,7 +93,7 @@
 
   // One SWMS in the project for each package chosen. answers holds the scope review answers by
   // package name ({ [step]: 'yes' | 'no' }): Yes adds that step's group, No leaves the step out.
-  function projectItems(reading, chosen, { answers = {}, crane = '' } = {}) {
+  function projectItems(reading, chosen, { answers = {}, crane = '', slinging = '' } = {}) {
     const { work } = packagesOf(reading);
     const steps = new Map(((reading && reading.packages) || []).map((item) => [item.package, item]));
     const flags = new Map(((reading && reading.highRisk) || []).map((item) => [item.package, item]));
@@ -112,6 +115,7 @@
         unmatched: mapped ? (mapped.unmatched || []) : null,
         fallRisk: fallFrom(flags.get(pack.name)),
         crane: crane || '',
+        slinging: slinging || '',
         body: null,
         status: 'todo',
       };

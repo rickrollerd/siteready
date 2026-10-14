@@ -182,20 +182,38 @@ function clickControl(p, action, holder) {
   p.document.getElementById('result').dispatchEvent(event);
 }
 
-test('removing a line SiteReady recommends keeping warns first, then goes ahead, and the reason is saved with it', async () => {
+// "Remove this line?" under the line, with Remove and Keep (D253): the warning and the reasons are in it.
+function clickConfirm(p, which, box) {
+  const button = { closest: (selector) => (selector === `[data-confirm-${which}]` ? {} : null) };
+  const event = new FakeEvent('click', { bubbles: true });
+  event.target = { closest: (selector) => (selector === `[data-confirm-${which}]` ? button : null) };
+  p.document.getElementById('result').dispatchEvent(event);
+  return box;
+}
+test('removing a line SiteReady recommends keeping asks once, with the warning, then goes ahead, and the reason is saved with it', async () => {
   const p = page(server());
   await settle();
   p.document.getElementById('task').value = 'Dig a trench.';
   await prepare(p);
   const drafts = () => p.calls.filter((call) => call.route === '/api/draft').length;
   const before = drafts();
-  const holder = { dataset: { ctlStep: '0', ctlLine: '1', warn: 'Removing or weakening this line is not recommended.' } };
+  const boxes = [];
+  const holder = { dataset: { ctlStep: '0', ctlLine: '1', warn: 'Removing or weakening this line is not recommended.' }, appendChild: (box) => { boxes.push(box); return box; } };
   clickControl(p, 'remove', holder);
   await settle();
-  assert.equal(drafts(), before, 'nothing removed yet: the warning comes first');
-  clickControl(p, 'go', { dataset: { ctlStep: '0' } });
+  assert.equal(drafts(), before, 'nothing removed yet: the box asks first');
+  assert.match(boxes[0].innerHTML, /Remove this line\?/);
+  assert.match(boxes[0].innerHTML, /Removing or weakening this line is not recommended\./);
+  assert.match(boxes[0].innerHTML, /Why\? \(optional\)/);
+  assert.match(boxes[0].innerHTML, />Remove<\/button><button[^>]*>Keep<\/button>/);
+  // Keep: nothing changes.
+  clickConfirm(p, 'keep');
   await settle();
-  assert.equal(drafts(), before + 1, 'removed once the user goes ahead');
+  assert.equal(drafts(), before, 'Keep keeps the line');
+  clickControl(p, 'remove', holder);
+  clickConfirm(p, 'yes');
+  await settle();
+  assert.equal(drafts(), before + 1, 'removed once the user presses Remove');
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(controlEdits)')).Excavate.removed, ['Plant is inspected daily.']);
   // A reason, picked after the SWMS is shown, goes with the save.
   p.run("setReason('Excavate', 'Plant is inspected daily.', { reason: 'othersCover' })");

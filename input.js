@@ -54,6 +54,21 @@ function hazardEdits(value) {
       .map((item) => ({ line: textField(item.line, 1000), reason: EDIT_REASONS.includes(item.reason) ? item.reason : '', note: textField(item.note, 300) }))
       .filter((item) => item.line && (item.reason || item.note)) : [];
     if (reasons.length) out.reasons = reasons;
+    // Each added hazard's controls and rating (D254, D255): library lines ticked (by their words),
+    // controls written, and likelihood and consequence before and after, each 1 to 5.
+    const own = edit.own && typeof edit.own === 'object' && !Array.isArray(edit.own)
+      ? Object.entries(edit.own).filter(([hazard, item]) => out.added.includes(textField(hazard, 400)) && item && typeof item === 'object').slice(0, 20).map(([hazard, item]) => {
+        const rating = (value) => {
+          const likelihood = Number(value && value.likelihood);
+          const consequence = Number(value && value.consequence);
+          return [likelihood, consequence].every((n) => Number.isInteger(n) && n >= 1 && n <= 5) ? { likelihood, consequence } : undefined;
+        };
+        const detail = { controls: texts(item.controls, 10, 1500), written: texts(item.written, 10, 600) };
+        if (rating(item.before)) detail.before = rating(item.before);
+        if (rating(item.after)) detail.after = rating(item.after);
+        return [textField(hazard, 400), detail];
+      }) : [];
+    if (own.length) out.own = Object.fromEntries(own);
     return out.changed.length || out.added.length || out.notApplicable.length ? [textField(step, 300), out] : null;
   }).filter(Boolean);
   return entries.length ? Object.fromEntries(entries) : undefined;
@@ -177,6 +192,8 @@ function draftBody(body) {
     fallRisk: field(body.fallRisk, 10),
     residential: field(body.residential, 10),
     crane: field(body.crane, 20),
+    // D258: with a crane company, who slings the loads and directs the crane ('crane' or 'ours').
+    slinging: ['crane', 'ours'].includes(body.slinging) ? body.slinging : '',
     trade: field(body.trade, 100),
     company: field(body.company || body.companyName, 200),
     companyAbn: field(body.companyAbn, 40),
