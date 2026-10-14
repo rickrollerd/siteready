@@ -16,7 +16,7 @@
   // The products as the user has them now: [{ id, type, product, supplier, quantity, sdsDate, hazards,
   // controls, firstAid, storage (each a list), step, file, read: { fields }, confirmed }].
   let products = [];
-  // The suggested types ticked "Not used on this job" (D277).
+  // The suggested types ticked "Not required" (D277).
   let notUsed = new Set();
   // The draft last drawn, for its job steps and SiteReady's suggested types, and what the server said
   // of each product (the step it matched, what it still needs).
@@ -139,10 +139,10 @@
   }
 
   // The types SiteReady suggests for the work, and whether a product of each is added (D277: each needs
-  // a product or the tick "Not used on this job").
+  // a product or the tick "Not required").
   const suggestedTypes = () => ((shown && shown.substances && shown.substances.items) || []).map((item) => item.product).filter((label) => R.TYPES.includes(label));
   const productsOf = (type) => products.filter((row) => row.type === type && typed(row));
-  const TYPE_NEED = (type) => `${R.SHORT.get(type)}: add the product you use, or tick "Not used on this job".`;
+  const TYPE_NEED = (type) => `${R.SHORT.get(type)}: add the product you use, or tick "Not required".`;
   // What a suggested type still needs, judged as the user ticks or adds (the server checks again).
   const typeNeed = (type) => (productsOf(type).length || notUsed.has(type) ? '' : TYPE_NEED(type));
   function typeRow(type) {
@@ -151,14 +151,14 @@
     const body = added.length
       ? `<p class="meta sub-type-added">Added: ${esc(added.map((row) => String(row.product || '').trim() || 'a product still being filled in').join('; '))}.</p>`
       : `<div class="sub-type-tools"><button type="button" class="secondary small" data-sub-add="${esc(type)}">Add the product</button>
-        <label class="check"><input type="checkbox" id="sub-type-${n}" data-sub-notused="${esc(type)}"${notUsed.has(type) ? ' checked' : ''}><span>Not used on this job</span></label></div>`;
+        <label class="check"><input type="checkbox" id="sub-type-${n}" data-sub-notused="${esc(type)}"${notUsed.has(type) ? ' checked' : ''}><span>Not required</span></label></div>`;
     return `<div class="field sub-type" id="sub-type-row-${n}"><p class="sub-type-name"><strong>${esc(type)}</strong></p>${body}</div>`;
   }
   function panelHtml() {
     const types = suggestedTypes();
     const names = types.map(R.promptName);
     const lead = types.length
-      ? `This work usually uses ${names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]}. For each, add the product you use, with its safety data sheet, or tick "Not used on this job".`
+      ? `This work usually uses ${names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]}. For each, add the product you use, with its safety data sheet, or tick "Not required".`
       : 'SiteReady found no hazardous substances in this work. If your crew uses a product with a safety data sheet (a sealant, a fuel, a cleaner), add it here.';
     const done = (types.length || products.length) && types.every((type) => !typeNeed(type)) && products.every((row) => !typed(row) || (fromServer(row.id) && !need(row.id)));
     return `<div class="panel answer-panel sub-panel${done ? ' done' : ''}" id="substances-panel">
@@ -235,7 +235,7 @@
       redraw(target.id);
       return;
     }
-    // A suggested type ticked "Not used on this job": the gate item clears as it is ticked, with no new
+    // A suggested type ticked "Not required": the gate item clears as it is ticked, with no new
     // draft (it changes nothing that prints).
     const unused = target.closest && target.closest('[data-sub-notused]');
     if (unused) {

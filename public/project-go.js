@@ -112,7 +112,7 @@
     };
   }
 
-  // The types of hazardous substance ticked "Not used on this job" for a SWMS (D277, D287): kept with its
+  // The types of hazardous substance ticked "Not required" for a SWMS (D277, D287): kept with its
   // prepared input, where its draft keeps them too, so a tick here or there is the same tick.
   const notUsedOf = (item) => [...((item.body && item.body.substancesNotUsed) || item.substancesNotUsed || [])];
   function setNotUsed(index, type, ticked) {
@@ -144,10 +144,10 @@
     const products = ((item.body && item.body.substances) || []).filter((row) => row && String(row.product || '').trim());
     const rows = types.filter((type) => rules.TYPES.includes(type)).map((type) => {
       const added = products.filter((row) => row.type === type).map((row) => row.product);
-      return `<li>${esc(type)}${added.length ? ` <span class="meta">Added: ${esc(added.join('; '))}.</span>` : `<label class="check go-notused"><input type="checkbox" data-go-notused="${index}" data-type="${esc(type)}"${ticked.has(type) ? ' checked' : ''}> Not used on this job</label>`}</li>`;
+      return `<li>${esc(type)}${added.length ? ` <span class="meta">Added: ${esc(added.join('; '))}.</span>` : `<label class="check go-notused"><input type="checkbox" data-go-notused="${index}" data-type="${esc(type)}"${ticked.has(type) ? ' checked' : ''}> Not required</label>`}</li>`;
     }).join('');
     const open = item.kind === 'draft' ? ` <button type="button" class="link" data-project-open="${index}">Open this SWMS to add a product</button>` : ' After Prepare all, open this SWMS with Check this SWMS to add one.';
-    return `<div class="go-types"><p class="go-sub"><strong>Hazardous substances</strong></p><p class="meta">This work usually uses these. Tick each one not used on this job. For each one used, add the product from its safety data sheet in the SWMS itself.${open}</p><ul class="go-type-list">${rows}</ul></div>`;
+    return `<div class="go-types"><p class="go-sub"><strong>Hazardous substances</strong></p><p class="meta">This work usually uses these. Tick "Not required" for each one not used on this job. For each one used, add the product from its safety data sheet in the SWMS itself.${open}</p><ul class="go-type-list">${rows}</ul></div>`;
   }
 
   // ---- Asking each SWMS's questions ----
@@ -695,7 +695,7 @@
   // The types of hazardous substance a SWMS waits for (substances.js, D277), said once with what to do,
   // not as one "Hazardous substance: ..." item each.
   const TYPE_LABEL = 'Hazardous substance: ';
-  const TYPE_DO = 'for each hazardous substance, add the product you use or tick "Not used on this job"';
+  const TYPE_DO = 'for each hazardous substance, add the product you use or tick "Not required"';
   function splitTypes(labels) {
     const rules = window.SiteReadySubstanceRules;
     const names = new Set(rules ? rules.TYPES.map(rules.promptName) : []);

@@ -224,7 +224,7 @@ function designsAsked(input) {
     const draft = prepareDraft(input);
     if (draft.kind !== 'draft') return {};
     // The types of hazardous substance the work usually uses (substances.js, D277), for the one-go
-    // project page's "Not used on this job" ticks (owner, D287).
+    // project page's "Not required" ticks (owner, D287).
     const types = ((draft.substances && draft.substances.items) || []).map((item) => item.product);
     return { ...((draft.designs || []).length ? { designs: draft.designs } : {}), ...(types.length ? { substanceTypes: types } : {}) };
   } catch (error) {

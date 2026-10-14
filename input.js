@@ -286,7 +286,7 @@ function draftBody(body) {
     emergency: emergencyAnswers(body.emergency),
     designs: designs(body.designs),
     substances: substances(body.substances),
-    // The types of substance SiteReady suggests that the user ticked "Not used on this job" (D277).
+    // The types of substance SiteReady suggests that the user ticked "Not required" (D277).
     substancesNotUsed: Array.isArray(body.substancesNotUsed) ? (() => { const { TYPES } = require('./public/substance-rules'); const out = [...new Set(body.substancesNotUsed.filter((type) => TYPES.includes(type)))]; return out.length ? out : undefined; })() : undefined,
     // Clothing ids saved before one garment went to each tick box (D248) are read as the new ones.
     ppe: Array.isArray(body.ppe) ? currentPpeIds(body.ppe.filter((id) => typeof id === 'string').slice(0, 40).map((id) => id.slice(0, 40))) : undefined,

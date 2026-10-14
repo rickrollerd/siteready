@@ -107,12 +107,12 @@ test('the types of hazardous substance a SWMS waits for are said once, with what
   const panel = p.element('project-panel');
   p.go.render(panel, project, p.hooks);
   const html = panel.innerHTML.replace(/&quot;/g, '"');
-  assert.match(html, /Before download, open it to give: Plant and equipment\. Then, for each hazardous substance, add the product you use or tick "Not used on this job": cement, concrete, grout and mortar; fuels \(diesel, petrol\)\./);
+  assert.match(html, /Before download, open it to give: Plant and equipment\. Then, for each hazardous substance, add the product you use or tick "Not required": cement, concrete, grout and mortar; fuels \(diesel, petrol\)\./);
   // A product's own item stays as it is.
-  assert.match(html, /Before download, open it to give: Hazardous substance: CureCoat 40\. Then, for each hazardous substance, add the product you use or tick "Not used on this job": cement, concrete, grout and mortar\./);
-  assert.match(html, /Before download, open it and, for each hazardous substance, add the product you use or tick "Not used on this job": fuels \(diesel, petrol\)\./);
-  assert.match(html, /<li>SWMS 1 \(Formwork\): give plant and equipment; then, for each hazardous substance, add the product you use or tick "Not used on this job": cement, concrete, grout and mortar; fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="0" data-project-need>Go to it<\/button><\/li>/);
-  assert.match(html, /<li>SWMS 3 \(Clean up\): for each hazardous substance, add the product you use or tick "Not used on this job": fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="2" data-project-need>Go to it<\/button><\/li>/);
+  assert.match(html, /Before download, open it to give: Hazardous substance: CureCoat 40\. Then, for each hazardous substance, add the product you use or tick "Not required": cement, concrete, grout and mortar\./);
+  assert.match(html, /Before download, open it and, for each hazardous substance, add the product you use or tick "Not required": fuels \(diesel, petrol\)\./);
+  assert.match(html, /<li>SWMS 1 \(Formwork\): give plant and equipment; then, for each hazardous substance, add the product you use or tick "Not required": cement, concrete, grout and mortar; fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="0" data-project-need>Go to it<\/button><\/li>/);
+  assert.match(html, /<li>SWMS 3 \(Clean up\): for each hazardous substance, add the product you use or tick "Not required": fuels \(diesel, petrol\)\. <button type="button" class="link" data-project-open="2" data-project-need>Go to it<\/button><\/li>/);
 });
 
 test('details every SWMS shares are asked for once above the list, including the company ABN', () => {
@@ -165,7 +165,7 @@ test('the questions page asks each SWMS its questions, fills an answer across, a
   assert.ok(p.hooks.rendered >= 1);
 });
 
-test('D287: each suggested type has its "Not used on this job" tick in the SWMS\'s section; it is the same tick as in the draft, and the list follows it at once', async () => {
+test('D287: each suggested type has its "Not required" tick in the SWMS\'s section; it is the same tick as in the draft, and the list follows it at once', async () => {
   const CEMENT = 'Cement, concrete, grout and mortar';
   const FUEL = 'Fuels (diesel, petrol)';
   const p = page({
@@ -183,9 +183,9 @@ test('D287: each suggested type has its "Not used on this job" tick in the SWMS\
   await settle();
   const section = p.element('go-body-0').innerHTML;
   assert.match(section, /<strong>Hazardous substances<\/strong>/);
-  assert.match(section, /Tick each one not used on this job\. For each one used, add the product from its safety data sheet in the SWMS itself\. After Prepare all, open this SWMS with Check this SWMS to add one\./);
-  assert.match(section, /<input type="checkbox" data-go-notused="0" data-type="Cement, concrete, grout and mortar"> Not used on this job/);
-  assert.match(section, /<input type="checkbox" data-go-notused="0" data-type="Fuels \(diesel, petrol\)" checked> Not used on this job/);
+  assert.match(section, /Tick "Not required" for each one not used on this job\. For each one used, add the product from its safety data sheet in the SWMS itself\. After Prepare all, open this SWMS with Check this SWMS to add one\./);
+  assert.match(section, /<input type="checkbox" data-go-notused="0" data-type="Cement, concrete, grout and mortar"> Not required/);
+  assert.match(section, /<input type="checkbox" data-go-notused="0" data-type="Fuels \(diesel, petrol\)" checked> Not required/);
   // Prepare all sends the tick with the SWMS.
   p.fire('click', { id: 'go-prepare', attrs: [] });
   await settle();

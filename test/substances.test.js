@@ -176,15 +176,15 @@ test('confirm needed: the download waits until each product is complete and tick
   assert.deepEqual(downloadGaps(draftBody(base(POUR)), draft(POUR)).filter((gap) => gap.kind === 'substance'), []);
 });
 
-test('D277: each type SiteReady suggests needs a product or the tick "Not used on this job" before download; a tick prints nothing', () => {
+test('D277: each type SiteReady suggests needs a product or the tick "Not required" before download; a tick prints nothing', () => {
   const plain = draftBody(base(POUR));
   const d = prepareDraft(plain);
   const types = (input) => downloadGaps(input, prepareDraft(input)).filter((gap) => gap.kind === 'substanceType');
   assert.deepEqual(types(plain).map((gap) => [gap.label, gap.need, gap.field]), [
-    ['Hazardous substance: cement, concrete, grout and mortar', 'Cement product: add the product you use, or tick "Not used on this job".', 'sub-type-7'],
-    ['Hazardous substance: curing compounds and form release agents', 'Curing compound or release agent: add the product you use, or tick "Not used on this job".', 'sub-type-10'],
-    ['Hazardous substance: respirable crystalline silica (concrete, masonry, tile and stone dust)', 'Product with crystalline silica: add the product you use, or tick "Not used on this job".', 'sub-type-11'],
-    ['Hazardous substance: fuels (diesel, petrol)', 'Fuel: add the product you use, or tick "Not used on this job".', 'sub-type-13'],
+    ['Hazardous substance: cement, concrete, grout and mortar', 'Cement product: add the product you use, or tick "Not required".', 'sub-type-7'],
+    ['Hazardous substance: curing compounds and form release agents', 'Curing compound or release agent: add the product you use, or tick "Not required".', 'sub-type-10'],
+    ['Hazardous substance: respirable crystalline silica (concrete, masonry, tile and stone dust)', 'Product with crystalline silica: add the product you use, or tick "Not required".', 'sub-type-11'],
+    ['Hazardous substance: fuels (diesel, petrol)', 'Fuel: add the product you use, or tick "Not required".', 'sub-type-13'],
   ]);
   assert.match(gateMessage(downloadGaps(plain, d)), /each hazardous product is listed and checked against its safety data sheet/);
   // All ticked: nothing asked, and the draft, the print and the builder check are as before.
@@ -196,7 +196,7 @@ test('D277: each type SiteReady suggests needs a product or the tick "Not used o
   assert.equal(substances.tableRows(prepareDraft(ticked)).length, 0);
   // A product of a type covers it; an unticked type left over is still asked about.
   const mixed = draftBody({ ...base(POUR), substances: [CURE], substancesNotUsed: ['Respirable crystalline silica (concrete, masonry, tile and stone dust)', 'Fuels (diesel, petrol)'] });
-  assert.deepEqual(types(mixed).map((gap) => gap.need), ['Cement product: add the product you use, or tick "Not used on this job".']);
+  assert.deepEqual(types(mixed).map((gap) => gap.need), ['Cement product: add the product you use, or tick "Not required".']);
   // Only known types are kept from what the page sends.
   assert.deepEqual(draftBody({ substancesNotUsed: ['Fuels (diesel, petrol)', 'Anything', 5] }).substancesNotUsed, ['Fuels (diesel, petrol)']);
   assert.equal(draftBody({ substancesNotUsed: ['Anything'] }).substancesNotUsed, undefined);
@@ -441,13 +441,13 @@ test('the page: the types as a prompt with an Add button each, a card for each p
   const S = p.window.SiteReadySubstances;
   const plain = draft(POUR);
   const sheet = p.window.SiteReady.render(plain, { movable: true });
-  assert.match(sheet, /This work usually uses cement, concrete, grout and mortar, curing compounds and form release agents, respirable crystalline silica \(concrete, masonry, tile and stone dust\) and fuels \(diesel, petrol\)\. For each, add the product you use, with its safety data sheet, or tick &quot;Not used on this job&quot;\./);
+  assert.match(sheet, /This work usually uses cement, concrete, grout and mortar, curing compounds and form release agents, respirable crystalline silica \(concrete, masonry, tile and stone dust\) and fuels \(diesel, petrol\)\. For each, add the product you use, with its safety data sheet, or tick &quot;Not required&quot;\./);
   assert.match(sheet, /data-sub-add="Curing compounds and form release agents">Add the product<\/button>/);
-  assert.match(sheet, /<input type="checkbox" id="sub-type-10" data-sub-notused="Curing compounds and form release agents"><span>Not used on this job<\/span>/);
+  assert.match(sheet, /<input type="checkbox" id="sub-type-10" data-sub-notused="Curing compounds and form release agents"><span>Not required<\/span>/);
   assert.match(sheet, /Add another product<\/button>/);
-  // Ticked "Not used on this job": the gate item clears at once, and the tick is sent and comes back.
+  // Ticked "Not required": the gate item clears at once, and the tick is sent and comes back.
   const typeCheck = { kind: 'substanceType', substanceType: 'Fuels (diesel, petrol)', field: 'sub-type-13', need: 'from the server' };
-  assert.equal(p.run(`liveNeed(${JSON.stringify(typeCheck)})`), 'Fuel: add the product you use, or tick "Not used on this job".');
+  assert.equal(p.run(`liveNeed(${JSON.stringify(typeCheck)})`), 'Fuel: add the product you use, or tick "Not required".');
   S.load([], ['Fuels (diesel, petrol)']);
   assert.equal(p.run(`liveNeed(${JSON.stringify(typeCheck)})`), '');
   assert.deepEqual(JSON.parse(p.run('JSON.stringify(payload().substancesNotUsed)')), ['Fuels (diesel, petrol)']);

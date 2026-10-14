@@ -14,7 +14,7 @@
 // D181: the controls are the SDS's own words (read word for word, or typed by the user from it).
 //
 // The download waits until each product listed is complete and ticked as matching its SDS, and each
-// type SiteReady suggests has a product or is ticked "Not used on this job" (download-gate.js, D277). A SWMS with no product added prints and checks as before, apart from the old
+// type SiteReady suggests has a product or is ticked "Not required" (download-gate.js, D277). A SWMS with no product added prints and checks as before, apart from the old
 // table of types, which no longer prints.
 const rules = require('./public/substance-rules');
 const { controlLevel, withoutCitation } = require('./control-level');
@@ -117,7 +117,7 @@ function gateItems(draft) {
 // used on this job" before download (owner, D277: "Must add or tick"): { type, short, need }. A ticked
 // type prints nothing. A product of the type, even one still being filled in, covers it: the product
 // has its own item.
-const TYPE_NEED = (short) => `${short}: add the product you use, or tick "Not used on this job".`;
+const TYPE_NEED = (short) => `${short}: add the product you use, or tick "Not required".`;
 function typeItems(draft, input) {
   if (!draft || draft.kind !== 'draft' || !draft.substances) return [];
   const notUsed = new Set(Array.isArray(input && input.substancesNotUsed) ? input.substancesNotUsed : []);

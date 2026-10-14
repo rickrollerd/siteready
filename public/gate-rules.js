@@ -180,7 +180,7 @@
   // steps, so the draft is prepared again first (test/live-gate.test.js checks this list).
   const AS_GIVEN = ['workplace', 'principalContractor', 'complianceResponsible', 'reviewer', 'scaffoldSupervisor', 'firstAider', 'musterPoint',
     'siteManager', 'worksManager', 'worksManagerPhone', 'hospital', 'reviewDate', 'preparedBy', 'swmsRef', 'emergency', 'fills',
-    // The types of hazardous substance ticked "Not used on this job" (D277): read by the gate only.
+    // The types of hazardous substance ticked "Not required" (D277): read by the gate only.
     'substancesNotUsed'];
 
   const api = { hasBlank, isPlaceholder, leftOpen, cleanAnswer, fillLine, clean, NONE, NO_ANSWER, NOT_YET, notAnswer, answerNeed, designNeed, methodNeed, isMethod, sameDesignNumbers, AS_GIVEN };

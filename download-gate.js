@@ -161,7 +161,7 @@ function gateChecks(input = {}, draft = {}, options = {}) {
   for (const row of (draft.designs || []).filter((item) => item.kind !== 'method')) {
     add({ id: `design.${row.id}`, kind: 'design', field: `design-${row.id}`, label: `Design: ${row.what}`, design: row.id, need: designNeed(row) });
   }
-  // Each type of substance SiteReady suggests: a product added, or ticked "Not used on this job" (D277).
+  // Each type of substance SiteReady suggests: a product added, or ticked "Not required" (D277).
   for (const item of substances.typeItems(draft, input)) {
     add({ id: `substanceType.${item.n}`, kind: 'substanceType', field: `sub-type-${item.n}`, label: `Hazardous substance: ${rules.promptName(item.type)}`, substanceType: item.type, need: item.need });
   }
