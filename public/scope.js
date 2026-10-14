@@ -767,10 +767,13 @@
         for (const saved of (result && result.items) || []) if (ready[saved.index]) ready[saved.index].swmsId = saved.id;
         saveProject();
         if (result && result.items && result.items.length) {
+          // The page says how many were downloaded, and which are not ready yet (project-go.js, D278).
           project.downloaded = new Date().toISOString();
+          project.lastDownload = { at: project.downloaded, count: result.items.length, total: project.items.length };
           saveProject();
           renderProject();
-          $('project-status').textContent = `Saved ${result.items.length} SWMS under My SWMS, each as its own revision, and downloaded them as Word and PDF in one zip. Changes you make to one now save as its next revision.`;
+          const said = $('go-downloaded');
+          if (said && said.scrollIntoView) said.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       } catch (error) {
         $('project-error').textContent = error.message;

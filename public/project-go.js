@@ -622,6 +622,33 @@
     const company = companyMissing();
     return company ? [{ id: !String(((S.getProfile && S.getProfile()) || {}).name || '').trim() ? 'profile-company' : 'profile-abn', label: company }, ...people] : people;
   }
+  // Owner, 14 October 2026 (D278): when only some SWMS are ready, the ready ones download, and the page
+  // names each one not ready yet with what it still needs and a button to it. Each later download gives
+  // every SWMS ready by then in one zip; one unchanged since it was last downloaded keeps its revision.
+  const lowerFirst = (text) => String(text).replace(/^[A-Z](?=[a-z])/, (letter) => letter.toLowerCase());
+  const needsText = (state) => {
+    const text = state.text.replace(/\.$/, '');
+    const give = /^Before download, open it to give: (.*)$/.exec(text);
+    return give ? `give ${give[1].split('; ').map(lowerFirst).join('; ')}` : lowerFirst(text);
+  };
+  const notReadyLine = (item, index, state) => `<li>SWMS ${index + 1} (${esc(item.title)}): ${esc(needsText(state))}. <button type="button" class="link" data-project-open="${index}">Go to it</button></li>`;
+  function downloadHtml(states, ready, n) {
+    const waiting = project.items.map((item, index) => ({ item, index, state: states[index] })).filter((entry) => !entry.state.ready);
+    const last = project.lastDownload;
+    const label = ready === n ? `Download all ${n} SWMS (Word and PDF, one zip)` : ready ? `Download the ${ready} ready SWMS (Word and PDF, one zip)` : `Download all ${n} SWMS (Word and PDF, one zip)`;
+    const said = last
+      ? `<div class="note" id="go-downloaded" role="status"><p><strong>Downloaded ${last.count} of ${last.total} SWMS</strong>, each saved under My SWMS as its own SWMS and revision.${waiting.length ? ' Not ready yet:' : ' Every SWMS is now ready: download again to get them all.'}</p>${waiting.length ? `<ul>${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul><p class="meta">Download again once ${waiting.length === 1 ? 'it is' : 'they are'} ready: the zip then has every ready SWMS. One you have not changed keeps its revision.</p>` : ''}</div>`
+      : '';
+    const before = !last && ready < n
+      ? (ready
+        ? `<p class="note">${ready} of ${n} SWMS ${ready === 1 ? 'is' : 'are'} ready. You can download ${ready === 1 ? 'it' : 'them'} now, and the rest once they are ready. Not ready yet:</p><ul class="go-not-ready">${waiting.map((entry) => notReadyLine(entry.item, entry.index, entry.state)).join('')}</ul>`
+        : '<p class="note">None of the SWMS is ready to download yet. Each one in the list above says what it still needs.</p>')
+      : !last ? '<p class="meta">Every SWMS has cleared its checks.</p>' : '';
+    return `${said}${before}
+      ${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip"${ready ? '' : ' disabled'}>${label}</button></div>
+      ${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS as its own SWMS and revision, so every copy printed has a record.</p>' : ''}`;
+  }
+
   function reviewHtml() {
     const n = project.items.length;
     const states = project.items.map(itemState);
@@ -633,12 +660,7 @@
       <p class="error" id="project-error"></p>
       ${sharedNeeds().length || sharedSiteNeeds().length ? `<div class="note" id="go-shared-needs"><p><strong>For every SWMS, still to give:</strong></p><ul class="go-people">${sharedNeeds().map((need) => `<li><button type="button" class="link" data-go-field="${need.id}">${esc(need.label)}</button></li>`).join('')}${sharedSiteNeeds().map((need) => `<li><button type="button" class="link" data-go-site-answer="${need.id}">Site question: ${esc(need.label)}</button></li>`).join('')}</ul><p class="meta">Give each once. The list below follows.</p></div>` : ''}
       <ol class="go-review">${project.items.map((item, index) => `<li class="${states[index].ready ? 'ready' : 'needs'}"><div><strong>${esc(item.title)}</strong><span class="meta">${esc(states[index].text)}${item.checked ? ' Checked.' : ' Not checked yet.'}</span></div><button type="button" class="${index === firstToCheck ? '' : 'secondary '}small" data-project-open="${index}">${item.checked ? 'Check it again' : 'Check this SWMS'}</button></li>`).join('')}</ol>
-      <div id="project-download">${can
-        ? `${ready < n ? `<p class="note">${n - ready} of ${n} SWMS still ${n - ready === 1 ? 'needs' : 'need'} something before download: open ${n - ready === 1 ? 'it' : 'each'} with Check this SWMS and deal with what its list says.</p>` : '<p class="meta">Every SWMS has cleared its checks.</p>'}
-          ${S.confirmBlock('project')}<div class="actions"><button type="button" id="project-zip"${ready < n ? ' disabled' : ''}>Download all ${n} SWMS (Word and PDF, one zip)</button></div>
-          ${S.signedIn && S.signedIn() ? '<p class="meta">Downloading saves each SWMS under My SWMS as its own SWMS and revision, so every copy printed has a record.</p>' : ''}`
-        : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>'}</div>
-      <p class="meta" id="project-status" role="status">${project.downloaded ? 'Downloaded. Changes you make to one now save as its next revision.' : ''}</p>
+      <div id="project-download">${can ? downloadHtml(states, ready, n) : '<p class="note">Sign in, or start the free trial, to download the project\'s SWMS together.</p>'}</div>
       <div class="actions"><button type="button" class="small secondary" id="go-back-questions">Back to the questions</button><button type="button" class="small secondary" id="project-close">Close project</button></div>`;
   }
 

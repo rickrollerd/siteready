@@ -316,3 +316,22 @@ test('Download all puts each SWMS in the zip as Word and PDF, each saved as its 
   const word = await call('POST', '/api/project.zip', { token, body: { swms: [fence('Fencing')], reviewConfirmed: true, reviewedBy: 'Sam Lee' } });
   assert.deepEqual(Object.keys((await JSZip.loadAsync(Buffer.from(await word.arrayBuffer()))).files), ['01 Fencing.docx']);
 });
+
+test('Download the ready SWMS: a project zip with one not ready holds the ready ones as Word and PDF (D278)', async () => {
+  const email = 'partial@flowfixes.example';
+  await call('POST', '/api/auth/email', { body: { email } });
+  const { token } = await (await call('POST', '/api/auth/verify', { body: { token: lastLinkToken(email) } })).json();
+  await call('PUT', '/api/company', { token, body: { name: 'Partial Pty Ltd', abn: '77143836568' } });
+  const fence = ready({ state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Fencing', ...ANSWERED });
+  const blank = { state: 'qld', task: 'Replace a 3m length of timber fence.', fallRisk: 'no', residential: 'no', swmsTitle: 'Gates' };
+  const response = await call('POST', '/api/project.zip', { token, body: { swms: [fence, blank], reviewConfirmed: true, reviewedBy: 'Sam Lee', pdf: true } });
+  assert.equal(response.status, 200);
+  const zip = await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
+  assert.deepEqual(Object.keys(zip.files).sort(), ['01 Fencing.docx', '01 Fencing.pdf', 'Not included.txt']);
+  assert.match(await zip.file('Not included.txt').async('string'), /2\. Gates: still to answer: Job address;/);
+});
+
+test('a load limit given as a figure is enough ("3kpa" was refused on staging)', () => {
+  for (const text of ['3kpa', '3 kPa', '5 kN point load']) assert.equal(answerState('loadLimits', text), 'supplied', text);
+  assert.equal(answerState('loadLimits', 'as per eng'), 'vague');
+});

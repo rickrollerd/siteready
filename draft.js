@@ -2168,6 +2168,9 @@ function hasSubstance(id, text) {
   const value = acceptedText(text);
   if (!value) return false;
   if (id === 'craneChart') return statesChartValues(value);
+  // A load limit given as a figure ("3kpa", "5 kN point load") says what is needed (messy-user testing:
+  // "3kpa" was refused and "3 kPa max on deck" accepted).
+  if (id === 'loadLimits' && /\b\d+(?:\.\d+)?\s*(?:kpa|kn|t|tonnes?|kg)\b/i.test(value)) return true;
   return meaningfulWords(value).length >= 2;
 }
 
