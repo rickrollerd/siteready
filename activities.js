@@ -11306,10 +11306,12 @@ ACTIVITIES.push(
         step: 'Wash out tools at the washout bay',
         // The paint, adhesive and solvent lines only where the SWMS's work uses them: a concrete washout has no
         // solvent rags (messy-user test, 14 October 2026).
-        hazards: ['Skin and eye burns from cement and alkaline wash water.', { only: 'solventWork', text: 'Contact with paint, adhesive or membrane residues.' }],
+        // The cement lines only where the work uses cement, concrete, mortar, grout or render: a paint washout
+        // has no cement wash water (messy round 4).
+        hazards: [{ only: 'cementWork', text: 'Skin and eye burns from cement and alkaline wash water.' }, { only: 'solventWork', text: 'Contact with paint, adhesive or membrane residues.' }],
         controls: [
           'Tools and equipment are washed only at the washout bay the builder sets, never into stormwater drains.',
-          src('Cement-based compounds have a very high pH and are corrosive to skin and eyes: gloves and eye protection, and wash skin straight away.', QCODE('Managing risks of hazardous chemicals', 's 3.3, s 4.1, appendix J')),
+          { only: 'cementWork', ...src('Cement-based compounds have a very high pH and are corrosive to skin and eyes: gloves and eye protection, and wash skin straight away.', QCODE('Managing risks of hazardous chemicals', 's 3.3, s 4.1, appendix J')) },
           { only: 'solventWork', ...src('Solvent-based products are cleaned off with ventilation and no ignition sources nearby, and solvent-soaked rags are kept wet in a closed container.', NSWC('NSW Spray painting', 's 3.4')) },
           { only: 'solventWork', text: 'The cleaner used is the one the product\'s safety data sheet sets.' },
           { only: 'solventWork', text: 'The rag container is a closed metal bin.' },
@@ -11910,7 +11912,10 @@ function jobStepsFor(rawFlags, factText, fallback) {
     ...rawFlags,
     trenchWork: anyFlag(rawFlags, ['trench', 'shallowTrench', 'layInExcavation', 'inTrench', 'inExcavation', 'deepTrench', 'trenchSupport']),
     // Paints, adhesives, sealants, membranes or solvents in the work, for the washout lines that apply only then.
-    solventWork: anyFlag(rawFlags, ['painting', 'paintSpray', 'paintSolvent', 'paintExternal', 'paintAccess', 'floorAdhesive', 'floorCoating', 'floorLevel', 'wpLiquid', 'wpTorch', 'wpPrep', 'wpEdge', 'solventCement', 'caulking', 'glazingSeal', 'facadeSeal', 'jointSealing', 'tileMix', 'lineMarking', 'sprayFoam', 'graffitiRemoval']),
+    solventWork: Boolean(rawFlags.productWords) || anyFlag(rawFlags, ['painting', 'paintSpray', 'paintSolvent', 'paintExternal', 'paintAccess', 'floorAdhesive', 'floorCoating', 'floorLevel', 'wpLiquid', 'wpTorch', 'wpPrep', 'wpEdge', 'solventCement', 'caulking', 'glazingSeal', 'facadeSeal', 'jointSealing', 'tileMix', 'lineMarking', 'sprayFoam', 'graffitiRemoval']),
+    // Cement, concrete, mortar, grout or render in the work, for the cement wash water lines. Without a
+    // paint, adhesive or solvent product either, the washout is taken as a cement one, as before.
+    cementWork: Boolean(rawFlags.cementWork) || (!rawFlags.productWords && !anyFlag(rawFlags, ['painting', 'paintSpray', 'paintSolvent', 'paintExternal', 'paintAccess', 'floorAdhesive', 'floorCoating', 'wpLiquid', 'wpTorch', 'solventCement', 'caulking', 'glazingSeal', 'facadeSeal', 'jointSealing', 'lineMarking', 'sprayFoam', 'graffitiRemoval'])),
   };
   let found = ACTIVITIES.filter((activity) => flags[activity.when]);
   const replaced = new Set(found.flatMap((activity) => activity.replaces || []));
@@ -13111,8 +13116,10 @@ addTo('contaminatedSpoil', 'Handle contaminated or unknown material in the spoil
 ]);
 
 // Road plant: competent operators of the profiler; stabilisation is not assumed to be next to traffic.
+// The library's moving plant line, not the excavation code's (messy round 4: road plant cited the
+// Excavation Code); both lines are the library's own, word for word with their sources (D181).
 addTo('roadPlant', 'Run the road plant inside the work zone', [
-  { only: 'profiler', ...reuse('Operators can show they are competent on the type of plant they use.') },
+  { only: 'profiler', ...reuse('Operators can show they are competent on the type of plant they use, and plant is checked before each shift.') },
 ]);
 for (const line of stepOf('roadPlant', 'Run the road plant inside the work zone').controls) {
   if (line && typeof line === 'object' && /^All plant works inside the traffic management set out for the job/.test(line.text || '')) line.unless = 'awayFromTraffic';

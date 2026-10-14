@@ -62,7 +62,8 @@
       "task": "Install communications racks, cabinets and UPS batteries in the basement comms room and the floor comms rooms, and terminate the data cabling.",
       "fallRisk": "no",
       "facts": {
-        "liveElectrical": "yes"
+        "liveElectrical": "yes",
+        "mainsConnection": "no"
       },
       "expect": {
         "highRisk": [
@@ -73,7 +74,8 @@
           "Install comms equipment"
         ],
         "missing": [
-          "Live electrical work"
+          "Live electrical work",
+          "Connection to mains power"
         ]
       }
     },
@@ -109,7 +111,8 @@
       "task": "Install the MATV antennas and the communications cabling on the roof, next to the roof edge.",
       "fallRisk": "yes",
       "facts": {
-        "fallControl": "Edge protection is installed around the roof perimeter before work starts, and no one works outside it."
+        "fallControl": "Edge protection is installed around the roof perimeter before work starts, and no one works outside it.",
+        "harnessSystem": "Full body harness on a restraint or fall arrest lanyard to anchors rated for the purpose, checked before each use and inspected every 6 months; users trained by a registered training organisation; rescue plan kept at the work."
       },
       "expect": {
         "highRisk": [

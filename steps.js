@@ -30,7 +30,7 @@ const LIBRARY = stepLibrary();
 
 // Site words for the same thing, so a search finds the step whichever word is typed.
 const SYNONYMS = {
-  tc: ['traffic'], traffic: ['traffic'], spoil: ['spoil', 'stockpil', 'muck', 'excavated material'], stockpile: ['stockpil', 'spoil'],
+  tc: ['traffic'], traffic: ['traffic'], tack: ['tack coat'], profiling: ['profil', 'cold plan', 'mill'], milling: ['mill', 'profil', 'cold plan'], spoil: ['spoil', 'stockpil', 'muck', 'excavated material'], stockpile: ['stockpil', 'spoil'],
   muck: ['spoil', 'muck'], tip: ['tip', 'spoil'], hiab: ['hiab', 'loading crane'], ewp: ['ewp', 'elevating work platform', 'boom lift', 'scissor'],
   scaff: ['scaffold'], reo: ['reo', 'reinforc'], pour: ['pour', 'concrete'], demo: ['demoli'], sparky: ['electric'], chippy: ['carpent', 'timber'],
   dig: ['dig', 'excavat', 'trench'], hole: ['hole', 'excavat', 'trench'], lift: ['lift', 'crane'], height: ['height', 'fall', 'edge'],
@@ -57,31 +57,60 @@ const SEARCH_TEXT = (() => {
   return text;
 })();
 
-// The kinds of work whose name, hazards or controls hold every word searched, best match first.
-function searchSteps(query) {
+// Words for kinds of work whose step names do not say them, read as part of the name in a search.
+const ALIASES = {
+  roadPlant: 'profiling profiler cold planing milling road plant',
+  asphaltLay: 'asphalt paving paver',
+};
+
+// The kinds of work a trade does: a scope trade (trades.js) or a pick list trade (pick-lists.json).
+function tradeKinds(trade) {
+  const id = String(trade || '').trim();
+  if (!id) return new Set();
+  const scope = TRADES.filter((item) => id.split(',').map((part) => part.trim()).includes(item.id));
+  const pick = (require('./presets').TRADES || []).filter((item) => item && item.id === id);
+  return new Set([...scope.flatMap((item) => [...item.kinds, ...(item.extra || [])]), ...pick.flatMap((item) => (item.tasks || []).flatMap((task) => task.kinds || []))].filter(Boolean));
+}
+
+// A term as a whole word, with its common endings ("store", "stored", "stores"; not "storage" or "tackle").
+const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const whole = (text, term) => new RegExp(`(?:^|[^a-z0-9])${escape(term)}(?:s|es|ed|ing|e|er|ers|d)?(?=[^a-z0-9]|$)`).test(text);
+
+// The kinds of work whose name, hazards or controls hold every word searched, best match first (messy
+// round 4: "store" listed 57 unrelated steps, "profil" blast holes, "tack" a staircase). Kinds whose name
+// holds the words come first, then the trade's own kinds, ranked by whole words before parts of words.
+// Kinds that only mention the words in a hazard or control are listed only where every word is a whole
+// word there, and only a few of them.
+function searchSteps(query, trade = '') {
   const words = String(query || '').toLowerCase().match(/[a-z0-9]+/g) || [];
   const terms = words.filter((word) => word.length > 1 && !['the', 'and', 'for', 'with', 'of', 'to', 'a', 'an', 'on', 'in'].includes(word)).map((word) => SYNONYMS[word] || SYNONYMS[stem(word)] || [stem(word)]);
   if (!terms.length) return [];
   const has = (text, term) => text.includes(` ${term}`) || text.startsWith(term);
+  const own = tradeKinds(trade);
   // A search that names a trade ("mech", "plumbing") lists that trade's kinds of work first.
   const tradeGroups = LIBRARY.groups.filter((group) => group.trade !== 'Any trade' && terms.every((options) => options.some((term) => has(group.trade.toLowerCase(), term))));
-  const results = tradeGroups.flatMap((group) => group.kinds.map((kind) => ({ id: kind.id, score: 100, name: true })))
+  const results = tradeGroups.flatMap((group) => group.kinds.map((kind) => ({ id: kind.id, score: 1000, name: true })))
     .filter((item, index, list) => list.findIndex((other) => other.id === item.id) === index);
   for (const group of LIBRARY.groups) {
     for (const kind of group.kinds) {
       if (results.some((item) => item.id === kind.id)) continue;
-      const name = `${kind.label} ${kind.steps.join(' ')}`.toLowerCase();
-      const body = (SEARCH_TEXT.get(kind.id) || name).replace(/[^a-z0-9]+/g, ' ');
+      const name = ` ${kind.label} ${kind.steps.join(' ')} ${ALIASES[kind.id] || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+      const body = ` ${SEARCH_TEXT.get(kind.id) || name}`.replace(/[^a-z0-9]+/g, ' ');
       // A term matches from the start of a word, so "dozer" does not find "bulldozer" text by accident and "lift" not "forklift".
-      if (!terms.every((options) => options.some((term) => has(body, term) || has(name, term)))) continue;
-      const score = terms.filter((options) => options.some((term) => has(name, term))).length;
-      results.push({ id: kind.id, score, name: score === terms.length });
+      if (!terms.every((options) => options.some((term) => has(name, term) || has(body, term)))) continue;
+      const named = terms.every((options) => options.some((term) => has(name, term)));
+      const wholeWords = terms.every((options) => options.some((term) => whole(name, term) || whole(body, term)));
+      if (!named && !wholeWords) continue;
+      const score = terms.reduce((sum, options) => sum + Math.max(...options.map((term) => (whole(name, term) ? 100 : has(name, term) ? 40 : whole(body, term) ? 10 : 2))), 0) + (own.has(kind.id) ? 60 : 0);
+      results.push({ id: kind.id, score, name: named, trade: own.has(kind.id) });
     }
   }
-  // Kinds whose name holds the words come first. Kinds that only mention them in a hazard
-  // or control ("mechanical aids" in a lifting control) are shown only when little else is found.
-  const named = results.filter((item) => item.name);
-  return (named.length >= 5 ? named : results).sort((a, b) => b.score - a.score).map((item) => item.id);
+  const byScore = (a, b) => b.score - a.score;
+  const named = results.filter((item) => item.name).sort(byScore);
+  const others = results.filter((item) => !item.name).sort(byScore);
+  // Kinds that only mention the words: the trade's own first, a few at most.
+  const shown = named.length >= 5 ? others.filter((item) => item.trade).slice(0, 3) : others.slice(0, 6);
+  return [...named, ...shown].map((item) => item.id);
 }
 
 module.exports = { stepLibrary: () => LIBRARY, searchSteps };

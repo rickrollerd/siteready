@@ -76,14 +76,30 @@ const WEARS = (item) => new RegExp(String.raw`\b(?:wear\w*|worn|use|used|with)\b
 const SUBSTANCE = /\bwet concrete\b|\b(?<!fibre[- ])cement\w*|\bmortar\b|\bgrout\w*|\brender\w*|\bepoxy\b|\bresins?\b|\bsolvents?\b|\badhesives?\b|\bglues?\b|\bprimers?\b|\bsealants?\b|\bsilicone\b|\bcuring\b|\b\w+ing compounds?\b|\bdegreas\w*|\bbitumen\b|\bpaints?\b|\bcoatings?\b|\bmembranes?\b|\bacids?\b|\bsafety data sheets?\b|\bSDS\b|\bherbicides?\b|\bpesticides?\b|\bsewage\b|\bslurry\b|\bchlorine\b|\bchemicals?\b|\brelease agents?\b|\bform oil\b|\bfillers?\b|\brefrigerant\w*|\bcorrosive\w*|\bliquid nitrogen\b|\b(?:fuel|diesel|petrol)\b(?![- ](?:driven|powered|plant|engines?))/i;
 const HANDLES = /\b(?:skin|eyes?|burns?|splash\w*|contact|gloves?|goggles|wash\w*|handl\w*|mix\w*|appl\w*|spread\w*|bed(?:s|ded|ding)?|spray\w*|brush\w*|roll\w*|pour\w*|plac\w*|pump\w*|trowel\w*|screed\w*|finish\w*|grout\w*|render\w*|seal\w*|coat\w*|paint\w*|clean\w*|decant\w*|refuel\w*|exposure|corrosive|charg\w*|recover\w*)\b|\bchemicals in\b/i;
 // Wet concrete handled: placed, pumped, poured, screeded, trowelled or washed out, slurry, cement burns.
-const WET_CONCRETE = /\b(?:plac|pump|pour|screed|trowel|finish|vibrat|spread)(?:e|es|ed|ing|s)? (?:the |wet )?concrete\b|\bconcrete (?:is|are|being) (?:plac|pump|pour)\w*|\bscreed\w*|\bslurry\b|\bcement burns?\b|\bwashout\b|\bwash(?:es|ed|ing)? out (?:the )?(?:concrete|tools|equipment|trucks?|agitators?|pumps?|hoppers?|lines?|barrows?|chutes?)\b/i;
+const WET_CONCRETE = /\b(?:plac|pump|pour|screed|trowel|finish|vibrat|spread)(?:e|es|ed|ing|s)? (?:the |wet )?concrete\b|\bconcrete (?:is|are|being) (?:plac|pump|pour)\w*|\bscreed\w*|\bcement burns?\b|\bwashout\b|\bwash(?:es|ed|ing)? out (?:the )?(?:concrete|tools|equipment|trucks?|agitators?|pumps?|hoppers?|lines?|barrows?|chutes?)\b/i;
+// An asphalt paver's screed is not a concrete screed (messy round 4: chemical gloves for laying asphalt).
+const wetConcrete = (sentence) => WET_CONCRETE.test(sentence) && !(/\b(?:asphalt|pavers?|bitumen)\b|\bscreed (?:and roller|crew)\b/i.test(sentence) && !/\bconcrete\b/i.test(sentence));
 const WET_GROUND = /\bsewage\b|\bsewers?\b|\bwet wells?\b|\bstanding water\b|\bflooded\b|\bwater ?blast\w*|\bhydro ?blast\w*|\bpressure clean\w*|\bdewater\w*/i;
+// Slurry the step makes (wet cutting, coring, grinding, washing out, pumping or mixing), not slurry named
+// as something to contain or clean up, or to keep leads clear of (messy round 4: gumboots for "Plan core
+// holes", chemical gloves for a painter's clean-up).
+const SLURRY_MADE = /\bslurry\b/i;
+const MAKES_SLURRY = /\b(?:cut\w*|saw\w*|drill\w*|cor(?:e|es|ed|ing)\b|grind\w*|wash\w*|pump\w*|mix\w*|spray\w*|blast\w*|jet\w*|scabbl\w*|polish\w*)\b/i;
+const slurryMade = (sentence) => SLURRY_MADE.test(sentence) && MAKES_SLURRY.test(sentence);
+// Paint named as an old surface (lead in old paint, painted surfaces sanded or stripped), not paint used.
+const OLD_PAINT = /\b(?:old|existing|lead|flaking|failed) paint\w*|\bpainted surfaces?\b/i;
+// A substance the sentence says the step handles: slurry only where the step makes it, and paint not where
+// it is only the old surface.
+function handlesSubstance(sentence) {
+  const found = (sentence.match(new RegExp(SUBSTANCE.source, 'gi')) || []).filter((word) => !(/^slurry$/i.test(word) && !slurryMade(sentence)) && !(/^paint/i.test(word) && OLD_PAINT.test(sentence)));
+  return found.length > 0 && HANDLES.test(sentence);
+}
 const BY_SENTENCE = {
   // Engine exhaust is not stopped by a P2 respirator: ventilation controls it.
   p2: (sentence) => (AIRBORNE.test(sentence) && MAKES_DUST.test(sentence) && !/\bexhaust\b|\bcarbon monoxide\b/i.test(sentence)) || WEARS(String.raw`P2\b|respirators?\b|RPE\b`).test(sentence),
-  gloveChemical: (sentence) => (SUBSTANCE.test(sentence) && HANDLES.test(sentence)) || WET_CONCRETE.test(sentence) || WEARS(String.raw`chemical(?:[- ]resistant)? gloves|gloves resistant to the product|nitrile gloves`).test(sentence),
-  goggles: (sentence) => (SUBSTANCE.test(sentence) && HANDLES.test(sentence)) || WET_CONCRETE.test(sentence) || /\bgoggles\b|\bcorrosive\w*|\bliquid nitrogen\b|\bcryogenic\b/i.test(sentence),
-  gumboots: (sentence) => WET_CONCRETE.test(sentence) || (/\bwet concrete\b/i.test(sentence) && HANDLES.test(sentence)) || WET_GROUND.test(sentence) || /\bgumboots\b/i.test(sentence),
+  gloveChemical: (sentence) => handlesSubstance(sentence) || wetConcrete(sentence) || slurryMade(sentence) || WEARS(String.raw`chemical(?:[- ]resistant)? gloves|gloves resistant to the product|nitrile gloves`).test(sentence),
+  goggles: (sentence) => handlesSubstance(sentence) || wetConcrete(sentence) || slurryMade(sentence) || /\bgoggles\b|\bcorrosive\w*|\bliquid nitrogen\b|\bcryogenic\b/i.test(sentence),
+  gumboots: (sentence) => wetConcrete(sentence) || slurryMade(sentence) || (/\bwet concrete\b/i.test(sentence) && HANDLES.test(sentence)) || WET_GROUND.test(sentence) || /\bgumboots\b/i.test(sentence),
 };
 BY_SENTENCE.halfFace = (sentence) => BY_SENTENCE.p2(sentence) || (VAPOUR.test(sentence) && MAKES_DUST.test(sentence)) || WEARS(String.raw`half[- ]face|respirators? with (?:\w+ )?filters`).test(sentence);
 // A step's sentences, from its name, hazards and controls, with the ones that say the work is not done left out.
@@ -346,6 +362,51 @@ function withStepPpeLines(jobSteps, ppe, stateId) {
   });
 }
 
+// The PPE table agrees with the steps (messy round 4: a harness in the controls with "Falls: none", a P2
+// respirator in the user's own step with "Breathing: none", an SDS saying heat resistant gloves with none
+// listed). An item a printed line says is worn or used, and the table leaves out, is ticked for the steps
+// whose lines say so. Lines that only say what applies where an item is used ("Where harnesses are used,
+// ...") do not count. Nothing is unticked, and no line is added or changed.
+const CONDITIONAL = /^\s*(?:where|if|when|unless|whenever|should)\b/i;
+const WORN_SAID = {
+  harness: /\b(?:wear\w*|worn|uses?|used|using|attach\w*|clipped|clips?|connected|full body harness\w*)\b[^.;]*\bharness\w*\b|\bharness\w*\b[^.;]*\b(?:worn|attached|clipped|connected|set up|is used|are used)\b|\bharness work\b|\bfall arrest is used\b|\buse travel restraint\b/i,
+  p2: /\b(?:wear\w*|worn)\b[^.;]*\b(?:P2|respirators?|dust masks?)\b|\b(?:P2|respirators?|dust masks?)\b[^.;]*\b(?:worn|is worn|are worn)\b|\bP2 (?:mask|respirator)\b/i,
+  gloveWelding: /\b(?:heat[- ]resistant|welding) gloves\b/i,
+  gloveChemical: /\b(?:chemical|alkali|solvent)[- ]resistant gloves\b|\bnitrile gloves\b|\bgloves \(nitrile\)/i,
+  goggles: /\b(?:wear\w*|worn)\b[^.;]*\bgoggles\b/i,
+  kneePads: /\bknee pads?\b/i,
+};
+function agreePpe(draft) {
+  if (!draft || draft.kind !== 'draft' || !Array.isArray(draft.ppe) || !Array.isArray(draft.jobSteps)) return draft;
+  const ticked = new Set(ids(draft.ppe));
+  const add = new Map([...wornSaid(draft)].filter(([id]) => !ticked.has(id) && !(id === 'p2' && ticked.has('halfFace'))));
+  if (!add.size) return draft;
+  const work = draft.jobSteps.filter(isWorkStep);
+  const ppe = draft.ppe.map((group) => ({ ...group, items: group.items.map((item) => {
+    if (!add.has(item.id)) return item;
+    const steps = add.get(item.id);
+    return { ...item, ticked: true, ...(steps.length && steps.length < work.length ? { steps } : {}) };
+  }) }));
+  return { ...draft, ppe };
+}
+
+// The items the printed lines say are worn or used, ticked or not, each with the work steps whose lines
+// say so (a harness in the controls table goes with the steps that work at height). A P2 respirator or a
+// half-face respirator: either one answers the steps' respirator, which agreePpe sorts out.
+function wornSaid(draft) {
+  const out = new Map();
+  if (!draft || !Array.isArray(draft.jobSteps)) return out;
+  const saysWorn = (id, line) => sentencesOf(line).some((sentence) => !CONDITIONAL.test(sentence) && !NOT_DONE.test(sentence) && WORN_SAID[id].test(sentence));
+  const work = draft.jobSteps.filter(isWorkStep);
+  for (const id of Object.keys(WORN_SAID)) {
+    let steps = draft.jobSteps.filter((step) => (step.controls || []).some((line) => saysWorn(id, line))).map((step) => step.step);
+    const inTable = id === 'harness' && (draft.controls || []).some((item) => saysWorn(id, item && item.text));
+    if (!steps.length && inTable) steps = work.filter(atHeight).map((step) => step.step);
+    if (steps.length || inTable) out.set(id, steps.filter((name) => work.some((step) => step.step === name)));
+  }
+  return out;
+}
+
 // Each item where it is worn: 'all', the step names, or none.
 function placements(ppe) {
   const out = new Map();
@@ -396,4 +457,4 @@ function stepPpeRows(ppe) {
   return (ppe || []).flatMap((group) => group.items.filter((item) => item.ticked && Array.isArray(item.steps) && item.steps.length).map((item) => ({ id: item.id, label: item.label, steps: item.steps })));
 }
 
-module.exports = { splitPpe, withStepPpeLines, stepPpeLine, ppeChanges, stepPpeRows, abrasiveWork, atHeight, anchorLine, ALL_WORK_ONLY, GENERAL_STEPS };
+module.exports = { agreePpe, wornSaid, splitPpe, withStepPpeLines, stepPpeLine, ppeChanges, stepPpeRows, abrasiveWork, atHeight, anchorLine, ALL_WORK_ONLY, GENERAL_STEPS };

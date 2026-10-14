@@ -957,6 +957,14 @@ function weighted(swms, state, context) {
     const ppeShare = levels.length ? levels.filter((level) => level === 'PPE').length / levels.length : 1;
     if (ppeShare <= 0.2) points += 3;
     else if (ppeShare <= 0.35) { points += 1.5; fixes.push('Too many controls are PPE. Put higher order controls first.'); } else fixes.push('Most controls are PPE. Put elimination, isolation and engineering controls before PPE.');
+    // The PPE list agrees with the steps (messy round 4: a harness in the controls with "Falls: none", a P2
+    // respirator in a step with "Breathing: none"). 2 points for each item the steps say is worn that the
+    // PPE list leaves out, at most 4. A SWMS with no PPE list is not judged on it.
+    const missingPpe = ppeContradictions(swms);
+    if (missingPpe.length) {
+      points -= Math.min(4, 2 * missingPpe.length);
+      fixes.push(`The steps say ${missingPpe.map((item) => item.name).join(' and ')} ${missingPpe.length === 1 ? 'is' : 'are'} worn, but the PPE list leaves ${missingPpe.length === 1 ? 'it' : 'them'} out (${missingPpe.map((item) => item.step).join('; ')}). Make the PPE list and the steps agree.`);
+    }
     add('W2', 'Controls follow the hierarchy', 10, points, fixes, 'Each high risk step has a higher order control, and few controls are PPE.');
   }
 
@@ -1026,6 +1034,14 @@ function weighted(swms, state, context) {
     points += needed.length ? 3 * ((needed.length - unmatched.length) / needed.length) : 3;
     if (unmatched.length) fixes.push(`Match a licence or ticket to the plant and work: ${unmatched.map((item) => item.name).join(', ')}.`);
     if (!PLANT_WORDS.test(allText) || /\b(inspect\w*|pre-?start|log ?books?|serviced|tested and tagged|test and tag|handover certificate)\b/i.test([...swms.plant, ...allControls].join(' '))) points += 2; else fixes.push('Say how plant and equipment are inspected before use.');
+    // Another trade's licence or licensing lines in a SWMS whose work is not that trade's (messy round 4:
+    // electrician and apprentice lines in a structural steel SWMS, electrical and plumbing licences for a fire
+    // crew). 2 points for each such trade, at most 4.
+    const others = otherTradeLines(swms);
+    if (others.length) {
+      points -= Math.min(4, 2 * others.length);
+      fixes.push(`The SWMS has ${others.map((item) => item.what).join(' and ')}, but its work is not ${others.length === 1 ? 'that trade\'s' : 'those trades\''}. Take ${others.length === 1 ? 'it' : 'them'} out, or say which part of the work needs ${others.length === 1 ? 'it' : 'them'}.`);
+    }
     add('W5', 'Licences, competency and plant', 8, points, fixes, 'Licences, tickets and plant inspections are matched to the task.');
   }
 
@@ -1276,6 +1292,43 @@ function weighted(swms, state, context) {
       : notNeeded.length ? `The SWMS records ${notNeeded.join('; ')} as not needed for this work.` : 'No step relies on an engineer\'s or temporary works design.');
   }
   return out;
+}
+
+// Items the steps say are worn or used, which the PPE list leaves out: { name, step }. Lines that only say
+// what applies where an item is used ("Where harnesses are used, ...") do not count.
+const PPE_SAID = [
+  { name: 'a full body harness', listed: /\bharness/i, said: /\b(?:wear\w*|worn|uses?|used|using|attach\w*|clipped|connected|full body harness\w*)\b[^.;]*\bharness\w*\b|\bharness\w*\b[^.;]*\b(?:worn|attached|clipped|connected|set up|is used|are used)\b|\bharness work\b|\bfall arrest is used\b|\buse travel restraint\b/i },
+  { name: 'a respirator', listed: /\b(?:respirator|P[123]\b|mask)/i, said: /\b(?:wear\w*|worn)\b[^.;]*\b(?:P[123]|respirators?|dust masks?)\b|\b(?:P[123]|respirators?|dust masks?)\b[^.;]*\b(?:worn|is worn|are worn)\b|\bP2 (?:mask|respirator)\b/i },
+  { name: 'heat resistant gloves', listed: /\b(?:heat resistant|welding)\b/i, said: /\b(?:heat[- ]resistant|welding) gloves\b/i },
+  { name: 'hearing protection', listed: /\bear (?:plugs|muffs)|hearing/i, said: /\b(?:wear\w*|worn)\b[^.;]*\b(?:ear (?:plugs|muffs)|hearing protection)\b/i },
+];
+const PPE_CONDITIONAL = /^\s*(?:where|if|when|unless|whenever|should)\b/i;
+const PPE_NOT_DONE = /\b(?:never|no one|nobody|(?:do|does|is|are|must|should|can) not|cannot|don't|instead of|rather than)\b/i;
+function ppeContradictions(swms) {
+  const listed = (swms.ppe || []).join('\n');
+  if (!listed.trim()) return [];
+  const sentences = (line) => String(line || '').replace(/\s*\((?:[^()]|\([^()]*\))*\)\s*$/, '').split(/(?<=[.;!?])\s+/);
+  const out = [];
+  for (const item of PPE_SAID) {
+    if (item.listed.test(listed)) continue;
+    const step = swms.steps.find((entry) => entry.controls.some((line) => sentences(line).some((sentence) => !PPE_CONDITIONAL.test(sentence) && !PPE_NOT_DONE.test(sentence) && item.said.test(sentence))));
+    if (step) out.push({ name: item.name, step: step.step });
+  }
+  return out;
+}
+
+// Another trade's licence, or its licensing lines, where the SWMS's own work (its task and step names) is
+// not that trade's: { what }.
+const OTHER_TRADES = [
+  { what: 'electrical licensing lines or an electrical licence', lines: /\b(?:electrical work is done or supervised only by licensed|apprentices are supervised at all times by a licensed electrical|electrical (?:work )?licen[cs]e|licensed electrician\) under)/i, work: /\b(electrical|electrician|wiring|rewir\w*|switchboards?|distribution boards?|circuits?|power points?|gpos?|light fittings?|lights\b|lighting|cabl\w*|solar|photovoltaic|inverters?|batter(?:y|ies)|generators?|fit[- ]?off|rough[- ]?in|terminat\w*|test the new work|isolate and prove|energised parts|construction power|temporary power|fire alarm|detectors?|smoke alarms?|exit signs?|emergency light\w*|conduits?|cast[- ]ins?|containment|cable trays?|ladders? for cables|risers?|services?|isolat\w*|electric\w*|motors?|control panels?|lift (?:installation|motors?|cars?)|pumps?|earth\w*|lightning|switch\w*|data|comms|communications|security|cctv|access control|ups|dewater\w*)\b/i },
+  { what: 'plumbing licensing lines or a plumbing licence', lines: /\b(?:plumbing and drainage work is done by licensed|plumbing (?:and drainage )?licen[cs]e|backflow prevention devices and temperature control devices)/i, work: /\b(plumb\w*|drain\w*|sewer\w*|sanitary|stormwater|hot water|cold water|water (?:service|supply|mains?|meters?|connections?|heaters?|tanks?)|tapware|toilets?|basins?|vanit\w*|backflow|gas\b|fixtures|hydraulic|pipes?|pipework|risers?|sleeves?|puddle flanges?|cast[- ]ins?|valves?|pumps?|sumps?|tanks?|waste|penetrations?|services?|trenches?|pits?|boilers?|heaters?|condensate|irrigation|mains?|downpipes?|gutters?|roof drainage|rainwater|dewater\w*|water)\b/i },
+];
+function otherTradeLines(swms) {
+  const work = [swms.task, ...swms.steps.map((step) => step.step)].join('\n');
+  const said = [...swms.licences, ...swms.steps.flatMap((step) => step.controls)].join('\n');
+  // Fire services pipework is not plumbing.
+  const own = /\b(sprinklers?|hydrants?|fire (?:services?|mains?|pipework|hose reels?))\b/i.test(work) ? work.replace(/\b(?:sprinklers?|hydrants?|fire services?|fire mains?|fire (?:hose reels?|pipework))\b[^.\n]*/gi, ' ') : work;
+  return OTHER_TRADES.filter((item) => item.lines.test(said) && !item.work.test(own)).map((item) => ({ what: item.what }));
 }
 
 function bandFor(score, failed) {

@@ -56,7 +56,9 @@ test('a stood down draft names only questions the questions route asks for the s
     for (const label of facts2) assert.ok(asked.includes(label), `${input.task.slice(0, 60)}: "${label}" is not asked`);
     if (facts2.includes('Harness and anchors') && !first.required.some((item) => item.id === 'harnessSystem')) followed += 1;
   }
-  assert.ok(followed >= 3, `pick list tasks whose first answers bring in Harness and anchors: ${followed}`);
+  // Since the round 4 merge a harness the steps' lines name is asked from the start, so fewer tasks
+  // bring it in only with their first answers.
+  assert.ok(followed >= 1, `pick list tasks whose first answers bring in Harness and anchors: ${followed}`);
 });
 
 // The page script in a small stand-in for the browser: it asks again when an answer changes, while

@@ -122,7 +122,8 @@ function categoriesFor(draft = {}) {
   return [
     ewp ? 'ewp' : '',
     !ewp && has(FALL) ? 'fall' : '',
-    has(/energised electrical/i) && draft.electricalWork !== false ? 'electrical' : '',
+    // Not where the only energised services are power lines (draft.js electricalLinesOnly): the power line row covers them.
+    has(/energised electrical/i) && draft.electricalWork !== false && !draft.electricalLinesOnly ? 'electrical' : '',
     has(/\b(?:trench|shaft|tunnel)\b/i) ? 'trench' : '',
     has(/confined space/i) ? 'confined' : '',
     has(/powered mobile plant/i) && mobile ? 'plant' : '',

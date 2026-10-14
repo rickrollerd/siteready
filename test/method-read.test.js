@@ -305,7 +305,8 @@ test('the routes: whether reading is on, and starting a reading needs an account
 // own step with the methodology's own words; a skipped one, or no reading at all, changes nothing.
 test('accepted suggestions go in as job steps and own steps; skipped or unused changes nothing', () => {
   const input = { state: 'qld', fallRisk: 'yes', residential: 'no', task: 'Raise the jump lift machine platform in the lift shaft', kinds: ['liftShaft'], company: 'Test Lifts', ...ANSWERED,
-    facts: { fallControl: 'Landing entrances barricaded.' } };
+    // The lift shaft steps' lines name a harness, so its question is answered from the start (round 4 merge).
+    facts: { fallControl: 'Landing entrances barricaded.', harnessSystem: 'Full body harness on a restraint lanyard to the engineer-rated anchor in the shaft, inspected every 6 months, users trained by ABC Training.' } };
   const before = prepareDraft(draftBody(input));
   assert.equal(before.kind, 'draft');
   // Skipped: the input the page sends is the same, so the draft is the same.

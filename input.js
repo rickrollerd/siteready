@@ -316,6 +316,7 @@ function draftBody(body) {
       isolationProcedure: field(facts.isolationProcedure, 2000),
       energisedWork: field(facts.energisedWork, 100),
       liveElectrical: field(facts.liveElectrical, 100),
+      mainsConnection: field(facts.mainsConnection, 100),
       constructionTesting: field(facts.constructionTesting, 2000),
       spaceAssessment: field(facts.spaceAssessment, 100),
       silicaControls: field(facts.silicaControls, 2000),

@@ -314,8 +314,11 @@ test('the preparer and reviewer signature lines are part of the SWMS, not a sign
   assert.equal(stripped.found, false);
 });
 
+// The roof edge protection step's lines name a harness, so its question is answered (round 4 merge).
+const ROOF_HARNESS = 'Full body harness on a restraint lanyard to the rated roof anchors, inspected every 6 months, users trained.';
+
 test('a SiteReady SWMS with its own sign-on sheet: the sheet is removed from the Word and the PDF', async (t) => {
-  const draft = prepareDraft(draftBody({ state: 'qld', task: 'Install metal roof sheeting on a new two storey house.', fallRisk: 'yes', workplace: '14 Banksia Road, Ashgrove QLD 4060', facts: { fallControl: 'Scaffold with edge protection around the roof perimeter.' } }));
+  const draft = prepareDraft(draftBody({ state: 'qld', task: 'Install metal roof sheeting on a new two storey house.', fallRisk: 'yes', workplace: '14 Banksia Road, Ashgrove QLD 4060', facts: { fallControl: 'Scaffold with edge protection around the roof perimeter.', harnessSystem: ROOF_HARNESS } }));
   const signons = [
     { worker_name: CREW[0].name, worker_company: CREW[0].employer, signature: `data:image/png;base64,${SIGNATURE.toString('base64')}`, signedDate: '6 October 2026', note: '' },
     { worker_name: CREW[1].name, worker_company: CREW[1].employer, signature: '', signedDate: '6 October 2026', note: 'Explained by Imogen Thistlewood (supervisor)' },
@@ -345,7 +348,7 @@ const PASTED_PRIVATE = [...CREW.flatMap((item) => [item.name, item.employer]), '
 function assertPastedPrivate(text, label) {
   for (const item of PASTED_PRIVATE) assert.ok(!text.includes(item), `${label}: "${item}" is left in`);
 }
-const roofDraft = () => prepareDraft(draftBody({ state: 'qld', task: 'Install metal roof sheeting on a new two storey house.', fallRisk: 'yes', workplace: '14 Banksia Road, Ashgrove QLD 4060', facts: { fallControl: 'Scaffold with edge protection around the roof perimeter.' } }));
+const roofDraft = () => prepareDraft(draftBody({ state: 'qld', task: 'Install metal roof sheeting on a new two storey house.', fallRisk: 'yes', workplace: '14 Banksia Road, Ashgrove QLD 4060', facts: { fallControl: 'Scaffold with edge protection around the roof perimeter.', harnessSystem: ROOF_HARNESS } }));
 // Each table cell on its own line, as a text extractor gives it from the Word file.
 const extracted = async (signons) => (await mammoth.extractRawText({ buffer: Buffer.from(await draftToDocx(roofDraft(), { signons })) })).value;
 // Word's own plain text: a table row on one line, its cells split by tabs.
